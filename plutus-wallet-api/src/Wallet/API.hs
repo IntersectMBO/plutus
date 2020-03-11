@@ -190,26 +190,26 @@ throwOtherError = throwError . OtherError
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
-payToScripts :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m Tx
+payToScripts :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, Datum)] -> m Tx
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
-        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (dataValueHash ds))) ins
+        otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (datumHash ds))) ins
         datas        = fmap (\(_, _, d) -> d) ins
     (i, ownChange) <- createPaymentWithChange totalVal
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
 
 -- | Transfer some funds to a number of script addresses.
-payToScripts_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, DataValue)] -> m ()
+payToScripts_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> [(Address, Value, Datum)] -> m ()
 payToScripts_ range = void . payToScripts range
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> DataValue -> m Tx
+payToScript :: (WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> Datum -> m Tx
 payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
-payToScript_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> DataValue -> m ()
+payToScript_ :: (Monad m, WalletAPI m, NodeAPI m, SigningProcessAPI m) => SlotRange -> Address -> Value -> Datum -> m ()
 payToScript_ range addr v = void . payToScript range addr v
 
 getScriptInputs
@@ -228,11 +228,11 @@ getScriptInputsFilter
 getScriptInputsFilter flt am vls red =
     let utxo    = fromMaybe Map.empty $ am ^. at (scriptAddress vls)
         ourUtxo = Map.filterWithKey flt utxo
-        mkIn :: TxOutRef -> DataValue -> TxIn
+        mkIn :: TxOutRef -> Datum -> TxIn
         mkIn ref = scriptTxIn ref vls red
         inputs =
             fmap (\(ref, dat, val) -> (mkIn ref dat, val)) $
-            mapMaybe (\(ref, out) -> (ref,,txOutValue $ txOutTxOut out) <$> txOutTxData out) $
+            mapMaybe (\(ref, out) -> (ref,,txOutValue $ txOutTxOut out) <$> txOutTxDatum out) $
             Map.toList ourUtxo
     in inputs
 
@@ -316,14 +316,14 @@ createTxAndSubmit ::
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
-    -> [DataValue]
+    -> [Datum]
     -> m Tx
 createTxAndSubmit range ins outs datas = do
     let tx = mempty
             { txInputs = ins
             , txOutputs = outs
             , txValidRange = range
-            , txData = Map.fromList $ fmap (\ds -> (dataValueHash ds, ds)) datas
+            , txData = Map.fromList $ fmap (\ds -> (datumHash ds, ds)) datas
             }
     signTxAndSubmit $ tx { txFee = minFee tx }
 

@@ -33,23 +33,23 @@ module Ledger.Scripts(
     Validator,
     unValidatorScript,
     RedeemerValue(..),
-    DataValue(..),
+    Datum(..),
     mkMonetaryPolicyScript,
     MonetaryPolicy (..),
     unMonetaryPolicyScript,
     ValidationData(..),
     -- * Hashes
-    DataValueHash(..),
+    DatumHash(..),
     RedeemerHash(..),
     ValidatorHash(..),
     MonetaryPolicyHash (..),
-    dataValueHash,
+    datumHash,
     redeemerHash,
     validatorHash,
     monetaryPolicyHash,
     -- * Example scripts
     unitRedeemer,
-    unitData
+    unitDatum
     ) where
 
 import qualified Prelude                              as Haskell
@@ -230,14 +230,14 @@ instance BA.ByteArrayAccess Validator where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'DataValue' is a wrapper around 'Data' values which are used as data in transaction outputs.
-newtype DataValue = DataValue { getDataScript :: Data  }
+-- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
+newtype Datum = Datum { getDatum :: Data  }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise, IsData)
   deriving anyclass (ToJSON, FromJSON, IotsType)
   deriving Pretty via Data
 
-instance BA.ByteArrayAccess DataValue where
+instance BA.ByteArrayAccess Datum where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -286,14 +286,14 @@ instance IotsType ValidatorHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
-newtype DataValueHash =
-    DataValueHash Builtins.ByteString
+newtype DatumHash =
+    DatumHash Builtins.ByteString
     deriving (IsString, Show, Serialise, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Hashable, IsData)
     deriving anyclass (FromJSON, ToJSON, ToJSONKey, FromJSONKey)
 
-instance IotsType DataValueHash where
+instance IotsType DatumHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
 -- | Script runtime representation of a @Digest SHA256@.
@@ -318,8 +318,8 @@ newtype MonetaryPolicyHash =
 instance IotsType MonetaryPolicyHash where
     iotsDefinition = iotsDefinition @LedgerBytes
 
-dataValueHash :: DataValue -> DataValueHash
-dataValueHash = DataValueHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
+datumHash :: Datum -> DatumHash
+datumHash = DatumHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
 redeemerHash :: RedeemerValue -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
@@ -348,11 +348,11 @@ runScript
     => Checking
     -> ValidationData
     -> Validator
-    -> DataValue
+    -> Datum
     -> RedeemerValue
     -> m [Haskell.String]
-runScript checking (ValidationData valData) (Validator validator) (DataValue dataValue) (RedeemerValue redeemer) = do
-    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode dataValue)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
+runScript checking (ValidationData valData) (Validator validator) (Datum datum) (RedeemerValue redeemer) = do
+    let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
 -- | Evaluate a monetary policy script just the validation data, returning the log.
@@ -366,9 +366,9 @@ runMonetaryPolicyScript checking (ValidationData valData) (MonetaryPolicy valida
     let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
--- | @()@ as a data script.
-unitData :: DataValue
-unitData = DataValue $ toData ()
+-- | @()@ as a datum.
+unitDatum :: Datum
+unitDatum = Datum $ toData ()
 
 -- | @()@ as a redeemer.
 unitRedeemer :: RedeemerValue
@@ -376,10 +376,10 @@ unitRedeemer = RedeemerValue $ toData ()
 
 makeLift ''ValidatorHash
 
-makeLift ''DataValueHash
+makeLift ''DatumHash
 
 makeLift ''MonetaryPolicyHash
 
 makeLift ''RedeemerHash
 
-makeLift ''DataValue
+makeLift ''Datum

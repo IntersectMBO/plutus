@@ -35,8 +35,8 @@ mkValidator pk' _ _ p = V.txSignedBy p pk'
 data PubKeyContract
 
 instance Scripts.ScriptType PubKeyContract where
-    type instance DataType PubKeyContract = ()
     type instance RedeemerType PubKeyContract = ()
+    type instance DatumType PubKeyContract = ()
 
 scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
 scriptInstance pk =
@@ -59,7 +59,7 @@ pubKeyContract pk vl = do
     let inst = scriptInstance pk
         address = Scripts.scriptAddress inst
         tx = Constraints.mustPayToTheScript () vl
-        
+
     tid <- submitTxConstraints inst tx
 
     ledgerTx <- awaitTransactionConfirmed address tid

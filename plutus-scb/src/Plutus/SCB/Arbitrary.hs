@@ -99,11 +99,11 @@ instance Arbitrary PlutusTx.Data where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance Arbitrary Ledger.DataValue where
+instance Arbitrary Ledger.Datum where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance Arbitrary Ledger.DataValueHash where
+instance Arbitrary Ledger.DatumHash where
     arbitrary = genericArbitrary
     shrink = genericShrink
 

@@ -200,8 +200,8 @@ validators = bgroup "validators" [ trivial, multisig ]
 -- | The trivial validator script that just returns 'True'.
 trivial :: Benchmark
 trivial = bgroup "trivial" [
-        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
+        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitDatum, unitRedeemer),
+        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitDatum, unitRedeemer)
     ]
     where
         validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
@@ -213,22 +213,22 @@ multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of1
-            , unitData
+            , unitDatum
             , unitRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of2
-            , unitData
+            , unitDatum
             , unitRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen2of2
-            , unitData
+            , unitDatum
             , unitRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
             , Scripts.validatorScript $ MS.scriptInstance msScen1of1
-            , unitData
+            , unitDatum
             , unitRedeemer)
     ]
     where
@@ -241,9 +241,9 @@ multisig = bgroup "multisig" [
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
 
-runScriptNoCheck :: (ValidationData, Validator, DataValue, RedeemerValue) -> Either ScriptError [String]
+runScriptNoCheck :: (ValidationData, Validator, Datum, RedeemerValue) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (ValidationData, Validator, DataValue, RedeemerValue) -> Either ScriptError [String]
+runScriptCheck :: (ValidationData, Validator, Datum, RedeemerValue) -> Either ScriptError [String]
 runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey
@@ -282,7 +282,7 @@ mockPendingTx = PendingTx
             { txOutRefId = TxId P.emptyByteString
             , txOutRefIdx = 0
             }
-        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DataValueHash "")
+        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DatumHash "")
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange

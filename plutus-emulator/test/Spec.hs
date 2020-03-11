@@ -212,13 +212,13 @@ invalidScript = property $ do
 
     -- modify one of the outputs to be a script output
     index <- forAll $ Gen.int (Range.linear 0 ((length $ txOutputs txn1) -1))
-    let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitData
+    let scriptTxn = txn1 & outputs . element index %~ \o -> scriptTxOut (txOutValue o) failValidator unitDatum
     Hedgehog.annotateShow (scriptTxn)
     let outToSpend = (txOutRefs scriptTxn) !! index
     let totalVal = Ada.fromValue $ txOutValue (fst outToSpend)
 
     -- try and spend the script output
-    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer unitData]) totalVal
+    invalidTxn <- forAll $ Gen.genValidTransactionSpending (Set.fromList [scriptTxIn (snd outToSpend) failValidator unitRedeemer unitDatum]) totalVal
     Hedgehog.annotateShow (invalidTxn)
 
     let (result, st) = Gen.runTrace m $ do

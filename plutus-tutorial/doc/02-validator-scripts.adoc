@@ -39,7 +39,7 @@ import           Language.PlutusTx.Prelude    hiding (Applicative (..)) -- <.>
 
 import qualified Language.PlutusTx            as PlutusTx -- <.>
 
-import           Ledger                       (Address, DataValue(..), RedeemerValue(..),
+import           Ledger                       (Address, Datum(..), RedeemerValue(..),
                                                Validator, mkValidatorScript)
 import qualified Ledger                       as L -- <.>
 import qualified Ledger.Ada                   as Ada
@@ -98,10 +98,10 @@ newtype ClearText = ClearText ByteString -- <.>
 PlutusTx.makeLift ''HashedText
 PlutusTx.makeLift ''ClearText -- <.>
 
-mkDataValue :: String -> DataValue
-mkDataValue word =
+mkDatum :: String -> Datum
+mkDatum word =
     let hashedWord = sha2_256 (C.pack word)
-    in  DataValue (PlutusTx.toData (HashedText hashedWord)) -- <.>
+    in  Datum (PlutusTx.toData (HashedText hashedWord)) -- <.>
 
 mkRedeemerValue :: String -> RedeemerValue
 mkRedeemerValue word =
@@ -112,7 +112,7 @@ mkRedeemerValue word =
 types called `HashedText` and `ClearText`, respectively.
 <.> To enable values of our string types to be lifted to Plutus Core, we
 need to call `makeLift`.
-<.> `mkDataValue` creates a data script for the guessing game by hashing
+<.> `mkDatum` creates a data script for the guessing game by hashing
 the string and lifting the hash to its on-chain representation.
 <.> `mkRedeemerValue` creates a redeemer script for the guessing game by
 lifting the string to its on-chain representation.
@@ -214,7 +214,7 @@ lock word adaValue = W.payToScript_ -- <.>
      W.defaultSlotRange -- <.>
      gameAddress
      (Ada.toValue adaValue) -- <.>
-     (mkDataValue word)
+     (mkDatum word)
 ----
 <.> `payToScript_` is a function of the wallet API. It makes a payment to a script address
 of the specified value.footnote:[

@@ -42,7 +42,7 @@ import           Wallet.Emulator.NodeClient    (Notification (..))
 
 -- $chainIndex
 -- The SCB chain index that keeps track of transaction data (UTXO set enriched
--- with data values)
+-- with datums)
 
 app :: MVar AppState -> Application
 app stateVar =

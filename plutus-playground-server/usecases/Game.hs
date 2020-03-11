@@ -57,7 +57,7 @@ type GameSchema =
 data Game
 instance Scripts.ScriptType Game where
     type instance RedeemerType Game = ClearString
-    type instance DataType Game = HashedString
+    type instance DatumType Game = HashedString
 
 gameInstance :: Scripts.ScriptInstance Game
 gameInstance = Scripts.validator @Game
@@ -75,7 +75,7 @@ hashString = HashedString . sha2_256 . C.pack
 clearString :: String -> ClearString
 clearString = ClearString . C.pack
 
--- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
+-- | The validation function (Datum -> Redeemer -> PendingTx -> Bool)
 validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 

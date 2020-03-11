@@ -65,7 +65,7 @@ data TokenAccount
 
 instance ScriptType TokenAccount where
     type RedeemerType TokenAccount = ()
-    type DataType TokenAccount = ()
+    type DatumType TokenAccount = ()
 
 type TokenAccountSchema =
     BlockchainActions
@@ -130,11 +130,11 @@ validatorHash = Ledger.Scripts.validatorHash . Scripts.validatorScript . scriptI
 payTx
     ::
     Value
-    -> TxConstraints (Scripts.RedeemerType TokenAccount) (Scripts.DataType TokenAccount)
+    -> TxConstraints (Scripts.RedeemerType TokenAccount) (Scripts.DatumType TokenAccount)
 payTx vl = Constraints.mustPayToTheScript () vl
 
 -- | Pay some money to the given token account
-pay 
+pay
     :: ( AsContractError e
        , HasWriteTx s )
     => Scripts.ScriptInstance TokenAccount
@@ -144,7 +144,7 @@ pay inst = submitTxConstraints inst . payTx
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
-    :: ( HasUtxoAt s 
+    :: ( HasUtxoAt s
        , AsContractError e
        )
     => Account

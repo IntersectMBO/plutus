@@ -96,10 +96,10 @@ submitTxConstraints
   ( HasWriteTx s
   , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DataType a)
+  , PlutusTx.IsData (DatumType a)
   )
   => ScriptInstance a
-  -> TxConstraints (RedeemerType a) (DataType a)
+  -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract s e TxId
 submitTxConstraints inst = submitTxConstraintsWith (Constraints.scriptInstanceLookups inst)
 
@@ -110,11 +110,11 @@ submitTxConstraintsSpending
   ( HasWriteTx s
   , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DataType a)
+  , PlutusTx.IsData (DatumType a)
   )
   => ScriptInstance a
   -> UtxoMap
-  -> TxConstraints (RedeemerType a) (DataType a)
+  -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract s e TxId
 submitTxConstraintsSpending inst utxo =
   let lookups = Constraints.scriptInstanceLookups inst <> Constraints.unspentOutputs utxo
@@ -127,9 +127,9 @@ submitTxConstraintsWith
   ( HasWriteTx s
   , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DataType a) )
+  , PlutusTx.IsData (DatumType a) )
   => ScriptLookups a
-  -> TxConstraints (RedeemerType a) (DataType a)
+  -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract s e TxId
 submitTxConstraintsWith sl constraints = do
   tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)

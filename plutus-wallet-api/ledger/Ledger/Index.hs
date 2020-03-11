@@ -93,8 +93,8 @@ data ValidationError =
     -- there was no transaction with the given hash on the blockchain).
     | InvalidScriptHash Validator ValidatorHash
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
-    | InvalidDataHash DataValue DataValueHash
-    -- ^ For pay-to-script outputs: the data value provided in the transaction input does not match the hash specified in the transaction output.
+    | InvalidDatumHash Datum DatumHash
+    -- ^ For pay-to-script outputs: the datum provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
     | ValueNotPreserved V.Value V.Value
@@ -225,7 +225,7 @@ data InOutMatch =
         TxIn
         Validator
         RedeemerValue
-        DataValue
+        Datum
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -243,7 +243,7 @@ matchInputOutput :: ValidationMonad m
     -> m InOutMatch
 matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress txo) of
     (ConsumeScriptAddress v r d, PayToScript dh, ScriptAddress vh) -> do
-        unless (dataValueHash d == dh) $ throwError $ InvalidDataHash d dh
+        unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
         pure $ ScriptMatch i v r d
@@ -325,7 +325,7 @@ validationData tx = do
             , pendingTxValidRange = txValidRange tx
             , pendingTxForgeScripts = monetaryPolicyHash <$> Set.toList (tx ^. forgeScripts)
             , pendingTxSignatories = fmap pubKeyHash $ Map.keys (tx ^. signatures)
-            , pendingTxData = Map.toList (tx ^. dataWitnesses)
+            , pendingTxData = Map.toList (tx ^. datumWitnesses)
             , pendingTxId = txId tx
             }
     pure ptx
@@ -335,10 +335,10 @@ pendingTxInScript
     => TxOutRef
     -> Validator
     -> RedeemerValue
-    -> DataValue
+    -> Datum
     -> m Validation.PendingTxInScript
 pendingTxInScript outRef val red dat = txInFromRef outRef witness where
-        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.dataValueHash dat)
+        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.datumHash dat)
 
 txInFromRef
     :: ValidationMonad m
