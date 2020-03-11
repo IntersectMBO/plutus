@@ -112,7 +112,7 @@ instance Arbitrary Ledger.Script where
       where
         validator = wrapValidator ((\_ _ _ -> True) :: Integer -> Integer -> Ledger.PendingTx -> Bool)
 
-instance Arbitrary Ledger.RedeemerValue where
+instance Arbitrary Ledger.Redeemer where
     arbitrary = genericArbitrary
     shrink = genericShrink
 

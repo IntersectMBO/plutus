@@ -73,7 +73,7 @@ makeTypedScriptTxIn
     -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
-        rs = RedeemerValue (toData r)
+        rs = Redeemer (toData r)
         ds = Datum (toData d)
         txInType = ConsumeScriptAddress vs rs ds
     in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
@@ -176,13 +176,13 @@ checkValidatorScript _ (unValidatorScript -> (Script prog)) =
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 
 -- | Checks that the given redeemer script has the right type.
-checkRedeemerValue
+checkRedeemer
     :: forall inn m
     . (IsData (RedeemerType inn), MonadError ConnectionError m)
     => ScriptInstance inn
-    -> RedeemerValue
+    -> Redeemer
     -> m (RedeemerType inn)
-checkRedeemerValue _ (RedeemerValue d) =
+checkRedeemer _ (Redeemer d) =
     case fromData d of
         Just v  -> pure v
         Nothing -> throwError WrongRedeemerType
@@ -213,7 +213,7 @@ typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
         ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
         x                             -> throwError $ WrongInType x
     _ <- checkValidatorScript si vs
-    rsVal <- checkRedeemerValue si rs
+    rsVal <- checkRedeemer si rs
     _ <- checkDatum si ds
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef
     pure $ makeTypedScriptTxIn si rsVal typedOut

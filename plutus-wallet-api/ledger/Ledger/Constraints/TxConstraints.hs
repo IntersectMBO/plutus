@@ -28,7 +28,7 @@ import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Crypto              (PubKeyHash)
 import qualified Ledger.Interval            as I
-import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, RedeemerValue,
+import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer,
                                              ValidatorHash)
 import           Ledger.Slot                (SlotRange)
 import           Ledger.Tx                  (TxOutRef)
@@ -44,7 +44,7 @@ data TxConstraint =
     | MustBeSignedBy PubKeyHash
     | MustSpendValue Value
     | MustSpendPubKeyOutput TxOutRef
-    | MustSpendScriptOutput TxOutRef RedeemerValue
+    | MustSpendScriptOutput TxOutRef Redeemer
     | MustForgeValue MonetaryPolicyHash TokenName Integer
     | MustPayToPubKey PubKeyHash Value
     | MustPayToOtherScript ValidatorHash Datum Value
@@ -212,7 +212,7 @@ mustSpendPubKeyOutput :: forall i o. TxOutRef -> TxConstraints i o
 mustSpendPubKeyOutput = singleton . MustSpendPubKeyOutput
 
 {-# INLINABLE mustSpendScriptOutput #-}
-mustSpendScriptOutput :: forall i o. TxOutRef -> RedeemerValue -> TxConstraints i o
+mustSpendScriptOutput :: forall i o. TxOutRef -> Redeemer -> TxConstraints i o
 mustSpendScriptOutput txOutref = singleton . MustSpendScriptOutput txOutref
 
 {-# INLINABLE mustHashDatum #-}

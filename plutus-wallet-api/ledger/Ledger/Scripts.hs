@@ -32,7 +32,7 @@ module Ledger.Scripts(
     mkValidatorScript,
     Validator,
     unValidatorScript,
-    RedeemerValue(..),
+    Redeemer(..),
     Datum(..),
     mkMonetaryPolicyScript,
     MonetaryPolicy (..),
@@ -243,16 +243,16 @@ instance BA.ByteArrayAccess Datum where
     withByteArray =
         BA.withByteArray . Write.toStrictByteString . encode
 
--- | 'RedeemerValue' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
-newtype RedeemerValue = RedeemerValue { getRedeemer :: Data }
+-- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
+newtype Redeemer = Redeemer { getRedeemer :: Data }
   deriving stock (Generic, Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, Serialise)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
-instance Pretty RedeemerValue where
-    pretty (RedeemerValue dat) = "RedeemerValue:" <+> pretty dat
+instance Pretty Redeemer where
+    pretty (Redeemer dat) = "Redeemer:" <+> pretty dat
 
-instance BA.ByteArrayAccess RedeemerValue where
+instance BA.ByteArrayAccess Redeemer where
     length =
         BA.length . Write.toStrictByteString . encode
     withByteArray =
@@ -321,7 +321,7 @@ instance IotsType MonetaryPolicyHash where
 datumHash :: Datum -> DatumHash
 datumHash = DatumHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
-redeemerHash :: RedeemerValue -> RedeemerHash
+redeemerHash :: Redeemer -> RedeemerHash
 redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
@@ -349,9 +349,9 @@ runScript
     -> ValidationData
     -> Validator
     -> Datum
-    -> RedeemerValue
+    -> Redeemer
     -> m [Haskell.String]
-runScript checking (ValidationData valData) (Validator validator) (Datum datum) (RedeemerValue redeemer) = do
+runScript checking (ValidationData valData) (Validator validator) (Datum datum) (Redeemer redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
@@ -371,8 +371,8 @@ unitDatum :: Datum
 unitDatum = Datum $ toData ()
 
 -- | @()@ as a redeemer.
-unitRedeemer :: RedeemerValue
-unitRedeemer = RedeemerValue $ toData ()
+unitRedeemer :: Redeemer
+unitRedeemer = Redeemer $ toData ()
 
 makeLift ''ValidatorHash
 

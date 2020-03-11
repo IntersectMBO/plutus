@@ -224,7 +224,7 @@ data InOutMatch =
     ScriptMatch
         TxIn
         Validator
-        RedeemerValue
+        Redeemer
         Datum
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
@@ -334,7 +334,7 @@ pendingTxInScript
     :: ValidationMonad m
     => TxOutRef
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> Datum
     -> m Validation.PendingTxInScript
 pendingTxInScript outRef val red dat = txInFromRef outRef witness where

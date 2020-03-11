@@ -215,7 +215,7 @@ payToScript_ range addr v = void . payToScript range addr v
 getScriptInputs
     :: AddressMap
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> [(TxIn, Value)]
 getScriptInputs = getScriptInputsFilter (\_ _ -> True)
 
@@ -223,7 +223,7 @@ getScriptInputsFilter
     :: (TxOutRef -> TxOutTx -> Bool)
     -> AddressMap
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> [(TxIn, Value)]
 getScriptInputsFilter flt am vls red =
     let utxo    = fromMaybe Map.empty $ am ^. at (scriptAddress vls)
@@ -236,7 +236,7 @@ getScriptInputsFilter flt am vls red =
             Map.toList ourUtxo
     in inputs
 
-spendScriptOutputs :: (WalletAPI m, ChainIndexAPI m) => Validator -> RedeemerValue -> m [(TxIn, Value)]
+spendScriptOutputs :: (WalletAPI m, ChainIndexAPI m) => Validator -> Redeemer -> m [(TxIn, Value)]
 spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
 
 -- | Take all known outputs at an 'Address' and spend them using the
@@ -244,7 +244,7 @@ spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
 spendScriptOutputsFilter :: (WalletAPI m, ChainIndexAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> m [(TxIn, Value)]
 spendScriptOutputsFilter flt vls red = do
     am <- watchedAddresses
@@ -252,17 +252,17 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m, ChainIndexAPI m, SigningProcessAPI m) => SlotRange -> Validator -> RedeemerValue -> m ()
+collectFromScript :: (WalletDiagnostics m, WalletAPI m, NodeAPI m, ChainIndexAPI m, SigningProcessAPI m) => SlotRange -> Validator -> Redeemer -> m ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
---   'RedeemerValue'.
+--   'Redeemer'.
 collectFromScriptTxn ::
     (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m, SigningProcessAPI m)
     => SlotRange
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> TxId
     -> m ()
 collectFromScriptTxn range vls red txid =
@@ -270,13 +270,13 @@ collectFromScriptTxn range vls red txid =
     collectFromScriptFilter flt range vls red
 
 -- | Given the pay to script address of the 'Validator', collect from it
---   all the outputs that match a predicate, using the 'RedeemerValue'.
+--   all the outputs that match a predicate, using the 'Redeemer'.
 collectFromScriptFilter ::
     (WalletAPI m, NodeAPI m, WalletDiagnostics m, ChainIndexAPI m, SigningProcessAPI m)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
-    -> RedeemerValue
+    -> Redeemer
     -> m ()
 collectFromScriptFilter flt range vls red = do
     inputsWithValues <- spendScriptOutputsFilter flt vls red

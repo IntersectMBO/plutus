@@ -30,7 +30,7 @@ import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, Datum(..), PubKeyHash, RedeemerValue(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
+import           Ledger                    (Address, Datum(..), PubKeyHash, Redeemer(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
@@ -226,7 +226,7 @@ withdraw vst vl = do
 
     let
         -- the redeemer and data scripts containing the unit value ()
-        redeemer   = RedeemerValue (PlutusTx.toData ())
+        redeemer   = Redeemer (PlutusTx.toData ())
         datum = Datum (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values

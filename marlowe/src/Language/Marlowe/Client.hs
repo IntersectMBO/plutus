@@ -29,7 +29,7 @@ import           Ledger                     (Address, Datum (..), pubKeyHash, Sl
                                              mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, scriptTxOut',
                                              txOutRefs)
 import           Ledger.Ada                 (adaValueOf, adaSymbol)
-import           Ledger.Scripts             (RedeemerValue (..), Validator, validatorHash)
+import           Ledger.Scripts             (Redeemer (..), Validator, validatorHash)
 import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
 import           Ledger.Validation
@@ -271,5 +271,5 @@ validatorScript params = mkValidatorScript ($$(PlutusTx.compile [|| validatorPar
 
 
 {-| Make redeemer script -}
-mkRedeemer :: [Input] -> RedeemerValue
-mkRedeemer inputs = RedeemerValue (PlutusTx.toData inputs)
+mkRedeemer :: [Input] -> Redeemer
+mkRedeemer inputs = Redeemer (PlutusTx.toData inputs)

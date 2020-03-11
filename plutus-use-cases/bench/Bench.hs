@@ -241,9 +241,9 @@ multisig = bgroup "multisig" [
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
 
-runScriptNoCheck :: (ValidationData, Validator, Datum, RedeemerValue) -> Either ScriptError [String]
+runScriptNoCheck :: (ValidationData, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (ValidationData, Validator, Datum, RedeemerValue) -> Either ScriptError [String]
+runScriptCheck :: (ValidationData, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey

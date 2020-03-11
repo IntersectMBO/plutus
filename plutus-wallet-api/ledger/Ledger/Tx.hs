@@ -273,7 +273,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 -- | The type of a transaction input.
 data TxInType =
       -- TODO: these should all be hashes, with the validators and data segregated to the side
-      ConsumeScriptAddress !Validator !RedeemerValue !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
+      ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
@@ -307,7 +307,7 @@ inType = lens txInType s where
 
 -- | Validator, redeemer, and data scripts of a transaction input that spends a
 --   "pay to script" output.
-inScripts :: TxIn -> Maybe (Validator, RedeemerValue, Datum)
+inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
 inScripts TxIn{ txInType = t } = case t of
     ConsumeScriptAddress v r d -> Just (v, r, d)
     ConsumePublicKeyAddress    -> Nothing
@@ -317,7 +317,7 @@ pubKeyTxIn :: TxOutRef -> TxIn
 pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> Validator -> RedeemerValue -> Datum -> TxIn
+scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | The type of a transaction output.
