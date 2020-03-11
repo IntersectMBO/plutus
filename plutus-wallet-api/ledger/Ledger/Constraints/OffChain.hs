@@ -54,8 +54,8 @@ import           Ledger.Address                   (Address (..))
 import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints hiding (requiredSignatories)
 import           Ledger.Crypto                    (PubKeyHash)
-import           Ledger.Scripts                   (Datum (..), DatumHash, MonetaryPolicy, MonetaryPolicyHash,
-                                                   Validator, datumHash, monetaryPolicyHash)
+import           Ledger.Scripts                   (Datum (..), DatumHash, MonetaryPolicy, MonetaryPolicyHash, Validator,
+                                                   datumHash, monetaryPolicyHash)
 import           Ledger.Tx                        (Tx, TxOutRef, TxOutTx (..))
 import qualified Ledger.Tx                        as Tx
 import           Ledger.Typed.Scripts             (ScriptInstance, ScriptType (..))

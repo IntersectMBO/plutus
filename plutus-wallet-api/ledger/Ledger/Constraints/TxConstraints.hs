@@ -28,8 +28,7 @@ import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Crypto              (PubKeyHash)
 import qualified Ledger.Interval            as I
-import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer,
-                                             ValidatorHash)
+import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
 import           Ledger.Slot                (SlotRange)
 import           Ledger.Tx                  (TxOutRef)
 import           Ledger.Value               (TokenName, Value, isZero)
@@ -99,7 +98,7 @@ deriving stock instance (Haskell.Eq a) => Haskell.Eq (InputConstraint a)
 
 data OutputConstraint a =
     OutputConstraint
-        { ocDatum  :: a
+        { ocDatum :: a
         , ocValue :: Value
         } deriving (Generic)
 
@@ -256,7 +255,7 @@ requiredMonetaryPolicies = foldMap f . txConstraints where
 requiredDatums :: forall i o. TxConstraints i o -> [Datum]
 requiredDatums = foldMap f . txConstraints where
     f (MustIncludeDatum dv) = [dv]
-    f _                         = []
+    f _                     = []
 
 {-# INLINABLE modifiesUtxoSet #-}
 -- | Check whether every transaction that satisfies the constraints has to
