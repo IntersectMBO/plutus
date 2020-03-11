@@ -175,8 +175,8 @@ erase—→ (A.ξ-·₂ {V = V} p q)                            = map
   (erase—→ q)
 erase—→ (A.ξ-·⋆ p)                                      =
   map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
-erase—→ (A.β-ƛ {N = N}{W = W})                   =
-  inj₁ (subst ((ƛ (erase N) · erase W) U.—→_) (lem[] N W) U.β-ƛ)
+erase—→ (A.β-ƛ {N = N}{V = V} _)                   =
+  inj₁ (subst ((ƛ (erase N) · erase V) U.—→_) (lem[] N V) U.β-ƛ)
 erase—→ (A.β-Λ {N = N}{A = A})                          =
   inj₁ (subst (ƛ (U.weaken (erase N)) · plc_dummy U.—→_)
               (trans (trans (sym (U.sub-ren
@@ -186,7 +186,7 @@ erase—→ (A.β-Λ {N = N}{A = A})                          =
                             (sym (U.sub-id  (erase N))))
                      (lem[]⋆ N A))
               U.β-ƛ)
-erase—→ A.β-wrap1                                       = inj₂ refl
+erase—→ (A.β-wrap1 p)                                   = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
 erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ (subst

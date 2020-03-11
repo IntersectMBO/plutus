@@ -36,11 +36,13 @@ makeEffect ''ChainIndexEffect
 
 data ChainIndexEvent =
     AddressStartWatching Address
+    | ReceiveBlockNotification
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty ChainIndexEvent where
     pretty (AddressStartWatching addr) = "StartWatching:" <+> pretty addr
+    pretty ReceiveBlockNotification    = "ReceiveBlockNotification"
 
 newtype ChainIndexState =
     ChainIndexState
@@ -61,9 +63,9 @@ handleChainIndex
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
     ChainIndexNotify notification -> case notification of
-        BlockValidated txns -> modify $ \s ->
-            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns)
+        BlockValidated txns -> tell [ReceiveBlockNotification] >> (modify $ \s ->
+            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
         _ -> pure ()
-    StartWatching addr -> modify $ \s ->
-        s & idxWatchedAddresses %~ AM.addAddress addr
+    StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
+        s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses

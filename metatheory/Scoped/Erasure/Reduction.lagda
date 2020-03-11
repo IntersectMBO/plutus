@@ -74,5 +74,5 @@ erase—→ (S.β-builtin {b = b}{As = As}{ts = ts} vs) = inj₁ (subst
 erase—→ (S.sat-builtin {b = b}{ts = ts}{t = t}) = inj₁ (subst (builtin b (eraseList ts) · eraseTm t U.—→_) (cong (builtin b) (erase++ ts [ t ])) U.sat-builtin)
 erase—→ (S.ξ-unwrap p) = erase—→ p
 erase—→ (S.ξ-wrap p) = erase—→ p
-erase—→ S.β-wrap = inj₂ refl
+erase—→ (S.β-wrap p) = inj₂ refl
 \end{code}

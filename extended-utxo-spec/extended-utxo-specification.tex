@@ -5,6 +5,7 @@
 
 \pagestyle{plain}
 \date{11th March 2020}
+
 \author{}
 
 \documentclass[a4paper]{article}
@@ -445,9 +446,9 @@ the ledger.
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
-    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\
+    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\r
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
+    \Data \rightarrow \B && \mbox{application of a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \Address,\\

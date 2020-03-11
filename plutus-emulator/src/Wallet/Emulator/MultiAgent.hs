@@ -22,20 +22,21 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
 import           Control.Monad.Freer.State
-import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Map                   (Map)
-import qualified Data.Map                   as Map
-import qualified Data.Text                  as T
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
-import           GHC.Generics               (Generic)
-import           Ledger                     hiding (to, value)
-import qualified Ledger.AddressMap          as AM
-import qualified Ledger.Index               as Index
-import qualified Wallet.API                 as WAPI
-import qualified Wallet.Emulator.Chain      as Chain
-import qualified Wallet.Emulator.ChainIndex as ChainIndex
-import qualified Wallet.Emulator.NodeClient as NC
-import qualified Wallet.Emulator.Wallet     as Wallet
+import           Data.Aeson                     (FromJSON, ToJSON)
+import           Data.Map                       (Map)
+import qualified Data.Map                       as Map
+import qualified Data.Text                      as T
+import           Data.Text.Prettyprint.Doc      hiding (annotate)
+import           GHC.Generics                   (Generic)
+import           Ledger                         hiding (to, value)
+import qualified Ledger.AddressMap              as AM
+import qualified Ledger.Index                   as Index
+import qualified Wallet.API                     as WAPI
+import qualified Wallet.Emulator.Chain          as Chain
+import qualified Wallet.Emulator.ChainIndex     as ChainIndex
+import qualified Wallet.Emulator.NodeClient     as NC
+import qualified Wallet.Emulator.SigningProcess as SP
+import qualified Wallet.Emulator.Wallet         as Wallet
 
 -- | Assertions which will be checked during execution of the emulator.
 data Assertion
@@ -84,14 +85,14 @@ chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w
 data MultiAgentEffect r where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect] r
+    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
 
@@ -108,11 +109,12 @@ assertIsValidated = assertion . IsValidated
 
 -- | The state of the emulator itself.
 data EmulatorState = EmulatorState {
-    _chainState             :: Chain.ChainState,
-    _walletStates           :: Map Wallet.Wallet Wallet.WalletState, -- ^ The state of each wallet.
-    _walletClientStates     :: Map Wallet.Wallet NC.NodeClientState, -- ^ The state of each wallet's node client.
-    _walletChainIndexStates :: Map Wallet.Wallet ChainIndex.ChainIndexState, -- ^ The state of each wallet's chain index
-    _emulatorLog            :: [EmulatorEvent] -- ^ The emulator events, with the newest last.
+    _chainState                 :: Chain.ChainState,
+    _walletStates               :: Map Wallet.Wallet Wallet.WalletState, -- ^ The state of each wallet.
+    _walletClientStates         :: Map Wallet.Wallet NC.NodeClientState, -- ^ The state of each wallet's node client.
+    _walletChainIndexStates     :: Map Wallet.Wallet ChainIndex.ChainIndexState, -- ^ The state of each wallet's chain index
+    _walletSigningProcessStates :: Map Wallet.Wallet SP.SigningProcess, -- ^ The wallet's signing process
+    _emulatorLog                :: [EmulatorEvent] -- ^ The emulator events, with the newest last.
     } deriving (Show)
 
 makeLenses ''EmulatorState
@@ -125,6 +127,9 @@ walletClientState wallet = walletClientStates . at wallet . non NC.emptyNodeClie
 
 walletChainIndexState :: Wallet.Wallet -> Lens' EmulatorState ChainIndex.ChainIndexState
 walletChainIndexState wallet = walletChainIndexStates . at wallet . non mempty
+
+signingProcessState :: Wallet.Wallet -> Lens' EmulatorState SP.SigningProcess
+signingProcessState wallet = walletSigningProcessStates . at wallet . anon (SP.defaultSigningProcess wallet) (const False)
 
 -- | Get the blockchain as a list of blocks, starting with the oldest (genesis)
 --   block.
@@ -153,6 +158,7 @@ emptyEmulatorState = EmulatorState {
     _walletStates = mempty,
     _walletClientStates = mempty,
     _walletChainIndexStates = mempty,
+    _walletSigningProcessStates = mempty,
     _emulatorLog = mempty
     }
 
@@ -190,17 +196,19 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd4
+        & raiseEnd5
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
+        & SP.handleSigningProcess
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
         & interpret (handleZoomedWriter p2)
         & interpret (handleZoomedState (walletChainIndexState wallet))
         & interpret (handleZoomedWriter p3)
+        & interpret (handleZoomedState (signingProcessState wallet))
         & interpret (writeIntoState emulatorLog)
         where
             p1 :: Prism' [EmulatorEvent] [Wallet.WalletEvent]
