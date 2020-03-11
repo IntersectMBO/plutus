@@ -395,7 +395,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             -- See Note [Non-strict let-bindings]
             let nonStrict = not $ PIR.isTermValue arg'
             withVarScoped b $ \v -> do
-                let binds = [ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg' ]
+                let binds = pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
@@ -408,7 +408,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     let nonStrict = not $ PIR.isTermValue arg'
                     pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
-                pure $ PIR.Let () PIR.Rec binds body'
+                pure $ PIR.mkLet () PIR.Rec binds body'
         -- See Note [Default-only cases]
         GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
             -- See Note [At patterns]
@@ -417,7 +417,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 body' <- compileExpr body
                 -- See Note [At patterns]
                 let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
-                pure $ PIR.Let () PIR.NonRec binds body'
+                pure $ PIR.mkLet () PIR.NonRec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
@@ -456,7 +456,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 mainCase <- maybeForce lazyCase applied
 
                 -- See Note [At patterns]
-                let binds = [ PIR.TermBind () PIR.Strict v scrutinee' ]
+                let binds = pure $ PIR.TermBind () PIR.Strict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g

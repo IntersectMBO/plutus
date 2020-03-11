@@ -19,6 +19,8 @@ import           Control.Monad.Reader
 import           Control.Monad.Trans.Class           (lift)
 import           Control.Monad.Trans.Cont            (ContT (..))
 
+import           Data.List.NonEmpty                  (NonEmpty)
+
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
 a name into the scope we need to use the following pattern:
@@ -105,8 +107,8 @@ renameBindingCM = \case
 withFreshenedBindings
     :: (PLC.HasUniques (Term tyname name uni ann), PLC.MonadQuote m)
     => Recursivity
-    -> [Binding tyname name uni ann]
-    -> ([Binding tyname name uni ann] -> PLC.ScopedRenameT m c)
+    -> NonEmpty (Binding tyname name uni ann)
+    -> (NonEmpty (Binding tyname name uni ann) -> PLC.ScopedRenameT m c)
     -> PLC.ScopedRenameT m c
 withFreshenedBindings recy binds cont = case recy of
     -- Bring each binding in scope, rename its RHS straight away, collect all the results and
