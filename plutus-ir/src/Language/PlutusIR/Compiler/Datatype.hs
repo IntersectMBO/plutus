@@ -23,6 +23,8 @@ import           Control.Monad.Error.Lens
 import qualified Data.Text                              as T
 import           Data.Traversable
 
+import qualified Data.List.NonEmpty                     as NE
+
 -- Utilities
 
 -- | @replaceFunTyTarget X (A->..->Z) = (A->..->X)@
@@ -394,8 +396,7 @@ compileDatatype r body d@(Datatype _ tn _ destr constrs) = do
     -- See note [Abstract data types]
     pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
 
-compileRecDatatypes :: Compiling m e uni a => PIRTerm uni a -> [Datatype TyName Name uni (Provenance a)] -> m (PIRTerm uni a)
+compileRecDatatypes :: Compiling m e uni a => PIRTerm uni a -> NE.NonEmpty (Datatype TyName Name uni (Provenance a)) -> m (PIRTerm uni a)
 compileRecDatatypes body ds = case ds of
-    []  -> pure body
-    [d] -> compileDatatype Rec body d
-    _   -> getEnclosing >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"
+    d NE.:| [] -> compileDatatype Rec body d
+    _          -> getEnclosing >>= \p -> throwing _Error $ UnsupportedError p "Mutually recursive datatypes"

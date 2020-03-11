@@ -47,6 +47,7 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.List     (length)
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
@@ -699,8 +700,8 @@ computeTransaction tx state contract = let
     inputs = txInputs tx
     in case fixInterval (txInterval tx) state of
         IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-            ApplyAllSuccess warnings payments newState cont -> let
-                in  if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
+            ApplyAllSuccess warnings payments newState cont ->
+                    if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
                     else TransactionOutput { txOutWarnings = warnings
                                            , txOutPayments = payments
@@ -709,7 +710,6 @@ computeTransaction tx state contract = let
             ApplyAllNoMatchError -> Error TEApplyNoMatchError
             ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
         IntervalError error -> Error (TEIntervalError error)
-
 
 -- | Calculates an upper bound for the maximum lifespan of a contract
 contractLifespanUpperBound :: Contract -> Integer
@@ -958,7 +958,7 @@ instance Eq Action where
     Deposit acc1 party1 tok1 val1 == Deposit acc2 party2 tok2 val2 =
         acc1 == acc2 && party1 == party2 && tok1 == tok2 && val1 == val2
     Choice cid1 bounds1 == Choice cid2 bounds2 =
-        cid1 == cid2 && let
+        cid1 == cid2 && length bounds1 == length bounds2 && let
             bounds = zip bounds1 bounds2
             checkBound (Bound low1 high1, Bound low2 high2) = low1 == low2 && high1 == high2
             in all checkBound bounds
@@ -975,6 +975,7 @@ instance Eq Contract where
         obs1 == obs2 && cont1 == cont3 && cont2 == cont4
     When cases1 timeout1 cont1 == When cases2 timeout2 cont2 =
         timeout1 == timeout2 && cont1 == cont2
+        && length cases1 == length cases2
         && let cases = zip cases1 cases2
                checkCase (Case action1 cont1, Case action2 cont2) =
                     action1 == action2 && cont1 == cont2
