@@ -1,17 +1,11 @@
-%% TODO
-%%
-%%   * Rename PendingTx to TxInfo, but not until the implementation also does so.
-%%   * 
-%%
-
-
 %% Extended UTXO Specification
 \newcommand\version{-1}
 
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{6th February 2020}
+\date{11th March 2020}
+
 \author{}
 
 \documentclass[a4paper]{article}
@@ -115,9 +109,9 @@
 
 \newcommand{\script}{\ensuremath{\s{Script}}}
 \newcommand{\scriptAddr}{\msf{scriptAddr}}
-\newcommand{\ptx}{\ensuremath{\s{PendingTx}}}
+\newcommand{\ctx}{\ensuremath{\s{Context}}}
 \newcommand{\toData}{\ensuremath{\s{toData}}}
-\newcommand{\toPendingTx}{\ensuremath{\s{toPendingTx}}}
+\newcommand{\mkContext}{\ensuremath{\s{mkContext}}}
 
 % Macros for eutxo things.
 \newcommand{\TxId}{\ensuremath{\s{TxId}}}
@@ -135,10 +129,10 @@
 \newcommand{\val}{\mi{value}}  %% \value is already defined
 
 \newcommand{\validator}{\mi{validator}}
-\newcommand{\redeemerVal}{\mi{redeemerVal}}
-\newcommand{\dataVal}{\mi{dataVal}}
-\newcommand{\dataHash}{\mi{dataHash}}
-\newcommand{\dataWits}{\mi{dataWitnesses}}
+\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\datum}{\mi{datum}}
+\newcommand{\datumHash}{\mi{datumHash}}
+\newcommand{\datumWits}{\mi{datumWitnesses}}
 \newcommand{\Data}{\ensuremath{\s{Data}}}
 
 \newcommand{\outputref}{\mi{outputRef}}
@@ -389,25 +383,28 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   interval.
 
 \item The redeemer script of~\citet{Zahnentferner18-UTxO} has been
-  replaced with a \textit{redeemer value} of type \Data{}.
+  replaced with a \textit{redeemer object} (\textit{redeemer} for short) of
+  type \Data{}.
 
-\item Each unspent output now has a hash $\dataHash$ of a value of
-  type \Data{} associated with it: we call this the output's
-  \textit{data value hash} (see \cref{note:data-values}). This must be
-  provided in full by the spending input as $\dataVal$, much like the
-  validator.
+\item Each unspent output now has an object of type \Data{} associated
+  with it: we call this the output's \textit{datum} (or occasionally
+  \emph{datum object}) (see \cref{note:datum}).  Only the hash
+  $\datumHash$ of the datum is stored in the output: the full value
+  must be provided when the output is spent, much like the validator.
 
 \item Validator scripts make use of information about the pending
-  transaction (ie, the transaction which is just about to take place, assuming that
-  validation succeeds). This information is contained in a structure
-  which we call \ptx{} (see \cref{sec:pendingtx} for its definition).
+  transaction (ie, the transaction which is just about to take place,
+  assuming that validation succeeds). This information is contained in
+  a structure which we call \ctx{} (see \cref{sec:context} for its
+  definition).  We may refer to this information as the
+  \textit{validation context} in cases where ambiguity may arise.
 
 \item Validation of an output is performed by running the validator
   with three inputs:
   \begin{enumerate}
-  \item the data value,
-  \item the redeemer value,
-  \item the \ptx{} information, encoded as \Data{}.
+  \item the datum,
+  \item the redeemer,
+  \item the \ctx{} information, encoded as \Data{}.
   \end{enumerate}
 
 \end{itemize}
@@ -428,8 +425,8 @@ for automatic contract analysis.
 The definitions in this section are essentially the definitions of
 UTXO-based cryptocurrencies with scripts from
 \citep{Zahnentferner18-UTxO}, except that we have added the new
-features mentioned above (the validity interval, the data value
-and the \ptx{} structure), changed the type of the redeemer from
+features mentioned above (the validity interval, the datum
+and the \ctx{} structure), changed the type of the redeemer from
 \script{} to \Data{}, and used finitely-supported functions in place
 of maps.
 
@@ -444,31 +441,31 @@ the ledger.
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
     \Address && \mbox{the ``address'' of a script in the blockchain}\\
-    \DataHash && \mbox{the hash of a value of type \Data{}}\\
+    \DataHash && \mbox{the hash of an object of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
-    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data value}\\
+    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\r
     \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
     \Data \rightarrow \B && \mbox{application of a script to its arguments}\\
     \\
     \multicolumn{3}{l}{\textsc{Defined types}}\\
     \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
-                & &\ \dataHash: \DataHash)\\
+                & &\ \datumHash: \DataHash)\\
     \\
     \s{OutputRef } &=&(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input } &=&(\outputref: \s{OutputRef},\\
                & &\ \validator: \script,\\
-               & &\ \dataVal: \Data,\\
-               & &\ \redeemerVal: \Data)\\
+               & &\ \datum: \Data,\\
+               & &\ \redeemer: \Data)\\
      \\
      \eutxotx\s{ } &=&(\inputs: \FinSet{\s{Input}},\\
                    & &\ \outputs: \List{\s{Output}},\\
                    & &\ \i{validityInterval}: \Interval{\slotnum},\\
-                   & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
+                   & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                    & &\ \fee: \qty,\\
                    & &\ \forge: \qty) \\
      \\
@@ -514,14 +511,14 @@ that output: this requirement is enforced in
 \cref{rule:validator-scripts-hash} of
 \cref{fig:eutxo-1-validity} below.
 
-\paragraph{Scripts and hashes.} Note that data values and validators are
+\paragraph{Scripts and hashes.} Note that datum objects and validators are
 provided as parts of transaction inputs, even though they are
-\emph{conceptually} part of the output being spent.
-The reasons for this are explained in \cref{note:scripts}.
+conceptually part of the output being spent.  The reasons for
+this are explained in \cref{note:scripts}.
 
-\paragraph{Data witnesses.} The transaction \emph{may} include the full
-value for data values in the transaction outputs that it creates.
-See \cref{note:data-witnesses} for more discussion.
+\paragraph{Datum witnesses.} The transaction may include the full
+value of the datum for each output that it creates.  See
+\cref{note:datum-witnesses} for more discussion.
 
 \paragraph{Fees.}  Users are charged a fee for the on-chain storage
 and execution costs of a transaction, and this is included in the
@@ -543,12 +540,12 @@ than this, but the only property that we really require is that
 transactions in the ledger have some kind of address which allows them
 to be uniquely identified and retrieved.
 
-\subsubsection{The \ptx{} type}
-\label{sec:pendingtx}
+\subsubsection{The \ctx{} type}
+\label{sec:context}
 Recall from the introduction to \cref{sec:eutxo-1} that when a
 transaction input is being validated, the validator is supplied
-with an object of type \ptx{} which contains information about the
-pending transaction.  The \ptx{} type for the current version of
+with an object of type \ctx{} which contains information about the
+pending transaction.  The \ctx{} type for the current version of
 EUTXO-1 is defined in \cref{fig:ptx-1-types}, along with some
 related types.
 
@@ -557,59 +554,59 @@ related types.
   \begin{array}{rll}
     \s{OutputInfo } &=&(\val: \qty,\\
                     & &\ \i{validatorHash}: \Address,\\
-                    & &\ \dataHash: \DataHash)\\
+                    & &\ \datumHash: \DataHash)\\
     \\
     \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
                    & &\ \i{validatorHash}: \Address,\\
-                   & &\ \i{dataHash}: \DataHash,\\
+                   & &\ \i{datumHash}: \DataHash,\\
                    & &\ \i{redeemerHash}: \DataHash,\\
                    & &\ \val: \qty)\\
      \\
-     \ptx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
+     \ctx\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
                & &\ \i{thisInput}: \N,\\
                & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
                & &\ \i{validityInterval}: \Interval{\slotnum},\\
-               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
+               & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
-     \toPendingTx: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow\\
-      \ptx &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+     \mkContext: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow\\
+      \ctx &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
       \\
       %% Without the break after the right arrow, the = sign is well
       %% over halfway across the pages, which is horrible. This makes
       %% it a bit better, but not much.
-     \toData: \ptx \rightarrow \Data &=& \mbox{encodes a \ptx{} as \Data}
+     \toData: \ctx \rightarrow \Data &=& \mbox{encodes a \ctx{} as \Data}
   \end{array}
   \end{displaymath}
-  \caption{The \ptx{} type for the EUTXO-1 model}
+  \caption{The \ctx{} type for the EUTXO-1 model}
   \label{fig:ptx-1-types}
 \end{ruledfigure}
 
 \subsection{Remarks}
-\paragraph{The contents of \ptx{}.}
-The \ptx{} type is essentially a summary of the information contained
+\paragraph{The contents of \ctx{}.}
+The \ctx{} type is essentially a summary of the information contained
 in the $\eutxotx$ type in \cref{fig:eutxo-1-types}. The \fee{},
 \forge{}, and \i{validityInterval} fields are copied directly from the
 pending transaction.  The \i{outputInfo} field contains information
 about the outputs which will be produced if the pending transaction
 validates successfully: it contains only the address of the relevant
-validator, and the hash of the data value.\footnote{See
-  \cref{note:data-values-in-ptx} for further explanation.}  The
+validator, and the hash of the datum.\footnote{See
+  \cref{note:datum-objects-in-ptx} for further explanation.}  The
 \i{inputInfo} field contains information about the inputs to the
 pending transaction, but provides only the hashes of the validators
-and redeemer values for the inputs.  The \i{thisInput} field
+and redeemers for the inputs.  The \i{thisInput} field
 is an index pointing to the element of \i{inputInfo} relating to the
 input currently undergoing validation.
 % Note: in the code at the moment, the hashes of the validator
 % and redeemer scripts in inputInfo are allowed to be absent
 % when we have pubkey inputs.  We're ignoring that special case here.
 
-\paragraph{Defining \toPendingTx{} and \toData.}
+\paragraph{Defining \mkContext{} and \toData.}
 Assuming we have an
-appropriate hashing function, it is straightforward to define \toPendingTx.
+appropriate hashing function, it is straightforward to define \mkContext.
 For the implementation of \toData, note that the $inputs$ field is a
-\FinSet{} in \eutxotx{}, but a \List{} in \ptx{}. Therefore \toData{} has to introduce
+\FinSet{} in \eutxotx{}, but a \List{} in \ctx{}. Therefore \toData{} has to introduce
 an ordering of the transaction inputs. Contract authors cannot make
 any assumptions about this ordering and therefore should ensure that
 their scripts pass or fail regardless of what particular permutation
@@ -618,12 +615,8 @@ of transaction inputs they are presented with.
 Apart from that, the function \toData{} is implementation-dependent and
 we will not discuss it further.
 
-\todokwxm{But with the advent of \Data{} we \textit{can}
-  specify $\toData$.  Maybe we should?}
-\todokwxm{... or even just do the whole translation in one step.}
-
 \paragraph{Determinism.}
-The information provided in the \ptx{}
+The information provided in the \ctx{}
 structure is sufficiently limited that the validation process
 becomes \textit{deterministic},  which has important implications
 for fee calculations.  See \cref{note:validation-determinism}
@@ -723,7 +716,7 @@ the latter in \cref{rule:all-inputs-validate}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\dataVal,\, i.\redeemerVal,\,  \toData(\toPendingTx(t,i,l))) = \true.
+    i.\validator\rrbracket (i.\datum,\, i.\redeemer,\,  \toData(\mkContext(t,i,l))) = \true.
   \end{displaymath}
 
 \item
@@ -734,11 +727,12 @@ the latter in \cref{rule:all-inputs-validate}.
   \end{displaymath}
 
 \item
-  \label{rule:data-values-hash}
-  \textbf{Data values match output hashes}
+  \label{rule:datum-objects-hash}
+  \textbf{Datum objects match output hashes}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\ \hashData(i.\dataVal) = \getSpent(i, l).\dataHash
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\datum) = \getSpent(i, l).\datumHash
   \end{displaymath}
+  
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-1 model}
 \label{fig:eutxo-1-validity}
@@ -751,9 +745,9 @@ $l$ is \textit{valid} if either $l$ is empty or
 $l$ is of the form $t::l^{\prime}$ with
 $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
 
-In practice, validity imposes a limit on the size of the
-$\validator$ \script{}; the $\redeemerVal$ and
-$\dataVal$ \Data{} fields; and the result of \toData. The validation of a
+In practice, validity imposes a limit on the sizes of the
+$\validator$ \script{}, the $\redeemer$ and
+$\datum$ \Data{} fields, and the result of \toData. The validation of a
 single transaction must take place within one slot, so the evaluation
 of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
@@ -812,19 +806,19 @@ currency, as in EUTXO-1.
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
                  & &\ \val: \qtymap\\
-                 & &\ \dataHash: \DataHash)\\
+                 & &\ \datumHash: \DataHash)\\
     \\
     \s{OutputRef}_2 &= &(\txrefid: \TxId, \idx: \s{Int})\\
     \\
     \s{Input}_2 &=&( \outputref: \sf{OutputRef}_2,\\
                 & &\ \validator: \script,\\
-                & &\ \dataVal: \Data,\\
-                & &\ \redeemerVal: \Data)\\
+                & &\ \datum: \Data,\\
+                & &\ \redeemer: \Data)\\
     \\
     \eutxotx_2 &=&(\inputs: \FinSet{\s{Input}_2},\\
                & &\ \outputs: \List{\s{Output}_2},\\
                & &\ \i{validityInterval}: \Interval{\slotnum},\\
-               & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
+               & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qtymap,\\
                & &\ \forge: \qtymap)\\
     \\
@@ -863,9 +857,9 @@ number of currencies and their subcurrencies.
 \qtymap{} is a finitely-supported function \emph{to} another finitely-supported
 function. This is well-defined, since finitely-supported functions form a monoid.
 
-\subsection{The \ptx{} type for EUTXO-2}
+\subsection{The \ctx{} type for EUTXO-2}
 \label{sec:pendingtx-2}
-The \ptx{} type must be also be updated for the EUTXO-2 model.  All
+The \ctx{} type must be also be updated for the EUTXO-2 model.  All
 that is required is to replace \qty{} by \qtymap{} everywhere in
 \cref{fig:ptx-1-types} except for the \fee{} field: for reference
 the details are given in \cref{fig:ptx-2-types}.
@@ -874,30 +868,30 @@ the details are given in \cref{fig:ptx-2-types}.
   \begin{array}{rll}
     \s{OutputInfo}_2\s{ } &=&(\val: \qtymap,\\
                           & &\ \i{validatorHash}: \Address,\\
-                          & &\ \dataHash: \DataHash)\\
+                          & &\ \datumHash: \DataHash)\\
     \\
     \s{InputInfo}_2\s{ } &=& (\outputref: \s{OutputRef},\\
                          & &\ \i{validatorHash}: \Address,\\
-                         & &\ \i{dataHash}: \DataHash,\\
+                         & &\ \i{datumHash}: \DataHash,\\
                          & &\ \i{redeemerHash}: \DataHash),\\
                          & &\ \val: \qtymap)\\
      \\
-     \ptx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
+     \ctx_2\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}_2},\\
                  & &\ \i{thisInput}: \N,\\
                  & &\ \i{outputInfo}: \List{\s{OutputInfo$_2$}},\\
                  & &\ \i{validityInterval}: \Interval{\slotnum},\\
-                 & &\ \dataWits: \FinSup{\DataHash}{\Data},\\
+                 & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap)\\
     \\
-    \toPendingTx_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow&\\
+    \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow&\\
     
-      \ptx_2 &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+      \ctx_2 &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
      \\
-    \toData_2: \ptx_2 \rightarrow \Data &=& \mbox{encodes a $\ptx_2$}
+    \toData_2: \ctx_2 \rightarrow \Data &=& \mbox{encodes a $\ctx_2$}
   \end{array}
   \end{displaymath}
-  \caption{The \ptx{} type for the EUTXO-2 model}
+  \caption{The \ctx{} type for the EUTXO-2 model}
   \label{fig:ptx-2-types}
 \end{ruledfigure}
 
@@ -974,7 +968,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \textbf{All inputs validate}
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\dataVal,\, i.\redeemerVal,\, \toData_2(\toPendingTx_2(t, i, l))) = \true
+    i.\validator\rrbracket(i.\datum,\, i.\redeemer,\, \toData_2(\mkContext_2(t, i, l))) = \true
   \end{displaymath}
 
 \item
@@ -985,12 +979,12 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \end{displaymath}
 
 \item
-  \label{rule:data-values-hash-2}
-  \textbf{Data values match output hashes}
+  \label{rule:datum-objects-hash-2}
+  \textbf{Datum objects match output hashes}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\ \hashData(i.\dataVal) = \getSpent(i, l).\dataHash
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\datum) = \getSpent(i, l).\datumHash
   \end{displaymath}
-
+  
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-2 model}
 \label{fig:eutxo-2-validity}
@@ -1094,18 +1088,18 @@ which must be supplied with suitable evidence to unlock the output.
 In the basic model, each input to a transaction comes with a
 \i{validator} script which checks that the transaction is allowed to
 spend the output.  In order to spend an output, the transaction
-supplies a value, called the \i{redeemer value}, which provides
+supplies an object of type $\Data$, called the \i{redeemer}, which provides
 evidence that the transaction has the authority to do so;\footnote{The
   validator plays a role similar to that of BitCoin's
-  \texttt{scriptPubKey} and the redeemer value to \texttt{scriptSig}.
+  \texttt{scriptPubKey} and the redeemer to \texttt{scriptSig}.
 } a process called \i{validation} is then performed which checks that
-the redeemer value satisfies the conditions required by the validator.
+the redeemer satisfies the conditions required by the validator.
 Before a transaction can proceed, all inputs must be successfully
 validated: if one or more inputs fails to validate then the
 transaction is rejected.
 
 A simple example of this is a \i{pay-to-pubkey} script, where the
-redeemer value consists of a signature for the current transaction produced
+redeemer consists of a signature for the current transaction produced
 using a private key belonging to the owner of the output.  The
 validator script (provided by the owner of the output) would check the
 signature using a known public key: if the public key corresponds to
@@ -1133,13 +1127,13 @@ This is for two reasons:
 (effectively: their index in the list), and then we could use this to identify
 them (and distinguish them from each other), and so we could keep them in a \s{Set} instead.
 
-\note{Data values.}
-\label{note:data-values}
-The introduction of data values
+\note{The datum.}
+\label{note:datum}
+The introduction of the datum
 increases the expressivity of the model considerably. For example,
-one can use a data value to propagate state between
+one can use a datum to propagate state between
 transactions, and this can be used to give a contract the structure
-of a finite state machine; the fact that the data value is part
+of a finite state machine; the fact that the datum is part
 of the output and not the transaction means that the state can
 change without the transaction changing, which makes it easier to
 have an ``identity'' for an ongoing contract.
@@ -1185,48 +1179,46 @@ check that the correct validator is in fact being used when validation
 occurs), but unspent outputs persist on-chain in the UTXO set until
 they are eventually spent.
 
-The same strategy applies to data values.
+The same strategy applies to datum objects.
 
-\note{Data witnesses.}
-\label{note:data-witnesses}
-Although data values are only recorded as hashes in transaction outputs, it
-is useful to be able to record the full data value on the transaction
-that \emph{creates} an output.
-
-This allows observers to determine the full data value, without it having to be
-kept in the UTXO set.
+\note{Datum witnesses.}
+\label{note:datum-witnesses}
+Although a datum is only recorded as a hash in a transaction output,
+it is useful to be able to record the full value of the datum on the
+transaction that \emph{creates} an output: this allows observers to
+determine the full datum without it having to be kept in the UTXO set.
 
 This mechanism is \emph{optional}, since it incurs an increase in transaction
 size (and hence cost), and some clients may want to transmit the information
 off-chain instead to minimize these costs.
 
-Hence there is a $\dataWits$ field on transactions, which \emph{may}
+Hence there is a $\datumWits$ field on transactions, which \emph{may}
 contain mappings from the $\DataHash$es used in the transaction to
-their \Data{} values. This information is also present in \ptx{}.
+their \Data{} values. This information is also present in \ctx{}.
 
-\note{Data values in \ptx{}.}
-\label{note:data-values-in-ptx}
+\note{Datum objects in \ctx{}.}
+\label{note:datum-objects-in-ptx}
 In \cref{fig:ptx-1-types,fig:ptx-2-types} the
-\textsf{OutputInfo} does not include the data value attached to the output.
-These may be found in $\dataWits$.
+\textsf{OutputInfo} does not include the datum attached to the output.
+These may be found in $\datumWits$.
 
-Having access to the data values allows a validator to
-inspect an outgoing data value, for example to confirm that its
-contents are correct in some sense. This can be useful when a data
-value is used to propagate information about the state of a contract to
-later transactions.  See~\cite{Plutus-book} for examples of this.
+Having access to the value of the datum allows a validator to inspect
+an outgoing datum, for example to confirm that its contents are
+correct in some sense. This can be useful when a datum is used to
+propagate information about the state of a contract to later
+transactions.  See~\cite{Plutus-book} for examples of this.
 \todokwxm{More specific reference?}
 
 
 
 \note{Determinism of the validation process.}
-\label{note:validation-determinism} The \ptx{} type is the only
+\label{note:validation-determinism} The \ctx{} type is the only
 information about the ``outside world'' available to a validator
 at the time of validation.  Allowing the validator access to
 this information gives the EUTXO models a considerable amount of
 power, as can be seen from the example contracts
 in~\cite{Plutus-book}.  However, it is important not to make too much
-information available to the validator.  The choice of the \ptx{} type
+information available to the validator.  The choice of the \ctx{} type
 above means that the information available to the validator is
 essentially independent of the state of the blockchain, and in
 particular, it is independent of time (note that the check that the
@@ -1261,10 +1253,9 @@ identifier of the currency.
 
 Whenever a new quantity of the currency is forged,
 \cref{rule:custom-forge,rule:all-inputs-validate-2,rule:validator-scripts-hash-2}
-imply that $H$ must be executed;
-$H$ is provided with the \forge{} field of the transaction via the
-\ptx{} object, and so it knows how much of the currency is to be
-forged and can respond appropriately.
+imply that $H$ must be executed; $H$ is provided with the \forge{}
+field of the transaction via the \ctx{} object, and so it knows how
+much of the currency is to be forged and can respond appropriately.
 
 The advantage of this scheme is that custom currencies can be handled
 entirely within the smart contract system, without the need to
