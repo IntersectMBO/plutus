@@ -10,6 +10,10 @@ exports.nextBlock_ = function (just, nothing, block) {
     }
 }
 
+exports.getType_ = function (block) {
+    return block.type;
+}
+
 exports.getFieldValue_ = function (left, right, block, key) {
     var result = block.getFieldValue(key);
     if (result) {

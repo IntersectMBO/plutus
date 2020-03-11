@@ -2,7 +2,7 @@ module Marlowe.Blockly where
 
 import Prelude
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
-import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
+import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
 import Control.Monad.ST as ST
@@ -125,11 +125,11 @@ partyTypes :: Array PartyType
 partyTypes = upFromIncluding bottom
 
 data ContractType
-  = CloseContractType
+  = WhenContractType
   | PayContractType
   | IfContractType
-  | WhenContractType
   | LetContractType
+  | CloseContractType
 
 derive instance genericContractType :: Generic ContractType _
 
@@ -238,7 +238,6 @@ valueTypes = upFromIncluding bottom
 
 data BlockType
   = BaseContractType
-  | CaseType
   | BoundsType
   | ActionType ActionType
   | ContractType ContractType
@@ -270,7 +269,6 @@ instance boundedEnumBlockType :: BoundedEnum BlockType where
 
 instance showBlockType :: Show BlockType where
   show BaseContractType = "BaseContractType"
-  show CaseType = "CaseType"
   show BoundsType = "BoundsType"
   show (ContractType c) = show c
   show (ObservationType ot) = show ot
@@ -300,23 +298,6 @@ toDefinition BaseContractType =
         }
         defaultBlockDefinition
 
-toDefinition CaseType =
-  BlockDefinition
-    $ merge
-        { type: show CaseType
-        , message0: "Action %1 %2 continue as %3 %4"
-        , args0:
-          [ DummyCentre
-          , Statement { name: "action", check: "ActionType", align: Right }
-          , DummyLeft
-          , Statement { name: "contract", check: (show BaseContractType), align: Right }
-          ]
-        , colour: "65"
-        , previousStatement: Just (show CaseType)
-        , nextStatement: Just (show CaseType)
-        }
-        defaultBlockDefinition
-
 toDefinition BoundsType =
   BlockDefinition
     $ merge
@@ -326,7 +307,7 @@ toDefinition BoundsType =
           [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
           ]
-        , colour: "40"
+        , colour: "75"
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
         }
@@ -337,11 +318,10 @@ toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 the amount of %2 %3 units of currency %4 %5 token name %6 %7 into the account %8 %9 with owner %10 %11 from %12"
+        , message0: "Deposit %1 the amount of %2 units of currency %3 %4 token name %5 %6 into the account %7 %8 with owner %9 from %10 continue as %11 %12"
         , args0:
           [ DummyCentre
           , Value { name: "amount", check: "value", align: Right }
-          , DummyRight
           , Input { name: "currency_symbol", text: "", spellcheck: false }
           , DummyRight
           , Input { name: "token_name", text: "", spellcheck: false }
@@ -349,11 +329,13 @@ toDefinition (ActionType DepositActionType) =
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
-          , DummyRight
           , Value { name: "party", check: "party", align: Right }
+          , DummyLeft
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "290"
         , previousStatement: Just "ActionType"
+        , nextStatement: Just "ActionType"
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -362,16 +344,19 @@ toDefinition (ActionType ChoiceActionType) =
   BlockDefinition
     $ merge
         { type: show ChoiceActionType
-        , message0: "Choice Name %1 %2 Choice Owner %3 %4 Choice Bounds %5"
+        , message0: "Choice name %1 %2 choice owner %3 choice bounds %4 %5 continue as %6 %7"
         , args0:
           [ Input { name: "choice_name", text: "Name", spellcheck: false }
-          , DummyRight
+          , DummyLeft
           , Value { name: "choice_owner", check: "party", align: Right }
-          , DummyRight
+          , DummyLeft
           , Statement { name: "bounds", check: (show BoundsType), align: Right }
+          , DummyLeft
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "290"
         , previousStatement: Just "ActionType"
+        , nextStatement: Just "ActionType"
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -380,12 +365,15 @@ toDefinition (ActionType NotifyActionType) =
   BlockDefinition
     $ merge
         { type: show NotifyActionType
-        , message0: "Notification of %1"
+        , message0: "Notification of %1 continue as %2 %3"
         , args0:
           [ Value { name: "observation", check: "observation", align: Right }
+          , DummyLeft
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
         , colour: "290"
         , previousStatement: Just "ActionType"
+        , nextStatement: Just "ActionType"
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -429,7 +417,7 @@ toDefinition (PartyType PKPartyType) =
         , args0:
           [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
           ]
-        , colour: "210"
+        , colour: "180"
         , output: Just "party"
         , inputsInline: Just true
         }
@@ -443,7 +431,7 @@ toDefinition (PartyType RolePartyType) =
         , args0:
           [ Input { name: "role", text: "role", spellcheck: false }
           ]
-        , colour: "210"
+        , colour: "180"
         , output: Just "party"
         , inputsInline: Just true
         }
@@ -464,13 +452,11 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 %3 the amount of %4 %5 of currency %6 %7 token name %8 %9 from the account %10 %11 with owner %12 continue as %13 %14"
+        , message0: "Pay %1 party %2 the amount of %3 of currency %4 %5 token name %6 %7 from the account %8 %9 with owner %10 continue as %11 %12"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
-          , DummyRight
           , Value { name: "amount", check: "value", align: Right }
-          , DummyRight
           , Input { name: "currency_symbol", text: "", spellcheck: false }
           , DummyRight
           , Input { name: "token_name", text: "", spellcheck: false }
@@ -512,7 +498,7 @@ toDefinition (ContractType WhenContractType) =
         , message0: "When %1 %2 after slot %3 %4 continue as %5 %6"
         , args0:
           [ DummyCentre
-          , Statement { name: "case", check: (show CaseType), align: Left }
+          , Statement { name: "case", check: "ActionType", align: Left }
           , Number { name: "timeout", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyLeft
           , DummyLeft
@@ -839,12 +825,11 @@ toolbox =
   xml [ id_ "blocklyToolbox", style "display:none" ]
     [ category [ name "Contracts", colour "0" ] (map mkBlock contractTypes)
     , category [ name "Observations", colour "230" ] (map mkBlock observationTypes)
+    , category [ name "Actions", colour "290" ] (map mkBlock actionTypes)
     , category [ name "Values", colour "135" ] (map mkBlock valueTypes)
     , category [ name "Payee", colour "210" ] (map mkBlock payeeTypes)
-    , category [ name "Party", colour "210" ] (map mkBlock partyTypes)
-    , category [ name "Case", colour "65" ] (map mkBlock [ CaseType ])
-    , category [ name "Bounds", colour "40" ] (map mkBlock [ BoundsType ])
-    , category [ name "Actions", colour "290" ] (map mkBlock actionTypes)
+    , category [ name "Party", colour "180" ] (map mkBlock partyTypes)
+    , category [ name "Bounds", colour "75" ] (map mkBlock [ BoundsType ])
     ]
   where
   mkBlock :: forall t. Show t => t -> _
@@ -872,7 +857,6 @@ buildGenerator blocklyState =
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) observationTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) valueTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actionTypes
-        traverse_ (\t -> mkGenFun gRef t (caseDefinition g)) [ CaseType ]
         traverse_ (\t -> mkGenFun gRef t (boundsDefinition g)) [ BoundsType ]
         STRef.read gRef
     )
@@ -895,10 +879,17 @@ getAllBlocks currentBlock =
       )
 
 caseDefinition :: Generator -> Block -> Either String Case
-caseDefinition g block = do
-  action <- parse (Parser.parseToValue Parser.action) =<< statementToCode g block "action"
-  contract <- parse Parser.contractValue =<< statementToCode g block "contract"
-  pure (Case action contract)
+caseDefinition g block =
+  let
+    maybeActionType = case getType block of
+      "DepositActionType" -> Just DepositActionType
+      "ChoiceActionType" -> Just ChoiceActionType
+      "NotifyActionType" -> Just NotifyActionType
+      _ -> Nothing
+  in
+    case maybeActionType of
+      Nothing -> Either.Left "Could not parse ActionType in caseDefinition function"
+      Just actionType -> blockDefinition actionType g block
 
 casesDefinition :: Generator -> Block -> Either String (Array Case)
 casesDefinition g block = traverse (caseDefinition g) (getAllBlocks block)
@@ -912,7 +903,7 @@ boundDefinition g block = do
 boundsDefinition :: Generator -> Block -> Either String (Array Bound)
 boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
-instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
+instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Case where
   blockDefinition DepositActionType g block = do
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "account_owner"
@@ -924,7 +915,8 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
       tok = Token currSym tokName
     party <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "party"
     amount <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "amount"
-    pure (Deposit accountId party tok amount)
+    contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
+    pure (Case (Deposit accountId party tok amount) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
@@ -935,10 +927,12 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType Action where
     boundsInput <- note "No Input with name \"bound\" found" $ getInputWithName inputs "bounds"
     topboundBlock <- getBlockInputConnectedTo boundsInput
     bounds <- boundsDefinition g topboundBlock
-    pure (Choice choiceId bounds)
+    contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
+    pure (Case (Choice choiceId bounds) contract)
   blockDefinition NotifyActionType g block = do
     observation <- parse (Parser.parseToValue Parser.observation) =<< statementToCode g block "observation"
-    pure (Notify observation)
+    contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
+    pure (Case (Notify observation) contract)
 
 instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType Payee where
   blockDefinition AccountPayeeType g block = do
@@ -1174,35 +1168,38 @@ instance toBlocklyBounds :: ToBlockly (Array Bound) where
         fromConnection <- nextConnection block
         nextBound newBlock workspace fromConnection tail
 
-instance toBlocklyAction :: ToBlockly Action where
-  toBlockly newBlock workspace input (Deposit (AccountId accountNumber accountOwner) party (Token currSym tokName) value) = do
-    block <- newBlock workspace (show DepositActionType)
-    connectToPrevious block input
-    setField block "account_number" (show accountNumber)
-    inputToBlockly newBlock workspace block "account_owner" accountOwner
-    setField block "currency_symbol" currSym
-    setField block "token_name" tokName
-    inputToBlockly newBlock workspace block "party" party
-    inputToBlockly newBlock workspace block "amount" value
-  toBlockly newBlock workspace input (Choice (ChoiceId choiceName choiceOwner) bounds) = do
-    block <- newBlock workspace (show ChoiceActionType)
-    connectToPrevious block input
-    setField block "choice_name" choiceName
-    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
-    inputToBlockly newBlock workspace block "bounds" bounds
-  toBlockly newBlock workspace input (Notify observation) = do
-    block <- newBlock workspace (show NotifyActionType)
-    connectToPrevious block input
-    inputToBlockly newBlock workspace block "observation" observation
+oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
+oneCaseToBlockly newBlock workspace (Case (Deposit (AccountId accountNumber accountOwner) party (Token currSym tokName) value) cont) = do
+  block <- newBlock workspace (show DepositActionType)
+  setField block "account_number" (show accountNumber)
+  inputToBlockly newBlock workspace block "account_owner" accountOwner
+  setField block "currency_symbol" currSym
+  setField block "token_name" tokName
+  inputToBlockly newBlock workspace block "party" party
+  inputToBlockly newBlock workspace block "amount" value
+  inputToBlockly newBlock workspace block "contract" cont
+  pure block
+
+oneCaseToBlockly newBlock workspace (Case (Choice (ChoiceId choiceName choiceOwner) bounds) cont) = do
+  block <- newBlock workspace (show ChoiceActionType)
+  setField block "choice_name" choiceName
+  inputToBlockly newBlock workspace block "choice_owner" choiceOwner
+  inputToBlockly newBlock workspace block "bounds" bounds
+  inputToBlockly newBlock workspace block "contract" cont
+  pure block
+
+oneCaseToBlockly newBlock workspace (Case (Notify observation) cont) = do
+  block <- newBlock workspace (show NotifyActionType)
+  inputToBlockly newBlock workspace block "observation" observation
+  inputToBlockly newBlock workspace block "contract" cont
+  pure block
 
 nextCase :: forall r. NewBlockFunction r -> STRef r Workspace -> Connection -> Array Case -> ST r Unit
 nextCase newBlock workspace fromConnection cases = do
   case uncons cases of
     Nothing -> pure unit
     Just { head: (Case action contract), tail } -> do
-      block <- newBlock workspace (show CaseType)
-      inputToBlockly newBlock workspace block "action" action
-      inputToBlockly newBlock workspace block "contract" contract
+      block <- oneCaseToBlockly newBlock workspace (Case action contract)
       toConnection <- previousConnection block
       connect fromConnection toConnection
       nextFromConnection <- nextConnection block
@@ -1213,9 +1210,7 @@ instance toBlocklyCases :: ToBlockly (Array Case) where
     case uncons cases of
       Nothing -> pure unit
       Just { head: (Case action contract), tail } -> do
-        block <- newBlock workspace (show CaseType)
-        inputToBlockly newBlock workspace block "action" action
-        inputToBlockly newBlock workspace block "contract" contract
+        block <- oneCaseToBlockly newBlock workspace (Case action contract)
         connectToPrevious block input
         fromConnection <- nextConnection block
         nextCase newBlock workspace fromConnection tail
