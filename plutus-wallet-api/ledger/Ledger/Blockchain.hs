@@ -4,7 +4,7 @@
 module Ledger.Blockchain (
     Block,
     Blockchain,
-    ValidationData(..),
+    Context(..),
     transaction,
     out,
     value,

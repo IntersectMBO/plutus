@@ -37,7 +37,7 @@ module Ledger.Scripts(
     mkMonetaryPolicyScript,
     MonetaryPolicy (..),
     unMonetaryPolicyScript,
-    ValidationData(..),
+    Context(..),
     -- * Hashes
     DatumHash(..),
     RedeemerHash(..),
@@ -338,7 +338,7 @@ monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' wher
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
-newtype ValidationData = ValidationData Data
+newtype Context = Context Data
     deriving stock (Generic, Show)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -346,23 +346,23 @@ newtype ValidationData = ValidationData Data
 runScript
     :: (MonadError ScriptError m)
     => Checking
-    -> ValidationData
+    -> Context
     -> Validator
     -> Datum
     -> Redeemer
     -> m [Haskell.String]
-runScript checking (ValidationData valData) (Validator validator) (Datum datum) (Redeemer redeemer) = do
+runScript checking (Context valData) (Validator validator) (Datum datum) (Redeemer redeemer) = do
     let appliedValidator = ((validator `applyScript` (fromCompiledCode $ liftCode datum)) `applyScript` (fromCompiledCode $ liftCode redeemer)) `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 
--- | Evaluate a monetary policy script just the validation data, returning the log.
+-- | Evaluate a monetary policy script with just the validation context, returning the log.
 runMonetaryPolicyScript
     :: (MonadError ScriptError m)
     => Checking
-    -> ValidationData
+    -> Context
     -> MonetaryPolicy
     -> m [Haskell.String]
-runMonetaryPolicyScript checking (ValidationData valData) (MonetaryPolicy validator) = do
+runMonetaryPolicyScript checking (Context valData) (MonetaryPolicy validator) = do
     let appliedValidator = validator `applyScript` (fromCompiledCode $ liftCode valData)
     evaluateScript checking appliedValidator
 

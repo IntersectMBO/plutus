@@ -214,7 +214,7 @@ checkForgingScripts tx = do
         mkVd :: Integer -> Validation.PendingTxMPS
         mkVd i = ptx { pendingTxItem = monetaryPolicyHash $ mpss !! fromIntegral i }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
-        let vd = ValidationData $ toData ptx'
+        let vd = Context $ toData ptx'
         in case runExcept $ runMonetaryPolicyScript Typecheck vd vl of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()
@@ -268,7 +268,7 @@ checkMatch pendingTx = \case
         pTxIn <- pendingTxInScript (txInRef txin) vl r d
         let
             ptx' = pendingTx { pendingTxItem = pTxIn }
-            vd = ValidationData (toData ptx')
+            vd = Context (toData ptx')
         case runExcept $ runScript Typecheck vd vl d r of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()

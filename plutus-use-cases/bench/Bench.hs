@@ -13,7 +13,7 @@ import           Prelude                                           hiding (tail)
 
 import           Control.Lens.Indexed
 import           Criterion.Main
-import           Crypto.Hash
+import           Crypto.Hash                                       hiding (Context)
 import qualified Data.ByteArray                                    as BA
 import qualified Data.ByteString                                   as BS
 import qualified Data.ByteString.Lazy                              as BSL
@@ -241,9 +241,9 @@ multisig = bgroup "multisig" [
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
 
-runScriptNoCheck :: (ValidationData, Validator, Datum, Redeemer) -> Either ScriptError [String]
+runScriptNoCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (ValidationData, Validator, Datum, Redeemer) -> Either ScriptError [String]
+runScriptCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey
@@ -265,11 +265,11 @@ sig1 = Crypto.sign txHash privk1
 sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
-validationData1 :: ValidationData
-validationData1 = ValidationData $ PlutusTx.toData $ mockPendingTx
+validationData1 :: Context
+validationData1 = Context $ PlutusTx.toData $ mockPendingTx
 
-validationData2 :: ValidationData
-validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatories = [pubKeyHash pk1, pubKeyHash pk2] }
+validationData2 :: Context
+validationData2 = Context $ PlutusTx.toData $ mockPendingTx { pendingTxSignatories = [pubKeyHash pk1, pubKeyHash pk2] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
