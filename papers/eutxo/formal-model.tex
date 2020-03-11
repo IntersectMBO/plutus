@@ -58,7 +58,7 @@ validator). We will use this to carry the state of our state machines
 The second change is that the validator receives some information
 about the transaction that is being validated. This information, which
 we call the \textit{context}, is passed in as an additional
-argument of type \ctx{}. The information supplied in the 
+argument of type \ctx{}. The information supplied in the
 context enables the validator to enforce much stronger conditions than
 is possible with a bare \UTXO{} model --- in particular, it can
 inspect the \emph{outputs} of the current transaction, which is
@@ -193,7 +193,7 @@ have additional metadata, such as transaction fees or a ``forge''
 field that allows value to be created or destroyed. These are
 irrelevant to this paper, so have been omitted.\footnote{ Adding such
   fields might require amending Rule~\ref{rule:value-is-preserved}
-  below to ensure value preservation.  }
+  to ensure value preservation.  }
 
 \paragraph{Ledger structure.} We model a ledger as a simple
 list of transactions: a real blockchain ledger will be more complex
@@ -392,4 +392,3 @@ fail. However Rule~\ref{rule:all-inputs-refer-to-unspent-outputs}
 ensures that during validation all of the transaction inputs refer to
 existing unspent outputs, and in these circumstances $\lookupTx$ will
 always succeed for the transactions of interest.
-
