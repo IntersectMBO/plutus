@@ -133,6 +133,9 @@ instance ExMemoryUsage Int where
 instance ExMemoryUsage Char where
   memoryUsage _ = 1
 
+instance ExMemoryUsage Bool where
+  memoryUsage _ = 1
+
 instance ExMemoryUsage String where
   memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
 

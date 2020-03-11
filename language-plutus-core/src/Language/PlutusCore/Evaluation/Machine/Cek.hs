@@ -76,6 +76,9 @@ import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
 
+import           Debug.Trace
+import           Unsafe.Coerce
+
 data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
     | CekEvaluationFailure -- ^ Error has been called.
@@ -96,7 +99,7 @@ instance Pretty CekUserError where
 data Closure uni = Closure
     { _closureVarEnv :: VarEnv uni
     , _closureValue  :: WithMemory Value uni
-    }
+    } deriving (Show)
 
 -- | Variable environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
@@ -133,6 +136,7 @@ data Frame uni
     | FrameTyInstArg (Type TyName uni ExMemory)                                  -- ^ @{_ A}@
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
+    deriving (Show)
 
 type Context uni = [Frame uni]
 
@@ -202,13 +206,14 @@ computeCek con t@(Unwrap _ term) = do
     computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
-computeCek con constant@Constant{} = returnCek con constant
+computeCek con constant@Constant{} = {- traceShow (unsafeCoerce con :: Context DefaultUni, unsafeCoerce constant :: Plain Term DefaultUni) $ -} returnCek con constant
 computeCek con bi@Builtin{}        = returnCek con bi
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
 computeCek con t@(Var _ varName)   = do
     spendBudget BVar t (ExBudget 1 1) -- TODO
     Closure newVarEnv term <- lookupVarName varName
+    traceShowM (varName, unsafeCoerce term :: Plain Term DefaultUni)
     withVarEnv newVarEnv $ returnCek con term
 
 -- | The returning part of the CEK machine.
@@ -264,6 +269,7 @@ applyEvaluate
     -> WithMemory Value uni
     -> CekM uni (Plain Term uni)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
+    -- traceShow (unsafeCoerce con :: Context DefaultUni, unsafeCoerce body :: Plain Term DefaultUni, unsafeCoerce arg :: Plain Term DefaultUni, unsafeCoerce $ extendVarEnv name arg argVarEnv funVarEnv :: VarEnv DefaultUni) $
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
 applyEvaluate funVarEnv _ con fun arg =
     let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg) fun arg in
@@ -271,17 +277,12 @@ applyEvaluate funVarEnv _ con fun arg =
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
+--                 traceShowM (unsafeCoerce con :: Context DefaultUni, unsafeCoerce term :: Plain Term DefaultUni)
+
                 constAppResult <- applyStagedBuiltinName headName spine
                 withVarEnv funVarEnv $ case constAppResult of
-                    ConstAppSuccess res -> computeCek con res
+                    ConstAppSuccess res -> {-traceShow (unsafeCoerce con :: Context DefaultUni, unsafeCoerce res :: Plain Term DefaultUni) $ -} computeCek con res
                     ConstAppStuck       -> returnCek con term
-
--- | Reduce a saturated application of a builtin function in the empty context.
-computeInCekM
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => EvaluateConstApp uni (CekM uni) ann -> CekM uni (ConstAppResult uni ann)
-computeInCekM = runEvaluateT eval where
-    eval means' = local (over cekEnvMeans $ mappend means') . computeCek [] . withMemory
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -291,16 +292,9 @@ applyStagedBuiltinName
     -> CekM uni (ConstAppResult uni ExMemory)
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-    computeInCekM $ applyTypeSchemed
-        n
-        sch
-        x
-        exX
-        args
+    applyTypeSchemed n sch x exX args
 applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    computeInCekM $ applyBuiltinName
-        name
-        args
+    applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
@@ -350,4 +344,4 @@ readKnownCek
     => DynamicBuiltinNameMeanings uni
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek = readKnownBy evaluateCek
+readKnownCek means = evaluateCek means >=> readKnown

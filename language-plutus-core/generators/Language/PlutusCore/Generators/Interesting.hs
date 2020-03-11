@@ -1,5 +1,6 @@
 -- | Sample generators used for tests.
 
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -8,7 +9,7 @@
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)
-    , genOverapplication
+--     , genOverapplication
     , factorial
     , genFactorial
     , naiveFib
@@ -47,31 +48,32 @@ import qualified Hedgehog.Range                           as Range
 -- | The type of terms-and-their-values generators.
 type TermGen uni a = Gen (TermOf uni a)
 
--- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
---
--- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
-genOverapplication
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
-    => TermGen uni Integer
-genOverapplication = do
-    let typedInt = AsKnownType
-        int = toTypeAst typedInt
-    TermOf ti1 i1 <- genTypedBuiltinDef typedInt
-    TermOf ti2 i2 <- genTypedBuiltinDef typedInt
-    TermOf tj1 j1 <- genTypedBuiltinDef typedInt
-    TermOf tj2 j2 <- genTypedBuiltinDef typedInt
-    let term =
-            mkIterApp ()
-                (TyInst ()
-                    (mkIterApp () (builtinNameAsTerm LessThanInteger) [ti1, ti2])
-                    int)
-                [tj1, tj2]
-    return . TermOf term $ if i1 < i2 then j1 else j2
+-- TODO: use 'IfThenElse'.
+-- -- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
+-- --
+-- -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
+-- genOverapplication
+--     :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
+--     => TermGen uni Integer
+-- genOverapplication = do
+--     let typedInt = AsKnownType
+--         int = toTypeAst typedInt
+--     TermOf ti1 i1 <- genTypedBuiltinDef typedInt
+--     TermOf ti2 i2 <- genTypedBuiltinDef typedInt
+--     TermOf tj1 j1 <- genTypedBuiltinDef typedInt
+--     TermOf tj2 j2 <- genTypedBuiltinDef typedInt
+--     let term =
+--             mkIterApp ()
+--                 (TyInst ()
+--                     (mkIterApp () (builtinNameAsTerm LessThanInteger) [ti1, ti2])
+--                     int)
+--                 [tj1, tj2]
+--     return . TermOf term $ if i1 < i2 then j1 else j2
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
 -- > \(i : integer) -> product (enumFromTo 1 i)
-factorial :: uni `Includes` Integer => Term TyName Name uni ()
+factorial :: uni `IncludesAll` '[Integer, (), Bool] => Term TyName Name uni ()
 factorial = runQuote $ do
     i <- freshName () "i"
     let int = mkTyBuiltin @Integer ()
@@ -92,7 +94,7 @@ factorial = runQuote $ do
 -- >                         (rec (subtractInteger i 1))
 -- >                         (rec (subtractInteger i 2)))
 -- >         i0
-naiveFib :: uni `Includes` Integer => Integer -> Term TyName Name uni ()
+naiveFib :: uni `IncludesAll` '[Integer, (), Bool] => Integer -> Term TyName Name uni ()
 naiveFib iv = runQuote $ do
     i0  <- freshName () "i0"
     rec <- freshName () "rec"
@@ -121,7 +123,7 @@ naiveFib iv = runQuote $ do
 
 -- | Generate a term that computes the factorial of an @integer@ and return it
 -- along with the factorial of the corresponding 'Integer' computed on the Haskell side.
-genFactorial :: uni `Includes` Integer => TermGen uni Integer
+genFactorial :: uni `IncludesAll` '[Integer, (), Bool] => TermGen uni Integer
 genFactorial = do
     let m = 10
     iv <- Gen.integral $ Range.linear 1 m
@@ -130,7 +132,7 @@ genFactorial = do
 
 -- | Generate a term that computes the ith Fibonacci number and return it
 -- along with the corresponding 'Integer' computed on the Haskell side.
-genNaiveFib :: uni `Includes` Integer => TermGen uni Integer
+genNaiveFib :: uni `IncludesAll` '[Integer, (), Bool] => TermGen uni Integer
 genNaiveFib = do
     let fibs = scanl (+) 0 $ 1 : fibs
         m = 16
@@ -142,7 +144,7 @@ genNaiveFib = do
 -- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
 genNatRoundtrip
-    :: forall uni. (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: forall uni. (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
     => TermGen uni Integer
 genNatRoundtrip = do
     let typedInt = AsKnownType @uni
@@ -172,7 +174,7 @@ natSum = runQuote $ do
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genListSum
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
     => TermGen uni Integer
 genListSum = do
     let typedInt = AsKnownType
@@ -186,12 +188,12 @@ genListSum = do
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    :: forall uni. (GShow uni, GEq uni, DefaultUni <: uni, uni `Includes` Integer)
     => TermGen uni Integer
 genIfIntegers = do
-    let typedInt = AsKnownType
+    let typedInt = AsKnownType @uni @Integer
         int = toTypeAst typedInt
-    TermOf b bv <- genTermLoose AsKnownType
+    TermOf b bv <- genTermLoose $ AsKnownType @uni @Bool
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let instConst = Apply () $ mkIterInst () Function.const [int, unit]
@@ -199,7 +201,7 @@ genIfIntegers = do
         term =
             mkIterApp ()
                 (TyInst () ifThenElse int)
-                [b, instConst i, instConst j]
+                [mkConstant () bv, instConst $ mkConstant () iv, instConst $ mkConstant () jv]
     return $ TermOf term value
 
 -- | Check that builtins can be partially applied.
@@ -266,8 +268,8 @@ fromInterestingTermGens
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
-    [ f "overapplication"  genOverapplication
-    , f "factorial"        genFactorial
+    [ -- f "overapplication"  genOverapplication
+      f "factorial"        genFactorial
     , f "fibonacci"        genNaiveFib
     , f "NatRoundTrip"     genNatRoundtrip
     , f "ListSum"          genListSum

@@ -1,1 +1,6 @@
-(fun (con bytestring) (fun (con bytestring) (fun (con bytestring) (all a (type) (fun a a)))))
+Type mismatch at 5:9 in term
+  '[ [ [ (builtin verifySignature) signed ] txhash ] pubkey ]'.
+Expected type
+  '(con bool)',
+found type
+  '(all a (type) (fun a (fun a a)))'

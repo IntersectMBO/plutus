@@ -103,6 +103,7 @@ instance Serialise BuiltinName where
                 ModInteger           -> 18
                 LtByteString         -> 19
                 GtByteString         -> 20
+                IfThenElse           -> 21
         in encodeConstructorTag i
 
     decode = go =<< decodeConstructorTag
@@ -127,6 +128,7 @@ instance Serialise BuiltinName where
               go 18 = pure ModInteger
               go 19 = pure LtByteString
               go 20 = pure GtByteString
+              go 21 = pure IfThenElse
               go _  = fail "Failed to decode BuiltinName"
 
 instance Serialise Unique where

@@ -13,15 +13,12 @@
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppResult (..)
-    , EvaluateConstApp
     , nonZeroArg
     , integerToInt64
     , applyTypeSchemed
     , applyBuiltinName
-    , runApplyBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
@@ -48,10 +45,6 @@ data ConstAppResult uni ann
       -- ^ Not enough arguments.
     deriving (Show, Eq, Functor)
 
--- | Default constant application computation that in case of 'ConstAppSuccess' returns
--- a 'Value'.
-type EvaluateConstApp uni m ann = EvaluateT uni m (ConstAppResult uni ann)
-
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
 -- Useful for correctly handling `div`, `mod`, etc.
@@ -74,7 +67,7 @@ applyTypeSchemed
     -> FoldArgs args res
     -> FoldArgs args ExBudget
     -> [Value TyName Name uni ExMemory]
-    -> EvaluateConstApp uni m ExMemory
+    -> m (ConstAppResult uni ExMemory)
 applyTypeSchemed name = go where
     go
         :: forall args'.
@@ -82,7 +75,7 @@ applyTypeSchemed name = go where
         -> FoldArgs args' res
         -> FoldArgs args' ExBudget
         -> [Value TyName Name uni ExMemory]
-        -> EvaluateConstApp uni m ExMemory
+        -> m (ConstAppResult uni ExMemory)
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
@@ -97,14 +90,14 @@ applyTypeSchemed name = go where
         []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            x <- readKnownM $ void arg
+            x <- readKnown $ void arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
                     let
                         budget :: ExBudget
                         budget = (exF x)
-                    lift $ spendBudget (BBuiltin name) arg budget
+                    spendBudget (BBuiltin name) arg budget
                     go schB (f x) budget args'
                 _ -> go schB (f x) (exF x) args'
 
@@ -118,7 +111,7 @@ applyTypedBuiltinName
     -> FoldArgs args res
     -> FoldArgs args ExBudget
     -> [Value TyName Name uni ExMemory]
-    -> EvaluateConstApp uni m ExMemory
+    -> m (ConstAppResult uni ExMemory)
 applyTypedBuiltinName (TypedBuiltinName name schema) =
     applyTypeSchemed (StaticStagedBuiltinName name) schema
 
@@ -130,7 +123,7 @@ applyBuiltinName
        , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , GShow uni, GEq uni, DefaultUni <: uni
        )
-    => BuiltinName -> [Value TyName Name uni ExMemory] -> EvaluateConstApp uni m ExMemory
+    => BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
 applyBuiltinName AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+) (\_ _ -> ExBudget 1 1)
 applyBuiltinName SubtractInteger      =
@@ -173,16 +166,5 @@ applyBuiltinName LtByteString         =
     applyTypedBuiltinName typedLtByteString         (<) (\_ _ -> ExBudget 1 1)
 applyBuiltinName GtByteString         =
     applyTypedBuiltinName typedGtByteString         (>) (\_ _ -> ExBudget 1 1)
-
--- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
--- given evaluator.
-runApplyBuiltinName
-    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , GShow uni, GEq uni, DefaultUni <: uni
-       )
-    => Evaluator Term uni m
-    -> BuiltinName
-    -> [Value TyName Name uni ExMemory]
-    -> m (ConstAppResult uni ExMemory)
-runApplyBuiltinName eval name = runEvaluateT eval . applyBuiltinName name
+applyBuiltinName IfThenElse           =
+    applyTypedBuiltinName typedIfThenElse           (\b x y -> if b then x else y) (\_ _ _ -> ExBudget 1 1)

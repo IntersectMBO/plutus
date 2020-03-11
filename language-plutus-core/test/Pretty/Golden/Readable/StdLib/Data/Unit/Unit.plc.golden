@@ -1,1 +1,1 @@
-all (a :: *). a -> a
+unit

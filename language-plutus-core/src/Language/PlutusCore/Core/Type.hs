@@ -90,6 +90,7 @@ data BuiltinName
     | EqByteString
     | LtByteString
     | GtByteString
+    | IfThenElse
     deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do

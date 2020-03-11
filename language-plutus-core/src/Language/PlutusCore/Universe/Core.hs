@@ -1,9 +1,11 @@
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -17,6 +19,7 @@ module Language.PlutusCore.Universe.Core
     , ValueOf (..)
     , someValue
     , Includes (..)
+    , IncludesAll
     , Closed (..)
     , type (<:)
     , knownUniOf
@@ -71,6 +74,10 @@ We say that a type is in a universe whenever there is a tag for that type in the
 For example, 'Int' is in 'U', because there exists a tag for 'Int' in 'U' -- 'UInt'.
 -}
 
+type family All (constr :: k -> Constraint) (as :: [k]) :: Constraint where
+    All constr '[]       = ()
+    All constr (x ': xs) = (constr x, All constr xs)
+
 -- | Existential quantification as a data type.
 data Some f = forall a. Some (f a)
 
@@ -83,6 +90,8 @@ data ValueOf uni a = ValueOf (uni a) a
 -- | A constraint for \"@a@ is in @uni@\".
 class uni `Includes` a where
     knownUni :: uni a
+
+type uni `IncludesAll` as = All (Includes uni) as
 
 -- | Same as 'knownUni', but receives a @proxy@.
 knownUniOf :: uni `Includes` a => proxy a -> uni a

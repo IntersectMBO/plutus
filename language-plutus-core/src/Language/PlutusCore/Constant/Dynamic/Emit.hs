@@ -57,7 +57,7 @@ withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) 
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
     -> EmitHandler uni r1
     -> IO ([a], r2)
@@ -70,7 +70,7 @@ withEmitTerm cont (EmitHandler handler) =
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => AnEvaluator Term uni m b
     -> DynamicBuiltinNameMeanings uni
     -> (Term TyName Name uni () -> Term TyName Name uni ())

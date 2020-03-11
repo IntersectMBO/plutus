@@ -30,6 +30,7 @@ instance Pretty BuiltinName where
     pretty SHA2                 = "sha2_256"
     pretty SHA3                 = "sha3_256"
     pretty VerifySignature      = "verifySignature"
+    pretty IfThenElse           = "ifThenElse"
 
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
