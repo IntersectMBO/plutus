@@ -242,7 +242,7 @@ p1Term pir = toFloatData $ runReader
     goRec bs tIn = do
         -- the freevars is the union of each binding's freeVars,
         -- excluding the newly-introduced binding identifiers of this letrec
-        let freeVars = foldMap fBinding bs S.\\ foldMap bindingIds bs
+        let freeVars = foldMap fBinding bs S.\\ S.fromList (foldMap bindingIds bs)
         -- all bindings share their commonly-maximum rank
         newScope <- addRanks bs freeVars
         resBs <- mconcat <$> forM (bs^..traverse.bindingSubterms)
@@ -279,7 +279,7 @@ p1Term pir = toFloatData $ runReader
           -- this computed max rank is linked/associated to all the given bindings and added to the current scope
           -- this is needed because a datatype-binding may introduce multiple identifiers
           -- and we need to create scope entries for each one of them, having the same maxrank
-          scopeDelta = M.fromList [(i,(maxRank, b^.principal)) | b <- bs, i <- S.toList $ bindingIds b]
+          scopeDelta = M.fromList [(i,(maxRank, b^.principal)) | b <- bs, i <- bindingIds b]
           newScope = scope `M.union` scopeDelta
       pure newScope
 
@@ -412,9 +412,11 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   -- | the dependency graph as before, but with datatype-related nodes merged/reduced under a single node per datatypebind a, see 'principal'.
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
   reducedDepGraph = M.foldr (\ (_,_,b) accGraph ->
-                               let princ = b^.principal
-                               -- this works because: (replaceVertex princ princ == id)
-                               in foldr (\ i -> AM.replaceVertex i princ) accGraph $ bindingIds b
+                               let ids = bindingIds b
+                               in case ids of
+                                 _:[] -> accGraph -- optimization to avoid an O(n) op. if there is nothing to merge
+                                 _ ->  AM.mergeVertices (`S.member` S.fromList ids) (b^.principal) accGraph
+
                             ) depGraph rhsTable
 
   -- |take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)

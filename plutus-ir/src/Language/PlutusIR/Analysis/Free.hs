@@ -87,9 +87,11 @@ fTerm = \case
  where
   fLet :: [Binding tyname name uni a] -> Term tyname name uni a -> Recursivity -> S.Set PLC.Unique
   fLet bs tIn =
-    let fIn = fTerm tIn S.\\ foldMap bindingIds bs -- the free variables of termIn (scoped by all the let id's)
+    let
+      allIds = S.fromList $ foldMap bindingIds bs
+      fIn = fTerm tIn S.\\ allIds -- the free variables of termIn (scoped by all the let id's)
     in \case
-      Rec -> (foldMap fBinding bs S.\\ foldMap bindingIds bs) <> fIn -- all id's in the letrec can be seen (scoped) by each other
+      Rec -> (foldMap fBinding bs S.\\ allIds) <> fIn -- all id's in the letrec can be seen (scoped) by each other
       NonRec -> let initialScope = S.empty -- starting with an empty linear-scope
                     initialFreeSet = fIn -- starting from the freeset found in tIn
                 in snd $ foldl nonRecVarAcc (initialScope, initialFreeSet) bs
@@ -99,7 +101,7 @@ fTerm = \case
   -- See Note [Right-associative compilation of let-bindings for linear scoping]
   nonRecVarAcc :: (S.Set PLC.Unique, S.Set PLC.Unique) -> Binding tyname name uni a -> (S.Set PLC.Unique, S.Set PLC.Unique)
   nonRecVarAcc (accLinearScope,accFreeSet) b =
-    let newScope = bindingIds b <> accLinearScope
+    let newScope = S.fromList (bindingIds b) <> accLinearScope
         newFreeSet = (fBinding b S.\\ accLinearScope) <> accFreeSet
     in (newScope, newFreeSet)
 
