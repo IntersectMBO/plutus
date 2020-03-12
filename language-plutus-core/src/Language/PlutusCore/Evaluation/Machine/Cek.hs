@@ -63,6 +63,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
@@ -178,6 +179,13 @@ lookupDynamicBuiltinName dynName = do
             term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
+-- | Instantiate all the free variables of a term by looking them up in an environment.
+dischargeVarEnv :: VarEnv uni -> WithMemory Term uni -> WithMemory Term uni
+dischargeVarEnv varEnv =
+    termSubstFreeNames $ \name -> do
+        Closure varEnv' term' <- lookupName name varEnv
+        Just $ dischargeVarEnv varEnv' term'
+
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
@@ -221,7 +229,8 @@ computeCek con t@(Var _ varName)   = do
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> WithMemory Value uni -> CekM uni (Plain Term uni)
-returnCek [] res = pure $ void res
+-- Instantiate all the free variable of the resulting term in case there are any.
+returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
 returnCek (FrameTyInstArg ty : con) fun = instantiateEvaluate con ty fun
 returnCek (FrameApplyArg argVarEnv arg : con) fun = do
     funVarEnv <- getVarEnv
@@ -265,9 +274,13 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
-applyEvaluate funVarEnv _ con fun arg =
-    let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg) fun arg in
-        case termAsPrimIterApp term of
+applyEvaluate funVarEnv argVarEnv con fun arg =
+        -- Instantiate all the free variable of the argument in case there are any
+        -- (which may happen when evaluating a term that contains polymorphic built-in functions).
+        -- See https://github.com/input-output-hk/plutus/issues/1882
+    let argClosed = dischargeVarEnv argVarEnv arg
+        term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage argClosed) fun argClosed
+    in case termAsPrimIterApp term of
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
