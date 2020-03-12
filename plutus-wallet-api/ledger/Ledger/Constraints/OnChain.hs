@@ -17,7 +17,7 @@ import           Language.PlutusTx.Prelude
 import qualified Ledger.Address                   as Address
 import           Ledger.Constraints.TxConstraints
 import           Ledger.Interval                  (contains)
-import           Ledger.Scripts                   (DataValue (..))
+import           Ledger.Scripts                   (Datum (..))
 import           Ledger.Tx                        (TxOut (..))
 import           Ledger.Validation                (PendingTx, PendingTx' (..), PendingTxIn' (..))
 import qualified Ledger.Validation                as V
@@ -38,8 +38,8 @@ checkOwnOutputConstraint
     => PendingTx
     -> OutputConstraint o
     -> Bool
-checkOwnOutputConstraint ptx OutputConstraint{ocData, ocValue} =
-    let hsh = V.findDataHash (DataValue $ toData ocData) ptx
+checkOwnOutputConstraint ptx OutputConstraint{ocDatum, ocValue} =
+    let hsh = V.findDatumHash (Datum $ toData ocDatum) ptx
         checkOutput TxOut{txOutValue, txOutType=V.PayToScript svh} =
             txOutValue == ocValue && hsh == Just svh
         checkOutput _       = False
@@ -49,8 +49,8 @@ checkOwnOutputConstraint ptx OutputConstraint{ocData, ocValue} =
 {-# INLINABLE checkTxConstraint #-}
 checkTxConstraint :: PendingTx -> TxConstraint -> Bool
 checkTxConstraint ptx = \case
-    MustIncludeDataValue dv ->
-        traceIfFalseH "Missing data value"
+    MustIncludeDatum dv ->
+        traceIfFalseH "Missing datum"
         $ dv `elem` fmap snd (pendingTxData ptx)
     MustValidateIn interval ->
         traceIfFalseH "Wrong validation interval"
@@ -78,7 +78,7 @@ checkTxConstraint ptx = \case
         $ vl `leq` V.valuePaidTo ptx pk
     MustPayToOtherScript vlh dv vl ->
         let outs = V.pendingTxOutputs ptx
-            hsh = V.findDataHash dv ptx
+            hsh = V.findDatumHash dv ptx
             addr = Address.scriptHashAddress vlh
             checkOutput TxOut{txOutAddress, txOutValue, txOutType=V.PayToScript svh} =
                 txOutValue == vl && hsh == Just svh && txOutAddress == addr
@@ -86,9 +86,9 @@ checkTxConstraint ptx = \case
         in
         traceIfFalseH "MustPayToOtherScript"
         $ any checkOutput outs
-    MustHashDataValue dvh dv ->
-        traceIfFalseH "MustHashDataValue"
-        $ V.findData dvh ptx == Just dv
+    MustHashDatum dvh dv ->
+        traceIfFalseH "MustHashDatum"
+        $ V.findDatum dvh ptx == Just dv
 
 {-# INLINABLE checkPendingTx #-}
 -- | Does the 'PendingTx' satisfy the constraints?
@@ -98,4 +98,3 @@ checkPendingTx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
     $ all (checkTxConstraint ptx) txConstraints
     && all (checkOwnInputConstraint ptx) txOwnInputs
     && all (checkOwnOutputConstraint ptx) txOwnOutputs
-

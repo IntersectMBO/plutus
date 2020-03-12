@@ -131,7 +131,7 @@ validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ptx
 data Vesting
 instance Scripts.ScriptType Vesting where
     type instance RedeemerType Vesting = ()
-    type instance DataType Vesting = ()
+    type instance DatumType Vesting = ()
 
 vestingScript :: VestingParams -> Validator
 vestingScript = Scripts.validatorScript . scriptInstance

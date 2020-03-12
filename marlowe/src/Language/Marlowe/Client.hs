@@ -25,11 +25,11 @@ import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Address, DataValue (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval, CurrencySymbol, TokenName,
+import           Ledger                     (Address, Datum (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval, CurrencySymbol, TokenName,
                                              mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, scriptTxOut',
                                              txOutRefs)
 import           Ledger.Ada                 (adaValueOf, adaSymbol)
-import           Ledger.Scripts             (RedeemerValue (..), Validator, validatorHash)
+import           Ledger.Scripts             (Redeemer (..), Validator, validatorHash)
 import qualified Ledger.Typed.Scripts       as Scripts
 import qualified Ledger.Value               as Val
 import           Ledger.Validation
@@ -55,7 +55,7 @@ createContract params contract = do
         marloweData = MarloweData {
             marloweContract = contract,
             marloweState = emptyState slot }
-        ds = DataValue $ PlutusTx.toData marloweData
+        ds = Datum $ PlutusTx.toData marloweData
 
     let payValue = adaValueOf 1
     (payment, change) <- createPaymentWithChange payValue
@@ -157,7 +157,7 @@ applyInputs :: (
 applyInputs tx params marloweData@MarloweData{..} inputs = do
     let redeemer = mkRedeemer inputs
         validator = validatorScript params
-        dataValue = DataValue (PlutusTx.toData marloweData)
+        dataValue = Datum (PlutusTx.toData marloweData)
         address = scriptAddress validator
     slot <- slot
 
@@ -191,7 +191,7 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
                         (payouts, dataValues) = txPaymentOuts txOutPayments
                         totalPayouts = foldMap txOutValue payouts
                         finalBalance = totalIncome P.- totalPayouts
-                        dataValue = DataValue (PlutusTx.toData marloweData)
+                        dataValue = Datum (PlutusTx.toData marloweData)
                         scriptOut = scriptTxOut finalBalance validator dataValue
                         in (scriptOut : payouts, dataValue : dataValues)
 
@@ -221,7 +221,7 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
     rolePayoutScriptAddress :: Address
     rolePayoutScriptAddress = scriptAddress rolePayoutScript
 
-    txPaymentOuts :: [Payment] -> ([TxOut], [DataValue])
+    txPaymentOuts :: [Payment] -> ([TxOut], [Datum])
     txPaymentOuts payments = foldMap paymentToTxOut paymentsByParty
       where
         paymentsByParty = Map.toList $ foldr collectPayments Map.empty payments
@@ -229,7 +229,7 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
         paymentToTxOut (party, value) = case party of
             PK pk  -> ([pubKeyHashTxOut value pk], [])
             Role role -> let
-                dataValue = DataValue $ PlutusTx.toData (rolesCurrency params, role)
+                dataValue = Datum $ PlutusTx.toData (rolesCurrency params, role)
                 txout = scriptTxOut' value rolePayoutScriptAddress dataValue
                 in ([txout], [dataValue])
 
@@ -271,5 +271,5 @@ validatorScript params = mkValidatorScript ($$(PlutusTx.compile [|| validatorPar
 
 
 {-| Make redeemer script -}
-mkRedeemer :: [Input] -> RedeemerValue
-mkRedeemer inputs = RedeemerValue (PlutusTx.toData inputs)
+mkRedeemer :: [Input] -> Redeemer
+mkRedeemer inputs = Redeemer (PlutusTx.toData inputs)

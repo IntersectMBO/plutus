@@ -23,9 +23,9 @@ module Ledger.Tx(
     validValuesTx,
     forgeScripts,
     signatures,
-    dataWitnesses,
+    datumWitnesses,
     lookupSignature,
-    lookupData,
+    lookupDatum,
     addSignature,
     forge,
     -- ** Hashing transactions
@@ -44,12 +44,12 @@ module Ledger.Tx(
     outValue,
     outType,
     txOutPubKey,
-    txOutData,
+    txOutDatum,
     pubKeyTxOut,
     pubKeyHashTxOut,
     scriptTxOut,
     scriptTxOut',
-    txOutTxData,
+    txOutTxDatum,
     -- * Transaction inputs
     TxInType(..),
     TxIn(..),
@@ -131,8 +131,8 @@ data Tx = Tx {
     -- ^ The scripts that must be run to check forging conditions.
     txSignatures   :: Map PubKey Signature,
     -- ^ Signatures of this transaction.
-    txData         :: Map DataValueHash DataValue
-    -- ^ Data values recorded on this transaction.
+    txData         :: Map DatumHash Datum
+    -- ^ Datum objects recorded on this transaction.
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, IotsType)
 
@@ -203,16 +203,16 @@ forgeScripts = lens g s where
     g = txForgeScripts
     s tx fs = tx { txForgeScripts = fs }
 
-dataWitnesses :: Lens' Tx (Map DataValueHash DataValue)
-dataWitnesses = lens g s where
+datumWitnesses :: Lens' Tx (Map DatumHash Datum)
+datumWitnesses = lens g s where
     g = txData
     s tx dat = tx { txData = dat }
 
 lookupSignature :: PubKey -> Tx -> Maybe Signature
 lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
 
-lookupData :: Tx -> DataValueHash -> Maybe DataValue
-lookupData Tx{txData} h = Map.lookup h txData
+lookupDatum :: Tx -> DatumHash -> Maybe Datum
+lookupDatum Tx{txData} h = Map.lookup h txData
 
 -- | Check that all values in a transaction are non-negative.
 validValuesTx :: Tx -> Bool
@@ -273,7 +273,7 @@ txOutRefs t = mkOut <$> zip [0..] (txOutputs t) where
 -- | The type of a transaction input.
 data TxInType =
       -- TODO: these should all be hashes, with the validators and data segregated to the side
-      ConsumeScriptAddress !Validator !RedeemerValue !DataValue -- ^ A transaction input that consumes a script address with the given validator, redeemer, and data.
+      ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
     | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
@@ -307,7 +307,7 @@ inType = lens txInType s where
 
 -- | Validator, redeemer, and data scripts of a transaction input that spends a
 --   "pay to script" output.
-inScripts :: TxIn -> Maybe (Validator, RedeemerValue, DataValue)
+inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
 inScripts TxIn{ txInType = t } = case t of
     ConsumeScriptAddress v r d -> Just (v, r, d)
     ConsumePublicKeyAddress    -> Nothing
@@ -317,12 +317,12 @@ pubKeyTxIn :: TxOutRef -> TxIn
 pubKeyTxIn r = TxIn r ConsumePublicKeyAddress
 
 -- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> Validator -> RedeemerValue -> DataValue -> TxIn
+scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
 scriptTxIn ref v r d = TxIn ref $ ConsumeScriptAddress v r d
 
 -- | The type of a transaction output.
 data TxOutType =
-    PayToScript !DataValueHash -- ^ A pay-to-script output with the given data script hash.
+    PayToScript !DatumHash -- ^ A pay-to-script output with the given datum hash.
     | PayToPubKey -- ^ A pay-to-pubkey output.
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, ToJSONKey, IotsType)
@@ -356,9 +356,9 @@ instance PlutusTx.Eq TxOut where
         PlutusTx.&& txOutValue l PlutusTx.== txOutValue r
         PlutusTx.&& txOutType l PlutusTx.== txOutType r
 
--- | The data script attached to a 'TxOutOf', if there is one.
-txOutData :: TxOut -> Maybe DataValueHash
-txOutData TxOut{txOutType = t} = case  t of
+-- | The datum attached to a 'TxOutOf', if there is one.
+txOutDatum :: TxOut -> Maybe DatumHash
+txOutDatum TxOut{txOutType = t} = case  t of
     PayToScript s -> Just s
     PayToPubKey   -> Nothing
 
@@ -391,7 +391,7 @@ isPubKeyOut = isJust . txOutPubKey
 
 -- | Whether the output is a pay-to-script output.
 isPayToScriptOut :: TxOut -> Bool
-isPayToScriptOut = isJust . txOutData
+isPayToScriptOut = isJust . txOutDatum
 
 -- | A 'TxOut' along with the 'Tx' it comes from, which may have additional information e.g.
 -- the full data script that goes with the 'TxOut'.
@@ -399,17 +399,17 @@ data TxOutTx = TxOutTx { txOutTxTx :: Tx, txOutTxOut :: TxOut }
     deriving stock (Show, Eq, Generic)
     deriving anyclass (Serialise, ToJSON, FromJSON, IotsType)
 
-txOutTxData :: TxOutTx -> Maybe DataValue
-txOutTxData (TxOutTx tx out) = txOutData out >>= lookupData tx
+txOutTxDatum :: TxOutTx -> Maybe Datum
+txOutTxDatum (TxOutTx tx out) = txOutDatum out >>= lookupDatum tx
 
 -- | Create a transaction output locked by a validator script hash
 --   with the given data script attached.
-scriptTxOut' :: Value -> Address -> DataValue -> TxOut
+scriptTxOut' :: Value -> Address -> Datum -> TxOut
 scriptTxOut' v a ds = TxOut a v tp where
-    tp = PayToScript (dataValueHash ds)
+    tp = PayToScript (datumHash ds)
 
 -- | Create a transaction output locked by a validator script and with the given data script attached.
-scriptTxOut :: Value -> Validator -> DataValue -> TxOut
+scriptTxOut :: Value -> Validator -> Datum -> TxOut
 scriptTxOut v vs = scriptTxOut' v (scriptAddress vs)
 
 -- | Create a transaction output locked by a public key.

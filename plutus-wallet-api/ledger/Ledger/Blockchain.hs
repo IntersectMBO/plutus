@@ -4,14 +4,14 @@
 module Ledger.Blockchain (
     Block,
     Blockchain,
-    ValidationData(..),
+    Context(..),
     transaction,
     out,
     value,
     unspentOutputsTx,
     spentOutputs,
     unspentOutputs,
-    dataTxo,
+    datumTxo,
     updateUtxo,
     txOutPubKey,
     pubKeyTxo,
@@ -54,8 +54,8 @@ value :: Blockchain -> TxOutRef -> Maybe Value
 value bc o = txOutValue <$> out bc o
 
 -- | Determine the data script that a transaction output refers to.
-dataTxo :: Blockchain -> TxOutRef -> Maybe DataValueHash
-dataTxo bc o = txOutData =<< out bc o
+datumTxo :: Blockchain -> TxOutRef -> Maybe DatumHash
+datumTxo bc o = txOutDatum =<< out bc o
 
 -- | Determine the public key that locks a transaction output, if there is one.
 pubKeyTxo :: Blockchain -> TxOutRef -> Maybe PubKeyHash

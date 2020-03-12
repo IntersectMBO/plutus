@@ -21,7 +21,7 @@ import           Ledger.Scripts
 import qualified Ledger.Validation         as Validation
 
 -- | The type of validators for the given connection type.
-type ValidatorType (a :: Type) = DataType a -> RedeemerType a -> Validation.PendingTx -> Bool
+type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.PendingTx -> Bool
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 type WrappedMonetaryPolicyType = Data -> ()
@@ -32,21 +32,21 @@ class ScriptType (a :: Type) where
     -- | The type of the redeemers of this connection type.
     type RedeemerType a :: Type
     -- | The type of the data of this connection type.
-    type DataType a :: Type
+    type DatumType a :: Type
 
     -- Defaults
     type instance RedeemerType a = ()
-    type instance DataType  a = ()
+    type instance DatumType  a = ()
 
 instance ScriptType Void where
     type RedeemerType Void = Void
-    type DataType Void = Void
+    type DatumType Void = Void
 
 data Any
 
 instance ScriptType Any where
     type RedeemerType Any = Data
-    type DataType Any = Data
+    type DatumType Any = Data
 
 {- Note [Scripts returning Bool]
 It used to be that the signal for validation failure was a script being `error`. This is nice for the validator, since

@@ -49,32 +49,32 @@ import           Control.Monad.Except
 -- | A 'TxIn' tagged by two phantom types: a list of the types of the data scripts in the transaction; and the connection type of the input.
 data TypedScriptTxIn a = TypedScriptTxIn { tyTxInTxIn :: TxIn, tyTxInOutRef :: TypedScriptTxOutRef a }
 
-instance Eq (DataType a) => Eq (TypedScriptTxIn a) where
+instance Eq (DatumType a) => Eq (TypedScriptTxIn a) where
     l == r =
         tyTxInTxIn l == tyTxInTxIn r
         && tyTxInOutRef l == tyTxInOutRef r
 
-instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxIn a) where
+instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxIn a) where
     parseJSON (Object v) =
         TypedScriptTxIn <$> v .: "tyTxInTxIn" <*> v .: "tyTxInOutRef"
     parseJSON invalid = typeMismatch "Object" invalid
 
-instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxIn a) where
+instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxIn a) where
     toJSON TypedScriptTxIn{tyTxInTxIn, tyTxInOutRef} =
         object ["tyTxInTxIn" .= tyTxInTxIn, "tyTxInOutRef" .= tyTxInOutRef]
 
 -- | Create a 'TypedScriptTxIn' from a correctly-typed validator, redeemer, and output ref.
 makeTypedScriptTxIn
     :: forall inn
-    . (IsData (RedeemerType inn), IsData (DataType inn))
+    . (IsData (RedeemerType inn), IsData (DatumType inn))
     => ScriptInstance inn
     -> RedeemerType inn
     -> TypedScriptTxOutRef inn
     -> TypedScriptTxIn inn
 makeTypedScriptTxIn si r tyRef@(TypedScriptTxOutRef ref TypedScriptTxOut{tyTxOutData=d}) =
     let vs = validatorScript si
-        rs = RedeemerValue (toData r)
-        ds = DataValue (toData d)
+        rs = Redeemer (toData r)
+        ds = Datum (toData d)
         txInType = ConsumeScriptAddress vs rs ds
     in TypedScriptTxIn @inn (TxIn ref txInType) tyRef
 
@@ -91,48 +91,48 @@ makePubKeyTxIn :: TxOutRef -> PubKeyTxIn
 makePubKeyTxIn ref = PubKeyTxIn $ TxIn ref ConsumePublicKeyAddress
 
 -- | A 'TxOut' tagged by a phantom type: and the connection type of the output.
-data TypedScriptTxOut a = IsData (DataType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DataType a }
+data TypedScriptTxOut a = IsData (DatumType a) => TypedScriptTxOut { tyTxOutTxOut :: TxOut, tyTxOutData :: DatumType a }
 
-instance Eq (DataType a) => Eq (TypedScriptTxOut a) where
+instance Eq (DatumType a) => Eq (TypedScriptTxOut a) where
     l == r =
         tyTxOutTxOut l == tyTxOutTxOut r
         && tyTxOutData l == tyTxOutData r
 
-instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxOut a) where
+instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOut a) where
     parseJSON (Object v) =
         TypedScriptTxOut <$> v .: "tyTxOutTxOut" <*> v .: "tyTxOutData"
     parseJSON invalid = typeMismatch "Object" invalid
 
-instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxOut a) where
+instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOut a) where
     toJSON TypedScriptTxOut{tyTxOutTxOut, tyTxOutData} =
         object ["tyTxOutTxOut" .= tyTxOutTxOut, "tyTxOutData" .= tyTxOutData]
 
 -- | Create a 'TypedScriptTxOut' from a correctly-typed data script, an address, and a value.
 makeTypedScriptTxOut
     :: forall out
-    . (IsData (DataType out))
+    . (IsData (DatumType out))
     => ScriptInstance out
-    -> DataType out
+    -> DatumType out
     -> Value.Value
     -> TypedScriptTxOut out
 makeTypedScriptTxOut ct d value =
-    let outTy = PayToScript $ dataValueHash $ DataValue $ toData d
+    let outTy = PayToScript $ datumHash $ Datum $ toData d
     in TypedScriptTxOut @out (TxOut (scriptAddress ct) value outTy) d
 
 -- | A 'TxOutRef' tagged by a phantom type: and the connection type of the output.
 data TypedScriptTxOutRef a = TypedScriptTxOutRef { tyTxOutRefRef :: TxOutRef, tyTxOutRefOut :: TypedScriptTxOut a }
 
-instance Eq (DataType a) => Eq (TypedScriptTxOutRef a) where
+instance Eq (DatumType a) => Eq (TypedScriptTxOutRef a) where
     l == r =
         tyTxOutRefRef l == tyTxOutRefRef r
         && tyTxOutRefOut l == tyTxOutRefOut r
 
-instance (FromJSON (DataType a), IsData (DataType a)) => FromJSON (TypedScriptTxOutRef a) where
+instance (FromJSON (DatumType a), IsData (DatumType a)) => FromJSON (TypedScriptTxOutRef a) where
     parseJSON (Object v) =
         TypedScriptTxOutRef <$> v .: "tyTxOutRefRef" <*> v .: "tyTxOutRefOut"
     parseJSON invalid = typeMismatch "Object" invalid
 
-instance (ToJSON (DataType a)) => ToJSON (TypedScriptTxOutRef a) where
+instance (ToJSON (DatumType a)) => ToJSON (TypedScriptTxOutRef a) where
     toJSON TypedScriptTxOutRef{tyTxOutRefRef, tyTxOutRefOut} =
         object ["tyTxOutRefRef" .= tyTxOutRefRef, "tyTxOutRefOut" .= tyTxOutRefOut]
 
@@ -152,8 +152,8 @@ data ConnectionError =
     | WrongInType TxInType
     | WrongValidatorType String
     | WrongRedeemerType
-    | WrongDataType
-    | NoData TxId DataValueHash
+    | WrongDatumType
+    | NoDatum TxId DatumHash
     | UnknownRef
     deriving (Show, Eq, Ord)
 
@@ -176,33 +176,33 @@ checkValidatorScript _ (unValidatorScript -> (Script prog)) =
         Left e     -> throwError $ WrongValidatorType $ show $ PLC.prettyPlcDef e
 
 -- | Checks that the given redeemer script has the right type.
-checkRedeemerValue
+checkRedeemer
     :: forall inn m
     . (IsData (RedeemerType inn), MonadError ConnectionError m)
     => ScriptInstance inn
-    -> RedeemerValue
+    -> Redeemer
     -> m (RedeemerType inn)
-checkRedeemerValue _ (RedeemerValue d) =
+checkRedeemer _ (Redeemer d) =
     case fromData d of
         Just v  -> pure v
         Nothing -> throwError WrongRedeemerType
 
--- | Checks that the given data script has the right type.
-checkDataScript
-    :: forall a m . (IsData (DataType a), MonadError ConnectionError m)
+-- | Checks that the given datum has the right type.
+checkDatum
+    :: forall a m . (IsData (DatumType a), MonadError ConnectionError m)
     => ScriptInstance a
-    -> DataValue
-    -> m (DataType a)
-checkDataScript _ (DataValue d) =
+    -> Datum
+    -> m (DatumType a)
+checkDatum _ (Datum d) =
     case fromData d of
         Just v  -> pure v
-        Nothing -> throwError WrongDataType
+        Nothing -> throwError WrongDatumType
 
 -- | Create a 'TypedScriptTxIn' from an existing 'TxIn' by checking the types of its parts.
 typeScriptTxIn
     :: forall inn m
     . ( IsData (RedeemerType inn)
-      , IsData (DataType inn)
+      , IsData (DatumType inn)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> ScriptInstance inn
@@ -213,8 +213,8 @@ typeScriptTxIn lookupRef si TxIn{txInRef,txInType} = do
         ConsumeScriptAddress vs rs ds -> pure (vs, rs, ds)
         x                             -> throwError $ WrongInType x
     _ <- checkValidatorScript si vs
-    rsVal <- checkRedeemerValue si rs
-    _ <- checkDataScript si ds
+    rsVal <- checkRedeemer si rs
+    _ <- checkDatum si ds
     typedOut <- typeScriptTxOutRef @inn lookupRef si txInRef
     pure $ makeTypedScriptTxIn si rsVal typedOut
 
@@ -233,7 +233,7 @@ typePubKeyTxIn inn@TxIn{txInType} = do
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts.
 typeScriptTxOut
     :: forall out m
-    . ( IsData (DataType out)
+    . ( IsData (DatumType out)
       , MonadError ConnectionError m)
     => ScriptInstance out
     -> TxOutTx
@@ -242,11 +242,11 @@ typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValu
     dsh <- case txOutType of
         PayToScript ds -> pure ds
         x              -> throwError $ WrongOutType x
-    ds <- case lookupData tx dsh of
+    ds <- case lookupDatum tx dsh of
         Just ds -> pure ds
-        Nothing -> throwError $ NoData (txId tx) dsh
+        Nothing -> throwError $ NoDatum (txId tx) dsh
     checkValidatorAddress si txOutAddress
-    dsVal <- checkDataScript si ds
+    dsVal <- checkDatum si ds
     pure $ makeTypedScriptTxOut si dsVal txOutValue
 
 -- | Create a 'TypedScriptTxOut' from an existing 'TxOut' by checking the types of its parts. To do this we
@@ -254,7 +254,7 @@ typeScriptTxOut si TxOutTx{txOutTxTx=tx, txOutTxOut=TxOut{txOutAddress,txOutValu
 -- reference points.
 typeScriptTxOutRef
     :: forall out m
-    . ( IsData (DataType out)
+    . ( IsData (DatumType out)
       , MonadError ConnectionError m)
     => (TxOutRef -> Maybe TxOutTx)
     -> ScriptInstance out
