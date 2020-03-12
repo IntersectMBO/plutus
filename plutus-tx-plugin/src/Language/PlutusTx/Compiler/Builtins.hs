@@ -32,6 +32,7 @@ import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
+import qualified Language.PlutusIR.Value                as PIR
 
 import qualified Language.PlutusCore                    as PLC
 import qualified Language.PlutusCore.Constant           as PLC
@@ -51,6 +52,7 @@ import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.Map                               as Map
 import           Data.Proxy
 import qualified Data.Set                               as Set
+import           Data.Traversable                       (for)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -121,6 +123,24 @@ For an example of how the "abstract module" approach would look:
 (\ x,y : <builtin int> . <builtin addInteger> x y) -- No type error any more, abstraction is gone
 -}
 
+{- Note [Builtin terms and values]
+When generating let-bindings, we would like to generate strict bindings only for things that are obviously
+values, and non-strict bindings otherwise. This ensures that we won't evaluate the RHS of the binding prematurely,
+which matters if it could trigger an error, or some other effect.
+
+Additionally, strict bindings are a bit more efficient than non-strict ones (non-strict ones get turned into
+lambdas from unit and forcing in the body). So we would like to use strict bindings where possible.
+
+Now, we generate bindings for all our builtin functions... but there are not obviously values! Without the
+typechecker we don't know whether they are unsaturated, and so whether they will reduce as they are.
+
+This forces us to either:
+1. Generate all these bindings as non-strict.
+2. Eta-expand all the builtin functions so they're obviously values (since they'd be lambdas).
+
+We do the latter.
+-}
+
 mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name uni ()
 mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
 
@@ -182,7 +202,10 @@ defineBuiltinTerm :: Compiling uni m => TH.Name -> PIRTerm uni -> [GHC.Name] -> 
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
-    PIR.defineTerm (LexName $ GHC.getName ghcId) (PIR.Def var (term, PIR.Strict)) (Set.fromList $ LexName <$> deps)
+    -- See Note [Builtin terms and values]
+    let strictness = if PIR.isTermValue term then PIR.Strict else PIR.NonStrict
+        def = PIR.Def var (term, strictness)
+    PIR.defineTerm (LexName $ GHC.getName ghcId) def (Set.fromList $ LexName <$> deps)
 
 -- | Add definitions for all the builtin types to the environment.
 defineBuiltinType :: forall uni m. Compiling uni m => TH.Name -> PIRType uni -> [GHC.Name] -> m ()
@@ -203,30 +226,37 @@ defineBuiltinTerms = do
     str <- GHC.getName <$> getThing ''Builtins.String
     char <- GHC.getName <$> getThing ''Char
 
+    intTy <- lookupBuiltinType ''Integer
+    bsTy <- lookupBuiltinType ''Builtins.ByteString
+    strTy <- lookupBuiltinType ''Builtins.String
+    charTy <- lookupBuiltinType ''Char
+
+    -- See Note [Builtin terms and values] for the eta expansion below
+
     -- Bytestring builtins
     do
-        let term = mkBuiltin PLC.Concatenate
+        term <- etaExpand [bsTy, bsTy] $ mkBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        let term = mkBuiltin PLC.TakeByteString
+        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.TakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        let term = mkBuiltin PLC.DropByteString
-        defineBuiltinTerm 'Builtins.dropByteString term [int]
+        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.DropByteString
+        defineBuiltinTerm 'Builtins.dropByteString term [int, bs]
     do
-        let term = mkBuiltin PLC.SHA2
+        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA2
         defineBuiltinTerm 'Builtins.sha2_256 term [bs]
     do
-        let term = mkBuiltin PLC.SHA3
+        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA3
         defineBuiltinTerm 'Builtins.sha3_256 term [bs]
     do
-        term <- wrapBsRel 2 $ mkBuiltin PLC.EqByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.EqByteString
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
     do
-        term <- wrapBsRel 2 $ mkBuiltin PLC.LtByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.LtByteString
         defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
     do
-        term <- wrapBsRel 2 $ mkBuiltin PLC.GtByteString
+        term <- wrapRel bsTy 2 $ mkBuiltin PLC.GtByteString
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
@@ -235,39 +265,39 @@ defineBuiltinTerms = do
 
     -- Integer builtins
     do
-        let term = mkBuiltin PLC.AddInteger
+        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.AddInteger
         defineBuiltinTerm 'Builtins.addInteger term [int]
     do
-        let term = mkBuiltin PLC.SubtractInteger
+        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.SubtractInteger
         defineBuiltinTerm 'Builtins.subtractInteger term [int]
     do
-        let term = mkBuiltin PLC.MultiplyInteger
+        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.MultiplyInteger
         defineBuiltinTerm 'Builtins.multiplyInteger term [int]
     do
-        let term = mkBuiltin PLC.DivideInteger
+        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.DivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
     do
-        let term = mkBuiltin PLC.RemainderInteger
+        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.RemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
     do
-        term <- mkIntRel PLC.GreaterThanInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanInteger
         defineBuiltinTerm 'Builtins.greaterThanInteger term [int, bool]
     do
-        term <- mkIntRel PLC.GreaterThanEqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanEqInteger
         defineBuiltinTerm 'Builtins.greaterThanEqInteger term [int, bool]
     do
-        term <- mkIntRel PLC.LessThanInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanInteger
         defineBuiltinTerm 'Builtins.lessThanInteger term [int, bool]
     do
-        term <- mkIntRel PLC.LessThanEqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanEqInteger
         defineBuiltinTerm 'Builtins.lessThanEqInteger term [int, bool]
     do
-        term <- mkIntRel PLC.EqInteger
+        term <- wrapRel intTy 2 $ mkBuiltin PLC.EqInteger
         defineBuiltinTerm 'Builtins.equalsInteger term [int, bool]
 
     -- Blockchain builtins
     do
-        term <- wrapBsRel 3 $ mkBuiltin PLC.VerifySignature
+        term <- wrapRel bsTy 3 $ mkBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
 
     -- Error
@@ -278,16 +308,15 @@ defineBuiltinTerms = do
 
     -- Strings and chars
     do
-        let term = mkDynBuiltin PLC.dynamicAppendName
+        term <- etaExpand [strTy, strTy] $ mkDynBuiltin PLC.dynamicAppendName
         defineBuiltinTerm 'Builtins.appendString term [str]
     do
         let term = PIR.mkConstant () ("" :: String)
         defineBuiltinTerm 'Builtins.emptyString term [str]
     do
-        let term = mkDynBuiltin PLC.dynamicCharToStringName
+        term <- etaExpand [charTy] $ mkDynBuiltin PLC.dynamicCharToStringName
         defineBuiltinTerm 'Builtins.charToString term [char, str]
     do
-        strTy <- lookupBuiltinType ''Builtins.String
         term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
@@ -366,40 +395,27 @@ scottBoolToHaskellBool = do
         PIR.LamAbs () arg scottBoolTy $
         PIR.mkIterApp () instantiatedMatch [ haskellTrue, haskellFalse ]
 
--- | Wrap an integer relation of arity @n@ that produces a Scott boolean.
-wrapIntRel :: Compiling uni m => Int -> PIRTerm uni -> m (PIRTerm uni)
-wrapIntRel arity term = do
-    intTy <- lookupBuiltinType ''Integer
+-- | Eta-expand a function with the given argument types.
+etaExpand :: Compiling uni m => [PIRType uni] -> PIRTerm uni -> m (PIRTerm uni)
+etaExpand argTys term = do
+    args <- for argTys $ \argTy -> do
+        name <- safeFreshName () "arg"
+        pure $ PIR.VarDecl () name argTy
+
+    pure $ PIR.mkIterLamAbs args $ (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
+
+-- | Wrap an relation of arity @n@ that produces a Scott boolean.
+wrapRel :: Compiling uni m => PIRType uni -> Int -> PIRTerm uni -> m (PIRTerm uni)
+wrapRel argTy arity term = do
     args <- replicateM arity $ do
         name <- safeFreshName () "arg"
-        pure $ PIR.VarDecl () name intTy
+        pure $ PIR.VarDecl () name argTy
 
-    -- TODO: bind the converter to a name too
     converter <- scottBoolToHaskellBool
 
     pure $
         PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
-
-mkIntRel :: Compiling uni m => PLC.BuiltinName -> m (PIRTerm uni)
-mkIntRel name = wrapIntRel 2 $ mkBuiltin name
-
--- | Wrap an bytestring relation of arity @n@ that produces a Scott boolean.
-wrapBsRel :: Compiling uni m => Int -> PIRTerm uni -> m (PIRTerm uni)
-wrapBsRel arity term = do
-    ty <- lookupBuiltinType ''Builtins.ByteString
-
-    args <- replicateM arity $ do
-        name <- safeFreshName () "arg"
-        pure $ PIR.VarDecl () name ty
-
-    converter <- scottBoolToHaskellBool
-
-    pure $
-        PIR.mkIterLamAbs args $
-        PIR.Apply ()
-          converter
-          (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 -- | Convert a Scott-encoded Unit into a Haskell Unit.
 scottUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
