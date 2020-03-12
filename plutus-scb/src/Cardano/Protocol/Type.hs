@@ -38,7 +38,7 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmiss
 import           Ledger                                             (Block, Slot (..), Tx (..), TxId (..), txId)
 import qualified Ledger.Index                                       as Index
 import           LedgerBytes                                        (LedgerBytes (..))
-import qualified Wallet.Emulator.Chain                              as EC
+import           Wallet.Emulator.Chain
 
 -- Making plutus transaction representations work with the node protocols
 type instance HeaderHash Tx = TxId
@@ -49,6 +49,8 @@ deriving instance StandardHash Block
 deriving instance Generic Index.UtxoIndex
 deriving newtype instance CBOR.Serialise Index.UtxoIndex
 deriving newtype instance NoUnexpectedThunks TxId
+deriving instance Generic ChainState
+deriving instance Serialise ChainState
 -- TODO: Move this when fear of merging subsides
 
 -- Block header
@@ -68,37 +70,6 @@ data NodeToClientPtcls = ChainSyncWithBlocksPtcl
                        | LocalTxSubmissionPtcl
                        | PuppetPtcl
       deriving (Eq, Ord, Enum, Bounded, Show)
-
-data ChainState =
-     ChainState { _chainNewestFirst :: [(SlotNo, Block)]
-                , _txPool           :: [Tx]
-                , _index            :: Index.UtxoIndex
-                } deriving (Show, Generic, CBOR.Serialise)
-
-makeLenses ''ChainState
-
-currentSlot :: ChainState -> Slot
-currentSlot (ChainState [] _ _)                     = Slot 0
-currentSlot (ChainState ((SlotNo slot, _) : _) _ _) =
-  Slot $ toInteger slot
-
-fromEChainState :: EC.ChainState -> ChainState
-fromEChainState (EC.ChainState chain pool utxo (Slot s)) =
-  ChainState { _chainNewestFirst = zip [slot ..] chain
-             , _txPool = pool
-             , _index  = utxo
-             }
-  where
-    slot :: SlotNo
-    slot =  fromIntegral $ s - toInteger (length chain)
-
-toEChainState :: ChainState -> EC.ChainState
-toEChainState s@(ChainState chain pool utxo) =
-  EC.ChainState { EC._chainNewestFirst = map snd chain
-                , EC._txPool = pool
-                , EC._index  = utxo
-                , EC._currentSlot = currentSlot s
-                }
 
 instance MiniProtocolLimits NodeToClientPtcls where
     maximumMessageSize _  = maxBound

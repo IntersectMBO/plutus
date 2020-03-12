@@ -11,12 +11,12 @@ import           Cardano.Protocol.Server
 import           Cardano.Protocol.Type
 import           Language.Plutus.Contract.Trace (InitialDistribution, defaultDist)
 import           Wallet.Emulator                as EM
+import           Wallet.Emulator.Chain
 import           Wallet.Emulator.MultiAgent     as MA
 
 initialChainState :: InitialDistribution -> ChainState
 initialChainState =
-      fromEChainState
-    . view EM.chainState
+      view EM.chainState
     . MA.emulatorStateInitialDist
     . Map.mapKeys EM.walletPubKey
 

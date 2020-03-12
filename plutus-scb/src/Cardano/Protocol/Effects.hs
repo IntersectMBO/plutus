@@ -8,31 +8,31 @@ import           Control.Monad.Freer.State
 import           Control.Monad.Freer.Writer
 
 import           Cardano.Node.Mock          (NodeServerEffects, runChainEffects)
-import           Cardano.Node.Types         (AppState (..), chainState)
+import           Cardano.Node.Types         (AppState (..), chainState, initialFollowerState)
 import           Cardano.Protocol.Type
-import qualified Wallet.Emulator.Chain      as EC
+import           Wallet.Emulator.Chain
 
 wrapChainEffects :: MVar ChainState
                  -> Eff (NodeServerEffects IO) a
-                 -> IO ([EC.ChainEvent], a)
+                 -> IO ([ChainEvent], a)
 wrapChainEffects chState eff = do
   cs       <- takeMVar chState
-  appState <- newMVar $ AppState (toEChainState cs) []
+  appState <- newMVar $ AppState cs [] initialFollowerState
   (events, result) <-
     runChainEffects appState eff
   as       <- takeMVar appState
-  putMVar chState (fromEChainState $ as ^. chainState)
+  putMVar chState (as ^. chainState)
   pure (events, result)
 
 runPureChainEffects :: ChainState
-                    -> Eff '[ EC.ChainEffect
-                            , State EC.ChainState
-                            , Writer [EC.ChainEvent] ] a
+                    -> Eff '[ ChainEffect
+                            , State ChainState
+                            , Writer [ChainEvent] ] a
                     -> (a, ChainState)
 runPureChainEffects oldState eff =
   let ((result, newState), _)
         = Eff.run $
           runWriter $
-          runState (toEChainState oldState) $
-          EC.handleChain eff
-  in (result, fromEChainState newState)
+          runState oldState $
+          handleChain eff
+  in (result, newState)

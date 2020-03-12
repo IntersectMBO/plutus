@@ -49,6 +49,7 @@ import qualified Ledger.Index                                        as Index
 import           Plutus.SCB.Core
 import           Plutus.SCB.Events
 import           Plutus.SCB.Query                                    (nullProjection)
+import           Wallet.Emulator.Chain                               hiding (ChainEvent)
 
 data ClientState = ClientState
   { _csChain       :: [Block]
@@ -59,7 +60,7 @@ data ClientState = ClientState
 makeLenses ''ClientState
 
 emptyClientState :: ClientState
-emptyClientState = ClientState [] (Index.UtxoIndex Map.empty) (Slot 0)
+emptyClientState =  ClientState [] (Index.UtxoIndex Map.empty) (Slot 0)
 
 startClientNode :: FilePath
                 -> Connection
@@ -190,7 +191,7 @@ getResumeOffset (ClientState chain _ (Slot cntSlot))
                  (Point (At (Point.Block (SlotNo srvSlot) srvId)))
   = do
     let srvSlot' = toInteger srvSlot
-    localIndex <- toInteger <$> findIndex (srvId `sameHashAs`) chain
+    localIndex  <- toInteger <$> findIndex (srvId `sameHashAs`) chain
     if srvSlot' == cntSlot - localIndex
     then pure $ cntSlot - srvSlot'
     else Nothing
@@ -200,7 +201,6 @@ getResumeOffset (ClientState chain _ (Slot cntSlot))
 -- NOTE: Something bad happened. We should send a local state reset event,
 --       reset the local state and start a fresh download from the server.
 getResumeOffset _ _ = error "Not yet implemented."
-
 
 sampleLocalState :: ClientState -> [Point Block]
 sampleLocalState cs =
@@ -290,7 +290,6 @@ localStateRefresh delay localState =
           threadDelay (fromIntegral $ toMicroseconds delay)
         go nextProjection
 
--- TODO: Move this to the Protocol base monad
 runEventStore :: Connection
                    -> ReaderT Connection (LoggingT IO) a
                    -> IO ()

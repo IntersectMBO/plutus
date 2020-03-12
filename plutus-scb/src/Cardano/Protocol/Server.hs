@@ -7,7 +7,8 @@ module Cardano.Protocol.Server where
 
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
-import           Data.List                                           ((!!))
+import           Data.List                                           (intersect, (!!))
+import           Data.Maybe                                          (listToMaybe, mapMaybe)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
@@ -18,10 +19,13 @@ import           Control.Tracer
 import qualified Ouroboros.Network.Protocol.ChainSync.Server         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Server as TxSubmission
 
+import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..), withOriginToMaybe)
 import           Network.Mux.Types                                   (AppType (..))
+import           Ouroboros.Network.Block                             (Point (..), HeaderHash, pointSlot)
 import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
+import qualified Ouroboros.Network.Point                             as OP (Block (..))
 import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Socket
@@ -32,8 +36,8 @@ import           Cardano.Protocol.Effects
 import qualified Cardano.Protocol.Puppet.Server                      as Puppet
 import           Cardano.Protocol.Type
 
-import           Ledger                                              (Block, Tx (..))
-import qualified Wallet.Emulator.Chain                               as EC
+import           Ledger                                              (Block, Tx (..), Slot(..))
+import           Wallet.Emulator.Chain
 
 startServerNode :: FilePath -> ChainState -> IO Void
 startServerNode sockAddr initialState = do
@@ -95,7 +99,7 @@ puppetServer state = idleState
 
       , Puppet.recvMsgValidate = do
           (_, block) <-
-            wrapChainEffects state EC.processBlock
+            wrapChainEffects state processBlock
           return ( block , idleState )
 
       , Puppet.recvMsgDone = ()
@@ -126,7 +130,9 @@ chainSyncServer state =
       idleState offset  = return $
         ChainSync.ServerStIdle {
           ChainSync.recvMsgRequestNext = nextState offset
-        , ChainSync.recvMsgFindIntersect = \_ -> intersectState offset
+        , ChainSync.recvMsgFindIntersect = \pts -> do
+                st <- readMVar state
+                return $ intersectState st pts
         , ChainSync.recvMsgDoneClient = return ()
         }
 
@@ -144,17 +150,51 @@ chainSyncServer state =
       rollForward :: ChainState -> Int -> ChainSync.ServerStNext Block Tip IO ()
       rollForward st offset =
         ChainSync.SendMsgRollForward
-          (reverse (snd <$> st ^. chainNewestFirst) !! offset)
-          (head    (snd <$> st ^. chainNewestFirst))
+          (reverse (st ^. chainNewestFirst) !! offset)
+          (head    (st ^. chainNewestFirst))
           (ChainSync.ChainSyncServer (idleState (offset + 1)))
 
       lowerThanSlot :: Int -> ChainState -> Bool
       lowerThanSlot offset st =
         length (st ^. chainNewestFirst) <= offset
 
-      intersectState :: Offset
-                     -> IO (ChainSync.ServerStIntersect Block Tip IO ())
-      intersectState _ = error "Not supported."
+      intersectState :: ChainState
+                     -> [Point Block]
+                     -> ChainSync.ServerStIntersect Block Tip IO ()
+      intersectState st clientPts =
+        -- TODO: Can use slot numbers to make it more efficient
+        let pt = listToMaybe $ intersect
+                   (getChainPoints st)
+                   clientPts
+        in case pt of
+             Nothing ->
+               ChainSync.SendMsgIntersectNotFound
+                 (head $ view chainNewestFirst st)
+                 -- No intersection found. Resume from origin.
+                 (ChainSync.ChainSyncServer $ idleState 0)
+             Just pt' ->
+               ChainSync.SendMsgIntersectFound
+                 pt'
+                 (head $ view chainNewestFirst st)
+                 (ChainSync.ChainSyncServer $ idleState $ pointOffset pt')
+
+pointOffset :: Point Block
+            -> Int
+pointOffset pt =
+  case pointSlot pt of
+    Origin        -> 0
+    At (SlotNo s) -> fromIntegral s
+
+getChainPoints :: ChainState -> [Point Block]
+getChainPoints st =
+  zipWith mkPoint
+    [(st ^. currentSlot) .. 0]
+    (st ^. chainNewestFirst)
+  where
+    mkPoint :: Slot -> Block -> Point Block
+    mkPoint (Slot s) block =
+      Point (At (OP.Block (SlotNo $ fromIntegral s)
+                          (blockId block)))
 
 whileT :: (a -> Bool) -> MVar a -> IO a
 whileT p ma = do

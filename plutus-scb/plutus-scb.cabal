@@ -102,6 +102,7 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
+        async -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
