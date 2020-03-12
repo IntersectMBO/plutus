@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Evaluation.Golden
     ( test_golden
@@ -98,6 +99,17 @@ polyError = runQuote $ do
     a <- freshTyName () "a"
     pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
 
+-- | For checking that evaluating a term to a non-constant results in all remaining variables
+-- being instantiated.
+closure :: uni `Includes` Integer => Term TyName Name uni ()
+closure = runQuote $ do
+    i <- freshName () "i"
+    j <- freshName () "j"
+    let integer = mkTyBuiltin @Integer ()
+    pure
+        . Apply () (LamAbs () i integer . LamAbs () j integer $ Var () i)
+        $ mkConstant @Integer () 1
+
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
@@ -112,6 +124,7 @@ test_golden = testGroup "golden"
     [ goldenVsEvaluated "even2" $ Apply () even $ metaIntegerToNat 2
     , goldenVsEvaluated "even3" $ Apply () even $ metaIntegerToNat 3
     , goldenVsEvaluated "evenList" $ Apply () natSum $ Apply () evenList smallNatList
-    , goldenVsEvaluated "polyError" $ polyError
+    , goldenVsEvaluated "polyError" polyError
     , goldenVsEvaluated "polyErrorInst" $ TyInst () polyError (mkTyBuiltin @Integer ())
+    , goldenVsEvaluated "closure" closure
     ]

@@ -111,7 +111,7 @@ termSubstTyNames
     -> Term tyname name uni ann
 termSubstTyNames = purely termSubstTyNamesM
 
--- | Monadically substitute *free* names using the given function.
+-- | Applicatively substitute *free* names using the given function.
 termSubstFreeNamesA
     :: (Applicative f, HasUnique (name ann) TermUnique)
     => (name ann -> f (Maybe (Term tyname name uni ann)))
