@@ -13,7 +13,7 @@ import           Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Usages as Usages
 import           Language.PlutusIR.Value
 
-import           Control.Lens hiding (Strict)
+import           Control.Lens                      hiding (Strict)
 import           Control.Monad.Reader
 
 import qualified Algebra.Graph.Class               as G
@@ -108,7 +108,7 @@ bindingDeps b = case b of
         -- See Note [Strict term bindings and dependencies]
         evalDeps <- case strictness of
             Strict | not (isTermValue rhs) -> currentDependsOn [n ^. PLC.unique . coerced]
-            _ -> pure G.empty
+            _                              -> pure G.empty
         pure $ G.overlays [vDeps, tDeps, evalDeps]
     TypeBind _ d@(TyVarDecl _ n _) rhs -> do
         vDeps <- tyVarDeclDeps d
