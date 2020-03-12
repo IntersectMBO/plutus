@@ -69,7 +69,7 @@ mkStateMachine transition final =
 
 instance ScriptType (StateMachine s i) where
     type instance RedeemerType (StateMachine s i) = i
-    type instance DataType (StateMachine s i) = s
+    type instance DatumType (StateMachine s i) = s
 
 data StateMachineInstance s i = StateMachineInstance {
     -- | The state machine specification.
@@ -94,10 +94,10 @@ mkValidator (StateMachine step isFinal check) currentState input ptx =
                     traceIfFalseH "Non-zero value allocated in final state" (isZero newValue)
                     && traceIfFalseH "State transition invalid - constraints not satisfied by PendingTx" (checkPendingTx newConstraints ptx)
                 | otherwise ->
-                    let txc = 
+                    let txc =
                             newConstraints
                                 { txOwnOutputs=
-                                    [ OutputConstraint{ocData=newData, ocValue= newValue} ]
+                                    [ OutputConstraint{ocDatum=newData, ocValue= newValue} ]
                                 }
                     in traceIfFalseH "State transition invalid - constraints not satisfied by PendingTx" (checkPendingTx @_ @s txc ptx)
             Nothing -> traceH "State transition invalid - input is not a valid transition at the current state" False

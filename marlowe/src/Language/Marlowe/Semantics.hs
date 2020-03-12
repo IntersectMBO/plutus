@@ -31,7 +31,7 @@ on Cardano.
 Semantics is based on <https://github.com/input-output-hk/marlowe/blob/stable/src/Semantics.hs>
 
 Marlowe Contract execution is a chain of transactions,
-where remaining contract and its state is passed through /Data Script/,
+where remaining contract and its state is passed through /Datum/,
 and actions (i.e. /Choices/) are passed as
 /Redeemer Script/
 
@@ -51,7 +51,7 @@ import           Language.PlutusTx.List     (length)
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (DataValue (..))
+import           Ledger.Scripts             (Datum (..))
 import           Ledger.Tx                  (TxOut (..), TxOutType (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol, TokenName)
@@ -233,7 +233,7 @@ data Contract = Close
   deriving anyclass (Pretty)
 
 
-{-| Marlowe contract internal state. Stored in a /Data Script/ of a transaction output.
+{-| Marlowe contract internal state. Stored in a /Datum/ of a transaction output.
 -}
 data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
@@ -375,7 +375,7 @@ data TransactionOutput =
 
 
 {-|
-    This data type is a content of a contract's /Data Script/
+    This data type is a content of a contract's /Datum/
 -}
 data MarloweData = MarloweData {
         marloweState    :: State,
@@ -740,10 +740,10 @@ validatePayments MarloweParams{..} pendingTx txOutPayments = all checkValidPayme
             curValue = fromMaybe zero (Map.lookup party outputs)
             newValue = txOutValue + curValue
         in Map.insert party newValue outputs
-    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript dataValueHash}
+    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript datumHash}
         | validatorHash == rolePayoutValidatorHash =
-                case findData dataValueHash pendingTx of
-                    Just (DataValue dv) ->
+                case findDatum datumHash pendingTx of
+                    Just (Datum dv) ->
                         case PlutusTx.fromData dv of
                             Just (currency, role) | currency == rolesCurrency -> let
                                 party = Role role
@@ -799,7 +799,7 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
             [TxOut
                 { txOutType = (PayToScript dsh)
                 , txOutValue = scriptOutputValue
-                }] | Just (DataValue ds) <- findData dsh pendingTx ->
+                }] | Just (Datum ds) <- findDatum dsh pendingTx ->
 
                 case PlutusTx.fromData ds of
                     Just expected -> let

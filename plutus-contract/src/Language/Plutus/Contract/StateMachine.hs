@@ -148,7 +148,7 @@ runGuardedStep smc input guard = do
             if smFinal stateMachine ns
                 then newConstraints { txOwnInputs = [inp], txOwnOutputs = [] }
                 else
-                    let output = OutputConstraint{ocData = ns, ocValue = v}
+                    let output = OutputConstraint{ocDatum = ns, ocValue = v}
                     in  newConstraints { txOwnInputs = [inp], txOwnOutputs = [output] }
     utx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx lookups' txConstraints)
     case guard utx os ns of

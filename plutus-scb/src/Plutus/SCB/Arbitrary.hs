@@ -99,11 +99,11 @@ instance Arbitrary PlutusTx.Data where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance Arbitrary Ledger.DataValue where
+instance Arbitrary Ledger.Datum where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance Arbitrary Ledger.DataValueHash where
+instance Arbitrary Ledger.DatumHash where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
@@ -112,7 +112,7 @@ instance Arbitrary Ledger.Script where
       where
         validator = wrapValidator ((\_ _ _ -> True) :: Integer -> Integer -> Ledger.PendingTx -> Bool)
 
-instance Arbitrary Ledger.RedeemerValue where
+instance Arbitrary Ledger.Redeemer where
     arbitrary = genericArbitrary
     shrink = genericShrink
 

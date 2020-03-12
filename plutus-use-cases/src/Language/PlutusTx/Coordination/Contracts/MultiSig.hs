@@ -60,15 +60,15 @@ validate MultiSig{signatories, minNumSignatures} _ _ p =
 
 instance Scripts.ScriptType MultiSig where
     type instance RedeemerType MultiSig = ()
-    type instance DataType MultiSig = ()
+    type instance DatumType MultiSig = ()
 
 scriptInstance :: MultiSig -> Scripts.ScriptInstance MultiSig
-scriptInstance ms = 
+scriptInstance ms =
     let wrap = Scripts.wrapValidator @() @() in
     Scripts.validator @MultiSig
         ($$(PlutusTx.compile [|| validate ||]) `PlutusTx.applyCode` PlutusTx.liftCode ms)
         $$(PlutusTx.compile [|| wrap ||])
-    
+
 
 -- | Lock some funds in a 'MultiSig' contract.
 lock :: AsContractError e => Contract MultiSigSchema e ()
