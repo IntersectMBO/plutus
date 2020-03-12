@@ -2,7 +2,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
+{-# OPTIONS -fplugin Language.PlutusTx.Plugin #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
 
 module Plugin.Basic.Spec where
 
@@ -24,6 +26,10 @@ basic = testNested "Basic" [
     goldenPir "monoId" monoId
   , goldenPir "monoK" monoK
   , goldenPir "letFun" letFun
+  -- must keep the scrutinee as it evaluates to error
+  , goldenPir "ifOpt" ifOpt
+  -- should fail
+  , goldenEval "ifOptEval" [ifOpt]
   ]
 
 monoId :: CompiledCode PLC.DefaultUni (Integer -> Integer)
@@ -35,3 +41,6 @@ monoK = plc @"monoK" (\(i :: Integer) -> \(j :: Integer) -> i)
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
 letFun = plc @"lefFun" (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
+
+ifOpt :: CompiledCode PLC.DefaultUni Integer
+ifOpt = plc @"ifOpt" (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)
