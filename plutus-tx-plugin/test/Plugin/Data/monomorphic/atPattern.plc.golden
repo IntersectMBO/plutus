@@ -28,7 +28,7 @@
         (let
           (nonrec)
           (termbind
-            (strict) (vardecl wild [[Tuple2 (con integer)] (con integer)]) t
+            (nonstrict) (vardecl wild [[Tuple2 (con integer)] (con integer)]) t
           )
           [
             {
