@@ -79,7 +79,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
-    letGen = Let () <$> genRecursivity <*> Gen.list (Range.linear 1 10) genBinding <*> genTerm
+    letGen = Let () <$> genRecursivity <*> Gen.nonEmpty (Range.linear 1 10) genBinding <*> genTerm
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 

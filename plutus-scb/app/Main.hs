@@ -7,6 +7,7 @@ module Main
     ( main
     ) where
 
+import qualified Cardano.ChainIndex.Server  as ChainIndex
 import qualified Cardano.Node.Server        as NodeServer
 import qualified Cardano.Wallet.Server      as WalletServer
 import           Control.Lens.Indexed       (itraverse_)
@@ -29,7 +30,7 @@ import           Options.Applicative        (CommandFields, Mod, Parser, argumen
 import           Plutus.SCB.App             (App, runApp)
 import qualified Plutus.SCB.App             as App
 import qualified Plutus.SCB.Core            as Core
-import           Plutus.SCB.Types           (Config (Config), nodeServerConfig, walletServerConfig)
+import           Plutus.SCB.Types           (Config (Config), chainIndexConfig, nodeServerConfig, walletServerConfig)
 import           Plutus.SCB.Utils           (logErrorS, render)
 import           System.Exit                (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.Remote.Monitoring   as EKG
@@ -38,6 +39,7 @@ data Command
     = Migrate
     | MockNode
     | MockWallet
+    | ChainIndex
     | InstallContract FilePath
     | ActivateContract FilePath
     | ContractStatus UUID
@@ -75,7 +77,7 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser]) <|>
+    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser, chainIndexParser]) <|>
     subparser
         (command
              "contracts"
@@ -115,6 +117,14 @@ mockWalletParser =
         (pure MockWallet)
         (fullDesc <>
          progDesc "Run a mock version of the Cardano wallet API server.")
+
+chainIndexParser :: Mod CommandFields Command
+chainIndexParser =
+    command "chain-index" $
+    info
+        (pure ChainIndex)
+        (fullDesc <>
+         progDesc "Run the chain index.")
 
 activateContractParser :: Mod CommandFields Command
 activateContractParser =
@@ -199,6 +209,8 @@ runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
         (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
+runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
+    ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand _ (InstallContract path) = Core.installContract path
 runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
 runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid

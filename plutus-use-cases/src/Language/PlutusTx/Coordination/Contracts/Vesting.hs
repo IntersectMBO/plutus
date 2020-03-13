@@ -74,7 +74,7 @@ data Vesting
 
 instance ScriptType Vesting where
     type instance RedeemerType Vesting = ()
-    type instance DataType Vesting = ()
+    type instance DatumType Vesting = ()
 
 -- | Tranche of a vesting scheme.
 data VestingTranche = VestingTranche {

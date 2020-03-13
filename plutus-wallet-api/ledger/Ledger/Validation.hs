@@ -28,8 +28,8 @@ module Ledger.Validation
     , PendingTxIn'(..)
     , PendingTxIn
     , PendingTxInScript
-    , findData
-    , findDataHash
+    , findDatum
+    , findDatumHash
     , findTxInByTxOutRef
     , findContinuingOutputs
     , getContinuingOutputs
@@ -94,8 +94,8 @@ data PendingTxIn' w = PendingTxIn
 instance Functor PendingTxIn' where
     fmap f p = p{pendingTxInWitness = f (pendingTxInWitness p) }
 
-type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash, DataValueHash))
-type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash, DataValueHash)
+type PendingTxIn = PendingTxIn' (Maybe (ValidatorHash, RedeemerHash, DatumHash))
+type PendingTxInScript = PendingTxIn' (ValidatorHash, RedeemerHash, DatumHash)
 
 toLedgerTxIn :: PendingTxInScript -> PendingTxIn
 toLedgerTxIn = fmap Just
@@ -111,7 +111,7 @@ data PendingTx' i = PendingTx
     , pendingTxForgeScripts :: [MonetaryPolicyHash]
     , pendingTxSignatories  :: [PubKeyHash]
     -- ^ Signatures provided with the transaction
-    , pendingTxData         :: [(DataValueHash, DataValue)]
+    , pendingTxData         :: [(DatumHash, Datum)]
     , pendingTxId           :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic, Haskell.Functor)
@@ -123,18 +123,18 @@ type PendingTx = PendingTx' PendingTxInScript
 
 type PendingTxMPS = PendingTx' MonetaryPolicyHash
 
-{-# INLINABLE findData #-}
+{-# INLINABLE findDatum #-}
 -- | Find the data corresponding to a data hash, if there is one
-findData :: DataValueHash -> PendingTx' a -> Maybe DataValue
-findData dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
+findDatum :: DatumHash -> PendingTx' a -> Maybe Datum
+findDatum dsh PendingTx{pendingTxData=datas} = snd <$> find f datas
     where
         f (dsh', _) = dsh' == dsh
 
-{-# INLINABLE findDataHash #-}
--- | Find the hash of a data value, if it is part of the pending transaction's
+{-# INLINABLE findDatumHash #-}
+-- | Find the hash of a datum, if it is part of the pending transaction's
 --   hashes
-findDataHash :: DataValue -> PendingTx -> Maybe DataValueHash
-findDataHash ds PendingTx{pendingTxData=datas} = fst <$> find f datas
+findDatumHash :: Datum -> PendingTx -> Maybe DatumHash
+findDatumHash ds PendingTx{pendingTxData=datas} = fst <$> find f datas
     where
         f (_, ds') = ds' == ds
 
@@ -206,7 +206,7 @@ pubKeyOutput TxOut{txOutAddress} = case txOutAddress of
 {-# INLINABLE ownHashes #-}
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
-ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DataValueHash)
+ownHashes :: PendingTx -> (ValidatorHash, RedeemerHash, DatumHash)
 ownHashes PendingTx{pendingTxItem=PendingTxIn{pendingTxInWitness=h}} = h
 
 {-# INLINABLE ownHash #-}
@@ -222,7 +222,7 @@ fromSymbol (CurrencySymbol s) = ValidatorHash s
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'PendingTxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> PendingTx' a -> [(DataValueHash, Value)]
+scriptOutputsAt :: ValidatorHash -> PendingTx' a -> [(DatumHash, Value)]
 scriptOutputsAt h p =
     let flt TxOut{txOutType, txOutAddress, txOutValue} =
             case txOutType of

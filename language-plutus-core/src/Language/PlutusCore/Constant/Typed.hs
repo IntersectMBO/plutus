@@ -236,7 +236,10 @@ newtype Meta a = Meta
 
 instance (GShow uni, GEq uni, uni `Includes` a) => KnownType uni (Meta a) where
     toTypeAstProxy _ = mkTyBuiltin @a ()
-    makeKnown = mkConstant () . unMeta
+    -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
+    -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
+    -- just for side effects that the evaluation may cause.
+    makeKnown (Meta x) = mkConstant () $! x
     withReadKnown term k = unliftConstant term >>= k . Meta
 
 instance KnownType uni a => KnownType uni (EvaluationResult a) where

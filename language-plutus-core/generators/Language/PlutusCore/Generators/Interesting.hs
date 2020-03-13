@@ -188,12 +188,12 @@ genListSum = do
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers
-    :: forall uni. (GShow uni, GEq uni, DefaultUni <: uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => TermGen uni Integer
 genIfIntegers = do
-    let typedInt = AsKnownType @uni @Integer
+    let typedInt = AsKnownType
         int = toTypeAst typedInt
-    TermOf b bv <- genTermLoose $ AsKnownType @uni @Bool
+    TermOf b bv <- genTermLoose AsKnownType
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let instConst = Apply () $ mkIterInst () Function.const [int, unit]
@@ -201,7 +201,7 @@ genIfIntegers = do
         term =
             mkIterApp ()
                 (TyInst () ifThenElse int)
-                [mkConstant () bv, instConst $ mkConstant () iv, instConst $ mkConstant () jv]
+                [b, instConst i, instConst j]
     return $ TermOf term value
 
 -- | Check that builtins can be partially applied.

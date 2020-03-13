@@ -11,6 +11,9 @@ import           Language.PlutusIR
 
 import           Language.PlutusCore.MkPlc as MkPlc
 
+import qualified Data.List.NonEmpty        as NE
+
+
 -- | A datatype definition as a type variable.
 type DatatypeDef tyname name uni a = Def (TyVarDecl tyname a) (Datatype tyname name uni a)
 
@@ -22,4 +25,6 @@ mkLet
     -> [Binding tyname name uni a]
     -> Term tyname name uni a
     -> Term tyname name uni a
-mkLet x r bs t = if null bs then t else Let x r bs t
+mkLet x r bs t =  case NE.nonEmpty bs of
+  Nothing  -> t;
+  Just bs' -> Let x r bs' t

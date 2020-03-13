@@ -105,7 +105,7 @@ refundRange cmp =
 data Crowdfunding
 instance Scripts.ScriptType Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
-    type instance DataType Crowdfunding = PubKeyHash
+    type instance DatumType Crowdfunding = PubKeyHash
 
 scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
 scriptInstance cmp = Scripts.validator @Crowdfunding

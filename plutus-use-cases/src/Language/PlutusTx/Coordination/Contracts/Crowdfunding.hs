@@ -60,7 +60,7 @@ import           Language.PlutusTx.Prelude         hiding (Applicative (..), Sem
 import           Ledger                            (PendingTx, PubKeyHash, pubKeyHash, Slot, Validator)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
-import qualified Ledger.Constraints                as Constraints 
+import qualified Ledger.Constraints                as Constraints
 import qualified Ledger.Interval                   as Interval
 import           Ledger.Slot                       (SlotRange)
 import qualified Ledger.Typed.Scripts              as Scripts
@@ -133,7 +133,7 @@ refundRange cmp =
 data Crowdfunding
 instance Scripts.ScriptType Crowdfunding where
     type instance RedeemerType Crowdfunding = CampaignAction
-    type instance DataType Crowdfunding = PubKeyHash
+    type instance DatumType Crowdfunding = PubKeyHash
 
 scriptInstance :: Campaign -> Scripts.ScriptInstance Crowdfunding
 scriptInstance cmp = Scripts.validator @Crowdfunding

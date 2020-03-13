@@ -15,8 +15,8 @@
                        &   &     & \inWrapRightFrame{A}{B}            & \textrm{right wrap}\\
                        &   &     & \inUnwrapFrame{}                        & \textrm{unwrap}\\
                        %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
-                       &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
-                       &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
+                       &   &     & \inAppLeftFrame{M}                      & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}                     & \textrm{right application}\\
                        &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
     \end{array}\]
     \caption{Grammar of Reduction Frames}
@@ -55,16 +55,13 @@
     %\end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' = \error{B}\)}
-        \AxiomC{\(\ctxsubst{f}{M} : A\)}
-        \TrinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
+        \AxiomC{\(\ctxsubst{f}{\error{B}} : A\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{\error{B}}}{\error{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' \not= \error{B}\)}
-        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
     \end{prooftree}
 
     \caption{Reduction via Contextual Dynamics}

@@ -4,7 +4,11 @@
     (termbind
       (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (builtin addInteger)
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+      )
     )
     (lam ds (con integer) (lam ds (con integer) [ [ addInteger ds ] ds ]))
   )

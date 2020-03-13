@@ -51,14 +51,14 @@ import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.StateMachine as SM
-import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, DataValue(..), ValidatorHash)
+import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, Datum(..), ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Interval                as Interval
 import           Ledger.Oracle                  (SignedMessage(..), Observation(..))
 import qualified Ledger.Oracle                  as Oracle
 import           Ledger.Tokens
 import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Scripts                 (unitData)
+import           Ledger.Scripts                 (unitDatum)
 import           Ledger.Value                   as Value
 
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
@@ -318,7 +318,7 @@ validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 {-# INLINABLE verifyOracle #-}
 verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
 verifyOracle pubKey sm =
-    either (const Nothing) pure 
+    either (const Nothing) pure
     $ Oracle.verifySignedMessageConstraints pubKey sm
 
 verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
@@ -341,7 +341,7 @@ transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s
         (Running accounts, Settle ov)
             | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, ftDeliveryDate == oracleDate ->
                 let payment = payouts future accounts spotPrice
-                    constraints = 
+                    constraints =
                         Constraints.mustValidateIn (Interval.from ftDeliveryDate)
                         <> oracleConstraints
                         <> payoutsTx payment owners
@@ -357,10 +357,10 @@ transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s
                     total = totalMargin accounts
                     FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
                     payment = case vRole of
-                                Short -> Constraints.mustPayToOtherScript ftoLongAccount unitData total
-                                Long -> Constraints.mustPayToOtherScript ftoShortAccount unitData total
+                                Short -> Constraints.mustPayToOtherScript ftoLongAccount unitDatum total
+                                Long -> Constraints.mustPayToOtherScript ftoShortAccount unitDatum total
                     constraints = payment <> oracleConstraints
-                in Just ( constraints 
+                in Just ( constraints
                         , State
                             { stateData = Finished
                             , stateValue = mempty
@@ -379,11 +379,11 @@ payoutsTx
     :: Payouts
     -> FutureAccounts
     -> TxConstraints Void Void
-payoutsTx 
+payoutsTx
     Payouts{payoutsShort, payoutsLong}
     FutureAccounts{ftoLongAccount, ftoShortAccount} =
-        Constraints.mustPayToOtherScript ftoLongAccount unitData payoutsLong
-        <> Constraints.mustPayToOtherScript ftoShortAccount unitData payoutsShort
+        Constraints.mustPayToOtherScript ftoLongAccount unitDatum payoutsLong
+        <> Constraints.mustPayToOtherScript ftoShortAccount unitDatum payoutsShort
 
 {-# INLINABLE payouts #-}
 -- | Compute the payouts for each role given the future data,
@@ -581,11 +581,11 @@ escrowParams
     -> Future
     -> FutureAccounts
     -> FutureSetup
-    -> EscrowParams DataValue
+    -> EscrowParams Datum
 escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
     let
         address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
-        dataScript  = Ledger.DataValue $ PlutusTx.toData $ initialState future
+        dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
         targets =
             [ Escrow.payToScriptTarget address
                 dataScript

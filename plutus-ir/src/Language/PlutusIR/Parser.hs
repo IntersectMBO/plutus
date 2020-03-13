@@ -18,30 +18,34 @@ module Language.PlutusIR.Parser
     , SourcePos
     ) where
 
-import           Prelude                    hiding (fail)
+import           Prelude                            hiding (fail)
 
-import           Control.Applicative        hiding (many, some)
-import           Control.Monad.State        hiding (fail)
+import           Control.Applicative                hiding (many, some)
+import           Control.Monad.State                hiding (fail)
 
-import qualified Language.PlutusCore        as PLC
-import qualified Language.PlutusCore.MkPlc  as PLC
-import           Language.PlutusIR          as PIR
-import qualified Language.PlutusIR.MkPir    as PIR
-import           PlutusPrelude              (prettyText)
-import           Text.Megaparsec            hiding (ParseError, State, parse)
-import qualified Text.Megaparsec            as Parsec
+import qualified Language.PlutusCore                as PLC
+import qualified Language.PlutusCore.MkPlc          as PLC
+import           Language.PlutusIR                  as PIR
+import qualified Language.PlutusIR.MkPir            as PIR
+import           PlutusPrelude                      (prettyText)
+import           Text.Megaparsec                    hiding (ParseError, State, parse)
+import qualified Text.Megaparsec                    as Parsec
 
-import           Data.ByteString.Internal   (c2w)
-import qualified Data.ByteString.Lazy       as BSL
+import           Data.ByteString.Internal           (c2w)
+import qualified Data.ByteString.Lazy               as BSL
 import           Data.Char
 import           Data.Foldable
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
+import qualified Data.Map                           as M
+import qualified Data.Text                          as T
 import           Data.Word
 import           GHC.Natural
 
+import qualified Control.Monad.Combinators.NonEmpty as NE
 import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as Lex
+import qualified Text.Megaparsec.Char.Lexer         as Lex
+
+
+
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
@@ -301,7 +305,7 @@ errorTerm :: Parametric
 errorTerm _tm = PIR.error <$> reservedWord "error" <*> typ
 
 letTerm :: Parser (Term TyName Name PLC.DefaultUni SourcePos)
-letTerm = Let <$> reservedWord "let" <*> recursivity <*> some (try binding) <*> term
+letTerm = Let <$> reservedWord "let" <*> recursivity <*> NE.some (try binding) <*> term
 
 appTerm :: Parametric
 appTerm tm = PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm

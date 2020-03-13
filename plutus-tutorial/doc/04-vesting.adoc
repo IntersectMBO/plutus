@@ -30,7 +30,7 @@ import qualified Prelude                   as Haskell
 
 import qualified Language.PlutusTx         as PlutusTx
 
-import           Ledger                    (Address, DataValue(..), PubKeyHash, RedeemerValue(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
+import           Ledger                    (Address, Datum(..), PubKeyHash, Redeemer(..), Slot, TxOutRef, TxIn, Validator, mkValidatorScript)
 import qualified Ledger                    as L
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Slot               as Slot
@@ -192,8 +192,8 @@ vestFunds :: (W.SigningProcessAPI m, MonadWallet m) => Vesting -> m ()
 vestFunds vst = do
     let amt = totalAmount vst
         adr = contractAddress vst
-        dataValue = DataValue (PlutusTx.toData ())
-    W.payToScript_ W.defaultSlotRange adr amt dataValue
+        datum = Datum (PlutusTx.toData ())
+    W.payToScript_ W.defaultSlotRange adr amt datum
 
 registerVestingScheme :: (W.ChainIndexAPI m) =>  Vesting -> m ()
 registerVestingScheme vst = WAPI.startWatching (contractAddress vst)
@@ -226,12 +226,12 @@ withdraw vst vl = do
 
     let
         -- the redeemer and data scripts containing the unit value ()
-        redeemer   = RedeemerValue (PlutusTx.toData ())
-        dataValue = DataValue (PlutusTx.toData ())
+        redeemer   = Redeemer (PlutusTx.toData ())
+        datum = Datum (PlutusTx.toData ())
 
         -- Turn the 'utxos' map into a set of 'TxIn' values
         mkIn :: TxOutRef -> TxIn
-        mkIn r = L.scriptTxIn r validator redeemer dataValue
+        mkIn r = L.scriptTxIn r validator redeemer datum
 
         ins = Set.map mkIn (Map.keysSet utxos)
 ----
@@ -258,7 +258,7 @@ that keeps the remaining value.
 
         (otherOutputs, datas) = if Value.isZero remaining
                        then ([], [])
-                       else ([L.scriptTxOut remaining validator dataValue], [dataValue])
+                       else ([L.scriptTxOut remaining validator datum], [datum])
 
     -- Finally we have everything we need for `createTxAndSubmit`
     _ <- WAPI.createTxAndSubmit range ins (ownOutput:otherOutputs) datas

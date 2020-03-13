@@ -59,8 +59,8 @@ import           GHC.Generics               ((:*:) ((:*:)), (:+:) (L1, R1), C1, 
                                              M1 (M1), Rec0, Rep, S1, Selector, U1, conIsRecord, conName, from, selName)
 import qualified Language.PlutusTx.AssocMap
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Ada, CurrencySymbol, DataValueHash, Interval, PubKey, PubKeyHash,
-                                             RedeemerHash, Signature, Slot, SlotRange, TokenName, ValidatorHash, Value)
+import           Ledger                     (Ada, CurrencySymbol, DatumHash, Interval, PubKey, PubKeyHash, RedeemerHash,
+                                             Signature, Slot, SlotRange, TokenName, ValidatorHash, Value)
 import           LedgerBytes                (LedgerBytes)
 import           Wallet.Emulator.Wallet     (Wallet)
 
@@ -364,7 +364,7 @@ deriving anyclass instance ToSchema Ada
 
 deriving anyclass instance ToSchema CurrencySymbol
 
-deriving anyclass instance ToSchema DataValueHash
+deriving anyclass instance ToSchema DatumHash
 
 deriving anyclass instance ToSchema PubKey
 

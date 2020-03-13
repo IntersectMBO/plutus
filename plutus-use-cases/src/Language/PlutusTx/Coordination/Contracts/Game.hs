@@ -90,7 +90,7 @@ gameValidator = Scripts.validatorScript gameInstance
 data Game
 instance Scripts.ScriptType Game where
     type instance RedeemerType Game = ClearString
-    type instance DataType Game = HashedString
+    type instance DatumType Game = HashedString
 
 gameInstance :: Scripts.ScriptInstance Game
 gameInstance = Scripts.validator @Game

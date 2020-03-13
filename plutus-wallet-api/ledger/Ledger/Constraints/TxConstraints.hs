@@ -28,8 +28,7 @@ import           Language.PlutusTx.Prelude
 import qualified Language.PlutusTx.AssocMap as AssocMap
 import           Ledger.Crypto              (PubKeyHash)
 import qualified Ledger.Interval            as I
-import           Ledger.Scripts             (DataValue (..), DataValueHash, MonetaryPolicyHash, RedeemerValue,
-                                             ValidatorHash)
+import           Ledger.Scripts             (Datum (..), DatumHash, MonetaryPolicyHash, Redeemer, ValidatorHash)
 import           Ledger.Slot                (SlotRange)
 import           Ledger.Tx                  (TxOutRef)
 import           Ledger.Value               (TokenName, Value, isZero)
@@ -39,23 +38,23 @@ import qualified Prelude                    as Haskell
 
 -- | Constraints on transactions that want to spend script outputs
 data TxConstraint =
-    MustIncludeDataValue DataValue
+    MustIncludeDatum Datum
     | MustValidateIn SlotRange
     | MustBeSignedBy PubKeyHash
     | MustSpendValue Value
     | MustSpendPubKeyOutput TxOutRef
-    | MustSpendScriptOutput TxOutRef RedeemerValue
+    | MustSpendScriptOutput TxOutRef Redeemer
     | MustForgeValue MonetaryPolicyHash TokenName Integer
     | MustPayToPubKey PubKeyHash Value
-    | MustPayToOtherScript ValidatorHash DataValue Value
-    | MustHashDataValue DataValueHash DataValue
+    | MustPayToOtherScript ValidatorHash Datum Value
+    | MustHashDatum DatumHash Datum
     deriving stock (Generic, Haskell.Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty TxConstraint where
     pretty = \case
-        MustIncludeDataValue dv ->
-            hang 2 $ vsep ["must include data value:", pretty dv]
+        MustIncludeDatum dv ->
+            hang 2 $ vsep ["must include datum:", pretty dv]
         MustValidateIn range ->
             "must validate in:" <+> viaShow range
         MustBeSignedBy signatory ->
@@ -72,8 +71,8 @@ instance Pretty TxConstraint where
             hang 2 $ vsep ["must pay to pubkey:", pretty pk, pretty v]
         MustPayToOtherScript vlh dv vl ->
             hang 2 $ vsep ["must pay to script:", pretty vlh, pretty dv, pretty vl]
-        MustHashDataValue dvh dv ->
-            hang 2 $ vsep ["must hash data value:", pretty dvh, pretty dv]
+        MustHashDatum dvh dv ->
+            hang 2 $ vsep ["must hash datum:", pretty dvh, pretty dv]
 
 data InputConstraint a =
     InputConstraint
@@ -99,14 +98,14 @@ deriving stock instance (Haskell.Eq a) => Haskell.Eq (InputConstraint a)
 
 data OutputConstraint a =
     OutputConstraint
-        { ocData  :: a
+        { ocDatum :: a
         , ocValue :: Value
         } deriving (Generic)
 
 instance (Pretty a) => Pretty (OutputConstraint a) where
-    pretty OutputConstraint{ocData, ocValue} =
+    pretty OutputConstraint{ocDatum, ocValue} =
         vsep
-            [ "Data:" <+> pretty ocData
+            [ "Datum:" <+> pretty ocDatum
             , "Value:" <+> pretty ocValue
             ]
 
@@ -162,17 +161,17 @@ mustValidateIn = singleton . MustValidateIn
 mustBeSignedBy :: forall i o. PubKeyHash -> TxConstraints i o
 mustBeSignedBy = singleton . MustBeSignedBy
 
-{-# INLINABLE mustIncludeDataValue #-}
--- | Require the transaction to include a data value
-mustIncludeDataValue :: forall i o. DataValue -> TxConstraints i o
-mustIncludeDataValue = singleton . MustIncludeDataValue
+{-# INLINABLE mustIncludeDatum #-}
+-- | Require the transaction to include a datum.
+mustIncludeDatum :: forall i o. Datum -> TxConstraints i o
+mustIncludeDatum = singleton . MustIncludeDatum
 
 {-# INLINABLE mustPayToTheScript #-}
 -- | Lock the value with a script
 mustPayToTheScript :: forall i o. PlutusTx.IsData o => o -> Value -> TxConstraints i o
 mustPayToTheScript dt vl =
     TxConstraints
-        { txConstraints = [MustIncludeDataValue (DataValue $ PlutusTx.toData dt)]
+        { txConstraints = [MustIncludeDatum (Datum $ PlutusTx.toData dt)]
         , txOwnInputs = []
         , txOwnOutputs = [OutputConstraint dt vl]
         }
@@ -184,10 +183,10 @@ mustPayToPubKey pk = singleton . MustPayToPubKey pk
 
 {-# INLINABLE mustPayToOtherScript #-}
 -- | Lock the value with a public key
-mustPayToOtherScript :: forall i o. ValidatorHash -> DataValue -> Value -> TxConstraints i o
+mustPayToOtherScript :: forall i o. ValidatorHash -> Datum -> Value -> TxConstraints i o
 mustPayToOtherScript vh dv vl =
     singleton (MustPayToOtherScript vh dv vl)
-    <> singleton (MustIncludeDataValue dv)
+    <> singleton (MustIncludeDatum dv)
 
 {-# INLINABLE mustForgeValue #-}
 -- | Create the given value
@@ -212,12 +211,12 @@ mustSpendPubKeyOutput :: forall i o. TxOutRef -> TxConstraints i o
 mustSpendPubKeyOutput = singleton . MustSpendPubKeyOutput
 
 {-# INLINABLE mustSpendScriptOutput #-}
-mustSpendScriptOutput :: forall i o. TxOutRef -> RedeemerValue -> TxConstraints i o
+mustSpendScriptOutput :: forall i o. TxOutRef -> Redeemer -> TxConstraints i o
 mustSpendScriptOutput txOutref = singleton . MustSpendScriptOutput txOutref
 
-{-# INLINABLE mustHashDataValue #-}
-mustHashDataValue :: DataValueHash -> DataValue -> TxConstraints i o
-mustHashDataValue dvh = singleton . MustHashDataValue dvh
+{-# INLINABLE mustHashDatum #-}
+mustHashDatum :: DatumHash -> Datum -> TxConstraints i o
+mustHashDatum dvh = singleton . MustHashDatum dvh
 
 {-# INLINABLE isSatisfiable #-}
 -- | Are the constraints satisfiable?
@@ -252,11 +251,11 @@ requiredMonetaryPolicies = foldMap f . txConstraints where
     f (MustForgeValue mps _ _) = [mps]
     f _                        = []
 
-{-# INLINABLE requiredDataValues #-}
-requiredDataValues :: forall i o. TxConstraints i o -> [DataValue]
-requiredDataValues = foldMap f . txConstraints where
-    f (MustIncludeDataValue dv) = [dv]
-    f _                         = []
+{-# INLINABLE requiredDatums #-}
+requiredDatums :: forall i o. TxConstraints i o -> [Datum]
+requiredDatums = foldMap f . txConstraints where
+    f (MustIncludeDatum dv) = [dv]
+    f _                     = []
 
 {-# INLINABLE modifiesUtxoSet #-}
 -- | Check whether every transaction that satisfies the constraints has to
@@ -274,4 +273,3 @@ modifiesUtxoSet TxConstraints{txConstraints, txOwnOutputs, txOwnInputs} =
     in any requiresInputOutput txConstraints
         || not (null txOwnOutputs)
         || not (null txOwnInputs)
-

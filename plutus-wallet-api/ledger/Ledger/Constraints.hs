@@ -13,9 +13,9 @@ module Ledger.Constraints(
     , mustSpendScriptOutput
     , mustValidateIn
     , mustBeSignedBy
-    , mustIncludeDataValue
+    , mustIncludeDatum
     , mustPayToOtherScript
-    , mustHashDataValue
+    , mustHashDatum
     -- * Queries
     , modifiesUtxoSet
     , isSatisfiable
@@ -48,4 +48,3 @@ import           Ledger.Constraints.TxConstraints
 -- satisfies the constraints (off-chain, using 'mkTx') and to check whether
 -- a given pending transaction meets the constraints (on-chain, using
 -- 'checkPendingTx').
-
