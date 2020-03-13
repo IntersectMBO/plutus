@@ -29,8 +29,6 @@ module Language.PlutusCore.Constant.Typed
     , unliftConstant
     , OpaqueTerm (..)
     , KnownType (..)
-    , toTypeAst
-    , readKnown
     ) where
 
 import           PlutusPrelude
@@ -205,45 +203,33 @@ unliftConstant term = case term of
 -- | Haskell types known to exist on the PLC side.
 class KnownType uni a where
     -- | The type representing @a@ used on the PLC side.
-    toTypeAstProxy :: Proxy a -> Type TyName uni ()
+    toTypeAst :: proxy a -> Type TyName uni ()
+    default toTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
+    toTypeAst _ = mkTyBuiltin @a ()
 
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown :: a -> Term TyName Name uni ()
-
-    -- | Convert a PLC term to the corresponding Haskell value and supply it to the continuation.
-    -- Needed to get 'DerivingVia' working ('readKnown' breaks it, because @a@ is inside a locally
-    -- bound 'm'). Has no relation to bracket-like functions and therefore an @a@ must be allowed to
-    -- escape the scope of the continuation.
-    withReadKnown
-        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
-        => Term TyName Name uni () -> (a -> m r) -> m r
-    withReadKnown term k = readKnown term >>= k
-
-toTypeAst :: forall uni a proxy. KnownType uni a => proxy a -> Type TyName uni ()
-toTypeAst _ = toTypeAstProxy $ Proxy @a
-
--- | Convert a PLC term to the corresponding Haskell value.
--- The inverse of 'makeKnown'.
-readKnown
-    :: (KnownType uni a, MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
-    => Term TyName Name uni () -> m a
-readKnown term = withReadKnown term return
-
-newtype Meta a = Meta
-    { unMeta :: a
-    }
-
-instance (GShow uni, GEq uni, uni `Includes` a) => KnownType uni (Meta a) where
-    toTypeAstProxy _ = mkTyBuiltin @a ()
+    default makeKnown :: uni `Includes` a => a -> Term TyName Name uni ()
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
-    makeKnown (Meta x) = mkConstant () $! x
-    withReadKnown term k = unliftConstant term >>= k . Meta
+    makeKnown x = mkConstant () $! x
+
+    -- | Convert a PLC term to the corresponding Haskell value.
+    -- The inverse of 'makeKnown'.
+    readKnown
+        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
+        => Term TyName Name uni () -> m a
+    default readKnown
+        :: ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
+           , GShow uni, GEq uni, uni `Includes` a
+           )
+        => Term TyName Name uni () -> m a
+    readKnown = unliftConstant
 
 instance KnownType uni a => KnownType uni (EvaluationResult a) where
-    toTypeAstProxy _ = toTypeAst $ Proxy @a
+    toTypeAst _ = toTypeAst $ Proxy @a
 
     -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
     makeKnown EvaluationFailure     = Error () $ toTypeAst (Proxy @a)
@@ -255,11 +241,11 @@ instance KnownType uni a => KnownType uni (EvaluationResult a) where
     -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
     -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
     -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
-    withReadKnown _ _ = throwingWithCause _UnliftingError "Error catching is not supported" Nothing
+    readKnown _ = throwingWithCause _UnliftingError "Error catching is not supported" Nothing
 
 instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
             KnownType uni (OpaqueTerm uni' text uniq) where
-    toTypeAstProxy _ =
+    toTypeAst _ =
         TyVar () . TyName $
             Name ()
                 (Text.pack $ symbolVal @text Proxy)
@@ -267,13 +253,13 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
 
     makeKnown = unOpaqueTerm
 
-    withReadKnown term k = k $ OpaqueTerm term
+    readKnown = pure . OpaqueTerm
 
 type KnownBuiltinType uni a = (GShow uni, GEq uni, uni `Includes` a)
 
-deriving via Meta Integer instance KnownBuiltinType uni Integer => KnownType uni Integer
-deriving via Meta BSL.ByteString instance KnownBuiltinType uni BSL.ByteString => KnownType uni BSL.ByteString
-deriving via Meta String instance KnownBuiltinType uni String => KnownType uni String
-deriving via Meta Char instance KnownBuiltinType uni Char => KnownType uni Char
-deriving via Meta () instance KnownBuiltinType uni () => KnownType uni ()
-deriving via Meta Bool instance KnownBuiltinType uni Bool => KnownType uni Bool
+instance KnownBuiltinType uni Integer        => KnownType uni Integer
+instance KnownBuiltinType uni BSL.ByteString => KnownType uni BSL.ByteString
+instance KnownBuiltinType uni String         => KnownType uni String
+instance KnownBuiltinType uni Char           => KnownType uni Char
+instance KnownBuiltinType uni ()             => KnownType uni ()
+instance KnownBuiltinType uni Bool           => KnownType uni Bool
