@@ -71,6 +71,7 @@ library
         Language.PlutusCore.Generators.Test
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
+        Language.PlutusCore.Error
         PlutusPrelude
         Common
         Data.ByteString.Lazy.Hash
@@ -111,7 +112,6 @@ library
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core
         Language.PlutusCore.Universe.Default
-        Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
         Language.PlutusCore.TypeCheck

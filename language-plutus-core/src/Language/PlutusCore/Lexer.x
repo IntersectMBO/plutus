@@ -116,7 +116,8 @@ tokens :-
     \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
 
     -- Strings
-    <conarg> [\"A-Za-z_]*    { tok (\p s -> alex $ TkString p (show s)) } -- FIXME: proper strings
+    <conarg> [\"A-Za-z_\\]*    { tok (\p s -> alex $ TkString p (show s)) } -- FIXME: proper strings
+    -- "([^"\\]*(\\.[^"\\]*)*)"
 
     -- Integer/size literals
     @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }

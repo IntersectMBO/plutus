@@ -111,7 +111,7 @@ TyName : Name { TyName $1 }
 Constant : integerLit    { someValue (tkInt $1) }
          | naturalLit    { someValue (toInteger (tkNat $1)) }
          | byteStringLit { someValue (tkBytestring $1) }
-         | stringLit     { someValue (tkString $1) } 
+         | stringLit     { someValue (tkString (fixStr $1)) } 
 
 Term : Name                                       { Var (nameAttribute $1) $1 }
      | openParen abs TyName Kind Term closeParen  { TyAbs $2 $3 $4 $5 }
@@ -141,7 +141,10 @@ Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
-
+fixStr :: Token ann -> Token ann
+fixStr (TkString ann s) = TkString ann (read s)   
+fixStr t = t
+  
 getBuiltinName :: T.Text -> Maybe BuiltinName
 getBuiltinName = \case
     "addInteger"               -> Just AddInteger
