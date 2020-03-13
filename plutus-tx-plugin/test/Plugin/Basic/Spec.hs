@@ -40,7 +40,7 @@ monoK = plc @"monoK" (\(i :: Integer) -> \(j :: Integer) -> i)
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
-letFun = plc @"lefFun" (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
+letFun = plc @"letFun" (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
 
 ifOpt :: CompiledCode PLC.DefaultUni Integer
 ifOpt = plc @"ifOpt" (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)
