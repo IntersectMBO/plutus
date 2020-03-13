@@ -198,8 +198,14 @@ ByteString equality, since those are especially likely to come up.
 GHC handles @-patterns by adding a variable to each case expression representing the scrutinee
 of the expression.
 
-We handle this by simply let-binding that variable outside our generated case. In the instances
-where it's not used, the PIR dead-binding pass will remove it.
+We handle this by simply let-binding that variable outside our generated case.
+
+However, there is a subtlety: we'd like this binding to be removed by the dead-binding removal pass in PIR,
+but only where we don't absolutely need it to be sure the scrutinee is evaluated. Fortunately, provided
+we do a pattern match at all we will evaluate the scrutinee, since we do pattern matching by applying the scrutinee.
+
+So the only case where we *need* to keep the binding in place is the case described in Note [Default-only cases].
+In this case we make a strict binding, in all others we make a non-strict binding.
 -}
 
 {- Note [Default-only cases]
@@ -456,7 +462,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 mainCase <- maybeForce lazyCase applied
 
                 -- See Note [At patterns]
-                let binds = pure $ PIR.TermBind () PIR.Strict v scrutinee'
+                let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g

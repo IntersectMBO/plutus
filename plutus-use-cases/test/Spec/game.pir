@@ -227,7 +227,11 @@
                                           sha2_
                                           (fun (con bytestring) (con bytestring))
                                         )
-                                        (builtin sha2_256)
+                                        (lam
+                                          arg
+                                          (con bytestring)
+                                          [ (builtin sha2_256) arg ]
+                                        )
                                       )
                                       (let
                                         (nonrec)
