@@ -76,13 +76,13 @@ newtype Unique = Unique { unUnique :: Int }
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique
     { unTypeUnique :: Unique
-    } deriving (Eq)
+    } deriving (Eq, Ord)
     deriving newtype Hashable
 
 -- | The unique of a term-level name.
 newtype TermUnique = TermUnique
     { unTermUnique :: Unique
-    } deriving (Eq)
+    } deriving (Eq, Ord)
     deriving newtype Hashable
 
 -- | Types which have a 'Unique' attached to them, mostly names.
