@@ -79,7 +79,8 @@ a name). We should probably revisit this later.
 
 {- Note [Builtin types and Haskell types]
 Several of the PLC builtins use types that should (morally) line up with types that we compile from
-Haskell. But there is a problem: they use either primitive or Scott-encoded versions of these types,
+Haskell (see also Note [Which types map to builtin types?]). 
+But there is a problem: they use either primitive or Scott-encoded versions of these types,
 whereas when we compile them from Haskell they will end up as abstract types, and so the types
 won't line up at the call site.
 
@@ -121,6 +122,24 @@ For an example of how the "abstract module" approach would look:
 )
 {<builtin int>}
 (\ x,y : <builtin int> . <builtin addInteger> x y) -- No type error any more, abstraction is gone
+-}
+
+{- Note [Which types map to builtin types?]
+We have (will have) Bool in the default builtin universe. Why do we not map the Haskell Bool type to the
+builtin Bool, but rather compile it as a normal ADT?
+
+The advantage of mapping a type to a builtin type is mainly performance:
+- We can directly use (potentially optimized) implementations of operations on that type.
+- We do not need adaptors to interoperate with builtin functions that use the builtin version of the type.
+
+On the other hand, the advantages of *not* doing this are:
+- User-written code that operates on the type as normal (e.g. pattern matching) will work.
+    - We could make this work by compiling pattern matching specially for the builtin type, but this means
+      more special cases in the compiler (boo). Maybe we can do this generically in future.
+- Code that uses these types will also be compilable/runnable if those builtins are not present.
+
+Overall, this means that we only map performance-critical types like Integer and ByteString directly to
+builtin types, and the others we compile normally.
 -}
 
 {- Note [Builtin terms and values]
