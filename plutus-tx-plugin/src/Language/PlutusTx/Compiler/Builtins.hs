@@ -131,7 +131,7 @@ which matters if it could trigger an error, or some other effect.
 Additionally, strict bindings are a bit more efficient than non-strict ones (non-strict ones get turned into
 lambdas from unit and forcing in the body). So we would like to use strict bindings where possible.
 
-Now, we generate bindings for all our builtin functions... but there are not obviously values! Without the
+Now, we generate bindings for all our builtin functions... but they are not obviously values! Without the
 typechecker we don't know whether they are unsaturated, and so whether they will reduce as they are.
 
 This forces us to either:

@@ -77,7 +77,7 @@ withCurrent
     => n
     -> m g
     -> m g
-withCurrent n = local (const $ Variable $ n ^. PLC.unique . coerced)
+withCurrent n = local (const $ Variable $ n ^. PLC.theUnique)
 
 {- Note [Strict term bindings and dependencies]
 A node inside a strict let binding can incur a dependency on it even if the defined variable is unused.
@@ -107,7 +107,7 @@ bindingDeps b = case b of
         tDeps <- withCurrent n $ termDeps rhs
         -- See Note [Strict term bindings and dependencies]
         evalDeps <- case strictness of
-            Strict | not (isTermValue rhs) -> currentDependsOn [n ^. PLC.unique . coerced]
+            Strict | not (isTermValue rhs) -> currentDependsOn [n ^. PLC.theUnique]
             _                              -> pure G.empty
         pure $ G.overlays [vDeps, tDeps, evalDeps]
     TypeBind _ d@(TyVarDecl _ n _) rhs -> do
@@ -121,8 +121,8 @@ bindingDeps b = case b of
         -- All the datatype bindings depend on each other since they can't be used separately. Consider
         -- the identity function on a datatype type - it only uses the type variable, but the whole definition
         -- will therefore be kept, and so we must consider any uses in e.g. the constructors as live.
-        let tyus = fmap (\n -> n ^. PLC.unique . coerced) $ tyVarDeclName d : fmap tyVarDeclName tvs
-        let tus = fmap (\n -> n ^. PLC.unique . coerced) $ destr : fmap varDeclName constrs
+        let tyus = fmap (view PLC.theUnique) $ tyVarDeclName d : fmap tyVarDeclName tvs
+        let tus = fmap (view PLC.theUnique) $ destr : fmap varDeclName constrs
         let localDeps = G.clique (fmap Variable $ tyus ++ tus)
         pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
 
@@ -150,7 +150,7 @@ termDeps = \case
         bGraphs <- traverse bindingDeps bs
         bodyGraph <- termDeps t
         pure . G.overlays . NE.toList $ bodyGraph NE.<| bGraphs
-    Var _ n -> currentDependsOn [n ^. PLC.unique . coerced]
+    Var _ n -> currentDependsOn [n ^. PLC.theUnique]
     x -> do
         tds <- traverse termDeps (x ^.. termSubterms)
         tyds <- traverse typeDeps (x ^.. termSubtypes)
