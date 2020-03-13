@@ -74,14 +74,14 @@ stdInput = flag' StdInput
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input
-data DumpMode = Standard | Debug deriving (Show, Read)
-data DumpOptions = DumpOptions Input DumpMode
+data PrintMode = Standard | Debug deriving (Show, Read)
+data PrintOptions = PrintOptions Input PrintMode
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Dump DumpOptions
+data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Print PrintOptions
 
 plutus :: ParserInfo Command
 plutus = info (plutusOpts <**> helper) (progDesc "Plutus Core tool")
@@ -91,22 +91,22 @@ plutusOpts = hsubparser (
     command "typecheck" (info (Typecheck <$> typecheckOpts) (progDesc "Typecheck a Plutus Core program"))
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
     <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
-    <> command "dump" (info (Dump <$> dumpOpts) (progDesc "Parse a program then prettyprint it"))
+    <> command "print" (info (Print <$> printOpts) (progDesc "Parse a program then prettyprint it"))
   )
 
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input
 
-dumpMode :: Parser DumpMode
-dumpMode = option auto
-  (  long "dump-mode"
+printMode :: Parser PrintMode
+printMode = option auto
+  (  long "print-mode"
   <> metavar "MODE"
   <> value Standard
   <> showDefault
-  <> help "Dump mode: Standard -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+  <> help "Print mode: Standard -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
 
-dumpOpts :: Parser DumpOptions
-dumpOpts = DumpOptions <$> input <*> dumpMode
+printOpts :: Parser PrintOptions
+printOpts = PrintOptions <$> input <*> printMode
 
 
 evalMode :: Parser EvalMode
@@ -187,15 +187,15 @@ runEval (EvalOptions inp mode) = do
             exitSuccess
 
 
-runDump :: DumpOptions -> IO()
-runDump (DumpOptions inp mode) = do
+runPrint :: PrintOptions -> IO()
+runPrint (PrintOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-        dumpMethod = case mode of
+        printMethod = case mode of
                 Standard -> PLC.prettyPlcClassicDef
                 Debug    -> PLC.prettyPlcClassicDebug
     k :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn <- PLC.runQuoteT (PLC.parseScoped bsContents)
-    putStrLn . show . dumpMethod $ k
+    putStrLn . show . printMethod $ k
 
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
 data TermExample = TermExample
@@ -265,4 +265,4 @@ main = do
         Typecheck tos -> runTypecheck tos
         Eval eos      -> runEval eos
         Example eos   -> runExample eos
-        Dump dos      -> runDump dos
+        Print dos     -> runPrint dos
