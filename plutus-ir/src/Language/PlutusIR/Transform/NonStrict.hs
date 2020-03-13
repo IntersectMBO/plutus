@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 -- | Compile non-strict bindings into strict bindings.
 module Language.PlutusIR.Transform.NonStrict (compileNonStrictBindings) where
 
@@ -8,6 +9,7 @@ import           Language.PlutusIR
 import           Language.PlutusIR.Transform.Rename     ()
 import           Language.PlutusIR.Transform.Substitute
 
+import qualified Language.PlutusCore                    as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
 
@@ -32,16 +34,22 @@ type Substs uni a = Map.Map (Name a) (Term TyName Name uni a)
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.
-compileNonStrictBindings :: MonadQuote m => Term TyName Name uni a -> m (Term TyName Name uni a)
+compileNonStrictBindings
+    :: (MonadQuote m, uni `PLC.Includes` ())
+    => Term TyName Name uni a -> m (Term TyName Name uni a)
 compileNonStrictBindings t = do
     (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm t
     -- See Note [Compiling non-strict bindings]
     pure $ termSubstNames (\n -> Map.lookup n substs) t'
 
-strictifyTerm :: (MonadState (Substs uni a) m, MonadQuote m) => Term TyName Name uni a -> m (Term TyName Name uni a)
+strictifyTerm
+    :: (MonadState (Substs uni a) m, MonadQuote m, uni `PLC.Includes` ())
+    => Term TyName Name uni a -> m (Term TyName Name uni a)
 strictifyTerm = transformMOf termSubterms (traverseOf termBindings strictifyBinding)
 
-strictifyBinding :: (MonadState (Substs uni a) m, MonadQuote m) => Binding TyName Name uni a -> m (Binding TyName Name uni a)
+strictifyBinding
+    :: (MonadState (Substs uni a) m, MonadQuote m, uni `PLC.Includes` ())
+    => Binding TyName Name uni a -> m (Binding TyName Name uni a)
 strictifyBinding = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
         let ann = x
