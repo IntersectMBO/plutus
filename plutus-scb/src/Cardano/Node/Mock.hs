@@ -95,7 +95,10 @@ runChainEffects stateVar eff = do
         $ interpret (handleZoomedState T.followerState)
         $ Chain.handleChain
         $ handleNodeFollower
-        $ runGenRandomTx eff
+        $ runGenRandomTx
+        $ do result <- eff
+             void Chain.processBlock
+             pure result
     liftIO $ putMVar stateVar newState
     pure (events, a)
 

@@ -69,11 +69,9 @@ executionTests =
           runScenario $ do
               installContract "game"
               uuid <- activateContract "game"
-              sync
               assertTxCount
                   "Activating the game does not generate transactions."
                   0
-              sync
               lock
                   uuid
                   Contracts.Game.LockParams
@@ -86,13 +84,13 @@ executionTests =
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
               assertTxCount
-                  "A wrong guess does not introduce any new transactions."
-                  1
+                  "A wrong guess still produces a transaction."
+                  2
               guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
-              assertTxCount "A correct guess creates a second transaction." 2
+              assertTxCount "A correct guess creates a third transaction." 3
         ]
 
 assertTxCount ::
