@@ -1,6 +1,6 @@
 { packageSet ? import ./default.nix { rev = "in-nix-shell"; }
 }:
-with packageSet; haskell-packages-new.shellFor {
+with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid

@@ -1,6 +1,6 @@
 let
-  localLib     = import ./lib.nix { };
-  fixedNixpkgs = localLib.nixpkgs;
+  localLib     = import ./lib.nix;
+  fixedNixpkgs = (import ./nix/sources.nix { }).nixpkgs;
   nixpkgs = import fixedNixpkgs { };
   lib = nixpkgs.lib;
   linux = ["x86_64-linux"];
@@ -8,16 +8,12 @@ let
 in
   { supportedSystems ? linux ++ darwin
   , scrubJobs ? true
-  , fasterBuild ? false
-  , skipPackages ? []
   , nixpkgsArgs ? {
       # we need unfree for kindlegen
       config = { allowUnfree = false;
                  allowUnfreePredicate = localLib.unfreePredicate;
-                 overlays = [ (import ./nix/overlays/musl.nix) ];
                  inHydra = true;
                  };
-      inherit fasterBuild;
     }
   # Passed in by Hydra depending on the configuration, contains the revision and the out path
   , plutus ? null

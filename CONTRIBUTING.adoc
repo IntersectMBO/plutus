@@ -15,7 +15,8 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 convenient alternative to running `nix-shell` directly.
 
 An environment for developing a particular package in isolation can be
-entered by using `nix-shell default.nix -A localPackages.<package name>.env`.
+entered by using
+`nix-shell default.nix -A haskell.projectPackages.<package name>.components.<component type>.<component name>.env`.
 This has all the dependencies, *including* local ones, provided.
 This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
@@ -42,12 +43,16 @@ bug workarounds.
 [[update-generated]]
 === How to update the generated Haskell package set
 
-There is a generated package set at link:./pkgs/default.nix[`pkgs/default.nix`] with all the
-dependencies for this project, based on the Stackage resolver in link:./stack.yaml[`stack.yaml`].
-Nix uses this to build the project's dependencies correctly.
+The Haskell package set is generated automatically. However, to avoid doing too much work all the time,
+we have *pinned* it with the hash of the result of the generation process.
 
-IMPORTANT: This file needs to be regenerated if you change any dependencies in cabal files
-or change the Stackage resolver. To regenerate the file, run link:./pkgs/generate.sh[`pkgs/generate.sh`].
+IMPORTANT: This hash needs to be regenerated if you change any dependencies in cabal files
+or change the Stackage resolver.
+
+You can find the hash in link:./nix/haskell.nix[`nix/haskell.nix`]. All you need to do is comment out the
+`stack-sha256` attribute, and rebuild something. You will see a command on stderr that will tell you
+how to generate the replacement hash.
+
 
 [[update-freeze]]
 === How to update `cabal.project.freeze`
@@ -95,10 +100,10 @@ order:
 . Add the cabal file for the new package.
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
-. Update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
+. Update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
 . Add the project to `plutusPkgList` in link:./lib.nix[lib.nix].
 * This will ensure it gets built by CI and so on.
-. Check that you can run `nix build -f default.nix localPackages.<package name>`
+. Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
 
 === Code style
