@@ -5,6 +5,7 @@
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Language.PlutusCore.Core.Instance.Eq
@@ -19,6 +20,7 @@ import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Eq
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
+import           Language.PlutusCore.Universe
 
 -- See Note [Annotations and equality].
 
@@ -34,24 +36,18 @@ instance Eq (Builtin ann) where
     BuiltinName{}    == _ = False
     DynBuiltinName{} == _ = False
 
-instance Eq (Constant ann) where
-    BuiltinInt _ int1 == BuiltinInt _ int2 = int1 == int2
-    BuiltinBS _  bs1  == BuiltinBS  _ bs2  = bs1 == bs2
-    BuiltinStr _ str1 == BuiltinStr _ str2 = str1 == str2
-    BuiltinInt{} == _ = False
-    BuiltinBS {} == _ = False
-    BuiltinStr{} == _ = False
-
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]
 
-instance HasUniques (Type tyname ann) => Eq (Type tyname ann) where
+instance (HasUniques (Type tyname uni ann), GEq uni) => Eq (Type tyname uni ann) where
     ty1 == ty2 = runEqRename @TypeRenaming $ eqTypeM ty1 ty2
 
-instance HasUniques (Term tyname name ann) => Eq (Term tyname name ann) where
+instance (HasUniques (Term tyname name uni ann), GEq uni, Closed uni, uni `Everywhere` Eq) =>
+            Eq (Term tyname name uni ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
 
-instance HasUniques (Program tyname name ann) => Eq (Program tyname name ann) where
+instance (HasUniques (Program tyname name uni ann), GEq uni, Closed uni, uni `Everywhere` Eq) =>
+            Eq (Program tyname name uni ann) where
     prog1 == prog2 = runEqRename $ eqProgramM prog1 prog2
 
 type EqRenameOf ren a = HasUniques a => a -> a -> EqRename ren
@@ -61,7 +57,7 @@ type EqRenameOf ren a = HasUniques a => a -> a -> EqRename ren
 -- See Note [Side tracking]
 -- See Note [No catch-all].
 -- | Check equality of two 'Type's.
-eqTypeM :: HasRenaming ren TypeUnique => EqRenameOf ren (Type tyname ann)
+eqTypeM :: (HasRenaming ren TypeUnique, GEq uni) => EqRenameOf ren (Type tyname uni ann)
 eqTypeM (TyVar _ name1) (TyVar _ name2) =
     eqNameM name1 name2
 eqTypeM (TyLam _ name1 kind1 ty1) (TyLam _ name2 kind2 ty2) = do
@@ -94,7 +90,9 @@ eqTypeM TyBuiltin{} _ = empty
 -- See Note [Side tracking]
 -- See Note [No catch-all].
 -- | Check equality of two 'Term's.
-eqTermM :: EqRenameOf ScopedRenaming (Term tyname name ann)
+eqTermM
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq)
+    => EqRenameOf ScopedRenaming (Term tyname name uni ann)
 eqTermM (LamAbs _ name1 ty1 body1) (LamAbs _ name2 ty2 body2) = do
     eqTypeM ty1 ty2
     withTwinBindings name1 name2 $ eqTermM body1 body2
@@ -133,7 +131,9 @@ eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
 
 -- | Check equality of two 'Program's.
-eqProgramM :: EqRenameOf ScopedRenaming (Program tyname name ann)
+eqProgramM
+    :: (GEq uni, Closed uni, uni `Everywhere` Eq)
+    => EqRenameOf ScopedRenaming (Program tyname name uni ann)
 eqProgramM (Program _ ver1 term1) (Program _ ver2 term2) = do
     guard $ ver1 == ver2
     eqTermM term1 term2

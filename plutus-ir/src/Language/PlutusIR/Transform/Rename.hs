@@ -5,7 +5,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
--- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name ann)@
+-- | Renaming of PIR terms. Import this module to bring the @PLC.Rename (Term tyname name uni ann)@
 -- instance in scope.
 module Language.PlutusIR.Transform.Rename () where
 
@@ -18,6 +18,8 @@ import qualified Language.PlutusCore.Rename.Internal as PLC
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Class           (lift)
 import           Control.Monad.Trans.Cont            (ContT (..))
+
+import           Data.List.NonEmpty                  (NonEmpty)
 
 {- Note [Renaming of mutually recursive bindings]
 The 'RenameM' monad is a newtype wrapper around @ReaderT renaming Quote@, so in order to bring
@@ -56,9 +58,9 @@ Two problems arise:
    'PLC.ScopedRenameM' is for performing the renaming (the second stage).
 -}
 
-type instance PLC.HasUniques (Term tyname name ann) = PLC.HasUniques (PLC.Term tyname name ann)
+type instance PLC.HasUniques (Term tyname name uni ann) = PLC.HasUniques (PLC.Term tyname name uni ann)
 
-instance PLC.HasUniques (Term tyname name ann) => PLC.Rename (Term tyname name ann) where
+instance PLC.HasUniques (Term tyname name uni ann) => PLC.Rename (Term tyname name uni ann) where
     -- TODO: the Plutus Core codebase uses marking in order to prevent clashing with existing
     -- free variables. Should we do the same here?
     rename = PLC.runRenameT . renameTermM
@@ -66,9 +68,9 @@ instance PLC.HasUniques (Term tyname name ann) => PLC.Rename (Term tyname name a
 -- See Note [Renaming of mutually recursive bindings].
 -- | Rename a 'Datatype' in the CPS-transformed 'ScopedRenameM' monad.
 renameDatatypeCM
-    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
-    => Datatype tyname name ann
-    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Datatype tyname name ann))
+    :: (PLC.HasUniques (Term tyname name uni ann), PLC.MonadQuote m)
+    => Datatype tyname name uni ann
+    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Datatype tyname name uni ann))
 renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
     -- The first stage (the data type itself, its constructors and its matcher get renamed).
     dataDeclFr  <- ContT $ PLC.withFreshenedTyVarDecl dataDecl
@@ -81,9 +83,9 @@ renameDatatypeCM (Datatype x dataDecl params matchName constrs) = do
 
 -- | Rename a 'Binding' in the CPS-transformed 'ScopedRenameM' monad.
 renameBindingCM
-    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
-    => Binding tyname name ann
-    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Binding tyname name ann))
+    :: (PLC.HasUniques (Term tyname name uni ann), PLC.MonadQuote m)
+    => Binding tyname name uni ann
+    -> ContT c (PLC.ScopedRenameT m) (PLC.ScopedRenameT m (Binding tyname name uni ann))
 renameBindingCM = \case
     TermBind x s var term -> do
         -- The first stage (the variable gets renamed).
@@ -103,10 +105,10 @@ renameBindingCM = \case
 -- save the mapping from the old uniques to the new ones, rename the RHSs and
 -- supply the updated bindings to a continuation.
 withFreshenedBindings
-    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
+    :: (PLC.HasUniques (Term tyname name uni ann), PLC.MonadQuote m)
     => Recursivity
-    -> [Binding tyname name ann]
-    -> ([Binding tyname name ann] -> PLC.ScopedRenameT m c)
+    -> NonEmpty (Binding tyname name uni ann)
+    -> (NonEmpty (Binding tyname name uni ann) -> PLC.ScopedRenameT m c)
     -> PLC.ScopedRenameT m c
 withFreshenedBindings recy binds cont = case recy of
     -- Bring each binding in scope, rename its RHS straight away, collect all the results and
@@ -118,8 +120,8 @@ withFreshenedBindings recy binds cont = case recy of
 
 -- | Rename a 'Term' in the 'ScopedRenameM' monad.
 renameTermM
-    :: (PLC.HasUniques (Term tyname name ann), PLC.MonadQuote m)
-    => Term tyname name ann -> PLC.ScopedRenameT m (Term tyname name ann)
+    :: (PLC.HasUniques (Term tyname name uni ann), PLC.MonadQuote m)
+    => Term tyname name uni ann -> PLC.ScopedRenameT m (Term tyname name uni ann)
 renameTermM = \case
     Let x r binds term ->
         withFreshenedBindings r binds $ \bindsFr ->

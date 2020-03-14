@@ -1,11 +1,12 @@
 \section{Related work}
 \label{sec:related}
 
-Bitcoin Covenants~\cite{moser2016bitcoin} allow Bitcoin transactions to
-restrict how the transferred value can be used in the future, including propagating
-themselves to ongoing outputs. This provides contract continuity and allows the
-implementation of simple state machines. Our work is inspired by Covenants, although
-our addition of a data value is novel and simplifies the state passing.
+Bitcoin Covenants~\cite{moser2016bitcoin} allow Bitcoin transactions
+to restrict how the transferred value can be used in the future,
+including propagating themselves to ongoing outputs. This provides
+contract continuity and allows the implementation of simple state
+machines. Our work is inspired by Covenants, although our addition of
+a datum is novel and simplifies the state passing.
 
 The Bitcoin Modelling Language (BitML)~\cite{bitml} is an idealistic process calculus
 that specifically targets smart contracts running on Bitcoin.
@@ -19,7 +20,7 @@ authors~\cite{formal-model-of-bitcoin-transactions};
 one of our main contributions is an extended version of such an abstract model,
 which also accounts for the added functionality apparent in \Cardano{}.
 
-Ethereum and its smart contract language, Solidity~\cite{Solidity} are powerful
+Ethereum and its smart contract language, Solidity~\cite{Solidity}, are powerful
 enough to implement state machines, due to their native support for
 global contract instances and state. However, this approach has some major downsides,
 notably that contract state is global, and must be kept indefinitely by all core nodes.

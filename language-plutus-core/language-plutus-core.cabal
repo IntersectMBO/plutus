@@ -35,6 +35,7 @@ library
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Universe
         Language.PlutusCore.Rename.Internal
         Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
@@ -96,7 +97,6 @@ library
         Language.PlutusCore.Constant.Dynamic.OnChain
         Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
-        Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
         Language.PlutusCore.Lexer.Type
@@ -108,6 +108,8 @@ library
         Language.PlutusCore.Pretty.Plc
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Pretty.Utils
+        Language.PlutusCore.Universe.Core
+        Language.PlutusCore.Universe.Default
         Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
@@ -149,9 +151,11 @@ library
         containers -any,
         cryptonite -any,
         cryptonite,
-        deepseq -any,
         dependent-map -any,
         dependent-sum -any,
+        dependent-sum-template -any,
+        deriving-compat -any,
+        deepseq -any,
         filepath -any,
         hashable,
         hedgehog <1.0,
@@ -169,6 +173,7 @@ library
         tasty-golden -any,
         template-haskell -any,
         text -any,
+        th-lift -any,
         th-lift-instances -any,
         transformers -any
 

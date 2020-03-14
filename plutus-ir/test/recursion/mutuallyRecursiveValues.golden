@@ -15,7 +15,28 @@
                 (lam
                   x_i0
                   (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
-                  [ x_i1 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
+                  [
+                    (lam
+                      y_i0
+                      (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                      [ x_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
+                    )
+                    [
+                      {
+                        tup_i2
+                        (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                      }
+                      (lam
+                        arg_0_i0
+                        (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                        (lam
+                          arg_1_i0
+                          (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                          arg_1_i1
+                        )
+                      )
+                    ]
+                  ]
                 )
                 [
                   {

@@ -16,6 +16,7 @@ import           Language.PlutusTx.Applicative
 import           Language.PlutusTx.Functor
 
 import           Data.Kind
+import           Data.Void
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -40,7 +41,7 @@ instance IsData Integer where
 
 instance IsData ByteString where
     {-# INLINABLE toData #-}
-    toData = B
+    toData b = B b
     {-# INLINABLE fromData #-}
     fromData (B b) = Just b
     fromData _     = Nothing
@@ -51,3 +52,9 @@ instance IsData a => IsData [a] where
     {-# INLINABLE fromData #-}
     fromData (List ds) = traverse fromData ds
     fromData _         = Nothing
+
+instance IsData Void where
+    {-# INLINABLE toData #-}
+    toData v = absurd v
+    {-# INLINABLE fromData #-}
+    fromData _ = Nothing

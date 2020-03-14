@@ -40,12 +40,14 @@ stack.yaml.lock
 # Nix
 result*
 pkgs/.cabal
+pkgs/.cache
 pkgs/.stack
 
 # Editor files
 *~
 *#
 .psc-ide-port
+.dir-locals.el
 
 # Misc
 .history/

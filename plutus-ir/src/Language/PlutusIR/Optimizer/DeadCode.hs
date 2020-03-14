@@ -20,12 +20,13 @@ import qualified Data.Set                                as Set
 
 import qualified Algebra.Graph                           as G
 import qualified Algebra.Graph.ToGraph                   as T
+import qualified Data.List.NonEmpty                      as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
     :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Term tyname name a
-    -> Term tyname name a
+    => Term tyname name uni a
+    -> Term tyname name uni a
 removeDeadBindings t =
     let tRen = PLC.runQuote $ PLC.rename t
     in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
@@ -34,7 +35,7 @@ type Liveness = Set.Set Deps.Node
 
 calculateLiveness
     :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Term tyname name a
+    => Term tyname name uni a
     -> Liveness
 calculateLiveness t =
     let
@@ -50,7 +51,7 @@ live n =
 
 liveBinding
     :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Binding tyname name a
+    => Binding tyname name uni a
     -> m Bool
 liveBinding =
     let
@@ -64,9 +65,9 @@ liveBinding =
 
 processTerm
     :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
-    => Term tyname name a
-    -> m (Term tyname name a)
+    => Term tyname name uni a
+    -> m (Term tyname name uni a)
 processTerm = \case
     -- throw away dead bindings
-    Let x r bs t -> mkLet x r <$> filterM liveBinding bs <*> pure t
+    Let x r bs t -> mkLet x r <$> filterM liveBinding (NE.toList bs) <*> pure t
     x -> pure x

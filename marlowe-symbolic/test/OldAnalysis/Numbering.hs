@@ -1,4 +1,4 @@
-module Language.Marlowe.Analysis.Numbering (Numbering, emptyNumbering, getNumbering, getLabel, numberOfLabels) where
+module OldAnalysis.Numbering (Numbering, emptyNumbering, getNumbering, getLabel, numberOfLabels) where
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map

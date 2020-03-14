@@ -80,14 +80,14 @@ genHole :: forall m a. MonadGen m => MonadRec m => m (Term a)
 genHole = do
   name <- suchThat genString (\s -> s /= "")
   proxy <- pure (Proxy :: Proxy a)
-  start <- genPosition
-  end <- genPosition
-  pure $ Hole name proxy start end
+  row <- genPosition
+  column <- genPosition
+  pure $ Hole name proxy { row, column }
 
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> m (Term a)
 genTerm g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure 0 <*> pure 0) :| (if withHoles then [ genHole ] else [])
+  oneOf $ (Term <$> g <*> pure { row: 0, column: 0 }) :| (if withHoles then [ genHole ] else [])
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do

@@ -85,13 +85,13 @@ class HasArrow a where
 instance a ~ () => HasArrow (Kind a) where
     (~~>) = KindArrow ()
 
-instance a ~ () => HasArrow (Type tyname a) where
+instance a ~ () => HasArrow (Type tyname uni a) where
     (~~>) = TyFun ()
 
 star :: Kind ()
 star = Type ()
 
-treeTag :: Type TyName ()
+treeTag :: Type TyName uni ()
 treeTag = runQuote $ do
     t <- freshTyName () "t"
     f <- freshTyName () "f"
@@ -100,7 +100,7 @@ treeTag = runQuote $ do
         . TyLam () f star
         $ TyVar () t
 
-forestTag :: Type TyName ()
+forestTag :: Type TyName uni ()
 forestTag = runQuote $ do
     t <- freshTyName () "t"
     f <- freshTyName () "f"
@@ -109,7 +109,7 @@ forestTag = runQuote $ do
         . TyLam () f star
         $ TyVar () f
 
-asTree :: Type TyName ()
+asTree :: Type TyName uni ()
 asTree = runQuote $ do
     d <- freshTyName () "d"
     a <- freshTyName () "a"
@@ -121,7 +121,7 @@ asTree = runQuote $ do
             , treeTag
             ]
 
-asForest :: Type TyName ()
+asForest :: Type TyName uni ()
 asForest = runQuote $ do
     d <- freshTyName () "d"
     a <- freshTyName () "a"
@@ -133,7 +133,7 @@ asForest = runQuote $ do
             , forestTag
             ]
 
-treeForestData :: RecursiveType ()
+treeForestData :: RecursiveType uni ()
 treeForestData = runQuote $ do
     treeForest <- freshTyName () "treeForest"
     a          <- freshTyName () "a"
@@ -154,13 +154,13 @@ treeForestData = runQuote $ do
         [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
         body
 
-treeData :: RecursiveType ()
+treeData :: RecursiveType uni ()
 treeData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
-forestData :: RecursiveType ()
+forestData :: RecursiveType uni ()
 forestData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         forest = TyApp () asForest treeForest
@@ -171,7 +171,7 @@ forestData = runQuote $ do
 --
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
-treeNode :: Term TyName Name ()
+treeNode :: Term TyName Name uni ()
 treeNode = runQuote $ normalizeTypesFullIn =<< do
     let RecursiveType _      wrapTree = treeData
         RecursiveType forest _        = forestData
@@ -200,7 +200,7 @@ treeNode = runQuote $ normalizeTypesFullIn =<< do
 --
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
-forestNil :: Term TyName Name ()
+forestNil :: Term TyName Name uni ()
 forestNil = runQuote $ normalizeTypesFullIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
@@ -225,7 +225,7 @@ forestNil = runQuote $ normalizeTypesFullIn =<< do
 --
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
-forestCons :: Term TyName Name ()
+forestCons :: Term TyName Name uni ()
 forestCons = runQuote $ normalizeTypesFullIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData

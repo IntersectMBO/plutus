@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
-module Language.Marlowe.Analysis.IntegerArray where
+module OldAnalysis.IntegerArray where
 
 import           Data.List      (genericTake)
 import           Data.SBV

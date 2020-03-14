@@ -30,3 +30,6 @@ instance Semigroup Ordering where
     LT <> _ = LT
     EQ <> y = y
     GT <> _ = GT
+
+instance Semigroup () where
+    _ <> _ = ()

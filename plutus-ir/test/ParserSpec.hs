@@ -8,6 +8,8 @@ import           Common
 import           Data.Char
 import qualified Data.Text                        as T
 
+import qualified Language.PlutusCore.Universe     as PLC
+
 import           Language.PlutusIR
 import           Language.PlutusIR.Generators.AST
 import           Language.PlutusIR.Parser
@@ -19,7 +21,7 @@ import qualified Hedgehog.Range                   as Range
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
-newtype PrettyProg = PrettyProg { prog :: Program TyName Name SourcePos }
+newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni SourcePos }
 instance Show PrettyProg where
     show = prettyString . prog
 

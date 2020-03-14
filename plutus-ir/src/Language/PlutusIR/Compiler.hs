@@ -33,11 +33,11 @@ import           Control.Monad
 import           Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
-simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name b -> m (Term TyName Name b)
+simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name uni b -> m (Term TyName Name uni b)
 simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
 
 -- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m e a => Term TyName Name a -> m (PLCTerm a)
+compileTerm :: Compiling m e uni a => Term TyName Name uni a -> m (PLCTerm uni a)
 compileTerm =
     (pure . original)
     >=> simplifyTerm
@@ -54,5 +54,5 @@ compileTerm =
     >=> lowerTerm
 
 -- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m e a => Program TyName Name a -> m (PLC.Program TyName Name (Provenance a))
+compileProgram :: Compiling m e uni a => Program TyName Name uni a -> m (PLC.Program TyName Name uni (Provenance a))
 compileProgram (Program a t) = PLC.Program (Original a) (PLC.defaultVersion (Original a)) <$> compileTerm t

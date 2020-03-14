@@ -32,7 +32,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
 open import Utils
-
+open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 \end{code}
 
@@ -207,9 +207,10 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       -----------------
     → L ·⋆ A —→ L' ·⋆ A
 
-  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {W : Γ ⊢ A}
+  β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {V : Γ ⊢ A}
+    → Value V
       -------------------
-    → (ƛ N) · W —→ N [ W ]
+    → (ƛ N) · V —→ N [ V ]
 
   β-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}{N : Γ ,⋆ K ⊢ B}{A}
       -------------------
@@ -219,6 +220,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {arg : Φ ⊢Nf⋆ K}
     → {term : Γ ⊢ _}
+    → Value term
     → unwrap1 (wrap1 pat arg term) —→ term
 
   ξ-unwrap1 : ∀{Φ Γ K}
@@ -244,7 +246,7 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
       -----------------------------
     → builtin bn σ tel —→ BUILTIN bn σ tel vtel
     
-  ξ-builtin : ∀{Φ Γ}  → (bn : Builtin)
+  ξ-builtin : ∀{Φ Γ} → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
     → (tel : Tel Γ Δ σ As)
@@ -322,11 +324,21 @@ data TelProgress
 \end{code}
 
 \begin{code}
-progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Progress t → (u : Γ ⊢ A)
+progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  → {t : Γ ⊢ A ⇒ B} → Value t
+  → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
-progress-· (step p)         u = step (ξ-·₁ p)
-progress-· (done V-ƛ)       u = step β-ƛ
-progress-· (error e)        u = error (E-·₁ e)
+progress-·V v   (step q)  = step (ξ-·₂ v q)
+progress-·V V-ƛ (done w)  = step (β-ƛ w)
+progress-·V v   (error e) = error (E-·₂ e)
+
+progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
+  → {t : Γ ⊢ A ⇒ B} → Progress t
+  → {u : Γ ⊢ A} → Progress u
+  → Progress (t · u)
+progress-· (step p)   q = step (ξ-·₁ p)
+progress-· (done V-ƛ) q = progress-·V V-ƛ q
+progress-· (error e)  q = error (E-·₁ e)
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
@@ -337,7 +349,7 @@ progress-·⋆ (error e)  A = error (E-·⋆ e)
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
   → Progress t → Progress (unwrap1 t)
 progress-unwrap (step q)          = step (ξ-unwrap1 q)
-progress-unwrap (done (V-wrap {term = t} v)) = step β-wrap1
+progress-unwrap (done (V-wrap {term = t} v)) = step (β-wrap1 v)
 progress-unwrap (error e)          = error (E-unwrap e)
 
 progress-builtin : ∀{Φ Γ} bn
@@ -402,7 +414,7 @@ progress-wrap n (error e)   = error (E-wrap e)
 
 progress p (` x)                = ⊥-elim (noVar p x)
 progress p (ƛ M)                = done V-ƛ
-progress p (M · N)              = progress-· (progress p M) N
+progress p (M · N)              = progress-· (progress p M) (progress p N)
 progress p (Λ M)                = done V-Λ
 progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
@@ -410,3 +422,169 @@ progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error
+
+--
+
+open import Data.Empty
+
+-- progress is disjoint:
+
+
+-- a value cannot make progress
+val : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
+val V-ƛ ()
+val V-Λ ()
+val (V-wrap p) (.(wrap1 _ _ _) ,, ξ-wrap q) = val p (_ ,, q)
+val (V-con cn) ()
+
+-- if a term can make progress it cannot be a value
+red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Σ (Γ ⊢ σ) (t —→_) → ¬ (Value t)
+red (.(wrap1 _ _ _) ,, ξ-wrap p) (V-wrap v) = red (_ ,, p) v
+
+-- nothing in a telescope of values can make progress
+vTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
+  → (tel : Tel Γ Δ σ As)
+  → (vtel : VTel Γ Δ σ As tel)
+  → ∀ Bs Ds
+  → (telB : Tel Γ Δ σ Bs)
+  → (telD : Tel Γ Δ σ Ds)
+  → ∀{D}{t t' : Γ ⊢ substNf σ D}
+  → t —→ t'
+  → (p : Bs ++ (D ∷ Ds) ≡ As)
+  → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
+  → ⊥
+vTel Γ Δ σ _ (t ,, tel) (v ,, vtel) [] As telB telD r refl refl =
+  val v (_ ,, r)
+vTel Γ Δ σ _ (_ ,, tel) (_ ,, vtel) (_ ∷ Bs) Ds (_ ,, telB) telD r refl refl =
+  vTel Γ Δ σ _ tel vtel Bs Ds telB telD r refl refl
+
+-- values are unique for a term
+valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A)
+  → (v v' : Value t)
+  → v ≡ v'
+valUniq .(ƛ _) V-ƛ V-ƛ = refl
+valUniq .(Λ _) V-Λ V-Λ = refl
+valUniq .(wrap1 _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
+valUniq .(con cn) (V-con cn) (V-con .cn) = refl
+
+-- telescopes of values are unique for that telescope
+vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
+  → (tel : Tel Γ Δ σ As)
+  → (vtel vtel' : VTel Γ Δ σ As tel)
+  → vtel ≡ vtel'
+vTelUniq Γ Δ σ [] tel vtel vtel' = refl
+vTelUniq Γ Δ σ (A ∷ As) (t ,, tel) (v ,, vtel) (v' ,, vtel') =
+  cong₂ _,,_ (valUniq t v v') (vTelUniq Γ Δ σ As tel vtel vtel') 
+
+cong-just : {A : Set}{a a' : A} → Data.Maybe.just a ≡ just a' → a ≡ a'
+cong-just refl = refl
+
+-- the ugly stuff concerning `reconstTel` is going to change soon
+
+reconstTel-step : ∀{Φ Γ Δ As C} B Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (telB : Tel Γ Δ σ Bs)
+    → (t : Γ ⊢ substNf σ B)
+    → (t' : Γ ⊢ substNf σ C)
+    → (p : Bs ++ (C ∷ Ds) ≡ As)
+    → (p' : B ∷ Bs ++ (C ∷ Ds) ≡ B ∷ As)
+    → (tel : Tel Γ Δ σ Ds)
+    → reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' p' tel
+      ≡
+      (t ,, reconstTel Bs Ds σ telB t' p tel)
+reconstTel-step B Bs Ds σ telB t t' refl refl tel = refl
+
+reconstTel-irr : ∀{Φ Γ Δ As C} Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (telB : Tel Γ Δ σ Bs)
+    → (t : Γ ⊢ substNf σ C)
+    → (p p' : Bs ++ (C ∷ Ds) ≡ As)
+    → (tel : Tel Γ Δ σ Ds)
+    → reconstTel Bs Ds σ telB t p tel
+      ≡
+      reconstTel Bs Ds σ telB t p' tel
+reconstTel-irr Bs Ds σ telB t refl refl tel = refl
+
+lemX : ∀{Φ Γ Δ} B Bs Bs'
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (telB : Tel Γ Δ σ Bs)
+  → (X : Bs ≡ Bs')
+  → (X' : B ∷ Bs ≡ B ∷ Bs')
+  → (t : Γ ⊢ substNf σ B)
+  → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) (cong (B ∷_) X) (t ,, telB)
+    ≡
+    (t ,, Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) X telB)
+lemX B Bs Bs' σ telB refl refl t = refl
+
+reconstTel-inj : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (telB : Tel Γ Δ σ Bs)
+  → VTel Γ Δ σ Bs telB
+  → (telB' : Tel Γ Δ σ Bs')
+  → VTel Γ Δ σ Bs' telB'
+  → ∀{C}{t t' : Γ ⊢ substNf σ C}
+  → t —→ t'
+  → ∀{C'}{t'' t''' : Γ ⊢ substNf σ C'}
+  → t'' —→ t'''
+  → (p : Bs ++ (C ∷ Ds) ≡ As)
+  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
+  → (tel : Tel Γ Δ σ Ds)
+  → (tel' : Tel Γ Δ σ Ds')
+  → reconstTel Bs Ds σ telB t p tel ≡ reconstTel Bs' Ds' σ telB' t'' p' tel'
+  → (Σ (Bs ≡ Bs') λ p → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) p telB ≡ telB')
+  × (Σ (C ≡ C') λ p → Relation.Binary.PropositionalEquality.subst (λ C → Γ ⊢ substNf σ C) p t ≡ t'')
+  × (Σ (Ds ≡ Ds') λ p → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) p tel ≡ tel')
+reconstTel-inj [] [] Ds .Ds σ telB x telB' x₁ x₂ x₃ refl refl tel tel' x₄ = (refl ,, refl) ,, ((refl ,, (cong proj₁ x₄)) ,, (refl ,, (cong proj₂ x₄)))
+reconstTel-inj [] (x₅ ∷ Bs') Ds Ds' σ tt tt (t' ,, telB') (v' ,, vtel') q q' refl refl tel tel' x₄ =
+  ⊥-elim (val v' (_ ,, Relation.Binary.PropositionalEquality.subst (_—→ _) (cong proj₁ x₄) q))
+reconstTel-inj (x₅ ∷ Bs) [] Ds Ds' σ (t ,, telB) (v ,,  vtel) tt tt q q' refl refl tel tel' x₄ =
+  ⊥-elim (val v (_ ,, Relation.Binary.PropositionalEquality.subst (_—→ _) (sym (cong proj₁ x₄)) q'))
+reconstTel-inj (B ∷ Bs) (B' ∷ Bs') Ds Ds' σ (t ,, telB) (v ,, vtel) (t' ,, telB') (v' ,, vtel') q q' refl p' tel tel' x₄ with cong-just (cong head p')
+... | refl with reconstTel-inj Bs Bs' Ds Ds' σ telB vtel telB' vtel' q q' refl (cong-just (cong tail p')) tel tel' (cong proj₂ (trans x₄ (reconstTel-step B' Bs' Ds' σ telB' t' _ (cong-just (cong tail p')) p' tel')))
+... | (X ,, X') ,, Y = ((cong (B ∷_) X) ,, (trans (lemX B Bs Bs' σ telB X (cong (B ∷_) X) t) (cong₂ _,,_ (cong proj₁ (trans x₄ (reconstTel-step B' Bs' Ds' σ telB' t' _ (cong-just (cong tail p')) p' tel'))) X'))) ,, Y
+
+det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢ σ}
+  → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
+
+reconstTel-inj' : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (telB : Tel Γ Δ σ Bs)
+  → VTel Γ Δ σ Bs telB
+  → (telB' : Tel Γ Δ σ Bs')
+  → VTel Γ Δ σ Bs' telB'
+  → ∀{C}{t t' : Γ ⊢ substNf σ C}
+  → t —→ t'
+  → ∀{C'}{t'' t''' : Γ ⊢ substNf σ C'}
+  → t'' —→ t'''
+  → (p : Bs ++ (C ∷ Ds) ≡ As)
+  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
+  → (tel : Tel Γ Δ σ Ds)
+  → (tel' : Tel Γ Δ σ Ds')
+  → reconstTel Bs Ds σ telB t p tel ≡ reconstTel Bs' Ds' σ telB' t'' p' tel'
+  → reconstTel Bs Ds σ telB t' p tel ≡ reconstTel Bs' Ds' σ telB' t''' p' tel'
+reconstTel-inj' Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄ with reconstTel-inj Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄
+... | (refl ,, refl) ,, (refl ,, refl) ,, (refl ,, refl) with p | p' | det x₂ x₃
+... | refl | refl | refl = refl
+
+-- the reduction rules are deterministic
+
+det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
+det (ξ-·₁ p) (ξ-·₂ w q) = ⊥-elim (val w (_ ,, p))
+det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (val v (_ ,, q))
+det (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (det p q)
+det (ξ-·₂ v p) (β-ƛ w) = ⊥-elim (val w (_ ,, p))
+det (ξ-·⋆ p) (ξ-·⋆ q) = cong (_·⋆ _) (det p q)
+det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val v (_ ,, q))
+det (β-ƛ v) (β-ƛ w) = refl
+det β-Λ β-Λ = refl
+det (β-wrap1 p) (β-wrap1 q) = refl
+det (β-wrap1 p) (ξ-unwrap1 q) = ⊥-elim (val (V-wrap p) (_ ,, q))
+det (ξ-unwrap1 p) (β-wrap1 q) = ⊥-elim (val (V-wrap q) (_ ,, p))
+det (ξ-unwrap1 p) (ξ-unwrap1 q) = cong unwrap1 (det p q)
+det (ξ-wrap p) (ξ-wrap q) = cong (wrap1 _ _) (det p q)
+det (β-builtin bn σ tel vtel) (β-builtin .bn .σ .tel wtel) =
+   cong (BUILTIN bn σ tel) (vTelUniq _ _ σ _ tel vtel wtel)
+det (β-builtin bn σ tel vtel) (ξ-builtin .bn .σ .tel Bs Ds telB telD wtel q p q₁) = ⊥-elim (vTel _ _ σ _ tel vtel Bs  Ds telB telD q p q₁)
+det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (vTel _ _ σ _ tel vtel₁ Bs Ds telB telD p p₁ q)
+det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (ξ-builtin .bn .σ .tel Bs' Ds' telB' telD' vtel' p' p'' q') = cong (builtin bn σ) (reconstTel-inj' Bs Bs' Ds Ds' σ telB vtel telB' vtel' p p' p₁ p'' telD telD' (trans q (sym q')))
+

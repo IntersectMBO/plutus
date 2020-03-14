@@ -55,8 +55,8 @@ import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (For
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, DataValue, MonetaryPolicy, PubKey, PubKeyHash,
-                                                             RedeemerValue, Signature, Tx, TxId, TxIn, TxInType, TxOut,
+import           Ledger                                     (Address, Datum, MonetaryPolicy, PubKey, PubKeyHash,
+                                                             Redeemer, Signature, Tx, TxId, TxIn, TxInType, TxOut,
                                                              TxOutRef, TxOutType, Validator)
 import           Ledger.Ada                                 (Ada)
 import           Ledger.Index                               (ValidationError)
@@ -89,6 +89,7 @@ import qualified Vesting
 import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
 import qualified Wallet.Emulator.Chain                      as EM
+import qualified Wallet.Emulator.ChainIndex                 as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
 import qualified Wallet.Emulator.Wallet                     as EM
@@ -186,7 +187,7 @@ mpsHashBridge = do
 
 dataHashBridge :: BridgePart
 dataHashBridge = do
-    typeName ^== "DataValueHash"
+    typeName ^== "DatumHash"
     typeModule ^== "Ledger.Scripts"
     pure psString
 
@@ -267,10 +268,10 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @DataValue)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @MonetaryPolicy)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @RedeemerValue)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @Redeemer)
     , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
@@ -281,6 +282,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.WalletEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.ChainIndexEvent)
     , (genericShow <*> mkSumType) (Proxy @PlaygroundError)
     , (genericShow <*> mkSumType) (Proxy @ValidationError)
     , (genericShow <*> mkSumType) (Proxy @ScriptError)

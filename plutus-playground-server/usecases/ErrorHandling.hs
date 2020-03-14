@@ -17,9 +17,9 @@ import           Data.Text                (Text)
 
 import           Control.Applicative      ((<|>))
 import           Language.Plutus.Contract (type (.\/), AsContractError (_ContractError), BlockchainActions, Contract,
-                                           ContractError, Endpoint, HasWriteTx, endpoint, submitTx)
+                                           ContractError, Endpoint, HasAwaitSlot, endpoint)
 import           Playground.Contract
-import           Prelude                  (Show, mempty, pure, ($), (>>))
+import           Prelude                  (Show, pure, ($), (>>))
 
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom
 -- error type 'MyError' with three constructors and use
@@ -65,15 +65,14 @@ throwAndCatch =
      in catching _Error1 throw handleError1
 
 -- | Handle an error from another contract (in this case, 'writeTxSucess')
-catchContractError :: (AsMyError e, AsContractError e, HasWriteTx s) => Contract s e ()
+catchContractError :: (AsMyError e, HasAwaitSlot s) => Contract s e ()
 catchContractError =
     catching _MyContractError
-        (void $ submitTx mempty)
+        (void $ awaitSlot 10)
         (\_ -> throwing_ _Error2)
 
 contract
     :: ( AsMyError e
-       , AsContractError e
        )
     => Contract Schema e ()
 contract =
@@ -81,7 +80,7 @@ contract =
     <|> (endpoint @"catchError" >> throwAndCatch)
     <|> (endpoint @"catchContractError" >> catchContractError)
 
-endpoints :: (AsMyError e, AsContractError e) => Contract Schema e ()
+endpoints :: (AsMyError e) => Contract Schema e ()
 endpoints = contract
 
 mkSchemaDefinitions ''Schema

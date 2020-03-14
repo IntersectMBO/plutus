@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Language.Marlowe.Analysis.MkSymb where
+module OldAnalysis.MkSymb where
 
 import           Data.Either         (Either (..))
 import           Data.List           (foldl', foldl1')

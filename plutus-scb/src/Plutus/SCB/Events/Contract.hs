@@ -18,8 +18,8 @@ import           Data.UUID                                (UUID)
 import           GHC.Generics                             (Generic)
 
 import qualified Language.Plutus.Contract.Effects.WriteTx as W
-import           Language.Plutus.Contract.Tx              (UnbalancedTx)
 import           Ledger.Address                           (Address)
+import           Ledger.Constraints.OffChain              (UnbalancedTx)
 import           Ledger.Crypto                            (PubKey)
 import           Ledger.Slot                              (Slot)
 import           Ledger.Tx                                (Tx)

@@ -29,7 +29,7 @@ module Ledger.Index(
 import           Prelude                          hiding (lookup)
 
 
-import           Control.Lens                     ((^.))
+import           Control.Lens                     (view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -93,8 +93,8 @@ data ValidationError =
     -- there was no transaction with the given hash on the blockchain).
     | InvalidScriptHash Validator ValidatorHash
     -- ^ For pay-to-script outputs: the validator script provided in the transaction input does not match the hash specified in the transaction output.
-    | InvalidDataHash DataValue DataValueHash
-    -- ^ For pay-to-script outputs: the data value provided in the transaction input does not match the hash specified in the transaction output.
+    | InvalidDatumHash Datum DatumHash
+    -- ^ For pay-to-script outputs: the datum provided in the transaction input does not match the hash specified in the transaction output.
     | InvalidSignature PubKey Signature
     -- ^ For pay-to-pubkey outputs: the signature of the transaction input does not match the public key of the transaction output.
     | ValueNotPreserved V.Value V.Value
@@ -177,7 +177,7 @@ checkValidInputs tx = do
 
 -- | Match each input of the transaction with the output that it spends.
 lkpOutputs :: ValidationMonad m => Tx -> m [(TxIn, TxOut)]
-lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . txInputs
+lkpOutputs = traverse (\t -> traverse (lkpTxOut . txInRef) (t, t)) . Set.toList . view inputs
 
 {- note [Forging of Ada]
 
@@ -214,7 +214,7 @@ checkForgingScripts tx = do
         mkVd :: Integer -> Validation.PendingTxMPS
         mkVd i = ptx { pendingTxItem = monetaryPolicyHash $ mpss !! fromIntegral i }
     forM_ (mpss `zip` (mkVd <$> [0..])) $ \(vl, ptx') ->
-        let vd = ValidationData $ toData ptx'
+        let vd = Context $ toData ptx'
         in case runExcept $ runMonetaryPolicyScript Typecheck vd vl of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()
@@ -224,8 +224,8 @@ data InOutMatch =
     ScriptMatch
         TxIn
         Validator
-        RedeemerValue
-        DataValue
+        Redeemer
+        Datum
     | PubKeyMatch TxId PubKey Signature
     deriving (Eq, Ord, Show)
 
@@ -243,7 +243,7 @@ matchInputOutput :: ValidationMonad m
     -> m InOutMatch
 matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress txo) of
     (ConsumeScriptAddress v r d, PayToScript dh, ScriptAddress vh) -> do
-        unless (dataValueHash d == dh) $ throwError $ InvalidDataHash d dh
+        unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
         pure $ ScriptMatch i v r d
@@ -268,7 +268,7 @@ checkMatch pendingTx = \case
         pTxIn <- pendingTxInScript (txInRef txin) vl r d
         let
             ptx' = pendingTx { pendingTxItem = pTxIn }
-            vd = ValidationData (toData ptx')
+            vd = Context (toData ptx')
         case runExcept $ runScript Typecheck vd vl d r of
             Left e  -> throwError $ ScriptFailure e
             Right _ -> pure ()
@@ -277,7 +277,7 @@ checkMatch pendingTx = \case
 -- | Check if the value produced by a transaction equals the value consumed by it.
 checkValuePreserved :: ValidationMonad m => Tx -> m ()
 checkValuePreserved t = do
-    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ txInputs t))
+    inVal <- (P.+) (txForge t) <$> fmap fold (traverse (lkpValue . txInRef) (Set.toList $ view inputs t))
     let outVal = txFee t P.+ foldMap txOutValue (txOutputs t)
     if outVal == inVal
     then pure ()
@@ -315,38 +315,30 @@ type PendingTxNoIn = Validation.PendingTx' ()
 -- | Create the data about the transaction which will be passed to a validator script.
 validationData :: ValidationMonad m => Tx -> m PendingTxNoIn
 validationData tx = do
-    txins <- traverse mkIn $ Set.toList $ txInputs tx
+    txins <- traverse mkIn $ Set.toList $ view inputs tx
     let ptx = PendingTx
             { pendingTxInputs = txins
-            , pendingTxOutputs = mkOut <$> txOutputs tx
+            , pendingTxOutputs = txOutputs tx
             , pendingTxForge = txForge tx
             , pendingTxFee = txFee tx
             , pendingTxItem = () -- this is changed accordingly in `checkMatch` during validation
             , pendingTxValidRange = txValidRange tx
             , pendingTxForgeScripts = monetaryPolicyHash <$> Set.toList (tx ^. forgeScripts)
             , pendingTxSignatories = fmap pubKeyHash $ Map.keys (tx ^. signatures)
-            , pendingTxData = Map.toList (tx ^. dataWitnesses)
+            , pendingTxData = Map.toList (tx ^. datumWitnesses)
             , pendingTxId = txId tx
             }
     pure ptx
-
--- | Create the data about a transaction output which will be passed to a validator script.
-mkOut :: TxOut -> Validation.PendingTxOut
-mkOut t = Validation.PendingTxOut (txOutValue t) tp where
-    tp = case (txOutType t, txOutAddress t) of
-        (PayToScript dh, ScriptAddress vh) -> Validation.ScriptTxOut vh dh
-        (PayToPubKey, PubKeyAddress pkh)   -> Validation.PubKeyTxOut pkh
-        _                                  -> error "nope"
 
 pendingTxInScript
     :: ValidationMonad m
     => TxOutRef
     -> Validator
-    -> RedeemerValue
-    -> DataValue
+    -> Redeemer
+    -> Datum
     -> m Validation.PendingTxInScript
 pendingTxInScript outRef val red dat = txInFromRef outRef witness where
-        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.dataValueHash dat)
+        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.datumHash dat)
 
 txInFromRef
     :: ValidationMonad m
@@ -358,7 +350,7 @@ txInFromRef outRef witness = Validation.PendingTxIn ref witness <$> vl where
     ref =
         let tid = txOutRefId outRef
             idx  = txOutRefIdx outRef
-        in Validation.PendingTxOutRef tid idx
+        in Validation.TxOutRef tid idx
 
 pendingTxInPubkey
     :: ValidationMonad m

@@ -15,6 +15,8 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin
 
+import qualified Language.PlutusCore.Universe as PLC
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -48,56 +50,56 @@ monoData = testNested "monomorphic" [
 
 data MyEnum = Enum1 | Enum2
 
-basicEnum :: CompiledCode MyEnum
+basicEnum :: CompiledCode PLC.DefaultUni MyEnum
 basicEnum = plc @"basicEnum" Enum1
 
 data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
     deriving (Show, Eq)
 
-monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
+monoDataType :: CompiledCode PLC.DefaultUni (MyMonoData -> MyMonoData)
 monoDataType = plc @"monoDataType" (\(x :: MyMonoData) -> x)
 
-monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
+monoConstructor :: CompiledCode PLC.DefaultUni (Integer -> Integer -> MyMonoData)
 monoConstructor = plc @"monConstructor" Mono1
 
-monoConstructed :: CompiledCode MyMonoData
+monoConstructed :: CompiledCode PLC.DefaultUni MyMonoData
 monoConstructed = plc @"monoConstructed" (Mono2 1)
 
-monoCase :: CompiledCode (MyMonoData -> Integer)
+monoCase :: CompiledCode PLC.DefaultUni (MyMonoData -> Integer)
 monoCase = plc @"monoCase" (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
 
-defaultCase :: CompiledCode (MyMonoData -> Integer)
+defaultCase :: CompiledCode PLC.DefaultUni (MyMonoData -> Integer)
 defaultCase = plc @"defaultCase" (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
 
-irrefutableMatch :: CompiledCode (MyMonoData -> Integer)
+irrefutableMatch :: CompiledCode PLC.DefaultUni (MyMonoData -> Integer)
 irrefutableMatch = plc @"irrefutableMatch" (\(x :: MyMonoData) -> case x of { Mono2 a -> a })
 
-atPattern :: CompiledCode ((Integer, Integer) -> Integer)
+atPattern :: CompiledCode PLC.DefaultUni ((Integer, Integer) -> Integer)
 atPattern = plc @"atPattern" (\t@(x::Integer, y::Integer) -> let fst (a, b) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
     deriving (Show, Eq)
 
-monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
+monoRecord :: CompiledCode PLC.DefaultUni (MyMonoRecord -> MyMonoRecord)
 monoRecord = plc @"monoRecord" (\(x :: MyMonoRecord) -> x)
 
 data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
 
-recordNewtype :: CompiledCode (RecordNewtype -> RecordNewtype)
+recordNewtype :: CompiledCode PLC.DefaultUni (RecordNewtype -> RecordNewtype)
 recordNewtype = plc @"recordNewtype" (\(x :: RecordNewtype) -> x)
 
 -- must be compiled with a lazy case
-nonValueCase :: CompiledCode (MyEnum -> Integer)
+nonValueCase :: CompiledCode PLC.DefaultUni (MyEnum -> Integer)
 nonValueCase = plc @"nonValueCase" (\(x :: MyEnum) -> case x of { Enum1 -> 1::Integer ; Enum2 -> Builtins.error (); })
 
 data StrictPattern a = StrictPattern !a !a
 
-strictPattern :: CompiledCode (StrictPattern Integer)
+strictPattern :: CompiledCode PLC.DefaultUni (StrictPattern Integer)
 strictPattern = plc @"strictPattern" (StrictPattern 1 2)
 
 type Synonym = Integer
 
-synonym :: CompiledCode Integer
+synonym :: CompiledCode PLC.DefaultUni Integer
 synonym = plc @"synonym" (1::Synonym)
 
 polyData :: TestNested
@@ -109,13 +111,13 @@ polyData = testNested "polymorphic" [
 
 data MyPolyData a b = Poly1 a b | Poly2 a
 
-polyDataType :: CompiledCode (MyPolyData Integer Integer -> MyPolyData Integer Integer)
+polyDataType :: CompiledCode PLC.DefaultUni (MyPolyData Integer Integer -> MyPolyData Integer Integer)
 polyDataType = plc @"polyDataType" (\(x:: MyPolyData Integer Integer) -> x)
 
-polyConstructed :: CompiledCode (MyPolyData Integer Integer)
+polyConstructed :: CompiledCode PLC.DefaultUni (MyPolyData Integer Integer)
 polyConstructed = plc @"polyConstructed" (Poly1 (1::Integer) (2::Integer))
 
-defaultCasePoly :: CompiledCode (MyPolyData Integer Integer -> Integer)
+defaultCasePoly :: CompiledCode PLC.DefaultUni (MyPolyData Integer Integer -> Integer)
 defaultCasePoly = plc @"defaultCasePoly" (\(x :: MyPolyData Integer Integer) -> case x of { Poly1 a _ -> a ; _ -> 2; })
 
 newtypes :: TestNested
@@ -135,27 +137,27 @@ newtype MyNewtype = MyNewtype Integer
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
-basicNewtype :: CompiledCode (MyNewtype -> MyNewtype)
+basicNewtype :: CompiledCode PLC.DefaultUni (MyNewtype -> MyNewtype)
 basicNewtype = plc @"basicNewtype" (\(x::MyNewtype) -> x)
 
-newtypeMatch :: CompiledCode (MyNewtype -> Integer)
+newtypeMatch :: CompiledCode PLC.DefaultUni (MyNewtype -> Integer)
 newtypeMatch = plc @"newtypeMatch" (\(MyNewtype x) -> x)
 
-newtypeCreate :: CompiledCode (Integer -> MyNewtype)
+newtypeCreate :: CompiledCode PLC.DefaultUni (Integer -> MyNewtype)
 newtypeCreate = plc @"newtypeCreate" (\(x::Integer) -> MyNewtype x)
 
-newtypeId :: CompiledCode (MyNewtype -> MyNewtype)
+newtypeId :: CompiledCode PLC.DefaultUni (MyNewtype -> MyNewtype)
 newtypeId = plc @"newtypeId" (\(MyNewtype x) -> MyNewtype x)
 
-newtypeCreate2 :: CompiledCode MyNewtype
+newtypeCreate2 :: CompiledCode PLC.DefaultUni MyNewtype
 newtypeCreate2 = plc @"newtypeCreate2" (MyNewtype 1)
 
-nestedNewtypeMatch :: CompiledCode (MyNewtype2 -> Integer)
+nestedNewtypeMatch :: CompiledCode PLC.DefaultUni (MyNewtype2 -> Integer)
 nestedNewtypeMatch = plc @"nestedNewtypeMatch" (\(MyNewtype2 (MyNewtype x)) -> x)
 
 newtype ParamNewtype a = ParamNewtype (Maybe a)
 
-paramNewtype :: CompiledCode (ParamNewtype Integer -> ParamNewtype Integer)
+paramNewtype :: CompiledCode PLC.DefaultUni (ParamNewtype Integer -> ParamNewtype Integer)
 paramNewtype = plc @"paramNewtype" (\(x ::ParamNewtype Integer) -> x)
 
 recursiveTypes :: TestNested
@@ -175,32 +177,32 @@ recursiveTypes = testNested "recursive" [
     , goldenPlc "sameEmptyRose" sameEmptyRose
   ]
 
-listConstruct :: CompiledCode [Integer]
+listConstruct :: CompiledCode PLC.DefaultUni [Integer]
 listConstruct = plc @"listConstruct" ([]::[Integer])
 
 -- This will generate code using 'build' if we're on greater than -O0. That's not optimal for
 -- us, since we don't have any rewrite rules to fire, but it's fine and we can handle it.
-listConstruct2 :: CompiledCode [Integer]
+listConstruct2 :: CompiledCode PLC.DefaultUni [Integer]
 listConstruct2 = plc @"listConstruct2" ([1]::[Integer])
 
 -- It is very difficult to get GHC to make a non-polymorphic redex if you use
 -- list literal syntax with integers. But this works.
-listConstruct3 :: CompiledCode [Integer]
+listConstruct3 :: CompiledCode PLC.DefaultUni [Integer]
 listConstruct3 = plc @"listConstruct3" ((1::Integer):(2::Integer):(3::Integer):[])
 
-listMatch :: CompiledCode ([Integer] -> Integer)
+listMatch :: CompiledCode PLC.DefaultUni ([Integer] -> Integer)
 listMatch = plc @"listMatch" (\(l::[Integer]) -> case l of { (x:_) -> x ; [] -> 0; })
 
 data B a = One a | Two (B (a, a))
 
-ptreeConstruct :: CompiledCode (B Integer)
+ptreeConstruct :: CompiledCode PLC.DefaultUni (B Integer)
 ptreeConstruct = plc @"ptreeConstruct" (Two (Two (One ((1,2),(3,4)))) :: B Integer)
 
 -- TODO: replace this with 'first' when we have working recursive functions
-ptreeMatch :: CompiledCode (B Integer -> Integer)
+ptreeMatch :: CompiledCode PLC.DefaultUni (B Integer -> Integer)
 ptreeMatch = plc @"ptreeMatch" (\(t::B Integer) -> case t of { One a -> a; Two _ -> 2; })
 
-polyRec :: CompiledCode (B Integer -> Integer)
+polyRec :: CompiledCode PLC.DefaultUni (B Integer -> Integer)
 polyRec = plc @"polyRec" (
     let
         depth :: B a -> Integer
@@ -209,7 +211,7 @@ polyRec = plc @"polyRec" (
             Two inner -> Builtins.addInteger 1 (depth inner)
     in \(t::B Integer) -> depth t)
 
-ptreeFirst :: CompiledCode (B Integer -> Integer)
+ptreeFirst :: CompiledCode PLC.DefaultUni (B Integer -> Integer)
 ptreeFirst = plc @"ptreeFirst" (
     let go :: (a -> Integer) -> B a -> Integer
         go k (One x) = k x
@@ -218,10 +220,10 @@ ptreeFirst = plc @"ptreeFirst" (
 
 data EmptyRose = EmptyRose [EmptyRose]
 
-emptyRoseConstruct :: CompiledCode EmptyRose
+emptyRoseConstruct :: CompiledCode PLC.DefaultUni EmptyRose
 emptyRoseConstruct = plc @"emptyRoseConstruct" (EmptyRose [EmptyRose [], EmptyRose []])
 
-sameEmptyRose :: CompiledCode (EmptyRose -> EmptyRose)
+sameEmptyRose :: CompiledCode PLC.DefaultUni (EmptyRose -> EmptyRose)
 sameEmptyRose = plc @"sameEmptyRose" (
     -- The type signatures are needed due to a bug (see 'emptyRoseNewId')
     let (.|) :: ([EmptyRose] -> [EmptyRose]) -> (EmptyRose -> [EmptyRose]) -> EmptyRose -> [EmptyRose]
@@ -248,13 +250,13 @@ typeFamilies = testNested "families" [
 type family BasicClosed a where
     BasicClosed Bool = Integer
 
-basicClosed :: CompiledCode (BasicClosed Bool -> BasicClosed Bool)
+basicClosed :: CompiledCode PLC.DefaultUni (BasicClosed Bool -> BasicClosed Bool)
 basicClosed = plc @"basicClosed" (\(x :: BasicClosed Bool) -> x)
 
 type family BasicOpen a
 type instance BasicOpen Bool = Integer
 
-basicOpen :: CompiledCode (BasicOpen Bool -> BasicOpen Bool)
+basicOpen :: CompiledCode PLC.DefaultUni (BasicOpen Bool -> BasicOpen Bool)
 basicOpen = plc @"basicOpen" (\(x :: BasicOpen Bool) -> x)
 
 class Associated a where
@@ -268,7 +270,7 @@ data Param a = Param a
 instance Associated (Param a) where
     type instance AType (Param a) = a
 
-associated :: CompiledCode (AType Bool -> AType Bool)
+associated :: CompiledCode PLC.DefaultUni (AType Bool -> AType Bool)
 associated = plc @"associated" (\(x :: AType Bool) -> x)
 
 -- Despite the type family being applied to a parameterized type we can still reduce it
@@ -276,7 +278,7 @@ associated = plc @"associated" (\(x :: AType Bool) -> x)
 paramId :: forall a . Param a -> AType (Param a) -> AType (Param a)
 paramId _ x = x
 
-associatedParam :: CompiledCode Integer
+associatedParam :: CompiledCode PLC.DefaultUni Integer
 associatedParam = plc @"associatedParam" (paramId (Param 1) 1)
 
 -- Here we cannot reduce the type family
@@ -284,11 +286,11 @@ associatedParam = plc @"associatedParam" (paramId (Param 1) 1)
 tfId :: forall a . a -> BasicClosed a -> BasicClosed a
 tfId _ x = x
 
-irreducible :: CompiledCode Integer
+irreducible :: CompiledCode PLC.DefaultUni Integer
 irreducible = plc @"irreducible" (tfId True 1)
 
 data family BasicData a
 data instance BasicData Bool = Inst Integer
 
-basicData :: CompiledCode (BasicData Bool -> Integer)
+basicData :: CompiledCode PLC.DefaultUni (BasicData Bool -> Integer)
 basicData = plc @"basicData" (\(x :: BasicData Bool) -> let Inst i = x in i)

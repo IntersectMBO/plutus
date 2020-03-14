@@ -5,6 +5,7 @@ import qualified Language.PlutusTx.Builtins  as Builtins
 import           Language.PlutusTx.Data
 import           Language.PlutusTx.Eq
 import           Language.PlutusTx.Semigroup
+
 import           Prelude                     hiding (Eq (..), Ord (..), Semigroup (..))
 
 {-# ANN module ("HLint: ignore"::String) #-}

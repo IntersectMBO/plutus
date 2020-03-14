@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.Constant.Dynamic.BuiltinName
     ( dynamicCharToStringName
@@ -16,10 +17,11 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Dynamic.Instances     ()
-import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 import           Debug.Trace                                        (trace)
@@ -27,45 +29,57 @@ import           Debug.Trace                                        (trace)
 dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
-dynamicCharToStringMeaning :: DynamicBuiltinNameMeaning -- TODO the costing function
+dynamicCharToStringMeaning
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 1 1) where
     sch =
         Proxy @Char `TypeSchemeArrow`
         TypeSchemeResult (Proxy @String)
 
-dynamicCharToStringDefinition :: DynamicBuiltinNameDefinition
+dynamicCharToStringDefinition
+    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    => DynamicBuiltinNameDefinition uni
 dynamicCharToStringDefinition =
     DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning
 
-dynamicCharToString :: Term tyname name ()
+dynamicCharToString :: Term tyname name uni ()
 dynamicCharToString = dynamicBuiltinNameAsTerm dynamicCharToStringName
 
 dynamicAppendName :: DynamicBuiltinName
 dynamicAppendName = DynamicBuiltinName "append"
 
-dynamicAppendMeaning :: DynamicBuiltinNameMeaning -- TODO the costing function
+dynamicAppendMeaning
+    :: (GShow uni, GEq uni, uni `Includes` String)
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicAppendMeaning = DynamicBuiltinNameMeaning sch (++) (\_ _ -> ExBudget 1 1) where
     sch =
         Proxy @String `TypeSchemeArrow`
         Proxy @String `TypeSchemeArrow`
         TypeSchemeResult (Proxy @String)
 
-dynamicAppendDefinition :: DynamicBuiltinNameDefinition
+dynamicAppendDefinition
+    :: (GShow uni, GEq uni, uni `Includes` String)
+    => DynamicBuiltinNameDefinition uni
 dynamicAppendDefinition =
     DynamicBuiltinNameDefinition dynamicAppendName dynamicAppendMeaning
 
-dynamicAppend :: Term tyname name ()
+dynamicAppend :: Term tyname name uni ()
 dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 
 dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"
 
-dynamicTraceMeaningMock :: DynamicBuiltinNameMeaning -- TODO the costing function
+dynamicTraceMeaningMock
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) (\_ -> ExBudget 1 1) where
     sch =
         Proxy @String `TypeSchemeArrow`
         TypeSchemeResult (Proxy @())
 
-dynamicTraceDefinitionMock :: DynamicBuiltinNameDefinition
+dynamicTraceDefinitionMock
+    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    => DynamicBuiltinNameDefinition uni
 dynamicTraceDefinitionMock =
     DynamicBuiltinNameDefinition dynamicTraceName dynamicTraceMeaningMock

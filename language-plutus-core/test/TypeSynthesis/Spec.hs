@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module TypeSynthesis.Spec
     ( test_typecheck
@@ -18,30 +20,30 @@ import           System.FilePath                         ((</>))
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-kindcheck :: MonadError (Error ()) m => Type TyName () -> m (Type TyName ())
+kindcheck :: MonadError (Error uni ()) m => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
     _ <- runQuoteT $ inferKind defOffChainConfig ty
     return ty
 
-typecheck :: MonadError (Error ()) m => Term TyName Name () -> m ()
+typecheck :: (uni ~ DefaultUni, MonadError (Error uni ()) m) => Term TyName Name uni () -> m ()
 typecheck term = do
     _ <- runQuoteT $ inferType defOffChainConfig term
     return ()
 
 -- | Assert a 'Type' is well-kinded.
-assertWellKinded :: HasCallStack => Type TyName () -> Assertion
+assertWellKinded :: HasCallStack => Type TyName DefaultUni () -> Assertion
 assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
     Left  err -> assertFailure $ "Kind error: " ++ prettyPlcCondensedErrorClassicString err
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
-assertWellTyped :: HasCallStack => Term TyName Name () -> Assertion
+assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Left  err -> assertFailure $ "Type error: " ++ prettyPlcCondensedErrorClassicString err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Term TyName Name () -> Assertion
+assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
 assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ prettyPlcCondensedErrorClassicString term
     Left  _  -> return ()
@@ -58,7 +60,7 @@ test_typecheckAvailable =
 -- | Self-application. An example of ill-typed term.
 --
 -- > /\ (A :: *) -> \(x : A) -> x x
-selfApply :: Term TyName Name ()
+selfApply :: Term TyName Name uni ()
 selfApply = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -79,7 +81,7 @@ test_typecheckBuiltinName :: BuiltinName -> TestTree
 test_typecheckBuiltinName name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfBuiltinName name
+    doc      = prettyPlcDef $ typeOfBuiltinName @DefaultUni name
 
 test_typecheckBuiltinNames :: TestTree
 test_typecheckBuiltinNames =

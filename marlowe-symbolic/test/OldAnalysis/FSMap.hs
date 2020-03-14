@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
-module Language.Marlowe.Analysis.FSMap where
+module OldAnalysis.FSMap where
 
 import           Data.SBV
 import           Data.SBV.List  as SL
@@ -102,7 +102,7 @@ all b f s
   | b < 0 = sFalse
   | otherwise = ite (SL.null s)
                     sTrue
-                    f h .&& all (b - 1) f t
+                    (f h .&& all (b - 1) f t)
   where (_, h) = ST.untuple $ SL.head s
         t = SL.tail s
 

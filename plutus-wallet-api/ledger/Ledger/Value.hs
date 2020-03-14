@@ -20,6 +20,8 @@ module Ledger.Value(
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
+    , mpsSymbol
+    , currencyMPSHash
     -- ** Token names
     , TokenName(..)
     , tokenName
@@ -62,6 +64,7 @@ import           Language.PlutusTx.Lift           (makeLift)
 import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.These
 import           Ledger.Orphans                   ()
+import           Ledger.Scripts                   (MonetaryPolicyHash (..))
 import           LedgerBytes                      (LedgerBytes (LedgerBytes))
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: Builtins.ByteString }
@@ -88,6 +91,16 @@ instance FromJSON CurrencySymbol where
       Haskell.pure . CurrencySymbol . BSL.fromStrict $ bytes
 
 makeLift ''CurrencySymbol
+
+{-# INLINABLE mpsSymbol #-}
+-- | The currency symbol of a monetay policy hash
+mpsSymbol :: MonetaryPolicyHash -> CurrencySymbol
+mpsSymbol (MonetaryPolicyHash h) = CurrencySymbol h
+
+{-# INLINABLE currencyMPSHash #-}
+-- | The monetary policy hash of a currency symbol
+currencyMPSHash :: CurrencySymbol -> MonetaryPolicyHash
+currencyMPSHash (CurrencySymbol h) = MonetaryPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
 currencySymbol :: ByteString -> CurrencySymbol

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
-module Language.Marlowe.Analysis.FSSet where
+module OldAnalysis.FSSet where
 
 import           Data.SBV
 import           Data.SBV.List as SL
@@ -29,7 +29,7 @@ elem b v s
   | otherwise = ite (SL.null s)
                     sFalse
                     (ite (v .> h)
-                         (Language.Marlowe.Analysis.FSSet.elem (b - 1) v t)
+                         (OldAnalysis.FSSet.elem (b - 1) v t)
                          (v .== h))
   where h = SL.head s
         t = SL.tail s

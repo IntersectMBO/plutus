@@ -10,10 +10,10 @@ import           Data.Bifunctor                        (first)
 import           Data.ByteString.UTF8                  as BSU
 import           Data.Proxy                            (Proxy (Proxy))
 import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
-import           Language.Marlowe.Analysis.FSSemantics (warningsTrace)
+import           Language.Marlowe.Analysis.FSSemantics (warningsTraceWithState)
 import           Language.Marlowe.Pretty
 import           Marlowe.Symbolic.Types.API            (API)
-import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract))
+import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract, state))
 import qualified Marlowe.Symbolic.Types.Request        as Req
 import           Marlowe.Symbolic.Types.Response       (Response (Response, result), Result (CounterExample, Error, Valid, initialSlot, transactionList, transactionWarning))
 import qualified Marlowe.Symbolic.Types.Response       as Res
@@ -60,11 +60,11 @@ makeResponse u (Right res) =
      }
 
 handler :: Request -> Context -> IO (Either Response Response)
-handler Request {Req.uuid = u, callbackUrl = cu, contract = c} context =
+handler Request {Req.uuid = u, callbackUrl = cu, contract = c, state = st} context =
   do system "killallz3"
      semaphore <- newEmptyMVar
      mainThread <-
-       forkOS (do evRes <- warningsTrace (read c)
+       forkOS (do evRes <- warningsTraceWithState (read c) (Just $ read st)
                   forkOS (do threadDelay 1000000 -- Timeout to send HTTP request (1 sec)
                              putMVar semaphore
                                (makeResponse u (Left "Response HTTP request timed out")))

@@ -28,20 +28,20 @@ Since we are constructing a global substitution, so we need globally unique
 names to avoid clashes.
 -}
 
-type Substs a = Map.Map (Name a) (Term TyName Name a)
+type Substs uni a = Map.Map (Name a) (Term TyName Name uni a)
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.
-compileNonStrictBindings :: MonadQuote m => Term TyName Name a -> m (Term TyName Name a)
+compileNonStrictBindings :: MonadQuote m => Term TyName Name uni a -> m (Term TyName Name uni a)
 compileNonStrictBindings t = do
     (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm t
     -- See Note [Compiling non-strict bindings]
     pure $ termSubstNames (\n -> Map.lookup n substs) t'
 
-strictifyTerm :: (MonadState (Substs a) m, MonadQuote m) => Term TyName Name a -> m (Term TyName Name a)
+strictifyTerm :: (MonadState (Substs uni a) m, MonadQuote m) => Term TyName Name uni a -> m (Term TyName Name uni a)
 strictifyTerm = transformMOf termSubterms (traverseOf termBindings strictifyBinding)
 
-strictifyBinding :: (MonadState (Substs a) m, MonadQuote m) => Binding TyName Name a -> m (Binding TyName Name a)
+strictifyBinding :: (MonadState (Substs uni a) m, MonadQuote m) => Binding TyName Name uni a -> m (Binding TyName Name uni a)
 strictifyBinding = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
         let ann = x

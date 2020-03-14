@@ -24,19 +24,19 @@ import           Control.Monad.Freer.Writer
 import           Control.Newtype.Generics   (Newtype)
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor
-import qualified Data.ByteString.Lazy       as BSL
 import           Data.Foldable
 import           Data.Hashable              (Hashable)
 import qualified Data.Map                   as Map
 import           Data.Maybe
 import qualified Data.Set                   as Set
 import qualified Data.Text                  as T
-import           Data.Text.Prettyprint.Doc  hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import           IOTS                       (IotsType)
 import qualified Language.PlutusTx.Prelude  as PlutusTx
-import           Ledger                     hiding (sign)
+import           Ledger
 import qualified Ledger.Ada                 as Ada
+import           Ledger.AddressMap          (UtxoMap)
 import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Crypto              as Crypto
 import qualified Ledger.Value               as Value
@@ -105,11 +105,10 @@ emptyWalletState w = WalletState pk where
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
-    Sign :: BSL.ByteString -> WalletEffect Signature
     UpdatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> WalletEffect (Set.Set TxIn, Maybe TxOut)
-    WatchedAddresses :: WalletEffect AM.AddressMap
     WalletSlot :: WalletEffect Slot
     WalletLogMsg :: T.Text -> WalletEffect ()
+    OwnOutputs :: WalletEffect UtxoMap
 makeEffect ''WalletEffect
 
 type WalletEffs = '[NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
@@ -120,9 +119,6 @@ handleWallet
 handleWallet = interpret $ \case
     SubmitTxn tx -> NC.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
-    Sign bs -> do
-        privK <- gets _ownPrivateKey
-        pure (Crypto.sign (BSL.toStrict bs) privK)
     UpdatePaymentWithChange vl (oldIns, changeOut) -> do
         utxo <- NC.getClientIndex
         ws <- get
@@ -147,18 +143,17 @@ handleWallet = interpret $ \case
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
-    WatchedAddresses -> NC.getClientIndex
     WalletSlot -> NC.getClientSlot
     WalletLogMsg m -> tell [WalletMsg m]
+    OwnOutputs -> do
+        addr <- gets ownAddress
+        view (at addr . non mempty) <$> NC.getClientIndex
 
 -- HACK: these shouldn't exist, but WalletAPI needs to die first
 instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
     ownPubKey = ownPubKey
-    sign = sign
     updatePaymentWithChange = updatePaymentWithChange
-    watchedAddresses = watchedAddresses
-    -- TODO: Remove or rework. This is a noop, since the wallet client watches all addresses currently.
-    startWatching _ = pure ()
+    ownOutputs = ownOutputs
 
 instance (Member WalletEffect effs) => WAPI.NodeAPI (Eff effs) where
     submitTxn = submitTxn
@@ -168,7 +163,7 @@ instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAP
     throwError = throwError
     catchError = catchError
 
-instance (Member WalletEffect effs, Member (Error WAPI.WalletAPIError) effs) => WAPI.WalletDiagnostics (Eff effs) where
+instance (Member WalletEffect effs) => WAPI.WalletDiagnostics (Eff effs) where
     logMsg = walletLogMsg
 
 -- UTILITIES: should probably be elsewhere

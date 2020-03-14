@@ -206,6 +206,7 @@ let
           packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
           spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
           name = (pkgs.lib.importJSON packageJSON).name;
+          checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
         };
     };
 

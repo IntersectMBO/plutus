@@ -19,7 +19,7 @@ import           Language.PlutusCore.StdLib.Data.Unit
 -- | 'Bool' as a PLC type.
 --
 -- > all (A :: *). A -> A -> A
-bool :: Type TyName ()
+bool :: Type TyName uni ()
 bool = runQuote $ do
     a <- freshTyName () "a"
     return
@@ -30,7 +30,7 @@ bool = runQuote $ do
 -- | 'True' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> x
-true :: TermLike term TyName Name => term ()
+true :: TermLike term TyName Name uni => term ()
 true = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -46,7 +46,7 @@ true = runQuote $ do
 -- | 'False' as a PLC term.
 --
 -- > /\(A :: *) -> \(x y : A) -> y
-false :: TermLike term TyName Name => term ()
+false :: TermLike term TyName Name uni => term ()
 false = runQuote $ do
     a <- freshTyName () "a"
     x <- freshName () "x"
@@ -62,7 +62,7 @@ false = runQuote $ do
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
-ifThenElse :: TermLike term TyName Name => term ()
+ifThenElse :: TermLike term TyName Name uni => term ()
 ifThenElse = runQuote $ do
     a <- freshTyName () "a"
     b <- freshName () "b"

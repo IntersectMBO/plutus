@@ -6,7 +6,11 @@
       (vardecl
         divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (builtin divideInteger)
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin divideInteger) arg ] arg ])
+      )
     )
     (lam ds (con integer) (lam ds (con integer) [ [ divideInteger ds ] ds ]))
   )

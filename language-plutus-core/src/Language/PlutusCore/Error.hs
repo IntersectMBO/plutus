@@ -34,6 +34,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Universe
 
 import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
@@ -70,11 +71,15 @@ data UniqueError ann
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''UniqueError
 
-data NormCheckError tyname name ann
-    = BadType ann (Type tyname ann) T.Text
-    | BadTerm ann (Term tyname name ann) T.Text
+data NormCheckError tyname name uni ann
+    = BadType ann (Type tyname uni ann) T.Text
+    | BadTerm ann (Term tyname name uni ann) T.Text
     deriving (Show, Generic, NFData)
-deriving instance (Eq ann, HasUniques (Term tyname name ann)) => Eq (NormCheckError tyname name ann)
+deriving instance
+    ( HasUniques (Term tyname name uni ann)
+    , GEq uni, Closed uni, uni `Everywhere` Eq
+    , Eq ann
+    ) => Eq (NormCheckError tyname name uni ann)
 makeClassyPrisms ''NormCheckError
 
 -- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
@@ -85,44 +90,44 @@ newtype UnknownDynamicBuiltinNameError
 makeClassyPrisms ''UnknownDynamicBuiltinNameError
 
 -- | An internal error occurred during type checking.
-data InternalTypeError ann
-    = OpenTypeOfBuiltin (Type TyName ()) (Builtin ())
+data InternalTypeError uni ann
+    = OpenTypeOfBuiltin (Type TyName uni ()) (Builtin ())
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''InternalTypeError
 
-data TypeError ann
-    = KindMismatch ann (Type TyName ()) (Kind ()) (Kind ())
+data TypeError uni ann
+    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
     | TypeMismatch ann
-        (Term TyName Name ())
-        (Type TyName ())
-        (Normalized (Type TyName ()))
+        (Term TyName Name uni ())
+        (Type TyName uni ())
+        (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
-    | InternalTypeErrorE ann (InternalTypeError ann)
+    | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE (TyName ann)
     | FreeVariableE (Name ann)
     | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
-data Error ann
+data Error uni ann
     = ParseErrorE (ParseError ann)
     | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError ann)
-    | NormCheckErrorE (NormCheckError TyName Name ann)
+    | TypeErrorE (TypeError uni ann)
+    | NormCheckErrorE (NormCheckError TyName Name uni ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''Error
 
-instance AsParseError (Error ann) ann where
+instance AsParseError (Error uni ann) ann where
     _ParseError = _ParseErrorE
 
-instance AsUniqueError (Error ann) ann where
+instance AsUniqueError (Error uni ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error ann) ann where
+instance AsTypeError (Error uni ann) uni ann where
     _TypeError = _TypeErrorE
 
 instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error ann) tyname name ann where
+            AsNormCheckError (Error uni ann) tyname name uni ann where
     _NormCheckError = _NormCheckErrorE
 
 asInternalError :: Doc ann -> Doc ann
@@ -146,9 +151,9 @@ instance Pretty ann => Pretty (UniqueError ann) where
         "Variable" <+> pretty u <+> "is free at" <+> pretty use
 
 instance ( Pretty ann
-         , PrettyBy config (Type tyname ann)
-         , PrettyBy config (Term tyname name ann)
-         ) => PrettyBy config (NormCheckError tyname name ann) where
+         , PrettyBy config (Type tyname uni ann)
+         , PrettyBy config (Term tyname name uni ann)
+         ) => PrettyBy config (NormCheckError tyname name uni ann) where
     prettyBy config (BadType ann ty expct) =
         "Malformed type at" <+> pretty ann <>
         ". Type" <+>  squotes (prettyBy config ty) <+>
@@ -162,14 +167,15 @@ instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameErrorE dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
-instance PrettyBy PrettyConfigPlc (InternalTypeError ann) where
+instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
     prettyBy config (OpenTypeOfBuiltin ty bi)        =
         asInternalError $
             "The type" <+> prettyBy config ty <+>
             "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
-instance Pretty ann => PrettyBy PrettyConfigPlc (TypeError ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+            PrettyBy PrettyConfigPlc (TypeError uni ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -196,7 +202,8 @@ instance Pretty ann => PrettyBy PrettyConfigPlc (TypeError ann) where
         ":" <+> pretty err
     prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
-instance Pretty ann => PrettyBy PrettyConfigPlc (Error ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+            PrettyBy PrettyConfigPlc (Error uni ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e

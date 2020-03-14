@@ -20,7 +20,7 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 msg = ""
 
-traceBuiltins :: QuoteT (Either (Error ())) DynamicBuiltinNameTypes
+traceBuiltins :: QuoteT (Either (Error DefaultUni ())) (DynamicBuiltinNameTypes DefaultUni)
 traceBuiltins = getStringBuiltinTypes ()
 
 main :: IO ()
@@ -46,7 +46,7 @@ main =
                       ]
 
                 , env sampleScript $ \ f ->
-                  let typeCheckConcrete :: Program TyName Name () -> Either (Error ()) (Normalized (Type TyName ()))
+                  let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete p = runQuoteT $ do
                             bis <- traceBuiltins
                             inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
@@ -56,21 +56,21 @@ main =
                   bgroup "type-check" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                  let typeCheckConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) (Normalized (Type TyName ()))
+                  let typeCheckConcrete :: Program TyName Name DefaultUni AlexPosn -> Either (Error DefaultUni AlexPosn) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
                       mkBench = bench "type-check" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                   let normalConcrete :: Program TyName Name AlexPosn -> Either (Error AlexPosn) ()
+                   let normalConcrete :: Program TyName Name DefaultUni AlexPosn -> Either (Error DefaultUni AlexPosn) ()
                        normalConcrete = Normal.checkProgram
                        mkBench = bench "normal-types check" . nf (normalConcrete =<<) . runQuoteT . parseScoped
                    in
                    bgroup "normal-types check" $ mkBench <$> [f, g, h]
 
                 , env sampleScript $ \ f ->
-                    let renameConcrete :: Program TyName Name () -> Program TyName Name ()
+                    let renameConcrete :: Program TyName Name DefaultUni () -> Program TyName Name DefaultUni ()
                         renameConcrete = runQuote . rename
                         mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
                   in
@@ -78,7 +78,7 @@ main =
                   bgroup "renamer" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                    let renameConcrete :: Program TyName Name AlexPosn -> Program TyName Name AlexPosn
+                    let renameConcrete :: Program TyName Name DefaultUni AlexPosn -> Program TyName Name DefaultUni AlexPosn
                         renameConcrete = runQuote . rename
                         mkBench = bench "rename" . nf (fmap renameConcrete) . parse
                     in
@@ -92,7 +92,7 @@ main =
                     bgroup "CBOR" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                    let deserialiseProgram :: BSL.ByteString -> Program TyName Name ()
+                    let deserialiseProgram :: BSL.ByteString -> Program TyName Name DefaultUni ()
                         deserialiseProgram = deserialise
                         parseAndSerialise :: BSL.ByteString -> Either (ParseError AlexPosn) BSL.ByteString
                         parseAndSerialise = fmap (serialise . void) . parse
@@ -102,7 +102,7 @@ main =
                     bgroup "CBOR" $ mkBench <$> [f, g, h]
 
                 , env evalFiles $ \ ~(f, g) ->
-                    let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
+                    let processor :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) (Program TyName Name DefaultUni ())
                         processor contents = void <$> (runQuoteT $ parseScoped contents)
                         f' = processor f
                         g' = processor g
@@ -113,7 +113,7 @@ main =
                       , bench "invalid" $ nf (fmap $ unsafeEvaluateCk . toTerm) g'
                       ]
                 , env evalFiles $ \ ~(f, g) ->
-                   let processor :: BSL.ByteString -> Either (Error AlexPosn) (Program TyName Name ())
+                   let processor :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) (Program TyName Name DefaultUni ())
                        processor contents = void <$> (runQuoteT $ parseScoped contents)
                        f' = processor f
                        g' = processor g

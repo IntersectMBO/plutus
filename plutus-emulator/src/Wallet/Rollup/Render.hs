@@ -36,7 +36,7 @@ import           Ledger                                (Address, PubKey, PubKeyH
                                                         Value, txFee, txForge, txOutValue, txOutputs, txSignatures)
 import           Ledger.Ada                            (Ada (Lovelace))
 import qualified Ledger.Ada                            as Ada
-import           Ledger.Scripts                        (DataValue (getDataScript), Script, Validator,
+import           Ledger.Scripts                        (Datum (getDatum), Script, Validator,
                                                         ValidatorHash (ValidatorHash), unValidatorScript)
 import           Ledger.Value                          (CurrencySymbol (CurrencySymbol), TokenName (TokenName))
 import qualified Ledger.Value                          as Value
@@ -218,8 +218,8 @@ instance Render Validator where
 
 deriving newtype instance Render ValidatorHash
 
-instance Render DataValue where
-    render = render . getDataScript
+instance Render Datum where
+    render = render . getDatum
 
 instance Render a => Render (Set a) where
     render xs = vsep <$> traverse render (Set.toList xs)

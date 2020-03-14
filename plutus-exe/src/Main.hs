@@ -125,7 +125,7 @@ runTypecheck (TypecheckOptions inp mode) = do
                 NotRequired -> True
                 Required    -> False
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
-        Left (e :: PLC.Error PLC.AlexPosn) -> do
+        Left (e :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
             exitFailure
         Right ty -> do
@@ -140,7 +140,7 @@ runEval (EvalOptions inp mode) = do
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
             CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
-        Left (errCheck :: PLC.Error PLC.AlexPosn) -> do
+        Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck
             exitFailure
         Right (Left errEval) -> do
@@ -150,8 +150,10 @@ runEval (EvalOptions inp mode) = do
             T.putStrLn $ PLC.prettyPlcDefText v
             exitSuccess
 
-data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName ())
-data TermExample = TermExample (PLC.Type PLC.TyName ()) (PLC.Term PLC.TyName PLC.Name ())
+data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
+data TermExample = TermExample
+    (PLC.Type PLC.TyName PLC.DefaultUni ())
+    (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
 data SomeExample = SomeTypeExample TypeExample | SomeTermExample TermExample
 
 prettySignature :: ExampleName -> SomeExample -> Doc ann
@@ -165,14 +167,14 @@ prettyExample (SomeTypeExample (TypeExample _ ty))   = PLC.prettyPlcDef ty
 prettyExample (SomeTermExample (TermExample _ term)) =
     PLC.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
 
-toTermExample :: PLC.Term PLC.TyName PLC.Name () -> TermExample
+toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defOffChainConfig program of
-        Left (err :: PLC.Error ()) -> error $ PLC.prettyPlcDefString err
-        Right vTy                  -> PLC.unNormalized vTy
+        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.prettyPlcDefString err
+        Right vTy                                 -> PLC.unNormalized vTy
 
-getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name ())]
+getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())]
 getInteresting =
     sequence $ PLC.fromInterestingTermGens $ \name gen -> do
         PLC.TermOf term _ <- PLC.getSampleTermValue gen

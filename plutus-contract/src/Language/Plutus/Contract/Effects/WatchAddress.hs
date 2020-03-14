@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.WatchAddress where
 
-import           Control.Lens                               (at, (^.))
+import           Control.Lens                               (at, view, (^.))
 import           Data.Aeson                                 (FromJSON, ToJSON)
 import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
@@ -22,7 +22,7 @@ import           Data.Text.Prettyprint.Doc                  (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                               (Generic)
 import           Ledger                                     (Address, Slot, TxId, Value, txId)
-import           Ledger.AddressMap                          (AddressMap)
+import           Ledger.AddressMap                          (AddressMap, UtxoMap, fundsAt)
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx)
 import qualified Ledger.Value                               as V
@@ -65,8 +65,8 @@ watchAddressUntil
        )
     => Address
     -> Slot
-    -> Contract s e AddressMap
-watchAddressUntil a = collectUntil @s AM.updateAddresses (AM.addAddress a mempty) (nextTransactionAt @s a)
+    -> Contract s e UtxoMap
+watchAddressUntil a slot = view (fundsAt a) <$> collectUntil @s AM.updateAddresses (AM.addAddress a mempty) (nextTransactionAt @s a) slot
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
@@ -76,7 +76,7 @@ fundsAtAddressGt
        HasWatchAddress s
     => Address
     -> Value
-    -> Contract s e AddressMap
+    -> Contract s e UtxoMap
 fundsAtAddressGt addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.gt` vl) addr
 
@@ -85,8 +85,8 @@ fundsAtAddressCondition
        HasWatchAddress s
     => (Value -> Bool)
     -> Address
-    -> Contract s e AddressMap
-fundsAtAddressCondition condition addr = loopM go mempty where
+    -> Contract s e UtxoMap
+fundsAtAddressCondition condition addr = view (fundsAt addr) <$> loopM go mempty where
     go cur = do
         delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr
         let cur' = cur <> delta
@@ -102,7 +102,7 @@ fundsAtAddressGeq
        HasWatchAddress s
     => Address
     -> Value
-    -> Contract s e AddressMap
+    -> Contract s e UtxoMap
 fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 

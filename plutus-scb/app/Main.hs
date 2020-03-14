@@ -1,28 +1,53 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main
     ( main
     ) where
 
-import           Control.Monad.IO.Unlift  (MonadUnliftIO, liftIO)
-import           Control.Monad.Logger     (LogLevel (LevelDebug), MonadLogger, filterLogger, logInfoN,
-                                           runStderrLoggingT)
-import           Control.Monad.Reader     (MonadReader, runReaderT)
-import           Data.Foldable            (traverse_)
-import qualified Data.Text                as Text
-import           Data.Yaml                (decodeFileThrow)
-import           Git                      (gitRev)
-import           Options.Applicative      (CommandFields, Mod, Parser, auto, command, customExecParser, disambiguate,
-                                           fullDesc, help, helper, idm, info, infoOption, long, metavar, option,
-                                           optional, prefs, short, showHelpOnEmpty, str, subparser, value)
-import qualified Plutus.SCB.Core          as Core
-import qualified System.Remote.Monitoring as EKG
+import qualified Cardano.ChainIndex.Server  as ChainIndex
+import qualified Cardano.Node.Server        as NodeServer
+import qualified Cardano.Wallet.Server      as WalletServer
+import           Control.Lens.Indexed       (itraverse_)
+import           Control.Monad              (void)
+import           Control.Monad.IO.Class     (liftIO)
+import           Control.Monad.Logger       (logInfoN, runStdoutLoggingT)
+import qualified Data.Aeson                 as JSON
+import qualified Data.ByteString.Lazy.Char8 as BS8
+import           Data.Foldable              (traverse_)
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import           Data.Text.Prettyprint.Doc  (parens, pretty, (<+>))
+import           Data.UUID                  (UUID)
+import           Data.Yaml                  (decodeFileThrow)
+import           Git                        (gitRev)
+import           Options.Applicative        (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                             disambiguate, eitherReader, fullDesc, help, helper, idm, info, infoOption,
+                                             long, metavar, option, optional, prefs, progDesc, short, showHelpOnEmpty,
+                                             showHelpOnError, str, strArgument, strOption, subparser, value, (<|>))
+import           Plutus.SCB.App             (App, runApp)
+import qualified Plutus.SCB.App             as App
+import qualified Plutus.SCB.Core            as Core
+import           Plutus.SCB.Types           (Config (Config), chainIndexConfig, nodeServerConfig, walletServerConfig)
+import           Plutus.SCB.Utils           (logErrorS, render)
+import           System.Exit                (ExitCode (ExitFailure), exitSuccess, exitWith)
+import qualified System.Remote.Monitoring   as EKG
 
 data Command
-    = DbStats
-    | Simulate
-    | Migrate
+    = Migrate
+    | MockNode
+    | MockWallet
+    | ChainIndex
+    | InstallContract FilePath
+    | ActivateContract FilePath
+    | ContractStatus UUID
+    | UpdateContract UUID Text JSON.Value
+    | ReportContractHistory UUID
+    | ReportInstalledContracts
+    | ReportActiveContracts
+    | ReportTxHistory
     deriving (Show, Eq)
 
 versionOption :: Parser (a -> a)
@@ -39,49 +64,188 @@ ekgPortParser :: Parser Int
 ekgPortParser =
     option
         auto
-        (long "monitoring-port" <> short 'p' <> metavar "PORT" <>
-         help "Open an EKG server on PORT")
+        (long "monitoring-port" <>
+         short 'p' <> metavar "PORT" <> help "Open an EKG server on PORT")
 
 configFileParser :: Parser FilePath
 configFileParser =
     option
         str
-        (long "config" <> metavar "CONFIG_FILE" <> help "Config file location." <>
-         value "plutus-scb.yaml")
+        (long "config" <>
+         metavar "CONFIG_FILE" <>
+         help "Config file location." <> value "plutus-scb.yaml")
 
 commandParser :: Parser Command
 commandParser =
-    subparser $
-    simulationCommandParser <> migrationCommandParser <> dbStatsCommandParser
+    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser, chainIndexParser]) <|>
+    subparser
+        (command
+             "contracts"
+             (info
+                  (subparser
+                       (mconcat
+                            [ installContractParser
+                            , reportInstalledContractsParser
+                            , activateContractParser
+                            , reportActiveContractsParser
+                            , reportTxHistoryParser
+                            , updateContractParser
+                            , contractStatusParser
+                            , reportContractHistoryParser
+                            ]))
+                  (fullDesc <> progDesc "Manage your smart contracts.")))
 
-dbStatsCommandParser :: Mod CommandFields Command
-dbStatsCommandParser = command "stats" $ flip info fullDesc $ pure DbStats
+migrationParser :: Mod CommandFields Command
+migrationParser =
+    command "migrate" $
+    info
+        (pure Migrate)
+        (fullDesc <> progDesc "Update the database with the latest schema.")
 
-migrationCommandParser :: Mod CommandFields Command
-migrationCommandParser = command "migrate" $ flip info fullDesc $ pure Migrate
+mockNodeParser :: Mod CommandFields Command
+mockNodeParser =
+    command "node-server" $
+    info
+        (pure MockNode)
+        (fullDesc <>
+         progDesc "Run a mock version of the Cardano node API server.")
 
-simulationCommandParser :: Mod CommandFields Command
-simulationCommandParser =
-    command "simulate" $ flip info fullDesc $ pure Simulate
+mockWalletParser :: Mod CommandFields Command
+mockWalletParser =
+    command "wallet-server" $
+    info
+        (pure MockWallet)
+        (fullDesc <>
+         progDesc "Run a mock version of the Cardano wallet API server.")
+
+chainIndexParser :: Mod CommandFields Command
+chainIndexParser =
+    command "chain-index" $
+    info
+        (pure ChainIndex)
+        (fullDesc <>
+         progDesc "Run the chain index.")
+
+activateContractParser :: Mod CommandFields Command
+activateContractParser =
+    command "activate" $
+    info
+        (ActivateContract <$>
+         strOption
+             (short 'p' <>
+              long "path" <>
+              help
+                  "Name of the contract. (See 'installed-contracts' for a list.)"))
+        (fullDesc <> progDesc "Activate a smart contract.")
+
+installContractParser :: Mod CommandFields Command
+installContractParser =
+    command "install" $
+    info
+        (InstallContract <$>
+         strOption
+             (short 'p' <>
+              long "path" <> help "Path to the executable contract."))
+        (fullDesc <> progDesc "Install a new smart contract.")
+
+contractStatusParser :: Mod CommandFields Command
+contractStatusParser =
+    command "status" $
+    info
+        (ContractStatus <$> contractIdParser)
+        (fullDesc <> progDesc "Show the current status of a contract.")
+
+contractIdParser :: Parser UUID
+contractIdParser =
+    argument
+        auto
+        (help "ID of the contract. (See 'active-contracts' for a list.)")
+
+reportInstalledContractsParser :: Mod CommandFields Command
+reportInstalledContractsParser =
+    command "installed" $
+    info
+        (pure ReportInstalledContracts)
+        (fullDesc <> progDesc "Show all installed contracts.")
+
+reportActiveContractsParser :: Mod CommandFields Command
+reportActiveContractsParser =
+    command "active" $
+    info
+        (pure ReportActiveContracts)
+        (fullDesc <> progDesc "Show all active contracts.")
+
+reportTxHistoryParser :: Mod CommandFields Command
+reportTxHistoryParser =
+    command "tx" $
+    info
+        (pure ReportTxHistory)
+        (fullDesc <> progDesc "Show all submitted transactions.")
+
+updateContractParser :: Mod CommandFields Command
+updateContractParser =
+    command "update" $
+    info
+        (UpdateContract <$> contractIdParser <*>
+         strArgument (help "Endpoint name.") <*>
+         argument
+             (eitherReader (JSON.eitherDecode . BS8.pack))
+             (help "JSON Payload."))
+        (fullDesc <> progDesc "Update a smart contract.")
+
+reportContractHistoryParser :: Mod CommandFields Command
+reportContractHistoryParser =
+    command "history" $
+    info
+        (ReportContractHistory <$> contractIdParser)
+        (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand ::
-       (MonadLogger m, MonadUnliftIO m, MonadReader Core.DbConfig m)
-    => Command
-    -> m ()
-runCliCommand Simulate = Core.simulate
-runCliCommand DbStats  = Core.dbStats
-runCliCommand Migrate  = Core.migrate
+runCliCommand :: Config -> Command -> App ()
+runCliCommand _ Migrate = App.migrate
+runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
+    WalletServer.main
+        walletServerConfig
+        (NodeServer.mscBaseUrl nodeServerConfig)
+runCliCommand Config {nodeServerConfig} MockNode =
+    NodeServer.main nodeServerConfig
+runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
+    ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
+runCliCommand _ (InstallContract path) = Core.installContract path
+runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
+runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
+runCliCommand _ ReportInstalledContracts = do
+    logInfoN "Installed Contracts"
+    traverse_ (logInfoN . render . pretty) =<< Core.installedContracts
+runCliCommand _ ReportActiveContracts = do
+    logInfoN "Active Contracts"
+    traverse_ (logInfoN . render . pretty) =<< Core.activeContracts
+runCliCommand _ ReportTxHistory = do
+    logInfoN "Transaction History"
+    traverse_ (logInfoN . render . pretty) =<< Core.txHistory
+runCliCommand _ (UpdateContract uuid endpoint payload) =
+    Core.updateContract uuid endpoint payload
+runCliCommand _ (ReportContractHistory uuid) = do
+    logInfoN "Contract History"
+    itraverse_
+        (\index contract ->
+             logInfoN $ render (parens (pretty index) <+> pretty contract)) =<<
+        Core.activeContractHistory uuid
 
 main :: IO ()
 main = do
     (ekgPort, configPath, cmd) <-
         customExecParser
-            (prefs $ disambiguate <> showHelpOnEmpty)
+            (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
-    runStderrLoggingT $
-        filterLogger (\_ level -> level > LevelDebug) $ do
+    result <-
+        runApp config $ do
             logInfoN $ "Running: " <> Text.pack (show cmd)
-            runReaderT (runCliCommand cmd) config
+            runCliCommand config cmd
+    case result of
+        Left err -> do
+            runStdoutLoggingT $ logErrorS err
+            exitWith (ExitFailure 1)
+        Right _ -> exitSuccess

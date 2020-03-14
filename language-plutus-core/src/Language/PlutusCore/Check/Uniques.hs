@@ -23,7 +23,7 @@ checkProgram
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Program tyname name ann
+    -> Program tyname name uni ann
     -> m ()
 checkProgram p (Program _ _ t) = checkTerm p t
 
@@ -34,7 +34,7 @@ checkTerm
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Term tyname name ann
+    -> Term tyname name uni ann
     -> m ()
 checkTerm p t = do
     (_, errs) <- runTermDefs t
@@ -46,7 +46,7 @@ checkType
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Type tyname ann
+    -> Type tyname uni ann
     -> m ()
 checkType p t = do
     (_, errs) <- runTypeDefs t

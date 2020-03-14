@@ -19,9 +19,6 @@ import           Spec.Lib                                        as Lib
 import           Language.PlutusTx.Lattice
 import qualified Ledger
 import qualified Ledger.Ada                                      as Ada
-import           Ledger.Index                                    (ValidationError(ScriptFailure))
-import           Ledger.Scripts                                  (ScriptError(EvaluationError))
-import           Ledger.TxId                                     (TxId)
 import qualified Ledger.Typed.Scripts                            as Scripts
 import qualified Wallet.Emulator                                 as EM
 
@@ -43,7 +40,7 @@ tests =
 
     , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 2x, pay - FAILURE"
         (MS.contract params)
-        (assertFailedTransaction checkScriptError
+        (assertContractError w1 (\case { ContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (Ada.lovelaceValueOf 0))
         (lockProposeSignPay 2 1)
@@ -75,11 +72,6 @@ w3 = EM.Wallet 3
 params :: MS.Params
 params = MS.Params keys 3 where
     keys = Ledger.pubKeyHash . EM.walletPubKey . EM.Wallet <$> [1..5]
-
-checkScriptError :: TxId -> ValidationError -> Bool
-checkScriptError _ = \case
-    ScriptFailure (EvaluationError ["State transition invalid - checks failed"]) -> True
-    _ -> False
 
 -- | A payment of 5 Ada to the public key address of wallet 2
 payment :: MS.Payment

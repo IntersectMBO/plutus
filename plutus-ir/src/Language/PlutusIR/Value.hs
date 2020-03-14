@@ -5,7 +5,7 @@ import           Language.PlutusIR
 
 -- | Whether the given PIR term is (will compile to) a PLC term value. Very similar to
 -- the PLC definition.
-isTermValue :: Term tyname name a -> Bool
+isTermValue :: Term tyname name uni a -> Bool
 isTermValue = \case
     LamAbs {} -> True
     TyAbs {} -> True

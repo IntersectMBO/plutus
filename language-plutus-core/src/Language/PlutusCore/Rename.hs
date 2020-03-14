@@ -38,15 +38,15 @@ class Rename a where
     -- so that @rename@ can be used for alpha-renaming as well.
     rename :: MonadQuote m => a -> m a
 
-instance HasUniques (Type tyname ann) => Rename (Type tyname ann) where
+instance HasUniques (Type tyname uni ann) => Rename (Type tyname uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
 
-instance HasUniques (Term tyname name ann) => Rename (Term tyname name ann) where
+instance HasUniques (Term tyname name uni ann) => Rename (Term tyname name uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
-instance HasUniques (Program tyname name ann) => Rename (Program tyname name ann) where
+instance HasUniques (Program tyname name uni ann) => Rename (Program tyname name uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshProgram >=> runRenameT . renameProgramM
 

@@ -810,16 +810,15 @@ In the context of a blockchain system, it can be useful to also have a
 step indexed version of stepping, indicated by a superscript count of
 steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
 transaction validation from looping indefinitely, or from simply
-taking an inordinate amount of time, which would be a serious flaw in
-the blockchain system, we can use step indexing to put an upper bound
-on the number of computational steps that a program can have. In this
-setting, we would pick some upper bound $\mathit{max}$ and then
-perform steps of terms $M$ by computing which $M'$ is such
+taking an inordinate amount of time, which would provide opportunites
+to attack a blockchain system, we can use step indexing to put an
+upper bound on the number of computational steps that a program can
+have. In this setting, we would pick some upper bound $\mathit{max}$
+and then perform steps of terms $M$ by computing which $M'$ is such
 that \(\multistepIndexed{M}{\mathit{max}}{M'}\).  In a future version
 of this document we will introduce a cost model which will provide
 more fine-grained costs for individual operations and built-in
-functions, enabling more accurate monitoring of execution costs.
-
+functions,  enabling more accurate monitoring of execution costs.
 
 \subsection{Type reduction}
 Because the Plutus Core type system contains a copy of the simply
