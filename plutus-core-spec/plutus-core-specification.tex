@@ -152,7 +152,6 @@
 \newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
 \newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
 \newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
-\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
 \newcommand{\normalform}[1]{\lfloor #1 \rfloor}
 \newcommand{\subst}[3]{[#1/#2]#3}
 \newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
@@ -806,19 +805,18 @@ usual Kleene star notation.
 % first edition of his book, but changed it to "contextual dymanics"
 % in the second.  It doesn't seem to be a standard term elsewhere though.
 
-In the context of a blockchain system, it can be useful to also have a
-step indexed version of stepping, indicated by a superscript count of
-steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
-transaction validation from looping indefinitely, or from simply
-taking an inordinate amount of time, which would provide opportunites
-to attack a blockchain system, we can use step indexing to put an
-upper bound on the number of computational steps that a program can
-have. In this setting, we would pick some upper bound $\mathit{max}$
-and then perform steps of terms $M$ by computing which $M'$ is such
-that \(\multistepIndexed{M}{\mathit{max}}{M'}\).  In a future version
-of this document we will introduce a cost model which will provide
-more fine-grained costs for individual operations and built-in
-functions,  enabling more accurate monitoring of execution costs.
+In a blockchain system, allowing programs to execute for a long time
+or consume excessive memory would enable denial-of-service attacks, so
+it is important to limit the consumption of such resources.
+A future version of this document will include a cost model
+which will provide fine-grained costs for individual operations and
+built-in functions, enabling accurate (dynamic) monitoring of
+execution costs.  This will enable operators of blockchain nodes to
+defend against excessive resource consumption by placing limits on
+execution (determined by a fee paid by the user) and terminating
+programs which exceed their limits.
+
+
 
 \subsection{Type reduction}
 Because the Plutus Core type system contains a copy of the simply
