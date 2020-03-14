@@ -48,7 +48,8 @@ stringBuiltins
     :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
     => PLC.DynamicBuiltinNameMeanings uni
 stringBuiltins =
-    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
+    insertDynamicBuiltinNameDefinition dynamicTraceDefinitionMock
+      $ insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 data Input = FileInput FilePath | StdInput
@@ -81,6 +82,8 @@ data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
+data PrintMode = Classic | Debug deriving (Show, Read)
+data PrintOptions = PrintOptions Input PrintMode
 data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Print PrintOptions
 
 plutus :: ParserInfo Command
@@ -96,18 +99,6 @@ plutusOpts = hsubparser (
 
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TypecheckOptions <$> input
-
-printMode :: Parser PrintMode
-printMode = option auto
-  (  long "print-mode"
-  <> metavar "MODE"
-  <> value Standard
-  <> showDefault
-  <> help "Print mode: Standard -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
-
-printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> input <*> printMode
-
 
 evalMode :: Parser EvalMode
 evalMode = option auto
@@ -142,6 +133,17 @@ exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
+
+printMode :: Parser PrintMode
+printMode = option auto
+  (  long "print-mode"
+  <> metavar "MODE"
+  <> value Classic
+  <> showDefault
+  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+
+printOpts :: Parser PrintOptions
+printOpts = PrintOptions <$> input <*> printMode
 
 instance PLC.AsTypeError GHC.IO.Exception.IOException PLC.DefaultUni ()
     where _TypeError = undefined
@@ -185,17 +187,6 @@ runEval (EvalOptions inp mode) = do
         Right (Right v) -> do
             T.putStrLn $ PLC.prettyPlcDefText v
             exitSuccess
-
-
-runPrint :: PrintOptions -> IO()
-runPrint (PrintOptions inp mode) = do
-    contents <- getInput inp
-    let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-        printMethod = case mode of
-                Standard -> PLC.prettyPlcClassicDef
-                Debug    -> PLC.prettyPlcClassicDebug
-    k :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn <- PLC.runQuoteT (PLC.parseScoped bsContents)
-    putStrLn . show . printMethod $ k
 
 data TypeExample = TypeExample (PLC.Kind ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
 data TermExample = TermExample
@@ -257,6 +248,16 @@ runExample (ExampleOptions (ExampleSingle name)) = do
     T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
         Just ex -> PLC.docText $ prettyExample ex
+
+runPrint :: PrintOptions -> IO()
+runPrint (PrintOptions inp mode) = do
+    contents <- getInput inp
+    let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
+        printMethod = case mode of
+                Classic -> PLC.prettyPlcClassicDef
+                Debug   -> PLC.prettyPlcClassicDebug
+    k :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn <- PLC.runQuoteT (PLC.parseScoped bsContents)
+    putStrLn . show . printMethod $ k
 
 main :: IO ()
 main = do
