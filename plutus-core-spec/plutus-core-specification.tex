@@ -1120,7 +1120,8 @@ Figure~\ref{fig:untyped-values}.
 \subsection{Type erasure}
 Figure~\ref{fig:type-erasure} defines a type erasure operation which
 converts a typed Plutus Core term $M$ into an untyped one
-$\erase{M}$.  %\footnotemark[4].
+$\erase{M}$ (objects from the typed grammar on the left of $=$,
+untyped on the right).  %\footnotemark[4].
 We extend this to sequences of
 terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
 $\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program

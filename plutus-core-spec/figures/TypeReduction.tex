@@ -14,15 +14,14 @@
 %   \centering
 \begin{subfigure}[c]{\linewidth}
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} &\tf & ::= %% & \inConTFrame{tcn}                          & \textrm{type constant}\\ This was here for sized types 
-                                       & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
-                            &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
-                            &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
-                            &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
-                            &    &     & \inFixTRightFrame{S}                       & \textrm{right fix}\\
-                            &    &     & \inLamTFrame{\alpha}{K}                    & \textrm{$\lambda$}\\
-                            &    &     & \inAppTLeftFrame{A}                        & \textrm{left app}\\
-                            &    &     & \inAppTRightFrame{S}                       & \textrm{right app}\\
+        \textrm{Type Frame} &\tf & ::= & \inFunTLeftFrame{A}      & \textrm{left arrow}\\
+                            &    &     & \inFunTRightFrame{S}     & \textrm{right arrow}\\
+                            &    &     & \inAllTFrame{\alpha}{K}  & \textrm{all}\\
+                            &	 &     & \inFixTLeftFrame{B}      & \textrm{left fix}\\
+                            &    &     & \inFixTRightFrame{S}     & \textrm{right fix}\\
+                            &    &     & \inLamTFrame{\alpha}{K}  & \textrm{$\lambda$}\\
+                            &    &     & \inAppTLeftFrame{A}      & \textrm{left application}\\
+                            &    &     & \inAppTRightFrame{S}     & \textrm{right application}
     \end{array}\]
 
     \caption{Grammar of Type Reduction Frames}
