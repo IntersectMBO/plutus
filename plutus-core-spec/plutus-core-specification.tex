@@ -1,6 +1,6 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{5th November 2019}
+\date{14th March 2020}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -286,11 +286,22 @@ costs.  If at any point during execution the amount of gas consumed
 exceeds the amount than has been paid for then the program is
 immediately terminated and the fee is forfeited.
 
-Resource limitations preclude complicated on-chain code analysis
-and verification.  We perform type checking prior to execution of
-Plutus Core Code, but no other validation.  Type checking itself takes
-time and requires memory, so there is also a gas charge for on-chain
-type checking.
+Plutus Core is a typed language which is intended as a compiler
+target.  The fact that it is typed helps to increase the robustness of
+compilers from higher-level languages, since compiler output can be
+typechecked at the end of compilation, and any type errors will
+indicate errors in the compilation process.
+
+However, resource limitations preclude complicated on-chain code
+analysis and verification, and since programs are transmitted across a
+network for execution on the chain it is also important that programs
+are as small as possible.  Types take up a lot of space, so we also
+define an \textit{untyped} variant of Plutus core for deployment to
+and execution on the chain (see Section~\ref{sec:untyped-plc}).
+Untyped Plutus Core is obtained from typed Plutus Core by a simple
+erasure process, and this makes it easy to analyse and typecheck
+a typed program off chain and check that after type erasure it
+is identical to an untyped on-chain program.
 
 Plutus Core is intended to be used for validation of on-chain
 transactions on the Cardano blockchain~\citep{Cardano}.  The details
@@ -299,6 +310,8 @@ are explained in~\citep{EUTXO}. For details of Cardano's smart
 contract infrastructure (including examples of the kind of validation
 code which is compiled into Plutus Core) see the
 book~\citep{Plutus-book}.
+
+
 
 \section{Syntax}
 
@@ -359,7 +372,12 @@ may use the multi-argument forms.
 \item $\error{A}$ causes an error, terminating computation.
 \end{itemize}
 
-\paragraph{Values.} Values are terms which cannot undergo any further reduction.
+\paragraph{Values.} Figure~\ref{fig:values} shows a class of terms of a particular
+syntactic form which we call \textit{values}.  In
+Section~\ref{sec:reduction} below we define reduction rules for Plutus
+Core terms, and it can be shown (formally, in
+Agda (\cite{Plutus-metatheory-repo})) that values are precisely those
+terms which cannot undergo any further reduction.
 
 \paragraph{Types.} Plutus Core contains a copy of the simply typed lambda calculus
   at the type level, together with a few extensions.
@@ -373,17 +391,21 @@ may use the multi-argument forms.
 is the type of integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
-\paragraph{Type Values.} All types can be reduced to a type value (or
-  \textit{normalised type}) which cannot undergo any further
-  reduction: see Section~\ref{sec:reduction}.  The type normalisation
-  process always terminates: the proof is similar to the proof of the
-  fact that reduction of terms in the simply typed lambda calculus
-  always terminates \citep[\S12]{Pierce:TAPL}.  The type-level
-  structure of Plutus Core is slightly more complicated than the
-  simply typed lambda calculus, but the extra forms (\texttt{ifix},
-  \texttt{all}, built-in base types) don't provide any new
-  opportunities for type reduction and thus have little effect on the
-  proof.
+
+\paragraph{Type Values.} Section~\ref{sec:reduction} also gives
+reduction rules for types.  All types can be reduced to a type value
+  (or \textit{normalised type}) which cannot undergo any further
+  reduction, and it can be shown that the type values are precisely
+  those whose structure is given in Figure~\ref{fig:type-values}
+  (again, these statements have been formalised and proved in Agda).
+  The type normalisation process always terminates: the proof is
+  similar to the proof of the fact that reduction of terms in the
+  simply typed lambda calculus always
+  terminates \citep[\S12]{Pierce:TAPL}.  The type-level structure of
+  Plutus Core is slightly more complicated than the simply typed
+  lambda calculus, but the extra forms (\texttt{ifix}, \texttt{all},
+  built-in base types) don't provide any new opportunities for type
+  reduction and thus have little effect on the proof.
 
 \paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
@@ -898,7 +920,7 @@ modulo erasure of type annotations.
 
 \section{Built in types, functions, and values}
 \label{sec:builtins}
-Plutus Core comes with a pre-defined set of built-in types and
+Plutus Core comes with a predefined set of built-in types and
 functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
@@ -1051,6 +1073,7 @@ recursion using an \verb|ifix|-based analogue of the $Z$ combinator).
 % to \verb|ifix|.
 
 \section{Untyped Plutus Core}
+\label{sec:untyped-plc}
 For code transmission and on-chain execution it is important to have
 small programs.  In this section we define an untyped version of
 Plutus Core together with a type erasure function converting typed
@@ -1061,64 +1084,73 @@ Plutus Core terms to untyped ones.
 \subsection{Notes}
 The grammar is essentially that of typed Plutus Core with all types
 and type-related operations discarded.  However, we require two new
-items: \texttt{delay} and \texttt{force}\footnotemark[5].
-These are needed because
+items: \texttt{delay} and \texttt{force}.  These are needed because
 type-level abstraction (\texttt{abs}) and application (\texttt{\{\}})
 have a computational effect.  The body of a type abstraction will not
-be executed until the type is instantiated;  thus we cannot just
+be executed until the type is instantiated; thus we cannot just
 replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
-immediately.  As we will see below,  \texttt{delay} and \texttt{force}
-are used to preserve the effects of type abstraction and instantiation.
+immediately.  As we will see below, \texttt{delay} and \texttt{force}
+are used to preserve the effects of type abstraction and
+instantiation.
 
-\footnotetext[5]{\red{The introduction of \texttt{delay}
-and \texttt{force} may be controversial since $\delay{M}$ can be
-implemented as $\lamU{u}{M}$ and $\force{M}$ as
-$\appU{M}{\lamU{x}{x}}$.  However, doing this has a cost in code size.
-Experiments show that adding \texttt{delay} and \texttt{force}
-increases the size of compressed validators by about 10\%, but using
-$\lamU{u}{M}$ and $\appU{M}{\lamU{x}{x}}$ increases sizes by about
-20\%.  A third option is to introduce a global variable $u$ of
-type \texttt{unit} and replace $\force{M}$ with $\appU{M}{u}$: this
-only increases sizes by about 12\%, but complicates specification
-because programs have to be wrapped in an expression binding $u$ (and
-maybe the CEK machine has to start with an environment binding $u$ to
-$\lamU{x}{x}$).  Another option would be to extend the grammar with a
-unit term, but then it would be tempting to add terms
-for \texttt{true}, \texttt{false}, and so on.   
-It's possible that in actual validator code (especially after type
-normalisation), \texttt{delay} and \texttt{force} will typically appear in
-expressions of the form $\force{\delay{e}}$, which could immediately
-be replaced by $e$ alone, and then using $\lamU{x}{x}$ might not cause
-so much overhead. I'll look into this.}\ \blue{Later: nope.  I looked at the on-chain validators for the use cases and this only happens about 10\% of the time.}}
+As with typed Plutus Core, we can show that values (terms which can
+not be reduced) have a particular syntactic form: see
+Figure~\ref{fig:untyped-values}.
+
+%% The introduction of \texttt{delay} and \texttt{force} may be
+%% controversial since $\delay{M}$ can be implemented as $\lamU{u}{M}$
+%% and $\force{M}$ as $\appU{M}{\lamU{x}{x}}$.  However, doing this
+%% has a cost in code size.  Experiments show that
+%% adding \texttt{delay} and \texttt{force} increases the size of
+%% compressed validators by about 10\%, but using $\lamU{u}{M}$ and
+%% $\appU{M}{\lamU{x}{x}}$ increases sizes by about 20\%.  A third
+%% option is to introduce a global variable $u$ of type \texttt{unit}
+%% and replace $\force{M}$ with $\appU{M}{u}$: this only increases
+%% sizes by about 12\%, but complicates specification because programs
+%% have to be wrapped in an expression binding $u$ (and maybe the CEK
+%% machine has to start with an environment binding $u$ to
+%% $\lamU{x}{x}$).  Another option would be to extend the grammar with
+%% a unit term, but then it would be tempting to add terms
+%% for \texttt{true}, \texttt{false}, and so on.  It's possible that
+%% in actual validator code (especially after type
+%% normalisation), \texttt{delay} and \texttt{force} will typically
+%% appear in expressions of the form $\force{\delay{e}}$, which could
+%% immediately be replaced by $e$ alone, and then using $\lamU{x}{x}$
+%% might not cause so much overhead. I'll look into this.  Later:
+%% nope.  I looked at the on-chain validators for the use cases and
+%% this only happens about 10\% of the time.
 
 \subsection{Type erasure}
 Figure~\ref{fig:type-erasure} defines a type erasure operation which
 converts a typed Plutus Core term $M$ into an untyped one
-$\erase{M}$\footnotemark[4].  We extend this to sequences of
+$\erase{M}$.  %\footnotemark[4].
+We extend this to sequences of
 terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
 $\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
 $P$ we use $\erase{P}$ to denote the untyped program with the same
 version whose body is the erasure of the body of $P$. The erasure operation
 preserves semantics in an appropriate sense.
 
-\footnotetext[4]{\red{I'm not wedded to this particular notation for erasure,
-but I'm not going to buy the argument that it'll confuse people. Other
-possiblities: $\left|M\right|$, $\left\lVert{M}\right\rVert$,
-$\overline{M}$ (that looks pretty bad), etc. I'll consult some experts to
-find out if there's a standard notation.}}
+%% I'm not wedded to this particular notation for erasure,
+%% but I think it's unlikely that it'll confuse people. Other
+%% possiblities: $\left|M\right|$, $\left\lVert{M}\right\rVert$,
+%% $\overline{M}$ (that looks pretty bad), etc. I'll consult some experts to
+%% find out if there's a standard notation.  (Later: apparently not.)
 
 \subfile{figures/TypeErasure}
 
 \subsection{Term Reduction}
 Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
 for untyped Plutus Core, analogously to
-Figure~\ref{fig:term-reduction}.
+Figure~\ref{fig:term-reduction}.  The built-in functions in
+Figure~\ref{fig:builtins} are interpreted in the untyped setting in the
+obvious way.
 
 \subfile{figures/UntypedTermReduction}
 
 \subsection{An abstract machine for evaluating Untyped Plutus Core programs}
 Figure~\ref{fig:untyped-ck-machine} describes a modified version of
-the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untype Plutus
+the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untyped Plutus
 Core programs.
 \subfile{figures/UntypedCkMachine}
 
