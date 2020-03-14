@@ -1126,7 +1126,10 @@ terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
 $\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
 $P$ we use $\erase{P}$ to denote the untyped program with the same
 version whose body is the erasure of the body of $P$. The erasure operation
-preserves semantics in an appropriate sense.
+preserves semantics in an appropriate sense.  It can be shown that if $P$
+is a type-correct Plutus Core program then $P$ terminates if 
+and only if $\erase{P}$ does, and that $P$ returns the value $v$
+if and only if $\erase{P}$ returns the value $\erase{v}$.
 
 %% I'm not wedded to this particular notation for erasure,
 %% but I think it's unlikely that it'll confuse people. Other
