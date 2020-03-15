@@ -264,6 +264,7 @@ can be found in~\citep{Plutus-metatheory-repo},
 and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 \subsection{Blockchain issues}
+\label{sec:blockchain-issues}
 Plutus Core code (and code intended for execution on a blockchain in
 general) can be executed in two different environments:
 \textit{off-chain} and \textit{on-chain}.  As the name suggests,
@@ -359,7 +360,7 @@ may use the multi-argument forms.
 \paragraph{Terms.}
 \begin{itemize}
 \item $\con{cn}$ represents a constant belonging to some built-in
-  type: for example \texttt{(con 4)} is an integer with the value 127.
+  type: for example \texttt{(con 28)} is an integer with the value 28.
   See Section~\ref{sec:builtins} for more on this.
 \item $\abs{\alpha}{K}{M}$ represents a polymorphic value abstracted
   over a type; this would often be denoted by $\Lambda\alpha{::}K.M$.
@@ -393,25 +394,27 @@ is the type of integers.  See Section~\ref{sec:builtins} for more information.
 
 \paragraph{Type Values.} Section~\ref{sec:reduction} also gives
 reduction rules for types.  All types can be reduced to a type value
-  (or \textit{normalised type}) which cannot undergo any further
-  reduction, and it can be shown that the type values are precisely
-  those whose structure is given in Figure~\ref{fig:type-values}
-  (again, these statements have been formalised and proved in Agda).
-  The type normalisation process always terminates: the proof is
-  similar to the proof of the fact that reduction of terms in the
-  simply typed lambda calculus always
-  terminates \citep[\S12]{Pierce:TAPL}.  The type-level structure of
-  Plutus Core is slightly more complicated than the simply typed
-  lambda calculus, but the extra forms (\texttt{ifix}, \texttt{all},
-  built-in base types) don't provide any new opportunities for type
-  reduction and thus have little effect on the proof.
+(or \textit{normalised type}) which cannot undergo any further
+reduction, and it can be shown that the type values are precisely
+those whose structure is given in Figure~\ref{fig:type-values} (again,
+these statements have been formalised and proved in Agda).  The type
+normalisation process always terminates: the proof is similar to the
+proof of the fact that reduction of terms in the simply typed lambda
+calculus always terminates \citep[\S12]{Pierce:TAPL}; this is
+important because type normalisation has to be performed during type
+checking to check that two types are equal. The type-level structure
+of Plutus Core is slightly more complicated than the simply typed
+lambda calculus, but the extra forms (\texttt{ifix}, \texttt{all},
+built-in base types) don't provide any new opportunities for type
+reduction and thus have little effect on the proof.
 
 \paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
 \textit{kinds} in Plutus Core, allowing the type system to talk about
-operations which themselves occur at the level of types.
-The basic kind (usually written as $\star$) is denoted by \texttt{(type)}.
+operations which themselves occur at the level of types.  The basic
+kind (often written as $\star$ in the literature) is denoted
+by \texttt{(type)}.
 
 \paragraph{Signatures.}  A signature
 $$[\alpha_1::K_1, \ldots, \alpha_m::K_m](t_1, \ldots, t_n)u$$ represents
@@ -424,53 +427,7 @@ Signatures are not used in the concrete syntax of Plutus Core, but we
 do use them later in this document, in typing rules and in the
 description of built-in values and functions.
 
-\paragraph{Programs and Versions.} A complete Plutus Core program
-consists of a standard version number (1.0.2, for example) indicating
-the Plutus Core version and a \textit{closed} term (i.e., a term with no
-free variables) forming the body of the program.  The version number
-is used by the Plutus Core evaluator and other tools to check that
-they are dealing with code conforming to the correct version of the
-Plutus Core language.
-
-\subsection{More detailed remarks}
-\subsubsection{Type Normalisation}
- Type checking requires normalisation to be performed, for example to
- check that two types are equal.  This process can be expensive, so we
- require that code supplied for on-chain execution comes with all type
- annotations pre-normalised.  This can be done during off-chain type
- checking.  Another issue here is that normalisation can cause the
- size of a type to increase (in the worst case, exponentially), and
- requiring normalisation to be performed before a program is submitted
- to the chain reduces on-chain gas costs.
-
-%% \subsubsection{Sizes and built-in types and functions}
-%% \label{sec:size-note}
-%% Details of built-in types and functions are given
-%% in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
-%% point.  Plutus Core currently provides two types of built-in data with
-%% variable sizes: integers and bytestrings (blocks of binary data used
-%% for cryptographic purposes).  There is no fixed upper bound on the
-%% size of values of these types, but -- as mentioned in the introduction -- it
-%% could be problematic if users were allowed to create values of arbitrary size
-%% at runtime. To avoid this, sizes are tracked in the type system so that
-%% appropriate charges can be made.
-
-%% For integers, this works as follows (the system for
-%% bytestrings is similar).  Integers are signed values:
-%% there is no fixed upper bound, but values are represented as sequences
-%% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
-%% is the integer 100 stored as a single byte.  Literal constants must
-%% fit into the specified size: \texttt{1~!~200} gives a compile-time
-%% error. If a value overflows at runtime then an error occurs and
-%% execution is terminated.  Integers are manipulated using built-in
-%% functions (see Figure~\ref{fig:builtins}) whose types
-%% include the size. This prevents users from writing programs which
-%% generate arbitrarily large values during execution; it also allows us
-%% to charge according to the actual amount of computation performed,
-%% which will increase as the size of the integers involved increases.
-
-
-\subsubsection{Recursive types}
+\paragraph{Recursive types.}
 \label{sec:ifix-note}
 \noindent
 The operator \texttt{ifix} allows one to define recursive types in
@@ -514,23 +471,31 @@ write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
+\paragraph{Programs and Versions.} A complete Plutus Core program
+consists of a standard version number (1.0.2, for example) indicating
+the Plutus Core version and a \textit{closed} term (i.e., a term with no
+free variables) forming the body of the program.  The version number
+is used by the Plutus Core evaluator and other tools to check that
+they are dealing with code conforming to the correct version of the
+Plutus Core language.
+
 \section{Type Correctness}
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
-\ref{fig:contexts}, we define the grammar of contexts as
-contexts appear here for the first time. Contexts are sequences of
-variables. In System F there are two different sorts of variables:
+\ref{fig:contexts}, we define the grammar of \textit{contexts},
+which are sequences of variables accompanied by kind and type
+information. In System F there are two different sorts of variables:
 term variables and type variables. For succinctness of presentation we
 keep information about both sorts of variables in the same
 context. Type variables carry their name and a kind and term variables
 carry their name and a type. The rules for context validity explain
-how valid contexts can be constructed, the empty context is valid,
-given valid context $\Gamma$, it can be extended with a fresh variable
-and kind or a fresh variable and a valid type in $\Gamma$. Note we do
-not need a separate judgement for valid kinds. They are so simple that
-any kind that can be constructed according to the grammar is a valid
-kind.
+how valid contexts can be constructed: the empty context is valid, and
+given a valid context $\Gamma$, it can be extended with a fresh
+variable and kind or a fresh variable and a valid type in
+$\Gamma$. Note that we do not need a separate judgement for valid
+kinds. They are so simple that any kind that can be constructed
+according to the grammar is a valid kind.
 
 %We also consider variable judgements in Figure
 %\ref{fig:contexts}. Technically this judgement is defined
@@ -619,10 +584,11 @@ kind.
 \noindent Figure \ref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
-System F rules (tyvar,tyall,tyfun) together with some extensions with
-extensions to higher kinds (tylam,tyapp) and to indexed
-recursive types (tyfix). We also introduce builtin types (tycon) to
-support integers and bytestrings.
+System F rules (\textsf{tyvar},\textsf{tyall},\textsf{tyfun}) together
+with some extensions with extensions to higher kinds
+(\textsf{tylam},\textsf{tyapp}) and to indexed recursive types
+(\textsf{tyfix}). We also introduce builtin types (\textsf{tycon}) to support
+integers and bytestrings.
 
 %% ---------------- Kind synthesis ---------------- %%
 
@@ -632,46 +598,46 @@ support integers and bytestrings.
 
     \begin{prooftree}
         \AxiomC{\(({\typeJ{\alpha}{K}}) \in \Gamma\)}
-        \RightLabel{tyvar}
+        \RightLabel{\textsf{tyvar}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{tyall}
+        \RightLabel{\textsf{tyall}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
-        \RightLabel{tyfix}
+        \RightLabel{\textsf{tyfix}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{A}{B}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
-        \RightLabel{tyfun}
+        \RightLabel{\textsf{tyfun}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{A}{B }}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{J}}{\istypeJ{A}{K}}\)}
-        \RightLabel{tylam}
+        \RightLabel{\textsf{tylam}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\lamT{\alpha}{J}{A}}{\funK{J}{K}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{J}{K}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{J}}\)}
-        \RightLabel{tyapp}
+        \RightLabel{\textsf{tyapp}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\appT{A}{B}}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
-        \RightLabel{tycon}
+        \RightLabel{\textsf{tycon}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
 
@@ -683,32 +649,35 @@ support integers and bytestrings.
 
 \noindent In Figure \ref{fig:type_synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
-have rules analogous to STLC (var,lam,app), extensions to System F
-(abs,inst). Higher-kinding introduces computation in types so we need
-the rule conv. Iso-recursive types introduce terms for wrapping and
-unwrapping recursive values (wrap,unwrap), and to support constants
-and builtins we have con, builtin and error.
+have rules analogous to STLC (\textsf{var},\textsf{lam},\textsf{app}),
+extensions to System F (\textsf{abs},\textsf{inst}). Iso-recursive
+types introduce terms for wrapping and unwrapping recursive values
+(\textsf{wrap},\textsf{unwrap}), and to support constants and builtins
+we have \textsf{con}, \textsf{builtin} and \textsf{error}.
+Higher-kinding introduces computation in types so we need the rule
+\textsf{conv}. 
 
 %% ---------------- Type synthesis ---------------- %%
 
 \begin{figure}[H]
-    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context
+    $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
         \AxiomC{\(({\termJ{x}{A}}) \in \Gamma\)}
-        \RightLabel{var}
+        \RightLabel{\textsf{var}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
-        \RightLabel{con}
+        \RightLabel{\textsf{con}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{B}}\)}
-        \RightLabel{abs}
+        \RightLabel{\textsf{abs}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{B}}}\)}
     \end{prooftree}
 
@@ -716,7 +685,7 @@ and builtins we have con, builtin and error.
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
         \AxiomC{\(\typeEquiv{C}{\allT{\alpha}{K}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
-        \RightLabel{inst}
+        \RightLabel{\textsf{inst}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
     \end{prooftree}
 
@@ -727,7 +696,7 @@ and builtins we have con, builtin and error.
 		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\UnaryInfC{\(\typeEquiv{C}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}\)}
 		\alwaysSingleLine
-    	\RightLabel{wrap}
+    	\RightLabel{\textsf{wrap}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{A}{B}{M}}{\fixT{A}{B}}}\)}
     \end{prooftree}
 
@@ -735,14 +704,14 @@ and builtins we have con, builtin and error.
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\AxiomC{\(\typeEquiv{C}{\fixT{A}{B}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
-		\RightLabel{unwrap}
+		\RightLabel{\textsf{unwrap}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma, \termJ{y}{A}}{\istermJ{M}{B}}\)}
-        \RightLabel{lam}
+        \RightLabel{\textsf{lam}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{A}{B}}}\)}
     \end{prooftree}
 
@@ -751,7 +720,7 @@ and builtins we have con, builtin and error.
         \AxiomC{\(\typeEquiv{C}{\funT{A}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
         \AxiomC{\(\typeEquiv{A}{A'}\)}
-        \RightLabel{app}
+        \RightLabel{\textsf{app}}
         \QuaternaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{B}}\)}
     \end{prooftree}
 
@@ -761,20 +730,20 @@ and builtins we have con, builtin and error.
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
         \alwaysSingleLine
-        \RightLabel{builtin}
+        \RightLabel{\textsf{builtin}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{error}
+        \RightLabel{\textsf{error}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{conv}
+		\RightLabel{\textsf{conv}}
 		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
     \end{prooftree}
 
@@ -798,24 +767,12 @@ small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
 Core in terms of the reduction relation for types
 (\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction})
 and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
-incorporates both $\beta$ reduction and contextual congruence. We make
+incorporates both $\beta$-reduction and contextual congruence. We make
 use of the transitive closure of these stepping relations via the
 usual Kleene star notation.
 % It seems that Harper talks about "contextual semactics" in the
 % first edition of his book, but changed it to "contextual dymanics"
 % in the second.  It doesn't seem to be a standard term elsewhere though.
-
-In a blockchain system, allowing programs to execute for a long time
-or consume excessive memory would enable denial-of-service attacks, so
-it is important to limit the consumption of such resources.
-A future version of this document will include a cost model
-which will provide fine-grained costs for individual operations and
-built-in functions, enabling accurate (dynamic) monitoring of
-execution costs.  This will enable operators of blockchain nodes to
-defend against excessive resource consumption by placing limits on
-execution (determined by a fee paid by the user) and terminating
-programs which exceed their limits.
-
 
 
 \subsection{Type reduction}
@@ -826,12 +783,13 @@ given type into an equivalent type, and so have no effect on the term
 level.  In conjunction with the fact that type reduction always
 terminates, this allows us to perform normalisation (i.e., reduction
 to a form which cannot undergo any further reduction) statically,
-before execution begins.  Figure~\ref{fig:type-reduction} contains the
-rules for type reduction, and Figure~\ref{fig:type-equivalence}
-contains rules for type equivalence.  Here and elsewhere we use syntax
-of the form $[X/x]Y$ to denote (capture-avoiding) substitution of
-some entity (a type, term, or value) $X$ for all occurrences of a name
-$x$ within some other entity $Y$.
+independently of term reduction.  Figure~\ref{fig:type-reduction}
+contains the rules for type reduction, and
+Figure~\ref{fig:type-equivalence} contains rules for type equivalence.
+Here and elsewhere we use syntax of the form $[X/x]Y$ to denote
+(capture-avoiding) substitution of some entity (a type, term, or
+value) $X$ for all occurrences of a name $x$ within some other entity
+$Y$.
 
 \subfile{figures/TypeReduction}
 
@@ -1076,10 +1034,16 @@ small programs.  In this section we define an untyped version of
 Plutus Core together with a type erasure function converting typed
 Plutus Core terms to untyped ones.
 
+As mentioned in Section~\ref{sec:blockchain-issues}, it is important to
+limit the consumption of computational resources in on-chain code.  A
+future version of this document will include a cost model which will
+provide fine-grained costs for individual operations and built-in
+functions, enabling accurate (dynamic) monitoring of execution costs.
+
 \subfile{figures/UntypedGrammar}
 
-\subsection{Notes}
-The grammar is essentially that of typed Plutus Core with all types
+\bigskip
+\noindent The grammar is essentially that of typed Plutus Core with all types
 and type-related operations discarded.  However, we require two new
 items: \texttt{delay} and \texttt{force}.  These are needed because
 type-level abstraction (\texttt{abs}) and application (\texttt{\{\}})
@@ -1128,7 +1092,7 @@ $\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
 $P$ we use $\erase{P}$ to denote the untyped program with the same
 version whose body is the erasure of the body of $P$. The erasure operation
 preserves semantics in an appropriate sense.  It can be shown that if $P$
-is a type-correct Plutus Core program then $P$ terminates if 
+is a well-typed Plutus Core program then $P$ terminates if 
 and only if $\erase{P}$ does, and that $P$ returns the value $v$
 if and only if $\erase{P}$ returns the value $\erase{v}$.
 
@@ -1155,6 +1119,7 @@ the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untyped Plutus
 Core programs.
 \subfile{figures/UntypedCkMachine}
 
+\newpage
 \begin{appendices}
 \section{Unrestricted Algorithmic Type System}
 
