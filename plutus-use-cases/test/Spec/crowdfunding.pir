@@ -126,8 +126,10 @@
                         [
                           (lam
                             b
-                            (all a (type) (fun a (fun a a)))
-                            [ [ { b Bool } True ] False ]
+                            (con bool)
+                            [
+                              [ [ { (builtin ifThenElse) Bool } b ] True ] False
+                            ]
                           )
                           [ [ (builtin equalsByteString) arg ] arg ]
                         ]
@@ -1707,9 +1709,20 @@
                                                     [
                                                       (lam
                                                         b
-                                                        (all a (type) (fun a (fun a a)))
+                                                        (con bool)
                                                         [
-                                                          [ { b Bool } True ]
+                                                          [
+                                                            [
+                                                              {
+                                                                (builtin
+                                                                  ifThenElse
+                                                                )
+                                                                Bool
+                                                              }
+                                                              b
+                                                            ]
+                                                            True
+                                                          ]
                                                           False
                                                         ]
                                                       )
@@ -1930,10 +1943,18 @@
                                                           [
                                                             (lam
                                                               b
-                                                              (all a (type) (fun a (fun a a)))
+                                                              (con bool)
                                                               [
                                                                 [
-                                                                  { b Bool }
+                                                                  [
+                                                                    {
+                                                                      (builtin
+                                                                        ifThenElse
+                                                                      )
+                                                                      Bool
+                                                                    }
+                                                                    b
+                                                                  ]
                                                                   True
                                                                 ]
                                                                 False
@@ -1969,10 +1990,18 @@
                                                             [
                                                               (lam
                                                                 b
-                                                                (all a (type) (fun a (fun a a)))
+                                                                (con bool)
                                                                 [
                                                                   [
-                                                                    { b Bool }
+                                                                    [
+                                                                      {
+                                                                        (builtin
+                                                                          ifThenElse
+                                                                        )
+                                                                        Bool
+                                                                      }
+                                                                      b
+                                                                    ]
                                                                     True
                                                                   ]
                                                                   False
