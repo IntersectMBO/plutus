@@ -12,6 +12,7 @@ import qualified Cardano.Node.Server           as NodeServer
 import           Cardano.Node.Types            (FollowerID (..))
 import qualified Cardano.SigningProcess.Server as SigningProcess
 import qualified Cardano.Wallet.Server         as WalletServer
+import           Control.Concurrent.Async      (Async, async, waitAny)
 import           Control.Lens.Indexed          (itraverse_)
 import           Control.Monad                 (void)
 import           Control.Monad.IO.Class        (liftIO)
@@ -30,7 +31,7 @@ import           Options.Applicative           (CommandFields, Mod, Parser, argu
                                                 infoOption, long, metavar, option, optional, prefs, progDesc, short,
                                                 showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
                                                 subparser, value, (<|>))
-import           Plutus.SCB.App                (App, runApp)
+import           Plutus.SCB.App                (App (App), runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
 import           Plutus.SCB.Types              (Config (Config), chainIndexConfig, nodeServerConfig,
@@ -44,6 +45,7 @@ data Command
     | MockNode
     | MockWallet
     | ChainIndex
+    | AllServers
     | SigningProcess
     | InstallContract FilePath
     | ActivateContract FilePath
@@ -82,7 +84,15 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser, chainIndexParser, signingProcessParser]) <|>
+    subparser
+        (mconcat
+             [ migrationParser
+             , allServersParser
+             , mockWalletParser
+             , mockNodeParser
+             , chainIndexParser
+             , signingProcessParser
+             ]) <|>
     subparser
         (command
              "contracts"
@@ -126,18 +136,19 @@ mockWalletParser =
 chainIndexParser :: Mod CommandFields Command
 chainIndexParser =
     command "chain-index" $
+    info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
+
+allServersParser :: Mod CommandFields Command
+allServersParser =
+    command "all-servers" $
     info
-        (pure ChainIndex)
-        (fullDesc <>
-         progDesc "Run the chain index.")
+        (pure AllServers)
+        (fullDesc <> progDesc "Run all the mock servers needed.")
 
 signingProcessParser :: Mod CommandFields Command
 signingProcessParser =
     command "signing-process" $
-    info
-        (pure SigningProcess)
-        (fullDesc <>
-         progDesc "Run the signing process.")
+    info (pure SigningProcess) (fullDesc <> progDesc "Run the signing process.")
 
 activateContractParser :: Mod CommandFields Command
 activateContractParser =
@@ -222,6 +233,17 @@ runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
         (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
+runCliCommand config AllServers =
+    App $
+    liftIO $ do
+        threads <-
+            traverse
+                forkCommand
+                [MockNode, MockWallet, ChainIndex, SigningProcess]
+        void $ waitAny threads
+  where
+    forkCommand :: Command -> IO (Async ())
+    forkCommand = async . void . runApp config . runCliCommand config
 runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {signingProcessConfig} SigningProcess =
