@@ -1050,7 +1050,8 @@ be executed until the type is instantiated; thus we cannot just
 replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
 immediately.  As we will see below, \texttt{delay} and \texttt{force}
 are used to preserve the effects of type abstraction and
-instantiation.%
+instantiation (a more standard strategy of abstracting over the unit value was
+rejected because it is less space-efficient).%
 %% \footnote{A more standard, and semantically equivalent,
 %% way to implement \texttt{delay} and \texttt{force} would be to use
 %% $\lamU{u}{e}$ instead of $\delay{e}$ and $\appU{e}{\lamU{x}{x}}$
