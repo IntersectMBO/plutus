@@ -449,7 +449,7 @@ data Value
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
-  | Scale Rational (Term Value)
+  | Scale (Term Rational) (Term Value)
   | ChoiceValue (Term ChoiceId) (Term Value)
   | SlotIntervalStart
   | SlotIntervalEnd
@@ -473,7 +473,7 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (NegValue a) = S.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
-  fromTerm (Scale a b) = S.Scale a <$> fromTerm b
+  fromTerm (Scale a b) = S.Scale <$> termToValue a <*> fromTerm b
   fromTerm (ChoiceValue a b) = S.ChoiceValue <$> fromTerm a <*> fromTerm b
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
   fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd

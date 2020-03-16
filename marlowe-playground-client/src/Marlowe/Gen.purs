@@ -179,7 +179,7 @@ genValue' size
             , NegValue <$> genNewValue
             , AddValue <$> genNewValue <*> genNewValue
             , SubValue <$> genNewValue <*> genNewValue
-            , Scale <$> genRational <*> genNewValue
+            , Scale <$> genTerm genRational <*> genNewValue
             , ChoiceValue <$> genTerm genChoiceId <*> genNewValue
             , UseValue <$> genTerm genValueId
             ]

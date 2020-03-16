@@ -63,7 +63,8 @@ type HelperFunctions a
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
-    , mkScale :: BigInteger -> BigInteger -> Term Value -> Value
+    , mkRational :: BigInteger -> BigInteger -> Rational
+    , mkScale :: Term Rational -> Term Value -> Value
     , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
@@ -109,7 +110,8 @@ helperFunctions =
   , mkNegValue: NegValue
   , mkAddValue: AddValue
   , mkSubValue: SubValue
-  , mkScale: \n d v -> Scale (Rational n d) v
+  , mkRational: Rational
+  , mkScale: Scale
   , mkChoiceValue: ChoiceValue
   , mkSlotIntervalStart: SlotIntervalStart
   , mkSlotIntervalEnd: SlotIntervalEnd
@@ -283,7 +285,7 @@ recValue =
     <|> do
         void $ string "Scale"
         skipSpaces
-        s <- parens rational
+        s <- parseTerm (parens rational)
         skipSpaces
         v <- value'
         pure $ Scale s v

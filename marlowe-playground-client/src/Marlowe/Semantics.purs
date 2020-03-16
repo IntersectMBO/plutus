@@ -226,7 +226,6 @@ instance hasArgsValueId :: Args ValueId where
 data Rational
   = Rational BigInteger BigInteger
 
--- derive instance newtypeRational :: Newtype Rational _
 derive instance genericRational :: Generic Rational _
 
 derive instance eqRational :: Eq Rational
@@ -234,7 +233,7 @@ derive instance eqRational :: Eq Rational
 derive instance ordRational :: Ord Rational
 
 instance showRational :: Show Rational where
-  show (Rational n d) = "(" <> show n <> "%" <> show (d) <> ")"
+  show (Rational n d) = "(" <> show n <> "%" <> show d <> ")"
 
 instance prettyRational :: Pretty Rational where
   pretty r = text $ show r
@@ -760,16 +759,7 @@ evalValue env state value =
 
           isEven = (q `rem` fromInt 2) == zero
         in
-          if r == zero then
-            q
-          else
-            if sign == (-1) then
-              q
-            else
-              if sign == 0 && isEven then
-                q
-              else
-                m
+          if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
       ChoiceValue choiceId defVal -> fromMaybe (eval defVal) $ Map.lookup choiceId (unwrap state).choices
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env

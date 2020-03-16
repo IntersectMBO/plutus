@@ -85,8 +85,6 @@ number
     | %number {% ([n]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
     | lparen %number rparen {% ([,n,]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
 
-bigint -> %number {% ([n]) => opts.mkBigInteger(n.value) %}
-
 string
    -> hole {% ([hole]) => hole %}
     | %string {% ([s]) => opts.mkTerm(s.value)({row: s.line, column: s.col}) %}
@@ -173,6 +171,10 @@ observation
     | "TrueObs" {% ([{line,col}]) => opts.mkTerm(opts.mkTrueObs)({row: line, column: col}) %}
     | "FalseObs" {% ([{line,col}]) => opts.mkTerm(opts.mkFalseObs)({row: line, column: col}) %}
 
+rational
+    -> hole {% ([hole]) => hole %}
+    | %number manyWS "%" manyWS %number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num.value)(denom.value))({row: num.line, column: num.col}) %}
+
 value
    -> hole {% ([hole]) => hole %}
     | lparen "AvailableMoney" someWS accountId someWS token rparen {% ([,{line,col},,accountId,,token,]) => opts.mkTerm(opts.mkAvailableMoney(accountId)(token))({row: line, column: col}) %}
@@ -180,7 +182,7 @@ value
     | lparen "NegValue" someWS value rparen {% ([,{line,col},,value,]) => opts.mkTerm(opts.mkNegValue(value))({row: line, column: col}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({row: line, column: col}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({row: line, column: col}) %}
-    | lparen "Scale" someWS lparen bigint manyWS "%" manyWS bigint rparen someWS value rparen {% ([,{line,col},,,num,,,,denom,,,v,]) => opts.mkTerm(opts.mkScale(num)(denom)(v))({row: line, column: col}) %}
+    | lparen "Scale" someWS lparen rational rparen someWS value rparen {% ([,{line,col},,,ratio,,,v,]) => opts.mkTerm(opts.mkScale(ratio)(v))({row: line, column: col}) %}
     | lparen "ChoiceValue" someWS choiceId someWS value rparen {% ([,{line,col},,choiceId,,value,]) => opts.mkTerm(opts.mkChoiceValue(choiceId)(value))({row: line, column: col}) %}
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({row: line, column: col}) %}
     | "SlotIntervalEnd" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalEnd)({row: line, column: col}) %}

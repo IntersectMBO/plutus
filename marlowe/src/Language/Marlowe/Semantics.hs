@@ -456,10 +456,7 @@ evalValue env state value = let
             sign = signum (2 * abs r - abs denom)
             m = if r < 0 then q - 1 else q + 1
             isEven = (q `remainder` 2) == 0
-            in if r == 0 then q
-            else if sign == (-1) then q
-            else if sign == 0 && isEven then q
-            else m
+            in if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
         ChoiceValue choiceId defVal ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x

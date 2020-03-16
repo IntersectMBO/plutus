@@ -177,10 +177,8 @@ symEvalVal (Scale s rhs) symState = let
     sign = signum (2 * abs r - abs denom)
     m = ite (r .< 0) (q - 1) (q + 1)
     isEven = (q `sRem` 2) .== 0
-    down = ite (sign .== (-1)) q
-    towardsEven = ite (sign .== 0) (ite isEven q m) m
-    round = down towardsEven
-    in ite (r .== 0) {- then -} q {- else -} round
+    in ite (r .== 0 .|| sign .== (-1) .|| (sign .== 0 .&& isEven))
+    {- then -} q {- else -} m
 symEvalVal (ChoiceValue choId defVal) symState =
   M.findWithDefault (symEvalVal defVal symState) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState
