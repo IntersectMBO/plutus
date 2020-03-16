@@ -351,15 +351,15 @@ toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 the amount of %2 units of token %3 into the account %4 %5 with owner %6 from %7 continue as %8 %9"
+        , message0: "Deposit %1 by %2 the amount of %3 units of token %4 into account %5 %6 with owner %7 continue as %8 %9"
         , args0:
           [ DummyCentre
+          , Value { name: "party", check: "party", align: Right }
           , Value { name: "amount", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
-          , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
@@ -511,7 +511,7 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from the account %5 %6 with owner %7 continue as %8 %9"
+        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 %6 with owner %7 continue as %8 %9"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
@@ -765,7 +765,7 @@ toDefinition (ValueType ConstantValueType) =
   BlockDefinition
     $ merge
         { type: show ConstantValueType
-        , message0: "Constant Value %1"
+        , message0: "Constant %1"
         , args0:
           [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           ]
