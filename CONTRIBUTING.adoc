@@ -82,7 +82,9 @@ and `extra-dep` (Stack) mechanisms.
 These can be managed normally, but ensure that:
 
 * The specifications remain in sync between `cabal.project` and `stack.yaml`.
-* You update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
+* You update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
+* If it is an `extra-dep`, you update the `nix-sha256` comment. For the moment you have to do this by hand, using the
+following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`.
 
 ==== Nix pins
 
