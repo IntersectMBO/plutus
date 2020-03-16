@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
@@ -32,7 +33,7 @@ import           Control.Exception
 import           System.IO.Unsafe
 
 stringBuiltins
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()])
     => DynamicBuiltinNameMeanings uni
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition

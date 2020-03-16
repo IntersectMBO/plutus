@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Constant.Name
@@ -214,5 +215,4 @@ typedIfThenElse
     => TypedBuiltinName uni '[Bool, OpaqueTerm uni "a" 0, OpaqueTerm uni "a" 0] (OpaqueTerm uni "a" 0)
 typedIfThenElse =
     TypedBuiltinName IfThenElse $
-        TypeSchemeAllType Proxy $ \a ->
-            Proxy `TypeSchemeArrow` a `TypeSchemeArrow` a `TypeSchemeArrow` TypeSchemeResult a
+        TypeSchemeAllType @"a" @0 Proxy $ \_ -> knownTypeScheme

@@ -45,7 +45,7 @@ type Throwable uni = (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
-    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m, uni `PLC.Includes` ())
     => a -> m (PLC.Term TyName Name uni ())
 safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
@@ -54,16 +54,18 @@ safeLift x = do
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
-    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m, uni `PLC.Includes` ())
     => a -> m (PLC.Program TyName Name uni ())
 safeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
-safeLiftCode :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m) => a -> m (CompiledCode uni a)
+safeLiftCode
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m, uni `PLC.Includes` ())
+    => a -> m (CompiledCode uni a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 safeConstCode
     :: ( Lift.Typeable uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m
-       , PLC.Closed uni, uni `PLC.Everywhere` Serialise
+       , uni `PLC.Includes` (), PLC.Closed uni, uni `PLC.Everywhere` Serialise
        )
     => Proxy a
     -> CompiledCode uni b
@@ -84,11 +86,11 @@ unsafely ma = runQuote $ do
         Right t -> pure t
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
-lift :: (Lift.Lift uni a, Throwable uni) => a -> PLC.Term TyName Name uni ()
+lift :: (Lift.Lift uni a, Throwable uni, uni `PLC.Includes` ()) => a -> PLC.Term TyName Name uni ()
 lift a = unsafely $ safeLift a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
-liftProgram :: (Lift.Lift uni a, Throwable uni) => a -> PLC.Program TyName Name uni ()
+liftProgram :: (Lift.Lift uni a, Throwable uni, uni `PLC.Includes` ()) => a -> PLC.Program TyName Name uni ()
 liftProgram x = PLC.Program () (PLC.defaultVersion ()) $ lift x
 
 -- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
@@ -96,12 +98,12 @@ liftProgramDef :: Lift.Lift PLC.DefaultUni a => a -> PLC.Program TyName Name PLC
 liftProgramDef = liftProgram
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCode', throwing any errors that occur as exceptions and ignoring fresh names.
-liftCode :: (Lift.Lift uni a, Throwable uni) => a -> CompiledCode uni a
+liftCode :: (Lift.Lift uni a, Throwable uni, uni `PLC.Includes` ()) => a -> CompiledCode uni a
 liftCode x = unsafely $ safeLiftCode x
 
 -- | Creates a program that ignores an argument of the given type and returns the program given.
 constCode
-    :: (Lift.Typeable uni a, Throwable uni, uni `PLC.Everywhere` Serialise)
+    :: (Lift.Typeable uni a, Throwable uni, uni `PLC.Everywhere` Serialise, uni `PLC.Includes` ())
     => Proxy a
     -> CompiledCode uni b
     -> CompiledCode uni (a -> b)
