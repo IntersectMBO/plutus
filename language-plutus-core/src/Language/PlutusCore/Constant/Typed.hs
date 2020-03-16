@@ -190,6 +190,23 @@ unliftConstant term = case term of
                 throwingWithCause _UnliftingError err $ Just term
     _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
+{- Note [KnownType's defaults]
+We use @default@ for providing instances for built-in types instead of @DerivingVia@,
+because the latter breaks on
+
+    1. proxy a
+    2. m a
+
+It's possible to circumvent this, by using
+
+    1. Proxy a
+    2. forall r. (a -> m r) -> m r
+
+instead, but then we need to recover the original handy definitions and
+make the API and the code bloated (instances are more verbose with @DerivingVia@).
+-}
+
+-- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
 class KnownType uni a where
     -- | The type representing @a@ used on the PLC side.
