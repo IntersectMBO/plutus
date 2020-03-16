@@ -61,7 +61,7 @@ compileAndMaybeTypecheck
     -> Except (Error uni (Provenance a)) (PLC.Term TyName Name uni (Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = flip runReaderT defaultCompilationCtx $ runQuoteT $ do
     compiled <- compileTerm pir
-    when doTypecheck $ void $ PLC.inferType PLC.defOffChainConfig compiled
+    when doTypecheck $ void $ PLC.inferType PLC.defConfig compiled
     pure compiled
 
 tests :: TestNested

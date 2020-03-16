@@ -39,10 +39,9 @@ main = do
     plcFiles <- findByExtension [".plc"] "test/data"
     rwFiles <- findByExtension [".plc"] "test/scopes"
     typeFiles <- findByExtension [".plc"] "test/types"
-    typeNormalizeFiles <- findByExtension [".plc"] "test/normalize-types"
     typeErrorFiles <- findByExtension [".plc"] "test/type-errors"
     evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles)
+    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
 
 compareName :: Name a -> Name a -> Bool
 compareName = (==) `on` nameString
@@ -129,8 +128,8 @@ propDeBruijn gen = property . generalizeT $ do
         backward e = e >>= (\t -> runQuoteT $ unDeBruijnTerm t)
     Hedgehog.tripping body forward backward
 
-allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
-allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles = testGroup "all tests"
+allTests :: [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> [FilePath] -> TestTree
+allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all tests"
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
@@ -141,7 +140,6 @@ allTests plcFiles rwFiles typeFiles typeNormalizeFiles typeErrorFiles evalFiles 
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
-    , testsNormalizeType typeNormalizeFiles
     , testsType typeErrorFiles
     , testsEval evalFiles
     , test_Pretty
@@ -176,9 +174,6 @@ testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
-
-testsNormalizeType :: [FilePath] -> TestTree
-testsNormalizeType = testGroup "golden type synthesis + normalization tests" . fmap (asGolden (printNormalizeType True))
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden

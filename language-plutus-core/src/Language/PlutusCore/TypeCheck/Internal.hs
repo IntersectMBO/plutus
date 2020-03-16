@@ -14,7 +14,6 @@ module Language.PlutusCore.TypeCheck.Internal
     ( DynamicBuiltinNameTypes (..)
     , TypeCheckConfig (..)
     , TypeCheckM
-    , tccDoNormTypes
     , tccDynamicBuiltinNameTypes
     , runTypeCheckM
     , inferKindM
@@ -103,9 +102,7 @@ type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni (
 
 -- | Configuration of the type checker.
 data TypeCheckConfig uni = TypeCheckConfig
-    { _tccDoNormTypes             :: Bool
-      -- ^ Whether to normalize type annotations.
-    , _tccDynamicBuiltinNameTypes :: DynamicBuiltinNameTypes uni
+    { _tccDynamicBuiltinNameTypes :: DynamicBuiltinNameTypes uni
     }
 
 -- | The environment that the type checker runs in.
@@ -199,15 +196,6 @@ substNormalizeTypeM
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
-
--- | Normalize a 'Type' or simply wrap it in the 'NormalizedType' constructor
--- if we are working with normalized type annotations.
-normalizeTypeOptM :: Type TyName uni () -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-normalizeTypeOptM ty = do
-    normTypes <- asks $ _tccDoNormTypes . _tceTypeCheckConfig
-    if normTypes
-        then normalizeTypeM ty
-        else pure $ Normalized ty
 
 -- ###################
 -- ## Kind checking ##
@@ -357,7 +345,7 @@ inferTypeM (Var _ name)             =
 -- [infer| G !- lam n dom body : vDom -> vCod]
 inferTypeM (LamAbs ann n dom body)  = do
     checkKindM ann dom $ Type ()
-    vDom <- normalizeTypeOptM $ void dom
+    vDom <- normalizeTypeM $ void dom
     TyFun () <<$>> pure vDom <<*>> withVar n vDom (inferTypeM body)
 
 -- [infer| G , n :: nK !- body : vBodyTy]
@@ -387,7 +375,7 @@ inferTypeM (TyInst ann body ty)     = do
     case unNormalized vBodyTy of
         TyForall _ n nK vCod -> do
             checkKindM ann ty nK
-            vTy <- normalizeTypeOptM $ void ty
+            vTy <- normalizeTypeM $ void ty
             substNormalizeTypeM vTy n vCod
         _ -> throwError (TypeMismatch ann (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
 
@@ -398,8 +386,8 @@ inferTypeM (TyInst ann body ty)     = do
 inferTypeM (IWrap ann pat arg term) = do
     k <- inferKindM arg
     checkKindOfPatternFunctorM ann pat k
-    vPat <- normalizeTypeOptM $ void pat
-    vArg <- normalizeTypeOptM $ void arg
+    vPat <- normalizeTypeM $ void pat
+    vArg <- normalizeTypeM $ void arg
     checkTypeM ann term =<< unfoldFixOf vPat vArg k
     pure $ TyIFix () <$> vPat <*> vArg
 
@@ -420,7 +408,7 @@ inferTypeM (Unwrap ann term)        = do
 -- [infer| G !- error ty : vTy]
 inferTypeM (Error ann ty)           = do
     checkKindM ann ty $ Type ()
-    normalizeTypeOptM $ void ty
+    normalizeTypeM $ void ty
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
