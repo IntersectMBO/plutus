@@ -9,7 +9,7 @@
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)
---     , genOverapplication
+    , genOverapplication
     , factorial
     , genFactorial
     , naiveFib
@@ -48,27 +48,28 @@ import qualified Hedgehog.Range                           as Range
 -- | The type of terms-and-their-values generators.
 type TermGen uni a = Gen (TermOf uni a)
 
--- TODO: use 'IfThenElse'.
--- -- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
--- --
--- -- > lessThanInteger {integer} $i1 $i2 {integer} $j1 $j2 == if i1 < i2 then j1 else j2
--- genOverapplication
---     :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
---     => TermGen uni Integer
--- genOverapplication = do
---     let typedInt = AsKnownType
---         int = toTypeAst typedInt
---     TermOf ti1 i1 <- genTypedBuiltinDef typedInt
---     TermOf ti2 i2 <- genTypedBuiltinDef typedInt
---     TermOf tj1 j1 <- genTypedBuiltinDef typedInt
---     TermOf tj2 j2 <- genTypedBuiltinDef typedInt
---     let term =
---             mkIterApp ()
---                 (TyInst ()
---                     (mkIterApp () (builtinNameAsTerm LessThanInteger) [ti1, ti2])
---                     int)
---                 [tj1, tj2]
---     return . TermOf term $ if i1 < i2 then j1 else j2
+-- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
+--
+-- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
+-- >     == if i < j then i + j else i - j
+genOverapplication
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
+    => TermGen uni Integer
+genOverapplication = do
+    let typedInteger = AsKnownType
+        integer = toTypeAst typedInteger
+    TermOf ti i <- genTypedBuiltinDef typedInteger
+    TermOf tj j <- genTypedBuiltinDef typedInteger
+    let term =
+            mkIterApp ()
+                (TyInst () (builtinNameAsTerm IfThenElse) . TyFun () integer $ TyFun () integer integer)
+                [ mkIterApp () (builtinNameAsTerm LessThanInteger) [ti, tj]
+                , builtinNameAsTerm AddInteger
+                , builtinNameAsTerm SubtractInteger
+                , ti
+                , tj
+                ]
+    return . TermOf term $ if i < j then i + j else i - j
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
@@ -268,8 +269,8 @@ fromInterestingTermGens
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
-    [ -- f "overapplication"  genOverapplication
-      f "factorial"        genFactorial
+    [ f "overapplication"  genOverapplication
+    , f "factorial"        genFactorial
     , f "fibonacci"        genNaiveFib
     , f "NatRoundTrip"     genNatRoundtrip
     , f "ListSum"          genListSum
