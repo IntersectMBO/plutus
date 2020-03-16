@@ -45,11 +45,13 @@ library
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.SigningProcess
         Wallet.Emulator.Wallet
+        Wallet.Emulator.Diagnostics
         Wallet.Rollup
         Wallet.Rollup.Types
         Wallet.Rollup.Render
         Wallet
         Wallet.API
+        Wallet.Effects
         Wallet.Graph
         Control.Monad.Freer.Extras
     hs-source-dirs: src

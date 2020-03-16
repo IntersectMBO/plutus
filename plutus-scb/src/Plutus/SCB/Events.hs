@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module Plutus.SCB.Events
     ( module Events.Contract
@@ -8,8 +9,14 @@ module Plutus.SCB.Events
     , module Events.Node
     , module Events.Wallet
     , ChainEvent(..)
+    , _RecordRequest
+    , _RecordResponse
+    , _UserEvent
+    , _NodeEvent
+    , _WalletEvent
     ) where
 
+import           Control.Lens.TH
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           GHC.Generics               (Generic)
 import           Plutus.SCB.Events.Contract as Events.Contract
@@ -28,3 +35,5 @@ data ChainEvent
     | WalletEvent !Events.Wallet.WalletEvent
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+makePrisms ''ChainEvent

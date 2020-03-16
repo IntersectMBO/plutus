@@ -90,7 +90,8 @@ test-suite plutus-playground-lib-test
         plutus-tx -any,
         recursion-schemes -any,
         QuickCheck -any,
-        aeson -any
+        aeson -any,
+        freer-simple -any
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
                -Wall -Wcompat -Wnoncanonical-monad-instances
                -Wincomplete-uni-patterns -Wincomplete-record-updates

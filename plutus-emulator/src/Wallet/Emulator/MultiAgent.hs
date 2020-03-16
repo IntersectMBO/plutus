@@ -26,12 +26,13 @@ import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import qualified Data.Text                      as T
-import           Data.Text.Prettyprint.Doc      hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic)
 import           Ledger                         hiding (to, value)
 import qualified Ledger.AddressMap              as AM
 import qualified Ledger.Index                   as Index
 import qualified Wallet.API                     as WAPI
+import qualified Wallet.Effects                 as Wallet
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.ChainIndex     as ChainIndex
 import qualified Wallet.Emulator.NodeClient     as NC
@@ -80,21 +81,46 @@ walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Ju
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
--- | The type of actions in the emulator. @n@ is the type (usually a monad implementing 'WalletAPI') in
--- which wallet actions take place.
+type EmulatedWalletEffects =
+        '[ Wallet.WalletEffect
+         , Error WAPI.WalletAPIError
+         , Wallet.NodeClientEffect
+         , Wallet.ChainIndexEffect
+         , Wallet.SigningProcessEffect
+         ]
+
+type EmulatedWalletControlEffects =
+        '[ Error WAPI.WalletAPIError
+         , NC.NodeControlEffect
+         , ChainIndex.ChainIndexControlEffect
+         , SP.SigningProcessControlEffect
+        ]
+
+-- | The type of actions in the emulator.
 data MultiAgentEffect r where
-    -- | An direct action performed by a wallet. Usually represents a "user action", as it is
+    -- | A direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
+    -- | An action affecting the emulated parts of a wallet (only available in emulator)
+    WalletControlAction :: Wallet.Wallet -> Eff EmulatedWalletControlEffects r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
+-- | Run an action in the context of a wallet (ie. agent)
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r
+    -> Eff EmulatedWalletEffects r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
+
+-- | Run a control action in the context of a wallet
+walletControlAction
+    :: (Member MultiAgentEffect effs)
+    => Wallet.Wallet
+    -> Eff EmulatedWalletControlEffects r
+    -> Eff effs r
+walletControlAction wallet = send . WalletControlAction wallet
 
 assertion :: (Member MultiAgentEffect effs) => Assertion -> Eff effs ()
 assertion a = send (Assertion a)
@@ -217,6 +243,28 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
+    WalletControlAction wallet act -> act
+        & raiseEnd4
+        & subsume
+        & NC.handleNodeControl
+        & ChainIndex.handleChainIndexControl
+        & SP.handleSigningProcessControl
+        & interpret (handleZoomedState (walletState wallet))
+        & interpret (handleZoomedWriter p1)
+        & interpret (handleZoomedState (walletClientState wallet))
+        & interpret (handleZoomedWriter p2)
+        & interpret (handleZoomedState (walletChainIndexState wallet))
+        & interpret (handleZoomedWriter p3)
+        & interpret (handleZoomedState (signingProcessState wallet))
+        & interpret (writeIntoState emulatorLog)
+        where
+            p1 :: Prism' [EmulatorEvent] [Wallet.WalletEvent]
+            p1 = below (walletEvent wallet)
+            p2 :: Prism' [EmulatorEvent] [NC.NodeClientEvent]
+            p2 = below (walletClientEvent wallet)
+            p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
+            p3 = below (chainIndexEvent wallet)
+
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.

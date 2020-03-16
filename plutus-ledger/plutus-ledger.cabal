@@ -106,7 +106,8 @@ library
         newtype-generics -any,
         http-api-data -any,
         cardano-crypto -any,
-        deepseq -any
+        deepseq -any,
+        freer-simple -any
 
     ghc-options: -fprint-potential-instances
 

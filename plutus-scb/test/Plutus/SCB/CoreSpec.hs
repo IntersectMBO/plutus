@@ -1,11 +1,16 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
+import           Cardano.Node.Follower                         (NodeFollowerEffect)
 import           Control.Monad                                 (void)
+import           Control.Monad.Freer                           (Eff, LastMember, Member)
+import           Control.Monad.Freer.Error                     (Error)
+import           Control.Monad.Freer.Extra.Log                 (Log)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Data.Aeson                                    as JSON
 import qualified Data.Set                                      as Set
@@ -15,12 +20,21 @@ import           Ledger                                        (pubKeyAddress)
 import           Ledger.Ada                                    (lovelaceValueOf)
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
+import           Plutus.SCB.Effects.Contract                   (ContractEffect)
+import           Plutus.SCB.Effects.EventLog                   (EventLogEffect)
 import           Plutus.SCB.Events                             (ChainEvent)
-import           Plutus.SCB.TestApp                            (TestApp, runScenario, sync, valueAt)
+import           Plutus.SCB.TestApp                            (runScenario, sync, valueAt)
+import           Plutus.SCB.Types                              (SCBError)
 import           Test.QuickCheck.Instances.UUID                ()
 import           Test.Tasty                                    (TestTree, testGroup)
 import           Test.Tasty.HUnit                              (HasCallStack, assertEqual, testCase)
-import           Wallet.API                                    (ownPubKey)
+import           Wallet.API                                    (ChainIndexEffect, NodeClientEffect,
+                                                                SigningProcessEffect, WalletAPIError, WalletEffect,
+                                                                ownPubKey)
+import qualified Wallet.Emulator.Chain                         as Chain
+import           Wallet.Emulator.ChainIndex                    (ChainIndexControlEffect)
+import           Wallet.Emulator.NodeClient                    (NodeControlEffect)
+import           Wallet.Emulator.SigningProcess                (SigningProcessControlEffect)
 
 tests :: TestTree
 tests = testGroup "SCB.Core" [installContractTests, executionTests]
@@ -76,7 +90,7 @@ executionTests =
                       (lovelaceValueOf openingBalance)
                       balance0
               installContract "game"
-              --
+              -- need to add contract address to wallet's watched addresses
               uuid <- activateContract "game"
               sync
               assertTxCount
@@ -88,6 +102,7 @@ executionTests =
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
                       }
+              Chain.processBlock
               sync
               assertTxCount "Locking the game should produce one transaction" 1
               balance1 <- valueAt address
@@ -100,12 +115,14 @@ executionTests =
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
+              Chain.processBlock
               sync
               assertTxCount "A wrong guess still produces a transaction." 2
               guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
+              Chain.processBlock
               sync
               assertTxCount "A correct guess creates a third transaction." 3
               balance2 <- valueAt address
@@ -117,20 +134,56 @@ executionTests =
         ]
 
 assertTxCount ::
-       (HasCallStack, MonadIO m, MonadEventStore ChainEvent m)
+    ( Member (EventLogEffect ChainEvent) effs
+    , LastMember m effs
+    , MonadIO m)
     => String
     -> Int
-    -> m ()
+    -> Eff effs ()
 assertTxCount msg expected = do
     txs <-
         streamProjectionState <$>
         refreshProjection (globalStreamProjection txHistoryProjection)
     liftIO $ assertEqual msg expected $ length txs
 
-lock :: UUID -> Contracts.Game.LockParams -> TestApp ()
+lock ::
+    ( Member (Error WalletAPIError) effs
+    , Member (Error SCBError) effs
+    , Member (EventLogEffect ChainEvent) effs
+    , Member WalletEffect effs
+    , Member ChainIndexEffect effs
+    , Member NodeClientEffect effs
+    , Member SigningProcessEffect effs
+    , Member NodeControlEffect effs
+    , Member ChainIndexControlEffect effs
+    , Member SigningProcessControlEffect effs
+    , Member Log effs
+    , Member ContractEffect effs
+    , Member NodeFollowerEffect effs
+    )
+    => UUID
+    -> Contracts.Game.LockParams
+    -> Eff effs ()
 lock uuid params =
     updateContract uuid "lock" (toJSON params)
 
-guess :: UUID -> Contracts.Game.GuessParams -> TestApp ()
+guess ::
+    ( Member (Error WalletAPIError) effs
+    , Member (Error SCBError) effs
+    , Member (EventLogEffect ChainEvent) effs
+    , Member WalletEffect effs
+    , Member ChainIndexEffect effs
+    , Member NodeClientEffect effs
+    , Member SigningProcessEffect effs
+    , Member NodeControlEffect effs
+    , Member ChainIndexControlEffect effs
+    , Member SigningProcessControlEffect effs
+    , Member Log effs
+    , Member ContractEffect effs
+    , Member NodeFollowerEffect effs
+    )
+    => UUID
+    -> Contracts.Game.GuessParams
+    -> Eff effs ()
 guess uuid params =
     updateContract uuid "guess" (toJSON params)
