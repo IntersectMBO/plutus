@@ -125,7 +125,8 @@ partyTypes :: Array PartyType
 partyTypes = upFromIncluding bottom
 
 data TokenType
-  = CustomTokenType
+  = AdaTokenType
+  | CustomTokenType
 
 derive instance genericTokenType :: Generic TokenType _
 
@@ -448,6 +449,19 @@ toDefinition (PartyType PKPartyType) =
           ]
         , colour: "180"
         , output: Just "party"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+-- Ada Token type
+toDefinition (TokenType AdaTokenType) =
+  BlockDefinition
+    $ merge
+        { type: show AdaTokenType
+        , message0: "Ada"
+        , args0: []
+        , colour: "255"
+        , output: Just "token"
         , inputsInline: Just true
         }
         defaultBlockDefinition
@@ -992,6 +1006,8 @@ instance hasBlockDefinitionParty :: HasBlockDefinition PartyType Party where
     pure (Role role)
 
 instance hasBlockDefinitionToken :: HasBlockDefinition TokenType Token where
+  blockDefinition AdaTokenType g block = do
+    pure (Token "" "")
   blockDefinition CustomTokenType g block = do
     currSym <- getFieldValue block "currency_symbol"
     tokName <- getFieldValue block "token_name"
@@ -1182,6 +1198,9 @@ instance toBlocklyParty :: ToBlockly Party where
     setField block "role" role
 
 instance toBlocklyToken :: ToBlockly Token where
+  toBlockly newBlock workspace input (Token "" "") = do
+    block <- newBlock workspace (show AdaTokenType)
+    connectToOutput block input
   toBlockly newBlock workspace input (Token currSym tokName) = do
     block <- newBlock workspace (show CustomTokenType)
     connectToOutput block input
