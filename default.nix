@@ -13,7 +13,7 @@
 # Overrides for niv
 , sourcesOverride ? {}
 # Nixpkgs override
-, pkgs ? import ./nix { inherit system crossSystem config sourcesOverride; }
+, pkgs ? import ./nix/default.nix { inherit system crossSystem config sourcesOverride; }
 
 # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
@@ -32,9 +32,7 @@ let
     nixpkgsJsonOverride = ./nixpkgs.json;
   };
 
-  src = pkgs.haskell-nix.cleanSourceHaskell { src = ./.; };
-
-  pkgsMusl = import ./nix {
+  pkgsMusl = import ./nix/default.nix {
     inherit system config sourcesOverride;
     crossSystem = lib.systems.examples.musl64;
     overlays = [ (import ./nix/overlays/musl.nix) ];
@@ -59,7 +57,7 @@ in rec {
   git-rev = if isNull rev then iohkNix.commitIdFromGitRepo ./.git else rev;
 
   # set-git-rev is a function that can be called on a haskellPackages package to inject the git revision post-compile
-  set-git-rev = pkgs.callPackage ./scripts/set-git-rev {
+  set-git-rev = pkgs.callPackage ./scripts/set-git-rev/default.nix {
     inherit (haskell.packages) ghcWithPackages;
     inherit git-rev;
   };
@@ -77,7 +75,10 @@ in rec {
     extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; };
   };
 
-  tests = import ./nix/tests { inherit pkgs src iohkNix haskell; };
+  tests = import ./nix/tests/default.nix {
+    inherit pkgs iohkNix haskell;
+    src = pkgs.nix-gitignore.gitignoreSource [] ../.;
+  };
 
   docs = {
     plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
@@ -104,9 +105,9 @@ in rec {
   };
 
   papers = {
-    unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion { inherit (agdaPackages) Agda; inherit latex; };
-    system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
-    eutxo = pkgs.callPackage ./papers/eutxo { inherit latex; };
+    unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) Agda; inherit latex; };
+    system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
+    eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
   };
 
   plutus-playground = rec {
@@ -267,7 +268,7 @@ in rec {
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
 
-  metatheory = import ./metatheory {
+  metatheory = import ./metatheory/default.nix {
     inherit (agdaPackages) agda AgdaStdlib;
     inherit (pkgs.haskell-nix) cleanSourceHaskell;
     inherit (pkgs) lib;
