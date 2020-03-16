@@ -49,6 +49,7 @@ import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.List     (length)
 import           Language.PlutusTx.Prelude  hiding ((<>))
+import           Language.PlutusTx.Ratio    (denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (Datum (..))
@@ -132,7 +133,7 @@ data Token = Token CurrencySymbol TokenName
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
-{-| Values, as defined using Let are identified by name,
+{-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
 -}
 newtype ValueId = ValueId ByteString
@@ -142,13 +143,14 @@ newtype ValueId = ValueId ByteString
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
     and any choices that have already been made.
 
-    Values can also be combined using addition, subtraction and negation.
+    Values can also be scaled, and combined using addition, subtraction, and negation.
 -}
 data Value = AvailableMoney AccountId Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
            | SubValue Value Value
+           | Scale Rational Value
            | ChoiceValue ChoiceId Value
            | SlotIntervalStart
            | SlotIntervalEnd
@@ -441,6 +443,20 @@ evalValue env state value = let
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
+        Scale s rhs          -> let
+            num = numerator s
+            denom = denominator s
+            -- quotient and reminder
+            multiplied = num * eval rhs
+            (q, r) = multiplied `quotRem` denom
+            -- abs (rem (num/denom)) - 1/2
+            abs a = if a >= 0 then a else negate a
+            signum x = if x > 0 then 1 else if x == 0 then 0 else -1
+            sign :: Integer
+            sign = signum (2 * abs r - abs denom)
+            m = if r < 0 then q - 1 else q + 1
+            isEven = (q `remainder` 2) == 0
+            in if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
         ChoiceValue choiceId defVal ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x
@@ -930,6 +946,7 @@ instance Eq Value where
     NegValue val1 == NegValue val2 = val1 == val2
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
     SubValue val1 val2 == SubValue val3 val4 = val1 == val3 && val2 == val4
+    Scale s1 val1 == Scale s2 val2 = s1 == s2 && val1 == val2
     ChoiceValue cid1 val1 == ChoiceValue cid2 val2 = cid1 == cid2 && val1 == val2
     SlotIntervalStart == SlotIntervalStart = True
     SlotIntervalEnd   == SlotIntervalEnd   = True

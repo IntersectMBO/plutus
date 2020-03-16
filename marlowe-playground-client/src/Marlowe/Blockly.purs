@@ -235,6 +235,7 @@ data ValueType
   | NegValueValueType
   | AddValueValueType
   | SubValueValueType
+  | ScaleValueType
   | ChoiceValueValueType
   | SlotIntervalStartValueType
   | SlotIntervalEndValueType
@@ -819,6 +820,21 @@ toDefinition (ValueType SubValueValueType) =
         }
         defaultBlockDefinition
 
+toDefinition (ValueType ScaleValueType) =
+  BlockDefinition
+    $ merge
+        { type: show ScaleValueType
+        , message0: "%1 * %2"
+        , args0:
+          [ Input { name: "scale", text: "value", spellcheck: false }
+          , Value { name: "value", check: "value", align: Right }
+          ]
+        , colour: "135"
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition (ValueType ChoiceValueValueType) =
   BlockDefinition
     $ merge
@@ -1111,6 +1127,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
     value1 <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value1"
     value2 <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value2"
     pure (SubValue value1 value2)
+  blockDefinition ScaleValueType g block = do
+    scale <- parse Parser.rational =<< getFieldValue block "scale"
+    value <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value"
+    pure (Scale scale value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
@@ -1387,6 +1407,11 @@ instance toBlocklyValue :: ToBlockly Value where
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2
+  toBlockly newBlock workspace input (Scale s value) = do
+    block <- newBlock workspace (show ScaleValueType)
+    connectToOutput block input
+    setField block "scale" (show s)
+    inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input
