@@ -61,10 +61,9 @@ signWallets wallets = SigningProcess $ \_ tx ->
 instance Show SigningProcess where
     show = const "SigningProcess <...>"
 
-data SigningProcessEffect r where
-    AddSignatures :: [L.PubKeyHash] -> Tx -> SigningProcessEffect Tx
-    SetSigningProcess :: SigningProcess -> SigningProcessEffect ()
-makeEffect ''SigningProcessEffect
+data SigningProcessControlEffect r where
+    SetSigningProcess :: SigningProcess -> SigningProcessControlEffect ()
+makeEffect ''SigningProcessControlEffect
 
 type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
 

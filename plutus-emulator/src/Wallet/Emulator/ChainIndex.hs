@@ -28,11 +28,9 @@ import           Ledger.Address             (Address)
 import           Ledger.AddressMap          (AddressMap)
 import qualified Ledger.AddressMap          as AM
 
-data ChainIndexEffect r where
-    StartWatching :: Address -> ChainIndexEffect ()
-    WatchedAddresses :: ChainIndexEffect AM.AddressMap
-    ChainIndexNotify :: Notification -> ChainIndexEffect ()
-makeEffect ''ChainIndexEffect
+data ChainIndexControlEffect r where
+    ChainIndexNotify :: Notification -> ChainIndexControlEffect ()
+makeEffect ''ChainIndexControlEffect
 
 data ChainIndexEvent =
     AddressStartWatching Address

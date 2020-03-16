@@ -99,7 +99,8 @@ library
         text -any,
         recursion-schemes -any,
         deriving-compat -any,
-        prettyprinter >=1.1.0.1
+        prettyprinter >=1.1.0.1,
+        freer-simple -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors

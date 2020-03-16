@@ -51,12 +51,9 @@ data Notification = BlockValidated Block -- ^ A new block has been validated.
                   | CurrentSlot Slot -- ^ The current slot has changed.
                   deriving (Show, Eq)
 
-data NodeClientEffect r where
-    PublishTx :: Tx -> NodeClientEffect ()
-    GetClientSlot :: NodeClientEffect Slot
-    GetClientIndex :: NodeClientEffect AM.AddressMap
-    ClientNotify :: Notification -> NodeClientEffect ()
-makeEffect ''NodeClientEffect
+data NodeCotrolEffect r where
+    ClientNotify :: Notification -> NodeCotrolEffect () -- FIXME: NodeControlEffect
+makeEffect ''NodeCotrolEffect
 
 type NodeClientEffs = '[ChainEffect, State NodeClientState, Writer [NodeClientEvent]]
 

@@ -102,15 +102,6 @@ emptyWalletState :: Wallet -> WalletState
 emptyWalletState w = WalletState pk where
     pk = walletPrivKey w
 
-data WalletEffect r where
-    SubmitTxn :: Tx -> WalletEffect ()
-    OwnPubKey :: WalletEffect PubKey
-    UpdatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> WalletEffect (Set.Set TxIn, Maybe TxOut)
-    WalletSlot :: WalletEffect Slot
-    WalletLogMsg :: T.Text -> WalletEffect ()
-    OwnOutputs :: WalletEffect UtxoMap
-makeEffect ''WalletEffect
-
 type WalletEffs = '[NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
 
 handleWallet
@@ -149,23 +140,9 @@ handleWallet = interpret $ \case
         addr <- gets ownAddress
         view (at addr . non mempty) <$> NC.getClientIndex
 
--- HACK: these shouldn't exist, but WalletAPI needs to die first
-instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
-    ownPubKey = ownPubKey
-    updatePaymentWithChange = updatePaymentWithChange
-    ownOutputs = ownOutputs
-
-instance (Member WalletEffect effs) => WAPI.NodeAPI (Eff effs) where
-    submitTxn = submitTxn
-    slot = walletSlot
-
 instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAPIError (Eff effs) where
     throwError = throwError
     catchError = catchError
-
-instance (Member WalletEffect effs) => WAPI.WalletDiagnostics (Eff effs) where
-    logMsg = walletLogMsg
-
 -- UTILITIES: should probably be elsewhere
 
 -- Make a transaction output from a positive value.
