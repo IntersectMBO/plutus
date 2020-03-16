@@ -208,8 +208,19 @@
                                           [
                                             (lam
                                               b
-                                              (all a (type) (fun a (fun a a)))
-                                              [ [ { b Bool } True ] False ]
+                                              (con bool)
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      (builtin ifThenElse) Bool
+                                                    }
+                                                    b
+                                                  ]
+                                                  True
+                                                ]
+                                                False
+                                              ]
                                             )
                                             [
                                               [ (builtin equalsByteString) arg ]

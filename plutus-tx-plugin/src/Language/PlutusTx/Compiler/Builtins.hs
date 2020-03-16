@@ -79,7 +79,7 @@ a name). We should probably revisit this later.
 
 {- Note [Builtin types and Haskell types]
 Several of the PLC builtins use types that should (morally) line up with types that we compile from
-Haskell (see also Note [Which types map to builtin types?]). 
+Haskell (see also Note [Which types map to builtin types?]).
 But there is a problem: they use either primitive or Scott-encoded versions of these types,
 whereas when we compile them from Haskell they will end up as abstract types, and so the types
 won't line up at the call site.
@@ -405,14 +405,13 @@ scottBoolToHaskellBool = do
     haskellBoolTy <- compileType GHC.boolTy
 
     arg <- liftQuote $ freshName () "b"
-    let match = PIR.Var () arg
-    let instantiatedMatch = PIR.TyInst () match haskellBoolTy
+    let instantiatedMatch = PIR.TyInst () (PIR.builtinNameAsTerm PLC.IfThenElse) haskellBoolTy
 
     haskellTrue <- compileDataConRef GHC.trueDataCon
     haskellFalse <- compileDataConRef GHC.falseDataCon
     pure $
         PIR.LamAbs () arg scottBoolTy $
-        PIR.mkIterApp () instantiatedMatch [ haskellTrue, haskellFalse ]
+        PIR.mkIterApp () instantiatedMatch [ (PIR.Var () arg), haskellTrue, haskellFalse ]
 
 -- | Eta-expand a function with the given argument types.
 etaExpand :: Compiling uni m => [PIRType uni] -> PIRTerm uni -> m (PIRTerm uni)
