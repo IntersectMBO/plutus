@@ -24,6 +24,7 @@ import           Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name

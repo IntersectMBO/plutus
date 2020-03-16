@@ -24,8 +24,6 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
-    , AnEvaluator
-    , Evaluator
     , unliftConstant
     , OpaqueTerm (..)
     , KnownType (..)
@@ -129,14 +127,6 @@ data DynamicBuiltinNameDefinition uni =
 newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
-
--- | A thing that evaluates @f@ in monad @m@, returns an @a@ and allows to extend the set of
--- dynamic built-in names.
-type AnEvaluator f uni m a = DynamicBuiltinNameMeanings uni -> f TyName Name uni () -> m a
-
--- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
--- dynamic built-in names.
-type Evaluator f uni m = AnEvaluator f uni m (Term TyName Name uni ())
 
 {- Note [The reverse example]
 Having a dynamic built-in with the following signature:

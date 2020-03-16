@@ -16,6 +16,7 @@ import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty

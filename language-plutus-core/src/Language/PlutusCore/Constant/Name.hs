@@ -209,7 +209,7 @@ typedGtByteString
     => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedGtByteString = makeTypedBuiltinName GtByteString
 
--- | Typed 'GtByteString'.
+-- | Typed 'IfThenElse'.
 typedIfThenElse
     :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
     => TypedBuiltinName uni '[Bool, OpaqueTerm uni "a" 0, OpaqueTerm uni "a" 0] (OpaqueTerm uni "a" 0)
