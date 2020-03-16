@@ -24,6 +24,8 @@ import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
+import Data.List (partition)
+import Debug.Trace
 
 {- Note [Float algorithm]
 
@@ -169,7 +171,6 @@ instance Ord Rank where
   compare = compare `on` _depth
 
 -- | We are interested in maximal ranks, and thus we use Rank similar to 'Data.Semigroup.Max'.
--- OPTIMIZE: we could get rid of the following Semigroup and Monoid instances by wrapping with 'Data.Semigroup.Max'.
 instance Semigroup Rank where
   r1 <> r2 = max r1 r2
 
@@ -185,6 +186,7 @@ type P1Ctx = ( P1Data  --  the lambdas-in-scope that surround an expression
 
 -- | During the first pass of the AST, we build an intermediate table to hold the maximum ranks of each let encountered so far.
 -- This intermediate table will be transformed right at the end of 1st pass to 'FloatData'.
+-- OPTIMIZE: use UniqueMap (aka IntMap) instead of `Map PLC.Unique`
 type P1Data = M.Map
               PLC.Unique --  the identifier introduced by a let-binding
               ( Rank --  its calculated maximum rank, i.e. where this identifier can topmost/highest float outwards to
@@ -343,7 +345,7 @@ p2Term :: forall name tyname uni a
       => Term tyname name uni a --
       -> FloatData
       -> Term tyname name uni a
-p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any lets around the top-level expression (body)
+p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2nd pass by trying to float any lets around the top-level expression (body)
  where
   -- | Prior to starting the second pass, we clean the term from all its let-declarations and store them separately in a table.
   -- The 2nd pass will later re-introduce these let-declarations, potentially placing them differently than before, thus essentially "floating the lets".
@@ -353,16 +355,17 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   ---------------------
 
   -- | visit each term to apply the float transformation
+  -- TODO: stop descending when state==mempty?
   goTerm :: Int -- ^ current depth
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
          -> Term tyname name uni a
-         -> Term tyname name uni a
+         -> State [S.Set PLC.Unique] (Term tyname name uni a)
   goTerm curDepth searchTable = \case
       -- we are only interested in lambdas/Lambdas
-      LamAbs a n ty tBody -> LamAbs a n ty $ goAbs curDepth searchTable n tBody
-      TyAbs a n k tBody  -> TyAbs a n k $ goAbs curDepth searchTable n tBody
+      LamAbs a n ty tBody -> LamAbs a n ty <$> goAbs curDepth searchTable n tBody
+      TyAbs a n k tBody  -> TyAbs a n k <$> goAbs curDepth searchTable n tBody
       -- descend otherwise to apply the transformations to subterms
-      t -> over termSubterms (goTerm curDepth searchTable) t
+      t -> termSubterms (goTerm curDepth searchTable) t
 
   -- | If a lambda/Lambda is found, the current location is updated (depth+lamUnique) and try to float its body
   goAbs :: PLC.HasUnique b b'
@@ -370,7 +373,7 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
         -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
         -> b                  -- ^ lambda/Lambda's unique
         -> Term tyname name uni a -- ^ lambda/Lambda's body
-        -> Term tyname name uni a
+        -> State [S.Set PLC.Unique] (Term tyname name uni a)
   goAbs oldDepth floatData n tBody =
     let newLam = LamDep (oldDepth+1) (n^.PLC.unique.coerced)
     in goFloat newLam tBody floatData
@@ -380,11 +383,12 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
   goFloat :: Rank -- ^ the rank/location of the lambda above that has this body
          -> Term tyname name uni a                           -- ^ the body term
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
-         -> Term tyname name uni a                           -- ^ the transformed body term
-  goFloat aboveLamLoc tBody floatData =
+         -> State [S.Set PLC.Unique] (Term tyname name uni a)                           -- ^ the transformed body term
+  goFloat aboveLamLoc tBody floatData  =
+    traceShow (aboveLamLoc^.depth, length floatData) $
    -- look for the next smallest depth remaining to place
    case IM.minViewWithKey floatData of
-     Nothing -> tBody -- nothing left to float
+     Nothing -> pure tBody -- nothing left to float
      Just ((searchingForDepth, searchingForLams_Lets), restFloatData) ->
       let curDepth = aboveLamLoc^.depth
       in case curDepth `compare` searchingForDepth of
@@ -396,7 +400,7 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
         let tBody' = goTerm curDepth restFloatData tBody
         in case M.lookup aboveLamLoc searchingForLams_Lets of
              -- the lambda above-this-body has some let-rhses to insert (float) here.
-             Just lets -> wrapLets lets curDepth restFloatData tBody'
+             Just lets -> wrapLets lets curDepth restFloatData =<< tBody'
              -- nothing to do for the lambda above, i.e. no let-rhses to insert here
              _         -> tBody'
       GT -> error "This shouldn't happen, because the algorithm takes care to stop descending when EQ is reached."
@@ -404,6 +408,7 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
 
   -- | the dependency graph (as the one used by the deadcode elimination)
   -- but w/o the root node and only uses the Var's Unique as the node id
+  -- OPTIMIZE: by using AdjacencyIntMap
   depGraph :: AM.AdjacencyMap PLC.Unique
   depGraph = AM.gmap (\case Variable u -> u; _ -> error "just for completion")
              $ AM.removeVertex Root -- we remove Root because we do not care about it
@@ -421,8 +426,12 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
 
   -- |take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
-  topSortedSccs :: [AMN.AdjacencyMap PLC.Unique]
-  topSortedSccs = fromMaybe (error "Cycle detected in the depgraph. This shouldn't happen in the first place.") $ AM.topSort $ AM.scc reducedDepGraph
+  topSortedSccs :: [S.Set PLC.Unique]
+  topSortedSccs =
+    let allLets1 = M.keysSet rhsTable in
+    filter (`S.isSubsetOf` allLets1)
+    . fmap AMN.vertexSet -- we are not interested in graph structure anymore
+    . fromMaybe (error "Cycle detected in the depgraph. This shouldn't happen in the first place.") $ AM.topSort $ AM.scc reducedDepGraph
 
   -- | Groups a given set of lets into one or more multilets and wraps these multilets around a given term.
   -- The grouping is done through the strongly-connected components
@@ -435,35 +444,29 @@ p2Term pir = goFloat Top pirClean -- start the 2nd pass by trying to float any l
            -> Int -- ^ current depth
            -> FloatData -- ^ the remaining data to be floated
            -> Term tyname name uni a                           -- ^ the term to be wrapped
-           -> Term tyname name uni a                           -- ^ the final wrapped term
-  wrapLets lets curDepth restDepthTable t =
-    foldl (\ acc scc ->
-             let vs = AMN.vertexSet scc
-             in if vs `S.isSubsetOf` lets -- mandatory check to see if this scc belongs to this rank, because we fold over all sccs
-                then -- Recursively float all terms of RHSes.
-                     -- Group the transformed RHSes into a new let-group (since they depend on each other).
-                     -- The group gets a common annotation, recursion and a GROUPING (i.e. list) of transformed bindings of the RHSes
-                     let (mAnn, mRecurs, newBindings) =
-                           foldMap (\ v ->
-                                       case M.lookup v rhsTable of
-                                         Just rhs ->
-                                           -- lift each resulting binding in a list monoid to accumulate them
-                                           over _3 pure $
-                                           -- visit the generated rhs-term as well for any potential floating
-                                           over (_3.bindingSubterms)
-                                                (goTerm curDepth restDepthTable)
-                                                rhs
-                                         _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
-                                   ) vs
-                     in case acc of
+           -> State [S.Set PLC.Unique] (Term tyname name uni a)                           -- ^ the final wrapped term
+  wrapLets lets curDepth restDepthTable t = do
+    sccs <-get
+    let (hereSccs, restSccs) = partition (`S.isSubsetOf` lets)  sccs
+    put $! restSccs
+    foldM (\ acc scc -> do
+              res <- forM (S.toList scc) (\ v ->
+                                                          case M.lookup v rhsTable of
+                                                            Just rhs ->
+                                                              -- lift each resulting binding in a list monoid to accumulate them
+                                                              -- visit the generated rhs-term as well for any potential floating
+                                                              (_3.bindingSubterms) (goTerm curDepth restDepthTable) rhs
+                                                            _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
+                                                       )
+              let (mAnn, mRecurs, newBindings) = foldMap (over _3 pure) res
+              pure $ case acc of
                        -- merge current let-group with previous let-group iff both groups' recursivity is NonRec
                        Let accAnn NonRec accBs accIn | mRecurs == NonRec -> Let (mAnn <> accAnn) NonRec (newBindings <> accBs) accIn
                        -- never merge if the previous let-group is a Rec or the current let-group is Rec,
                        -- but instead create a nested current let-group under the previous let-group (above)
                        _ -> Let mAnn mRecurs newBindings acc
-               else acc -- skip this scc, we are not interested in it right now
-             ) t topSortedSccs
 
+             ) t hereSccs
 
 -- | The main transformation function (Term -> Term) that returns a term with all lets floated as outwards as possible (full laziness).
 -- Is comprised of two AST "passes":
@@ -491,3 +494,8 @@ principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerc
                        TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
                        -- arbitrary: uses the type construtors' unique as the principal unique of this data binding group
                        DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.unique . coerced
+
+
+smallerSetHasCommon :: Ord a => S.Set a -> S.Set a -> Bool
+smallerSetHasCommon m n = S.size m <= S.size n
+                        && any (`S.member` n) m
