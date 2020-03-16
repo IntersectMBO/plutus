@@ -94,7 +94,6 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
-        async -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
@@ -148,6 +147,7 @@ executable plutus-scb
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         aeson -any,
+        async -any,
         base >=4.9 && <5,
         bytestring -any,
         ekg -any,
