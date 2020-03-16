@@ -1,9 +1,9 @@
 {-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE DataKinds         #-}
 
 module Language.PlutusTx.Compiler.Types where
 
