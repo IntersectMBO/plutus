@@ -45,7 +45,7 @@ data Command
     | MockNode
     | MockWallet
     | ChainIndex
-    | AllServers
+    | ForkCommands [Command]
     | SigningProcess
     | InstallContract FilePath
     | ActivateContract FilePath
@@ -142,7 +142,7 @@ allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
     info
-        (pure AllServers)
+        (pure (ForkCommands [MockNode, MockWallet, ChainIndex, SigningProcess]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
 signingProcessParser :: Mod CommandFields Command
@@ -233,14 +233,10 @@ runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
         (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
-runCliCommand config AllServers =
-    App $
-    liftIO $ do
-        threads <-
-            traverse
-                forkCommand
-                [MockNode, MockWallet, ChainIndex, SigningProcess]
-        void $ waitAny threads
+runCliCommand config (ForkCommands commands) =
+    App . void . liftIO $ do
+        threads <- traverse forkCommand commands
+        waitAny threads
   where
     forkCommand :: Command -> IO (Async ())
     forkCommand = async . void . runApp config . runCliCommand config
