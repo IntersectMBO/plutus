@@ -16,7 +16,6 @@ module Language.PlutusCore.TypeCheck.Internal
     , TypeCheckM
     , tccDoNormTypes
     , tccDynamicBuiltinNameTypes
-    , tccMayGas
     , runTypeCheckM
     , inferKindM
     , checkKindM
@@ -39,7 +38,6 @@ import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
 import           Control.Lens.TH                        (makeLenses)
-import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Map                               (Map)
@@ -108,9 +106,6 @@ data TypeCheckConfig uni = TypeCheckConfig
     { _tccDoNormTypes             :: Bool
       -- ^ Whether to normalize type annotations.
     , _tccDynamicBuiltinNameTypes :: DynamicBuiltinNameTypes uni
-    , _tccMayGas                  :: Maybe Gas
-      -- ^ The upper limit on the length of type reductions.
-      -- If set to 'Nothing', type reductions will be unbounded.
     }
 
 -- | The environment that the type checker runs in.
@@ -193,25 +188,9 @@ dummyType = TyVar () dummyTyName
 -- ## Type normalization ##
 -- ########################
 
--- | Run a 'NormalizeTypeT' computation in the 'TypeCheckM' context.
--- Depending on whether gas is finite or infinite, calls either
--- 'Norm.runNormalizeTypeFullM' or 'Norm.runNormalizeTypeGasM'.
--- Throws 'OutOfGas' if type normalization runs out of gas.
-runNormalizeTypeTM
-    :: (forall m. MonadQuote m => Norm.NormalizeTypeT m tyname uni ann1 a) -> TypeCheckM uni ann2 a
-runNormalizeTypeTM a = do
-    mayGas <- asks $ _tccMayGas . _tceTypeCheckConfig
-    case mayGas of
-        Nothing  -> Norm.runNormalizeTypeFullM a
-        Just gas -> do
-            mayX <- Norm.runNormalizeTypeGasM gas a
-            case mayX of
-                Nothing -> throwing _TypeError OutOfGas
-                Just x  -> pure x
-
 -- | Normalize a 'Type'.
 normalizeTypeM :: Type TyName uni () -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-normalizeTypeM ty = runNormalizeTypeTM $ Norm.normalizeTypeM ty
+normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
@@ -219,7 +198,7 @@ substNormalizeTypeM
     -> TyName ()                    -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-substNormalizeTypeM ty name body = runNormalizeTypeTM $ Norm.substNormalizeTypeM ty name body
+substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
 
 -- | Normalize a 'Type' or simply wrap it in the 'NormalizedType' constructor
 -- if we are working with normalized type annotations.
@@ -344,7 +323,7 @@ inferTypeOfBuiltinM
 -- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinM (BuiltinName    _   name) = normalizeTypeFull $ typeOfBuiltinName name
+inferTypeOfBuiltinM (BuiltinName    _   name) = normalizeType $ typeOfBuiltinName name
 -- TODO: inline this definition once we have only dynamic built-in names.
 inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann name
 

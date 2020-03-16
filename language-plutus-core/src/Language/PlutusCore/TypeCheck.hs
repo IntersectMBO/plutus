@@ -9,8 +9,6 @@ module Language.PlutusCore.TypeCheck
     , TypeCheckConfig (..)
     , tccDoNormTypes
     , tccDynamicBuiltinNameTypes
-    , tccMayGas
-    , defTypeCheckGas
     , onChainConfig
     , offChainConfig
     , defOnChainConfig
@@ -38,21 +36,17 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 
--- | The default amount of gas to run the type checker with.
-defTypeCheckGas :: Gas
-defTypeCheckGas = Gas 1000
-
 -- | The 'TypeCheckConfig' used on the chain.
-onChainConfig :: DynamicBuiltinNameTypes uni -> Gas -> TypeCheckConfig uni
-onChainConfig tys = TypeCheckConfig False tys . Just
+onChainConfig :: DynamicBuiltinNameTypes uni -> TypeCheckConfig uni
+onChainConfig = TypeCheckConfig False
 
 -- | The 'TypeCheckConfig' used off the chain.
 offChainConfig :: DynamicBuiltinNameTypes uni -> TypeCheckConfig uni
-offChainConfig tys = TypeCheckConfig True tys Nothing
+offChainConfig = TypeCheckConfig True
 
 -- | The default 'TypeCheckConfig' used on the chain.
 defOnChainConfig :: TypeCheckConfig uni
-defOnChainConfig = onChainConfig mempty defTypeCheckGas
+defOnChainConfig = onChainConfig mempty
 
 -- | The default 'TypeCheckConfig' used off the chain.
 defOffChainConfig :: TypeCheckConfig uni
@@ -67,7 +61,7 @@ dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
     let getType mean = do
             let ty = dynamicBuiltinNameMeaningToType mean
             _ <- inferKind (offChainConfig mempty) $ ann <$ ty
-            pure <$> normalizeTypeFull ty
+            pure <$> normalizeType ty
     DynamicBuiltinNameTypes <$> traverse getType means
 
 -- | Infer the kind of a type.

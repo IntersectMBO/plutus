@@ -150,7 +150,7 @@ fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
 fromCompiledCode = fromPlc . getPlc
 
 fromPlc :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () -> Script
-fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
+fromPlc = Script . PLC.runQuote . PLC.normalizeTypesInProgram
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
