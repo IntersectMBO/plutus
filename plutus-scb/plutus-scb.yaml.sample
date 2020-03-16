@@ -15,3 +15,8 @@ nodeServerConfig:
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083
+
+signingProcessConfig:
+  spBaseUrl: http://localhost:8084
+  spWallet: 
+    getWallet: 1
