@@ -9,6 +9,7 @@ module Plutus.SCB.Types where
 
 import qualified Cardano.ChainIndex.Types                   as ChainIndex
 import qualified Cardano.Node.Server                        as NodeServer
+import qualified Cardano.SigningProcess.Server              as SigningProcess
 import qualified Cardano.Wallet.Server                      as WalletServer
 import           Control.Lens.TH                            (makePrisms)
 import           Data.Aeson                                 (FromJSON, ToJSON)
@@ -59,6 +60,7 @@ data SCBError
     | ContractError (ResumableError Text)
     | WalletClientError ServantError
     | NodeClientError ServantError
+    | SigningProcessError ServantError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
     | OtherError Text
@@ -116,10 +118,11 @@ data DbConfig =
 
 data Config =
     Config
-        { dbConfig           :: DbConfig
-        , walletServerConfig :: WalletServer.Config
-        , nodeServerConfig   :: NodeServer.MockServerConfig
-        , chainIndexConfig   :: ChainIndex.ChainIndexConfig
+        { dbConfig             :: DbConfig
+        , walletServerConfig   :: WalletServer.Config
+        , nodeServerConfig     :: NodeServer.MockServerConfig
+        , chainIndexConfig     :: ChainIndex.ChainIndexConfig
+        , signingProcessConfig :: SigningProcess.SigningProcessConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
 

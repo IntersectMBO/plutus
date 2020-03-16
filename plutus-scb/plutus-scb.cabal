@@ -55,6 +55,9 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.SigningProcess.API
+        Cardano.SigningProcess.Server
+        Cardano.SigningProcess.Client
         Cardano.Wallet.API
         Cardano.Wallet.Client
         Cardano.Wallet.Mock
