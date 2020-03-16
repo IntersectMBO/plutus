@@ -1034,7 +1034,7 @@ recursion using an \verb|ifix|-based analogue of the $Z$ combinator).
 % to \verb|ifix|.
 
 \begin{appendices}
-\section{Unrestricted Algorithmic Type System}
+\section{Algorithmic Type System}
 
 For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
@@ -1044,29 +1044,7 @@ each rule that is different, where possible
 (Figures~\ref{fig:contexts_algorithmic_unrestricted}
 and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
 
-\subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
-
-\newpage
-
-\section{Restricted Algorithmic Type System}
-
-For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalised types are present in
-programs, so as to reduce the amount of computation necessary to
-typecheck a program. It's also useful to have a way of bounding the
-amount of computation that can be done in type checking, for security
-purposes. To that end, we present a restricted grammar and type
-reduction, and a type system that reflects these.
-Figures~\ref{fig:grammar_algorithmic_restricted}--\ref{fig:type_synthesis_algorithmic_restricted}
-are additions with respect to the unrestricted version, and show only
-the new or changed figures and their respective highlighted
-differences.
-
-\subfile{figures/Grammar-Algorithmic-Restricted.tex}
-
-\subfile{figures/Reduction-Algorithmic-Restricted.tex}
-
-\subfile{figures/TypeSynthesis-Algorithmic-Restricted.tex}
+\subfile{figures/TypeSynthesis-Algorithmic.tex}
 
 \end{appendices}
 
