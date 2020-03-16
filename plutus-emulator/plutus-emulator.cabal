@@ -45,6 +45,7 @@ library
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.SigningProcess
         Wallet.Emulator.Wallet
+        Wallet.Emulator.Diagnostics
         Wallet.Rollup
         Wallet.Rollup.Types
         Wallet.Rollup.Render
