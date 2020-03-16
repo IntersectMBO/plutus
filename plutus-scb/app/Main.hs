@@ -239,7 +239,7 @@ runCliCommand _ ReportTxHistory = do
     logInfoN "Transaction History"
     traverse_ (logInfoN . render . pretty) =<< Core.txHistory
 runCliCommand _ (UpdateContract uuid endpoint payload) =
-    Core.updateContract (FollowerID 1) uuid endpoint payload
+    Core.updateContract (FollowerID 0) uuid endpoint payload
 runCliCommand _ (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
