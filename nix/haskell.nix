@@ -12,7 +12,11 @@
 let
   pkgSet = haskell-nix.stackProject {
     # haskell.nix cleanGit doesn't play well with lorri, see https://github.com/input-output-hk/haskell.nix/issues/492
-    src = haskell-nix.cleanSourceHaskell { src = pkgs.nix-gitignore.gitignoreSource [] ../.; };
+    src = haskell-nix.cleanSourceHaskell {
+      src = ../.;
+      # revert when I figure out why this breaks projectPackages
+      #src = pkgs.nix-gitignore.gitignoreSource [] ../.;
+    };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
     stack-sha256 = "0gcfzhjggf3xd7xsdjakfx5k4l20kjl0jys5l40agqrd6g41097l";
