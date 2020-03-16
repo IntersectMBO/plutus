@@ -31,11 +31,10 @@ startWatching :: Address -> ClientM NoContent
   where
     api = client (Proxy @API)
     getWallets_ = api & left
-    active_ = api & right & left
-    getOwnPubKey_ = active_ & left
-    getWatchedAddresses_ = active_ & right & left
-    startWatching_ = active_ & right & right
-    byWalletId = api & right & right
+    getOwnPubKey_ = api & right & left
+    getWatchedAddresses_ = api & right & right & left
+    startWatching_ = api & right & right & right & left
+    byWalletId = api & right & right & right & right
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
 
