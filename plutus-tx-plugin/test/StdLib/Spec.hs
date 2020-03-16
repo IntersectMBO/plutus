@@ -82,8 +82,9 @@ testReduce = Hedgehog.property $ do
 testOrd :: Property
 testOrd = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen
-    n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+    let genNonzero = Gen.filter (\i -> not (i == 0)) gen
+    n1 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
+    n2 <- Hedgehog.forAll $ (%) <$> gen <*> genNonzero
     let ghcResult = n1 <= n2
         plutusResult = (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
     Hedgehog.annotateShow ghcResult
