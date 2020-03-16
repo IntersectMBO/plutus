@@ -99,14 +99,16 @@ i ≥? j = j ≤? i
 
 ## Type constants
 
-We have three base types referred to as type constants, integer,
-bytestring and string.
+We have six base types referred to as type constants:
 
 \begin{code}
 data TyCon : Set where
   integer    : TyCon
   bytestring : TyCon
   string     : TyCon
+  char       : TyCon
+  unit       : TyCon
+  bool       : TyCon
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                   #-}
 {-# FOREIGN GHC import Language.PlutusCore                                #-}
@@ -114,5 +116,8 @@ data TyCon : Set where
 {-# FOREIGN GHC pattern TyInteger    = Some (TypeIn DefaultUniInteger)    #-}
 {-# FOREIGN GHC pattern TyByteString = Some (TypeIn DefaultUniByteString) #-}
 {-# FOREIGN GHC pattern TyString     = Some (TypeIn DefaultUniString)     #-}
-{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString) #-}
+{-# FOREIGN GHC pattern TyChar       = Some (TypeIn DefaultUniChar)       #-}
+{-# FOREIGN GHC pattern TyUnit       = Some (TypeIn DefaultUniUnit)       #-}
+{-# FOREIGN GHC pattern TyBool       = Some (TypeIn DefaultUniBool)       #-}
+{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyChar | TyUnit | TyBool) #-}
 \end{code}
