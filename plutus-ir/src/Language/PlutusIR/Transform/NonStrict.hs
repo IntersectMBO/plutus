@@ -8,7 +8,6 @@ import           Language.PlutusIR
 import           Language.PlutusIR.Transform.Rename        ()
 import           Language.PlutusIR.Transform.Substitute
 
-import qualified Language.PlutusCore                       as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.ScottUnit as Unit
 
