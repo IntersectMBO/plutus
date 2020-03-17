@@ -137,13 +137,3 @@ data _⊢⋆_ : Ctx⋆ → Kind → Set where
 \end{code}
 
 Let `A`, `B`, `C` range over types.
-
-## Type Abbreviations
-TODO: these should be in the stdlib
-\begin{code}
-unit : ∀{Γ} → Γ ⊢⋆ *
-unit = Π (` Z ⇒ ` Z)
-
-boolean : ∀{Γ} → Γ ⊢⋆ *
-boolean = Π (` Z ⇒ ` Z ⇒ ` Z)
-\end{code}

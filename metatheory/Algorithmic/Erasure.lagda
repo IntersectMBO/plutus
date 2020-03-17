@@ -15,8 +15,8 @@ open import Function hiding (_∋_)
 open import Builtin
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean as DS
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf as AS
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con as DS
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con as AS
 open import Type.RenamingSubstitution as T renaming (subst to sub) 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -45,6 +45,7 @@ eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
 eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
+eraseTC (AC.bool b)       = bool b
 
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → A.Tel Γ Δ σ As
@@ -104,6 +105,7 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
+sameTC (DC.bool b)       = refl
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -271,6 +273,7 @@ same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
 same'TC (AC.integer i)    = refl
 same'TC (AC.bytestring b) = refl
 same'TC (AC.string s)     = refl
+same'TC (AC.bool b)       = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

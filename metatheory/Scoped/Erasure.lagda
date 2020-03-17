@@ -29,6 +29,7 @@ eraseTC : Scoped.TermCon → Untyped.TermCon
 eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
+eraseTC (bool b)       = bool b
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢ 
 eraseList : ∀{n}{i : Weirdℕ n} → List (ScopedTm i) → List (len i ⊢)

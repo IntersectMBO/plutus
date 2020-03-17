@@ -24,7 +24,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNormal.Equality
 \end{code}
 
@@ -65,6 +65,7 @@ renTermCon : ∀ {Φ Ψ}
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
+renTermCon ρ⋆ (bool b)       = bool b
 \end{code}
 
 \begin{code}
@@ -166,6 +167,7 @@ substTermCon : ∀ {Φ Ψ}
 substTermCon σ⋆ (integer i)    = integer i
 substTermCon σ⋆ (bytestring b) = bytestring b
 substTermCon σ⋆ (string s)     = string s
+substTermCon σ⋆ (bool b)       = bool b
 \end{code}
 
 \begin{code}

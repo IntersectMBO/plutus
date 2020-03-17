@@ -1,6 +1,5 @@
 \begin{code}
 open import Builtin.Constant.Type
-open import Data.Nat
 \end{code}
 
 \begin{code}
@@ -13,6 +12,7 @@ module Builtin.Constant.Term
 
 open import Data.Integer
 open import Data.String
+open import Data.Bool
 \end{code}
 
 ## Term Constants
@@ -27,5 +27,8 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
     → TermCon (con bytestring)
   string     :
       (s : String)
-    → TermCon (con string) 
+    → TermCon (con string)
+  bool       :
+      (b : Bool)
+    → TermCon (con bool)
 \end{code}

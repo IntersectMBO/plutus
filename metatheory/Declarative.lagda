@@ -12,7 +12,7 @@ open import Builtin
 
 -- these things should perhaps be rexported...
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 
 open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
