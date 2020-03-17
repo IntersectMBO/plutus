@@ -15,8 +15,8 @@
                        &        &     & \ckerror{}     & \textrm{throw an error}
     \end{array}\]
 
-    \captionof{figure}{Grammar of Untyped CK Machine States}
-    \label{fig:untyped-ck-frames}
+    \captionof{figure}{Grammar of CK Machine States for type-erased Plutus Core}
+    \label{fig:erased-ck-frames}
 \end{subfigure}
 
 
@@ -48,11 +48,11 @@
                                                  &~\mapsto~& s,\inBuiltinU{bn}{\repetition{\erase{V}} \erase{V}}{\_}{\repetition{\erase{M}}} \compute \erase{M}\\
     \end{alignat*}
 \end{minipage}
-    \caption{Untyped CK Machine Transitions}
-    \label{fig:untyped-ck-transitions}
+    \caption{CK Machine Transitions for type-erased Plutus Core}
+    \label{fig:erased-ck-transitions}
 \end{subfigure}
-\caption{The untyped CK machine}
-\label{fig:untyped-ck-machine}
+\caption{A CK machine for type-erased Plutus Core}
+\label{fig:erased-ck-machine}
 \end{figure}
 
 %% The rule for builtins looks a bit strange. For one thing, it gives
