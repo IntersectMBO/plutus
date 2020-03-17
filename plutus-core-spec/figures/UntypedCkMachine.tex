@@ -31,7 +31,7 @@
   s & \compute \lamU{x}{M}                       &~\mapsto~& s \return \lamU{x}{M}\\
   s & \compute \delay{M}                         &~\mapsto~& s \return \delay{M}\\
   s & \compute \force{M}                         &~\mapsto~& s,\inForceFrame{} \compute M \\
-  s & \compute \appU{M}{N}                       &~\mapsto~& s \inAppLeftFrame{N} \compute M\\
+  s & \compute \appU{M}{N}                       &~\mapsto~& s,\inAppLeftFrame{N} \compute M\\
   s & \compute \builtinU{bn}{\!\!}               &~\mapsto~& s \compute M
                                                  \quad (\textit{$bn$ computes to $M$ according to Fig.~\ref{fig:builtins} }) \\
   s & \compute \builtinU{bn}{M \repetition{M}}   &~\mapsto~& s,\inBuiltinU{bn}{}{\_}{\repetition{M}} \compute M\\
