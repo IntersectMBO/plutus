@@ -48,4 +48,4 @@ handleNodeFollower = interpret $ \case
         let newLastBlock = length chain
         logDebug $ "New last block: " <> tshow newLastBlock
         assign (_NodeFollowerState . at i) (Just newLastBlock)
-        pure $ take (newLastBlock - lastBlock) $ reverse chain
+        pure $ reverse $ take (newLastBlock - lastBlock) chain
