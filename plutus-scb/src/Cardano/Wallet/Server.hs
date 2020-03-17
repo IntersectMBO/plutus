@@ -54,7 +54,7 @@ app mVarState =
     serve (Proxy @API) $
     hoistServer (Proxy @API) (asHandler mVarState) $
     wallets :<|> getOwnPubKey :<|> getWatchedAddresses :<|> startWatching :<|>
-    capture (selectCoin :<|> allocateAddress)
+    capture (selectCoin :<|> allocateAddress) :<|> valueAt
 
 main :: (MonadIO m, MonadLogger m) => Config -> BaseUrl -> m ()
 main Config {baseUrl} nodeBaseUrl = do
