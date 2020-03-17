@@ -27,24 +27,25 @@
 \hspace{-1cm}\begin{minipage}{\linewidth}
 % To stop "bn computes to ...'' going over the edge of the page
 \begin{alignat*}{2}
-        \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
-        \cksteps{\ckforward{s&}{\lamU{x}{M}}&} {&\ckbackward{s}{\lamU{x}{M}}}\\
-        \cksteps{\ckforward{s&}{\delay{M}}&} {&\ckbackward{s}{\delay{M}}}\\
-        \cksteps{\ckforward{s&}{\force{M}}&} {&\ckforward{s, \inForceFrame{}}{M}}\\
-        \cksteps{\ckforward{s&}{\appU{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtinU{bn}{\!\!}}&} {&\ckforward{s}{M}}
-        \quad (\textit{$bn$ computes to $M$ according to Fig.~\ref{fig:builtins} }) \\
-       \cksteps{\ckforward{s&}{\builtinU{bn}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltinU{bn}{}{\_}{\repetition{M}}}{M}}\\
-       \cksteps{\ckforward{s&}{\errorU}&} {&\ckerror{}}\\
-       \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
-        \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
-        \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
-        \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
-        \cksteps{\ckbackward{s, \inForceFrame{}&}{\delay{M}}&} {&\ckforward{s}{M}}\\
-        \cksteps{\ckbackward{s, \inBuiltinU{bn}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}}
-          \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
-          \cksteps{\ckbackward{s, \inBuiltinU{bn}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&}
-                  {&\ckforward{s, \inBuiltinU{bn}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
+  s & \compute \con{cn}                          &~\mapsto~& s \return \con{cn}\\
+  s & \compute \lamU{x}{M}                       &~\mapsto~& s \return \lamU{x}{M}\\
+  s & \compute \delay{M}                         &~\mapsto~& s \return \delay{M}\\
+  s & \compute \force{M}                         &~\mapsto~& s,\inForceFrame{} \compute M \\
+  s & \compute \appU{M}{N}                       &~\mapsto~& s \inAppLeftFrame{N} \compute M\\
+  s & \compute \builtinU{bn}{\!\!}               &~\mapsto~& s \compute M
+                                                 \quad (\textit{$bn$ computes to $M$ according to Fig.~\ref{fig:builtins} }) \\
+  s & \compute \builtinU{bn}{M \repetition{M}}   &~\mapsto~& s,\inBuiltinU{bn}{}{\_}{\repetition{M}} \compute M\\
+  s & \compute \errorU                           &~\mapsto~& \ckerror{}\\
+  \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
+  \cdot & \return V                              &~\mapsto~& \square V\\
+  s,\inAppLeftFrame{N} & \return V               &~\mapsto~& s,\inAppRightFrame{V} \compute N\\
+  s,\inAppRightFrame{\lam{x}{A}{M}} & \return V  &~\mapsto~& s \compute \subst{V}{x}{M}\\
+  s,\inForceFrame{} & \return \delay{M}          &~\mapsto~& s \compute M\\
+  s,\inBuiltinU{bn}{\repetition{V}}{\_}{} & \return V
+                                                 &~\mapsto~&  s \compute M
+                                                 \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
+  s,\inBuiltinU{bn}{\repetition{V}}{\_}{M \repetition{M}} & \return V
+                                                 &~\mapsto~& s,\inBuiltinU{bn}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
     \end{alignat*}
 \end{minipage}
     \caption{Untyped CK Machine Transitions}
