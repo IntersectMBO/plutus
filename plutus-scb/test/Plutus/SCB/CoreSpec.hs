@@ -105,11 +105,9 @@ assertTxCount msg expected = do
     liftIO $ assertEqual msg expected $ length txs
 
 lock :: UUID -> Contracts.Game.LockParams -> TestApp ()
-lock uuid params = do
-    fID <- getFollowerID
-    updateContract fID uuid "lock" (toJSON params)
+lock uuid params =
+    updateContract uuid "lock" (toJSON params)
 
 guess :: UUID -> Contracts.Game.GuessParams -> TestApp ()
-guess uuid params = do
-    fID <- getFollowerID
-    updateContract fID uuid "guess" (toJSON params)
+guess uuid params =
+    updateContract uuid "guess" (toJSON params)

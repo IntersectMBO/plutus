@@ -121,9 +121,9 @@ syncState = do
     let newAddressMap = AddressMap.fromChain blockchain
     assign watchedAddresses newAddressMap
 
-getFollowerId ::
+getFollowerID ::
        (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m FollowerID
-getFollowerId =
+getFollowerID =
     use followerID >>= \case
         Just fID -> pure fID
         Nothing -> do

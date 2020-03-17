@@ -9,7 +9,6 @@ module Main
 
 import qualified Cardano.ChainIndex.Server     as ChainIndex
 import qualified Cardano.Node.Server           as NodeServer
-import           Cardano.Node.Types            (FollowerID (..))
 import qualified Cardano.SigningProcess.Server as SigningProcess
 import qualified Cardano.Wallet.Server         as WalletServer
 import           Control.Concurrent.Async      (Async, async, waitAny)
@@ -257,7 +256,7 @@ runCliCommand _ ReportTxHistory = do
     logInfoN "Transaction History"
     traverse_ (logInfoN . render . pretty) =<< Core.txHistory
 runCliCommand _ (UpdateContract uuid endpoint payload) =
-    Core.updateContract (FollowerID 0) uuid endpoint payload
+    Core.updateContract uuid endpoint payload
 runCliCommand _ (ReportContractHistory uuid) = do
     logInfoN "Contract History"
     itraverse_
