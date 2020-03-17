@@ -44,7 +44,7 @@ let
       # or an empty list if the node is not a derivation.
       (_: x: lib.optionals (lib.isDerivation x) sys);
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  stripRecurseForDerivations = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations");
+  stripCiAttrs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations" && n != "dimension");
 
   # This is a mapping from attribute paths to systems. So it needs to mirror the structure of the
   # attributes in default.nix exactly
@@ -66,7 +66,7 @@ let
     mapTestOn systemMapping
     # ci.nix is a set of attributes that work fine as jobs (albeit in a slightly different structure, the platform comes
     # first), but we mainly just need to get rid of the 'recurseForDerivation' attributes.
-    // (stripRecurseForDerivations ci);
+    // (stripCiAttrs ci);
 
   # Recursively collect all jobs (derivations) in a jobset
   allJobs = jobset: lib.collect lib.isDerivation jobset;
