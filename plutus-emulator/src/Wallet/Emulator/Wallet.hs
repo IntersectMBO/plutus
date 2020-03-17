@@ -19,7 +19,6 @@ import qualified Control.Monad.Except       as E
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.State
-import           Control.Monad.Freer.TH
 import           Control.Monad.Freer.Writer
 import           Control.Newtype.Generics   (Newtype)
 import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
@@ -36,14 +35,14 @@ import           IOTS                       (IotsType)
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                 as Ada
-import           Ledger.AddressMap          (UtxoMap)
 import qualified Ledger.AddressMap          as AM
 import qualified Ledger.Crypto              as Crypto
 import qualified Ledger.Value               as Value
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                 as WAPI
-import qualified Wallet.Emulator.NodeClient as NC
+import Wallet.Effects (NodeClientEffect, WalletEffect(..))
+import qualified Wallet.Effects as W
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
@@ -102,16 +101,16 @@ emptyWalletState :: Wallet -> WalletState
 emptyWalletState w = WalletState pk where
     pk = walletPrivKey w
 
-type WalletEffs = '[NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
+type WalletEffs = '[NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
 
 handleWallet
     :: (Members WalletEffs effs)
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
-    SubmitTxn tx -> NC.publishTx tx
+    SubmitTxn tx -> W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     UpdatePaymentWithChange vl (oldIns, changeOut) -> do
-        utxo <- NC.getClientIndex
+        utxo <- W.getClientIndex
         ws <- get
         let
             addr = ownAddress ws
@@ -134,11 +133,11 @@ handleWallet = interpret $ \case
                                         (vl PlutusTx.- oldChange)
           let ins = Set.fromList (pubKeyTxIn . fst <$> spend)
           pure (Set.union oldIns ins, mkChangeOutput pubK change)
-    WalletSlot -> NC.getClientSlot
+    WalletSlot -> W.getClientSlot
     WalletLogMsg m -> tell [WalletMsg m]
     OwnOutputs -> do
         addr <- gets ownAddress
-        view (at addr . non mempty) <$> NC.getClientIndex
+        view (at addr . non mempty) <$> W.getClientIndex
 
 instance (Member (Error WAPI.WalletAPIError) effs) => E.MonadError WAPI.WalletAPIError (Eff effs) where
     throwError = throwError

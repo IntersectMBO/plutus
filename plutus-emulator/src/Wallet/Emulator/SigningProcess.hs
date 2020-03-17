@@ -24,6 +24,7 @@ import qualified Ledger                    as L
 import           Ledger.Tx                 (Tx (..))
 import qualified Ledger.Tx                 as Tx
 import qualified Wallet.API                as WAPI
+import           Wallet.Effects            (SigningProcessEffect (..))
 import           Wallet.Emulator.Wallet    (Wallet)
 import qualified Wallet.Emulator.Wallet    as Wallet
 
@@ -67,8 +68,11 @@ makeEffect ''SigningProcessControlEffect
 
 type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
 
-instance (Member SigningProcessEffect effs) => WAPI.SigningProcessAPI (Eff effs) where
-    addSignatures = addSignatures
+handleSigningProcessControl
+    :: (Members SigningProcessEffs effs)
+    => Eff (SigningProcessControlEffect ': effs) ~> Eff effs
+handleSigningProcessControl = interpret $ \case
+    SetSigningProcess proc -> put proc
 
 handleSigningProcess
     :: (Members SigningProcessEffs effs)
@@ -77,4 +81,3 @@ handleSigningProcess = interpret $ \case
     AddSignatures sigs tx -> do
         SigningProcess process <- get
         process sigs tx
-    SetSigningProcess proc -> put proc

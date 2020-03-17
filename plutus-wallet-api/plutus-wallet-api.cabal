@@ -47,6 +47,7 @@ library
     exposed-modules:
         Wallet
         Wallet.API
+        Wallet.Effects
         Wallet.Typed.StateMachine
         Wallet.Generators
         Wallet.Graph

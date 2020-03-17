@@ -21,7 +21,7 @@ import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Function              ((&))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
-import qualified Wallet.API                 as WAPI
+import           Wallet.Effects             (ChainIndexEffect (..))
 import           Wallet.Emulator.NodeClient (Notification (..))
 
 import           Ledger.Address             (Address)
@@ -52,18 +52,20 @@ makeLenses ''ChainIndexState
 
 type ChainIndexEffs = '[State ChainIndexState, Writer [ChainIndexEvent]]
 
-instance (Member ChainIndexEffect effs) => WAPI.ChainIndexAPI (Eff effs) where
-    watchedAddresses = watchedAddresses
-    startWatching = startWatching
+handleChainIndexControl
+    :: (Members ChainIndexEffs effs)
+    => Eff (ChainIndexControlEffect ': effs) ~> Eff effs
+handleChainIndexControl = interpret $ \case
+    ChainIndexNotify notification -> case notification of
+        BlockValidated txns -> tell [ReceiveBlockNotification] >> (modify $ \s ->
+            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
+        _ -> pure ()
+
 
 handleChainIndex
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
-    ChainIndexNotify notification -> case notification of
-        BlockValidated txns -> tell [ReceiveBlockNotification] >> (modify $ \s ->
-            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
-        _ -> pure ()
     StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses

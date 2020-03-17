@@ -24,6 +24,7 @@ import           Data.Text.Prettyprint.Doc  hiding (annotate)
 import           GHC.Generics               (Generic)
 import           Ledger
 import qualified Ledger.AddressMap          as AM
+import           Wallet.Effects             (NodeClientEffect(..))
 import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
@@ -51,11 +52,21 @@ data Notification = BlockValidated Block -- ^ A new block has been validated.
                   | CurrentSlot Slot -- ^ The current slot has changed.
                   deriving (Show, Eq)
 
-data NodeCotrolEffect r where
-    ClientNotify :: Notification -> NodeCotrolEffect () -- FIXME: NodeControlEffect
-makeEffect ''NodeCotrolEffect
+data NodeControlEffect r where
+    ClientNotify :: Notification -> NodeControlEffect ()
+makeEffect ''NodeControlEffect
 
 type NodeClientEffs = '[ChainEffect, State NodeClientState, Writer [NodeClientEvent]]
+
+handleNodeControl
+    :: (Members NodeClientEffs effs)
+    => Eff (NodeControlEffect ': effs) ~> Eff effs
+handleNodeControl = interpret $ \case
+    ClientNotify n -> case n of
+        BlockValidated blk -> modify $ \s ->
+            s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
+              & clientSlot +~ 1
+        CurrentSlot sl -> modify (\s -> s & clientSlot .~ sl)
 
 handleNodeClient
     :: (Members NodeClientEffs effs)
@@ -64,8 +75,3 @@ handleNodeClient = interpret $ \case
     PublishTx tx -> queueTx tx >> tell [TxSubmit (txId tx)]
     GetClientSlot -> gets _clientSlot
     GetClientIndex -> gets _clientIndex
-    ClientNotify n -> case n of
-        BlockValidated blk -> modify $ \s ->
-            s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
-              & clientSlot +~ 1
-        CurrentSlot sl -> modify (\s -> s & clientSlot .~ sl)

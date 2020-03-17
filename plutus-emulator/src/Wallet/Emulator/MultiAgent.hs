@@ -26,12 +26,13 @@ import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import qualified Data.Text                      as T
-import           Data.Text.Prettyprint.Doc      hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic)
 import           Ledger                         hiding (to, value)
 import qualified Ledger.AddressMap              as AM
 import qualified Ledger.Index                   as Index
 import qualified Wallet.API                     as WAPI
+import qualified Wallet.Effects                 as Wallet
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.ChainIndex     as ChainIndex
 import qualified Wallet.Emulator.NodeClient     as NC
@@ -80,19 +81,28 @@ walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Ju
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
--- | The type of actions in the emulator. @n@ is the type (usually a monad implementing 'WalletAPI') in
--- which wallet actions take place.
+type EmulatedWalletEffects =
+        '[ Wallet.WalletEffect
+         , Error WAPI.WalletAPIError
+         , Wallet.NodeClientEffect
+         , Wallet.ChainIndexEffect
+         , Wallet.SigningProcessEffect
+         , NC.NodeControlEffect
+         , ChainIndex.ChainIndexControlEffect
+         ]
+
+-- | The type of actions in the emulator.
 data MultiAgentEffect r where
     -- | An direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r
+    -> Eff EmulatedWalletEffects r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
 
@@ -196,12 +206,14 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd5
+        & raiseEnd7
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
+        & NC.handleNodeControl
+        & ChainIndex.handleChainIndexControl
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
