@@ -100,6 +100,7 @@ data MultiAgentEffect r where
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
+-- | Run an action in the context of a wallet (ie. agent)
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
