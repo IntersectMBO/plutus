@@ -91,7 +91,6 @@ import           Plutus.SCB.Types                           (ActiveContract (Act
                                                              contractPath, dbConfigFile, dbConfigPoolSize, hooks,
                                                              newState, partiallyDecodedResponse)
 import           Plutus.SCB.Utils                           (liftError, render, tshow)
-import           Wallet.API                                 (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics)
 import qualified Wallet.API                                 as WAPI
 
 newtype Connection =

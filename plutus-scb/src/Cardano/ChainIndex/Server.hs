@@ -36,7 +36,9 @@ import           Plutus.SCB.Utils              (tshow)
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client           as NodeClient
-import           Wallet.Emulator.ChainIndex    (ChainIndexEffect, ChainIndexEvent, ChainIndexState)
+import           Wallet.Effects                (ChainIndexEffect)
+import qualified Wallet.Effects                as WalletEffects
+import           Wallet.Emulator.ChainIndex    (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
 import qualified Wallet.Emulator.ChainIndex    as ChainIndex
 import           Wallet.Emulator.NodeClient    (Notification (..))
 
@@ -69,10 +71,10 @@ healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
 
 startWatching :: (Member ChainIndexEffect effs) => Address -> Eff effs NoContent
-startWatching addr = ChainIndex.startWatching addr >> pure NoContent
+startWatching addr = WalletEffects.startWatching addr >> pure NoContent
 
 watchedAddresses :: (Member ChainIndexEffect effs) => Eff effs AddressMap
-watchedAddresses = ChainIndex.watchedAddresses
+watchedAddresses = WalletEffects.watchedAddresses
 
 -- | Get the latest transactions from the node and update the index accordingly
 updateThread ::
@@ -98,7 +100,7 @@ updateThread updateInterval mv nodeClientEnv = do
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds updateInterval
 
 type ChainIndexEffects m
-     = '[ ChainIndexEffect, State ChainIndexState, Writer [ChainIndexEvent], Log, m]
+     = '[ ChainIndexControlEffect, ChainIndexEffect, State ChainIndexState, Writer [ChainIndexEvent], Log, m]
 
 processIndexEffects ::
     MonadIO m
@@ -112,6 +114,7 @@ processIndexEffects stateVar eff = do
                             $ runStderrLog
                             $ Eff.runWriter
                             $ Eff.runState _indexState
-                            $ ChainIndex.handleChainIndex eff
+                            $ ChainIndex.handleChainIndex 
+                            $ ChainIndex.handleChainIndexControl eff
     liftIO $ putMVar stateVar AppState{_indexState=newState, _indexEvents=_indexEvents <> Seq.fromList events }
     pure result

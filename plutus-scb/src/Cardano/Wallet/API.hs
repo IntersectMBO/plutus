@@ -12,7 +12,7 @@ import           Servant.API            ((:<|>), (:>), Capture, Get, JSON, NoCon
 import           Wallet.Emulator.Wallet (Wallet)
 
 -- | Note: This API uses the wholly-fictitious notion of an "active" wallet.
--- This is purely to fit in easily with the 'WalletAPI's 'ownPubKey'
+-- This is purely to fit in easily with the 'WalletEffect's 'ownPubKey'
 -- call, which assumes there is a single public key we own. This will
 -- have to be revisited later.
 type API
