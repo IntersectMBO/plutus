@@ -1,7 +1,6 @@
 let
   inherit (import ./nix/dimension.nix) dimension;
-  # Darwin builds are not working on Hercules right now for some reason
-  systems = {"x86_64-linux" = {};}; #"x86_64-darwin" = {};};
+  systems = {"x86_64-linux" = {}; "x86_64-darwin" = {};};
 in dimension "System" systems (system: _:
   let
     packageSet = import ./default.nix { inherit system; };
