@@ -66,7 +66,7 @@
                                                                   [
                                                                     (lam
                                                                       fIsStringAType_i0
-                                                                      (fun (con unit) [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i14])
+                                                                      (fun (all a_i0 (type) (fun a_i1 a_i1)) [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i14])
                                                                       [
                                                                         (lam
                                                                           fromString_i0
@@ -93,8 +93,14 @@
                                                                                             }
                                                                                             [
                                                                                               fIsStringAType_i3
-                                                                                              (con
-                                                                                                ()
+                                                                                              (abs
+                                                                                                a_i0
+                                                                                                (type)
+                                                                                                (lam
+                                                                                                  x_i0
+                                                                                                  a_i2
+                                                                                                  x_i1
+                                                                                                )
                                                                                               )
                                                                                             ]
                                                                                           ]
@@ -151,8 +157,14 @@
                                                                                         }
                                                                                         [
                                                                                           fIsStringAType_i4
-                                                                                          (con
-                                                                                            ()
+                                                                                          (abs
+                                                                                            a_i0
+                                                                                            (type)
+                                                                                            (lam
+                                                                                              x_i0
+                                                                                              a_i2
+                                                                                              x_i1
+                                                                                            )
                                                                                           )
                                                                                         ]
                                                                                       ]
@@ -186,7 +198,7 @@
                                                                     )
                                                                     (lam
                                                                       arg_i0
-                                                                      (con unit)
+                                                                      (all a_i0 (type) (fun a_i1 a_i1))
                                                                       cfromString_i2
                                                                     )
                                                                   ]

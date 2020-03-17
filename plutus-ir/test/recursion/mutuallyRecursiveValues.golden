@@ -10,28 +10,28 @@
           [
             (lam
               tup_i0
-              (all r_i0 (type) (fun (fun (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1))) r_i1)) r_i1))
+              (all r_i0 (type) (fun (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) r_i1)) r_i1))
               [
                 (lam
                   x_i0
-                  (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                  (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                   [
                     (lam
                       y_i0
-                      (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
-                      [ x_i2 (con ()) ]
+                      (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                      [ x_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
                     )
                     [
                       {
                         tup_i2
-                        (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                        (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                       }
                       (lam
                         arg_0_i0
-                        (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                        (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                         (lam
                           arg_1_i0
-                          (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                          (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                           arg_1_i1
                         )
                       )
@@ -39,13 +39,16 @@
                   ]
                 )
                 [
-                  { tup_i1 (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1))) }
+                  {
+                    tup_i1
+                    (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
+                  }
                   (lam
                     arg_0_i0
-                    (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                    (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                     (lam
                       arg_1_i0
-                      (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                      (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                       arg_0_i2
                     )
                   )
@@ -55,8 +58,11 @@
             [
               {
                 {
-                  { { fix2_i1 (con unit) } (all a_i0 (type) (fun a_i1 a_i1)) }
-                  (con unit)
+                  {
+                    { fix2_i1 (all a_i0 (type) (fun a_i1 a_i1)) }
+                    (all a_i0 (type) (fun a_i1 a_i1))
+                  }
+                  (all a_i0 (type) (fun a_i1 a_i1))
                 }
                 (all a_i0 (type) (fun a_i1 a_i1))
               }
@@ -65,18 +71,25 @@
                 (type)
                 (lam
                   choose_i0
-                  (fun (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1))) Q_i2))
+                  (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) (fun (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1))) Q_i2))
                   (lam
                     x_i0
-                    (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                    (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                     (lam
                       y_i0
-                      (fun (con unit) (all a_i0 (type) (fun a_i1 a_i1)))
+                      (fun (all a_i0 (type) (fun a_i1 a_i1)) (all a_i0 (type) (fun a_i1 a_i1)))
                       [
-                        [ choose_i3 (lam arg_i0 (con unit) [ y_i2 (con ()) ]) ]
+                        [
+                          choose_i3
+                          (lam
+                            arg_i0
+                            (all a_i0 (type) (fun a_i1 a_i1))
+                            [ y_i2 (abs a_i0 (type) (lam x_i0 a_i2 x_i1)) ]
+                          )
+                        ]
                         (lam
                           arg_i0
-                          (con unit)
+                          (all a_i0 (type) (fun a_i1 a_i1))
                           (abs a_i0 (type) (lam x_i0 a_i2 x_i1))
                         )
                       ]

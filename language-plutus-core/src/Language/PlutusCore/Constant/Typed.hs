@@ -128,8 +128,37 @@ newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
     { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
-{- Note [The reverse example]
-Having a dynamic built-in with the following signature:
+{- Note [Motivation for polymorphic built-in functions]
+We need to support polymorphism for built-in functions for these reasons:
+
+1. @ifThenElse@ for 'Bool' (being a built-in type rather than a Scott-encoded one) has to be
+   polymorphic as its type signature is
+
+       ifThenElse : all a. Bool -> a -> a -> a
+
+   Previously we had 'Bool' as a Scott-encoded type, but this required plenty of supporting machinery,
+   because unlifting (aka Scott-decoding) a PLC 'Bool' into a Haskell 'Bool' is quite a non-trivial
+   thing, see https://github.com/input-output-hk/plutus/blob/e222466e6d46bbca9f76243bb496b3c88ed02ca1/language-plutus-core/src/Language/PlutusCore/Constant/Typed.hs#L165-L252
+
+   Now that we got rid of all this complexity we have to pay for that by supporting polymorphic
+   built-in functions (but we added that support long ago anyway, 'cause it was easy to do).
+
+2. we may want to add efficient polymorphic built-in types like @IntMap@ or @Vector@ and most functions
+   defined over them are polymorphic as well
+-}
+
+{- Note [Implemetation of polymorphic built-in functions]
+Encoding polymorphism in an AST in an intrinsically typed manner is not a pleasant thing to do in Haskell.
+It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
+But we'd rather avoid such heavy techniques.
+
+Fortunately, there is a simple trick: we have parametricity in Haskell, so a function that is
+polymorphic in its argument can't inspect that argument in any way and so we never actually need to
+convert such an argument from PLC to Haskell just to convert it back later without ever inspecting
+the value. Instead we can keep the argument intact and apply the Haskell function directly to
+the PLC AST representing some value.
+
+E.g. Having a built-in function with the following signature:
 
     reverse : all a. list a -> list a
 
@@ -149,11 +178,16 @@ proceeds as follows:
     ~ makeKnown [OpaqueTerm false, OpaqueTerm true]
     ~ cons false (cons true nil)
 
-Note how we use 'OpaqueTerm' in order to wrap a PLC term as a Haskell value using 'readKnown' and
-then unwrap the term back using 'makeKnown' without ever inspecting the term.
+Note how we use the 'OpaqueTerm' wrapper in order to unlift a PLC term as an opaque Haskell value
+using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
+
+The implementation is rather straightforward, but there is one catch, namely that it takes some care
+to adapt the CEK machine to handle polymorphic built-in functions,
+see https://github.com/input-output-hk/plutus/issues/1882
 -}
 
--- See Note [The reverse example] for an example.
+-- See Note [Motivation for polymorphic built-in functions]
+-- See Note [Implemetation of polymorphic built-in functions]
 -- | The denotation of a term whose type is a bound variable.
 -- I.e. the denotation of such a term is the term itself.
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
@@ -167,14 +201,15 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
             Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+class (GShow uni, GEq uni, uni `Includes` a) => KnownBuiltinType uni a
+instance (GShow uni, GEq uni, uni `Includes` a) => KnownBuiltinType uni a
+
 -- | Extract the 'Constant' from a 'Term'
--- (or throw an error if the term is not a 'Constant' or
--- the constant is not of the expected type).
+-- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
 unliftConstant
     :: forall a m uni err.
-       ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
-       , GShow uni, GEq uni, uni `Includes` a
-       )
+       (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownBuiltinType uni a)
     => Term TyName Name uni () -> m a
 unliftConstant term = case term of
     Constant () (Some (ValueOf uniAct x)) -> do
@@ -211,13 +246,13 @@ make the API and the code bloated (instances are more verbose with @DerivingVia@
 class KnownType uni a where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
-    default toTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
+    default toTypeAst :: KnownBuiltinType uni a => proxy a -> Type TyName uni ()
     toTypeAst _ = mkTyBuiltin @a ()
 
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
     makeKnown :: a -> Term TyName Name uni ()
-    default makeKnown :: uni `Includes` a => a -> Term TyName Name uni ()
+    default makeKnown :: KnownBuiltinType uni a => a -> Term TyName Name uni ()
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
@@ -229,9 +264,7 @@ class KnownType uni a where
         :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
         => Term TyName Name uni () -> m a
     default readKnown
-        :: ( MonadError (ErrorWithCause uni err) m, AsUnliftingError err
-           , GShow uni, GEq uni, uni `Includes` a
-           )
+        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownBuiltinType uni a)
         => Term TyName Name uni () -> m a
     readKnown = unliftConstant
 
@@ -261,8 +294,6 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
     makeKnown = unOpaqueTerm
 
     readKnown = pure . OpaqueTerm
-
-type KnownBuiltinType uni a = (GShow uni, GEq uni, uni `Includes` a)
 
 instance KnownBuiltinType uni Integer        => KnownType uni Integer
 instance KnownBuiltinType uni BSL.ByteString => KnownType uni BSL.ByteString

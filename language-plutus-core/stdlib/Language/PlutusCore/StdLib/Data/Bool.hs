@@ -34,7 +34,7 @@ false = mkConstant () False
 
 -- | @if_then_else_@ as a PLC term.
 --
--- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> ifThenElse {() -> A} b x y ()
+-- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
 ifThenElse :: (TermLike term TyName Name uni, uni `IncludesAll` '[Bool, ()]) => term ()
 ifThenElse = runQuote $ do
     a <- freshTyName () "a"
