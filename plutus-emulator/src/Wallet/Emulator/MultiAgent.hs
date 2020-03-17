@@ -89,6 +89,7 @@ type EmulatedWalletEffects =
          , Wallet.SigningProcessEffect
          , NC.NodeControlEffect
          , ChainIndex.ChainIndexControlEffect
+         , SP.SigningProcessControlEffect
          ]
 
 -- | The type of actions in the emulator.
@@ -206,7 +207,7 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd7
+        & raiseEnd8
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
@@ -214,6 +215,7 @@ handleMultiAgent = interpret $ \case
         & SP.handleSigningProcess
         & NC.handleNodeControl
         & ChainIndex.handleChainIndexControl
+        & SP.handleSigningProcessControl
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))

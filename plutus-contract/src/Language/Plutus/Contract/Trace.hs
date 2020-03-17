@@ -108,16 +108,14 @@ import           Ledger.Tx                                         (Tx, txId)
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Value                                      (Value)
 
-import           Wallet.API                                        (WalletAPIError, defaultSlotRange, payToPublicKey_)
+import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
-import qualified Wallet.Emulator.ChainIndex                        as EM
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import qualified Wallet.Emulator.NodeClient                        as EM
 import           Wallet.Emulator.SigningProcess                    (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess                    as EM
-import qualified Wallet.Emulator.Wallet                            as EM
 
 -- | Maximum number of iterations of `handleBlockchainEvents`.
 newtype MaxIterations = MaxIterations Natural
@@ -349,7 +347,7 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect, EM.ChainIndexEffect, EM.SigningProcessEffect] a
+    -> Eff.Eff EM.EmulatedWalletEffects a
     -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
