@@ -13,7 +13,7 @@ import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
-import Marlowe.Semantics (CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
@@ -28,6 +28,12 @@ oneOf = foldl1 Gen.choose
 
 genBigInteger :: forall m. MonadGen m => MonadRec m => m BigInteger
 genBigInteger = BigInteger.fromInt <$> chooseInt bottom top
+
+genRational :: forall m. MonadGen m => MonadRec m => m Rational
+genRational = do
+  n <- genBigInteger
+  d <- genBigInteger
+  pure $ Rational n d
 
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
@@ -173,6 +179,7 @@ genValue' size
             , NegValue <$> genNewValue
             , AddValue <$> genNewValue <*> genNewValue
             , SubValue <$> genNewValue <*> genNewValue
+            , Scale <$> genTerm genRational <*> genNewValue
             , ChoiceValue <$> genTerm genChoiceId <*> genNewValue
             , UseValue <$> genTerm genValueId
             ]

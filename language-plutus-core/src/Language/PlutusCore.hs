@@ -65,18 +65,15 @@ module Language.PlutusCore
     , format
     , formatDoc
     -- * Processing
-    , Gas (..)
     , HasUniques
     , Rename (..)
     -- * Type checking
     , module TypeCheck
     , fileType
-    , fileNormalizeType
     , fileTypeCfg
     , printType
-    , printNormalizeType
-    , normalizeTypesFullIn
-    , normalizeTypesFullInProgram
+    , normalizeTypesIn
+    , normalizeTypesInProgram
     , InternalTypeError (..)
     , TypeError (..)
     , AsTypeError (..)
@@ -119,7 +116,6 @@ module Language.PlutusCore
 import           PlutusPrelude
 
 import           Language.PlutusCore.CBOR                  ()
-import qualified Language.PlutusCore.Check.Normal          as Normal
 import qualified Language.PlutusCore.Check.Uniques         as Uniques
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
@@ -144,10 +140,7 @@ import qualified Data.Text                                 as T
 -- | Given a file at @fibonacci.plc@, @fileType "fibonacci.plc"@ will display
 -- its type or an error message.
 fileType :: FilePath -> IO T.Text
-fileType = fileNormalizeType False
-
-fileNormalizeType :: Bool -> FilePath -> IO T.Text
-fileNormalizeType norm = fmap (either prettyErr id . printNormalizeType norm) . BSL.readFile
+fileType = fmap (either prettyErr id . printType) . BSL.readFile
     where
         prettyErr :: Error DefaultUni AlexPosn -> T.Text
         prettyErr = prettyPlcDefText
@@ -169,20 +162,9 @@ printType
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
-printType = printNormalizeType False
-
--- | Print the type of a program contained in a 'ByteString'
-printNormalizeType
-    :: (AsParseError e AlexPosn,
-        AsUniqueError e AlexPosn,
-        AsTypeError e DefaultUni AlexPosn,
-        MonadError e m)
-    => Bool
-    -> BSL.ByteString
-    -> m T.Text
-printNormalizeType norm bs = runQuoteT $ prettyPlcDefText <$> do
+printType bs = runQuoteT $ prettyPlcDefText <$> do
     scoped <- parseScoped bs
-    inferTypeOfProgram (TypeCheckConfig norm mempty $ Just defTypeCheckGas) scoped
+    inferTypeOfProgram (TypeCheckConfig mempty) scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
@@ -200,7 +182,6 @@ parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parsePr
 parseTypecheck
     :: (AsParseError e AlexPosn,
         AsUniqueError e AlexPosn,
-        AsNormCheckError e TyName Name DefaultUni AlexPosn,
         AsTypeError e DefaultUni AlexPosn,
         MonadError e m,
         MonadQuote m)
@@ -209,16 +190,13 @@ parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
-    :: (AsNormCheckError e TyName Name DefaultUni a,
-        AsTypeError e DefaultUni a,
+    :: (AsTypeError e DefaultUni a,
         MonadError e m,
         MonadQuote m)
     => TypeCheckConfig DefaultUni
     -> Program TyName Name DefaultUni a
     -> m (Normalized (Type TyName DefaultUni ()))
-typecheckPipeline cfg =
-    inferTypeOfProgram cfg
-    <=< through (unless (_tccDoNormTypes cfg) . Normal.checkProgram)
+typecheckPipeline = inferTypeOfProgram
 
 parseProgramDef
     :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m)

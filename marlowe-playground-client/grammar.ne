@@ -5,6 +5,7 @@ const lexer = moo.compile({
         WS: /[ \t]+/,
         number: /0|-?[1-9][0-9]*/,
         string: {match: /"(?:\\["\\]|[^\n"\\])*"/, value: x => x.slice(1, -1)},
+        ratio: '%',
         comma: ',',
         lparen: '(',
         rparen: ')',
@@ -33,6 +34,7 @@ const lexer = moo.compile({
                     'NegValue',
                     'AddValue',
                     'SubValue',
+                    'Scale',
                     'ChoiceValue',
                     'SlotIntervalStart',
                     'SlotIntervalEnd',
@@ -95,22 +97,22 @@ topContract
     | "When" someWS lsquare cases:* rsquare someWS number someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
     | "Let" someWS valueId someWS value someWS contract {% ([{line, col},,valueId,,value,,contract]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({row: line, column: col}) %}
 
-cases 
+cases
    -> hole {% ([hole]) => hole %}
     | case {% id %}
     | manyWS %comma manyWS case {% ([,,,case_]) => case_ %}
 
-case 
+case
    -> hole {% ([hole]) => hole %}
     | "Case" someWS action someWS contract {% ([{line, col},,action,,contract]) => opts.mkTerm(opts.mkCase(action)(contract))({row: line, column: col}) %}
     | lparen case rparen {% ([,case_,]) => case_ %}
 
-bounds 
+bounds
    -> hole {% ([hole]) => hole %}
     | bound {% id %}
     | manyWS %comma manyWS bound {% ([,,,bound]) => bound %}
 
-bound 
+bound
    -> hole {% ([hole]) => hole %}
     | "Bound" someWS number someWS number {% ([{line, col},,bottom,,top]) => opts.mkTerm(opts.mkBound(bottom)(top))({row: line, column: col}) %}
     | lparen bound rparen {% ([,bound,]) => bound %}
@@ -120,7 +122,7 @@ action
     | lparen "Deposit" someWS accountId someWS party someWS token someWS value rparen {% ([,{line, col},,accountId,,party,,token,,value,]) => opts.mkTerm(opts.mkDeposit(accountId)(party)(token)(value))({row: line, column: col}) %}
     | lparen "Choice" someWS choiceId someWS lsquare bounds:* rsquare rparen {% ([,{line, col},,choiceId,,,bounds,,]) => opts.mkTerm(opts.mkChoice(choiceId)(bounds))({row: line, column: col}) %}
     | lparen "Notify" someWS observation rparen {% ([,{line, col},,observation,]) => opts.mkTerm(opts.mkNotify(observation))({row: line, column: col}) %}
-    
+
 # Beacause top level contracts don't have parenthesis we need to duplicate the lower-level contracts that don't have parenthesis here
 contract
    -> hole {% ([hole]) => hole %}
@@ -141,7 +143,7 @@ accountId
    -> hole {% ([hole]) => hole %}
     | lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkTerm(opts.mkAccountId(aid)(party))({row: line, column: col}) %}
 
-token 
+token
    -> hole {% ([hole]) => hole %}
     | lparen %TOKEN someWS string someWS string rparen {% ([,{line,col},,a,,b,]) => opts.mkTerm(opts.mkToken(a)(b))({row: line, column: col}) %}
 
@@ -155,7 +157,7 @@ payee
     | lparen "Account" someWS accountId rparen {% ([,{line,col},,accountId,]) => opts.mkTerm(opts.mkAccount(accountId))({row: line, column: col}) %}
     | lparen "Party" someWS party rparen {% ([,{line,col},,party,]) => opts.mkTerm(opts.mkParty(party))({row: line, column: col}) %}
 
-observation 
+observation
    -> hole {% ([hole]) => hole %}
     | lparen "AndObs" someWS observation someWS observation rparen {% ([,{line,col},,o1,,o2,]) => opts.mkTerm(opts.mkAndObs(o1)(o2))({row: line, column: col}) %}
     | lparen "OrObs" someWS observation someWS observation rparen {% ([,{line,col},,o1,,o2,]) => opts.mkTerm(opts.mkOrObs(o1)(o2))({row: line, column: col}) %}
@@ -169,6 +171,10 @@ observation
     | "TrueObs" {% ([{line,col}]) => opts.mkTerm(opts.mkTrueObs)({row: line, column: col}) %}
     | "FalseObs" {% ([{line,col}]) => opts.mkTerm(opts.mkFalseObs)({row: line, column: col}) %}
 
+rational
+    -> hole {% ([hole]) => hole %}
+    | %number manyWS "%" manyWS %number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num.value)(denom.value))({row: num.line, column: num.col}) %}
+
 value
    -> hole {% ([hole]) => hole %}
     | lparen "AvailableMoney" someWS accountId someWS token rparen {% ([,{line,col},,accountId,,token,]) => opts.mkTerm(opts.mkAvailableMoney(accountId)(token))({row: line, column: col}) %}
@@ -176,6 +182,7 @@ value
     | lparen "NegValue" someWS value rparen {% ([,{line,col},,value,]) => opts.mkTerm(opts.mkNegValue(value))({row: line, column: col}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({row: line, column: col}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({row: line, column: col}) %}
+    | lparen "Scale" someWS lparen rational rparen someWS value rparen {% ([,{line,col},,,ratio,,,v,]) => opts.mkTerm(opts.mkScale(ratio)(v))({row: line, column: col}) %}
     | lparen "ChoiceValue" someWS choiceId someWS value rparen {% ([,{line,col},,choiceId,,value,]) => opts.mkTerm(opts.mkChoiceValue(choiceId)(value))({row: line, column: col}) %}
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({row: line, column: col}) %}
     | "SlotIntervalEnd" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalEnd)({row: line, column: col}) %}

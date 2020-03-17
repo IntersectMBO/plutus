@@ -63,7 +63,7 @@
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\diffbox{R}}}\)}
     \end{prooftree}
 % -----
-    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+    \caption{Type Synthesis (Algorithmic)}
 \end{figure}
 
 %% Break to improve figure layout
@@ -84,7 +84,7 @@
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{\diffbox{S'}}}\)}
         \AxiomC{\(\diffbox{\typeEqual{S}{S'}}\)}
         \RightLabel{\textsf{app}}
-        \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
+hypJ{\Gamma}{\istermJ{\app{L}{M}}{T}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -106,7 +106,8 @@
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{\diffbox{S}}}\)}
     \end{prooftree}
 
-    \caption{Type Synthesis (Algorithmic, Unrestricted)}
+    \caption{Type Synthesis (Algorithmic)}
+
     \label{fig:type_synthesis_algorithmic_unrestricted}
 \end{figure}
 

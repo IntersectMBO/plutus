@@ -8,10 +8,12 @@
 module Language.Marlowe.Pretty where
 
 import qualified Data.ByteString.Lazy    as BSL
+import qualified Data.Ratio              as R
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
                                           Rep, S, U1, conName, from)
+import qualified Language.PlutusTx.Ratio as P
 import           Ledger                  (PubKeyHash (..), Slot (..))
 import           Ledger.Ada              (Ada, getLovelace)
 import           Ledger.Value
@@ -116,6 +118,18 @@ instance (Pretty a) => Pretty [a] where
     These two requirements break @Haskell.read . Haskell.show == id@
 
  -}
+
+instance (Show a) => Show (P.Ratio a) where
+    show r = show (P.numerator r) ++ " % " ++ show (P.denominator r)
+
+
+instance Read (P.Ratio Integer) where
+    readsPrec p x = [((R.numerator r) P.% (R.denominator r), s) | (r, s) <- readsPrec p x]
+
+
+
+instance (Show a) => Pretty (P.Ratio a) where
+    prettyFragment = text . show
 
 instance Pretty Slot where
     prettyFragment (Slot n) = prettyFragment n

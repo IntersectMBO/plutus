@@ -172,7 +172,7 @@ forestData = runQuote $ do
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
 treeNode :: Term TyName Name uni ()
-treeNode = runQuote $ normalizeTypesFullIn =<< do
+treeNode = runQuote $ normalizeTypesIn =<< do
     let RecursiveType _      wrapTree = treeData
         RecursiveType forest _        = forestData
     a  <- freshTyName () "a"
@@ -182,7 +182,7 @@ treeNode = runQuote $ normalizeTypesFullIn =<< do
     f  <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () x vA
@@ -201,7 +201,7 @@ treeNode = runQuote $ normalizeTypesFullIn =<< do
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
 forestNil :: Term TyName Name uni ()
-forestNil = runQuote $ normalizeTypesFullIn =<< do
+forestNil = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
     a <- freshTyName () "a"
@@ -210,8 +210,8 @@ forestNil = runQuote $ normalizeTypesFullIn =<< do
     f <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeFull $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized treeA   <- normalizeType $ TyApp () tree   vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . wrapForest [vA]
@@ -226,7 +226,7 @@ forestNil = runQuote $ normalizeTypesFullIn =<< do
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
 forestCons :: Term TyName Name uni ()
-forestCons = runQuote $ normalizeTypesFullIn =<< do
+forestCons = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
     a  <- freshTyName () "a"
@@ -237,8 +237,8 @@ forestCons = runQuote $ normalizeTypesFullIn =<< do
     f  <- freshName () "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeFull $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized treeA   <- normalizeType $ TyApp () tree   vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () tr treeA

@@ -22,12 +22,12 @@ import           Test.Tasty.HUnit
 
 kindcheck :: MonadError (Error uni ()) m => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind defOffChainConfig ty
+    _ <- runQuoteT $ inferKind defConfig ty
     return ty
 
 typecheck :: (uni ~ DefaultUni, MonadError (Error uni ()) m) => Term TyName Name uni () -> m ()
 typecheck term = do
-    _ <- runQuoteT $ inferType defOffChainConfig term
+    _ <- runQuoteT $ inferType defConfig term
     return ()
 
 -- | Assert a 'Type' is well-kinded.

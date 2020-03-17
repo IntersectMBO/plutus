@@ -1,16 +1,11 @@
 -- | The internals of the normalizer.
 
--- Due to the generated 'normalizeEnvCountStep' below which is not used.
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 module Language.PlutusCore.Normalize.Internal
     ( NormalizeTypeT
     , runNormalizeTypeM
-    , runNormalizeTypeFullM
-    , runNormalizeTypeGasM
     , withExtendedTypeVarEnv
     , normalizeTypeM
     , substNormalizeTypeM
@@ -26,7 +21,6 @@ import           PlutusPrelude
 import           Control.Lens
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
 
 {- Note [Global uniqueness]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
@@ -41,11 +35,7 @@ The invariant is preserved. In future we will enforce the invariant.
 type TypeVarEnv tyname uni ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname uni ann)))
 
 -- | The environments that type normalization runs in.
-data NormalizeTypeEnv m tyname uni ann = NormalizeTypeEnv
-    { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann
-    , _normalizeTypeEnvCountStep  :: m ()
-      -- ^ How to count a type normalization step.
-    }
+newtype NormalizeTypeEnv tyname uni ann = NormalizeTypeEnv { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann}
 
 makeLenses ''NormalizeTypeEnv
 
@@ -54,11 +44,11 @@ Type normalization requires 'Quote' (because we need to be able to generate fres
 do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
 various runners much nicer and also more generic. For example, we have
 
-    runNormalizeTypeFullM :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
+    runNormalizeTypeM :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
 
 If 'NormalizeTypeT' contained 'Quote', it would be
 
-    runNormalizeTypeFullM :: NormalizeTypeT m tyname uni ann a -> QuoteT m a
+    runNormalizeTypeM :: NormalizeTypeT m tyname uni ann a -> QuoteT m a
 
 which hardcodes 'QuoteT' to be the outermost transformer.
 
@@ -80,47 +70,23 @@ Normalization is split in two parts:
 2. runners of those computations
 
 The reason for splitting the API is that this way the type-theoretic notion of normalization is
-separated from implementation-specific details like how to count gas (we hardcode *where* to count
-gas, but this can be generalized in case we need it). And this is important, because gas counting
-requires access to different monads in different scenarios, so in the end we have a fine-grained API
-instead of a single function that reflects all possible effects from distinct scenarios in its type
-signature.
+separated from implementation-specific details. (This used to be more important when we had
+to deal with gas, and could maybe be changed now.)
 -}
 
 -- See Note [NormalizedTypeT].
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
-    { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv m tyname uni ann) m a
+    { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
     } deriving newtype
         ( Functor, Applicative, Alternative, Monad, MonadPlus
-        , MonadReader (NormalizeTypeEnv m tyname uni ann), MonadState s
+        , MonadReader (NormalizeTypeEnv tyname uni ann), MonadState s
         , MonadQuote
         )
 
 -- | Run a 'NormalizeTypeM' computation.
-runNormalizeTypeM :: m () -> NormalizeTypeT m tyname uni ann a -> m a
-runNormalizeTypeM countStep (NormalizeTypeT a) =
-    runReaderT a $ NormalizeTypeEnv mempty countStep
-
--- | Run a 'NormalizeTypeM' computation without dealing with gas.
-runNormalizeTypeFullM
-    :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
-runNormalizeTypeFullM = runNormalizeTypeM $ pure ()
-
--- | Run a gas-consuming 'NormalizeTypeM' computation.
--- Count a single substitution step by subtracting @1@ from available gas or
--- fail when there is no available gas.
-runNormalizeTypeGasM
-    :: MonadQuote m => Gas -> NormalizeTypeT (StateT Gas (MaybeT m)) tyname uni ann a -> m (Maybe a)
-runNormalizeTypeGasM gas a = runMaybeT $ evalStateT (runNormalizeTypeM countSubst a) gas where
-    countSubst = do
-        Gas gas' <- get
-        if gas' == 0
-            then mzero
-            else put . Gas $ gas' - 1
-
-countTypeNormalizationStep :: NormalizeTypeT m tyname uni ann ()
-countTypeNormalizationStep = NormalizeTypeT $ ReaderT _normalizeTypeEnvCountStep
+runNormalizeTypeM :: NormalizeTypeT m tyname uni ann a -> m a
+runNormalizeTypeM = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT
 
 -- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeM' computation.
 withExtendedTypeVarEnv
@@ -170,9 +136,7 @@ normalizeTypeM (TyApp ann fun arg)           = do
     vFun <- normalizeTypeM fun
     vArg <- normalizeTypeM arg
     case unNormalized vFun of
-        TyLam _ nArg _ body -> do
-            countTypeNormalizationStep
-            substNormalizeTypeM vArg nArg body
+        TyLam _ nArg _ body -> substNormalizeTypeM vArg nArg body
         _                   -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyNameM name

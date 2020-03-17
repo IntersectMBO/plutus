@@ -16,7 +16,6 @@ import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
 import           Control.Exception                          (toException)
-import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Except                 (runExceptT)
 import           Data.Bifunctor                             (first, second)
@@ -54,7 +53,7 @@ stdInput = flag' StdInput
   <> help "Read from stdin" )
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
-data TypecheckOptions = TypecheckOptions Input NormalizationMode
+newtype TypecheckOptions = TypecheckOptions Input
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
@@ -72,16 +71,8 @@ plutusOpts = hsubparser (
     <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
   )
 
-normalizationMode :: Parser NormalizationMode
-normalizationMode = option auto
-  (  long "normalized-types"
-  <> metavar "MODE"
-  <> value NotRequired
-  <> showDefault
-  <> help "Whether type annotations must be normalized or not (one of Required or NotRequired)" )
-
 typecheckOpts :: Parser TypecheckOptions
-typecheckOpts = TypecheckOptions <$> input <*> normalizationMode
+typecheckOpts = TypecheckOptions <$> input
 
 evalMode :: Parser EvalMode
 evalMode = option auto
@@ -118,12 +109,10 @@ exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp mode) = do
+runTypecheck (TypecheckOptions inp) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-    let cfg = PLC.defOnChainConfig & PLC.tccDoNormTypes .~ case mode of
-                NotRequired -> True
-                Required    -> False
+    let cfg = PLC.defConfig
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
         Left (e :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
@@ -170,7 +159,7 @@ prettyExample (SomeTermExample (TermExample _ term)) =
 toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
-    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defOffChainConfig program of
+    ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
         Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.prettyPlcDefString err
         Right vTy                                 -> PLC.unNormalized vTy
 

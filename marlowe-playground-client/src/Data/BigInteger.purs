@@ -1,6 +1,6 @@
 -- | We need to wrap BigInt in a newtype so that we can create
 -- | some Class instances that BigInt doesn't have
-module Data.BigInteger (BigInteger, fromInt, fromString) where
+module Data.BigInteger (BigInteger, fromInt, fromString, quot, rem) where
 
 import Data.BigInt (BigInt, toString)
 import Data.BigInt as BigInt
@@ -36,6 +36,14 @@ fromInt = BigInteger <<< BigInt.fromInt
 
 fromString :: String -> Maybe BigInteger
 fromString s = BigInteger <$> BigInt.fromString s
+
+-- | Truncating integer division
+quot :: BigInteger -> BigInteger -> BigInteger
+quot = over2 BigInteger BigInt.quot
+
+-- | The remainder after truncating integer division
+rem :: BigInteger -> BigInteger -> BigInteger
+rem = over2 BigInteger BigInt.rem
 
 instance semiringBigInteger :: Semiring BigInteger where
   add = over2 BigInteger add
