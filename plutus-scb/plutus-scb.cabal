@@ -73,6 +73,7 @@ library
         Plutus.SCB.Relation
         Plutus.SCB.Types
         Plutus.SCB.Utils
+        Plutus.SCB.EventLog
     other-modules:
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Node
