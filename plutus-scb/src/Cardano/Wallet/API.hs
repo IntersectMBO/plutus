@@ -20,5 +20,8 @@ type API
                      :<|> "active" :> "pubkey" :> Get '[ JSON] PubKey
                      :<|> "watched-addresses" :> Get '[ JSON] AddressMap
                      :<|> "start-watching" :> ReqBody '[ JSON] Address :> Post '[ JSON] NoContent
-                     :<|> (Capture "walletId" WalletId :> ("coin-selections" :> "random" :> ReqBody '[ JSON] Value :> Get '[ JSON] ( [( TxOutRef , Value)] , Value)
-                                                           :<|> "addresses" :> "new" :> Post '[ JSON] PubKey)))
+                     :<|> (Capture "walletId" WalletId :> ("coin-selections" :> "random" :> ReqBody '[ JSON] Value :> Get '[ JSON] ( [( TxOutRef
+                                                                                                                                      , Value)]
+                                                                                                                                   , Value)
+                                                           :<|> "addresses" :> "new" :> Post '[ JSON] PubKey)
+                           :<|> "value-at" :> ReqBody '[ JSON] Address :> Get '[ JSON] Value))

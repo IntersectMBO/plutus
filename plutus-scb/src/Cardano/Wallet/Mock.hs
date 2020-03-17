@@ -11,7 +11,7 @@ module Cardano.Wallet.Mock where
 import           Cardano.Node.API               (NodeFollowerAPI (..))
 import           Cardano.Node.Types             (FollowerID)
 import           Cardano.Wallet.Types           (WalletId)
-import           Control.Lens                   (assign, makeLenses, modifying, use)
+import           Control.Lens                   (assign, ix, makeLenses, modifying, to, use)
 import           Control.Monad.Except           (MonadError, throwError)
 import           Control.Monad.Freer            (runM)
 import           Control.Monad.Freer.Error      (runError)
@@ -25,7 +25,7 @@ import qualified Data.Map                       as Map
 import           Data.Text.Encoding             (encodeUtf8)
 import           Language.Plutus.Contract.Trace (allWallets)
 import           Ledger                         (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value)
-import           Ledger.AddressMap              (AddressMap, UtxoMap, addAddress, fundsAt)
+import           Ledger.AddressMap              (AddressMap, UtxoMap, addAddress)
 import qualified Ledger.AddressMap              as AddressMap
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
@@ -66,6 +66,13 @@ fromWalletAPIError err@(PrivateKeyNotFound _) =
 fromWalletAPIError (OtherError text) =
     err500 {errBody = BSL.fromStrict $ encodeUtf8 text}
 
+valueAt :: (MonadLogger m, MonadState State m) => Address -> m Value
+valueAt address = do
+    logInfoN "valueAt"
+    value <- use (watchedAddresses . to AddressMap.values . ix address)
+    logInfoN $ "valueAt " <> tshow address <> ": " <> tshow value
+    pure value
+
 selectCoin ::
        (MonadLogger m, MonadState State m, MonadError ServantErr m)
     => WalletId
@@ -76,7 +83,7 @@ selectCoin walletId target = do
     logInfoN $ "  Wallet ID: " <> tshow walletId
     logInfoN $ "     Target: " <> tshow target
     let address = EM.walletAddress (Wallet walletId)
-    utxos :: UtxoMap <- use (watchedAddresses . fundsAt address)
+    utxos :: UtxoMap <- use (watchedAddresses . AddressMap.fundsAt address)
     let funds :: [(TxOutRef, Value)]
         funds = fmap (second (txOutValue . txOutTxOut)) . Map.toList $ utxos
     result <- runM $ runError $ EM.selectCoin funds target
@@ -116,10 +123,14 @@ startWatching address = do
 -- At the moment, this means, "as the node for UTXOs at all our watched addresses.
 syncState :: (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m ()
 syncState = do
-    followerId <- getFollowerId
-    blockchain <- blocks followerId
-    let newAddressMap = AddressMap.fromChain blockchain
-    assign watchedAddresses newAddressMap
+    logDebugN "Synchronizing"
+    fID <- getFollowerID
+    blockchain <- blocks fID
+    logDebugN $ tshow fID <> " got " <> tshow (length blockchain) <> " blocks."
+    modifying
+        watchedAddresses
+        (\m -> foldl (foldl (flip AddressMap.updateAllAddresses)) m blockchain)
+    logDebugN "Synchronized"
 
 getFollowerID ::
        (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m FollowerID

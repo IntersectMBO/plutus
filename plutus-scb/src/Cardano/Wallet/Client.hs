@@ -21,22 +21,25 @@ getWatchedAddresses :: ClientM AddressMap
 getWallets :: ClientM [Wallet]
 getOwnPubKey :: ClientM PubKey
 startWatching :: Address -> ClientM NoContent
-(getWallets, getOwnPubKey, getWatchedAddresses, startWatching, selectCoins, allocateAddress) =
+valueAt :: Address -> ClientM Value
+(getWallets, getOwnPubKey, getWatchedAddresses, startWatching, selectCoins, allocateAddress, valueAt) =
     ( getWallets_
     , getOwnPubKey_
     , getWatchedAddresses_
     , startWatching_
     , selectCoins_
-    , allocateAddress_)
+    , allocateAddress_
+    , valueAt_)
   where
     api = client (Proxy @API)
     getWallets_ = api & left
     getOwnPubKey_ = api & right & left
     getWatchedAddresses_ = api & right & right & left
     startWatching_ = api & right & right & right & left
-    byWalletId = api & right & right & right & right
+    byWalletId = api & right & right & right & right & left
     selectCoins_ walletId = byWalletId walletId & left
     allocateAddress_ walletId = byWalletId walletId & right
+    valueAt_ = api & right & right & right & right & right
 
 getOwnOutputs :: ClientM UtxoMap
 getOwnOutputs = do
