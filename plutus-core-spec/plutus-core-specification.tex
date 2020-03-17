@@ -1070,33 +1070,43 @@ Figure~\ref{fig:untyped-values}.
 
 \subsection{Type erasure}
 Figure~\ref{fig:type-erasure} defines a type erasure operation which
-converts a typed Plutus Core term $M$ into an untyped one
-$\erase{M}$ (objects from the typed grammar on the left of $=$,
-untyped on the right).  %\footnotemark[4].
-We extend this to sequences of
-terms in the obvious way: given $M^* = M_1 \ldots M_n$ we define
-$\erase{M^*} = \erase{M_1} \ldots \erase{M_n}$.  For a typed program
-$P$ we use $\erase{P}$ to denote the untyped program with the same
-version whose body is the erasure of the body of $P$. The erasure operation
-preserves semantics in an appropriate sense.  It can be shown that if $P$
-is a well-typed Plutus Core program then $P$ terminates if 
-and only if $\erase{P}$ does, and that $P$ returns the value $v$
-if and only if $\erase{P}$ returns the value $\erase{v}$.
+converts a typed Plutus Core term $M$ into an untyped one $\erase{M}$
+(objects from the typed grammar on the left of $=$, untyped on the
+right).  We extend this to sequences of terms in the obvious way:
+given $M^* = M_1 \ldots M_n$ we define $\erase{M^*}
+= \erase{M_1} \ldots \erase{M_n}$.  Note that typed values erase to
+untyped values.  Note also that it follows
+from \cite{Wells-96-typability} that, given an untyped term $M$, it is
+undecidable whether there is a typed term $\widetilde{M}$ with $\erase{\widetilde{M}} = M$.
+
+
+For a typed program $P$ we use $\erase{P}$ to denote the untyped
+program with the same version whose body is the erasure of the body of
+$P$. The erasure operation preserves semantics in an appropriate
+sense.  It can be shown that if $P$ is a well-typed Plutus Core
+program then $P$ terminates if and only if $\erase{P}$ does, and that
+$P$ returns the value $v$ if and only if $\erase{P}$ returns the value
+$\erase{v}$.
 
 \subfile{figures/TypeErasure}
 
 \subsection{Term Reduction}
 Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
-for untyped Plutus Core, analogously to
-Figure~\ref{fig:term-reduction}.  The built-in functions in
-Figure~\ref{fig:builtins} are interpreted in the untyped setting in the
-obvious way.
+for erased Plutus Core, analogously to
+Figure~\ref{fig:term-reduction}.  These semantics are defined only for
+terms obtained by erasing types from well-typed terms from typed
+Plutus Core; there are syntactically valid untyped terms which cannot
+be obtained in this way, and the semantics of such terms
+are \textit{undefined}.  The reason for this is that the behaviour of
+built-in functions is defined only in the typed semantics, and we
+evaluate such functions on erased arguments according to the
+corresponding typed arguments.\redfootnote{OK, that's not worded very well.}
 
 \subfile{figures/UntypedTermReduction}
 
-\subsection{An abstract machine for evaluating Untyped Plutus Core programs}
+\subsection{An abstract machine for evaluating erased Plutus Core programs}
 Figure~\ref{fig:untyped-ck-machine} describes a modified version of
-the CK machine (Figure~\ref{fig:ck-machine}) which evaluates untyped Plutus
+the CK machine (Figure~\ref{fig:ck-machine}) which evaluates erased Plutus
 Core programs.
 \subfile{figures/UntypedCkMachine}
 
@@ -1112,29 +1122,7 @@ each rule that is different, where possible
 (Figures~\ref{fig:contexts_algorithmic_unrestricted}
 and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
 
-\subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
-
-\newpage
-
-\section{Restricted Algorithmic Type System}
-
-For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalised types are present in
-programs, so as to reduce the amount of computation necessary to
-typecheck a program. It's also useful to have a way of bounding the
-amount of computation that can be done in type checking, for security
-purposes. To that end, we present a restricted grammar and type
-reduction, and a type system that reflects these.
-Figures~\ref{fig:grammar_algorithmic_restricted}--\ref{fig:type_synthesis_algorithmic_restricted}
-are additions with respect to the unrestricted version, and show only
-the new or changed figures and their respective highlighted
-differences.
-
-\subfile{figures/Grammar-Algorithmic-Restricted.tex}
-
-\subfile{figures/Reduction-Algorithmic-Restricted.tex}
-
-\subfile{figures/TypeSynthesis-Algorithmic-Restricted.tex}
+\subfile{figures/TypeSynthesis-Algorithmic.tex}
 
 \end{appendices}
 

@@ -14,7 +14,7 @@
                        &   &     & \inBuiltinU{bn}{V^*}{\_}{M^*}   & \textrm{builtin application}\\
                        &   &     & \inForceFrame                  & \textrm{force}
     \end{array}\]
-    \caption{Grammar of Untyped Reduction Frames}
+    \caption{Grammar of Erased Reduction Frames}
     \label{fig:untyped-reduction-frames}
 \end{subfigure}
 %% ---------------- Reduction via Contextual Dynamics ---------------- %%
@@ -29,7 +29,7 @@
 
     \begin{prooftree}
         \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins}}
-        \UnaryInfC{\(\step{\builtinU{bn}{\repetition{V}}}{U}\)}
+        \UnaryInfC{\(\step{\builtinU{bn}{\repetition{\erase{V}}}}{\erase{U}}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -56,7 +56,7 @@
     \label{fig:untyped-reduction}
 \end{subfigure}
 
-\caption{Term Reduction for Untyped Plutus Core}
+\caption{Term Reduction for Erased Plutus Core}
 \label{fig:untyped-term-reduction}
 \end{figure}
 
