@@ -43,6 +43,6 @@ valueAt :: Address -> ClientM Value
 
 getOwnOutputs :: ClientM UtxoMap
 getOwnOutputs = do
-  pk <- getOwnPubKey
-  am <- getWatchedAddresses
-  pure $ am ^. fundsAt (pubKeyAddress pk)
+    pk <- getOwnPubKey
+    am <- getWatchedAddresses
+    pure $ am ^. fundsAt (pubKeyAddress pk)
