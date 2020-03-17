@@ -90,7 +90,7 @@ typeEvalCheckBy
     -> TermOf uni a
     -> TypeEvalCheckM uni (TermOf uni (TypeEvalCheckResult uni))
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
-    termTy <- runQuoteT $ inferType defOffChainConfig term
+    termTy <- runQuoteT $ inferType defConfig term
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure
             t         -> EvaluationSuccess t

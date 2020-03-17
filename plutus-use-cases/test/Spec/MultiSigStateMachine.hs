@@ -60,7 +60,7 @@ tests =
         (lockProposeSignPay 3 3)
 
     , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 50000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 55000)
     ]
 
 w1, w2, w3 :: EM.Wallet

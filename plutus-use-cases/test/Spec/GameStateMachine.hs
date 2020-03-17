@@ -38,7 +38,7 @@ tests =
         /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> gameTokenVal))
         ( successTrace
-        >> payToWallet w2 w1 gameTokenVal 
+        >> payToWallet w2 w1 gameTokenVal
         >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
         >> handleBlockchainEvents w1
         )
@@ -57,8 +57,8 @@ tests =
 
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
-    , HUnit.testCase "script size is reasonable" 
-        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 46000)
+    , HUnit.testCase "script size is reasonable"
+        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 51000)
 
     ]
 
@@ -84,6 +84,6 @@ successTrace = do
     handleBlockchainEvents w2
 
 gameTokenVal :: Value
-gameTokenVal = 
+gameTokenVal =
     let sym = Scripts.monetaryPolicyHash G.scriptInstance
     in G.token sym "guess"
