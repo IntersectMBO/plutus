@@ -77,7 +77,8 @@ in rec {
 
   tests = import ./nix/tests/default.nix {
     inherit pkgs iohkNix haskell;
-    src = pkgs.nix-gitignore.gitignoreSource [] ../.;
+    # Just do some basic cleaning here, the tests do more
+    src = lib.cleanSource ./.;
   };
 
   docs = {
