@@ -43,6 +43,7 @@ library
         Wallet.Emulator.ChainIndex
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
+        Wallet.Emulator.SigningProcess
         Wallet.Emulator.Wallet
         Wallet.Rollup
         Wallet.Rollup.Types

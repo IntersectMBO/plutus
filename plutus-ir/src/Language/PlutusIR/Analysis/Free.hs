@@ -14,6 +14,7 @@ import           Language.PlutusCore.Subst (ftvTy)
 import           Control.Lens
 
 import qualified Data.Set                  as S
+import qualified Data.List.NonEmpty as NE
 
 {- Note: [PIR Free variables]
 
@@ -85,7 +86,7 @@ fTerm = \case
   _ -> S.empty
 
  where
-  fLet :: [Binding tyname name uni a] -> Term tyname name uni a -> Recursivity -> S.Set PLC.Unique
+  fLet :: NE.NonEmpty (Binding tyname name uni a) -> Term tyname name uni a -> Recursivity -> S.Set PLC.Unique
   fLet bs tIn =
     let
       allIds = S.fromList $ foldMap bindingIds bs

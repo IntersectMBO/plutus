@@ -94,9 +94,50 @@ test_dynamicConst =
         lhs === Right (Right c)
         lhs === rhs
 
+dynamicIdName :: DynamicBuiltinName
+dynamicIdName = DynamicBuiltinName "id"
+
+dynamicIdMeaning :: DynamicBuiltinNameMeaning uni
+dynamicIdMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+    sch =
+        TypeSchemeAllType @"a" @0 Proxy $ \a ->
+            a `TypeSchemeArrow` TypeSchemeResult a
+
+dynamicIdDefinition :: DynamicBuiltinNameDefinition uni
+dynamicIdDefinition =
+    DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
+
+dynamicId :: Term tyname name uni ()
+dynamicId = dynamicBuiltinNameAsTerm dynamicIdName
+
+-- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
+-- See https://github.com/input-output-hk/plutus/issues/1882
+test_dynamicId :: TestTree
+test_dynamicId =
+    testCase "dynamicId" $ do
+        let env = insertDynamicBuiltinNameDefinition dynamicIdDefinition mempty
+            zer = mkConstant @Integer @DefaultUni () 0
+            one = mkConstant @Integer @DefaultUni () 1
+            integer = mkTyBuiltin @Integer ()
+            -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+            term =
+                mkIterApp () (TyInst () dynamicId (TyFun () integer integer))
+                    [ Apply () constIntegerInteger one
+                    , zer
+                    ] where
+                          constIntegerInteger = runQuote $ do
+                              i <- freshName () "i"
+                              j <- freshName () "j"
+                              return
+                                  . LamAbs () i integer
+                                  . LamAbs () j integer
+                                  $ Var () i
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_dynamicFactorial
         , test_dynamicConst
+        , test_dynamicId
         ]

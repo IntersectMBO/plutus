@@ -45,8 +45,12 @@ common lang
 library
     import: lang
     exposed-modules:
+        Cardano.ChainIndex.API
+        Cardano.ChainIndex.Server
+        Cardano.ChainIndex.Types
         Cardano.Node.API
         Cardano.Node.Client
+        Cardano.Node.Follower
         Cardano.Node.Mock
         Cardano.Node.RandomTx
         Cardano.Node.Server

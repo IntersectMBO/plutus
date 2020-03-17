@@ -42,7 +42,7 @@ the typical textbook description of Mealy Machines in the following aspects:
   be able to enforce it on the blockchain level. Therefore, each
   contract should first establish some initial trust to bootstrap the
   process.
-  One possible avenue for overcoming this limitation is to built a notion of \textit{trace simulation}
+  One possible avenue for overcoming this limitation is to build a notion of \textit{trace simulation}
   on top of the current relation between single states,
   thus guaranteeing that only valid sequences starting from initial states appear on the ledger.
   For instance, this could be used to establish inductive properties of a state machine and
@@ -68,7 +68,7 @@ the typical textbook description of Mealy Machines in the following aspects:
 
 We want to compile a smart contract $\mathcal{C}$ defined as a \CEM{} into
 a smart contract that runs on the chain. The idea is to derive a
-validator script from the step function, using the data value to hold the
+validator script from the step function, using the datum to hold the
 state of the machine, and the redeemer to provide the transition signal.
 A valid transition in a \CEM{}
 will correspond to a single valid transaction on the chain. The
@@ -112,7 +112,7 @@ We refer to these two properties as soundness and completeness below.
 While state machines correspond to automata, the automata theoretic
 notion of equivalence --- trace equivalence --- is too coarse when we
 consider state machines as running processes. Instead we use
-bisimulation which was developed in concurrency theory for exactly
+bisimulation, which was developed in concurrency theory for exactly
 this purpose, to capture when processes behave the
 same~\cite{sangiorgi}. We consider both the state machine and the
 ledger itself to be running processes.
@@ -172,7 +172,7 @@ We also require that the omitted constraints are satisfiable in the
 current ledger and the target state is not a final one, since there
 would be no corresponding output in the ledger to witness
 $\Sim{l'}{s'}$.  We could instead augment the definition of
-correspondence to account for final states, but we refrained from
+correspondence to account for final states, but we have refrained from
 doing so for the sake of simplicity.
 
 \begin{proposition}[Completeness]

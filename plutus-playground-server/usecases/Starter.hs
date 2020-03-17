@@ -18,7 +18,7 @@ module Starter where
 --
 -- What you should change to something more suitable for
 -- your use case:
---   * The MyDataValue type
+--   * The MyDatum type
 --   * The MyMyRedeemerValue type
 --
 -- And add function implementations (and rename them to
@@ -39,15 +39,15 @@ import qualified Ledger.Typed.Scripts as Scripts
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-newtype MyDataValue = MyDataValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''MyDataValue
+newtype MyDatum = MyDatum Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyDatum
 
-newtype MyRedeemerValue = MyRedeemerValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''MyRedeemerValue
+newtype MyRedeemer = MyRedeemer Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
 --   its on-chain representation).
-validateSpend :: MyDataValue -> MyRedeemerValue -> PendingTx -> Bool
+validateSpend :: MyDatum -> MyRedeemer -> PendingTx -> Bool
 validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
 -- | The address of the contract (the hash of its validator script).
@@ -56,15 +56,15 @@ contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
 
 data Starter
 instance Scripts.ScriptType Starter where
-    type instance RedeemerType Starter = MyRedeemerValue
-    type instance DataType Starter = MyDataValue
+    type instance RedeemerType Starter = MyRedeemer
+    type instance DatumType Starter = MyDatum
 
 -- | The script instance is the compiled validator (ready to go onto the chain)
 starterInstance :: Scripts.ScriptInstance Starter
 starterInstance = Scripts.validator @Starter
     $$(PlutusTx.compile [|| validateSpend ||])
     $$(PlutusTx.compile [|| wrap ||]) where
-        wrap = Scripts.wrapValidator @MyDataValue @MyRedeemerValue
+        wrap = Scripts.wrapValidator @MyDatum @MyRedeemer
 
 -- | The schema of the contract, with two endpoints.
 type Schema =
@@ -79,7 +79,7 @@ contract = publish <|> redeem
 publish :: AsContractError e => Contract Schema e ()
 publish = do
     (i, lockedFunds) <- endpoint @"publish"
-    let tx = Constraints.mustPayToTheScript (MyDataValue i) lockedFunds
+    let tx = Constraints.mustPayToTheScript (MyDatum i) lockedFunds
     void $ submitTxConstraints starterInstance tx
 
 -- | The "redeem" contract endpoint.
@@ -87,7 +87,7 @@ redeem :: AsContractError e => Contract Schema e ()
 redeem = do
     myRedeemerValue <- endpoint @"redeem"
     unspentOutputs <- utxoAt contractAddress
-    let redeemer = MyRedeemerValue myRedeemerValue
+    let redeemer = MyRedeemer myRedeemerValue
         tx       = collectFromScript unspentOutputs redeemer
     void $ submitTxConstraintsSpending starterInstance unspentOutputs tx
 

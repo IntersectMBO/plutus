@@ -36,7 +36,12 @@
                 multiplyInteger
                 (fun (con integer) (fun (con integer) (con integer)))
               )
-              (builtin multiplyInteger)
+              (lam
+                arg
+                (con integer)
+                (lam arg (con integer) [ [ (builtin multiplyInteger) arg ] arg ]
+                )
+              )
             )
             (let
               (nonrec)
@@ -258,7 +263,11 @@
                     addInteger
                     (fun (con integer) (fun (con integer) (con integer)))
                   )
-                  (builtin addInteger)
+                  (lam
+                    arg
+                    (con integer)
+                    (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+                  )
                 )
                 (let
                   (nonrec)
@@ -530,7 +539,7 @@
                                                           (let
                                                             (nonrec)
                                                             (termbind
-                                                              (strict)
+                                                              (nonstrict)
                                                               (vardecl
                                                                 wild
                                                                 [[Tuple2 k] r]
@@ -3462,11 +3471,11 @@
                                                                                                                   (fun (con bytestring) (fun (con bytestring) (fun (con integer) TxConstraint)))
                                                                                                                 )
                                                                                                                 (vardecl
-                                                                                                                  MustHashDataValue
+                                                                                                                  MustHashDatum
                                                                                                                   (fun (con bytestring) (fun Data TxConstraint))
                                                                                                                 )
                                                                                                                 (vardecl
-                                                                                                                  MustIncludeDataValue
+                                                                                                                  MustIncludeDatum
                                                                                                                   (fun Data TxConstraint)
                                                                                                                 )
                                                                                                                 (vardecl
@@ -4475,8 +4484,22 @@
                                                                                                                               appendString
                                                                                                                               (fun (con string) (fun (con string) (con string)))
                                                                                                                             )
-                                                                                                                            (builtin
-                                                                                                                              append
+                                                                                                                            (lam
+                                                                                                                              arg
+                                                                                                                              (con string)
+                                                                                                                              (lam
+                                                                                                                                arg
+                                                                                                                                (con string)
+                                                                                                                                [
+                                                                                                                                  [
+                                                                                                                                    (builtin
+                                                                                                                                      append
+                                                                                                                                    )
+                                                                                                                                    arg
+                                                                                                                                  ]
+                                                                                                                                  arg
+                                                                                                                                ]
+                                                                                                                              )
                                                                                                                             )
                                                                                                                           )
                                                                                                                           (let
@@ -4489,8 +4512,15 @@
                                                                                                                                 charToString
                                                                                                                                 (fun (con integer) (con string))
                                                                                                                               )
-                                                                                                                              (builtin
-                                                                                                                                charToString
+                                                                                                                              (lam
+                                                                                                                                arg
+                                                                                                                                (con integer)
+                                                                                                                                [
+                                                                                                                                  (builtin
+                                                                                                                                    charToString
+                                                                                                                                  )
+                                                                                                                                  arg
+                                                                                                                                ]
                                                                                                                               )
                                                                                                                             )
                                                                                                                             (let
@@ -5628,7 +5658,7 @@
                                                                                                                                                                                                                       [
                                                                                                                                                                                                                         c
                                                                                                                                                                                                                         [
-                                                                                                                                                                                                                          MustIncludeDataValue
+                                                                                                                                                                                                                          MustIncludeDatum
                                                                                                                                                                                                                           dv
                                                                                                                                                                                                                         ]
                                                                                                                                                                                                                       ]
@@ -5740,7 +5770,7 @@
                                                                                                                                                                                           (strict
                                                                                                                                                                                           )
                                                                                                                                                                                           (vardecl
-                                                                                                                                                                                            unitData
+                                                                                                                                                                                            unitDatum
                                                                                                                                                                                             (con integer)
                                                                                                                                                                                           )
                                                                                                                                                                                           (con
@@ -5754,13 +5784,13 @@
                                                                                                                                                                                             (nonstrict
                                                                                                                                                                                             )
                                                                                                                                                                                             (vardecl
-                                                                                                                                                                                              unitData
+                                                                                                                                                                                              unitDatum
                                                                                                                                                                                               Data
                                                                                                                                                                                             )
                                                                                                                                                                                             [
                                                                                                                                                                                               [
                                                                                                                                                                                                 Constr
-                                                                                                                                                                                                unitData
+                                                                                                                                                                                                unitDatum
                                                                                                                                                                                               ]
                                                                                                                                                                                               {
                                                                                                                                                                                                 Nil
@@ -5839,7 +5869,7 @@
                                                                                                                                                                                                                             }
                                                                                                                                                                                                                             ds
                                                                                                                                                                                                                           ]
-                                                                                                                                                                                                                          unitData
+                                                                                                                                                                                                                          unitDatum
                                                                                                                                                                                                                         ]
                                                                                                                                                                                                                         ds
                                                                                                                                                                                                                       ]
@@ -5856,7 +5886,7 @@
                                                                                                                                                                                                                           }
                                                                                                                                                                                                                           ds
                                                                                                                                                                                                                         ]
-                                                                                                                                                                                                                        unitData
+                                                                                                                                                                                                                        unitDatum
                                                                                                                                                                                                                       ]
                                                                                                                                                                                                                       ds
                                                                                                                                                                                                                     ]
@@ -6553,7 +6583,7 @@
                                                                                                                                                                                                                         (nonrec
                                                                                                                                                                                                                         )
                                                                                                                                                                                                                         (termbind
-                                                                                                                                                                                                                          (strict
+                                                                                                                                                                                                                          (nonstrict
                                                                                                                                                                                                                           )
                                                                                                                                                                                                                           (vardecl
                                                                                                                                                                                                                             wild
@@ -6989,7 +7019,7 @@
                                                                                                                                                                                                                                                                                                                                   c
                                                                                                                                                                                                                                                                                                                                   [
                                                                                                                                                                                                                                                                                                                                     [
-                                                                                                                                                                                                                                                                                                                                      MustHashDataValue
+                                                                                                                                                                                                                                                                                                                                      MustHashDatum
                                                                                                                                                                                                                                                                                                                                       ds
                                                                                                                                                                                                                                                                                                                                     ]
                                                                                                                                                                                                                                                                                                                                     ds
@@ -7468,7 +7498,7 @@
                                                                                                                                                                                                                                                                                                                                     )
                                                                                                                                                                                                                                                                                                                                   ]
                                                                                                                                                                                                                                                                                                                                 ]
-                                                                                                                                                                                                                                                                                                                                unitData
+                                                                                                                                                                                                                                                                                                                                unitDatum
                                                                                                                                                                                                                                                                                                                               ]
                                                                                                                                                                                                                                                                                                                               [
                                                                                                                                                                                                                                                                                                                                 {
@@ -7537,7 +7567,7 @@
                                                                                                                                                                                                                                                                                                                                   )
                                                                                                                                                                                                                                                                                                                                 ]
                                                                                                                                                                                                                                                                                                                               ]
-                                                                                                                                                                                                                                                                                                                              unitData
+                                                                                                                                                                                                                                                                                                                              unitDatum
                                                                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                                                                             [
                                                                                                                                                                                                                                                                                                                               {
@@ -7636,7 +7666,7 @@
                                                                                                                                                                                                                                                                                                                                                 c
                                                                                                                                                                                                                                                                                                                                                 [
                                                                                                                                                                                                                                                                                                                                                   [
-                                                                                                                                                                                                                                                                                                                                                    MustHashDataValue
+                                                                                                                                                                                                                                                                                                                                                    MustHashDatum
                                                                                                                                                                                                                                                                                                                                                     ds
                                                                                                                                                                                                                                                                                                                                                   ]
                                                                                                                                                                                                                                                                                                                                                   ds

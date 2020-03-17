@@ -41,9 +41,8 @@ import           Plutus.SCB.Events                             (ChainEvent)
 import           Plutus.SCB.Types                              (SCBError (ContractCommandError, ContractNotFound))
 import           Test.QuickCheck.Instances.UUID                ()
 import           Wallet.API                                    (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics,
-                                                                logMsg, ownOutputs, ownPubKey, sign, slot,
-                                                                startWatching, submitTxn, updatePaymentWithChange,
-                                                                watchedAddresses)
+                                                                logMsg, ownOutputs, ownPubKey, slot, startWatching,
+                                                                submitTxn, updatePaymentWithChange, watchedAddresses)
 
 data TestState =
     TestState
@@ -134,7 +133,6 @@ instance WalletDiagnostics TestApp where
 
 instance WalletAPI TestApp where
     ownPubKey = WalletClient.getOwnPubKey
-    sign = WalletClient.sign
     updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
     ownOutputs = do
         pk <- ownPubKey

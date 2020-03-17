@@ -18,7 +18,7 @@ import Data.String.Extra (unlines)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Marlowe.Semantics (ChosenNum, Money, PubKey, Slot, Timeout, TokenName)
+import Marlowe.Semantics (ChosenNum, Money, Rational, PubKey, Slot, Timeout, TokenName)
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
 import Text.Parsing.StringParser.Basic (lines, replaceInPosition)
@@ -91,6 +91,7 @@ getMarloweConstructors ValueType =
     , (Tuple "NegValue" [ DataArg "value" ])
     , (Tuple "AddValue" [ DataArg "value", DataArg "value" ])
     , (Tuple "SubValue" [ DataArg "value", DataArg "value" ])
+    , (Tuple "Scale" [ DataArg "rational", DataArg "value" ])
     , (Tuple "ChoiceValue" [ DataArg "choiceId", DataArg "value" ])
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
@@ -448,6 +449,7 @@ data Value
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
+  | Scale (Term Rational) (Term Value)
   | ChoiceValue (Term ChoiceId) (Term Value)
   | SlotIntervalStart
   | SlotIntervalEnd
@@ -471,6 +473,7 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (NegValue a) = S.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
+  fromTerm (Scale a b) = S.Scale <$> termToValue a <*> fromTerm b
   fromTerm (ChoiceValue a b) = S.ChoiceValue <$> fromTerm a <*> fromTerm b
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
   fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd

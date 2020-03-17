@@ -21,14 +21,18 @@
           (vardecl
             appendString (fun (con string) (fun (con string) (con string)))
           )
-          (builtin append)
+          (lam
+            arg
+            (con string)
+            (lam arg (con string) [ [ (builtin append) arg ] arg ])
+          )
         )
         (let
           (nonrec)
           (termbind
             (strict)
             (vardecl charToString (fun (con integer) (con string)))
-            (builtin charToString)
+            (lam arg (con integer) [ (builtin charToString) arg ])
           )
           (let
             (nonrec)

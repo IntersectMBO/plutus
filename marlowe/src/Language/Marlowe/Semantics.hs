@@ -31,7 +31,7 @@ on Cardano.
 Semantics is based on <https://github.com/input-output-hk/marlowe/blob/stable/src/Semantics.hs>
 
 Marlowe Contract execution is a chain of transactions,
-where remaining contract and its state is passed through /Data Script/,
+where remaining contract and its state is passed through /Datum/,
 and actions (i.e. /Choices/) are passed as
 /Redeemer Script/
 
@@ -47,10 +47,12 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
+import           Language.PlutusTx.List     (length)
 import           Language.PlutusTx.Prelude  hiding ((<>))
+import           Language.PlutusTx.Ratio    (denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
-import           Ledger.Scripts             (DataValue (..))
+import           Ledger.Scripts             (Datum (..))
 import           Ledger.Tx                  (TxOut (..), TxOutType (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol, TokenName)
@@ -131,7 +133,7 @@ data Token = Token CurrencySymbol TokenName
   deriving stock (Show,Read,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
-{-| Values, as defined using Let are identified by name,
+{-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
 -}
 newtype ValueId = ValueId ByteString
@@ -141,13 +143,14 @@ newtype ValueId = ValueId ByteString
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
     and any choices that have already been made.
 
-    Values can also be combined using addition, subtraction and negation.
+    Values can also be scaled, and combined using addition, subtraction, and negation.
 -}
 data Value = AvailableMoney AccountId Token
            | Constant Integer
            | NegValue Value
            | AddValue Value Value
            | SubValue Value Value
+           | Scale Rational Value
            | ChoiceValue ChoiceId Value
            | SlotIntervalStart
            | SlotIntervalEnd
@@ -232,7 +235,7 @@ data Contract = Close
   deriving anyclass (Pretty)
 
 
-{-| Marlowe contract internal state. Stored in a /Data Script/ of a transaction output.
+{-| Marlowe contract internal state. Stored in a /Datum/ of a transaction output.
 -}
 data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
@@ -374,7 +377,7 @@ data TransactionOutput =
 
 
 {-|
-    This data type is a content of a contract's /Data Script/
+    This data type is a content of a contract's /Datum/
 -}
 data MarloweData = MarloweData {
         marloweState    :: State,
@@ -440,6 +443,20 @@ evalValue env state value = let
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
+        Scale s rhs          -> let
+            num = numerator s
+            denom = denominator s
+            -- quotient and reminder
+            multiplied = num * eval rhs
+            (q, r) = multiplied `quotRem` denom
+            -- abs (rem (num/denom)) - 1/2
+            abs a = if a >= 0 then a else negate a
+            signum x = if x > 0 then 1 else if x == 0 then 0 else -1
+            sign :: Integer
+            sign = signum (2 * abs r - abs denom)
+            m = if r < 0 then q - 1 else q + 1
+            isEven = (q `remainder` 2) == 0
+            in if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
         ChoiceValue choiceId defVal ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x
@@ -699,8 +716,8 @@ computeTransaction tx state contract = let
     inputs = txInputs tx
     in case fixInterval (txInterval tx) state of
         IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-            ApplyAllSuccess warnings payments newState cont -> let
-                in  if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
+            ApplyAllSuccess warnings payments newState cont ->
+                    if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
                     then Error TEUselessTransaction
                     else TransactionOutput { txOutWarnings = warnings
                                            , txOutPayments = payments
@@ -709,7 +726,6 @@ computeTransaction tx state contract = let
             ApplyAllNoMatchError -> Error TEApplyNoMatchError
             ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
         IntervalError error -> Error (TEIntervalError error)
-
 
 -- | Calculates an upper bound for the maximum lifespan of a contract
 contractLifespanUpperBound :: Contract -> Integer
@@ -740,10 +756,10 @@ validatePayments MarloweParams{..} pendingTx txOutPayments = all checkValidPayme
             curValue = fromMaybe zero (Map.lookup party outputs)
             newValue = txOutValue + curValue
         in Map.insert party newValue outputs
-    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript dataValueHash}
+    collect outputs TxOut{txOutAddress=ScriptAddress validatorHash, txOutValue, txOutType=PayToScript datumHash}
         | validatorHash == rolePayoutValidatorHash =
-                case findData dataValueHash pendingTx of
-                    Just (DataValue dv) ->
+                case findDatum datumHash pendingTx of
+                    Just (Datum dv) ->
                         case PlutusTx.fromData dv of
                             Just (currency, role) | currency == rolesCurrency -> let
                                 party = Role role
@@ -799,7 +815,7 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
             [TxOut
                 { txOutType = (PayToScript dsh)
                 , txOutValue = scriptOutputValue
-                }] | Just (DataValue ds) <- findData dsh pendingTx ->
+                }] | Just (Datum ds) <- findDatum dsh pendingTx ->
 
                 case PlutusTx.fromData ds of
                     Just expected -> let
@@ -930,6 +946,7 @@ instance Eq Value where
     NegValue val1 == NegValue val2 = val1 == val2
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
     SubValue val1 val2 == SubValue val3 val4 = val1 == val3 && val2 == val4
+    Scale s1 val1 == Scale s2 val2 = s1 == s2 && val1 == val2
     ChoiceValue cid1 val1 == ChoiceValue cid2 val2 = cid1 == cid2 && val1 == val2
     SlotIntervalStart == SlotIntervalStart = True
     SlotIntervalEnd   == SlotIntervalEnd   = True
@@ -958,7 +975,7 @@ instance Eq Action where
     Deposit acc1 party1 tok1 val1 == Deposit acc2 party2 tok2 val2 =
         acc1 == acc2 && party1 == party2 && tok1 == tok2 && val1 == val2
     Choice cid1 bounds1 == Choice cid2 bounds2 =
-        cid1 == cid2 && let
+        cid1 == cid2 && length bounds1 == length bounds2 && let
             bounds = zip bounds1 bounds2
             checkBound (Bound low1 high1, Bound low2 high2) = low1 == low2 && high1 == high2
             in all checkBound bounds
@@ -975,6 +992,7 @@ instance Eq Contract where
         obs1 == obs2 && cont1 == cont3 && cont2 == cont4
     When cases1 timeout1 cont1 == When cases2 timeout2 cont2 =
         timeout1 == timeout2 && cont1 == cont2
+        && length cases1 == length cases2
         && let cases = zip cases1 cases2
                checkCase (Case action1 cont1, Case action2 cont2) =
                     action1 == action2 && cont1 == cont2

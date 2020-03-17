@@ -202,6 +202,8 @@ lintValue state (Term (AddValue a b) _) = lintValue state a <> lintValue state b
 
 lintValue state (Term (SubValue a b) _) = lintValue state a <> lintValue state b
 
+lintValue state (Term (Scale a b) _) = lintValue state b
+
 lintValue state (Term (ChoiceValue choiceId a) _) =
   let
     newState = over _holes (getHoles choiceId) state

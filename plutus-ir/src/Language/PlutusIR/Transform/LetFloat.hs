@@ -26,6 +26,7 @@ import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
 import Data.List (partition)
 import Debug.Trace
+import qualified Data.List.NonEmpty as NE
 
 {- Note [Float algorithm]
 
@@ -240,7 +241,7 @@ p1Term pir = toFloatData $ runReader
                         in (newScope, newDepth))
                     $ goTerm tBody)
 
-    goRec :: [Binding tyname name uni a] -> Term tyname name uni a -> Reader P1Ctx P1Data
+    goRec :: NE.NonEmpty (Binding tyname name uni a) -> Term tyname name uni a -> Reader P1Ctx P1Data
     goRec bs tIn = do
         -- the freevars is the union of each binding's freeVars,
         -- excluding the newly-introduced binding identifiers of this letrec
@@ -252,13 +253,13 @@ p1Term pir = toFloatData $ runReader
         resIn <- withScope newScope $ goTerm tIn
         pure $ resBs <> resIn
 
-    goNonRec :: [Binding tyname name uni a] -> Term tyname name uni a -> Reader P1Ctx P1Data
+    goNonRec :: NE.NonEmpty (Binding tyname name uni a) -> Term tyname name uni a -> Reader P1Ctx P1Data
     goNonRec bs tIn =
       foldr (\ b acc -> do
            -- this means that we see each binding individually, not at the whole let level
            let freeVars = fBinding b
            -- compute a maxrank for this binding alone and a newscope that includes it
-           newScope <- addRanks [b] freeVars
+           newScope <- addRanks (pure b) freeVars
            resHead <- mconcat <$> forM (b^..bindingSubterms) goTerm
            resRest <- withScope newScope acc
            pure $ resHead <> resRest
@@ -268,7 +269,7 @@ p1Term pir = toFloatData $ runReader
     -- | Given a set of bindings and the union set of their free-variables,
     -- compute the maximum 'Rank' among all the free-variables,
     -- and increase the current scope ('P1Data') by inserting mappings of each new let-identifier to this maximum rank
-    addRanks :: [Binding tyname name uni a] -- ^ bindings
+    addRanks :: NE.NonEmpty (Binding tyname name uni a) -- ^ bindings
              -> S.Set PLC.Unique -- ^ their free-vars
              -> Reader P1Ctx P1Data -- ^ the updated scope that includes the added ranks
     addRanks bs freeVars = do
@@ -281,7 +282,7 @@ p1Term pir = toFloatData $ runReader
           -- this computed max rank is linked/associated to all the given bindings and added to the current scope
           -- this is needed because a datatype-binding may introduce multiple identifiers
           -- and we need to create scope entries for each one of them, having the same maxrank
-          scopeDelta = M.fromList [(i,(maxRank, b^.principal)) | b <- bs, i <- bindingIds b]
+          scopeDelta = M.fromList [(i,(maxRank, b^.principal)) | b <- NE.toList bs, i <- bindingIds b]
           newScope = scope `M.union` scopeDelta
       pure newScope
 
@@ -458,7 +459,7 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
                                                               (_3.bindingSubterms) (goTerm curDepth restDepthTable) rhs
                                                             _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
                                                        )
-              let (mAnn, mRecurs, newBindings) = foldMap (over _3 pure) res
+              let (mAnn, mRecurs, newBindings) = foldr1 (<>) $ fmap (over _3 pure) res
               pure $ case acc of
                        -- merge current let-group with previous let-group iff both groups' recursivity is NonRec
                        Let accAnn NonRec accBs accIn | mRecurs == NonRec -> Let (mAnn <> accAnn) NonRec (newBindings <> accBs) accIn
