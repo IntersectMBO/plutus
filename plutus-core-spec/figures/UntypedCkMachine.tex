@@ -7,12 +7,12 @@
 \begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Stack} & s      & ::= & \cdot                             & \textrm{empty stack}\\
-                       &        &     & s,f                               & \textrm{stack with frame $f$ at top}\\
-        \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
-                       &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
-                       &        &     & \square V                         & \textrm{halt and return a value}\\
-                       &        &     & \ckerror{}                        & \textrm{throw an error}
+        \textrm{Stack} & s      & ::= & \cdot          & \textrm{empty stack}\\
+                       &        &     & s,f            & \textrm{stack with frame $f$ at top}\\
+        \textrm{State} & \sigma & ::= & s \compute M   & \textrm{computing a term}\\
+                       &        &     & s \return V    & \textrm{returning a term value}\\
+                       &        &     & \square V      & \textrm{halt and return a value}\\
+                       &        &     & \ckerror{}     & \textrm{throw an error}
     \end{array}\]
 
     \captionof{figure}{Grammar of Untyped CK Machine States}
@@ -21,7 +21,7 @@
 
 
 \begin{subfigure}[c]{\linewidth}
-    \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine takes one step from state $\sigma$ to state $\sigma'$}
+    \judgmentdef{$\sigma \mapsto \sigma^{\prime}$}{Machine takes one step from state $\sigma$ to state $\sigma'$}
 
 %% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
 \hspace{-1cm}\begin{minipage}{\linewidth}
