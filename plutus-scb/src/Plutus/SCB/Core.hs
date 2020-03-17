@@ -36,7 +36,7 @@ module Plutus.SCB.Core
     , toUUID
     ) where
 
-import           Cardano.Node.API                           (NodeFollowerAPI)
+import           Cardano.Node.API                           (NodeFollowerAPI, subscribe)
 import qualified Cardano.Node.API                           as NodeClient
 import           Cardano.Node.Types                         (FollowerID)
 import           Control.Error.Util                         (note)
@@ -162,21 +162,22 @@ updateContract ::
        , NodeFollowerAPI m
        , SigningProcessAPI m
        )
-    => FollowerID -- TODO: Should the follower ID be per-instance?
-    -> UUID
+    => UUID
     -> Text
     -> JSON.Value
     -> m ()
-updateContract i uuid endpointName endpointPayload = do
+updateContract uuid endpointName endpointPayload = do
     logInfoN "Finding Contract"
     oldContractState <- liftError $ lookupActiveContractState uuid
     logInfoN $
         "Updating Contract: " <>
         Text.pack (activeContractPath (activeContract oldContractState)) <>
         "/" <> endpointName
+    fID <- subscribe
     void $
         execStateT
-            (invokeContractUpdate i $ EventPayload endpointName endpointPayload)
+            (invokeContractUpdate fID $
+             EventPayload endpointName endpointPayload)
             (oldContractState, [])
     --
     logInfoN "Handling Resulting Blockchain Events"
@@ -384,7 +385,10 @@ processAllHooks i =
             sync i
             processAllHooks i
 
-sync :: (MonadLogger m, MonadEventStore ChainEvent m, NodeFollowerAPI m) => FollowerID -> m ()
+sync ::
+       (MonadLogger m, MonadEventStore ChainEvent m, NodeFollowerAPI m)
+    => FollowerID
+    -> m ()
 sync i = do
     blocks <- NodeClient.blocks i
     traverse_ (runCommand saveBlock NodeEventSource) blocks
@@ -404,7 +408,8 @@ popHook ::
        , MonadLogger m
        , NodeFollowerAPI m
        )
-    => FollowerID -> m (Maybe ContractHook)
+    => FollowerID
+    -> m (Maybe ContractHook)
 popHook i = do
     oldHooks <- use _2
     logDebugN $ "Current Hooks: " <> tshow oldHooks

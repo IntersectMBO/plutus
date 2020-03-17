@@ -16,6 +16,7 @@ module Plutus.SCB.TestApp
     , sync
     , TestApp
     , getFollowerID
+    , valueAt
     ) where
 
 import           Cardano.Node.API                              (NodeFollowerAPI (..))
@@ -51,7 +52,9 @@ import           Eventful.Store.Memory                         (EventMap, emptyE
 import           Language.Plutus.Contract.Resumable            (ResumableError)
 import           Language.Plutus.Contract.Servant              (initialResponse, runUpdate)
 import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
+import           Ledger                                        (Address)
 import qualified Ledger
+import           Ledger.AddressMap                             (UtxoMap)
 import qualified Ledger.AddressMap                             as AM
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
@@ -104,6 +107,9 @@ initialTestState =
         let _walletState = WalletServer.initialState
         let _signingProcess = SP.defaultSigningProcess (Wallet 1)
         pure TestState {_eventStore, _nodeState, _walletState, _signingProcess}
+
+valueAt :: Address -> TestApp Ledger.Value
+valueAt address = TestApp $ zoom walletState $ WalletServer.valueAt address
 
 runScenario :: TestApp a -> IO ()
 runScenario action = do
