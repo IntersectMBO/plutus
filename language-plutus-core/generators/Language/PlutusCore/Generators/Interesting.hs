@@ -52,9 +52,7 @@ type TermGen uni a = Gen (TermOf uni a)
 --
 -- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
 -- >     == if i < j then i + j else i - j
-genOverapplication
-    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
-    => TermGen uni Integer
+genOverapplication :: Generatable uni => TermGen uni Integer
 genOverapplication = do
     let typedInteger = AsKnownType
         integer = toTypeAst typedInteger
@@ -145,8 +143,7 @@ genNaiveFib = do
 -- defined in terms of generic fix (see 'Fix') and return the result
 -- along with the original 'Integer'
 genNatRoundtrip
-    :: forall uni. (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
-    => TermGen uni Integer
+    :: forall uni. Generatable uni => TermGen uni Integer
 genNatRoundtrip = do
     let typedInt = AsKnownType @uni
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
@@ -174,9 +171,7 @@ natSum = runQuote $ do
 
 -- | Generate a list of 'Integer's, turn it into a Scott-encoded PLC @List@ (see 'List'),
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
-genListSum
-    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString, Bool])
-    => TermGen uni Integer
+genListSum :: Generatable uni => TermGen uni Integer
 genListSum = do
     let typedInt = AsKnownType
         intS = toTypeAst typedInt
@@ -188,9 +183,7 @@ genListSum = do
 
 -- | Generate a @boolean@ and two @integer@s and check whether @if b then i1 else i2@
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
-genIfIntegers
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => TermGen uni Integer
+genIfIntegers :: Generatable uni => TermGen uni Integer
 genIfIntegers = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -206,9 +199,7 @@ genIfIntegers = do
     return $ TermOf term value
 
 -- | Check that builtins can be partially applied.
-genApplyAdd1
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => TermGen uni Integer
+genApplyAdd1 :: Generatable uni => TermGen uni Integer
 genApplyAdd1 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -222,9 +213,7 @@ genApplyAdd1 = do
     return . TermOf term $ iv + jv
 
 -- | Check that builtins can be partially applied.
-genApplyAdd2
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => TermGen uni Integer
+genApplyAdd2 :: Generatable uni => TermGen uni Integer
 genApplyAdd2 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
@@ -239,9 +228,7 @@ genApplyAdd2 = do
     return . TermOf term $ iv + jv
 
 -- | Check that division by zero results in 'Error'.
-genDivideByZero
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => TermGen uni (EvaluationResult Integer)
+genDivideByZero :: Generatable uni => TermGen uni (EvaluationResult Integer)
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ AsKnownType @_ @Integer
@@ -249,9 +236,7 @@ genDivideByZero = do
     return $ TermOf term EvaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
-genDivideByZeroDrop
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => TermGen uni (EvaluationResult Integer)
+genDivideByZeroDrop :: Generatable uni => TermGen uni (EvaluationResult Integer)
 genDivideByZeroDrop = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     let typedInt = AsKnownType
@@ -266,8 +251,7 @@ genDivideByZeroDrop = do
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
+    :: Generatable uni => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
     [ f "overapplication"  genOverapplication
     , f "factorial"        genFactorial

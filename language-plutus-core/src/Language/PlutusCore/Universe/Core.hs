@@ -21,6 +21,7 @@ module Language.PlutusCore.Universe.Core
     , Includes (..)
     , IncludesAll
     , Closed (..)
+    , EverywhereAll
     , type (<:)
     , knownUniOf
     , GShow (..)
@@ -116,6 +117,12 @@ class Closed uni where
     -- | Bring a @constr a@ instance in scope, provided @a@ is a type from the universe and
     -- @constr@ holds for any type from the universe.
     bring :: uni `Everywhere` constr => proxy constr -> uni a -> (constr a => r) -> r
+
+-- We can't use @All (Everywhere uni) constrs@, because 'Everywhere' is an associated type family
+-- and can't be partially applied, so we have to inline the definition here.
+type family uni `EverywhereAll` (constrs :: [GHC.Type -> Constraint]) :: Constraint where
+    uni `EverywhereAll` '[]                 = ()
+    uni `EverywhereAll` (constr ': constrs) = (uni `Everywhere` constr, uni `EverywhereAll` constrs)
 
 -- | A constraint for \"@uni1@ is a subuniverse of @uni2@\".
 type uni1 <: uni2 = uni1 `Everywhere` Includes uni2

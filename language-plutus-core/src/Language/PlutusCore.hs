@@ -20,6 +20,7 @@ module Language.PlutusCore
     , Includes (..)
     , IncludesAll
     , Closed (..)
+    , EverywhereAll
     , knownUniOf
     , GShow (..)
     , show
