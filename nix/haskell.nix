@@ -11,11 +11,10 @@
 
 let
   pkgSet = haskell-nix.stackProject {
-    # haskell.nix cleanGit doesn't play well with lorri, see https://github.com/input-output-hk/haskell.nix/issues/492
-    src = haskell-nix.cleanSourceHaskell {
-      src = ../.;
-      # revert when I figure out why this breaks projectPackages
-      #src = pkgs.nix-gitignore.gitignoreSource [] ../.;
+    # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
+    src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
+      filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [../.gitignore] root) root;
+      src =  root;
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
