@@ -39,7 +39,6 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Generators
 
-import qualified Data.ByteString.Lazy                     as BSL
 import           Data.List                                (genericIndex)
 import           Hedgehog                                 hiding (Size, Var)
 import qualified Hedgehog.Gen                             as Gen
