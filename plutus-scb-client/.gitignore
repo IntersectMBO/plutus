@@ -1,0 +1,10 @@
+/node_modules/
+/output/
+/generated/
+/yarn-error.log
+/.psci_modules/
+/generated-docs/
+/.psc-package/
+/.psc-package2nix/
+/.spago/
+/.spago2nix/

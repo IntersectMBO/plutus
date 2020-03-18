@@ -3,21 +3,21 @@ module Chain.Types where
 import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonMap (JsonMap)
 import Data.Lens (Fold', Iso', Lens', Traversal', filtered, iso, preview, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Address (Address(..))
 import Ledger.Crypto (PubKey, Signature)
 import Ledger.Interval (Interval)
 import Ledger.Slot (Slot)
-import Ledger.Tx (Tx, TxIn, TxOut(..), TxOutRef(..), TxOutType(..))
+import Ledger.Tx (Tx, TxIn, TxOut(..), TxOutRef(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (Value)
-import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId)
+import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId, TxKey(..), _TxKey)
 
 data ChainFocus
   = FocusTx TxId
@@ -51,6 +51,13 @@ type State
     , chainFocusAge :: Ordering
     }
 
+initialState :: State
+initialState =
+  { chainFocus: Nothing
+  , chainFocusAppearing: false
+  , chainFocusAge: EQ
+  }
+
 _chainFocus :: forall r a. Lens' { chainFocus :: a | r } a
 _chainFocus = prop (SProxy :: SProxy "chainFocus")
 
@@ -66,13 +73,13 @@ _sequenceId = _Newtype <<< prop (SProxy :: SProxy "sequenceId")
 _dereferencedInputs :: Lens' AnnotatedTx (Array DereferencedInput)
 _dereferencedInputs = _Newtype <<< prop (SProxy :: SProxy "dereferencedInputs")
 
-_originalInput :: Lens' DereferencedInput TxIn
-_originalInput = _Newtype <<< prop (SProxy :: SProxy "originalInput")
+_value :: forall s a r. Newtype s { getValue :: a | r } => Lens' s a
+_value = _Newtype <<< prop (SProxy :: SProxy "getValue")
 
 _txIdOf :: Lens' AnnotatedTx TxId
 _txIdOf = _Newtype <<< prop (SProxy :: SProxy "txId")
 
-_balances :: Lens' AnnotatedTx (AssocMap.Map BeneficialOwner Value)
+_balances :: Lens' AnnotatedTx (JsonMap BeneficialOwner Value)
 _balances = _Newtype <<< prop (SProxy :: SProxy "balances")
 
 _tx :: Lens' AnnotatedTx Tx
@@ -87,7 +94,7 @@ _txForge = _Newtype <<< prop (SProxy :: SProxy "txForge")
 _txValidRange :: Lens' Tx (Interval Slot)
 _txValidRange = _Newtype <<< prop (SProxy :: SProxy "txValidRange")
 
-_txSignatures :: Lens' Tx (AssocMap.Map PubKey Signature)
+_txSignatures :: Lens' Tx (JsonMap PubKey Signature)
 _txSignatures = _Newtype <<< prop (SProxy :: SProxy "txSignatures")
 
 _txInputs :: Lens' Tx (Array TxIn)
@@ -104,6 +111,12 @@ _txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")
 
 _txOutRefId :: Lens' TxOutRef TxId
 _txOutRefId = _Newtype <<< prop (SProxy :: SProxy "txOutRefId")
+
+_txKeyTxId :: Lens' TxKey TxId
+_txKeyTxId = _TxKey <<< prop (SProxy :: SProxy "_txKeyTxId")
+
+_txKeyTxOutRefIdx :: Lens' TxKey Int
+_txKeyTxOutRefIdx = _TxKey <<< prop (SProxy :: SProxy "_txKeyTxOutRefIdx")
 
 toBeneficialOwner :: TxOut -> BeneficialOwner
 toBeneficialOwner (TxOut { txOutAddress }) = case txOutAddress of

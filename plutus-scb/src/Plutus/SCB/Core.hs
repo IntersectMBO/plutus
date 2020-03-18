@@ -69,6 +69,7 @@ import           Eventful                                   (Projection, StreamE
 import           Eventful.Store.Sql                         (defaultSqlEventStoreConfig)
 import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest (NotWaitingForPubKey, WaitingForPubKey))
 import qualified Language.Plutus.Contract.Wallet            as Wallet
+import           Ledger                                     (Tx)
 import qualified Ledger
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Constraints.OffChain                (UnbalancedTx (unBalancedTxTx))
@@ -76,8 +77,8 @@ import           Plutus.SCB.Command                         (installCommand, sav
                                                              saveBlock, saveContractState)
 import           Plutus.SCB.Events                          (ChainEvent (NodeEvent, UserEvent), NodeEvent (SubmittedTx),
                                                              UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Query                           (blockCount, latestContractStatus, monoidProjection,
-                                                             setProjection, utxoAt, utxoIndexProjection)
+import           Plutus.SCB.Query                           (blockCount, chainOverviewProjection, latestContractStatus,
+                                                             monoidProjection, setProjection, utxoAt)
 import           Plutus.SCB.Types                           (ActiveContract (ActiveContract),
                                                              ActiveContractState (ActiveContractState), ContractExe,
                                                              ContractHook (OwnPubKeyHook, TxHook, UtxoAtHook),
@@ -85,7 +86,8 @@ import           Plutus.SCB.Types                           (ActiveContract (Act
                                                              PartiallyDecodedResponse (PartiallyDecodedResponse),
                                                              SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
                                                              Source (..), activeContract, activeContractDefinition,
-                                                             activeContractInstanceId, dbConfigFile, dbConfigPoolSize,
+                                                             activeContractInstanceId, chainOverviewUnspentTxsById,
+                                                             chainOverviewUtxoIndex, dbConfigFile, dbConfigPoolSize,
                                                              hooks, newState, partiallyDecodedResponse, toUUID)
 import           Plutus.SCB.Utils                           (render, tshow)
 import qualified Wallet.API                                 as WAPI
@@ -276,8 +278,12 @@ handleUtxoAtHook ::
     -> Eff effs ()
 handleUtxoAtHook i address = do
     logDebug $ "Fetching utxo-at: " <> tshow address
-    utxoIndex <- runGlobalQuery (utxoIndexProjection @t)
-    let utxoAtAddress = utxoAt utxoIndex address
+    chainOverview <- runGlobalQuery $ chainOverviewProjection @t
+    let utxoAtAddress =
+            utxoAt
+                ( chainOverviewUnspentTxsById chainOverview
+                , chainOverviewUtxoIndex chainOverview)
+                address
     logDebug $ "Fetched utxo-at: " <> tshow utxoAtAddress
     invokeContractUpdate @t i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -62,8 +63,9 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
-    deriving (Show, Semigroup, Monoid)
-    deriving newtype (Eq)
+    deriving stock (Show, Generic)
+    deriving newtype (Eq, Semigroup, Monoid)
+    deriving anyclass (FromJSON, ToJSON)
 
 -- | Create an index of all UTxOs on the chain.
 initialise :: Blockchain -> UtxoIndex
@@ -121,7 +123,7 @@ deriving via (PrettyShow ValidationError) instance Pretty ValidationError
 
 -- | A monad for running transaction validation inside, which is an instance of 'ValidationMonad'.
 newtype Validation a = Validation { _runValidation :: (ReaderT UtxoIndex (Either ValidationError)) a }
-    deriving (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
+    deriving newtype (Functor, Applicative, Monad, MonadReader UtxoIndex, MonadError ValidationError)
 
 -- | Run a 'Validation' on a 'UtxoIndex'.
 runValidation :: Validation a -> UtxoIndex -> Either ValidationError a

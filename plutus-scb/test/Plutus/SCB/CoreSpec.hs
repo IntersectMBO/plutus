@@ -1,14 +1,16 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
 import           Cardano.Node.Follower                         (NodeFollowerEffect)
+import           Control.Lens                                  (view, _1)
 import           Control.Monad                                 (void)
 import           Control.Monad.Freer                           (Eff, LastMember, Member, Members)
 import           Control.Monad.Freer.Error                     (Error)
@@ -30,17 +32,24 @@ import           Plutus.SCB.Effects.MultiAgent                 (SCBClientEffects
 import           Plutus.SCB.Events                             (ChainEvent)
 import           Plutus.SCB.TestApp                            (defaultWallet, runScenario, sync, syncAll, valueAt)
 import           Plutus.SCB.Types                              (SCBError)
+import           Plutus.SCB.Query                              (chainOverviewProjection)
+import           Plutus.SCB.TestApp                            (runScenario, sync, valueAt)
+import           Plutus.SCB.Types                              (SCBError, chainOverviewBlockchain)
 import           Test.QuickCheck.Instances.UUID                ()
 import           Test.Tasty                                    (TestTree, testGroup)
-import           Test.Tasty.HUnit                              (HasCallStack, assertEqual, testCase)
+import           Test.Tasty.HUnit                              (HasCallStack, assertBool, assertEqual, testCase)
 import           Wallet.API                                    (ChainIndexEffect, NodeClientEffect,
                                                                 SigningProcessEffect, WalletAPIError, WalletEffect,
                                                                 ownPubKey)
+import           Wallet.API                                    (ownPubKey)
 import           Wallet.Effects                                (WalletEffects)
 import qualified Wallet.Emulator.Chain                         as Chain
 import           Wallet.Emulator.ChainIndex                    (ChainIndexControlEffect)
 import           Wallet.Emulator.NodeClient                    (NodeControlEffect)
 import           Wallet.Emulator.SigningProcess                (SigningProcessControlEffect)
+import           Wallet.Rollup                                 (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                           (DereferencedInput (DereferencedInput, InputNotFound),
+                                                                dereferencedInputs, isFound)
 
 tests :: TestTree
 tests = testGroup "SCB.Core" [installContractTests, executionTests]
@@ -137,6 +146,18 @@ executionTests =
                       "The wallet should now have its money back."
                       (lovelaceValueOf openingBalance)
                       balance2
+              chainOverview <- runGlobalQuery (chainOverviewProjection @TestContracts)
+              liftIO $ do
+                  annotatedBlockchain <-
+                      doAnnotateBlockchain
+                          (chainOverviewBlockchain chainOverview)
+                  let allDereferencedInputs :: [DereferencedInput]
+                      allDereferencedInputs =
+                          mconcat $
+                          dereferencedInputs <$> mconcat annotatedBlockchain
+                  assertBool
+                      "Full TX history can be annotated."
+                      (all isFound allDereferencedInputs)
         ]
 
 assertTxCount ::

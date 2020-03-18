@@ -1,4 +1,4 @@
-module AjaxUtilsTests
+module JsonEncodingTests
   ( all
   ) where
 
@@ -28,7 +28,7 @@ import Type.Proxy (Proxy(..))
 
 all :: TestSuite
 all =
-  suite "AjaxUtils" do
+  suite "JsonEncoding" do
     jsonHandlingTests
 
 jsonHandlingTests :: TestSuite

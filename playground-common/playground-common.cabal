@@ -22,6 +22,7 @@ library
         Gist
         Git
         Language.Haskell.Interpreter
+        PSGenerator.Common
         Servant.Extra
         Servant.Prometheus
         System.IO.Extras
@@ -58,6 +59,9 @@ library
         newtype-generics -any,
         process -any,
         prometheus >=2,
+        plutus-emulator -any,
+        plutus-ledger -any,
+        purescript-bridge -any,
         recursion-schemes -any,
         safe-exceptions -any,
         servant >= 0.16,

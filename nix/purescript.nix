@@ -6,7 +6,7 @@
 , yarn2nix-moretea
 , nodejs-headers
 , src
-, webCommonPath
+, additionalPurescriptSources ? []
 , packages
 , spagoPackages
 , name
@@ -19,6 +19,10 @@
 with pkgs;
 
 let
+  webCommon = pkgs.copyPathToStore ../web-common;
+
+  playgroundCommon = pkgs.copyPathToStore ../playground-common;
+
   # node-sass is terrible and we have to get it its binaries otherwise it will try to build them
   nodeSassBinLinux = fetchurl {
     url = "https://github.com/sass/node-sass/releases/download/v4.11.0/linux-x64-64_binding.node";
@@ -28,7 +32,6 @@ let
     url = "https://github.com/sass/node-sass/releases/download/v4.11.0/darwin-x64-64_binding.node";
     sha256 = "1p5gz1694vxar81hbrrbdmmr2wjw3ksfvfgwh0kzzgjkc2dpk5pa";
   };
-  webCommon = pkgs.copyPathToStore webCommonPath;
 
   packagesJson = "${src}/packages.json";
 
@@ -36,6 +39,13 @@ let
   cleanSrcs = builtins.filterSource (path: type: !(pkgs.lib.elem (baseNameOf path)
                                                   [".spago" ".spago2nix" "generated" "generated-docs" "output" "dist"]))
                                                   src;
+
+  purescriptSources = [
+    "src/**/*.purs"
+    "test/**/*.purs"
+    "generated/**/*.purs"
+    ".spago/*/*/src/**/*.purs"
+  ] ++ additionalPurescriptSources;
 
 in yarn2nix-moretea.mkYarnPackage {
   inherit name packageJSON yarnLock yarnNix checkPhase;
@@ -46,20 +56,23 @@ in yarn2nix-moretea.mkYarnPackage {
     "libxmljs" = {
       buildInputs = [ nodejs-10_x python2 ];
       postInstall = ''
-        # To deal with some OSX setups we need to use the version of node-gyp that's patched in 
+        # To deal with some OSX setups we need to use the version of node-gyp that's patched in
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/web/nodejs/nodejs.nix#L106
         ${nodejs-10_x}/lib/node_modules/npm/bin/node-gyp-bin/node-gyp --tarball ${nodejs-headers} rebuild
       '';
     };
   };
 
-  buildInputs = [ cacert webCommon ];
+  buildInputs = [ cacert ];
 
   nativeBuildInputs = [ git easyPS.purs easyPS.spago easyPS.psc-package nodePackages_10_x.node-gyp nodejs-10_x python2 ];
 
   buildPhase = ''
     export HOME=$NIX_BUILD_TOP
     export SASS_BINARY_PATH=${if stdenv.isDarwin then nodeSassBinDarwin else nodeSassBinLinux}
+
+    # Ensure that the shell expands 'foo/**/*.purs' to include 'foo/*.purs'.
+    shopt -s globstar
 
     # Recent versions of yarn2nix moved the package source
     # into deps/${name} with a .yarnrc that magically uses
@@ -75,19 +88,13 @@ in yarn2nix-moretea.mkYarnPackage {
     # Put links to the generated and common source in the correct place.
     ln -s ${psSrc} generated
     ln -s ${webCommon} ../web-common
+    ln -s ${playgroundCommon} ../playground-common
 
     # Ask spago to make the PureScript packages available..
     sh ${spagoPackages.installSpagoStyle}
 
     # Compile everything.
-    # This should just be `spago --no-psa build`, but there's a bug in spago that means it would go to the internet.
-    # When that changes, update.
-    purs compile \
-      'src/**/*.purs' \
-      'test/**/*.purs' \
-      'generated/**/*.purs' \
-      '../web-common/**/*.purs' \
-      '.spago/*/*/src/**/*.purs'
+    purs compile ${builtins.concatStringsSep " " purescriptSources}
 
     # Build the frontend.
     yarn --offline webpack

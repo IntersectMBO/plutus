@@ -35,7 +35,9 @@ import qualified Cardano.Wallet.Mock                           as WalletServer
 import           Control.Concurrent.MVar                       (MVar, newMVar)
 import           Control.Lens                                  hiding (use)
 import           Control.Monad                                 (void)
+import           Control.Monad.Except                          (ExceptT, MonadError, runExceptT)
 import           Control.Monad.Freer
+import           Control.Monad.Freer                           (Eff, interpret, interpretM, runM)
 import           Control.Monad.Freer.Error                     (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extra.Log                 (Log, logDebug, logInfo, runStderrLog)
 import           Control.Monad.Freer.Extra.State               (assign, use)
@@ -181,9 +183,10 @@ runScenario action = do
                 traverse_ (logDebug . abbreviate 120 . tshow) chainIndexEvents
                 logDebug "--"
             error $ show err
-        Right _  -> pure ()
+        Right _ -> pure ()
 
-runTestApp :: TestState -> Eff TestAppEffects () -> IO (Either SCBError (), TestState)
+runTestApp ::
+       TestState -> Eff TestAppEffects () -> IO (Either SCBError (), TestState)
 runTestApp state action =
     runM
     $ handleUUIDEffect

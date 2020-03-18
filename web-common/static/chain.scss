@@ -94,6 +94,9 @@
     .fee {
         @include entry-background($pink);
     }
+    .not-found {
+        @include entry-background($red);
+    }
     .forge {
         @include entry-background($cyan);
     }
@@ -116,11 +119,11 @@
         left: 0;
     }
 
-    &.animation-older .detail {
+    &.chain-focus-older .detail {
         left: -100%;
     }
 
-    &.animation-newer .detail {
+    &.chain-focus-newer .detail {
         left: 100%;
     }
 
