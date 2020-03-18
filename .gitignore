@@ -46,6 +46,7 @@ pkgs/.stack
 # Editor files
 *~
 *#
+*_flymake.*
 .psc-ide-port
 .dir-locals.el
 

@@ -23,7 +23,10 @@ library
         WebSocket
         Marlowe.Contracts
         Marlowe.Config
-    hs-source-dirs: src
+    hs-source-dirs: 
+        src 
+        -- So haskell.nix knows to include the files that we embed with TH
+        contracts
     default-language: Haskell2010
     build-depends:
         aeson -any,

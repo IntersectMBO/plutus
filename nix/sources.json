@@ -1,6 +1,7 @@
 {
     "agda-stdlib": {
         "branch": "master",
+        "builtin": false,
         "description": "The Agda standard library",
         "homepage": "http://wiki.portal.chalmers.se/agda/pmwiki.php",
         "owner": "agda",
@@ -13,18 +14,20 @@
     },
     "deployment-nixpkgs": {
         "branch": "nixos-19.09",
+        "builtin": true,
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "5c52b25283a6cccca443ffb7a358de6fe14b4a81",
         "sha256": "0fhbl6bgabhi1sw1lrs64i0hibmmppy1bh256lq8hxy3a2p1haip",
-        "type": "builtin-tarball",
+        "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/5c52b25283a6cccca443ffb7a358de6fe14b4a81.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "easy-purescript-nix": {
         "branch": "master",
+        "builtin": false,
         "description": "Easy PureScript (and other tools) with Nix",
         "homepage": "",
         "owner": "justinwoo",
@@ -32,23 +35,36 @@
         "rev": "cc7196bff3fdb5957aabfe22c3fa88267047fe88",
         "sha256": "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/cc7196bff3fdb5957aabfe22c3fa88267047fe88.tar.gz",
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/cc7196bff3fdb5957aabfe22c3fa88267047fe88.tar.gz"
+    },
+    "haskell.nix": {
+        "branch": "master",
+        "description": "Alternative Haskell Infrastructure for Nixpkgs",
+        "homepage": "https://input-output-hk.github.io/haskell.nix",
+        "owner": "input-output-hk",
+        "repo": "haskell.nix",
+        "rev": "98ac006e995d310c9329787bd93f6c3384174713",
+        "sha256": "01v80m0m59csjacbax8z0k2mlx6vww0wh5qnmgcwdq9zfa5d3g81",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/98ac006e995d310c9329787bd93f6c3384174713.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
         "branch": "master",
+        "builtin": true,
         "description": "nix scripts shared across projects",
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "29bbc658a3dcae5c17065b572c442dd7a9379c6e",
-        "sha256": "1baqj866ms1q0iwp9lvpipb0jn9d570mapy1jj4npql6zd5015hc",
-        "type": "builtin-tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/29bbc658a3dcae5c17065b572c442dd7a9379c6e.tar.gz",
+        "rev": "b34f11f205afbd11a69cab45d57cd8ebb2746713",
+        "sha256": "14cnfw479gha7ljifai9zchmpsq4652f3q2vvsibslfd6sgnl4js",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/b34f11f205afbd11a69cab45d57cd8ebb2746713.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nix-gitignore": {
         "branch": "master",
+        "builtin": false,
         "description": "A nix expression that filters source based on a .gitignore file.",
         "homepage": "",
         "owner": "siers",
@@ -61,17 +77,19 @@
     },
     "nixpkgs": {
         "branch": "nixos-19.09",
+        "builtin": true,
         "description": "A read-only mirror of NixOS/nixpkgs tracking the released channels. Send issues and PRs to",
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "6d9a4a615ee2706047c2cec3acc61d2cfbffdb0b",
         "sha256": "1zgwp31nqh7glh7l2i0n5vic5jv1683l6lvc7r7wdmkbsbkmig1p",
-        "type": "builtin-tarball",
+        "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/6d9a4a615ee2706047c2cec3acc61d2cfbffdb0b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nodejs-headers": {
+        "builtin": false,
         "rev": "v10.9.0",
         "sha256": "0x2qwghai17klz8drwmx4bfyr32sl0g76kwgv8vva9z40h57h65a",
         "type": "file",
