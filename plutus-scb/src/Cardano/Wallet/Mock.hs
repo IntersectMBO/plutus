@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -7,36 +8,49 @@
 
 module Cardano.Wallet.Mock where
 
+import           Cardano.Node.API               (NodeFollowerAPI (..))
+import           Cardano.Node.Types             (FollowerID)
 import           Cardano.Wallet.Types           (WalletId)
-import           Control.Lens                   (makeLenses, modifying, set, use)
+import           Control.Lens                   (assign, ix, makeLenses, modifying, to, use)
+import           Control.Monad.Except           (MonadError, throwError)
+import           Control.Monad.Freer            (runM)
+import           Control.Monad.Freer.Error      (runError)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (MonadLogger, logInfoN)
-import           Control.Monad.State            (MonadState, get, put)
+import           Control.Monad.Logger           (MonadLogger, logDebugN, logInfoN)
+import           Control.Monad.State            (MonadState)
+import           Data.Bifunctor                 (Bifunctor (..))
+import qualified Data.ByteString.Lazy           as BSL
+import qualified Data.ByteString.Lazy.Char8     as BSL8
+import qualified Data.Map                       as Map
+import           Data.Text.Encoding             (encodeUtf8)
 import           Language.Plutus.Contract.Trace (allWallets)
-import           Ledger                         (Address, Blockchain, PubKey, Value)
-import           Ledger.AddressMap              (AddressMap, addAddress)
+import           Ledger                         (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value)
+import           Ledger.AddressMap              (AddressMap, UtxoMap, addAddress)
 import qualified Ledger.AddressMap              as AddressMap
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
-import           Servant                        (NoContent (NoContent))
-import           Servant.Client                 (ServantError)
+import           Servant                        (NoContent (NoContent), ServantErr, err401, err404, err500, errBody)
 import           Test.QuickCheck                (arbitrary, generate)
+import           Wallet.API                     (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import           Wallet.Emulator.Wallet         (Wallet (Wallet))
 import qualified Wallet.Emulator.Wallet         as EM
 
-newtype State =
+data State =
     State
         { _watchedAddresses :: AddressMap
+        , _followerID       :: Maybe FollowerID
         }
     deriving (Show, Eq)
 
 makeLenses 'State
 
+-- TODO Should this call syncstate itself?
 initialState :: State
 initialState =
     State
         { _watchedAddresses =
               foldr (addAddress . EM.walletAddress) mempty allWallets
+        , _followerID = Nothing
         }
 
 wallets :: MonadLogger m => m [Wallet]
@@ -44,12 +58,39 @@ wallets = do
     logInfoN "wallets"
     pure allWallets
 
-selectCoin :: MonadLogger m => WalletId -> Value -> m ([Value], Value)
+fromWalletAPIError :: WalletAPIError -> ServantErr
+fromWalletAPIError (InsufficientFunds text) =
+    err401 {errBody = BSL.fromStrict $ encodeUtf8 text}
+fromWalletAPIError err@(PrivateKeyNotFound _) =
+    err404 {errBody = BSL8.pack $ show err}
+fromWalletAPIError (OtherError text) =
+    err500 {errBody = BSL.fromStrict $ encodeUtf8 text}
+
+valueAt :: (MonadLogger m, MonadState State m) => Address -> m Value
+valueAt address = do
+    logInfoN "valueAt"
+    value <- use (watchedAddresses . to AddressMap.values . ix address)
+    logInfoN $ "valueAt " <> tshow address <> ": " <> tshow value
+    pure value
+
+selectCoin ::
+       (MonadLogger m, MonadState State m, MonadError ServantErr m)
+    => WalletId
+    -> Value
+    -> m ([(TxOutRef, Value)], Value)
 selectCoin walletId target = do
     logInfoN "selectCoin"
     logInfoN $ "  Wallet ID: " <> tshow walletId
     logInfoN $ "     Target: " <> tshow target
-    pure ([target], mempty)
+    let address = EM.walletAddress (Wallet walletId)
+    utxos :: UtxoMap <- use (watchedAddresses . AddressMap.fundsAt address)
+    let funds :: [(TxOutRef, Value)]
+        funds = fmap (second (txOutValue . txOutTxOut)) . Map.toList $ utxos
+    result <- runM $ runError $ EM.selectCoin funds target
+    logInfoN $ "     Result: " <> tshow result
+    case result of
+        Right value -> pure value
+        Left err    -> throwError $ fromWalletAPIError err
 
 allocateAddress :: (MonadIO m, MonadLogger m) => WalletId -> m PubKey
 allocateAddress _ = do
@@ -80,13 +121,24 @@ startWatching address = do
 ------------------------------------------------------------
 -- | Synchronise the initial state.
 -- At the moment, this means, "as the node for UTXOs at all our watched addresses.
-syncState :: (MonadState State m) => m (Either ServantError Blockchain) -> m ()
-syncState nodeClient = do
-    oldState <- get
-    result <- nodeClient
-    case result of
-        Left err -> error $ show err
-        Right blockchain -> do
-            let newAddressMap = AddressMap.fromChain blockchain
-                newState = set watchedAddresses newAddressMap oldState
-            put newState
+syncState :: (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m ()
+syncState = do
+    logDebugN "Synchronizing"
+    fID <- getFollowerID
+    blockchain <- blocks fID
+    logDebugN $ tshow fID <> " got " <> tshow (length blockchain) <> " blocks."
+    modifying
+        watchedAddresses
+        (\m -> foldl (foldl (flip AddressMap.updateAllAddresses)) m blockchain)
+    logDebugN "Synchronized"
+
+getFollowerID ::
+       (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m FollowerID
+getFollowerID =
+    use followerID >>= \case
+        Just fID -> pure fID
+        Nothing -> do
+            logDebugN "Subscribing"
+            fID <- subscribe
+            assign followerID (Just fID)
+            pure fID

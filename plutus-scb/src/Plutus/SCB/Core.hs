@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -35,14 +36,20 @@ module Plutus.SCB.Core
     , toUUID
     ) where
 
+import           Cardano.Node.API                           (NodeFollowerAPI, subscribe)
+import qualified Cardano.Node.API                           as NodeClient
+import           Cardano.Node.Types                         (FollowerID)
 import           Control.Error.Util                         (note)
+import           Control.Lens                               (assign, modifying, use, _1, _2)
 import           Control.Monad                              (void)
 import           Control.Monad.Except                       (MonadError, throwError)
 import           Control.Monad.Except.Extras                (mapError)
 import           Control.Monad.IO.Class                     (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift                    (MonadUnliftIO)
-import           Control.Monad.Logger                       (LoggingT, MonadLogger, logDebugN, logInfoN, logWarnN)
+import           Control.Monad.Logger                       (LoggingT, MonadLogger, logDebugN, logInfoN)
 import           Control.Monad.Reader                       (MonadReader, ReaderT, ask)
+import           Control.Monad.State                        (MonadState, StateT, execStateT)
+import           Control.Monad.Trans                        (lift)
 import           Data.Aeson                                 (FromJSON, ToJSON, withObject, (.:))
 import qualified Data.Aeson                                 as JSON
 import           Data.Aeson.Types                           (Parser)
@@ -55,7 +62,6 @@ import qualified Data.Set                                   as Set
 import           Data.Text                                  (Text)
 import qualified Data.Text                                  as Text
 import           Data.Text.Prettyprint.Doc                  (pretty, (<+>))
-import qualified Data.UUID                                  as UUID
 import           Database.Persist.Sqlite                    (ConnectionPool, createSqlitePoolFromInfo,
                                                              mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
 import           Eventful                                   (Aggregate, EventStoreWriter, GlobalStreamProjection,
@@ -72,26 +78,30 @@ import           Eventful.Store.Sql                         (JSONString, SqlEven
                                                              defaultSqlEventStoreConfig, jsonStringSerializer,
                                                              sqlEventStoreReader, sqlGlobalEventStoreReader)
 import           Eventful.Store.Sqlite                      (sqliteEventStoreWriter)
-import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
+import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest (NotWaitingForPubKey, WaitingForPubKey))
 import qualified Language.Plutus.Contract.Wallet            as Wallet
 import qualified Ledger
-import qualified Ledger.Constraints                         as Ledger
+import           Ledger.Constraints                         (UnbalancedTx)
 import           Plutus.SCB.Command                         (installCommand, saveBalancedTx, saveBalancedTxResult,
-                                                             saveContractState)
+                                                             saveBlock, saveContractState)
 import           Plutus.SCB.Events                          (ChainEvent (NodeEvent, UserEvent), NodeEvent (SubmittedTx),
                                                              UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Query                           (latestContractStatus, monoidProjection, nullProjection,
-                                                             setProjection)
+import           Plutus.SCB.Query                           (blockCount, latestContractStatus, monoidProjection,
+                                                             nullProjection, setProjection, utxoAt, utxoIndexProjection)
 import           Plutus.SCB.Types                           (ActiveContract (ActiveContract),
                                                              ActiveContractState (ActiveContractState),
-                                                             Contract (Contract), DbConfig (DbConfig),
-                                                             PartiallyDecodedResponse,
+                                                             Contract (Contract),
+                                                             ContractHook (OwnPubKeyHook, TxHook, UtxoAtHook),
+                                                             DbConfig (DbConfig),
+                                                             PartiallyDecodedResponse (PartiallyDecodedResponse),
                                                              SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
-                                                             activeContract, activeContractId, activeContractPath,
-                                                             contractPath, dbConfigFile, dbConfigPoolSize, hooks,
-                                                             newState, partiallyDecodedResponse)
+                                                             Source (..), activeContract, activeContractId,
+                                                             activeContractPath, contractPath, dbConfigFile,
+                                                             dbConfigPoolSize, hooks, newState,
+                                                             partiallyDecodedResponse, toUUID)
 import           Plutus.SCB.Utils                           (liftError, render, tshow)
-import           Wallet.API                                 (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics)
+import           Wallet.API                                 (ChainIndexAPI, NodeAPI, SigningProcessAPI, WalletAPI,
+                                                             WalletDiagnostics)
 import qualified Wallet.API                                 as WAPI
 
 newtype Connection =
@@ -149,6 +159,8 @@ updateContract ::
        , NodeAPI m
        , WalletDiagnostics m
        , ChainIndexAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
        )
     => UUID
     -> Text
@@ -157,34 +169,19 @@ updateContract ::
 updateContract uuid endpointName endpointPayload = do
     logInfoN "Finding Contract"
     oldContractState <- liftError $ lookupActiveContractState uuid
-    logInfoN "Updating Contract"
-    response <-
-        invokeContractUpdate oldContractState endpointName endpointPayload
-    let newContractState =
-            oldContractState {partiallyDecodedResponse = response}
-    logInfoN . render $ "Updated:" <+> pretty newContractState
-    logInfoN "Storing Updated Contract State"
-    void $ runCommand saveContractState ContractEventSource newContractState
+    logInfoN $
+        "Updating Contract: " <>
+        Text.pack (activeContractPath (activeContract oldContractState)) <>
+        "/" <> endpointName
+    fID <- subscribe
+    void $
+        execStateT
+            (invokeContractUpdate fID $
+             EventPayload endpointName endpointPayload)
+            (oldContractState, [])
     --
     logInfoN "Handling Resulting Blockchain Events"
-    handleBlockchainEvents response
     logInfoN "Done"
-
-handleBlockchainEvents ::
-       ( MonadError SCBError m
-       , MonadLogger m
-       , MonadEventStore ChainEvent m
-       , WalletAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , ChainIndexAPI m
-       )
-    => PartiallyDecodedResponse
-    -> m ()
-handleBlockchainEvents response = do
-    handleTxHook response
-    handleUtxoAtHook response
-    handleOwnPubKeyHook response
 
 parseSingleHook ::
        MonadError SCBError m
@@ -196,6 +193,26 @@ parseSingleHook parser response =
         Left err     -> throwError $ ContractCommandError 0 $ Text.pack err
         Right result -> pure result
 
+handleContractHook ::
+       ( MonadError SCBError m
+       , MonadLogger m
+       , MonadEventStore ChainEvent m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       , MonadContract m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , ChainIndexAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
+       )
+    => FollowerID
+    -> ContractHook
+    -> m ()
+handleContractHook _ (TxHook unbalancedTxs)  = handleTxHook unbalancedTxs
+handleContractHook i (UtxoAtHook addresses)  = handleUtxoAtHook i addresses
+handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook i request
+
 handleTxHook ::
        ( MonadError SCBError m
        , MonadLogger m
@@ -204,56 +221,84 @@ handleTxHook ::
        , WalletDiagnostics m
        , NodeAPI m
        , ChainIndexAPI m
+       , SigningProcessAPI m
        )
-    => PartiallyDecodedResponse
+    => UnbalancedTx
     -> m ()
-handleTxHook response = do
+handleTxHook unbalancedTx = do
     logInfoN "Handling 'tx' hook."
-    unbalancedTxs <- parseSingleHook txKeyParser response
-    logInfoN $ "Balancing unbalanced TXs: " <> tshow unbalancedTxs
-    balancedTxs <-
-        traverse (mapError WalletError . Wallet.balanceWallet) unbalancedTxs
-    traverse_ (runCommand saveBalancedTx WalletEventSource) balancedTxs
-    --
-    logInfoN $ "Submitting balanced TXs: " <> tshow unbalancedTxs
-    balanceResults <- traverse submitTxn balancedTxs
-    traverse_ (runCommand saveBalancedTxResult NodeEventSource) balanceResults
+    logInfoN $ "Balancing unbalanced TX: " <> tshow unbalancedTx
+    balancedTx <- (mapError WalletError . Wallet.balanceWallet) unbalancedTx
+    signedTx <- WAPI.signWithOwnPublicKey balancedTx
+    logInfoN $ "Storing signed TX: " <> tshow signedTx
+    void $ runCommand saveBalancedTx WalletEventSource balancedTx
+    logInfoN $ "Submitting signed TX: " <> tshow signedTx
+    balanceResult <- submitTx signedTx
+    void $ runCommand saveBalancedTxResult NodeEventSource balanceResult
 
 handleUtxoAtHook ::
-       (MonadError SCBError m, MonadLogger m)
-    => PartiallyDecodedResponse
+       ( MonadError SCBError m
+       , MonadContract m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , MonadEventStore ChainEvent m
+       , MonadLogger m
+       , WalletAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       , ChainIndexAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
+       )
+    => FollowerID
+    -> Ledger.Address
     -> m ()
-handleUtxoAtHook response = do
-    logInfoN "Handling 'utxo-at' hook."
-    utxoAts <- parseSingleHook utxoAtKeyParser response
-    traverse_ (logInfoN . tshow) utxoAts
-    logWarnN "UNIMPLEMENTED: handleUtxoAtHook"
+handleUtxoAtHook i address = do
+    logDebugN $ "Fetching utxo-at: " <> tshow address
+    utxoIndex <- runGlobalQuery utxoIndexProjection
+    let utxoAtAddress = utxoAt utxoIndex address
+    logDebugN $ "Fetched utxo-at: " <> tshow utxoAtAddress
+    invokeContractUpdate i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
 
 handleOwnPubKeyHook ::
-       (MonadError SCBError m, MonadLogger m)
-    => PartiallyDecodedResponse
+       ( MonadError SCBError m
+       , MonadContract m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , MonadEventStore ChainEvent m
+       , MonadLogger m
+       , WalletAPI m
+       , ChainIndexAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
+       )
+    => FollowerID
+    -> OwnPubKeyRequest
     -> m ()
-handleOwnPubKeyHook response = do
+handleOwnPubKeyHook _ NotWaitingForPubKey = pure ()
+handleOwnPubKeyHook i WaitingForPubKey = do
     logInfoN "Handling 'own-pubkey' hook."
-    ownPubKeys <- parseSingleHook ownPubKeyParser response
-    logInfoN $ tshow ownPubKeys
-    logWarnN "UNIMPLEMENTED: handleOwnPubKeyHook"
+    key :: WAPI.PubKey <- WAPI.ownPubKey
+    invokeContractUpdate i $ EventPayload "own-pubkey" (JSON.toJSON key)
 
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
-submitTxn :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.Tx
-submitTxn txn = do
-    WAPI.submitTxn txn
-    pure txn
+submitTx :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.Tx
+submitTx tx = do
+    WAPI.submitTxn tx
+    pure tx
 
-txKeyParser :: JSON.Value -> Parser [Ledger.UnbalancedTx]
-txKeyParser = withObject "tx key" $ \o -> o .: "tx"
+parseHooks ::
+       MonadError SCBError m => PartiallyDecodedResponse -> m [ContractHook]
+parseHooks = parseSingleHook hookParser
 
-utxoAtKeyParser :: JSON.Value -> Parser [Ledger.Address]
-utxoAtKeyParser = withObject "utxo-at key" $ \o -> o .: "utxo-at"
-
-ownPubKeyParser :: JSON.Value -> Parser OwnPubKeyRequest
-ownPubKeyParser = withObject "own-pubkey key" $ \o -> o .: "own-pubkey"
+hookParser :: JSON.Value -> Parser [ContractHook]
+hookParser =
+    withObject "Contract Hooks" $ \o -> do
+        txHooks <- fmap TxHook <$> o .: "tx"
+        utxoAtHooks <- fmap UtxoAtHook <$> o .: "utxo-at"
+        ownPubKeyHook <- OwnPubKeyHook <$> o .: "own-pubkey"
+        pure $ txHooks <> utxoAtHooks <> [ownPubKeyHook]
 
 reportContractStatus ::
        (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
@@ -286,23 +331,119 @@ data ContractCommand
     deriving (Show, Eq)
 
 invokeContractUpdate ::
+       ( MonadError SCBError m
+       , MonadContract m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , MonadEventStore ChainEvent m
+       , MonadLogger m
+       , WalletAPI m
+       , ChainIndexAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
+       )
+    => FollowerID
+    -> Payload
+    -> m ()
+invokeContractUpdate i payload = do
+    oldContractState <- use _1
+    -- Invoke the contract. Get the repsonse.
+    response <- invokeContractUpdate_ oldContractState payload
+    let newContractState =
+            oldContractState {partiallyDecodedResponse = response}
+    logDebugN . render $ "Updated: " <+> pretty newContractState
+    -- Store the new state
+    logInfoN "Storing Updated Contract State"
+    void $ runCommand saveContractState ContractEventSource newContractState
+    -- Append the new hooks.
+    newHooks <- parseHooks response
+    assign _1 newContractState
+    pushHooks newHooks
+    processAllHooks i
+
+processAllHooks ::
+       ( MonadError SCBError m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , MonadEventStore ChainEvent m
+       , MonadLogger m
+       , MonadContract m
+       , WalletAPI m
+       , ChainIndexAPI m
+       , WalletDiagnostics m
+       , NodeAPI m
+       , NodeFollowerAPI m
+       , SigningProcessAPI m
+       )
+    => FollowerID
+    -> m ()
+processAllHooks i =
+    popHook i >>= \case
+        Nothing -> pure ()
+        Just hook -> do
+            handleContractHook i hook
+            sync i
+            processAllHooks i
+
+sync ::
+       (MonadLogger m, MonadEventStore ChainEvent m, NodeFollowerAPI m)
+    => FollowerID
+    -> m ()
+sync i = do
+    blocks <- NodeClient.blocks i
+    traverse_ (runCommand saveBlock NodeEventSource) blocks
+    count <- runGlobalQuery blockCount
+    logDebugN $ "Block count is now: " <> tshow count
+
+-- | Old hooks go to the back of the queue.
+pushHooks ::
+       (MonadState (ActiveContractState, [ContractHook]) m)
+    => [ContractHook]
+    -> m ()
+pushHooks newHooks = modifying _2 (\oldHooks -> oldHooks <> newHooks)
+
+popHook ::
+       ( MonadEventStore ChainEvent m
+       , MonadState (ActiveContractState, [ContractHook]) m
+       , MonadLogger m
+       , NodeFollowerAPI m
+       )
+    => FollowerID
+    -> m (Maybe ContractHook)
+popHook i = do
+    oldHooks <- use _2
+    logDebugN $ "Current Hooks: " <> tshow oldHooks
+    case oldHooks of
+        [] -> do
+            sync i
+            pure Nothing
+        (hook:newHooks) -> do
+            assign _2 newHooks
+            pure $ Just hook
+
+data Payload
+    = EventPayload Text JSON.Value
+    | HookPayload Text JSON.Value
+
+encodePayload :: Payload -> (Text, JSON.Value)
+encodePayload (HookPayload endpointName endpointValue) =
+    (endpointName, endpointValue)
+encodePayload (EventPayload endpointName endpointValue) =
+    ( "event"
+    , JSON.object [("tag", JSON.String endpointName), ("value", endpointValue)])
+
+invokeContractUpdate_ ::
        (MonadContract m, MonadError SCBError m)
     => ActiveContractState
-    -> Text
-    -> JSON.Value
+    -> Payload
     -> m PartiallyDecodedResponse
-invokeContractUpdate ActiveContractState { activeContract = ActiveContract {activeContractPath}
-                                         , partiallyDecodedResponse
-                                         } endpointName endpointPayload =
+invokeContractUpdate_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
+                                          , partiallyDecodedResponse = PartiallyDecodedResponse {newState}
+                                          } payload =
     liftError $
     invokeContract $
     UpdateContract activeContractPath $
-    JSON.object
-        [ ("oldState", newState partiallyDecodedResponse)
-        , ( "event"
-          , JSON.object
-                [("tag", JSON.String endpointName), ("value", endpointPayload)])
-        ]
+    JSON.object [("oldState", newState), encodePayload payload]
 
 installedContracts :: MonadEventStore ChainEvent m => m (Set Contract)
 installedContracts = runGlobalQuery installedContractsProjection
@@ -377,9 +518,14 @@ dbConnect = do
     pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
 
 ------------------------------------------------------------
-class MonadContract m where
+class Monad m =>
+      MonadContract m
+    where
     invokeContract ::
            ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
+
+instance MonadContract m => MonadContract (StateT state m) where
+    invokeContract = lift . invokeContract
 
 class Monad m =>
       MonadEventStore event m
@@ -389,6 +535,11 @@ class Monad m =>
         -> m (GlobalStreamProjection state event)
     runCommand ::
            Aggregate state event command -> Source -> command -> m [event]
+
+instance MonadEventStore event m => MonadEventStore event (StateT state m) where
+    refreshProjection = lift . refreshProjection
+    runCommand aggregate source command =
+        lift $ runCommand aggregate source command
 
 instance (FromJSON event, ToJSON event) =>
          MonadEventStore event (ReaderT Connection (LoggingT IO)) where
@@ -435,17 +586,3 @@ addProcessBus writer reader =
                   reader
                   ()
         ]
-
-------------------------------------------------------------
-data Source
-    = ContractEventSource
-    | WalletEventSource
-    | UserEventSource
-    | NodeEventSource
-    deriving (Show, Eq)
-
-toUUID :: Source -> UUID
-toUUID ContractEventSource = UUID.fromWords 0 0 0 2
-toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
-toUUID UserEventSource     = UUID.fromWords 0 0 0 3
-toUUID NodeEventSource     = UUID.fromWords 0 0 0 4

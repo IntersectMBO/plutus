@@ -7,46 +7,49 @@
 
 module Plutus.SCB.App where
 
-import qualified Cardano.Node.Client        as NodeClient
-import qualified Cardano.Node.Server        as NodeServer
-import qualified Cardano.Wallet.Client      as WalletClient
-import qualified Cardano.Wallet.Server      as WalletServer
-import           Control.Monad              (void)
-import           Control.Monad.Except       (ExceptT (ExceptT), MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class     (MonadIO, liftIO)
-import           Control.Monad.Logger       (LogLevel (LevelDebug), LoggingT, MonadLogger, filterLogger, logInfoN,
-                                             runStdoutLoggingT)
-import           Control.Monad.Reader       (MonadReader, ReaderT (ReaderT), asks, runReaderT)
-import           Data.Aeson                 (FromJSON, ToJSON, eitherDecode)
-import qualified Data.Aeson.Encode.Pretty   as JSON
-import qualified Data.ByteString.Lazy.Char8 as BSL8
-import qualified Data.Text                  as Text
-import           Database.Persist.Sqlite    (retryOnBusy, runSqlPool)
-import           Eventful                   (commandStoredAggregate, getLatestStreamProjection,
-                                             serializedEventStoreWriter, serializedGlobalEventStoreReader,
-                                             serializedVersionedEventStoreReader)
-import           Eventful.Store.Sql         (jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite      (initializeSqliteEventStore, sqliteEventStoreWriter)
-import           Network.HTTP.Client        (defaultManagerSettings, newManager)
-import           Plutus.SCB.Core            (Connection (Connection), ContractCommand (InitContract, UpdateContract),
-                                             MonadContract, MonadEventStore, addProcessBus, dbConnect, invokeContract,
-                                             refreshProjection, runCommand, toUUID)
-import           Plutus.SCB.Types           (Config (Config),
-                                             SCBError (ContractCommandError, NodeClientError, WalletClientError),
-                                             dbConfig, nodeServerConfig, walletServerConfig)
-import           Servant.Client             (ClientEnv, ClientM, ServantError, mkClientEnv, runClientM)
-import           System.Exit                (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process             (readProcessWithExitCode)
-import           Wallet.API                 (ChainIndexAPI, NodeAPI, WalletAPI, WalletDiagnostics, logMsg, ownOutputs,
-                                             ownPubKey, slot, startWatching, submitTxn, updatePaymentWithChange,
-                                             watchedAddresses)
+import           Cardano.Node.API              (NodeFollowerAPI (..))
+import qualified Cardano.Node.Client           as NodeClient
+import qualified Cardano.Node.Server           as NodeServer
+import qualified Cardano.SigningProcess.Client as SigningProcessClient
+import qualified Cardano.SigningProcess.Server as SigningProcess
+import qualified Cardano.Wallet.Client         as WalletClient
+import qualified Cardano.Wallet.Server         as WalletServer
+import           Control.Monad                 (void)
+import           Control.Monad.Except          (ExceptT (ExceptT), MonadError, runExceptT, throwError)
+import           Control.Monad.IO.Class        (MonadIO, liftIO)
+import           Control.Monad.Logger          (LogLevel (LevelDebug), LoggingT, MonadLogger, filterLogger, logInfoN,
+                                                runStdoutLoggingT)
+import           Control.Monad.Reader          (MonadReader, ReaderT (ReaderT), asks, runReaderT)
+import           Data.Aeson                    (FromJSON, ToJSON, eitherDecode)
+import qualified Data.Aeson.Encode.Pretty      as JSON
+import qualified Data.ByteString.Lazy.Char8    as BSL8
+import qualified Data.Text                     as Text
+import           Database.Persist.Sqlite       (retryOnBusy, runSqlPool)
+import           Eventful                      (commandStoredAggregate, getLatestStreamProjection,
+                                                serializedEventStoreWriter, serializedGlobalEventStoreReader,
+                                                serializedVersionedEventStoreReader)
+import           Eventful.Store.Sql            (jsonStringSerializer, sqlEventStoreReader, sqlGlobalEventStoreReader)
+import           Eventful.Store.Sqlite         (initializeSqliteEventStore, sqliteEventStoreWriter)
+import           Network.HTTP.Client           (defaultManagerSettings, newManager)
+import           Plutus.SCB.Core               (Connection (Connection), ContractCommand (InitContract, UpdateContract),
+                                                MonadContract, MonadEventStore, addProcessBus, dbConnect,
+                                                invokeContract, refreshProjection, runCommand, toUUID)
+import           Plutus.SCB.Types              (Config (Config), SCBError (ContractCommandError, NodeClientError, SigningProcessError, WalletClientError),
+                                                dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
+import           Servant.Client                (ClientEnv, ClientM, ServantError, mkClientEnv, runClientM)
+import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
+import           System.Process                (readProcessWithExitCode)
+import           Wallet.API                    (ChainIndexAPI, NodeAPI, SigningProcessAPI, WalletAPI, WalletDiagnostics,
+                                                addSignatures, logMsg, ownOutputs, ownPubKey, slot, startWatching,
+                                                submitTxn, updatePaymentWithChange, watchedAddresses)
 
 ------------------------------------------------------------
 data Env =
     Env
-        { dbConnection    :: Connection
-        , walletClientEnv :: ClientEnv
-        , nodeClientEnv   :: ClientEnv
+        { dbConnection      :: Connection
+        , walletClientEnv   :: ClientEnv
+        , nodeClientEnv     :: ClientEnv
+        , signingProcessEnv :: ClientEnv
         }
 
 newtype App a =
@@ -62,6 +65,10 @@ newtype App a =
                      , MonadError SCBError
                      )
 
+instance NodeFollowerAPI App where
+    subscribe = runNodeClientM NodeClient.newFollower
+    blocks = runNodeClientM . NodeClient.getBlocks
+
 instance NodeAPI App where
     submitTxn = void . runNodeClientM . NodeClient.addTx
     slot = runNodeClientM NodeClient.getCurrentSlot
@@ -74,6 +81,9 @@ instance WalletAPI App where
 instance ChainIndexAPI App where
     watchedAddresses = runWalletClientM WalletClient.getWatchedAddresses
     startWatching = void . runWalletClientM . WalletClient.startWatching
+
+instance SigningProcessAPI App where
+    addSignatures sigs tx = runSigningProcessM (SigningProcessClient.addSignatures sigs tx)
 
 runAppClientM ::
        (Env -> ClientEnv) -> (ServantError -> SCBError) -> ClientM a -> App a
@@ -91,11 +101,15 @@ runWalletClientM = runAppClientM walletClientEnv WalletClientError
 runNodeClientM :: ClientM a -> App a
 runNodeClientM = runAppClientM nodeClientEnv NodeClientError
 
+runSigningProcessM :: ClientM a -> App a
+runSigningProcessM = runAppClientM signingProcessEnv SigningProcessError
+
 runApp :: Config -> App a -> IO (Either SCBError a)
-runApp Config {dbConfig, nodeServerConfig, walletServerConfig} (App action) =
+runApp Config {dbConfig, nodeServerConfig, walletServerConfig, signingProcessConfig} (App action) =
     runStdoutLoggingT . filterLogger (\_ level -> level > LevelDebug) $ do
         walletClientEnv <- mkEnv (WalletServer.baseUrl walletServerConfig)
         nodeClientEnv <- mkEnv (NodeServer.mscBaseUrl nodeServerConfig)
+        signingProcessEnv <- mkEnv (SigningProcess.spBaseUrl signingProcessConfig)
         dbConnection <- runReaderT dbConnect dbConfig
         runReaderT (runExceptT action) $ Env {..}
   where
