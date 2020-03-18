@@ -13,6 +13,7 @@ module Main (main) where
 import qualified Language.PlutusCore                        as PLC
 import           Language.PlutusCore.Constant               as PLC
 import           Language.PlutusCore.Constant.Dynamic       as PLC
+--import           Language.PlutusCore.Constant.Dynamic.OffChain as PLC
 import           Language.PlutusCore.Error                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
@@ -43,14 +44,6 @@ import           Options.Applicative
 
 
 import qualified GHC.IO.Exception
-
-stringBuiltins
-    :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
-    => PLC.DynamicBuiltinNameMeanings uni
-stringBuiltins =
-    insertDynamicBuiltinNameDefinition dynamicTraceDefinitionMock
-      $ insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
-        $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
 
 data Input = FileInput FilePath | StdInput
 
@@ -159,7 +152,7 @@ instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
     contents <- getInput inp
-    types <- PLC.runQuoteT $ PLC.dynamicBuiltinNameMeaningsToTypes () stringBuiltins
+    types <- PLC.runQuoteT $ PLC.dynamicBuiltinNameMeaningsToTypes () getStringBuiltinMeanings
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let cfg = PLC.defConfig
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
@@ -176,7 +169,7 @@ runEval (EvalOptions inp mode) = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
-            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek stringBuiltins
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek getStringBuiltinMeanings
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck
