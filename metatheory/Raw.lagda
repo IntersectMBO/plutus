@@ -113,7 +113,7 @@ decRKi (K ⇒ J) * = false
 decRKi (K ⇒ J) (K' ⇒ J') with decRKi K K'
 decRKi (K ⇒ J) (K' ⇒ J') | true with decRKi J J'
 decRKi (K ⇒ J) (K' ⇒ J') | true | true = true
-decRKi (K ⇒ J) (K' ⇒ J') | true | false = false 
+decRKi (K ⇒ J) (K' ⇒ J') | true | false = false
 decRKi (K ⇒ J) (K' ⇒ J') | false = false
 
 decRTy : (A A' : RawTy) → Bool
@@ -306,7 +306,7 @@ decRTm (wrap pat arg t) (wrap pat' arg' t') with decRTy pat pat'
 ... | false = false
 ... | true with decRTm t t'
 ... | false = false
-... | true = true 
+... | true = true
 decRTm (wrap pat arg t) (unwrap t') = false
 decRTm (unwrap t) (` x') = false
 decRTm (unwrap t) (Λ K' t') = false
@@ -322,7 +322,7 @@ decRTm (unwrap t) (unwrap t') | true = true
 decRTm (unwrap t) (unwrap t') | false = false
 
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr) #-}
+{-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConChar | RConUnit | RConBool) #-}
 {-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
@@ -345,7 +345,7 @@ rawPrinter (Λ K t) = "(" ++ "Λ" ++ "kind" ++ rawPrinter t ++ ")"
 rawPrinter (t ·⋆ A) = "(" ++ rawPrinter t ++ "·⋆" ++ rawTyPrinter A ++ ")"
 rawPrinter (ƛ A t) = "(" ++ "ƛ" ++ rawTyPrinter A ++ rawPrinter t ++ ")"
 rawPrinter (t · u) = "(" ++ rawPrinter t ++ "·" ++ rawPrinter u ++ ")"
-rawPrinter (con c) = "(con)" 
+rawPrinter (con c) = "(con)"
 rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
 rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
