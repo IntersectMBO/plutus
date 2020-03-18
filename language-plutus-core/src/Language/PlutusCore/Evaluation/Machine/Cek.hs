@@ -60,8 +60,10 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
@@ -118,7 +120,7 @@ makeLenses ''CekEnv
 
 -- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
 -- get it back in case of error.
-type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
+type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (QuoteT (State ExBudgetState)))
 
 instance SpendBudget (CekM uni) uni where
     spendBudget key term budget = do
@@ -147,7 +149,7 @@ runCekM
     -> ExBudgetState
     -> CekM uni a
     -> (Either (CekEvaluationException uni) a, ExBudgetState)
-runCekM env s a = runState (runExceptT $ runReaderT a env) s
+runCekM env s a = runState (runQuoteT . runExceptT $ runReaderT a env) s
 
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM uni (VarEnv uni)
@@ -266,6 +268,65 @@ instantiateEvaluate con ty fun
     | otherwise                      =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
 
+{- Note [Saved mapping example]
+Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
+
+    id : all a. a -> a
+
+Notation:
+
+- the variable environment is denoted as @{ <var> :-> (<env>, <value>), ... }@
+- the context is denoted as a Haskell list of 'Frame's
+- 'computeCek' is denoted as @(|>)@
+- 'returnCek' is denoted as @(<|)@
+
+When evaluating
+
+    id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+
+We encounter the following state:
+
+    { i :-> ({}, 1) }
+    [ FrameApplyFun {} (id {integer -> integer})
+    , FrameApplyArg {} 0
+    ] |> \(j : integer) -> i
+
+and transition it into
+
+    { arg :-> ({ i :-> ({}, 1) }, \(j : integer) -> i) }
+    [ FrameApplyArg {} 0
+    ] <| id {integer -> integer} arg
+
+i.e. if the argument is not a constant, then we create a new variable, save the old environment in
+the closure of that variable and apply the function to the variable. This allows to restore the old
+environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
+
+    (\(j : integer) -> i)) 0
+
+which evaluates to @1@ in the old environment.
+-}
+
+-- See Note [Saved mapping example].
+-- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
+-- | If an argument to a built-in function is a constant, then feed it directly to the continuation
+-- that handles the argument and invoke the continuation in the caller's environment.
+-- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
+-- the created variable to the continuation and invoke the continuation in the caller's environment
+-- extended with a mapping from the created variable to the closure (i.e. original argument +
+-- its environment). The "otherwise" is only supposed to happen when handling an argument to a
+-- polymorphic built-in function.
+withScopedArgIn
+    :: VarEnv uni                            -- ^ The caller's envorinment.
+    -> VarEnv uni                            -- ^ The argument's environment.
+    -> WithMemory Value uni                  -- ^ The argument.
+    -> (WithMemory Value uni -> CekM uni a)  -- ^ A continuation handling the argument.
+    -> CekM uni a
+withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
+withScopedArgIn funVarEnv argVarEnv arg            k = do
+    let cost = memoryUsage ()
+    argName <- freshName cost "arg"
+    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
+
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -282,18 +343,15 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
-applyEvaluate funVarEnv argVarEnv con fun arg =
-        -- Instantiate all the free variable of the argument in case there are any
-        -- (which may happen when evaluating a term that contains polymorphic built-in functions).
-        -- See https://github.com/input-output-hk/plutus/issues/1882
-    let argClosed = dischargeVarEnv argVarEnv arg
-        term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage argClosed) fun argClosed
-    in case termAsPrimIterApp term of
+applyEvaluate funVarEnv argVarEnv con fun arg = do
+    withScopedArgIn funVarEnv argVarEnv arg $ \arg' ->
+        let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg') fun arg'
+        in case termAsPrimIterApp term of
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
-                withVarEnv funVarEnv $ case constAppResult of
+                case constAppResult of
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 
@@ -334,6 +392,9 @@ runCek means mode term =
     runCekM (CekEnv means mempty mode)
             (ExBudgetState mempty mempty)
         $ do
+            -- We generate fresh variables during evaluation, see Note [Saved mapping example],
+            -- hence making sure here that no accidental variable capture can occur.
+            markNonFreshTerm term
             spendBudget BAST memTerm (ExBudget 0 (termAnn memTerm))
             computeCek [] memTerm
     where
