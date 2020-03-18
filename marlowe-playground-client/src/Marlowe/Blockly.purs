@@ -22,6 +22,7 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
+import Data.Tuple (Tuple(..))
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Parser as Parser
@@ -1409,8 +1410,14 @@ instance toBlocklyValue :: ToBlockly Value where
   toBlockly newBlock workspace input (Scale (Rational numerator denominator) value) = do
     block <- newBlock workspace (show ScaleValueType)
     connectToOutput block input
-    setField block "numerator" (show numerator)
-    setField block "denominator" (show denominator)
+    let
+      (Tuple fixedNumerator fixedDenominator) =
+        if denominator > zero then
+          Tuple numerator denominator
+        else
+          Tuple (-numerator) (-denominator)
+    setField block "numerator" (show fixedNumerator)
+    setField block "denominator" (show fixedDenominator)
     inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
     block <- newBlock workspace (show ChoiceValueValueType)

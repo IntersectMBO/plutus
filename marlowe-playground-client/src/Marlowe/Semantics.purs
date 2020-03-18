@@ -228,7 +228,8 @@ data Rational
 
 derive instance genericRational :: Generic Rational _
 
-derive instance eqRational :: Eq Rational
+instance eqRational :: Eq Rational where
+  eq (Rational n1 d1) (Rational n2 d2) = eq (d1 * n2) (d2 * n1)
 
 derive instance ordRational :: Ord Rational
 
