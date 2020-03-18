@@ -124,6 +124,7 @@ data Value = AvailableMoney AccountId Token
            | NegValue Value
            | AddValue Value Value
            | SubValue Value Value
+           | Scale Rational Value
            | ChoiceValue ChoiceId Value
            | SlotIntervalStart
            | SlotIntervalEnd
@@ -133,6 +134,7 @@ The different kinds of values – all of which are `Integer` – are pretty much
 
 * Lookup of the value in an account `AvailableMoney`, made in a choice `ChoiceValue` and in an identifier that has already been defined  `UseValue`.
 * Arithmetic constants and operators.
+* `Scale` multiplies a `Value` by a rational constant, say, 2/3, and rounds the result using 'half even' aka 'banking' rounding. So, 14/10 rounds to 1, both 15/10 and 25/10 rounds to 2.
 * The start and end of the current _slot interval_; see below for further discussion of this.
 
 Next we have observations

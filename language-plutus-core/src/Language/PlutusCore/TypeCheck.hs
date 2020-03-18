@@ -7,14 +7,8 @@ module Language.PlutusCore.TypeCheck
     -- * Configuration.
       DynamicBuiltinNameTypes (..)
     , TypeCheckConfig (..)
-    , tccDoNormTypes
     , tccDynamicBuiltinNameTypes
-    , tccMayGas
-    , defTypeCheckGas
-    , onChainConfig
-    , offChainConfig
-    , defOnChainConfig
-    , defOffChainConfig
+    , defConfig
     , dynamicBuiltinNameMeaningsToTypes
     -- * Kind/type inference/checking.
     , inferKind
@@ -38,25 +32,9 @@ import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 
--- | The default amount of gas to run the type checker with.
-defTypeCheckGas :: Gas
-defTypeCheckGas = Gas 1000
-
--- | The 'TypeCheckConfig' used on the chain.
-onChainConfig :: DynamicBuiltinNameTypes uni -> Gas -> TypeCheckConfig uni
-onChainConfig tys = TypeCheckConfig False tys . Just
-
--- | The 'TypeCheckConfig' used off the chain.
-offChainConfig :: DynamicBuiltinNameTypes uni -> TypeCheckConfig uni
-offChainConfig tys = TypeCheckConfig True tys Nothing
-
--- | The default 'TypeCheckConfig' used on the chain.
-defOnChainConfig :: TypeCheckConfig uni
-defOnChainConfig = onChainConfig mempty defTypeCheckGas
-
--- | The default 'TypeCheckConfig' used off the chain.
-defOffChainConfig :: TypeCheckConfig uni
-defOffChainConfig = offChainConfig mempty
+-- | The default 'TypeCheckConfig'.
+defConfig :: TypeCheckConfig uni
+defConfig = TypeCheckConfig mempty
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
@@ -66,8 +44,8 @@ dynamicBuiltinNameMeaningsToTypes
 dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
     let getType mean = do
             let ty = dynamicBuiltinNameMeaningToType mean
-            _ <- inferKind (offChainConfig mempty) $ ann <$ ty
-            pure <$> normalizeTypeFull ty
+            _ <- inferKind defConfig $ ann <$ ty
+            pure <$> normalizeType ty
     DynamicBuiltinNameTypes <$> traverse getType means
 
 -- | Infer the kind of a type.

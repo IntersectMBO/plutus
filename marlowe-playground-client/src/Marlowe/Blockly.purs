@@ -125,7 +125,8 @@ partyTypes :: Array PartyType
 partyTypes = upFromIncluding bottom
 
 data TokenType
-  = CustomTokenType
+  = AdaTokenType
+  | CustomTokenType
 
 derive instance genericTokenType :: Generic TokenType _
 
@@ -234,6 +235,7 @@ data ValueType
   | NegValueValueType
   | AddValueValueType
   | SubValueValueType
+  | ScaleValueType
   | ChoiceValueValueType
   | SlotIntervalStartValueType
   | SlotIntervalEndValueType
@@ -350,15 +352,15 @@ toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 the amount of %2 units of token %3 into the account %4 %5 with owner %6 from %7 continue as %8 %9"
+        , message0: "Deposit %1 by %2 the amount of %3 units of token %4 into account %5 %6 with owner %7 continue as %8 %9"
         , args0:
           [ DummyCentre
+          , Value { name: "party", check: "party", align: Right }
           , Value { name: "amount", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
-          , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
@@ -452,6 +454,19 @@ toDefinition (PartyType PKPartyType) =
         }
         defaultBlockDefinition
 
+-- Ada Token type
+toDefinition (TokenType AdaTokenType) =
+  BlockDefinition
+    $ merge
+        { type: show AdaTokenType
+        , message0: "Ada"
+        , args0: []
+        , colour: "255"
+        , output: Just "token"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 -- Custom Token type
 toDefinition (TokenType CustomTokenType) =
   BlockDefinition
@@ -497,7 +512,7 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from the account %5 %6 with owner %7 continue as %8 %9"
+        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 %6 with owner %7 continue as %8 %9"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
@@ -751,7 +766,7 @@ toDefinition (ValueType ConstantValueType) =
   BlockDefinition
     $ merge
         { type: show ConstantValueType
-        , message0: "Constant Value %1"
+        , message0: "Constant %1"
         , args0:
           [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           ]
@@ -798,6 +813,21 @@ toDefinition (ValueType SubValueValueType) =
         , args0:
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
+          ]
+        , colour: "135"
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+toDefinition (ValueType ScaleValueType) =
+  BlockDefinition
+    $ merge
+        { type: show ScaleValueType
+        , message0: "%1 * %2"
+        , args0:
+          [ Input { name: "scale", text: "value", spellcheck: false }
+          , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
         , output: Just "value"
@@ -992,6 +1022,8 @@ instance hasBlockDefinitionParty :: HasBlockDefinition PartyType Party where
     pure (Role role)
 
 instance hasBlockDefinitionToken :: HasBlockDefinition TokenType Token where
+  blockDefinition AdaTokenType g block = do
+    pure (Token "" "")
   blockDefinition CustomTokenType g block = do
     currSym <- getFieldValue block "currency_symbol"
     tokName <- getFieldValue block "token_name"
@@ -1095,6 +1127,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
     value1 <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value1"
     value2 <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value2"
     pure (SubValue value1 value2)
+  blockDefinition ScaleValueType g block = do
+    scale <- parse Parser.rational =<< getFieldValue block "scale"
+    value <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value"
+    pure (Scale scale value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
@@ -1182,6 +1218,9 @@ instance toBlocklyParty :: ToBlockly Party where
     setField block "role" role
 
 instance toBlocklyToken :: ToBlockly Token where
+  toBlockly newBlock workspace input (Token "" "") = do
+    block <- newBlock workspace (show AdaTokenType)
+    connectToOutput block input
   toBlockly newBlock workspace input (Token currSym tokName) = do
     block <- newBlock workspace (show CustomTokenType)
     connectToOutput block input
@@ -1368,6 +1407,11 @@ instance toBlocklyValue :: ToBlockly Value where
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2
+  toBlockly newBlock workspace input (Scale s value) = do
+    block <- newBlock workspace (show ScaleValueType)
+    connectToOutput block input
+    setField block "scale" (show s)
+    inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input

@@ -54,6 +54,7 @@ module Language.PlutusTx.Prelude (
     (%),
     fromInteger,
     round,
+    quotRem,
     module Prelude
     ) where
 
@@ -76,9 +77,9 @@ import           Language.PlutusTx.Semigroup   as Semigroup
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
                                                            Num (..), Ord (..), Rational, Semigroup (..), all, any,
                                                            const, elem, error, filter, foldMap, foldl, foldr, fst, id,
-                                                           length, map, max, maybe, min, not, null, reverse, round,
-                                                           sequence, snd, traverse, zip, (!!), ($), (&&), (++), (<$>),
-                                                           (||))
+                                                           length, map, max, maybe, min, not, null, quotRem, reverse,
+                                                           round, sequence, snd, traverse, zip, (!!), ($), (&&), (++),
+                                                           (<$>), (||))
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}

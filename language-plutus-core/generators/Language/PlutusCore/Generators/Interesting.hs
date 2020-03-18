@@ -47,7 +47,7 @@ import qualified Hedgehog.Range                           as Range
 -- | The type of terms-and-their-values generators.
 type TermGen uni a = Gen (TermOf uni a)
 
--- | Generates application of a built-in that returns a @boolean@, immediately saturated afterwards.
+-- | Generates application of a builtin that returns a function, immediately saturated afterwards.
 --
 -- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
 -- >     == if i < j then i + j else i - j
