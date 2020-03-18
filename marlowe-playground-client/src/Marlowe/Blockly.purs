@@ -22,10 +22,11 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
+import Data.Tuple (Tuple(..))
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Parser as Parser
-import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Party(..), Token(..), Value(..), ValueId(..))
+import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Party(..), Rational(..), Token(..), Value(..), ValueId(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
@@ -352,14 +353,13 @@ toDefinition (ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
-        , message0: "Deposit %1 by %2 the amount of %3 units of token %4 into account %5 %6 with owner %7 continue as %8 %9"
+        , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account %5 with owner %6 continue as %7 %8"
         , args0:
           [ DummyCentre
           , Value { name: "party", check: "party", align: Right }
           , Value { name: "amount", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
-          , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -377,7 +377,7 @@ toDefinition (ActionType ChoiceActionType) =
         { type: show ChoiceActionType
         , message0: "Choice name %1 %2 choice owner %3 choice bounds %4 %5 continue as %6 %7"
         , args0:
-          [ Input { name: "choice_name", text: "Name", spellcheck: false }
+          [ Input { name: "choice_name", text: "name", spellcheck: false }
           , DummyLeft
           , Value { name: "choice_owner", check: "party", align: Right }
           , DummyLeft
@@ -512,14 +512,13 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 %6 with owner %7 continue as %8 %9"
+        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
           , Value { name: "amount", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
-          , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
@@ -618,7 +617,7 @@ toDefinition (ObservationType NotObservationType) =
   BlockDefinition
     $ merge
         { type: show NotObservationType
-        , message0: "Not %1"
+        , message0: "not %1"
         , args0:
           [ Value { name: "observation", check: "observation", align: Right }
           ]
@@ -632,10 +631,10 @@ toDefinition (ObservationType ChoseSomethingObservationType) =
   BlockDefinition
     $ merge
         { type: show ChoseSomethingObservationType
-        , message0: "chose id %1 for person %2"
+        , message0: "party %1 made choice %2"
         , args0:
-          [ Input { name: "choice_name", text: "Name", spellcheck: false }
-          , Value { name: "choice_owner", check: "party", align: Right }
+          [ Value { name: "choice_owner", check: "party", align: Right }
+          , Input { name: "choice_name", text: "name", spellcheck: false }
           ]
         , colour: "230"
         , output: Just "observation"
@@ -747,10 +746,9 @@ toDefinition (ValueType AvailableMoneyValueType) =
   BlockDefinition
     $ merge
         { type: show AvailableMoneyValueType
-        , message0: "Available Money %1 of currency %2 from account number %3 %4 with owner %5 %6"
+        , message0: "Available currency %1 from account %2 %3 owner %4 %5"
         , args0:
-          [ DummyRight
-          , Value { name: "token", check: "token", align: Right }
+          [ Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , DummyRight
           , Value { name: "account_owner", check: "party", align: Right }
@@ -780,7 +778,7 @@ toDefinition (ValueType NegValueValueType) =
   BlockDefinition
     $ merge
         { type: show NegValueValueType
-        , message0: "Negate Value %1"
+        , message0: "- %1"
         , args0:
           [ Value { name: "value", check: "value", align: Right }
           ]
@@ -824,9 +822,10 @@ toDefinition (ValueType ScaleValueType) =
   BlockDefinition
     $ merge
         { type: show ScaleValueType
-        , message0: "%1 * %2"
+        , message0: "(%1 / %2) * %3"
         , args0:
-          [ Input { name: "scale", text: "value", spellcheck: false }
+          [ Number { name: "numerator", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
+          , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
@@ -839,9 +838,9 @@ toDefinition (ValueType ChoiceValueValueType) =
   BlockDefinition
     $ merge
         { type: show ChoiceValueValueType
-        , message0: "use value of choice with id: %1 chosen by participant with id: %2 if no choice was made use: %3"
+        , message0: "Choice %1 by %2 default %3"
         , args0:
-          [ Input { name: "choice_name", text: "Name", spellcheck: false }
+          [ Input { name: "choice_name", text: "name", spellcheck: false }
           , Value { name: "choice_owner", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           ]
@@ -879,7 +878,7 @@ toDefinition (ValueType UseValueValueType) =
   BlockDefinition
     $ merge
         { type: show UseValueValueType
-        , message0: "Use Value with ID %1"
+        , message0: "Use name %1"
         , args0:
           [ Input { name: "value_id", text: "value", spellcheck: false }
           ]
@@ -1128,9 +1127,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType Value where
     value2 <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value2"
     pure (SubValue value1 value2)
   blockDefinition ScaleValueType g block = do
-    scale <- parse Parser.rational =<< getFieldValue block "scale"
+    numerator <- parse Parser.bigInteger =<< getFieldValue block "numerator"
+    denominator <- parse Parser.bigInteger =<< getFieldValue block "denominator"
     value <- parse (Parser.parseToValue Parser.value) =<< statementToCode g block "value"
-    pure (Scale scale value)
+    pure (Scale (Rational numerator denominator) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- parse (Parser.parseToValue Parser.party) =<< statementToCode g block "choice_owner"
@@ -1407,10 +1407,17 @@ instance toBlocklyValue :: ToBlockly Value where
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2
-  toBlockly newBlock workspace input (Scale s value) = do
+  toBlockly newBlock workspace input (Scale (Rational numerator denominator) value) = do
     block <- newBlock workspace (show ScaleValueType)
     connectToOutput block input
-    setField block "scale" (show s)
+    let
+      (Tuple fixedNumerator fixedDenominator) =
+        if denominator > zero then
+          Tuple numerator denominator
+        else
+          Tuple (-numerator) (-denominator)
+    setField block "numerator" (show fixedNumerator)
+    setField block "denominator" (show fixedDenominator)
     inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
     block <- newBlock workspace (show ChoiceValueValueType)
