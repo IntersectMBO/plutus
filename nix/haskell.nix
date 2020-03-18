@@ -15,7 +15,8 @@ let
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
       filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [../.gitignore] root) root;
       src =  root;
-      # Otherwise this depends on the name in the parent directory, which reduces caching
+      # Otherwise this depends on the name in the parent directory, which reduces caching, and is
+      # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
       name = "plutus";
     };
     # This turns the output into a fixed-output derivation, which speeds things
