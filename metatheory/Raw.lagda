@@ -6,6 +6,7 @@ module Raw where
 open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
+open import Data.Char using (Char)
 
 open import Builtin.Constant.Type
 open import Builtin
@@ -34,9 +35,12 @@ data RawTy : Set where
   μ    : RawTy → RawTy → RawTy
 
 data RawTermCon : Set where
-  integer : ℤ → RawTermCon
+  integer    : ℤ → RawTermCon
   bytestring : ByteString → RawTermCon
-  string : String → RawTermCon
+  string     : String → RawTermCon
+  bool       : Bool → RawTermCon
+  char       : Char → RawTermCon
+  unit       : RawTermCon
 
 data RawTm : Set where
   `       : ℕ → RawTm
@@ -57,31 +61,28 @@ data RawTm : Set where
 
 decRTyCon : (C C' : TyCon) → Bool
 decRTyCon integer integer = true
-decRTyCon integer bytestring = false
-decRTyCon integer string = false
-decRTyCon bytestring integer = false
 decRTyCon bytestring bytestring = true
-decRTyCon bytestring string = false
-decRTyCon string integer = false
-decRTyCon string bytestring = false
-decRTyCon string string = true
+decRTyCon string     string     = true
+decRTyCon char       char       = true
+decRTyCon unit       unit       = true
+decRTyCon bool       bool       = true
+decRTyCon _          _          = false
+
 
 decTermCon : (C C' : RawTermCon) → Bool
 decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
 ... | yes p = true
 ... | no ¬p = false
-decTermCon (integer i) (bytestring b') = false
-decTermCon (integer i) (string s') = false
-decTermCon (bytestring b) (integer i') = false
 decTermCon (bytestring b) (bytestring b') with equals b b'
 decTermCon (bytestring b) (bytestring b') | false = false
 decTermCon (bytestring b) (bytestring b') | true = true
-decTermCon (bytestring b) (string s') = false
-decTermCon (string s) (integer i') = false
-decTermCon (string s) (bytestring b') = false
 decTermCon (string s) (string s') with s Data.String.≟ s'
 ... | yes p = true
 ... | no ¬p = false
+decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
+... | yes p = true
+... | no ¬p = false
+decTermCon _ _ = false
 
 decBuiltin : (b b' : Builtin) → Bool
 decBuiltin addInteger addInteger = true

@@ -63,6 +63,9 @@ extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Scoped.TermCon
 extricateC (integer i)    = integer i
 extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s
+extricateC (bool b)       = bool b
+extricateC (char c)       = char c
+extricateC unit           = unit
 
 open import Data.List as L
 open import Data.Product as P

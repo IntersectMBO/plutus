@@ -14,7 +14,7 @@ open import Algorithmic
 open import Algorithmic.Reduction hiding (step)
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNBE

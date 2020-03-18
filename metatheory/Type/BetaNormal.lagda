@@ -154,13 +154,3 @@ ren-embNe ρ (` x)    = refl
 ren-embNe ρ (n · n') = cong₂ _·_ (ren-embNe ρ n) (ren-embNf ρ n')
 ren-embNe ρ μ1       = refl
 \end{code}
-
-# Assemblies
-
-\begin{code}
-unitNf : ∀{Γ} → Γ ⊢Nf⋆ *
-unitNf = Π (ne (` Z) ⇒ ne (` Z))
-
-booleanNf : ∀{Γ} → Γ ⊢Nf⋆ *
-booleanNf = Π (ne (` Z) ⇒ ne (` Z) ⇒ ne (` Z))
-\end{code}

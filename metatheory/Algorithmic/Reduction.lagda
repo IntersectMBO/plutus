@@ -15,7 +15,7 @@ open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.List hiding ([_]; take; drop)
-import Data.Bool as Bool
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 
 open import Type
@@ -30,7 +30,7 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
@@ -118,10 +118,10 @@ convVal refl refl v = v
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool.Bool → Γ ⊢ booleanNf
-VERIFYSIG (just Bool.false) = false
-VERIFYSIG (just Bool.true)  = true
-VERIFYSIG nothing           = error booleanNf
+VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool → Γ ⊢ con bool
+VERIFYSIG (just false) = con (bool false)
+VERIFYSIG (just true)  = con (bool true)
+VERIFYSIG nothing      = error (con bool)
 
 BUILTIN : ∀{Φ Γ}
     → (bn : Builtin)
@@ -146,15 +146,15 @@ BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
 BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
 BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i <? j) true false
+  decIf (i <? j) (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
-  = decIf (i ≤? j) true false
+  = decIf (i ≤? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.>? j) true false
+  decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.≥? j) true false
+  decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i ≟ j) true false
+  decIf (i ≟ j) (con (bool true)) (con (bool false))
 BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   con (bytestring (append b b'))
 BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -166,7 +166,7 @@ BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) =
 BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) =
   con (bytestring (SHA3-256 b))
 BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
-BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = Bool.if (equals b b') then true else false
+BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
 \end{code}
 
 # recontructing the telescope after a reduction step
