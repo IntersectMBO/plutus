@@ -10,6 +10,7 @@ open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
 open import Data.String hiding (_<_)
 open import Data.Unit
 open import Data.Bool using (Bool)
+open import Data.Char using (Char)
 
 open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Utils
@@ -162,6 +163,8 @@ data TermCon : Set where
   bytestring : (b : ByteString) → TermCon
   string     : (s : String) → TermCon
   bool       : (b : Bool) → TermCon
+  char       : (c : Char) → TermCon
+  unit       : TermCon
 
 data ScopedTm {n}(w : Weirdℕ n) : Set where
   `    :    WeirdFin w → ScopedTm w
@@ -200,6 +203,8 @@ deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
+deBruijnifyC (char c)       = char c
+deBruijnifyC unit           = unit
 
 ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
 ℕtoFin {zero}  _       = nothing
@@ -393,6 +398,9 @@ unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
 unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
+unDeBruijnifyC (char c)       = char c
+unDeBruijnifyC unit           = unit
+
 \end{code}
 
 \begin{code}

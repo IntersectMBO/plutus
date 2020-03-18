@@ -9,6 +9,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Integer hiding (suc)
 open import Data.List hiding (_++_)
 open import Data.String
+open import Data.Char
 
 open import Builtin.Constant.Type -- perhaps the postulates should be elsewhere
 open import Builtin
@@ -21,6 +22,8 @@ data TermCon : Set where
   bytestring : ByteString → TermCon
   string     : String → TermCon
   bool       : Bool → TermCon
+  char       : Char → TermCon
+  unit       : TermCon
 \end{code}
 
 \begin{code}

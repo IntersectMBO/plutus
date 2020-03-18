@@ -78,6 +78,8 @@ nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
+nfTypeTC (STermCon.char c)       = NTermCon.char c
+nfTypeTC STermCon.unit           = NTermCon.unit
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List

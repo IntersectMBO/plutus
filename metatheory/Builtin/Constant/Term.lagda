@@ -12,6 +12,7 @@ module Builtin.Constant.Term
 
 open import Data.Integer
 open import Data.String
+open import Data.Char
 open import Data.Bool
 \end{code}
 
@@ -31,4 +32,8 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
   bool       :
       (b : Bool)
     → TermCon (con bool)
+  char       :
+      (c : Char)
+    → TermCon (con char)
+  unit       : TermCon (con unit)
 \end{code}

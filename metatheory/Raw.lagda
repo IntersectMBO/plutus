@@ -6,6 +6,7 @@ module Raw where
 open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
+open import Data.Char using (Char)
 
 open import Builtin.Constant.Type
 open import Builtin
@@ -38,6 +39,8 @@ data RawTermCon : Set where
   bytestring : ByteString → RawTermCon
   string     : String → RawTermCon
   bool       : Bool → RawTermCon
+  char       : Char → RawTermCon
+  unit       : RawTermCon
 
 data RawTm : Set where
   `       : ℕ → RawTm

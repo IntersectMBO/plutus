@@ -33,6 +33,8 @@ eraseTC (integer i)    = integer i
 eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
+eraseTC (char c)       = char c
+eraseTC unit           = unit
 
 eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
   → Declarative.Tel Γ Δ σ As

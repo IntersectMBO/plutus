@@ -204,6 +204,8 @@ inferTypeCon (integer i)    = integer ,, A.integer i
 inferTypeCon (bytestring b) = bytestring ,, A.bytestring b
 inferTypeCon (string s)     = string ,, A.string s
 inferTypeCon (bool b)       = bool ,, A.bool b
+inferTypeCon (char c)       = char ,, A.char c
+inferTypeCon unit           = unit ,, A.unit
 
 inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
   → (Σ (Φ ⊢Nf⋆ *) λ A → Γ ⊢ A) ⊎ Error
