@@ -7,14 +7,12 @@
 \begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Stack} & s      & ::= & \cdot                             & \textrm{empty stack}\\
-                       &        &     & s,f                               & \textrm{stack with frame $f$ at top}\\
-        \textrm{State} & \sigma & ::= & \ckforward{s}{M}                  & \textrm{computing a term}\\
-                       %&        &     & \ckforward{s}{A}                 & \textrm{computing a type}\\
-                       &        &     & \ckbackward{s}{V}                 & \textrm{returning a term value}\\
-                       %&        &     & \ckbackward{s}{S}                & \textrm{returning a type value}\\
-                       &        &     & \square V                         & \textrm{halt and return a value}\\
-                       &        &     & \ckerror{}                        & \textrm{throwing an error}
+        \textrm{Stack} & s      & ::= & \cdot           & \textrm{empty stack}\\
+                       &        &     & s,f             & \textrm{stack with frame $f$ at top}\\
+        \textrm{State} & \sigma & ::= & s \compute M    & \textrm{computing a term}\\
+                       &        &     & s \return V     & \textrm{returning a term value}\\
+                       &        &     & \square V       & \textrm{halt and return a value}\\
+                       &        &     & \ckerror{}      & \textrm{throw an error}
     \end{array}\]
 
     \captionof{figure}{Grammar of CK Machine States}
@@ -23,39 +21,46 @@
 
 
 \begin{subfigure}[c]{\linewidth}
-    \judgmentdef{\(\cksteps{\sigma}{\sigma'}\)}{Machine takes one step from state $\sigma$ to state $\sigma'$}
+    \judgmentdef{$\sigma \mapsto \sigma^{\prime}$}{Machine takes one step from state $\sigma$ to state $\sigma'$}
 
-%% Changed to alignat to align rules a bit more readably; unfortunately the &s have to go in macro invocations.
 \hspace{-1cm}\begin{minipage}{\linewidth}
 % To stop "bn computes to ...'' going over the edge of the page
 \begin{alignat*}{2}
-        \cksteps{\ckforward{s&}{\con{cn}}&} {&\ckbackward{s}{\con{cn}}}\\
-        \cksteps{\ckforward{s&}{\abs{\alpha}{K}{M}}&} {&\ckbackward{s}{\abs{\alpha}{K}{M}}}\\
-        \cksteps{\ckforward{s&}{\inst{M}{A}}&} {&\ckforward{s, \inInstLeftFrame{A}}{M}}\\
-        \cksteps{\ckforward{s&}{\wrap{A}{B}{M}}&} {&\ckforward{s, \inWrapRightFrame{A}{B}}{M}}\\
-        \cksteps{\ckforward{s&}{\unwrap{M}}&} {&\ckforward{s, \inUnwrapFrame{}}{M}}\\
-        \cksteps{\ckforward{s&}{\lam{x}{A}{M}}&} {&\ckbackward{s}{\lam{x}{A}{M}}}\\
-        \cksteps{\ckforward{s&}{\app{M}{N}}&} {&\ckforward{s, \inAppLeftFrame{N}}{M}}\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{}}&} {&\ckforward{s}{M}}
-              \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}})\\
-        \cksteps{\ckforward{s&}{\builtin{bn}{\repetition{A}}{M \repetition{M}}}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}}}{M}}\\
-        \cksteps{\ckforward{s&}{\error{A}}&} {&\ckerror{}}\\
-        \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
-        \cksteps{\ckbackward{\cdot&}{V}&} {&\square V}\\
-        \cksteps{\ckbackward{s, \inInstLeftFrame{A}&}{\abs{\alpha}{K}{M}}&} {&\ckforward{s}{M}}\\
-        \cksteps{\ckbackward{s, \inWrapRightFrame{A}{B}&}{V}&} {&\ckbackward{s}{\wrap{A}{B}{V}}}\\
-        \cksteps{\ckbackward{s, \inUnwrapFrame{}&}{\wrap{A}{B}{V}}&} {&\ckbackward{s}{V}}\\
-        \cksteps{\ckbackward{s, \inAppLeftFrame{N}&}{V}&} {&\ckforward{s, \inAppRightFrame{V}}{N}}\\
-        \cksteps{\ckbackward{s, \inAppRightFrame{\lam{x}{A}{M}}&}{V}&} {&\ckforward{s}{\subst{V}{x}{M}}}\\
-        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{}&}{V}&} {&\ckforward{s}{M}}
-          \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
-        \cksteps{\ckbackward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}&}{V}&} {&\ckforward{s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}}}{M}}\\
+  s & \compute \con{cn}                     &~\mapsto~&  s \return \con{cn}\\
+  s & \compute \abs{\alpha}{K}{M}           &~\mapsto~&  s \return \abs{\alpha}{K}{M}\\
+  s & \compute \inst{M}{A}                  &~\mapsto~&  s,\inInstLeftFrame{A} \compute M\\
+  s & \compute \wrap{A}{B}{M}               &~\mapsto~&  s,\inWrapRightFrame{A}{B} \compute M\\
+  s & \compute \unwrap{M}                   &~\mapsto~&  s,\inUnwrapFrame{} \compute M\\
+  s & \compute \lam{x}{A}{M}                &~\mapsto~&  s \return \lam{x}{A}{M}\\
+  s & \compute \app{M}{N}                   &~\mapsto~&  s,\inAppLeftFrame{N} \compute M\\
+  s & \compute \builtin{bn}{\repetition{A}}{\!\!}
+                                            &~\mapsto~&  s \compute M
+                                            \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}})\\
+  s & \compute \builtin{bn}{\repetition{A}}{M \repetition{M}}
+                                            &~\mapsto~&  s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}} \compute M\\
+  s & \compute \error{A}                    &~\mapsto~&  \ckerror{}\\
+  \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
+  \cdot& \return V                          &~\mapsto~&  \square V\\
+  s,\inInstLeftFrame{A} & \return \abs{\alpha}{K}{M}
+                                            &~\mapsto~&  s \compute M\\
+  s,\inWrapRightFrame{A}{B} & \return V     &~\mapsto~&  s \return \wrap{A}{B}{V}\\
+  s,\inUnwrapFrame{} & \return \wrap{A}{B}{V}
+                                            &~\mapsto~&  s \return V\\
+  s,\inAppLeftFrame{N} & \return V          &~\mapsto~&  s,\inAppRightFrame{V} \compute N\\
+  s,\inAppRightFrame{\lam{x}{A}{M}} &\return V
+                                            &~\mapsto~&  s \compute \subst{V}{x}{M}\\
+  s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V
+                                            &~\mapsto~& s \compute M
+                                              \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$
+                                              to $M$ according to Fig.~\ref{fig:builtins}})\\
+  s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}} & \return V
+                                            &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
     \end{alignat*}
 \end{minipage}
     \caption{CK Machine Transitions}
     \label{fig:ck-transitions}
 \end{subfigure}
-\caption{CK machine}
+\caption{The CK machine}
 \label{fig:ck-machine}
 \end{figure}
 
