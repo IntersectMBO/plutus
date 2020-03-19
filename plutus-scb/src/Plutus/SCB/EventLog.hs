@@ -27,15 +27,23 @@ data EventLogEffect r where
                      -> EventLogEffect (GlobalStreamProjection state ChainEvent)
     AppendEvent      :: ChainEvent -> EventLogEffect ()
 
-updateProjection :: Member EventLogEffect effs
-                 => GlobalStreamProjection state ChainEvent
-                 -> Eff effs (GlobalStreamProjection state ChainEvent)
+updateProjection ::
+    Member EventLogEffect effs
+ => GlobalStreamProjection state ChainEvent
+ -> Eff effs (GlobalStreamProjection state ChainEvent)
 updateProjection oldProjection = send (UpdateProjection oldProjection)
 
-appendEvent :: Member EventLogEffect effs
-            => ChainEvent
-            -> Eff effs ()
+appendEvent ::
+    Member EventLogEffect effs
+ => ChainEvent
+ -> Eff effs ()
 appendEvent event = send (AppendEvent event)
+
+appendEvents ::
+    Member EventLogEffect effs
+ => [ChainEvent]
+ -> Eff effs ()
+appendEvents = mapM_ appendEvent
 
 handleEventLog ::
     ( LastMember m effs

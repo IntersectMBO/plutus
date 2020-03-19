@@ -3,8 +3,10 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
+
 module Cardano.Protocol.Socket.Client where
 
 import qualified Data.ByteString.Lazy                                as LBS
@@ -16,6 +18,7 @@ import           Data.Void                                           (Void)
 import           Control.Concurrent
 import           Control.Concurrent.STM
 import           Control.Lens
+import           Control.Monad.Freer                                 (Eff)
 import           Control.Monad.Logger
 import           Control.Monad.Reader
 import           Control.Tracer
@@ -86,7 +89,7 @@ startClientNode sockAddr connection state endpoint =
           MuxPeer
             (contramap show stdoutTracer)
             codecTxSubmission
-            (TxSubmission.localTxSubmissionClientPeer (txSubmissionClient connection (txInputQueue endpoint)))
+            (TxSubmission.localTxSubmissionClientPeer (txSubmissionClient connection state (txInputQueue endpoint)))
 
       protocols PuppetPtcl =
           MuxPeer
@@ -123,7 +126,7 @@ chainSyncClient connection clientState =
       sendLocalState  = do
         cs <- readMVar clientState
         return $ ChainSync.SendMsgFindIntersect
-          (sampleLocalState cs)
+          (wrapLocalState cs)
           receiveRemoteState
 
       receiveRemoteState :: ChainSync.ClientStIntersect Block Tip IO ()
@@ -131,11 +134,9 @@ chainSyncClient connection clientState =
         ChainSync.ClientStIntersect
         { ChainSync.recvMsgIntersectFound    = \point _ ->
             ChainSync.ChainSyncClient $ do
-              modifyMVar_ clientState
-                $ resumeLocalState point
+              runNodeClientEffects connection clientState $
+                resumeLocalState point
               return requestNext
-          -- NOTE: Something bad happened. We should send a local state reset event,
-          --       reset the local state and start a fresh download from the server.
         , ChainSync.recvMsgIntersectNotFound = error "Not supported."
         }
 
@@ -151,76 +152,29 @@ chainSyncClient connection clientState =
         {
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
-              st <- readMVar clientState
-              runEventStore connection $
-                runCommand logReceivedBlock NodeEventSource (block, st)
+              runNodeClientEffects connection clientState $
+                publishNewBlock block
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }
 
-      resumeLocalState :: Point Block -> ClientState -> IO ClientState
-      resumeLocalState point cs =
-        case getResumeOffset cs point of
-          -- NOTE: Something bad happened. We should send a local state reset event,
-          --       reset the local state and start a fresh download from the server.
-          Nothing     -> error "Not yet implemented."
-          Just 0      -> return cs
-          Just offset -> do
-            let newChain = drop (fromIntegral offset) (cs ^. csChain)
-                newState =
-                  cs & set  csChain newChain
-                     & set  csIndex (Index.initialise newChain)
-                     & over csCurrentSlot (\s -> s - Slot offset)
-            runEventStore connection $
-              runCommand logRollback NodeEventSource offset
-            return newState
-
-
 txSubmissionClient :: Connection
+                   -> MVar ClientState
                    -> TQueue Tx
                    -> TxSubmission.LocalTxSubmissionClient Tx String IO ()
-txSubmissionClient connection txInput =
+txSubmissionClient connection clientState txInput =
     TxSubmission.LocalTxSubmissionClient pushTxs
     where
       pushTxs :: IO (TxSubmission.LocalTxClientStIdle Tx String IO ())
       pushTxs = do
         header <- atomically $ readTQueue txInput
-        runEventStore connection $
-          runCommand logIncomingTx NodeEventSource header
+        runNodeClientEffects connection clientState $
+          sendTx header
         return $ TxSubmission.SendMsgSubmitTx
                    header
                    (const pushTxs) -- ignore rejects for now
 
 -- Working with the log.
-logRollback :: Aggregate () ChainEvent Integer
-logRollback =
-  Aggregate
-    { aggregateProjection     = nullProjection
-    , aggregateCommandHandler =
-        \() cnt ->
-          [ NodeEvent $ Rollback (fromIntegral cnt) ]
-    }
-
-logReceivedBlock :: Aggregate () ChainEvent (Block, ClientState)
-logReceivedBlock =
-  Aggregate
-    { aggregateProjection     = nullProjection
-    , aggregateCommandHandler =
-        \() (block, state) ->
-          [ NodeEvent $ BlockAdded block
-          , NodeEvent $ NewSlot  (fromIntegral $ length (view csChain state)) [] ]
-    }
-
-logIncomingTx :: Aggregate () ChainEvent Tx
-logIncomingTx =
-  Aggregate
-    { aggregateProjection     = nullProjection
-    , aggregateCommandHandler =
-        \() tx ->
-          [ NodeEvent $ SubmittedTx tx ]
-    }
-
-localStateProjection :: Projection ClientState (VersionedStreamEvent ChainEvent)
 localStateProjection =
   Projection
     { projectionSeed = emptyClientState
@@ -253,6 +207,13 @@ localStateRefresh delay localState =
           _ <- swapMVar localState (streamProjectionState nextProjection)
           threadDelay (fromIntegral $ toMicroseconds delay)
         go nextProjection
+
+runNodeClientEffects ::
+    Connection
+ -> MVar ClientState
+ -> Eff (NodeClientEffects IO) a
+ -> IO (a, [Tx])
+runNodeClientEffects = undefined
 
 runEventStore :: Connection
                    -> ReaderT Connection (LoggingT IO) a
