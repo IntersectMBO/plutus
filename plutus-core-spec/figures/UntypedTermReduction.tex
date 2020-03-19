@@ -14,11 +14,14 @@
                        &   &     & \inBuiltinU{bn}{V^*}{\_}{M^*}   & \textrm{builtin application}\\
                        &   &     & \inForceFrame                  & \textrm{force}
     \end{array}\]
-    \caption{Grammar of Erased Reduction Frames}
+    \caption{Grammar of reduction frames for type-erased Plutus Core}
     \label{fig:untyped-reduction-frames}
 \end{subfigure}
-%% ---------------- Reduction via Contextual Dynamics ---------------- %%
+\end{figure}
 
+\begin{figure}[H]
+\ContinuedFloat
+%% ---------------- Reduction via Contextual Dynamics ---------------- %%
 \begin{subfigure}[c]{\linewidth}
     \judgmentdef{\(\step{M}{M'}\)}{Term $M$ reduces in one step to term $M'$}
 
@@ -28,7 +31,7 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins}}
+        \AxiomC{$bn$ computes on $\repetition{V}$ to $U$ (see Note~\ref{sec:untyped-builtins})}
         \UnaryInfC{\(\step{\builtinU{bn}{\repetition{\erase{V}}}}{\erase{U}}\)}
     \end{prooftree}
 
@@ -38,25 +41,25 @@
     \end{prooftree}
 
 %% Faffing about with minipages to get two rules on the same line to avoid bad page break
-    \hfill\begin{minipage}{0.3\linewidth}  
+%    \hfill\begin{minipage}{0.3\linewidth}  
       \begin{prooftree}
-        \AxiomC{\strut} % struts to get rules aligned 
+        \AxiomC{} % If we're putting these side by side we need \strut here to get rules aligned 
         \UnaryInfC{\(\step{\ctxsubst{f}{\errorU}}{\errorU}\)}
       \end{prooftree}
-    \end{minipage}
-    \begin{minipage}{0.3\linewidth}
+%    \end{minipage}
+%    \begin{minipage}{0.3\linewidth}
     \begin{prooftree}
-        \AxiomC{\strut\(\step{M}{M'}\)}
+        \AxiomC{\(\step{M}{M'}\)}  % Need \strut for side-by-side alignment again
         \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
     \end{prooftree}
-    \end{minipage}\hfill\hfill %% Don't know why we need two \hfills here but only one at the start
-\\
+% \end{minipage}\hfill\hfill %% Don't know why we need two \hfills here but only one at the start
+% \\
     \medskip
-    \caption*{(b) Reduction via Contextual Dynamics} %% Oops
+    \caption{Reduction via Contextual Dynamics} %% Oops
     \label{fig:untyped-reduction}
 \end{subfigure}
 
-\caption{Term Reduction for Erased Plutus Core}
+\caption{Term reduction for type-erased Plutus Core}
 \label{fig:untyped-term-reduction}
 \end{figure}
 

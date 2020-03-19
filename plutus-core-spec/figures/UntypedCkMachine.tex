@@ -18,33 +18,37 @@
     \captionof{figure}{Grammar of CK Machine States for type-erased Plutus Core}
     \label{fig:erased-ck-frames}
 \end{subfigure}
+\end{figure}
 
-
-\begin{subfigure}[c]{\linewidth}
+% Allow page break for (slightly) better placement
+\begin{figure}[H]
+\ContinuedFloat
+  \begin{subfigure}[c]{\linewidth}
     \judgmentdef{$\sigma \mapsto \sigma^{\prime}$}{Machine takes one step from state $\sigma$ to state $\sigma'$}
 
-\hspace{-1cm}\begin{minipage}{\linewidth}
-% To stop "bn computes to ...'' going over the edge of the page
+%\hspace{-1cm}
+    \begin{minipage}{\linewidth}
 \begin{alignat*}{2}
   s & \compute \con{cn}                          &~\mapsto~& s \return \con{cn}\\
   s & \compute \lamU{x}{M}                       &~\mapsto~& s \return \lamU{x}{M}\\
   s & \compute \delay{M}                         &~\mapsto~& s \return \delay{M}\\
   s & \compute \force{M}                         &~\mapsto~& s,\inForceFrame{} \compute M \\
   s & \compute \appU{M}{N}                       &~\mapsto~& s,\inAppLeftFrame{N} \compute M\\
-  s & \compute \builtinU{bn}{\!\!}               &~\mapsto~& s \compute \erase{M}
-                                                 \quad (\textit{$bn$ computes to $M$ according to Fig.~\ref{fig:builtins} }) \\
-  s & \compute \builtinU{bn}{\erase{M} \repetition{\erase{M}}}   &~\mapsto~& s,\inBuiltinU{bn}{}{\_}{\repetition{\erase{M}}} \compute \erase{M}\\
+  s & \compute \builtinU{bn}{\!\!}               &~\mapsto~& s \compute M
+                                                 \quad (\textit{$bn$ computes to $M$}) \\
+  s & \compute \builtinU{bn}{M \repetition{M}}   &~\mapsto~& s,\inBuiltinU{bn}{}{\_}{\repetition{M}} \compute M\\
   s & \compute \errorU                           &~\mapsto~& \ckerror{}\\
   \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
   \cdot & \return V                              &~\mapsto~& \square V\\
   s,\inAppLeftFrame{N} & \return V               &~\mapsto~& s,\inAppRightFrame{V} \compute N\\
   s,\inAppRightFrame{\lam{x}{A}{M}} & \return V  &~\mapsto~& s \compute \subst{V}{x}{M}\\
   s,\inForceFrame{} & \return \delay{M}          &~\mapsto~& s \compute M\\
-  s,\inBuiltinU{bn}{\repetition{\erase{V}}}{\_}{} & \return \erase{V}
-                                                 &~\mapsto~&  s \compute \erase{M}
-                                                 \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$ according to Fig.~\ref{fig:builtins}})\\
-  s,\inBuiltinU{bn}{\repetition{\erase{V}}}{\_}{\erase{M} \repetition{\erase{M}}} & \return \erase{V}
-                                                 &~\mapsto~& s,\inBuiltinU{bn}{\repetition{\erase{V}} \erase{V}}{\_}{\repetition{\erase{M}}} \compute \erase{M}\\
+  s,\inBuiltinU{bn}{\repetition{V}}{\_}{} & \return V
+                                                 &~\mapsto~&  s \compute M
+                                                 \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$})\\
+  s,\inBuiltinU{bn}{\repetition{V}}{\_}{M \repetition{M}} & \return V
+                                                 &~\mapsto~& s,\inBuiltinU{bn}{\repetition{V} V}{\_}{\repetition{M}}
+                                                 \compute M\\
     \end{alignat*}
 \end{minipage}
     \caption{CK Machine Transitions for type-erased Plutus Core}
