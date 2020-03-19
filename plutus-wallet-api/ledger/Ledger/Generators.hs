@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 -- | Generators for constructing blockchains and transactions for use in property-based testing.
-module Wallet.Generators(
+module Ledger.Generators(
     -- * Mockchain
     Mockchain(..),
     genMockchain,
@@ -46,10 +46,10 @@ import qualified Hedgehog.Range            as Range
 import qualified Language.PlutusTx.Prelude as P
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.Index              as Index
+import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 
 import           Ledger
-import qualified Wallet.API                as W
 
 -- | Attach signatures of all known private keys to a transaction.
 signAll :: Tx -> Tx
@@ -127,7 +127,7 @@ genInitialTransaction GeneratorModel{..} =
     in (mempty {
         txOutputs = o,
         txForge = t,
-        txValidRange = W.intervalFrom 0
+        txValidRange = Interval.from 0
         }, o)
 
 -- | Generate a valid transaction, using the unspent outputs provided.

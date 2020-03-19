@@ -33,6 +33,7 @@ import           Language.Marlowe
 import qualified Language.PlutusTx.Prelude      as P
 import           Ledger                         hiding (Value)
 import           Ledger.Ada                     (adaValueOf)
+import qualified Ledger.Generators              as Gen
 import qualified Ledger.Value                   as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
@@ -45,7 +46,6 @@ import qualified Wallet.Emulator.Generators     as Gen
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.SigningProcess (SigningProcessEffect)
 import           Wallet.Emulator.Wallet
-import qualified Wallet.Generators              as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}

@@ -28,7 +28,9 @@ import qualified Language.PlutusTx.Builtins as Builtins
 import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                 as Ada
+import qualified Ledger.Generators          as Gen
 import qualified Ledger.Index               as Index
+import qualified Ledger.Interval            as Interval
 import           Ledger.Value               (CurrencySymbol, Value (Value))
 import qualified Ledger.Value               as Value
 import           LedgerBytes
@@ -36,10 +38,6 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
 import           Test.Tasty.HUnit           (testCase)
 import qualified Test.Tasty.HUnit           as HUnit
-import           Wallet
-import qualified Wallet.API                 as W
-import qualified Wallet.Generators          as Gen
-import qualified Wallet.Graph
 
 main :: IO ()
 main = defaultMain tests
@@ -126,11 +124,11 @@ intvlMember :: Property
 intvlMember = property $ do
     (i1, i2) <- forAll $ (,) <$> Gen.integral (fromIntegral <$> Range.linearBounded @Int) <*> Gen.integral (fromIntegral <$> Range.linearBounded @Int)
     let (from, to) = (min i1 i2, max i1 i2)
-        i          = W.interval (Slot from) (Slot to)
-    Hedgehog.assert $ W.member (Slot from) i || W.isEmpty i
-    Hedgehog.assert $ not (W.member (Slot (from-1)) i) || W.isEmpty i
-    Hedgehog.assert $ W.member (Slot to) i || W.isEmpty i
-    Hedgehog.assert $ not (W.member (Slot (to+1)) i) || W.isEmpty i
+        i          = Interval.interval (Slot from) (Slot to)
+    Hedgehog.assert $ Interval.member (Slot from) i || Interval.isEmpty i
+    Hedgehog.assert $ not (Interval.member (Slot (from-1)) i) || Interval.isEmpty i
+    Hedgehog.assert $ Interval.member (Slot to) i || Interval.isEmpty i
+    Hedgehog.assert $ not (Interval.member (Slot (to+1)) i) || Interval.isEmpty i
 
 intvlContains :: Property
 intvlContains = property $ do
@@ -138,10 +136,10 @@ intvlContains = property $ do
     -- the outer interval contains the inner interval
     ints <- forAll $ traverse (const $ Gen.integral (fromIntegral <$> Range.linearBounded @Int)) [1..4]
     let [i1, i2, i3, i4] = Slot <$> sort ints
-        outer = W.interval i1 i4
-        inner = W.interval i2 i3
+        outer = Interval.interval i1 i4
+        inner = Interval.interval i2 i3
 
-    Hedgehog.assert $ W.contains outer inner
+    Hedgehog.assert $ Interval.contains outer inner
 
 encodeByteStringTest :: Property
 encodeByteStringTest = property $ do
