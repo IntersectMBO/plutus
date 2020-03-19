@@ -32,26 +32,29 @@ module Language.Plutus.Contract.StateMachine(
 
 import           Control.Lens
 import           Control.Monad.Error.Lens
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
-import           Data.Void                        (Void, absurd)
+import           Data.Either                                   (rights)
+import           Data.Map                                      (Map)
+import qualified Data.Map                                      as Map
+import           Data.Text                                     (Text)
+import qualified Data.Text                                     as Text
+import           Data.Void                                     (Void, absurd)
 
 import           Language.Plutus.Contract
-import qualified Language.PlutusTx                as PlutusTx
-import           Language.PlutusTx.StateMachine   (State (..), StateMachine (..), StateMachineInstance (..))
-import qualified Language.PlutusTx.StateMachine   as SM
-import           Ledger                           (Value)
+import           Language.Plutus.Contract.StateMachine.OnChain (State (..), StateMachine (..),
+                                                                StateMachineInstance (..))
+import qualified Language.Plutus.Contract.StateMachine.OnChain as SM
+import qualified Language.PlutusTx                             as PlutusTx
+import           Ledger                                        (Value)
 import qualified Ledger
-import           Ledger.AddressMap                (UtxoMap)
-import           Ledger.Constraints               (ScriptLookups, TxConstraints (..), mustPayToTheScript)
-import           Ledger.Constraints.OffChain      (UnbalancedTx)
-import qualified Ledger.Constraints.OffChain      as Constraints
-import           Ledger.Constraints.TxConstraints (InputConstraint (..), OutputConstraint (..))
-import           Ledger.Crypto                    (pubKeyHash)
-import           Ledger.Typed.Tx                  (TypedScriptTxOut (..))
-import qualified Ledger.Typed.Tx                  as Typed
-
-import qualified Wallet.Typed.StateMachine        as SM
+import           Ledger.AddressMap                             (UtxoMap)
+import           Ledger.Constraints                            (ScriptLookups, TxConstraints (..), mustPayToTheScript)
+import           Ledger.Constraints.OffChain                   (UnbalancedTx)
+import qualified Ledger.Constraints.OffChain                   as Constraints
+import           Ledger.Constraints.TxConstraints              (InputConstraint (..), OutputConstraint (..))
+import           Ledger.Crypto                                 (pubKeyHash)
+import           Ledger.Tx
+import           Ledger.Typed.Tx                               (TypedScriptTxOut (..))
+import qualified Ledger.Typed.Tx                               as Typed
 
 -- $statemachine
 -- To write your contract as a state machine you need
@@ -69,9 +72,23 @@ import qualified Wallet.Typed.StateMachine        as SM
 -- makes the transition to the next state using the given input and taking care
 -- of all payments.
 
+type OnChainState s i = (Typed.TypedScriptTxOut (SM.StateMachine s i), Typed.TypedScriptTxOutRef (SM.StateMachine s i))
+
+getStates
+    :: forall s i
+    . (PlutusTx.IsData s)
+    => SM.StateMachineInstance s i
+    -> Map TxOutRef TxOutTx
+    -> [OnChainState s i]
+getStates (SM.StateMachineInstance _ si) refMap =
+    let lkp (ref, out) = do
+            tref <- Typed.typeScriptTxOutRef (\r -> Map.lookup r refMap) si ref
+            tout <- Typed.typeScriptTxOut si out
+            pure (tout, tref)
+    in rights $ fmap lkp $ Map.toList refMap
+
 data SMContractError s i =
-    SMError (SM.SMError s i)
-    | InvalidTransition s i
+    InvalidTransition s i
     | NonZeroValueAllocatedInFinalState
     | ChooserError Text
     deriving (Show)
@@ -83,7 +100,7 @@ data StateMachineClient s i = StateMachineClient
     { scInstance :: SM.StateMachineInstance s i
     -- ^ The instance of the state machine, defining the machine's transitions,
     --   its final states and its check function.
-    , scChooser  :: [SM.OnChainState s i] -> Either (SMContractError s i) (SM.OnChainState s i)
+    , scChooser  :: [OnChainState s i] -> Either (SMContractError s i) (OnChainState s i)
     -- ^ A function that chooses the relevant on-chain state, given a list of
     --   all potential on-chain states found at the contract address.
     }
@@ -92,8 +109,8 @@ data StateMachineClient s i = StateMachineClient
 --   than exactly one output
 defaultChooser ::
     forall state input
-    . [SM.OnChainState state input]
-    -> Either (SMContractError state input) (SM.OnChainState state input)
+    . [OnChainState state input]
+    -> Either (SMContractError state input) (OnChainState state input)
 defaultChooser [x] = Right x
 defaultChooser xs  =
     let msg = "Found " <> show (length xs) <> " outputs, expected 1"
@@ -115,10 +132,10 @@ getOnChainState ::
     , PlutusTx.IsData state
     , HasUtxoAt schema)
     => StateMachineClient state i
-    -> Contract schema e (SM.OnChainState state i, UtxoMap)
+    -> Contract schema e (OnChainState state i, UtxoMap)
 getOnChainState StateMachineClient{scInstance, scChooser} = do
     utxo <- utxoAt (SM.machineAddress scInstance)
-    let states = SM.getStates scInstance utxo
+    let states = getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the

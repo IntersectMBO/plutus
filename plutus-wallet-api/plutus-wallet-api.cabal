@@ -47,9 +47,7 @@ library
     exposed-modules:
         Wallet
         Wallet.API
-        Wallet.Typed.StateMachine
         Wallet.Graph
-        Language.PlutusTx.StateMachine
     reexported-modules:
         Data.Aeson.Extras,
         Data.Text.Prettyprint.Doc.Extras,
