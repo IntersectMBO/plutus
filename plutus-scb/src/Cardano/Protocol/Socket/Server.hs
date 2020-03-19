@@ -36,6 +36,7 @@ import           Cardano.Protocol.Effects
 import qualified Cardano.Protocol.Socket.Puppet.Server               as Puppet
 import           Cardano.Protocol.Socket.Type
 
+import           Cardano.Protocol.Node
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import           Wallet.Emulator.Chain
 

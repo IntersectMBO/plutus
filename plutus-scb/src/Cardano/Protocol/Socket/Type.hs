@@ -39,30 +39,13 @@ import           Ledger                                             (Block, Slot
 import qualified Ledger.Index                                       as Index
 import           LedgerBytes                                        (LedgerBytes (..))
 import           Wallet.Emulator.Chain
+import Cardano.Protocol.Node
 
--- Making plutus transaction representations work with the node protocols
-type instance HeaderHash Tx = TxId
-type instance HeaderHash Block = BlockId
-deriving instance StandardHash Tx
-deriving instance StandardHash Block
-
+-- CBOR Serialisation
 deriving instance Generic Index.UtxoIndex
 deriving newtype instance CBOR.Serialise Index.UtxoIndex
-deriving newtype instance NoUnexpectedThunks TxId
 deriving instance Generic ChainState
 deriving instance Serialise ChainState
--- TODO: Move this when fear of merging subsides
-
--- Block header
-newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
-  deriving (Eq, Ord, Generic)
-  deriving anyclass (ToJSON, FromJSON)
-  deriving newtype (Serialise, NoUnexpectedThunks)
-  deriving (Pretty, Show) via LedgerBytes
-
-blockId :: Block -> BlockId
-blockId = BlockId . foldl BSL.append BSL.empty . map (getTxId . txId)
---
 
 type Tip = Block
 

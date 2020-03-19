@@ -10,7 +10,6 @@ module Cardano.Protocol.Socket.Client where
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
 import           Data.List                                           (findIndex)
-import qualified Data.Map.Lazy                                       as Map
 import           Data.Time.Units                                     (Second, toMicroseconds)
 import           Data.Void                                           (Void)
 
@@ -44,23 +43,13 @@ import           Ouroboros.Network.Socket
 
 import           Cardano.Protocol.Socket.Type
 
+import           Cardano.Protocol.Node
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import qualified Ledger.Index                                        as Index
 import           Plutus.SCB.Core
 import           Plutus.SCB.Events
 import           Plutus.SCB.Query                                    (nullProjection)
 import           Wallet.Emulator.Chain                               hiding (ChainEvent)
-
-data ClientState = ClientState
-  { _csChain       :: [Block]
-  , _csIndex       :: Index.UtxoIndex
-  , _csCurrentSlot :: Slot
-  } deriving Show
-
-makeLenses ''ClientState
-
-emptyClientState :: ClientState
-emptyClientState =  ClientState [] (Index.UtxoIndex Map.empty) (Slot 0)
 
 startClientNode :: FilePath
                 -> Connection
@@ -186,31 +175,6 @@ chainSyncClient connection clientState =
               runCommand logRollback NodeEventSource offset
             return newState
 
-getResumeOffset :: ClientState -> Point Block -> Maybe Integer
-getResumeOffset (ClientState chain _ (Slot cntSlot))
-                 (Point (At (Point.Block (SlotNo srvSlot) srvId)))
-  = do
-    let srvSlot' = toInteger srvSlot
-    localIndex  <- toInteger <$> findIndex (srvId `sameHashAs`) chain
-    if srvSlot' == cntSlot - localIndex
-    then pure $ cntSlot - srvSlot'
-    else Nothing
-  where
-    sameHashAs :: BlockId -> Block -> Bool
-    sameHashAs srvId' block = srvId' == blockId block
--- NOTE: Something bad happened. We should send a local state reset event,
---       reset the local state and start a fresh download from the server.
-getResumeOffset _ _ = error "Not yet implemented."
-
-sampleLocalState :: ClientState -> [Point Block]
-sampleLocalState cs =
-    fmap mkPoint
-  $ zip (SlotNo <$> [0 ..])
-        (view csChain cs)
-  where
-    mkPoint :: (SlotNo, Block) -> Point Block
-    mkPoint (slot, block) =
-        Point (At (Point.Block slot $ blockId block))
 
 txSubmissionClient :: Connection
                    -> TQueue Tx

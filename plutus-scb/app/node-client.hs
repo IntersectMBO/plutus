@@ -1,28 +1,30 @@
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns   #-}
 module Main where
 
-import           Data.Functor            (void)
-import           Data.Semigroup          ((<>))
+import           Data.Functor                   (void)
+import           Data.Semigroup                 ((<>))
 
-import           Control.Concurrent      (forkIO, newMVar, readMVar, threadDelay)
+import           Control.Concurrent             (forkIO, newMVar, readMVar, threadDelay)
 import           Control.Concurrent.STM
-import           Control.Lens            (view)
-import           Control.Monad           (forever, when)
-import           Control.Monad.IO.Class  (liftIO)
+import           Control.Lens                   (view)
+import           Control.Monad                  (forever, when)
+import           Control.Monad.IO.Class         (liftIO)
 import           Control.Monad.Logger
 import           Control.Monad.Reader
 
-import           Options.Applicative     (Parser, ParserInfo, argument, auto, execParser, fullDesc, help, helper, info,
-                                          long, metavar, option, progDesc, short, str, switch, value, (<**>))
+import           Options.Applicative            (Parser, ParserInfo, argument, auto, execParser, fullDesc, help, helper,
+                                                 info, long, metavar, option, progDesc, short, str, switch, value,
+                                                 (<**>))
 
 import           Cardano.Node.RandomTx
+import           Cardano.Protocol.Node
 import           Cardano.Protocol.Socket.Client
 import           Cardano.Protocol.Socket.Type
 import           Plutus.SCB.Core
 import           Plutus.SCB.Types
 
-import           Data.Yaml               (decodeFileThrow)
+import           Data.Yaml                      (decodeFileThrow)
 
 -- Parsing options.
 data Options = Options
