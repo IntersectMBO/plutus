@@ -9,7 +9,7 @@ import           Control.Monad.Freer.Writer
 
 import           Cardano.Node.Mock          (NodeServerEffects, runChainEffects)
 import           Cardano.Node.Types         (AppState (..), chainState, initialFollowerState)
-import           Cardano.Protocol.Type
+import           Cardano.Protocol.Socket.Type
 import           Wallet.Emulator.Chain
 
 wrapChainEffects :: MVar ChainState

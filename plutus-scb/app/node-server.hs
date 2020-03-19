@@ -7,8 +7,8 @@ import           Control.Lens
 
 import           System.Environment
 
-import           Cardano.Protocol.Server
-import           Cardano.Protocol.Type
+import           Cardano.Protocol.Socket.Server
+import           Cardano.Protocol.Socket.Type
 import           Language.Plutus.Contract.Trace (InitialDistribution, defaultDist)
 import           Wallet.Emulator                as EM
 import           Wallet.Emulator.Chain

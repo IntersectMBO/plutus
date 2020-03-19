@@ -6,7 +6,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies       #-}
 
-module Cardano.Protocol.Puppet.Type where
+module Cardano.Protocol.Socket.Puppet.Type where
 
 import Network.TypedProtocol.Core
 

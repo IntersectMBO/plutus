@@ -5,11 +5,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes          #-}
 
-module Cardano.Protocol.Puppet.Client where
+module Cardano.Protocol.Socket.Puppet.Client where
 
 import Network.TypedProtocol.Core
 
-import Cardano.Protocol.Puppet.Type
+import Cardano.Protocol.Socket.Puppet.Type
 
 newtype PuppetClient state block m a = PuppetClient {
     runPuppetClient :: m (PuppetClientStIdle state block m a)

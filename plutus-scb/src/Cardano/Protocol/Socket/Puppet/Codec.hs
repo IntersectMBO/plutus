@@ -6,18 +6,18 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
 
-module Cardano.Protocol.Puppet.Codec where
+module Cardano.Protocol.Socket.Puppet.Codec where
 
-import Control.Monad.Class.MonadST
+import           Control.Monad.Class.MonadST
 
-import qualified Codec.CBOR.Decoding              as CBOR
-import qualified Codec.CBOR.Encoding              as CBOR
-import qualified Codec.CBOR.Read                  as CBOR
-import           Data.ByteString.Lazy             (ByteString)
+import qualified Codec.CBOR.Decoding                 as CBOR
+import qualified Codec.CBOR.Encoding                 as CBOR
+import qualified Codec.CBOR.Read                     as CBOR
+import           Data.ByteString.Lazy                (ByteString)
 
 import           Network.TypedProtocol.Codec.Cbor
 
-import           Cardano.Protocol.Puppet.Type
+import           Cardano.Protocol.Socket.Puppet.Type
 
 codecPuppet
   :: forall state block m. MonadST m

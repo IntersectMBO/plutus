@@ -17,8 +17,8 @@ import           Options.Applicative     (Parser, ParserInfo, argument, auto, ex
                                           long, metavar, option, progDesc, short, str, switch, value, (<**>))
 
 import           Cardano.Node.RandomTx
-import           Cardano.Protocol.Client
-import           Cardano.Protocol.Type
+import           Cardano.Protocol.Socket.Client
+import           Cardano.Protocol.Socket.Type
 import           Plutus.SCB.Core
 import           Plutus.SCB.Types
 

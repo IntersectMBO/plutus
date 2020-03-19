@@ -5,7 +5,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
-module Cardano.Protocol.Client where
+module Cardano.Protocol.Socket.Client where
 
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
@@ -26,7 +26,7 @@ import           Eventful.Projection                                 (GlobalStre
                                                                       StreamProjection (..), globalStreamProjection)
 import           Eventful.Store.Class
 
-import qualified Cardano.Protocol.Puppet.Client                      as Puppet
+import qualified Cardano.Protocol.Socket.Puppet.Client               as Puppet
 import qualified Ouroboros.Network.Protocol.ChainSync.Client         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmission
 
@@ -42,7 +42,7 @@ import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Socket
 
-import           Cardano.Protocol.Type
+import           Cardano.Protocol.Socket.Type
 
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import qualified Ledger.Index                                        as Index

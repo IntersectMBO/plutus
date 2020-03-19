@@ -8,7 +8,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS -Wno-orphans #-} -- TODO: remove this
-module Cardano.Protocol.Type where
+module Cardano.Protocol.Socket.Type where
 
 import           Codec.Serialise.Class                              (Serialise)
 import           Data.Aeson                                         (FromJSON, ToJSON)
@@ -25,8 +25,8 @@ import           Cardano.Slotting.Slot                              (SlotNo (..)
 import           Ouroboros.Network.Block                            (HeaderHash, StandardHash)
 import           Ouroboros.Network.Mux
 
-import qualified Cardano.Protocol.Puppet.Codec                      as Puppet
-import qualified Cardano.Protocol.Puppet.Type                       as Puppet
+import qualified Cardano.Protocol.Socket.Puppet.Codec                      as Puppet
+import qualified Cardano.Protocol.Socket.Puppet.Type                       as Puppet
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
 import           Network.TypedProtocol.Codec

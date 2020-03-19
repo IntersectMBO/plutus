@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
-module Cardano.Protocol.Server where
+module Cardano.Protocol.Socket.Server where
 
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
@@ -21,7 +21,7 @@ import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Server as TxSubmis
 
 import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..), withOriginToMaybe)
 import           Network.Mux.Types                                   (AppType (..))
-import           Ouroboros.Network.Block                             (Point (..), HeaderHash, pointSlot)
+import           Ouroboros.Network.Block                             (HeaderHash, Point (..), pointSlot)
 import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
@@ -33,10 +33,10 @@ import           Ouroboros.Network.Socket
 import           Codec.Serialise                                     (DeserialiseFailure)
 
 import           Cardano.Protocol.Effects
-import qualified Cardano.Protocol.Puppet.Server                      as Puppet
-import           Cardano.Protocol.Type
+import qualified Cardano.Protocol.Socket.Puppet.Server               as Puppet
+import           Cardano.Protocol.Socket.Type
 
-import           Ledger                                              (Block, Tx (..), Slot(..))
+import           Ledger                                              (Block, Slot (..), Tx (..))
 import           Wallet.Emulator.Chain
 
 startServerNode :: FilePath -> ChainState -> IO Void

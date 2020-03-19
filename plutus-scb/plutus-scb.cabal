@@ -72,18 +72,20 @@ library
         Plutus.SCB.ContractCLI
         Plutus.SCB.Core
         Plutus.SCB.Events
+        Plutus.SCB.EventLog
         Plutus.SCB.Query
         Plutus.SCB.Relation
         Plutus.SCB.Types
         Plutus.SCB.Utils
-        Cardano.Protocol.Type
-        Cardano.Protocol.Client
+        Cardano.Protocol.Node
         Cardano.Protocol.Effects
-        Cardano.Protocol.Server
-        Cardano.Protocol.Puppet.Type
-        Cardano.Protocol.Puppet.Codec
-        Cardano.Protocol.Puppet.Client
-        Cardano.Protocol.Puppet.Server
+        Cardano.Protocol.Socket.Type
+        Cardano.Protocol.Socket.Client
+        Cardano.Protocol.Socket.Server
+        Cardano.Protocol.Socket.Puppet.Type
+        Cardano.Protocol.Socket.Puppet.Codec
+        Cardano.Protocol.Socket.Puppet.Client
+        Cardano.Protocol.Socket.Puppet.Server
     other-modules:
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Node

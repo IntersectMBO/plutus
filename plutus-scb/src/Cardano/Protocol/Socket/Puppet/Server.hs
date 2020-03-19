@@ -4,11 +4,11 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Cardano.Protocol.Puppet.Server where
+module Cardano.Protocol.Socket.Puppet.Server where
 
 import Network.TypedProtocol.Core
 
-import Cardano.Protocol.Puppet.Type
+import Cardano.Protocol.Socket.Puppet.Type
 
 data PuppetServer state block m a =
      PuppetServer {
