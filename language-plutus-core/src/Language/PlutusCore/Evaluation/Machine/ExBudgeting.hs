@@ -89,13 +89,13 @@ import           Language.PlutusCore.Core.Type
 import           PlutusPrelude
 
 import           Control.Lens.Indexed
-import           Control.Lens.TH                                         (makeLenses)
+import           Control.Lens.TH                                 (makeLenses)
 import           Data.Hashable
 import           Data.HashMap.Monoidal
-import           Data.List                                               (intersperse)
+import           Data.List                                       (intersperse)
+import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)

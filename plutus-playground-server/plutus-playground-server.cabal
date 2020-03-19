@@ -85,7 +85,7 @@ library
         plutus-contract -any,
         row-types -any,
         serialise -any,
-        servant <0.16,
+        servant >= 0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,

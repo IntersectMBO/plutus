@@ -24,7 +24,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.Except
-import           Data.Either                                        (isRight)
 import           Data.Proxy
 import           Test.Tasty
 import           Test.Tasty.HUnit

@@ -57,7 +57,7 @@ makeIsDataIndexed name indices = do
 
     info <- TH.reifyDatatype name
     let appliedType = TH.datatypeType info
-        constraints = fmap (\t -> TH.classPred ''IsData [stripSig t]) (TH.datatypeVars info)
+        constraints = fmap (\t -> TH.classPred ''IsData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
 
     indexedCons <- for (TH.datatypeCons info) $ \c -> case lookup (TH.constructorName c) indices of
             Just i  -> pure (c, i)
@@ -71,5 +71,5 @@ makeIsDataIndexed name indices = do
 
     pure [TH.InstanceD Nothing constraints (TH.classPred ''IsData [appliedType]) [toDataPrag, toDataDecl, fromDataPrag, fromDataDecl]]
     where
-        stripSig (TH.SigT ty _) = ty
-        stripSig x              = x
+        tyvarbndrName (TH.PlainTV n)    = n
+        tyvarbndrName (TH.KindedTV n _) = n

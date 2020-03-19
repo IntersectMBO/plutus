@@ -15,7 +15,6 @@ module Language.Plutus.Contract.Effects.AwaitSlot where
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Semigroup                   (Min (..))
-import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           IOTS                             (IotsType)

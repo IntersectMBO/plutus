@@ -22,6 +22,8 @@ import           Plugin.Typeclasses.Lib
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -47,10 +49,10 @@ instance (Sized a, Sized b) => Sized (a, b) where
     size (a, b) = size a `Builtins.addInteger` size b
 
 sizedBasic :: CompiledCode PLC.DefaultUni (Integer -> Integer)
-sizedBasic = plc @"sizedBasic" (\(a::Integer) -> size a)
+sizedBasic = plc (Proxy @"sizedBasic") (\(a::Integer) -> size a)
 
 sizedPair :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
-sizedPair = plc @"sizedPair" (\(a::Integer) (b::Integer) -> size (a, b))
+sizedPair = plc (Proxy @"sizedPair") (\(a::Integer) (b::Integer) -> size (a, b))
 
 -- This has multiple methods, so will have to be passed as a dictionary
 class PersonLike a where
@@ -74,7 +76,7 @@ instance PersonLike Alien where
     likesAnimal _ _           = False
 
 multiFunction :: CompiledCode PLC.DefaultUni (Person -> Bool)
-multiFunction = plc @"multiFunction" (
+multiFunction = plc (Proxy @"multiFunction") (
     let
         {-# NOINLINE predicate #-}
         predicate :: (PersonLike p) => p -> Bool
@@ -82,7 +84,7 @@ multiFunction = plc @"multiFunction" (
     in \(p::Person) -> predicate p)
 
 defaultMethods :: CompiledCode PLC.DefaultUni (Integer -> Integer)
-defaultMethods = plc @"defaultMethods" (
+defaultMethods = plc (Proxy @"defaultMethods") (
     let
         {-# NOINLINE f #-}
         f :: (DefaultMethods a) => a -> Integer
@@ -90,10 +92,10 @@ defaultMethods = plc @"defaultMethods" (
     in \(a::Integer) -> f a)
 
 partialApplication :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Ordering)
-partialApplication = plc @"partialApplication" (P.compare @Integer)
+partialApplication = plc (Proxy @"partialApplication") (P.compare @Integer)
 
 sequenceTest :: CompiledCode PLC.DefaultUni (Maybe [Integer])
-sequenceTest = plc @"sequenceTests" (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
+sequenceTest = plc (Proxy @"sequenceTests") (P.sequence [Just (1 :: Integer), Just (2 :: Integer)])
 
 opCompare :: P.Ord a => a -> a -> Ordering
 opCompare a b = case P.compare a b of
@@ -102,4 +104,4 @@ opCompare a b = case P.compare a b of
     GT -> LT
 
 compareTest :: CompiledCode PLC.DefaultUni (Ordering)
-compareTest = plc @"compareTest" (opCompare (1::Integer) (2::Integer))
+compareTest = plc (Proxy @"compareTest") (opCompare (1::Integer) (2::Integer))

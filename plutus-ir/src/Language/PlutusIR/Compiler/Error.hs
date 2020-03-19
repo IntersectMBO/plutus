@@ -14,7 +14,7 @@ import           Control.Exception
 import           Control.Lens
 
 import qualified Data.Text                  as T
-import           Data.Text.Prettyprint.Doc  ((<+>), (<>))
+import           Data.Text.Prettyprint.Doc  ((<+>))
 import qualified Data.Text.Prettyprint.Doc  as PP
 import           Data.Typeable
 

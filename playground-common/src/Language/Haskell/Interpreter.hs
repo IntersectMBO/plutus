@@ -31,7 +31,6 @@ import           Control.Timeout           (timeout)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Bifunctor            (second)
 import           Data.Maybe                (fromMaybe)
-import           Data.Monoid               ((<>))
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import qualified Data.Text.Internal.Search as Text

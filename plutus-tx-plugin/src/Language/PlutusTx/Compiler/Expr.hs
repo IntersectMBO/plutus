@@ -39,7 +39,7 @@ import qualified Language.PlutusCore.Constant           as PLC
 import           Control.Monad.Reader
 
 import qualified Data.ByteString.Lazy                   as BSL
-import           Data.List                              (elem, elemIndex)
+import           Data.List                              (elemIndex)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
 import qualified Data.Text                              as T
@@ -94,7 +94,7 @@ compileLiteral
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
     (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.makeKnown i
-    GHC.MachStr bs     ->
+    GHC.LitString bs      ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
         -- Note that we do *not* convert this into a PLC string, but rather a list of characters,
@@ -104,11 +104,12 @@ compileLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in compileExpr listExpr
-    GHC.MachChar c     -> pure $ PIR.embed $ PLC.makeKnown c
-    GHC.MachFloat _    -> throwPlain $ UnsupportedError "Literal float"
-    GHC.MachDouble _   -> throwPlain $ UnsupportedError "Literal double"
-    GHC.MachLabel {}   -> throwPlain $ UnsupportedError "Literal label"
-    GHC.MachNullAddr   -> throwPlain $ UnsupportedError "Literal null"
+    GHC.LitChar c      -> pure $ PIR.embed $ PLC.makeKnown c
+    GHC.LitFloat _     -> throwPlain $ UnsupportedError "Literal float"
+    GHC.LitDouble _    -> throwPlain $ UnsupportedError "Literal double"
+    GHC.LitLabel {}    -> throwPlain $ UnsupportedError "Literal label"
+    GHC.LitNullAddr    -> throwPlain $ UnsupportedError "Literal null"
+    GHC.LitRubbish     -> throwPlain $ UnsupportedError "Literal rubbish"
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
 compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)

@@ -36,7 +36,7 @@ import           Plutus.SCB.Core               (Connection (Connection), Contrac
                                                 invokeContract, refreshProjection, runCommand, toUUID)
 import           Plutus.SCB.Types              (Config (Config), SCBError (ContractCommandError, NodeClientError, SigningProcessError, WalletClientError),
                                                 dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
-import           Servant.Client                (ClientEnv, ClientM, ServantError, mkClientEnv, runClientM)
+import           Servant.Client                (ClientEnv, ClientError, ClientM, mkClientEnv, runClientM)
 import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                (readProcessWithExitCode)
 import           Wallet.API                    (ChainIndexAPI, NodeAPI, SigningProcessAPI, WalletAPI, WalletDiagnostics,
@@ -86,7 +86,7 @@ instance SigningProcessAPI App where
     addSignatures sigs tx = runSigningProcessM (SigningProcessClient.addSignatures sigs tx)
 
 runAppClientM ::
-       (Env -> ClientEnv) -> (ServantError -> SCBError) -> ClientM a -> App a
+       (Env -> ClientEnv) -> (ClientError -> SCBError) -> ClientM a -> App a
 runAppClientM f wrapErr action =
     App $ do
         env <- asks f

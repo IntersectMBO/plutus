@@ -3,32 +3,32 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Crowdfunding(tests) where
 
 import           Control.Monad.Except
-import           Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as BSL
+import           Data.ByteString.Lazy                                  (ByteString)
+import qualified Data.ByteString.Lazy                                  as BSL
 import           Data.Foldable                                         (traverse_)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Spec.Lib                                              as Lib
+import qualified Data.Text                                             as T
+import qualified Data.Text.Encoding                                    as T
 import           Spec.Lib                                              (timesFeeAdjust)
+import qualified Spec.Lib                                              as Lib
 import           Test.Tasty
-import qualified Test.Tasty.HUnit                                      as HUnit
 import           Test.Tasty.Golden                                     (goldenVsString)
+import qualified Test.Tasty.HUnit                                      as HUnit
 
 import           Language.Plutus.Contract
-import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
+import qualified Language.Plutus.Contract.Effects.AwaitSlot            as AwaitSlot
 import           Language.Plutus.Contract.Test
 import qualified Language.Plutus.Contract.Trace                        as Trace
 import qualified Language.PlutusTx                                     as PlutusTx
-import qualified Language.PlutusTx.Prelude                             as PlutusTx
-import           Language.PlutusTx.Lattice
 import           Language.PlutusTx.Coordination.Contracts.Crowdfunding
+import           Language.PlutusTx.Lattice
+import qualified Language.PlutusTx.Prelude                             as PlutusTx
 import qualified Ledger.Ada                                            as Ada
-import           Ledger.Slot                                           (Slot(..))
+import           Ledger.Slot                                           (Slot (..))
 
 w1, w2, w3, w4 :: Wallet
 w1 = Wallet 1

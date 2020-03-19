@@ -1,24 +1,23 @@
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.MultiSig(tests) where
 
-import           Data.Text (Text)
+import           Data.Text                                         (Text)
 
 import           Language.Plutus.Contract.Test
-import           Wallet.Emulator.SigningProcess                  (signWallets)
-import qualified Ledger.Ada                                      as Ada
-import           Ledger.Index                                    (ValidationError(ScriptFailure))
-import           Ledger.Scripts                                  (ScriptError(EvaluationError))
-import           Wallet.Emulator                                 (walletPubKey, Wallet(..))
+import qualified Language.PlutusTx                                 as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
 import qualified Ledger
-import qualified Language.PlutusTx                                 as PlutusTx
+import qualified Ledger.Ada                                        as Ada
+import           Ledger.Index                                      (ValidationError (ScriptFailure))
+import           Ledger.Scripts                                    (ScriptError (EvaluationError))
+import           Wallet.Emulator.SigningProcess                    (signWallets)
 
+import           Prelude                                           hiding (not)
+import qualified Spec.Lib                                          as Lib
 import           Test.Tasty
-import qualified Spec.Lib                                        as Lib
-import           Prelude                                         hiding (not)
 
 tests :: TestTree
 tests = testGroup "multisig"

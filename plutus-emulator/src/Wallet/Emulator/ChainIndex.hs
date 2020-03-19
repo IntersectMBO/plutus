@@ -18,7 +18,6 @@ import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH
 import           Control.Monad.Freer.Writer
 import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Function              ((&))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import qualified Wallet.API                 as WAPI

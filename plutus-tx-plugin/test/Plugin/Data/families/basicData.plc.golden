@@ -3,20 +3,20 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl RBasicDataBool (type))
-        
-        RConsBasicDataBool_match
-        (vardecl Inst (fun (con integer) RBasicDataBool))
+        (tyvardecl Unit (fun (type) (type)))
+        (tyvardecl a (type))
+        Unit_match
+        (vardecl Unit (fun a [Unit a]))
       )
     )
     (let
       (nonrec)
       (datatypebind
         (datatype
-          (tyvardecl Unit (fun (type) (type)))
-          (tyvardecl a (type))
-          Unit_match
-          (vardecl Unit (fun a [Unit a]))
+          (tyvardecl RBasicDataBool (type))
+          
+          RConsBasicDataBool_match
+          (vardecl Inst (fun (con integer) RBasicDataBool))
         )
       )
       (lam

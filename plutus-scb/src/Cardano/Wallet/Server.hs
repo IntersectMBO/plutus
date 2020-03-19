@@ -27,7 +27,7 @@ import           Network.HTTP.Client       (defaultManagerSettings, newManager)
 import           Network.Wai.Handler.Warp  (run)
 import           Plutus.SCB.Arbitrary      ()
 import           Plutus.SCB.Utils          (tshow)
-import           Servant                   ((:<|>) ((:<|>)), Application, Handler (Handler), ServantErr, hoistServer,
+import           Servant                   ((:<|>) ((:<|>)), Application, Handler (Handler), ServerError, hoistServer,
                                             serve)
 import           Servant.Client            (BaseUrl (baseUrlPort), ClientEnv, ClientM, mkClientEnv, runClientM)
 import           Servant.Extra             (capture)
@@ -40,7 +40,7 @@ import           Servant.Extra             (capture)
 -- smarter, but I don't think it matters as this is only a mock.
 asHandler ::
        MVar State
-    -> LoggingT (StateT State (ExceptT ServantErr IO)) a
+    -> LoggingT (StateT State (ExceptT ServerError IO)) a
     -> Handler a
 asHandler mVarState action =
     Handler $ do

@@ -2,26 +2,40 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (let
         (nonrec)
-        (datatypebind
-          (datatype
-            (tyvardecl Ordering (type))
-            
-            Ordering_match
-            (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
+        (termbind
+          (strict)
+          (vardecl
+            lessThanEqInteger (fun (con integer) (fun (con integer) Bool))
+          )
+          (lam
+            arg
+            (con integer)
+            (lam
+              arg
+              (con integer)
+              [
+                (lam
+                  b
+                  (con bool)
+                  [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+                )
+                [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+              ]
+            )
           )
         )
         (let
@@ -48,26 +62,14 @@
           )
           (let
             (nonrec)
-            (termbind
-              (strict)
-              (vardecl
-                lessThanEqInteger (fun (con integer) (fun (con integer) Bool))
-              )
-              (lam
-                arg
-                (con integer)
-                (lam
-                  arg
-                  (con integer)
-                  [
-                    (lam
-                      b
-                      (con bool)
-                      [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                    )
-                    [ [ (builtin lessThanEqualsInteger) arg ] arg ]
-                  ]
-                )
+            (datatypebind
+              (datatype
+                (tyvardecl Ordering (type))
+                
+                Ordering_match
+                (vardecl EQ Ordering)
+                (vardecl GT Ordering)
+                (vardecl LT Ordering)
               )
             )
             (let

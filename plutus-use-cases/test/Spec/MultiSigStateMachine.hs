@@ -1,31 +1,31 @@
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-strictness  #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Spec.MultiSigStateMachine(tests) where
 
-import           Data.Foldable                                   (traverse_)
-import           Test.Tasty                                      (TestTree, testGroup)
-import qualified Test.Tasty.HUnit                                as HUnit
+import           Data.Foldable                                                 (traverse_)
+import           Test.Tasty                                                    (TestTree, testGroup)
+import qualified Test.Tasty.HUnit                                              as HUnit
 
-import           Spec.Lib                                        as Lib
+import           Spec.Lib                                                      as Lib
 
 import           Language.PlutusTx.Lattice
 import qualified Ledger
-import qualified Ledger.Ada                                      as Ada
-import qualified Ledger.Typed.Scripts                            as Scripts
-import qualified Wallet.Emulator                                 as EM
+import qualified Ledger.Ada                                                    as Ada
+import qualified Ledger.Typed.Scripts                                          as Scripts
+import qualified Wallet.Emulator                                               as EM
 
-import qualified Language.PlutusTx as PlutusTx
 import           Language.Plutus.Contract.Test
+import qualified Language.PlutusTx                                             as PlutusTx
 
-import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine (MultiSigSchema, MultiSigError)
+import           Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine (MultiSigError, MultiSigSchema)
 import qualified Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine as MS
 
 tests :: TestTree

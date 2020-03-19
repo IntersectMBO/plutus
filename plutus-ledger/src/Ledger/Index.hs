@@ -36,7 +36,6 @@ import           Control.Monad.Reader             (MonadReader (..), ReaderT (..
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Foldable                    (asum, fold, foldl', traverse_)
 import qualified Data.Map                         as Map
-import           Data.Semigroup                   (Semigroup)
 import qualified Data.Set                         as Set
 import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras (PrettyShow (..))

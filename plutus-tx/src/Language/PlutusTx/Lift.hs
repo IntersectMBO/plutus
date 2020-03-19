@@ -37,7 +37,6 @@ import           Control.Exception
 import           Control.Monad.Except                          hiding (lift)
 import           Control.Monad.Reader                          hiding (lift)
 
-import           Data.Functor                                  (void)
 import           Data.Proxy
 import qualified Data.Typeable                                 as GHC
 

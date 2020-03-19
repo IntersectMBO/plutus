@@ -25,7 +25,7 @@ import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Resumable         (ResumableError)
 import           Ledger.Address                             (Address)
 import           Ledger.Constraints                         (UnbalancedTx)
-import           Servant.Client                             (ServantError)
+import           Servant.Client                             (ClientError)
 import           Wallet.API                                 (WalletAPIError)
 
 newtype Contract =
@@ -58,9 +58,9 @@ data SCBError
     | ContractNotFound FilePath
     | ActiveContractStateNotFound UUID
     | ContractError (ResumableError Text)
-    | WalletClientError ServantError
-    | NodeClientError ServantError
-    | SigningProcessError ServantError
+    | WalletClientError ClientError
+    | NodeClientError ClientError
+    | SigningProcessError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
     | OtherError Text

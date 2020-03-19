@@ -15,28 +15,28 @@ module TH.Spec (tests) where
 
 import           Common
 import           PlcTestUtils
-import           PlutusPrelude (view)
+import           PlutusPrelude                (view)
 
 import           TH.TestTH
 
-import qualified Prelude as Haskell
+import qualified Prelude                      as Haskell
 
-import           Language.PlutusTx.TH
-import           Language.PlutusTx.Code
-import qualified Language.PlutusTx.Builtins as Builtins
-import           Language.PlutusTx.Prelude
-import           Language.PlutusTx.Evaluation
 import           Language.PlutusTx
+import qualified Language.PlutusTx.Builtins   as Builtins
+import           Language.PlutusTx.Code
+import           Language.PlutusTx.Evaluation
+import           Language.PlutusTx.Prelude
+import           Language.PlutusTx.TH
 
-import qualified Language.PlutusIR          as PIR
+import qualified Language.PlutusIR            as PIR
 
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore
+import           Language.PlutusCore.Pretty
 import qualified Language.PlutusCore.Universe as PLC
 
-import           Control.Monad.Except
 import           Control.Exception
-import           Control.Lens.Combinators       ( _1 )
+import           Control.Lens.Combinators     (_1)
+import           Control.Monad.Except
 
 import           Data.Text.Prettyprint.Doc
 import           Test.Tasty

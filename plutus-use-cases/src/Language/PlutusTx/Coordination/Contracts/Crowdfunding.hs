@@ -45,8 +45,8 @@ module Language.PlutusTx.Coordination.Contracts.Crowdfunding (
     , successfulCampaign
     ) where
 
-import           Control.Applicative               (Alternative (..), Applicative (..))
-import           Control.Monad                     (Monad ((>>)), void)
+import           Control.Applicative               (Applicative (..))
+import           Control.Monad                     (void)
 import           Data.Aeson                        (FromJSON, ToJSON)
 import           GHC.Generics                      (Generic)
 import           IOTS                              (IotsType)
@@ -57,7 +57,7 @@ import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup(..), return, (<$>), (>>), (>>=))
-import           Ledger                            (PendingTx, PubKeyHash, pubKeyHash, Slot, Validator)
+import           Ledger                            (PubKeyHash, pubKeyHash, Slot, Validator)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Constraints                as Constraints

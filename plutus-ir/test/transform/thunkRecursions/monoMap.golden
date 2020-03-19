@@ -1,6 +1,5 @@
 (let
-  (rec
-  )
+  (rec)
   (datatypebind
     (datatype
       (tyvardecl List (fun (type) (type)))
@@ -10,11 +9,9 @@
     )
   )
   (let
-    (rec
-    )
+    (rec)
     (termbind
-      (strict
-      )
+      (strict)
       (vardecl
         map
         (fun (fun (con integer) (con integer)) (fun [List (con integer)] [List (con integer)]))

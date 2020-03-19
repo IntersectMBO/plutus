@@ -32,7 +32,6 @@ import           Data.Fixed
 
 import           Codec.Serialise.Class            (Serialise)
 import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc        (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           IOTS                             (IotsType)

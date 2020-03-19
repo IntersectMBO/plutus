@@ -126,7 +126,6 @@ library
         Language.PlutusCore.Generators.Internal.Utils
         Data.Functor.Foldable.Monadic
         Data.Text.Prettyprint.Doc.Custom
-        Language.PlutusCore.Evaluation.Machine.GenericSemigroup
     default-language: Haskell2010
     default-extensions: ScopedTypeVariables FlexibleContexts
                         DeriveGeneric StandaloneDeriving DeriveLift
@@ -159,7 +158,7 @@ library
         deepseq -any,
         filepath -any,
         hashable,
-        hedgehog <1.0,
+        hedgehog >=1.0,
         lens -any,
         memory -any,
         mmorph -any,

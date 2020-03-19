@@ -5,28 +5,17 @@
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
-      (rec)
-      (datatypebind
-        (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
-          Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl trace (fun (con string) Unit))
+        (lam
+          arg (con string) [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
         )
       )
       (let
         (nonrec)
-        (termbind
-          (strict)
-          (vardecl
-            appendString (fun (con string) (fun (con string) (con string)))
-          )
-          (lam
-            arg
-            (con string)
-            (lam arg (con string) [ [ (builtin append) arg ] arg ])
-          )
-        )
+        (termbind (strict) (vardecl emptyString (con string)) (con ))
         (let
           (nonrec)
           (termbind
@@ -36,13 +25,27 @@
           )
           (let
             (nonrec)
-            (termbind (strict) (vardecl emptyString (con string)) (con ))
+            (termbind
+              (strict)
+              (vardecl
+                appendString (fun (con string) (fun (con string) (con string)))
+              )
+              (lam
+                arg
+                (con string)
+                (lam arg (con string) [ [ (builtin append) arg ] arg ])
+              )
+            )
             (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl error (all a (type) (fun Unit a)))
-                (abs e (type) (lam thunk Unit (error e)))
+              (rec)
+              (datatypebind
+                (datatype
+                  (tyvardecl List (fun (type) (type)))
+                  (tyvardecl a (type))
+                  Nil_match
+                  (vardecl Nil [List a])
+                  (vardecl Cons (fun a (fun [List a] [List a])))
+                )
               )
               (let
                 (rec)
@@ -86,12 +89,8 @@
                   (nonrec)
                   (termbind
                     (strict)
-                    (vardecl trace (fun (con string) Unit))
-                    (lam
-                      arg
-                      (con string)
-                      [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
-                    )
+                    (vardecl error (all a (type) (fun Unit a)))
+                    (abs e (type) (lam thunk Unit (error e)))
                   )
                   (let
                     (nonrec)

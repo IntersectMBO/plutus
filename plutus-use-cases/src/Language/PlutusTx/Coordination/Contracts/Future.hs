@@ -1,18 +1,18 @@
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -40,35 +40,38 @@ module Language.PlutusTx.Coordination.Contracts.Future(
     , setupTokens
     ) where
 
-import           Control.Lens                   (prism', review, makeClassyPrisms)
-import           Control.Monad                  (void)
-import           Control.Monad.Error.Lens       (throwing)
-import           GHC.Generics                   (Generic)
+import           Control.Lens                                          (makeClassyPrisms, prism', review)
+import           Control.Monad                                         (void)
+import           Control.Monad.Error.Lens                              (throwing)
+import           GHC.Generics                                          (Generic)
 import           Language.Plutus.Contract
-import qualified Ledger.Constraints  as Constraints
-import           Ledger.Constraints.TxConstraints (TxConstraints)
-import           Language.Plutus.Contract.Util  (loopM)
-import qualified Language.PlutusTx              as PlutusTx
+import           Language.Plutus.Contract.Util                         (loopM)
+import qualified Language.PlutusTx                                     as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, Datum(..), ValidatorHash)
+import           Ledger                                                (Address, Datum (..), PubKey, Slot (..),
+                                                                        Validator, ValidatorHash, pubKeyHash)
 import qualified Ledger
-import qualified Ledger.Interval                as Interval
-import           Ledger.Oracle                  (SignedMessage(..), Observation(..))
-import qualified Ledger.Oracle                  as Oracle
+import qualified Ledger.Constraints                                    as Constraints
+import           Ledger.Constraints.TxConstraints                      (TxConstraints)
+import qualified Ledger.Interval                                       as Interval
+import           Ledger.Oracle                                         (Observation (..), SignedMessage (..))
+import qualified Ledger.Oracle                                         as Oracle
+import           Ledger.Scripts                                        (unitDatum)
 import           Ledger.Tokens
-import qualified Ledger.Typed.Scripts           as Scripts
-import           Ledger.Scripts                 (unitDatum)
-import           Ledger.Value                   as Value
+import qualified Ledger.Typed.Scripts                                  as Scripts
+import           Ledger.Value                                          as Value
 
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
-import Language.PlutusTx.Coordination.Contracts.Escrow (EscrowParams(..), AsEscrowError(..), EscrowError, RefundSuccess)
-import qualified Language.PlutusTx.Coordination.Contracts.Escrow as Escrow
+import           Language.Plutus.Contract.StateMachine                 (AsSMContractError, State (..),
+                                                                        StateMachine (..), Void)
+import qualified Language.Plutus.Contract.StateMachine                 as SM
+import qualified Language.PlutusTx.Coordination.Contracts.Currency     as Currency
+import           Language.PlutusTx.Coordination.Contracts.Escrow       (AsEscrowError (..), EscrowError,
+                                                                        EscrowParams (..), RefundSuccess)
+import qualified Language.PlutusTx.Coordination.Contracts.Escrow       as Escrow
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
-import Language.PlutusTx.Coordination.Contracts.TokenAccount (Account(..))
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, StateMachine(..), State(..), Void)
-import qualified Language.Plutus.Contract.StateMachine as SM
 
-import qualified Prelude as Haskell
+import qualified Prelude                                               as Haskell
 
 -- $future
 -- A futures contract in Plutus. This example illustrates a number of concepts.
@@ -105,12 +108,12 @@ instance Eq Role where
 --   When the contract is done, payments will be made to these accounts.
 data FutureAccounts =
     FutureAccounts
-        { ftoLong  :: Account
+        { ftoLong         :: Account
         -- ^ The owner of the "long" account (represented by a token)
-        , ftoLongAccount :: ValidatorHash
+        , ftoLongAccount  :: ValidatorHash
         -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We
         --   store it here so that we can lift it into on-chain code.
-        , ftoShort :: Account
+        , ftoShort        :: Account
         -- ^ The owner of the "short" account (represented by a token).
         , ftoShortAccount :: ValidatorHash
         -- ^ Address of the 'TokenAccount' validator script for 'ftoShort'. The
@@ -192,9 +195,9 @@ futureContract ft = do
 -- | The data needed to initialise the futures contract.
 data FutureSetup =
     FutureSetup
-        { shortPK :: PubKey
+        { shortPK       :: PubKey
         -- ^ Initial owner of the short token
-        , longPK :: PubKey
+        , longPK        :: PubKey
         -- ^ Initial owner of the long token
         , contractStart :: Slot
         -- ^ Start of the futures contract itself. By this time the setup code
@@ -286,7 +289,7 @@ futureStateMachine
     -> StateMachine FutureState FutureAction
 futureStateMachine ft fos = SM.mkStateMachine (transition ft fos) isFinal where
     isFinal Finished = True
-    isFinal _ = False
+    isFinal _        = False
 
 scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
 scriptInstance future ftos =
@@ -323,7 +326,7 @@ verifyOracle pubKey sm =
 verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
 verifyOracleOffChain Future{ftPriceOracle} sm =
     case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
-        Left _ -> Nothing
+        Left _                               -> Nothing
         Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
 {-# INLINABLE transition #-}
@@ -357,7 +360,7 @@ transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s
                     FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
                     payment = case vRole of
                                 Short -> Constraints.mustPayToOtherScript ftoLongAccount unitDatum total
-                                Long -> Constraints.mustPayToOtherScript ftoShortAccount unitDatum total
+                                Long  -> Constraints.mustPayToOtherScript ftoShortAccount unitDatum total
                     constraints = payment <> oracleConstraints
                 in Just ( constraints
                         , State

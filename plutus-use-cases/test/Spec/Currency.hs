@@ -6,11 +6,8 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger
 
-import           Wallet.Emulator                                   (walletPubKey)
-
 import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
-
 
 import           Test.Tasty
 
