@@ -43,7 +43,7 @@ instance
         , GShow uni, Closed uni, uni `Everywhere` Pretty
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> pretty b)
+        a (ConstantF _ b)      = parens' ("con" </> show b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n

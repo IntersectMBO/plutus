@@ -22,6 +22,8 @@ import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Lexer
 import Language.PlutusCore.Quote
+import Language.PlutusCore.Constant.Dynamic
+import Language.PlutusCore.Constant.Typed
 import Language.PlutusCore.Core
 import Language.PlutusCore.Name
 import Language.PlutusCore.Universe
@@ -30,6 +32,7 @@ import Language.PlutusCore.MkPlc (mkTyBuiltin, mkConstant)
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map
 import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
@@ -169,11 +172,21 @@ getBuiltinName = \case
     "sha3_256"                 -> Just SHA3
     "verifySignature"          -> Just VerifySignature
     _                          -> Nothing
-    
+
+mkBuiltin :: a -> a -> T.Text -> Term TyName Name uni a
 mkBuiltin loc loc' ident = 
    case getBuiltinName ident of 
       Just b  -> Builtin loc $ BuiltinName loc' b
-      Nothing -> Builtin loc $ DynBuiltinName loc' (DynamicBuiltinName ident)
+      Nothing -> Builtin loc (DynBuiltinName loc' (DynamicBuiltinName ident))
+
+-- FIXME: at this point it would be good to have access to the current
+-- dynamic builtin names to check if a builtin with that name exists.
+-- Unfortunately that involves adding a parameter of type
+-- DynamicBuiltinNameMeanings to almost every function in
+-- PlutusPrelude.hs, and elsewhere.  @effectfully says that his future
+-- plans may help with this.  In the meantime, you get a scope
+-- resolution error during typechecking/execution if it encounters a
+-- nonexistent name.
 
 tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
 tyInst loc t (ty :| []) = TyInst loc t ty

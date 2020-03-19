@@ -152,7 +152,7 @@ instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
     contents <- getInput inp
-    types <- PLC.runQuoteT $ PLC.dynamicBuiltinNameMeaningsToTypes () getStringBuiltinMeanings
+    stringTypes <- PLC.runQuoteT $ getStringBuiltinTypes ()
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let cfg = PLC.defConfig
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
