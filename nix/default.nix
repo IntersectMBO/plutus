@@ -9,13 +9,8 @@ let
     // sourcesOverride;
   iohkNix = import sources.iohk-nix {};
   haskellNix = import sources."haskell.nix";
-  # use our own nixpkgs if it exists in our sources,
-  # otherwise use iohkNix default nixpkgs.
-  nixpkgs = if (sources ? nixpkgs)
-    then (builtins.trace "Not using IOHK default nixpkgs (use 'niv drop nixpkgs' to use default for better sharing)"
-      sources.nixpkgs)
-    else (builtins.trace "Using IOHK default nixpkgs"
-      iohkNix.nixpkgs);
+  # Use our own nixpkgs
+  nixpkgs = sources.nixpkgs;
 
   # for inclusion in pkgs:
   extraOverlays =
