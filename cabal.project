@@ -1,7 +1,6 @@
 packages: language-plutus-core
           marlowe
           plutus-emulator
-          plutus-exe
           plutus-wallet-api
           plutus-tx
           plutus-tx-plugin
