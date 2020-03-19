@@ -237,7 +237,7 @@ in rec {
               haskell.packages.ghcWithPackages (ps: [
                 ps.language-plutus-core
                 ps.plutus-emulator
-                ps.plutus-wallet-api
+                ps.plutus-ledger
                 ps.plutus-tx
                 ps.plutus-tx-plugin
                 ps.plutus-use-cases

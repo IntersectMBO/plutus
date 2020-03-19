@@ -56,7 +56,7 @@ library
     default-language: Haskell2010
     build-depends:
         plutus-tx -any,
-        plutus-wallet-api -any
+        plutus-ledger -any
     build-depends:
         base >=4.9 && <5,
         aeson -any,
@@ -99,7 +99,7 @@ test-suite plutus-emulator-test
     hs-source-dirs: test
     default-language: Haskell2010
     build-depends:
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any
     build-depends:

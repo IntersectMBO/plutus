@@ -58,7 +58,7 @@ library
     , plutus-contract
     , plutus-contract-tasty
     , plutus-tx
-    , plutus-wallet-api
+    , plutus-ledger
     , plutus-emulator
     , prettyprinter
     , serialise
@@ -85,7 +85,7 @@ test-suite plutus-playground-lib-test
         text -any,
         template-haskell -any,
         plutus-playground-lib -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any,
         recursion-schemes -any,

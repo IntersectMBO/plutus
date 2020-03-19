@@ -61,7 +61,7 @@ library
         Language.Plutus.Contract.Typed.Tx
     hs-source-dirs: src
     build-depends:
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any,
         iots-export -any
@@ -104,7 +104,7 @@ test-suite contract-doctests
       bytestring -any,
       language-plutus-core -any,
       plutus-contract -any,
-      plutus-wallet-api -any,
+      plutus-ledger -any,
       prettyprinter -any,
       containers -any
 
@@ -130,6 +130,6 @@ test-suite plutus-contract-test
         extensible-effects -any,
         plutus-emulator -any,
         plutus-contract -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-tx -any,
         aeson -any

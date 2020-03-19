@@ -85,7 +85,7 @@ constantFee = FeeEstimator . const . const
 -- | Blockchain for testing the emulator implementation and traces.
 --
 --   To avoid having to rely on functions from the implementation of
---   plutus-wallet-api (in particular, 'Ledger.Tx.unspentOutputs') we note the
+--   plutus-ledger (in particular, 'Ledger.Tx.unspentOutputs') we note the
 --   unspent outputs of the chain when it is first created.
 data Mockchain = Mockchain {
     mockchainInitialBlock :: Block,
