@@ -6,6 +6,7 @@ module Algorithmic.CK where
 
 ```
 open import Function
+open import Data.Bool using (Bool;true;false)
 
 open import Type
 open import Type.BetaNormal
@@ -15,6 +16,7 @@ open import Algorithmic.Reduction hiding (step)
 open import Builtin
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
+open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNBE
@@ -34,6 +36,7 @@ data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H :
   unwrap- : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
     → Frame Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
             Γ (ne (μ1 · pat · arg))
+  if-then_else_ : ∀{Φ}{Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Γ ⊢ A → Frame Γ A Γ (con bool)
 
 data Stack : ∀{Φ Φ'}(Γ : Ctx Φ)(T : Φ ⊢Nf⋆ *)(Γ' : Ctx Φ')(H : Φ' ⊢Nf⋆ *) → Set
   where
@@ -61,6 +64,8 @@ closeFrame (_·- {t = t} v) u = t · u
 closeFrame (-·⋆ A)         t = _·⋆_ t A
 closeFrame wrap-           t = wrap1 _ _ t
 closeFrame unwrap-         t = unwrap1 t
+closeFrame (if-then t else u) b = if b then t else u
+
 
 -- Plugging a term into a stack yields a term again
 
@@ -105,12 +110,18 @@ step {Γ' = Γ'} p (s ▻ con cn)             = _ ,, Γ' ,, p ,, _ ,, s ◅ V-co
 step {Γ' = Γ'} p (s ▻ builtin bn σ tel)   =
   _ ,, Γ' ,, p ,, _ ,, ◆ Γ' (substNf σ (proj₂ (proj₂ (SIG bn))))
 step {Γ' = Γ'} p (s ▻ error A)            =  _ ,, Γ' ,, p ,, _ ,, ◆ Γ' A
+step p (s ▻ (if L then M else N))         =
+  _ ,, _ ,, p ,, _ ,, ((s , (if-then M else N)) ▻ L)
 step p (ε ◅ V)                            = _ ,, _ ,, p ,, _ ,, □ V
 step p ((s , (-· M)) ◅ V)                 = _ ,, _ ,, p ,, _ ,, ((s , V ·-) ▻ M)
 step p (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, _ ,, p ,, _ ,, s ▻ (t [ u ])
 step p ((s , (-·⋆ A)) ◅ V-Λ {N = t})      = _ ,, _ ,, p ,, _ ,, s ▻ (t [ A ]⋆)
 step p ((s , wrap-) ◅ V)                  = _ ,, _ ,, p ,, _ ,, s ◅ (V-wrap V)
 step p ((s , unwrap-) ◅ V-wrap V)         = _ ,, _ ,, p ,, _ ,, s ◅ V
+step p ((s , (if-then t else u)) ◅ V-con (bool false)) =
+  _ ,, _ ,, p ,, _ ,, s ▻ t
+step p ((s , (if-then t else u)) ◅ V-con (bool true)) =
+  _ ,, _ ,, p ,, _ ,, s ▻ u
 step p (□ V)                              = _ ,, _ ,, p ,, _ ,, □ V
 step {Γ = Γ} p (◆ Γ' A)                   = _ ,, _ ,, p ,, _ ,, ◆ Γ' A
 ```

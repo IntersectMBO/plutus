@@ -54,7 +54,7 @@ import Algorithmic.Completeness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.Erasure.Reduction
---import Algorithmic.CK
+import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
 --import AlgorithmicRed.Term
