@@ -247,7 +247,7 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress t
 
         pure $ ScriptMatch i v r d
     (ConsumePublicKeyAddress, PayToPubKey, PubKeyAddress pkh) ->
-        let sigMatches = (flip fmap) (Map.toList mp) $ \(pk,sig) ->
+        let sigMatches = flip fmap (Map.toList mp) $ \(pk,sig) ->
                 if pubKeyHash pk == pkh
                 then Just (PubKeyMatch txid pk sig)
                 else Nothing
