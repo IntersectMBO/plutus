@@ -266,3 +266,19 @@ benchmark language-plutus-core-weigh
         language-plutus-core -any,
         serialise -any,
         weigh -any
+
+executable plc
+    main-is: Main.hs
+    hs-source-dirs: exe
+    default-language: Haskell2010
+    ghc-options: -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base <5,
+        language-plutus-core -any,
+        transformers -any,
+        bytestring -any,
+        text -any,
+        lens -any,
+        prettyprinter -any,
+        optparse-applicative -any

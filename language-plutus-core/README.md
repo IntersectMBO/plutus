@@ -66,11 +66,11 @@ You can install the executables described below via either `stack` or `nix`.
 
 ##### Via `nix`
 
-Run `nix build -f default.nix localPackages.plutus-exe` being in the `plutus` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
+Run `nix build -f default.nix haskell.projectPackages.language-plutus-core.components.exes.plc` being in the `plutus` folder. Once the build finishes, copy the executables from the `result/bin` folder to somewhere in $PATH.
 
 ##### Via `stack`
 
-Run `stack install plutus-exe` in your terminal being in any subfolder of `plutus`. Once the build finishes, you'll be shown the following lines:
+Run `stack install language-plutus-core` in your terminal being in any subfolder of `plutus`. Once the build finishes, you'll be shown the following lines:
 
 ```
 Copied executables to ~/.local/bin:

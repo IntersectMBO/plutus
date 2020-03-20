@@ -2,7 +2,6 @@ resolver: lts-13.26
 
 packages:
 - language-plutus-core
-- plutus-exe
 - plutus-ir
 - plutus-tx
 - plutus-tx-plugin
