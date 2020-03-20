@@ -50,12 +50,12 @@ inj₂ c >>= f = inj₂ c
 return : {A C : Set} → A → A ⊎ C
 return = inj₁
 
-open import Data.Bool
+open import Data.Bool using (Bool;true;false;_∧_)
 
 eqKind : Kind → Kind → Bool
-eqKind * *       = Bool.true
-eqKind * (_ ⇒ _) = Bool.false
-eqKind (_ ⇒ _) * = Bool.false
+eqKind * *       = true
+eqKind * (_ ⇒ _) = false
+eqKind (_ ⇒ _) * = false
 eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
 
 open import Relation.Nullary
@@ -281,6 +281,11 @@ inferType Γ (unwrap L)        = do
     where _ → inj₂ unwrapError
   --v why is this eta expanded in the spec?
   return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L)
-inferType Γ (if b then t else u)        = ?
-
+inferType Γ (if b then t else u) = do
+  con bool ,, b ← inferType Γ b
+    where _ → inj₂ typeError
+  X ,, t ← inferType Γ t
+  X' ,, u ← inferType Γ u
+  refl  ← meqNfTy X X'
+  return (X ,, if b then t else u)
 ```
