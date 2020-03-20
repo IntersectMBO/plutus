@@ -37,6 +37,7 @@ library
     mtl,
     template-haskell -any,
     plutus-tx -any,
+    plutus-emulator -any,
     plutus-ledger,
     text,
     wl-pprint -any

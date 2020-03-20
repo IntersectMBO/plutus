@@ -21,7 +21,7 @@ let
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "0l1zas38pb7f26m33ppxikb232qr72mr2lgywba7phyb9bw0di6y";
+    stack-sha256 = "1jzlddl4hrgc2qypwma2rn86anya1kakkdxffrh20gmy3b7azd55";
     modules = [
         {
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427

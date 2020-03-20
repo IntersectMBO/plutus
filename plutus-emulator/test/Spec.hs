@@ -38,6 +38,7 @@ import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Language.PlutusTx.AssocMap as AssocMap
 import           Ledger
 import qualified Ledger.Ada                 as Ada
+import           Ledger.Generators          (Mockchain(Mockchain))
 import qualified Ledger.Generators          as Gen
 import qualified Ledger.Index               as Index
 import           Ledger.Typed.Scripts       (wrapValidator)
@@ -55,7 +56,6 @@ import qualified Wallet.Emulator.Chain as Chain
 import qualified Wallet.Emulator.Wallet as Wallet
 import           Wallet.Emulator.Types
 import qualified Wallet.Emulator.Generators          as Gen
-import           Wallet.Generators          (Mockchain(Mockchain))
 import qualified Wallet.Graph
 
 
