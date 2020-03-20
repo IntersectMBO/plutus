@@ -6,6 +6,7 @@ module Scoped.CK where
 
 ```
 open import Function
+open import Data.Bool using (Bool;true;false)
 
 open import Type
 open import Type.BetaNormal
@@ -31,6 +32,7 @@ data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
 
   builtin- : ∀{n}{i : Weirdℕ n} → Builtin → List (ScopedTy n)
     → {tel : Tel i} → VTel i tel → Tel i →  Frame i i
+  if-then_else_ : ∀{n}{i : Weirdℕ n} → ScopedTm i → ScopedTm i → Frame i i
 
 data Stack : ∀{n n'}(i : Weirdℕ n)(i' : Weirdℕ n') → Set where
   ε   : ∀{n}{i : Weirdℕ n} → Stack i i
@@ -75,6 +77,8 @@ step p (s ▻ builtin bn As (t ∷ tel)) =
   _ ,, _ ,, p ,, (s , builtin- bn As {[]} _ tel) ▻ t
 step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
 step p (s ▻ unwrap L)         = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
+step p (s ▻ (if b then t else u)) =
+  _ ,, _ ,, p ,, ((s , (if-then t else u)) ▻ b)
 step p (ε ◅ V)                = _ ,, _ ,, p ,, □ V
 step p ((s , (-· M)) ◅ V) = _ ,, _ ,, p ,, ((s , (V ·-)) ▻ M)
 step p (_◅_ (s , (V-ƛ A L ·-)) {M} W)         = _ ,, _ ,, p ,, s ▻ (L [ M ])
@@ -99,6 +103,12 @@ step {i' = i'} p ◆              = _ ,, i' ,, p ,, ◆
 step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) with arity b Data.Nat.≟ Data.List.length tel + 1
 ... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
 ... | no q = _ ,, _ ,, p ,, (s ◅ V-builtin b As (tel Data.List.++ Data.List.[ t ]))
+step p ((s , (if-then t else u)) ◅ V-con (bool true)) =
+  _ ,, _ ,, p ,, (s ▻ t) 
+step p ((s , (if-then t else u)) ◅ V-con (bool false)) =
+  _ ,, _ ,, p ,, (s ▻ u) 
+step {i' = i'} p ((s , (if-then t else u)) ◅ _) = _ ,, i' ,, p ,, ◆
+
  -- check for length here and return V-builtin if not?
 
 step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =
