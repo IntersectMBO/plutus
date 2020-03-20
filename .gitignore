@@ -10,6 +10,16 @@
 *.bbl
 *.fdb_latexmk
 *.blg
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.ist
+*.out
+*.toc
+*.bcf
+*.run.xml
+*.thm
 auto
 
 # Cabal
