@@ -10,6 +10,7 @@ open import Relation.Binary.PropositionalEquality
 open import Function hiding (_∋_)
 open import Data.List
 
+open import Utils
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNormal
@@ -173,7 +174,8 @@ ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
     (builtin bn (renNf ρ⋆ ∘ σ) (A.renTel ρ⋆ ρ tel)))
   (cong (builtin bn) (renTel-erase ρ⋆ ρ Φ As σ tel))
 ren-erase ρ⋆ ρ (error A)          = refl
-
+ren-erase ρ⋆ ρ (if b then t else u) =
+ cong₃ if_then_else_ (ren-erase ρ⋆ ρ b) (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
 --
 
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
@@ -277,7 +279,9 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
   (cong (builtin bn) (subTel-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
-  
+sub-erase σ⋆ σ (if b then t else u) =
+ cong₃ if_then_else_ (sub-erase σ⋆ σ b) (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
+
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
   → erase N ≡ erase (N A.[ A ]⋆)
 lem[]⋆ {Γ = Γ} N A = trans

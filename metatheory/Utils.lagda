@@ -1,6 +1,8 @@
 \begin{code}
 module Utils where
 
+open import Relation.Binary.PropositionalEquality
+
 data Maybe (A : Set) : Set where
   just : A → Maybe A
   nothing : Maybe A
@@ -21,4 +23,10 @@ decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
 decIf (no ¬p) t f = f
 
+cong₃ : {A B C D : Set} → (f : A → B → C → D)
+  → {a a' : A} → a ≡ a'
+  → {b b' : B} → b ≡ b'
+  → {c c' : C} → c ≡ c'
+  → f a b c ≡ f a' b' c'
+cong₃ f refl refl refl = refl
 \end{code}

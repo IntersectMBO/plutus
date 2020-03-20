@@ -104,6 +104,7 @@ ren {Δ = Δ} ρ⋆ ρ (builtin bn σ X) = conv⊢
   (⋆.ren-subst (proj₂ (proj₂ (SIG bn))))
   (builtin bn (⋆.ren _ ∘ σ) (renTel _ ρ X))
 ren _ ρ (error A) = error (⋆.ren _ A)
+ren _ ρ (if b then t else u) = if ren _ ρ b then ren _ ρ t else ren _ ρ u
 \end{code}
 
 \begin{code}
@@ -210,6 +211,8 @@ subst {Φ}{Γ = Γ}{Γ'} σ⋆ σ (builtin bn σ' tel) = conv⊢
   (⋆.subst-comp (proj₂ (proj₂ (SIG bn))))
   (builtin bn (⋆.subst σ⋆ ∘ σ') (substTel σ⋆ σ tel))
 subst _ σ (error A) = error (⋆.subst _ A)
+subst _ σ (if b then t else u) =
+  if subst _ σ b then subst _ σ t else subst _ σ u
 \end{code}
 
 \begin{code}

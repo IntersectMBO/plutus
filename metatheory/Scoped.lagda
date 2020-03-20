@@ -134,6 +134,8 @@ shifter m w (builtin b) = builtin b
 shifter m w (wrap pat arg t) =
   wrap (shifterTy m w pat) (shifterTy m w arg) (shifter m w t)
 shifter m w (unwrap t) = unwrap (shifter m w t)
+shifter m w (if b then t else u) =
+  if shifter m w b then shifter m w t else shifter m w u
 
 unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
 unshifterTy w (` x) = ` (suc (lookupWTy' x w))
@@ -157,6 +159,8 @@ unshifter w (builtin b) = builtin b
 unshifter w (wrap pat arg t) =
   wrap (unshifterTy w pat) (unshifterTy w arg) (unshifter w t)
 unshifter w (unwrap t) = unwrap (unshifter w t)
+unshifter w (if b then t else u) =
+  if unshifter w b then unshifter w t else unshifter w u
 
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon
@@ -179,16 +183,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
--- term synonyms
-void : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-void = Λ * (ƛ (` zero) (` Z))
-
-true : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-true = Λ * (ƛ (` zero) (ƛ (` zero) (` (S Z))))
-
-false : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-false = Λ * (ƛ (` zero) (ƛ (` zero) (` Z)))
-
+  if_then_else_ : ScopedTm w → ScopedTm w → ScopedTm w → ScopedTm w
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
@@ -263,6 +258,11 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
+scopeCheckTm (if b then t else u) = do
+  b ← scopeCheckTm b
+  t ← scopeCheckTm t
+  u ← scopeCheckTm u
+  return (if b then t else u)
 \end{code}
 
 -- SATURATION OF BUILTINS
@@ -351,7 +351,9 @@ saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
 saturate (wrap A B t) = wrap A B (saturate t)
 saturate (unwrap t)   = unwrap (saturate t)
-  -- I don't think As or ts can be unsaturated, could be enforced by
+saturate (if b then t else f) = if saturate b then saturate t else saturate f
+
+-- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
 \end{code}
 
@@ -377,6 +379,8 @@ unsaturate (builtin b As bs) =
   builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
 unsaturate (wrap A B t) = wrap A B (unsaturate t)
 unsaturate (unwrap t)   = unwrap (unsaturate t)
+unsaturate (if b then t else f) =
+  if unsaturate b then unsaturate t else unsaturate f
 \end{code}
 
 \begin{code}
@@ -425,6 +429,8 @@ extricateScope (builtin bn _ _) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
+extricateScope (if b then t else f) =
+  if extricateScope b then extricateScope t else extricateScope f
 \end{code}
 
 -- UGLY PRINTING
@@ -471,4 +477,12 @@ ugly (builtin b As ts) =
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
+ugly (if b then t else u) = 
+  "(if "
+  ++ ugly b
+  ++ " then "
+  ++ ugly t
+  ++ " else "
+  ++ ugly u
+  ++ ")"
 \end{code}

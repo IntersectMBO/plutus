@@ -11,6 +11,7 @@ open import Type.Equality
 open import Builtin
 
 -- these things should perhaps be rexported...
+open import Builtin.Constant.Type
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
@@ -163,6 +164,8 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
     → Γ ⊢ subst σ C
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
+
+  if_then_else_ : {A : Φ ⊢⋆ *} → Γ ⊢ con bool → Γ ⊢ A → Γ ⊢ A → Γ ⊢ A
 
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As

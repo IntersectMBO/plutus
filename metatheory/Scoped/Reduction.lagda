@@ -18,7 +18,7 @@ open import Data.Integer as I
 open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
-import Data.Bool as B
+open import Data.Bool using (Bool;true;false)
 \end{code}
 
 \begin{code}
@@ -95,9 +95,14 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
               → Error t
               → Error (builtin b As ts)
 
-VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe B.Bool → ScopedTm w
-VERIFYSIG (just B.false) = false
-VERIFYSIG (just B.true)  = true
+   -- if-then-else, conditional not a bool
+   -- this overlaps with other things but it is going to be removed anyway
+   E-if-not-bool : ∀{L M U : ScopedTm w} → Error (if L then M else U)
+   E-if-error    : ∀{L M U : ScopedTm w} → Error L → Error (if L then M else U)
+
+VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
+VERIFYSIG (just false) = con (bool false)
+VERIFYSIG (just true)  = con (bool true)
 VERIFYSIG nothing        = error (con bool)
 
 
@@ -126,19 +131,19 @@ BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , 
 BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) =
-  decIf (i <? i') true false
+  decIf (i <? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanInteger _ _ _ = error (con bool)
 BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≤? i') true false
+  decIf (i I.≤? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger _ _ _ = error (con bool)
 BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i >? i') true false
+  decIf (i >? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger _ _ _ = error (con bool)
 BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i ≥? i') true false
+  decIf (i ≥? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger _ _ _ = error (con bool)
 BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≟ i') true false
+  decIf (i I.≟ i') (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ _ = error (con bool)
 -- BS -> BS -> BS
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
@@ -157,7 +162,7 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  B.if equals b b' then true else false
+  con (bool (equals b b'))
 BUILTIN equalsByteString _ _ _ = error (con bool)
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
@@ -166,6 +171,16 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·⋆ : {L L' : ScopedTm w}{A : ScopedTy n} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
   ξ-wrap : {A B : ScopedTy n}{L L' : ScopedTm w}
     → L —→ L' → wrap A B L —→ wrap A B L'
+  ξ-if : {L L' M N : ScopedTm w}
+    → L —→ L'
+    → if L then M else N —→ if L' then M else N
+
+  β-if-true : {M N : ScopedTm w}
+    → if con (bool true) then M else N —→ M
+  β-if-false : {M N : ScopedTm w}
+    → if con (bool false) then M else N —→ N
+
+
   β-ƛ : ∀{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
       → (ƛ A L) · M —→ (L [ M ])
   β-Λ : ∀{K}{L : ScopedTm (T w)}{A : ScopedTy n}
@@ -194,6 +209,7 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
+
 \end{code}
 
 \begin{code}
@@ -269,6 +285,20 @@ progressTelCons (done v) (error tel telA vtelA p telB) =
   error (_ ∷ tel) (_ ∷ telA) (v , vtelA) p telB
 progressTelCons {t = t}(error e){tel} q = error (t ∷ tel) [] tt e tel
 
+progress-if : ∀{n}{i : Weirdℕ n}
+  → {b : ScopedTm i} → Progress b
+  → {t : ScopedTm i} → Progress t
+  → {f : ScopedTm i} → Progress f
+  → Progress (if b then t else f)
+  
+progress-if (step p)  q r = step (ξ-if p)
+progress-if (done (V-con (bool true)))  q r = step β-if-true
+progress-if (done (V-con (bool false))) q r = step β-if-false
+progress-if (done _)                    q r = error E-if-not-bool
+progress-if (error e)                   q r = error (E-if-error e)
+  
+
+
 open import Data.Empty
 
 NoVar : ∀{n} → Weirdℕ n → Set
@@ -298,6 +328,8 @@ progress p (wrap A B t) | step  q = step (ξ-wrap q)
 progress p (wrap A B t) | done  q = done (V-wrap A B q)
 progress p (wrap A B t) | error q = error (E-wrap q)
 progress p (unwrap t)        = progress-unwrap (progress p t)
+progress p (if b then t else u) =
+  progress-if (progress p b) (progress p t) (progress p u) 
 \end{code}
 
 \begin{code}

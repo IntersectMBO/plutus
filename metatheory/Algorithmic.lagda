@@ -16,6 +16,7 @@ open import Builtin
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Type
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -151,6 +152,8 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → Γ ⊢ substNf σ C
 
   error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
+
+  if_then_else_ : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ con bool → Γ ⊢ A → Γ ⊢ A → Γ ⊢ A
 
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As

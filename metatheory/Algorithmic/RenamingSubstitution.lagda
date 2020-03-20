@@ -107,6 +107,8 @@ ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   (renNf-substNf σ ρ⋆ A)
   (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
+ren ρ⋆ ρ (if b then t else u) =
+  if ren ρ⋆ ρ b then ren ρ⋆ ρ t else ren ρ⋆ ρ u
 
 renTel ρ⋆ ρ     {As = []}     _         = _
 renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
@@ -216,7 +218,9 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (substNf-comp σ' σ⋆ A)
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
-subst σ⋆ x (error A) = error (substNf σ⋆ A)
+subst σ⋆ σ (error A) = error (substNf σ⋆ A)
+subst σ⋆ σ (if b then t else u) =
+  if subst σ⋆ σ b then subst σ⋆ σ t else subst σ⋆ σ u
 \end{code}
 
 \begin{code}

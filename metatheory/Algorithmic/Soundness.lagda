@@ -224,6 +224,7 @@ emb (Alg.builtin bn σ tel) = let
          (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
          (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
 emb (Alg.error A) = Dec.error (embNf A)
+emb (Alg.if B then T else F) = Dec.if emb B then emb T else emb F
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb

@@ -18,6 +18,7 @@ open import Data.List hiding ([_]; take; drop)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 
+
 open import Type
 open import Algorithmic
 open import Algorithmic.RenamingSubstitution
@@ -104,6 +105,9 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
     → (p : Bs ++ (D ∷ Ds) ≡ As)
     → (telD : Tel Γ Δ σ Ds)
     → Error (builtin bn σ tel)
+  E-if : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} {L : Γ ⊢ con bool}{M N : Γ ⊢ A}
+    → Error L → Error (if L then M else N)
+
 \end{code}
 
 \begin{code}
@@ -206,6 +210,19 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
     → L —→ L'
       -----------------
     → L ·⋆ A —→ L' ·⋆ A
+
+  ξ-if : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *} {L L′ : Γ ⊢ con bool} {M N : Γ ⊢ A}
+    → L —→ L′
+      -----------------
+    → if L then M else N —→ if L′ then M else N
+
+  β-if-true : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{M N : Γ ⊢ A}
+      -----------------
+    → if con (bool true) then M else N —→ M
+
+  β-if-false : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{M N : Γ ⊢ A}
+      -----------------
+    → if con (bool false) then M else N —→ N
 
   β-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B} {V : Γ ⊢ A}
     → Value V
@@ -364,6 +381,16 @@ progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r) =
 progress-builtin bn σ tel (error Bs Ds telB vtel e p telD)  =
   error (E-builtin bn σ tel Bs Ds telB vtel e p telD)
 
+progress-if : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}
+  → {b : Γ ⊢ con bool} → Progress b
+  → {t : Γ ⊢ A} → Progress t
+  → {u : Γ ⊢ A} → Progress u
+  → Progress (if b then t else u)
+progress-if (step p)                    q r = step (ξ-if p)
+progress-if (done (V-con (bool true)))  q r = step β-if-true
+progress-if (done (V-con (bool false))) q r = step β-if-false
+progress-if (error e)                   q r = error (E-if e)
+
 NoVar : ∀{Φ} → Ctx Φ → Set 
 NoVar ∅        = ⊤
 NoVar (Γ ,⋆ J) = NoVar Γ
@@ -422,7 +449,8 @@ progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error
-
+progress p (if L then M else N) =
+  progress-if (progress p L) (progress p M) (progress p N)
 --
 
 open import Data.Empty
@@ -587,4 +615,6 @@ det (β-builtin bn σ tel vtel) (β-builtin .bn .σ .tel wtel) =
 det (β-builtin bn σ tel vtel) (ξ-builtin .bn .σ .tel Bs Ds telB telD wtel q p q₁) = ⊥-elim (vTel _ _ σ _ tel vtel Bs  Ds telB telD q p q₁)
 det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (vTel _ _ σ _ tel vtel₁ Bs Ds telB telD p p₁ q)
 det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (ξ-builtin .bn .σ .tel Bs' Ds' telB' telD' vtel' p' p'' q') = cong (builtin bn σ) (reconstTel-inj' Bs Bs' Ds Ds' σ telB vtel telB' vtel' p p' p₁ p'' telD telD' (trans q (sym q')))
-
+det (ξ-if p) (ξ-if q) = cong (if_then _ else _) (det p q)
+det β-if-true  β-if-true  = refl
+det β-if-false β-if-false = refl

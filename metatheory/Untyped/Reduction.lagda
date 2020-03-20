@@ -8,7 +8,7 @@ open import Untyped.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 
-import Data.Bool as Bool
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
@@ -93,6 +93,12 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 {ts : List (n ⊢)}
                 {t : n ⊢}
               → builtin b ts · t —→ builtin b (ts ++ Data.List.[ t ])
+
+  ξ-if : {L L' M N : n ⊢} → L —→ L' → if L then M else N —→ if L' then M else N
+  β-if-true : {M N : n ⊢}
+    → if con (bool true) then M else N —→ M
+  β-if-false : {M N : n ⊢}
+    → if con (bool false) then M else N —→ N
 \end{code}
 
 
@@ -103,7 +109,7 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{n} → Maybe Bool.Bool → n ⊢
+VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
 VERIFYSIG (just Bool.false) = plc_false 
 VERIFYSIG (just Bool.true)  = plc_true 
 VERIFYSIG nothing           = error
@@ -173,6 +179,16 @@ progress-· (done (V-con tcn))      u = error E-todo
 progress-· (done (V-builtin b ts)) u = step sat-builtin
 progress-· (error e)               u = error E-todo
 
+progress-if : ∀{n}
+  → {b : n ⊢} → Progress b
+  → {t : n ⊢} → Progress t
+  → {u : n ⊢} → Progress u
+  → Progress (if b then t else u)
+progress-if (step p)  q r = step (ξ-if p)
+progress-if (done (V-con (bool true)))  q r = step β-if-true
+progress-if (done (V-con (bool false))) q r = step β-if-false
+progress-if (done _)                    q r = error E-todo
+progress-if (error e)                   q r = error E-todo
 
 progress : (t : 0 ⊢) → Progress t
 progressList : (tel : Tel 0) → ProgList {0} tel
@@ -199,6 +215,8 @@ progress (builtin b ts) | step  ts' vs p ts'' p' =
 progress (builtin b ts) | error ts' vs e ts'' =
   error E-todo
 progress error       = error E-error
+progress (if b then t else u) =
+  progress-if (progress b) (progress t) (progress u)
 \end{code}
 
 \begin{code}
