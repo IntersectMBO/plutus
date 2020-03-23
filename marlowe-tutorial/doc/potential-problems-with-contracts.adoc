@@ -1,13 +1,9 @@
 [#potential-problems-with-contracts]
 == Potential problems with contracts
 
-Marlowe language is designed so that it does not have pitfals and gotchas, and so that contracts intuitively, so as to avoid surprises. Nevertheless, there are contracts that can be written but should not be written, and having prevented these contracts from being written by design would have made Marlowe much harder to use.
+The Marlowe language is designed to have as few as possible pitfalls and gotchas, so that contracts can be written intuitively, avoiding any surprises. Nevertheless, it is impossible by design to exclude all contracts that should not be written, without making Marlowe much harder to use. Moreover, even when a contract is well written, it is still possible for its users to interact with it in invalid ways, by issuing invalid transactions.
 
-Even if a contract is well written, it is still possible for its users to interact with it in invalid ways, by issuing invalid transactions.
-
-In all cases, Marlowe tries to be conservative and behave in the most intuitive and conservative way possible when these unintended effects happen. But it is worth being aware of them in order to try to avoid them.
-
-In this tutorial, we review all this potential problems, and we review how Marlowe behaves in these situations.
+In all cases, when these unintended effects happen, Marlowe is designed to behave in the most intuitive and conservative way possible. However, it is worth being aware of these potential problems, and review how Marlowe behaves in these situations. That is the subject of this tutorial.
 
 === Warnings
 
