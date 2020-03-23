@@ -37,7 +37,7 @@ This tutorial introduces the Marlowe Playground, an online tool for
 creating embedded Marlowe contracts and interactively stepping through
 their execution.
 . xref:potential-problems-with-contracts#potential-problems-with-contracts[]
-This tutorial review how not to write Marlowe contracts, and what can
+This tutorial reviews how not to write Marlowe contracts, and what can
 go wrong when executing contracts even if they have been written correctly.
 . xref:static-analysis#static-analysis[]
 Marlowe contracts can be analysed without running them, and so, for instance, we 
