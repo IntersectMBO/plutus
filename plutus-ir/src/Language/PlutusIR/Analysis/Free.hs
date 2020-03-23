@@ -70,19 +70,20 @@ fTerm :: forall name tyname uni a
        . (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
       => Term tyname name uni a -> S.Set PLC.Unique
 fTerm = \case
-  Var _ x -> S.singleton $ x ^. PLC.unique . coerced
+  Var _ x -> S.singleton $ x ^. PLC.theUnique
 
   Let _ NonRec bs tIn -> fLet bs tIn NonRec
   Let _ Rec bs tIn -> fLet bs tIn Rec
 
-  TyAbs _ n _ t -> S.delete (n ^. PLC.unique . coerced) $ fTerm t
+  TyAbs _ n _ t -> S.delete (n ^. PLC.theUnique) $ fTerm t
   LamAbs _ n ty t -> fType ty
                      <>
-                     S.delete (n ^. PLC.unique . coerced) (fTerm t)
+                     S.delete (n ^. PLC.theUnique) (fTerm t)
   Apply _ t1 t2 -> fTerm t1 <> fTerm t2
   TyInst _ t ty -> fTerm t <> fType ty
   IWrap _ ty1 ty2 t -> mconcat [fType ty1, fType ty2, fTerm t]
   Unwrap _ t -> fTerm t
+  Error _ ty -> fType ty
   _ -> S.empty
 
  where
@@ -125,7 +126,7 @@ fBinding = \case
 -- See Note: [PIR Free variables]
 fType :: (Ord (tyname a), PLC.HasUnique (tyname a) PLC.TypeUnique)
       => Type tyname uni a -> S.Set PLC.Unique
-fType = S.map (^. PLC.unique . coerced) . ftvTy
+fType = S.map (^. PLC.theUnique) . ftvTy
 
 
 

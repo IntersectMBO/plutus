@@ -148,12 +148,12 @@ bindingSubtypes f = \case
 -- In case of a datatype-binding it has multiple identifiers: the type, constructors, match function
 bindingIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique) => Binding tyname name uni a -> [PLC.Unique]
 bindingIds = \case
-  TermBind _ _ (VarDecl _ n _) _ -> [n^.PLC.unique.coerced]
-  TypeBind _ (TyVarDecl _ n _) _ -> [n^.PLC.unique.coerced]
+  TermBind _ _ (VarDecl _ n _) _ -> [n^.PLC.theUnique]
+  TypeBind _ (TyVarDecl _ n _) _ -> [n^.PLC.theUnique]
   DatatypeBind _ (Datatype _ tvdecl tvdecls n vdecls) ->
-    (n^.PLC.unique.coerced)
-    : fmap (\(TyVarDecl _ tn _) -> tn^.PLC.unique.coerced) (tvdecl:tvdecls)
-    ++ fmap (\(VarDecl _ vn _)-> vn^.PLC.unique.coerced) vdecls
+    (n^.PLC.theUnique)
+    : fmap (\(TyVarDecl _ tn _) -> tn^.PLC.theUnique) (tvdecl:tvdecls)
+    ++ fmap (\(VarDecl _ vn _)-> vn^.PLC.theUnique) vdecls
 
 
 

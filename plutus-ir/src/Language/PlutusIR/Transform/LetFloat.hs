@@ -19,13 +19,12 @@ import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
 
 import           Data.Foldable                           (fold)
-import           Data.Function                           (on)
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
-import Data.List (partition)
-import Debug.Trace
+import Data.Function (on)
+
 import qualified Data.List.NonEmpty as NE
 
 {- Note [Float algorithm]
@@ -141,7 +140,6 @@ The upside is that this approach is not local/ad-hoc, but more holistic.
 
 -}
 
-
 -- | During the first-pass we compute a maximum "rank" for every let-binding declared in the given PIR program.
 -- A rank points to either a lambda/Lambda location or Top if the let does not depend on any lambda/Lambda.
 -- A "maximum rank" is the 'Rank' with the largest depth, i.e. the deepest lambda-dependency.
@@ -168,8 +166,18 @@ _depth = \case
 depth :: Getting r Rank Int
 depth  = to _depth
 
+-- | The underlying classic getter function for unique-name
+--
+-- NB: Top is arbitrarily defined as having unique: -1.
+-- We need this because we use Ord Rank for maps, and we need total ordering for Ranks with same depth.
+_uniq :: Rank -> PLC.Unique
+_uniq = \case
+  Top -> PLC.Unique (-1)
+  LamDep _ u -> u
+
 instance Ord Rank where
-  compare = compare `on` _depth
+  -- try depth, then try unique
+  compare = (compare `on` _depth) <> (compare `on` _uniq)
 
 -- | We are interested in maximal ranks, and thus we use Rank similar to 'Data.Semigroup.Max'.
 instance Semigroup Rank where
@@ -232,7 +240,7 @@ p1Term pir = toFloatData $ runReader
 
     goBody :: PLC.HasUnique b b' => b -> Term tyname name uni a -> Reader P1Ctx P1Data
     goBody n tBody =
-      let lamU= n^.PLC.unique.coerced
+      let lamU= n^.PLC.theUnique
       in M.delete lamU -- this trick removes any lamrank from the final value, since we don't care about lambdas in the final pass1 result (P1Data)
          <$> (local (\ (scope,oldDepth) ->
                         let newDepth = oldDepth+1
@@ -308,45 +316,57 @@ type RhsTable tyname name uni a = M.Map
                               PLC.Unique
                               (Rhs tyname name uni a)
 
--- | An Rhs is a triple of Annotation, Recursivity, and its Binding.
+-- | An Rhs is quadruple of Annotation, Recursivity, Binding expr(s), and its depth (location) in the original program.
 --
 -- If the RHS was prior belonging to a larger let-group, its Recursivity&Annotation is copied from the let-group's Recursivity&Annotation.
 -- In other words the same Recursivity&Annotation is shared among the let-identifiers that were beloning to the same let-group.
-type Rhs tyname name uni ann = (ann, Recursivity, Binding tyname name uni ann)
+type Rhs tyname name uni ann = (ann, Recursivity, Binding tyname name uni ann, Int)
 
 -- | This function takes a 'Term', cleans the 'Term' from all its 'Let'-bindings and stores those lets into a separate table.
 -- The output term is most-likely not a valid PIR program anymore, because it contains free unbound variables.
 --
--- OPTIMIZE: this traversal may potentially be included/combined with the pass1.
+-- OPTIMIZE: this traversal may potentially be included/combined with the 1st-pass.
 removeLets :: forall name tyname uni a
             . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
            => Term tyname name uni a
            -> (Term tyname name uni a, RhsTable tyname name uni a)
-removeLets = flip runState M.empty . go
+removeLets t =
+  runState
+    -- keep track of the current depth, while we are searching for lets, starting from Top depth = 0
+    (runReaderT (go t) $ Top^.depth)
+    -- initial table is empty
+    mempty
  where
-   go :: Term tyname name uni a -> State (RhsTable tyname name uni a) (Term tyname name uni a)
+   go :: Term tyname name uni a -> ReaderT Int (State (RhsTable tyname name uni a)) (Term tyname name uni a)
    go = \case
          -- this overrides the 'termSubterms' functionality only for the 'Let' constructor
+         LamAbs a n ty tBody -> LamAbs a n ty <$> local (+1) (go tBody)
+         TyAbs a n k tBody  -> TyAbs a n k <$> local (+1) (go tBody)
+
          Let a r bs tIn -> do
+           curDepth <- ask
            forM_ bs $ \ b -> do
              b' <- bindingSubterms go b
-             modify (M.insert (b'^.principal) (a, r, b'))
+             lift . modify $ M.insert (b'^.principal) (a, r, b',curDepth)
            go tIn
-         t -> termSubterms go t
-
-
+         t' -> termSubterms go t'
 
 -- | Starts the 2nd pass from the 'Top' depth and the toplevel expression of the cleanedup term (devoid of any lets).
 -- See Note [Float second-pass]
 --
--- OPTIMIZE: We could potentially replace the pure descending ('Reader FloatData') of the 2nd pass, to 'State FloatData'. In such a case
--- this transformation might stop earlier, when the state becomes empty: i.e. no let-rhses are left to float.
 p2Term :: forall name tyname uni a
        . (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Monoid a)
       => Term tyname name uni a --
       -> FloatData
       -> Term tyname name uni a
-p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2nd pass by trying to float any lets around the top-level expression (body)
+p2Term pir fd =
+  -- the 2nd pass starts by trying to float any lets around the top-level expression (body)
+  -- For optimization reasons, we keep a state of remaining SCCs that we need to scan when we are generating let-groups in their correct order.
+  -- The initial state starts from the all sccs top.sorted; the invariant is that the remaining sccs state should always be top.sorted.
+  case runState (goFloat Top pirClean fd) topSortedSccs of
+    (res, []) -> res
+    (_, remState) -> error ("The final term is missing some lets because of a problem. The lets that could not be floated back to the final term were:" ++ show remState)
+
  where
   -- | Prior to starting the second pass, we clean the term from all its let-declarations and store them separately in a table.
   -- The 2nd pass will later re-introduce these let-declarations, potentially placing them differently than before, thus essentially "floating the lets".
@@ -356,7 +376,7 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
   ---------------------
 
   -- | visit each term to apply the float transformation
-  -- TODO: stop descending when state==mempty?
+  -- OPTIMIZE: stop descending when state==mempty?
   goTerm :: Int -- ^ current depth
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
          -> Term tyname name uni a
@@ -376,7 +396,7 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
         -> Term tyname name uni a -- ^ lambda/Lambda's body
         -> State [S.Set PLC.Unique] (Term tyname name uni a)
   goAbs oldDepth floatData n tBody =
-    let newLam = LamDep (oldDepth+1) (n^.PLC.unique.coerced)
+    let newLam = LamDep (oldDepth+1) (n^.PLC.theUnique)
     in goFloat newLam tBody floatData
 
   -- | We are currently INSIDE (exactly under) a lambda/Lambda body/Top (Top if we are right at the start of the algorithm)
@@ -386,7 +406,6 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
          -> FloatData -- ^ the lambdas we are searching for (to float some lets inside them)
          -> State [S.Set PLC.Unique] (Term tyname name uni a)                           -- ^ the transformed body term
   goFloat aboveLamLoc tBody floatData  =
-    traceShow (aboveLamLoc^.depth, length floatData) $
    -- look for the next smallest depth remaining to place
    case IM.minViewWithKey floatData of
      Nothing -> pure tBody -- nothing left to float
@@ -401,7 +420,7 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
         let tBody' = goTerm curDepth restFloatData tBody
         in case M.lookup aboveLamLoc searchingForLams_Lets of
              -- the lambda above-this-body has some let-rhses to insert (float) here.
-             Just lets -> wrapLets lets curDepth restFloatData =<< tBody'
+             Just lets -> genLets lets restFloatData =<< tBody'
              -- nothing to do for the lambda above, i.e. no let-rhses to insert here
              _         -> tBody'
       GT -> error "This shouldn't happen, because the algorithm takes care to stop descending when EQ is reached."
@@ -417,7 +436,7 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
 
   -- | the dependency graph as before, but with datatype-related nodes merged/reduced under a single node per datatypebind a, see 'principal'.
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
-  reducedDepGraph = M.foldr (\ (_,_,b) accGraph ->
+  reducedDepGraph = M.foldr (\ (_,_,b,_) accGraph ->
                                let ids = bindingIds b
                                in case ids of
                                  _:[] -> accGraph -- optimization to avoid an O(n) op. if there is nothing to merge
@@ -426,11 +445,13 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
                             ) depGraph rhsTable
 
   -- |take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
-  -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'wrapLets' code generation
+  -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'genLets' code generation
   topSortedSccs :: [S.Set PLC.Unique]
   topSortedSccs =
-    let allLets1 = M.keysSet rhsTable in
-    filter (`S.isSubsetOf` allLets1)
+    let allLets = M.keysSet rhsTable in
+    -- we remove lambda sccs because we are not interested in them
+    -- for optimization, we just check one of the elements if it is a let unique. lambdas appear only by themselves.
+    filter (\ scc-> S.findMin scc `S.member` allLets)
     . fmap AMN.vertexSet -- we are not interested in graph structure anymore
     . fromMaybe (error "Cycle detected in the depgraph. This shouldn't happen in the first place.") $ AM.topSort $ AM.scc reducedDepGraph
 
@@ -441,33 +462,64 @@ p2Term pir fd = evalState (goFloat Top pirClean fd) topSortedSccs -- start the 2
   --
   -- The resulting term is wrapped with linear-scope-sorted LetRecs and LetNonRecs (interspersed between each other because letnonrec and letrec syntax cannot be combined)
   -- Example: `let {i = e, ...} in let rec {j = e, ...} in let rec {...} in let {...} in ..... in originalTerm`
-  wrapLets :: S.Set PLC.Unique -- ^ all the let identifiers to wrap around this term
-           -> Int -- ^ current depth
+  genLets :: S.Set PLC.Unique -- ^ all the let identifiers to wrap around this term
            -> FloatData -- ^ the remaining data to be floated
            -> Term tyname name uni a                           -- ^ the term to be wrapped
            -> State [S.Set PLC.Unique] (Term tyname name uni a)                           -- ^ the final wrapped term
-  wrapLets lets curDepth restDepthTable t = do
-    sccs <-get
-    let (hereSccs, restSccs) = partition (`S.isSubsetOf` lets)  sccs
+  genLets lets restDepthTable t = do
+    (hereSccs, restSccs) <- gets splitState
     put $! restSccs
-    foldM (\ acc scc -> do
+    foldM genLetsFromScc t hereSccs
+      where
+        -- | given the lets to float here, it splits the SCC state to a pair of: sccs to process at this location
+        -- and remainder sccs to use as the next state.
+        splitState :: [S.Set PLC.Unique] -> ([S.Set PLC.Unique], [S.Set PLC.Unique])
+        splitState = foldMap (\ scc ->
+                                           let comScc = scc `S.intersection` lets
+                                           in if S.null comScc
+                                              then ([], [scc])
+                                              else ([comScc], let remScc = scc S.\\ lets
+                                                              in if S.null remScc
+                                                                 then []
+                                                                 else [remScc])
+                                       )
+        -- | given an SCC, it creates a new (rec or nonrec) let-group from it and wraps it around an accumulated term
+        -- Special case: if the new group and the accumulated term are both letnonrecs,
+        -- it merges them together into a single let-group (i.e. linear scoped).
+        genLetsFromScc :: Term tyname name uni a
+                       -> S.Set PLC.Unique
+                       -> State [S.Set PLC.Unique] (Term tyname name uni a)
+        genLetsFromScc accTerm scc = do
+              let isSingletonScc = S.size scc == 1
               res <- forM (S.toList scc) (\ v ->
-                                                          case M.lookup v rhsTable of
-                                                            Just rhs ->
-                                                              -- lift each resulting binding in a list monoid to accumulate them
-                                                              -- visit the generated rhs-term as well for any potential floating
-                                                              (_3.bindingSubterms) (goTerm curDepth restDepthTable) rhs
-                                                            _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
+                                             case M.lookup v rhsTable of
+                                               Just (rhs@(_,_,_,oldDepth)) ->
+                                                 -- lift each resulting binding in a list monoid to accumulate them
+                                                 -- visit the generated rhs-term as well for any potential floating
+                                                 (_3.bindingSubterms) (goTerm
+                                                                        -- inside the RHS we "pretend" that we are at the depth of the let in the original program,
+                                                                        -- since the depths of lets in FloatData correspond to the original depths.
+                                                                        oldDepth
+                                                                        -- for optimization, we pass only a part of the floatdata that are larger than this RHS orig. depth.
+                                                                        (snd $ IM.split oldDepth restDepthTable)
+                                                                      ) rhs
+                                               _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
                                                        )
-              let (mAnn, mRecurs, newBindings) = foldr1 (<>) $ fmap (over _3 pure) res
-              pure $ case acc of
+              let (mAnn, mRecurs, newBindings) = foldr1 (<>) $ fmap (\(x,y,z,_) -> (x
+                                                                                     -- if the SCC is a single node then use its original 'Recursitivy';
+                                                                                     -- otherwise, the SCC is  a group of nodes and we *have to* treat all of them in a 'letrec',
+                                                                                     -- since we don't have any information on how to linearize those.
+                                                                                   , if isSingletonScc then y else Rec
+                                                                                     -- lift the binding into a monoid for accumulation
+                                                                                   , pure z)
+                                                                    ) res
+              pure $ case accTerm of
                        -- merge current let-group with previous let-group iff both groups' recursivity is NonRec
                        Let accAnn NonRec accBs accIn | mRecurs == NonRec -> Let (mAnn <> accAnn) NonRec (newBindings <> accBs) accIn
                        -- never merge if the previous let-group is a Rec or the current let-group is Rec,
                        -- but instead create a nested current let-group under the previous let-group (above)
-                       _ -> Let mAnn mRecurs newBindings acc
+                       _ -> Let mAnn mRecurs newBindings accTerm
 
-             ) t hereSccs
 
 -- | The main transformation function (Term -> Term) that returns a term with all lets floated as outwards as possible (full laziness).
 -- Is comprised of two AST "passes":
@@ -491,12 +543,7 @@ floatTerm pir = p2Term pir
 -- We need this because let-datatypes introduce multiple identifiers, but in our 'RhsTable', we use a single Unique as the key. See also: 'bindingIds'
 principal :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
             => Getting r (Binding tyname name uni a) PLC.Unique
-principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.unique . coerced
-                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.unique . coerced
+principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.theUnique
+                       TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.theUnique
                        -- arbitrary: uses the type construtors' unique as the principal unique of this data binding group
-                       DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.unique . coerced
-
-
-smallerSetHasCommon :: Ord a => S.Set a -> S.Set a -> Bool
-smallerSetHasCommon m n = S.size m <= S.size n
-                        && any (`S.member` n) m
+                       DatatypeBind _ (Datatype _ (TyVarDecl _ tConstr _) _ _ _) -> tConstr ^. PLC.theUnique
