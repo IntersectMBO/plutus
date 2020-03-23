@@ -199,7 +199,7 @@ deBruijnifyC (bytestring b) = bytestring b
 deBruijnifyC (string s)     = string s
 deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
-deBruijnifyC unit           = unit
+deBruijnifyC unit           = unit 
 
 ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
 ℕtoFin {zero}  _       = nothing

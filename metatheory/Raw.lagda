@@ -7,6 +7,7 @@ open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
 open import Data.Char using (Char)
+open import Data.Unit using (⊤)
 
 open import Builtin.Constant.Type
 open import Builtin
@@ -24,6 +25,7 @@ The raw un-scope-checked and un-type-checked syntax
 data RawKind : Set where
   *   : RawKind
   _⇒_ : RawKind → RawKind → RawKind
+
 
 data RawTy : Set where
   `   : ℕ → RawTy
