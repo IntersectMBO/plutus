@@ -1,5 +1,5 @@
 cabal-version: 2.2
-name: plutus-wallet-api
+name: plutus-ledger
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
@@ -9,7 +9,7 @@ maintainer: michael.peyton-jones@iohk.io
 author: Michael Peyton Jones, Jann Mueller
 synopsis: Wallet API
 description:
-    Wallet API and ledger types
+    Plutus ledger library
 category: Language
 build-type: Simple
 extra-doc-files: README.md
@@ -44,69 +44,6 @@ flag defer-plugin-errors
 library
     import: lang
     hs-source-dirs: src
-    exposed-modules:
-        Wallet
-        Wallet.API
-        Wallet.Typed.StateMachine
-        Wallet.Generators
-        Wallet.Graph
-        Language.PlutusTx.StateMachine
-    reexported-modules:
-        Data.Aeson.Extras,
-        Data.Text.Prettyprint.Doc.Extras,
-        Ledger,
-        Ledger.Ada,
-        Ledger.Address,
-        Ledger.AddressMap,
-        Ledger.Blockchain,
-        Ledger.Constraints,
-        Ledger.Constraints.OffChain,
-        Ledger.Constraints.OnChain,
-        Ledger.Constraints.TxConstraints,
-        Ledger.Crypto,
-        Ledger.Orphans,
-        Ledger.Oracle,
-        Ledger.Slot,
-        Ledger.Scripts,
-        Ledger.Tx,
-        Ledger.TxId,
-        Ledger.Validation,
-        Ledger.Index,
-        Ledger.Interval,
-        Ledger.Value,
-        Ledger.Tokens,
-        Ledger.Typed.Scripts,
-        Ledger.Typed.Tx,
-        Ledger.Typed.TypeUtils,
-        LedgerBytes
-    default-language: Haskell2010
-    build-depends:
-        base >=4.9 && <5,
-        aeson -any,
-        bytestring -any,
-        containers -any,
-        hedgehog -any,
-        hashable -any,
-        iots-export -any,
-        lens -any,
-        memory -any,
-        mtl -any,
-        plutus-tx -any,
-        plutus-ledger -any,
-        serialise -any,
-        transformers -any,
-        template-haskell -any,
-        text -any,
-        recursion-schemes -any,
-        deriving-compat -any,
-        prettyprinter >=1.1.0.1
-
-    if flag(defer-plugin-errors)
-        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
-
-library plutus-ledger
-    import: lang
-    hs-source-dirs: ledger
     default-language: Haskell2010
     exposed-modules:
         Data.Aeson.Extras
@@ -121,6 +58,7 @@ library plutus-ledger
         Ledger.Constraints.OnChain
         Ledger.Constraints.TxConstraints
         Ledger.Crypto
+        Ledger.Generators
         Ledger.Oracle
         Ledger.Orphans
         Ledger.Slot
@@ -175,7 +113,7 @@ library plutus-ledger
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
 
-test-suite plutus-wallet-api-test
+test-suite plutus-ledger-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
@@ -188,7 +126,7 @@ test-suite plutus-wallet-api-test
         tasty-hedgehog -any,
         tasty-hunit -any,
         transformers -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-tx -any,
         lens -any,
         bytestring -any,

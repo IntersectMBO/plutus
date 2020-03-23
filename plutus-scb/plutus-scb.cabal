@@ -84,7 +84,7 @@ library
         Servant.Extra
     hs-source-dirs: src
     build-depends:
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
@@ -158,7 +158,7 @@ executable plutus-scb
         optparse-applicative -any,
         playground-common -any,
         plutus-scb -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         prettyprinter >=1.1.0.1,
         text -any,
         unliftio-core -any,
@@ -203,7 +203,7 @@ test-suite plutus-scb-test
         plutus-contract -any,
         plutus-scb -any,
         plutus-use-cases -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         quickcheck-instances -any,
         servant-client -any,

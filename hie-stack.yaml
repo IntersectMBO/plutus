@@ -77,9 +77,3 @@ cradle:
   #   component: "plutus-use-cases:lib"
   # - path: ./plutus-use-cases/test
   #   component: "plutus-use-cases:plutus-use-cases-test"
-  # - path: ./plutus-wallet-api/src
-  #   component: "plutus-wallet-api:lib"
-  # - path: ./plutus-wallet-api/ledger
-  #   component: "plutus-ledger:lib"
-  # - path: ./plutus-wallet-api/test
-  #   component: "plutus-wallet-api:plutus-wallet-api-test"

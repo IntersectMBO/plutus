@@ -21,7 +21,7 @@ let
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "1givi8mdzsv94lrav653am3zv6km14vmiysh6vwpr91xvzi7ci39";
+    stack-sha256 = "1jzlddl4hrgc2qypwma2rn86anya1kakkdxffrh20gmy3b7azd55";
     modules = [
         {
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427
@@ -45,7 +45,7 @@ let
           packages.marlowe.doHaddock = false;
           packages.plutus-use-cases.doHaddock = false;
           packages.plutus-scb.doHaddock = false;
-          packages.plutus-wallet-api.doHaddock = false;
+          packages.plutus-ledger.doHaddock = false;
 
           # Fix missing executables on the paths of the test runners. This is arguably
           # a bug, and the fix is a bit of a hack.

@@ -7,8 +7,8 @@ module Wallet.Emulator.Generators(
 import           Hedgehog
 
 import           Control.Monad.Freer
+import           Ledger.Generators   (GeneratorModel, Mockchain (Mockchain), genMockchain')
 import           Wallet.Emulator     as Emulator
-import           Wallet.Generators   (GeneratorModel, Mockchain (Mockchain), genMockchain')
 
 
 -- | Run an emulator trace on a mockchain.

@@ -33,13 +33,13 @@ import qualified Ledger.Ada                    as Ada
 import qualified Ledger.Address                as Address
 import           Ledger.Crypto                 (PrivateKey, PubKey)
 import qualified Ledger.Crypto                 as Crypto
+import qualified Ledger.Generators             as Generators
 import           Ledger.Index                  (UtxoIndex (..))
 import           Ledger.Tx                     (Tx, TxOut (..))
 import qualified Ledger.Tx                     as Tx
 
 import qualified Wallet.Emulator               as EM
 import           Wallet.Emulator.Chain         (ChainState)
-import qualified Wallet.Generators             as Generators
 
 import           Control.Monad.Freer.Extra.Log
 

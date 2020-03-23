@@ -23,8 +23,8 @@ library
         WebSocket
         Marlowe.Contracts
         Marlowe.Config
-    hs-source-dirs: 
-        src 
+    hs-source-dirs:
+        src
         -- So haskell.nix knows to include the files that we embed with TH
         contracts
     default-language: Haskell2010
@@ -99,7 +99,7 @@ executable marlowe-playground-server
         marlowe-symbolic -any,
         monad-logger -any,
         mtl -any,
-        plutus-wallet-api,
+        plutus-ledger,
         prometheus >=2,
         purescript-bridge -any,
         optparse-applicative -any,

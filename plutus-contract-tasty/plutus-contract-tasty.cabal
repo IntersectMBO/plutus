@@ -38,7 +38,7 @@ library
         Language.Plutus.Contract.Test
     hs-source-dirs: src
     build-depends:
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any,
         iots-export -any,
@@ -81,7 +81,7 @@ test-suite plutus-contract-tasty-test
         extensible-effects -any,
         plutus-emulator -any,
         plutus-contract -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-tx -any,
         plutus-contract-tasty -any,
         aeson -any

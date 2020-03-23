@@ -106,18 +106,3 @@ cradle:
   #     cradle:
   #       cabal:
   #         component: "plutus-use-cases:plutus-use-cases-test"
-  # - path: ./plutus-wallet-api/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-wallet-api"
-  # - path: ./plutus-wallet-api/ledger
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-ledger"
-  # - path: ./plutus-wallet-api/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-wallet-api:plutus-wallet-api-test"

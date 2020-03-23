@@ -1,7 +1,7 @@
 packages: language-plutus-core
           marlowe
           plutus-emulator
-          plutus-wallet-api
+          plutus-ledger
           plutus-tx
           plutus-tx-plugin
           plutus-use-cases

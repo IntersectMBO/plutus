@@ -37,7 +37,8 @@ library
     mtl,
     template-haskell -any,
     plutus-tx -any,
-    plutus-wallet-api,
+    plutus-emulator -any,
+    plutus-ledger,
     text,
     wl-pprint -any
   default-language: Haskell2010
@@ -89,7 +90,7 @@ test-suite marlowe-test
         text -any,
         serialise,
         cborg,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         marlowe,
         plutus-tx -any,

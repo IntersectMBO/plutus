@@ -50,7 +50,6 @@ import           Ledger.Constraints.TxConstraints (TxConstraints)
 import           Language.Plutus.Contract.Util  (loopM)
 import qualified Language.PlutusTx              as PlutusTx
 import           Language.PlutusTx.Prelude
-import qualified Language.PlutusTx.StateMachine as SM
 import           Ledger                         (PubKey, pubKeyHash, Slot (..), Validator, Value, Address, Datum(..), ValidatorHash)
 import qualified Ledger
 import qualified Ledger.Interval                as Interval

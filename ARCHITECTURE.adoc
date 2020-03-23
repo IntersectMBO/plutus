@@ -39,7 +39,7 @@ running on. There are two reasons for this:
 - We want to write tests that simulate the "full" behaviour of contracts, i.e.
   across time, in a multi-agent scenario.
 
-include::plutus-wallet-api/ARCHITECTURE.adoc[]
+include::plutus-ledger/ARCHITECTURE.adoc[]
 
 include::plutus-emulator/ARCHITECTURE.adoc[]
 
