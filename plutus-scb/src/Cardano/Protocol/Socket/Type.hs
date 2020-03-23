@@ -5,28 +5,21 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS -Wno-orphans #-} -- TODO: remove this
 module Cardano.Protocol.Socket.Type where
 
 import           Codec.Serialise.Class                              (Serialise)
-import           Data.Aeson                                         (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy                               as BSL
-import           Data.Text.Prettyprint.Doc                          (Pretty)
 
 import           Control.Concurrent.STM
-import           Control.Lens                                       hiding (index)
 import           GHC.Generics
 import           Network.Socket                                     as Socket
 
-import           Cardano.Prelude                                    (NoUnexpectedThunks)
-import           Cardano.Slotting.Slot                              (SlotNo (..))
-import           Ouroboros.Network.Block                            (HeaderHash, StandardHash)
 import           Ouroboros.Network.Mux
 
-import qualified Cardano.Protocol.Socket.Puppet.Codec                      as Puppet
-import qualified Cardano.Protocol.Socket.Puppet.Type                       as Puppet
+import qualified Cardano.Protocol.Socket.Puppet.Codec               as Puppet
+import qualified Cardano.Protocol.Socket.Puppet.Type                as Puppet
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
 import           Network.TypedProtocol.Codec
@@ -35,11 +28,10 @@ import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmission
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
 
-import           Ledger                                             (Block, Slot (..), Tx (..), TxId (..), txId)
+import           Cardano.Protocol.Node
+import           Ledger                                             (Block, Tx (..))
 import qualified Ledger.Index                                       as Index
-import           LedgerBytes                                        (LedgerBytes (..))
 import           Wallet.Emulator.Chain
-import Cardano.Protocol.Node
 
 -- CBOR Serialisation
 deriving instance Generic Index.UtxoIndex

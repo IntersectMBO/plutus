@@ -13,6 +13,7 @@ module Control.Monad.Freer.Extra.Log(
     , runStderrLog
     ) where
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import           Control.Monad.Freer  (Eff, LastMember, Member, type (~>))
 import qualified Control.Monad.Freer  as Eff
 import           Control.Monad.Logger (LogLevel (..), logWithoutLoc, runStderrLoggingT)
@@ -29,8 +30,12 @@ logInfo = Eff.send . Log LevelInfo
 logDebug :: Member Log effs => Text -> Eff effs ()
 logDebug = Eff.send . Log LevelDebug
 
-runStderrLog :: (LastMember IO effs) => Eff (Log ': effs) ~> Eff effs
+runStderrLog ::
+    ( MonadIO m
+    , LastMember m effs
+    )
+ => Eff (Log ': effs) ~> Eff effs
 runStderrLog =
     Eff.interpretM
         (\case
-             Log level txt -> runStderrLoggingT $ logWithoutLoc "" level txt)
+             Log level txt -> liftIO $ runStderrLoggingT $ logWithoutLoc "" level txt)

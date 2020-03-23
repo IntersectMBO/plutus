@@ -8,7 +8,7 @@ module Cardano.Protocol.Socket.Server where
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
 import           Data.List                                           (intersect, (!!))
-import           Data.Maybe                                          (listToMaybe, mapMaybe)
+import           Data.Maybe                                          (listToMaybe)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
@@ -19,9 +19,9 @@ import           Control.Tracer
 import qualified Ouroboros.Network.Protocol.ChainSync.Server         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Server as TxSubmission
 
-import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..), withOriginToMaybe)
+import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..))
 import           Network.Mux.Types                                   (AppType (..))
-import           Ouroboros.Network.Block                             (HeaderHash, Point (..), pointSlot)
+import           Ouroboros.Network.Block                             (Point (..), pointSlot)
 import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode

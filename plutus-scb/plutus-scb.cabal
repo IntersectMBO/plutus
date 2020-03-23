@@ -80,6 +80,7 @@ library
         Cardano.Protocol.Node
         Cardano.Protocol.Effects
         Cardano.Protocol.Socket.Type
+        Cardano.Protocol.Socket.API
         Cardano.Protocol.Socket.Client
         Cardano.Protocol.Socket.Server
         Cardano.Protocol.Socket.Puppet.Type
@@ -195,6 +196,7 @@ executable node-client
         base >=4.7 && <5,
         async -any,
         containers -any,
+        eventful-core -any,
         lens -any,
         monad-logger -any,
         mtl -any,

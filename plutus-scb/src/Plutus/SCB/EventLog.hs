@@ -2,35 +2,31 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Plutus.SCB.EventLog where
 
-import           Control.Lens              hiding (index)
+import           Control.Monad         (void)
 import           Control.Monad.Freer
 
-import           Eventful                  (Aggregate (..), GlobalStreamProjection)
+import           Eventful              (Aggregate (..), GlobalStreamProjection)
 
-import           Plutus.SCB.Core           (MonadEventStore (..), Source (..))
-import           Plutus.SCB.Events         (ChainEvent (..))
-import           Plutus.SCB.Query          (nullProjection)
+import           Plutus.SCB.Core       (MonadEventStore (..), Source (..))
+import           Plutus.SCB.Events     (ChainEvent (..))
+import           Plutus.SCB.Query      (nullProjection)
+import           Wallet.Emulator.Chain (ChainState (..))
 
 -- | Event effects
-data EventLogState pjs =
-     EventLogState { _elsEvents      :: [ChainEvent]
-                   , _elsProjections :: pjs }
-makeLenses ''EventLogState
-
 data EventLogEffect r where
-    UpdateProjection :: GlobalStreamProjection state ChainEvent
-                     -> EventLogEffect (GlobalStreamProjection state ChainEvent)
+    -- Do we actually need this?
+    UpdateProjection :: GlobalStreamProjection ChainState ChainEvent
+                     -> EventLogEffect ()
     AppendEvent      :: ChainEvent -> EventLogEffect ()
 
 updateProjection ::
     Member EventLogEffect effs
- => GlobalStreamProjection state ChainEvent
- -> Eff effs (GlobalStreamProjection state ChainEvent)
+ => GlobalStreamProjection ChainState ChainEvent
+ -> Eff effs ()
 updateProjection oldProjection = send (UpdateProjection oldProjection)
 
 appendEvent ::
@@ -52,7 +48,7 @@ handleEventLog ::
  => Eff (EventLogEffect ': effs) ~> Eff effs
 handleEventLog = interpret $ \case
     UpdateProjection prj ->
-        sendM $ refreshProjection prj
+        sendM $ void $ refreshProjection prj
     AppendEvent evt ->
         sendM $ do
           _ <- runCommand idAggregate NodeEventSource evt

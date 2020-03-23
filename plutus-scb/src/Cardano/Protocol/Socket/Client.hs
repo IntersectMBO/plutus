@@ -1,62 +1,51 @@
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Cardano.Protocol.Socket.Client where
 
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.Functor.Contravariant                          (contramap)
-import           Data.List                                           (findIndex)
-import           Data.Time.Units                                     (Second, toMicroseconds)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
 import           Control.Concurrent.STM
 import           Control.Lens
 import           Control.Monad.Freer                                 (Eff)
+import qualified Control.Monad.Freer                                 as Eff
+import qualified Control.Monad.Freer.Extra.Log                       as Eff
+import           Control.Monad.Freer.Extras                          (handleZoomedState)
+import qualified Control.Monad.Freer.State                           as Eff
+import qualified Control.Monad.Freer.Writer                          as Eff
 import           Control.Monad.Logger
 import           Control.Monad.Reader
 import           Control.Tracer
-
-import           Eventful.Aggregate                                  (Aggregate (..))
-import           Eventful.Projection                                 (GlobalStreamProjection, Projection (..),
-                                                                      StreamProjection (..), globalStreamProjection)
-import           Eventful.Store.Class
 
 import qualified Cardano.Protocol.Socket.Puppet.Client               as Puppet
 import qualified Ouroboros.Network.Protocol.ChainSync.Client         as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Client as TxSubmission
 
-import           Cardano.Slotting.Slot                               (SlotNo (..), WithOrigin (..))
 import           Codec.Serialise                                     (DeserialiseFailure)
 import           Network.Mux.Types                                   (AppType (..))
-import           Ouroboros.Network.Block                             (Point (..))
 import           Ouroboros.Network.Magic
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.NodeToNode
-import qualified Ouroboros.Network.Point                             as Point
 import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Version
 import           Ouroboros.Network.Socket
 
-import           Cardano.Protocol.Socket.Type
-
 import           Cardano.Protocol.Node
-import           Ledger                                              (Block, Slot (..), Tx (..))
-import qualified Ledger.Index                                        as Index
+import           Cardano.Protocol.Socket.Type
+import           Ledger                                              (Block, Tx (..))
 import           Plutus.SCB.Core
-import           Plutus.SCB.Events
-import           Plutus.SCB.Query                                    (nullProjection)
+import           Plutus.SCB.EventLog
 import           Wallet.Emulator.Chain                               hiding (ChainEvent)
 
 startClientNode :: FilePath
                 -> Connection
-                -> MVar ClientState
+                -> MVar ClientStreamProjection
                 -> PuppetHandle
                 -> IO ()
 startClientNode sockAddr connection state endpoint =
@@ -117,16 +106,16 @@ puppetClient req res =
                          >> processNextRequest)
 
 chainSyncClient :: Connection
-                -> MVar ClientState
+                -> MVar ClientStreamProjection
                 -> ChainSync.ChainSyncClient Block Tip IO ()
-chainSyncClient connection clientState =
+chainSyncClient connection clientPrj =
     ChainSync.ChainSyncClient sendLocalState
     where
       sendLocalState :: IO (ChainSync.ClientStIdle Block Tip IO ())
       sendLocalState  = do
-        cs <- readMVar clientState
+        cs <- readMVar clientPrj
         return $ ChainSync.SendMsgFindIntersect
-          (wrapLocalState cs)
+          (wrapLocalState $ cs ^. chainState)
           receiveRemoteState
 
       receiveRemoteState :: ChainSync.ClientStIntersect Block Tip IO ()
@@ -134,7 +123,7 @@ chainSyncClient connection clientState =
         ChainSync.ClientStIntersect
         { ChainSync.recvMsgIntersectFound    = \point _ ->
             ChainSync.ChainSyncClient $ do
-              runNodeClientEffects connection clientState $
+              _ <- runNodeClientEffects connection clientPrj $
                 resumeLocalState point
               return requestNext
         , ChainSync.recvMsgIntersectNotFound = error "Not supported."
@@ -152,73 +141,63 @@ chainSyncClient connection clientState =
         {
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
-              runNodeClientEffects connection clientState $
-                publishNewBlock block
+              _ <- runNodeClientEffects connection clientPrj
+                processBlock
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }
 
 txSubmissionClient :: Connection
-                   -> MVar ClientState
+                   -> MVar ClientStreamProjection
                    -> TQueue Tx
                    -> TxSubmission.LocalTxSubmissionClient Tx String IO ()
-txSubmissionClient connection clientState txInput =
+txSubmissionClient connection clientPrj txInput =
     TxSubmission.LocalTxSubmissionClient pushTxs
     where
       pushTxs :: IO (TxSubmission.LocalTxClientStIdle Tx String IO ())
       pushTxs = do
         header <- atomically $ readTQueue txInput
-        runNodeClientEffects connection clientState $
-          sendTx header
+        _ <- runNodeClientEffects connection clientPrj $
+          queueTx header
         return $ TxSubmission.SendMsgSubmitTx
                    header
                    (const pushTxs) -- ignore rejects for now
 
--- Working with the log.
-localStateProjection =
-  Projection
-    { projectionSeed = emptyClientState
-    , projectionEventHandler = blockAddedHandler
-    }
-  where
-    blockAddedHandler :: ClientState -> VersionedStreamEvent ChainEvent -> ClientState
-    blockAddedHandler oldState
-                      (StreamEvent _ _ (NodeEvent (BlockAdded block))) =
-        over csIndex (Index.insertBlock block)
-      $ over csChain (block :)
-      $ over csCurrentSlot (+1) oldState
-    blockAddedHandler oldState _ = oldState
-
-localStateRefresh :: MonadIO m
-                  => MonadEventStore ChainEvent m
-                  => Second
-                  -> MVar ClientState
-                  -> m ()
-localStateRefresh delay localState =
-    go (globalStreamProjection localStateProjection)
-  where
-    go :: MonadIO m
-       => MonadEventStore ChainEvent m
-       => GlobalStreamProjection ClientState ChainEvent
-       -> m ()
-    go projection = do
-        nextProjection <- refreshProjection projection
-        liftIO $ do
-          _ <- swapMVar localState (streamProjectionState nextProjection)
-          threadDelay (fromIntegral $ toMicroseconds delay)
-        go nextProjection
+type NodeClientM = (ReaderT Connection (LoggingT IO))
 
 runNodeClientEffects ::
     Connection
- -> MVar ClientState
- -> Eff (NodeClientEffects IO) a
- -> IO (a, [Tx])
-runNodeClientEffects = undefined
-
-runEventStore :: Connection
-                   -> ReaderT Connection (LoggingT IO) a
-                   -> IO ()
-runEventStore connection m =
-    void
-  $ runStdoutLoggingT
-  $ runReaderT m connection
+ -> MVar ClientStreamProjection
+ -> Eff (NodeClientEffects NodeClientM) a
+ -> IO a
+runNodeClientEffects connection st action = do
+  prj            <- liftIO $ takeMVar st
+  (((result, ncEvents), cEvents), prj') <- liftIO
+    $ runStderrLoggingT
+    $ flip runReaderT connection
+    $ Eff.runM
+    $ Eff.runStderrLog
+    $ Eff.runState prj
+    $ handleEventLog
+    $ Eff.runWriter
+    $ Eff.runWriter
+    -- Note: The chain state in the node client *should not* be
+    --       updated directly through the state, but through
+    --       refreshing the projection to avoid cases where we directly
+    --       modify the projection in inconsistent ways.
+    --       As it is now, the algebra can cause unexpected behaviors, I think.
+    --
+    --       .. In the current code, it is not updated directly, since the
+    --       only instance  where that happens is when calling `processBlock` which is
+    --       a control call for the mocked node server (and we are interpreting for
+    --       the node client).
+    --       But we can write an algebra term that would trigger this behavior
+    --       and everything will happily compile.
+    --
+    -- Meta: Is it really a good idea to have an algebra that is *partially* interpreted
+    --       in different components? Maybe we should decide not to have that and audit
+    --       the code to find such instances.
+    $ Eff.interpret (handleZoomedState chainState)
+    $ handleChain' action
+  liftIO $ putMVar st prj'
+  return result

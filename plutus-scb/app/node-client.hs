@@ -13,6 +13,7 @@ import           Control.Monad.IO.Class         (liftIO)
 import           Control.Monad.Logger
 import           Control.Monad.Reader
 
+import           Eventful.Projection            (globalStreamProjection)
 import           Options.Applicative            (Parser, ParserInfo, argument, auto, execParser, fullDesc, help, helper,
                                                  info, long, metavar, option, progDesc, short, str, switch, value,
                                                  (<**>))
@@ -23,6 +24,7 @@ import           Cardano.Protocol.Socket.Client
 import           Cardano.Protocol.Socket.Type
 import           Plutus.SCB.Core
 import           Plutus.SCB.Types
+import           Wallet.Emulator.Chain          (index)
 
 import           Data.Yaml                      (decodeFileThrow)
 
@@ -74,7 +76,7 @@ optParser = info (parseOptions <**> helper)
 main :: IO ()
 main = do
   options <- execParser optParser
-  localStateM <- newMVar emptyClientState
+  localStateM <- newMVar (globalStreamProjection clientStateProjection)
   config <- liftIO $ decodeFileThrow "plutus-scb.yaml"
   connection <-
       runStdoutLoggingT
@@ -83,8 +85,7 @@ main = do
 
   -- update state using event log.
   void . forkIO . forever $
-      runStdoutLoggingT
-    $ runReaderT (localStateRefresh 5 localStateM) connection
+    runNodeClientEffects connection localStateM updateChainState
 
   when (optSlotInterval options > 0) . void . forkIO . forever $ do
     atomically  $ writeTQueue (ctlRequest puppetH) RequestValidation
@@ -92,7 +93,7 @@ main = do
 
   when (optRandomTxInterval options > 0) . void . forkIO . forever $ do
     localState <- readMVar localStateM
-    tx         <- generateRandomTx (view  csIndex localState)
+    tx         <- generateRandomTx (view  (chainState . index) localState)
     atomically  $ writeTQueue (txInputQueue puppetH) tx
     threadDelay $ optRandomTxInterval options * 1000000
 
