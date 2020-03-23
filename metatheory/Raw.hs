@@ -46,6 +46,7 @@ data RTerm = RVar Integer
            | RBuiltin BuiltinName
            | RWrap RType RType RTerm
            | RUnWrap RTerm
+           | RIfThenElse RTerm RTerm RTerm
   deriving Show
 
 unIndex :: Index -> Integer
