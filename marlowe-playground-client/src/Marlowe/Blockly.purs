@@ -459,7 +459,7 @@ toDefinition (TokenType AdaTokenType) =
   BlockDefinition
     $ merge
         { type: show AdaTokenType
-        , message0: "Ada"
+        , message0: "ada"
         , args0: []
         , colour: "255"
         , output: Just "token"
