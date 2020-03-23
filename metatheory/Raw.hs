@@ -31,9 +31,9 @@ data RType = RTyVar Integer
 data RConstant = RConInt Integer
                | RConBS BSL.ByteString
                | RConStr T.Text
-               | RConChar Char
-               | RConUnit ()
                | RConBool Bool
+               | RConChar Char
+               | RConUnit
                deriving Show
 
 data RTerm = RVar Integer
