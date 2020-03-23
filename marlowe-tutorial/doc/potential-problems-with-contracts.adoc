@@ -37,7 +37,7 @@ Shadowing is a bad programming practice because it leads to confusion. Using the
 
 === Bad smells
 
-There are some other ‘bad smells’ that indicate that the contract that has probably been poorly designed.
+There are some other ‘bad smells’ that indicate that a contract has probably been poorly designed.
 
 These contracts are valid, in the sense that they will not necessarily cause any warnings, and they do what they say that they do, but they have characteristics that suggest that either the contract developer was not fully aware of the consequences of the contract, or that the developer purposefully wrote the contract in a way that was confusing for the reader.
 
