@@ -55,6 +55,8 @@ letFloat = testNested "letFloat"
   ,"rec1"
   ,"rec2"
   ,"rec3"
+  ,"nonrecToRec"
+  ,"oldLength"
   ]
 
 instance Semigroup SourcePos where
