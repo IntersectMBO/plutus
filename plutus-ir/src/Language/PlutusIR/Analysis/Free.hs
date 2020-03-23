@@ -13,8 +13,8 @@ import           Language.PlutusCore.Subst (ftvTy)
 
 import           Control.Lens
 
+import qualified Data.List.NonEmpty        as NE
 import qualified Data.Set                  as S
-import qualified Data.List.NonEmpty as NE
 
 {- Note: [PIR Free variables]
 

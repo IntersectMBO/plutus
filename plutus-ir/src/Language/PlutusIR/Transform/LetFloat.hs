@@ -19,13 +19,13 @@ import qualified Algebra.Graph.AdjacencyMap.Algorithm    as AM
 import qualified Algebra.Graph.NonEmpty.AdjacencyMap     as AMN
 
 import           Data.Foldable                           (fold)
+import           Data.Function                           (on)
 import qualified Data.IntMap                             as IM
 import qualified Data.Map                                as M
 import           Data.Maybe                              (fromMaybe)
 import qualified Data.Set                                as S
-import Data.Function (on)
 
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty                      as NE
 
 {- Note [Float algorithm]
 
@@ -440,7 +440,7 @@ p2Term pir fd =
                                let ids = bindingIds b
                                in case ids of
                                  _:[] -> accGraph -- optimization to avoid an O(n) op. if there is nothing to merge
-                                 _ ->  AM.mergeVertices (`S.member` S.fromList ids) (b^.principal) accGraph
+                                 _    ->  AM.mergeVertices (`S.member` S.fromList ids) (b^.principal) accGraph
 
                             ) depGraph rhsTable
 
