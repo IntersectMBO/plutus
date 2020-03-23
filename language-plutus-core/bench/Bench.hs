@@ -3,7 +3,6 @@
 module Main (main) where
 
 import           Language.PlutusCore
-import qualified Language.PlutusCore.Check.Normal           as Normal
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
@@ -49,7 +48,7 @@ main =
                   let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete p = runQuoteT $ do
                             bis <- traceBuiltins
-                            inferTypeOfProgram (defOffChainConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = bis }) p
                       mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
                   in
 
@@ -57,17 +56,11 @@ main =
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name DefaultUni AlexPosn -> Either (Error DefaultUni AlexPosn) (Normalized (Type TyName DefaultUni ()))
-                      typeCheckConcrete = runQuoteT . inferTypeOfProgram defOffChainConfig
+                      typeCheckConcrete = runQuoteT . inferTypeOfProgram defConfig
                       mkBench = bench "type-check" . nf (typeCheckConcrete =<<) . runQuoteT . parseScoped
                   in
 
                    bgroup "type-check" $ mkBench <$> [f, g, h]
-                , env largeTypeFiles $ \ ~(f, g, h) ->
-                   let normalConcrete :: Program TyName Name DefaultUni AlexPosn -> Either (Error DefaultUni AlexPosn) ()
-                       normalConcrete = Normal.checkProgram
-                       mkBench = bench "normal-types check" . nf (normalConcrete =<<) . runQuoteT . parseScoped
-                   in
-                   bgroup "normal-types check" $ mkBench <$> [f, g, h]
 
                 , env sampleScript $ \ f ->
                     let renameConcrete :: Program TyName Name DefaultUni () -> Program TyName Name DefaultUni ()

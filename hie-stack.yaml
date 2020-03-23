@@ -12,10 +12,6 @@ cradle:
     component: "plutus-emulator:lib"
   - path: ./plutus-emulator/test
     component: "plutus-emulator:plutus-emulator-test"
-  - path: ./plutus-exe/src
-    component: "plutus-exe:lib"
-  - path: ./plutus-exe/test
-    component: "plutus-exe:plutus-exe-test"
   - path: ./plutus-tx/src
     component: "plutus-tx:lib"
   - path: ./plutus-tx/compiler

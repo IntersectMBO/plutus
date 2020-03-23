@@ -105,7 +105,6 @@ data TypeError uni ann
     | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE (TyName ann)
     | FreeVariableE (Name ann)
-    | OutOfGas
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
@@ -200,7 +199,6 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
     prettyBy _      (UnknownDynamicBuiltinName ann err) =
         "Unknown dynamic built-in name at" <+> pretty ann <>
         ":" <+> pretty err
-    prettyBy _      OutOfGas                          = "Type checker ran out of gas."
 
 instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni ann) where

@@ -38,7 +38,7 @@ self: super: {
 
     mkDerivation = args: super.mkDerivation (args //
       pkgs.lib.optionalAttrs (args ? src) {
-        src = iohkNix.cleanSourceHaskell args.src;
+        src = legacyIohkNix.cleanSourceHaskell args.src;
     });
 
     # Cuts down time for doctests by an order of magnitude, see https://gitlab.haskell.org/ghc/ghc/issues/15524

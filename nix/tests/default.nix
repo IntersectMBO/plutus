@@ -1,0 +1,12 @@
+{ pkgs, iohkNix, src, haskell }:
+{
+  shellcheck = pkgs.callPackage iohkNix.tests.shellcheck { inherit src; };
+  stylishHaskell = pkgs.callPackage ./stylish-haskell.nix {
+    inherit src;
+    stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
+  };
+  purty = pkgs.callPackage ./purty.nix {
+    inherit src;
+    purty = haskell.extraPackages.purty.components.exes.purty;
+  };
+}

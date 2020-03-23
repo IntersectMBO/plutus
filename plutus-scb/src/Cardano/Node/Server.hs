@@ -33,7 +33,7 @@ app stateVar =
         (Proxy @API)
         (runStdoutLoggingT . processChainEffects stateVar)
         (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
-         (genRandomTx :<|> utxoAt :<|> blockchain :<|>
+         (genRandomTx :<|>
           consumeEventHistory stateVar) :<|>
           (newFollower :<|> getBlocks)
           )

@@ -55,6 +55,9 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.SigningProcess.API
+        Cardano.SigningProcess.Server
+        Cardano.SigningProcess.Client
         Cardano.Wallet.API
         Cardano.Wallet.Client
         Cardano.Wallet.Mock
@@ -91,7 +94,6 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
-        async -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
@@ -145,6 +147,7 @@ executable plutus-scb
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         aeson -any,
+        async -any,
         base >=4.9 && <5,
         bytestring -any,
         ekg -any,
@@ -201,6 +204,7 @@ test-suite plutus-scb-test
         plutus-scb -any,
         plutus-use-cases -any,
         plutus-wallet-api -any,
+        plutus-emulator -any,
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,

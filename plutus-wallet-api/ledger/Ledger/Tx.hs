@@ -11,6 +11,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module Ledger.Tx(
     -- * Transactions
     Tx(..),

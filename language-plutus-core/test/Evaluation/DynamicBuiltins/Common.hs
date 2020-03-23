@@ -24,7 +24,7 @@ typecheckAnd
     -> DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
     types <- dynamicBuiltinNameMeaningsToTypes () meanings
-    _ <- inferType (offChainConfig types) term
+    _ <- inferType (TypeCheckConfig types) term
     -- The bang is important in order to force the effects of a computation regardless of whether
     -- the result of the computation is forced or not.
     return $! action meanings term

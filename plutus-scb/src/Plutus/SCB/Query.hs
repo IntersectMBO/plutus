@@ -17,24 +17,39 @@ module Plutus.SCB.Query
     , setProjection
     , eventCount
     , latestContractStatus
+    , utxoAt
+    , utxoIndexProjection,blockCount
+    , pureProjection
     ) where
 
-import           Data.Map.Strict           (Map)
-import qualified Data.Map.Strict           as Map
-import           Data.Set                  (Set)
-import qualified Data.Set                  as Set
-import           Data.Text.Prettyprint.Doc (Pretty, pretty)
-import           Data.UUID                 (UUID)
-import           Eventful                  (Projection (Projection), StreamEvent (StreamEvent), StreamProjection,
-                                            VersionedStreamEvent, projectionEventHandler, projectionSeed,
-                                            streamProjectionState)
-import           Plutus.SCB.Events         (ChainEvent (UserEvent), UserEvent (ContractStateTransition))
-import           Plutus.SCB.Types          (ActiveContractState, activeContract, activeContractId)
+import           Data.Functor.Contravariant              (contramap)
+import           Data.Map.Strict                         (Map)
+import qualified Data.Map.Strict                         as Map
+import           Data.Monoid                             (Sum)
+import           Data.Set                                (Set)
+import qualified Data.Set                                as Set
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty)
+import           Data.UUID                               (UUID)
+import           Eventful                                (Projection (Projection), StreamEvent (StreamEvent),
+                                                          StreamProjection, VersionedStreamEvent,
+                                                          projectionEventHandler, projectionMapMaybe, projectionSeed,
+                                                          streamProjectionState)
+import           Language.Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (UtxoAtAddress), address, utxo)
+import           Ledger                                  (Address, Tx, TxId, TxOutTx (TxOutTx), txId, txOutAddress,
+                                                          txOutRefId, txOutTxOut, txOutTxTx)
+import           Ledger.Index                            (UtxoIndex (UtxoIndex))
+import qualified Ledger.Index                            as UtxoIndex
+import           Plutus.SCB.Events                       (ChainEvent (NodeEvent, UserEvent), NodeEvent (BlockAdded),
+                                                          UserEvent (ContractStateTransition))
+import           Plutus.SCB.Types                        (ActiveContractState, activeContract, activeContractId)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
-nullProjection =
-    Projection {projectionSeed = (), projectionEventHandler = const}
+nullProjection = contramap (const ()) monoidProjection
+
+-- | This projection just collects all events it sees into some applicative.
+pureProjection :: (Monoid (f e), Applicative f) => Projection (f e) e
+pureProjection = contramap pure monoidProjection
 
 -- | A projection that just accumulates any monoid you supply.
 -- This is particulatly useful when combined with function that filters down interesting events using 'projectionMapMaybe':
@@ -53,31 +68,62 @@ monoidProjection =
 
 -- | Similar to 'monoidProjection', but for accumulating sets instead of monoids.
 setProjection :: Ord a => Projection (Set a) a
-setProjection =
-    Projection
-        { projectionSeed = Set.empty
-        , projectionEventHandler = \state event -> Set.insert event state
-        }
+setProjection = contramap Set.singleton monoidProjection
 
 -- | A simple counter of all the events. This is the simplest 'Projection' that does any work.
-eventCount :: Projection Int (VersionedStreamEvent ChainEvent)
-eventCount = Projection {projectionSeed = 0, projectionEventHandler}
-  where
-    projectionEventHandler count _ = count + 1
+eventCount :: Projection (Sum Int) (VersionedStreamEvent ChainEvent)
+eventCount = contramap (const 1) monoidProjection
 
 -- | Retain the latest status for a given contract.
 latestContractStatus ::
        Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
-latestContractStatus =
-    Projection {projectionSeed = Map.empty, projectionEventHandler}
+latestContractStatus = projectionMapMaybe extractState monoidProjection
   where
-    projectionEventHandler m (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+    extractState (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         let uuid = activeContractId $ activeContract state
-         in Map.insert uuid state m
-    projectionEventHandler m _ = m
+         in Just $ Map.singleton uuid state
+    extractState _ = Nothing
 
 ------------------------------------------------------------
 -- | The Pretty instance for 'StreamProjection' just pretty prints its resulting 'state'.
 instance Pretty state =>
          Pretty (StreamProjection key position state event) where
     pretty = pretty . streamProjectionState
+
+utxoAt :: (Map TxId Tx, UtxoIndex) -> Address -> UtxoAtAddress
+utxoAt (txById, UtxoIndex utxoIndex) address =
+    let utxo =
+            Map.foldMapWithKey
+                (\txOutRef txOut ->
+                     case Map.lookup (txOutRefId txOutRef) txById of
+                         Nothing -> Map.empty
+                         Just tx ->
+                             if txOutAddress txOut == address
+                                 then Map.singleton
+                                          txOutRef
+                                          (TxOutTx
+                                               { txOutTxTx = tx
+                                               , txOutTxOut = txOut
+                                               })
+                                 else Map.empty)
+                utxoIndex
+     in UtxoAtAddress {address, utxo}
+
+utxoIndexProjection ::
+       Projection (Map TxId Tx, UtxoIndex) (StreamEvent key position ChainEvent)
+utxoIndexProjection =
+    Projection
+        { projectionSeed = (Map.empty, UtxoIndex Map.empty)
+        , projectionEventHandler
+        }
+  where
+    projectionEventHandler (oldTxById, oldUtxoIndex) (StreamEvent _ _ (NodeEvent (BlockAdded txs))) =
+        let newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
+            unprunedTxById =
+                foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
+            newTxById = id unprunedTxById -- TODO Prune spent keys.
+         in (newTxById, newUtxoIndex)
+    projectionEventHandler m _ = m
+
+blockCount :: Projection (Sum Integer) (StreamEvent key position ChainEvent)
+blockCount = contramap (const 1) monoidProjection

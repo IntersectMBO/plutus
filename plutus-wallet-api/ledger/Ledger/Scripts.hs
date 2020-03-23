@@ -16,6 +16,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 -- | Functions for working with scripts on the ledger.
 module Ledger.Scripts(
     -- * Scripts
@@ -150,7 +151,7 @@ fromCompiledCode :: CompiledCode PLC.DefaultUni a -> Script
 fromCompiledCode = fromPlc . getPlc
 
 fromPlc :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () -> Script
-fromPlc = Script . PLC.runQuote . PLC.normalizeTypesFullInProgram
+fromPlc = Script
 
 -- | Given two 'Script's, compute the 'Script' that consists of applying the first to the second.
 applyScript :: Script -> Script -> Script
@@ -187,7 +188,7 @@ typecheckScript (unScript -> p) =
             -- We should be normalized, so we can use the on-chain config
             -- See Note [Normalized types in Scripts]
             -- FIXME
-            let config = PLC.defOnChainConfig { PLC._tccDynamicBuiltinNameTypes = types }
+            let config = PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
