@@ -7,9 +7,9 @@ In all cases, when these unintended effects happen, Marlowe is designed to behav
 
 === Warnings
 
-Marlowe warnings are plain indications that a contract is wrongly written. A well written contract should never issue a warning, no matter how the users interact with it. Ideally, we would like to forbid contracts that can issue warnings from being ever written, but that would require Marlowe contracts to be dependently typed, and writing expressions that are dependently typed is much more cumbersome.
+Marlowe warnings are indications that a contract is written wrongly. A well-written contract should never issue a warning, no matter how the users interact with it. Ideally, we would like to forbid contracts that can issue warnings from being ever written, but that would require Marlowe contracts to be dependently-typed, and writing expressions that are dependently-typed is much more cumbersome.
 
-Instead, Marlowe allows contracts that issue warning to be written, and we provide xref:static-analysis#static-analysis[static analysis tools] that let contract developers check whether a particular contract can possibly issue warnings. Additionally, we provide fall-back behaviours for when a contract produces a warning (despite our advice). We provide fall-back behaviours because we acknowledge that analysing big contracts can be very computationally expensive, and because mistakes can be made. We want badly written contracts to fail in the most harmless way possible (i.e: conservatively).
+Instead, Marlowe allows contracts that issue warning to be written, and we provide xref:static-analysis#static-analysis[static analysis tools] that let contract developers check whether a particular contract can possibly issue warnings. Additionally, we provide fall-back behaviours for when a contract produces a warning, despite our advice. We provide fall-back behaviours because we acknowledge that analysing big contracts can be very computationally expensive, and because mistakes can be made. We want badly written contracts to fail in the most harmless way possible, that is conservatively.
 
 ==== Non-positive payments
 
@@ -19,13 +19,13 @@ Negative payments should be implemented as either positive deposits (when paying
 
 ==== Non-positive deposits
 
-When a contract is supposed to expect an amount of money that is less than one unit of a currency of token, it will still wait for a `IDeposit` transaction, but that transaction does not need to transfer any money into the contract and no money is transferred to the participant that issues the transaction. Once the fake deposit is successful, the contract will issue a `NonPositiveDeposit` warning.
+When a contract is supposed to expect an amount of money that is less than one unit of a currency of token, it will still wait for a `IDeposit` transaction, but that transaction does not need to transfer any money into the contract and no money is transferred to the participant that issues the transaction. Once this ‘fake’ deposit is successful, the contract will issue a `NonPositiveDeposit` warning.
 
 Negative deposits should always be implemented as positive payments.
 
 ==== Partial payment
 
-When a contract is supposed to pay an amount of money that is larger than the amount of money that there is in the source account, it will just transfer whatever is available in that account (even if there is enough money in the contract), and it will issue a `PartialPay` warning.
+When a contract is supposed to pay an amount of money that is larger than the amount of money that there is in the source account, it will just transfer whatever is available in that account, even if there is enough money in all the accounts of the contract, and it will issue a `PartialPay` warning.
 
 Partial payments should be avoided because a contract that never produces a partial payment is an explicit contract. Explicit contracts reassure their users that they will be enforceable, and that wherever in the contract it says a payment is going to happen it will indeed happen.
 
@@ -37,19 +37,19 @@ Shadowing is a bad programming practice because it leads to confusion. Using the
 
 === Bad smells
 
-There are some other bad smells that indicate that the contract that has them was probably poorly designed.
+There are some other ‘bad smells’ that indicate that the contract that has probably been poorly designed.
 
-These contracts are valid, in the sense that they will not necessarily cause any warnings, and they do what they say that they do, but they have signs that suggest that either the contract developer was not fully aware of the consequences of the contract, or that the developer purposefully wrote the contract in a way that was confusing for the reader.
+These contracts are valid, in the sense that they will not necessarily cause any warnings, and they do what they say that they do, but they have characteristics that suggest that either the contract developer was not fully aware of the consequences of the contract, or that the developer purposefully wrote the contract in a way that was confusing for the reader.
 
 ==== Undefined `Let` usage (should be a warning)
 
-When a `Use` construct uses an identifier that has not been defined yet, it will evaluate to `0`. No warning will be issued but, again, this is a bad practice because it can be misleading. `(Constant 0)` should be used instead since it is more explicit.
+When a `Use` construct uses an identifier that has not been defined yet, it will evaluate to the default value of `0`. No warning will be issued but, again, this is a bad practice because it can be misleading. `(Constant 0)` should be used instead since it makes explicit the amount in question.
 
-==== Unreachable parts of contract
+==== Unreachable parts of a contract
 
-This is the main bad smell in Marlowe contracts. If part of the contract can never be reached, why would did we include it in the first place?
+This is the main bad smell in Marlowe contracts. If part of the contract is unreachable, why would it have been included in the first place?
 
-This bad smell takes many shapes.
+This bad smell takes a number of shapes.
 
 ===== Sub-`Contract` is not reachable
 
@@ -58,7 +58,7 @@ For example:
 ----
     If FalseObs contract1 contract2
 ----
-The previous contract is equivalent to `contract1`. In general you should never use `FalseObs`, and you should only use `TrueObs` as the root observation of a `Case` construct.
+The previous contract is equivalent to `contract2`. In general you should never use `FalseObs`, and you should only use `TrueObs` as the root observation of a `Case` construct.
 
 ===== `Observation` is always short-cut
 
@@ -96,7 +96,7 @@ For example:
 ----
 `value1` will never be evaluated. But in this case we don't have a choice but to write something in the default value of `ChoiceValue`
 
-In future versions of Marlowe, we may remove the default value for `ChoiceValue` and we may introduce a special `Value` construct for this kind of situations.
+In future versions of Marlowe, we may remove the default value for `ChoiceValue` and we may introduce a special `Value` construct for this kind of situation.
 
 ===== Nested non-increasing timeouts
 
@@ -147,7 +147,7 @@ In general, it is a good practice to ensure that `When` constructs have increasi
 
 Finally, even if a contract is perfectly written. Users may use it incorrectly, and we call those incorrect usages errors.
 
-In all cases, whenever a transaction causes an error, the transaction will have no effect on the `Contract` or on its `State`. In fact, the wallet of a user will know in advance whether a transaction is going to produce an error, because transactions are deterministic, so users should never send need to send an erroneous transaction, 
+In all cases, whenever a transaction causes an error, the transaction will have no effect on the `Contract` or on its `State`. In fact, the wallet of a user will know in advance whether a transaction is going to produce an error, because transactions are deterministic, so users should never need to send an erroneous transaction to the blockchain. 
 
 ==== Ambiguous interval
 
