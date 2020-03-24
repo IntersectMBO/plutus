@@ -2,9 +2,13 @@ module Marlowe.Holes where
 
 import Prelude
 import Data.Array (foldMap, foldl, mapWithIndex)
+import Data.Array as Array
 import Data.BigInteger (BigInteger)
+import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (intercalate)
 import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Bounded (genericBottom, genericTop)
+import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
@@ -13,13 +17,14 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (length)
+import Data.String (Pattern(..), length, stripPrefix, stripSuffix, trim)
 import Data.String.Extra (unlines)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
 import Marlowe.Semantics (ChosenNum, Money, Rational, PubKey, Slot, Timeout, TokenName)
 import Marlowe.Semantics as S
+import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Parsing.StringParser (Pos)
 import Text.Parsing.StringParser.Basic (lines, replaceInPosition)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs)
@@ -50,6 +55,59 @@ derive instance genericMarloweType :: Generic MarloweType _
 
 instance showMarloweType :: Show MarloweType where
   show = genericShow
+
+derive instance ordMarloweType :: Ord MarloweType
+
+instance enumMarloweType :: Enum MarloweType where
+  succ = genericSucc
+  pred = genericPred
+
+instance boundedMarloweType :: Bounded MarloweType where
+  bottom = genericBottom
+  top = genericTop
+
+instance boundedEnumMarloweType :: BoundedEnum MarloweType where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
+
+allMarloweTypes :: Array MarloweType
+allMarloweTypes = upFromIncluding bottom
+
+readMarloweType :: String -> Maybe MarloweType
+readMarloweType "StringType" = Just StringType
+
+readMarloweType "BigIntegerType" = Just BigIntegerType
+
+readMarloweType "SlotType" = Just SlotType
+
+readMarloweType "AccountIdType" = Just AccountIdType
+
+readMarloweType "ChoiceIdType" = Just ChoiceIdType
+
+readMarloweType "ValueIdType" = Just ValueIdType
+
+readMarloweType "ActionType" = Just ActionType
+
+readMarloweType "PayeeType" = Just PayeeType
+
+readMarloweType "CaseType" = Just CaseType
+
+readMarloweType "ValueType" = Just ValueType
+
+readMarloweType "InputType" = Just InputType
+
+readMarloweType "ObservationType" = Just ObservationType
+
+readMarloweType "ContractType" = Just ContractType
+
+readMarloweType "BoundType" = Just BoundType
+
+readMarloweType "TokenType" = Just TokenType
+
+readMarloweType "PartyType" = Just PartyType
+
+readMarloweType _ = Nothing
 
 data Argument
   = ArrayArg String
@@ -139,10 +197,23 @@ getMarloweConstructors PartyType =
     , (Tuple "Role" [ DataArg "token" ])
     ]
 
+allMarloweConstructors :: Map String (Array Argument)
+allMarloweConstructors = foldl (\acc mt -> getMarloweConstructors mt <> acc) mempty allMarloweTypes
+
+-- Based on a String representation of a constructor get the MarloweType
+-- "Close" -> ContractType
+-- "PK" -> PartyType
+getMarloweTypeFromConstructor :: String -> Maybe MarloweType
+getMarloweTypeFromConstructor constructor =
+  let
+    f t = Set.member constructor (Map.keys (getMarloweConstructors t))
+  in
+    Array.find f allMarloweTypes
+
 -- | Creates a String consisting of the data constructor name followed by argument holes
 --   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
-constructMarloweType constructorName (MarloweHole { name, marloweType, row, column }) m = case Map.lookup constructorName m of
+constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.lookup constructorName m of
   Nothing -> ""
   Just [] -> constructorName
   Just vs -> "(" <> constructorName <> " " <> intercalate " " (mapWithIndex showArgument vs) <> ")"
@@ -206,6 +277,34 @@ instance stringIsMarloweType :: IsMarloweType String where
 
 instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
   marloweType _ = BigIntegerType
+
+marloweHoleToSuggestion :: Boolean -> IRange -> MarloweHole -> String -> CompletionItem
+marloweHoleToSuggestion stripParens range firstHole@(MarloweHole { marloweType }) constructorName =
+  let
+    kind = completionItemKind "Constructor"
+
+    m = getMarloweConstructors marloweType
+
+    fullInsertText = constructMarloweType constructorName firstHole m
+
+    insertText =
+      if stripParens then
+        fromMaybe fullInsertText
+          $ do
+              withoutPrefix <- stripPrefix (Pattern "(") $ trim fullInsertText
+              withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
+              pure withoutSuffix
+      else
+        fullInsertText
+  in
+    { label: constructorName, kind, range, insertText }
+
+holeSuggestions :: Boolean -> IRange -> MarloweHole -> Array CompletionItem
+holeSuggestions stripParens range marloweHole@(MarloweHole { name, marloweType }) =
+  let
+    marloweHoles = getMarloweConstructors marloweType
+  in
+    map (marloweHoleToSuggestion stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
 
 -- a Monoid for collecting Holes
 newtype Holes

@@ -3,10 +3,8 @@ module MainFrame (mkMainFrame) where
 import API (_RunResult)
 import Ace.EditSession as Session
 import Ace.Editor (getSession) as Editor
-import Ace.Halogen.Component (AceMessage(TextChanged))
-import Ace.Types (Annotation, Editor, Position(..))
+import Ace.Types (Annotation, Editor)
 import Analytics (Event, defaultEvent, trackEvent)
-import Halogen.Classes (aCenter, aHorizontal, btnSecondary, flexCol, hide, iohkIcon, isActiveTab, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Control.Bind (map, void, when)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.Except.Extra (noteT)
@@ -41,9 +39,11 @@ import Gists as Gists
 import Halogen (Component, ComponentHTML)
 import Halogen as H
 import Halogen.Blockly (BlocklyMessage(..), blockly)
+import Halogen.Classes (aCenter, aHorizontal, btnSecondary, flexCol, hide, iohkIcon, isActiveTab, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src)
+import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
@@ -56,7 +56,7 @@ import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
 import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Ajax (errorToString)
@@ -258,10 +258,12 @@ handleAction ::
   HAction -> m Unit
 handleAction (HaskellEditorAction subEvent) = haskellEditorHandleAction subEvent
 
-handleAction (MarloweHandleEditorMessage (TextChanged text)) = do
+handleAction (MarloweHandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   saveMarloweBuffer text
   updateContractInState text
+
+handleAction (MarloweHandleEditorMessage (Monaco.MarkersChanged markers)) = marloweEditorSetMarkers markers
 
 handleAction (MarloweHandleDragEvent event) = preventDefault event
 
@@ -271,10 +273,8 @@ handleAction (MarloweHandleDropEvent event) = do
   marloweEditorSetValue contents (Just 1)
   updateContractInState contents
 
-handleAction (MarloweMoveToPosition row column) = do
-  contents <- fromMaybe "" <$> marloweEditorGetValue
-  marloweEditorMoveCursorToPosition (Position { column, row })
-  assign _selectedHole Nothing
+handleAction (MarloweMoveToPosition lineNumber column) = do
+  marloweEditorMoveCursorToPosition { column, lineNumber }
 
 handleAction CheckAuthStatus = do
   assign _authStatus Loading
@@ -316,6 +316,7 @@ handleAction (LoadMarloweScript key) = do
           Right pcon -> show $ pretty pcon
           Left _ -> contents
       marloweEditorSetValue prettyContents (Just 1)
+      saveMarloweBuffer prettyContents
       updateContractInState prettyContents
       resetContract
 

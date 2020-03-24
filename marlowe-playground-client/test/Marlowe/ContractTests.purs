@@ -6,7 +6,7 @@ import Data.Array (snoc)
 import Data.Either (Either(..))
 import Data.Identity (Identity)
 import Data.Integral (fromIntegral)
-import Data.Lens (modifying, over, use, (^.))
+import Data.Lens (modifying, over, (^.))
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
@@ -14,11 +14,11 @@ import Data.Tuple (Tuple(..))
 import Editor as Editor
 import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
-import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSetAnnotations, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
+import MonadApp (class MonadApp, applyTransactions, extendWith, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import Types (FrontendState(..), HelpContext(..), SimulationBottomPanelView(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
+import Types (FrontendState(..), HelpContext(..), SimulationBottomPanelView(..), View(..), _Head, _contract, _currentMarloweState, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
 
 -- | For these tests we only need to worry about the MarloweState that is being carried around
 --   However we can use similar techniques to mock other parts of the App
@@ -47,18 +47,13 @@ instance monadAppState :: MonadApp MockApp where
   haskellEditorResize = pure unit
   marloweEditorSetValue _ _ = pure unit
   marloweEditorGetValue = pure (Just Contracts.escrow)
-  marloweEditorHandleAction _ = pure unit
-  marloweEditorSetAnnotations _ = pure unit
   marloweEditorMoveCursorToPosition _ = pure unit
   marloweEditorResize = pure unit
+  marloweEditorSetMarkers _ = pure unit
   preventDefault _ = pure unit
   readFileFromDragEvent _ = pure ""
   updateContractInState contract = do
     updateContractInStateImpl contract
-    errors <- use (_marloweState <<< _Head <<< _editorErrors)
-    warnings <- use (_marloweState <<< _Head <<< _editorWarnings)
-    marloweEditorSetAnnotations (errors <> warnings)
-  updateState = wrap $ modifying _currentMarloweState updateStateP
   saveInitialState = pure unit
   updateMarloweState f = wrap $ modifying _marloweState (extendWith f)
   applyTransactions = wrap $ modifying _marloweState (extendWith updateStateP)

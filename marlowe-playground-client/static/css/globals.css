@@ -111,6 +111,7 @@ button.small-btn {
 
 .flex-ten {
   flex: 10;
+  max-width: 100%;
 }
 
 .flex-four {

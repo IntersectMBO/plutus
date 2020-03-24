@@ -1,36 +1,38 @@
 module Simulation where
 
-import Ace.Halogen.Component (Autocomplete(Live), aceComponent)
 import Auth (AuthRole(..), authStatusAuthRole)
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, githubDisplay, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelHeader, panelHeaderMain, panelHeaderSide, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Control.Alternative (map)
 import Data.Array (foldr, intercalate, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
-import Data.Eq ((==))
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Lens (to, view, (^.))
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..), snd)
-import Editor (initEditor) as Editor
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 import Gist (Gist)
 import Gists (GistAction(..), idPublishGist)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, githubDisplay, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelHeader, panelHeaderMain, panelHeaderSide, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h4, h6, h6_, img, input, label, li, li_, p, p_, section, slot, small, small_, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
+import Halogen.Monaco (monacoComponent)
 import Halogen.SVG (Box(..), Length(..), Linecap(..), RGB(..), circle, clazz, cx, cy, d, fill, height, path, r, strokeLinecap, strokeWidth, svg, viewBox)
 import Halogen.SVG as SVG
 import Help (toHTML)
 import Icons (Icon(..), icon)
+import LocalStorage as LocalStorage
+import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
+import Monaco as Monaco
 import Network.RemoteData (RemoteData(..))
-import Prelude (class Show, const, mempty, show, unit, ($), (/=), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, bind, const, mempty, show, unit, ($), (/=), (<$>), (<<<), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError)
 import StaticData as StaticData
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _contract, _createGistResult, _editorErrors, _editorPreferences, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
@@ -38,8 +40,7 @@ import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction
 isContractValid :: FrontendState -> Boolean
 isContractValid state =
   view (_marloweState <<< _Head <<< _contract) state /= Nothing
-    && view (_marloweState <<< _Head <<< _editorErrors) state
-    == []
+    && view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
 
 render ::
   forall m.
@@ -91,9 +92,16 @@ marloweEditor ::
   ComponentHTML HAction ChildSlots m
 marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< MarloweHandleEditorMessage)
   where
-  component = aceComponent (Editor.initEditor initialContents StaticData.marloweBufferLocalStorageKey editorPreferences) (Just Live)
+  setup editor = do
+    mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey
+    let
+      contents = fromMaybe initialContents mContents
+    model <- liftEffect $ Monaco.getModel editor
+    liftEffect $ Monaco.setValue model contents
 
-  initialContents = Map.lookup "Deposit Incentive" StaticData.marloweContracts
+  component = monacoComponent $ MM.settings setup
+
+  initialContents = fromMaybe "" $ Map.lookup "Deposit Incentive" StaticData.marloweContracts
 
   editorPreferences = view _editorPreferences state
 
@@ -323,7 +331,7 @@ transaction state =
         (map (transactionRow state isEnabled) (state ^. (_marloweState <<< _Head <<< _pendingInputs)))
     ]
   where
-  isEnabled = state ^. (_marloweState <<< _Head <<< _contract) /= Nothing || state ^. (_marloweState <<< _Head <<< _editorErrors) /= []
+  isEnabled = state ^. (_marloweState <<< _Head <<< _contract) /= Nothing || state ^. (_marloweState <<< _Head <<< _editorErrors <<< to Array.null)
 
 transactionRow ::
   forall p.
