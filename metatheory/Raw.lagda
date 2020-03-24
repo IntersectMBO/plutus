@@ -235,7 +235,7 @@ decRTm (unwrap t) (unwrap t') | false = false
 decRTm _ _ = false
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConChar | RConUnit) #-}
-{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap | RIfThenElse) #-}
+{-# COMPILE GHC RawTm = data RTerm (RVar | RTLambda  | RTApp | RLambda  | RApp | RCon | RError | RBuiltin | RWrap | RUnWrap) #-}
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 {-# COMPILE GHC RawKind = data RKind (RKiStar | RKiFun) #-}
 
