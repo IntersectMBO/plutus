@@ -48,6 +48,7 @@ import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Text.Parsing.StringParser.Basic (lines)
+import Text.Pretty (pretty)
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, Message(..), WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.HTML.Event.DragEvent (DragEvent)
 import WebSocket (WebSocketRequestMessage(CheckForWarnings))
@@ -58,11 +59,13 @@ class
   haskellEditorGetValue :: m (Maybe String)
   haskellEditorHandleAction :: Editor.Action -> m Unit
   haskellEditorSetAnnotations :: Array Annotation -> m Unit
+  haskellEditorResize :: m Unit
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
   marloweEditorHandleAction :: Editor.Action -> m Unit
   marloweEditorSetAnnotations :: Array Annotation -> m Unit
   marloweEditorMoveCursorToPosition :: Ace.Position -> m Unit
+  marloweEditorResize :: m Unit
   preventDefault :: DragEvent -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateContractInState :: String -> m Unit
@@ -118,6 +121,10 @@ instance monadAppHalogenApp ::
           liftEffect do
             session <- AceEditor.getSession editor
             Session.setAnnotations annotations session
+  haskellEditorResize =
+    void
+      $ withHaskellEditor \editor ->
+          liftEffect $ AceEditor.resize Nothing editor
   marloweEditorSetValue contents i = void $ withMarloweEditor $ liftEffect <<< AceEditor.setValue contents i
   marloweEditorGetValue = withMarloweEditor $ liftEffect <<< AceEditor.getValue
   marloweEditorHandleAction action = void $ withMarloweEditor (Editor.handleAction marloweBufferLocalStorageKey action)
@@ -133,6 +140,10 @@ instance monadAppHalogenApp ::
   marloweEditorMoveCursorToPosition (Ace.Position { column, row }) = do
     void $ withMarloweEditor $ liftEffect <<< AceEditor.focus
     void $ withMarloweEditor $ liftEffect <<< AceEditor.navigateTo (row - 1) (column - 1)
+  marloweEditorResize =
+    void
+      $ withMarloweEditor \editor ->
+          liftEffect $ AceEditor.resize Nothing editor
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = do
@@ -151,6 +162,10 @@ instance monadAppHalogenApp ::
     wrap $ assign _marloweState $ NEL.singleton (emptyMarloweState zero)
     wrap $ assign _oldContract Nothing
     updateContractInStateImpl $ fromMaybe "" newContract
+    mContract <- use (_marloweState <<< _Head <<< _contract)
+    case mContract of
+      Just contract -> marloweEditorSetValue (show $ pretty contract) (Just 1)
+      _ -> pure unit
   saveBuffer text = wrap $ Editor.saveBuffer bufferLocalStorageKey text
   saveMarloweBuffer text = wrap $ Editor.saveBuffer marloweBufferLocalStorageKey text
   getOauthStatus = runAjax Server.getOauthStatus
@@ -240,7 +255,7 @@ updateContractInStateP text state = case parseContract text of
       warnings =
         map (warningToAnnotation text "The contract can make a negative payment here") (view L._negativePayments lintResult)
           <> map (warningToAnnotation text "The contract can make a negative deposit here") (view L._negativeDeposits lintResult)
-          <> map (warningToAnnotation text "Timeouts should always increase in value") (view L._timeoutNotIncreasing lintResult)
+          <> Set.toUnfoldable (Set.map (warningToAnnotation text "Timeouts should always increase in value") (view L._timeoutNotIncreasing lintResult))
           <> map (warningToAnnotation text "The contract tries to Use a ValueId that has not been defined in a Let") (view L._uninitializedUse lintResult)
           <> map (warningToAnnotation text "Let is redefining a ValueId that already exists") (view L._shadowedLet lintResult)
           <> map (warningToAnnotation text "This Observation will always evaluate to True") (view L._trueObservation lintResult)

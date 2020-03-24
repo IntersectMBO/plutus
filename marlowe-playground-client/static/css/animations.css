@@ -1,0 +1,72 @@
+.flip-container {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.flip-container.hover .back {
+    transform: rotateY(0deg);
+}
+
+.flip-container.hover .front {
+    transform: rotateY(180deg);
+}
+
+.flip-container,
+.front,
+.back {
+    width: 100%;
+    height: 3rem;
+}
+
+.flipper {
+    height: 3rem;
+    transition: 0.6s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+.front,
+.back {
+    backface-visibility: hidden;
+    transition: 0.6s;
+    transform-style: preserve-3d;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.front {
+    z-index: 2;
+    transform: rotateY(0deg);
+    cursor: pointer;
+}
+
+.back {
+    transform: rotateY(-180deg);
+}
+
+.vertical.flip-container {
+    position: relative;
+}
+
+.vertical.flip-container .flipper {
+    transform-origin: 0px;
+    /* half of height */
+}
+
+.vertical.flip-container .flipper * {
+    margin: 0;
+}
+
+.vertical .back {
+    transform: rotateX(180deg);
+}
+
+.vertical.flip-container.hover .back {
+    transform: rotateX(0deg);
+}
+
+.vertical.flip-container.hover .front {
+    transform: rotateX(180deg);
+}

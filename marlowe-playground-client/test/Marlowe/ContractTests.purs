@@ -18,7 +18,7 @@ import MonadApp (class MonadApp, applyTransactions, extendWith, marloweEditorSet
 import Network.RemoteData (RemoteData(..))
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
-import Types (FrontendState(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
+import Types (FrontendState(..), HelpContext(..), SimulationBottomPanelView(..), View(..), _Head, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _marloweState, _pendingInputs, _transactionError, emptyMarloweState)
 
 -- | For these tests we only need to worry about the MarloweState that is being carried around
 --   However we can use similar techniques to mock other parts of the App
@@ -44,11 +44,13 @@ instance monadAppState :: MonadApp MockApp where
   haskellEditorGetValue = pure Nothing
   haskellEditorSetAnnotations _ = pure unit
   haskellEditorHandleAction _ = pure unit
+  haskellEditorResize = pure unit
   marloweEditorSetValue _ _ = pure unit
   marloweEditorGetValue = pure (Just Contracts.escrow)
   marloweEditorHandleAction _ = pure unit
   marloweEditorSetAnnotations _ = pure unit
   marloweEditorMoveCursorToPosition _ = pure unit
+  marloweEditorResize = pure unit
   preventDefault _ = pure unit
   readFileFromDragEvent _ = pure ""
   updateContractInState contract = do
@@ -79,17 +81,22 @@ initialState :: FrontendState
 initialState =
   FrontendState
     { view: HaskellEditor
+    , simulationBottomPanelView: CurrentStateView
     , editorPreferences: Editor.Preferences { keyBindings: Editor.Ace }
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked
     , createGistResult: NotAsked
+    , loadGistResult: Right NotAsked
     , marloweState: NEL.singleton (emptyMarloweState zero)
     , oldContract: Nothing
     , gistUrl: Nothing
     , blocklyState: Nothing
     , analysisState: NotAsked
     , selectedHole: Nothing
+    , helpContext: MarloweHelp
+    , showRightPanel: true
+    , showBottomPanel: true
     }
 
 runTests :: forall a. MockApp a -> Tuple a FrontendState
