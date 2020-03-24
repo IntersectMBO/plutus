@@ -4,13 +4,13 @@
       nix = {
         nixPath = [ "nixpkgs=${nixpkgsLocation}"
                   ];
-        binaryCaches = [ https://hydra.iohk.io https://cache.nixos.org https://mantis-hydra.aws.iohkdev.io ];
+        binaryCaches = [ https://hydra.iohk.io https://cache.nixos.org ];
         requireSignedBinaryCaches = false;
         extraOptions = ''
           build-cores = 8
           auto-optimise-store = true
         '';
-        trustedBinaryCaches = [ https://hydra.iohk.io https://mantis-hydra.aws.iohkdev.io ];
+        trustedBinaryCaches = [ https://hydra.iohk.io ];
         binaryCachePublicKeys = [
           "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         ];

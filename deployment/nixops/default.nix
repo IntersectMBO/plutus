@@ -7,7 +7,7 @@ let
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
   enableGithubHooks = plutus.pkgs.lib.hasAttr "githubWebhookKey" secrets;
   deploymentConfigDir = plutus.pkgs.copyPathToStore ../nixops ;
-  deploymentServer = plutus.haskellPackages.deployment-server;
+  deploymentServer = plutus.haskell.packages.deployment-server.components.exes.deployment-server-exe;
   plutusUrl = "https://${machines.environment}.${machines.plutusTld}";
   marloweUrl = "https://${machines.environment}.${machines.marloweTld}";
   mkConfig = ghsecrets: redirectUrl: callbackUrl: name: plutus.pkgs.writeTextFile {
