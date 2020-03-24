@@ -79,8 +79,6 @@ ren-erase ρ⋆ ρ (error x)          = refl
 ren-erase ρ⋆ ρ (builtin bn As ts) = cong (builtin bn) (ren-eraseList ρ⋆ ρ ts)
 ren-erase ρ⋆ ρ (wrap pat ar t)    = ren-erase ρ⋆ ρ t
 ren-erase ρ⋆ ρ (unwrap t)         = ren-erase ρ⋆ ρ t
-ren-erase ρ⋆ ρ (if b then t else u) =
-  cong₃ if_then_else_ (ren-erase ρ⋆ ρ b) (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
 
 --
 
@@ -142,8 +140,6 @@ sub-erase σ⋆ σ (builtin bn As ts) = cong
   (subList-erase σ⋆ σ ts)
 sub-erase σ⋆ σ (wrap pat arg t)   = sub-erase σ⋆ σ t
 sub-erase σ⋆ σ (unwrap t)         = sub-erase σ⋆ σ t
-sub-erase σ⋆ σ (if b then t else u) =
-  cong₃ if_then_else_ (sub-erase σ⋆ σ b) (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
 
 erase-extend : ∀{n}{w : Weirdℕ n}
   → (u : ScopedTm w)

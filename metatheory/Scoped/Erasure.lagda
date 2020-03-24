@@ -49,5 +49,4 @@ eraseTm (error A)            = error
 eraseTm (builtin bn As ts)   = builtin bn (eraseList ts)
 eraseTm (wrap pat arg t)     = eraseTm t
 eraseTm (unwrap t)           = eraseTm t
-eraseTm (if b then t else u) = if eraseTm b then eraseTm t else eraseTm u
 \end{code}

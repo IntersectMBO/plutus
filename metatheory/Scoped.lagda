@@ -134,8 +134,6 @@ shifter m w (builtin b) = builtin b
 shifter m w (wrap pat arg t) =
   wrap (shifterTy m w pat) (shifterTy m w arg) (shifter m w t)
 shifter m w (unwrap t) = unwrap (shifter m w t)
-shifter m w (if b then t else u) =
-  if shifter m w b then shifter m w t else shifter m w u
 
 unshifterTy : ∀{n} → Weirdℕ n → RawTy → RawTy
 unshifterTy w (` x) = ` (suc (lookupWTy' x w))
@@ -159,8 +157,6 @@ unshifter w (builtin b) = builtin b
 unshifter w (wrap pat arg t) =
   wrap (unshifterTy w pat) (unshifterTy w arg) (unshifter w t)
 unshifter w (unwrap t) = unwrap (unshifter w t)
-unshifter w (if b then t else u) =
-  if unshifter w b then unshifter w t else unshifter w u
 
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon
@@ -182,8 +178,6 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
             → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
-
-  if_then_else_ : ScopedTm w → ScopedTm w → ScopedTm w → ScopedTm w
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
@@ -258,11 +252,6 @@ scopeCheckTm (wrap A B t) = do
   t ← scopeCheckTm t
   return (wrap A B t)
 scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
-scopeCheckTm (if b then t else u) = do
-  b ← scopeCheckTm b
-  t ← scopeCheckTm t
-  u ← scopeCheckTm u
-  return (if b then t else u)
 \end{code}
 
 -- SATURATION OF BUILTINS
@@ -296,30 +285,12 @@ arity sha2-256 = 1
 arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
+arity ifThenElse = 3
 
 arity⋆ : Builtin → ℕ
+arity⋆ ifThenElse = 1
 arity⋆ _ = 0
-{-
-arity⋆ addInteger = 1
-arity⋆ subtractInteger = 1
-arity⋆ multiplyInteger = 1
-arity⋆ divideInteger = 1
-arity⋆ quotientInteger = 1
-arity⋆ remainderInteger = 1
-arity⋆ modInteger = 1
-arity⋆ lessThanInteger = 1
-arity⋆ lessThanEqualsInteger = 1
-arity⋆ greaterThanInteger = 1
-arity⋆ greaterThanEqualsInteger = 1
-arity⋆ equalsInteger = 1
-arity⋆ concatenate = 1
-arity⋆ takeByteString = 2
-arity⋆ dropByteString = 2
-arity⋆ sha2-256 = 1
-arity⋆ sha3-256 = 1
-arity⋆ verifySignature = 3
-arity⋆ equalsByteString = 1
--}
+
 open import Relation.Nullary
 
 builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
@@ -351,7 +322,6 @@ saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
 saturate (wrap A B t) = wrap A B (saturate t)
 saturate (unwrap t)   = unwrap (saturate t)
-saturate (if b then t else f) = if saturate b then saturate t else saturate f
 
 -- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
@@ -379,8 +349,6 @@ unsaturate (builtin b As bs) =
   builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
 unsaturate (wrap A B t) = wrap A B (unsaturate t)
 unsaturate (unwrap t)   = unwrap (unsaturate t)
-unsaturate (if b then t else f) =
-  if unsaturate b then unsaturate t else unsaturate f
 \end{code}
 
 \begin{code}
@@ -429,8 +397,6 @@ extricateScope (builtin bn _ _) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
-extricateScope (if b then t else f) =
-  if extricateScope b then extricateScope t else extricateScope f
 \end{code}
 
 -- UGLY PRINTING
@@ -477,12 +443,4 @@ ugly (builtin b As ts) =
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
-ugly (if b then t else u) = 
-  "(if "
-  ++ ugly b
-  ++ " then "
-  ++ ugly t
-  ++ " else "
-  ++ ugly u
-  ++ ")"
 \end{code}

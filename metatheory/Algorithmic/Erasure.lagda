@@ -26,6 +26,7 @@ open import Type.BetaNBE.Soundness
 open import Data.Nat
 open import Data.Fin
 open import Data.List
+open import Data.Product renaming (_,_ to _,,_)
 \end{code}
 
 \begin{code}
@@ -63,8 +64,6 @@ erase (unwrap1 t)          = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
 erase (builtin bn σ ts)    = builtin bn (eraseTel ts)
 erase (error A)            = error
-erase (if b then t else f) = if erase b then erase t else erase f
-open import Data.Product renaming (_,_ to _,,_)
 
 eraseTel {As = []}     _          = []
 eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
@@ -254,10 +253,10 @@ same {Γ = Γ} (D.builtin sha2-256 σ ts) = trans (cong (builtin sha2-256) (same
 same {Γ = Γ} (D.builtin sha3-256 σ ts) = trans (cong (builtin sha3-256) (sameTel σ (proj₁ (proj₂ (DS.SIG sha3-256))) ts)) (lemTel (lenLemma Γ) sha3-256 _)
 same {Γ = Γ} (D.builtin verifySignature σ ts) = trans (cong (builtin verifySignature) (sameTel σ (proj₁ (proj₂ (DS.SIG verifySignature))) ts)) (lemTel (lenLemma Γ) verifySignature _)
 same {Γ = Γ} (D.builtin equalsByteString σ ts) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
+same {Γ = Γ} (D.builtin ifThenElse σ ts) = {!trans (cong (builtin ifThenElse) (sameTel σ (proj₁ (proj₂ (DS.SIG ifThenElse))) ts)) (lemTel (lenLemma Γ) ifThenElse _)!}
+
+-- trans (cong (builtin ifThenElse) (sameTel σ (proj₁ (proj₂ (DS.SIG ifThenElse))) ts)) (lemTel (lenLemma Γ) ifThenElse _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
-same {Γ = Γ} (D.if b then t else f) = trans
-  (cong₃ if_then_else_ (same b) (same t) (same f))
-  (lemifthenelse (lenLemma Γ) (erase (nfType b)) (erase (nfType t)) (erase (nfType f)))
 
 open import Algorithmic.Soundness
 
@@ -394,8 +393,9 @@ same' {Γ = Γ} (builtin equalsByteString σ ts) = trans
   (cong (builtin equalsByteString)
         (same'Tel σ (proj₁ (proj₂ (AS.SIG equalsByteString))) ts))
   (lemTel (same'Len Γ) equalsByteString _)
+same' {Γ = Γ} (builtin ifThenElse σ ts) = trans
+  (cong (builtin ifThenElse)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG ifThenElse))) ts))
+  (lemTel (same'Len Γ) ifThenElse _)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
-same' {Γ = Γ} (if b then t else f) = trans
-  (cong₃ if_then_else_ (same' b) (same' t) (same' f))
-  (lemifthenelse (same'Len Γ) _ _ _)
 \end{code}

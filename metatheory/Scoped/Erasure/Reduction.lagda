@@ -75,7 +75,4 @@ erase—→ (S.sat-builtin {b = b}{ts = ts}{t = t}) = inj₁ (subst (builtin b (
 erase—→ (S.ξ-unwrap p) = erase—→ p
 erase—→ (S.ξ-wrap p) = erase—→ p
 erase—→ (S.β-wrap p) = inj₂ refl
-erase—→ (S.ξ-if p)   = map U.ξ-if (cong (if_then _ else _)) (erase—→ p)
-erase—→ S.β-if-true  = inj₁ U.β-if-true
-erase—→ S.β-if-false = inj₁ U.β-if-false 
 \end{code}

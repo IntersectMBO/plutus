@@ -137,4 +137,11 @@ SIG equalsByteString =
   con bytestring ∷ con bytestring ∷ []
   ,,
   con bool
+SIG ifThenElse =
+  (∅ ,⋆ *)
+  ,,
+  con bool ∷ ` Z ∷ ` Z ∷ []
+  ,,
+  ` Z
+
 \end{code}

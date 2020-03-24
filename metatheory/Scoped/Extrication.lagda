@@ -100,6 +100,4 @@ extricate (con c) = con (extricateC c)
 extricate {Φ}{Γ} (builtin b σ ts) =
   builtin b (extricateSub σ) (extricateTel σ _ ts)
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
-extricate (if b then t else f) =
-  if extricate b then extricate t else extricate f
 \end{code}

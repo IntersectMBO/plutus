@@ -165,8 +165,6 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
-  if_then_else_ : {A : Φ ⊢⋆ *} → Γ ⊢ con bool → Γ ⊢ A → Γ ⊢ A → Γ ⊢ A
-
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
 \end{code}

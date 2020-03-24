@@ -33,7 +33,7 @@ data RConstant = RConInt Integer
                | RConStr T.Text
                | RConBool Bool
                | RConChar Char
-               | RConUnit
+               | RConUnit ()
                deriving Show
 
 data RTerm = RVar Integer

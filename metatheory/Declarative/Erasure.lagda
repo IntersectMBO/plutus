@@ -52,7 +52,6 @@ erase (conv p t)        = erase t
 erase {Φ}{Γ} (con t)    = con (eraseTC {Γ = Γ} t)
 erase (builtin bn σ ts) = builtin bn (eraseTel ts)
 erase (error A)         = error
-erase (if b then t else f) = if erase b then erase t else erase f
 
 open import Data.Product renaming (_,_ to _,,_)
 

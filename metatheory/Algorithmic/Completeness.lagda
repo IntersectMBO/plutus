@@ -104,6 +104,7 @@ nfTypeSIG≡₁ sha2-256 = refl
 nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
+nfTypeSIG≡₁ ifThenElse = refl
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
@@ -152,6 +153,8 @@ nfTypeSIG≡₂ sha2-256 = refl
 nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
+nfTypeSIG≡₂ ifThenElse = refl
+
 open import Builtin.Constant.Type
 
 lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
@@ -190,6 +193,7 @@ lemList sha2-256 = refl
 lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
+lemList ifThenElse = refl
 
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
@@ -262,7 +266,6 @@ nfType {Γ} (Syn.builtin bn σ tel) = let
       ((nf ∘ σ ∘ substEq (_∋⋆ _) (sym (nfTypeSIG≡₁ bn))))
       (nfTypeTel' σ As (sym (nfTypeSIG≡₁ bn)) As' (lemList bn) tel))
 nfType {Γ} (Syn.error A) = Norm.error (nf A)
-nfType (Syn.if B then T else F) = Norm.if nfType B then nfType T else nfType F
 
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))

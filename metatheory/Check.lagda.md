@@ -281,11 +281,4 @@ inferType Γ (unwrap L)        = do
     where _ → inj₂ unwrapError
   --v why is this eta expanded in the spec?
   return (nf (embNf pat · (μ1 · embNf pat) · embNf arg) ,, unwrap1 L)
-inferType Γ (if b then t else u) = do
-  con bool ,, b ← inferType Γ b
-    where _ → inj₂ typeError
-  X ,, t ← inferType Γ t
-  X' ,, u ← inferType Γ u
-  refl  ← meqNfTy X X'
-  return (X ,, if b then t else u)
 ```

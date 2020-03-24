@@ -171,6 +171,7 @@ lemList' sha2-256 = refl≡β _ ,, _
 lemList' sha3-256 = refl≡β _ ,, _
 lemList' verifySignature = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 lemList' equalsByteString = refl≡β _ ,, refl≡β _ ,, _
+lemList' ifThenElse = refl≡β _ ,, refl≡β _ ,, refl≡β _ ,, _
 
 lemsub : ∀{Γ Δ}(A : Δ ⊢Nf⋆ *)(A' : Δ ⊢⋆ *)
   → (σ : {J : Kind} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
@@ -224,7 +225,6 @@ emb (Alg.builtin bn σ tel) = let
          (embNf ∘ σ ∘ substEq (_∋⋆ _) (nfTypeSIG≡₁ bn))
          (embTel (nfTypeSIG≡₁ bn) As' As (lemList' bn) σ tel))
 emb (Alg.error A) = Dec.error (embNf A)
-emb (Alg.if B then T else F) = Dec.if emb B then emb T else emb F
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb

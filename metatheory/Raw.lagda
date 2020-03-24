@@ -53,7 +53,6 @@ data RawTm : Set where
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
   unwrap        : RawTm → RawTm
-  if_then_else_ : RawTm → RawTm → RawTm → RawTm
   
 -- α equivalence
 
@@ -231,9 +230,6 @@ decRTm (wrap pat arg t) (wrap pat' arg' t') with decRTy pat pat'
 decRTm (unwrap t) (unwrap t') with decRTm t t'
 decRTm (unwrap t) (unwrap t') | true = true
 decRTm (unwrap t) (unwrap t') | false = false
-decRTm (if b then t else u) (if b' then t' else u') with decRTm b b' | decRTm t t' | decRTm u u'
-... | true | true | true = true
-... | _    | _    | _    = false
 decRTm _ _ = false
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC RawTermCon = data RConstant (RConInt | RConBS | RConStr | RConBool | RConChar | RConUnit) #-}
@@ -264,12 +260,4 @@ rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
 rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
-rawPrinter (if b then t else u) =
-  "(if "
-  ++ rawPrinter b
-  ++ " then "
-  ++ rawPrinter t
-  ++ " else "
-  ++ rawPrinter u
-  ++ ")"
 \end{code}

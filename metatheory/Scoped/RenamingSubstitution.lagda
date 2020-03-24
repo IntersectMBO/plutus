@@ -57,7 +57,6 @@ ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
 ren ρ⋆ ρ (builtin b As ts) = builtin b (ren⋆L ρ⋆ As) (renL ρ⋆ ρ ts)
 ren ρ⋆ ρ (wrap A B t) = wrap (ren⋆ ρ⋆ A) (ren⋆ ρ⋆ B) (ren ρ⋆ ρ t)
 ren ρ⋆ ρ (unwrap t) = unwrap (ren ρ⋆ ρ t)
-ren ρ⋆ ρ (if b then t else u) = if ren ρ⋆ ρ b then ren ρ⋆ ρ t else ren ρ⋆ ρ u
 
 renL ρ⋆ ρ []       = []
 renL ρ⋆ ρ (t ∷ ts) = ren ρ⋆ ρ t ∷ renL ρ⋆ ρ ts
@@ -108,7 +107,6 @@ sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
 sub σ⋆ σ (builtin b As ts) = builtin b (sub⋆L σ⋆ As) (subL σ⋆ σ ts)
 sub σ⋆ σ (wrap A B t) = wrap (sub⋆ σ⋆ A) (sub⋆ σ⋆ B) (sub σ⋆ σ t)
 sub σ⋆ σ (unwrap t) = unwrap (sub σ⋆ σ t)
-sub σ⋆ σ (if b then t else u) = if sub σ⋆ σ b then sub σ⋆ σ t else sub σ⋆ σ u
 
 subL σ⋆ σ []       = []
 subL σ⋆ σ (t ∷ ts) = sub σ⋆ σ t ∷ subL σ⋆ σ ts
