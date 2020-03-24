@@ -8,7 +8,7 @@ Note that for simplicity it will exclude the `nixops` machine so if you make cha
 
 The deployment server is run on the nixops server however it is only enabled if the `githubWebhookKey` is present in `secrets.json`.
 
-The deployment server relies on a nixops deployment called `playgrounds` existing. The reason for this is that it's difficult to manage ssh keys for the service however when a deployment is created the keys it is created with are stored in the state. Additionally this means you can rollback the deployment manually etc. Hopefully you called your original deployment `playgrounds` however if you didn't you can just create a new deployment with that name and delete the old one with the `--force` flag set.
+The deployment server relies on a nixops deployment called `playgrounds` existing. The reason for this is that it's difficult to manage ssh keys for the service however when a deployment is created the keys it is created with are stored in the state. It is essential that you create the deployment as the `nixops` user, otherwise the deployment server won't have permission to ssh to the target machines. Additionally this means you can rollback the deployment manually etc. Hopefully you called your original deployment `playgrounds` however if you didn't you can just create a new deployment with that name and delete the old one with the `--force` flag set.
 
 If you're using the deployment server then whenever you deploy manually you will need to do `nixops modify ./default.nix ./network.nix -d playgrounds` first.
 
