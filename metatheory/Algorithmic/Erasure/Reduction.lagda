@@ -65,7 +65,6 @@ eraseErr (A.E-·⋆ e) = U.E-todo
 eraseErr (A.E-unwrap e) = U.E-todo
 eraseErr (A.E-wrap e) = U.E-todo
 eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
-eraseErr (A.E-if e) = U.E-todo
 
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
@@ -160,6 +159,8 @@ erase-BUILTIN verifySignature Γ σ _
   erase-VERIFYSIG _
 erase-BUILTIN equalsByteString Γ σ _
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
+erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.false) ,, vt ,, vu) = refl
+erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.true)  ,, vt ,, vu) = refl
 \end{code}
 
 \begin{code}
@@ -206,9 +207,6 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
       (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
-erase—→ (A.ξ-if p)   = map U.ξ-if (cong (if_then _ else _)) (erase—→ p)
-erase—→ A.β-if-true  = inj₁ U.β-if-true
-erase—→ A.β-if-false = inj₁ U.β-if-false 
 \end{code}
 
 -- returning nothing means that the typed step vanishes

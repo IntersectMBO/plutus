@@ -193,6 +193,7 @@ lem-erase' {Γ = Γ} p t = trans
   (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} refl)))
   (lem-erase refl p t)
 
+{-
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
@@ -257,6 +258,7 @@ same {Γ = Γ} (D.builtin ifThenElse σ ts) = {!trans (cong (builtin ifThenElse)
 
 -- trans (cong (builtin ifThenElse) (sameTel σ (proj₁ (proj₂ (DS.SIG ifThenElse))) ts)) (lemTel (lenLemma Γ) ifThenElse _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
+-}
 
 open import Algorithmic.Soundness
 
@@ -288,6 +290,7 @@ same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
 same'TC (AC.char c)       = refl
 same'TC AC.unit           = refl
+
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
