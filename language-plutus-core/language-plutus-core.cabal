@@ -29,6 +29,7 @@ library
         Language.PlutusCore.Evaluation.Machine.ExBudgeting
         Language.PlutusCore.Evaluation.Machine.Exception
         Language.PlutusCore.Evaluation.Machine.ExMemory
+        Language.PlutusCore.Evaluation.Evaluator
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
@@ -57,6 +58,7 @@ library
         Language.PlutusCore.StdLib.Data.Nat
         Language.PlutusCore.StdLib.Data.Sum
         Language.PlutusCore.StdLib.Data.Unit
+        Language.PlutusCore.StdLib.Data.ScottUnit
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
@@ -93,7 +95,6 @@ library
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
         Language.PlutusCore.Constant.Dynamic.Emit
-        Language.PlutusCore.Constant.Dynamic.Instances
         Language.PlutusCore.Constant.Dynamic.OnChain
         Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function

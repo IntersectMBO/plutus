@@ -14,7 +14,7 @@ open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.Equality
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Declarative
 \end{code}
@@ -58,6 +58,10 @@ renTermCon : ∀ {Φ Ψ}
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
+renTermCon ρ⋆ (bool b)       = bool b
+renTermCon ρ⋆ (char c)       = char c
+renTermCon ρ⋆ unit           = unit
+
 \end{code}
 
 \begin{code}
@@ -162,7 +166,11 @@ substTermCon : ∀ {Φ Ψ}
   → ({A : Φ ⊢⋆ *} → TermCon A → TermCon (⋆.subst σ⋆ A ))
 substTermCon _ (integer i)    = integer i
 substTermCon _ (bytestring b) = bytestring b
-substTermCon _ (string b)     = string b
+substTermCon _ (string s)     = string s
+substTermCon _ (bool b)       = bool b
+substTermCon _ (char c)       = char c
+substTermCon _ unit           = unit
+
 \end{code}
 
 

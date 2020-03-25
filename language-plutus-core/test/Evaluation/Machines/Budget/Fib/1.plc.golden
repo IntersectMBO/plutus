@@ -2,11 +2,11 @@
 , ({ tally: ({ BTyInst causes ({ cpu: 6
 | mem: 6
 })
-| BApply causes ({ cpu: 17
-| mem: 17
+| BApply causes ({ cpu: 18
+| mem: 18
 })
-| BVar causes ({ cpu: 14
-| mem: 14
+| BVar causes ({ cpu: 12
+| mem: 12
 })
 | BIWrap causes ({ cpu: 1
 | mem: 1
@@ -14,13 +14,16 @@
 | BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 1
 | mem: 1
 })
+| BBuiltin (StaticStagedBuiltinName IfThenElse) causes ({ cpu: 1
+| mem: 1
+})
 | BUnwrap causes ({ cpu: 2
 | mem: 2
 })
 | BAST causes ({ cpu: 0
-| mem: 657
+| mem: 549
 })})
 | budget: ({ cpu: 41
-| mem: 698
+| mem: 590
 })
 }))

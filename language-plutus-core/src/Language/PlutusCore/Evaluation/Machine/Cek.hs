@@ -101,7 +101,7 @@ instance Pretty CekUserError where
 data Closure uni = Closure
     { _closureVarEnv :: VarEnv uni
     , _closureValue  :: WithMemory Value uni
-    }
+    } deriving (Show)
 
 -- | Variable environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
@@ -138,6 +138,7 @@ data Frame uni
     | FrameTyInstArg (Type TyName uni ExMemory)                                  -- ^ @{_ A}@
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
+    deriving (Show)
 
 type Context uni = [Frame uni]
 
@@ -297,13 +298,6 @@ applyEvaluate funVarEnv argVarEnv con fun arg =
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 
--- | Reduce a saturated application of a builtin function in the empty context.
-computeInCekM
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => EvaluateConstApp uni (CekM uni) ann -> CekM uni (ConstAppResult uni ann)
-computeInCekM = runEvaluateT eval where
-    eval means' = local (over cekEnvMeans $ mappend means') . computeCek [] . withMemory
-
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
@@ -312,16 +306,9 @@ applyStagedBuiltinName
     -> CekM uni (ConstAppResult uni ExMemory)
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-    computeInCekM $ applyTypeSchemed
-        n
-        sch
-        x
-        exX
-        args
+    applyTypeSchemed n sch x exX args
 applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    computeInCekM $ applyBuiltinName
-        name
-        args
+    applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
@@ -371,4 +358,4 @@ readKnownCek
     => DynamicBuiltinNameMeanings uni
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek = readKnownBy evaluateCek
+readKnownCek means = evaluateCek means >=> readKnown

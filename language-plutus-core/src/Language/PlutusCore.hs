@@ -18,7 +18,9 @@ module Language.PlutusCore
     , ValueOf (..)
     , someValue
     , Includes (..)
+    , IncludesAll
     , Closed (..)
+    , EverywhereAll
     , knownUniOf
     , GShow (..)
     , show

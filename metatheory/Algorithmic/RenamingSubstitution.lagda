@@ -24,7 +24,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNormal.Equality
 \end{code}
 
@@ -65,6 +65,9 @@ renTermCon : ∀ {Φ Ψ}
 renTermCon ρ⋆ (integer i)    = integer i
 renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
+renTermCon ρ⋆ (bool b)       = bool b
+renTermCon ρ⋆ (char c)       = char c
+renTermCon ρ⋆ unit           = unit
 \end{code}
 
 \begin{code}
@@ -166,6 +169,9 @@ substTermCon : ∀ {Φ Ψ}
 substTermCon σ⋆ (integer i)    = integer i
 substTermCon σ⋆ (bytestring b) = bytestring b
 substTermCon σ⋆ (string s)     = string s
+substTermCon σ⋆ (bool b)       = bool b
+substTermCon σ⋆ (char c)       = char c
+substTermCon σ⋆ unit           = unit
 \end{code}
 
 \begin{code}
@@ -210,7 +216,7 @@ subst σ⋆ σ (builtin bn σ' X) = let _ ,, _ ,, A = SIG bn in conv⊢
   refl
   (substNf-comp σ' σ⋆ A)
   (builtin bn (substNf σ⋆ ∘ σ') (substTel σ⋆ σ X))
-subst σ⋆ x (error A) = error (substNf σ⋆ A)
+subst σ⋆ σ (error A) = error (substNf σ⋆ A)
 \end{code}
 
 \begin{code}

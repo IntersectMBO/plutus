@@ -19,7 +19,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
-  ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNBE.RenamingSubstitution
 open import Data.Sum as S
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -158,8 +158,9 @@ erase-BUILTIN verifySignature Γ σ _
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, A.V-con (bytestring b'') ,, tt) =
   erase-VERIFYSIG _
 erase-BUILTIN equalsByteString Γ σ _
-  (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) =
-  erase-if (equals b b') _ _     
+  (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
+erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.false) ,, vt ,, vu) = refl
+erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.true)  ,, vt ,, vu) = refl
 \end{code}
 
 \begin{code}

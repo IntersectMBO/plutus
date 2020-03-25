@@ -18,7 +18,7 @@ open import Data.Integer as I
 open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality hiding ([_];trans)
-import Data.Bool as B
+open import Data.Bool using (Bool;true;false)
 \end{code}
 
 \begin{code}
@@ -95,10 +95,10 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
               → Error t
               → Error (builtin b As ts)
 
-VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe B.Bool → ScopedTm w
-VERIFYSIG (just B.false) = false
-VERIFYSIG (just B.true)  = true
-VERIFYSIG nothing        = error ScopedBoolean
+VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
+VERIFYSIG (just false) = con (bool false)
+VERIFYSIG (just true)  = con (bool true)
+VERIFYSIG nothing        = error (con bool)
 
 
 BUILTIN : ∀{n}{w : Weirdℕ n} → Builtin
@@ -126,20 +126,20 @@ BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , 
 BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
 BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) =
-  decIf (i <? i') true false
-BUILTIN lessThanInteger _ _ _ = error ScopedBoolean
+  decIf (i <? i') (con (bool true)) (con (bool false))
+BUILTIN lessThanInteger _ _ _ = error (con bool)
 BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≤? i') true false
-BUILTIN lessThanEqualsInteger _ _ _ = error ScopedBoolean
+  decIf (i I.≤? i') (con (bool true)) (con (bool false))
+BUILTIN lessThanEqualsInteger _ _ _ = error (con bool)
 BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i >? i') true false
-BUILTIN greaterThanInteger _ _ _ = error ScopedBoolean
+  decIf (i >? i') (con (bool true)) (con (bool false))
+BUILTIN greaterThanInteger _ _ _ = error (con bool)
 BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i ≥? i') true false
-BUILTIN greaterThanEqualsInteger _ _ _ = error ScopedBoolean
+  decIf (i ≥? i') (con (bool true)) (con (bool false))
+BUILTIN greaterThanEqualsInteger _ _ _ = error (con bool)
 BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
-  decIf (i I.≟ i') true false
-BUILTIN equalsInteger _ _ _ = error ScopedBoolean
+  decIf (i I.≟ i') (con (bool true)) (con (bool false))
+BUILTIN equalsInteger _ _ _ = error (con bool)
 -- BS -> BS -> BS
 BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
 BUILTIN concatenate _ _ _ = error (con bytestring)
@@ -157,8 +157,13 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  B.if equals b b' then true else false
-BUILTIN equalsByteString _ _ _ = error ScopedBoolean
+  con (bool (equals b b'))
+BUILTIN equalsByteString _ _ _ = error (con bool)
+BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , _) = t
+BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , _) = u
+BUILTIN ifThenElse (A ∷ []) _ _ = error A
+BUILTIN ifThenElse _ _ _ = error (con (bool))
+
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
@@ -194,6 +199,7 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
+
 \end{code}
 
 \begin{code}

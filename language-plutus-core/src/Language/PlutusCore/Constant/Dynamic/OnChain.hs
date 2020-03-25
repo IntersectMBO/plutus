@@ -21,10 +21,10 @@ module Language.PlutusCore.Constant.Dynamic.OnChain
 
 import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -104,7 +104,7 @@ handleDynamicByMeaning mean eval env = eval env' . mangleOnChain where
     env'    = insertDynamicBuiltinNameDefinition nameDef env
 
 handleDynamicEmitter
-    :: forall name f uni r. (GShow uni, GEq uni, uni `Includes` Integer, KnownSymbol name)
+    :: forall name f uni r. (GShow uni, GEq uni, uni `Includes` (), KnownSymbol name)
     => OnChainHandler name f uni r (forall a. KnownType uni a => IO ([a], r))
 handleDynamicEmitter eval env term = withEmit $ \emit -> do
     let emitName = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
@@ -116,7 +116,7 @@ dynamicEmit :: Term tyname name uni ()
 dynamicEmit = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "emit"
 
 handleDynamicEmit
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `Includes` ())
     => OnChainHandler "emit" f uni r (forall a. KnownType uni a => IO ([a], r))
 handleDynamicEmit = handleDynamicEmitter
 
@@ -124,7 +124,7 @@ dynamicLog :: Term tyname name uni ()
 dynamicLog = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "log"
 
 handleDynamicLog
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[(), String])
     => OnChainHandler "log" f uni r (IO ([String], r))
 handleDynamicLog = handleDynamicEmitter
 

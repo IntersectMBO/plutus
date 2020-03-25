@@ -10,12 +10,12 @@
       )
     )
     [
-      [ { Cons (con integer) } (con 116) ]
+      [ { Cons (con char) } (con t) ]
       [
-        [ { Cons (con integer) } (con 101) ]
+        [ { Cons (con char) } (con e) ]
         [
-          [ { Cons (con integer) } (con 115) ]
-          [ [ { Cons (con integer) } (con 116) ] { Nil (con integer) } ]
+          [ { Cons (con char) } (con s) ]
+          [ [ { Cons (con char) } (con t) ] { Nil (con char) } ]
         ]
       ]
     ]

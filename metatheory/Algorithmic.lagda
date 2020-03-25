@@ -14,8 +14,9 @@ open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Builtin.Constant.Type
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -155,18 +156,6 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 Tel Γ Δ σ [] = ⊤
 Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
 
-\end{code}
-
-# Term Abbreviations
-\begin{code}
-void : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ unitNf
-void = Λ (ƛ (` Z))
-
-true : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-true = Λ (ƛ (ƛ (` (S Z))))
-
-false : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ booleanNf
-false = Λ (ƛ (ƛ (` Z)))
 \end{code}
 
 Utility functions

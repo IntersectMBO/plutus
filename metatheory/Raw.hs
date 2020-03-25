@@ -31,6 +31,9 @@ data RType = RTyVar Integer
 data RConstant = RConInt Integer
                | RConBS BSL.ByteString
                | RConStr T.Text
+               | RConBool Bool
+               | RConChar Char
+               | RConUnit
                deriving Show
 
 data RTerm = RVar Integer
@@ -68,6 +71,9 @@ convC :: Some (ValueOf DefaultUni) -> RConstant
 convC (Some (ValueOf DefaultUniInteger    i)) = RConInt i
 convC (Some (ValueOf DefaultUniByteString b)) = RConBS b
 convC (Some (ValueOf DefaultUniString     s)) = RConStr (T.pack s)
+convC (Some (ValueOf DefaultUniChar       c)) = RConChar c
+convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
+convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 
 conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
 conv (Var _ x)                        =
@@ -107,9 +113,12 @@ unconvT i (RTyCon c)        = TyBuiltin () c
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 
 unconvC :: RConstant -> Some (ValueOf DefaultUni)
-unconvC (RConInt i) = Some (ValueOf DefaultUniInteger    i)
-unconvC (RConBS b)  = Some (ValueOf DefaultUniByteString b)
-unconvC (RConStr s) = Some (ValueOf DefaultUniString     $ T.unpack s)
+unconvC (RConInt i)  = Some (ValueOf DefaultUniInteger    i)
+unconvC (RConBS b)   = Some (ValueOf DefaultUniByteString b)
+unconvC (RConStr s)  = Some (ValueOf DefaultUniString     $ T.unpack s)
+unconvC (RConChar c) = Some (ValueOf DefaultUniChar       c)
+unconvC RConUnit     = Some (ValueOf DefaultUniUnit       ())
+unconvC (RConBool b) = Some (ValueOf DefaultUniBool       b)
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']

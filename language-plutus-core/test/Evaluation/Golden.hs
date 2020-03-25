@@ -28,7 +28,7 @@ import           Data.Text.Encoding                         (encodeUtf8)
 import           Test.Tasty
 import           Test.Tasty.Golden
 
-evenAndOdd :: Tuple (Term TyName Name uni) uni ()
+evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -46,7 +46,7 @@ evenAndOdd = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-even :: Term TyName Name uni ()
+even :: uni `Includes` Bool => Term TyName Name uni ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
 evenAndOddList :: Tuple (Term TyName Name uni) uni ()

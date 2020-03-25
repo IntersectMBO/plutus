@@ -34,13 +34,11 @@ import Declarative.RenamingSubstitution
 import Declarative.Erasure
 
 --import Declarative.Examples
-import Declarative.StdLib.Unit
 
-import Declarative.StdLib.Bool
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
 import Declarative.StdLib.Nat
-import Main
+--import Main
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
@@ -50,7 +48,7 @@ import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
 --import Algorithmic.Examples
---import Algorithmic.Main
+import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure

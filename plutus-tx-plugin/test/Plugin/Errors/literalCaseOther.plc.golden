@@ -62,15 +62,15 @@
                                                               [
                                                                 (lam
                                                                   cfromString_i0
-                                                                  (fun [List_i5 (con integer)] AType_i13)
+                                                                  (fun [List_i5 (con char)] AType_i13)
                                                                   [
                                                                     (lam
                                                                       fIsStringAType_i0
-                                                                      (fun (all a_i0 (type) (fun a_i1 a_i1)) [(lam a_i0 (type) (fun [List_i7 (con integer)] a_i1)) AType_i14])
+                                                                      (fun (all a_i0 (type) (fun a_i1 a_i1)) [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i14])
                                                                       [
                                                                         (lam
                                                                           fromString_i0
-                                                                          (all a_i0 (type) (fun [(lam a_i0 (type) (fun [List_i9 (con integer)] a_i1)) a_i1] (fun [List_i8 (con integer)] a_i1)))
+                                                                          (all a_i0 (type) (fun [(lam a_i0 (type) (fun [List_i9 (con char)] a_i1)) a_i1] (fun [List_i8 (con char)] a_i1)))
                                                                           (lam
                                                                             x_i0
                                                                             AType_i16
@@ -108,35 +108,35 @@
                                                                                             [
                                                                                               {
                                                                                                 Cons_i6
-                                                                                                (con integer)
+                                                                                                (con char)
                                                                                               }
                                                                                               (con
-                                                                                                97
+                                                                                                a
                                                                                               )
                                                                                             ]
                                                                                             [
                                                                                               [
                                                                                                 {
                                                                                                   Cons_i6
-                                                                                                  (con integer)
+                                                                                                  (con char)
                                                                                                 }
                                                                                                 (con
-                                                                                                  98
+                                                                                                  b
                                                                                                 )
                                                                                               ]
                                                                                               [
                                                                                                 [
                                                                                                   {
                                                                                                     Cons_i6
-                                                                                                    (con integer)
+                                                                                                    (con char)
                                                                                                   }
                                                                                                   (con
-                                                                                                    99
+                                                                                                    c
                                                                                                   )
                                                                                                 ]
                                                                                                 {
                                                                                                   Nil_i7
-                                                                                                  (con integer)
+                                                                                                  (con char)
                                                                                                 }
                                                                                               ]
                                                                                             ]
@@ -170,7 +170,7 @@
                                                                                       ]
                                                                                       {
                                                                                         Nil_i8
-                                                                                        (con integer)
+                                                                                        (con char)
                                                                                       }
                                                                                     ]
                                                                                   )
@@ -190,7 +190,7 @@
                                                                           (type)
                                                                           (lam
                                                                             v_i0
-                                                                            [(lam a_i0 (type) (fun [List_i9 (con integer)] a_i1)) a_i2]
+                                                                            [(lam a_i0 (type) (fun [List_i9 (con char)] a_i1)) a_i2]
                                                                             v_i1
                                                                           )
                                                                         )
@@ -205,7 +205,7 @@
                                                                 )
                                                                 (lam
                                                                   ds_i0
-                                                                  [List_i5 (con integer)]
+                                                                  [List_i5 (con char)]
                                                                   AType_i12
                                                                 )
                                                               ]

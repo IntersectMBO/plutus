@@ -73,10 +73,6 @@ using this representation:
     Forest = AsForest TreeForest
 -}
 
-{- Note [Renaming]
-We do renaming in this module, because we normalize things and this requires renaming.
--}
-
 infixr 5 ~~>
 
 class HasArrow a where
@@ -166,7 +162,6 @@ forestData = runQuote $ do
         forest = TyApp () asForest treeForest
     return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
@@ -195,7 +190,6 @@ treeNode = runQuote $ normalizeTypesIn =<< do
             , Var () fr
             ]
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) ->
@@ -220,7 +214,6 @@ forestNil = runQuote $ normalizeTypesIn =<< do
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
         $ Var () z
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)

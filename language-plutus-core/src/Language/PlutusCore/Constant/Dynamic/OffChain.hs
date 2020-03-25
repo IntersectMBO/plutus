@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.Constant.Dynamic.OffChain
@@ -15,7 +16,7 @@ import           Control.Monad.Except
 
 getStringBuiltinTypes
     :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
-       , GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String
+       , GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        )
     => ann -> m (DynamicBuiltinNameTypes uni)
 getStringBuiltinTypes ann =

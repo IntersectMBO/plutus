@@ -1,7 +1,9 @@
 {-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusTx.Compiler.Types where
 
@@ -11,6 +13,7 @@ import           Language.PlutusTx.PLCTypes
 import           Language.PlutusIR.Compiler.Definitions
 
 import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore.Universe           as PLC
 
 import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
@@ -107,7 +110,14 @@ stableModuleCmp m1 m2 =
     (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
 
 -- See Note [Scopes]
-type Compiling uni m = (Monad m, MonadError (CompileError uni) m, MonadQuote m, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadDefs LexName uni () m)
+type Compiling uni m =
+    ( Monad m
+    , MonadError (CompileError uni) m
+    , MonadQuote m
+    , MonadReader (CompileContext uni) m
+    , MonadState CompileState m
+    , MonadDefs LexName uni () m,
+    uni `PLC.IncludesAll` [Bool, ()] )
 
 blackhole :: MonadReader (CompileContext uni) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})

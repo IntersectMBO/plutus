@@ -8,25 +8,28 @@
 | BTyInst causes ({ cpu: 12
 | mem: 12
 })
-| BApply causes ({ cpu: 49
-| mem: 49
+| BApply causes ({ cpu: 52
+| mem: 52
 })
-| BVar causes ({ cpu: 39
-| mem: 39
+| BVar causes ({ cpu: 26
+| mem: 26
 })
-| BIWrap causes ({ cpu: 1
-| mem: 1
+| BIWrap causes ({ cpu: 3
+| mem: 3
 })
 | BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 3
+| mem: 3
+})
+| BBuiltin (StaticStagedBuiltinName IfThenElse) causes ({ cpu: 3
 | mem: 3
 })
 | BUnwrap causes ({ cpu: 4
 | mem: 4
 })
 | BAST causes ({ cpu: 0
-| mem: 657
+| mem: 549
 })})
-| budget: ({ cpu: 111
-| mem: 768
+| budget: ({ cpu: 106
+| mem: 655
 })
 }))

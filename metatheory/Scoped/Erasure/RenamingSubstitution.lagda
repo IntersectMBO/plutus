@@ -14,6 +14,7 @@ open import Data.Fin
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.List
+open import Utils
 \end{code}
 
 \begin{code}

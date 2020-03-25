@@ -159,7 +159,7 @@ evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-  inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"

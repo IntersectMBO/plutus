@@ -1,5 +1,6 @@
 -- | Generators of various PLC things: 'Builtin's, 'IterApp's, 'Term's, etc.
 
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -98,8 +99,7 @@ revealUnique (Name ann name uniq) =
 -- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
-    => (forall a. AsKnownType uni a -> GenT m c) -> GenT m c
+    :: (Generatable uni, Monad m) => (forall a. AsKnownType uni a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer        AsKnownType
     , k @BSL.ByteString AsKnownType
@@ -109,9 +109,7 @@ withTypedBuiltinGen k = Gen.choice
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: ( Monad m, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
-       , uni `Everywhere` Eq, uni `Everywhere` Pretty, uni `Everywhere` ExMemoryUsage
-       )
+    :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` '[Eq, Pretty, ExMemoryUsage])
     => TypedBuiltinGenT uni m
     -> (forall a. AsKnownType uni a -> TermOf uni (EvaluationResultDef uni) -> GenT m c)
     -> GenT m c
@@ -158,7 +156,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 -- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
     :: forall uni m.
-       (Monad m, GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+       (Generatable uni, Monad m)
     => TypedBuiltinGenT uni m      -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext uni       -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
                                    -- Gets extended by a variable when an applied lambda is generated.
@@ -205,13 +203,13 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose
-     :: (Monad m, GShow uni, GEq uni, DefaultUni <: uni)
+     :: (Generatable uni, Monad m)
      => TypedBuiltinGenT uni m
 genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: (Monad m, GShow uni, GEq uni, DefaultUni <: uni)
+     :: (Generatable uni, Monad m)
      => (forall a. KnownType uni a => TermOf uni a -> GenT m c) -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -16,7 +17,6 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     , dynamicTraceDefinitionMock
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances     ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
@@ -30,7 +30,7 @@ dynamicCharToStringName :: DynamicBuiltinName
 dynamicCharToStringName = DynamicBuiltinName "charToString"
 
 dynamicCharToStringMeaning
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, Char])
     => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 1 1) where
     sch =
@@ -38,7 +38,7 @@ dynamicCharToStringMeaning = DynamicBuiltinNameMeaning sch pure (\_ -> ExBudget 
         TypeSchemeResult (Proxy @String)
 
 dynamicCharToStringDefinition
-    :: (GShow uni, GEq uni, uni `Includes` String, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, Char])
     => DynamicBuiltinNameDefinition uni
 dynamicCharToStringDefinition =
     DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning
@@ -71,7 +71,7 @@ dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"
 
 dynamicTraceMeaningMock
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, ()])
     => DynamicBuiltinNameMeaning uni -- TODO the costing function
 dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) (\_ -> ExBudget 1 1) where
     sch =
@@ -79,7 +79,7 @@ dynamicTraceMeaningMock = DynamicBuiltinNameMeaning sch (flip trace ()) (\_ -> E
         TypeSchemeResult (Proxy @())
 
 dynamicTraceDefinitionMock
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, ()])
     => DynamicBuiltinNameDefinition uni
 dynamicTraceDefinitionMock =
     DynamicBuiltinNameDefinition dynamicTraceName dynamicTraceMeaningMock

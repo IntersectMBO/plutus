@@ -9,6 +9,8 @@ open import Data.List hiding (map; _++_)
 open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
 open import Data.String hiding (_<_)
 open import Data.Unit
+open import Data.Bool using (Bool)
+open import Data.Char using (Char)
 
 open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Utils
@@ -39,15 +41,7 @@ data ScopedTy (n : ℕ) : Set where
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
--- type synonyms
-
-ScopedBoolean : ∀{Γ} → ScopedTy Γ
-ScopedBoolean = Π * (` zero ⇒ (` zero ⇒ ` zero))
-
-ScopedUnit : ∀{Γ} → ScopedTy Γ
-ScopedUnit = Π * (` zero ⇒ (` zero ⇒ ` zero))
-
-open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con ScopedBoolean
+open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con
 
 -- variables
 
@@ -167,7 +161,10 @@ unshifter w (unwrap t) = unwrap (unshifter w t)
 data TermCon : Set where
   integer    : (i : ℤ) → TermCon
   bytestring : (b : ByteString) → TermCon
-  string     : String → TermCon
+  string     : (s : String) → TermCon
+  bool       : (b : Bool) → TermCon
+  char       : (c : Char) → TermCon
+  unit       : TermCon
 
 data ScopedTm {n}(w : Weirdℕ n) : Set where
   `    :    WeirdFin w → ScopedTm w
@@ -182,17 +179,6 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
--- term synonyms
-void : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-void = Λ * (ƛ (` zero) (` Z))
-
-true : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-true = Λ * (ƛ (` zero) (ƛ (` zero) (` (S Z))))
-
-false : ∀{Φ}{Γ : Weirdℕ Φ} → ScopedTm Γ
-false = Λ * (ƛ (` zero) (ƛ (` zero) (` Z)))
-
-
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
 -- should just use ordinary kind for everything
@@ -202,9 +188,12 @@ deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 
 deBruijnifyC : RawTermCon → TermCon
-deBruijnifyC (integer i) = integer i
+deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
-deBruijnifyC (string x) = string x
+deBruijnifyC (string s)     = string s
+deBruijnifyC (bool b)       = bool b
+deBruijnifyC (char c)       = char c
+deBruijnifyC unit           = unit 
 
 ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
 ℕtoFin {zero}  _       = nothing
@@ -296,30 +285,12 @@ arity sha2-256 = 1
 arity sha3-256 = 1
 arity verifySignature = 3
 arity equalsByteString = 2
+arity ifThenElse = 3
 
 arity⋆ : Builtin → ℕ
+arity⋆ ifThenElse = 1
 arity⋆ _ = 0
-{-
-arity⋆ addInteger = 1
-arity⋆ subtractInteger = 1
-arity⋆ multiplyInteger = 1
-arity⋆ divideInteger = 1
-arity⋆ quotientInteger = 1
-arity⋆ remainderInteger = 1
-arity⋆ modInteger = 1
-arity⋆ lessThanInteger = 1
-arity⋆ lessThanEqualsInteger = 1
-arity⋆ greaterThanInteger = 1
-arity⋆ greaterThanEqualsInteger = 1
-arity⋆ equalsInteger = 1
-arity⋆ concatenate = 1
-arity⋆ takeByteString = 2
-arity⋆ dropByteString = 2
-arity⋆ sha2-256 = 1
-arity⋆ sha3-256 = 1
-arity⋆ verifySignature = 3
-arity⋆ equalsByteString = 1
--}
+
 open import Relation.Nullary
 
 builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
@@ -351,7 +322,8 @@ saturate (error A)      = error A
 saturate (builtin b As ts) = builtin b As ts
 saturate (wrap A B t) = wrap A B (saturate t)
 saturate (unwrap t)   = unwrap (saturate t)
-  -- I don't think As or ts can be unsaturated, could be enforced by
+
+-- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
 \end{code}
 
@@ -394,9 +366,13 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 
 \begin{code}
 unDeBruijnifyC : TermCon → RawTermCon
-unDeBruijnifyC (integer i) = integer i
+unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
-unDeBruijnifyC (string x) = string x
+unDeBruijnifyC (string s)     = string s
+unDeBruijnifyC (bool b)       = bool b
+unDeBruijnifyC (char c)       = char c
+unDeBruijnifyC unit           = unit
+
 \end{code}
 
 \begin{code}

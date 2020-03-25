@@ -58,7 +58,9 @@ safeLiftProgram
     => a -> m (PLC.Program TyName Name uni ())
 safeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
-safeLiftCode :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m) => a -> m (CompiledCode uni a)
+safeLiftCode
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    => a -> m (CompiledCode uni a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 safeConstCode

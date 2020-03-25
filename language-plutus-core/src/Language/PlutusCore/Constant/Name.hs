@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Constant.Name
@@ -29,15 +30,15 @@ module Language.PlutusCore.Constant.Name
     , typedEqByteString
     , typedLtByteString
     , typedGtByteString
+    , typedIfThenElse
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Universe
 
-import qualified Data.ByteString.Lazy                           as BSL
+import qualified Data.ByteString.Lazy                  as BSL
 import           Data.Proxy
 
 -- | A class that allows to derive a 'TypeScheme' for a builtin.
@@ -80,6 +81,7 @@ withTypedBuiltinName VerifySignature      k = k typedVerifySignature
 withTypedBuiltinName EqByteString         k = k typedEqByteString
 withTypedBuiltinName LtByteString         k = k typedLtByteString
 withTypedBuiltinName GtByteString         k = k typedGtByteString
+withTypedBuiltinName IfThenElse           k = k typedIfThenElse
 
 -- | Typed 'AddInteger'.
 typedAddInteger
@@ -125,31 +127,31 @@ typedModInteger = makeTypedBuiltinName ModInteger
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
     => TypedBuiltinName uni '[Integer, Integer] Bool
 typedLessThanInteger = makeTypedBuiltinName LessThanInteger
 
 -- | Typed 'LessThanEqInteger'.
 typedLessThanEqInteger
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
     => TypedBuiltinName uni '[Integer, Integer] Bool
 typedLessThanEqInteger = makeTypedBuiltinName LessThanEqInteger
 
 -- | Typed 'GreaterThanInteger'.
 typedGreaterThanInteger
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
     => TypedBuiltinName uni '[Integer, Integer] Bool
 typedGreaterThanInteger = makeTypedBuiltinName GreaterThanInteger
 
 -- | Typed 'GreaterThanEqInteger'.
 typedGreaterThanEqInteger
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
     => TypedBuiltinName uni '[Integer, Integer] Bool
 typedGreaterThanEqInteger = makeTypedBuiltinName GreaterThanEqInteger
 
 -- | Typed 'EqInteger'.
 typedEqInteger
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
     => TypedBuiltinName uni '[Integer, Integer] Bool
 typedEqInteger = makeTypedBuiltinName EqInteger
 
@@ -161,13 +163,13 @@ typedConcatenate = makeTypedBuiltinName Concatenate
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
     => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
 typedTakeByteString = makeTypedBuiltinName TakeByteString
 
 -- | Typed 'DropByteString'.
 typedDropByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
     => TypedBuiltinName uni '[Integer, BSL.ByteString] BSL.ByteString
 typedDropByteString = makeTypedBuiltinName DropByteString
 
@@ -185,24 +187,32 @@ typedSHA3 = makeTypedBuiltinName SHA3
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
     => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
 typedVerifySignature = makeTypedBuiltinName VerifySignature
 
 -- | Typed 'EqByteString'.
 typedEqByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
     => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedEqByteString = makeTypedBuiltinName EqByteString
 
 -- | Typed 'LtByteString'.
 typedLtByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
     => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedLtByteString = makeTypedBuiltinName LtByteString
 
 -- | Typed 'GtByteString'.
 typedGtByteString
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString)
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
     => TypedBuiltinName uni '[BSL.ByteString, BSL.ByteString] Bool
 typedGtByteString = makeTypedBuiltinName GtByteString
+
+-- | Typed 'IfThenElse'.
+typedIfThenElse
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
+    => TypedBuiltinName uni '[Bool, OpaqueTerm uni "a" 0, OpaqueTerm uni "a" 0] (OpaqueTerm uni "a" 0)
+typedIfThenElse =
+    TypedBuiltinName IfThenElse $
+        TypeSchemeAllType @"a" @0 Proxy $ \_ -> knownTypeScheme

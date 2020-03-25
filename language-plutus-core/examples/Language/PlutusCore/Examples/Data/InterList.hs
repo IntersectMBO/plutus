@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.Examples.Data.InterList
     ( interListData
@@ -10,6 +11,7 @@ module Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusCore.StdLib.Data.Function
@@ -97,7 +99,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: Term TyName Name uni ()
+foldrInterList :: uni `Includes` () => Term TyName Name uni ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName () "a0"
