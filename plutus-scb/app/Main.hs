@@ -7,39 +7,45 @@ module Main
     ( main
     ) where
 
-import qualified Cardano.ChainIndex.Server  as ChainIndex
-import qualified Cardano.Node.Server        as NodeServer
-import qualified Cardano.Wallet.Server      as WalletServer
-import           Control.Lens.Indexed       (itraverse_)
-import           Control.Monad              (void)
-import           Control.Monad.IO.Class     (liftIO)
-import           Control.Monad.Logger       (logInfoN, runStdoutLoggingT)
-import qualified Data.Aeson                 as JSON
-import qualified Data.ByteString.Lazy.Char8 as BS8
-import           Data.Foldable              (traverse_)
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import           Data.Text.Prettyprint.Doc  (parens, pretty, (<+>))
-import           Data.UUID                  (UUID)
-import           Data.Yaml                  (decodeFileThrow)
-import           Git                        (gitRev)
-import           Options.Applicative        (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                             disambiguate, eitherReader, fullDesc, help, helper, idm, info, infoOption,
-                                             long, metavar, option, optional, prefs, progDesc, short, showHelpOnEmpty,
-                                             showHelpOnError, str, strArgument, strOption, subparser, value, (<|>))
-import           Plutus.SCB.App             (App, runApp)
-import qualified Plutus.SCB.App             as App
-import qualified Plutus.SCB.Core            as Core
-import           Plutus.SCB.Types           (Config (Config), chainIndexConfig, nodeServerConfig, walletServerConfig)
-import           Plutus.SCB.Utils           (logErrorS, render)
-import           System.Exit                (ExitCode (ExitFailure), exitSuccess, exitWith)
-import qualified System.Remote.Monitoring   as EKG
+import qualified Cardano.ChainIndex.Server     as ChainIndex
+import qualified Cardano.Node.Server           as NodeServer
+import qualified Cardano.SigningProcess.Server as SigningProcess
+import qualified Cardano.Wallet.Server         as WalletServer
+import           Control.Concurrent.Async      (Async, async, waitAny)
+import           Control.Lens.Indexed          (itraverse_)
+import           Control.Monad                 (void)
+import           Control.Monad.IO.Class        (liftIO)
+import           Control.Monad.Logger          (logInfoN, runStdoutLoggingT)
+import qualified Data.Aeson                    as JSON
+import qualified Data.ByteString.Lazy.Char8    as BS8
+import           Data.Foldable                 (traverse_)
+import           Data.Text                     (Text)
+import qualified Data.Text                     as Text
+import           Data.Text.Prettyprint.Doc     (parens, pretty, (<+>))
+import           Data.UUID                     (UUID)
+import           Data.Yaml                     (decodeFileThrow)
+import           Git                           (gitRev)
+import           Options.Applicative           (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
+                                                disambiguate, eitherReader, fullDesc, help, helper, idm, info,
+                                                infoOption, long, metavar, option, optional, prefs, progDesc, short,
+                                                showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
+                                                subparser, value, (<|>))
+import           Plutus.SCB.App                (App (App), runApp)
+import qualified Plutus.SCB.App                as App
+import qualified Plutus.SCB.Core               as Core
+import           Plutus.SCB.Types              (Config (Config), chainIndexConfig, nodeServerConfig,
+                                                signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Utils              (logErrorS, render)
+import           System.Exit                   (ExitCode (ExitFailure), exitSuccess, exitWith)
+import qualified System.Remote.Monitoring      as EKG
 
 data Command
     = Migrate
     | MockNode
     | MockWallet
     | ChainIndex
+    | ForkCommands [Command]
+    | SigningProcess
     | InstallContract FilePath
     | ActivateContract FilePath
     | ContractStatus UUID
@@ -77,7 +83,15 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser (mconcat [migrationParser, mockWalletParser, mockNodeParser, chainIndexParser]) <|>
+    subparser
+        (mconcat
+             [ migrationParser
+             , allServersParser
+             , mockWalletParser
+             , mockNodeParser
+             , chainIndexParser
+             , signingProcessParser
+             ]) <|>
     subparser
         (command
              "contracts"
@@ -121,10 +135,19 @@ mockWalletParser =
 chainIndexParser :: Mod CommandFields Command
 chainIndexParser =
     command "chain-index" $
+    info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
+
+allServersParser :: Mod CommandFields Command
+allServersParser =
+    command "all-servers" $
     info
-        (pure ChainIndex)
-        (fullDesc <>
-         progDesc "Run the chain index.")
+        (pure (ForkCommands [MockNode, MockWallet, ChainIndex, SigningProcess]))
+        (fullDesc <> progDesc "Run all the mock servers needed.")
+
+signingProcessParser :: Mod CommandFields Command
+signingProcessParser =
+    command "signing-process" $
+    info (pure SigningProcess) (fullDesc <> progDesc "Run the signing process.")
 
 activateContractParser :: Mod CommandFields Command
 activateContractParser =
@@ -209,8 +232,17 @@ runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
         (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
+runCliCommand config (ForkCommands commands) =
+    App . void . liftIO $ do
+        threads <- traverse forkCommand commands
+        waitAny threads
+  where
+    forkCommand :: Command -> IO (Async ())
+    forkCommand = async . void . runApp config . runCliCommand config
 runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
+runCliCommand Config {signingProcessConfig} SigningProcess =
+    SigningProcess.main signingProcessConfig
 runCliCommand _ (InstallContract path) = Core.installContract path
 runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
 runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid

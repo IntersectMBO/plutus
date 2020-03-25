@@ -172,7 +172,7 @@ applyEvaluate stack fun                    arg =
 applyEvaluateCkBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
-applyEvaluateCkBuiltinName name args = void <$> runApplyBuiltinName (const ([] |>)) name (withMemory <$> args)
+applyEvaluateCkBuiltinName name args = void <$> applyBuiltinName name (withMemory <$> args)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

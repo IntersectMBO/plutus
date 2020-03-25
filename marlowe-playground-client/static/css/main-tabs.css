@@ -1,0 +1,111 @@
+#panel-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  background: var(--bg-dark);
+}
+
+#panel-nav div.tab-link {
+  width: 100%;
+  height: 120px;
+  color: var(--secondary-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#panel-nav div.active {
+  background: var(--bg-light);
+}
+
+#main-panel {
+  background: var(--bg-light);
+  padding: 1rem 2rem;
+}
+
+#main-panel div.panel-content {
+  display: none;
+}
+
+#main-panel div.active {
+  display: block;
+}
+
+.tab-icon {
+  width: 100%;
+  height: 120px;
+  text-align: center;
+}
+
+.tab-icon div {
+  padding-top: 60%;
+}
+
+.tab-icon~div {
+  margin-top: -1rem;
+  padding-bottom: 1rem;
+}
+
+.simulation-tab .tab-icon {
+  background: url(../images/simulation-icon-grey.svg) 24px center no-repeat;
+  background-size: 70px 80px;
+}
+
+.simulation-tab.active .tab-icon {
+  background: url(../images/simulation-icon.svg) center center no-repeat;
+  background-size: 70px 80px;
+}
+
+.haskell-tab .tab-icon {
+  background: url(../images/haskell-icon-grey.svg) center center no-repeat;
+  background-size: 80px 60px;
+}
+
+.haskell-tab.active .tab-icon {
+  background: url(../images/haskell-icon.svg) center center no-repeat;
+  background-size: 80px 60px;
+}
+
+.blockly-tab .tab-icon {
+  background: url(../images/blockly-icon-grey.svg) center center no-repeat;
+  background-size: 60px 70px;
+}
+
+.blockly-tab.active .tab-icon {
+  background: url(../images/blockly-icon.svg) center center no-repeat;
+  background-size: 60px 70px;
+}
+
+.nav-bottom-links {
+  margin-top: auto;
+}
+
+.nav-bottom-links *+* {
+  margin-top: 1rem;
+}
+
+.nav-bottom-links p:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.open-link-icon {
+  padding: 0.5rem 1rem;
+  position: relative;
+  cursor: pointer;
+  position: relative;
+  background: var(--gradient-bg);
+  color: var(--white);
+  border-radius: var(--border-radius);
+  border: none;
+  z-index: 1;
+}
+
+.open-link-icon:after {
+  content: '';
+  position: absolute;
+  right: 0.5rem;
+  background: url('../images/open-link-icon-white.svg') no-repeat center center;
+  height: 18px;
+  width: 18px;
+  background-size: 42px;
+}

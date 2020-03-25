@@ -21,14 +21,18 @@
           (vardecl
             appendString (fun (con string) (fun (con string) (con string)))
           )
-          (builtin append)
+          (lam
+            arg
+            (con string)
+            (lam arg (con string) [ [ (builtin append) arg ] arg ])
+          )
         )
         (let
           (nonrec)
           (termbind
             (strict)
-            (vardecl charToString (fun (con integer) (con string)))
-            (builtin charToString)
+            (vardecl charToString (fun (con char) (con string)))
+            (lam arg (con char) [ (builtin charToString) arg ])
           )
           (let
             (nonrec)
@@ -44,27 +48,25 @@
                 (rec)
                 (termbind
                   (strict)
-                  (vardecl
-                    toPlutusString (fun [List (con integer)] (con string))
-                  )
+                  (vardecl toPlutusString (fun [List (con char)] (con string)))
                   (lam
                     str
-                    [List (con integer)]
+                    [List (con char)]
                     [
                       [
                         [
                           {
-                            [ { Nil_match (con integer) } str ]
+                            [ { Nil_match (con char) } str ]
                             (fun Unit (con string))
                           }
                           (lam thunk Unit emptyString)
                         ]
                         (lam
                           c
-                          (con integer)
+                          (con char)
                           (lam
                             rest
-                            [List (con integer)]
+                            [List (con char)]
                             (lam
                               thunk
                               Unit
@@ -88,10 +90,7 @@
                     (lam
                       arg
                       (con string)
-                      [
-                        (lam b (all a (type) (fun a a)) Unit)
-                        [ (builtin trace) arg ]
-                      ]
+                      [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
                     )
                   )
                   (let
@@ -99,19 +98,19 @@
                     (termbind
                       (strict)
                       (vardecl
-                        traceErrorH (all a (type) (fun [List (con integer)] a))
+                        traceErrorH (all a (type) (fun [List (con char)] a))
                       )
                       (abs
                         a
                         (type)
                         (lam
                           str
-                          [List (con integer)]
+                          [List (con char)]
                           [ { error a } [ trace [ toPlutusString str ] ] ]
                         )
                       )
                     )
-                    [ { traceErrorH (con integer) } { Nil (con integer) } ]
+                    [ { traceErrorH (con integer) } { Nil (con char) } ]
                   )
                 )
               )

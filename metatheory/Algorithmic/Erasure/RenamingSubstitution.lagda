@@ -10,6 +10,7 @@ open import Relation.Binary.PropositionalEquality
 open import Function hiding (_∋_)
 open import Data.List
 
+open import Utils
 open import Type
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNormal
@@ -23,7 +24,8 @@ import Untyped.RenamingSubstitution as U
 open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
-open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf as AS
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
+  as AS
 \end{code}
 
 \begin{code}
@@ -111,6 +113,9 @@ renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
 renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
 renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
+renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
+renTermCon-erase ρ⋆ ρ (AB.char c)       = refl
+renTermCon-erase ρ⋆ ρ AB.unit           = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : Fin (len Γ))
@@ -169,7 +174,6 @@ ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
     (builtin bn (renNf ρ⋆ ∘ σ) (A.renTel ρ⋆ ρ tel)))
   (cong (builtin bn) (renTel-erase ρ⋆ ρ Φ As σ tel))
 ren-erase ρ⋆ ρ (error A)          = refl
-
 --
 
 erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
@@ -218,6 +222,9 @@ subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
 subTermCon-erase σ⋆ σ (AB.integer i)    = refl
 subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
 subTermCon-erase σ⋆ σ (AB.string s)     = refl
+subTermCon-erase σ⋆ σ (AB.bool b)       = refl
+subTermCon-erase σ⋆ σ (AB.char c)       = refl
+subTermCon-erase σ⋆ σ AB.unit           = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
@@ -270,7 +277,7 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
   (cong (builtin bn) (subTel-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
-  
+
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
   → erase N ≡ erase (N A.[ A ]⋆)
 lem[]⋆ {Γ = Γ} N A = trans

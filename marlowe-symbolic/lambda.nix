@@ -18,29 +18,39 @@ let
               import qualified App
               main = App.main
               '';
+
   z3 = pkgs.z3.override { staticbin = true; };
+  openssl = (pkgs.openssl.override { static = true; }).overrideAttrs(old : {
+    # "no-shared" per https://github.com/NixOS/nixpkgs/pull/77542, should be able to
+    # get rid of this when we update nixpkgs
+    configureFlags = old.configureFlags ++ [ "no-shared" ];
+  });
+  gmp6 = pkgs.gmp6.override { withStatic = true; };
+  zlib = pkgs.zlib.static;
+  ncurses = pkgs.ncurses.override { enableStatic = true; };
+  libffi = pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; });
+
   killallz3 = pkgs.writeScriptBin "killallz3" ''
     kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
   '';
 in
   pkgs.stdenv.mkDerivation {
     name = "marlowe-symbolic-lambda";
-    buildInputs = [ pkgs.zip ];
+    nativeBuildInputs = [ pkgs.zip ];
     unpackPhase = "true";
     buildPhase =
       ''
       mkdir -p $out/bin
-      ${ghc}/bin/ghc ${main} -static -threaded -o $out/bin/bootstrap \
+      ${ghc}/bin/${ghc.targetPrefix}ghc ${main} -static -threaded -o $out/bin/bootstrap \
                      -optl=-static \
-                     -optl=-L${lib.getLib (pkgs.ncurses.override { enableStatic = true; })}/lib \
-                     -optl=-L${lib.getLib (pkgs.zlib.static)}/lib \
-                     -optl=-L${lib.getLib (pkgs.gmp6.override { withStatic = true; })}/lib \
-                     -optl=-L${lib.getLib (pkgs.openssl.override (old: { static = true; }))}/lib \
-                     -optl=-L${lib.getLib (pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; }))}/lib
+                     -optl=-L${lib.getLib ncurses}/lib \
+                     -optl=-L${lib.getLib zlib}/lib \
+                     -optl=-L${lib.getLib gmp6}/lib \
+                     -optl=-L${lib.getLib openssl}/lib \
+                     -optl=-L${lib.getLib libffi}/lib
       '';
     installPhase = ''
       zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
       mv marlowe-symbolic.zip $out/marlowe-symbolic.zip
     '';
   }
-

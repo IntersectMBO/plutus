@@ -20,12 +20,12 @@ import           Data.Proxy
 import           System.IO.Unsafe
 
 dynamicCallTypeScheme
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => TypeScheme uni '[a] ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicCallAssign
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` Integer)
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => DynamicBuiltinName
     -> (a -> IO ())
     -> (a -> ExBudget)

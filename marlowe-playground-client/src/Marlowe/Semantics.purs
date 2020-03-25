@@ -1,7 +1,7 @@
 module Marlowe.Semantics where
 
 import Prelude
-import Data.BigInteger (BigInteger)
+import Data.BigInteger (BigInteger, fromInt, quot, rem)
 import Data.Foldable (class Foldable, any, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
@@ -223,12 +223,33 @@ instance hasArgsValueId :: Args ValueId where
   hasArgs _ = false
   hasNestedArgs _ = false
 
+data Rational
+  = Rational BigInteger BigInteger
+
+derive instance genericRational :: Generic Rational _
+
+instance eqRational :: Eq Rational where
+  eq (Rational n1 d1) (Rational n2 d2) = eq (d1 * n2) (d2 * n1)
+
+derive instance ordRational :: Ord Rational
+
+instance showRational :: Show Rational where
+  show (Rational n d) = "(" <> show n <> "%" <> show d <> ")"
+
+instance prettyRational :: Pretty Rational where
+  pretty r = text $ show r
+
+instance hasArgsRational :: Args Rational where
+  hasArgs a = false
+  hasNestedArgs a = false
+
 data Value
   = AvailableMoney AccountId Token
   | Constant BigInteger
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
+  | Scale Rational Value
   | ChoiceValue ChoiceId Value
   | SlotIntervalStart
   | SlotIntervalEnd
@@ -719,6 +740,27 @@ evalValue env state value =
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
+      Scale (Rational num denom) rhs ->
+        let
+          -- quotient and reminder
+          multiplied = num * eval rhs
+
+          q = multiplied `quot` denom
+
+          r = multiplied `rem` denom
+
+          -- abs (rem (num/denom)) - 1/2
+          abs a = if a >= zero then a else negate a
+
+          signum x = if x > zero then 1 else if x == zero then 0 else -1
+
+          sign = signum (fromInt 2 * abs r - abs denom)
+
+          m = if r < zero then q - one else q + one
+
+          isEven = (q `rem` fromInt 2) == zero
+        in
+          if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
       ChoiceValue choiceId defVal -> fromMaybe (eval defVal) $ Map.lookup choiceId (unwrap state).choices
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env

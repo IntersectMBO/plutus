@@ -11,8 +11,9 @@ import qualified Language.PlutusCore.Name          as PLC
 
 import           Language.PlutusIR
 import qualified Language.PlutusIR.Analysis.Usages as Usages
+import           Language.PlutusIR.Value
 
-import           Control.Lens
+import           Control.Lens                      hiding (Strict)
 import           Control.Monad.Reader
 
 import qualified Algebra.Graph.Class               as G
@@ -62,11 +63,11 @@ runTypeDeps
 runTypeDeps t = runReader (typeDeps t) Root
 
 -- | Record some dependencies on the current node.
-recordDeps
+currentDependsOn
     :: (DepGraph g, MonadReader Node m)
     => [PLC.Unique]
     -> m g
-recordDeps us = do
+currentDependsOn us = do
     current <- ask
     pure $ G.connect (G.vertices [current]) (G.vertices (fmap Variable us))
 
@@ -76,17 +77,39 @@ withCurrent
     => n
     -> m g
     -> m g
-withCurrent n = local (const $ Variable $ n ^. PLC.unique . coerced)
+withCurrent n = local (const $ Variable $ n ^. PLC.theUnique)
+
+{- Note [Strict term bindings and dependencies]
+A node inside a strict let binding can incur a dependency on it even if the defined variable is unused.
+
+Consider:
+
+let strict x = error in y
+
+This evaluates to error, because the RHS of a strict binding is evaluated when we evaluate the let-term.
+
+We only care about this for its *effects*: the variable itself is still unused. So we only need to
+worry in the case where the RHS is not a value. If it *is* a value, then evaluating it is a noop, so there
+can be no effects that we're missing. Essentially we are using "is a value" as an under-approximation of
+"is pure".
+
+From the point of view of our algorithm, we handle the dependency by treating it as though there was an
+reference to the newly bound variable alongside the binding, but only in the cases where it matters.
+-}
 
 bindingDeps
     :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
     => Binding tyname name uni a
     -> m g
 bindingDeps b = case b of
-    TermBind _ _ d@(VarDecl _ n _) rhs -> do
+    TermBind _ strictness d@(VarDecl _ n _) rhs -> do
         vDeps <- varDeclDeps d
         tDeps <- withCurrent n $ termDeps rhs
-        pure $ G.overlay vDeps tDeps
+        -- See Note [Strict term bindings and dependencies]
+        evalDeps <- case strictness of
+            Strict | not (isTermValue rhs) -> currentDependsOn [n ^. PLC.theUnique]
+            _                              -> pure G.empty
+        pure $ G.overlays [vDeps, tDeps, evalDeps]
     TypeBind _ d@(TyVarDecl _ n _) rhs -> do
         vDeps <- tyVarDeclDeps d
         tDeps <- withCurrent n $ typeDeps rhs
@@ -98,8 +121,8 @@ bindingDeps b = case b of
         -- All the datatype bindings depend on each other since they can't be used separately. Consider
         -- the identity function on a datatype type - it only uses the type variable, but the whole definition
         -- will therefore be kept, and so we must consider any uses in e.g. the constructors as live.
-        let tyus = fmap (\n -> n ^. PLC.unique . coerced) $ tyVarDeclName d : fmap tyVarDeclName tvs
-        let tus = fmap (\n -> n ^. PLC.unique . coerced) $ destr : fmap varDeclName constrs
+        let tyus = fmap (view PLC.theUnique) $ tyVarDeclName d : fmap tyVarDeclName tvs
+        let tus = fmap (view PLC.theUnique) $ destr : fmap varDeclName constrs
         let localDeps = G.clique (fmap Variable $ tyus ++ tus)
         pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
 
@@ -127,7 +150,7 @@ termDeps = \case
         bGraphs <- traverse bindingDeps bs
         bodyGraph <- termDeps t
         pure . G.overlays . NE.toList $ bodyGraph NE.<| bGraphs
-    Var _ n -> recordDeps [n ^. PLC.unique . coerced]
+    Var _ n -> currentDependsOn [n ^. PLC.theUnique]
     x -> do
         tds <- traverse termDeps (x ^.. termSubterms)
         tyds <- traverse typeDeps (x ^.. termSubtypes)
@@ -143,4 +166,4 @@ typeDeps ty =
     -- The dependency graph of a type is very simple since it doesn't have any internal let-bindings. So we just
     -- need to find all the used variables and mark them as dependencies of the current node.
     let used = Usages.allUsed $ Usages.runTypeUsages ty
-    in recordDeps (Set.toList used)
+    in currentDependsOn (Set.toList used)

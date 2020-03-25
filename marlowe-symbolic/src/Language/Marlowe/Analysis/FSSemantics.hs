@@ -14,6 +14,8 @@ import           Data.Set                   (Set)
 import qualified Data.Set                   as S
 import           Language.Marlowe.Semantics
 import qualified Language.PlutusTx.AssocMap as AssocMap
+import qualified Language.PlutusTx.Prelude  as P
+import qualified Language.PlutusTx.Ratio    as P
 import           Ledger                     (Slot (..))
 
 ---------------------------------------------------
@@ -165,6 +167,18 @@ symEvalVal (AddValue lhs rhs) symState = symEvalVal lhs symState +
                                          symEvalVal rhs symState
 symEvalVal (SubValue lhs rhs) symState = symEvalVal lhs symState -
                                          symEvalVal rhs symState
+symEvalVal (Scale s rhs) symState = let
+    num = literal (P.numerator s)
+    denom = literal (P.denominator s)
+    symVal = symEvalVal rhs symState
+    -- quotient and reminder
+    (q, r) = (num * symVal) `sQuotRem` denom
+    -- abs (rem (num/denom)) - 1/2
+    sign = signum (2 * abs r - abs denom)
+    m = ite (r .< 0) (q - 1) (q + 1)
+    isEven = (q `sRem` 2) .== 0
+    in ite (r .== 0 .|| sign .== (-1) .|| (sign .== 0 .&& isEven))
+    {- then -} q {- else -} m
 symEvalVal (ChoiceValue choId defVal) symState =
   M.findWithDefault (symEvalVal defVal symState) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState

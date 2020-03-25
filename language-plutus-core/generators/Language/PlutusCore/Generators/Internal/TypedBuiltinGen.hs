@@ -1,5 +1,7 @@
 -- | This module defines the 'TypedBuiltinGen' type and functions of this type.
 
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -13,6 +15,7 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     ( TermOf(..)
     , TypedBuiltinGenT
     , TypedBuiltinGen
+    , Generatable
     , genLowerBytes
     , genTypedBuiltinFail
     , genTypedBuiltinDef
@@ -53,6 +56,8 @@ type TypedBuiltinGenT uni m = forall a. AsKnownType uni a -> GenT m (TermOf uni 
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen uni = TypedBuiltinGenT uni Identity
 
+type Generatable uni = (GShow uni, GEq uni, DefaultUni <: uni)
+
 instance (PrettyBy config a, PrettyBy config (Term TyName Name uni ())) =>
         PrettyBy config (TermOf uni a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
@@ -79,9 +84,7 @@ genTypedBuiltinFail tb = fail $ fold
     ]
 
 -- | A default built-ins generator.
-genTypedBuiltinDef
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString, Monad m)
-    => TypedBuiltinGenT uni m
+genTypedBuiltinDef :: (Generatable uni, Monad m) => TypedBuiltinGenT uni m
 genTypedBuiltinDef
     = updateTypedBuiltinGen @Integer
          (Gen.integral $ Range.linearFrom 0 0 10)
@@ -92,9 +95,7 @@ genTypedBuiltinDef
 
 -- | A built-ins generator that doesn't produce @0 :: Integer@,
 -- so that one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDivide
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` BSL.ByteString, Monad m)
-    => TypedBuiltinGenT uni m
+genTypedBuiltinDivide :: (Generatable uni, Monad m) => TypedBuiltinGenT uni m
 genTypedBuiltinDivide
     = updateTypedBuiltinGen @Integer
           (Gen.filter (/= 0) . Gen.integral $ Range.linear 0 10)

@@ -72,7 +72,7 @@ tests =
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 56000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 66000)
 
     ]
 
@@ -146,7 +146,7 @@ units :: Integer
 units = 187
 
 oracleKeys :: (PrivateKey, PubKey)
-oracleKeys = 
+oracleKeys =
     let wllt = Wallet 10 in
         (walletPrivKey wllt, walletPubKey wllt)
 

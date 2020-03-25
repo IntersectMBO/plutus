@@ -54,7 +54,7 @@ main = do
   runHalogenAff do
     body <- awaitBody
     driver <- runUI (hoist (flip runReaderT ajaxSettings) mainFrame) unit body
-    driver.subscribe $ wsSender socket
+    driver.subscribe $ wsSender socket driver.query
     void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer driver.query)
     forkAff $ runProcess watchLocalStorageProcess
 

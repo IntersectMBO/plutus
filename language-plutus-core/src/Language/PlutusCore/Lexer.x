@@ -95,6 +95,7 @@ tokens :-
     <0> "sha2_256"               { mkBuiltin SHA2 }
     <0> "sha3_256"               { mkBuiltin SHA3 }
     <0> verifySignature          { mkBuiltin VerifySignature }
+    <0> ifThenElse               { mkBuiltin IfThenElse }
 
     -- Various special characters
     <0> "("                      { mkSpecial OpenParen }

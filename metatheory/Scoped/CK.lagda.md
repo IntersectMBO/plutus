@@ -6,6 +6,7 @@ module Scoped.CK where
 
 ```
 open import Function
+open import Data.Bool using (Bool;true;false)
 
 open import Type
 open import Type.BetaNormal
@@ -99,6 +100,7 @@ step {i' = i'} p ◆              = _ ,, i' ,, p ,, ◆
 step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) with arity b Data.Nat.≟ Data.List.length tel + 1
 ... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
 ... | no q = _ ,, _ ,, p ,, (s ◅ V-builtin b As (tel Data.List.++ Data.List.[ t ]))
+
  -- check for length here and return V-builtin if not?
 
 step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =

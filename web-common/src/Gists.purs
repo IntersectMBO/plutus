@@ -3,6 +3,8 @@ module Gists
   , gistControls
   , parseGistUrl
   , firstMatch
+  , idPublishGist
+  , idLoadGist
   ) where
 
 import AjaxUtils (ajaxErrorPane)

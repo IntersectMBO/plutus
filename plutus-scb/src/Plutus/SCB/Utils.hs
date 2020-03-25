@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Plutus.SCB.Utils
     ( unfoldM
@@ -6,6 +7,7 @@ module Plutus.SCB.Utils
     , logInfoS
     , logErrorS
     , tshow
+    , abbreviate
     , render
     , liftError
     , liftLocalReader
@@ -57,3 +59,9 @@ liftLocalReader :: MonadReader f m => (f -> e) -> ReaderT e m a -> m a
 liftLocalReader f action = do
     env <- asks f
     runReaderT action env
+
+abbreviate :: Int -> Text -> Text
+abbreviate n txt
+    | n <= 0 = ""
+    | Text.length txt > n = Text.take (n - 1) txt <> "…"
+    | otherwise = txt

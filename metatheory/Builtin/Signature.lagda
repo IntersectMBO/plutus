@@ -13,7 +13,6 @@ module Builtin.Signature
   (_⊢⋆_ : Ctx⋆ → Kind → Set)
   (` : ∀ {Φ J} → Φ ∋⋆ J → Φ ⊢⋆ J)
   (con : ∀{φ} → TyCon → φ ⊢⋆ *)
-  (boolean : ∀{Γ} → Γ ⊢⋆ *)
   where
 \end{code}
 
@@ -71,31 +70,31 @@ SIG lessThanInteger =
   ,,
   con integer ∷ con integer ∷ []
   ,,
-  boolean
+  con bool
 SIG lessThanEqualsInteger =
   ∅
   ,,
   con integer ∷ con integer ∷ []
   ,,
-  boolean
+  con bool
 SIG greaterThanInteger =
   ∅
   ,,
   con integer ∷ con integer ∷ []
   ,,
-  boolean
+  con bool
 SIG greaterThanEqualsInteger =
   ∅
   ,,
   con integer ∷ con integer ∷ []
   ,,
-  boolean
+  con bool
 SIG equalsInteger =
   ∅
   ,,
   con integer ∷ con integer  ∷ []
   ,,
-  boolean
+  con bool
 SIG concatenate =
   ∅
   ,,
@@ -131,11 +130,18 @@ SIG verifySignature =
   ,,
   con bytestring ∷ con bytestring ∷ con bytestring ∷ []
   ,,
-  boolean
+  con bool
 SIG equalsByteString =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ []
   ,,
-  boolean
+  con bool
+SIG ifThenElse =
+  (∅ ,⋆ *)
+  ,,
+  con bool ∷ ` Z ∷ ` Z ∷ []
+  ,,
+  ` Z
+
 \end{code}

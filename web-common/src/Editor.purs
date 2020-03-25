@@ -181,6 +181,7 @@ editorView ::
 editorView initialContents slotLabel bufferLocalStorageKey preferences@(Preferences { keyBindings }) =
   div
     [ id_ "editor"
+    , class_ (ClassName "code-editor")
     , onDragOver $ Just <<< HandleDragEvent
     , onDrop $ Just <<< HandleDropEvent
     ]

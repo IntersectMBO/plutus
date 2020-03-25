@@ -2,7 +2,6 @@ resolver: lts-13.26
 
 packages:
 - language-plutus-core
-- plutus-exe
 - plutus-ir
 - plutus-tx
 - plutus-tx-plugin
@@ -12,7 +11,7 @@ packages:
 - marlowe-hspec
 - marlowe-playground-server
 - metatheory
-- plutus-wallet-api
+- plutus-ledger
 - plutus-playground-server
 - plutus-playground-lib
 - plutus-tutorial
@@ -26,16 +25,8 @@ packages:
 - marlowe-symbolic
 
 extra-deps:
-# Agda and deps
-- aws-lambda-haskell-runtime-2.0.1
-- Agda-2.6.0.1
-- data-hash-0.2.0.1
-- EdisonCore-1.3.2.1
-- EdisonAPI-1.3.1
-- equivalence-0.3.4
-- STMonadTrans-0.4.3
-- geniplate-mirror-0.7.6
 # Other missing packages
+- aws-lambda-haskell-runtime-2.0.1
 - semirings-0.4.2
 - aeson-1.4.6.0
 - composition-prelude-2.0.2.1
@@ -61,34 +52,31 @@ extra-deps:
 - sbv-8.4
 # to pull in https://github.com/jacobstanley/unix-compat/pull/43 so it works on musl
 - unix-compat-0.5.2
-# to be new enough that https://github.com/jaspervdj/stylish-haskell/issues/236 is fixed
-- haskell-src-exts-1.21.1
-- hlint-2.1.12
-# Purty deps
-- componentm-0.0.0.2
-- teardown-0.5.0.1
-- dhall-1.23.0
-- repline-0.2.1.0
 - git: https://github.com/target/row-types
   commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
+  # nix-sha256: 0ly5m4r8wkm8gdqyrqzsjfmp189yxsd4qp0zi3idrbgfaf45sk9k
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 28c37771ef30b0d751960c061ef95627f05d290e
+  # nix-sha256: 0n6q7g2w1xafngd3dwbbmfxfn018fmq61db7mymplbrww8ld1cp3
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
+  # nix-sha256: 1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6
 - git: https://github.com/input-output-hk/cardano-crypto.git
-  commit: 3c5db489c71a4d70ee43f5f9b979fcde3c797f2a
+  commit: 2547ad1e80aeabca2899951601079408becbc92c
+  # nix-sha256: 1p2kg2w02q5w1cvqzhfhqmxviy4xrzada3mmb096j2n6hfr20kri
 # Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
 - git: https://github.com/michaelpj/unlit.git
   commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
+  # nix-sha256: 145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff
 # Needs looser containers bound, committed upstream but not released
 - git: https://github.com/bitnomial/prometheus.git
   commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
+  # nix-sha256: 0h836qp0ic587gfyfkj9a53p8rczja50sfy2y8ymx8wwkmq9zdgc
 # Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
 - git: https://github.com/shmish111/github.git
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
-- git: https://gitlab.com/joneshf/purty.git
-  commit: 3c073e1149ecdddd01f1d371c70d5b243d743bf2
+  # nix-sha256: 0jx65x4c8s561nbxa0hv7mp8fvndfhs8i8gzxng7ym808n4n538i
 extra-package-dbs: []
 nix:
   packages: [zlib, gmp, openssl]

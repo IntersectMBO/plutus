@@ -1,5 +1,6 @@
 -- | @list@ and related functions.
 
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -215,7 +216,7 @@ reverse = runQuote $ do
 -- >                 (nil {integer})
 -- >                 (cons {integer} n' (rec (succInteger n'))))
 -- >         n
-enumFromTo :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
+enumFromTo :: (TermLike term TyName Name uni, uni `IncludesAll` '[Integer, (), Bool]) => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
     n   <- freshName () "n"

@@ -208,8 +208,19 @@
                                           [
                                             (lam
                                               b
-                                              (all a (type) (fun a (fun a a)))
-                                              [ [ { b Bool } True ] False ]
+                                              (con bool)
+                                              [
+                                                [
+                                                  [
+                                                    {
+                                                      (builtin ifThenElse) Bool
+                                                    }
+                                                    b
+                                                  ]
+                                                  True
+                                                ]
+                                                False
+                                              ]
                                             )
                                             [
                                               [ (builtin equalsByteString) arg ]
@@ -227,7 +238,11 @@
                                           sha2_
                                           (fun (con bytestring) (con bytestring))
                                         )
-                                        (builtin sha2_256)
+                                        (lam
+                                          arg
+                                          (con bytestring)
+                                          [ (builtin sha2_256) arg ]
+                                        )
                                       )
                                       (let
                                         (nonrec)

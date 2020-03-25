@@ -9,6 +9,8 @@ module Language.PlutusCore.Subst
     , termSubstNames
     , termSubstTyNames
     , typeSubstTyNames
+    , termSubstFreeNamesA
+    , termSubstFreeNames
     , fvTerm
     , ftvTerm
     , ftvTy
@@ -71,7 +73,7 @@ typeSubstTyNamesM
     -> m (Type tyname uni ann)
 typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
 
--- | Naively monadically substitute names using the given functions (i.e. do not substitute binders).
+-- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
     :: Monad m
     => (name ann -> m (Maybe (Term tyname name uni ann)))
@@ -79,7 +81,7 @@ termSubstNamesM
     -> m (Term tyname name uni ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
--- | Naively monadically substitute type names using the given functions (i.e. do not substitute binders).
+-- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNamesM
     :: Monad m
     => (tyname ann -> m (Maybe (Type tyname uni ann)))
@@ -95,19 +97,48 @@ typeSubstTyNames
     -> Type tyname uni ann
 typeSubstTyNames = purely typeSubstTyNamesM
 
--- | Naively substitute names using the given functions (i.e. do not substitute binders).
+-- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
     :: (name ann -> Maybe (Term tyname name uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 termSubstNames = purely termSubstNamesM
 
--- | Naively substitute type names using the given functions (i.e. do not substitute binders).
+-- | Naively substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNames
     :: (tyname ann -> Maybe (Type tyname uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 termSubstTyNames = purely termSubstTyNamesM
+
+-- | Applicatively substitute *free* names using the given function.
+termSubstFreeNamesA
+    :: (Applicative f, HasUnique (name ann) TermUnique)
+    => (name ann -> f (Maybe (Term tyname name uni ann)))
+    -> Term tyname name uni ann
+    -> f (Term tyname name uni ann)
+termSubstFreeNamesA f = go Set.empty where
+    go bvs var@(Var _ name)           =
+        if (name ^. unique) `member` bvs
+            then pure var
+            else fromMaybe var <$> f name
+    go bvs (TyAbs ann name kind body) = TyAbs ann name kind <$> go bvs body
+    go bvs (LamAbs ann name ty body)  = LamAbs ann name ty <$> go (insert (name ^. unique) bvs) body
+    go bvs (Apply ann fun arg)        = Apply ann <$> go bvs fun <*> go bvs arg
+    go bvs (TyInst ann term ty)       = go bvs term <&> \term' -> TyInst ann term' ty
+    go bvs (Unwrap ann term)          = Unwrap ann <$> go bvs term
+    go bvs (IWrap ann pat arg term)   = IWrap ann pat arg <$> go bvs term
+    go _   term@Constant{}            = pure term
+    go _   term@Builtin{}             = pure term
+    go _   term@Error{}               = pure term
+
+-- | Substitute *free* names using the given function.
+termSubstFreeNames
+    :: HasUnique (name ann) TermUnique
+    => (name ann -> Maybe (Term tyname name uni ann))
+    -> Term tyname name uni ann
+    -> Term tyname name uni ann
+termSubstFreeNames = purely termSubstFreeNamesA
 
 -- Free variables
 
@@ -122,7 +153,9 @@ fvTerm = cata f
     f (TyInstF _ t _)   = t
     f (UnwrapF _ t)     = t
     f (IWrapF _ _ _ t)  = t
-    f _                 = Set.empty
+    f ConstantF{}       = Set.empty
+    f BuiltinF{}        = Set.empty
+    f ErrorF{}          = Set.empty
 
 -- | Get all the free type variables in a term.
 ftvTerm :: Ord (tyname ann) => Term tyname name uni ann -> Set (tyname ann)
@@ -134,7 +167,10 @@ ftvTerm = cata f
     f (TyInstF _ t ty)     = t `union` ftvTy ty
     f (UnwrapF _ t)        = t
     f (IWrapF _ pat arg t) = ftvTy pat `union` ftvTy arg `union` t
-    f _                    = Set.empty
+    f (ErrorF _ ty)        = ftvTy ty
+    f VarF{}               = Set.empty
+    f ConstantF{}          = Set.empty
+    f BuiltinF{}           = Set.empty
 
 -- | Get all the free type variables in a type.
 ftvTy :: Ord (tyname ann) => Type tyname uni ann -> Set (tyname ann)
@@ -146,7 +182,7 @@ ftvTy = cata f
     f (TyForallF _ bnd _ ty) = delete bnd ty
     f (TyLamF _ bnd _ ty)    = delete bnd ty
     f (TyAppF _ ty1 ty2)     = ty1 `union` ty2
-    f _                      = Set.empty
+    f TyBuiltinF{}           = Set.empty
 
 -- All variables
 

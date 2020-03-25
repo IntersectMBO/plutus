@@ -15,7 +15,8 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 convenient alternative to running `nix-shell` directly.
 
 An environment for developing a particular package in isolation can be
-entered by using `nix-shell default.nix -A localPackages.<package name>.env`.
+entered by using
+`nix-shell default.nix -A haskell.projectPackages.<package name>.components.<component type>.<component name>.env`.
 This has all the dependencies, *including* local ones, provided.
 This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
@@ -42,12 +43,17 @@ bug workarounds.
 [[update-generated]]
 === How to update the generated Haskell package set
 
-There is a generated package set at link:./pkgs/default.nix[`pkgs/default.nix`] with all the
-dependencies for this project, based on the Stackage resolver in link:./stack.yaml[`stack.yaml`].
-Nix uses this to build the project's dependencies correctly.
+The Nix code that builds all the Haskell packages and their dependencies is generated automatically.
+However, to avoid doing too much work all the time,
+we have *pinned* it with the hash of the result of the generation process.
 
-IMPORTANT: This file needs to be regenerated if you change any dependencies in cabal files
-or change the Stackage resolver. To regenerate the file, run link:./pkgs/generate.sh[`pkgs/generate.sh`].
+IMPORTANT: This hash needs to be regenerated if you change any dependencies in cabal files
+or change the Stackage resolver.
+
+You can find the hash in link:./nix/haskell.nix[`nix/haskell.nix`]. All you need to do is comment out the
+`stack-sha256` attribute, and rebuild something. You will see a command on stderr that will tell you
+how to generate the replacement hash.
+
 
 [[update-freeze]]
 === How to update `cabal.project.freeze`
@@ -77,7 +83,9 @@ and `extra-dep` (Stack) mechanisms.
 These can be managed normally, but ensure that:
 
 * The specifications remain in sync between `cabal.project` and `stack.yaml`.
-* You update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
+* You update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
+* If it is an `extra-dep`, you update the `nix-sha256` comment in `stack.yaml`. For the moment you have to do this by hand, using the
+following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`.
 
 ==== Nix pins
 
@@ -95,10 +103,8 @@ order:
 . Add the cabal file for the new package.
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
-. Update the xref:update-generated[generated package set] and the xref:update-freeze[freeze file].
-. Add the project to `plutusPkgList` in link:./lib.nix[lib.nix].
-* This will ensure it gets built by CI and so on.
-. Check that you can run `nix build -f default.nix localPackages.<package name>`
+. Update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
+. Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
 
 === Code style
@@ -213,10 +219,10 @@ just as confused as the reviewer.
 
 == Continuous integration
 
-We have two pieces of CI at the moment: some tests are run using Nix on
-Hydra, and some are run on Buildkite.
-
-All the Haskell packages will be built and tested, as well as the tests in link:./default.nix[`default.nix`].
+We have three CI systems at the moment:
+- Hydra
+- Hercules
+- Buildkite
 
 The CI will report statuses on your PRs with links to the logs in case of
 failure. Pull requests cannot be merged without the CI going green.
@@ -229,6 +235,28 @@ This shouldn’t happen frequently, but be aware that it’s possible.
 * You can check on the status of your PR on Hydra _before_ it has finished
 by going to the https://hydra.iohk.io/project/Cardano[Hydra project page] and searching
 for `plutus-pr-<PR number>`.
+
+=== Hydra
+
+Hydra is the "standard" CI builder for Nix-based projects. It builds everything in the project, including
+all the tests, documentation, etc.
+
+Hydra builds jobs based on `release.nix`, although currently this imports a lot of its jobs from `ci.nix`
+(see Hercules).
+
+Hydra will not report a failed status if `release.nix` has errors, we have a Builkite job to check this.
+
+=== Hercules
+
+Hercules is a new CI builder for Nix-based projects. It has some advantages over Hydra, but for the moment
+everything is built on both.
+
+Hercules builds jobs based on `ci.nix`.
+
+=== Buildkite
+
+Buildkite handles any remaining ad-hoc things. At the moment it just runs a script that checks whether the
+Hydra build had an evaluation error, and fails if that happened.
 
 == Continuous deployment
 

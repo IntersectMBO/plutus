@@ -63,10 +63,10 @@ lem[] A B = trans
       (sym≡β (soundness B)))
     (sym (subst-eval B idCR (subst-cons ` A))))
 
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
   as SSig
 import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
   as NSig
 open import Builtin
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
@@ -77,6 +77,9 @@ nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon 
 nfTypeTC (STermCon.integer i)    = NTermCon.integer i
 nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
+nfTypeTC (STermCon.bool b)       = NTermCon.bool b
+nfTypeTC (STermCon.char c)       = NTermCon.char c
+nfTypeTC STermCon.unit           = NTermCon.unit
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.List
@@ -101,6 +104,7 @@ nfTypeSIG≡₁ sha2-256 = refl
 nfTypeSIG≡₁ sha3-256 = refl
 nfTypeSIG≡₁ verifySignature = refl
 nfTypeSIG≡₁ equalsByteString = refl
+nfTypeSIG≡₁ ifThenElse = refl
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
@@ -149,6 +153,8 @@ nfTypeSIG≡₂ sha2-256 = refl
 nfTypeSIG≡₂ sha3-256 = refl
 nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
+nfTypeSIG≡₂ ifThenElse = refl
+
 open import Builtin.Constant.Type
 
 lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
@@ -187,6 +193,7 @@ lemList sha2-256 = refl
 lemList sha3-256 = refl
 lemList verifySignature = refl
 lemList equalsByteString = refl
+lemList ifThenElse = refl
 
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}

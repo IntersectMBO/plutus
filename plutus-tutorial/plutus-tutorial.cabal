@@ -46,7 +46,10 @@ common lang
 
 executable tutorial-doctests
     import: lang
-    hs-source-dirs: doctest
+    hs-source-dirs:
+        doctest
+        -- Make haskell.nix not clean this away - it has the sources for the symlinks in 'doctest'
+        doc
     main-is: Main.hs
     ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
     build-tool-depends: unlit:unlit -any, doctest:doctest -any
@@ -63,7 +66,7 @@ executable tutorial-doctests
       bytestring -any,
       language-plutus-core -any,
       plutus-tx -any,
-      plutus-wallet-api -any,
+      plutus-ledger -any,
       plutus-emulator -any,
       prettyprinter -any,
       containers -any

@@ -219,8 +219,20 @@
                                             [
                                               (lam
                                                 b
-                                                (all a (type) (fun a (fun a a)))
-                                                [ [ { b Bool } True ] False ]
+                                                (con bool)
+                                                [
+                                                  [
+                                                    [
+                                                      {
+                                                        (builtin ifThenElse)
+                                                        Bool
+                                                      }
+                                                      b
+                                                    ]
+                                                    True
+                                                  ]
+                                                  False
+                                                ]
                                               )
                                               [
                                                 [
@@ -414,9 +426,20 @@
                                                   [
                                                     (lam
                                                       b
-                                                      (all a (type) (fun a (fun a a)))
+                                                      (con bool)
                                                       [
-                                                        [ { b Bool } True ]
+                                                        [
+                                                          [
+                                                            {
+                                                              (builtin
+                                                                ifThenElse
+                                                              )
+                                                              Bool
+                                                            }
+                                                            b
+                                                          ]
+                                                          True
+                                                        ]
                                                         False
                                                       ]
                                                     )
@@ -441,7 +464,20 @@
                                                   addInteger
                                                   (fun (con integer) (fun (con integer) (con integer)))
                                                 )
-                                                (builtin addInteger)
+                                                (lam
+                                                  arg
+                                                  (con integer)
+                                                  (lam
+                                                    arg
+                                                    (con integer)
+                                                    [
+                                                      [
+                                                        (builtin addInteger) arg
+                                                      ]
+                                                      arg
+                                                    ]
+                                                  )
+                                                )
                                               )
                                               (let
                                                 (nonrec)
@@ -485,7 +521,20 @@
                                                       appendString
                                                       (fun (con string) (fun (con string) (con string)))
                                                     )
-                                                    (builtin append)
+                                                    (lam
+                                                      arg
+                                                      (con string)
+                                                      (lam
+                                                        arg
+                                                        (con string)
+                                                        [
+                                                          [
+                                                            (builtin append) arg
+                                                          ]
+                                                          arg
+                                                        ]
+                                                      )
+                                                    )
                                                   )
                                                   (let
                                                     (nonrec)
@@ -493,9 +542,16 @@
                                                       (strict)
                                                       (vardecl
                                                         charToString
-                                                        (fun (con integer) (con string))
+                                                        (fun (con char) (con string))
                                                       )
-                                                      (builtin charToString)
+                                                      (lam
+                                                        arg
+                                                        (con char)
+                                                        [
+                                                          (builtin charToString)
+                                                          arg
+                                                        ]
+                                                      )
                                                     )
                                                     (let
                                                       (nonrec)
@@ -513,11 +569,11 @@
                                                           (strict)
                                                           (vardecl
                                                             toPlutusString
-                                                            (fun [List (con integer)] (con string))
+                                                            (fun [List (con char)] (con string))
                                                           )
                                                           (lam
                                                             str
-                                                            [List (con integer)]
+                                                            [List (con char)]
                                                             [
                                                               [
                                                                 [
@@ -525,7 +581,7 @@
                                                                     [
                                                                       {
                                                                         Nil_match
-                                                                        (con integer)
+                                                                        (con char)
                                                                       }
                                                                       str
                                                                     ]
@@ -539,10 +595,10 @@
                                                                 ]
                                                                 (lam
                                                                   c
-                                                                  (con integer)
+                                                                  (con char)
                                                                   (lam
                                                                     rest
-                                                                    [List (con integer)]
+                                                                    [List (con char)]
                                                                     (lam
                                                                       thunk
                                                                       Unit
@@ -581,7 +637,7 @@
                                                               [
                                                                 (lam
                                                                   b
-                                                                  (all a (type) (fun a a))
+                                                                  (con unit)
                                                                   Unit
                                                                 )
                                                                 [
@@ -782,215 +838,215 @@
                                                                                         [
                                                                                           {
                                                                                             Cons
-                                                                                            (con integer)
+                                                                                            (con char)
                                                                                           }
                                                                                           (con
-                                                                                            110
+                                                                                            n
                                                                                           )
                                                                                         ]
                                                                                         [
                                                                                           [
                                                                                             {
                                                                                               Cons
-                                                                                              (con integer)
+                                                                                              (con char)
                                                                                             }
                                                                                             (con
-                                                                                              111
+                                                                                              o
                                                                                             )
                                                                                           ]
                                                                                           [
                                                                                             [
                                                                                               {
                                                                                                 Cons
-                                                                                                (con integer)
+                                                                                                (con char)
                                                                                               }
                                                                                               (con
-                                                                                                116
+                                                                                                t
                                                                                               )
                                                                                             ]
                                                                                             [
                                                                                               [
                                                                                                 {
                                                                                                   Cons
-                                                                                                  (con integer)
+                                                                                                  (con char)
                                                                                                 }
                                                                                                 (con
-                                                                                                  32
+                                                                                                   
                                                                                                 )
                                                                                               ]
                                                                                               [
                                                                                                 [
                                                                                                   {
                                                                                                     Cons
-                                                                                                    (con integer)
+                                                                                                    (con char)
                                                                                                   }
                                                                                                   (con
-                                                                                                    101
+                                                                                                    e
                                                                                                   )
                                                                                                 ]
                                                                                                 [
                                                                                                   [
                                                                                                     {
                                                                                                       Cons
-                                                                                                      (con integer)
+                                                                                                      (con char)
                                                                                                     }
                                                                                                     (con
-                                                                                                      110
+                                                                                                      n
                                                                                                     )
                                                                                                   ]
                                                                                                   [
                                                                                                     [
                                                                                                       {
                                                                                                         Cons
-                                                                                                        (con integer)
+                                                                                                        (con char)
                                                                                                       }
                                                                                                       (con
-                                                                                                        111
+                                                                                                        o
                                                                                                       )
                                                                                                     ]
                                                                                                     [
                                                                                                       [
                                                                                                         {
                                                                                                           Cons
-                                                                                                          (con integer)
+                                                                                                          (con char)
                                                                                                         }
                                                                                                         (con
-                                                                                                          117
+                                                                                                          u
                                                                                                         )
                                                                                                       ]
                                                                                                       [
                                                                                                         [
                                                                                                           {
                                                                                                             Cons
-                                                                                                            (con integer)
+                                                                                                            (con char)
                                                                                                           }
                                                                                                           (con
-                                                                                                            103
+                                                                                                            g
                                                                                                           )
                                                                                                         ]
                                                                                                         [
                                                                                                           [
                                                                                                             {
                                                                                                               Cons
-                                                                                                              (con integer)
+                                                                                                              (con char)
                                                                                                             }
                                                                                                             (con
-                                                                                                              104
+                                                                                                              h
                                                                                                             )
                                                                                                           ]
                                                                                                           [
                                                                                                             [
                                                                                                               {
                                                                                                                 Cons
-                                                                                                                (con integer)
+                                                                                                                (con char)
                                                                                                               }
                                                                                                               (con
-                                                                                                                32
+                                                                                                                 
                                                                                                               )
                                                                                                             ]
                                                                                                             [
                                                                                                               [
                                                                                                                 {
                                                                                                                   Cons
-                                                                                                                  (con integer)
+                                                                                                                  (con char)
                                                                                                                 }
                                                                                                                 (con
-                                                                                                                  115
+                                                                                                                  s
                                                                                                                 )
                                                                                                               ]
                                                                                                               [
                                                                                                                 [
                                                                                                                   {
                                                                                                                     Cons
-                                                                                                                    (con integer)
+                                                                                                                    (con char)
                                                                                                                   }
                                                                                                                   (con
-                                                                                                                    105
+                                                                                                                    i
                                                                                                                   )
                                                                                                                 ]
                                                                                                                 [
                                                                                                                   [
                                                                                                                     {
                                                                                                                       Cons
-                                                                                                                      (con integer)
+                                                                                                                      (con char)
                                                                                                                     }
                                                                                                                     (con
-                                                                                                                      103
+                                                                                                                      g
                                                                                                                     )
                                                                                                                   ]
                                                                                                                   [
                                                                                                                     [
                                                                                                                       {
                                                                                                                         Cons
-                                                                                                                        (con integer)
+                                                                                                                        (con char)
                                                                                                                       }
                                                                                                                       (con
-                                                                                                                        110
+                                                                                                                        n
                                                                                                                       )
                                                                                                                     ]
                                                                                                                     [
                                                                                                                       [
                                                                                                                         {
                                                                                                                           Cons
-                                                                                                                          (con integer)
+                                                                                                                          (con char)
                                                                                                                         }
                                                                                                                         (con
-                                                                                                                          97
+                                                                                                                          a
                                                                                                                         )
                                                                                                                       ]
                                                                                                                       [
                                                                                                                         [
                                                                                                                           {
                                                                                                                             Cons
-                                                                                                                            (con integer)
+                                                                                                                            (con char)
                                                                                                                           }
                                                                                                                           (con
-                                                                                                                            116
+                                                                                                                            t
                                                                                                                           )
                                                                                                                         ]
                                                                                                                         [
                                                                                                                           [
                                                                                                                             {
                                                                                                                               Cons
-                                                                                                                              (con integer)
+                                                                                                                              (con char)
                                                                                                                             }
                                                                                                                             (con
-                                                                                                                              117
+                                                                                                                              u
                                                                                                                             )
                                                                                                                           ]
                                                                                                                           [
                                                                                                                             [
                                                                                                                               {
                                                                                                                                 Cons
-                                                                                                                                (con integer)
+                                                                                                                                (con char)
                                                                                                                               }
                                                                                                                               (con
-                                                                                                                                114
+                                                                                                                                r
                                                                                                                               )
                                                                                                                             ]
                                                                                                                             [
                                                                                                                               [
                                                                                                                                 {
                                                                                                                                   Cons
-                                                                                                                                  (con integer)
+                                                                                                                                  (con char)
                                                                                                                                 }
                                                                                                                                 (con
-                                                                                                                                  101
+                                                                                                                                  e
                                                                                                                                 )
                                                                                                                               ]
                                                                                                                               [
                                                                                                                                 [
                                                                                                                                   {
                                                                                                                                     Cons
-                                                                                                                                    (con integer)
+                                                                                                                                    (con char)
                                                                                                                                   }
                                                                                                                                   (con
-                                                                                                                                    115
+                                                                                                                                    s
                                                                                                                                   )
                                                                                                                                 ]
                                                                                                                                 {
                                                                                                                                   Nil
-                                                                                                                                  (con integer)
+                                                                                                                                  (con char)
                                                                                                                                 }
                                                                                                                               ]
                                                                                                                             ]

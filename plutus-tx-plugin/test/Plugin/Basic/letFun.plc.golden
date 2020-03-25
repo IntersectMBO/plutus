@@ -22,7 +22,9 @@
             (con integer)
             [
               (lam
-                b (all a (type) (fun a (fun a a))) [ [ { b Bool } True ] False ]
+                b
+                (con bool)
+                [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
               )
               [ [ (builtin equalsInteger) arg ] arg ]
             ]

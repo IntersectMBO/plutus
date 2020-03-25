@@ -19,18 +19,21 @@ import qualified Control.Monad.Freer.Error      as Eff
 import qualified Data.ByteString                as BS
 import           Data.Either                    (isRight)
 import qualified Data.Map.Strict                as Map
+import           Data.Ratio                     ((%))
 import           Data.String
 
 import qualified Codec.CBOR.Write               as Write
 import qualified Codec.Serialise                as Serialise
-import           Hedgehog                       (Gen, Property, forAll, property)
+import           Hedgehog                       (Gen, Property, forAll, property, (===))
 import qualified Hedgehog
 import           Hedgehog.Gen                   (integral)
+import qualified Hedgehog.Gen                   as Gen
 import qualified Hedgehog.Range                 as Range
 import           Language.Marlowe
 import qualified Language.PlutusTx.Prelude      as P
 import           Ledger                         hiding (Value)
 import           Ledger.Ada                     (adaValueOf)
+import qualified Ledger.Generators              as Gen
 import qualified Ledger.Value                   as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
@@ -43,24 +46,27 @@ import qualified Wallet.Emulator.Generators     as Gen
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.SigningProcess (SigningProcessEffect)
 import           Wallet.Emulator.Wallet
-import qualified Wallet.Generators              as Gen
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
 
+limitedProperty :: TestName -> Property -> TestTree
+limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ testProperty a b
 
 tests :: TestTree
-tests = localOption (HedgehogTestLimit $ Just 3) $ testGroup "Marlowe"
+tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
     , testCase "Pretty/Show/Read stuff" showReadStuff
     , testCase "Validator size is reasonable" validatorSize
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
-    , testProperty "Zero Coupon Bond Contract" zeroCouponBondTest
-    , testProperty "Zero Coupon Bond w/ Roles Contract" zeroCouponBondRolesTest
-    , testProperty "Trust Fund Contract" trustFundTest
-    , testProperty "Make progress Contract" makeProgressTest
+    , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
+    , testProperty "Scale rounding" scaleRoundingTest
+    , limitedProperty "Zero Coupon Bond Contract" zeroCouponBondTest
+    , limitedProperty "Zero Coupon Bond w/ Roles Contract" zeroCouponBondRolesTest
+    , limitedProperty "Trust Fund Contract" trustFundTest
+    , limitedProperty "Make progress Contract" makeProgressTest
     ]
 
 
@@ -276,28 +282,48 @@ doubleNegation = property $ do
     let value = boundedValue [PK pk1, PK pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     a <- forAll value
-    Hedgehog.assert (eval (NegValue (NegValue a)) == eval a)
+    eval (NegValue (NegValue a)) === eval a
 
 
 valuesFormAbelianGroup :: Property
 valuesFormAbelianGroup = property $ do
-    pk1 <- pubKeyHash <$> forAll pubKeyGen
-    pk2 <- pubKeyHash <$> forAll pubKeyGen
+    let pk1 = pubKeyHash $ toPublicKey privateKey1
+    let pk2 = pubKeyHash $ toPublicKey privateKey2
     let value = boundedValue [PK pk1, PK pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     a <- forAll value
     b <- forAll value
     c <- forAll value
     -- associativity of addition
-    Hedgehog.assert (eval (AddValue (AddValue a b) c) == eval (AddValue a (AddValue b c)))
+    eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c))
     -- commutativity of addition
-    Hedgehog.assert (eval (AddValue a b) == eval (AddValue b a))
+    eval (AddValue a b) === eval (AddValue b a)
     -- additive identity
-    Hedgehog.assert (eval (AddValue a (Constant 0)) == eval a)
+    eval (AddValue a (Constant 0)) === eval a
     -- additive inverse
-    Hedgehog.assert (eval (AddValue a (NegValue a)) == 0)
+    eval (AddValue a (NegValue a)) === 0
     -- substraction works
-    Hedgehog.assert (eval (SubValue (AddValue a b) b) == eval a)
+    eval (SubValue (AddValue a b) b) === eval a
+
+
+scaleRoundingTest :: Property
+scaleRoundingTest = property $ do
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    -- test half-even rounding
+    n <- forAll amount
+    d <- forAll (Gen.filter (/= 0) amount)
+    eval (Scale (n P.% d) (Constant 1)) === round (n % d)
+
+
+scaleMulTest :: Property
+scaleMulTest = property $ do
+    let pk1 = pubKeyHash $ toPublicKey privateKey1
+    let pk2 = pubKeyHash $ toPublicKey privateKey2
+    let value = boundedValue [PK pk1, PK pk2] []
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    a <- forAll value
+    eval (Scale (0 P.% 1) a) === 0
+    eval (Scale (1 P.% 1) a) === eval a
 
 
 showReadStuff :: IO ()

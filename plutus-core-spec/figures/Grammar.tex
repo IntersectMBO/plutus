@@ -2,6 +2,8 @@
 
 \begin{document}
 
+\medskip\hrule\medskip
+
 \begin{minipage}{\linewidth}
     \centering
     \[\begin{array}{lrclr}
@@ -15,10 +17,6 @@
                                   &        &     & \app{M}{N}                 & \textrm{function application}\\
                                   &        &     & \builtin{bn}{A^*}{M^*}     & \textrm{builtin}\\
                                   &        &     & \error{A}                  & \textrm{error}\\
-        \textrm{Value}            & U, V   & ::= & \con{cn}                   & \textrm{constant}\\
-                                  &        &     & \abs{\alpha}{K}{M}         & \textrm{type abstraction}\\
-                                  &        &     & \iwrap{\alpha}{A}{V}       & \textrm{fix type's wrap}\\
-                                  &        &     & \lam{x}{A}{M}              & \textrm{$\lambda$ abstraction}\\
         \textrm{Type}             & A,B,C  & ::= & \alpha                     & \textrm{type variable}\\
                                   &        &     & \funT{A}{B}                & \textrm{function type}\\
                                   &        &     & \allT{\alpha}{K}{A}        & \textrm{polymorphic type}\\
@@ -26,23 +24,51 @@
                                   &        &     & \lamT{\alpha}{K}{A}        & \textrm{$\lambda$ abstraction}\\
                                   &        &     & \appT{A}{B}                & \textrm{function application}\\
                                   &        &     & \conT{tcn}                 & \textrm{type constant}\\
-        \textrm{Type Value}       & R,S,T  & ::= & \funT{S}{T}                & \textrm{function type}\\
-                                  &        &     & \allT{\alpha}{K}{S}        & \textrm{polymorphic type}\\
-                                  &        &     & \fixT{S}{T}                & \textrm{fixed point type}\\
-                                  &        &     & \lamT{\alpha}{K}{S}        & \textrm{$\lambda$ abstraction}\\
-                                  &        &     & \conT{tcn}                 & \textrm{type constant}\\
-                                  &        &     & W                          & \textrm{neutral type}\\
-        \textrm{Neutral Type}     & W      &     & \alpha                     & \textrm{type variable}\\
-                                  &        &     & \appT{W}{S}                & \textrm{function application}\\
         \textrm{Kind}             & J,K    & ::= & \typeK{}                   & \textrm{type kind}\\
                                   &        &     & \funK{J}{K}                & \textrm{arrow kind}\\
         \textrm{Signature}        & G      & ::= & \sig{(\alpha :: K)^*}{B^*}{C}     & \textrm{signature}\\
         \textrm{Constant Signature}   & Q      & ::= & tcn                    & \textrm{constant signature}\\
-        \textrm{Program}          & P      & ::= & \version{v}{M}             & \textrm{versioned program}\\
+        \textrm{Program}          & P      & ::= & \version{v}{M}             & \textrm{versioned program}
 
     \end{array}\]
     \captionof{figure}{Grammar of Plutus Core}
     \label{fig:grammar}
+\end{minipage}
+
+\medskip
+\hrule
+\medskip
+
+\begin{minipage}{\linewidth}
+    \centering
+    \[\begin{array}{lrcl}
+        \textrm{Value}            & U, V   & ::= & \con{cn}             \\
+                                  &        &     & \abs{\alpha}{K}{M}   \\
+                                  &        &     & \iwrap{\alpha}{A}{V} \\
+                                  &        &     & \lam{x}{A}{M}
+    \end{array}\]
+    \captionof{figure}{Values in Plutus Core}
+    \label{fig:values}
+\end{minipage}
+
+\medskip
+\hrule
+\medskip
+
+\begin{minipage}{\linewidth}
+    \centering
+    \[\begin{array}{lrcl}
+        \textrm{Type Value}       & R,S,T  & ::= & \funT{S}{T}          \\
+                                  &        &     & \allT{\alpha}{K}{S}  \\
+                                  &        &     & \fixT{S}{T}          \\
+                                  &        &     & \lamT{\alpha}{K}{S}  \\
+                                  &        &     & \conT{tcn}           \\
+                                  &        &     & W                    \\
+        \textrm{Neutral Type}     & W      & ::= & \alpha               \\
+                                  &        &     & \appT{W}{S}          \\
+    \end{array}\]
+    \captionof{figure}{Type Values in Plutus Core}
+    \label{fig:type-values}
 \end{minipage}
 
 \end{document}

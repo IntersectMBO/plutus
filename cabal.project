@@ -1,8 +1,7 @@
 packages: language-plutus-core
           marlowe
           plutus-emulator
-          plutus-exe
-          plutus-wallet-api
+          plutus-ledger
           plutus-tx
           plutus-tx-plugin
           plutus-use-cases
@@ -49,7 +48,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-crypto.git
-  tag: 3c5db489c71a4d70ee43f5f9b979fcde3c797f2a
+  tag: 2547ad1e80aeabca2899951601079408becbc92c
 
 source-repository-package
   type: git

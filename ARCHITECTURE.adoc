@@ -15,8 +15,6 @@ this is the absolute core of the codebase, and everything depends on it.
 
 include::language-plutus-core/ARCHITECTURE.adoc[]
 
-include::plutus-exe/ARCHITECTURE.adoc[]
-
 == Plutus Tx
 
 Plutus Tx is how we refer to the subset of Haskell which we compile into Plutus
@@ -41,7 +39,7 @@ running on. There are two reasons for this:
 - We want to write tests that simulate the "full" behaviour of contracts, i.e.
   across time, in a multi-agent scenario.
 
-include::plutus-wallet-api/ARCHITECTURE.adoc[]
+include::plutus-ledger/ARCHITECTURE.adoc[]
 
 include::plutus-emulator/ARCHITECTURE.adoc[]
 

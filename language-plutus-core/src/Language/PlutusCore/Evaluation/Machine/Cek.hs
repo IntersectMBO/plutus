@@ -3,10 +3,9 @@
 -- environments instead.
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.
+-- The CEK machines handles name capture by design.
 -- The type checker pass is a prerequisite.
 -- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
--- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
--- This is not a problem as the CEK machines handles name capture by design.
 -- Dynamic extensions to the set of built-ins are allowed.
 -- In case an unknown dynamic built-in is encountered, an 'UnknownDynamicBuiltinNameError' is returned
 -- (wrapped in 'OtherMachineError').
@@ -63,6 +62,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
@@ -75,6 +75,11 @@ import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
+
+{- Note [Scoping]
+The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
+prerequisite. The CEK machine correctly handles name shadowing.
+-}
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
@@ -96,7 +101,7 @@ instance Pretty CekUserError where
 data Closure uni = Closure
     { _closureVarEnv :: VarEnv uni
     , _closureValue  :: WithMemory Value uni
-    }
+    } deriving (Show)
 
 -- | Variable environments used by the CEK machine.
 -- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
@@ -133,6 +138,7 @@ data Frame uni
     | FrameTyInstArg (Type TyName uni ExMemory)                                  -- ^ @{_ A}@
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
+    deriving (Show)
 
 type Context uni = [Frame uni]
 
@@ -178,6 +184,17 @@ lookupDynamicBuiltinName dynName = do
             term = Builtin () $ DynBuiltinName () dynName
         Just mean -> pure mean
 
+-- See Note [Scoping].
+-- | Instantiate all the free variables of a term by looking them up in an environment.
+dischargeVarEnv :: VarEnv uni -> WithMemory Term uni -> WithMemory Term uni
+dischargeVarEnv varEnv =
+    -- We recursively discharge the environments of closures, but we will gradually end up doing
+    -- this to terms which have no free variables remaining, at which point we won't call this
+    -- substitution function any more and so we will terminate.
+    termSubstFreeNames $ \name -> do
+        Closure varEnv' term' <- lookupName name varEnv
+        Just $ dischargeVarEnv varEnv' term'
+
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
@@ -221,7 +238,8 @@ computeCek con t@(Var _ varName)   = do
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> WithMemory Value uni -> CekM uni (Plain Term uni)
-returnCek [] res = pure $ void res
+-- Instantiate all the free variable of the resulting term in case there are any.
+returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
 returnCek (FrameTyInstArg ty : con) fun = instantiateEvaluate con ty fun
 returnCek (FrameApplyArg argVarEnv arg : con) fun = do
     funVarEnv <- getVarEnv
@@ -265,9 +283,13 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
-applyEvaluate funVarEnv _ con fun arg =
-    let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg) fun arg in
-        case termAsPrimIterApp term of
+applyEvaluate funVarEnv argVarEnv con fun arg =
+        -- Instantiate all the free variable of the argument in case there are any
+        -- (which may happen when evaluating a term that contains polymorphic built-in functions).
+        -- See https://github.com/input-output-hk/plutus/issues/1882
+    let argClosed = dischargeVarEnv argVarEnv arg
+        term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage argClosed) fun argClosed
+    in case termAsPrimIterApp term of
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
@@ -275,13 +297,6 @@ applyEvaluate funVarEnv _ con fun arg =
                 withVarEnv funVarEnv $ case constAppResult of
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
-
--- | Reduce a saturated application of a builtin function in the empty context.
-computeInCekM
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => EvaluateConstApp uni (CekM uni) ann -> CekM uni (ConstAppResult uni ann)
-computeInCekM = runEvaluateT eval where
-    eval means' = local (over cekEnvMeans $ mappend means') . computeCek [] . withMemory
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -291,16 +306,9 @@ applyStagedBuiltinName
     -> CekM uni (ConstAppResult uni ExMemory)
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-    computeInCekM $ applyTypeSchemed
-        n
-        sch
-        x
-        exX
-        args
+    applyTypeSchemed n sch x exX args
 applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    computeInCekM $ applyBuiltinName
-        name
-        args
+    applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
@@ -350,4 +358,4 @@ readKnownCek
     => DynamicBuiltinNameMeanings uni
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek = readKnownBy evaluateCek
+readKnownCek means = evaluateCek means >=> readKnown

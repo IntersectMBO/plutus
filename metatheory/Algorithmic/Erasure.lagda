@@ -15,8 +15,8 @@ open import Function hiding (_∋_)
 open import Builtin
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con boolean as DS
-import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf as AS
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con as DS
+import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con as AS
 open import Type.RenamingSubstitution as T renaming (subst to sub) 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
@@ -26,6 +26,7 @@ open import Type.BetaNBE.Soundness
 open import Data.Nat
 open import Data.Fin
 open import Data.List
+open import Data.Product renaming (_,_ to _,,_)
 \end{code}
 
 \begin{code}
@@ -45,23 +46,24 @@ eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
 eraseTC (AC.integer i)    = integer i
 eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
+eraseTC (AC.bool b)       = bool b
+eraseTC (AC.char c)       = char c
+eraseTC AC.unit           = unit
 
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → A.Tel Γ Δ σ As
   → Untyped.Tel (len Γ)
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
-erase (` α)               = ` (eraseVar α)
-erase (ƛ t)               = ƛ (erase t) 
-erase (t · u)             = erase t · erase u
-erase (Λ t)               = ƛ (U.weaken (erase t))
-erase (_·⋆_ t A)          = erase t · plc_dummy
-erase (wrap1 pat arg t)   = erase t
-erase (unwrap1 t)         = erase t
-erase {Γ = Γ} (con t)     = con (eraseTC {Γ = Γ} t)
-erase (builtin bn σ ts)   = builtin bn (eraseTel ts)
-erase (error A)           = error
-
-open import Data.Product renaming (_,_ to _,,_)
+erase (` α)                = ` (eraseVar α)
+erase (ƛ t)                = ƛ (erase t) 
+erase (t · u)              = erase t · erase u
+erase (Λ t)                = ƛ (U.weaken (erase t))
+erase (_·⋆_ t A)           = erase t · plc_dummy
+erase (wrap1 pat arg t)    = erase t
+erase (unwrap1 t)          = erase t
+erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
+erase (builtin bn σ ts)    = builtin bn (eraseTel ts)
+erase (error A)            = error
 
 eraseTel {As = []}     _          = []
 eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
@@ -78,6 +80,8 @@ open import Relation.Binary.PropositionalEquality
 import Declarative as D
 import Declarative.Erasure as D
 open import Algorithmic.Completeness
+
+open import Utils
 
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
@@ -104,6 +108,9 @@ sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
 sameTC (DC.integer i)    = refl
 sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
+sameTC (DC.bool b)       = refl
+sameTC (DC.char c)       = refl
+sameTC DC.unit           = refl
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -150,6 +157,10 @@ lem-plc_dummy : ∀{n n'}(p : n ≡ n') →
   plc_dummy ≡ subst _⊢ p plc_dummy
 lem-plc_dummy refl = refl
 
+lemifthenelse : ∀{n n'}(p : n ≡ n')(b t u : n ⊢)
+  → if subst _⊢ p b then subst _⊢ p t else subst _⊢ p u ≡ subst _⊢ p (if b then t else u)
+lemifthenelse refl b t u = refl
+
 
 lem∷ : ∀{n n'}(p : n ≡ n')(t : n ⊢)(ts : List (n ⊢))
   → subst _⊢ p t ∷ subst (List ∘ _⊢) p ts ≡ subst (List ∘ _⊢) p (t ∷ ts) 
@@ -182,6 +193,7 @@ lem-erase' {Γ = Γ} p t = trans
   (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} refl)))
   (lem-erase refl p t)
 
+{-
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
@@ -242,7 +254,11 @@ same {Γ = Γ} (D.builtin sha2-256 σ ts) = trans (cong (builtin sha2-256) (same
 same {Γ = Γ} (D.builtin sha3-256 σ ts) = trans (cong (builtin sha3-256) (sameTel σ (proj₁ (proj₂ (DS.SIG sha3-256))) ts)) (lemTel (lenLemma Γ) sha3-256 _)
 same {Γ = Γ} (D.builtin verifySignature σ ts) = trans (cong (builtin verifySignature) (sameTel σ (proj₁ (proj₂ (DS.SIG verifySignature))) ts)) (lemTel (lenLemma Γ) verifySignature _)
 same {Γ = Γ} (D.builtin equalsByteString σ ts) = trans (cong (builtin equalsByteString) (sameTel σ (proj₁ (proj₂ (DS.SIG equalsByteString))) ts)) (lemTel (lenLemma Γ) equalsByteString _)
+same {Γ = Γ} (D.builtin ifThenElse σ ts) = {!trans (cong (builtin ifThenElse) (sameTel σ (proj₁ (proj₂ (DS.SIG ifThenElse))) ts)) (lemTel (lenLemma Γ) ifThenElse _)!}
+
+-- trans (cong (builtin ifThenElse) (sameTel σ (proj₁ (proj₂ (DS.SIG ifThenElse))) ts)) (lemTel (lenLemma Γ) ifThenElse _)
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
+-}
 
 open import Algorithmic.Soundness
 
@@ -271,6 +287,10 @@ same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
 same'TC (AC.integer i)    = refl
 same'TC (AC.bytestring b) = refl
 same'TC (AC.string s)     = refl
+same'TC (AC.bool b)       = refl
+same'TC (AC.char c)       = refl
+same'TC AC.unit           = refl
+
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
@@ -376,5 +396,9 @@ same' {Γ = Γ} (builtin equalsByteString σ ts) = trans
   (cong (builtin equalsByteString)
         (same'Tel σ (proj₁ (proj₂ (AS.SIG equalsByteString))) ts))
   (lemTel (same'Len Γ) equalsByteString _)
+same' {Γ = Γ} (builtin ifThenElse σ ts) = trans
+  (cong (builtin ifThenElse)
+        (same'Tel σ (proj₁ (proj₂ (AS.SIG ifThenElse))) ts))
+  (lemTel (same'Len Γ) ifThenElse _)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

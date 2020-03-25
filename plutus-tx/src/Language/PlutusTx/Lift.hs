@@ -58,7 +58,9 @@ safeLiftProgram
     => a -> m (PLC.Program TyName Name uni ())
 safeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
-safeLiftCode :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m) => a -> m (CompiledCode uni a)
+safeLiftCode
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    => a -> m (CompiledCode uni a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 safeConstCode
@@ -141,7 +143,7 @@ typeCheckAgainst p plcTerm = do
     let applied = Apply () idFun term
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm applied
     types <- PLC.getStringBuiltinTypes NoProvenance
-    void $ PLC.inferType (PLC.defOffChainConfig { PLC._tccDynamicBuiltinNameTypes = types }) compiled
+    void $ PLC.inferType (PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }) compiled
 
 -- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.
 typeCode

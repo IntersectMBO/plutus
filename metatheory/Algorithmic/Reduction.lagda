@@ -15,8 +15,9 @@ open import Relation.Nullary
 open import Relation.Nullary.Decidable
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.List hiding ([_]; take; drop)
-import Data.Bool as Bool
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
+
 
 open import Type
 open import Algorithmic
@@ -30,7 +31,7 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Utils
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
@@ -60,11 +61,6 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
     → Value {Γ = Γ} (con {Φ} cn)
-\end{code}
-
-\begin{code}
-voidVal : ∀{Φ}{Γ : Ctx Φ} → Value (void {Φ}{Γ})
-voidVal = V-Λ
 \end{code}
 
 \begin{code}
@@ -125,10 +121,10 @@ convVal refl refl v = v
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool.Bool → Γ ⊢ booleanNf
-VERIFYSIG (just Bool.false) = false
-VERIFYSIG (just Bool.true)  = true
-VERIFYSIG nothing           = error booleanNf
+VERIFYSIG : ∀{Φ}{Γ : Ctx Φ} → Maybe Bool → Γ ⊢ con bool
+VERIFYSIG (just false) = con (bool false)
+VERIFYSIG (just true)  = con (bool true)
+VERIFYSIG nothing      = error (con bool)
 
 BUILTIN : ∀{Φ Γ}
     → (bn : Builtin)
@@ -153,15 +149,15 @@ BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
 BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
 BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i <? j) true false
+  decIf (i <? j) (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
-  = decIf (i ≤? j) true false
+  = decIf (i ≤? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.>? j) true false
+  decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i Builtin.Constant.Type.≥? j) true false
+  decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
-  decIf (i ≟ j) true false
+  decIf (i ≟ j) (con (bool true)) (con (bool false))
 BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   con (bytestring (append b b'))
 BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
@@ -173,7 +169,9 @@ BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) =
 BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) =
   con (bytestring (SHA3-256 b))
 BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
-BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = Bool.if (equals b b') then true else false
+BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
+BUILTIN ifThenElse _ (_ ,, t ,, _ ,, _) (V-con (bool true)  ,, _) = t
+BUILTIN ifThenElse _ (_ ,, _ ,, u ,, _) (V-con (bool false) ,, _) = u
 \end{code}
 
 # recontructing the telescope after a reduction step
@@ -460,7 +458,6 @@ progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error
-
 --
 
 open import Data.Empty
@@ -685,6 +682,15 @@ det (β-builtin bn σ tel vtel) (β-builtin .bn .σ .tel wtel) =
 det (β-builtin bn σ tel vtel) (ξ-builtin .bn .σ .tel Bs Ds telB telD wtel q p q₁) = ⊥-elim (vTel _ _ σ _ tel vtel Bs  Ds telB telD q p q₁)
 det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (vTel _ _ σ _ tel vtel₁ Bs Ds telB telD p p₁ q)
 det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (ξ-builtin .bn .σ .tel Bs' Ds' telB' telD' vtel' p' p'' q') = cong (builtin bn σ) (reconstTel-inj' Bs Bs' Ds Ds' σ telB vtel telB' vtel' p p' p₁ p'' telD telD' (trans q (sym q')))
+det (β-builtin .bn .σ .tel vtel) (E-builtin bn σ tel Bs Ds telB vtel₁ e p telD) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel₁ e p telD tel vtel)
+  -- impossible as the term t cannot be a val and an err
+det (ξ-builtin .bn .σ .tel Bs Ds telB telD vtel p p₁ q) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e p₂ telD₁) = ⊥-elim (reconstTel-err' Bs Bs₁ Ds Ds₁ σ telB vtel telB₁ vtel₁ p e p₁ p₂ telD telD₁)
+  -- impossible as the term t cannot reduce and be an err
+det (E-builtin .bn .σ .tel Bs Ds telB vtel e p telD) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e' p₁ telD₁) = refl
+det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel e p telD tel vtel₁)
+  -- impossible as the term t cannot be an err and a val
+det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (ξ-builtin .bn .σ .tel Bs₁ Ds₁ telB₁ telD₁ vtel₁ q p₁ q₁) = ⊥-elim (reconstTel-err' Bs₁ Bs Ds₁ Ds σ telB₁ vtel₁ telB vtel q e p₁ p telD₁ telD)
+  --impossible as the term t cannot be an err and reduce
 det E-·₁ (ξ-·₁ ())
 det (E-·₂ v) (ξ-·₁ p) = ⊥-elim (val-red v (_ ,, p))
 det (E-·₂ v) (E-·₂ w) = refl
@@ -695,12 +701,3 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
-det (β-builtin .bn .σ .tel vtel) (E-builtin bn σ tel Bs Ds telB vtel₁ e p telD) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel₁ e p telD tel vtel)
-  -- impossible as the term t cannot be a val and an err
-det (ξ-builtin .bn .σ .tel Bs Ds telB telD vtel p p₁ q) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e p₂ telD₁) = ⊥-elim (reconstTel-err' Bs Bs₁ Ds Ds₁ σ telB vtel telB₁ vtel₁ p e p₁ p₂ telD telD₁)
-  -- impossible as the term t cannot reduce and be an err
-det (E-builtin .bn .σ .tel Bs Ds telB vtel e p telD) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e' p₁ telD₁) = refl
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel e p telD tel vtel₁)
-  -- impossible as the term t cannot be an err and a val
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (ξ-builtin .bn .σ .tel Bs₁ Ds₁ telB₁ telD₁ vtel₁ q p₁ q₁) = ⊥-elim (reconstTel-err' Bs₁ Bs Ds₁ Ds σ telB₁ vtel₁ telB vtel q e p₁ p telD₁ telD)
-  --impossible as the term t cannot be an err and reduce

@@ -48,7 +48,7 @@ for more details.
 [[building-with-nix]]
 ==== How to build Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix localPackages.language-plutus-core`
+Run `nix build -f default.nix haskell.projectPackages.language-plutus-core`
 from the root to build the Plutus Core library.
 
 See <<nix-build-attributes>> to find out
@@ -143,15 +143,15 @@ To set up the cache:
 . On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
 +
 ----
-substituters        = https://hydra.iohk.io https://cache.nixos.org/
-trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ----
 . On NixOS, set the following NixOS options:
 +
 ----
 nix = {
-  binaryCaches          = [ "https://hydra.iohk.io" ];
-  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+  binaryCaches          = [ "https://hydra.iohk.io" "https://iohk.cachix.org" ];
+  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" "iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo=" ];
 };
 ----
 
@@ -179,12 +179,12 @@ artifacts you can build from this repository. These can be built
 using `nix build`. For example:
 
 ----
-nix build -f default.nix localPackages.language-plutus-core
+nix build -f default.nix haskell.projectPackages.language-plutus-core
 ----
 
 .Example attributes
-* Local packages: defined inside `localPackages`
-** e.g. `localPackages.language-plutus-core`
+* Project packages: defined inside `haskell.projectPackages`
+** e.g. `haskell.projectPackages.language-plutus-core`
 * Documents: defined inside `docs`
 ** e.g. `docs.plutus-core-spec`
 * Development scripts: defined inside `dev`

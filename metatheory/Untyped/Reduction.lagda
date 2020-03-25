@@ -8,7 +8,7 @@ open import Untyped.RenamingSubstitution
 open import Builtin
 open import Builtin.Constant.Type
 
-import Data.Bool as Bool
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
@@ -106,7 +106,7 @@ data _—→⋆_ {n} : n ⊢ → n ⊢ → Set where
 \end{code}
 
 \begin{code}
-VERIFYSIG : ∀{n} → Maybe Bool.Bool → n ⊢
+VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
 VERIFYSIG (just Bool.false) = plc_false 
 VERIFYSIG (just Bool.true)  = plc_true 
 VERIFYSIG nothing           = error
@@ -145,7 +145,9 @@ BUILTIN sha2-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-
 BUILTIN sha3-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN verifySignature (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
-  Bool.if (equals b b') then plc_true else plc_false 
+  con (bool (equals b b'))
+BUILTIN ifThenElse (_ ∷ t ∷ _ ∷ []) (V-con (bool true)  , vt , _ , tt) = t
+BUILTIN ifThenElse (_ ∷ _ ∷ u ∷ []) (V-con (bool false) , _ , vu , tt) = u
 BUILTIN _ _ _ = error
 
 data ProgList {n} (tel : Tel n) : Set where

@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
-import Marlowe.Semantics (CurrencySymbol, PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
+import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
@@ -63,6 +63,8 @@ type HelperFunctions a
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
+    , mkRational :: BigInteger -> BigInteger -> Rational
+    , mkScale :: Term Rational -> Term Value -> Value
     , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
@@ -108,6 +110,8 @@ helperFunctions =
   , mkNegValue: NegValue
   , mkAddValue: AddValue
   , mkSubValue: SubValue
+  , mkRational: Rational
+  , mkScale: Scale
   , mkChoiceValue: ChoiceValue
   , mkSlotIntervalStart: SlotIntervalStart
   , mkSlotIntervalEnd: SlotIntervalEnd
@@ -262,6 +266,15 @@ atomValue =
   (pure SlotIntervalStart <* string "SlotIntervalStart")
     <|> (pure SlotIntervalEnd <* string "SlotIntervalEnd")
 
+rational :: Parser Rational
+rational = do
+  num <- bigInteger
+  skipSpaces
+  void $ string "%"
+  skipSpaces
+  denom <- bigInteger
+  pure $ Rational num denom
+
 recValue :: Parser Value
 recValue =
   (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId) <**> parseTerm (parens token))
@@ -269,6 +282,13 @@ recValue =
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
+    <|> do
+        void $ string "Scale"
+        skipSpaces
+        s <- parseTerm (parens rational)
+        skipSpaces
+        v <- value'
+        pure $ Scale s v
     <|> (ChoiceValue <$> (string "ChoiceValue" **> parseTerm choiceId) <**> value')
     <|> (UseValue <$> (string "UseValue" **> parseTerm valueId))
   where

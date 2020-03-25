@@ -562,7 +562,7 @@ test-suite test-plc-agda
                  optparse-applicative -any,
                  language-plutus-core -any,
                  transformers -any
-  build-tool-depends: plutus-exe:plc
+  build-tool-depends: language-plutus-core:plc
 
 
 test-suite test2-plc-agda
@@ -841,5 +841,4 @@ test-suite test2-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Utils
         MAlonzo.RTE
-  build-tool-depends: plutus-exe:plc
-  
+  build-tool-depends: language-plutus-core:plc

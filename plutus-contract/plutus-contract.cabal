@@ -54,13 +54,14 @@ library
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.StateMachine
+        Language.Plutus.Contract.StateMachine.OnChain
         Language.Plutus.Contract.Tx
         Language.Plutus.Contract.Util
         Language.Plutus.Contract.Wallet
         Language.Plutus.Contract.Typed.Tx
     hs-source-dirs: src
     build-depends:
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-emulator -any,
         plutus-tx -any,
         iots-export -any
@@ -87,7 +88,10 @@ library
 
 test-suite contract-doctests
     type: exitcode-stdio-1.0
-    hs-source-dirs: doctest
+    hs-source-dirs:
+        doctest
+        -- so Haskell.nix finds the symlink sources
+        doc
     default-language: Haskell2010
     main-is: Main.hs
     ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
@@ -100,7 +104,7 @@ test-suite contract-doctests
       bytestring -any,
       language-plutus-core -any,
       plutus-contract -any,
-      plutus-wallet-api -any,
+      plutus-ledger -any,
       prettyprinter -any,
       containers -any
 
@@ -126,6 +130,6 @@ test-suite plutus-contract-test
         extensible-effects -any,
         plutus-emulator -any,
         plutus-contract -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
         plutus-tx -any,
         aeson -any

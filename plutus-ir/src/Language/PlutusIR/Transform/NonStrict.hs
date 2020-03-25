@@ -5,16 +5,16 @@
 module Language.PlutusIR.Transform.NonStrict (compileNonStrictBindings) where
 
 import           Language.PlutusIR
-import           Language.PlutusIR.Transform.Rename     ()
+import           Language.PlutusIR.Transform.Rename        ()
 import           Language.PlutusIR.Transform.Substitute
 
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.StdLib.Data.Unit   as Unit
+import qualified Language.PlutusCore.StdLib.Data.ScottUnit as Unit
 
-import           Control.Lens                           hiding (Strict)
+import           Control.Lens                              hiding (Strict)
 import           Control.Monad.State
 
-import qualified Data.Map                               as Map
+import qualified Data.Map                                  as Map
 
 {- Note [Compiling non-strict bindings]
 Given `let x : ty = rhs in body`, we
@@ -38,10 +38,14 @@ compileNonStrictBindings t = do
     -- See Note [Compiling non-strict bindings]
     pure $ termSubstNames (\n -> Map.lookup n substs) t'
 
-strictifyTerm :: (MonadState (Substs uni a) m, MonadQuote m) => Term TyName Name uni a -> m (Term TyName Name uni a)
+strictifyTerm
+    :: (MonadState (Substs uni a) m, MonadQuote m)
+    => Term TyName Name uni a -> m (Term TyName Name uni a)
 strictifyTerm = transformMOf termSubterms (traverseOf termBindings strictifyBinding)
 
-strictifyBinding :: (MonadState (Substs uni a) m, MonadQuote m) => Binding TyName Name uni a -> m (Binding TyName Name uni a)
+strictifyBinding
+    :: (MonadState (Substs uni a) m, MonadQuote m)
+    => Binding TyName Name uni a -> m (Binding TyName Name uni a)
 strictifyBinding = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
         let ann = x

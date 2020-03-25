@@ -81,7 +81,11 @@
               (vardecl
                 addInteger (fun (con integer) (fun (con integer) (con integer)))
               )
-              (builtin addInteger)
+              (lam
+                arg
+                (con integer)
+                (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+              )
             )
             (let
               (nonrec)
@@ -122,8 +126,10 @@
                         [
                           (lam
                             b
-                            (all a (type) (fun a (fun a a)))
-                            [ [ { b Bool } True ] False ]
+                            (con bool)
+                            [
+                              [ [ { (builtin ifThenElse) Bool } b ] True ] False
+                            ]
                           )
                           [ [ (builtin equalsByteString) arg ] arg ]
                         ]
@@ -276,7 +282,7 @@
                                                     (let
                                                       (nonrec)
                                                       (termbind
-                                                        (strict)
+                                                        (nonstrict)
                                                         (vardecl
                                                           wild [[Tuple2 k] r]
                                                         )
@@ -1703,9 +1709,20 @@
                                                     [
                                                       (lam
                                                         b
-                                                        (all a (type) (fun a (fun a a)))
+                                                        (con bool)
                                                         [
-                                                          [ { b Bool } True ]
+                                                          [
+                                                            [
+                                                              {
+                                                                (builtin
+                                                                  ifThenElse
+                                                                )
+                                                                Bool
+                                                              }
+                                                              b
+                                                            ]
+                                                            True
+                                                          ]
                                                           False
                                                         ]
                                                       )
@@ -1926,10 +1943,18 @@
                                                           [
                                                             (lam
                                                               b
-                                                              (all a (type) (fun a (fun a a)))
+                                                              (con bool)
                                                               [
                                                                 [
-                                                                  { b Bool }
+                                                                  [
+                                                                    {
+                                                                      (builtin
+                                                                        ifThenElse
+                                                                      )
+                                                                      Bool
+                                                                    }
+                                                                    b
+                                                                  ]
                                                                   True
                                                                 ]
                                                                 False
@@ -1965,10 +1990,18 @@
                                                             [
                                                               (lam
                                                                 b
-                                                                (all a (type) (fun a (fun a a)))
+                                                                (con bool)
                                                                 [
                                                                   [
-                                                                    { b Bool }
+                                                                    [
+                                                                      {
+                                                                        (builtin
+                                                                          ifThenElse
+                                                                        )
+                                                                        Bool
+                                                                      }
+                                                                      b
+                                                                    ]
                                                                     True
                                                                   ]
                                                                   False
@@ -2451,7 +2484,20 @@
                                                                                                             (lam
                                                                                                               thunk
                                                                                                               Unit
-                                                                                                              j
+                                                                                                              (let
+                                                                                                                (nonrec
+                                                                                                                )
+                                                                                                                (termbind
+                                                                                                                  (strict
+                                                                                                                  )
+                                                                                                                  (vardecl
+                                                                                                                    wild
+                                                                                                                    Bool
+                                                                                                                  )
+                                                                                                                  in
+                                                                                                                )
+                                                                                                                j
+                                                                                                              )
                                                                                                             )
                                                                                                           ]
                                                                                                           (lam
@@ -2551,7 +2597,20 @@
                                                                                                     (lam
                                                                                                       thunk
                                                                                                       Unit
-                                                                                                      j
+                                                                                                      (let
+                                                                                                        (nonrec
+                                                                                                        )
+                                                                                                        (termbind
+                                                                                                          (strict
+                                                                                                          )
+                                                                                                          (vardecl
+                                                                                                            wild
+                                                                                                            Bool
+                                                                                                          )
+                                                                                                          ww
+                                                                                                        )
+                                                                                                        j
+                                                                                                      )
                                                                                                     )
                                                                                                   ]
                                                                                                   (lam
@@ -2775,64 +2834,90 @@
                                                                                                   (lam
                                                                                                     thunk
                                                                                                     Unit
-                                                                                                    [
-                                                                                                      {
-                                                                                                        [
-                                                                                                          {
-                                                                                                            UpperBound_match
-                                                                                                            (con integer)
-                                                                                                          }
-                                                                                                          ww
-                                                                                                        ]
-                                                                                                        Bool
-                                                                                                      }
-                                                                                                      (lam
-                                                                                                        v
-                                                                                                        [Extended (con integer)]
-                                                                                                        (lam
-                                                                                                          in
+                                                                                                    (let
+                                                                                                      (nonrec
+                                                                                                      )
+                                                                                                      (termbind
+                                                                                                        (strict
+                                                                                                        )
+                                                                                                        (vardecl
+                                                                                                          wild
                                                                                                           Bool
+                                                                                                        )
+                                                                                                        ww
+                                                                                                      )
+                                                                                                      [
+                                                                                                        {
                                                                                                           [
+                                                                                                            {
+                                                                                                              UpperBound_match
+                                                                                                              (con integer)
+                                                                                                            }
+                                                                                                            ww
+                                                                                                          ]
+                                                                                                          Bool
+                                                                                                        }
+                                                                                                        (lam
+                                                                                                          v
+                                                                                                          [Extended (con integer)]
+                                                                                                          (lam
+                                                                                                            in
+                                                                                                            Bool
                                                                                                             [
                                                                                                               [
                                                                                                                 [
-                                                                                                                  {
-                                                                                                                    [
-                                                                                                                      {
-                                                                                                                        Extended_match
-                                                                                                                        (con integer)
-                                                                                                                      }
-                                                                                                                      v
-                                                                                                                    ]
-                                                                                                                    (fun Unit Bool)
-                                                                                                                  }
-                                                                                                                  (lam
-                                                                                                                    default_arg0
-                                                                                                                    (con integer)
+                                                                                                                  [
+                                                                                                                    {
+                                                                                                                      [
+                                                                                                                        {
+                                                                                                                          Extended_match
+                                                                                                                          (con integer)
+                                                                                                                        }
+                                                                                                                        v
+                                                                                                                      ]
+                                                                                                                      (fun Unit Bool)
+                                                                                                                    }
                                                                                                                     (lam
-                                                                                                                      thunk
-                                                                                                                      Unit
-                                                                                                                      j
+                                                                                                                      default_arg0
+                                                                                                                      (con integer)
+                                                                                                                      (lam
+                                                                                                                        thunk
+                                                                                                                        Unit
+                                                                                                                        j
+                                                                                                                      )
                                                                                                                     )
+                                                                                                                  ]
+                                                                                                                  (lam
+                                                                                                                    thunk
+                                                                                                                    Unit
+                                                                                                                    j
                                                                                                                   )
                                                                                                                 ]
                                                                                                                 (lam
                                                                                                                   thunk
                                                                                                                   Unit
-                                                                                                                  j
+                                                                                                                  (let
+                                                                                                                    (nonrec
+                                                                                                                    )
+                                                                                                                    (termbind
+                                                                                                                      (strict
+                                                                                                                      )
+                                                                                                                      (vardecl
+                                                                                                                        wild
+                                                                                                                        Bool
+                                                                                                                      )
+                                                                                                                      in
+                                                                                                                    )
+                                                                                                                    j
+                                                                                                                  )
                                                                                                                 )
                                                                                                               ]
-                                                                                                              (lam
-                                                                                                                thunk
-                                                                                                                Unit
-                                                                                                                j
-                                                                                                              )
+                                                                                                              Unit
                                                                                                             ]
-                                                                                                            Unit
-                                                                                                          ]
+                                                                                                          )
                                                                                                         )
-                                                                                                      )
-                                                                                                    ]
+                                                                                                      ]
+                                                                                                    )
                                                                                                   )
                                                                                                 ]
                                                                                                 (lam
@@ -2907,7 +2992,20 @@
                                                                                                                     (lam
                                                                                                                       thunk
                                                                                                                       Unit
-                                                                                                                      j
+                                                                                                                      (let
+                                                                                                                        (nonrec
+                                                                                                                        )
+                                                                                                                        (termbind
+                                                                                                                          (strict
+                                                                                                                          )
+                                                                                                                          (vardecl
+                                                                                                                            wild
+                                                                                                                            Bool
+                                                                                                                          )
+                                                                                                                          in
+                                                                                                                        )
+                                                                                                                        j
+                                                                                                                      )
                                                                                                                     )
                                                                                                                   ]
                                                                                                                   Unit
@@ -2991,7 +3089,20 @@
                                                                                                 (lam
                                                                                                   thunk
                                                                                                   Unit
-                                                                                                  j
+                                                                                                  (let
+                                                                                                    (nonrec
+                                                                                                    )
+                                                                                                    (termbind
+                                                                                                      (strict
+                                                                                                      )
+                                                                                                      (vardecl
+                                                                                                        wild
+                                                                                                        Bool
+                                                                                                      )
+                                                                                                      in
+                                                                                                    )
+                                                                                                    j
+                                                                                                  )
                                                                                                 )
                                                                                               ]
                                                                                               Unit

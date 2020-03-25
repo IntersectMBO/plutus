@@ -52,5 +52,5 @@ tests = testGroup "game"
             /\ walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 18045)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 20000)
     ]
