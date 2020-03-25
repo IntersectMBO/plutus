@@ -33,7 +33,7 @@ data RConstant = RConInt Integer
                | RConStr T.Text
                | RConBool Bool
                | RConChar Char
-               | RConUnit ()
+               | RConUnit
                deriving Show
 
 data RTerm = RVar Integer
@@ -46,7 +46,6 @@ data RTerm = RVar Integer
            | RBuiltin BuiltinName
            | RWrap RType RType RTerm
            | RUnWrap RTerm
-           | RIfThenElse RTerm RTerm RTerm
   deriving Show
 
 unIndex :: Index -> Integer
