@@ -78,3 +78,4 @@ marlowe-playground-server/playground.yaml
 /plutus-scb.yaml
 /scb-core.db*
 hie.yaml
+/nix/stack.materialized/
