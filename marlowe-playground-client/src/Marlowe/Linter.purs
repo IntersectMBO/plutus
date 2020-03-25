@@ -16,7 +16,7 @@ module Marlowe.Linter
 import Prelude
 import Control.MonadZero (guard)
 import Control.Monad.State as CMS
-import Data.Array (catMaybes, fold, foldMap, take, (:))
+import Data.Array (fold, foldMap, take)
 import Data.Array as Array
 import Data.Array.NonEmpty (index)
 import Data.BigInteger (BigInteger)
@@ -38,6 +38,7 @@ import Data.String (codePointFromChar, fromCodePointArray, length, takeWhile, to
 import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
+import Data.Traversable (traverse)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
@@ -126,14 +127,8 @@ derive newtype instance monoidState :: Monoid State
 _holes :: Lens' State Holes
 _holes = _Newtype <<< prop (SProxy :: SProxy "holes")
 
-_maxTimeout :: Lens' State Timeout
-_maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
-
 _warnings :: Lens' State (Set Warning)
 _warnings = _Newtype <<< prop (SProxy :: SProxy "warnings")
-
-_letBindings :: Lens' State (Set ValueId)
-_letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
 termToRange :: forall a. Show a => a -> { row :: Int, column :: Int } -> IRange
 termToRange a { row, column } =
@@ -143,138 +138,147 @@ termToRange a { row, column } =
   , endColumn: column + (length (show a))
   }
 
+newtype LintEnv
+  = LintEnv
+  { letBindings :: Set ValueId
+  , maxTimeout :: MaxTimeout
+  }
+
+derive instance newtypeLintEnv :: Newtype LintEnv _
+
+derive newtype instance semigroupLintEnv :: Semigroup LintEnv
+
+derive newtype instance monoidLintEnv :: Monoid LintEnv
+
+_letBindings :: Lens' LintEnv (Set ValueId)
+_letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
+
+_maxTimeout :: Lens' LintEnv Timeout
+_maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
+
 -- | We go through a contract term collecting all warnings and holes etc so that we can display them in the editor
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
 -- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
 lint :: Term Contract -> State
-lint = go mempty
+lint contract = state
   where
-  go :: State -> Term Contract -> State
-  go state (Term Close _) = state
+  go :: LintEnv -> Term Contract -> CMS.State State Unit
+  go env (Term Close _) = pure unit
 
-  go state (Term (Pay acc payee token payment contract) _) =
+  go env (Term (Pay acc payee token payment cont) _) =
     let
       gatherHoles = getHoles acc <> getHoles payee <> getHoles token
-
-      newState =
-        state
-          # over _holes gatherHoles
-          # over _warnings (maybeInsert (NegativePayment <$> negativeValue payment))
-
-      (_ /\ finalState) = CMS.runState (lintValue payment) newState
     in
-      go newState contract <> finalState
+      do
+        _ <- CMS.modify (over _holes gatherHoles)
+        _ <- CMS.modify (over _warnings (maybeInsert (NegativePayment <$> negativeValue payment)))
+        _ <- lintValue env payment
+        go env cont
 
-  go state (Term (If obs c1 c2) _) =
+  go env (Term (If obs c1 c2) _) = do
+    _ <- lintObservation env obs
+    _ <- go env c1
+    go env c2
+
+  go env (Term (When cases hole@(Hole _ _ _) cont) _) = do
+    _ <- traverse (lintCase env) cases
+    _ <- CMS.modify (over _holes (insertHole hole))
+    _ <- go env cont
+    pure unit
+
+  go env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
     let
-      (_ /\ newState) = CMS.runState (lintObservation obs) state
-    in
-      go state c1 <> go state c2 <> newState
+      timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange timeout pos))
 
-  go state (Term (When cases timeoutTerm contract) _) =
+      newEnv = (over _maxTimeout (max timeout)) env
+    _ <- traverse (lintCase newEnv) cases
+    _ <- CMS.modify (over _holes (insertHole timeoutTerm))
+    _ <- CMS.modify (over _warnings (Set.union timeoutNotIncreasing))
+    _ <- go newEnv cont
+    pure unit
+
+  go env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
     let
-      (states /\ contracts) = collectFromTuples (map (lintCase state) cases)
+      shadowedLet = if Set.member valueId (view _letBindings env) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
 
-      newState = case timeoutTerm of
-        (Term timeout pos) ->
-          let
-            insertTimeoutNotIncreasing = if timeout > (view _maxTimeout state) then identity else Set.insert (TimeoutNotIncreasing (termToRange timeout pos))
-          in
-            (fold states)
-              # over _holes (insertHole timeoutTerm)
-              # over _maxTimeout (max timeout)
-              # over _warnings insertTimeoutNotIncreasing
-        _ ->
-          (fold states)
-            # over _holes (insertHole timeoutTerm)
-    in
-      foldMap (go newState) (contract : catMaybes contracts)
+      newEnv = over _letBindings (Set.insert valueId) env
+    _ <- CMS.modify (over _warnings (Set.union shadowedLet))
+    _ <- lintValue env value
+    go newEnv cont
 
-  go state (Term (Let valueIdTerm value contract) _) =
+  go env (Term (Let valueIdTerm@(Hole _ _ _) value cont) _) = do
     let
       gatherHoles = getHoles valueIdTerm
+    _ <- CMS.modify (over _holes gatherHoles)
+    _ <- lintValue env value
+    go env cont
 
-      newState = case valueIdTerm of
-        (Term valueId pos) ->
-          let
-            shadowedLet = if Set.member valueId (view _letBindings state) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
-          in
-            state
-              # over _holes gatherHoles
-              # over _warnings (maybeInsert (NegativePayment <$> negativeValue value))
-              # over _letBindings (Set.insert valueId)
-              # over _warnings (Set.union shadowedLet)
-        _ ->
-          state
-            # over _holes gatherHoles
-            # over _warnings (maybeInsert (NegativePayment <$> negativeValue value))
+  go env hole@(Hole _ _ _) = do
+    _ <- CMS.modify (over _holes (insertHole hole))
+    pure unit
 
-      (_ /\ finalState) = CMS.runState (lintValue value) newState
-    in
-      go newState contract <> finalState
-
-  go state hole@(Hole _ _ _) = over _holes (insertHole hole) state
+  (_ /\ state) = CMS.runState (go mempty contract) mempty
 
 data TemporarySimplification a
   = ValueIsConstant IRange a
   | ValueIsSimplified IRange a
   | NoSimplification
 
-lintObservation :: Term Observation -> CMS.State State (TemporarySimplification Observation)
-lintObservation (Term (AndObs a b) _) = do
-  _ <- lintObservation a
-  lintObservation b
+lintObservation :: LintEnv -> Term Observation -> CMS.State State (TemporarySimplification Observation)
+lintObservation env (Term (AndObs a b) _) = do
+  _ <- lintObservation env a
+  lintObservation env b
 
-lintObservation (Term (OrObs a b) _) = do
-  _ <- lintObservation a
-  lintObservation b
+lintObservation env (Term (OrObs a b) _) = do
+  _ <- lintObservation env a
+  lintObservation env b
 
-lintObservation (Term (NotObs a) _) = lintObservation a
+lintObservation env (Term (NotObs a) _) = lintObservation env a
 
-lintObservation (Term (ChoseSomething choiceId) _) = do
+lintObservation env (Term (ChoseSomething choiceId) _) = do
   _ <- CMS.modify (over _holes (getHoles choiceId))
   pure NoSimplification
 
-lintObservation (Term (ValueGE a b) _) = do
-  _ <- lintValue a
-  _ <- lintValue b
+lintObservation env (Term (ValueGE a b) _) = do
+  _ <- lintValue env a
+  _ <- lintValue env b
   pure NoSimplification
 
-lintObservation (Term (ValueGT a b) _) = do
-  _ <- lintValue a
-  _ <- lintValue b
+lintObservation env (Term (ValueGT a b) _) = do
+  _ <- lintValue env a
+  _ <- lintValue env b
   pure NoSimplification
 
-lintObservation (Term (ValueLT a b) _) = do
-  _ <- lintValue a
-  _ <- lintValue b
+lintObservation env (Term (ValueLT a b) _) = do
+  _ <- lintValue env a
+  _ <- lintValue env b
   pure NoSimplification
 
-lintObservation (Term (ValueLE a b) _) = do
-  _ <- lintValue a
-  _ <- lintValue b
+lintObservation env (Term (ValueLE a b) _) = do
+  _ <- lintValue env a
+  _ <- lintValue env b
   pure NoSimplification
 
-lintObservation (Term (ValueEQ a b) _) = do
-  _ <- lintValue a
-  _ <- lintValue b
+lintObservation env (Term (ValueEQ a b) _) = do
+  _ <- lintValue env a
+  _ <- lintValue env b
   pure NoSimplification
 
-lintObservation (Term TrueObs pos) = do
+lintObservation env (Term TrueObs pos) = do
   _ <- CMS.modify (over _warnings (Set.insert (TrueObservation (termToRange TrueObs pos))))
   pure NoSimplification
 
-lintObservation (Term FalseObs pos) = do
+lintObservation env (Term FalseObs pos) = do
   _ <- CMS.modify (over _warnings (Set.insert (FalseObservation (termToRange FalseObs pos))))
   pure NoSimplification
 
-lintObservation hole@(Hole _ _ _) = do
+lintObservation env hole@(Hole _ _ _) = do
   _ <- CMS.modify (over _holes (insertHole hole))
   pure NoSimplification
 
-lintValue :: Term Value -> CMS.State State (TemporarySimplification Value)
-lintValue (Term (AvailableMoney acc token) _) =
+lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification Value)
+lintValue env (Term (AvailableMoney acc token) _) =
   let
     gatherHoles = getHoles acc <> getHoles token
   in
@@ -282,48 +286,42 @@ lintValue (Term (AvailableMoney acc token) _) =
       _ <- CMS.modify (over _holes gatherHoles)
       pure NoSimplification
 
-lintValue (Term (Constant a) _) = do
+lintValue env (Term (Constant a) _) = do
   _ <- CMS.modify (over _holes (insertHole a))
   pure NoSimplification
 
-lintValue (Term (NegValue a) _) = lintValue a
+lintValue env (Term (NegValue a) _) = lintValue env a
 
-lintValue (Term (AddValue a b) _) = do
-  _ <- lintValue a
-  lintValue b
+lintValue env (Term (AddValue a b) _) = do
+  _ <- lintValue env a
+  lintValue env b
 
-lintValue (Term (SubValue a b) _) = do
-  _ <- lintValue a
-  lintValue b
+lintValue env (Term (SubValue a b) _) = do
+  _ <- lintValue env a
+  lintValue env b
 
-lintValue (Term (Scale a b) _) = lintValue b
+lintValue env (Term (Scale a b) _) = lintValue env b
 
-lintValue (Term (ChoiceValue choiceId a) _) = do
+lintValue env (Term (ChoiceValue choiceId a) _) = do
   _ <- CMS.modify (over _holes (getHoles choiceId))
-  lintValue a
+  lintValue env a
 
-lintValue (Term SlotIntervalStart _) = pure NoSimplification
+lintValue env (Term SlotIntervalStart _) = pure NoSimplification
 
-lintValue (Term SlotIntervalEnd _) = pure NoSimplification
+lintValue env (Term SlotIntervalEnd _) = pure NoSimplification
 
-lintValue (Term (UseValue (Term valueId pos)) _) = do
-  _ <-
-    CMS.modify
-      ( \state ->
-          let
-            addWarnings = if Set.member valueId (view _letBindings state) then identity else Set.insert (UninitializedUse (termToRange valueId pos))
-          in
-            state
-              # over _holes (getHoles valueId)
-              # over _warnings addWarnings
-      )
+lintValue env (Term (UseValue (Term valueId pos)) _) = do
+  let
+    addWarnings = if Set.member valueId (view _letBindings env) then identity else Set.insert (UninitializedUse (termToRange valueId pos))
+  _ <- CMS.modify (over _holes (getHoles valueId))
+  _ <- CMS.modify (over _warnings addWarnings)
   pure NoSimplification
 
-lintValue (Term (UseValue hole) _) = do
+lintValue env (Term (UseValue hole) _) = do
   _ <- CMS.modify (over _holes (insertHole hole))
   pure NoSimplification
 
-lintValue hole@(Hole _ _ _) = do
+lintValue env hole@(Hole _ _ _) = do
   _ <- CMS.modify (over _holes (insertHole hole))
   pure NoSimplification
 
@@ -335,37 +333,37 @@ maybeInsert (Just x) xs = Set.insert x xs
 collectFromTuples :: forall a b. Array (a /\ b) -> Array a /\ Array b
 collectFromTuples = foldMap (\(a /\ b) -> [ a ] /\ [ b ])
 
-lintCase :: State -> Term Case -> State /\ Maybe (Term Contract)
-lintCase state (Term (Case action contract) _) =
-  let
-    newState =
-      state
-        # over _warnings (maybeInsert (negativeDeposit action))
-  in
-    lintAction newState action /\ Just contract
+lintCase :: LintEnv -> Term Case -> CMS.State State Unit
+lintCase env (Term (Case action contract) _) = do
+  _ <- CMS.modify (over _warnings (maybeInsert (negativeDeposit action)))
+  _ <- lintAction env action
+  pure unit
 
-lintCase state hole@(Hole _ _ _) = over _holes (insertHole hole) state /\ Nothing
+lintCase env hole@(Hole _ _ _) = do
+  _ <- CMS.modify (over _holes (insertHole hole))
+  pure unit
 
-lintAction :: State -> Term Action -> State
-lintAction state (Term (Deposit acc party token value) _) =
+lintAction :: LintEnv -> Term Action -> CMS.State State Unit
+lintAction env (Term (Deposit acc party token value) _) =
   let
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
-
-    newState = over _holes (gatherHoles) state
-
-    (_ /\ finalState) = CMS.runState (lintValue value) newState
   in
-    finalState
+    do
+      _ <- CMS.modify (over _holes (gatherHoles))
+      _ <- lintValue env value
+      pure unit
 
-lintAction state (Term (Choice choiceId bounds) _) = over _holes (getHoles choiceId <> getHoles bounds) state
+lintAction env (Term (Choice choiceId bounds) _) = do
+  _ <- CMS.modify (over _holes (getHoles choiceId <> getHoles bounds))
+  pure unit
 
-lintAction state (Term (Notify obs) _) =
-  let
-    (_ /\ newState) = CMS.runState (lintObservation obs) state
-  in
-    newState
+lintAction env (Term (Notify obs) _) = do
+  _ <- lintObservation env obs
+  pure unit
 
-lintAction state hole@(Hole _ _ _) = over _holes (insertHole hole) state
+lintAction env hole@(Hole _ _ _) = do
+  _ <- CMS.modify (over _holes (insertHole hole))
+  pure unit
 
 negativeDeposit :: Term Action -> Maybe Warning
 negativeDeposit (Term (Deposit _ _ _ value) _) = NegativeDeposit <$> negativeValue value
