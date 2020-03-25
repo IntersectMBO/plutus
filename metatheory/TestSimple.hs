@@ -25,7 +25,7 @@ succeedingEvalTests = ["succInteger"
 --        ,"ApplyAdd2"
         ]
 
-failingEvalTests = ["DivideByZero"]
+failingEvalTests = [] -- ["DivideByZero"]
 
 succeedingTCTests = ["succInteger"
 --        ,"unitval"
