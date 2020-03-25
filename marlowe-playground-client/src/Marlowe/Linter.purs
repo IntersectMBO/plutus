@@ -15,6 +15,7 @@ module Marlowe.Linter
 
 import Prelude
 import Control.MonadZero (guard)
+import Control.Monad.State as CMS
 import Data.Array (catMaybes, fold, foldMap, take, (:))
 import Data.Array as Array
 import Data.Array.NonEmpty (index)
@@ -71,6 +72,7 @@ data Warning
   | ShadowedLet IRange
   | TrueObservation IRange
   | FalseObservation IRange
+  | SimplifiableObservation IRange Value
 
 derive instance genericWarning :: Generic Warning _
 
@@ -88,6 +90,7 @@ instance showWarning :: Show Warning where
   show (ShadowedLet _) = "Let is redefining a ValueId that already exists"
   show (TrueObservation _) = "This Observation will always evaluate to True"
   show (FalseObservation _) = "This Observation will always evaluate to False"
+  show (SimplifiableObservation _ val) = "This expresion can be simplified to \"" <> (show val) <> "\""
 
 getWarningRange :: Warning -> IRange
 getWarningRange (NegativePayment range) = range
@@ -103,6 +106,8 @@ getWarningRange (ShadowedLet range) = range
 getWarningRange (TrueObservation range) = range
 
 getWarningRange (FalseObservation range) = range
+
+getWarningRange (SimplifiableObservation range _) = range
 
 newtype State
   = State
@@ -156,10 +161,16 @@ lint = go mempty
         state
           # over _holes gatherHoles
           # over _warnings (maybeInsert (NegativePayment <$> negativeValue payment))
-    in
-      go newState contract <> lintValue newState payment
 
-  go state (Term (If obs c1 c2) _) = go state c1 <> go state c2 <> lintObservation state obs
+      (_ /\ finalState) = CMS.runState (lintValue payment) newState
+    in
+      go newState contract <> finalState
+
+  go state (Term (If obs c1 c2) _) =
+    let
+      (_ /\ newState) = CMS.runState (lintObservation obs) state
+    in
+      go state c1 <> go state c2 <> newState
 
   go state (Term (When cases timeoutTerm contract) _) =
     let
@@ -198,74 +209,123 @@ lint = go mempty
           state
             # over _holes gatherHoles
             # over _warnings (maybeInsert (NegativePayment <$> negativeValue value))
+
+      (_ /\ finalState) = CMS.runState (lintValue value) newState
     in
-      go newState contract <> lintValue newState value
+      go newState contract <> finalState
 
   go state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 
-lintObservation :: State -> Term Observation -> State
-lintObservation state (Term (AndObs a b) _) = lintObservation state a <> lintObservation state b
+data TemporarySimplification a
+  = ValueIsConstant IRange a
+  | ValueIsSimplified IRange a
+  | NoSimplification
 
-lintObservation state (Term (OrObs a b) _) = lintObservation state a <> lintObservation state b
+lintObservation :: Term Observation -> CMS.State State (TemporarySimplification Observation)
+lintObservation (Term (AndObs a b) _) = do
+  _ <- lintObservation a
+  lintObservation b
 
-lintObservation state (Term (NotObs a) _) = lintObservation state a
+lintObservation (Term (OrObs a b) _) = do
+  _ <- lintObservation a
+  lintObservation b
 
-lintObservation state (Term (ChoseSomething choiceId) _) = over _holes (getHoles choiceId) state
+lintObservation (Term (NotObs a) _) = lintObservation a
 
-lintObservation state (Term (ValueGE a b) _) = lintValue state a <> lintValue state b
+lintObservation (Term (ChoseSomething choiceId) _) = do
+  _ <- CMS.modify (over _holes (getHoles choiceId))
+  pure NoSimplification
 
-lintObservation state (Term (ValueGT a b) _) = lintValue state a <> lintValue state b
+lintObservation (Term (ValueGE a b) _) = do
+  _ <- lintValue a
+  _ <- lintValue b
+  pure NoSimplification
 
-lintObservation state (Term (ValueLT a b) _) = lintValue state a <> lintValue state b
+lintObservation (Term (ValueGT a b) _) = do
+  _ <- lintValue a
+  _ <- lintValue b
+  pure NoSimplification
 
-lintObservation state (Term (ValueLE a b) _) = lintValue state a <> lintValue state b
+lintObservation (Term (ValueLT a b) _) = do
+  _ <- lintValue a
+  _ <- lintValue b
+  pure NoSimplification
 
-lintObservation state (Term (ValueEQ a b) _) = lintValue state a <> lintValue state b
+lintObservation (Term (ValueLE a b) _) = do
+  _ <- lintValue a
+  _ <- lintValue b
+  pure NoSimplification
 
-lintObservation state (Term TrueObs pos) = over _warnings (Set.insert (TrueObservation (termToRange TrueObs pos))) state
+lintObservation (Term (ValueEQ a b) _) = do
+  _ <- lintValue a
+  _ <- lintValue b
+  pure NoSimplification
 
-lintObservation state (Term FalseObs pos) = over _warnings (Set.insert (FalseObservation (termToRange FalseObs pos))) state
+lintObservation (Term TrueObs pos) = do
+  _ <- CMS.modify (over _warnings (Set.insert (TrueObservation (termToRange TrueObs pos))))
+  pure NoSimplification
 
-lintObservation state hole@(Hole _ _ _) = over _holes (insertHole hole) state
+lintObservation (Term FalseObs pos) = do
+  _ <- CMS.modify (over _warnings (Set.insert (FalseObservation (termToRange FalseObs pos))))
+  pure NoSimplification
 
-lintValue :: State -> Term Value -> State
-lintValue state (Term (AvailableMoney acc token) _) =
+lintObservation hole@(Hole _ _ _) = do
+  _ <- CMS.modify (over _holes (insertHole hole))
+  pure NoSimplification
+
+lintValue :: Term Value -> CMS.State State (TemporarySimplification Value)
+lintValue (Term (AvailableMoney acc token) _) =
   let
     gatherHoles = getHoles acc <> getHoles token
   in
-    over _holes (gatherHoles) state
+    do
+      _ <- CMS.modify (over _holes gatherHoles)
+      pure NoSimplification
 
-lintValue state (Term (Constant a) _) = over _holes (insertHole a) state
+lintValue (Term (Constant a) _) = do
+  _ <- CMS.modify (over _holes (insertHole a))
+  pure NoSimplification
 
-lintValue state (Term (NegValue a) _) = lintValue state a
+lintValue (Term (NegValue a) _) = lintValue a
 
-lintValue state (Term (AddValue a b) _) = lintValue state a <> lintValue state b
+lintValue (Term (AddValue a b) _) = do
+  _ <- lintValue a
+  lintValue b
 
-lintValue state (Term (SubValue a b) _) = lintValue state a <> lintValue state b
+lintValue (Term (SubValue a b) _) = do
+  _ <- lintValue a
+  lintValue b
 
-lintValue state (Term (Scale a b) _) = lintValue state b
+lintValue (Term (Scale a b) _) = lintValue b
 
-lintValue state (Term (ChoiceValue choiceId a) _) =
-  let
-    newState = over _holes (getHoles choiceId) state
-  in
-    lintValue newState a
+lintValue (Term (ChoiceValue choiceId a) _) = do
+  _ <- CMS.modify (over _holes (getHoles choiceId))
+  lintValue a
 
-lintValue state (Term SlotIntervalStart _) = state
+lintValue (Term SlotIntervalStart _) = pure NoSimplification
 
-lintValue state (Term SlotIntervalEnd _) = state
+lintValue (Term SlotIntervalEnd _) = pure NoSimplification
 
-lintValue state (Term (UseValue (Term valueId pos)) _) =
-  let
-    addWarnings = if Set.member valueId (view _letBindings state) then identity else Set.insert (UninitializedUse (termToRange valueId pos))
-  in
-    state
-      # over _holes (getHoles valueId)
-      # over _warnings addWarnings
+lintValue (Term (UseValue (Term valueId pos)) _) = do
+  _ <-
+    CMS.modify
+      ( \state ->
+          let
+            addWarnings = if Set.member valueId (view _letBindings state) then identity else Set.insert (UninitializedUse (termToRange valueId pos))
+          in
+            state
+              # over _holes (getHoles valueId)
+              # over _warnings addWarnings
+      )
+  pure NoSimplification
 
-lintValue state (Term (UseValue hole) _) = over _holes (insertHole hole) state
+lintValue (Term (UseValue hole) _) = do
+  _ <- CMS.modify (over _holes (insertHole hole))
+  pure NoSimplification
 
-lintValue state hole@(Hole _ _ _) = over _holes (insertHole hole) state
+lintValue hole@(Hole _ _ _) = do
+  _ <- CMS.modify (over _holes (insertHole hole))
+  pure NoSimplification
 
 maybeInsert :: forall a. Ord a => Maybe a -> Set a -> Set a
 maybeInsert Nothing xs = xs
@@ -292,12 +352,18 @@ lintAction state (Term (Deposit acc party token value) _) =
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
 
     newState = over _holes (gatherHoles) state
+
+    (_ /\ finalState) = CMS.runState (lintValue value) newState
   in
-    lintValue newState value
+    finalState
 
 lintAction state (Term (Choice choiceId bounds) _) = over _holes (getHoles choiceId <> getHoles bounds) state
 
-lintAction state (Term (Notify obs) _) = lintObservation state obs
+lintAction state (Term (Notify obs) _) =
+  let
+    (_ /\ newState) = CMS.runState (lintObservation obs) state
+  in
+    newState
 
 lintAction state hole@(Hole _ _ _) = over _holes (insertHole hole) state
 

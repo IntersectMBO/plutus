@@ -9,7 +9,6 @@ import Data.Foldable (intercalate)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
-import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Map (Map)
 import Data.Map as Map
@@ -233,8 +232,9 @@ data Term a
 
 derive instance genericTerm :: Generic (Term a) _
 
-instance eqTerm :: Eq a => Eq (Term a) where
-  eq a b = genericEq a b
+derive instance eqTerm :: Eq a => Eq (Term a)
+
+derive instance ordTerm :: Ord a => Ord (Term a)
 
 instance showTerm :: Show a => Show (Term a) where
   show (Term a _) = show a
@@ -398,6 +398,10 @@ data AccountId
 
 derive instance genericAccountId :: Generic AccountId _
 
+derive instance eqAccountId :: Eq AccountId
+
+derive instance ordAccountId :: Ord AccountId
+
 instance showAccountId :: Show AccountId where
   show v = genericShow v
 
@@ -423,6 +427,10 @@ data Token
 
 derive instance genericToken :: Generic Token _
 
+derive instance eqToken :: Eq Token
+
+derive instance ordToken :: Ord Token
+
 instance showToken :: Show Token where
   show tok = genericShow tok
 
@@ -447,6 +455,10 @@ data ChoiceId
   = ChoiceId (Term String) (Term Party)
 
 derive instance genericChoiceId :: Generic ChoiceId _
+
+derive instance eqChoiceId :: Eq ChoiceId
+
+derive instance ordChoiceId :: Ord ChoiceId
 
 instance showChoiceId :: Show ChoiceId where
   show v = genericShow v
@@ -498,6 +510,10 @@ data Payee
   | Party (Term Party)
 
 derive instance genericPayee :: Generic Payee _
+
+derive instance eqParty :: Eq Party
+
+derive instance ordParty :: Ord Party
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -555,6 +571,10 @@ data Value
   | UseValue (Term ValueId)
 
 derive instance genericValue :: Generic Value _
+
+derive instance eqValue :: Eq Value
+
+derive instance ordValue :: Ord Value
 
 instance showValue :: Show Value where
   show v = genericShow v
