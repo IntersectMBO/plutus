@@ -385,7 +385,7 @@ holeToMarker hole@(MarloweHole { name, marloweType, row, column }) m constructor
   , endColumn: column + (length name) + 1
   , endLineNumber: row
   , message: "Found hole of type " <> (dropEnd 4 $ show marloweType)
-  , severity: markerSeverity "Hint"
+  , severity: markerSeverity "Warning"
   , code: ""
   , source: ""
   }
