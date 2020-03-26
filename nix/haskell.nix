@@ -47,6 +47,8 @@ let
             plutus-use-cases.doHaddock = false;
             plutus-scb.doHaddock = false;
             plutus-ledger.doHaddock = false;
+            # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
+            plutus-tx-plugin.doHaddock = false;
 
             # Fix missing executables on the paths of the test runners. This is arguably
             # a bug, and the fix is a bit of a hack.
@@ -67,6 +69,30 @@ let
 
             # plc-agda is compiled from the Haskell source files generated from the Agda
             plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+
+            # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
+            deployment-server.package.ghcOptions = "-Werror";
+            iots-export.package.ghcOptions = "-Werror";
+            language-plutus-core.package.ghcOptions = "-Werror";
+            marlowe.package.ghcOptions = "-Werror";
+            marlowe-hspec.package.ghcOptions = "-Werror";
+            marlowe-symbolic.package.ghcOptions = "-Werror";
+            marlowe-playground-server.package.ghcOptions = "-Werror";
+            playground-common.package.ghcOptions = "-Werror";
+            plc-agda.package.ghcOptions = "-Werror";
+            plutus-book.package.ghcOptions = "-Werror";
+            plutus-contract.package.ghcOptions = "-Werror";
+            plutus-contract-tasty.package.ghcOptions = "-Werror";
+            plutus-emulator.package.ghcOptions = "-Werror";
+            plutus-ir.package.ghcOptions = "-Werror";
+            plutus-ledger.package.ghcOptions = "-Werror";
+            plutus-playground-lib.package.ghcOptions = "-Werror";
+            plutus-playground-server.package.ghcOptions = "-Werror";
+            plutus-scb.package.ghcOptions = "-Werror";
+            plutus-tx.package.ghcOptions = "-Werror";
+            plutus-tx-plugin.package.ghcOptions = "-Werror";
+            plutus-tutorial.package.ghcOptions = "-Werror";
+            plutus-use-cases.package.ghcOptions = "-Werror";
           };
         }
      ];
