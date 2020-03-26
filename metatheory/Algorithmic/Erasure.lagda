@@ -157,10 +157,6 @@ lem-plc_dummy : ∀{n n'}(p : n ≡ n') →
   plc_dummy ≡ subst _⊢ p plc_dummy
 lem-plc_dummy refl = refl
 
-lemifthenelse : ∀{n n'}(p : n ≡ n')(b t u : n ⊢)
-  → if subst _⊢ p b then subst _⊢ p t else subst _⊢ p u ≡ subst _⊢ p (if b then t else u)
-lemifthenelse refl b t u = refl
-
 
 lem∷ : ∀{n n'}(p : n ≡ n')(t : n ⊢)(ts : List (n ⊢))
   → subst _⊢ p t ∷ subst (List ∘ _⊢) p ts ≡ subst (List ∘ _⊢) p (t ∷ ts) 

@@ -36,6 +36,9 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
               (ts : List (ScopedTm w))
               → Value (builtin b As ts)
 
+voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
+voidVal w = V-con {w = w} unit
+
 Tel : ∀{n} → Weirdℕ n → Set
 Tel w = List (ScopedTm w)
 
@@ -171,7 +174,7 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·⋆ : {L L' : ScopedTm w}{A : ScopedTy n} → L —→ L' → L ·⋆ A —→ L' ·⋆ A
   ξ-wrap : {A B : ScopedTy n}{L L' : ScopedTm w}
     → L —→ L' → wrap A B L —→ wrap A B L'
-  β-ƛ : ∀{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w}
+  β-ƛ : ∀{A : ScopedTy n}{L : ScopedTm (S w)}{M : ScopedTm w} → Value M
       → (ƛ A L) · M —→ (L [ M ])
   β-Λ : ∀{K}{L : ScopedTm (T w)}{A : ScopedTy n}
       → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
@@ -199,6 +202,7 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
+  
 
 \end{code}
 
@@ -223,15 +227,25 @@ data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
 \end{code}
 
 \begin{code}
-progress· : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
-  → Progress t → (u : ScopedTm i) → Progress (t · u)
-progress· (step p)                   u = step (ξ-·₁ p)
-progress· (done (V-ƛ A t))         u = step β-ƛ
-progress· (done (V-Λ p))           u = error E-Λ·
-progress· (done (V-con tcn))         u = error E-con·
-progress· (done (V-wrap A B t))      u = error E-wrap·
-progress· (done (V-builtin b As ts)) u = step sat-builtin
-progress· (error e)                  u = error (E-·₁ e)
+progress·V : ∀{n}{i : Weirdℕ n}
+  → {t : ScopedTm i} → Value t
+  → {u : ScopedTm i} → Progress u
+  → Progress (t · u)
+progress·V v                   (step q)  = step (ξ-·₂ v q)
+progress·V v                   (error e) = error (E-·₂ e)
+progress·V (V-ƛ A t)           (done v)  = step (β-ƛ v)
+progress·V (V-Λ p)             (done v)  = error E-Λ·
+progress·V (V-con tcn)         (done v)  = error E-con·
+progress·V (V-wrap A B t)      (done v)  = error E-wrap·
+progress·V (V-builtin b As ts) (done v)  = step sat-builtin
+
+progress· : ∀{n}{i : Weirdℕ n}
+  → {t : ScopedTm i} → Progress t
+  → {u : ScopedTm i} → Progress u
+  → Progress (t · u)
+progress· (done v)                   q = progress·V v q
+progress· (step p)                   q = step (ξ-·₁ p)
+progress· (error e)                  q = error (E-·₁ e)
 
 progress·⋆ : ∀{n}{i : Weirdℕ n}{t : ScopedTm i}
   → Progress t → (A : ScopedTy n) → Progress (t ·⋆ A)
@@ -295,7 +309,7 @@ progress p (` x)             = ⊥-elim (noVar p x)
 progress p (Λ K t)           = done (V-Λ t) 
 progress p (t ·⋆ A)          = progress·⋆ (progress p t) A
 progress p (ƛ A t)           = done (V-ƛ A t)
-progress p (t · u)           = progress· (progress p t) u
+progress p (t · u)           = progress· (progress p t) (progress p u)
 progress p (con c)           = done (V-con c)
 progress p (error A)         = error (E-error A)
 progress p (builtin b As ts) = progress-builtin b As ts (progressTel p ts)

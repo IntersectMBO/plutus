@@ -17,6 +17,7 @@ open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 open import Data.List hiding ([_]; take; drop)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
+open import Data.Unit using (tt)
 
 
 open import Type
@@ -61,6 +62,11 @@ data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   V-con : ∀{Φ Γ}{tcn : TyCon}
     → (cn : TermCon (con tcn))
     → Value {Γ = Γ} (con {Φ} cn)
+\end{code}
+
+\begin{code}
+voidVal : ∀ {Φ}(Γ : Ctx Φ) → Value {Γ = Γ} (con unit)
+voidVal Γ = V-con {Γ = Γ} unit
 \end{code}
 
 \begin{code}

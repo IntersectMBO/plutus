@@ -105,5 +105,5 @@ plc_false : ∀{n} → n ⊢
 plc_false = con (bool false) -- ƛ (ƛ (ƛ (` zero)))
 
 plc_dummy : ∀{n} → n ⊢
-plc_dummy = ƛ (ƛ (` zero)) -- the erasure of unitval
+plc_dummy = con unit -- ƛ (ƛ (` zero)) -- the erasure of unitval
 \end{code}

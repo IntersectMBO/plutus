@@ -53,17 +53,17 @@ erase—→ (S.ξ-·₁ {M = u} p) = map U.ξ-·₁ (cong (_· eraseTm u)) (eras
 erase—→ (S.ξ-·₂ {L = t} p q) =
   map (U.ξ-·₂ (eraseVal p)) (cong (eraseTm t ·_)) (erase—→ q)
 erase—→ (S.ξ-·⋆ p) = map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
-erase—→ (S.β-ƛ {L = t}{M = u}) = inj₁ (subst
+erase—→ (S.β-ƛ {L = t}{M = u} v) = inj₁ (subst
   ((ƛ (eraseTm t) · eraseTm u) U.—→_)
   (trans
     (U.sub-cong (sym ∘ erase-extend u) (eraseTm t))
     (sub-erase ` (S.ext ` u) t))
-  U.β-ƛ)
-erase—→ (S.β-Λ {L = t}{A = A}) = inj₁ (subst
+  (U.β-ƛ (eraseVal v)))
+erase—→ {w = w} (S.β-Λ {L = t}{A = A}) = inj₁ (subst
   ((ƛ (U.weaken (eraseTm t)) · plc_dummy) U.—→_)
   (trans (sym (U.sub-ren suc (U.extend ` plc_dummy) (eraseTm t)))
          (trans (sym (U.sub-id (eraseTm t))) (sym (lem[]⋆ t A))) )
-  U.β-ƛ)
+  (U.β-ƛ (eraseVal (S.voidVal w))))
 erase—→ (S.ξ-builtin {b = b}{tel = tel}{telA = telA} vs p telB p') with erase—→ p
 ... | inj₁ q = inj₁ (subst (builtin b (eraseList tel) U.—→_) (cong (builtin b) (erase++ telA (_ ∷ telB))) (U.ξ-builtin b (eraseList tel) (eraseVTel telA vs) q (eraseList telB) (trans (cong eraseList p') (sym (erase++ telA (_ ∷ telB))))))
 ... | inj₂ q = inj₂ (cong (builtin b) (trans (cong eraseList p') (trans (sym (erase++ telA (_ ∷ telB))) (trans (cong (λ t → eraseList telA ++ t ∷ eraseList telB) q) (erase++ telA (_ ∷ telB))))))
