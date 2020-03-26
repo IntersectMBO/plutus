@@ -371,10 +371,10 @@ negativeDeposit (Term (Deposit _ _ _ value) _) = NegativeDeposit <$> negativeVal
 negativeDeposit _ = Nothing
 
 negativeValue :: Term Value -> Maybe IRange
-negativeValue term@(Term _ pos) = do
+negativeValue term@(Term t pos) = do
   v <- constantValue term
   guard (v < zero)
-  pure (termToRange v pos)
+  pure (termToRange t pos)
 
 negativeValue _ = Nothing
 
