@@ -6,6 +6,8 @@
 ############################################################################
 { pkgs, index-state }:
 {
+  # FIXME: this cabal can't be used for development purposes until
+  # https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "2.4.1.0";
