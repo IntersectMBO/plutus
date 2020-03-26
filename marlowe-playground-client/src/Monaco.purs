@@ -239,6 +239,8 @@ foreign import registerDocumentFormattingEditProvider_ :: EffectFn3 Monaco Strin
 
 foreign import setPosition_ :: EffectFn2 Editor IPosition Unit
 
+foreign import revealLine_ :: EffectFn2 Editor Int Unit
+
 foreign import layout_ :: EffectFn1 Editor Unit
 
 markerSeverity :: String -> MarkerSeverity
@@ -305,6 +307,9 @@ registerDocumentFormattingEditProvider = runEffectFn3 registerDocumentFormatting
 
 setPosition :: Editor -> IPosition -> Effect Unit
 setPosition = runEffectFn2 setPosition_
+
+revealLine :: Editor -> Int -> Effect Unit
+revealLine = runEffectFn2 revealLine_
 
 layout :: Editor -> Effect Unit
 layout = runEffectFn1 layout_
