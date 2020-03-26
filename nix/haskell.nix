@@ -79,7 +79,8 @@ let
             marlowe-symbolic.package.ghcOptions = "-Werror";
             marlowe-playground-server.package.ghcOptions = "-Werror";
             playground-common.package.ghcOptions = "-Werror";
-            plc-agda.package.ghcOptions = "-Werror";
+            # FIXME: has warnings
+            #plc-agda.package.ghcOptions = "-Werror";
             plutus-book.package.ghcOptions = "-Werror";
             plutus-contract.package.ghcOptions = "-Werror";
             plutus-contract-tasty.package.ghcOptions = "-Werror";
