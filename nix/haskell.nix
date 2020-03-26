@@ -41,31 +41,33 @@ let
               "stm" "terminfo"
             ];
 
-          # See https://github.com/input-output-hk/plutus/issues/1213
-          packages.marlowe.doHaddock = false;
-          packages.plutus-use-cases.doHaddock = false;
-          packages.plutus-scb.doHaddock = false;
-          packages.plutus-ledger.doHaddock = false;
+          packages = {
+            # See https://github.com/input-output-hk/plutus/issues/1213
+            marlowe.doHaddock = false;
+            plutus-use-cases.doHaddock = false;
+            plutus-scb.doHaddock = false;
+            plutus-ledger.doHaddock = false;
 
-          # Fix missing executables on the paths of the test runners. This is arguably
-          # a bug, and the fix is a bit of a hack.
-          packages.marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
-            PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-          '';
-          packages.marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
-            PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-          '';
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
-          # I'm slightly surprised this works, hooray for laziness!
-          packages.plc-agda.components.tests.test-plc-agda.preCheck = ''
-            PATH=${lib.makeBinPath pkgSet.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
-          '';
-          # FIXME: Somehow this is broken even with setting the path up as above
-          packages.plc-agda.components.tests.test2-plc-agda.doCheck = false;
+            # Fix missing executables on the paths of the test runners. This is arguably
+            # a bug, and the fix is a bit of a hack.
+            marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
+              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
+            '';
+            marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
+              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
+            '';
+            # In this case we can just propagate the native dependencies for the build of the test executable,
+            # which are actually set up right (we have a build-tool-depends on the executable we need)
+            # I'm slightly surprised this works, hooray for laziness!
+            plc-agda.components.tests.test-plc-agda.preCheck = ''
+              PATH=${lib.makeBinPath pkgSet.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
+            '';
+            # FIXME: Somehow this is broken even with setting the path up as above
+            plc-agda.components.tests.test2-plc-agda.doCheck = false;
 
-          # plc-agda is compiled from the Haskell source files generated from the Agda
-          packages.plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+            # plc-agda is compiled from the Haskell source files generated from the Agda
+            plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+          };
         }
      ];
     pkg-def-extras = [
