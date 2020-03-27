@@ -32,6 +32,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
+import Data.Ord (abs)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (codePointFromChar, fromCodePointArray, length, takeWhile, toCodePointArray)
@@ -40,9 +41,10 @@ import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple.Nested (type (/\), (/\))
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Timeout)
+import Marlowe.Semantics (Rational(..), Slot(..), Timeout, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics as S
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
 import Text.Pretty (pretty)
@@ -73,7 +75,9 @@ data Warning
   | ShadowedLet IRange
   | TrueObservation IRange
   | FalseObservation IRange
-  | SimplifiableObservation IRange Value
+  | DivisionByZero IRange
+  | SimplifiableValue IRange (Term Value) (Term Value)
+  | SimplifiableObservation IRange (Term Observation) (Term Observation)
 
 derive instance genericWarning :: Generic Warning _
 
@@ -91,7 +95,9 @@ instance showWarning :: Show Warning where
   show (ShadowedLet _) = "Let is redefining a ValueId that already exists"
   show (TrueObservation _) = "This Observation will always evaluate to True"
   show (FalseObservation _) = "This Observation will always evaluate to False"
-  show (SimplifiableObservation _ val) = "This expresion can be simplified to \"" <> (show val) <> "\""
+  show (DivisionByZero _) = "Scale construct divides by zero"
+  show (SimplifiableValue _ oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
+  show (SimplifiableObservation _ oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
 
 getWarningRange :: Warning -> IRange
 getWarningRange (NegativePayment range) = range
@@ -108,7 +114,11 @@ getWarningRange (TrueObservation range) = range
 
 getWarningRange (FalseObservation range) = range
 
-getWarningRange (SimplifiableObservation range _) = range
+getWarningRange (DivisionByZero range) = range
+
+getWarningRange (SimplifiableValue range _ _) = range
+
+getWarningRange (SimplifiableObservation range _ _) = range
 
 newtype State
   = State
@@ -220,110 +230,250 @@ lint contract = state
 
   (_ /\ state) = CMS.runState (go mempty contract) mempty
 
-data TemporarySimplification a
-  = ValueIsConstant IRange a
-  | ValueIsSimplified IRange a
-  | NoSimplification
+data TemporarySimplification a b
+  = ConstantSimp
+    Position
+    Boolean -- Is simplified (it is not just a constant that was already a constant)
+    a -- Constant
+  | ValueSimp
+    Position
+    Boolean -- Is simplified (only root, no subtrees)
+    (Term b) -- Value
 
-lintObservation :: LintEnv -> Term Observation -> CMS.State State (TemporarySimplification Observation)
-lintObservation env (Term (AndObs a b) _) = do
-  _ <- lintObservation env a
-  lintObservation env b
+getSimpPosition :: forall a b. TemporarySimplification a b -> Position
+getSimpPosition (ConstantSimp pos _ _) = pos
 
-lintObservation env (Term (OrObs a b) _) = do
-  _ <- lintObservation env a
-  lintObservation env b
+getSimpPosition (ValueSimp pos _ _) = pos
 
-lintObservation env (Term (NotObs a) _) = lintObservation env a
+isSimplified :: forall a b. TemporarySimplification a b -> Boolean
+isSimplified (ConstantSimp _ simp _) = simp
 
-lintObservation env (Term (ChoseSomething choiceId) _) = do
+isSimplified (ValueSimp _ simp _) = simp
+
+getValue :: forall a b. (a -> Term b) -> TemporarySimplification a b -> Term b
+getValue f (ConstantSimp _ _ c) = f c
+
+getValue _ (ValueSimp _ _ v) = v
+
+simplifyTo :: forall a b. TemporarySimplification a b -> Position -> TemporarySimplification a b
+simplifyTo (ConstantSimp _ _ c) pos = (ConstantSimp pos true c)
+
+simplifyTo (ValueSimp _ _ c) pos = (ValueSimp pos true c)
+
+markSimplification :: forall a b. Show b => (a -> Term b) -> (IRange -> Term b -> Term b -> Warning) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
+markSimplification f c oriVal x
+  | isSimplified x = do
+    _ <- CMS.modify (over _warnings (Set.insert (c (termToRange oriVal (getPosition oriVal)) oriVal (getValue f x))))
+    pure unit
+  | otherwise = pure unit
+
+constToObs :: Boolean -> Term Observation
+constToObs true = Term TrueObs { row: 0, column: 0 }
+
+constToObs false = Term FalseObs { row: 0, column: 0 }
+
+constToVal :: BigInteger -> Term Value
+constToVal x = Term (Constant (Term x { row: 0, column: 0 })) { row: 0, column: 0 }
+
+lintObservation :: LintEnv -> Term Observation -> CMS.State State (TemporarySimplification Boolean Observation)
+lintObservation env t@(Term (AndObs a b) pos) = do
+  sa <- lintObservation env a
+  sb <- lintObservation env b
+  case sa /\ sb of
+    (ConstantSimp _ _ true /\ _) -> pure (simplifyTo sb pos)
+    (ConstantSimp _ _ false /\ _) -> pure (ConstantSimp pos true false)
+    (_ /\ ConstantSimp _ _ true) -> pure (simplifyTo sa pos)
+    (_ /\ ConstantSimp _ _ false) -> pure (ConstantSimp pos true false)
+    _ -> do
+      markSimplification constToObs SimplifiableObservation a sa
+      markSimplification constToObs SimplifiableObservation b sb
+      pure (ValueSimp pos false t)
+
+lintObservation env t@(Term (OrObs a b) pos) = do
+  sa <- lintObservation env a
+  sb <- lintObservation env b
+  case sa /\ sb of
+    (ConstantSimp _ _ true /\ _) -> pure (ConstantSimp pos true true)
+    (ConstantSimp _ _ false /\ _) -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ true) -> pure (ConstantSimp pos true true)
+    (_ /\ ConstantSimp _ _ false) -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToObs SimplifiableObservation a sa
+      markSimplification constToObs SimplifiableObservation b sb
+      pure (ValueSimp pos false t)
+
+lintObservation env t@(Term (NotObs a) pos) = do
+  sa <- lintObservation env a
+  case sa of
+    (ConstantSimp _ _ c) -> pure (ConstantSimp pos true (not c))
+    _ -> do
+      markSimplification constToObs SimplifiableObservation a sa
+      pure (ValueSimp pos false t)
+
+lintObservation env t@(Term (ChoseSomething choiceId) pos) = do
   _ <- CMS.modify (over _holes (getHoles choiceId))
-  pure NoSimplification
+  pure (ValueSimp pos false t)
 
-lintObservation env (Term (ValueGE a b) _) = do
-  _ <- lintValue env a
-  _ <- lintValue env b
-  pure NoSimplification
+lintObservation env t@(Term (ValueGE a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ c1 /\ ConstantSimp _ _ c2) -> pure (ConstantSimp pos true (c1 >= c2))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintObservation env (Term (ValueGT a b) _) = do
-  _ <- lintValue env a
-  _ <- lintValue env b
-  pure NoSimplification
+lintObservation env t@(Term (ValueGT a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ c1 /\ ConstantSimp _ _ c2) -> pure (ConstantSimp pos true (c1 > c2))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintObservation env (Term (ValueLT a b) _) = do
-  _ <- lintValue env a
-  _ <- lintValue env b
-  pure NoSimplification
+lintObservation env t@(Term (ValueLT a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ c1 /\ ConstantSimp _ _ c2) -> pure (ConstantSimp pos true (c1 < c2))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintObservation env (Term (ValueLE a b) _) = do
-  _ <- lintValue env a
-  _ <- lintValue env b
-  pure NoSimplification
+lintObservation env t@(Term (ValueLE a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ c1 /\ ConstantSimp _ _ c2) -> pure (ConstantSimp pos true (c1 <= c2))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintObservation env (Term (ValueEQ a b) _) = do
-  _ <- lintValue env a
-  _ <- lintValue env b
-  pure NoSimplification
+lintObservation env t@(Term (ValueEQ a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ c1 /\ ConstantSimp _ _ c2) -> pure (ConstantSimp pos true (c1 == c2))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintObservation env (Term TrueObs pos) = do
-  _ <- CMS.modify (over _warnings (Set.insert (TrueObservation (termToRange TrueObs pos))))
-  pure NoSimplification
+lintObservation env t@(Term TrueObs pos) = do
+  pure (ConstantSimp pos false true)
 
-lintObservation env (Term FalseObs pos) = do
-  _ <- CMS.modify (over _warnings (Set.insert (FalseObservation (termToRange FalseObs pos))))
-  pure NoSimplification
+lintObservation env t@(Term FalseObs pos) = do
+  pure (ConstantSimp pos false false)
 
-lintObservation env hole@(Hole _ _ _) = do
+lintObservation env hole@(Hole _ _ pos) = do
   _ <- CMS.modify (over _holes (insertHole hole))
-  pure NoSimplification
+  pure (ValueSimp pos false hole)
 
-lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification Value)
-lintValue env (Term (AvailableMoney acc token) _) =
+lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification BigInteger Value)
+lintValue env t@(Term (AvailableMoney acc token) pos) =
   let
     gatherHoles = getHoles acc <> getHoles token
   in
     do
       _ <- CMS.modify (over _holes gatherHoles)
-      pure NoSimplification
+      pure (ValueSimp pos false t)
 
-lintValue env (Term (Constant a) _) = do
-  _ <- CMS.modify (over _holes (insertHole a))
-  pure NoSimplification
+lintValue env (Term (Constant (Term v pos2)) pos) = do
+  pure (ConstantSimp pos false v)
 
-lintValue env (Term (NegValue a) _) = lintValue env a
+lintValue env t@(Term (Constant h@(Hole _ _ _)) pos) = do
+  _ <- CMS.modify (over _holes (insertHole h))
+  pure (ValueSimp pos false t)
 
-lintValue env (Term (AddValue a b) _) = do
-  _ <- lintValue env a
-  lintValue env b
+lintValue env t@(Term (NegValue a) pos) = do
+  sa <- lintValue env a
+  case sa of
+    ConstantSimp _ _ c1 -> pure (ConstantSimp pos true (-c1))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      pure (ValueSimp pos false t)
 
-lintValue env (Term (SubValue a b) _) = do
-  _ <- lintValue env a
-  lintValue env b
+lintValue env t@(Term (AddValue a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 + v2))
+    (ConstantSimp _ _ zero /\ _) -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ zero) -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintValue env (Term (Scale a b) _) = lintValue env b
+lintValue env t@(Term (SubValue a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 - v2))
+    (ConstantSimp _ _ zero /\ _) -> pure (ValueSimp pos true (Term (NegValue b) pos))
+    (_ /\ ConstantSimp _ _ zero) -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
-lintValue env (Term (ChoiceValue choiceId a) _) = do
+lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
+  sc <- lintValue env c
+  if (b == zero) then do
+    _ <- CMS.modify (over _warnings (Set.insert (DivisionByZero (termToRange r pos2))))
+    markSimplification constToVal SimplifiableValue c sc
+    pure (ValueSimp pos false t)
+  else
+    let
+      gcdv = gcd a b
+
+      na = a `div` gcdv
+
+      nb = b `div` gcdv
+
+      isSimp = (abs gcdv) > one
+    in
+      case sc of
+        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.Scale (S.Rational a b) (S.Constant v))))
+        (ValueSimp _ _ v) -> do
+          _ <-
+            if isSimp then
+              markSimplification constToVal SimplifiableValue c sc
+            else
+              pure unit
+          pure (ValueSimp pos isSimp (Term (Scale (Term (Rational na nb) pos2) c) pos))
+
+lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
+  sc <- lintValue env c
+  case sc of
+    (ConstantSimp _ _ zero) -> pure (ConstantSimp pos true zero)
+    _ -> do
+      markSimplification constToVal SimplifiableValue c sc
+      pure (ValueSimp pos false t)
+
+lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
   _ <- CMS.modify (over _holes (getHoles choiceId))
-  lintValue env a
+  pure (ValueSimp pos false t)
 
-lintValue env (Term SlotIntervalStart _) = pure NoSimplification
+lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
-lintValue env (Term SlotIntervalEnd _) = pure NoSimplification
+lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
-lintValue env (Term (UseValue (Term valueId pos)) _) = do
-  let
-    addWarnings = if Set.member valueId (view _letBindings env) then identity else Set.insert (UninitializedUse (termToRange valueId pos))
-  _ <- CMS.modify (over _holes (getHoles valueId))
-  _ <- CMS.modify (over _warnings addWarnings)
-  pure NoSimplification
+lintValue env t@(Term (UseValue (Term valueId pos2)) pos) = do
+  pure (ValueSimp pos false t)
 
-lintValue env (Term (UseValue hole) _) = do
+lintValue env t@(Term (UseValue hole) pos) = do
   _ <- CMS.modify (over _holes (insertHole hole))
-  pure NoSimplification
+  pure (ValueSimp pos false t)
 
-lintValue env hole@(Hole _ _ _) = do
+lintValue env hole@(Hole _ _ pos) = do
   _ <- CMS.modify (over _holes (insertHole hole))
-  pure NoSimplification
+  pure (ValueSimp pos false hole)
 
 maybeInsert :: forall a. Ord a => Maybe a -> Set a -> Set a
 maybeInsert Nothing xs = xs

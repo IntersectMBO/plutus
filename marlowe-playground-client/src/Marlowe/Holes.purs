@@ -250,6 +250,11 @@ instance hasArgsTerm :: Args a => Args (Term a) where
   hasNestedArgs (Term a _) = hasNestedArgs a
   hasNestedArgs _ = false
 
+getPosition :: forall a. Term a -> { row :: Pos, column :: Pos }
+getPosition (Term _ pos) = pos
+
+getPosition (Hole _ _ pos) = pos
+
 -- a concrete type for holes only
 data MarloweHole
   = MarloweHole
@@ -620,6 +625,10 @@ data Observation
   | FalseObs
 
 derive instance genericObservation :: Generic Observation _
+
+derive instance eqObservation :: Eq Observation
+
+derive instance ordObservation :: Ord Observation
 
 instance showObservation :: Show Observation where
   show v = genericShow v
