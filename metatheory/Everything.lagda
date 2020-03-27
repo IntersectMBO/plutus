@@ -38,7 +38,7 @@ import Declarative.Erasure
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
 import Declarative.StdLib.Nat
---import Main
+import Main
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types

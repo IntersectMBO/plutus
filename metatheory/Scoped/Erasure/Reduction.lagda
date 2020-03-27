@@ -74,5 +74,24 @@ erase—→ (S.β-builtin {b = b}{As = As}{ts = ts} vs) = inj₁ (subst
 erase—→ (S.sat-builtin {b = b}{ts = ts}{t = t}) = inj₁ (subst (builtin b (eraseList ts) · eraseTm t U.—→_) (cong (builtin b) (erase++ ts [ t ])) U.sat-builtin)
 erase—→ (S.ξ-unwrap p) = erase—→ p
 erase—→ (S.ξ-wrap p) = erase—→ p
+erase—→ S.E-·₁ = inj₁ U.E-·₁
 erase—→ (S.β-wrap p) = inj₂ refl
+erase—→ (S.E-·₂ v) = inj₁ (U.E-·₂ (eraseVal v))
+erase—→ S.E-·⋆ = inj₁ U.E-·₁
+erase—→ S.E-unwrap = inj₂ refl
+erase—→ S.E-wrap = inj₂ refl
+erase—→ (S.E-builtin b As ts vtelA (error A) (S.E-error A) telB) = inj₁ (U.E-builtin b _ (eraseVTel _ vtelA) U.E-error (eraseList telB))
+
+-- these are type errors that cease to be so...
+erase—→ S.E-Λ· = inj₁ U.E-runtime
+erase—→ S.E-ƛ·⋆ = inj₁ U.E-runtime
+erase—→ S.E-con· = inj₁ U.E-con
+erase—→ S.E-con·⋆ = inj₁ U.E-con
+erase—→ S.E-wrap· = inj₁ U.E-runtime
+erase—→ S.E-wrap·⋆ = inj₁ U.E-runtime
+erase—→ S.E-ƛunwrap = inj₁ U.E-runtime
+erase—→ S.E-Λunwrap = inj₁ U.E-runtime
+erase—→ S.E-conunwrap = inj₁ U.E-runtime
+erase—→ (S.E-builtin·⋆ _ _ _ _) = inj₁ U.E-runtime
+erase—→ S.E-builtinunwrap = inj₁ U.E-runtime
 \end{code}

@@ -38,6 +38,7 @@ data ScopedTy (n : ℕ) : Set where
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
   con  : TyCon → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
+  missing : ScopedTy n -- for when things compute to error
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
@@ -384,6 +385,7 @@ extricateScopeTy (ƛ K A) = ƛ (unDeBruijnifyK K) (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con c
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
+extricateScopeTy missing = con bool -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)

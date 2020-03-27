@@ -27,6 +27,7 @@ ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con x) = con x
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
+ren⋆ ρ missing = missing
 
 ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 ren⋆L ρ⋆ []       = []
@@ -77,6 +78,7 @@ sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
+sub⋆ ρ missing = missing
 
 sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
 sub⋆L σ⋆ []       = []
@@ -143,13 +145,14 @@ lift⋆-cong p (suc x) = cong suc (p x)
 ren⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → ren⋆ ρ x ≡ ren⋆ ρ' x
-ren⋆-cong p (` x) = cong ` (p x)
-ren⋆-cong p (A ⇒ B) = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
-ren⋆-cong p (Π K A) = cong (Π K) (ren⋆-cong (lift⋆-cong p) A)
-ren⋆-cong p (ƛ K A) = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
-ren⋆-cong p (A · B) = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
-ren⋆-cong p (con c) = refl
+ren⋆-cong p (` x)       = cong ` (p x)
+ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
+ren⋆-cong p (Π K A)     = cong (Π K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (ƛ K A)     = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
+ren⋆-cong p (A · B)     = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
+ren⋆-cong p (con c)     = refl
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
+ren⋆-cong p missing     = refl
 
 slift⋆-cong : ∀{m n}{ρ ρ' : Sub⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
@@ -167,4 +170,5 @@ sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
+sub⋆-cong p missing     = refl
 \end{code}

@@ -96,6 +96,9 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   -- these correspond to type errors encountered at runtime
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
 
+  -- this is a runtime type error that ceases to be a type error after erasure
+  E-runtime : {L : n ⊢} → L —→ error
+
 \end{code}
 
 
