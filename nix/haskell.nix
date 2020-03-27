@@ -41,31 +41,60 @@ let
               "stm" "terminfo"
             ];
 
-          # See https://github.com/input-output-hk/plutus/issues/1213
-          packages.marlowe.doHaddock = false;
-          packages.plutus-use-cases.doHaddock = false;
-          packages.plutus-scb.doHaddock = false;
-          packages.plutus-ledger.doHaddock = false;
+          packages = {
+            # See https://github.com/input-output-hk/plutus/issues/1213
+            marlowe.doHaddock = false;
+            plutus-use-cases.doHaddock = false;
+            plutus-scb.doHaddock = false;
+            plutus-ledger.doHaddock = false;
+            # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
+            plutus-tx-plugin.doHaddock = false;
 
-          # Fix missing executables on the paths of the test runners. This is arguably
-          # a bug, and the fix is a bit of a hack.
-          packages.marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
-            PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-          '';
-          packages.marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
-            PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-          '';
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
-          # I'm slightly surprised this works, hooray for laziness!
-          packages.plc-agda.components.tests.test-plc-agda.preCheck = ''
-            PATH=${lib.makeBinPath pkgSet.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
-          '';
-          # FIXME: Somehow this is broken even with setting the path up as above
-          packages.plc-agda.components.tests.test2-plc-agda.doCheck = false;
+            # Fix missing executables on the paths of the test runners. This is arguably
+            # a bug, and the fix is a bit of a hack.
+            marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
+              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
+            '';
+            marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
+              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
+            '';
+            # In this case we can just propagate the native dependencies for the build of the test executable,
+            # which are actually set up right (we have a build-tool-depends on the executable we need)
+            # I'm slightly surprised this works, hooray for laziness!
+            plc-agda.components.tests.test-plc-agda.preCheck = ''
+              PATH=${lib.makeBinPath pkgSet.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
+            '';
+            # FIXME: Somehow this is broken even with setting the path up as above
+            plc-agda.components.tests.test2-plc-agda.doCheck = false;
 
-          # plc-agda is compiled from the Haskell source files generated from the Agda
-          packages.plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+            # plc-agda is compiled from the Haskell source files generated from the Agda
+            plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+
+            # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
+            deployment-server.package.ghcOptions = "-Werror";
+            iots-export.package.ghcOptions = "-Werror";
+            language-plutus-core.package.ghcOptions = "-Werror";
+            marlowe.package.ghcOptions = "-Werror";
+            marlowe-hspec.package.ghcOptions = "-Werror";
+            marlowe-symbolic.package.ghcOptions = "-Werror";
+            marlowe-playground-server.package.ghcOptions = "-Werror";
+            playground-common.package.ghcOptions = "-Werror";
+            # FIXME: has warnings
+            #plc-agda.package.ghcOptions = "-Werror";
+            plutus-book.package.ghcOptions = "-Werror";
+            plutus-contract.package.ghcOptions = "-Werror";
+            plutus-contract-tasty.package.ghcOptions = "-Werror";
+            plutus-emulator.package.ghcOptions = "-Werror";
+            plutus-ir.package.ghcOptions = "-Werror";
+            plutus-ledger.package.ghcOptions = "-Werror";
+            plutus-playground-lib.package.ghcOptions = "-Werror";
+            plutus-playground-server.package.ghcOptions = "-Werror";
+            plutus-scb.package.ghcOptions = "-Werror";
+            plutus-tx.package.ghcOptions = "-Werror";
+            plutus-tx-plugin.package.ghcOptions = "-Werror";
+            plutus-tutorial.package.ghcOptions = "-Werror";
+            plutus-use-cases.package.ghcOptions = "-Werror";
+          };
         }
      ];
     pkg-def-extras = [
