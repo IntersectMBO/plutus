@@ -53,9 +53,10 @@ Replace this hole with an integer, e.g. 10
 """
 
 marloweTypeMarkerText SlotType =
-  holeText SlotType
-    """
+  """
 The slot number. This is a good proxy for time, since on the Cardano blockchain slots pass at a constant rate.
+
+Replace this hole with an integer, e.g. 10
 """
 
 marloweTypeMarkerText AccountIdType =

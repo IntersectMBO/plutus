@@ -642,6 +642,7 @@ provideCodeActions uri markers' =
       Nothing -> []
       Just BigIntegerType -> []
       Just StringType -> []
+      Just SlotType -> []
       Just marloweType ->
         let
           m = getMarloweConstructors marloweType

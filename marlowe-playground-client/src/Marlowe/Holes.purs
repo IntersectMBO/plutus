@@ -419,7 +419,7 @@ instance accountIdIsMarloweType :: IsMarloweType AccountId where
   marloweType _ = AccountIdType
 
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles (AccountId a b) m = insertHole a m <> insertHole b m
+  getHoles (AccountId a b) m = insertHole a m <> getHoles b m
 
 data Token
   = Token (Term String) (Term String)
