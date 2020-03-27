@@ -11,9 +11,12 @@ with packageSet; haskell.packages.shellFor {
     pkgs.z3
     pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
+    # Take cabal from nixpkgs for now, see below
+    pkgs.cabal-install
 
     # Extra dev packages acquired from elsewhere
-    dev.packages.cabal-install
+    # FIXME: Can't use this cabal until https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
+    #dev.packages.cabal-install
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.purty

@@ -27,10 +27,12 @@ import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
+import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Holes (Holes, MarloweHole)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionWarning, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
+import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
@@ -47,7 +49,7 @@ data HQuery a
 
 data HAction
   -- Haskell Editor
-  = MarloweHandleEditorMessage AceMessage
+  = MarloweHandleEditorMessage Monaco.Message
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
   | MarloweMoveToPosition Pos Pos
@@ -88,7 +90,7 @@ data Message
 ------------------------------------------------------------
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot AceQuery AceMessage Unit
-    , marloweEditorSlot :: H.Slot AceQuery AceMessage Unit
+    , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     )
 
@@ -231,8 +233,8 @@ type MarloweState
     , slot :: Slot
     , moneyInContract :: Assets
     , contract :: Maybe Contract
-    , editorErrors :: Array Annotation
-    , editorWarnings :: Array Annotation
+    , editorErrors :: Array IMarker
+    , editorWarnings :: Array IMarker
     , holes :: Holes
     , payments :: Array Payment
     }

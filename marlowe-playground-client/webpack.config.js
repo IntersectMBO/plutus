@@ -1,5 +1,6 @@
 'use strict';
 
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
@@ -74,6 +75,9 @@ module.exports = {
                         }
                     }
                 ]
+            }, {
+                test: /\.tsx?$/,
+                loader: "ts-loader"
             },
             {
                 test: /\.css$/,
@@ -86,6 +90,10 @@ module.exports = {
             {
                 test: /\.(gif|png|jpe?g|svg)$/i,
                 use: 'url-loader'
+            },
+            {
+                test: /\.ttf$/,
+                use: ['file-loader'],
             }
         ]
     },
@@ -96,9 +104,10 @@ module.exports = {
         ],
         alias: {
             grammar: path.resolve(__dirname, './grammar.ne'),
-            static: path.resolve(__dirname, './static')
+            static: path.resolve(__dirname, './static'),
+            src: path.resolve(__dirname, './src')
         },
-        extensions: ['.purs', '.js']
+        extensions: ['.purs', '.js', 'ts', 'tsx']
     },
 
     resolveLoader: {
@@ -120,5 +129,8 @@ module.exports = {
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
         }),
         new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js'),
+        new MonacoWebpackPlugin({
+            languages: [],
+        })
     ].concat(plugins)
 };

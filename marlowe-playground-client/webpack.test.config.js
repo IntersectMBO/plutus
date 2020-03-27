@@ -26,6 +26,9 @@ module.exports = {
                 options: {
                     baseDir: '.'
                 }
+            }, {
+                test: /\.tsx?$/,
+                loader: "ts-loader"
             },
             {
                 test: /\.purs$/,
@@ -54,7 +57,8 @@ module.exports = {
         ],
         alias: {
             grammar: path.resolve(__dirname, './grammar.ne'),
-            static: path.resolve(__dirname, './static')
+            static: path.resolve(__dirname, './static'),
+            src: path.resolve(__dirname, './src')
         },
         extensions: ['.purs', '.js']
     },

@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "lib": ["ES6", "DOM"]
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+    ]
+}

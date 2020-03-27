@@ -1,7 +1,5 @@
 module Simulation.BottomPanel where
 
-import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
-import Halogen.Classes as Classes
 import Control.Alternative (map)
 import Data.Array (concatMap, length)
 import Data.Array as Array
@@ -16,6 +14,8 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
+import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
+import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(ClassName), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
@@ -50,12 +50,12 @@ bottomPanel state =
                                 [ classes ([] <> isActive MarloweWarningsView)
                                 , onClick $ const $ Just $ ChangeSimulationView MarloweWarningsView
                                 ]
-                                [ a_ [ text $ "Warnings" <> if warnings == [] then "" else " (" <> show (length warnings) <> ")" ] ]
+                                [ a_ [ text $ "Warnings" <> if Array.null warnings then "" else " (" <> show (length warnings) <> ")" ] ]
                             , li
                                 [ classes ([] <> isActive MarloweErrorsView)
                                 , onClick $ const $ Just $ ChangeSimulationView MarloweErrorsView
                                 ]
-                                [ a_ [ text $ "Errors" <> if errors == [] then "" else " (" <> show (length errors) <> ")" ] ]
+                                [ a_ [ text $ "Errors" <> if Array.null errors then "" else " (" <> show (length errors) <> ")" ] ]
                             ]
                         , ul [ classes [ ClassName "end-item", aHorizontal ] ]
                             [ li [ classes [ Classes.stateLabel ] ]
@@ -292,7 +292,7 @@ panelContents state MarloweWarningsView =
     ]
     (map renderWarning (state ^. (_marloweState <<< _Head <<< _editorWarnings)))
   where
-  renderWarning warning = pre [ class_ (ClassName "warning-content") ] [ text warning.text ]
+  renderWarning warning = pre [ class_ (ClassName "warning-content") ] [ text warning.message ]
 
 panelContents state MarloweErrorsView =
   section
@@ -300,7 +300,7 @@ panelContents state MarloweErrorsView =
     ]
     (map renderError (state ^. (_marloweState <<< _Head <<< _editorErrors)))
   where
-  renderError error = pre [ class_ (ClassName "error-content") ] [ text error.text ]
+  renderError error = pre [ class_ (ClassName "error-content") ] [ text error.message ]
 
 analysisResultPane :: forall p. FrontendState -> HTML p HAction
 analysisResultPane state =
