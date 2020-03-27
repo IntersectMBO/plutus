@@ -124,6 +124,7 @@ handleQuery (GetText f) = do
 handleQuery (SetPosition position next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.setPosition editor position
+    liftEffect $ Monaco.revealLine editor position.lineNumber
     pure next
 
 handleQuery (Resize next) = do

@@ -25,7 +25,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>))
 import Text.Parsing.StringParser (runParser)
-import Types (FrontendState, HAction(AnalyseContract, ShowBottomPanel, ChangeSimulationView), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
+import Types (FrontendState, HAction(..), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
@@ -292,7 +292,11 @@ panelContents state MarloweWarningsView =
     ]
     (map renderWarning (state ^. (_marloweState <<< _Head <<< _editorWarnings)))
   where
-  renderWarning warning = pre [ class_ (ClassName "warning-content") ] [ text warning.message ]
+  renderWarning warning =
+    pre [ class_ (ClassName "warning-content") ]
+      [ a [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn ]
+          [ text warning.message ]
+      ]
 
 panelContents state MarloweErrorsView =
   section
@@ -300,7 +304,11 @@ panelContents state MarloweErrorsView =
     ]
     (map renderError (state ^. (_marloweState <<< _Head <<< _editorErrors)))
   where
-  renderError error = pre [ class_ (ClassName "error-content") ] [ text error.message ]
+  renderError error =
+    pre [ class_ (ClassName "error-content") ]
+      [ a [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn ]
+          [ text error.message ]
+      ]
 
 analysisResultPane :: forall p. FrontendState -> HTML p HAction
 analysisResultPane state =
