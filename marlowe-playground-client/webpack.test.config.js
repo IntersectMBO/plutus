@@ -48,6 +48,10 @@ module.exports = {
                     }
                 ]
             },
+            {
+                test: /\.(gif|png|jpe?g|svg)$/i,
+                use: 'url-loader'
+            },
         ]
     },
 
