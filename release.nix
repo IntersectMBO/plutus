@@ -30,7 +30,7 @@ in with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
 });
 
 let
-  packageSet = import ./. { inherit rev; };
+  packageSet = import ./. { inherit rev; checkMaterialization = true; };
   # Makes a tree of attributes where some nodes are replaced with just the
   # list of systems which we want to the hydra jobs to run on.
   mapDerivationsToSystemsRecursive = sys:

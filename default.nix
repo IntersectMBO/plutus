@@ -17,6 +17,9 @@
 
 # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
+# Whether to check that the pinned shas for haskell.nix are correct. We want this to be
+# false, generally, since it does more work, but we set it to true in the CI
+, checkMaterialization ? false
 }:
 
 
@@ -66,16 +69,16 @@ in rec {
 
   haskell = rec {
     # All the packages defined by our project, including dependencies
-    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
+    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Just the packages in the project
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
       // { inherit (packages) plc-agda; };
     # All the packages defined by our project, built for musl
-    muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
+    muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Extra Haskell packages which we use but aren't part of the main project definition.
-    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; };
+    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; inherit checkMaterialization; };
   };
 
   tests = import ./nix/tests/default.nix {

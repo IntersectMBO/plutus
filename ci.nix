@@ -3,7 +3,7 @@ let
   systems = {"x86_64-linux" = {}; "x86_64-darwin" = {};};
 in dimension "System" systems (system: _:
   let
-    packageSet = import ./default.nix { inherit system; };
+    packageSet = import ./default.nix { inherit system; checkMaterialization = false; };
     pkgs = packageSet.pkgs;
     lib = pkgs.lib;
     collectChecks = _: ps: pkgs.recurseIntoAttrs (builtins.mapAttrs (_: p: p.checks) ps);
