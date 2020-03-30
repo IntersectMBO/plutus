@@ -22,7 +22,7 @@ import           Data.Function              ((&))
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import qualified Wallet.API                 as WAPI
-import           Wallet.Emulator.NodeClient (Notification (..))
+import           Wallet.Emulator.NodeClient (BlockValidated (..))
 
 import           Ledger.Address             (Address)
 import           Ledger.AddressMap          (AddressMap)
@@ -31,7 +31,7 @@ import qualified Ledger.AddressMap          as AM
 data ChainIndexEffect r where
     StartWatching :: Address -> ChainIndexEffect ()
     WatchedAddresses :: ChainIndexEffect AM.AddressMap
-    ChainIndexNotify :: Notification -> ChainIndexEffect ()
+    ChainIndexNotify :: BlockValidated -> ChainIndexEffect ()
 makeEffect ''ChainIndexEffect
 
 data ChainIndexEvent =
@@ -65,7 +65,6 @@ handleChainIndex = interpret $ \case
     ChainIndexNotify notification -> case notification of
         BlockValidated txns -> tell [ReceiveBlockNotification] >> (modify $ \s ->
             s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
-        _ -> pure ()
     StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses
