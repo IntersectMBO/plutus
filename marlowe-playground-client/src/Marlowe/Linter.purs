@@ -280,10 +280,8 @@ lintObservation env t@(Term (AndObs a b) pos) = do
   sa <- lintObservation env a
   sb <- lintObservation env b
   case sa /\ sb of
-    (ConstantSimp _ _ true /\ _) -> pure (simplifyTo sb pos)
-    (ConstantSimp _ _ false /\ _) -> pure (ConstantSimp pos true false)
-    (_ /\ ConstantSimp _ _ true) -> pure (simplifyTo sa pos)
-    (_ /\ ConstantSimp _ _ false) -> pure (ConstantSimp pos true false)
+    (ConstantSimp _ _ v /\ _) -> pure (if v then simplifyTo sb pos else ConstantSimp pos true false)
+    (_ /\ ConstantSimp _ _ v) -> pure (if v then simplifyTo sa pos else ConstantSimp pos true false)
     _ -> do
       markSimplification constToObs SimplifiableObservation a sa
       markSimplification constToObs SimplifiableObservation b sb
@@ -293,10 +291,8 @@ lintObservation env t@(Term (OrObs a b) pos) = do
   sa <- lintObservation env a
   sb <- lintObservation env b
   case sa /\ sb of
-    (ConstantSimp _ _ true /\ _) -> pure (ConstantSimp pos true true)
-    (ConstantSimp _ _ false /\ _) -> pure (simplifyTo sb pos)
-    (_ /\ ConstantSimp _ _ true) -> pure (ConstantSimp pos true true)
-    (_ /\ ConstantSimp _ _ false) -> pure (simplifyTo sa pos)
+    (ConstantSimp _ _ v /\ _) -> pure (if v then ConstantSimp pos true true else simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ v) -> pure (if v then ConstantSimp pos true true else simplifyTo sa pos)
     _ -> do
       markSimplification constToObs SimplifiableObservation a sa
       markSimplification constToObs SimplifiableObservation b sb
@@ -403,24 +399,44 @@ lintValue env t@(Term (AddValue a b) pos) = do
   sb <- lintValue env b
   case sa /\ sb of
     (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 + v2))
-    (ConstantSimp _ _ zero /\ _) -> pure (simplifyTo sb pos)
-    (_ /\ ConstantSimp _ _ zero) -> pure (simplifyTo sa pos)
-    _ -> do
-      markSimplification constToVal SimplifiableValue a sa
-      markSimplification constToVal SimplifiableValue b sb
-      pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v /\ _) ->
+      if (v == zero) then
+        pure (simplifyTo sb pos)
+      else
+        defaultCase sa sb
+    (_ /\ ConstantSimp _ _ v) ->
+      if (v == zero) then
+        pure (simplifyTo sa pos)
+      else
+        defaultCase sa sb
+    _ -> defaultCase sa sb
+  where
+  defaultCase sa sb = do
+    markSimplification constToVal SimplifiableValue a sa
+    markSimplification constToVal SimplifiableValue b sb
+    pure (ValueSimp pos false t)
 
 lintValue env t@(Term (SubValue a b) pos) = do
   sa <- lintValue env a
   sb <- lintValue env b
   case sa /\ sb of
     (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 - v2))
-    (ConstantSimp _ _ zero /\ _) -> pure (ValueSimp pos true (Term (NegValue b) pos))
-    (_ /\ ConstantSimp _ _ zero) -> pure (simplifyTo sa pos)
-    _ -> do
-      markSimplification constToVal SimplifiableValue a sa
-      markSimplification constToVal SimplifiableValue b sb
-      pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v /\ _) ->
+      if (v == zero) then
+        pure (ValueSimp pos true (Term (NegValue b) pos))
+      else
+        defaultCase sa sb
+    (_ /\ ConstantSimp _ _ v) ->
+      if (v == zero) then
+        pure (simplifyTo sa pos)
+      else
+        defaultCase sa sb
+    _ -> defaultCase sa sb
+  where
+  defaultCase sa sb = do
+    markSimplification constToVal SimplifiableValue a sa
+    markSimplification constToVal SimplifiableValue b sb
+    pure (ValueSimp pos false t)
 
 lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
@@ -451,10 +467,12 @@ lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
 lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
   sc <- lintValue env c
   case sc of
-    (ConstantSimp _ _ zero) -> pure (ConstantSimp pos true zero)
-    _ -> do
-      markSimplification constToVal SimplifiableValue c sc
-      pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v) -> if (v == zero) then pure (ConstantSimp pos true zero) else defaultCase sc
+    _ -> defaultCase sc
+  where
+  defaultCase sc = do
+    markSimplification constToVal SimplifiableValue c sc
+    pure (ValueSimp pos false t)
 
 lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
   _ <- CMS.modify (over _holes (getHoles choiceId))
