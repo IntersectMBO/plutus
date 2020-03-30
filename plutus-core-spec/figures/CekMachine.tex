@@ -1,0 +1,72 @@
+\documentclass[../plutus-core-specification.tex]{subfiles}
+
+\begin{document}
+
+\begin{figure}[!ht]
+\begin{subfigure}[c]{\linewidth}        %%% ---------------- CEK machine states ---------------- %%%
+{
+\[
+\begin{array}{lrcl}
+        \textrm{Stack} & s      & ::= & \cdot \enspace | \enspace s,f    \\
+ \blue{       \textrm{Environment}} & \rho & ::= & [] \enspace | \enspace \rho[x \mapsto V]^* \\
+        \textrm{State} & \sigma & ::= & s;\rho \compute M \enspace | \enspace s;\rho \return V  \enspace | \enspace \ckerror{} \enspace | \enspace \square (V,\rho)
+    \end{array}
+\]
+}
+\caption{States}
+\end{subfigure}
+
+\vspace{1mm}
+\hrule
+\vspace{2mm}
+
+\begin{subfigure}[c]{\linewidth}  %%% ---------------- CEK machine frames ---------------- %%%
+{
+\[
+    \begin{array}{rlr}
+       f ::= & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
+             & \inWrapRightFrame{\alpha}{A}            & \textrm{right wrap}\\
+             & \inUnwrapFrame{}                        & \textrm{unwrap}\\
+             & \inAppLeftFrame{(M,\rho)}                 & \textrm{left application}\\
+             & \inAppRightFrame{(V,\rho)}                & \textrm{right application}\\
+             & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+    \end{array}
+\]
+}
+\caption{Reduction frames}
+\end{subfigure}
+\vspace{1mm}
+\hrule
+\vspace{2mm}
+\begin{subfigure}[c]{\linewidth}  %%% ---------------- CEK machine transitions ---------------- %%%
+{
+    \begin{alignat*}{2}
+      \blue{s; \rho} & \bcompute \blue{x}          &~\bmapsto~&\blue{s;\rho^{\prime} \return V \enspace (\rho[x] = (V,\rho^{\prime}))} \qquad{\red{Really?}}\\  % New rule
+%% % Continuing with tau worries me
+       s; \rho &\compute \con{cn}                 &~\mapsto~& s;\rho \return \con{cn}\\
+       s; \rho &\compute \abs{\alpha}{K}{V}       &~\mapsto~& s;\rho \return \abs{\alpha}{K}{V}\\
+       s; \rho &\compute \inst{M}{A}              &~\mapsto~& s,\inInstLeftFrame{A};\rho \compute M\\
+       s; \rho &\compute \wrap{\alpha}{A}{M}      &~\mapsto~& s,\inWrapRightFrame{\alpha}{A};\rho  \compute M\\ 
+       s; \rho &\compute \unwrap{M}               &~\mapsto~& s,\inUnwrapFrame{};\rho  \compute M\\
+       s; \rho &\compute \lam{x}{A}{M}            &~\mapsto~& s;\rho \return \lam{x}{A}{M}\\
+       s; \rho &\compute \app{M}{N}               &~\mapsto~& s,\inAppLeftFrame{(N,\rho)};\rho \compute M\\
+       s; \rho &\compute \builtin{bn}{\repetition{A}}{} &~\mapsto~& s;\rho \return U \enspace (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
+       s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}};\rho \compute M\\
+       s; \rho &\compute \error{A} &~\mapsto~& \ckerror{}\\
+       \cdot; \rho &\return V &~\mapsto~& \square (V, \rho)\\
+       s,\inInstLeftFrame{A}; \rho &\return \abs{\alpha}{K}{M} &~\mapsto~& s;\rho \compute{M} \\
+       s,\inWrapRightFrame{\alpha}{A}; \rho &\return V &~\mapsto~& s;\rho \return \wrap{\alpha}{A}{V}\\
+       s,\inUnwrapFrame{}; \rho &\return \wrap{\alpha}{A}{V} &~\mapsto~& s;\rho \return V\\
+       s,\inAppLeftFrame{(N,\rho^{\prime})}; \rho &\return V &~\mapsto~& s, \inAppRightFrame{(V,\rho)};\rho^{\prime} \compute N\\
+       \blue{s,\inAppRightFrame{(\lam{x}{A}{M}, \rho^{\prime})}; \rho} &\breturn V &~\bmapsto~& \blue{s;\rho^{\prime}[x\mapsto (V,\rho)] \compute M}\\  %% Modified
+       s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}{}; \rho&\return V &~\mapsto~& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}};\rho \compute M\\
+       s,\inBuiltin {bn} {\repetition{A}} {\repetition{V}}{\_}{}; \rho &\return V 
+                                                 &~\mapsto~& s;\rho \return W \enspace (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
+\end{alignat*}
+}
+\caption{Transitions}
+\end{subfigure}
+\caption{The CEK Machine}\label{fig:cek-machine}
+\end{figure}
+
+\end{document}
