@@ -170,9 +170,9 @@ data ScriptError =
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
-    Debug.Trace.trace (show checking) $
-     (Debug.Trace.trace . show . PLC.prettyPlcClassicDebug $ unScript s) $
-       case checking of
+  --  Debug.Trace.trace (show checking) $
+    (Debug.Trace.trace . show . PLC.prettyPlcClassicDebug $ unScript s) $
+      case checking of
             DontCheck -> Haskell.pure ()
             Typecheck -> void $ typecheckScript s
     let (logOut, _tally, result) = evaluateCekTrace (unScript s)

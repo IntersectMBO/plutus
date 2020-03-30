@@ -183,8 +183,8 @@ mkBuiltin loc loc' ident =
 -- dynamic builtin names to check if a builtin with that name exists.
 -- Unfortunately that involves adding a parameter of type
 -- DynamicBuiltinNameMeanings to almost every function in
--- PlutusPrelude.hs, and elsewhere.  @effectfully says that his future
--- plans may help with this.  In the meantime, you get a scope
+-- PlutusPrelude.hs, and others elsewhere.  @effectfully says that his
+-- future plans may help with this.  In the meantime, you get a scope
 -- resolution error during typechecking/execution if it encounters a
 -- nonexistent name.
 

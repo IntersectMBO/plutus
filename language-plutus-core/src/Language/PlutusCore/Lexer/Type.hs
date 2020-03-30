@@ -14,7 +14,6 @@ module Language.PlutusCore.Lexer.Type
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 

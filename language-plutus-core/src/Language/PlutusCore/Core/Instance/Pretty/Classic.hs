@@ -18,6 +18,8 @@ import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Universe
 
 import           Data.Functor.Foldable
+import           Data.Text                                       as T
+import           Data.Text.Prettyprint.Doc                       as D
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
@@ -43,7 +45,7 @@ instance
         , GShow uni, Closed uni, uni `Everywhere` Pretty
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> show b)
+        a (ConstantF _ b)      = parens' ("con" </> pretty b)  -- Want show here, but we're in Some ...
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n
