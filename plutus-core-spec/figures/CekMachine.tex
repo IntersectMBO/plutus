@@ -61,7 +61,7 @@
        \blue{s,\inAppRightFrame{(\lam{x}{A}{M}, \rho^{\prime})}; \rho} &\breturn V &~\bmapsto~& \blue{s;\rho^{\prime}[x\mapsto (V,\rho)] \compute M}\\  %% Modified
        s,  \inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}}{}; \rho&\return V &~\mapsto~& s, \inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}};\rho \compute M\\
        s,\inBuiltin {bn} {\repetition{A}} {\repetition{V}}{\_}{}; \rho &\return V 
-                                                 &~\mapsto~& s;\rho \return W \enspace (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $W$})\\
+                                                 &~\mapsto~& s;\rho \compute M \enspace (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$ to $M$})\\
 \end{alignat*}
 }
 \caption{Transitions}
