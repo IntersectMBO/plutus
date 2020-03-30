@@ -28,7 +28,7 @@ ren ρ (` x)          = ` (ρ x)
 ren ρ (ƛ t)          = ƛ (ren (lift ρ) t)
 ren ρ (t · u)        = ren ρ t · ren ρ u
 ren ρ (con tcn)      = con tcn
-ren ρ (builtin b ts) = builtin b (renList ρ ts)
+ren ρ (builtin b ts p) = builtin b (renList ρ ts) ?
 ren ρ error          = error
 
 renList ρ []       = []
@@ -60,7 +60,7 @@ ren-cong p (` x)          = cong ` (p x)
 ren-cong p (ƛ t)          = cong ƛ (ren-cong (lift-cong p) t)
 ren-cong p (t · u)        = cong₂ _·_ (ren-cong p t) (ren-cong p u)
 ren-cong p (con c)        = refl
-ren-cong p (builtin b ts) = cong (builtin b) (renList-cong p ts)
+ren-cong p (builtin b ts q) = ? -- cong (builtin b) (renList-cong p ts)
 ren-cong p error          = refl
 
 lift-id : ∀{n} → (x : Fin (suc n)) → id x ≡ lift id x
@@ -86,7 +86,7 @@ ren-id (ƛ t)                = cong
     (ren-cong lift-id t)) 
 ren-id (t · u)              = cong₂ _·_ (ren-id t) (ren-id u)
 ren-id (con c)              = refl
-ren-id (builtin bn ts)      = cong (builtin bn) (renList-id ts)
+ren-id (builtin bn ts p)    = ? -- cong (builtin bn) (renList-id ts)
 ren-id error                = refl
 
 ren-comp : ∀{m n o}(g : Ren m n)(f : Ren n o)(t : m ⊢)
@@ -104,7 +104,7 @@ ren-comp ρ ρ' (ƛ t) = cong ƛ (trans
   (ren-comp (lift ρ) (lift ρ') t))
 ren-comp ρ ρ' (t · u) = cong₂ _·_ (ren-comp ρ ρ' t) (ren-comp ρ ρ' u)
 ren-comp ρ ρ' (con c) = refl
-ren-comp ρ ρ' (builtin b tel) = cong (builtin b) (renList-comp ρ ρ' tel)
+ren-comp ρ ρ' (builtin b tel p) = ? -- cong (builtin b) (renList-comp ρ ρ' tel)
 ren-comp ρ ρ' error = refl 
 --
 
@@ -122,7 +122,7 @@ sub σ (` x)          = σ x
 sub σ (ƛ t)          = ƛ (sub (lifts σ) t) 
 sub σ (t · u)        = sub σ t · sub σ u
 sub σ (con tcn)      = con tcn
-sub σ (builtin b ts) = builtin b (subList σ ts)
+sub σ (builtin b ts p) = ? -- builtin b (subList σ ts)
 sub σ error          = error
 
 subList σ []       = []
@@ -158,7 +158,7 @@ sub-cong p (` x)                = p x
 sub-cong p (ƛ t)                = cong ƛ (sub-cong (lifts-cong p) t)
 sub-cong p (t · u)              = cong₂ _·_ (sub-cong p t) (sub-cong p u)
 sub-cong p (con c)              = refl
-sub-cong p (builtin bn ts)      = cong (builtin bn) (subList-cong p ts)
+sub-cong p (builtin bn ts q)    = ? -- cong (builtin bn) (subList-cong p ts)
 sub-cong p error                = refl
 
 
@@ -176,7 +176,7 @@ sub-id (` x)                = refl
 sub-id (ƛ t)                = cong ƛ (trans (sub-id t) (sub-cong lifts-id t))
 sub-id (t · u)              = cong₂ _·_ (sub-id t) (sub-id u)
 sub-id (con c)              = refl
-sub-id (builtin bn ts)      = cong (builtin bn) (subList-id ts)
+sub-id (builtin bn ts p)    = ? -- cong (builtin bn) (subList-id ts)
 sub-id error                = refl
 
 lifts-lift : ∀{m n o}(g : Ren m n)(f : Sub n o)(x : Fin (suc m))
@@ -198,7 +198,7 @@ sub-ren ρ σ (ƛ t)           = cong ƛ (trans
   (sub-ren (lift ρ) (lifts σ) t))
 sub-ren ρ σ (t · u)         = cong₂ _·_ (sub-ren ρ σ t) (sub-ren ρ σ u) 
 sub-ren ρ σ (con c)         = refl
-sub-ren ρ σ (builtin b tel) = cong (builtin b) (subList-renList ρ σ tel)
+sub-ren ρ σ (builtin b tel p) = ? -- cong (builtin b) (subList-renList ρ σ tel)
 sub-ren ρ σ error           = refl
 
 ren-lift-lifts : ∀{m n o}(g : Sub m n)(f : Ren n o)(x : Fin (suc m))
@@ -219,7 +219,7 @@ ren-sub σ ρ (ƛ t)                = cong ƛ (trans
   (ren-sub (lifts σ) (lift ρ) t))
 ren-sub σ ρ (t · u)              = cong₂ _·_ (ren-sub σ ρ t) (ren-sub σ ρ u) 
 ren-sub σ ρ (con c)              = refl
-ren-sub σ ρ (builtin b tel)      = cong (builtin b) (renList-subList σ ρ tel)
+ren-sub σ ρ (builtin b tel p)    = ? -- cong (builtin b) (renList-subList σ ρ tel)
 ren-sub σ ρ error                = refl
 
 renList-subList g f []       = refl

@@ -6,10 +6,10 @@ module Untyped.Reduction where
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
-open import Builtin.Constant.Type
+open import Builtin.Constant.Type hiding (length)
 
 open import Data.Bool using (Bool;true;false)
-open import Data.Nat using (ℕ;suc;zero)
+open import Data.Nat using (ℕ;suc;zero;_<_)
 open import Data.Integer using (_+_;_-_;_*_;∣_∣;_<?_;_≤?_;_≟_)
 open import Data.Product renaming (proj₁ to fst; proj₂ to snd)
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
@@ -35,13 +35,12 @@ data Error {n} : n ⊢ → Set where
 \end{code}
 
 \begin{code}
-
-
 data Value {n} : n ⊢ → Set where
   V-ƛ : ∀(t : suc n ⊢) → Value (ƛ t)
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-builtin : (b : Builtin)
               (ts : List (n ⊢))
+              → length ts < arity b
               → Value (builtin b ts)
 
 VTel : ∀ n → Tel n → Set
@@ -73,12 +72,14 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 builtin b (ts' ++ Data.List.[ t' ] ++ ts'')
   β-builtin : {b : Builtin}
               (ts : Tel n)
-              (vs : VTel n ts)
+            → length ts ≡ arity b
+            → (vs : VTel n ts)
             → builtin b ts —→ BUILTIN b ts vs
 
   sat-builtin : {b : Builtin}
                 {ts : List (n ⊢)}
                 {t : n ⊢}
+              → length ts < arity b
               → builtin b ts · t —→ builtin b (ts ++ Data.List.[ t ])
 
   E-·₁ : {M : n ⊢} → error · M —→ error
@@ -97,7 +98,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
 
   -- this is a runtime type error that ceases to be a type error after erasure
-  E-runtime : {L : n ⊢} → L —→ error
+  -- E-runtime : {L : n ⊢} → L —→ error
 
 \end{code}
 
@@ -179,11 +180,11 @@ progress-·V : ∀{n}
   → {t : n ⊢} → Value t
   → {u : n ⊢} → Progress u
   → Progress (t · u)
-progress-·V v                (step q)        = step (ξ-·₂ v q)
-progress-·V v                (error E-error) = step (E-·₂ v)
-progress-·V (V-ƛ t)          (done v)        = step (β-ƛ v)
-progress-·V (V-con tcn)      (done v)        = step E-con
-progress-·V (V-builtin b ts) (done v)        = step sat-builtin
+progress-·V v                  (step q)        = step (ξ-·₂ v q)
+progress-·V v                  (error E-error) = step (E-·₂ v)
+progress-·V (V-ƛ t)            (done v)        = step (β-ƛ v)
+progress-·V (V-con tcn)        (done v)        = step E-con
+progress-·V (V-builtin b ts p) (done v)        = step (sat-builtin p)
 
 progress-· : ∀{n}
   → {t : n ⊢} → Progress t
@@ -212,8 +213,8 @@ progress (ƛ t)        = done (V-ƛ t)
 progress (t · u)      = progress-· (progress t) (progress u)
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ts) with progressList ts
-progress (builtin b ts) | done  vs       =
-  step (β-builtin ts vs)
+progress (builtin b ts) | done vs with length ts Data.Nat.≤? arity b
+progress (builtin b ts) | done vs | does Relation.Nullary.Dec.because proof = ? --step (β-builtin ts {!!} vs)
 progress (builtin b ts) | step  ts' vs p ts'' p' =
   step (ξ-builtin b ts vs p ts'' p')
 progress (builtin b ts) | error ts' vs e ts'' p =
@@ -230,4 +231,14 @@ run t (suc n) | done vt = t , refl , inl (just vt)
 run t (suc n) | error et = t , refl , inr et
 run t (suc n) | step {N = t'} p with run t' n
 run t (suc n) | step p | t'' , q , mvt'' = t'' , trans p q , mvt''
+\end{code}
+
+\begin{code}
+open import Data.Empty
+open import Relation.Nullary
+
+-- a value cannot make progress
+
+val-red : ∀{n}{t : n ⊢} → Value t → ¬ (Σ (n ⊢)  (t —→_))
+val-red (V-builtin b ts p) (fst₁ , snd₁) = {!!}
 \end{code}
