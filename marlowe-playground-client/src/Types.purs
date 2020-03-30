@@ -1,7 +1,6 @@
 module Types where
 
 import API (RunResult)
-import Ace (Annotation)
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)

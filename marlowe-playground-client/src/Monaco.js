@@ -92,6 +92,10 @@ exports.setPosition_ = function (editor, position) {
   editor.setPosition(position);
 }
 
+exports.revealLine_ = function (editor, lineNumber) {
+  editor.revealLine(lineNumber);
+}
+
 exports.layout_ = function (editor) {
   editor.layout();
 }

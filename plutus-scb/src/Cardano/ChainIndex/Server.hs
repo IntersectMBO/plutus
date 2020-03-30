@@ -38,7 +38,7 @@ import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client           as NodeClient
 import           Wallet.Emulator.ChainIndex    (ChainIndexEffect, ChainIndexEvent, ChainIndexState)
 import qualified Wallet.Emulator.ChainIndex    as ChainIndex
-import           Wallet.Emulator.NodeClient    (Notification (..))
+import           Wallet.Emulator.NodeClient    (BlockValidated (..))
 
 -- $chainIndex
 -- The SCB chain index that keeps track of transaction data (UTXO set enriched

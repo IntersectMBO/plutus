@@ -30,7 +30,7 @@ module Wallet.Emulator.Types(
     assertIsValidated,
     AssertionError(..),
     AsAssertionError(..),
-    Notification(..),
+    BlockValidated(..),
     EmulatorEvent(..),
     EmulatorAction(..),
     -- ** Wallet state
@@ -44,7 +44,7 @@ module Wallet.Emulator.Types(
     evalTraceTxPool,
     execTraceTxPool,
     walletAction,
-    walletRecvNotifications,
+    walletRecvBlocks,
     walletNotifyBlock,
     walletsNotifyBlock,
     processPending,
@@ -99,13 +99,13 @@ import           Wallet.Emulator.Wallet
 type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
-walletRecvNotifications :: Eff.Members EmulatorEffs effs => Wallet -> [Notification] -> Eff.Eff effs ()
-walletRecvNotifications w nots = void $ walletAction w (mapM_ go nots) where
+walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [BlockValidated] -> Eff.Eff effs ()
+walletRecvBlocks w nots = void $ walletAction w (mapM_ go nots) where
     go noti = clientNotify noti >> chainIndexNotify noti
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.
 walletNotifyBlock :: Eff.Members EmulatorEffs effs => Wallet -> Block -> Eff.Eff effs ()
-walletNotifyBlock w = walletRecvNotifications w . pure . BlockValidated
+walletNotifyBlock w = walletRecvBlocks w . pure . BlockValidated
 
 -- | Notify a list of 'Wallet's that a block has been validated.
 walletsNotifyBlock :: forall effs . Eff.Members EmulatorEffs effs => [Wallet] -> Block -> Eff.Eff effs ()
