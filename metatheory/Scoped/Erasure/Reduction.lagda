@@ -53,17 +53,17 @@ erase—→ (S.ξ-·₁ {M = u} p) = map U.ξ-·₁ (cong (_· eraseTm u)) (eras
 erase—→ (S.ξ-·₂ {L = t} p q) =
   map (U.ξ-·₂ (eraseVal p)) (cong (eraseTm t ·_)) (erase—→ q)
 erase—→ (S.ξ-·⋆ p) = map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
-erase—→ (S.β-ƛ {L = t}{M = u}) = inj₁ (subst
+erase—→ (S.β-ƛ {L = t}{M = u} v) = inj₁ (subst
   ((ƛ (eraseTm t) · eraseTm u) U.—→_)
   (trans
     (U.sub-cong (sym ∘ erase-extend u) (eraseTm t))
     (sub-erase ` (S.ext ` u) t))
-  U.β-ƛ)
-erase—→ (S.β-Λ {L = t}{A = A}) = inj₁ (subst
+  (U.β-ƛ (eraseVal v)))
+erase—→ {w = w} (S.β-Λ {L = t}{A = A}) = inj₁ (subst
   ((ƛ (U.weaken (eraseTm t)) · plc_dummy) U.—→_)
   (trans (sym (U.sub-ren suc (U.extend ` plc_dummy) (eraseTm t)))
          (trans (sym (U.sub-id (eraseTm t))) (sym (lem[]⋆ t A))) )
-  U.β-ƛ)
+  (U.β-ƛ (eraseVal (S.voidVal w))))
 erase—→ (S.ξ-builtin {b = b}{tel = tel}{telA = telA} vs p telB p') with erase—→ p
 ... | inj₁ q = inj₁ (subst (builtin b (eraseList tel) U.—→_) (cong (builtin b) (erase++ telA (_ ∷ telB))) (U.ξ-builtin b (eraseList tel) (eraseVTel telA vs) q (eraseList telB) (trans (cong eraseList p') (sym (erase++ telA (_ ∷ telB))))))
 ... | inj₂ q = inj₂ (cong (builtin b) (trans (cong eraseList p') (trans (sym (erase++ telA (_ ∷ telB))) (trans (cong (λ t → eraseList telA ++ t ∷ eraseList telB) q) (erase++ telA (_ ∷ telB))))))
@@ -74,5 +74,24 @@ erase—→ (S.β-builtin {b = b}{As = As}{ts = ts} vs) = inj₁ (subst
 erase—→ (S.sat-builtin {b = b}{ts = ts}{t = t}) = inj₁ (subst (builtin b (eraseList ts) · eraseTm t U.—→_) (cong (builtin b) (erase++ ts [ t ])) U.sat-builtin)
 erase—→ (S.ξ-unwrap p) = erase—→ p
 erase—→ (S.ξ-wrap p) = erase—→ p
+erase—→ S.E-·₁ = inj₁ U.E-·₁
 erase—→ (S.β-wrap p) = inj₂ refl
+erase—→ (S.E-·₂ v) = inj₁ (U.E-·₂ (eraseVal v))
+erase—→ S.E-·⋆ = inj₁ U.E-·₁
+erase—→ S.E-unwrap = inj₂ refl
+erase—→ S.E-wrap = inj₂ refl
+erase—→ (S.E-builtin b As ts vtelA (error A) (S.E-error A) telB) = inj₁ (U.E-builtin b _ (eraseVTel _ vtelA) U.E-error (eraseList telB))
+
+-- these are type errors that cease to be so...
+erase—→ S.E-Λ· = inj₁ U.E-runtime
+erase—→ S.E-ƛ·⋆ = inj₁ U.E-runtime
+erase—→ S.E-con· = inj₁ U.E-con
+erase—→ S.E-con·⋆ = inj₁ U.E-con
+erase—→ S.E-wrap· = inj₁ U.E-runtime
+erase—→ S.E-wrap·⋆ = inj₁ U.E-runtime
+erase—→ S.E-ƛunwrap = inj₁ U.E-runtime
+erase—→ S.E-Λunwrap = inj₁ U.E-runtime
+erase—→ S.E-conunwrap = inj₁ U.E-runtime
+erase—→ (S.E-builtin·⋆ _ _ _ _) = inj₁ U.E-runtime
+erase—→ S.E-builtinunwrap = inj₁ U.E-runtime
 \end{code}

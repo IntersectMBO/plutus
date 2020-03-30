@@ -111,6 +111,7 @@ inferKind Φ (μ pat arg) = do
   refl ← meqKind K K'
   refl ← meqKind K' K''
   return (* ,, ne (μ1 · pat · arg))
+inferKind Φ missing = inj₂ typeError
 
 open import Algorithmic
 

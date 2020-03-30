@@ -36,7 +36,6 @@ data _⊢ : ℕ → Set where
   con     : ∀{n} → TermCon → n ⊢
   builtin : ∀{n} → Builtin → Tel n → n ⊢
   error   : ∀{n} → n ⊢
-  if_then_else_ : ∀{n} → n ⊢ → n ⊢ → n ⊢ → n ⊢
 
 Tel n = List (n ⊢)
 \end{code}
@@ -54,7 +53,6 @@ builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts) = inj₁ (b ,, ts)
 builtinMatcher error = inj₂ error
-builtinMatcher (if b then t else f) = inj₂ error
 
 arity : Builtin → ℕ
 arity _ = 2
@@ -97,7 +95,6 @@ ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
 ugly (builtin b ts) = "(builtin " ++ uglyBuiltin b ++ " " ++ showNat (Data.List.length ts) ++ ")"
 ugly error = "error"
-ugly (if b then t else f) = "ifthenelse"
 \end{code}
 
 \begin{code}
@@ -108,5 +105,5 @@ plc_false : ∀{n} → n ⊢
 plc_false = con (bool false) -- ƛ (ƛ (ƛ (` zero)))
 
 plc_dummy : ∀{n} → n ⊢
-plc_dummy = ƛ (ƛ (` zero)) -- the erasure of unitval
+plc_dummy = con unit -- ƛ (ƛ (` zero)) -- the erasure of unitval
 \end{code}

@@ -4276,26 +4276,14 @@ val (V-ƛ p)    ()
 val (V-Λ p)    (.(Λ _) ,, ξ-Λ q)         = val p (_ ,, q)
 val (V-wrap p) (.(wrap _ _) ,, ξ-wrap q) = val p (_ ,, q)
 
--- if a term can make progress it is not a value
--- we only need one of `val` or `red` to prove `notboth`
-
-red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢Nf σ} → Σ (Γ ⊢Nf σ) (t —→_) → ¬ (Value t)
-red (.(wrap _ _) ,, ξ-wrap p) (V-wrap v) = red (_ ,, p) v
-red (.(Λ _) ,, ξ-Λ p)         (V-Λ v)    = red (_ ,, p) v
-
 -- exclusive or
 _xor_ : Set → Set → Set
 A xor B = (A ⊎ B) × ¬ (A × B)
 
--- a term cannot make progress and be a value
-
-notboth : {σ : ∅ ⊢Nf⋆ *}{t : ∅ ⊢Nf σ} → ¬ (Value t × Σ (∅ ⊢Nf σ) (t —→_))
-notboth (v ,, p) = val v p
-
--- armed with this, we can upgrade progress to an xor
+-- progress can be upgraded to an xor using val
 
 progress-xor : {σ : ∅ ⊢Nf⋆ *}(t : ∅ ⊢Nf σ) → Value t xor Σ (∅ ⊢Nf σ) (t —→_)
-progress-xor t = progress  _ t ,, notboth
+progress-xor t = progress  _ t ,, λ{(v ,, p) → val v p}
 
 -- The reduction rules are deterministic
 
@@ -4307,8 +4295,8 @@ det (ξ-·₂ v p)   (ξ-·₁ q)     = ⊥-elim (val v (_ ,, q))
 det (ξ-·₂ v p)   (ξ-·₂ w q)   = cong (_ ·_) (det p q)
 det (ξ-·₂ v p)   (β-ƛ w)      = ⊥-elim (val w (_ ,, p))
 det (ξ-·⋆ p)     (ξ-·⋆ q)     = cong (_·⋆ _) (det p q)
-det (β-Λ v)      (ξ-·⋆ q)     = ⊥-elim (red (_ ,, q) (V-Λ v))
-det (ξ-·⋆ p)     (β-Λ v)      = ⊥-elim (red (_ ,, p) (V-Λ v))
+det (β-Λ v)      (ξ-·⋆ q)     = ⊥-elim (val (V-Λ v) (_ ,, q))
+det (ξ-·⋆ p)     (β-Λ v)      = ⊥-elim (val (V-Λ v) (_ ,, p))
 det (ξ-Λ p)      (ξ-Λ q)      = cong Λ (det p q)
 det (β-ƛ v)      (ξ-·₂ w q)   = ⊥-elim (val v (_ ,, q))
 det (β-ƛ v)      (β-ƛ w)      = refl

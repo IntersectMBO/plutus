@@ -58,6 +58,7 @@ erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)
 eraseErr A.E-error = U.E-error
+{-
 eraseErr (A.E-Λ e) = U.E-todo
 eraseErr (A.E-·₁ e) = U.E-todo
 eraseErr (A.E-·₂ e) = U.E-todo
@@ -65,7 +66,7 @@ eraseErr (A.E-·⋆ e) = U.E-todo
 eraseErr (A.E-unwrap e) = U.E-todo
 eraseErr (A.E-wrap e) = U.E-todo
 eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
-
+-}
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (As : List (Δ ⊢Nf⋆ *))
@@ -176,9 +177,9 @@ erase—→ (A.ξ-·₂ {V = V} p q)                            = map
   (erase—→ q)
 erase—→ (A.ξ-·⋆ p)                                      =
   map U.ξ-·₁ (cong (_· plc_dummy)) (erase—→ p)
-erase—→ (A.β-ƛ {N = N}{V = V} _)                   =
-  inj₁ (subst ((ƛ (erase N) · erase V) U.—→_) (lem[] N V) U.β-ƛ)
-erase—→ (A.β-Λ {N = N}{A = A})                          =
+erase—→ (A.β-ƛ {N = N}{V = V} v)                   =
+  inj₁ (subst ((ƛ (erase N) · erase V) U.—→_) (lem[] N V) (U.β-ƛ (eraseVal v)))
+erase—→ {Γ = Γ} (A.β-Λ {N = N}{A = A})                          =
   inj₁ (subst (ƛ (U.weaken (erase N)) · plc_dummy U.—→_)
               (trans (trans (sym (U.sub-ren
                                    suc
@@ -186,7 +187,7 @@ erase—→ (A.β-Λ {N = N}{A = A})                          =
                                    (erase N)))
                             (sym (U.sub-id  (erase N))))
                      (lem[]⋆ N A))
-              U.β-ƛ)
+              (U.β-ƛ (eraseVal (A.voidVal Γ))))
 erase—→ (A.β-wrap1 p)                                   = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
@@ -207,6 +208,14 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
       (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
+erase—→ (A.E-·₂ p)                                      =
+  inj₁ (U.E-·₂ (eraseVal p))
+erase—→ A.E-·₁                                          = inj₁ U.E-·₁
+erase—→ A.E-·⋆                                          = inj₁ U.E-·₁
+erase—→ A.E-unwrap                                      = inj₂ refl
+erase—→ A.E-wrap                                        = inj₂ refl
+erase—→ (A.E-builtin bn σ tel Bs Ds telB vtel x p telD) = inj₁ (U.E-builtin bn (eraseTel tel) (eraseVTel _ _ σ _ telB vtel) (eraseErr x) (eraseTel telD))
+
 \end{code}
 
 -- returning nothing means that the typed step vanishes
