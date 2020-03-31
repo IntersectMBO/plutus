@@ -15,7 +15,7 @@
                        &        &     & \ckerror{}     & \textrm{throw an error}
     \end{array}\]
 
-    \captionof{figure}{Grammar of CK Machine States for type-erased Plutus Core}
+    \captionof{figure}{Grammar of CK machine states for type-erased Plutus Core}
     \label{fig:untyped-ck-frames}
 \end{subfigure}
 \end{figure}
@@ -43,15 +43,15 @@
   s,\inAppLeftFrame{N} & \return V               &~\mapsto~& s,\inAppRightFrame{V} \compute N\\
   s,\inAppRightFrame{\lam{x}{A}{M}} & \return V  &~\mapsto~& s \compute \subst{V}{x}{M}\\
   s,\inForceFrame{} & \return \delay{M}          &~\mapsto~& s \compute M\\
-  s,\inBuiltinU{bn}{\repetition{V}}{\_}{} & \return V
-                                                 &~\mapsto~&  s \compute M
-                                                 \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$})\\
   s,\inBuiltinU{bn}{\repetition{V}}{\_}{M \repetition{M}} & \return V
                                                  &~\mapsto~& s,\inBuiltinU{bn}{\repetition{V} V}{\_}{\repetition{M}}
                                                  \compute M\\
+  s,\inBuiltinU{bn}{\repetition{V}}{\_}{} & \return V
+                                                 &~\mapsto~&  s \compute M
+                                                 \quad (\textit{$bn$ computes on $\repetition{V}V$ to $M$})\\
     \end{alignat*}
 \end{minipage}
-    \caption{CK Machine Transitions for type-erased Plutus Core}
+    \caption{CK machine transitions for type-erased Plutus Core}
     \label{fig:untyped-ck-transitions}
 \end{subfigure}
 \caption{A CK machine for type-erased Plutus Core}
