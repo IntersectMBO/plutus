@@ -1,14 +1,14 @@
-(let
-  (nonrec)
-  (termbind (strict) (vardecl i2 (con integer)) (con 3))
-  [
-    (lam
-      x
-      (all a (type) (fun a a))
-      [
-        (lam
-          y
-          (all a (type) (fun a a))
+[
+  (lam
+    x
+    (all a (type) (fun a a))
+    [
+      (lam
+        y
+        (all a (type) (fun a a))
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl i2 (con integer)) (con 3))
           (let
             (rec)
             (termbind
@@ -43,9 +43,9 @@
             )
           )
         )
-        (con 1)
-      ]
-    )
-    (con 1)
-  ]
-)
+      )
+      (con 1)
+    ]
+  )
+  (con 1)
+]

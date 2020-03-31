@@ -4,7 +4,6 @@ module Language.PlutusIR.Transform.LetFloat (floatTerm) where
 
 import           Language.PlutusIR
 import           Language.PlutusIR.Analysis.Dependencies
-import           Language.PlutusIR.Analysis.Free
 
 import           Control.Lens
 import           Control.Monad.Reader
@@ -189,7 +188,7 @@ instance Monoid Rank where
 
 -- | During the first pass of the AST, a reader context holds the current in-scope lambda locations (as Ranks).
 type P1Ctx = ( P1Data  --  the lambdas-in-scope that surround an expression
-             , Int     --  the current depth
+             , Rank     --  the surround lambda (its location)
              )
 
 
@@ -218,7 +217,7 @@ p1Term ::  forall name tyname uni a
         => Term tyname name uni a -> FloatData
 p1Term pir = toFloatData $ runReader
                            (goTerm pir)
-                           (M.empty, Top^.depth) -- starting from toplevel depth: 0
+                           (M.empty, Top) -- starting from toplevel depth: 0
   where
     goTerm :: Term tyname name uni a
         -> Reader P1Ctx P1Data
@@ -242,20 +241,17 @@ p1Term pir = toFloatData $ runReader
     goBody n tBody =
       let lamU= n^.PLC.theUnique
       in M.delete lamU -- this trick removes any lamrank from the final value, since we don't care about lambdas in the final pass1 result (P1Data)
-         <$> (local (\ (scope,oldDepth) ->
-                        let newDepth = oldDepth+1
+         <$> (local (\ (scope,oldRank) ->
+                        let newDepth = oldRank^.depth + 1
                             newRank = LamDep newDepth lamU
                             newScope = M.insert lamU (newRank,lamU) scope -- adds a new lam rank to the current scope
-                        in (newScope, newDepth))
+                        in (newScope, newRank))
                     $ goTerm tBody)
 
     goRec :: NE.NonEmpty (Binding tyname name uni a) -> Term tyname name uni a -> Reader P1Ctx P1Data
     goRec bs tIn = do
-        -- the freevars is the union of each binding's freeVars,
-        -- excluding the newly-introduced binding identifiers of this letrec
-        let freeVars = foldMap fBinding bs S.\\ S.fromList (foldMap bindingIds bs)
         -- all bindings share their commonly-maximum rank
-        newScope <- addRanks bs freeVars
+        newScope <- addRanks bs
         resBs <- mconcat <$> forM (bs^..traverse.bindingSubterms)
                                   (withScope newScope . goTerm)
         resIn <- withScope newScope $ goTerm tIn
@@ -265,9 +261,8 @@ p1Term pir = toFloatData $ runReader
     goNonRec bs tIn =
       foldr (\ b acc -> do
            -- this means that we see each binding individually, not at the whole let level
-           let freeVars = fBinding b
            -- compute a maxrank for this binding alone and a newscope that includes it
-           newScope <- addRanks (pure b) freeVars
+           newScope <- addRanks (pure b)
            resHead <- mconcat <$> forM (b^..bindingSubterms) goTerm
            resRest <- withScope newScope acc
            pure $ resHead <> resRest
@@ -278,18 +273,11 @@ p1Term pir = toFloatData $ runReader
     -- compute the maximum 'Rank' among all the free-variables,
     -- and increase the current scope ('P1Data') by inserting mappings of each new let-identifier to this maximum rank
     addRanks :: NE.NonEmpty (Binding tyname name uni a) -- ^ bindings
-             -> S.Set PLC.Unique -- ^ their free-vars
              -> Reader P1Ctx P1Data -- ^ the updated scope that includes the added ranks
-    addRanks bs freeVars = do
-      (scope, _) <- ask
+    addRanks bs = do
+      (scope, lamUp) <- ask
       let
-          -- the ranks of the free variables
-          freeRanks = fmap fst $ M.restrictKeys scope freeVars
-          -- the max rank from all their free variables
-          maxRank = fold freeRanks
-          -- this computed max rank is linked/associated to all the given bindings and added to the current scope
-          -- this is needed because a datatype-binding may introduce multiple identifiers
-          -- and we need to create scope entries for each one of them, having the same maxrank
+          maxRank = lamUp
           scopeDelta = M.fromList [(i,(maxRank, b^.principal)) | b <- NE.toList bs, i <- bindingIds b]
           newScope = scope `M.union` scopeDelta
       pure newScope
