@@ -1,6 +1,6 @@
 % Plutus Core Specification
 \title{Formal Specification of\\the Plutus Core Language (version 2.0)}
-\date{31s March 2020}
+\date{31st March 2020}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -827,7 +827,7 @@ $\beta$-reduction, so that when evaluating $(\lambda x.M)V$, $V$ must
 be substituted bodily for $x$ wherever it occurs in $M$.  This process
 can require considerable amounts of time and space.  More efficient
 machines are available, and we describe one of these, the CEK machine,
-in Appendix~\ref{sec:typed-cek-machine}; however, the CK machine still
+in Appendix~\ref{appendix:typed-cek-machine}; however, the CK machine still
 provides a useful bridge for formalisation purposes.
 
 \subfile{figures/CkMachine}
@@ -1108,14 +1108,14 @@ $$
 $$
 for all typed values $V_1, \ldots, V_n$ (typed evaluation on the left,
 untyped on the right).\footnote{We also assume that evaluation of
-built-in functions awlays terminates, in both the typed and untyped
+built-in functions always terminates, in both the typed and untyped
 languages.} If this condition is satisfied then it can be shown that
 the erasure operation preserves semantics in an appropriate sense: if
 $P$ is a well-typed Plutus Core program then
 \begin{itemize}
 \item Evaluation of $P$ terminates
 if and only if that of $\erase{P}$ does.
-\item The evaluation of $P$ erminates in the error state $\blacklozenge$ if
+\item The evaluation of $P$ terminates in the error state $\blacklozenge$ if
 and only if the evaluation of $\erase{P}$ also terminates in $\blacklozenge$.
 \item $P$ evaluates to the value $V$ if and only if $\erase{P}$ evaluates to the value
 $\erase{V}$.
@@ -1134,9 +1134,16 @@ Figure~\ref{fig:term-reduction}.  \subfile{figures/UntypedTermReduction}
 \subsection{An abstract machine for evaluating erased Plutus Core programs}
 \label{sec:untyped-ck-machine}
 Figure~\ref{fig:untyped-ck-machine} describes a modified version of
-the CK machine (Figure~\ref{fig:typed-ck-machine}) which evaluates type-erased Plutus
-Core programs.
+the CK machine (Figure~\ref{fig:typed-ck-machine}) which evaluates
+type-erased Plutus Core programs, implementing the semantics of
+Figure~\ref{fig:untyped-term-reduction}. As in the typed case, the CK
+machine is not very efficient; a more efficient CEK machine is
+described in Appendix~\ref{appendix:untyped-cek-machine}.
+
 \subfile{figures/UntypedCkMachine}
+
+
+%% ------------------------------- Appendices --------------------------------- %%
 
 \begin{appendices}
 \section{Algorithmic Type System}
@@ -1153,7 +1160,7 @@ and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
 
 
 \section{A CEK machine for typed Plutus Core}
-\label{sec:typed-cek-machine}
+\label{appendix:typed-cek-machine}
 In Section~\ref{sec:typed-ck-machine} we described the CK machine, an
 abstract machine for executing Plutus Core programs.  As we pointed
 out, the CK machine is inefficient because it performs application by
@@ -1161,35 +1168,34 @@ substitution: if one is evaluating $(\lambda x:t.e)e^{\prime}$ then
 the whole of $e^{\prime}$ has to be subsitituted for every occurrence
 of $x$ in $e$, which can be expensive in terms of both time and space.
 This section presents a version of the \textit{CEK machine} of
-~\citep{Felleisen-CK-CEK}), which uses environments to store bindings
-of values to variables, where they can be looked up when
-required. This makes evaluation considerably more efficient, indeed to
-such an extent that the CEK machine can be used in practical
-situations.
+~\citep{Felleisen-CK-CEK}: this uses environments to store bindings of
+values to variables, where they can be looked up when required. This
+makes evaluation considerably more efficient, to the extent that the
+CEK machine can be used in practical situations.
 
 \subsection{Structure of the CEK machine}
-The CEK machine avoid the inefficiency of subsitiution by extending
-the state of the machine with
+The CEK machine avoids the inefficiency of repeated subsitution by
+extending the state of the machine with
 \textit{environments} mapping variable names to \textit{closures} consisting of
-values paired with environments; environments grow from left to right,
-  and the result of looking up a variable $x$ in an environment $\rho$
-  is denoted by $\rho[x]$: if $x$ is has multiple bindings in $\rho$
-  then the most recent one is returned.\footnote{In the
-  implementation, names are supplied with unique integer IDs which
-  make them unambiguous; the environments in fact map these IDs to
-  closures.} If $x$ does not occur in $\rho$ then an \texttt{error} is
-  returned; however, it can be shown that if the machine is started
-  with a closed term $M$ as input, then variable lookups will never
-  fail.  When the machine is evaluating $[(\lambda x.M)\, N]$ in an
-  environment $\rho$ it first evaluates $N$ in $\rho$ to produce a
-  value $V$, then extends $\rho$ with the mapping $x \mapsto (V,\rho)$
-  to obtain a new environment $\rho^{\prime}$, then proceeds to
-  evaluate $M$ in the environment $\rho^\prime$: when any occurrences
-  of $x$ are encountered, the machine retrieves the value $V$ from the
-  environment and proceeds with evaluation as normal.  It is necessary
-  to use closures because values may now contain variable names, and
-  we have to know what the variables were bound to at the time when
-  the value was created.
+pairs $(V,\rho)$ where $V$ is a value and $\rho$ is another
+environment containing bindings for free variables occurring in $V$.
+The result of looking up a variable $x$ in an environment $\rho$ is
+denoted by $\rho[x]$: if $x$ is has multiple bindings in $\rho$ then
+the most recent one is returned.\footnote{In the implementation, names
+are supplied with unique integer IDs which make them unambiguous; the
+environments in fact map these IDs to closures.} If $x$ does not occur
+in $\rho$ then an \texttt{error} is returned; however, it can be shown
+that if the machine is started with a closed term $M$ as input then
+variable lookups will never fail.  When the machine is evaluating
+$[(\lambda x.M)\, N]$ in an environment $\rho$ it first evaluates $N$
+in $\rho$ to produce a value $V$, then extends $\rho$ with the mapping
+$x \mapsto (V,\rho)$ to obtain a new environment $\rho^{\prime}$, then
+proceeds to evaluate $M$ in the environment $\rho^\prime$: when any
+occurrences of $x$ are encountered, the machine retrieves the value
+$V$ from the environment and proceeds with evaluation as normal.  It
+is necessary to use closures because values may now contain variable
+names, and we have to know what the variables were bound to at the
+time when the value was created.
 
 \subsubsection{Discharging closures}
 Given a closure $(V,\rho)$ we denote by $\overline{(V,\rho)}$ the
@@ -1210,7 +1216,7 @@ The CEK machine is described in Figure~\ref{fig:cek-machine}.  It is
 \item The rule involving lambda application has changed to replace substitution with
 the use of an extended environment
 \item When the machine terminates without error it now
-returns a \textit{closure} $(V,\rho)$ rather than a value.  The invoker
+returns a closure $(V,\rho)$ rather than a value.  The invoker
 of the machine may wish to discharge this closure to obtain a value.
 \end{itemize}
 \noindent The major changes are highlighted in \blue{blue}. To evaluate a program
@@ -1255,17 +1261,17 @@ the following facts (assuming that the condition in Section~\ref{sec:typed-cek-b
 \begin{itemize}
 \item The CEK machine terminates if and only if the CK machine terminates.
 \item The CEK machine terminates in the error state $\blacklozenge$ if
-and only if the CK also terminates in the state $\blacklozenge$.
+and only if the CK machine terminates in the state $\blacklozenge$.
 \item The CEK machine returns a closure $C$ if and only if the CK machine returns a
 value $V$ with $\overline{C} = V$.
 \end{itemize}
 
 \section{A CEK machine for type-erased Plutus Core}
-\label{sec:untyped-cek-machine}
+\label{appendix:untyped-cek-machine}
 As in the typed situation, the CK machine for type-erased Plutus Core
 (Figure~\ref{fig:untyped-ck-machine}) can be replaced with a more
 efficient CEK machine.  This is obtained by applying modifications
-similar to which we those used to obtain the CEK machine for typed
+similar to those which we used to obtain the CEK machine for typed
 Plutus Core from the CK machine for typed Plutus Core.  We will refer
 to this machine as the \textit{untyped CEK machine}, but we emphasise
 that the version presented here is only to be used to evaluate terms
@@ -1277,7 +1283,7 @@ arbitrary untyped Plutus Core terms.
 \subsection{Structure of the untyped CEK machine}
 The untyped CEK machine uses closures and environments similar to
 those used in the typed CEK machine
-(Section~\ref{sec:typed-cek-machine}), except that environments now
+(Appendix~\ref{appendix:typed-cek-machine}), except that environments now
 bind variables to terms in untyped Plutus Core.  Again,
 $\overline{(V,\rho)}$ denotes the value obtained by discharging a
 closure $(V,\rho)$.
@@ -1288,12 +1294,12 @@ closure $(V,\rho)$.
 \label{sec:untyped-cek-builtins}
 As in Sections~\ref{sec:untyped-ck-builtins}
 and~\ref{sec:typed-cek-builtins} we have to say something about how
-builtin evaluation is performed in the untyped CEK machine. We assume
-that the mechanism for evaluating built-in functions in the
-untyped CEK machine can deal with closures, and that built-in
-evaluation commutes with type erasure and discharge of environments in
-an appropriate sense; more precisely, we require that the conditions
-below hold.
+evaluation of built-in functions is performed in the untyped CEK
+machine. We assume that the mechanism for evaluating built-in
+functions in the untyped CEK machine can deal with closures, and that
+built-in evaluation commutes with type erasure and discharge of
+environments in an appropriate sense; more precisely, we require that
+the conditions below hold.
 
 \medskip
 \noindent Suppose that
@@ -1309,19 +1315,19 @@ $1 \le i \le n$.
 \begin{itemize}
 \item Evaluation of builtin functions always terminates.
 \item In the untyped CEK machine, evaluation of 
-  $\texttt{(builtin}\ \textit{bn}\ C_1, \ldots C_n \texttt{)}$
+  $\texttt{(builtin}\ \textit{bn}\ C_1 \ldots C_n \texttt{)}$
 fails if and only if evaluation of 
   $\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n \texttt{)}$
 fails according to Figure~\ref{fig:builtins}.
 
 \item In the untyped CEK machine,
-  $\texttt{(builtin}\ \textit{bn}\ C_1, \ldots C_n \texttt{)}$
+  $\texttt{(builtin}\ \textit{bn}\ C_1 \ldots C_n \texttt{)}$
 evaluates to the untyped term $N$ if and only if
   $\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n \texttt{)}$
 evaluates to a typed term $M$ (according to Figure~\ref{fig:builtins}) with $\erase{M} = N$.
 \end{itemize}
 
-\subsubsection{Comparison of the typed CK machine and the type-erased CEK machine}
+\subsubsection{Comparison of the typed CK machine and the untyped CEK machine}
 Suppose that the condition of Section~\ref{sec:untyped-cek-builtins}
 holds, and that $P$ is a typed Plutus Core program.  Then if $P$ is
 evaluated using the typed CK machine and $\erase{P}$ is evaluated
@@ -1329,7 +1335,7 @@ using the untyped CEK machine we can prove the following:
 \begin{itemize}
 \item The typed CK machine terminates if and only if the untyped CEK machine terminates.
 \item The typed CK machine halts in the error state $\blacklozenge$ if and only if
-the untyped CEK machine also halts in the $\blacklozenge$ state.
+the untyped CEK machine halts in the $\blacklozenge$ state.
 \item The typed CK machine returns a value $V$ if and only if the untyped CEK machine returns a
 closure $C$ with $\overline{C} = \erase{V}$.
 \end{itemize}
