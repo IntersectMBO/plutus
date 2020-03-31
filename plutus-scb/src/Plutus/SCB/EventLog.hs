@@ -97,7 +97,6 @@ chainState = lens getter setter where
 handleLoggedNodeClient ::(Members LoggedNodeClientEffs effs)
                        => Eff (NodeClientEffect ': effs) ~> Eff effs
 handleLoggedNodeClient = interpret $ \case
-    GetClientIndex -> error "Handled by the ChainIndex effect."
     ClientNotify (BlockValidated blk) -> do
         appendEvent (NodeEvent $ BlockAdded blk)
         get >>= updateProjection

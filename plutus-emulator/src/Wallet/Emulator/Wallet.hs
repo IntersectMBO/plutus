@@ -45,6 +45,7 @@ import qualified Ledger.Value               as Value
 import           Prelude                    as P
 import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                 as WAPI
+import qualified Wallet.Emulator.ChainIndex as CI
 import qualified Wallet.Emulator.NodeClient as NC
 
 -- | A wallet in the emulator model.
@@ -113,7 +114,7 @@ data WalletEffect r where
     OwnOutputs :: WalletEffect UtxoMap
 makeEffect ''WalletEffect
 
-type WalletEffs = '[NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
+type WalletEffs = '[CI.ChainIndexEffect, NC.NodeClientEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
 
 handleWallet
     :: (Members WalletEffs effs)
@@ -122,7 +123,7 @@ handleWallet = interpret $ \case
     SubmitTxn tx -> NC.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
     UpdatePaymentWithChange vl (oldIns, changeOut) -> do
-        utxo <- NC.getClientIndex
+        utxo <- CI.watchedAddresses
         ws <- get
         let
             addr = ownAddress ws
@@ -149,7 +150,7 @@ handleWallet = interpret $ \case
     WalletLogMsg m -> tell [WalletMsg m]
     OwnOutputs -> do
         addr <- gets ownAddress
-        view (at addr . non mempty) <$> NC.getClientIndex
+        view (at addr . non mempty) <$> CI.watchedAddresses
 
 -- HACK: these shouldn't exist, but WalletAPI needs to die first
 instance (Member WalletEffect effs) => WAPI.WalletAPI (Eff effs) where
