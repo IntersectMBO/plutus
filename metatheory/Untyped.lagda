@@ -7,7 +7,7 @@ open import Data.Nat
 open import Data.Fin hiding (_≤_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Integer hiding (suc;_≤_)
-open import Data.List
+open import Data.Vec
 open import Data.String using (String) renaming (_++_ to _+++_)
 open import Data.Char
 
@@ -31,17 +31,17 @@ data TermCon : Set where
 arity : Builtin → ℕ
 arity _ = 2
 
-data _⊢ : ℕ → Set
-Tel : ℕ → Set
-Tel n = List (n ⊢)
+data _⊢ (n : ℕ) : Set
+Tel : ℕ → ℕ → Set
+Tel m n = Vec (n ⊢) m
 
-data _⊢ where
-  `       : ∀{n} → Fin n → n ⊢
-  ƛ       : ∀{n} → suc n ⊢ → n ⊢
-  _·_     : ∀{n} → n ⊢ → n ⊢ → n ⊢
-  con     : ∀{n} → TermCon → n ⊢
-  builtin : ∀{n} → (b : Builtin) → (ts : Tel n) → length ts ≤ arity b → n ⊢
-  error   : ∀{n} → n ⊢
+data _⊢ n where
+  `       : Fin n → n ⊢
+  ƛ       : suc n ⊢ → n ⊢
+  _·_     : n ⊢ → n ⊢ → n ⊢
+  con     : TermCon → n ⊢
+  builtin : (b : Builtin){m : ℕ} → m ≤ arity b → (ts : Tel m n) → n ⊢
+  error   : n ⊢
 
 \end{code}
 
@@ -51,6 +51,7 @@ open import Data.Sum
 open import Data.Product renaming (_,_ to _,,_)
 
 -- should do this when de Bruijnifying so it can be shared
+{-
 builtinMatcher : ∀{n} → n ⊢ → (Builtin × List (n ⊢)) ⊎ n ⊢
 builtinMatcher (` x) = inj₂ (` x)
 builtinMatcher (ƛ t) = inj₂ (ƛ t)
@@ -58,7 +59,7 @@ builtinMatcher (t · u) = inj₂ (t · u)
 builtinMatcher (con c) = inj₂ (con c)
 builtinMatcher (builtin b ts p) = inj₁ (b ,, ts)
 builtinMatcher error = inj₂ error
-
+-}
 open import Relation.Nullary
 {-
 builtinEater : ∀{n} → Builtin → List (n ⊢) → n ⊢ → n ⊢
@@ -96,7 +97,7 @@ ugly (` x) = "(` " +++ uglyFin x +++ ")"
 ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
 ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
 ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
-ugly (builtin b ts p) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat (Data.List.length ts) +++ ")"
+ugly (builtin b {m} p ts) = "(builtin " +++ uglyBuiltin b +++ " " +++ showNat m +++ ")"
 ugly error = "error"
 \end{code}
 
