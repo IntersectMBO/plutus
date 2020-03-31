@@ -321,7 +321,7 @@ book~\citep{Plutus-book}.
 \section{Syntax}
 
 The grammar of Plutus Core is given in
-Figures~\ref{fig:lexical_grammar} and
+Figures~\ref{fig:lexical-grammar} and
 \ref{fig:grammar}. This grammar describes the abstract
 syntax trees of Plutus Core in a convenient notation which can also be
 used as concrete syntax for purposes such as experimentation and
@@ -642,7 +642,7 @@ integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
+        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type-constants}}
         \RightLabel{\textsf{tycon}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
@@ -653,7 +653,7 @@ integers and bytestrings.
 \end{figure}
 
 
-\noindent In Figure \ref{fig:type_synthesis}, we define the type
+\noindent In Figure \ref{fig:type-synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
 have rules analogous to STLC (\textsf{var},\textsf{lam},\textsf{app}),
 extensions to System F (\textsf{abs},\textsf{inst}). Iso-recursive
@@ -754,7 +754,7 @@ Higher-kinding introduces computation in types so we need the rule
     \end{prooftree}
 
     \captionof{figure}{Type Synthesis}
-    \label{fig:type_synthesis}
+    \label{fig:type-synthesis}
 
 \end{figure}
 
@@ -887,12 +887,12 @@ to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
-Figure~\ref{fig:type_constants}: for example \texttt{(con
+Figure~\ref{fig:type-constants}: for example \texttt{(con
   integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.
+abbreviations given in Figure~\ref{fig:type-abbreviations}.
 
 
 Note the following:
@@ -947,7 +947,7 @@ at some time in the future.
 
   \item We use fixed Scott encodings for certain types and values,
     specifically for the \textit{unit} and \textit{boolean} types: see
-    Figure~\ref{fig:type_abbreviations} (\textit{one} is the unique
+    Figure~\ref{fig:type-abbreviations} (\textit{one} is the unique
     non-\verb|error| inhabitant of the \textit{unit} type).  Compilers
     targeting Plutus Core must be aware of these encodings and use
     them appropriately.  Note that these encodings are not purely
@@ -988,7 +988,7 @@ integer.
 
 \noindent We have used the built-in \verb|subtractInteger|
 function, which returns a boolean value encoded as shown in
-Figure~\ref{fig:type_abbreviations}, of type
+Figure~\ref{fig:type-abbreviations}, of type
 $\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
 Boolean values are functions taking two arguments: \textit{true}
 returns the first, and \textit{false} returns the second.  We have to
@@ -1129,7 +1129,9 @@ give precise semantics for \textit{all} untyped terms and programs.
 \subsection{Term Reduction}
 Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
 for type-erased Plutus Core, analogously to
-Figure~\ref{fig:term-reduction}.  \subfile{figures/UntypedTermReduction}
+Figure~\ref{fig:term-reduction}.
+
+\subfile{figures/UntypedTermReduction}
 
 \subsection{An abstract machine for evaluating erased Plutus Core programs}
 \label{sec:untyped-ck-machine}
@@ -1153,8 +1155,8 @@ system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
 each rule that is different, where possible
-(Figures~\ref{fig:contexts_algorithmic_unrestricted}
-and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
+(Figures~\ref{fig:contexts-algorithmic-unrestricted}
+and~\ref{fig:type-synthesis-algorithmic-unrestricted}) .
 
 \subfile{figures/TypeSynthesis-Algorithmic.tex}
 
