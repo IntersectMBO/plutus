@@ -52,6 +52,7 @@
        s; \rho &\compute \builtin{bn}{\repetition{A}}{} &~\mapsto~& s;\rho \return U \enspace (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
        s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}};\rho \compute M\\
        s; \rho &\compute \error{A}                &~\mapsto~& \ckerror{}\\
+  \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
        \cdot; \rho &\return V                     &~\mapsto~& \square (V, \rho)\\
        s,\inInstLeftFrame{A}; \rho                &\return \abs{\alpha}{K}{M} &~\mapsto~& s;\rho \compute{M} \\
        s,\inWrapRightFrame{A}{B}; \rho            &\return V &~\mapsto~& s;\rho \return \wrap{A}{B}{V}\\

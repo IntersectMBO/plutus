@@ -485,7 +485,7 @@ is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
 Plutus Core language.
 
-\section{Type Correctness}
+\section{Type correctness}
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
@@ -764,7 +764,7 @@ rather than in inference rule form, in Figure
 semantics. This table also specifies what conditions trigger an error.
 
 
-\section{Reduction and Execution}
+\section{Reduction and execution}
 \label{sec:reduction}
 
 In this section we define a standard eager,
@@ -1101,7 +1101,7 @@ $P$.
 \label{sec:untyped-ck-builtins}
 We assume that untyped Plutus Core contains a set of built-in functions
 corresponding to those in Figure~\ref{fig:builtins}, and that these
-behave sensibly with respect to type erasure in the sense that
+behave consistently with respect to type erasure in the sense that
 $$
 \erase{\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n\texttt{)}} =
 \texttt{(builtin}\ \textit{bn}\ \erase{V_1} \ldots \erase{V_n}\texttt{)}
@@ -1109,24 +1109,27 @@ $$
 for all typed values $V_1, \ldots, V_n$ (typed evaluation on the left,
 untyped on the right).\footnote{We also assume that evaluation of
 built-in functions always terminates, in both the typed and untyped
-languages.} If this condition is satisfied then it can be shown that
-the erasure operation preserves semantics in an appropriate sense: if
-$P$ is a well-typed Plutus Core program then
+languages.}  In Section~\ref{sec:untyped-term-reduction} below we
+define semantics for type-erased programs, and if the aforementioned
+consistency condition is satisfied then it can be shown that the
+erasure operation preserves semantics in an appropriate sense: if $P$
+is a well-typed Plutus Core program then
 \begin{itemize}
-\item Evaluation of $P$ terminates
-if and only if that of $\erase{P}$ does.
-\item The evaluation of $P$ terminates in the error state $\blacklozenge$ if
-and only if the evaluation of $\erase{P}$ also terminates in $\blacklozenge$.
+\item Evaluation of $P$ terminates if and only if that of $\erase{P}$ does.
+\item The evaluation of $P$ returns \texttt{(error A)} for some type $A$
+if and only if the evaluation of $\erase{P}$ returns \texttt{(error)}.
 \item $P$ evaluates to the value $V$ if and only if $\erase{P}$ evaluates to the value
 $\erase{V}$.
 \end{itemize}
-This allows us to give semantics to those untyped
-programs which are obtained by erasing types from well-typed typed
-programs.  A future version of this document will contain a detailed
-specification of built-in types and functions which will allow us to
-give precise semantics for \textit{all} untyped terms and programs.
+This allows
+us to give semantics to those untyped programs which are obtained by
+erasing types from well-typed typed programs.  A future version of
+this document will contain a detailed specification of built-in types
+and functions which will allow us to give precise semantics
+for \textit{all} untyped terms and programs.
 
 \subsection{Term Reduction}
+\label{sec:untyped-term-reduction}
 Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
 for type-erased Plutus Core, analogously to
 Figure~\ref{fig:term-reduction}.
@@ -1148,7 +1151,7 @@ described in Appendix~\ref{appendix:untyped-cek-machine}.
 %% ------------------------------- Appendices --------------------------------- %%
 
 \begin{appendices}
-\section{Algorithmic Type System}
+\section{Algorithmic type system}
 
 For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
@@ -1244,7 +1247,7 @@ fails according to Figure~\ref{fig:builtins}.
 
 \item For closures $C_1, \ldots, C_n$,
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
-evalutes to a closure $C$ in the CEK machine if and only if 
+evaluates to a closure $C$ in the CEK machine if and only if 
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  \overline{C_1} \ldots \overline{C_n}$ \texttt{)}
 evaluates to a value $V$ (according to Figure~\ref{fig:builtins})
 such that $\overline{C} = V$.
@@ -1301,7 +1304,7 @@ machine. We assume that the mechanism for evaluating built-in
 functions in the untyped CEK machine can deal with closures, and that
 built-in evaluation commutes with type erasure and discharge of
 environments in an appropriate sense; more precisely, we require that
-the conditions below hold.
+the following conditions hold.
 
 \medskip
 \noindent Suppose that
@@ -1330,8 +1333,8 @@ evaluates to a typed term $M$ (according to Figure~\ref{fig:builtins}) with $\er
 \end{itemize}
 
 \subsubsection{Comparison of the typed CK machine and the untyped CEK machine}
-Suppose that the condition of Section~\ref{sec:untyped-cek-builtins}
-holds, and that $P$ is a typed Plutus Core program.  Then if $P$ is
+Suppose that the conditions of Section~\ref{sec:untyped-cek-builtins}
+hold, and that $P$ is a typed Plutus Core program.  Then if $P$ is
 evaluated using the typed CK machine and $\erase{P}$ is evaluated
 using the untyped CEK machine we can prove the following:
 \begin{itemize}
