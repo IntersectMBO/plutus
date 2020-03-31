@@ -49,7 +49,7 @@
        s; \rho &\compute \unwrap{M}               &~\mapsto~& s,\inUnwrapFrame{};\rho  \compute M\\
        s; \rho &\compute \lam{x}{A}{M}            &~\mapsto~& s;\rho \return \lam{x}{A}{M}\\
        s; \rho &\compute \app{M}{N}               &~\mapsto~& s,\inAppLeftFrame{(N,\rho)};\rho \compute M\\
-       s; \rho &\compute \builtin{bn}{\repetition{A}}{} &~\mapsto~& s;\rho \return U \enspace (\textit{$bn$ computes on $\repetition{A}$ to $U$})\\
+       s; \rho &\compute \builtin{bn}{\repetition{A}}{} &~\mapsto~& s;\rho \compute M \enspace (\textit{$bn$ computes on $\repetition{A}$ to $M$})\\
        s; \rho &\compute \builtin{bn}{\repetition{A}}{M \repetition{M}} &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}};\rho \compute M\\
        s; \rho &\compute \error{A}                &~\mapsto~& \ckerror{}\\
   \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
