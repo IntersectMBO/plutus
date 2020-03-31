@@ -357,7 +357,7 @@ may use the multi-argument forms.
 
 \subfile{figures/LexicalGrammar}
 
-\subfile{figures/Grammar}
+\subfile{figures/TypedGrammar}
 
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
@@ -830,7 +830,7 @@ machines are available, and we describe one of these, the CEK machine,
 in Appendix~\ref{appendix:typed-cek-machine}; however, the CK machine still
 provides a useful bridge for formalisation purposes.
 
-\subfile{figures/CkMachine}
+\subfile{figures/TypedCkMachine}
 
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
@@ -1223,7 +1223,7 @@ of the machine may wish to discharge this closure to obtain a value.
 \texttt{(program $v$ $M$)} we check the version number $v$ and then evaluate the body $M$
 with an empty stack and environment: $\cdot;[] \compute M$.
 
-\subfile{figures/CekMachine.tex}
+\subfile{figures/TypedCekMachine.tex}
 
 \subsubsection{Note. Built-in functions in the CEK machine}
 \label{sec:typed-cek-builtins}
