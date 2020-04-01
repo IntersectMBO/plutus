@@ -1,7 +1,7 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, drop, head, length, tail)
+import Data.Array (concatMap, drop, head, length)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Eq (eq, (==))
@@ -11,7 +11,7 @@ import Data.Lens (to, view, (^.))
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
+import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))

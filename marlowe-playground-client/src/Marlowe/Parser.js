@@ -16,7 +16,6 @@ exports.parse_ = function (emptyInputError, parserError, success, fs, input) {
             return parserError({ message: error.message, row: error.token.line, column: error.token.col, token: error.token.value });
         } else {
             console.log(error.message.match(/[0-9]+/));
-            // FIXME: need to tell moo to have an error token when there is a moo error I think
             return parserError({ message: error.message, row: 1, column: 0, token: "" });
         }
     }
