@@ -55,6 +55,12 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.Protocol
+        Cardano.Protocol.Socket.Type
+        Cardano.Protocol.Socket.Server
+        Cardano.Protocol.Socket.Mock.API
+        Cardano.Protocol.Socket.Mock.Client
+        Cardano.Protocol.Socket.Mock.Server
         Cardano.SigningProcess.API
         Cardano.SigningProcess.Server
         Cardano.SigningProcess.Client
@@ -95,9 +101,13 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
+        async -any,
         base >=4.7 && <5,
         bytestring -any,
+        cardano-prelude -any,
+        cardano-slotting -any,
         containers -any,
+        contra-tracer -any,
         directory -any,
         errors -any,
         eventful-core -any,
@@ -110,7 +120,10 @@ library
         lens -any,
         monad-logger -any,
         mtl -any,
+        network -any,
+        network-mux -any,
         optparse-applicative -any,
+        ouroboros-network -any,
         persistent -any,
         persistent-sqlite -any,
         playground-common -any,
@@ -120,6 +133,7 @@ library
         random -any,
         row-types -any,
         scientific -any,
+        serialise -any,
         servant -any,
         servant-client -any,
         servant-server -any,
@@ -127,6 +141,7 @@ library
         text -any,
         time-units -any,
         transformers -any,
+        typed-protocols -any,
         unliftio-core -any,
         unordered-containers -any,
         uuid -any,

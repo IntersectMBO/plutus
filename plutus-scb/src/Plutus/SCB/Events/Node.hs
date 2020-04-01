@@ -19,6 +19,6 @@ data NodeEvent
     | SubmittedTx Tx
   -- ^ Confirmation that the transactions were received.
   -- TODO: Rollbacks?
-  -- | Rollback Int -- ^ n blocks were rolled back
+    | Rollback Int -- ^ n blocks were rolled back
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
