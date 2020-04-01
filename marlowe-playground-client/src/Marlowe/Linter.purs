@@ -39,7 +39,7 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Tuple.Nested ((/\))
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), Timeout, emptyState, evalValue, makeEnvironment)
@@ -504,9 +504,6 @@ lintValue env t@(Term (UseValue hole) pos) = do
 lintValue env hole@(Hole _ _ pos) = do
   modifying _holes (insertHole hole)
   pure (ValueSimp pos false hole)
-
-collectFromTuples :: forall a b. Array (a /\ b) -> Array a /\ Array b
-collectFromTuples = foldMap (\(a /\ b) -> [ a ] /\ [ b ])
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
