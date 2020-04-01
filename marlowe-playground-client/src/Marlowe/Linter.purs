@@ -38,7 +38,7 @@ import Data.String (codePointFromChar, fromCodePointArray, length, takeWhile, to
 import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
-import Data.Traversable (traverse)
+import Data.Traversable (traverse_)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
@@ -241,8 +241,8 @@ lintContract env (Term t@(Pay acc payee token payment cont) pos) = do
 
 lintContract env (Term (If obs c1 c2) _) = do
   sa <- lintObservation env obs
-  _ <- lintContract env c1
-  _ <- lintContract env c2
+  lintContract env c1
+  lintContract env c2
   case sa of
     (ConstantSimp _ _ c) ->
       if c then do
@@ -256,9 +256,9 @@ lintContract env (Term (If obs c1 c2) _) = do
       pure unit
 
 lintContract env (Term (When cases hole@(Hole _ _ _) cont) _) = do
-  _ <- traverse (lintCase env) cases
+  traverse_ (lintCase env) cases
   modifying _holes (insertHole hole)
-  _ <- lintContract env cont
+  lintContract env cont
   pure unit
 
 lintContract env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
@@ -266,10 +266,10 @@ lintContract env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
     timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange timeout pos))
 
     newEnv = (over _maxTimeout (max timeout)) env
-  _ <- traverse (lintCase newEnv) cases
+  traverse_ (lintCase newEnv) cases
   modifying _holes (insertHole timeoutTerm)
   modifying _warnings (Set.union timeoutNotIncreasing)
-  _ <- lintContract newEnv cont
+  lintContract newEnv cont
   pure unit
 
 lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
@@ -474,11 +474,10 @@ lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
       case sc of
         (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.Scale (S.Rational a b) (S.Constant v))))
         (ValueSimp _ _ v) -> do
-          _ <-
-            if isSimp then
-              markSimplification constToVal SimplifiableValue c sc
-            else
-              pure unit
+          if isSimp then
+            markSimplification constToVal SimplifiableValue c sc
+          else
+            pure unit
           pure (ValueSimp pos isSimp (Term (Scale (Term (Rational na nb) pos2) c) pos))
 
 lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
@@ -521,7 +520,7 @@ lintCase env t@(Term (Case action contract) pos) = do
     pure unit
   else
     pure unit
-  _ <- lintContract env contract
+  lintContract env contract
   pure unit
 
 lintCase env hole@(Hole _ _ _) = do
