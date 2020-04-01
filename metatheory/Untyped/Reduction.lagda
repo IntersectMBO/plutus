@@ -26,7 +26,9 @@ infix 2 _—→_
 \end{code}
 
 \begin{code}
-
+subst∷ : ∀{n n'}{A : Set}(a : A)(as : Vec A n)(p : n ≡ n')(q : suc n ≡ suc n')
+  → a ∷ subst (Vec A) p as ≡ subst (Vec A) q (a ∷ as)
+subst∷ a as refl refl = refl
 \end{code}
 
 
@@ -64,18 +66,21 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-·₂ : {L M M' : n ⊢} → Value L → M —→ M' → L · M —→ L · M'
 
   β-ƛ : ∀{L : suc n ⊢}{V : n ⊢} → Value V → ƛ L · V —→ L [ V ]
-{-
+
   ξ-builtin : (b : Builtin)
-              (ts : Tel n)
-              {ts' : Tel n}
-              (vs : VTel n ts')
+            → ∀ {l' l''}
+              (ts : Tel (arity b) n)
+              {ts' : Tel l' n}
+              (vs : VTel l' n ts')
               {t t' : n ⊢}
             → t —→ t'
-            → (ts'' : Tel n)
-            → ts ≡ ts' ++ Data.List.[ t ] ++ ts''
-            → builtin b ts —→
-                builtin b (ts' ++ Data.List.[ t' ] ++ ts'')
--}
+            → (ts'' : Tel l'' n)
+           → (p : l' Data.Nat.+ suc l'' ≡ arity b)
+            → ts ≡ subst (Vec (n ⊢)) p (ts' ++ Data.Vec.[ t ] ++ ts'')
+            → (r : l' Data.Nat.+ suc l'' ≤‴ arity b)
+            → builtin b ≤‴-refl ts
+              —→
+              builtin b r (ts' ++ Data.Vec.[ t' ] ++ ts'')
 
   β-builtin : {b : Builtin}
               (ts : Tel (arity b) n)
@@ -93,17 +98,19 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
 
   E-·₁ : {M : n ⊢} → error · M —→ error
   E-·₂ : {L : n ⊢} → Value L → L · error —→ error
-  {-
+
   E-builtin : (b : Builtin)
-              (ts : Tel n)
-              {ts' : Tel n}
-              (vs : VTel n ts')
+            →  ∀{l' l''}
+              (ts : Tel (arity b) n)
+              {ts' : Tel l' n}
+              (vs : VTel l' n ts')
               {t : n ⊢}
             → Error t
-            → (ts'' : Tel n)
-            -- → ts ≡ ts' ++ Data.List.[ t ] ++ ts'' -- TODO
-            → builtin b ts —→ error
--}
+            → (ts'' : Tel l'' n)
+            → (p : l' Data.Nat.+ suc l'' ≡ arity b)
+            → ts ≡ subst (Vec (n ⊢)) p (ts' ++ Data.Vec.[ t ] ++ ts'')
+            → builtin b ≤‴-refl ts —→ error
+
   -- these correspond to type errors encountered at runtime
   E-con : {tcn : TermCon}{L : n ⊢} → con tcn · L —→ error
 
@@ -219,9 +226,11 @@ progressTel (t ∷ ts) | step p = step [] _ p ts refl refl
 progressTel (t ∷ ts) | done vt with progressTel ts
 progressTel (t ∷ ts) | done vt | done vs   = done (vt , vs)
 progressTel (t ∷ ts) | done vt | step  ts' vs p ts'' q r =
-  step (t ∷ ts') (vt , vs) p ts'' (cong suc q) (trans (cong (t ∷_) r) {!!})
+  step (t ∷ ts') (vt , vs) p ts'' (cong suc q)
+    (trans (cong (t ∷_) r) (subst∷ t _ q (cong suc q)))
 progressTel (t ∷ ts) | done vt | error ts' vs ts'' p q =
-  error (t ∷ ts') (vt , vs) ts'' (cong suc p) {!!}
+  error (t ∷ ts') (vt , vs) ts'' (cong suc p)
+    (trans (cong (t ∷_) q) (subst∷ t _ p (cong suc p)))
 
 progress (` ())
 progress (ƛ t)        = done (V-ƛ t)
@@ -229,19 +238,11 @@ progress (t · u)      = progress-· (progress t) (progress u)
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ≤‴-refl ts) with progressTel ts
 progress (builtin b ≤‴-refl ts) | done vs = step (β-builtin ts vs)
-progress (builtin b ≤‴-refl ts) | step ts' vts' p ts'' q r = step ?
-progress (builtin b ≤‴-refl ts) | error tel' x tel'' p x₁ = {!!}
--- ... | done vs = step (β-builtin ts vs)
+progress (builtin b ≤‴-refl ts) | step ts' vts' p ts'' q r =
+  step (ξ-builtin b ts vts' p ts'' q r (subst (_≤‴ arity b) (sym q) ≤‴-refl))
+progress (builtin b ≤‴-refl ts) | error ts' vts' ts'' p q =
+  step (E-builtin b ts vts' E-error ts'' p q)
 progress (builtin b (≤‴-step p) ts) = done (V-builtin b ts p)
-{-
-progress (builtin b ts) with progressList ts
-progress (builtin b p ts) | done vs with length ts Data.Nat.≤? arity b
-progress (builtin b p ts) | done vs | does Relation.Nullary.Dec.because proof = ? --step (β-builtin ts {!!} vs)
-progress (builtin b ts) | step  ts' vs p ts'' p' =
-  step (ξ-builtin b ts vs p ts'' p')
-progress (builtin b ts) | error ts' vs e ts'' p =
-  step (E-builtin b ts vs e ts'')
--}
 progress error       = error E-error
 \end{code}
 
@@ -263,6 +264,7 @@ open import Relation.Nullary
 -- a value cannot make progress
 
 val-red : ∀{n}{t : n ⊢} → Value t → ¬ (Σ (n ⊢)  (t —→_))
-val-red (V-builtin b ts p) (fst₁ , snd₁) = {!!}
-
+val-red (V-ƛ t) (t' , ())
+val-red (V-con tcn) (t' , ())
+val-red (V-builtin b ts p) (t' , ())
 \end{code}
