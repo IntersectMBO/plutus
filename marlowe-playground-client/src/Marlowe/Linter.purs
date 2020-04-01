@@ -217,7 +217,7 @@ constToVal x = Term (Constant (Term x { row: 0, column: 0 })) { row: 0, column: 
 lint :: Term Contract -> State
 lint contract = state
   where
-  (_ /\ state) = CMS.runState (lintContract mempty contract) mempty
+  state = CMS.execState (lintContract mempty contract) mempty
 
 lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
