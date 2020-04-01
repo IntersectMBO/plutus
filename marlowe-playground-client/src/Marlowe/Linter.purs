@@ -222,24 +222,22 @@ lint contract = state
 lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
 
-lintContract env (Term t@(Pay acc payee token payment cont) pos) =
+lintContract env (Term t@(Pay acc payee token payment cont) pos) = do
   let
     gatherHoles = getHoles acc <> getHoles payee <> getHoles token
-  in
-    do
-      modifying _holes gatherHoles
-      sa <- lintValue env payment
-      case sa of
-        (ConstantSimp _ _ c) ->
-          if c > zero then
-            pure unit
-          else do
-            modifying _warnings (Set.insert (NegativePayment (termToRange t pos)))
-            pure unit
-        _ -> do
-          markSimplification constToVal SimplifiableValue payment sa
-          pure unit
-      lintContract env cont
+  modifying _holes gatherHoles
+  sa <- lintValue env payment
+  case sa of
+    (ConstantSimp _ _ c) ->
+      if c > zero then
+        pure unit
+      else do
+        modifying _warnings (Set.insert (NegativePayment (termToRange t pos)))
+        pure unit
+    _ -> do
+      markSimplification constToVal SimplifiableValue payment sa
+      pure unit
+  lintContract env cont
 
 lintContract env (Term (If obs c1 c2) _) = do
   sa <- lintObservation env obs
@@ -392,13 +390,11 @@ lintObservation env hole@(Hole _ _ pos) = do
   pure (ValueSimp pos false hole)
 
 lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification BigInteger Value)
-lintValue env t@(Term (AvailableMoney acc token) pos) =
+lintValue env t@(Term (AvailableMoney acc token) pos) = do
   let
     gatherHoles = getHoles acc <> getHoles token
-  in
-    do
-      modifying _holes gatherHoles
-      pure (ValueSimp pos false t)
+  modifying _holes gatherHoles
+  pure (ValueSimp pos false t)
 
 lintValue env (Term (Constant (Term v pos2)) pos) = do
   pure (ConstantSimp pos false v)
