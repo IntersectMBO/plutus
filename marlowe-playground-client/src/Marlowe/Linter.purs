@@ -379,11 +379,9 @@ lintObservation env t@(Term (ValueEQ a b) pos) = do
       markSimplification constToVal SimplifiableValue b sb
       pure (ValueSimp pos false t)
 
-lintObservation env t@(Term TrueObs pos) = do
-  pure (ConstantSimp pos false true)
+lintObservation env t@(Term TrueObs pos) = pure (ConstantSimp pos false true)
 
-lintObservation env t@(Term FalseObs pos) = do
-  pure (ConstantSimp pos false false)
+lintObservation env t@(Term FalseObs pos) = pure (ConstantSimp pos false false)
 
 lintObservation env hole@(Hole _ _ pos) = do
   modifying _holes (insertHole hole)
@@ -396,8 +394,7 @@ lintValue env t@(Term (AvailableMoney acc token) pos) = do
   modifying _holes gatherHoles
   pure (ValueSimp pos false t)
 
-lintValue env (Term (Constant (Term v pos2)) pos) = do
-  pure (ConstantSimp pos false v)
+lintValue env (Term (Constant (Term v pos2)) pos) = pure (ConstantSimp pos false v)
 
 lintValue env t@(Term (Constant h@(Hole _ _ _)) pos) = do
   modifying _holes (insertHole h)
@@ -498,8 +495,7 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
-lintValue env t@(Term (UseValue (Term valueId pos2)) pos) = do
-  pure (ValueSimp pos false t)
+lintValue env t@(Term (UseValue (Term valueId pos2)) pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term (UseValue hole) pos) = do
   modifying _holes (insertHole hole)
