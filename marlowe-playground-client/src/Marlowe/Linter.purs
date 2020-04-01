@@ -228,15 +228,13 @@ lintContract env (Term t@(Pay acc payee token payment cont) pos) = do
   modifying _holes gatherHoles
   sa <- lintValue env payment
   case sa of
-    (ConstantSimp _ _ c) ->
-      if c > zero then
-        pure unit
-      else do
+    (ConstantSimp _ _ c)
+      | c <= zero -> do
         modifying _warnings (Set.insert (NegativePayment (termToRange t pos)))
         pure unit
     _ -> do
-      markSimplification constToVal SimplifiableValue payment sa
       pure unit
+  markSimplification constToVal SimplifiableValue payment sa
   lintContract env cont
 
 lintContract env (Term (If obs c1 c2) _) = do
@@ -456,9 +454,9 @@ lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
         (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.Scale (S.Rational a b) (S.Constant v))))
         (ValueSimp _ _ v) -> do
           if isSimp then
-            markSimplification constToVal SimplifiableValue c sc
-          else
             pure unit
+          else do
+            markSimplification constToVal SimplifiableValue c sc
           pure (ValueSimp pos isSimp (Term (Scale (Term (Rational na nb) pos2) c) pos))
 
 lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
