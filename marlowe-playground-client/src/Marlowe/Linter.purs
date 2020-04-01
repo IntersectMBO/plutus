@@ -24,7 +24,7 @@ import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
-import Data.Lens (Lens', over, to, view, (^.))
+import Data.Lens (Lens', modifying, over, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -198,7 +198,7 @@ simplifyTo (ValueSimp _ _ c) pos = (ValueSimp pos true c)
 markSimplification :: forall a b. Show b => (a -> Term b) -> (IRange -> Term b -> Term b -> Warning) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
 markSimplification f c oriVal x
   | isSimplified x = do
-    _ <- CMS.modify (over _warnings (Set.insert (c (termToRange oriVal (getPosition oriVal)) oriVal (getValue f x))))
+    modifying _warnings (Set.insert (c (termToRange oriVal (getPosition oriVal)) oriVal (getValue f x)))
     pure unit
   | otherwise = pure unit
 
@@ -227,14 +227,14 @@ lintContract env (Term t@(Pay acc payee token payment cont) pos) =
     gatherHoles = getHoles acc <> getHoles payee <> getHoles token
   in
     do
-      _ <- CMS.modify (over _holes gatherHoles)
+      modifying _holes gatherHoles
       sa <- lintValue env payment
       case sa of
         (ConstantSimp _ _ c) ->
           if c > zero then
             pure unit
           else do
-            _ <- CMS.modify (over _warnings (Set.insert (NegativePayment (termToRange t pos))))
+            modifying _warnings (Set.insert (NegativePayment (termToRange t pos)))
             pure unit
         _ -> do
           markSimplification constToVal SimplifiableValue payment sa
@@ -248,10 +248,10 @@ lintContract env (Term (If obs c1 c2) _) = do
   case sa of
     (ConstantSimp _ _ c) ->
       if c then do
-        _ <- CMS.modify (over _warnings (Set.insert (UnreachableContract (termToRange c2 (getPosition c2)))))
+        modifying _warnings (Set.insert (UnreachableContract (termToRange c2 (getPosition c2))))
         pure unit
       else do
-        _ <- CMS.modify (over _warnings (Set.insert (UnreachableContract (termToRange c1 (getPosition c1)))))
+        modifying _warnings (Set.insert (UnreachableContract (termToRange c1 (getPosition c1))))
         pure unit
     _ -> do
       markSimplification constToObs SimplifiableObservation obs sa
@@ -259,7 +259,7 @@ lintContract env (Term (If obs c1 c2) _) = do
 
 lintContract env (Term (When cases hole@(Hole _ _ _) cont) _) = do
   _ <- traverse (lintCase env) cases
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   _ <- lintContract env cont
   pure unit
 
@@ -269,8 +269,8 @@ lintContract env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
 
     newEnv = (over _maxTimeout (max timeout)) env
   _ <- traverse (lintCase newEnv) cases
-  _ <- CMS.modify (over _holes (insertHole timeoutTerm))
-  _ <- CMS.modify (over _warnings (Set.union timeoutNotIncreasing))
+  modifying _holes (insertHole timeoutTerm)
+  modifying _warnings (Set.union timeoutNotIncreasing)
   _ <- lintContract newEnv cont
   pure unit
 
@@ -279,7 +279,7 @@ lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
     shadowedLet = if Set.member valueId (view _letBindings env) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
 
     newEnv = over _letBindings (Set.insert valueId) env
-  _ <- CMS.modify (over _warnings (Set.union shadowedLet))
+  modifying _warnings (Set.union shadowedLet)
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract newEnv cont
@@ -287,13 +287,13 @@ lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
 lintContract env (Term (Let valueIdTerm@(Hole _ _ _) value cont) _) = do
   let
     gatherHoles = getHoles valueIdTerm
-  _ <- CMS.modify (over _holes gatherHoles)
+  modifying _holes gatherHoles
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract env cont
 
 lintContract env hole@(Hole _ _ _) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure unit
 
 lintObservation :: LintEnv -> Term Observation -> CMS.State State (TemporarySimplification Boolean Observation)
@@ -328,7 +328,7 @@ lintObservation env t@(Term (NotObs a) pos) = do
       pure (ValueSimp pos false t)
 
 lintObservation env t@(Term (ChoseSomething choiceId) pos) = do
-  _ <- CMS.modify (over _holes (getHoles choiceId))
+  modifying _holes (getHoles choiceId)
   pure (ValueSimp pos false t)
 
 lintObservation env t@(Term (ValueGE a b) pos) = do
@@ -388,7 +388,7 @@ lintObservation env t@(Term FalseObs pos) = do
   pure (ConstantSimp pos false false)
 
 lintObservation env hole@(Hole _ _ pos) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure (ValueSimp pos false hole)
 
 lintValue :: LintEnv -> Term Value -> CMS.State State (TemporarySimplification BigInteger Value)
@@ -397,14 +397,14 @@ lintValue env t@(Term (AvailableMoney acc token) pos) =
     gatherHoles = getHoles acc <> getHoles token
   in
     do
-      _ <- CMS.modify (over _holes gatherHoles)
+      modifying _holes gatherHoles
       pure (ValueSimp pos false t)
 
 lintValue env (Term (Constant (Term v pos2)) pos) = do
   pure (ConstantSimp pos false v)
 
 lintValue env t@(Term (Constant h@(Hole _ _ _)) pos) = do
-  _ <- CMS.modify (over _holes (insertHole h))
+  modifying _holes (insertHole h)
   pure (ValueSimp pos false t)
 
 lintValue env t@(Term (NegValue a) pos) = do
@@ -462,7 +462,7 @@ lintValue env t@(Term (SubValue a b) pos) = do
 lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
   if (b == zero) then do
-    _ <- CMS.modify (over _warnings (Set.insert (DivisionByZero (termToRange r pos2))))
+    modifying _warnings (Set.insert (DivisionByZero (termToRange r pos2)))
     markSimplification constToVal SimplifiableValue c sc
     pure (ValueSimp pos false t)
   else
@@ -496,7 +496,7 @@ lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
     pure (ValueSimp pos false t)
 
 lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
-  _ <- CMS.modify (over _holes (getHoles choiceId))
+  modifying _holes (getHoles choiceId)
   pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
@@ -507,11 +507,11 @@ lintValue env t@(Term (UseValue (Term valueId pos2)) pos) = do
   pure (ValueSimp pos false t)
 
 lintValue env t@(Term (UseValue hole) pos) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure (ValueSimp pos false t)
 
 lintValue env hole@(Hole _ _ pos) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure (ValueSimp pos false hole)
 
 collectFromTuples :: forall a b. Array (a /\ b) -> Array a /\ Array b
@@ -521,7 +521,7 @@ lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
   unReachable <- lintAction env action
   if unReachable then do
-    _ <- CMS.modify (over _warnings (Set.insert (UnreachableCase (termToRange t pos))))
+    modifying _warnings (Set.insert (UnreachableCase (termToRange t pos)))
     pure unit
   else
     pure unit
@@ -529,21 +529,21 @@ lintCase env t@(Term (Case action contract) pos) = do
   pure unit
 
 lintCase env hole@(Hole _ _ _) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure unit
 
 lintAction :: LintEnv -> Term Action -> CMS.State State Boolean
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
-  _ <- CMS.modify (over _holes (gatherHoles))
+  modifying _holes (gatherHoles)
   sa <- lintValue env value
   case sa of
     (ConstantSimp _ _ v) ->
       if v > zero then
         defaultCase sa
       else do
-        _ <- CMS.modify (over _warnings (Set.insert (NegativeDeposit (termToRange t pos))))
+        modifying _warnings (Set.insert (NegativeDeposit (termToRange t pos)))
         pure false
     _ -> defaultCase sa
   where
@@ -552,7 +552,7 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
     pure false
 
 lintAction env (Term (Choice choiceId bounds) _) = do
-  _ <- CMS.modify (over _holes (getHoles choiceId <> getHoles bounds))
+  modifying _holes (getHoles choiceId <> getHoles bounds)
   pure false
 
 lintAction env (Term (Notify obs) _) = do
@@ -566,7 +566,7 @@ lintAction env (Term (Notify obs) _) = do
     pure false
 
 lintAction env hole@(Hole _ _ _) = do
-  _ <- CMS.modify (over _holes (insertHole hole))
+  modifying _holes (insertHole hole)
   pure false
 
 suggestions :: Boolean -> String -> IRange -> Array CompletionItem
