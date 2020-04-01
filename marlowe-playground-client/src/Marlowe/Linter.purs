@@ -413,44 +413,28 @@ lintValue env t@(Term (AddValue a b) pos) = do
   sb <- lintValue env b
   case sa /\ sb of
     (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 + v2))
-    (ConstantSimp _ _ v /\ _) ->
-      if (v == zero) then
-        pure (simplifyTo sb pos)
-      else
-        defaultCase sa sb
-    (_ /\ ConstantSimp _ _ v) ->
-      if (v == zero) then
-        pure (simplifyTo sa pos)
-      else
-        defaultCase sa sb
-    _ -> defaultCase sa sb
-  where
-  defaultCase sa sb = do
-    markSimplification constToVal SimplifiableValue a sa
-    markSimplification constToVal SimplifiableValue b sb
-    pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v /\ _)
+      | v == zero -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ v)
+      | v == zero -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
 lintValue env t@(Term (SubValue a b) pos) = do
   sa <- lintValue env a
   sb <- lintValue env b
   case sa /\ sb of
     (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 - v2))
-    (ConstantSimp _ _ v /\ _) ->
-      if (v == zero) then
-        pure (ValueSimp pos true (Term (NegValue b) pos))
-      else
-        defaultCase sa sb
-    (_ /\ ConstantSimp _ _ v) ->
-      if (v == zero) then
-        pure (simplifyTo sa pos)
-      else
-        defaultCase sa sb
-    _ -> defaultCase sa sb
-  where
-  defaultCase sa sb = do
-    markSimplification constToVal SimplifiableValue a sa
-    markSimplification constToVal SimplifiableValue b sb
-    pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v /\ _)
+      | v == zero -> pure (ValueSimp pos true (Term (NegValue b) pos))
+    (_ /\ ConstantSimp _ _ v)
+      | v == zero -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
 
 lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
@@ -480,12 +464,11 @@ lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
 lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
   sc <- lintValue env c
   case sc of
-    (ConstantSimp _ _ v) -> if (v == zero) then pure (ConstantSimp pos true zero) else defaultCase sc
-    _ -> defaultCase sc
-  where
-  defaultCase sc = do
-    markSimplification constToVal SimplifiableValue c sc
-    pure (ValueSimp pos false t)
+    (ConstantSimp _ _ v)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    _ -> do
+      markSimplification constToVal SimplifiableValue c sc
+      pure (ValueSimp pos false t)
 
 lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
   modifying _holes (getHoles choiceId)
@@ -527,17 +510,13 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
   modifying _holes (gatherHoles)
   sa <- lintValue env value
   case sa of
-    (ConstantSimp _ _ v) ->
-      if v > zero then
-        defaultCase sa
-      else do
+    (ConstantSimp _ _ v)
+      | v <= zero -> do
         modifying _warnings (Set.insert (NegativeDeposit (termToRange t pos)))
         pure false
-    _ -> defaultCase sa
-  where
-  defaultCase sa = do
-    markSimplification constToVal SimplifiableValue value sa
-    pure false
+    _ -> do
+      markSimplification constToVal SimplifiableValue value sa
+      pure false
 
 lintAction env (Term (Choice choiceId bounds) _) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
@@ -546,12 +525,11 @@ lintAction env (Term (Choice choiceId bounds) _) = do
 lintAction env (Term (Notify obs) _) = do
   sa <- lintObservation env obs
   case sa of
-    (ConstantSimp _ _ c) -> if c then defaultCase sa else pure true
-    _ -> defaultCase sa
-  where
-  defaultCase sa = do
-    markSimplification constToObs SimplifiableObservation obs sa
-    pure false
+    (ConstantSimp _ _ c)
+      | not c -> pure true
+    _ -> do
+      markSimplification constToObs SimplifiableObservation obs sa
+      pure false
 
 lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
