@@ -1116,7 +1116,7 @@ erasure operation preserves semantics in an appropriate sense: if $P$
 is a well-typed Plutus Core program then
 \begin{itemize}
 \item Evaluation of $P$ terminates if and only if that of $\erase{P}$ does.
-\item The evaluation of $P$ returns \texttt{(error A)} for some type $A$
+\item The evaluation of $P$ returns \texttt{(error $A$)} for some type $A$
 if and only if the evaluation of $\erase{P}$ returns \texttt{(error)}.
 \item $P$ evaluates to the value $V$ if and only if $\erase{P}$ evaluates to the value
 $\erase{V}$.
@@ -1235,34 +1235,35 @@ with an empty stack and environment: $\cdot;[] \compute M$.
 In the CK machine the arguments of built-in functions are always
 closed values, but in the CEK machine arguments are closures.  We
 assume that the mechanism for evaluating built-in functions in the CEK
-machine can deal with closures, and that
+machine can accept closures as arguments, and that
 \begin{itemize}
-\item Evaluation of builtin functions always terminates.
+\item Evaluation of builtin functions always terminates (returning a full term, not
+a closure).
 
 \item For closures $C_1, \ldots, C_n$, evaluation of
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
-fails in the CEK machine if and only if evaluation of
+fails in the CEK machine (returning \texttt{(error $A$)} for some type $A$) if and only if evaluation of
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\ \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
 fails according to Figure~\ref{fig:builtins}.
 
 \item For closures $C_1, \ldots, C_n$,
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
-evaluates to a closure $C$ in the CEK machine if and only if 
+evaluates to a term $M$ in the CEK machine if and only if 
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
-evaluates to a value $V$ (according to Figure~\ref{fig:builtins})
-such that $\discharge{C} = V$.
+evaluates to the same term $M$ according to Figure~\ref{fig:builtins}.% <- No space before footnot marker.
+\footnote{One way to ensure that these conditions hold would be to discharge all of the
+closures and then use the same mechanism as in the CK machine, but this would
+reintroduce the very inefficiencies which the CEK machine is designed to avoid.}
 
 \end{itemize}
-\noindent (One way to achieve this would be to discharge all of the closures and
-then use the same mechanism as in the CK machine, but this would
-reintroduce the very inefficiencies which the CEK machine is designed
-to avoid.)  A future version of this document will contain a
+A future version of this document will contain a
 specification of built-in function evaluation which will cover this
 issue in detail.
 
 \subsubsection{Comparison of the CK and CEK machines}
-If the CK and CEK machines are run with the same input then we can prove
-the following facts (assuming that the condition in Section~\ref{sec:typed-cek-builtins} holds):
+If the CK and CEK machines are run with the same program as input then
+we can prove the following facts (assuming that the condition in
+Section~\ref{sec:typed-cek-builtins} holds):
 \begin{itemize}
 \item The CEK machine terminates if and only if the CK machine terminates.
 \item The CEK machine terminates in the error state $\blacklozenge$ if
@@ -1301,10 +1302,10 @@ As in Sections~\ref{sec:untyped-ck-builtins}
 and~\ref{sec:typed-cek-builtins} we have to say something about how
 evaluation of built-in functions is performed in the untyped CEK
 machine. We assume that the mechanism for evaluating built-in
-functions in the untyped CEK machine can deal with closures, and that
-built-in evaluation commutes with type erasure and discharge of
-environments in an appropriate sense; more precisely, we require that
-the following conditions hold.
+functions in the untyped CEK machine can accept closures as arguments,
+and that built-in evaluation commutes with type erasure and discharge
+of environments in an appropriate sense; more precisely, we require
+that the following conditions hold.
 
 \medskip
 \noindent Suppose that
@@ -1318,10 +1319,10 @@ $1 \le i \le n$.
 
 \noindent Then we require that
 \begin{itemize}
-\item Evaluation of builtin functions always terminates.
+\item Evaluation of builtin functions always terminates (returning a full term, not a closure).
 \item In the untyped CEK machine, evaluation of 
   $\texttt{(builtin}\ \textit{bn}\ C_1 \ldots C_n \texttt{)}$
-fails if and only if evaluation of 
+fails (returning \texttt{(error)}) if and only if evaluation of 
   $\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n \texttt{)}$
 fails according to Figure~\ref{fig:builtins}.
 
