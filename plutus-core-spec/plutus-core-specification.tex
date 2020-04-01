@@ -77,7 +77,7 @@
 \newcommand{\keyword}[1]{\texttt{#1}}
 \newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
 
-
+\newcommand\discharge[1]{\widehat{#1}}
 
 %%% Term Grammar
 
@@ -1203,7 +1203,7 @@ names, and we have to know what the variables were bound to at the
 time when the value was created.
 
 \subsubsection{Discharging closures}
-Given a closure $(V,\rho)$ we denote by $\overline{(V,\rho)}$ the
+Given a closure $(V,\rho)$ we denote by $\discharge{(V,\rho)}$ the
 result of \textit{discharging} the closure, ie, recursively replacing
 all of the variables occurring in $V$ by their bindings in
 $\rho$. Note that variables are bound to closures which may themselves
@@ -1242,15 +1242,15 @@ machine can deal with closures, and that
 \item For closures $C_1, \ldots, C_n$, evaluation of
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
 fails in the CEK machine if and only if evaluation of
-  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\ \overline{C_1} \ldots \overline{C_n}$ \texttt{)}
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\ \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
 fails according to Figure~\ref{fig:builtins}.
 
 \item For closures $C_1, \ldots, C_n$,
   \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
 evaluates to a closure $C$ in the CEK machine if and only if 
-  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  \overline{C_1} \ldots \overline{C_n}$ \texttt{)}
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
 evaluates to a value $V$ (according to Figure~\ref{fig:builtins})
-such that $\overline{C} = V$.
+such that $\discharge{C} = V$.
 
 \end{itemize}
 \noindent (One way to achieve this would be to discharge all of the closures and
@@ -1268,7 +1268,7 @@ the following facts (assuming that the condition in Section~\ref{sec:typed-cek-b
 \item The CEK machine terminates in the error state $\blacklozenge$ if
 and only if the CK machine terminates in the state $\blacklozenge$.
 \item The CEK machine returns a closure $C$ if and only if the CK machine returns a
-value $V$ with $\overline{C} = V$.
+value $V$ with $\discharge{C} = V$.
 \end{itemize}
 
 \section{A CEK machine for type-erased Plutus Core}
@@ -1290,7 +1290,7 @@ The untyped CEK machine uses closures and environments similar to
 those used in the typed CEK machine
 (Appendix~\ref{appendix:typed-cek-machine}), except that environments now
 bind variables to terms in untyped Plutus Core.  Again,
-$\overline{(V,\rho)}$ denotes the value obtained by discharging a
+$\discharge{(V,\rho)}$ denotes the value obtained by discharging a
 closure $(V,\rho)$.
 
 \subfile{figures/UntypedCekMachine.tex}
@@ -1312,7 +1312,7 @@ the following conditions hold.
 \item $A_1, \ldots, A_k$ are Plutus Core types.
 \item $V_1, \ldots, V_n$ are well-typed typed Plutus Core values.
 \item $C_1, \ldots, C_n$ are closures in the untyped
-CEK machine such that $\overline{C_i} = \erase{V_i} $ for
+CEK machine such that $\discharge{C_i} = \erase{V_i} $ for
 $1 \le i \le n$.
 \end{itemize}
 
@@ -1342,7 +1342,7 @@ using the untyped CEK machine we can prove the following:
 \item The typed CK machine halts in the error state $\blacklozenge$ if and only if
 the untyped CEK machine halts in the $\blacklozenge$ state.
 \item The typed CK machine returns a value $V$ if and only if the untyped CEK machine returns a
-closure $C$ with $\overline{C} = \erase{V}$.
+closure $C$ with $\discharge{C} = \erase{V}$.
 \end{itemize}
 
 \end{appendices}
