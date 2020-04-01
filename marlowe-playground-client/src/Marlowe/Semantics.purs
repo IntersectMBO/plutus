@@ -476,6 +476,9 @@ instance showEnvironment :: Show Environment where
 _slotInterval :: Lens' Environment SlotInterval
 _slotInterval = _Newtype <<< prop (SProxy :: SProxy "slotInterval")
 
+makeEnvironment :: BigInteger -> BigInteger -> Environment
+makeEnvironment l h = Environment { slotInterval: SlotInterval (Slot h) (Slot l) }
+
 data Input
   = IDeposit AccountId Party Token BigInteger
   | IChoice ChoiceId ChosenNum
