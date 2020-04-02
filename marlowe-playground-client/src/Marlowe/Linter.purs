@@ -72,7 +72,7 @@ data Warning
   | TimeoutNotIncreasing IRange
   | UnreachableCase IRange
   | UnreachableContract IRange
-  | UninitializedUse IRange
+  | UndefinedUse IRange
   | ShadowedLet IRange
   | DivisionByZero IRange
   | SimplifiableValue IRange (Term Value) (Term Value)
@@ -92,7 +92,7 @@ instance showWarning :: Show Warning where
   show (TimeoutNotIncreasing _) = "Timeouts should always increase in value"
   show (UnreachableCase _) = "This case will never be used"
   show (UnreachableContract _) = "This contract is unreachable"
-  show (UninitializedUse _) = "The contract tries to Use a ValueId that has not been defined in a Let"
+  show (UndefinedUse _) = "The contract tries to Use a ValueId that has not been defined in a Let"
   show (ShadowedLet _) = "Let is redefining a ValueId that already exists"
   show (DivisionByZero _) = "Scale construct divides by zero"
   show (SimplifiableValue _ oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
@@ -109,7 +109,7 @@ getWarningRange (UnreachableCase range) = range
 
 getWarningRange (UnreachableContract range) = range
 
-getWarningRange (UninitializedUse range) = range
+getWarningRange (UndefinedUse range) = range
 
 getWarningRange (ShadowedLet range) = range
 
@@ -476,7 +476,11 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
-lintValue env t@(Term (UseValue (Term valueId pos2)) pos) = pure (ValueSimp pos false t)
+lintValue env t@(Term (UseValue (Term valueId _)) pos) = do
+  let
+    undefinedLet = if Set.member valueId (view _letBindings env) then mempty else Set.singleton (UndefinedUse (termToRange t pos))
+  modifying _warnings (Set.union undefinedLet)
+  pure (ValueSimp pos false t)
 
 lintValue env t@(Term (UseValue hole) pos) = do
   modifying _holes (insertHole hole)
