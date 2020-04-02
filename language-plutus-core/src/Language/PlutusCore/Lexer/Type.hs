@@ -31,6 +31,7 @@ data Keyword
     | KwAll
     | KwBool
     | KwByteString
+    | KwString
     | KwInteger
     | KwString
     | KwUnit
@@ -90,6 +91,7 @@ instance Pretty Keyword where
     pretty KwAll        = "all"
     pretty KwBool       = "bool"
     pretty KwByteString = "bytestring"
+    pretty KwString     = "string"
     pretty KwInteger    = "integer"
     pretty KwString     = "string"
     pretty KwUnit       = "unit"

@@ -112,7 +112,6 @@ tokens :-
     "{"                  { mkSpecial OpenBrace }
     "}"                  { mkSpecial CloseBrace }
 
-
     -- Unit
     <conarg> "()"        { tok (\p _ -> alex $ TkUnit p ()) }
 

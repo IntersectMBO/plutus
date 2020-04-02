@@ -1,20 +1,30 @@
 {-# LANGUAGE FlexibleContexts      #-}
+<<<<<<< HEAD:language-plutus-core/exe/Main.hs
 {-# LANGUAGE FlexibleInstances     #-}
+=======
+>>>>>>> 1913dec4c31f78ce8e4d30f622b77010989fb892:plutus-exe/src/Main.hs
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
+<<<<<<< HEAD:language-plutus-core/exe/Main.hs
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-orphans        #-}
 {-# OPTIONS_GHC -Wno-unused-imports   #-}
+=======
+
+>>>>>>> 1913dec4c31f78ce8e4d30f622b77010989fb892:plutus-exe/src/Main.hs
 
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
 import           Language.PlutusCore.Constant               as PLC
 import           Language.PlutusCore.Constant.Dynamic       as PLC
+<<<<<<< HEAD:language-plutus-core/exe/Main.hs
 --import           Language.PlutusCore.Constant.Dynamic.OffChain as PLC
 import           Language.PlutusCore.Error                  as PLC
+=======
+>>>>>>> 1913dec4c31f78ce8e4d30f622b77010989fb892:plutus-exe/src/Main.hs
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
 import qualified Language.PlutusCore.Generators             as PLC
@@ -45,6 +55,16 @@ import           Options.Applicative
 
 import qualified GHC.IO.Exception
 
+<<<<<<< HEAD:language-plutus-core/exe/Main.hs
+=======
+stringBuiltins
+    :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
+    => PLC.DynamicBuiltinNameMeanings uni
+stringBuiltins =
+    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
+        $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
+
+>>>>>>> 1913dec4c31f78ce8e4d30f622b77010989fb892:plutus-exe/src/Main.hs
 data Input = FileInput FilePath | StdInput
 
 getInput :: Input -> IO String
@@ -168,6 +188,7 @@ runEval (EvalOptions inp mode) = do
     let evalFn = case mode of
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
             CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek getStringBuiltinMeanings
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek stringBuiltins
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck
