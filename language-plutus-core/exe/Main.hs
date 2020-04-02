@@ -1,10 +1,11 @@
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+
 module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
-import           Language.PlutusCore.Constant               as PLC
 import           Language.PlutusCore.Constant.Dynamic       as PLC
 import           Language.PlutusCore.Error                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
@@ -20,7 +21,7 @@ import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
 
 import           Control.Exception                          (toException)
 import           Control.Monad
-import           Control.Monad.Trans.Except                 (runExcept, runExceptT)
+import           Control.Monad.Trans.Except                 (runExceptT)
 import           Data.Bifunctor                             (first, second)
 import           Data.Foldable                              (traverse_)
 
@@ -29,7 +30,6 @@ import qualified Data.Text                                  as T
 import           Data.Text.Encoding                         (encodeUtf8)
 import qualified Data.Text.IO                               as T
 import           Data.Text.Prettyprint.Doc
-import           Debug.Trace
 import           System.Exit
 
 import           Options.Applicative
@@ -37,14 +37,6 @@ import           Options.Applicative
 
 import qualified GHC.IO.Exception
 
-stringBuiltins
-    :: (PLC.GShow uni, PLC.GEq uni, uni `PLC.Includes` String, uni `PLC.Includes` Integer)
-    => PLC.DynamicBuiltinNameMeanings uni
-stringBuiltins =
-    insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
-        $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
-
->>>>>>> 1913dec4c31f78ce8e4d30f622b77010989fb892:plutus-exe/src/Main.hs
 data Input = FileInput FilePath | StdInput
 
 getInput :: Input -> IO String
@@ -140,7 +132,7 @@ instance PLC.AsTypeError GHC.IO.Exception.IOException PLC.DefaultUni ()
     where _TypeError = undefined
 
 instance AsUniqueError GHC.IO.Exception.IOException PLC.AlexPosn
-    where _UniqueError = \x -> error $ "Unique"
+    where _UniqueError = \_ -> error $ "Unique"
 
 instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
     where _ParseError = undefined
@@ -150,7 +142,6 @@ instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
     contents <- getInput inp
-    stringTypes <- PLC.runQuoteT $ getStringBuiltinTypes ()
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let cfg = PLC.defConfig
     case (PLC.runQuoteT . PLC.parseTypecheck cfg) bsContents of
@@ -168,7 +159,6 @@ runEval (EvalOptions inp mode) = do
     let evalFn = case mode of
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
             CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek getStringBuiltinMeanings
-            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek stringBuiltins
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck
