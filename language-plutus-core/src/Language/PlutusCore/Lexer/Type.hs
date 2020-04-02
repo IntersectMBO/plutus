@@ -61,6 +61,8 @@ data Token ann
               , tkName       :: T.Text
               , tkIdentifier :: Unique -- ^ A 'Unique' assigned to the identifier during lexing.
               }
+    | TkUnit       { tkLoc :: ann, tkUnit :: () }  -- A bit redundant
+    | TkBool       { tkLoc :: ann, tkBool :: Bool }
     | TkInt        { tkLoc :: ann, tkInt :: Integer }
     | TkBS         { tkLoc :: ann, tkBytestring :: BSL.ByteString }
     | TkString     { tkLoc :: ann, tkString :: String }
@@ -101,6 +103,8 @@ instance Pretty Keyword where
 
 instance Pretty (Token ann) where
     pretty (TkName _ n _)        = pretty n
+    pretty (TkUnit _ u)          = pretty u
+    pretty (TkBool _ b)          = pretty b
     pretty (TkInt _ i)           = pretty i
     pretty (TkNat _ n)           = pretty n
     pretty (TkBS _ bs)           = prettyBytes bs

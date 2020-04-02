@@ -85,6 +85,8 @@ import Control.Monad.State
     openBrace     { TkSpecial $$ OpenBrace }
     closeBrace    { TkSpecial $$ CloseBrace }
 
+    unitLit       { $$@TkUnit{} }
+    boolLit       { $$@TkBool{} }
     integerLit    { $$@TkInt{} }
     naturalLit    { $$@TkNat{} }
     byteStringLit { $$@TkBS{} }
@@ -113,7 +115,9 @@ Name : var { Name (tkLoc $1) (tkName $1) (tkIdentifier $1) }
 
 TyName : Name { TyName $1 }
 
-Constant : integerLit    { someValue (tkInt $1) }
+Constant : unitLit       { someValue (tkUnit $1) }
+         | boolLit       { someValue (tkBool $1) }
+         | integerLit    { someValue (tkInt $1) }
          | naturalLit    { someValue (toInteger (tkNat $1)) }
          | byteStringLit { someValue (tkBytestring $1) }
          | stringLit     { someValue (tkString (fixStr $1)) } 
@@ -185,13 +189,14 @@ mkBuiltin loc loc' ident =
       Nothing -> Builtin loc (DynBuiltinName loc' (DynamicBuiltinName ident))
 
 -- FIXME: at this point it would be good to have access to the current
--- dynamic builtin names to check if a builtin with that name exists.
--- Unfortunately that involves adding a parameter of type
--- DynamicBuiltinNameMeanings to almost every function in
--- PlutusPrelude.hs, and others elsewhere.  @effectfully says that his
--- future plans may help with this.  In the meantime, you get a scope
--- resolution error during typechecking/execution if it encounters a
--- nonexistent name.
+-- dynamic builtin names to check if a builtin with that name exists
+-- and issue an error if not.  Unfortunately that involves adding a
+-- parameter of type DynamicBuiltinNameMeanings to almost every
+-- function in PlutusPrelude.hs, and others elsewhere.  @effectfully
+-- says that his future plans may help with this.  In the meantime,
+-- you get a scope resolution error during typechecking/execution if
+-- it encounters a nonexistent name.  [We could also have a hard-coded
+-- list of known dynamic names here, but that might not be ideal.]
 
 tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
 tyInst loc t (ty :| []) = TyInst loc t ty

@@ -8,12 +8,12 @@
     {-# LANGUAGE OverloadedStrings     #-}
     {-# LANGUAGE MultiParamTypeClasses #-}
 
-    module Language.PlutusCore.Lexer ( alexMonadScan
-                                     , runAlexST'
-                                     -- * Types
-                                     , AlexPosn (..)
-                                     , Alex (..)
-                                     ) where
+module Language.PlutusCore.Lexer ( alexMonadScan
+                                 , runAlexST'
+                                 -- * Types
+                                 , AlexPosn (..)
+                                 , Alex (..)
+                                 ) where
 
 import PlutusPrelude
 
@@ -112,8 +112,16 @@ tokens :-
     "{"                  { mkSpecial OpenBrace }
     "}"                  { mkSpecial CloseBrace }
 
+
+    -- Unit
+    <conarg> "()"        { tok (\p _ -> alex $ TkUnit p ()) }
+
+    -- Booleans
+    <conarg> False       { tok (\p _ -> alex $ TkBool p False) }
+    <conarg> True        { tok (\p _ -> alex $ TkBool p True) }
+
     -- ByteStrings
-    \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
+    <conarg> \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
 
     -- Strings
     <conarg> \"[^\"]*\"      { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
@@ -123,7 +131,8 @@ tokens :-
     -- Integer/size literals
     @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
     @integer                 { tok (\p s -> alex $ TkInt p (readBSL $ stripPlus s)) }
-
+    -- Not just used for integer constants, so we don't want <conarg> here.
+    
     -- Identifiers
     <0> @name                { tok (\p s -> handle_name p (T.decodeUtf8 (BSL.toStrict s))) }
 
