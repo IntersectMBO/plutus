@@ -29,7 +29,26 @@ data TermCon : Set where
 
 \begin{code}
 arity : Builtin → ℕ
-arity _ = 2
+arity addInteger               = 2
+arity subtractInteger          = 2
+arity multiplyInteger          = 2
+arity divideInteger            = 2
+arity quotientInteger          = 2
+arity remainderInteger         = 2
+arity modInteger               = 2
+arity lessThanInteger          = 2
+arity lessThanEqualsInteger    = 2
+arity greaterThanInteger       = 2
+arity greaterThanEqualsInteger = 2
+arity equalsInteger            = 2
+arity concatenate              = 2
+arity takeByteString           = 2
+arity dropByteString           = 2
+arity sha2-256                 = 1
+arity sha3-256                 = 1
+arity verifySignature          = 3
+arity equalsByteString         = 2
+arity ifThenElse               = 3
 
 data _⊢ (n : ℕ) : Set
 Tel : ℕ → ℕ → Set

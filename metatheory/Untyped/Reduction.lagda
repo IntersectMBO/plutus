@@ -54,10 +54,10 @@ VTel : ∀ l n → Tel l n → Set
 VTel 0       n []       = ⊤
 VTel (suc l) n (t ∷ ts) = Value {n} t × VTel l n ts
 
-BUILTIN : ∀{l n}
-    → (bn : Builtin)
-    → (tel : Tel l n)
-    → VTel l n tel
+BUILTIN : ∀{n}
+    → (b : Builtin)
+    → (tel : Tel (arity b) n)
+    → VTel (arity b) n tel
       --------------
     → n ⊢
 
@@ -131,7 +131,7 @@ VERIFYSIG : ∀{n} → Maybe Bool → n ⊢
 VERIFYSIG (just Bool.false) = plc_false 
 VERIFYSIG (just Bool.true)  = plc_true 
 VERIFYSIG nothing           = error
-{-
+
 BUILTIN addInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
   = con (integer (i + j))
 BUILTIN subtractInteger (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer j) , _)
@@ -169,7 +169,6 @@ BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestr
   con (bool (equals b b'))
 BUILTIN ifThenElse (_ ∷ t ∷ _ ∷ []) (V-con (bool true)  , vt , _ , tt) = t
 BUILTIN ifThenElse (_ ∷ _ ∷ u ∷ []) (V-con (bool false) , _ , vu , tt) = u
--}
 BUILTIN _ _ _ = error
 
 data ProgTel {l n}(tel : Tel l n) : Set where
