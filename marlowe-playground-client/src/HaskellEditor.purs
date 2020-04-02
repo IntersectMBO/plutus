@@ -1,6 +1,6 @@
 module HaskellEditor where
 
-import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, blocklyIcon, closeDrawerIcon, footerPanelBg, haskellEditor, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, noMargins, panelHeader, panelHeaderMain, panelSubHeader, panelSubHeaderMain, smallBtn, spaceLeft)
+import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerIcon, footerPanelBg, haskellEditor, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, noMargins, panelHeader, panelHeaderMain, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..))
@@ -15,11 +15,10 @@ import Halogen (ClassName(..), ComponentHTML)
 import Halogen.HTML (HTML, a, button, code_, div, div_, h4, img, li, pre, pre_, section, small_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
-import Halogen.HTML.Properties (alt, class_, classes, disabled, enabled, src)
+import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Prelude (const, map, not, show, ($), (<$>), (<<<), (<>), (||))
-import Simulation (isContractValid)
 import StaticData as StaticData
 import Types (ChildSlots, FrontendState, HAction(..), View(..), _compilationResult, _editorPreferences, _haskellEditorSlot, _showBottomPanel)
 
@@ -31,7 +30,7 @@ render ::
 render state =
   [ section [ classes [ panelHeader, aHorizontal ] ]
       [ div [ classes [ panelHeaderMain, aHorizontal, noMargins, accentBorderBottom ] ]
-          [ h4 [] [ text "Marlowe Contract" ] ]
+          [ h4 [] [ text "Haskell Contract" ] ]
       ]
   , section [ classes [ panelSubHeader, aHorizontal ] ]
       [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
@@ -42,14 +41,6 @@ render state =
               ]
           , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
               (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
-          , div [ class_ (ClassName "code-to-blockly-wrap") ]
-              [ button
-                  [ class_ smallBtn
-                  , onClick $ const $ Just $ SetBlocklyCode
-                  , enabled (isContractValid state)
-                  ]
-                  [ img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ] ]
-              ]
           ]
       ]
   , section [ classes (haskellEditor state) ]

@@ -42,7 +42,7 @@ import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Classes (aCenter, aHorizontal, btnSecondary, flexCol, hide, iohkIcon, isActiveTab, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, href, id_, src)
+import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -56,7 +56,7 @@ import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
 import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Ajax (errorToString)
@@ -425,10 +425,13 @@ handleAction (InsertHole constructor firstHole holes) = do
 
 handleAction (ChangeSimulationView view) = do
   assign _simulationBottomPanelView view
+  assign _showBottomPanel true
   marloweEditorResize
   haskellEditorResize
 
-handleAction (ChangeHelpContext help) = assign _helpContext help
+handleAction (ChangeHelpContext help) = do
+  assign _helpContext help
+  scrollHelpPanel
 
 handleAction (ShowRightPanel val) = assign _showRightPanel val
 
@@ -590,7 +593,7 @@ render state =
                 , div [] [ text "Blockly" ]
                 ]
             , div [ class_ (ClassName "nav-bottom-links") ]
-                [ a [ href "./tutorial", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
+                [ a [ href "./tutorial", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
                 , p_ [ text "Privacy Policy" ]
                 , p_
                     [ text "by "

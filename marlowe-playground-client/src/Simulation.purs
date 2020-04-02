@@ -34,13 +34,9 @@ import Monaco as Monaco
 import Network.RemoteData (RemoteData(..))
 import Prelude (class Show, bind, const, mempty, show, unit, ($), (/=), (<$>), (<<<), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError)
+import Simulation.BottomPanel (isContractValid)
 import StaticData as StaticData
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _contract, _createGistResult, _editorErrors, _editorPreferences, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
-
-isContractValid :: FrontendState -> Boolean
-isContractValid state =
-  view (_marloweState <<< _Head <<< _contract) state /= Nothing
-    && view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
 
 render ::
   forall m.
