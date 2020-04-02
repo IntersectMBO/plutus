@@ -67,8 +67,10 @@ import Control.Monad.State
     fun           { TkKeyword $$ KwFun }
     all           { TkKeyword $$ KwAll }
     integer       { TkKeyword $$ KwInteger }
+    bool          { TkKeyword $$ KwBool }
     bytestring    { TkKeyword $$ KwByteString }
     string        { TkKeyword $$ KwString }
+    unit          { TkKeyword $$ KwUnit }
     type          { TkKeyword $$ KwType }
     program       { TkKeyword $$ KwProgram }
     iwrap         { TkKeyword $$ KwIWrap }
@@ -128,9 +130,11 @@ Term : Name                                       { Var (nameAttribute $1) $1 }
      | openParen unwrap Term closeParen           { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen        { Error $2 $3 }
 
-BuiltinType : integer { mkTyBuiltin @Integer }
+BuiltinType : integer    { mkTyBuiltin @Integer }
+            | bool       { mkTyBuiltin @Bool }
             | bytestring { mkTyBuiltin @BSL.ByteString }
-            | string { mkTyBuiltin @String }
+            | string     { mkTyBuiltin @String }
+            | unit       { mkTyBuiltin @() }
 		  
 Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
@@ -171,6 +175,7 @@ getBuiltinName = \case
     "sha2_256"                 -> Just SHA2
     "sha3_256"                 -> Just SHA3
     "verifySignature"          -> Just VerifySignature
+    "ifThenElse"               -> Just IfThenElse
     _                          -> Nothing
 
 mkBuiltin :: a -> a -> T.Text -> Term TyName Name uni a

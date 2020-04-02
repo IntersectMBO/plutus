@@ -91,10 +91,11 @@ tokens :-
     -- These are converted into Builtin names (possibly dynamic) in the parser
     -- Outside this mode, all ids are parsed as Names. 
     
+    <conarg> bool        { mkKeyword KwBool        `andBegin` 0 }
     <conarg> bytestring  { mkKeyword KwByteString  `andBegin` 0 }
     <conarg> integer     { mkKeyword KwInteger     `andBegin` 0 }
     <conarg> string      { mkKeyword KwString      `andBegin` 0 }
-
+    <conarg> unit        { mkKeyword KwUnit        `andBegin` 0 }
     -- Maybe we should also do this in the parser, but there's some
     -- ambiguity because literal constants are also parsed here (they
     -- have no start code, so can appear in any context).  There's a

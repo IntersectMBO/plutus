@@ -29,9 +29,11 @@ data Keyword
     | KwIFix
     | KwFun
     | KwAll
+    | KwBool
     | KwByteString
-    | KwString
     | KwInteger
+    | KwString
+    | KwUnit
     | KwType
     | KwProgram
     | KwCon
@@ -84,9 +86,11 @@ instance Pretty Keyword where
     pretty KwIFix       = "ifix"
     pretty KwFun        = "fun"
     pretty KwAll        = "all"
+    pretty KwBool       = "bool"
     pretty KwByteString = "bytestring"
-    pretty KwString     = "string"
     pretty KwInteger    = "integer"
+    pretty KwString     = "string"
+    pretty KwUnit       = "unit"
     pretty KwType       = "type"
     pretty KwProgram    = "program"
     pretty KwCon        = "con"

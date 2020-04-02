@@ -17,7 +17,7 @@ import           Language.PlutusCore.Universe
 import           Control.Monad.Except
 
 getStringBuiltinMeanings
-    :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
+    :: (GShow uni, GEq uni, uni `IncludesAll` [String, Char, ()])
     => DynamicBuiltinNameMeanings uni
 getStringBuiltinMeanings =
        insertDynamicBuiltinNameDefinition dynamicTraceDefinitionMock $

@@ -68,8 +68,6 @@ stdInput = flag' StdInput
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input
-data PrintMode = Standard | Debug deriving (Show, Read)
-data PrintOptions = PrintOptions Input PrintMode
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
