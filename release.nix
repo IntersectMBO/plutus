@@ -21,7 +21,7 @@ in
 
 # The revision passed in by Hydra, if there is one
 let rev = if builtins.isNull plutus then null else plutus.rev;
-    ci = import ./ci.nix;
+    ci = import ./ci.nix { inherit supportedSystems; };
 
 in with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
   inherit supportedSystems scrubJobs;
