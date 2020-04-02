@@ -15,8 +15,8 @@
                        &        &     & \ckerror{}      & \textrm{throw an error}
     \end{array}\]
 
-    \captionof{figure}{Grammar of CK Machine States}
-    \label{fig:ck-frames}
+    \captionof{figure}{Grammar of CK machine states}
+    \label{fig:typed-ck-frames}
 \end{subfigure}
 
 
@@ -49,19 +49,19 @@
   s,\inAppLeftFrame{N} & \return V          &~\mapsto~&  s,\inAppRightFrame{V} \compute N\\
   s,\inAppRightFrame{\lam{x}{A}{M}} &\return V
                                             &~\mapsto~&  s \compute \subst{V}{x}{M}\\
+  s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}} & \return V
+                                            &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
   s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V
                                             &~\mapsto~& s \compute M
                                               \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$
                                               to $M$ according to Fig.~\ref{fig:builtins}})\\
-  s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{M \repetition{M}} & \return V
-                                            &~\mapsto~& s,\inBuiltin{bn}{\repetition{A}}{\repetition{V} V}{\_}{\repetition{M}} \compute M\\
     \end{alignat*}
 \end{minipage}
-    \caption{CK Machine Transitions}
-    \label{fig:ck-transitions}
+    \caption{CK machine transitions}
+    \label{fig:typed-ck-transitions}
 \end{subfigure}
 \caption{The CK machine}
-\label{fig:ck-machine}
+\label{fig:typed-ck-machine}
 \end{figure}
 
 \end{document}

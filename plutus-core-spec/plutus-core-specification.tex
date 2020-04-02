@@ -1,6 +1,6 @@
 % Plutus Core Specification
-\title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{14th March 2020}
+\title{Formal Specification of\\the Plutus Core Language (version 2.0)}
+\date{31st March 2020}
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
@@ -77,7 +77,7 @@
 \newcommand{\keyword}[1]{\texttt{#1}}
 \newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
 
-
+\newcommand\discharge[1]{\widehat{#1}}
 
 %%% Term Grammar
 
@@ -175,6 +175,13 @@
 \newcommand{\ckerror}{\blacklozenge}
 \newcommand{\compute}{\triangleright}
 \newcommand{\return}{\triangleleft}
+
+\newcommand{\bcompute}{\color{blue}\compute}  
+\newcommand{\breturn}{\color{blue}\return}  
+\newcommand{\bmapsto}{\color{blue}\mapsto}
+% This is to get blue symbols after an '&' inside an alignat
+% environment.  It seems to mess up the spacing if you do anything
+% else.
 
 
 
@@ -314,7 +321,7 @@ book~\citep{Plutus-book}.
 \section{Syntax}
 
 The grammar of Plutus Core is given in
-Figures~\ref{fig:lexical_grammar} and
+Figures~\ref{fig:lexical-grammar} and
 \ref{fig:grammar}. This grammar describes the abstract
 syntax trees of Plutus Core in a convenient notation which can also be
 used as concrete syntax for purposes such as experimentation and
@@ -350,7 +357,7 @@ may use the multi-argument forms.
 
 \subfile{figures/LexicalGrammar}
 
-\subfile{figures/Grammar}
+\subfile{figures/TypedGrammar}
 
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
@@ -478,7 +485,7 @@ is used by the Plutus Core evaluator and other tools to check that
 they are dealing with code conforming to the correct version of the
 Plutus Core language.
 
-\section{Type Correctness}
+\section{Type correctness}
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
@@ -635,7 +642,7 @@ integers and bytestrings.
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
+        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type-constants}}
         \RightLabel{\textsf{tycon}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
@@ -646,7 +653,7 @@ integers and bytestrings.
 \end{figure}
 
 
-\noindent In Figure \ref{fig:type_synthesis}, we define the type
+\noindent In Figure \ref{fig:type-synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
 have rules analogous to STLC (\textsf{var},\textsf{lam},\textsf{app}),
 extensions to System F (\textsf{abs},\textsf{inst}). Iso-recursive
@@ -747,7 +754,7 @@ Higher-kinding introduces computation in types so we need the rule
     \end{prooftree}
 
     \captionof{figure}{Type Synthesis}
-    \label{fig:type_synthesis}
+    \label{fig:type-synthesis}
 
 \end{figure}
 
@@ -757,7 +764,7 @@ rather than in inference rule form, in Figure
 semantics. This table also specifies what conditions trigger an error.
 
 
-\section{Reduction and Execution}
+\section{Reduction and execution}
 \label{sec:reduction}
 
 In this section we define a standard eager,
@@ -807,24 +814,23 @@ $\step{\error{B}}{M^{\prime}}$, so at most one of the final two rules
 applies.
 
 \subsection{An abstract machine for evaluating Plutus Core programs}
+\label{sec:typed-ck-machine}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
 and Friedman~\citep{Felleisen-CK-CEK}.
 
 This machine is intended as a reference implementation which is
-amenable to formalisation, ideally so that it can be proved to
-implement the operational semantics described above.  The CK machine
-is inefficient because it implements application as $\beta$-reduction,
-so that when evaluating $(\lambda x.M)V$, $V$ must be substituted
-bodily for $x$ wherever it occurs in $M$.  This process can require
-considerable amounts of time and space.  More efficient machines are
-available (for example the CEK machine from~\citep{Felleisen-CK-CEK},
-which uses environments binding actual arguments to variables), and in
-practice we would use something based on such a machine; however, the
-CK machine will still provide a useful bridge for formalisation
-purposes.
+amenable to formalisation.  For example, it can be proved to implement
+the operational semantics described in Section~\ref{sec:reduction}.
+The CK machine is inefficient because it implements application as
+$\beta$-reduction, so that when evaluating $(\lambda x.M)V$, $V$ must
+be substituted bodily for $x$ wherever it occurs in $M$.  This process
+can require considerable amounts of time and space.  More efficient
+machines are available, and we describe one of these, the CEK machine,
+in Appendix~\ref{appendix:typed-cek-machine}; however, the CK machine still
+provides a useful bridge for formalisation purposes.
 
-\subfile{figures/CkMachine}
+\subfile{figures/TypedCkMachine}
 
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
@@ -836,14 +842,14 @@ addition there is an error state $\blacklozenge$ which halts execution
 with an error, and a stop state $\square$ which halts execution and
 returns a value to the outside world.
 
-To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
+To evaluate a program $\texttt{(program}\ v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:ck-machine} always preserve
+transitions in Figure~\ref{fig:typed-ck-machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
-$s, \texttt{(unwrap \_)} \triangleleft \texttt{(lam }x\ A \ M\texttt{)}$
+$s, \texttt{(unwrap \_)} \triangleleft \texttt{(lam}\ x\ A \ M\texttt{)}$
 which isn't covered by the rules.  If such a
 situation were to occur in an implementation then it would indicate
 that the machine was incorrectly implemented or that it was attempting
@@ -851,7 +857,7 @@ to evaluate an invalid program which should have been detected during
 parsing or typechecking.
 
 For efficiency reasons the behaviour of the machine defined in
-Figure~\ref{fig:ck-machine} differs in two respects from the semantics
+Figure~\ref{fig:typed-ck-machine} differs in two respects from the semantics
 defined in Figure~\ref{fig:term-reduction}:
 \begin{itemize}
 \item The CK machine does not perform type instantiation since this
@@ -863,7 +869,7 @@ defined in Figure~\ref{fig:term-reduction}:
   this is to ensure that the program has a well-defined type.
 \end{itemize}
 \noindent It can be proved that when the CK machine as defined in
-Figure~\ref{fig:ck-machine} evaluates a program $P$, the machine
+Figure~\ref{fig:typed-ck-machine} evaluates a program $P$, the machine
 terminates in the $\blacklozenge$ state if and only if $P$ terminates
 with an \texttt{error} value according to the rules of
 Figure~\ref{fig:term-reduction}, and that the machine terminates with
@@ -881,12 +887,12 @@ to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
-Figure~\ref{fig:type_constants}: for example \texttt{(con
+Figure~\ref{fig:type-constants}: for example \texttt{(con
   integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.
+abbreviations given in Figure~\ref{fig:type-abbreviations}.
 
 
 Note the following:
@@ -897,8 +903,7 @@ It is possible that we may add some polymorphic built-in functions
 at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
-  violated then the program terminates immediately and returns
-  the value \texttt{(error)}.
+  violated then the function immediately returns \texttt{(error)}.
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments.
@@ -942,7 +947,7 @@ at some time in the future.
 
   \item We use fixed Scott encodings for certain types and values,
     specifically for the \textit{unit} and \textit{boolean} types: see
-    Figure~\ref{fig:type_abbreviations} (\textit{one} is the unique
+    Figure~\ref{fig:type-abbreviations} (\textit{one} is the unique
     non-\verb|error| inhabitant of the \textit{unit} type).  Compilers
     targeting Plutus Core must be aware of these encodings and use
     them appropriately.  Note that these encodings are not purely
@@ -983,7 +988,7 @@ integer.
 
 \noindent We have used the built-in \verb|subtractInteger|
 function, which returns a boolean value encoded as shown in
-Figure~\ref{fig:type_abbreviations}, of type
+Figure~\ref{fig:type-abbreviations}, of type
 $\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
 Boolean values are functions taking two arguments: \textit{true}
 returns the first, and \textit{false} returns the second.  We have to
@@ -1093,49 +1098,253 @@ $P$.
 %% type-erased Plutus Core (captions of CK machine figure etc.)
 
 \subsubsection{Note. Built-in functions in untyped Plutus Core}
-\label{sec:untyped-builtins}
+\label{sec:untyped-ck-builtins}
 We assume that untyped Plutus Core contains a set of built-in functions
 corresponding to those in Figure~\ref{fig:builtins}, and that these
-behave sensibly with respect to type erasure in the sense that
+behave consistently with respect to type erasure in the sense that
 $$
-\erase{\texttt{(builtin } \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n\texttt{)}} =
-\texttt{(builtin } \textit{bn}\ \erase{V_1} \ldots \erase{V_n}\texttt{)}
+\erase{\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n\texttt{)}} =
+\texttt{(builtin}\ \textit{bn}\ \erase{V_1} \ldots \erase{V_n}\texttt{)}
 $$
 for all typed values $V_1, \ldots, V_n$ (typed evaluation on the left,
-untyped on the right).  If this condition is satisfied then it can be
-shown that the erasure operation preserves semantics in an appropriate
-sense: if $M$ is a well-typed Plutus Core term then evaluation of $M$
-terminates if and only if that of $\erase{M}$ does, and $M$ evaluates
-to the value $v$ if and only if $\erase{M}$ evaluates to the value
-$\erase{v}$.  This allows us to give semantics to those untyped
-programs which are obtained by erasing types from well-typed typed
-programs.  A future version of this document will contain a detailed
-specification of built-in types and functions which will allow us to
-give precise semantics for \textit{all} untyped terms and programs.
+untyped on the right).\footnote{We also assume that evaluation of
+built-in functions always terminates, in both the typed and untyped
+languages.}  In Section~\ref{sec:untyped-term-reduction} below we
+define semantics for type-erased programs, and if the aforementioned
+consistency condition is satisfied then it can be shown that the
+erasure operation preserves semantics in an appropriate sense: if $P$
+is a well-typed Plutus Core program then
+\begin{itemize}
+\item Evaluation of $P$ terminates if and only if that of $\erase{P}$ does.
+\item The evaluation of $P$ returns \texttt{(error $A$)} for some type $A$
+if and only if the evaluation of $\erase{P}$ returns \texttt{(error)}.
+\item $P$ evaluates to the value $V$ if and only if $\erase{P}$ evaluates to the value
+$\erase{V}$.
+\end{itemize}
+This allows
+us to give semantics to those untyped programs which are obtained by
+erasing types from well-typed typed programs.  A future version of
+this document will contain a detailed specification of built-in types
+and functions which will allow us to give precise semantics
+for \textit{all} untyped terms and programs.
 
 \subsection{Term Reduction}
+\label{sec:untyped-term-reduction}
 Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
 for type-erased Plutus Core, analogously to
-Figure~\ref{fig:term-reduction}.  \subfile{figures/UntypedTermReduction}
+Figure~\ref{fig:term-reduction}.
+
+\subfile{figures/UntypedTermReduction}
 
 \subsection{An abstract machine for evaluating erased Plutus Core programs}
-Figure~\ref{fig:erased-ck-machine} describes a modified version of
-the CK machine (Figure~\ref{fig:ck-machine}) which evaluates type-erased Plutus
-Core programs.
+\label{sec:untyped-ck-machine}
+Figure~\ref{fig:untyped-ck-machine} describes a modified version of
+the CK machine (Figure~\ref{fig:typed-ck-machine}) which evaluates
+type-erased Plutus Core programs, implementing the semantics of
+Figure~\ref{fig:untyped-term-reduction}. As in the typed case, the CK
+machine is not very efficient; a more efficient CEK machine is
+described in Appendix~\ref{appendix:untyped-cek-machine}.
+
 \subfile{figures/UntypedCkMachine}
 
+
+%% ------------------------------- Appendices --------------------------------- %%
+
 \begin{appendices}
-\section{Algorithmic Type System}
+\section{Algorithmic type system}
 
 For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
 each rule that is different, where possible
-(Figures~\ref{fig:contexts_algorithmic_unrestricted}
-and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
+(Figures~\ref{fig:contexts-algorithmic-unrestricted}
+and~\ref{fig:type-synthesis-algorithmic-unrestricted}) .
 
 \subfile{figures/TypeSynthesis-Algorithmic.tex}
+
+
+\section{A CEK machine for typed Plutus Core}
+\label{appendix:typed-cek-machine}
+In Section~\ref{sec:typed-ck-machine} we described the CK machine, an
+abstract machine for executing Plutus Core programs.  As we pointed
+out, the CK machine is inefficient because it performs application by
+substitution: if one is evaluating $(\lambda x:t.e)e^{\prime}$ then
+the whole of $e^{\prime}$ has to be subsitituted for every occurrence
+of $x$ in $e$, which can be expensive in terms of both time and space.
+This section presents a version of the \textit{CEK machine} of
+~\citep{Felleisen-CK-CEK}: this uses environments to store bindings of
+values to variables, where they can be looked up when required. This
+makes evaluation considerably more efficient, to the extent that the
+CEK machine can be used in practical situations.
+
+\subsection{Structure of the CEK machine}
+The CEK machine avoids the inefficiency of repeated subsitution by
+extending the state of the machine with
+\textit{environments} mapping variable names to \textit{closures} consisting of
+pairs $(V,\rho)$ where $V$ is a value and $\rho$ is another
+environment containing bindings for free variables occurring in $V$.
+The result of looking up a variable $x$ in an environment $\rho$ is
+denoted by $\rho[x]$: if $x$ is has multiple bindings in $\rho$ then
+the most recent one is returned.\footnote{In the implementation, names
+are supplied with unique integer IDs which make them unambiguous; the
+environments in fact map these IDs to closures.} If $x$ does not occur
+in $\rho$ then an \texttt{error} is returned; however, it can be shown
+that if the machine is started with a closed term $M$ as input then
+variable lookups will never fail.  When the machine is evaluating
+$[(\lambda x.M)\, N]$ in an environment $\rho$ it first evaluates $N$
+in $\rho$ to produce a value $V$, then extends $\rho$ with the mapping
+$x \mapsto (V,\rho)$ to obtain a new environment $\rho^{\prime}$, then
+proceeds to evaluate $M$ in the environment $\rho^\prime$: when any
+occurrences of $x$ are encountered, the machine retrieves the value
+$V$ from the environment and proceeds with evaluation as normal.  It
+is necessary to use closures because values may now contain variable
+names, and we have to know what the variables were bound to at the
+time when the value was created.
+
+\subsubsection{Discharging closures}
+Given a closure $(V,\rho)$ we denote by $\discharge{(V,\rho)}$ the
+result of \textit{discharging} the closure, ie, recursively replacing
+all of the variables occurring in $V$ by their bindings in
+$\rho$. Note that variables are bound to closures which may themselves
+need to be discharged: hence the use of the word ``recursively''. It
+can be shown that when any closure produced by the CEK machine is
+discharged it yields a value.
+
+\subsection{Definition of the CEK machine}
+The CEK machine is described in Figure~\ref{fig:cek-machine}.  It is
+  is very similar to the CK machine of Figure~\ref{fig:typed-ck-machine},
+  except that
+\begin{itemize}
+\item Every rule now involves environments
+\item A new rule has been added to deal with the evaluation of variables
+\item The rule involving lambda application has changed to replace substitution with
+the use of an extended environment
+\item When the machine terminates without error it now
+returns a closure $(V,\rho)$ rather than a value.  The invoker
+of the machine may wish to discharge this closure to obtain a value.
+\end{itemize}
+\noindent The major changes are highlighted in \blue{blue}. To evaluate a program
+\texttt{(program $v$ $M$)} we check the version number $v$ and then evaluate the body $M$
+with an empty stack and environment: $\cdot;[] \compute M$.
+
+\subfile{figures/TypedCekMachine.tex}
+
+\subsubsection{Note. Built-in functions in the CEK machine}
+\label{sec:typed-cek-builtins}
+In the CK machine the arguments of built-in functions are always
+closed values, but in the CEK machine arguments are closures.  We
+assume that the mechanism for evaluating built-in functions in the CEK
+machine can accept closures as arguments, and that
+\begin{itemize}
+\item Evaluation of builtin functions always terminates (returning a full term, not
+a closure).
+
+\item For closures $C_1, \ldots, C_n$, evaluation of
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
+fails in the CEK machine (returning \texttt{(error $A$)} for some type $A$) if and only if evaluation of
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\ \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
+fails according to Figure~\ref{fig:builtins}.
+
+\item For closures $C_1, \ldots, C_n$,
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  C_1 \ldots C_n$ \texttt{)}
+evaluates to a term $M$ in the CEK machine if and only if 
+  \texttt{(builtin}\ \textit{bn} $A_1 \ldots A_k\  \discharge{C_1} \ldots \discharge{C_n}$ \texttt{)}
+evaluates to the same term $M$ according to Figure~\ref{fig:builtins}.% <- No space before footnot marker.
+\footnote{One way to ensure that these conditions hold would be to discharge all of the
+closures and then use the same mechanism as in the CK machine, but this would
+reintroduce the very inefficiencies which the CEK machine is designed to avoid.}
+
+\end{itemize}
+A future version of this document will contain a
+specification of built-in function evaluation which will cover this
+issue in detail.
+
+\subsubsection{Comparison of the CK and CEK machines}
+If the CK and CEK machines are run with the same program as input then
+we can prove the following facts (assuming that the condition in
+Section~\ref{sec:typed-cek-builtins} holds):
+\begin{itemize}
+\item The CEK machine terminates if and only if the CK machine terminates.
+\item The CEK machine terminates in the error state $\blacklozenge$ if
+and only if the CK machine terminates in the state $\blacklozenge$.
+\item The CEK machine returns a closure $C$ if and only if the CK machine returns a
+value $V$ with $\discharge{C} = V$.
+\end{itemize}
+
+\section{A CEK machine for type-erased Plutus Core}
+\label{appendix:untyped-cek-machine}
+As in the typed situation, the CK machine for type-erased Plutus Core
+(Figure~\ref{fig:untyped-ck-machine}) can be replaced with a more
+efficient CEK machine.  This is obtained by applying modifications
+similar to those which we used to obtain the CEK machine for typed
+Plutus Core from the CK machine for typed Plutus Core.  We will refer
+to this machine as the \textit{untyped CEK machine}, but we emphasise
+that the version presented here is only to be used to evaluate terms
+which are obtained by erasing types from well-typed Plutus Core terms.
+A later version of this document will contain a specification for
+evaluation of built-in functions which will allow us to evaluate
+arbitrary untyped Plutus Core terms.
+
+\subsection{Structure of the untyped CEK machine}
+The untyped CEK machine uses closures and environments similar to
+those used in the typed CEK machine
+(Appendix~\ref{appendix:typed-cek-machine}), except that environments now
+bind variables to terms in untyped Plutus Core.  Again,
+$\discharge{(V,\rho)}$ denotes the value obtained by discharging a
+closure $(V,\rho)$.
+
+\subfile{figures/UntypedCekMachine.tex}
+
+\subsubsection{Note. Built-in functions in the untyped CEK machine}
+\label{sec:untyped-cek-builtins}
+As in Sections~\ref{sec:untyped-ck-builtins}
+and~\ref{sec:typed-cek-builtins} we have to say something about how
+evaluation of built-in functions is performed in the untyped CEK
+machine. We assume that the mechanism for evaluating built-in
+functions in the untyped CEK machine can accept closures as arguments,
+and that built-in evaluation commutes with type erasure and discharge
+of environments in an appropriate sense; more precisely, we require
+that the following conditions hold.
+
+\medskip
+\noindent Suppose that
+\begin{itemize}
+\item $A_1, \ldots, A_k$ are Plutus Core types.
+\item $V_1, \ldots, V_n$ are well-typed typed Plutus Core values.
+\item $C_1, \ldots, C_n$ are closures in the untyped
+CEK machine such that $\discharge{C_i} = \erase{V_i} $ for
+$1 \le i \le n$.
+\end{itemize}
+
+\noindent Then we require that
+\begin{itemize}
+\item Evaluation of builtin functions always terminates (returning a full term, not a closure).
+\item In the untyped CEK machine, evaluation of 
+  $\texttt{(builtin}\ \textit{bn}\ C_1 \ldots C_n \texttt{)}$
+fails (returning \texttt{(error)}) if and only if evaluation of 
+  $\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n \texttt{)}$
+fails according to Figure~\ref{fig:builtins}.
+
+\item In the untyped CEK machine,
+  $\texttt{(builtin}\ \textit{bn}\ C_1 \ldots C_n \texttt{)}$
+evaluates to the untyped term $N$ if and only if
+  $\texttt{(builtin}\ \textit{bn}\ A_1 \ldots A_k\ V_1 \ldots V_n \texttt{)}$
+evaluates to a typed term $M$ (according to Figure~\ref{fig:builtins}) with $\erase{M} = N$.
+\end{itemize}
+
+\subsubsection{Comparison of the typed CK machine and the untyped CEK machine}
+Suppose that the conditions of Section~\ref{sec:untyped-cek-builtins}
+hold, and that $P$ is a typed Plutus Core program.  Then if $P$ is
+evaluated using the typed CK machine and $\erase{P}$ is evaluated
+using the untyped CEK machine we can prove the following:
+\begin{itemize}
+\item The typed CK machine terminates if and only if the untyped CEK machine terminates.
+\item The typed CK machine halts in the error state $\blacklozenge$ if and only if
+the untyped CEK machine halts in the $\blacklozenge$ state.
+\item The typed CK machine returns a value $V$ if and only if the untyped CEK machine returns a
+closure $C$ with $\discharge{C} = \erase{V}$.
+\end{itemize}
 
 \end{appendices}
 

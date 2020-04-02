@@ -42,5 +42,5 @@ clean2: clean
 	rm -f ${DOC}.pdf
 
 v: ${PDF}
-	acroread ${PDF} 2>/dev/null
+	acroread ${PDF} 2>/dev/null &
 
