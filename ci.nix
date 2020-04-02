@@ -1,9 +1,20 @@
+# 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when you're evaluting
+# on a machine with e.g. no way to build the Darwin IFDs you need!
+{ supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
+}:
 let
   inherit (import ./nix/dimension.nix) dimension;
-  systems = {"x86_64-linux" = {}; "x86_64-darwin" = {};};
-in dimension "System" systems (system: _:
+  systems = nixpkgs: nixpkgs.lib.filterAttrs (_: v: builtins.elem v supportedSystems) {
+    # I wanted to take these from 'lib.systems.examples', but apparently there isn't one for linux!
+    linux = "x86_64-linux";
+    darwin = "x86_64-darwin";
+  };
+  sources = import ./nix/sources.nix;
+  # Useful for generic library functions: do not use for anything platform dependent
+  genericPkgs = import sources.nixpkgs {};
+in dimension "System" (systems genericPkgs) (systemName: system:
   let
-    packageSet = import ./default.nix { inherit system; checkMaterialization = false; };
+    packageSet = import ./default.nix { inherit system; checkMaterialization = true; };
     pkgs = packageSet.pkgs;
     lib = pkgs.lib;
     collectChecks = _: ps: pkgs.recurseIntoAttrs (builtins.mapAttrs (_: p: p.checks) ps);

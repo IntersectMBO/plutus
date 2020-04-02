@@ -31,8 +31,8 @@ let
 
   iohkNix = import sources.iohk-nix {
     inherit system config;
-    # FIXME: should be 'nixpkgsOverride = sources.nixpkgs', but see https://github.com/input-output-hk/iohk-nix/pull/215
-    nixpkgsJsonOverride = ./nixpkgs.json;
+    # Make iohk-nix use our nixpkgs
+    sourcesOverride = { inherit (sources) nixpkgs; };
   };
 
   pkgsMusl = import ./nix/default.nix {
