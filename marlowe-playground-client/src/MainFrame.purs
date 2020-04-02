@@ -12,7 +12,8 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
-import Data.Array (catMaybes, delete, intercalate, snoc)
+import Data.Array (catMaybes, delete, filter, intercalate, snoc)
+import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Function (flip)
@@ -26,7 +27,7 @@ import Data.Newtype (unwrap)
 import Data.Num (negate)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
+import Data.Tuple (Tuple(Tuple), fst, snd)
 import Editor (Action(..), Preferences, loadPreferences) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -310,7 +311,10 @@ handleAction (LoadHaskellScript key) = do
       haskellEditorSetValue contents (Just 1)
 
 handleAction (LoadMarloweScript key) = do
-  case Map.lookup key StaticData.marloweContracts of
+  case Array.head
+      $ map snd
+      $ filter (((==) key) <<< fst)
+          StaticData.marloweContracts of
     Nothing -> pure unit
     Just contents -> do
       let

@@ -48,7 +48,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
 import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, Message(..), WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.DOM.Document as D
-import Web.DOM.Element (scrollHeight, setScrollTop)
+import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
 import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web

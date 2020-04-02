@@ -12,7 +12,7 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple(..), snd)
+import Data.Tuple (Tuple(..), fst, snd)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Gist (Gist)
@@ -60,7 +60,7 @@ render state =
                   ]
               ]
           , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.marloweContracts))
+              (demoScriptLink <$> Array.fromFoldable (map fst StaticData.marloweContracts))
           , div [ class_ (ClassName "code-to-blockly-wrap") ]
               [ button
                   [ class_ smallBtn
@@ -97,7 +97,7 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Marl
 
   component = monacoComponent $ MM.settings setup
 
-  initialContents = fromMaybe "" $ Map.lookup "Deposit Incentive" StaticData.marloweContracts
+  initialContents = fromMaybe "" $ Array.head $ map fst StaticData.marloweContracts
 
   editorPreferences = view _editorPreferences state
 
@@ -183,34 +183,36 @@ inputItem ::
   ActionInput ->
   HTML p HAction
 inputItem isEnabled person (DepositInput accountId party token value) =
-  div [ classes [ ClassName "deposit-a", aHorizontal ] ]
-    [ button
+  div [ classes [ aHorizontal ] ]
+    [ p_ (renderDeposit accountId party token value)
+    , button
         [ classes [ plusBtn, smallBtn ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) (IDeposit accountId party token value) []
         ]
         [ text "+" ]
-    , p_ (renderDeposit accountId party token value)
     ]
 
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
-    [ button
+    [ div []
+        [ p [ class_ (ClassName "choice-input") ]
+            [ spanText "Choice "
+            , b_ [ spanText (show choiceName) ]
+            , spanText ": Choose value "
+            , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+            ]
+        , p [ class_ (ClassName "choice-error") ] error
+        ]
+    , button
         [ classes [ plusBtn, smallBtn ]
         , enabled (isEnabled && inBounds chosenNum bounds)
         , onClick $ const $ Just
             $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
         ]
         [ text "+" ]
-    , p [ class_ (ClassName "choice-input") ]
-        [ spanText "Choice "
-        , b_ [ spanText (show choiceName) ]
-        , spanText ": Choose value "
-        , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
-        ]
-    , p [ class_ (ClassName "choice-error") ] error
     ]
   where
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
@@ -222,14 +224,14 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 inputItem isEnabled person NotifyInput =
   li
     [ classes [ ClassName "choice-a", aHorizontal ] ]
-    [ button
+    [ p_ [ text "Notify Contract" ]
+    , button
         [ classes [ plusBtn, smallBtn ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) INotify []
         ]
         [ text "+" ]
-    , p_ [ text "Notify Contract" ]
     ]
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> HAction) -> a -> HTML p HAction
@@ -337,13 +339,7 @@ transactionRow ::
   HTML p HAction
 transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber accountOwner) party token money) person) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
-    [ button
-        [ classes [ minusBtn, smallBtn, bold ]
-        , enabled isEnabled
-        , onClick $ const $ Just $ RemoveInput person input
-        ]
-        [ text "-" ]
-    , p_
+    [ p_
         [ text "Deposit "
         , strong_ [ text (show money) ]
         , text " units of "
@@ -353,17 +349,17 @@ transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber a
         , text " as "
         , strong_ [ text (show party) ]
         ]
-    ]
-
-transactionRow state isEnabled (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
-  li [ classes [ ClassName "choice-a", aHorizontal ] ]
-    [ button
+    , button
         [ classes [ minusBtn, smallBtn, bold ]
         , enabled isEnabled
         , onClick $ const $ Just $ RemoveInput person input
         ]
         [ text "-" ]
-    , p_
+    ]
+
+transactionRow state isEnabled (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
+  li [ classes [ ClassName "choice-a", aHorizontal ] ]
+    [ p_
         [ text "Participant "
         , strong_ [ text (show choiceOwner) ]
         , text " chooses the value "
@@ -371,19 +367,25 @@ transactionRow state isEnabled (Tuple input@(IChoice (ChoiceId choiceName choice
         , text " for choice with id "
         , strong_ [ text (show choiceName) ]
         ]
+    , button
+        [ classes [ minusBtn, smallBtn, bold ]
+        , enabled isEnabled
+        , onClick $ const $ Just $ RemoveInput person input
+        ]
+        [ text "-" ]
     ]
 
 transactionRow state isEnabled (Tuple INotify person) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
-    [ button
+    [ p_
+        [ text "Notification"
+        ]
+    , button
         [ classes [ minusBtn, smallBtn, bold ]
         , enabled isEnabled
         , onClick $ const $ Just $ RemoveInput person INotify
         ]
         [ text "-" ]
-    , p_
-        [ text "Notification"
-        ]
     ]
 
 hasHistory :: FrontendState -> Boolean
