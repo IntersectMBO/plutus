@@ -178,23 +178,23 @@ toEvent (HaskellEditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "
 
 toEvent (HaskellEditorAction _) = Just $ (defaultEvent "ConfigureEditor")
 
-toEvent (MarloweHandleEditorMessage _) = Nothing
+toEvent (MarloweHandleEditorMessage _) = Just $ defaultEvent "MarloweHandleEditorMessage"
 
-toEvent (MarloweHandleDragEvent _) = Nothing
+toEvent (MarloweHandleDragEvent _) = Just $ defaultEvent "MarloweHandleDragEvent"
 
-toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweDropScript"
+toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweHandleDropEvent"
 
-toEvent (MarloweMoveToPosition _ _) = Nothing
+toEvent (MarloweMoveToPosition _ _) = Just $ defaultEvent "MarloweMoveToPosition"
 
-toEvent CheckAuthStatus = Nothing
+toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
 
-toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { label = Just "Gist" }
+toEvent (GistAction PublishGist) = Just $ (defaultEvent "PublishGist") { label = Just "Gist" }
 
-toEvent (GistAction (SetGistUrl _)) = Nothing
+toEvent (GistAction (SetGistUrl _)) = Just $ defaultEvent "SetGistUrl"
 
 toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent CompileHaskellProgram = Just $ defaultEvent "CompileProgram"
+toEvent CompileHaskellProgram = Just $ defaultEvent "CompileHaskellProgram"
 
 toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
 
@@ -202,25 +202,25 @@ toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label 
 
 toEvent (LoadMarloweScript script) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
-toEvent SendResult = Nothing
+toEvent SendResult = Just $ defaultEvent "SendResult"
 
 toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
 
 toEvent NextSlot = Just $ defaultEvent "NextBlock"
 
-toEvent (AddInput _ _ _) = Nothing
+toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
 
-toEvent (RemoveInput _ _) = Nothing
+toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
 
-toEvent (SetChoice _ _) = Nothing
+toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
 
-toEvent ResetSimulator = Nothing
+toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
 
 toEvent Undo = Just $ defaultEvent "Undo"
 
-toEvent (SelectHole _) = Nothing
+toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
 
-toEvent (InsertHole _ _ _) = Nothing
+toEvent (InsertHole _ _ _) = Just $ defaultEvent "InsertHole"
 
 toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
 
@@ -230,11 +230,13 @@ toEvent (ShowRightPanel val) = Just $ (defaultEvent "ShowRightPanel") { label = 
 
 toEvent (ShowBottomPanel val) = Just $ (defaultEvent "ShowBottomPanel") { label = Just $ show val }
 
-toEvent (HandleBlocklyMessage _) = Nothing
+toEvent (HandleBlocklyMessage Initialized) = Nothing
 
-toEvent SetBlocklyCode = Nothing
+toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
 
-toEvent AnalyseContract = Nothing
+toEvent SetBlocklyCode = Just $ (defaultEvent "SetBlocklyCode") { category = Just "Blockly" }
+
+toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
 
 handleQuery :: forall m a. MonadState FrontendState m => HQuery a -> m (Maybe a)
 handleQuery (ReceiveWebsocketMessage msg next) = do
