@@ -5,8 +5,8 @@
 | BApply causes ({ cpu: 18
 | mem: 18
 })
-| BVar causes ({ cpu: 12
-| mem: 12
+| BVar causes ({ cpu: 14
+| mem: 14
 })
 | BIWrap causes ({ cpu: 1
 | mem: 1
@@ -23,7 +23,7 @@
 | BAST causes ({ cpu: 0
 | mem: 549
 })})
-| budget: ({ cpu: 41
-| mem: 590
+| budget: ({ cpu: 43
+| mem: 592
 })
 }))
