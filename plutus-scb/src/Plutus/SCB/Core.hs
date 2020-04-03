@@ -199,7 +199,6 @@ updateContract uuid endpointName endpointPayload = do
         $ execState @T  (oldContractState, [])
         $ invokeContractUpdate fID (EventPayload endpointName endpointPayload)
     logInfo "Handling Resulting Blockchain Events"
-    -- handleBlockchainEvents response
     logInfo "Done"
 
 parseSingleHook ::
@@ -307,7 +306,6 @@ hookParser =
         pure $ txHooks <> utxoAtHooks <> [ownPubKeyHook]
 
 reportContractStatus ::
-    --    (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
     ( Member Log effs
     , Member (EventLogEffect ChainEvent) effs
     )
@@ -319,7 +317,6 @@ reportContractStatus uuid = do
     logInfo $ render $ pretty $ Map.lookup uuid statuses
 
 lookupActiveContractState ::
-    --    MonadEventStore ChainEvent m
     ( Member (Error SCBError) effs
     , Member (EventLogEffect ChainEvent) effs
     )
@@ -331,7 +328,7 @@ lookupActiveContractState uuid = do
         Nothing -> throwError (ActiveContractStateNotFound uuid)
         Just s  -> return s
 
-type T = (ActiveContractState, [ContractHook]) -- FIXME
+type T = (ActiveContractState, [ContractHook])
 
 invokeContractUpdate ::
        ( Member Log effs
@@ -360,8 +357,6 @@ invokeContractUpdate i payload = do
     assign @T _1 newContractState
     pushHooks newHooks
     processAllHooks i
-
--- , MonadState (ActiveContractState, [ContractHook]) m
 
 processAllHooks ::
        ( Members EmulatedWalletEffects effs

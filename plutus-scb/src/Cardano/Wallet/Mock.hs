@@ -51,7 +51,9 @@ data MockWalletState =
 
 makeLenses 'MockWalletState
 
-handleWallet :: -- FIXME: Move to Wallet.Emulator.Wallet
+handleWallet :: -- TODO: Merge with 'Wallet.Emulator.handleWallet'
+                --       (the 'MockWalletState' and 'WalletState' types are 
+                --        different)
     ( Member (State MockWalletState) effs
     , Member NodeClientEffect effs
     , Member (Error WalletAPIError) effs
