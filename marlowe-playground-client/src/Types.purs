@@ -77,6 +77,7 @@ data HAction
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
+  | ShowErrorDetail Boolean
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   | SetBlocklyCode
@@ -147,6 +148,7 @@ newtype FrontendState
   , helpContext :: HelpContext
   , showRightPanel :: Boolean
   , showBottomPanel :: Boolean
+  , showErrorDetail :: Boolean
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -204,6 +206,9 @@ _showRightPanel = _Newtype <<< prop (SProxy :: SProxy "showRightPanel")
 
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+
+_showErrorDetail :: Lens' FrontendState Boolean
+_showErrorDetail = _Newtype <<< prop (SProxy :: SProxy "showErrorDetail")
 
 -- editable
 _timestamp ::

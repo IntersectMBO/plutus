@@ -93,6 +93,7 @@ initialState =
     , helpContext: MarloweHelp
     , showRightPanel: true
     , showBottomPanel: true
+    , showErrorDetail: false
     }
 
 runTests :: forall a. MockApp a -> Tuple a FrontendState

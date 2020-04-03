@@ -67,7 +67,7 @@ import Simulation.BottomPanel (bottomPanel) as Simulation
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 mkInitialState :: Editor.Preferences -> FrontendState
@@ -90,6 +90,7 @@ mkInitialState editorPreferences =
     , helpContext: MarloweHelp
     , showRightPanel: false
     , showBottomPanel: true
+    , showErrorDetail: false
     }
 
 ------------------------------------------------------------
@@ -230,6 +231,8 @@ toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { l
 toEvent (ShowRightPanel val) = Just $ (defaultEvent "ShowRightPanel") { label = Just $ show val }
 
 toEvent (ShowBottomPanel val) = Just $ (defaultEvent "ShowBottomPanel") { label = Just $ show val }
+
+toEvent (ShowErrorDetail val) = Just $ (defaultEvent "ShowErrorDetail") { label = Just $ show val }
 
 toEvent (HandleBlocklyMessage Initialized) = Nothing
 
@@ -445,6 +448,8 @@ handleAction (ShowBottomPanel val) = do
   assign _showBottomPanel val
   haskellEditorResize
   marloweEditorResize
+
+handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction (HandleBlocklyMessage Initialized) = pure unit
 

@@ -166,6 +166,11 @@ expanded true = ClassName "expanded"
 
 expanded false = ClassName ""
 
+disabled :: Boolean -> ClassName
+disabled true = ClassName "disabled"
+
+disabled false = ClassName ""
+
 footerPanelBg :: FrontendState -> View -> Array ClassName
 footerPanelBg state HaskellEditor =
   if state ^. _showBottomPanel then
