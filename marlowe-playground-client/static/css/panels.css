@@ -162,13 +162,13 @@
 
 button.plus-btn {
   padding: 0.25rem 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 button.minus-btn {
   background: var(--error-color);
   padding: 0.3rem 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 button.minus-btn:before {
@@ -342,4 +342,8 @@ button.minus-btn:hover {
 
 .drawer-icon-click {
   display: none;
+}
+
+.state-label {
+  font-weight: normal;
 }

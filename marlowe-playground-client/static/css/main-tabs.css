@@ -2,13 +2,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 120px;
+  min-width: 110px;
   background: var(--bg-dark);
 }
 
 #panel-nav div.tab-link {
   width: 100%;
-  height: 120px;
+  height: 110px;
   color: var(--secondary-color);
   text-decoration: none;
   cursor: pointer;
@@ -33,7 +33,7 @@
 
 .tab-icon {
   width: 100%;
-  height: 120px;
+  height: 110px;
   text-align: center;
 }
 
@@ -44,36 +44,37 @@
 .tab-icon~div {
   margin-top: -1rem;
   padding-bottom: 1rem;
+  font-weight: bold;
 }
 
 .simulation-tab .tab-icon {
   background: url(../images/simulation-icon-grey.svg) 24px center no-repeat;
-  background-size: 70px 80px;
+  background-size: 50px;
 }
 
 .simulation-tab.active .tab-icon {
   background: url(../images/simulation-icon.svg) center center no-repeat;
-  background-size: 70px 80px;
+  background-size: 50px;
 }
 
 .haskell-tab .tab-icon {
   background: url(../images/haskell-icon-grey.svg) center center no-repeat;
-  background-size: 80px 60px;
+  background-size: 50px;
 }
 
 .haskell-tab.active .tab-icon {
   background: url(../images/haskell-icon.svg) center center no-repeat;
-  background-size: 80px 60px;
+  background-size: 50px;
 }
 
 .blockly-tab .tab-icon {
   background: url(../images/blockly-icon-grey.svg) center center no-repeat;
-  background-size: 60px 70px;
+  background-size: 50px;
 }
 
 .blockly-tab.active .tab-icon {
   background: url(../images/blockly-icon.svg) center center no-repeat;
-  background-size: 60px 70px;
+  background-size: 50px;
 }
 
 .nav-bottom-links {
