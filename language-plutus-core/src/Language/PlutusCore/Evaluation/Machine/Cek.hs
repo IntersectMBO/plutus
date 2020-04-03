@@ -111,9 +111,9 @@ type VarEnv uni = UniqueMap TermUnique (Closure uni)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { _cekEnvMeans      :: DynamicBuiltinNameMeanings uni
-    , _cekEnvVarEnv     :: VarEnv uni
-    , _cekEnvBudgetMode :: ExBudgetMode
+    { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
+    , _cekEnvVarEnv            :: VarEnv uni
+    , _cekEnvBudgetMode        :: ExBudgetMode
     , _cekEnvBuiltinCostParams :: CostingFunParameters
     }
 

@@ -4,16 +4,16 @@ module Main (main) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Ck                  (unsafeEvaluateCk)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
-import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
 import           Crypto
-import qualified Data.ByteString.Lazy                       as BSL
+import qualified Data.ByteString.Lazy                                       as BSL
 
 pubKey, sig, msg :: BSL.ByteString
 sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"

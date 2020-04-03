@@ -1,14 +1,14 @@
 {-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE QuasiQuotes        #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE DataKinds   #-}
 
 {- Note [Budgeting]
 
@@ -103,10 +103,10 @@ import           Data.Hashable
 import           Data.HashMap.Monoidal
 import           Data.List                                               (intersperse)
 import           Data.Text.Prettyprint.Doc
+import           Deriving.Aeson
+import           Language.Haskell.TH.Syntax
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.GenericSemigroup
-import Language.Haskell.TH.Syntax
-import Deriving.Aeson
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)

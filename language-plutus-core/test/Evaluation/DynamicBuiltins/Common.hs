@@ -13,9 +13,9 @@ import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 
 import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 import           Control.Monad.Except
 

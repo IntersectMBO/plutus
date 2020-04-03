@@ -1,31 +1,31 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MagicHash           #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Main (main) where
 
+import           GHC.Integer
+import           GHC.Integer.Logarithms
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
-import Language.PlutusCore.FsTree
-import Language.PlutusCore.MkPlc
-import GHC.Integer.Logarithms
-import GHC.Integer
+import           Language.PlutusCore.MkPlc
 
+import           Control.Lens
 import           Criterion.Main
-import qualified Criterion.Types as C
-import Control.Lens
+import qualified Criterion.Types                                            as C
 
 runTermBench :: String -> Plain Term DefaultUni -> Benchmark
 runTermBench name term = env
-    (do 
+    (do
         (result, budget) <-
           pure $ runCekCounting mempty defaultCostingFunParameters term
         -- print result

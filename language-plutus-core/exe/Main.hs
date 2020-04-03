@@ -3,29 +3,29 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main (main) where
 
-import qualified Language.PlutusCore                        as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
-import qualified Language.PlutusCore.Generators             as PLC
-import qualified Language.PlutusCore.Generators.Interesting as PLC
+import qualified Language.PlutusCore                                        as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
+import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
-import qualified Language.PlutusCore.Generators.Test        as PLC
-import qualified Language.PlutusCore.Pretty                 as PLC
-import qualified Language.PlutusCore.StdLib.Data.Bool       as PLC
-import qualified Language.PlutusCore.StdLib.Data.ChurchNat  as PLC
-import qualified Language.PlutusCore.StdLib.Data.Integer    as PLC
-import qualified Language.PlutusCore.StdLib.Data.Unit       as PLC
+import qualified Language.PlutusCore.Generators                             as PLC
+import qualified Language.PlutusCore.Generators.Interesting                 as PLC
+import qualified Language.PlutusCore.Generators.Test                        as PLC
+import qualified Language.PlutusCore.Pretty                                 as PLC
+import qualified Language.PlutusCore.StdLib.Data.Bool                       as PLC
+import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as PLC
+import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
+import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
-import           Control.Exception                          (toException)
+import           Control.Exception                                          (toException)
 import           Control.Monad
-import           Control.Monad.Trans.Except                 (runExceptT)
-import           Data.Bifunctor                             (first, second)
-import           Data.Foldable                              (traverse_)
+import           Control.Monad.Trans.Except                                 (runExceptT)
+import           Data.Bifunctor                                             (first, second)
+import           Data.Foldable                                              (traverse_)
 
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
-import           Data.Text.Encoding                         (encodeUtf8)
-import qualified Data.Text.IO                               as T
+import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.Text                                                  as T
+import           Data.Text.Encoding                                         (encodeUtf8)
+import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
 
 import           System.Exit

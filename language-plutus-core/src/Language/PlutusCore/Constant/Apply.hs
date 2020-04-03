@@ -1,9 +1,9 @@
 -- | Computing constant application.
 
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -91,27 +91,13 @@ applyTypeSchemed name = go where
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown $ void arg
-            let ex = memoryUsageOfTerm arg
+            let budget = exF $ termAnn arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    let
-                        budget :: ExBudget
-                        budget = exF ex
                     spendBudget (BBuiltin name) arg budget
                     go schB (f x) budget args'
-                _ -> go schB (f x) (exF ex) args'
-    memoryUsageOfTerm :: WithMemory Term uni -> ExMemory -- TODO recursion-schemes should make this easier?
-    memoryUsageOfTerm (Var mem _) = mem
-    memoryUsageOfTerm (TyAbs mem _ _ _) = mem
-    memoryUsageOfTerm (LamAbs mem _ _ __ ) = mem
-    memoryUsageOfTerm (Apply mem _ _) = mem
-    memoryUsageOfTerm (Constant mem _) = mem
-    memoryUsageOfTerm (Builtin mem _) = mem
-    memoryUsageOfTerm (TyInst mem _ _) = mem
-    memoryUsageOfTerm (Unwrap mem _) = mem
-    memoryUsageOfTerm (IWrap mem _ _ _) = mem
-    memoryUsageOfTerm (Error mem _) = mem
+                _ -> go schB (f x) budget args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.

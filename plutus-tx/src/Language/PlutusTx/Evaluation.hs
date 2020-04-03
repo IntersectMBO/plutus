@@ -24,8 +24,8 @@ import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.Cek      hiding (evaluateCek, unsafeEvaluateCek)
-import qualified Language.PlutusCore.Evaluation.Machine.Cek      as PLC (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek                 hiding (evaluateCek, unsafeEvaluateCek)
+import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC (evaluateCek, unsafeEvaluateCek)
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
