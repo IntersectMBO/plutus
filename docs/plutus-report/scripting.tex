@@ -1,0 +1,141 @@
+\documentclass[plutus.tex]{subfiles}
+\begin{document}
+\section{Scripting: Plutus Core}
+\label{sec:plutus-core}
+
+\todompj{This section needs more justification.}
+
+Our scripting language for the \gls{plutus-platform} is \gls{plutus-core} (strictly, type-erased \gls{plutus-core}, see \cref{sec:erasure}).
+A formal specification for \gls{plutus-core} is available in \textcite{plutus-core-spec}.
+
+We give a high-level overview of the language here, further details can be found in the above reference.
+
+\subsection{Requirements}
+\begin{requirement}[Design conservatism]
+\label{req:script-lang-conservatism}
+Designing a new programming language is hard.
+It is very easy to make choices that come back to haunt you.
+
+Moreover, whatever language we choose for our scripting language will be very hard to change, since it will be involved in transaction validation, and we want to be able to validate old transactions.
+So we can release new versions, but we must support old versions forever.
+
+This combination means that it is hard to get programming languages right, and it is hard for us to iterate on our scripting language.
+This suggests a case for \emph{conservatism}: pick things that are tried and tested, and don't try to innovate too much.
+
+Conservatism also makes requirements such as \cref{req:script-lang-formalization} easier to satisfy, as we can build on existing work.
+\end{requirement}
+
+\begin{requirement}[Minimalism]
+\label{req:script-lang-minimalism}
+The smaller our language, the less there is to go wrong, and the less there is to reason about.
+
+Minimalism makes requirements such as \cref{req:script-lang-formalization} easier to satisfy, since there is less to formalize.
+
+However, this is a tradeoff, as a simpler target language often means more complexity in the compilers that target that language.
+But it is much easier for us to change the compilers than it is to change the scripting language, so this is worth it.
+\end{requirement}
+
+\begin{requirement}[Safety]
+\label{req:source-lang-reasoning}
+Once submitted as part of a blockchain transaction, scripts are immutable.
+One must have absolute certainty as to what the code will do, otherwise there is risk that the value involved will be lost or stolen.
+\end{requirement}
+
+\begin{requirement}[Formalization]
+\label{req:script-lang-formalization}
+One part of reasoning about what our programming language does is to \emph{formalize} its semantics, so we can be sure that
+\begin{inparaenum}
+  \item it has a sensible semantics, and
+  \item the implementation agrees with that semantics
+\end{inparaenum}.
+\end{requirement}
+
+\begin{requirement}[Size]
+\label{req:script-lang-size}
+The representation of the scripting language on the chain must not be too large, since
+\begin{inparaenum}
+\item users will pay for the size of transactions, and
+\item transaction size has a major effect on the throughput of the system.
+\end{inparaenum}
+\end{requirement}
+
+\begin{requirement}[Multiple source languages]
+\label{req:source-lang-multiple}
+It would be nice if multiple source languages could be compiled to our scripting language.
+This would potentially encourage usage by developers who are more comfortable with one or the other of the source languages.
+
+However, this is somewhat speculative and actually implementing other source languages would be a lot of work.
+But if we can cheaply make this easier then that is good.
+\end{requirement}
+
+\subsection{Designing Plutus Core}
+
+How do we design our scripting language?
+\Cref{req:script-lang-conservatism,req:script-lang-minimalism} suggest adhering to existing languages as much as possible, and picking a small, well-studied language.
+We also want to use a statically-typed functional programming language, since we intend to use functional programming languages (starting with Haskell) as our source languages.
+
+This suggests using some variant of the lambda calculus.
+We decided to start with \emph{\gls{system-f}}, also known as the polymorphic lambda calculus \autocite{Girard-thesis}.
+Haskell's internal language, GHC Core \parencite{jones1998transformation}, is also based on \gls{system-f} (no coincidence), but we make a couple of different decisions:
+\begin{enumerate}
+  \item We do not have primitive datatypes and case expressions, rather we base our language on \emph{\gls{system-fomf}}, which extends \gls{system-f} with recursive types and higher-kinded types.
+  \item Our language is strict, rather than lazy, by default.
+  \item We do not support most of the extensions that Haskell has pioneered, such as coercions.
+\end{enumerate}
+
+As a result, the formal specification of our language can be described in one line: it is exactly \gls{system-fomf} with appropriate primitive types and operations.
+
+\todompj{Discuss builtins}
+
+\subsection{Recursive types}
+
+The one-line description above turns out not to be as unambiguous as one might hope. We have
+to choose between equirecursive types and isorecursive types \autocite[chapter 21]{pierce2002types}.
+
+There is a tradeoff here between simplicity of writing code in the language, and simplicity of the language's metatheory.
+Since \gls{plutus-core} is a compilation target rather than a source language, we opted to go for isorecursive types, which have the simpler metatheory.
+The complexity is handled by the \gls{plutus-ir} compiler.
+
+This choice is discussed more in \textcite{plutus-core-spec, peytonjones2019unraveling}.
+
+\subsection{Datatypes}
+If we do not have primitive datatypes, how \emph{do} we deal with datatypes?
+The answer is that it is up to the compiler to encode them --- another example of the tradeoff discussed in \cref{req:script-lang-minimalism}.
+
+In our case \gls{plutus-ir} does have datatypes, so this is handled by the \gls{plutus-ir} compiler. See \cref{sec:plutus-ir} for more details.
+
+\subsection{Recursive values}
+
+While \gls{plutus-core} has support for recursive types, it does not have any (direct) support for recursive \emph{values}.
+It turns out that recursive types are sufficient to implement the usual array of fixpoint combinators, and so encode recursive values \autocite{harper2012practical}.
+Again, this encoding is handled by the \gls{plutus-ir} compiler, see \cref{sec:plutus-ir}.
+
+Doing this in full generality turns out to be surprisingly tricky, see \textcite{peytonjones2019unraveling}.
+
+\subsection{Erasure}
+\label{sec:erasure}
+
+Originally we planned to use typed \gls{plutus-core} as the actual scripting language.
+However, we discovered that the explicit types made up a large proportion of the overall size of the code ($\approx 80\%$).
+Given that we care about size (\cref{req:script-lang-size}), this was too compelling an improvement to pass by.
+
+Hence we decided to instead use \emph{type-erased} \gls{plutus-core} as our scripting language instead, with typed \gls{plutus-core} as a (useful) intermediary language.
+
+We were initially concerned that if we did not typecheck the application of the \gls{validator} to its arguments (which we cannot do if we've erased the types of the \gls{validator}!), then that might allow a malicious attacker to pass a script ill-typed arguments, potentially causing unexpected behaviour.
+However, given the current design where all the arguments to the \gls{validator} are of type \gls{data}, and are constructed by the validating node (which is a trusted party), it is no longer possible for the arguments to be ill-typed.
+
+Erased \gls{plutus-core} is much closer to the untyped lambda calculus, and as such is also an easier compilation target (e.g. for a dependently-typed language, or a non-statically-typed language), hence this also helps with \cref{req:source-lang-multiple}.
+
+\subsection{Formalization}
+
+As discussed in \cref{req:script-lang-formalization}, we would like to formalize \gls{plutus-core}.
+We have done so in Agda: the resulting formalization is partially published in \textcite{chapman2019system}, and the living version is available in \textcite{plutus-repo}.
+
+Our formalization includes the type system and semantics, proofs of progress and preservation, and an evaluator which provably implements the semantics.
+This evaluator can be extracted to a Haskell executable, which we use to cross-test against the Haskell interpreter.
+
+\subsection{Costing}
+
+\todompj{Write this.}
+
+\end{document}

@@ -102,6 +102,7 @@ in rec {
     multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
     extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
     lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine { inherit latex; };
+    plutus-report = pkgs.callPackage ./docs/plutus-report/default.nix { inherit latex; };
 
     combined-haddock = let
       haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
