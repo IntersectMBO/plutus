@@ -93,19 +93,19 @@ freshUnique = liftQuote $ do
     pure nextU
 
 -- | Get a fresh 'Name', given the annotation and the 'Text.Text' name.
-freshName :: Monad m => ann -> Text.Text -> QuoteT m (Name ann)
+freshName :: MonadQuote m => ann -> Text.Text -> m (Name ann)
 freshName ann str = Name ann str <$> freshUnique
 
 -- | Make a copy of the given 'Name' that is distinct from the old one.
-freshenName :: Monad m => Name ann -> QuoteT m (Name ann)
+freshenName :: MonadQuote m => Name ann -> m (Name ann)
 freshenName (Name ann str _) = Name ann str <$> freshUnique
 
 -- | Get a fresh 'TyName', given the annotation and the 'Text.Text' name.
-freshTyName :: Monad m => ann -> Text.Text -> QuoteT m (TyName ann)
+freshTyName :: MonadQuote m => ann -> Text.Text -> m (TyName ann)
 freshTyName = fmap TyName .* freshName
 
 -- | Make a copy of the given 'TyName' that is distinct from the old one.
-freshenTyName :: Monad m => TyName ann -> QuoteT m (TyName ann)
+freshenTyName :: MonadQuote m => TyName ann -> m (TyName ann)
 freshenTyName (TyName name) = TyName <$> freshenName name
 
 -- | Mark a all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
