@@ -132,17 +132,13 @@ handleUpdatePaymentWithChange ::
 handleUpdatePaymentWithChange
     PaymentArgs{availableFunds, ownPubKey, requestedValue}
     Payment{paymentInputs=oldIns, paymentChangeOutput=changeOut} = do
-    -- utxo <- W.getClientIndex
-    -- ws <- get
     let
-        -- addr = ownAddress ws
         -- These inputs have been already used, we won't touch them
         usedFnds = Set.map txInRef oldIns
         -- Optional, left over change. Replace a `Nothing` with a Value of 0.
         oldChange = maybe (Ada.lovelaceValueOf 0) txOutValue changeOut
         -- Available funds.
         fnds   = Map.withoutKeys availableFunds usedFnds
-        -- pubK   = toPublicKey (ws ^. ownPrivateKey)
     if requestedValue `Value.leq` oldChange
     then
         -- If the requested value is covered by the change we only need to update
@@ -154,8 +150,10 @@ handleUpdatePaymentWithChange
     else do
         -- If the requested value is not covered by the change, then we need to
         -- select new inputs, after deducting the oldChange from the value.
-        (spend, change) <- selectCoin (second (txOutValue . txOutTxOut) <$> Map.toList fnds)
-                                    (requestedValue PlutusTx.- oldChange)
+        (spend, change) <-
+            selectCoin
+                (second (txOutValue . txOutTxOut) <$> Map.toList fnds)
+                (requestedValue PlutusTx.- oldChange)
         let ins = Set.fromList (pubKeyTxIn . fst <$> spend)
         pure Payment
                 { paymentInputs = Set.union oldIns ins
