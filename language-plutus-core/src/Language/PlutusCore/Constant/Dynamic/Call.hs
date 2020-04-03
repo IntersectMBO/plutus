@@ -13,6 +13,7 @@ module Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
@@ -28,7 +29,7 @@ dynamicCallAssign
     :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => DynamicBuiltinName
     -> (a -> IO ())
-    -> (a -> ExBudget)
+    -> (ExMemory -> ExBudget)
     -> DynamicBuiltinNameDefinition uni
 dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $

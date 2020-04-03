@@ -4,6 +4,7 @@ module Main (main) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant.Dynamic
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck  (unsafeEvaluateCk)
 import           Language.PlutusCore.Pretty
@@ -113,8 +114,8 @@ main =
                    in
 
                    bgroup "unsafeEvaluateCek"
-                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek mempty . toTerm) f'
-                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty . toTerm) g'
+                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostingFunParameters . toTerm) f'
+                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostingFunParameters . toTerm) g'
                      ]
                 ,   bgroup "verifySignature" $
                       let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool

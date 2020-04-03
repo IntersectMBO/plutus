@@ -28,6 +28,7 @@ import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -109,7 +110,7 @@ unsafeTypeEvalCheck
        )
     => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCek mempty) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostingFunParameters) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

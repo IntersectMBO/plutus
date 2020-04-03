@@ -77,6 +77,9 @@ extra-deps:
 - git: https://github.com/shmish111/github.git
   commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
   # nix-sha256: 0jx65x4c8s561nbxa0hv7mp8fvndfhs8i8gzxng7ym808n4n538i
+- git: https://github.com/reactormonk/deriving-aeson
+  commit: 5277216d5f8d5e7fe6454067358628150d31dc68
+  # nix-sha256: 0slfw3psizp2780g6hcf5vgbdh37g6m5mccxb9xz9j35yc7i2mls
 extra-package-dbs: []
 nix:
   packages: [zlib, gmp, openssl]

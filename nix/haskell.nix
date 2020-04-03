@@ -22,7 +22,7 @@ let
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "0dw0rq95jyrl1czqhjiy2x400zs7pywb2dqaj9w5p4ym1ipxvsr0";
+    stack-sha256 = "0219504i3vinnv2dxlb3rrlzahfpaylp5gdf405l7kazvlrz00yq";
     inherit checkMaterialization;
     modules = [
         {

@@ -25,6 +25,7 @@ import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Pretty
 
 import           Control.Exception
@@ -63,7 +64,7 @@ runPlc
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps
-    liftEither . first toException . extractEvaluationResult . evaluateCek mempty $ toTerm p
+    liftEither . first toException . extractEvaluationResult . evaluateCek mempty defaultCostingFunParameters $ toTerm p
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

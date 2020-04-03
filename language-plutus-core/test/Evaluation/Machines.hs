@@ -19,6 +19,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.FsTree
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
@@ -46,7 +47,7 @@ test_machines :: TestTree
 test_machines = testGroup
     "machines"
     [ testMachine "CK" evaluateCk
-    , testMachine "CEK" $ evaluateCek mempty
+    , testMachine "CEK" $ evaluateCek mempty defaultCostingFunParameters
     ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -64,7 +65,7 @@ testBudget :: TestName -> (Plain Term DefaultUni) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostingFunParameters term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni
 bunchOfFibs =
@@ -86,7 +87,7 @@ testCounting :: TestName -> (Plain Term DefaultUni) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCekCounting mempty term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCekCounting mempty defaultCostingFunParameters term)
 
 test_counting :: TestTree
 test_counting =
