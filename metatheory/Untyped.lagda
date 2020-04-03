@@ -54,10 +54,6 @@ data _⊢ (n : ℕ) : Set
 Tel : ℕ → ℕ → Set
 Tel m n = Vec (n ⊢) m
 
--- membership of a telescope:
-
-data _∈_ {m n : ℕ} : n ⊢ → Tel m n → Set where
-
 data _⊢ n where
   `       : Fin n → n ⊢
   ƛ       : suc n ⊢ → n ⊢

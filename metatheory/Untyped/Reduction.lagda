@@ -54,6 +54,27 @@ data Value {n} : n ⊢ → Set where
   V-con : (tcn : TermCon) → Value (con {n} tcn)
 
 
+-- membership of a (partially evaluated) telescope:
+
+{-
+data Any {p} (P : A → Set p) : ∀ {n} → Vec A n → Set (a ⊔ p) where
+  here  : ∀ {n x} {xs : Vec A n} (px  : P x)      → Any P (x ∷ xs)
+  there : ∀ {n x} {xs : Vec A n} (pxs : Any P xs) → Any P (x ∷ xs)
+-}
+
+-- as well as being like `Any` for `Vec`, this also ensures that the
+-- prefix of the telescope is made of values
+
+data Any {n : ℕ}(P : n ⊢ → Set) : ∀{m} → Tel m n → Set where
+  here  : ∀{m t}{ts : Tel m n} → P t → Any P (t ∷ ts)
+  there : ∀{m t}{ts : Tel m n} → Value t → Any P ts → Any P (t ∷ ts)  
+
+-- this also goes beyond membership of `Vec` by ensuring the prefix is
+-- made of values
+
+_∈_ : {m n : ℕ} → n ⊢ → Tel m n → Set
+t ∈ ts = Any (_≡ t) ts
+
 VTel : ∀ l n → Tel l n → Set
 VTel 0       n []       = ⊤
 VTel (suc l) n (t ∷ ts) = Value {n} t × VTel l n ts
@@ -65,6 +86,8 @@ BUILTIN : ∀{n}
       --------------
     → n ⊢
 
+data _—→T_ {n} : ∀{m} → Tel m n → Tel m n → Set
+
 data _—→_ {n} : n ⊢ → n ⊢ → Set where
   ξ-·₁ : {L L' M : n ⊢} → L —→ L' → L · M —→ L' · M
   ξ-·₂ : {L M M' : n ⊢} → FValue L → M —→ M' → L · M —→ L · M'
@@ -72,20 +95,10 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   β-ƛ : ∀{L : suc n ⊢}{V : n ⊢} → Value V → ƛ L · V —→ L [ V ]
 
   ξ-builtin : (b : Builtin)
-            → ∀ {l' l''}
-              (ts : Tel (arity b) n)
-              {ts' : Tel l' n}
-              (vs : VTel l' n ts')
-              {t t' : n ⊢}
-            → t —→ t'
-            → (ts'' : Tel l'' n)
-           → (p : l' Data.Nat.+ suc l'' ≡ arity b)
-            → ts ≡ subst (Vec (n ⊢)) p (ts' ++ Data.Vec.[ t ] ++ ts'')
-            → (r : l' Data.Nat.+ suc l'' ≤‴ arity b)
-            → builtin b ≤‴-refl ts
-              —→
-              builtin b r (ts' ++ Data.Vec.[ t' ] ++ ts'')
-
+              {ts ts' : Tel (arity b) n}
+            → ts —→T ts'
+            → builtin b ≤‴-refl ts —→ builtin b ≤‴-refl ts'  
+  
   β-builtin : {b : Builtin}
               (ts : Tel (arity b) n)
             → (vs : VTel (arity b) n ts)
@@ -97,23 +110,14 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 {t : n ⊢}
               → Value t
               → (p : l <‴ arity b)
-              -- backwards vectors would be better for this...
               → builtin b (≤‴-step p) ts · t —→ builtin b p (t ∷ ts)
-
 
   E-·₁ : {M : n ⊢} → error · M —→ error
   E-·₂ : {L : n ⊢} → FValue L → L · error —→ error
 
   E-builtin : (b : Builtin)
-            →  ∀{l' l''}
               (ts : Tel (arity b) n)
-              {ts' : Tel l' n}
-              (vs : VTel l' n ts')
-              {t : n ⊢}
-            → Error t
-            → (ts'' : Tel l'' n)
-            → (p : l' Data.Nat.+ suc l'' ≡ arity b)
-            → ts ≡ subst (Vec (n ⊢)) p (ts' ++ Data.Vec.[ t ] ++ ts'')
+            → Any Error ts
             → builtin b ≤‴-refl ts —→ error
 
   -- these correspond to type errors encountered at runtime
@@ -122,6 +126,10 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
   -- this is a runtime type error that ceases to be a type error after erasure
   -- E-runtime : {L : n ⊢} → L —→ error
 
+data _—→T_ {n} where
+  here  : ∀{m t t'}{ts : Tel m n} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
+  there : ∀{m t}{ts ts' : Tel m n}
+    → Value t → ts —→T ts' → (t ∷ ts) —→T (t ∷ ts')
 \end{code}
 
 
@@ -178,15 +186,8 @@ BUILTIN _ _ _ = error
 
 data ProgTel {l n}(tel : Tel l n) : Set where
   done : VTel l n tel → ProgTel tel
-  step : ∀{l' l''} → (tel' : Tel l' n) → VTel l' n tel' → {t t' : n ⊢} → t —→ t'
-    → (tel'' : Tel l'' n)
-    → (p : l' Data.Nat.+ suc l'' ≡ l)
-    → tel ≡ subst (Vec (n ⊢)) p (tel' ++ Data.Vec.[ t ] ++ tel'') 
-    → ProgTel tel
-  error : ∀{l' l''}(tel' : Tel l' n) → VTel l' n tel' → (tel'' : Tel l'' n)
-    → (p : l' Data.Nat.+ suc l'' ≡ l)
-    → tel ≡ subst (Vec (n ⊢)) p (tel' ++ Data.Vec.[ error ] ++ tel'')
-    → ProgTel tel
+  step : ∀{tel'} → tel —→T tel' → ProgTel tel
+  error : Any Error tel → ProgTel tel
 
 data Progress {n}(M : n ⊢) : Set where
   step : ∀{N}
@@ -221,20 +222,17 @@ progress-· (step p)        q = step (ξ-·₁ p)
 progress-· (error E-error) q = step E-·₁
 
 progress : (t : 0 ⊢) → Progress t
+
 progressTel : ∀{l}(tel : Tel l 0) → ProgTel tel
 
-progressTel []       = done _
+progressTel []       = done tt
 progressTel (t ∷ ts) with progress t
-progressTel (.error ∷ ts) | error E-error = error [] _ ts refl refl
-progressTel (t ∷ ts) | step p = step [] _ p ts refl refl
-progressTel (t ∷ ts) | done vt with progressTel ts
-progressTel (t ∷ ts) | done vt | done vs   = done (vt , vs)
-progressTel (t ∷ ts) | done vt | step  ts' vs p ts'' q r =
-  step (t ∷ ts') (vt , vs) p ts'' (cong suc q)
-    (trans (cong (t ∷_) r) (subst∷ t _ q (cong suc q)))
-progressTel (t ∷ ts) | done vt | error ts' vs ts'' p q =
-  error (t ∷ ts') (vt , vs) ts'' (cong suc p)
-    (trans (cong (t ∷_) q) (subst∷ t _ p (cong suc p)))
+progressTel (t ∷ ts) | step p  = step (here p)
+progressTel (t ∷ ts) | done v  with progressTel ts
+progressTel (t ∷ ts) | done v | done vs = done (v , vs)
+progressTel (t ∷ ts) | done v | step p  = step (there v p)
+progressTel (t ∷ ts) | done v | error e = error (there v e)
+progressTel (t ∷ ts) | error e = error (here e)
 
 progress (` ())
 progress (ƛ t)        = done (V-F (V-ƛ t))
@@ -242,10 +240,8 @@ progress (t · u)      = progress-· (progress t) (progress u)
 progress (con tcn)    = done (V-con tcn)
 progress (builtin b ≤‴-refl ts) with progressTel ts
 progress (builtin b ≤‴-refl ts) | done vs = step (β-builtin ts vs)
-progress (builtin b ≤‴-refl ts) | step ts' vts' p ts'' q r =
-  step (ξ-builtin b ts vts' p ts'' q r (subst (_≤‴ arity b) (sym q) ≤‴-refl))
-progress (builtin b ≤‴-refl ts) | error ts' vts' ts'' p q =
-  step (E-builtin b ts vts' E-error ts'' p q)
+progress (builtin b ≤‴-refl ts) | step p = step (ξ-builtin b p) 
+progress (builtin b ≤‴-refl ts) | error p = step (E-builtin b ts p) 
 progress (builtin b (≤‴-step p) ts) = done (V-F (V-builtin b ts p))
 progress error       = error E-error
 \end{code}
@@ -266,13 +262,49 @@ open import Data.Empty
 open import Relation.Nullary
 
 -- a value cannot make progress
-
 val-red : ∀{n}{t : n ⊢} → Value t → ¬ (Σ (n ⊢)  (t —→_))
 val-red (V-F (V-ƛ t)) (t' , ())
 val-red (V-F (V-builtin b ts p)) (t' , ())
 val-red (V-con tcn) (t' , ())
 
+val-err : ∀{n}{t : n ⊢} → Value t → ¬ (Error t)
+val-err (V-con tcn) ()
+val-err (V-F (V-ƛ t)) ()
+val-err (V-F (V-builtin b ts p)) ()
+
+err-red : ∀{n}{t : n ⊢} → Error t → ¬ (Σ (n ⊢)  (t —→_))
+err-red E-error (_ , ())
+
+errT-redT : ∀{m n}{ts : Tel m n} → Any Error ts → ¬ (Σ (Tel m n)  (ts —→T_))
+errT-redT (here p)    (.(_ ∷ _) , here q)    = err-red p (_ , q)
+errT-redT (here p)    (.(_ ∷ _) , there v q) = val-err v p 
+errT-redT (there v p) (.(_ ∷ _) , here q)    = val-red v (_ , q)
+errT-redT (there v p) (.(_ ∷ _) , there w q) = errT-redT p (_ , q)
+
+valT-errT : ∀{m n}{ts : Tel m n} → VTel m n ts → ¬ (Any Error ts)
+valT-errT {ts = t ∷ ts} (v , vs) (here p)    = val-err v p
+valT-errT {ts = t ∷ ts} (v , vs) (there w p) = valT-errT vs p
+
+valT-redT : ∀{m n}{ts : Tel m n} → VTel m n ts → ¬ (Σ (Tel m n)  (ts —→T_))
+valT-redT {ts = []} _ (ts' , ()) 
+valT-redT {ts = t ∷ ts} (v , vs) (._ , here p)     = val-red v (_ , p) 
+valT-redT {ts = t ∷ ts} (v , vs) (._ , there v' p) = valT-redT vs (_ , p)
+
+valUniq : ∀{n}{t : n ⊢}(v v' : Value t) → v ≡ v'
+valUniq (V-F (V-ƛ t)) (V-F (V-ƛ .t)) = refl
+valUniq (V-F (V-builtin b ts p)) (V-F (V-builtin .b .ts .p)) = refl
+valUniq (V-con tcn) (V-con .tcn) = refl
+
+valTUniq : ∀{m n}{ts : Tel m n}(vs vs' : VTel m n ts) → vs ≡ vs'
+valTUniq {ts = []}     _        _          = refl
+valTUniq {ts = x ∷ ts} (v , vs) (v' , vs') =
+  cong₂ _,_ (valUniq v v') (valTUniq vs vs')
+
+detT : ∀{m n}{ts ts' ts'' : Tel m n}
+  → (p : ts —→T ts')(q : ts —→T ts'') → ts' ≡ ts''
+
 det : ∀{n}{t t' t'' : n ⊢}(p : t —→ t')(q : t —→ t'') → t' ≡ t''
+
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
 det (ξ-·₁ p) (ξ-·₂ v q) = ⊥-elim (val-red (V-F v) (_ , p)) 
 det (ξ-·₁ p) (E-·₂ v) = ⊥-elim (val-red (V-F v) (_ , p)) 
@@ -285,12 +317,12 @@ det (β-ƛ v) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q))
 det (β-ƛ v) (β-ƛ w) = refl
 det (β-ƛ (V-F ())) (E-·₂ v)
 det (E-·₂ v) (β-ƛ (V-F ()))
-det (ξ-builtin b ts vs p ts'' p₁ x r) (ξ-builtin .b .ts vs₁ q ts''' p₂ x₁ r₁) = {!!}
-det (ξ-builtin b ts vs p ts'' p₁ x r) (β-builtin .ts vs₁) = {!!}
-det (ξ-builtin b ts vs p ts'' p₁ x r) (E-builtin .b .ts vs₁ x₁ ts''' p₂ x₂) = {!!}
-det (β-builtin ts vs) (ξ-builtin b .ts vs₁ q ts'' p x r) = {!!}
-det (β-builtin ts vs) (β-builtin .ts vs₁) = {!!}
-det (β-builtin ts vs) (E-builtin b .ts vs₁ x ts'' p x₁) = {!!}
+det (ξ-builtin b p) (ξ-builtin .b q) = cong (builtin b ≤‴-refl) (detT p q)
+det (ξ-builtin b p) (β-builtin ts vs) = ⊥-elim (valT-redT vs (_ , p))
+det (ξ-builtin b p) (E-builtin .b e q) = ⊥-elim (errT-redT q (_ , p))
+det (β-builtin ts vs) (ξ-builtin b q) = ⊥-elim (valT-redT vs (_ , q))
+det (β-builtin ts vs) (β-builtin .ts ws) = cong (BUILTIN _ ts) (valTUniq vs ws)
+det (β-builtin ts vs) (E-builtin b v q) = ⊥-elim (valT-errT vs q)
 det (sat-builtin v p) (ξ-·₂ w q) = ⊥-elim (val-red v (_ , q)) 
 det (sat-builtin v p) (sat-builtin w .p) = refl
 det (sat-builtin (V-F ()) p) (E-·₂ w)
@@ -299,10 +331,15 @@ det (E-·₂ v) (ξ-·₁ q) = ⊥-elim (val-red (V-F v) (_ , q))
 det (E-·₂ v) (sat-builtin (V-F ()) p)
 det (E-·₂ v) (E-·₂ w) = refl
 det (E-·₂ ()) E-con
-det (E-builtin b ts vs x ts'' p x₁) (ξ-builtin .b .ts vs₁ q ts''' p₁ x₂ r) = {!!}
-det (E-builtin b ts vs x ts'' p x₁) (β-builtin .ts vs₁) = {!!}
-det (E-builtin b ts vs x ts'' p x₁) (E-builtin .b .ts vs₁ x₂ ts''' p₁ x₃) = {!!}
+det (E-builtin b ts p) (ξ-builtin .b q) = ⊥-elim (errT-redT p (_ , q))
+det (E-builtin b ts p) (β-builtin ts vs) = ⊥-elim (valT-errT vs p)
+det (E-builtin b ts p) (E-builtin .b w q) = refl
 det E-con (ξ-·₂ () q)
 det E-con (E-·₂ ())
 det E-con E-con = refl
+
+detT (here p) (here q) = cong (_∷ _) (det p q)
+detT (here p) (there v q) = ⊥-elim (val-red v (_ , p))
+detT (there v p) (here q) = ⊥-elim (val-red v (_ , q))
+detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
 \end{code}
