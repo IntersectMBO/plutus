@@ -39,7 +39,6 @@ module Language.PlutusCore
     , typeSubtypes
     , Builtin (..)
     , Kind (..)
-    , AsUniqueError (..)
     , ParseError (..)
     , Version (..)
     , Program (..)
