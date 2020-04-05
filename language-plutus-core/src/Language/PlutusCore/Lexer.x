@@ -67,6 +67,8 @@ $upper = [A-Z]
 
 @special = \\\\ | \\\"
 
+$graphic = $printable # $white
+@quotedstring = \" ($graphic)* \"
 
 tokens :-
 
@@ -123,9 +125,7 @@ tokens :-
     <conarg> \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
 
     -- Strings
-    <conarg> \"[^\"]*\"      { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
-    -- FIXME: proper strings
-    -- Something like "([^"\\]*(\\.[^"\\]*)*)" ?
+    <conarg> @quotedstring     { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
 
     -- Integer/size literals
     @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
