@@ -55,7 +55,7 @@ stdInput = flag' StdInput
   <> help "Read from stdin" )
 
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
-data TypecheckOptions = TypecheckOptions Input
+newtype TypecheckOptions = TypecheckOptions Input
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
