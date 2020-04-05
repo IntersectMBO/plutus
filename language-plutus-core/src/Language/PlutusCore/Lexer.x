@@ -130,7 +130,7 @@ tokens :-
     -- Integer/size literals
     @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
     @integer                 { tok (\p s -> alex $ TkInt p (readBSL $ stripPlus s)) }
-    -- Not just used for integer constants, so we don't want <conarg> here.
+    -- Also used in eg version numbers, so we don't want <conarg> here.
     
     -- Identifiers
     <0> @name                { tok (\p s -> handle_name p (T.decodeUtf8 (BSL.toStrict s))) }
@@ -158,14 +158,10 @@ chr8 = Data.Char.chr . fromIntegral
 handleChar :: Word8 -> Word8
 handleChar x =
     let c :: Char = Data.Char.chr (fromIntegral x)
-    in if c >= '0' && c <= '9'
-       then x - ord8 '0'
-    else if  c >= 'a' && c <= 'f'
-       then x - ord8 'a' + 10
-    else if c >= 'A' && c <= 'F'
-       then x - ord8 'A' + 10
-    else
-       undefined -- safe b/c macro only matches hexits
+    in    if c >= '0' && c <= '9'  then x - ord8 '0'
+    else  if c >= 'a' && c <= 'f'  then x - ord8 'a' + 10
+    else  if c >= 'A' && c <= 'F'  then x - ord8 'A' + 10
+    else  undefined -- safe b/c macro only matches hex digits
 
 
 -- turns a pair of bytes such as "a6" into a single Word8

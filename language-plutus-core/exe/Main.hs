@@ -7,7 +7,6 @@ module Main (main) where
 
 import qualified Language.PlutusCore                        as PLC
 import           Language.PlutusCore.Constant.Dynamic       as PLC
-import           Language.PlutusCore.Error                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck  as PLC
 import qualified Language.PlutusCore.Generators             as PLC
@@ -33,9 +32,6 @@ import           Data.Text.Prettyprint.Doc
 import           System.Exit
 
 import           Options.Applicative
-
-
-import qualified GHC.IO.Exception
 
 data Input = FileInput FilePath | StdInput
 
@@ -127,17 +123,6 @@ printMode = option auto
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> printMode
-
-instance PLC.AsTypeError GHC.IO.Exception.IOException PLC.DefaultUni ()
-    where _TypeError = \e -> error $ "TypeError: "
-
-instance AsUniqueError GHC.IO.Exception.IOException PLC.AlexPosn
-    where _UniqueError = \_ -> error $ "UniqueError"
-
-instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
-    where _ParseError = \_ -> error "ParseError"
-
--- ^ FIXME!!!
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
@@ -235,11 +220,18 @@ runPrint :: PrintOptions -> IO()
 runPrint (PrintOptions inp mode) = do
     contents <- getInput inp
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
-        printMethod = case mode of
+    case PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents) of
+        Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
+            T.putStrLn $ PLC.prettyPlcDefText errCheck
+            exitFailure
+        Right (Left (errEval :: PLC.Error PLC.DefaultUni PLC.AlexPosn)) -> do
+            print errEval
+            exitFailure
+        Right ( Right (p :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn)) ->
+          let printMethod = case mode of
                 Classic -> PLC.prettyPlcClassicDef
                 Debug   -> PLC.prettyPlcClassicDebug
-    k :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn <- PLC.runQuoteT (PLC.parseScoped bsContents)
-    putStrLn . show . printMethod $ k
+          in putStrLn . show . printMethod $ p
 
 main :: IO ()
 main = do
