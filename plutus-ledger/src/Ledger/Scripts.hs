@@ -167,9 +167,9 @@ data ScriptError =
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
-  case checking of
-    DontCheck -> Haskell.pure ()
-    Typecheck -> void $ typecheckScript s
+    case checking of
+      DontCheck -> Haskell.pure ()
+      Typecheck -> void $ typecheckScript s
     let (logOut, _tally, result) = evaluateCekTrace (unScript s)
     case result of
         Right _ -> Haskell.pure ()
