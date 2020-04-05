@@ -196,10 +196,6 @@ instance PrettyBy config Integer where
     prettyBy _ = pretty
 -- delete until here
 
-instance PrettyBy config String where
-    prettyBy _ _ = pretty ("XXXX"::String) -- pretty . T.pack. show
-
-
 instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
     prettyBy _ (PrettyConfigIgnore x) = pretty x
 
