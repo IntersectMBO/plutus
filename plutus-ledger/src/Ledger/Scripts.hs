@@ -84,9 +84,6 @@ import           Language.PlutusTx.Prelude
 import           Ledger.Orphans                       ()
 import           LedgerBytes                          (LedgerBytes (..))
 
-import           Debug.Trace
-
-
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 --
 -- Note: the program inside the 'Script' should have normalized types.
@@ -142,7 +139,7 @@ instance Haskell.Ord Script where
 instance NFData Script
 
 data Checking = Typecheck | DontCheck
-                deriving (Show)
+
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
 -- proportional to the serialized size of the script.
 scriptSize :: Script -> Integer
@@ -170,11 +167,9 @@ data ScriptError =
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Checking -> Script -> m [Haskell.String]
 evaluateScript checking s = do
-  --  Debug.Trace.trace (show checking) $
-    (Debug.Trace.trace . show . PLC.prettyPlcClassicDebug $ unScript s) $
-      case checking of
-            DontCheck -> Haskell.pure ()
-            Typecheck -> void $ typecheckScript s
+  case checking of
+    DontCheck -> Haskell.pure ()
+    Typecheck -> void $ typecheckScript s
     let (logOut, _tally, result) = evaluateCekTrace (unScript s)
     case result of
         Right _ -> Haskell.pure ()
