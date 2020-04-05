@@ -129,13 +129,13 @@ printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> printMode
 
 instance PLC.AsTypeError GHC.IO.Exception.IOException PLC.DefaultUni ()
-    where _TypeError = undefined
+    where _TypeError = \e -> error $ "TypeError: "
 
 instance AsUniqueError GHC.IO.Exception.IOException PLC.AlexPosn
-    where _UniqueError = \_ -> error $ "Unique"
+    where _UniqueError = \_ -> error $ "UniqueError"
 
 instance AsParseError GHC.IO.Exception.IOException PLC.AlexPosn
-    where _ParseError = undefined
+    where _ParseError = \_ -> error "ParseError"
 
 -- ^ FIXME!!!
 

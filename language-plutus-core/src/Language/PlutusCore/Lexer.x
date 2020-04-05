@@ -149,12 +149,24 @@ instance Pretty (AlexPosn) where
 trimBytes :: BSL.ByteString -> BSL.ByteString
 trimBytes str = BSL.take (BSL.length str - 5) str
 
+ord8 :: Char -> Word8
+ord8 = fromIntegral . Data.Char.ord
+
+chr8 :: Word8 -> Char
+chr8 = Data.Char.chr . fromIntegral
+
 handleChar :: Word8 -> Word8
-handleChar x
-    | x >= 48 && x <= 57 = x - 48  -- hexits 0-9
-    | x >= 97 && x <= 102 = x - 87 -- hexits a-f
-    | x >= 65 && x <= 70 = x - 55  -- hexits A-F
-    | otherwise = undefined -- safe b/c macro only matches hexits
+handleChar x =
+    let c :: Char = Data.Char.chr (fromIntegral x)
+    in if c >= '0' && c <= '9'
+       then x - ord8 '0'
+    else if  c >= 'a' && c <= 'f'
+       then x - ord8 'a' + 10
+    else if c >= 'A' && c <= 'F'
+       then x - ord8 'A' + 10
+    else
+       undefined -- safe b/c macro only matches hexits
+
 
 -- turns a pair of bytes such as "a6" into a single Word8
 handlePair :: Word8 -> Word8 -> Word8
@@ -177,22 +189,24 @@ nested_comment = go 1 =<< alexGetInput
     where go :: Int -> AlexInput -> Alex (Token AlexPosn)
           go 0 input = alexSetInput input >> alexMonadScan
           go n input =
-            case alexGetByte input of
+            case alexGetChar input of
                 Nothing -> err input
                 Just (c, input') ->
                     case c of
-                        45 ->
-                            case alexGetByte input' of
+                        '-' ->
+                            case alexGetChar input' of
                                 Nothing -> err input'
-                                Just (125,input'') -> go (n-1) input''
+                                Just ('}', input'') -> go (n-1) input''
                                 Just (_,input'') -> go n input''
-                        123 ->
-                            case alexGetByte input' of
+                        '{' ->
+                            case alexGetChar input' of
                                 Nothing -> err input'
                                 Just (c',input'') -> go (addLevel c' $ n) input''
                         _ -> go n input'
 
-          addLevel c' = bool id (+1) (c'==45)
+          addLevel c' = bool id (+1) (c' == '-')
+
+          alexGetChar = fmap (first chr8) . alexGetByte
 
           err (pos,_,_,_) =
             let (AlexPn _ line col) = pos in
@@ -200,9 +214,9 @@ nested_comment = go 1 =<< alexGetInput
 
 constructor c t = tok (\p _ -> alex $ c p t)
 
-mkSpecial    = constructor TkSpecial
+mkSpecial = constructor TkSpecial
 
-mkKeyword    = constructor TkKeyword
+mkKeyword = constructor TkKeyword
 
 handle_name :: AlexPosn -> T.Text -> Alex (Token AlexPosn)
 handle_name p str = do
