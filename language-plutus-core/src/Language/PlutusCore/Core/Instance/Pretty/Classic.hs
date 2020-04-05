@@ -18,8 +18,6 @@ import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Universe
 
 import           Data.Functor.Foldable
-import           Data.Text                                       as T
-import           Data.Text.Prettyprint.Doc                       as D
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
