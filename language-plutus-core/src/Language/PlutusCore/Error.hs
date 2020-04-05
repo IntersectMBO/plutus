@@ -60,7 +60,6 @@ throwingEither r e = case e of
 data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
-    | Overflow ann Natural Integer
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
@@ -135,9 +134,8 @@ asInternalError doc =
     "Please report this as a bug."
 
 instance Pretty ann => Pretty (ParseError ann) where
-    pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
-    pretty (Overflow ann _ _) = "Integer overflow at" <+> pretty ann <> "."
+    pretty (LexErr s)     = "Lexical error:" <+> Text (length s) (T.pack s)
+    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
