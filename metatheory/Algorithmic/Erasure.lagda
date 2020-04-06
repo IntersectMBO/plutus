@@ -93,7 +93,7 @@ erase (builtin bn σ ts)    = builtin bn (lemma≤ bn) (eraseTel ts)
 erase (error A)            = error
 
 eraseTel {As = []}     _          = []
-eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
+eraseTel {As = x ∷ As} (t ∷ tel) = erase t ∷ eraseTel tel
 \end{code}
 
 Porting this from declarative required basically deleting one line but

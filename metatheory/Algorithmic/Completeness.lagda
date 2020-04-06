@@ -14,6 +14,7 @@ open import Type.BetaNBE.RenamingSubstitution
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
+open import Data.Vec hiding ([_])
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -204,7 +205,7 @@ nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
 
-nfTypeTel σ []        _ = _
+nfTypeTel σ []        _ = Norm.[]
 nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
   Norm.conv⊢
     refl
@@ -220,7 +221,7 @@ nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
   -- this should be a lemma in NBE/RenSubst
   -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
   -- also it might go away if we simplify the builtins post size removal
-  ,,
+  Norm.∷
   nfTypeTel σ As Ms
 
 

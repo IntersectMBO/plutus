@@ -34,7 +34,7 @@ eraseTC (char c)       = char c
 eraseTC unit           = unit
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢ 
-eraseTel : ∀{n}{i : Weirdℕ n} → List (ScopedTm i) → List (len i ⊢)
+eraseTel : ∀{m n}{i : Weirdℕ n} → Vec (ScopedTm i) → List (len i ⊢)
 
 eraseTel []       = []
 eraseTel (t ∷ ts) = eraseTm t ∷ eraseTel ts

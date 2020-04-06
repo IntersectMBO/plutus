@@ -139,7 +139,7 @@ renTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renTel (erase-Ren ρ⋆ ρ) (eraseTel tel)
 
 renTel-erase ρ⋆ ρ Φ' []       σ tel = refl
-renTel-erase ρ⋆ ρ Φ' (A ∷ As) σ (t P., tel) = cong₂ _∷_
+renTel-erase ρ⋆ ρ Φ' (A ∷ As) σ (t ∷ tel) = cong₂ _∷_
   (trans (conv⊢-erase (sym (renNf-substNf σ ρ⋆ A)) (A.ren ρ⋆ ρ t))
          (ren-erase ρ⋆ ρ t))
   (renTel-erase ρ⋆ ρ Φ' As σ tel)
@@ -240,7 +240,7 @@ subTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (tel : A.Tel Γ Φ' σ' As)
   →  eraseTel (A.substTel σ⋆ σ tel) ≡ U.subTel (erase-Sub σ⋆ σ) (eraseTel tel) 
 subTel-erase σ⋆ σ Φ' []       σ' tel = refl
-subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t P., tel) = cong₂ _∷_
+subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t ∷ tel) = cong₂ _∷_
   (trans
     (conv⊢-erase (sym (substNf-comp σ' σ⋆ A)) (A.subst σ⋆ σ t))
     (sub-erase σ⋆ σ t))

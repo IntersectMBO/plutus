@@ -199,7 +199,7 @@ emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf
 embTel refl [] [] p σ x = tt
 embTel refl [] (A' ∷ As') () σ x
 embTel refl (A ∷ As) [] () σ x
-embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t ,, tel) =
+embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t Alg.∷ tel) =
   Dec.conv (lemsub A A' σ p) (emb t) ,, embTel refl As As' p' σ tel
 
 emb (Alg.` α) = Dec.` (embVar α)

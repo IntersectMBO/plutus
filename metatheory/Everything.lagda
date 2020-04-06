@@ -38,7 +38,7 @@ import Declarative.Erasure
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
 import Declarative.StdLib.Nat
-import Main
+
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
@@ -52,8 +52,8 @@ import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure
-import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.Erasure.Reduction
+--import Algorithmic.Erasure.RenamingSubstitution
+--import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
@@ -80,5 +80,6 @@ import Scoped.Erasure.Reduction
 import Scoped.CK
 
 import Check
+import Main
 -}
 \end{code}

@@ -448,25 +448,6 @@ redT-errT (.(_ ∷ _) ,, there v p) (here q)    = val-err v q
 redT-errT (.(_ ∷ _) ,, here p)    (there w q) = val-red w (_ ,, p)
 redT-errT (.(_ ∷ _) ,, there v p) (there w q) = redT-errT (_ ,, p) q
 
-
-{-
--- nothing in a telescope of values can make progress
-vTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
-  → (tel : Tel Γ Δ σ As)
-  → (vtel : VTel Γ Δ σ As tel)
-  → ∀ Bs Ds
-  → (telB : Tel Γ Δ σ Bs)
-  → (telD : Tel Γ Δ σ Ds)
-  → ∀{D}{t t' : Γ ⊢ substNf σ D}
-  → t —→ t'
-  → (p : Bs ++ (D ∷ Ds) ≡ As)
-  → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-  → ⊥
-vTel Γ Δ σ _ (t ∷ tel) (v ,, vtel) [] As telB telD r refl refl =
-  val-red v (_ ,, r)
-vTel Γ Δ σ _ (_ ∷ tel) (_ ,, vtel) (_ ∷ Bs) Ds (_ ∷ telB) telD r refl refl =
-  vTel Γ Δ σ _ tel vtel Bs Ds telB telD r refl refl
--}
 -- values are unique for a term
 valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A)
   → (v v' : Value t)
