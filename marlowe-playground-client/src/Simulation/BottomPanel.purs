@@ -7,7 +7,7 @@ import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, (^.))
+import Data.Lens (to, view, (^.))
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
@@ -23,9 +23,14 @@ import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>))
+import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>), (/=), (&&))
 import Text.Parsing.StringParser (runParser)
 import Types (FrontendState, HAction(..), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
+
+isContractValid :: FrontendState -> Boolean
+isContractValid state =
+  (view (_marloweState <<< _Head <<< _contract) state /= Nothing)
+    && (view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state)
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
@@ -283,15 +288,24 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , button [ onClick $ const $ Just $ AnalyseContract, enabled (state ^. _analysisState <<< to isLoading <<< to not) ] [ text "Analyse" ]
+    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [] else [ ClassName "disabled" ]) ]
+        [ text (if loading then "Analysing..." else "Analyse") ]
     ]
+  where
+  loading = state ^. _analysisState <<< to isLoading
+
+  enabled' = not loading && isContractValid state
 
 panelContents state MarloweWarningsView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
     ]
-    (map renderWarning (state ^. (_marloweState <<< _Head <<< _editorWarnings)))
+    content
   where
+  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+
+  content = if Array.null warnings then [ pre [ class_ (ClassName "error-content") ] [ text "No warnings" ] ] else map renderWarning warnings
+
   renderWarning warning =
     pre [ class_ (ClassName "warning-content") ]
       [ a [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn ]
@@ -302,8 +316,12 @@ panelContents state MarloweErrorsView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
     ]
-    (map renderError (state ^. (_marloweState <<< _Head <<< _editorErrors)))
+    content
   where
+  errors = state ^. (_marloweState <<< _Head <<< _editorErrors)
+
+  content = if Array.null errors then [ pre [ class_ (ClassName "error-content") ] [ text "No errors" ] ] else map renderError errors
+
   renderError error =
     pre [ class_ (ClassName "error-content") ]
       [ a [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn ]
@@ -329,7 +347,7 @@ analysisResultPane state =
           ]
       Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
         explanation
-          [ h3_ [ text "Analysis Result: Fail" ]
+          [ h3_ [ text "Analysis Result: Warnings Found" ]
           , text "Static analysis found the following counterexample:"
           , ul_
               [ li_
@@ -366,7 +384,7 @@ analysisResultPane state =
                   ]
               ]
           ]
-      _ -> text "Analysing..."
+      Loading -> text ""
 
 displayTransactionList :: forall p. String -> HTML p HAction
 displayTransactionList transactionList = case runParser transactionInputList transactionList of
@@ -480,7 +498,7 @@ displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok
 
 displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
   [ b_ [ text "TransactionNonPositivePay" ]
-  , text " - The contract is suppoused to make a payment of "
+  , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show amount ]
   , text " units of "
   , b_ [ text $ show tok ]
@@ -497,7 +515,7 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amo
 
 displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
   [ b_ [ text "TransactionPartialPay" ]
-  , text " - The contract is suppoused to make a payment of "
+  , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show expected ]
   , text " units of "
   , b_ [ text $ show tok ]

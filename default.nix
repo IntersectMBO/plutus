@@ -31,8 +31,8 @@ let
 
   iohkNix = import sources.iohk-nix {
     inherit system config;
-    # FIXME: should be 'nixpkgsOverride = sources.nixpkgs', but see https://github.com/input-output-hk/iohk-nix/pull/215
-    nixpkgsJsonOverride = ./nixpkgs.json;
+    # Make iohk-nix use our nixpkgs
+    sourcesOverride = { inherit (sources) nixpkgs; };
   };
 
   pkgsMusl = import ./nix/default.nix {
@@ -102,6 +102,7 @@ in rec {
     multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
     extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
     lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine { inherit latex; };
+    plutus-report = pkgs.callPackage ./docs/plutus-report/default.nix { inherit latex; };
 
     combined-haddock = let
       haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};

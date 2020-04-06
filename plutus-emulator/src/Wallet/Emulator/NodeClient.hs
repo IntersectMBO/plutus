@@ -53,7 +53,6 @@ newtype BlockValidated = BlockValidated Block -- ^ A new block has been validate
 data NodeClientEffect r where
     PublishTx :: Tx -> NodeClientEffect ()
     GetClientSlot :: NodeClientEffect Slot
-    GetClientIndex :: NodeClientEffect AM.AddressMap
     ClientNotify :: BlockValidated -> NodeClientEffect ()
 makeEffect ''NodeClientEffect
 
@@ -65,7 +64,6 @@ handleNodeClient
 handleNodeClient = interpret $ \case
     PublishTx tx -> queueTx tx >> tell [TxSubmit (txId tx)]
     GetClientSlot -> gets _clientSlot
-    GetClientIndex -> gets _clientIndex
     ClientNotify n -> case n of
         BlockValidated blk -> modify $ \s ->
             s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)

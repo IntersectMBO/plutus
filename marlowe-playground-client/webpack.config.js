@@ -107,7 +107,7 @@ module.exports = {
             static: path.resolve(__dirname, './static'),
             src: path.resolve(__dirname, './src')
         },
-        extensions: ['.purs', '.js', 'ts', 'tsx']
+        extensions: ['.purs', '.js', '.ts', '.tsx']
     },
 
     resolveLoader: {
@@ -126,7 +126,7 @@ module.exports = {
             favicon: 'static/favicon.ico',
             title: 'Marlowe Playground',
             productName: 'marlowe-playground',
-            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-7'
+            googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
         }),
         new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js'),
         new MonacoWebpackPlugin({

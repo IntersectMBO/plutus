@@ -12,7 +12,8 @@ import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (MaybeT(..), lift, runMaybeT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.State.Trans (class MonadState)
-import Data.Array (catMaybes, delete, intercalate, snoc)
+import Data.Array (catMaybes, delete, filter, intercalate, snoc)
+import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Function (flip)
@@ -26,7 +27,7 @@ import Data.Newtype (unwrap)
 import Data.Num (negate)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
+import Data.Tuple (Tuple(Tuple), fst, snd)
 import Editor (Action(..), Preferences, loadPreferences) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
@@ -42,7 +43,7 @@ import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Classes (aCenter, aHorizontal, btnSecondary, flexCol, hide, iohkIcon, isActiveTab, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (alt, class_, classes, href, id_, src)
+import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -56,7 +57,7 @@ import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
 import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Ajax (errorToString)
@@ -178,23 +179,23 @@ toEvent (HaskellEditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "
 
 toEvent (HaskellEditorAction _) = Just $ (defaultEvent "ConfigureEditor")
 
-toEvent (MarloweHandleEditorMessage _) = Nothing
+toEvent (MarloweHandleEditorMessage _) = Just $ defaultEvent "MarloweHandleEditorMessage"
 
-toEvent (MarloweHandleDragEvent _) = Nothing
+toEvent (MarloweHandleDragEvent _) = Just $ defaultEvent "MarloweHandleDragEvent"
 
-toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweDropScript"
+toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweHandleDropEvent"
 
-toEvent (MarloweMoveToPosition _ _) = Nothing
+toEvent (MarloweMoveToPosition _ _) = Just $ defaultEvent "MarloweMoveToPosition"
 
-toEvent CheckAuthStatus = Nothing
+toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
 
-toEvent (GistAction PublishGist) = Just $ (defaultEvent "Publish") { label = Just "Gist" }
+toEvent (GistAction PublishGist) = Just $ (defaultEvent "PublishGist") { label = Just "Gist" }
 
-toEvent (GistAction (SetGistUrl _)) = Nothing
+toEvent (GistAction (SetGistUrl _)) = Just $ defaultEvent "SetGistUrl"
 
 toEvent (GistAction LoadGist) = Just $ (defaultEvent "LoadGist") { category = Just "Gist" }
 
-toEvent CompileHaskellProgram = Just $ defaultEvent "CompileProgram"
+toEvent CompileHaskellProgram = Just $ defaultEvent "CompileHaskellProgram"
 
 toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just $ show view }
 
@@ -202,25 +203,25 @@ toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label 
 
 toEvent (LoadMarloweScript script) = Just $ (defaultEvent "LoadMarloweScript") { label = Just script }
 
-toEvent SendResult = Nothing
+toEvent SendResult = Just $ defaultEvent "SendResult"
 
 toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
 
 toEvent NextSlot = Just $ defaultEvent "NextBlock"
 
-toEvent (AddInput _ _ _) = Nothing
+toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
 
-toEvent (RemoveInput _ _) = Nothing
+toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
 
-toEvent (SetChoice _ _) = Nothing
+toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
 
-toEvent ResetSimulator = Nothing
+toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
 
 toEvent Undo = Just $ defaultEvent "Undo"
 
-toEvent (SelectHole _) = Nothing
+toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
 
-toEvent (InsertHole _ _ _) = Nothing
+toEvent (InsertHole _ _ _) = Just $ defaultEvent "InsertHole"
 
 toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
 
@@ -230,11 +231,13 @@ toEvent (ShowRightPanel val) = Just $ (defaultEvent "ShowRightPanel") { label = 
 
 toEvent (ShowBottomPanel val) = Just $ (defaultEvent "ShowBottomPanel") { label = Just $ show val }
 
-toEvent (HandleBlocklyMessage _) = Nothing
+toEvent (HandleBlocklyMessage Initialized) = Nothing
 
-toEvent SetBlocklyCode = Nothing
+toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
 
-toEvent AnalyseContract = Nothing
+toEvent SetBlocklyCode = Just $ (defaultEvent "SetBlocklyCode") { category = Just "Blockly" }
+
+toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
 
 handleQuery :: forall m a. MonadState FrontendState m => HQuery a -> m (Maybe a)
 handleQuery (ReceiveWebsocketMessage msg next) = do
@@ -308,7 +311,10 @@ handleAction (LoadHaskellScript key) = do
       haskellEditorSetValue contents (Just 1)
 
 handleAction (LoadMarloweScript key) = do
-  case Map.lookup key StaticData.marloweContracts of
+  case Array.head
+      $ map snd
+      $ filter (((==) key) <<< fst)
+          StaticData.marloweContracts of
     Nothing -> pure unit
     Just contents -> do
       let
@@ -425,10 +431,13 @@ handleAction (InsertHole constructor firstHole holes) = do
 
 handleAction (ChangeSimulationView view) = do
   assign _simulationBottomPanelView view
+  assign _showBottomPanel true
   marloweEditorResize
   haskellEditorResize
 
-handleAction (ChangeHelpContext help) = assign _helpContext help
+handleAction (ChangeHelpContext help) = do
+  assign _helpContext help
+  scrollHelpPanel
 
 handleAction (ShowRightPanel val) = assign _showRightPanel val
 
@@ -590,7 +599,7 @@ render state =
                 , div [] [ text "Blockly" ]
                 ]
             , div [ class_ (ClassName "nav-bottom-links") ]
-                [ a [ href "./tutorial", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
+                [ a [ href "./tutorial", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
                 , p_ [ text "Privacy Policy" ]
                 , p_
                     [ text "by "

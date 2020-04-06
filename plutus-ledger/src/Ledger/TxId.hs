@@ -25,7 +25,7 @@ newtype TxId = TxId { getTxId :: BSL.ByteString }
     deriving (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise)
-    deriving (Pretty, Show) via LedgerBytes
+    deriving (Show, Pretty) via LedgerBytes
 
 PlutusTx.makeLift ''TxId
 PlutusTx.makeIsData ''TxId
