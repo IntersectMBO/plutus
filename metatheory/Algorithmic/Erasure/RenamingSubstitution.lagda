@@ -9,6 +9,7 @@ import Data.Product as P
 open import Relation.Binary.PropositionalEquality
 open import Function hiding (_∋_)
 open import Data.List
+open import Data.Vec
 
 open import Utils
 open import Type
@@ -135,7 +136,7 @@ renTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (As : List (Φ' ⊢Nf⋆ *))
   → (σ : SubNf Φ' Φ)
   → (tel : A.Tel Γ Φ' σ As)
-  → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renList (erase-Ren ρ⋆ ρ) (eraseTel tel)
+  → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renTel (erase-Ren ρ⋆ ρ) (eraseTel tel)
 
 renTel-erase ρ⋆ ρ Φ' []       σ tel = refl
 renTel-erase ρ⋆ ρ Φ' (A ∷ As) σ (t P., tel) = cong₂ _∷_
@@ -172,7 +173,7 @@ ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (renNf-substNf σ ρ⋆ X)
     (builtin bn (renNf ρ⋆ ∘ σ) (A.renTel ρ⋆ ρ tel)))
-  (cong (builtin bn) (renTel-erase ρ⋆ ρ Φ As σ tel))
+  (cong (builtin bn (lemma≤ bn)) (renTel-erase ρ⋆ ρ Φ As σ tel))
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 
@@ -237,7 +238,7 @@ subTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (As : List (Φ' ⊢Nf⋆ *))
   → (σ' : SubNf Φ' Φ)
   → (tel : A.Tel Γ Φ' σ' As)
-  →  eraseTel (A.substTel σ⋆ σ tel) ≡ U.subList (erase-Sub σ⋆ σ) (eraseTel tel) 
+  →  eraseTel (A.substTel σ⋆ σ tel) ≡ U.subTel (erase-Sub σ⋆ σ) (eraseTel tel) 
 subTel-erase σ⋆ σ Φ' []       σ' tel = refl
 subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t P., tel) = cong₂ _∷_
   (trans
@@ -275,7 +276,7 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (substNf-comp σ' σ⋆ X)
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
-  (cong (builtin bn) (subTel-erase σ⋆ σ Φ As σ' tel))
+  (cong (builtin bn (lemma≤ bn)) (subTel-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)

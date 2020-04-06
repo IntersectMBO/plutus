@@ -34,10 +34,10 @@ eraseTC (char c)       = char c
 eraseTC unit           = unit
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢ 
-eraseList : ∀{n}{i : Weirdℕ n} → List (ScopedTm i) → List (len i ⊢)
+eraseTel : ∀{n}{i : Weirdℕ n} → List (ScopedTm i) → List (len i ⊢)
 
-eraseList []       = []
-eraseList (t ∷ ts) = eraseTm t ∷ eraseList ts
+eraseTel []       = []
+eraseTel (t ∷ ts) = eraseTm t ∷ eraseTel ts
 
 eraseTm (` x)                = ` (eraseVar x)
 eraseTm (Λ K t)              = ƛ (weaken (eraseTm t))
@@ -46,7 +46,7 @@ eraseTm (ƛ A t)              = ƛ (eraseTm t)
 eraseTm (t · u)              = eraseTm t · eraseTm u
 eraseTm (con c)              = con (eraseTC c)
 eraseTm (error A)            = error
-eraseTm (builtin bn As ts)   = builtin bn (eraseList ts)
+eraseTm (builtin bn As ts)   = builtin bn ? (eraseTel ts)
 eraseTm (wrap pat arg t)     = eraseTm t
 eraseTm (unwrap t)           = eraseTm t
 \end{code}
