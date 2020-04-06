@@ -13,7 +13,6 @@ import           Ledger.Constraints                              (ScriptLookups 
 import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts                                  (unitRedeemer)
 import           Ledger.Typed.Scripts                            as Scripts
-import           Wallet.Emulator                                 (walletPubKey)
 
 import           Language.PlutusTx.Coordination.Contracts.PubKey (pubKeyContract)
 

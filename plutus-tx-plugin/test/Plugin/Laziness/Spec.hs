@@ -16,18 +16,20 @@ import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
 laziness :: TestNested
 laziness = testNested "Laziness" [
     goldenPir "joinError" joinErrorPir
-    , goldenEval "joinErrorEval" [ getProgram joinErrorPir, getProgram $ plc @"T" True, getProgram $ plc @"F" False]
+    , goldenEval "joinErrorEval" [ getProgram joinErrorPir, getProgram $ plc (Proxy @"T") True, getProgram $ plc (Proxy @"F") False]
     , goldenPir "lazyDepUnit" lazyDepUnit
   ]
 
 joinErrorPir :: CompiledCode PLC.DefaultUni (Bool -> Bool -> ())
-joinErrorPir = plc @"joinError" joinError
+joinErrorPir = plc (Proxy @"joinError") joinError
 
 {-# NOINLINE monoId #-}
 monoId :: Builtins.ByteString -> Builtins.ByteString
@@ -39,4 +41,4 @@ aByteString :: Builtins.ByteString
 aByteString = monoId Builtins.emptyByteString
 
 lazyDepUnit :: CompiledCode PLC.DefaultUni Builtins.ByteString
-lazyDepUnit = plc @"lazyDepUnit" aByteString
+lazyDepUnit = plc (Proxy @"lazyDepUnit") aByteString

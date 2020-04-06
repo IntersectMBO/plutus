@@ -182,7 +182,7 @@ makeByteStringLiteral bs = do
     -- The flags here are so GHC can check whether the int is in range for the current platform.
     let lenLit = GHC.mkIntExpr flags $ fromIntegral $ BS.length bs
     -- This will have type Addr#, which is right for unsafePackAddressLen
-    let bsLit = GHC.Lit (GHC.MachStr bs)
+    let bsLit = GHC.Lit (GHC.LitString bs)
     let upaled = GHC.mkCoreApps (GHC.Var upal) [lenLit, bsLit]
     let upioed = GHC.mkCoreApps (GHC.Var upio) [GHC.Type (GHC.mkTyConTy bsTc), upaled]
 
@@ -217,7 +217,7 @@ compileMarkedExprs opts markerName =
         comp = compileMarkedExprs opts markerName
         compB = compileMarkedExprsBind opts markerName
     in \case
-      GHC.App (GHC.App (GHC.App
+      GHC.App (GHC.App (GHC.App (GHC.App
                           -- function id
                           -- sometimes GHCi sticks ticks around this for some reason
                           (stripTicks -> (GHC.Var fid))
@@ -225,6 +225,7 @@ compileMarkedExprs opts markerName =
                           (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
                      -- second type argument
                      (GHC.Type codeTy))
+            _)
             -- value argument
             inner
           | markerName == GHC.idName fid -> compileCoreExpr opts (show fs_locStr) codeTy inner

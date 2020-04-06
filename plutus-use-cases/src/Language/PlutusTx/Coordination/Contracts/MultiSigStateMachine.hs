@@ -1,15 +1,15 @@
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -27,24 +27,24 @@ module Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine(
     , contract
     ) where
 
-import           Control.Lens                 (makeClassyPrisms)
-import           Ledger.Constraints           (TxConstraints)
-import qualified Ledger.Constraints           as Constraints
-import qualified Ledger.Interval              as Interval
-import           Ledger.Validation            (PendingTx, PendingTx'(..))
-import qualified Ledger.Validation            as Validation
-import qualified Ledger.Typed.Scripts         as Scripts
-import           Ledger.Value                 (Value)
-import qualified Ledger.Value                 as Value
-import           Ledger                       (PubKeyHash, pubKeyHash, Slot)
+import           Control.Lens                          (makeClassyPrisms)
+import           Ledger                                (PubKeyHash, Slot, pubKeyHash)
+import           Ledger.Constraints                    (TxConstraints)
+import qualified Ledger.Constraints                    as Constraints
+import qualified Ledger.Interval                       as Interval
+import qualified Ledger.Typed.Scripts                  as Scripts
+import           Ledger.Validation                     (PendingTx, PendingTx' (..))
+import qualified Ledger.Validation                     as Validation
+import           Ledger.Value                          (Value)
+import qualified Ledger.Value                          as Value
 
-import qualified Language.PlutusTx            as PlutusTx
 import           Language.Plutus.Contract
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, StateMachine(..), State(..), Void)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), StateMachine (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
-import           Language.PlutusTx.Prelude         hiding (Applicative (..))
+import qualified Language.PlutusTx                     as PlutusTx
+import           Language.PlutusTx.Prelude             hiding (Applicative (..))
 
-import qualified Language.PlutusCore.Universe as PLC
+import qualified Language.PlutusCore.Universe          as PLC
 
 --   $multisig
 --   The n-out-of-m multisig contract works like a joint account of

@@ -16,10 +16,9 @@ import           Control.Monad.Error.Lens (catching, throwing, throwing_)
 import           Data.Text                (Text)
 
 import           Control.Applicative      ((<|>))
-import           Language.Plutus.Contract (type (.\/), AsContractError (_ContractError), BlockchainActions, Contract,
-                                           ContractError, Endpoint, HasAwaitSlot, endpoint)
+import           Language.Plutus.Contract (AsContractError (_ContractError), ContractError, HasAwaitSlot)
 import           Playground.Contract
-import           Prelude                  (Show, pure, ($), (>>))
+import           Prelude                  (pure, ($), (>>))
 
 -- Demonstrates how to deal with errors in Plutus contracts. We define a custom
 -- error type 'MyError' with three constructors and use

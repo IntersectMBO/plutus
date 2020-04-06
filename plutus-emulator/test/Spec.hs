@@ -1,8 +1,8 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main(main) where
@@ -10,10 +10,10 @@ module Main(main) where
 
 import           Control.Lens
 import           Control.Monad              (void)
-import           Control.Monad.Trans.Except (runExcept)
+import qualified Control.Monad.Freer        as Eff
+import qualified Control.Monad.Freer.Error  as E
 import           Control.Monad.Freer.Extras
-import qualified Control.Monad.Freer.Error as E
-import qualified Control.Monad.Freer as Eff
+import           Control.Monad.Trans.Except (runExcept)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson
@@ -32,18 +32,18 @@ import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
 import qualified Hedgehog.Range             as Range
 import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.Numeric  as P
-import qualified Language.PlutusTx.Builtins as Builtins
-import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Language.PlutusTx.AssocMap as AssocMap
+import qualified Language.PlutusTx.Builtins as Builtins
+import qualified Language.PlutusTx.Numeric  as P
+import qualified Language.PlutusTx.Prelude  as PlutusTx
 import           Ledger
 import qualified Ledger.Ada                 as Ada
-import           Ledger.Generators          (Mockchain(Mockchain))
+import           Ledger.Generators          (Mockchain (Mockchain))
 import qualified Ledger.Generators          as Gen
 import qualified Ledger.Index               as Index
 import           Ledger.Typed.Scripts       (wrapValidator)
-import qualified Ledger.Value               as Value
 import           Ledger.Value               (CurrencySymbol, Value (Value))
+import qualified Ledger.Value               as Value
 import           LedgerBytes                as LedgerBytes
 import           Test.Tasty
 import           Test.Tasty.Hedgehog        (testProperty)
@@ -51,11 +51,11 @@ import           Test.Tasty.HUnit           (testCase)
 import qualified Test.Tasty.HUnit           as HUnit
 import           Wallet
 import qualified Wallet.API                 as W
+import qualified Wallet.Emulator.Chain      as Chain
+import qualified Wallet.Emulator.Generators as Gen
 import qualified Wallet.Emulator.NodeClient as NC
-import qualified Wallet.Emulator.Chain as Chain
-import qualified Wallet.Emulator.Wallet as Wallet
 import           Wallet.Emulator.Types
-import qualified Wallet.Emulator.Generators          as Gen
+import qualified Wallet.Emulator.Wallet     as Wallet
 import qualified Wallet.Graph
 
 
@@ -184,7 +184,7 @@ txnUpdateUtxo = property $ do
     Hedgehog.annotateShow (e1, e2)
     Hedgehog.assert $ case (e1, e2) of
         (Chain.TxnValidate i1, Chain.TxnValidationFail txi (Index.TxOutRefNotFound _)) -> i1 == tid && txi == tid
-        _                                                                        -> False
+        _                                                                              -> False
 
 validTrace :: Property
 validTrace = property $ do
@@ -204,7 +204,7 @@ invalidTrace = property $ do
     Hedgehog.annotateShow (_emulatorLog st)
     Hedgehog.assert (case reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
-        _                                                                     -> False)
+        _                                                                           -> False)
 
 invalidScript :: Property
 invalidScript = property $ do

@@ -1,15 +1,15 @@
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE ViewPatterns      #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
@@ -31,19 +31,19 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , token
     ) where
 
-import Control.Lens (makeClassyPrisms)
-import           Control.Monad                (void)
-import qualified Language.PlutusTx            as PlutusTx
-import           Language.PlutusTx.Prelude    hiding (check, Applicative (..))
-import           Ledger                       hiding (to)
-import           Ledger.Constraints (TxConstraints)
-import qualified Ledger.Constraints           as Constraints
-import qualified Ledger.Value                 as V
-import qualified Ledger.Typed.Scripts         as Scripts
+import           Control.Lens                          (makeClassyPrisms)
+import           Control.Monad                         (void)
+import qualified Language.PlutusTx                     as PlutusTx
+import           Language.PlutusTx.Prelude             hiding (Applicative (..), check)
+import           Ledger                                hiding (to)
+import           Ledger.Constraints                    (TxConstraints)
+import qualified Ledger.Constraints                    as Constraints
+import qualified Ledger.Typed.Scripts                  as Scripts
+import qualified Ledger.Value                          as V
 
-import qualified Data.ByteString.Lazy.Char8   as C
+import qualified Data.ByteString.Lazy.Char8            as C
 
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, State(..), Void)
+import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
@@ -72,9 +72,9 @@ data LockArgs =
 -- | Arguments for the @"guess"@ endpoint
 data GuessArgs =
     GuessArgs
-        { guessArgsOldSecret :: String
+        { guessArgsOldSecret     :: String
         -- ^ The guess
-        , guessArgsNewSecret :: String
+        , guessArgsNewSecret     :: String
         -- ^ The new secret
         , guessArgsValueTakenOut :: Value
         -- ^ How much to extract from the contract
@@ -136,7 +136,7 @@ data GameInput =
 {-# INLINABLE transition #-}
 transition :: State GameState -> GameInput -> Maybe (TxConstraints Void Void, State GameState)
 transition State{stateData=oldData, stateValue=oldValue} input = case (oldData, input) of
-    (Initialised mph tn s, ForgeToken) -> 
+    (Initialised mph tn s, ForgeToken) ->
         let constraints = Constraints.mustForgeCurrency mph tn 1 in
         Just ( constraints
              , State

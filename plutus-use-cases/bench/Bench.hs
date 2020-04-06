@@ -9,34 +9,34 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main (main) where
 
-import           Prelude                                           hiding (tail)
+import           Prelude                                               hiding (tail)
 
 import           Control.Lens.Indexed
 import           Criterion.Main
-import           Crypto.Hash                                       hiding (Context)
-import qualified Data.ByteArray                                    as BA
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import qualified Language.PlutusTx.Coordination.Contracts.PubKey   as PK
-import qualified Language.PlutusTx.Coordination.Contracts.Future as FT
+import           Crypto.Hash                                           hiding (Context)
+import qualified Data.ByteArray                                        as BA
+import qualified Data.ByteString                                       as BS
+import qualified Data.ByteString.Lazy                                  as BSL
+import qualified Language.PlutusTx.Coordination.Contracts.Future       as FT
+import qualified Language.PlutusTx.Coordination.Contracts.MultiSig     as MS
+import qualified Language.PlutusTx.Coordination.Contracts.PubKey       as PK
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TA
-import qualified Language.PlutusTx.Prelude                         as P
+import qualified Language.PlutusTx.Prelude                             as P
 import           Ledger
 import qualified Ledger.Ada                                            as Ada
-import qualified Ledger.Typed.Scripts                              as Scripts
-import qualified Ledger.Crypto                                     as Crypto
+import qualified Ledger.Crypto                                         as Crypto
+import qualified Ledger.Typed.Scripts                                  as Scripts
 import           LedgerBytes
 import           Wallet
-import           Wallet.Emulator.Types (walletPubKey, Wallet(..))
+import           Wallet.Emulator.Types                                 (Wallet (..), walletPubKey)
 
-import qualified Language.PlutusTx                                 as PlutusTx
-import qualified Language.PlutusTx.Prelude                         as PlutusTx
-import           Language.PlutusTx.Evaluation                      (unsafeEvaluateCek)
+import qualified Language.PlutusTx                                     as PlutusTx
+import           Language.PlutusTx.Evaluation                          (unsafeEvaluateCek)
+import qualified Language.PlutusTx.Prelude                             as PlutusTx
 
-import qualified Recursion                                         as Rec
-import qualified Scott                                             as Scott
-import Opt
+import           Opt
+import qualified Recursion                                             as Rec
+import qualified Scott                                                 as Scott
 
 main :: IO ()
 main = defaultMain [ functions, validators, scriptHashes ]

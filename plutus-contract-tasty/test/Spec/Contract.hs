@@ -1,29 +1,29 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests) where
 
-import           Control.Monad                         (void)
+import           Control.Monad                              (void)
 import           Control.Monad.Error.Lens
 import           Test.Tasty
 
-import           Language.Plutus.Contract              as Con
+import           Language.Plutus.Contract                   as Con
 import           Language.Plutus.Contract.Test
-import           Language.Plutus.Contract.Util         (loopM)
+import           Language.Plutus.Contract.Util              (loopM)
+import qualified Language.PlutusTx                          as PlutusTx
 import           Language.PlutusTx.Lattice
-import qualified Language.PlutusTx                     as PlutusTx
-import           Ledger                                (Address)
-import qualified Ledger.Constraints                    as Constraints
-import qualified Ledger                                as Ledger
-import qualified Ledger.Ada                            as Ada
-import qualified Ledger.Crypto                         as Crypto
-import           Prelude                               hiding (not)
-import qualified Wallet.Emulator                       as EM
+import           Ledger                                     (Address)
+import qualified Ledger                                     as Ledger
+import qualified Ledger.Ada                                 as Ada
+import qualified Ledger.Constraints                         as Constraints
+import qualified Ledger.Crypto                              as Crypto
+import           Prelude                                    hiding (not)
+import qualified Wallet.Emulator                            as EM
 
 import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
 
@@ -77,7 +77,7 @@ tests =
             (callEndpoint @"ep" w1 ())
 
         , cp "alternative"
-            (let 
+            (let
                 oneTwo = endpoint @"1" >> endpoint @"2" >> endpoint @"4"
                 oneThree = endpoint @"1" >> endpoint @"3" >> endpoint @"4"
              in oneTwo <|> oneThree)
@@ -150,7 +150,7 @@ tests =
             (handleBlockchainEvents w2)
 
         , cp "await tx confirmed"
-            (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10) 
+            (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
              in submitTx t >>= awaitTxConfirmed)
             (assertDone w1 (const True) "should be done"
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))

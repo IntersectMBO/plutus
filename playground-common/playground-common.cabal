@@ -60,7 +60,7 @@ library
         prometheus >=2,
         recursion-schemes -any,
         safe-exceptions -any,
-        servant <0.16,
+        servant >= 0.16,
         servant-client -any,
         servant-purescript -any,
         servant-server -any,

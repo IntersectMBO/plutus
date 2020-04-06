@@ -11,11 +11,11 @@
 | BApply causes ({ cpu: 52
 | mem: 52
 })
-| BVar causes ({ cpu: 26
-| mem: 26
+| BVar causes ({ cpu: 39
+| mem: 39
 })
-| BIWrap causes ({ cpu: 3
-| mem: 3
+| BIWrap causes ({ cpu: 1
+| mem: 1
 })
 | BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 3
 | mem: 3
@@ -29,7 +29,7 @@
 | BAST causes ({ cpu: 0
 | mem: 549
 })})
-| budget: ({ cpu: 106
-| mem: 655
+| budget: ({ cpu: 117
+| mem: 666
 })
 }))

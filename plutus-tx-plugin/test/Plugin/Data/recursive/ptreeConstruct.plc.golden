@@ -1,7 +1,6 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (datatypebind
       (datatype
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
@@ -11,8 +10,7 @@
       )
     )
     (let
-      (rec
-      )
+      (rec)
       (datatypebind
         (datatype
           (tyvardecl B (fun (type) (type)))
@@ -23,13 +21,9 @@
         )
       )
       [
-        {
-          Two (con integer)
-        }
+        { Two (con integer) }
         [
-          {
-            Two [[Tuple2 (con integer)] (con integer)]
-          }
+          { Two [[Tuple2 (con integer)] (con integer)] }
           [
             {
               One

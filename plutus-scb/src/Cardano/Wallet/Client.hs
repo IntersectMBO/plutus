@@ -6,7 +6,6 @@ module Cardano.Wallet.Client where
 import           Cardano.Wallet.API     (API)
 import           Cardano.Wallet.Types   (WalletId)
 import           Control.Lens
-import           Data.Function          ((&))
 import           Data.Proxy             (Proxy (Proxy))
 import           Ledger                 (Address, PubKey, TxOutRef, Value, pubKeyAddress)
 import           Ledger.AddressMap      (AddressMap, UtxoMap, fundsAt)

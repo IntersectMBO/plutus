@@ -1,7 +1,6 @@
-{-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -10,21 +9,21 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests, retrieveFundsTrace, vesting) where
 
-import qualified Data.Text as T
+import qualified Data.Text                                        as T
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                 as HUnit
 
 import           Spec.Lib                                         as Lib
 
 import qualified Language.PlutusTx                                as PlutusTx
+import           Language.PlutusTx.Coordination.Contracts.Vesting
 import           Language.PlutusTx.Lattice
 import qualified Language.PlutusTx.Numeric                        as Numeric
-import           Language.PlutusTx.Coordination.Contracts.Vesting
 import qualified Ledger
 import qualified Ledger.Ada                                       as Ada
 
 import           Language.Plutus.Contract.Test
-import           Prelude   hiding (not)
+import           Prelude                                          hiding (not)
 
 wallet1, wallet2 :: Wallet
 wallet1 = Wallet 1

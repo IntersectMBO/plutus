@@ -24,6 +24,7 @@ module Playground.Schema
     , EndpointToSchema
     ) where
 
+import           Data.Kind                                       (Type)
 import           Data.Row                                        (Empty, KnownSymbol, Label (Label))
 import           Data.Row.Internal                               (LT ((:->)), Row (R))
 import qualified Data.Text                                       as Text
@@ -34,7 +35,7 @@ import           Playground.Types                                (EndpointName (
                                                                   endpointName)
 import           Schema                                          (FormSchema, ToSchema, toSchema)
 
-class EndpointToSchema (s :: Row *) where
+class EndpointToSchema (s :: Row Type) where
     endpointsToSchemas :: [FunctionSchema FormSchema]
 
 instance EndpointToSchema Empty where

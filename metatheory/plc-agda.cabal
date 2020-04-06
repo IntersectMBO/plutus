@@ -276,7 +276,7 @@ executable plc-agda
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
 
-  build-depends:       base ^>=4.12.0.0,
+  build-depends:       base ^>=4.13.0.0,
                        bytestring -any,
                        text -any,
                        ieee754 -any,

@@ -1,11 +1,11 @@
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE ViewPatterns   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
@@ -16,15 +16,15 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Slot, PubKey, PubKeyHash, Validator)
+import           Ledger                    (PubKey, PubKeyHash, Slot, Validator)
 import qualified Ledger                    as Ledger
-import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Oracle             (Observation(..), SignedMessage)
-import qualified Ledger.Oracle             as Oracle
-import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), TxOut(..))
-import qualified Ledger.Validation         as Validation
-import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Oracle             (Observation (..), SignedMessage)
+import qualified Ledger.Oracle             as Oracle
+import qualified Ledger.Typed.Scripts      as Scripts
+import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), TxOut (..))
+import qualified Ledger.Validation         as Validation
 import           Ledger.Value              (Value)
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep

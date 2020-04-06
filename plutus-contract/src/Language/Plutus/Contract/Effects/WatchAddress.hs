@@ -18,7 +18,6 @@ import           Data.Maybe                                 (fromMaybe)
 import           Data.Row
 import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
-import           Data.Text.Prettyprint.Doc                  (Pretty)
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                               (Generic)
 import           Ledger                                     (Address, Slot, TxId, Value, txId)

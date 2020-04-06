@@ -9,7 +9,6 @@ module Main
 
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
 import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
-import           Data.Monoid              ((<>))
 import qualified Data.Text                as Text
 import           Data.Yaml                (decodeFileThrow)
 import           Git                      (gitRev)
