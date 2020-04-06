@@ -10,7 +10,6 @@ packages:
 - marlowe
 - marlowe-hspec
 - marlowe-playground-server
-- metatheory
 - plutus-ledger
 - plutus-playground-server
 - plutus-playground-lib
