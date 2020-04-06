@@ -40,7 +40,8 @@ library
     plutus-emulator -any,
     plutus-ledger,
     text,
-    wl-pprint -any
+    wl-pprint -any,
+    time
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -53,6 +54,14 @@ library
     Language.Marlowe.Util
     Language.Marlowe.Pretty
   other-modules:
+    Language.Marlowe.ACTUS.HP.BusinessEvents
+    Language.Marlowe.ACTUS.HP.ContractTerms
+    Language.Marlowe.ACTUS.HP.ContractState
+    Language.Marlowe.ACTUS.HP.Observations
+    Language.Marlowe.ACTUS.HP.Applicability
+    Language.Marlowe.ACTUS.HP.Control
+    Language.Marlowe.ACTUS.HP.POF.PAM
+
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
