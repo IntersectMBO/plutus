@@ -64,7 +64,7 @@ runPlc
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps
-    liftEither . first toException . extractEvaluationResult . evaluateCek mempty defaultCostingFunParameters $ toTerm p
+    liftEither . first toException . extractEvaluationResult . evaluateCek mempty defaultCostModel $ toTerm p
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value

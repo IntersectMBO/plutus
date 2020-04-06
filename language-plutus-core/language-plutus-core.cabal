@@ -179,6 +179,7 @@ library
         text -any,
         th-lift -any,
         th-lift-instances -any,
+        th-utilities -any,
         template-haskell -any,
         transformers -any
 

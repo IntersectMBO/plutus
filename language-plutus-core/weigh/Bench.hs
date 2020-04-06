@@ -17,8 +17,8 @@ main = do
         g' = processor g
 
     mainWith $ sequence_
-        [ func "valid" (fmap (unsafeEvaluateCek mempty defaultCostingFunParameters)) f'
-        , func "invalid" (fmap (unsafeEvaluateCek mempty defaultCostingFunParameters)) g'
+        [ func "valid" (fmap (unsafeEvaluateCek mempty defaultCostModel)) f'
+        , func "invalid" (fmap (unsafeEvaluateCek mempty defaultCostModel)) g'
         ]
 
     where evalFile0 = BSL.readFile "test/Evaluation/Golden/verifySignature.plc"

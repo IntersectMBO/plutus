@@ -120,7 +120,7 @@ applyBuiltinName
     , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
     , GShow uni, GEq uni, DefaultUni <: uni
     )
-    => CostingFunParameters -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
+    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
 applyBuiltinName params AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
 applyBuiltinName params SubtractInteger      =

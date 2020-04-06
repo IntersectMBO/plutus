@@ -128,7 +128,7 @@ runEval (EvalOptions inp mode) = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     let evalFn = case mode of
             CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
-            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty PLC.defaultCostingFunParameters
+            CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty PLC.defaultCostModel
     case evalFn . void . PLC.toTerm <$> PLC.runQuoteT (PLC.parseScoped bsContents) of
         Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
             T.putStrLn $ PLC.prettyPlcDefText errCheck

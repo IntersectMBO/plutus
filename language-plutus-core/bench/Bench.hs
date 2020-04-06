@@ -114,8 +114,8 @@ main =
                    in
 
                    bgroup "unsafeEvaluateCek"
-                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostingFunParameters . toTerm) f'
-                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostingFunParameters . toTerm) g'
+                     [ bench "valid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostModel . toTerm) f'
+                     , bench "invalid" $ nf (fmap $ unsafeEvaluateCek mempty defaultCostModel . toTerm) g'
                      ]
                 ,   bgroup "verifySignature" $
                       let verify :: BSL.ByteString -> BSL.ByteString -> BSL.ByteString -> Maybe Bool

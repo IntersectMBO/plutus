@@ -8,6 +8,8 @@ cradle:
     component: "language-plutus-core:lib"
   - path: ./language-plutus-core/common
     component: "language-plutus-core:lib"
+  - path: ./language-plutus-core/exe
+    component: "language-plutus-core:exe:plc"
   - path: ./language-plutus-core/test
     component: "language-plutus-core:language-plutus-core-test"
   - path: ./language-plutus-core/bench

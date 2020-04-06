@@ -45,7 +45,7 @@ type CkM uni = Either (CkEvaluationException uni)
 
 instance SpendBudget (CkM uni) uni where
     spendBudget _ _ _ = pure ()
-    builtinCostParams = pure defaultCostingFunParameters
+    builtinCostParams = pure defaultCostModel
 
 data Frame uni
     = FrameApplyFun (Value TyName Name uni ())                 -- ^ @[V _]@

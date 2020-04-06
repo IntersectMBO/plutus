@@ -47,7 +47,7 @@ test_machines :: TestTree
 test_machines = testGroup
     "machines"
     [ testMachine "CK" evaluateCk
-    , testMachine "CEK" $ evaluateCek mempty defaultCostingFunParameters
+    , testMachine "CEK" $ evaluateCek mempty defaultCostModel
     ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -65,7 +65,8 @@ testBudget :: TestName -> (Plain Term DefaultUni) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostingFunParameters term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+        prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostModel term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni
 bunchOfFibs =
@@ -87,7 +88,8 @@ testCounting :: TestName -> (Plain Term DefaultUni) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCekCounting mempty defaultCostingFunParameters term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+        prettyPlcReadableDef $ runCekCounting mempty defaultCostModel term)
 
 test_counting :: TestTree
 test_counting =

@@ -77,7 +77,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
     , SpendBudget(..)
-    , CostingFunParameters(..)
+    , CostModel(..)
     , CostingFunOneArgument(..)
     , CostingFunTwoArguments(..)
     , CostingFunThreeArguments(..)
@@ -117,7 +117,7 @@ data ExBudgetMode =
 
 -- This works nicely because @m@ contains @uni@ as parameter.
 class SpendBudget m uni | m -> uni where
-    builtinCostParams :: m CostingFunParameters
+    builtinCostParams :: m CostModel
     spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
 
 data ExBudgetCategory
@@ -172,8 +172,8 @@ estimateStaticStagedCost
     :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
-data CostingFunParameters =
-    CostingFunParameters
+data CostModel =
+    CostModel
     { paramAddInteger           :: CostingFunTwoArguments
     , paramSubtractInteger      :: CostingFunTwoArguments
     , paramMultiplyInteger      :: CostingFunTwoArguments
@@ -198,7 +198,10 @@ data CostingFunParameters =
     , paramIfThenElse           :: CostingFunThreeArguments
     }
     deriving (Show, Eq, Generic, Lift)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] CostingFunParameters
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] CostModel
+
+-- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
+-- TODO loglinear is currently linear
 
 data CostingFunOneArgument =
     OneArgumentConstantCost Integer

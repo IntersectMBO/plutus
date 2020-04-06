@@ -27,12 +27,12 @@ runTermBench :: String -> Plain Term DefaultUni -> Benchmark
 runTermBench name term = env
     (do
         (result, budget) <-
-          pure $ runCekCounting mempty defaultCostingFunParameters term
+          pure $ runCekCounting mempty defaultCostModel term
         -- print result
         print (budget ^. (exBudgetStateBudget.exBudgetCPU) :: ExCPU)
         pure budget
         )
-    (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostingFunParameters) term)
+    (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni
 bunchOfFibs =
@@ -68,7 +68,7 @@ calibratingBench :: Benchmark
 calibratingBench =
     env
         (pure $ mkConstant @Integer @DefaultUni () 0)
-        (\x -> bench "calibration" $ nf (unsafeEvaluateCek @DefaultUni mempty defaultCostingFunParameters) x)
+        (\x -> bench "calibration" $ nf (unsafeEvaluateCek @DefaultUni mempty defaultCostModel) x)
 
 main :: IO ()
 main = do

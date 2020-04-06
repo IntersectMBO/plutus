@@ -114,7 +114,7 @@ data CekEnv uni = CekEnv
     { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
     , _cekEnvVarEnv            :: VarEnv uni
     , _cekEnvBudgetMode        :: ExBudgetMode
-    , _cekEnvBuiltinCostParams :: CostingFunParameters
+    , _cekEnvBuiltinCostParams :: CostModel
     }
 
 makeLenses ''CekEnv
@@ -376,7 +376,7 @@ runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
     -> ExBudgetMode
-    -> CostingFunParameters
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCek means mode params term =
@@ -395,7 +395,7 @@ runCek means mode params term =
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
-    -> CostingFunParameters
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCekCounting means = runCek means Counting
@@ -404,7 +404,7 @@ runCekCounting means = runCek means Counting
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
-    -> CostingFunParameters
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) (Plain Term uni)
 evaluateCek means params = fst . runCekCounting means params
@@ -414,7 +414,7 @@ unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Typeable uni, uni `Everywhere` Pretty
        )
-    => DynamicBuiltinNameMeanings uni -> CostingFunParameters -> Plain Term uni -> EvaluationResultDef uni
+    => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
 unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params
 
 -- | Unlift a value using the CEK machine.
@@ -423,7 +423,7 @@ readKnownCek
        , KnownType uni a
        )
     => DynamicBuiltinNameMeanings uni
-    -> CostingFunParameters
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
 readKnownCek means params = evaluateCek means params >=> readKnown

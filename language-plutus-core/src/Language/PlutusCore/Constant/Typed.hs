@@ -99,6 +99,7 @@ type family FoldArgs args r where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
+-- | Calculates the parameters of the costing function for a builtin.
 type family FoldArgsEx args where
     FoldArgsEx '[]           = ExBudget
     FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args

@@ -4,12 +4,11 @@ module Data.Aeson.THReader where
 import Data.Aeson
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
-import qualified Data.ByteString.Lazy as BSL
+import TH.RelativePaths 
 
 readJSONFromFile :: (FromJSON a, Lift a) => String -> Q (TExp a)
 readJSONFromFile name = do
-    addDependentFile name
-    contents <- runIO $ BSL.readFile name
+    contents <- qReadFileLBS name
     case (eitherDecode contents) of
-        Left err -> error err
+        Left err -> fail err
         Right res -> [||res||]

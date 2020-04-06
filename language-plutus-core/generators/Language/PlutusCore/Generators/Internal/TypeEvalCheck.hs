@@ -110,7 +110,7 @@ unsafeTypeEvalCheck
        )
     => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do
-    let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostingFunParameters) termOfTbv
+    let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostModel) termOfTbv
     case errOrRes of
         Left err         -> error $ concat
             [ prettyPlcErrorString err

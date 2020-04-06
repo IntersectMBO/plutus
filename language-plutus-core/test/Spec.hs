@@ -168,7 +168,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
 evalFile contents =
     second prettyPlcDefText $
-        unsafeEvaluateCek mempty defaultCostingFunParameters . toTerm . void <$> runQuoteT (parseScoped contents)
+        unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree
 testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)
