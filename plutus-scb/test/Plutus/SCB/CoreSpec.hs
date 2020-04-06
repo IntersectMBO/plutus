@@ -11,6 +11,7 @@ import           Control.Monad                                 (void)
 import           Control.Monad.Freer                           (Eff, LastMember, Member)
 import           Control.Monad.Freer.Error                     (Error)
 import           Control.Monad.Freer.Extra.Log                 (Log)
+import qualified Control.Monad.Freer.Log                       as EmulatorLog
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Data.Aeson                                    as JSON
 import qualified Data.Set                                      as Set
@@ -160,6 +161,7 @@ lock ::
     , Member Log effs
     , Member ContractEffect effs
     , Member NodeFollowerEffect effs
+    , Member EmulatorLog.Log effs
     )
     => UUID
     -> Contracts.Game.LockParams
@@ -181,6 +183,7 @@ guess ::
     , Member Log effs
     , Member ContractEffect effs
     , Member NodeFollowerEffect effs
+    , Member EmulatorLog.Log effs
     )
     => UUID
     -> Contracts.Game.GuessParams

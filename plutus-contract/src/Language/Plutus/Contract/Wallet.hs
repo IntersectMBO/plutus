@@ -16,6 +16,7 @@ module Language.Plutus.Contract.Wallet(
 import           Control.Lens
 import           Control.Monad.Freer         (Eff, Member, Members)
 import           Control.Monad.Freer.Error   (Error)
+import           Control.Monad.Freer.Log     (Log, logDebug, logInfo)
 import           Data.Bifunctor              (second)
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
@@ -74,11 +75,11 @@ be submitted to the network, the contract backend needs to
 -- | Balance an unbalanced transaction in a 'WalletEffects' context. See note
 --   [Submitting transactions from Plutus contracts].
 balanceWallet
-    :: Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect] effs
+    :: (Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect, Log] effs)
     => UnbalancedTx
     -> Eff effs Tx
 balanceWallet utx = do
-    walletLogMsg $
+    logInfo $
         "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- ownPubKey
     outputs <- ownOutputs
@@ -108,7 +109,7 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.
 balanceTx ::
-    ( Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect] effs
+    ( Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect, Log] effs
     )
     => UtxoMap
     -- ^ Unspent transaction outputs that may be used to balance the
@@ -123,15 +124,19 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
     (neg, pos) <- Value.split <$> computeBalance unBalancedTxTx
 
     tx' <- if Value.isZero pos
-           then pure unBalancedTxTx
+           then do
+               logDebug "No outputs added"
+               pure unBalancedTxTx
            else do
-                   walletLogMsg $ "Adding public key output for " <> fromString (show pos)
+                   logDebug $ "Adding public key output for " <> fromString (show pos)
                    pure $ addOutputs pk pos unBalancedTxTx
 
     if Value.isZero neg
-    then pure tx'
+    then do
+        logDebug "No inputs added"
+        pure tx'
     else do
-        walletLogMsg $ "Adding inputs for " <> fromString (show neg)
+        logDebug $ "Adding inputs for " <> fromString (show neg)
         addInputs utxo pk neg tx'
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
@@ -164,6 +169,6 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: (Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect, NodeClientEffect] effs) => UnbalancedTx -> Eff effs Tx
+handleTx :: (Members WalletEffects effs, Member Log effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
 handleTx utx =
     balanceWallet utx >>= addSignatures (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit

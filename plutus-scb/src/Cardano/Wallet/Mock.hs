@@ -20,7 +20,6 @@ import           Control.Monad.Freer.Error       (Error, runError, throwError)
 import           Control.Monad.Freer.Extra.Log   (Log, logDebug, logInfo)
 import           Control.Monad.Freer.Extra.State (assign, modifying, use)
 import           Control.Monad.Freer.State       (State, gets)
-import           Control.Monad.Freer.Writer      (Writer, tell)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Data.Bifunctor                  (Bifunctor (..))
 import qualified Data.ByteString.Lazy            as BSL
@@ -57,7 +56,6 @@ handleWallet :: -- TODO: Merge with 'Wallet.Emulator.handleWallet'
     ( Member (State MockWalletState) effs
     , Member NodeClientEffect effs
     , Member (Error WalletAPIError) effs
-    , Member (Writer [EM.WalletEvent]) effs
     )
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
@@ -75,7 +73,6 @@ handleWallet = interpret $ \case
         Payment{paymentInputs, paymentChangeOutput} <- EM.handleUpdatePaymentWithChange args pmt
         pure (paymentInputs, paymentChangeOutput)
     WalletSlot -> W.getClientSlot
-    WalletLogMsg m -> tell [EM.WalletMsg m]
     OwnOutputs ->
         let address = pubKeyAddress (EM.walletPubKey activeWallet) in
         view (at address . non mempty) <$> gets (view watchedAddresses)

@@ -1,17 +1,13 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -24,7 +20,6 @@ module Wallet.API(
     ownPubKey,
     updatePaymentWithChange,
     walletSlot,
-    walletLogMsg,
     ownOutputs,
     NodeClientEffect,
     publishTx,
@@ -78,55 +73,24 @@ module Wallet.API(
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error
-import           Data.Aeson                (FromJSON, ToJSON)
+import           Control.Monad.Freer.Log   (Log, logWarn)
 import           Data.Foldable             (fold)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
-import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
 import           Ledger                    hiding (inputs, out, value)
 import           Ledger.AddressMap         (AddressMap)
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 import           Wallet.Effects
+import           Wallet.Emulator.Error
 
 import           Prelude                   hiding (Ordering (..))
 
--- | An error thrown by wallet interactions.
-data WalletAPIError =
-    InsufficientFunds Text
-    -- ^ There were insufficient funds to perform the desired operation.
-    | PrivateKeyNotFound PubKeyHash
-    -- ^ The private key of this public key hahs is not known to the wallet.
-    | OtherError Text
-    -- ^ Some other error occurred.
-    deriving (Show, Eq, Ord, Generic, IotsType)
-
-instance Pretty WalletAPIError where
-    pretty = \case
-        InsufficientFunds t ->
-            "Insufficient funds:" <+> pretty t
-        PrivateKeyNotFound pk ->
-            "Private key not found:" <+> viaShow pk
-        OtherError t ->
-            "Other error:" <+> pretty t
-
-instance FromJSON WalletAPIError
-instance ToJSON WalletAPIError
-
 createPaymentWithChange :: Member WalletEffect effs => Value -> Eff effs (Set.Set TxIn, Maybe TxOut)
 createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
-
-throwInsufficientFundsError :: Member (Error WalletAPIError) effs => Text -> Eff effs a
-throwInsufficientFundsError = throwError . InsufficientFunds
-
-throwOtherError :: Member (Error WalletAPIError) effs => Text -> Eff effs a
-throwOtherError = throwError . OtherError
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
@@ -192,14 +156,14 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (Member WalletEffect effs, Member NodeClientEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs) => SlotRange -> Validator -> Redeemer -> Eff effs ()
+collectFromScript :: (Members WalletEffects effs, Member Log effs) => SlotRange -> Validator -> Redeemer -> Eff effs ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
 --   'Redeemer'.
 collectFromScriptTxn ::
-    (Member WalletEffect effs, Member NodeClientEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs)
+    (Members WalletEffects effs, Member Log effs)
     => SlotRange
     -> Validator
     -> Redeemer
@@ -212,7 +176,7 @@ collectFromScriptTxn range vls red txid =
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that match a predicate, using the 'Redeemer'.
 collectFromScriptFilter ::
-    (Member WalletEffect effs, Member NodeClientEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs)
+    (Members WalletEffects effs, Member Log effs)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
@@ -299,10 +263,10 @@ intervalTo :: a -> Interval a
 intervalTo = Interval.to
 
 -- | Emit a warning if the value at an address is zero.
-warnEmptyTransaction :: (Member WalletEffect effs) => Value -> Address -> Eff effs ()
+warnEmptyTransaction :: (Member Log effs) => Value -> Address -> Eff effs ()
 warnEmptyTransaction value addr =
     when (Value.isZero value)
-        $ walletLogMsg
+        $ logWarn
         $ Text.unwords [
               "Attempting to collect transaction outputs from"
             , "'" <> Text.pack (show addr) <> "'" <> ","

@@ -41,6 +41,7 @@ import           Control.Monad.Freer.Extra.Log                 (Log, logDebug, l
 import           Control.Monad.Freer.Extra.State               (assign, use)
 import           Control.Monad.Freer.Extras                    (errorToMonadError, handleZoomedError, handleZoomedState,
                                                                 handleZoomedWriter, stateToMonadState, writeIntoState)
+import qualified Control.Monad.Freer.Log                       as EmulatorLog
 import           Control.Monad.Freer.State                     (State, runState)
 import           Control.Monad.Freer.Writer                    (Writer, runWriter)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
@@ -152,6 +153,7 @@ type TestAppEffects =
      , State ChainIndex.AppState
      , State ChainIndexState
      , State (EventMap ChainEvent)
+     , EmulatorLog.Log
      , Log
      , Writer [Wallet.Emulator.Wallet.WalletEvent]
      , Writer [Wallet.Emulator.NodeClient.NodeClientEvent]
@@ -234,6 +236,7 @@ runTestApp state =
     . interpret (handleZoomedWriter (below (walletClientEvent defaultWallet)))
     . interpret (handleZoomedWriter (below (walletEvent defaultWallet)))
     . runStderrLog
+    . interpret (handleZoomedWriter (below (walletEvent defaultWallet . Wallet.Emulator.Wallet._WalletMsg)))
     . interpret (handleZoomedState eventStore)
     . interpret (handleZoomedState (chainIndex . ChainIndex.indexState))
     . interpret (handleZoomedState chainIndex)

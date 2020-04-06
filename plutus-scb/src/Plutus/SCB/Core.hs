@@ -177,7 +177,6 @@ activateContract filePath = do
 
 updateContract ::
        ( Members EmulatedWalletEffects effs
-       , Member Log effs
        , Member (Error SCBError) effs
        , Member (EventLogEffect ChainEvent) effs
        , Member ContractEffect effs
@@ -216,7 +215,6 @@ handleContractHook ::
        ( Members EmulatedWalletEffects effs
        , Member (Error SCBError) effs
        , Member (EventLogEffect ChainEvent) effs
-       , Member Log effs
        , Member (State T) effs
        , Member NodeFollowerEffect effs
        , Member ContractEffect effs
@@ -231,7 +229,6 @@ handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook i request
 
 handleTxHook ::
        ( Members EmulatedWalletEffects effs
-       , Member Log effs
        , Member (EventLogEffect ChainEvent) effs
        )
     => UnbalancedTx
@@ -250,8 +247,7 @@ handleTxHook unbalancedTx = do
     void $ runCommand saveBalancedTxResult NodeEventSource balanceResult
 
 handleUtxoAtHook ::
-       ( Member Log effs
-       , Member (Error SCBError) effs
+       ( Member (Error SCBError) effs
        , Member (EventLogEffect ChainEvent) effs
        , Member (State T) effs
        , Members EmulatedWalletEffects effs
@@ -270,7 +266,6 @@ handleUtxoAtHook i address = do
 
 handleOwnPubKeyHook ::
        ( Member (Error SCBError) effs
-       , Member Log effs
        , Member (EventLogEffect ChainEvent) effs
        , Member (State T) effs
        , Members EmulatedWalletEffects effs
@@ -331,8 +326,7 @@ lookupActiveContractState uuid = do
 type T = (ActiveContractState, [ContractHook])
 
 invokeContractUpdate ::
-       ( Member Log effs
-       , Member (EventLogEffect ChainEvent) effs
+       ( Member (EventLogEffect ChainEvent) effs
        , Member (Error SCBError) effs
        , Member (State T) effs
        , Members EmulatedWalletEffects effs
@@ -363,7 +357,6 @@ processAllHooks ::
        , Member (Error SCBError) effs
        , Member (EventLogEffect ChainEvent) effs
        , Member (State T) effs
-       , Member Log effs
        , Member NodeFollowerEffect effs
        , Member ContractEffect effs
        )

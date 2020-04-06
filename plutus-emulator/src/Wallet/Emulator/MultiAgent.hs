@@ -21,6 +21,8 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Log        (Log)
+import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
@@ -87,6 +89,7 @@ type EmulatedWalletEffects =
          , Wallet.NodeClientEffect
          , Wallet.ChainIndexEffect
          , Wallet.SigningProcessEffect
+         , Log
          ]
 
 type EmulatedWalletControlEffects =
@@ -94,6 +97,7 @@ type EmulatedWalletControlEffects =
          , NC.NodeControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
+         , Log
         ]
 
 -- | The type of actions in the emulator.
@@ -222,12 +226,13 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd5
+        & raiseEnd6
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
+        & interpret (handleZoomedWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
@@ -243,12 +248,15 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
+            p4 = below (walletEvent wallet . Wallet._WalletMsg)
     WalletControlAction wallet act -> act
-        & raiseEnd4
+        & raiseEnd5
         & subsume
         & NC.handleNodeControl
         & ChainIndex.handleChainIndexControl
         & SP.handleSigningProcessControl
+        & interpret (handleZoomedWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
@@ -264,7 +272,8 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
-
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
+            p4 = below (walletEvent wallet . Wallet._WalletMsg)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.

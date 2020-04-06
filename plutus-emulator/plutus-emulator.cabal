@@ -41,11 +41,11 @@ library
         Wallet.Emulator.Generators
         Wallet.Emulator.Chain
         Wallet.Emulator.ChainIndex
+        Wallet.Emulator.Error
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.SigningProcess
         Wallet.Emulator.Wallet
-        Wallet.Emulator.Diagnostics
         Wallet.Rollup
         Wallet.Rollup.Types
         Wallet.Rollup.Render
@@ -54,6 +54,7 @@ library
         Wallet.Effects
         Wallet.Graph
         Control.Monad.Freer.Extras
+        Control.Monad.Freer.Log
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:

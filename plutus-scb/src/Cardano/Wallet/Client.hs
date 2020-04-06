@@ -9,23 +9,21 @@
 
 module Cardano.Wallet.Client where
 
-import           Cardano.Wallet.API         (API)
-import           Cardano.Wallet.Types       (WalletId)
+import           Cardano.Wallet.API        (API)
+import           Cardano.Wallet.Types      (WalletId)
 import           Control.Lens
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error  (Error, throwError)
-import           Control.Monad.Freer.Writer (Writer, tell)
-import           Control.Monad.IO.Class     (MonadIO (..))
-import           Data.Proxy                 (Proxy (Proxy))
-import           Ledger                     (Address, PubKey, TxOutRef, Value, pubKeyAddress)
-import           Ledger.AddressMap          (AddressMap, UtxoMap, fundsAt)
-import           Servant                    (NoContent)
-import           Servant.Client             (ClientEnv, ClientM, ClientError, client, runClientM)
-import           Servant.Extra              (left, right)
-import           Wallet.API                 (WalletAPIError)
-import           Wallet.Effects             (NodeClientEffect, WalletEffect (..), getClientSlot, publishTx)
-import           Wallet.Emulator.Wallet     (Payment (..), PaymentArgs (..), Wallet, WalletEvent (..),
-                                             handleUpdatePaymentWithChange)
+import           Control.Monad.Freer.Error (Error, throwError)
+import           Control.Monad.IO.Class    (MonadIO (..))
+import           Data.Proxy                (Proxy (Proxy))
+import           Ledger                    (Address, PubKey, TxOutRef, Value, pubKeyAddress)
+import           Ledger.AddressMap         (AddressMap, UtxoMap, fundsAt)
+import           Servant                   (NoContent)
+import           Servant.Client            (ClientEnv, ClientM, ClientError, client, runClientM)
+import           Servant.Extra             (left, right)
+import           Wallet.API                (WalletAPIError)
+import           Wallet.Effects            (NodeClientEffect, WalletEffect (..), getClientSlot, publishTx)
+import           Wallet.Emulator.Wallet    (Payment (..), PaymentArgs (..), Wallet, handleUpdatePaymentWithChange)
 
 selectCoins :: WalletId -> Value -> ClientM ([(TxOutRef, Value)], Value)
 allocateAddress :: WalletId -> ClientM PubKey
@@ -66,7 +64,6 @@ handleWalletClient ::
   , Member NodeClientEffect effs
   , Member (Error WalletAPIError) effs
   , Member (Error ClientError) effs
-  , Member (Writer [WalletEvent]) effs
   )
   => ClientEnv
   -> Eff (WalletEffect ': effs)
@@ -92,7 +89,6 @@ handleWalletClient clientEnv =
             Payment{paymentInputs, paymentChangeOutput} <- handleUpdatePaymentWithChange args pmt
             pure (paymentInputs, paymentChangeOutput)
         WalletSlot -> getClientSlot
-        WalletLogMsg msg -> tell [WalletMsg msg]
         OwnOutputs -> do
             pubK <- runClient getOwnPubKey
             let ownAddress = pubKeyAddress pubK

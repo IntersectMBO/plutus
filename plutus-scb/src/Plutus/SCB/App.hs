@@ -95,29 +95,7 @@ runAppBackend ::
     , MonadUnliftIO m
     )
     => Env
-    -> Eff
-        '[ GenRandomTx
-         , NodeFollowerEffect
-         , Error ClientError
-         , WalletEffect
-         , Error WalletAPIError
-         , Error ClientError
-         , NodeClientEffect
-         , Error ClientError
-         , SigningProcessEffect
-         , Error ClientError
-         , UUIDEffect
-         , ContractEffect
-         , ChainIndexEffect
-         , Error ClientError
-         , EventLogEffect ChainEvent
-         , Error SCBError
-         , Writer [Wallet.Emulator.Wallet.WalletEvent]
-         , Log
-         , Reader Connection
-         , Reader Env
-         , m
-         ] a
+    -> Eff (AppBackend m) a
     -> m (Either SCBError a)
 runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcessEnv, chainIndexEnv} =
     runM

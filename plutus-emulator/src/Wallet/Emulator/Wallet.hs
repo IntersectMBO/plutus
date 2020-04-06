@@ -18,6 +18,7 @@ module Wallet.Emulator.Wallet where
 import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Log    (LogMessage)
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.Writer
 import           Control.Newtype.Generics   (Newtype)
@@ -70,13 +71,15 @@ walletAddress = pubKeyAddress . walletPubKey
 signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
 
-data WalletEvent = WalletMsg T.Text
+data WalletEvent = WalletMsg LogMessage
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WalletEvent where
     pretty = \case
         WalletMsg msg -> "WalletMsg:" <+> pretty msg
+
+makePrisms ''WalletEvent
 
 -- | The state used by the mock wallet environment.
 data WalletState = WalletState {
@@ -179,7 +182,6 @@ handleWallet = interpret $ \case
         Payment{paymentInputs, paymentChangeOutput} <- handleUpdatePaymentWithChange args pmt
         pure (paymentInputs, paymentChangeOutput)
     WalletSlot -> W.getClientSlot
-    WalletLogMsg m -> tell [WalletMsg m]
     OwnOutputs -> do
         addr <- gets ownAddress
         view (at addr . non mempty) <$> W.watchedAddresses
