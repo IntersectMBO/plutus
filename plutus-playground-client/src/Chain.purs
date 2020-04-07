@@ -106,9 +106,9 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 
-emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg (LogMessage info))) =
+emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg (LogMessage { logMessageText }))) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> info ]
+    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String
