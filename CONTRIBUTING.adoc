@@ -106,6 +106,8 @@ order:
 . Update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
 . Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
+. If the package is from a newer hackage, use `nix-shell -p niv --run "niv update haskell.nix"`
+to update the hackage index.
 
 === Code style
 
