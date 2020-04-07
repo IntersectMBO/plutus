@@ -33,6 +33,8 @@ data EventLogEffect event r where
     RunCommand :: Aggregate state event command -> Source -> command -> EventLogEffect event [event]
 makeEffect ''EventLogEffect
 
+-- | A handler for 'EventLogEffect' that uses an 'M.EventMap'
+--   as the event store (in-memory)
 handleEventLogState ::
     forall effs event.
     ( Member (State (M.EventMap event)) effs)
@@ -50,7 +52,9 @@ handleEventLogState = interpret $ \case
             (toUUID source)
             command
 
-handleEventLog ::
+-- | A handler for 'EventLogEffect' that uses a SQL connection
+--   as the event store (remote)
+handleEventLogSql ::
     forall effs event m.
     ( Member (Reader Connection) effs
     , LastMember m effs
@@ -60,7 +64,7 @@ handleEventLog ::
     , Unlift.MonadUnliftIO m
     )
     => Eff (EventLogEffect event ': effs) ~> Eff effs
-handleEventLog = interpret $ \case
+handleEventLogSql = interpret $ \case
     RefreshProjection projection -> do
         (Connection (sqlConfig, connectionPool)) <- ask
         sendM $ do

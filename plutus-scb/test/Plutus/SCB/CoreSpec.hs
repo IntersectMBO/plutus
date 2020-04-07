@@ -144,9 +144,7 @@ assertTxCount ::
     -> Int
     -> Eff effs ()
 assertTxCount msg expected = do
-    txs <-
-        streamProjectionState <$>
-        refreshProjection (globalStreamProjection txHistoryProjection)
+    txs <- runGlobalQuery txHistoryProjection
     liftIO $ assertEqual msg expected $ length txs
 
 lock ::

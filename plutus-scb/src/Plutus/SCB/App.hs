@@ -41,7 +41,7 @@ import           Network.HTTP.Client           (defaultManagerSettings, newManag
 import           Plutus.SCB.Core               (Connection (Connection), ContractCommand (InitContract, UpdateContract),
                                                 dbConnect)
 import           Plutus.SCB.Effects.Contract   (ContractEffect (..))
-import           Plutus.SCB.Effects.EventLog   (EventLogEffect (..), handleEventLog)
+import           Plutus.SCB.Effects.EventLog   (EventLogEffect (..), handleEventLogSql)
 import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events             (ChainEvent)
 import           Plutus.SCB.Types              (Config (Config), SCBError (..), chainIndexConfig, dbConfig,
@@ -104,7 +104,7 @@ runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcess
     . runStderrLog
     . writeToLog
     . runError
-    . handleEventLog
+    . handleEventLogSql
     . flip handleError (throwError . ChainIndexError)
     . handleChainIndexClient chainIndexEnv
     . handleContractEffectApp

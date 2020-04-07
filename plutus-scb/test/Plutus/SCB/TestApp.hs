@@ -68,7 +68,7 @@ import qualified Ledger.AddressMap                             as AM
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect (..))
-import           Plutus.SCB.Effects.EventLog                   (EventLogEffect, handleEventLog, handleEventLogState)
+import           Plutus.SCB.Effects.EventLog                   (EventLogEffect, handleEventLogSql, handleEventLogState)
 import           Plutus.SCB.Effects.UUID                       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                             (ChainEvent)
 import           Plutus.SCB.Query                              (pureProjection)
