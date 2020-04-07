@@ -32,7 +32,6 @@ import           Language.Marlowe
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     hiding (Value)
 import           Ledger.Ada                 (adaValueOf)
-import           Ledger.Crypto              (PubKey (..))
 import qualified Ledger.Generators          as Gen
 import qualified Ledger.Value               as Val
 import           Spec.Marlowe.Common
