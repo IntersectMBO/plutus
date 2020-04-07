@@ -102,39 +102,33 @@ type EmulatedWalletControlEffects =
 
 {- Note [Control effects]
 
-Plutus contracts interact with the outside world using a number of different 
+Plutus contracts interact with the outside world through a number of different 
 effects. These effects are captured in 'EmulatedWalletEffects'. They are 
 supposed to be a realistic representation of the capabilities that contracts 
 will have in the real world, when the system is released.
-
-When testing contracts in the emulator, we need to handle the emulated wallet 
-effects. To that end we have an emulated (mock) implementation of each effect. 
-For example, the 'Wallet.WalletEffect' is handled by an emulated wallet, 
-defined in 'Wallet.handleWallet'. The handler for 'Wallet.NodeClientEffect' is
-'NC.handleNodeClient'. The handlers for 'EmulatedWalletEffects' operate on 
-their own pieces of state which, when taken together, make up the overall state 
-of the emulator. Contracts using 'EmulatedWalletEffects' are one way the 
-emulator state can change.
 
 In the tests we often want to simulate events that happened "outside of the 
 contract". For example: A new block is added to the chain, or a user takes the 
 transaction and emails it to another person to sign, before sending it to the 
 node. These kinds of events cannot be expressed in 'EmulatedWalletEffects',
-because it would make the effects unrealistic - Plutus contracts in the real 
-world will not have the power to decide when a new block gets added to the 
-chain, or to control who adds their signature to a transaction.
+because it would make the emulated wallet effects unrealistic - Plutus
+contracts in the real world will not have the power to decide when a new block
+gets added to the chain, or to control who adds their signature to a
+transaction.
 
-But in our unit tests for contracts we, the contract authors, would very much
-like to be to have this power, at least in the emulated world. That is why there
-is a second list of emulator effects: 'EmulatedWalletControlEffects' are the
-of effects that only make sense in the emulator, but not in the real world. With
-'EmulatedWalletControlEffects' we can control the blockchain and the lines of
-communication between the emulated components.
+But in the emulated world of our unit tests we, the contract authors, would very
+much like to have this power. That is why there is a second list of emulator
+effects: 'EmulatedWalletControlEffects' are the of effects that only make sense
+in the emulator, but not in the real world. With 'EmulatedWalletControlEffects'
+we can control the blockchain and the lines of communication between the
+emulated components.
 
 By being clear about which of our (ie. the contract authors) actions
 require the full power of 'EmulatedWalletControlEffects', we can be more 
 confident that our contracts will run in the real world, and not just in the 
-test environment.
+test environment. That is why there are two similar but different constructors
+for 'MultiAgentEffect': 'WalletAction' is used for things that we will be able 
+to do in the real world, and 'WalletControlAction' is for everything else.
 
 -}
 
@@ -143,7 +137,7 @@ data MultiAgentEffect r where
     -- | A direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
     WalletAction :: Wallet.Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
-    -- | An action affecting the emulated parts of a wallet (only available in emulator)
+    -- | An action affecting the emulated parts of a wallet (only available in emulator - see note [Control effects].)
     WalletControlAction :: Wallet.Wallet -> Eff EmulatedWalletControlEffects r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
