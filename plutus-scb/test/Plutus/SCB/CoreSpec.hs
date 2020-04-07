@@ -147,8 +147,7 @@ assertTxCount msg expected = do
     txs <- runGlobalQuery txHistoryProjection
     liftIO $ assertEqual msg expected $ length txs
 
-lock ::
-    ( Members
+type SpecEffects = 
         '[Error WalletAPIError
         , Error SCBError
         , EventLogEffect ChainEvent
@@ -159,7 +158,10 @@ lock ::
         , ContractEffect
         , NodeFollowerEffect
         , EmulatorLog.Log
-        ] effs
+        ]
+
+lock ::
+    ( Members SpecEffects effs
     , Members WalletEffects effs
     )
     => UUID
@@ -169,18 +171,7 @@ lock uuid params =
     updateContract uuid "lock" (toJSON params)
 
 guess ::
-    ( Members
-        '[Error WalletAPIError
-        , Error SCBError
-        , EventLogEffect ChainEvent
-        , NodeControlEffect
-        , ChainIndexControlEffect
-        , SigningProcessControlEffect
-        , Log
-        , ContractEffect
-        , NodeFollowerEffect
-        , EmulatorLog.Log
-        ] effs
+    ( Members SpecEffects effs
     , Members WalletEffects effs
     )
     => UUID
