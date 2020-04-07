@@ -93,7 +93,7 @@ type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [BlockValidated] -> Eff.Eff effs ()
-walletRecvBlocks w nots = void $ walletControlAction w (mapM_ go nots) where
+walletRecvBlocks w nots = void $ walletControlAction w (traverse_ go nots) where
     go noti = clientNotify noti >> chainIndexNotify noti
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.

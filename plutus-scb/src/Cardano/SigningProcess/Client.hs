@@ -15,7 +15,7 @@ import           Control.Monad.Freer.Error  (Error, throwError)
 import           Control.Monad.IO.Class     (MonadIO (..))
 import           Data.Proxy                 (Proxy (Proxy))
 import           Ledger                     (PubKeyHash, Tx)
-import           Servant.Client             (ClientEnv, ClientM, ClientError, client, runClientM)
+import           Servant.Client             (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects             (SigningProcessEffect (..))
 
 addSignatures :: [PubKeyHash] -> Tx -> ClientM Tx

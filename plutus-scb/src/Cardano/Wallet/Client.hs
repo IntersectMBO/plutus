@@ -19,7 +19,7 @@ import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Address, PubKey, TxOutRef, Value, pubKeyAddress)
 import           Ledger.AddressMap         (AddressMap, UtxoMap, fundsAt)
 import           Servant                   (NoContent)
-import           Servant.Client            (ClientEnv, ClientM, ClientError, client, runClientM)
+import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Servant.Extra             (left, right)
 import           Wallet.API                (WalletAPIError)
 import           Wallet.Effects            (NodeClientEffect, WalletEffect (..), getClientSlot, publishTx)
@@ -61,9 +61,7 @@ handleWalletClient ::
   forall m effs.
   ( LastMember m effs
   , MonadIO m
-  , Member NodeClientEffect effs
-  , Member (Error WalletAPIError) effs
-  , Member (Error ClientError) effs
+  , Members '[NodeClientEffect, Error WalletAPIError, Error ClientError] effs
   )
   => ClientEnv
   -> Eff (WalletEffect ': effs)

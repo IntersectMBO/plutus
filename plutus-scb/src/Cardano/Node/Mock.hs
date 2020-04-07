@@ -12,7 +12,7 @@ import           Control.Concurrent            (threadDelay)
 import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                  (over, set, view)
 import           Control.Monad                 (forever, void)
-import           Control.Monad.Freer           (Eff, Member, interpret, runM)
+import           Control.Monad.Freer           (Eff, Member, Members, interpret, runM)
 import           Control.Monad.Freer.Extras    (handleZoomedState)
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
@@ -48,13 +48,13 @@ healthcheck = pure NoContent
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
-addBlock :: (Member Log effs, Member ChainEffect effs) => Eff effs ()
+addBlock :: (Members '[Log, ChainEffect] effs) => Eff effs ()
 addBlock = do
     logInfo "Adding slot"
     void Chain.processBlock
 
 getBlocksSince ::
-       (Member ChainEffect effs, Member (State ChainState) effs)
+       (Members '[ChainEffect, State ChainState] effs)
     => Slot
     -> Eff effs [Block]
 getBlocksSince (Slot slotNumber) = do
@@ -71,7 +71,7 @@ consumeEventHistory stateVar =
         putMVar stateVar newState
         pure events
 
-addTx :: (Member Log effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
+addTx :: (Members '[Log, ChainEffect] effs) => Tx -> Eff effs NoContent
 addTx tx = do
     logInfo $ "Adding tx " <> tshow (Ledger.txId tx)
     logDebug $ tshow (pretty tx)

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -8,7 +9,7 @@ module Plutus.SCB.CoreSpec
 
 import           Cardano.Node.Follower                         (NodeFollowerEffect)
 import           Control.Monad                                 (void)
-import           Control.Monad.Freer                           (Eff, LastMember, Member)
+import           Control.Monad.Freer                           (Eff, LastMember, Member, Members)
 import           Control.Monad.Freer.Error                     (Error)
 import           Control.Monad.Freer.Extra.Log                 (Log)
 import qualified Control.Monad.Freer.Log                       as EmulatorLog
@@ -32,6 +33,7 @@ import           Test.Tasty.HUnit                              (HasCallStack, as
 import           Wallet.API                                    (ChainIndexEffect, NodeClientEffect,
                                                                 SigningProcessEffect, WalletAPIError, WalletEffect,
                                                                 ownPubKey)
+import           Wallet.Effects                                (WalletEffects)
 import qualified Wallet.Emulator.Chain                         as Chain
 import           Wallet.Emulator.ChainIndex                    (ChainIndexControlEffect)
 import           Wallet.Emulator.NodeClient                    (NodeControlEffect)
@@ -148,20 +150,19 @@ assertTxCount msg expected = do
     liftIO $ assertEqual msg expected $ length txs
 
 lock ::
-    ( Member (Error WalletAPIError) effs
-    , Member (Error SCBError) effs
-    , Member (EventLogEffect ChainEvent) effs
-    , Member WalletEffect effs
-    , Member ChainIndexEffect effs
-    , Member NodeClientEffect effs
-    , Member SigningProcessEffect effs
-    , Member NodeControlEffect effs
-    , Member ChainIndexControlEffect effs
-    , Member SigningProcessControlEffect effs
-    , Member Log effs
-    , Member ContractEffect effs
-    , Member NodeFollowerEffect effs
-    , Member EmulatorLog.Log effs
+    ( Members
+        '[Error WalletAPIError
+        , Error SCBError
+        , EventLogEffect ChainEvent
+        , NodeControlEffect
+        , ChainIndexControlEffect
+        , SigningProcessControlEffect
+        , Log
+        , ContractEffect
+        , NodeFollowerEffect
+        , EmulatorLog.Log
+        ] effs
+    , Members WalletEffects effs
     )
     => UUID
     -> Contracts.Game.LockParams
@@ -170,20 +171,19 @@ lock uuid params =
     updateContract uuid "lock" (toJSON params)
 
 guess ::
-    ( Member (Error WalletAPIError) effs
-    , Member (Error SCBError) effs
-    , Member (EventLogEffect ChainEvent) effs
-    , Member WalletEffect effs
-    , Member ChainIndexEffect effs
-    , Member NodeClientEffect effs
-    , Member SigningProcessEffect effs
-    , Member NodeControlEffect effs
-    , Member ChainIndexControlEffect effs
-    , Member SigningProcessControlEffect effs
-    , Member Log effs
-    , Member ContractEffect effs
-    , Member NodeFollowerEffect effs
-    , Member EmulatorLog.Log effs
+    ( Members
+        '[Error WalletAPIError
+        , Error SCBError
+        , EventLogEffect ChainEvent
+        , NodeControlEffect
+        , ChainIndexControlEffect
+        , SigningProcessControlEffect
+        , Log
+        , ContractEffect
+        , NodeFollowerEffect
+        , EmulatorLog.Log
+        ] effs
+    , Members WalletEffects effs
     )
     => UUID
     -> Contracts.Game.GuessParams

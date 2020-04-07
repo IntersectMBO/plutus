@@ -18,7 +18,7 @@ import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Address)
 import           Ledger.AddressMap         (AddressMap)
 import           Servant                   ((:<|>) (..), NoContent)
-import           Servant.Client            (ClientEnv, ClientM, ClientError, client, runClientM)
+import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 
 import           Wallet.Effects            (ChainIndexEffect (..))
 

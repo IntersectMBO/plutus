@@ -53,9 +53,7 @@ makeLenses 'MockWalletState
 handleWallet :: -- TODO: Merge with 'Wallet.Emulator.handleWallet'
                 --       (the 'MockWalletState' and 'WalletState' types are
                 --        different)
-    ( Member (State MockWalletState) effs
-    , Member NodeClientEffect effs
-    , Member (Error WalletAPIError) effs
+    ( Members '[State MockWalletState, NodeClientEffect, Error WalletAPIError] effs
     )
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
@@ -100,8 +98,7 @@ fromWalletAPIError (OtherError text) =
     err500 {errBody = BSL.fromStrict $ encodeUtf8 text}
 
 valueAt ::
-    ( Member Log effs
-    , Member (State MockWalletState) effs
+    ( Members [Log, State MockWalletState] effs
     )
     => Address
     -> Eff effs Value
@@ -112,9 +109,7 @@ valueAt address = do
     pure value
 
 selectCoin ::
-    ( Member Log effs
-    , Member (State MockWalletState) effs
-    , Member (Error ServerError) effs
+    ( Members '[Log, State MockWalletState, Error ServerError] effs
     )
     => WalletId
     -> Value
@@ -153,8 +148,7 @@ activeWallet :: Wallet
 activeWallet = Wallet 1
 
 getWatchedAddresses ::
-    ( Member Log effs
-    , Member (State MockWalletState) effs
+    ( Members '[Log, State MockWalletState] effs
     )
     => Eff effs AddressMap
 getWatchedAddresses = do
@@ -162,8 +156,7 @@ getWatchedAddresses = do
     use watchedAddresses
 
 startWatching ::
-    ( Member Log effs
-    , Member (State MockWalletState) effs
+    ( Members '[Log, State MockWalletState] effs
     )
     => Address
     -> Eff effs NoContent
@@ -175,9 +168,7 @@ startWatching address = do
 ------------------------------------------------------------
 -- | Synchronise the initial state.
 syncState ::
-    ( Member Log effs
-    , Member NodeFollowerEffect effs
-    , Member (State MockWalletState) effs
+    ( Members '[Log, NodeFollowerEffect, State MockWalletState] effs
     )
     => Eff effs ()
 syncState = do
@@ -191,9 +182,7 @@ syncState = do
     logDebug "Synchronized"
 
 getFollowerID ::
-    ( Member Log effs
-    , Member NodeFollowerEffect effs
-    , Member (State MockWalletState) effs
+    ( Members '[Log, NodeFollowerEffect, State MockWalletState] effs
     )
     => Eff effs FollowerID
 getFollowerID =

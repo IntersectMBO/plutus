@@ -84,10 +84,7 @@ watchedAddresses = WalletEffects.watchedAddresses
 -- | Update the chain index by asking the node for new blocks since the last
 --   time.
 syncState ::
-    ( Member (State AppState) effs
-    , Member Log effs
-    , Member NodeFollowerEffect effs
-    , Member ChainIndexControlEffect effs
+    ( Members '[State AppState, Log, NodeFollowerEffect, ChainIndexControlEffect] effs
     )
     => Eff effs ()
 syncState = do

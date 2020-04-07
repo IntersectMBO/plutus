@@ -20,7 +20,7 @@ import           Control.Monad.IO.Class
 import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Block, Slot, Tx)
 import           Servant                   ((:<|>) (..), NoContent)
-import           Servant.Client            (ClientEnv, ClientM, ClientError, client, runClientM)
+import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 import           Wallet.Effects            (NodeClientEffect (..))
 import           Wallet.Emulator.Chain     (ChainEvent)
 
