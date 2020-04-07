@@ -73,7 +73,6 @@ createContract params contract = do
     from 'tx' with 'MarloweData' data script.
  -}
 deposit :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs,
     Member (Error WalletAPIError) effs
@@ -92,7 +91,6 @@ deposit tx params marloweData accountId token amount = do
 
 {-| Notify a contract -}
 notify :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs,
     Member (Error WalletAPIError) effs
@@ -106,7 +104,6 @@ notify tx params marloweData = applyInputs tx params marloweData [INotify]
 
 {-| Make a 'choice' identified as 'choiceId'. -}
 makeChoice :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs,
     Member (Error WalletAPIError) effs
@@ -134,7 +131,6 @@ makeChoice tx params marloweData choiceId choice =
     Then, after slot 200, one can evaluate again to claim the payment.
 -}
 makeProgress :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs,
     Member (Error WalletAPIError) effs
