@@ -30,7 +30,8 @@ import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 
-{- This version of the lexer relaxes the syntax so that keywords (con,
+{- Note [Keywords]
+   This version of the lexer relaxes the syntax so that keywords (con,
    lam, ...) and built in names can be re-used as variable names.  The
    Plutus compiler produces code with such names: for example, the
    builtin `addInteger` is always called via a variable of the same
@@ -76,7 +77,8 @@ tokens :-
     "--".*                   ;
     "{-"                     { \_ _ -> nested_comment }
 
-    -- Keywords: we only expect these after '('; elsewhere they can be used freely as identifiers 
+    -- Keywords: we only expect these after '('; elsewhere they can be
+    -- used freely as identifiers: see Note [Keywords].
     <kwd> abs            { mkKeyword KwAbs         `andBegin` 0 } 
     <kwd> lam            { mkKeyword KwLam         `andBegin` 0 }
     <kwd> ifix           { mkKeyword KwIFix        `andBegin` 0 }
