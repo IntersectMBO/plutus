@@ -43,7 +43,6 @@ import           Wallet.Effects
     Uses wallet public key to generate a unique script address.
  -}
 createContract :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs
     )
@@ -152,7 +151,6 @@ makeProgress tx params marloweData = applyInputs tx params marloweData []
     One can only apply an input that's expected from his/her PubKey.
 -}
 applyInputs :: (
-    Member NodeClientEffect effs,
     Member WalletEffect effs,
     Member SigningProcessEffect effs,
     Member (Error WalletAPIError) effs
