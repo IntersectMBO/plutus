@@ -61,13 +61,11 @@ module Language.Plutus.Contract.Trace
 
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
-import           Control.Monad                                     (void, when, (>=>))
 import           Control.Monad.Except
 import qualified Control.Monad.Freer                               as Eff
 import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
-import           Control.Monad.Trans.Class                         (lift)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)

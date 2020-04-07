@@ -96,8 +96,9 @@ defSccs tds =
         keySccs = AM.scc (AM.fromAdjacencySets perKeyDeps)
     -- the graph made by 'scc' is guaranteed to be acyclic
     in case AM.topSort keySccs of
-        Just sorted -> sorted
-        Nothing     -> error "No topological sort of SCC graph"
+        Right sorted -> sorted
+        -- TODO: report cycle
+        Left _       -> error "No topological sort of SCC graph"
 
 wrapWithDefs
     :: Ord key

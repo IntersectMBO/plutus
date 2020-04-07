@@ -47,13 +47,11 @@ import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
-import           Language.PlutusTx.List     (length)
 import           Language.PlutusTx.Prelude  hiding ((<>))
 import           Language.PlutusTx.Ratio    (denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (Datum (..))
-import           Ledger.Tx                  (TxOut (..), TxOutType (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol, TokenName)
 import qualified Ledger.Value               as Val

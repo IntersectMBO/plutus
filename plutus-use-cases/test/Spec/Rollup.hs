@@ -12,7 +12,6 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Trace
 import           Ledger                                                (pubKeyHash)
 
-import           Language.Plutus.Contract.Request                      (ContractRow)
 import           Language.PlutusTx.Coordination.Contracts.Crowdfunding
 import           Language.PlutusTx.Coordination.Contracts.Game
 import           Language.PlutusTx.Coordination.Contracts.Vesting

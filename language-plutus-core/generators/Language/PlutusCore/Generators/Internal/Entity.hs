@@ -42,7 +42,6 @@ import           Language.PlutusCore.View
 
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Class                               (lift)
 import qualified Data.ByteString.Lazy                                    as BSL
 import qualified Data.Dependent.Map                                      as DMap
 import           Data.Functor.Compose

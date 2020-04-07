@@ -16,6 +16,7 @@ import           Language.PlutusIR.Parser
 
 import           Hedgehog                         hiding (Var)
 import qualified Hedgehog.Gen                     as Gen
+import qualified Hedgehog.Internal.Gen            as Gen
 import qualified Hedgehog.Range                   as Range
 
 import           Test.Tasty
@@ -29,7 +30,7 @@ whitespace :: MonadGen m => m String
 whitespace = flip replicate ' ' <$> Gen.integral (Range.linear 1 4)
 
 lineComment :: MonadGen m => m String
-lineComment = (Gen.string (Range.linear 0 20) $ Gen.filter (/= '\n') Gen.latin1)
+lineComment = (Gen.string (Range.linear 0 20) $ Gen.filterT (/= '\n') Gen.latin1)
               >>= (\s -> return $ " --" ++ s ++ "\n")
 
 blockComment :: MonadGen m => m String

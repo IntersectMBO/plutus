@@ -29,7 +29,7 @@ import           Ledger.AddressMap              (AddressMap, UtxoMap, addAddress
 import qualified Ledger.AddressMap              as AddressMap
 import           Plutus.SCB.Arbitrary           ()
 import           Plutus.SCB.Utils               (tshow)
-import           Servant                        (NoContent (NoContent), ServantErr, err401, err404, err500, errBody)
+import           Servant                        (NoContent (NoContent), ServerError, err401, err404, err500, errBody)
 import           Test.QuickCheck                (arbitrary, generate)
 import           Wallet.API                     (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
 import           Wallet.Emulator.Wallet         (Wallet (Wallet))
@@ -58,7 +58,7 @@ wallets = do
     logInfoN "wallets"
     pure allWallets
 
-fromWalletAPIError :: WalletAPIError -> ServantErr
+fromWalletAPIError :: WalletAPIError -> ServerError
 fromWalletAPIError (InsufficientFunds text) =
     err401 {errBody = BSL.fromStrict $ encodeUtf8 text}
 fromWalletAPIError err@(PrivateKeyNotFound _) =
@@ -74,7 +74,7 @@ valueAt address = do
     pure value
 
 selectCoin ::
-       (MonadLogger m, MonadState State m, MonadError ServantErr m)
+       (MonadLogger m, MonadState State m, MonadError ServerError m)
     => WalletId
     -> Value
     -> m ([(TxOutRef, Value)], Value)

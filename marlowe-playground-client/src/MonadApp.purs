@@ -22,6 +22,8 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
+import Data.String (codePointFromChar)
+import Data.String as String
 import Data.Tuple (Tuple(..), fst)
 import Editor as Editor
 import Effect.Aff.Class (class MonadAff)
@@ -135,9 +137,23 @@ instance monadAppHalogenApp ::
   marloweEditorSetMarkers markers = do
     let
       warnings = filter (\{ severity } -> isWarning severity) markers
+
+      trimHoles =
+        map
+          ( \marker ->
+              let
+                trimmedMessage =
+                  if String.take 6 marker.source == "Hole: " then
+                    String.takeWhile (\c -> c /= codePointFromChar '\n') marker.message
+                  else
+                    marker.message
+              in
+                marker { message = trimmedMessage }
+          )
+          warnings
     let
       errors = filter (\{ severity } -> isError severity) markers
-    assign (_marloweState <<< _Head <<< _editorWarnings) warnings
+    assign (_marloweState <<< _Head <<< _editorWarnings) trimHoles
     assign (_marloweState <<< _Head <<< _editorErrors) errors
     pure unit
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event

@@ -81,7 +81,7 @@ import           Ledger.Index                                    (ValidationErro
 import           Ledger.Slot                                     (Slot)
 import           Ledger.TxId                                     (TxId)
 import           Ledger.Value                                    (Value)
-import           Wallet.Emulator                                 (EmulatorAction, EmulatorEvent, Wallet)
+import           Wallet.Emulator                                 (EmulatorEvent)
 import qualified Wallet.Emulator                                 as EM
 import qualified Wallet.Emulator.Chain                           as EM
 import qualified Wallet.Emulator.NodeClient                      as EM

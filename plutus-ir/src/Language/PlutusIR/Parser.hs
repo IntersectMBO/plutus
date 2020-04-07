@@ -38,7 +38,6 @@ import           Data.Foldable
 import qualified Data.Map                           as M
 import qualified Data.Text                          as T
 import           Data.Word
-import           GHC.Natural
 
 import qualified Control.Monad.Combinators.NonEmpty as NE
 import           Text.Megaparsec.Char
@@ -50,17 +49,15 @@ import qualified Text.Megaparsec.Char.Lexer         as Lex
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
-data ParseError = Overflow Natural Integer
-                | UnexpectedKeyword String
+data ParseError = UnexpectedKeyword String
                 | InternalError String
                 deriving (Eq, Ord, Show)
 
 type Error = Parsec.ParseError Char ParseError
 
 instance ShowErrorComponent ParseError where
-    showErrorComponent (Overflow sz i) = "Integer overflow: " ++ show i ++ " does not fit in " ++ show sz ++ " bytes"
     showErrorComponent (UnexpectedKeyword kw) = "Keyword " ++ kw ++ " used as identifier"
-    showErrorComponent (InternalError cause) = "Internal error: " ++ cause
+    showErrorComponent (InternalError cause)  = "Internal error: " ++ cause
 
 initial :: ParserState
 initial = ParserState M.empty

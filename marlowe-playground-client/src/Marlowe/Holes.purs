@@ -41,7 +41,6 @@ data MarloweType
   | PayeeType
   | CaseType
   | ValueType
-  | InputType
   | ObservationType
   | ContractType
   | BoundType
@@ -93,8 +92,6 @@ readMarloweType "PayeeType" = Just PayeeType
 readMarloweType "CaseType" = Just CaseType
 
 readMarloweType "ValueType" = Just ValueType
-
-readMarloweType "InputType" = Just InputType
 
 readMarloweType "ObservationType" = Just ObservationType
 
@@ -155,13 +152,6 @@ getMarloweConstructors ValueType =
     , (Tuple "UseValue" [ DataArg "valueId" ])
     ]
 
-getMarloweConstructors InputType =
-  Map.fromFoldable
-    [ (Tuple "IDeposit" [ DataArg "accountId", DataArg "party", DataArg "token", DataArg "money" ])
-    , (Tuple "IChoice" [ DataArg "choiceId", DataArg "choiceNum" ])
-    , (Tuple "INotify" [])
-    ]
-
 getMarloweConstructors ObservationType =
   Map.fromFoldable
     [ (Tuple "AndObs" [ DataArg "observation", DataArg "observation" ])
@@ -215,13 +205,17 @@ constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> 
 constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.lookup constructorName m of
   Nothing -> ""
   Just [] -> constructorName
-  Just vs -> "(" <> constructorName <> " " <> intercalate " " (mapWithIndex showArgument vs) <> ")"
+  Just vs -> parens row column $ constructorName <> " " <> intercalate " " (mapWithIndex showArgument vs)
   where
   showArgument i (ArrayArg arg) = "[ ?" <> arg <> "_" <> show row <> "_" <> show column <> "_" <> show i <> " ]"
 
   showArgument i (DataArg arg) = "?" <> arg <> "_" <> show row <> "_" <> show column <> "_" <> show i
 
   showArgument _ NewtypeArg = ""
+
+  parens 1 1 text = text
+
+  parens _ _ text = "(" <> text <> ")"
 
 mkHole :: forall a. String -> { row :: Pos, column :: Pos } -> Term a
 mkHole name position = Hole name Proxy position
@@ -425,7 +419,7 @@ instance accountIdIsMarloweType :: IsMarloweType AccountId where
   marloweType _ = AccountIdType
 
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
-  getHoles (AccountId a b) m = insertHole a m <> insertHole b m
+  getHoles (AccountId a b) m = insertHole a m <> getHoles b m
 
 data Token
   = Token (Term String) (Term String)

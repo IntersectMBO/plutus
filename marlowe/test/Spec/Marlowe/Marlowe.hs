@@ -39,7 +39,7 @@ import           Spec.Marlowe.Common
 import           Test.Tasty
 import           Test.Tasty.Hedgehog            (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Wallet                         (PubKey (..), WalletAPIError)
+import           Wallet                         (WalletAPIError)
 import           Wallet.Emulator
 import           Wallet.Emulator.ChainIndex     (ChainIndexEffect)
 import qualified Wallet.Emulator.Generators     as Gen

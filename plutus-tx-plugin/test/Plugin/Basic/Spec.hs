@@ -18,6 +18,8 @@ import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -33,14 +35,14 @@ basic = testNested "Basic" [
   ]
 
 monoId :: CompiledCode PLC.DefaultUni (Integer -> Integer)
-monoId = plc @"monoId" (\(x :: Integer) -> x)
+monoId = plc (Proxy @"monoId") (\(x :: Integer) -> x)
 
 monoK :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Integer)
-monoK = plc @"monoK" (\(i :: Integer) -> \(j :: Integer) -> i)
+monoK = plc (Proxy @"monoK") (\(i :: Integer) -> \(j :: Integer) -> i)
 
 -- GHC acutually turns this into a lambda for us, try and make one that stays a let
 letFun :: CompiledCode PLC.DefaultUni (Integer -> Integer -> Bool)
-letFun = plc @"letFun" (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
+letFun = plc (Proxy @"letFun") (\(x::Integer) (y::Integer) -> let f z = Builtins.equalsInteger x z in f y)
 
 ifOpt :: CompiledCode PLC.DefaultUni Integer
-ifOpt = plc @"ifOpt" (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)
+ifOpt = plc (Proxy @"ifOpt") (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)

@@ -3,7 +3,6 @@
 {-# LANGUAGE TypeOperators    #-}
 module Spec.State where
 
-import           Control.Applicative                             (Alternative (..))
 import           Data.Either                                     (isRight)
 import           Language.Plutus.Contract                        as Con
 import           Language.Plutus.Contract.Record                 (Record (ClosedRec), jsonLeaf)

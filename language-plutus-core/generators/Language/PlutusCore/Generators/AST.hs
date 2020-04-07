@@ -48,7 +48,7 @@ type AstGen = GenT (Reader [Name ()])
 runAstGen :: MonadGen m => AstGen a -> m a
 runAstGen a = do
     names <- genNames
-    Gen.liftGen $ hoist (return . flip runReader names) a
+    Gen.fromGenT $ hoist (return . flip runReader names) a
 
 genVersion :: MonadGen m => m (Version ())
 genVersion = Version () <$> int' <*> int' <*> int' where
@@ -63,7 +63,7 @@ genNames = do
     let isKeyword n = n `elem` fmap prettyText allKeywords
         isBuiltin n = n `elem` fmap prettyText allBuiltinNames
         isReserved t = isKeyword t || isBuiltin t
-        genText = Gen.filter (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
+        genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
         text <- genText
         return $ Name () text uniq
@@ -156,7 +156,7 @@ mangleNames term = do
     mayNamesMangle <- subset1 names
     for mayNamesMangle $ \namesMangle -> do
         let isNew name = not $ name `Set.member` namesMangle
-        newNames <- Gen.just $ ensure (not . null) . filter isNew <$> genNames
+        newNames <- Gen.justT $ ensure (not . null) . filter isNew <$> genNames
         let mang name
                 | name `Set.member` namesMangle = Just <$> Gen.element newNames
                 | otherwise                     = return Nothing

@@ -11,7 +11,7 @@
 module Plutus.SCB.Arbitrary where
 
 import           Data.Aeson                        (Value)
-import           qualified Data.Aeson                        as Aeson
+import qualified Data.Aeson                        as Aeson
 import qualified Language.PlutusTx                 as PlutusTx
 import qualified Language.PlutusTx.AssocMap        as AssocMap
 import qualified Ledger
@@ -162,8 +162,8 @@ instance Arbitrary ContractRequest where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: ContractRequest -> Maybe (Gen ContractResponse)
-genResponse (AwaitSlotRequest slot) = Just $ pure $ AwaitSlotResponse slot
+genResponse (AwaitSlotRequest slot)        = Just $ pure $ AwaitSlotResponse slot
 genResponse (AwaitTxConfirmedRequest txId) = Just $ pure $ AwaitTxConfirmedResponse txId
-genResponse (UserEndpointRequest _) = Just $ UserEndpointResponse <$> arbitrary
-genResponse OwnPubkeyRequest = Just $ OwnPubkeyResponse <$> arbitrary
-genResponse _ = Nothing
+genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary
+genResponse OwnPubkeyRequest               = Just $ OwnPubkeyResponse <$> arbitrary
+genResponse _                              = Nothing

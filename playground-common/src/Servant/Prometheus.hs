@@ -23,6 +23,7 @@ import           Control.Monad.IO.Class                         (MonadIO)
 import           Control.Monad.Logger                           (MonadLogger, MonadLoggerIO)
 import           Data.Hashable                                  (Hashable)
 import qualified Data.HashMap.Strict                            as H
+import           Data.Kind                                      (Type)
 import           Data.Proxy                                     (Proxy (Proxy))
 import           Data.Text                                      (Text)
 import qualified Data.Text                                      as T
@@ -141,7 +142,7 @@ instance HasEndpoint EmptyAPI where
     getEndpoint      _ _ = Nothing
     enumerateEndpoints _ = []
 
-instance (HasEndpoint (a :: *), HasEndpoint (b :: *)) => HasEndpoint (a :<|> b) where
+instance (HasEndpoint (a :: Type), HasEndpoint (b :: Type)) => HasEndpoint (a :<|> b) where
     getEndpoint _ req =
                 getEndpoint (Proxy :: Proxy a) req
         `mplus` getEndpoint (Proxy :: Proxy b) req
@@ -150,7 +151,7 @@ instance (HasEndpoint (a :: *), HasEndpoint (b :: *)) => HasEndpoint (a :<|> b) 
            enumerateEndpoints (Proxy :: Proxy a)
         <> enumerateEndpoints (Proxy :: Proxy b)
 
-instance (KnownSymbol (path :: Symbol), HasEndpoint (sub :: *))
+instance (KnownSymbol (path :: Symbol), HasEndpoint (sub :: Type))
     => HasEndpoint (path :> sub) where
     getEndpoint _ req =
         case pathInfo req of
@@ -166,7 +167,7 @@ instance (KnownSymbol (path :: Symbol), HasEndpoint (sub :: *))
         in
             map qualify endpoints
 
-instance (KnownSymbol (capture :: Symbol), HasEndpoint (sub :: *))
+instance (KnownSymbol (capture :: Symbol), HasEndpoint (sub :: Type))
     => HasEndpoint (Capture' mods capture a :> sub) where
     getEndpoint _ req =
         case pathInfo req of
@@ -182,57 +183,57 @@ instance (KnownSymbol (capture :: Symbol), HasEndpoint (sub :: *))
         in
             map qualify endpoints
 
-instance HasEndpoint (sub :: *) => HasEndpoint (Summary d :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (Summary d :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (Description d :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (Description d :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (Header' mods h a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (Header' mods h a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (QueryParam' mods (h :: Symbol) a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (QueryParam' mods (h :: Symbol) a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (QueryParams (h :: Symbol) a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (QueryParams (h :: Symbol) a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (QueryFlag h :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (QueryFlag h :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (ReqBody' mods cts a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (ReqBody' mods cts a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
 #if MIN_VERSION_servant(0,15,0)
-instance HasEndpoint (sub :: *) => HasEndpoint (StreamBody' mods framing ct a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (StreamBody' mods framing ct a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 #endif
 
-instance HasEndpoint (sub :: *) => HasEndpoint (RemoteHost :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (RemoteHost :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (IsSecure :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (IsSecure :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (HttpVersion :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (HttpVersion :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (Vault :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (Vault :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (WithNamedContext x y sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (WithNamedContext x y sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
@@ -266,11 +267,11 @@ instance HasEndpoint WebSocket where
     getEndpoint      _ _ = Just (APIEndpoint [] "Websocket")
     enumerateEndpoints _ =      [APIEndpoint [] "Websocket"]
 
-instance HasEndpoint (sub :: *) => HasEndpoint (CaptureAll (h :: Symbol) a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (CaptureAll (h :: Symbol) a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 
-instance HasEndpoint (sub :: *) => HasEndpoint (BasicAuth (realm :: Symbol) a :> sub) where
+instance HasEndpoint (sub :: Type) => HasEndpoint (BasicAuth (realm :: Symbol) a :> sub) where
     getEndpoint        _ = getEndpoint        (Proxy :: Proxy sub)
     enumerateEndpoints _ = enumerateEndpoints (Proxy :: Proxy sub)
 

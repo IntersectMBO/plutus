@@ -41,6 +41,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Help (marloweTypeMarkerText)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), Timeout, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -590,10 +591,10 @@ holeToMarker hole@(MarloweHole { name, marloweType, row, column }) m constructor
   , startLineNumber: row
   , endColumn: column + (length name) + 1
   , endLineNumber: row
-  , message: "Found hole of type " <> (dropEnd 4 $ show marloweType)
+  , message: marloweTypeMarkerText marloweType
   , severity: markerSeverity "Warning"
   , code: ""
-  , source: ""
+  , source: "Hole: " <> (dropEnd 4 $ show marloweType)
   }
   where
   dropEnd :: Int -> String -> String
@@ -633,12 +634,13 @@ format contractString = case parseContract contractString of
 
 provideCodeActions :: Uri -> Array IMarkerData -> Array CodeAction
 provideCodeActions uri markers' =
-  (flip foldMap) markers' \(marker@{ message, startLineNumber, startColumn, endLineNumber, endColumn }) -> case regex "Found hole of type (\\w+)" noFlags of
+  (flip foldMap) markers' \(marker@{ source, startLineNumber, startColumn, endLineNumber, endColumn }) -> case regex "Hole: (\\w+)" noFlags of
     Left _ -> []
-    Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (message <> "Type") of
+    Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of
       Nothing -> []
       Just BigIntegerType -> []
       Just StringType -> []
+      Just SlotType -> []
       Just marloweType ->
         let
           m = getMarloweConstructors marloweType

@@ -254,7 +254,7 @@ in rec {
               pkgs.coreutils
               pkgs.bash
               pkgs.git # needed by cabal-install
-              dev.packages.cabal-install
+              pkgs.cabal-install
             ];
       config = {
         Cmd = ["bash"];

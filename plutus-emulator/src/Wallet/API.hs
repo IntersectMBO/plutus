@@ -79,8 +79,6 @@ import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import           Ledger                    hiding (inputs, out, value)
 import           Ledger.AddressMap         (AddressMap, UtxoMap)
-import           Ledger.Index              (minFee)
-import           Ledger.Interval           (Interval (..), after, always, before, contains, interval, isEmpty, member)
 import qualified Ledger.Interval           as Interval
 import qualified Ledger.Value              as Value
 

@@ -1,12 +1,12 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 module TH.TestTH where
 
 import           Language.Haskell.TH
-import           Language.PlutusTx.Prelude
 import           Language.PlutusTx.Builtins
+import           Language.PlutusTx.Prelude
 
 {-# ANN module "HLint: ignore" #-}
 

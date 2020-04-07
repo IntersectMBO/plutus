@@ -15,7 +15,6 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module Language.Marlowe.Client where
-import           Control.Monad              (Monad (..))
 import           Control.Monad.Error.Class  (MonadError (..))
 import           Data.Map                   (Map)
 import qualified Data.Map                   as Map
@@ -25,16 +24,16 @@ import qualified Data.Text                  as Text
 import           Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Address, Datum (..), pubKeyHash, Slot (..), Tx, TxOut (..), interval, CurrencySymbol, TokenName,
-                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, scriptTxOut',
-                                             txOutRefs)
-import           Ledger.Ada                 (adaValueOf, adaSymbol)
+import           Ledger                     (Address, CurrencySymbol, Datum (..), Slot (..), TokenName, Tx, interval,
+                                             mkValidatorScript, pubKeyHash, pubKeyHashTxOut, scriptAddress, scriptTxIn,
+                                             scriptTxOut, scriptTxOut', txOutRefs)
+import           Ledger.Ada                 (adaSymbol, adaValueOf)
 import           Ledger.Scripts             (Redeemer (..), Validator, validatorHash)
 import qualified Ledger.Typed.Scripts       as Scripts
-import qualified Ledger.Value               as Val
 import           Ledger.Validation
-import           Wallet                     (WalletAPI (..), NodeAPI (..), WalletAPIError, createPaymentWithChange, createTxAndSubmit,
-                                             throwOtherError, SigningProcessAPI)
+import qualified Ledger.Value               as Val
+import           Wallet                     (NodeAPI (..), SigningProcessAPI, WalletAPI (..), WalletAPIError,
+                                             createPaymentWithChange, createTxAndSubmit, throwOtherError)
 
 {-| Create a Marlowe contract.
     Uses wallet public key to generate a unique script address.
@@ -212,7 +211,7 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
     return (marloweData, tx)
   where
     collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
-    collectDeposits _                    = P.zero
+    collectDeposits _                                     = P.zero
 
     totalIncome = foldMap collectDeposits inputs
 

@@ -22,7 +22,8 @@ let
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "18fgr5cxy9z7m2v9a6a57rdqy5lsavl8dhf5d0mn02aak60b13pj";
+
+    stack-sha256 = "1frflr0xhbk4cnf8709v44cc0ihv1npswrj7dmm2lhhx1s20mqjf";
     inherit checkMaterialization;
     modules = [
         {
@@ -99,14 +100,6 @@ let
           };
         }
      ];
-    pkg-def-extras = [
-      # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
-      (hackage: {
-        packages = {
-          "hsc2hs" = (((hackage.hsc2hs)."0.68.4").revisions).default;
-        };
-      })
-    ];
   };
 
 in

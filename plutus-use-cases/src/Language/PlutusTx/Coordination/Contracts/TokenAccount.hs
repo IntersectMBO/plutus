@@ -1,5 +1,4 @@
 {-# LANGUAGE ConstraintKinds    #-}
-{-# LANGUAGE TypeOperators      #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts   #-}
@@ -8,6 +7,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE TypeOperators      #-}
 -- | Plutus implementation of an account that can be unlocked with a token.
 --   Whoever owns the token can spend the outputs locked by the contract.
 --   (A suitable token can be created with the 'Language.PlutusTx.Coordination.Contracts.Currency'

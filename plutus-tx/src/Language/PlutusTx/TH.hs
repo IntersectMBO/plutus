@@ -5,6 +5,7 @@ module Language.PlutusTx.TH (
     compile,
     compileUntyped) where
 
+import           Data.Proxy
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Plugin.Utils
 
@@ -38,4 +39,4 @@ compileUntyped e = do
     loc <- TH.location
     let locStr = TH.pprint loc
     -- See note [Typed TH]
-    [| plc @($(TH.litT $ TH.strTyLit locStr)) $(e) |]
+    [| plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e) |]

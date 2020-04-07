@@ -44,11 +44,6 @@ import           Codec.Serialise            (Serialise)
 
 import qualified Data.Text                  as T
 
-import           GHC.Generics               (Generic)
-
-import           Data.List.NonEmpty         (NonEmpty)
-
-
 -- Datatypes
 
 {- Note: [Serialization of PIR]

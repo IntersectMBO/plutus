@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wno-deprecations #-}
 module WebSocket where
 
 import           Control.Concurrent.STM          (STM)
@@ -64,6 +65,7 @@ isWaiting uuid waiting registry = case Map.lookup uuid (unpack registry) of
 initializeConnection :: PendingConnection -> IO (UUID, Connection)
 initializeConnection pending = do
     connection <- acceptRequest pending
+    -- FIXME: This is deprecated
     forkPingThread connection 30
     uuid <- nextRandom
     pure (uuid, connection)
