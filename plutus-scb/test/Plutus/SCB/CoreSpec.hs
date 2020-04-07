@@ -147,7 +147,7 @@ assertTxCount msg expected = do
     txs <- runGlobalQuery txHistoryProjection
     liftIO $ assertEqual msg expected $ length txs
 
-type SpecEffects = 
+type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
         , EventLogEffect ChainEvent

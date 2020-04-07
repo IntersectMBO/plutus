@@ -93,8 +93,7 @@ type EmulatedWalletEffects =
          ]
 
 type EmulatedWalletControlEffects =
-        '[ Error WAPI.WalletAPIError
-         , NC.NodeControlEffect
+        '[ NC.NodeControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
          , Log
@@ -102,14 +101,14 @@ type EmulatedWalletControlEffects =
 
 {- Note [Control effects]
 
-Plutus contracts interact with the outside world through a number of different 
-effects. These effects are captured in 'EmulatedWalletEffects'. They are 
-supposed to be a realistic representation of the capabilities that contracts 
+Plutus contracts interact with the outside world through a number of different
+effects. These effects are captured in 'EmulatedWalletEffects'. They are
+supposed to be a realistic representation of the capabilities that contracts
 will have in the real world, when the system is released.
 
-In the tests we often want to simulate events that happened "outside of the 
-contract". For example: A new block is added to the chain, or a user takes the 
-transaction and emails it to another person to sign, before sending it to the 
+In the tests we often want to simulate events that happened "outside of the
+contract". For example: A new block is added to the chain, or a user takes the
+transaction and emails it to another person to sign, before sending it to the
 node. These kinds of events cannot be expressed in 'EmulatedWalletEffects',
 because it would make the emulated wallet effects unrealistic - Plutus
 contracts in the real world will not have the power to decide when a new block
@@ -124,10 +123,10 @@ we can control the blockchain and the lines of communication between the
 emulated components.
 
 By being clear about which of our (ie. the contract authors) actions
-require the full power of 'EmulatedWalletControlEffects', we can be more 
-confident that our contracts will run in the real world, and not just in the 
+require the full power of 'EmulatedWalletControlEffects', we can be more
+confident that our contracts will run in the real world, and not just in the
 test environment. That is why there are two similar but different constructors
-for 'MultiAgentEffect': 'WalletAction' is used for things that we will be able 
+for 'MultiAgentEffect': 'WalletAction' is used for things that we will be able
 to do in the real world, and 'WalletControlAction' is for everything else.
 
 -}
@@ -283,8 +282,7 @@ handleMultiAgent = interpret $ \case
             p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
             p4 = below (walletEvent wallet . Wallet._WalletMsg)
     WalletControlAction wallet act -> act
-        & raiseEnd5
-        & subsume
+        & raiseEnd4
         & NC.handleNodeControl
         & ChainIndex.handleChainIndexControl
         & SP.handleSigningProcessControl
