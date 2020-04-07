@@ -56,6 +56,7 @@ library
   other-modules:
     Language.Marlowe.ACTUS.HP.BusinessEvents
     Language.Marlowe.ACTUS.HP.ContractTerms
+    Language.Marlowe.ACTUS.HP.ContractGenerator
     Language.Marlowe.ACTUS.HP.ContractState
     Language.Marlowe.ACTUS.HP.Observations
     Language.Marlowe.ACTUS.HP.Applicability
