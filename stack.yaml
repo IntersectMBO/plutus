@@ -33,6 +33,7 @@ extra-deps:
 - dependent-map-0.3
 - dependent-sum-0.6.2.0
 - dependent-sum-template-0.1.0.3
+- deriving-aeson-0.2.3
 - ekg-0.4.0.15
 - ekg-core-0.1.1.7
 - ekg-json-0.1.0.6
@@ -70,10 +71,6 @@ extra-deps:
 - git: https://github.com/michaelpj/unlit.git
   commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
   # nix-sha256: 145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff
-# Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
-- git: https://github.com/reactormonk/deriving-aeson # until deriving-aeson-0.2.3 is on hackage
-  commit: 5277216d5f8d5e7fe6454067358628150d31dc68
-  # nix-sha256: 0slfw3psizp2780g6hcf5vgbdh37g6m5mccxb9xz9j35yc7i2mls
 # Needs https://github.com/jpvillaisaza/slack-web/pull/80
 - git: https://github.com/michaelpj/slack-web.git
   commit: 6ff88895c5da593e7bd09a46d7002441817aa6f8
