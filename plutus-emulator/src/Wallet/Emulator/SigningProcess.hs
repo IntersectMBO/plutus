@@ -29,7 +29,7 @@ import           Wallet.Emulator.Wallet    (Wallet)
 import qualified Wallet.Emulator.Wallet    as Wallet
 
 newtype SigningProcess = SigningProcess {
-    unSigningProcess :: forall effs. (Members '[Error WAPI.WalletAPIError] effs) => [L.PubKeyHash] -> Tx -> Eff effs Tx
+    unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [L.PubKeyHash] -> Tx -> Eff effs Tx
 }
 
 -- | The default signing process is 'signWallet'

@@ -18,32 +18,31 @@ module Wallet.Emulator.Wallet where
 import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Log    (LogMessage)
+import           Control.Monad.Freer.Log   (LogMessage)
 import           Control.Monad.Freer.State
-import           Control.Monad.Freer.Writer
-import           Control.Newtype.Generics   (Newtype)
-import           Data.Aeson                 (FromJSON, ToJSON, ToJSONKey)
+import           Control.Newtype.Generics  (Newtype)
+import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.Hashable              (Hashable)
-import qualified Data.Map                   as Map
+import           Data.Hashable             (Hashable)
+import qualified Data.Map                  as Map
 import           Data.Maybe
-import qualified Data.Set                   as Set
-import qualified Data.Text                  as T
+import qualified Data.Set                  as Set
+import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics               (Generic)
-import           IOTS                       (IotsType)
-import qualified Language.PlutusTx.Prelude  as PlutusTx
+import           GHC.Generics              (Generic)
+import           IOTS                      (IotsType)
+import qualified Language.PlutusTx.Prelude as PlutusTx
 import           Ledger
-import qualified Ledger.Ada                 as Ada
-import qualified Ledger.AddressMap          as AM
-import qualified Ledger.Crypto              as Crypto
-import qualified Ledger.Value               as Value
-import           Prelude                    as P
-import           Servant.API                (FromHttpApiData (..), ToHttpApiData (..))
-import qualified Wallet.API                 as WAPI
-import           Wallet.Effects             (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
-import qualified Wallet.Effects             as W
+import qualified Ledger.Ada                as Ada
+import qualified Ledger.AddressMap         as AM
+import qualified Ledger.Crypto             as Crypto
+import qualified Ledger.Value              as Value
+import           Prelude                   as P
+import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
+import qualified Wallet.API                as WAPI
+import           Wallet.Effects            (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
+import qualified Wallet.Effects            as W
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
@@ -161,8 +160,12 @@ handleUpdatePaymentWithChange
                 , paymentChangeOutput = mkChangeOutput ownPubKey change
                 }
 
-handleWallet
-    :: (Members '[NodeClientEffect, ChainIndexEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]] effs)
+handleWallet ::
+    ( Member NodeClientEffect effs
+    , Member ChainIndexEffect effs
+    , Member (State WalletState) effs
+    , Member (Error WAPI.WalletAPIError) effs
+    )
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
     SubmitTxn tx -> W.publishTx tx

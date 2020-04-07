@@ -94,7 +94,11 @@ createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
-payToScripts :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> [(Address, Value, Datum)] -> Eff effs Tx
+payToScripts ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> [(Address, Value, Datum)] -> Eff effs Tx
 payToScripts range ins = do
     let
         totalVal     = fold $ fmap (view _2) ins
@@ -104,16 +108,28 @@ payToScripts range ins = do
     createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
 
 -- | Transfer some funds to a number of script addresses.
-payToScripts_ :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> [(Address, Value, Datum)] -> Eff effs ()
+payToScripts_ ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> [(Address, Value, Datum)] -> Eff effs ()
 payToScripts_ range = void . payToScripts range
 
 -- | Transfer some funds to an address locked by a script, returning the
 --   transaction that was submitted.
-payToScript :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> Address -> Value -> Datum -> Eff effs Tx
+payToScript ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> Address -> Value -> Datum -> Eff effs Tx
 payToScript range addr v ds = payToScripts range [(addr, v, ds)]
 
 -- | Transfer some funds to an address locked by a script.
-payToScript_ :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> Address -> Value -> Datum -> Eff effs ()
+payToScript_ ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> Address -> Value -> Datum -> Eff effs ()
 payToScript_ range addr v = void . payToScript range addr v
 
 getScriptInputs
@@ -140,12 +156,16 @@ getScriptInputsFilter flt am vls red =
             Map.toList ourUtxo
     in inputs
 
-spendScriptOutputs :: (Members '[WalletEffect, ChainIndexEffect] effs) => Validator -> Redeemer -> Eff effs [(TxIn, Value)]
+spendScriptOutputs ::
+    ( Member ChainIndexEffect effs
+    ) => Validator -> Redeemer -> Eff effs [(TxIn, Value)]
 spendScriptOutputs = spendScriptOutputsFilter (\_ _ -> True)
 
 -- | Take all known outputs at an 'Address' and spend them using the
 --   validator and redeemer scripts.
-spendScriptOutputsFilter :: (Members '[WalletEffect, ChainIndexEffect] effs)
+spendScriptOutputsFilter ::
+    ( Member ChainIndexEffect effs
+    )
     => (TxOutRef -> TxOutTx -> Bool)
     -> Validator
     -> Redeemer
@@ -156,14 +176,20 @@ spendScriptOutputsFilter flt vls red = do
 
 -- | Collect all unspent outputs from a pay to script address and transfer them
 --   to a public key owned by us.
-collectFromScript :: (Members WalletEffects effs, Member Log effs) => SlotRange -> Validator -> Redeemer -> Eff effs ()
+collectFromScript ::
+    ( Members WalletEffects effs
+    , Member Log effs
+    )
+    => SlotRange -> Validator -> Redeemer -> Eff effs ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
 
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that were produced by a specific transaction, using the
 --   'Redeemer'.
 collectFromScriptTxn ::
-    (Members WalletEffects effs, Member Log effs)
+    ( Members WalletEffects effs
+    , Member Log effs
+    )
     => SlotRange
     -> Validator
     -> Redeemer
@@ -176,7 +202,8 @@ collectFromScriptTxn range vls red txid =
 -- | Given the pay to script address of the 'Validator', collect from it
 --   all the outputs that match a predicate, using the 'Redeemer'.
 collectFromScriptFilter ::
-    (Members WalletEffects effs, Member Log effs)
+    ( Members WalletEffects effs
+    , Member Log effs)
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
@@ -194,14 +221,22 @@ collectFromScriptFilter flt range vls red = do
 
 -- | Transfer some funds to an address locked by a public key, returning the
 --   transaction that was submitted.
-payToPublicKey :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> Value -> PubKey -> Eff effs Tx
+payToPublicKey ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
     (i, own) <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
     createTxAndSubmit range i (other : maybeToList own) []
 
 -- | Transfer some funds to an address locked by a public key.
-payToPublicKey_ :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => SlotRange -> Value -> PubKey -> Eff effs ()
+payToPublicKey_ ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => SlotRange -> Value -> PubKey -> Eff effs ()
 payToPublicKey_ r v = void . payToPublicKey r v
 
 -- | Create a `TxOut` that pays to the public key owned by us.
@@ -216,7 +251,9 @@ outputsAt adr = fmap (\utxos -> fromMaybe Map.empty $ utxos ^. at adr) watchedAd
 --   TODO: This is here to make the calculation of fees easier for old-style contracts
 --         and should be removed when all contracts have been ported to the new API.
 createTxAndSubmit ::
-    (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs)
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
     => SlotRange
     -> Set.Set TxIn
     -> [TxOut]
@@ -232,14 +269,22 @@ createTxAndSubmit range ins outs datas = do
     signTxAndSubmit $ tx { txFee = minFee tx }
 
 -- | Add the signature of the user's public key to the transaction
-signWithOwnPublicKey :: (Members '[WalletEffect, SigningProcessEffect] effs) => Tx -> Eff effs Tx
+signWithOwnPublicKey ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => Tx -> Eff effs Tx
 signWithOwnPublicKey t = do
     pk <- ownPubKey
     addSignatures [pubKeyHash pk] t
 
 -- | Add the wallet's signature to the transaction and submit it. Returns
 --   the transaction with the wallet's signature.
-signTxAndSubmit :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => Tx -> Eff effs Tx
+signTxAndSubmit ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => Tx -> Eff effs Tx
 signTxAndSubmit t = do
     pk <- ownPubKey
     tx' <- addSignatures [pubKeyHash pk] t
@@ -247,7 +292,11 @@ signTxAndSubmit t = do
     pure tx'
 
 -- | A version of 'signTxAndSubmit' that discards the result.
-signTxAndSubmit_ :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect] effs) => Tx -> Eff effs ()
+signTxAndSubmit_ ::
+    ( Member WalletEffect effs
+    , Member SigningProcessEffect effs
+    )
+    => Tx -> Eff effs ()
 signTxAndSubmit_ = void . signTxAndSubmit
 
 -- | The default slot validity range for transactions.

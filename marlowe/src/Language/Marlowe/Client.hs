@@ -43,7 +43,9 @@ import           Wallet.Effects
     Uses wallet public key to generate a unique script address.
  -}
 createContract :: (
-    Members '[NodeClientEffect, WalletEffect, SigningProcessEffect] effs
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs
     )
     => MarloweParams
     -> Contract
@@ -71,7 +73,12 @@ createContract params contract = do
 {-| Deposit 'amount' of 'token' to 'accountId' to a Marlowe contract
     from 'tx' with 'MarloweData' data script.
  -}
-deposit :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect, (Error WalletAPIError)] effs)
+deposit :: (
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs,
+    Member (Error WalletAPIError) effs
+    )
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -85,7 +92,12 @@ deposit tx params marloweData accountId token amount = do
 
 
 {-| Notify a contract -}
-notify :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect, Error WalletAPIError] effs)
+notify :: (
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs,
+    Member (Error WalletAPIError) effs
+    )
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -94,7 +106,12 @@ notify tx params marloweData = applyInputs tx params marloweData [INotify]
 
 
 {-| Make a 'choice' identified as 'choiceId'. -}
-makeChoice :: (Members '[WalletEffect, NodeClientEffect, SigningProcessEffect, Error WalletAPIError] effs)
+makeChoice :: (
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs,
+    Member (Error WalletAPIError) effs
+    )
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -118,7 +135,11 @@ makeChoice tx params marloweData choiceId choice =
     Then, after slot 200, one can evaluate again to claim the payment.
 -}
 makeProgress :: (
-    Members '[WalletEffect, NodeClientEffect, SigningProcessEffect, Error WalletAPIError] effs)
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs,
+    Member (Error WalletAPIError) effs
+    )
     => Tx
     -> MarloweParams
     -> MarloweData
@@ -131,7 +152,11 @@ makeProgress tx params marloweData = applyInputs tx params marloweData []
     One can only apply an input that's expected from his/her PubKey.
 -}
 applyInputs :: (
-    Members '[WalletEffect, NodeClientEffect, SigningProcessEffect, Error WalletAPIError] effs)
+    Member NodeClientEffect effs,
+    Member WalletEffect effs,
+    Member SigningProcessEffect effs,
+    Member (Error WalletAPIError) effs
+    )
     => Tx
     -> MarloweParams
     -> MarloweData

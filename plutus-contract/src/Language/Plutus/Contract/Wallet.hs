@@ -74,8 +74,12 @@ be submitted to the network, the contract backend needs to
 
 -- | Balance an unbalanced transaction in a 'WalletEffects' context. See note
 --   [Submitting transactions from Plutus contracts].
-balanceWallet
-    :: (Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect, Log] effs)
+balanceWallet ::
+   ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    , Member ChainIndexEffect effs
+    , Member Log effs
+    )
     => UnbalancedTx
     -> Eff effs Tx
 balanceWallet utx = do
@@ -91,7 +95,12 @@ balanceWallet utx = do
 --
 --   Fails if the unbalanced transaction contains an input that spends an output
 --   unknown to the wallet.
-computeBalance :: Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect] effs => Tx -> Eff effs Value
+computeBalance ::
+    ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    , Member ChainIndexEffect effs
+    )
+    => Tx -> Eff effs Value
 computeBalance tx = (P.-) <$> left <*> pure right  where
     right = L.txFee tx P.+ foldMap (view Tx.outValue) (tx ^. Tx.outputs)
     left = do
@@ -109,7 +118,10 @@ computeBalance tx = (P.-) <$> left <*> pure right  where
 -- | Balance an unbalanced transaction by adding public key inputs
 --   and outputs.
 balanceTx ::
-    ( Members '[WalletEffect, SigningProcessEffect, Error WalletAPIError, ChainIndexEffect, Log] effs
+    ( Member WalletEffect effs
+    , Member (Error WalletAPIError) effs
+    , Member ChainIndexEffect effs
+    , Member Log effs
     )
     => UtxoMap
     -- ^ Unspent transaction outputs that may be used to balance the

@@ -61,7 +61,9 @@ handleWalletClient ::
   forall m effs.
   ( LastMember m effs
   , MonadIO m
-  , Members '[NodeClientEffect, Error WalletAPIError, Error ClientError] effs
+  , Member NodeClientEffect effs
+  , Member (Error WalletAPIError) effs
+  , Member (Error ClientError) effs
   )
   => ClientEnv
   -> Eff (WalletEffect ': effs)

@@ -30,7 +30,10 @@ data NodeFollowerEffect r where
 makeEffect ''NodeFollowerEffect
 
 handleNodeFollower ::
-    ( Members '[State ChainState, State NodeFollowerState, Log] effs)
+    ( Member (State ChainState) effs
+    , Member (State NodeFollowerState) effs
+    , Member Log effs
+    )
     => Eff (NodeFollowerEffect ': effs) ~> Eff effs
 handleNodeFollower = interpret $ \case
     NewFollower -> do

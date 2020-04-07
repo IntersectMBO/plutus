@@ -111,7 +111,8 @@ type ContractEffects =
          ]
 
 installContract ::
-    ( Members '[Log, EventLogEffect ChainEvent] effs
+    ( Member Log effs
+    , Member (EventLogEffect ChainEvent) effs
     )
     => FilePath
     -> Eff effs ()
@@ -125,7 +126,8 @@ installContract filePath = do
     logInfo "Installed."
 
 lookupContract ::
-    ( Members '[EventLogEffect ChainEvent, Error SCBError] effs
+    ( Member (EventLogEffect ChainEvent) effs
+    , Member (Error SCBError) effs
     )
     => FilePath
     -> Eff effs Contract
@@ -140,7 +142,11 @@ lookupContract filePath = do
         Nothing -> throwError (ContractNotFound filePath)
 
 activateContract ::
-    ( Members '[Log, EventLogEffect ChainEvent, Error SCBError, UUIDEffect, ContractEffect] effs
+    ( Member Log effs
+    , Member (EventLogEffect ChainEvent) effs
+    , Member (Error SCBError) effs
+    , Member UUIDEffect effs
+    , Member ContractEffect effs
     )
     => FilePath
     -> Eff effs UUID
@@ -168,7 +174,10 @@ activateContract filePath = do
 
 updateContract ::
        ( Members EmulatedWalletEffects effs
-       , Members '[Error SCBError, EventLogEffect ChainEvent, ContractEffect,  NodeFollowerEffect] effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member ContractEffect effs
+       , Member NodeFollowerEffect effs
        )
     => UUID
     -> Text
@@ -201,7 +210,11 @@ parseSingleHook parser response =
 
 handleContractHook ::
        ( Members EmulatedWalletEffects effs
-       , Members '[Error SCBError, EventLogEffect ChainEvent, State T, NodeFollowerEffect, ContractEffect] effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member (State T) effs
+       , Member NodeFollowerEffect effs
+       , Member ContractEffect effs
        )
     => FollowerID
     -> ContractHook
@@ -231,7 +244,11 @@ handleTxHook unbalancedTx = do
     void $ runCommand saveBalancedTxResult NodeEventSource balanceResult
 
 handleUtxoAtHook ::
-       ( Members '[Error SCBError, EventLogEffect ChainEvent, State T, NodeFollowerEffect, ContractEffect] effs
+       ( Member (Error SCBError) effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member (State T) effs
+       , Member NodeFollowerEffect effs
+       , Member ContractEffect effs
        , Members EmulatedWalletEffects effs
        )
     => FollowerID
@@ -245,7 +262,11 @@ handleUtxoAtHook i address = do
     invokeContractUpdate i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
 
 handleOwnPubKeyHook ::
-       ( Members '[Error SCBError, EventLogEffect ChainEvent, State T, NodeFollowerEffect, ContractEffect] effs
+       ( Member (Error SCBError) effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member (State T) effs
+       , Member NodeFollowerEffect effs
+       , Member ContractEffect effs
        , Members EmulatedWalletEffects effs
        )
     => FollowerID
@@ -277,7 +298,8 @@ hookParser =
         pure $ txHooks <> utxoAtHooks <> [ownPubKeyHook]
 
 reportContractStatus ::
-    ( Members '[Log, EventLogEffect ChainEvent] effs
+    ( Member Log effs
+    , Member (EventLogEffect ChainEvent) effs
     )
     => UUID
     -> Eff effs ()
@@ -287,7 +309,8 @@ reportContractStatus uuid = do
     logInfo $ render $ pretty $ Map.lookup uuid statuses
 
 lookupActiveContractState ::
-    ( Members '[Error SCBError, EventLogEffect ChainEvent] effs
+    ( Member (Error SCBError) effs
+    , Member (EventLogEffect ChainEvent) effs
     )
     => UUID
     -> Eff effs ActiveContractState
@@ -300,7 +323,11 @@ lookupActiveContractState uuid = do
 type T = (ActiveContractState, [ContractHook])
 
 invokeContractUpdate ::
-       ( Members '[EventLogEffect ChainEvent, Error SCBError, State T, NodeFollowerEffect, ContractEffect] effs
+       ( Member (EventLogEffect ChainEvent) effs
+       , Member (Error SCBError) effs
+       , Member (State T) effs
+       , Member NodeFollowerEffect effs
+       , Member ContractEffect effs
        , Members EmulatedWalletEffects effs
        )
     => FollowerID
@@ -324,7 +351,11 @@ invokeContractUpdate i payload = do
 
 processAllHooks ::
        ( Members EmulatedWalletEffects effs
-       , Members '[Error SCBError, EventLogEffect ChainEvent, State T,  NodeFollowerEffect, ContractEffect] effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member (State T) effs
+       , Member NodeFollowerEffect effs
+       , Member ContractEffect effs
        )
     => FollowerID
     -> Eff effs ()
@@ -337,7 +368,9 @@ processAllHooks i =
             processAllHooks i
 
 sync ::
-       ( Members '[NodeFollowerEffect, EventLogEffect ChainEvent, Log] effs
+       ( Member NodeFollowerEffect effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member Log effs
        )
     => FollowerID
     -> Eff effs ()
@@ -355,7 +388,10 @@ pushHooks ::
 pushHooks newHooks = modifying @T _2 (\oldHooks -> oldHooks <> newHooks)
 
 popHook ::
-       ( Members '[State T, Log, EventLogEffect ChainEvent,  NodeFollowerEffect] effs
+       ( Member (State T) effs
+       , Member Log effs
+       , Member (EventLogEffect ChainEvent) effs
+       , Member NodeFollowerEffect effs
        )
     => FollowerID
     -> Eff effs (Maybe ContractHook)

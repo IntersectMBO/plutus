@@ -15,7 +15,7 @@ module Cardano.Node.RandomTx(
     ) where
 
 import           Control.Lens                  (view, (&), (.~))
-import           Control.Monad.Freer           (Eff, LastMember, Members)
+import           Control.Monad.Freer           (Eff, LastMember, Member)
 import qualified Control.Monad.Freer           as Eff
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
@@ -52,7 +52,8 @@ data GenRandomTx r where
 makeEffect ''GenRandomTx
 
 runGenRandomTx ::
-       ( Members '[State ChainState, Log] effs
+       ( Member (State ChainState) effs
+       , Member Log effs
        , LastMember m effs
        , MonadIO m
        )
