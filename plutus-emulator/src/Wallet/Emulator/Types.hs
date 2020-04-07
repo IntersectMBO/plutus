@@ -77,6 +77,7 @@ import qualified Control.Monad.Freer        as Eff
 import qualified Control.Monad.Freer.Error  as Eff
 import qualified Control.Monad.Freer.Extras as Eff
 import           Control.Monad.State
+import           Data.Foldable              (traverse_)
 import qualified Data.Text                  as T
 import           Prelude                    as P
 
@@ -116,11 +117,11 @@ addBlocks i = traverse (const processPending) [1..i]
 -- | Add a number of blocks, notifying all the given 'Wallet's after each block.
 addBlocksAndNotify :: Eff.Members EmulatorEffs effs => [Wallet] -> Integer -> Eff.Eff effs [Block]
 addBlocksAndNotify wallets i =
-    let run _ = do
+    let run = do
             block <- processPending
             walletsNotifyBlock wallets block
             pure block
-    in traverse run [1..i]
+    in traverse (const run) [1..i]
 
 type MonadEmulator e m = (MonadError e m, AsAssertionError e, MonadState EmulatorState m)
 
