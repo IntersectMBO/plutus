@@ -220,7 +220,7 @@ unliftConstant term = case term of
                 let err = fromString $ concat
                         [ "Type mismatch: "
                         , "expected: " ++ gshow uniExp
-                        , "actual: " ++ gshow uniAct
+                        , "; actual: " ++ gshow uniAct
                         ]
                 throwingWithCause _UnliftingError err $ Just term
     _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term

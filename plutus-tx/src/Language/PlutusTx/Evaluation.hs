@@ -29,7 +29,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek      hiding (evaluat
 import qualified Language.PlutusCore.Evaluation.Machine.Cek      as PLC (evaluateCek, unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
-import           Control.Exception
+import qualified Control.Exception
 import           System.IO.Unsafe
 
 stringBuiltins
@@ -68,5 +68,5 @@ evaluateCekTrace p =
                 logDefinition = dynamicCallAssign logName emit (\_ -> ExBudget 1 1)
                 env = insertDynamicBuiltinNameDefinition logDefinition
                                                          stringBuiltins
-            evaluate $ runCekCounting env $ toTerm p
+            Control.Exception.evaluate $ runCekCounting env $ toTerm p
     in  (lg, view exBudgetStateTally state, res)
