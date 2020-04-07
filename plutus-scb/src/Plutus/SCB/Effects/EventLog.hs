@@ -7,7 +7,6 @@
 
 module Plutus.SCB.Effects.EventLog where
 
-import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras (monadStateToState)
 import           Control.Monad.Freer.Reader
@@ -22,19 +21,11 @@ import qualified Eventful.Store.Memory      as M
 import           Eventful.Store.Sql
 import           Eventful.Store.Sqlite      (sqliteEventStoreWriter)
 
-import           Plutus.SCB.Events          (ChainEvent (..))
 import           Plutus.SCB.Query           (nullProjection)
 import           Plutus.SCB.Types           (Source (..), toUUID)
 
 newtype Connection =
     Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
-
-
--- | Event effects
-data EventLogState pjs =
-     EventLogState { _elsEvents      :: [ChainEvent]
-                   , _elsProjections :: pjs }
-makeLenses ''EventLogState
 
 data EventLogEffect event r where
     RefreshProjection :: GlobalStreamProjection state event

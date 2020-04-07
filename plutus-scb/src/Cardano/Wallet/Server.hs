@@ -69,7 +69,9 @@ asHandler nodeClientEnv mVarState action =
         oldState <- liftIO $ takeMVar mVarState
         result <- liftIO $ runAppEffects nodeClientEnv oldState action
         case result of
-            Left err -> MonadError.throwError $ err400 { errBody = Char8.pack (show err) }
+            Left err -> do
+                liftIO $ putMVar mVarState oldState
+                MonadError.throwError $ err400 { errBody = Char8.pack (show err) }
             Right (result_, newState) -> do
                 liftIO $ putMVar mVarState newState
                 pure result_

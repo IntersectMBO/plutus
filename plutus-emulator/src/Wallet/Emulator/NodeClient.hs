@@ -61,8 +61,7 @@ handleNodeControl
     :: (Members NodeClientEffs effs)
     => Eff (NodeControlEffect ': effs) ~> Eff effs
 handleNodeControl = interpret $ \case
-    ClientNotify n -> case n of
-        BlockValidated blk -> modify $ \s ->
+    ClientNotify (BlockValidated blk) -> modify $ \s ->
             s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
               & clientSlot +~ 1
 
