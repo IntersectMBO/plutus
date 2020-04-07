@@ -1,3 +1,4 @@
+{-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
 module Plutus.SCB.App where
 
@@ -105,20 +107,41 @@ runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcess
     . writeToLog
     . runError
     . handleEventLogSql
-    . flip handleError (throwError . ChainIndexError)
-    . handleChainIndexClient chainIndexEnv
+    . handleChainIndex
     . handleContractEffectApp
     . handleUUIDEffect
-    . flip handleError (throwError . SigningProcessError)
-    . SigningProcessClient.handleSigningProcessClient signingProcessEnv
-    . flip handleError (throwError . NodeClientError)
-    . handleNodeClientClient nodeClientEnv
-    . flip handleError (throwError . WalletClientError)
-    . flip handleError (throwError . WalletError)
-    . WalletClient.handleWalletClient walletClientEnv
-    . flip handleError (throwError . NodeClientError)
-    . handleNodeFollowerClient nodeClientEnv
+    . handleSigningProcess
+    . handleNodeClient
+    . handleWallet
+    . handleNodeFollower
     . handleRandomTxClient nodeClientEnv
+    where
+        handleChainIndex :: Eff (ChainIndexEffect ': Error ClientError ': _) a -> Eff _ a
+        handleChainIndex =
+            flip handleError (throwError . ChainIndexError)
+            . handleChainIndexClient chainIndexEnv
+
+        handleSigningProcess :: Eff (SigningProcessEffect ': Error ClientError ': _) a -> Eff _ a
+        handleSigningProcess =
+            flip handleError (throwError . SigningProcessError)
+            . SigningProcessClient.handleSigningProcessClient signingProcessEnv
+
+        handleNodeClient :: Eff (NodeClientEffect ': Error ClientError ': _) a -> Eff _ a
+        handleNodeClient =
+            flip handleError (throwError . NodeClientError)
+            . handleNodeClientClient nodeClientEnv
+
+        handleNodeFollower :: Eff (NodeFollowerEffect ': Error ClientError ': _) a -> Eff _ a
+        handleNodeFollower =
+            flip handleError (throwError . NodeClientError)
+            . handleNodeFollowerClient nodeClientEnv
+
+        handleWallet :: Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a -> Eff _ a
+        handleWallet =
+            flip handleError (throwError . WalletClientError)
+            . flip handleError (throwError . WalletError)
+            . WalletClient.handleWalletClient walletClientEnv
+
 
 type App a = Eff (AppBackend (LoggingT IO)) a
 

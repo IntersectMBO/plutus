@@ -104,8 +104,6 @@ emptyWalletState :: Wallet -> WalletState
 emptyWalletState w = WalletState pk where
     pk = walletPrivKey w
 
-type WalletEffs = '[NodeClientEffect, ChainIndexEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]]
-
 data PaymentArgs =
     PaymentArgs
         { availableFunds :: Map.Map TxOutRef TxOutTx
@@ -164,7 +162,7 @@ handleUpdatePaymentWithChange
                 }
 
 handleWallet
-    :: (Members WalletEffs effs)
+    :: (Members '[NodeClientEffect, ChainIndexEffect, State WalletState, Error WAPI.WalletAPIError, Writer [WalletEvent]] effs)
     => Eff (WalletEffect ': effs) ~> Eff effs
 handleWallet = interpret $ \case
     SubmitTxn tx -> W.publishTx tx
