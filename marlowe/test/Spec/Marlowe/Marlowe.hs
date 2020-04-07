@@ -216,7 +216,7 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
 
 
 pubKeyGen :: Gen PubKey
-pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 10)
+pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 9)
 
 
 uniqueContractHash :: IO ()

@@ -2,8 +2,6 @@ module StaticData (bufferLocalStorageKey, demoFiles, marloweBufferLocalStorageKe
 
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Set (Set)
-import Data.Set as Set
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
 import Examples.Marlowe.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as ME

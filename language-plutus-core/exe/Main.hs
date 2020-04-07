@@ -1,6 +1,8 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+
 module Main (main) where
 
 import qualified Language.PlutusCore                                        as PLC
@@ -27,7 +29,6 @@ import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
-
 import           System.Exit
 
 import           Options.Applicative
@@ -60,7 +61,9 @@ data EvalOptions = EvalOptions Input EvalMode
 type ExampleName = T.Text
 data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
 newtype ExampleOptions = ExampleOptions ExampleMode
-data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions
+data PrintMode = Classic | Debug deriving (Show, Read)
+data PrintOptions = PrintOptions Input PrintMode
+data Command = Typecheck TypecheckOptions | Eval EvalOptions | Example ExampleOptions | Print PrintOptions
 
 plutus :: ParserInfo Command
 plutus = info (plutusOpts <**> helper) (progDesc "Plutus Core tool")
@@ -70,6 +73,7 @@ plutusOpts = hsubparser (
     command "typecheck" (info (Typecheck <$> typecheckOpts) (progDesc "Typecheck a Plutus Core program"))
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
     <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
+    <> command "print" (info (Print <$> printOpts) (progDesc "Parse a program then prettyprint it"))
   )
 
 typecheckOpts :: Parser TypecheckOptions
@@ -108,6 +112,17 @@ exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
+
+printMode :: Parser PrintMode
+printMode = option auto
+  (  long "print-mode"
+  <> metavar "MODE"
+  <> value Classic
+  <> showDefault
+  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+
+printOpts :: Parser PrintOptions
+printOpts = PrintOptions <$> input <*> printMode
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp) = do
@@ -201,6 +216,23 @@ runExample (ExampleOptions (ExampleSingle name)) = do
         Nothing -> "Unknown name: " <> name
         Just ex -> PLC.docText $ prettyExample ex
 
+runPrint :: PrintOptions -> IO()
+runPrint (PrintOptions inp mode) = do
+    contents <- getInput inp
+    let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
+    case PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents) of
+        Left (errCheck :: PLC.Error PLC.DefaultUni PLC.AlexPosn) -> do
+            T.putStrLn $ PLC.prettyPlcDefText errCheck
+            exitFailure
+        Right (Left (errEval :: PLC.Error PLC.DefaultUni PLC.AlexPosn)) -> do
+            print errEval
+            exitFailure
+        Right ( Right (p :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn)) ->
+          let printMethod = case mode of
+                Classic -> PLC.prettyPlcClassicDef
+                Debug   -> PLC.prettyPlcClassicDebug
+          in putStrLn . show . printMethod $ p
+
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plutus
@@ -208,3 +240,4 @@ main = do
         Typecheck tos -> runTypecheck tos
         Eval eos      -> runEval eos
         Example eos   -> runExample eos
+        Print dos     -> runPrint dos

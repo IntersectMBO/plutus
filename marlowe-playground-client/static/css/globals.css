@@ -51,6 +51,14 @@ button:hover {
   transform: var(--animate-btn);
 }
 
+button.disabled {
+  background: lightgray;
+}
+
+button.disabled::before {
+  background: lightgray;
+}
+
 button.small-btn {
   padding: 0.5rem;
 }
