@@ -100,4 +100,7 @@ in yarn2nix-moretea.mkYarnPackage {
   installPhase = ''
     mv dist $out
   '';
+
+  # A bunch of this stuff doesn't seem to work on darwin
+  meta.platforms = pkgs.lib.platforms.linux;
 }

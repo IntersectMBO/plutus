@@ -53,4 +53,7 @@ in
       zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3
       mv marlowe-symbolic.zip $out/marlowe-symbolic.zip
     '';
+
+    # Marlowe lambda builds with musl, and only on linux
+    meta.platforms = lib.platforms.linux;
   }

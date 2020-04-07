@@ -93,7 +93,7 @@ in rec {
     };
   };
 
-  docs = {
+  docs = pkgs.recurseIntoAttrs {
     plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
     plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
     plutus-book = pkgs.callPackage ./plutus-book/doc { };
@@ -118,13 +118,13 @@ in rec {
     marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
   };
 
-  papers = {
+  papers = pkgs.recurseIntoAttrs {
     unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) Agda; inherit latex; };
     system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
     eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
   };
 
-  plutus-playground = rec {
+  plutus-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
     server-invoker = let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -165,9 +165,9 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
-  };
+  });
 
-  marlowe-playground = rec {
+  marlowe-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
     server-invoker = let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -205,7 +205,7 @@ in rec {
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
-  };
+  });
 
   docker = rec {
     defaultPlaygroundConfig = pkgs.writeTextFile {
