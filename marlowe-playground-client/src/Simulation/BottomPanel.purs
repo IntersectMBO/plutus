@@ -16,7 +16,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
+import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -72,7 +72,7 @@ bottomPanel state =
                                 [ text "Current Blocks: ", state ^. (_marloweState <<< _Head <<< _slot <<< to show <<< to text) ]
                             , li [ class_ (ClassName "space-left") ]
                                 [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon state), src closeDrawerIcon, alt "close drawer icon" ] ]
+                                    [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                                 ]
                             ]
                         ]
@@ -291,7 +291,7 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [] else [ ClassName "disabled" ]) ]
+    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
         [ text (if loading then "Analysing..." else "Analyse") ]
     ]
   where
@@ -319,7 +319,7 @@ panelContents state MarloweWarningsView =
       ]
 
   renderWarning warning =
-    li [ classes [ ClassName "warning-content", ClassName "error-row" ] ]
+    li [ classes [ ClassName "error-row" ] ]
       [ text warning.message
       , a [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn ]
           [ text $ show warning.startLineNumber ]
@@ -345,7 +345,7 @@ panelContents state MarloweErrorsView =
       ]
 
   renderError error =
-    li [ classes [ ClassName "error-content", ClassName "error-row", ClassName "flex-wrap" ] ]
+    li [ classes [ ClassName "error-row", ClassName "flex-wrap" ] ]
       ( [ a [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
             [ text error.firstLine ]
         , a [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn ]
