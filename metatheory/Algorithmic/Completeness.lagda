@@ -156,6 +156,28 @@ nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
 nfTypeSIG≡₂ ifThenElse = refl
 
+nfTypeSIG≡₃ : (bn : Builtin) → length (proj₁ (proj₂ (SSig.SIG bn))) ≡ length (proj₁ (proj₂ (NSig.SIG bn)))
+nfTypeSIG≡₃ addInteger = refl
+nfTypeSIG≡₃ subtractInteger = refl
+nfTypeSIG≡₃ multiplyInteger = refl
+nfTypeSIG≡₃ divideInteger = refl
+nfTypeSIG≡₃ quotientInteger = refl
+nfTypeSIG≡₃ remainderInteger = refl
+nfTypeSIG≡₃ modInteger = refl
+nfTypeSIG≡₃ lessThanInteger = refl
+nfTypeSIG≡₃ lessThanEqualsInteger = refl
+nfTypeSIG≡₃ greaterThanInteger = refl
+nfTypeSIG≡₃ greaterThanEqualsInteger = refl
+nfTypeSIG≡₃ equalsInteger = refl
+nfTypeSIG≡₃ concatenate = refl
+nfTypeSIG≡₃ takeByteString = refl
+nfTypeSIG≡₃ dropByteString = refl
+nfTypeSIG≡₃ sha2-256 = refl
+nfTypeSIG≡₃ sha3-256 = refl
+nfTypeSIG≡₃ verifySignature = refl
+nfTypeSIG≡₃ equalsByteString = refl
+nfTypeSIG≡₃ ifThenElse = refl
+
 open import Builtin.Constant.Type
 
 lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
