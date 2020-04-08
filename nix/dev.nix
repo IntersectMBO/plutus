@@ -1,7 +1,7 @@
 { pkgs, haskell, easyPS }:
-rec {
+pkgs.recurseIntoAttrs (rec {
   # Packages which are useful during development, but we don't depend upon directly to build our stuff
-  packages = {
+  packages = pkgs.recurseIntoAttrs {
     # See comment on the definition about it not working
     #cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
     stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
@@ -13,10 +13,8 @@ rec {
 
   haskellNixRoots = pkgs.haskell-nix.haskellNixRoots;
 
-  scripts = {
-    fixStylishHaskell = pkgs.writeScript "fix-stylish-haskell" ''
-      #!${pkgs.runtimeShell}
-
+  scripts = pkgs.recurseIntoAttrs {
+    fixStylishHaskell = pkgs.writeShellScript "fix-stylish-haskell" ''
       ${pkgs.git}/bin/git diff > pre-stylish.diff
       ${pkgs.fd}/bin/fd \
         --extension hs \
@@ -35,9 +33,7 @@ rec {
       exit
     '';
 
-    fixPurty = pkgs.writeScript "fix-purty" ''
-      #!${pkgs.runtimeShell}
-
+    fixPurty = pkgs.writeShellScript "fix-purty" ''
       ${pkgs.git}/bin/git diff > pre-purty.diff
       ${pkgs.fd}/bin/fd \
         --extension purs \
@@ -58,9 +54,8 @@ rec {
       exit
     '';
 
-    updateClientDeps = pkgs.writeScript "update-client-deps" ''
-      #!${pkgs.runtimeShell}
-
+    # See note on 'easyPS' in 'default.nix'
+    updateClientDeps = pkgs.lib.meta.addMetaAttrs { platforms = pkgs.lib.platforms.linux; } (pkgs.writeShellScript "update-client-deps" ''
       set -eou pipefail
 
       export PATH=${pkgs.stdenv.lib.makeBinPath [
@@ -97,6 +92,6 @@ rec {
       spago2nix generate
 
       echo Done
-    '';
+    '');
   };
-}
+})
