@@ -24,6 +24,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Data.Sum as S
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.List hiding (map; [_])
+open import Data.Vec hiding (map; [_])
 open import Data.Product hiding (map) renaming (_,_ to _,,_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
 import Utils as Util
@@ -42,40 +43,43 @@ eraseVal (A.V-Λ {N = t})      = U.V-F (U.V-ƛ (U.weaken (erase t)))
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
 
-erase-reconstTel : ∀{Φ Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : A.Tel Γ Δ σ Bs)
-    → ∀{C}(t' : Γ ⊢ substNf σ C)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : A.Tel Γ Δ σ Ds)
-    → eraseTel (A.reconstTel Bs Ds σ telB t' p tel')
-      ≡
-      eraseTel telB ++ erase t' ∷ eraseTel tel'
-erase-reconstTel []       Ds σ telB        t' refl tel' = refl
-erase-reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' refl tel' =
-  cong (erase t ∷_) (erase-reconstTel Bs Ds σ telB t' refl tel')
+eraseFVal : ∀{Φ}{A B : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A ⇒ B}
+  → A.Value t → U.FValue (erase t)
+eraseFVal (A.V-ƛ {N = t}) = U.V-ƛ (erase t)
 
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)
 eraseErr A.E-error = U.E-error
-{-
-eraseErr (A.E-Λ e) = U.E-todo
-eraseErr (A.E-·₁ e) = U.E-todo
-eraseErr (A.E-·₂ e) = U.E-todo
-eraseErr (A.E-·⋆ e) = U.E-todo
-eraseErr (A.E-unwrap e) = U.E-todo
-eraseErr (A.E-wrap e) = U.E-todo
-eraseErr (A.E-builtin bn σ tel Bs Ds telB vtel e p telD) = U.E-todo
--}
+
+eraseAnyErr : ∀{Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As}(ts : A.Tel Γ Δ σ As) → A.Any A.Error ts → U.Any U.Error (eraseTel ts)
+eraseAnyErr .(_ ∷ _) (A.here p)    = U.here (eraseErr p)
+eraseAnyErr .(_ ∷ _) (A.there v p) = U.there (eraseVal v) (eraseAnyErr _ p)
+
+eraseAnyErr' : ∀{Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As}
+  → ∀{n}(p : Data.List.length As ≡ n)
+  → (ts : A.Tel Γ Δ σ As)
+  → A.Any A.Error ts
+  → U.Any U.Error (subst (λ n → Untyped.Tel n (len Γ)) p (eraseTel ts))
+eraseAnyErr' refl = eraseAnyErr
+
 eraseVTel : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (As : List (Δ ⊢Nf⋆ *))
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
-  → U.VTel (len Γ) (eraseTel tel)
-eraseVTel Γ Δ σ []       tel        vtel        = _ 
-eraseVTel Γ Δ σ (A ∷ As) (t ,, tel) (v ,, vtel) =
+  → U.VTel (Data.List.length As) (len Γ) (eraseTel tel)
+eraseVTel Γ Δ σ []       tel       vtel        = _ 
+eraseVTel Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) =
   eraseVal v ,, eraseVTel Γ Δ σ As tel vtel 
+
+eraseVTel' : ∀ {Φ} Γ Δ
+  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (As : List (Δ ⊢Nf⋆ *))
+  → ∀{n}(p : Data.List.length As ≡ n)
+  → (tel : A.Tel Γ Δ σ As)
+  → (vtel : A.VTel Γ Δ σ As tel)
+  → U.VTel n (len Γ) (subst (λ n → Untyped.Tel n (len Γ)) p (eraseTel tel))
+eraseVTel' Γ Δ σ As refl = eraseVTel Γ Δ σ As
 \end{code}
 
 \begin{code}
@@ -100,68 +104,58 @@ erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
-  → U.BUILTIN
-      bn
-      (eraseTel tel)
-      (eraseVTel
-        Γ
-        Δ
-        σ
-        As
-        tel
-        vtel)
+  → U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ Δ σ As (lemma bn) tel vtel)
     ≡ erase (A.BUILTIN bn σ tel vtel)
-erase-BUILTIN addInteger Γ σ _
+erase-BUILTIN addInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
-erase-BUILTIN subtractInteger Γ σ _
+erase-BUILTIN subtractInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
-erase-BUILTIN multiplyInteger Γ σ _
+erase-BUILTIN multiplyInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
-erase-BUILTIN divideInteger Γ σ _
+erase-BUILTIN divideInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
-erase-BUILTIN quotientInteger Γ σ _
+erase-BUILTIN quotientInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
-erase-BUILTIN remainderInteger Γ σ _
+erase-BUILTIN remainderInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
-
-erase-BUILTIN modInteger Γ σ _
+erase-BUILTIN modInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (∣ j ∣ Data.Nat.≟ zero) _ _
-erase-BUILTIN lessThanInteger Γ σ _
+erase-BUILTIN lessThanInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (i Data.Integer.<? j) _ _
-erase-BUILTIN lessThanEqualsInteger Γ σ _
+erase-BUILTIN lessThanEqualsInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (i ≤? j) _ _
-erase-BUILTIN greaterThanInteger Γ σ _
+erase-BUILTIN greaterThanInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
     erase-decIf (i Builtin.Constant.Type.>? j) _ _
-erase-BUILTIN greaterThanEqualsInteger Γ σ _
+erase-BUILTIN greaterThanEqualsInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (i Builtin.Constant.Type.≥? j) _ _
-erase-BUILTIN equalsInteger Γ σ _
+erase-BUILTIN equalsInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) =
   erase-decIf (i ≟ j) _ _
-erase-BUILTIN concatenate Γ σ _
+erase-BUILTIN concatenate Γ σ (_ ∷ _ ∷ [])
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
-erase-BUILTIN takeByteString Γ σ _
+erase-BUILTIN takeByteString Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (bytestring b) ,, tt) = refl
-erase-BUILTIN dropByteString Γ σ _
+erase-BUILTIN dropByteString Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (bytestring b) ,, tt) = refl
-erase-BUILTIN sha2-256 Γ σ _
+erase-BUILTIN sha2-256 Γ σ (_ ∷ [])
   (A.V-con (bytestring b) ,, tt) = refl
-erase-BUILTIN sha3-256 Γ σ _
+erase-BUILTIN sha3-256 Γ σ (_ ∷ [])
   (A.V-con (bytestring b) ,, tt) = refl
-erase-BUILTIN verifySignature Γ σ _
+erase-BUILTIN verifySignature Γ σ (_ ∷ _ ∷ _ ∷ [])
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, A.V-con (bytestring b'') ,, tt) =
   erase-VERIFYSIG _
-erase-BUILTIN equalsByteString Γ σ _
+erase-BUILTIN equalsByteString Γ σ (_ ∷ _ ∷ [])
   (A.V-con (bytestring b) ,, A.V-con (bytestring b') ,, tt) = refl
-erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.false) ,, vt ,, vu) = refl
-erase-BUILTIN ifThenElse Γ σ _ (A.V-con (bool B.true)  ,, vt ,, vu) = refl
+erase-BUILTIN ifThenElse Γ σ (_ ∷ _ ∷ _ ∷ []) (A.V-con (bool B.false) ,, vt ,, vu) = refl
+erase-BUILTIN ifThenElse Γ σ (_ ∷ _ ∷ _ ∷ []) (A.V-con (bool B.true)  ,, vt ,, vu) = refl
 \end{code}
 
 \begin{code}
@@ -172,7 +166,7 @@ erase—→ (A.ξ-·₁ {M = M} p)                              = map
   (cong (_· erase M))
   (erase—→ p)
 erase—→ (A.ξ-·₂ {V = V} p q)                            = map
-  (U.ξ-·₂ (eraseVal p))
+  (U.ξ-·₂ (eraseFVal p))
   ((cong (erase V ·_)))
   (erase—→ q)
 erase—→ (A.ξ-·⋆ p)                                      =
@@ -191,10 +185,12 @@ erase—→ {Γ = Γ} (A.β-Λ {N = N}{A = A})                          =
 erase—→ (A.β-wrap1 p)                                   = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
-erase—→ (A.β-builtin bn σ tel vtel)                     = inj₁ (subst
-  (builtin bn (eraseTel tel) U.—→_)
+erase—→ {Γ = Γ} (A.β-builtin bn σ tel vtel)             = inj₁ (subst
+  (Untyped.builtin bn (lemma≤ bn) (eraseTel tel) U.—→_)
   (erase-BUILTIN bn _ σ tel vtel)
-  (U.β-builtin (eraseTel tel) (eraseVTel _ _ σ _ tel vtel)))
+  (subst (U._—→ U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) (sym (lem-builtin bn (eraseTel tel) (lemma≤ bn) ≤‴-refl (lemma bn))) (U.β-builtin (subst (Vec (len Γ ⊢)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) ))
+erase—→ (A.ξ-builtin bn tel p) = ?
+{-
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q r) with erase—→ p
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₁ x = inj₁ (subst
     (builtin bn (eraseTel tel) U.—→_)
@@ -208,13 +204,14 @@ erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r)
       (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
 erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
   = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
+-}
 erase—→ (A.E-·₂ p)                                      =
-  inj₁ (U.E-·₂ (eraseVal p))
+  inj₁ (U.E-·₂ (eraseFVal p))
 erase—→ A.E-·₁                                          = inj₁ U.E-·₁
 erase—→ A.E-·⋆                                          = inj₁ U.E-·₁
 erase—→ A.E-unwrap                                      = inj₂ refl
 erase—→ A.E-wrap                                        = inj₂ refl
-erase—→ (A.E-builtin bn σ tel Bs Ds telB vtel x p telD) = inj₁ (U.E-builtin bn (eraseTel tel) (eraseVTel _ _ σ _ telB vtel) (eraseErr x) (eraseTel telD))
+erase—→ {Γ = Γ} (A.E-builtin bn σ tel p) = inj₁ (subst (U._—→ error) (sym (lem-builtin bn (eraseTel tel) (lemma≤ bn) ≤‴-refl (lemma bn))) (U.E-builtin bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseAnyErr' (lemma bn) tel p)))
 
 \end{code}
 

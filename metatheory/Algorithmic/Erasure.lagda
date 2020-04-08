@@ -81,6 +81,7 @@ eraseTC AC.unit           = unit
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → A.Tel Γ Δ σ As
   → Untyped.Tel (length As) (len Γ)
+
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
 erase (ƛ t)                = ƛ (erase t) 
