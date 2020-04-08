@@ -33,11 +33,11 @@ import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
 import Monaco as Monaco
 import Network.RemoteData (RemoteData(..))
-import Prelude (class Show, bind, const, mempty, show, unit, ($), (<$>), (<<<), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.BottomPanel (isContractValid)
 import StaticData as StaticData
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _createGistResult, _editorPreferences, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _createGistResult, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
+import Prelude (class Show, bind, const, discard, mempty, show, unit, ($), (<$>), (<<<), (<>), (>))
 
 render ::
   forall m.
@@ -94,13 +94,15 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Marl
     let
       contents = fromMaybe initialContents mContents
     model <- liftEffect $ Monaco.getModel editor
-    liftEffect $ Monaco.setValue model contents
+    liftEffect do
+      Monaco.setValue model contents
+      -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
+      monaco <- Monaco.getMonaco
+      Monaco.setTheme monaco MM.daylightTheme.name
 
   component = monacoComponent $ MM.settings setup
 
   initialContents = fromMaybe "" $ Array.head $ map fst StaticData.marloweContracts
-
-  editorPreferences = view _editorPreferences state
 
 sidebar ::
   forall p.

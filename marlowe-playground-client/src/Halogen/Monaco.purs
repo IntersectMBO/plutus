@@ -3,7 +3,7 @@ module Halogen.Monaco where
 import Data.Either (Either(..))
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
-import Data.Traversable (traverse)
+import Data.Traversable (for_, traverse)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Halogen (HalogenM, RefLabel)
@@ -11,7 +11,7 @@ import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer(..), effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, Theme, TokensProvider)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
 import Monaco as Monaco
 import Prelude (Unit, bind, const, discard, pure, unit, void, ($), (>>=))
 
@@ -23,6 +23,8 @@ data Query a
   | GetText (String -> a)
   | SetPosition IPosition a
   | Resize a
+  | SetTheme String a
+  | SetModelMarkers (Array IMarkerData) a
 
 data Action
   = Init
@@ -35,10 +37,11 @@ data Message
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
     , theme :: Theme
-    , tokensProvider :: TokensProvider
-    , completionItemProvider :: CompletionItemProvider
-    , codeActionProvider :: CodeActionProvider
-    , documentFormattingEditProvider :: DocumentFormattingEditProvider
+    , monarchTokensProvider :: Maybe MonarchLanguage
+    , tokensProvider :: Maybe TokensProvider
+    , completionItemProvider :: Maybe CompletionItemProvider
+    , codeActionProvider :: Maybe CodeActionProvider
+    , documentFormattingEditProvider :: Maybe DocumentFormattingEditProvider
     , refLabel :: RefLabel
     , owner :: String
     , getModelMarkers :: String -> Array IMarkerData
@@ -46,13 +49,13 @@ type Settings m
     }
 
 monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Component HTML Query Unit Message m
-monacoComponent setup =
+monacoComponent settings =
   H.mkComponent
     { initialState: const { editor: Nothing }
-    , render
+    , render: render settings
     , eval:
       H.mkEval
-        { handleAction: handleAction setup
+        { handleAction: handleAction settings
         , handleQuery
         , initialize: Just Init
         , receive: const Nothing
@@ -60,10 +63,10 @@ monacoComponent setup =
         }
     }
 
-render :: forall p i. State -> HTML p i
-render state =
+render :: forall m p i. Settings m -> State -> HTML p i
+render settings state =
   div
-    [ ref $ H.RefLabel "monacoEditor"
+    [ ref settings.refLabel
     , class_ $ H.ClassName "monaco-editor-container"
     ]
     []
@@ -79,11 +82,12 @@ handleAction settings Init = do
       liftEffect do
         Monaco.registerLanguage monaco settings.languageExtensionPoint
         Monaco.defineTheme monaco settings.theme
-        Monaco.setTokensProvider monaco languageId settings.tokensProvider
-        Monaco.registerCompletionItemProvider monaco languageId settings.completionItemProvider
-        Monaco.registerCodeActionProvider monaco languageId settings.codeActionProvider
-        Monaco.registerDocumentFormattingEditProvider monaco languageId settings.documentFormattingEditProvider
-      editor <- liftEffect $ Monaco.create monaco element languageId settings.theme.name
+        for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
+        for_ settings.tokensProvider $ Monaco.setTokensProvider monaco languageId
+        for_ settings.completionItemProvider $ Monaco.registerCompletionItemProvider monaco languageId
+        for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
+        for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
+      editor <- liftEffect $ Monaco.create monaco element languageId
       void $ H.modify (const { editor: Just editor })
       void $ H.subscribe $ effectEventSource (changeContentHandler monaco editor)
       H.lift $ settings.setup editor
@@ -93,7 +97,11 @@ handleAction settings Init = do
     Monaco.onDidChangeContent editor
       ( \_ -> do
           model <- Monaco.getModel editor
-          Monaco.setModelMarkers monaco model settings.owner settings.getModelMarkers
+          let
+            v = Monaco.getValue model
+
+            markersData = settings.getModelMarkers v
+          Monaco.setModelMarkers monaco model settings.owner markersData
           markers <- Monaco.getModelMarkers monaco model
           emitter $ Left $ HandleChange (Monaco.getValue model) markers
       )
@@ -131,3 +139,19 @@ handleQuery (Resize next) = do
   withEditor \editor -> do
     liftEffect $ Monaco.layout editor
     pure next
+
+handleQuery (SetTheme themeName next) = do
+  liftEffect do
+    monaco <- Monaco.getMonaco
+    Monaco.setTheme monaco themeName
+    pure $ Just next
+
+handleQuery (SetModelMarkers markers next) = do
+  withEditor \editor ->
+    liftEffect do
+      let
+        owner = Monaco.getEditorId editor
+      monaco <- Monaco.getMonaco
+      model <- Monaco.getModel editor
+      Monaco.setModelMarkers monaco model owner markers
+      pure next

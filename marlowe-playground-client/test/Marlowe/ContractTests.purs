@@ -11,7 +11,6 @@ import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
-import Editor as Editor
 import Examples.Marlowe.Contracts as Contracts
 import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
@@ -42,14 +41,15 @@ derive newtype instance monadStateMockApp :: MonadState FrontendState MockApp
 instance monadAppState :: MonadApp MockApp where
   haskellEditorSetValue _ _ = pure unit
   haskellEditorGetValue = pure Nothing
-  haskellEditorSetAnnotations _ = pure unit
-  haskellEditorHandleAction _ = pure unit
+  haskellEditorSetMarkers _ = pure unit
   haskellEditorResize = pure unit
+  haskellEditorSetTheme = pure unit
   marloweEditorSetValue _ _ = pure unit
   marloweEditorGetValue = pure (Just Contracts.escrow)
   marloweEditorMoveCursorToPosition _ = pure unit
   marloweEditorResize = pure unit
   marloweEditorSetMarkers _ = pure unit
+  marloweEditorSetTheme = pure unit
   preventDefault _ = pure unit
   readFileFromDragEvent _ = pure ""
   updateContractInState contract = do
@@ -78,7 +78,6 @@ initialState =
   FrontendState
     { view: HaskellEditor
     , simulationBottomPanelView: CurrentStateView
-    , editorPreferences: Editor.Preferences { keyBindings: Editor.Ace }
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked

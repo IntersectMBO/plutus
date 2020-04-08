@@ -1,11 +1,11 @@
 /*eslint-env node*/
 'use strict';
 
-exports.isWarning_ = function(severity) {
+exports.isWarning_ = function (severity) {
   return severity == 4;
 }
 
-exports.isError_ = function(severity) {
+exports.isError_ = function (severity) {
   return severity == 8;
 }
 
@@ -25,25 +25,26 @@ exports.setMonarchTokensProvider_ = function (monaco, languageId, languageDef) {
   monaco.languages.setMonarchTokensProvider(languageId, languageDef);
 }
 
-exports.setModelMarkers_ = function (monaco, model, owner, getMarkers) {
-  let value = model.getValue();
-  const markers = getMarkers(value);
+exports.setModelMarkers_ = function (monaco, model, owner, markers) {
   monaco.editor.setModelMarkers(model, owner, markers);
 }
 
 exports.getModelMarkers_ = function (monaco, model) {
-  return monaco.editor.getModelMarkers({resource: model.uri});
+  return monaco.editor.getModelMarkers({ resource: model.uri });
 }
 
-exports.create_ = function (monaco, nodeId, languageId, themeName) {
+exports.create_ = function (monaco, nodeId, languageId) {
   const editor = monaco.editor.create(nodeId, {
     value: [
       'Close'
     ].join('\n'),
     language: languageId,
-    theme: themeName,
   });
   return editor;
+}
+
+exports.setTheme_ = function (monaco, themeName) {
+  monaco.editor.setTheme(themeName);
 }
 
 exports.onDidChangeContent_ = function (editor, handler) {
@@ -54,6 +55,10 @@ exports.onDidChangeContent_ = function (editor, handler) {
 
 exports.getModel_ = function (editor) {
   return editor.getModel();
+}
+
+exports.getEditorId_ = function(editor) {
+  return editor.getId();
 }
 
 exports.getValue_ = function (model) {
@@ -99,3 +104,4 @@ exports.revealLine_ = function (editor, lineNumber) {
 exports.layout_ = function (editor) {
   editor.layout();
 }
+
