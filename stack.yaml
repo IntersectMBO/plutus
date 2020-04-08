@@ -33,6 +33,7 @@ extra-deps:
 - dependent-map-0.3
 - dependent-sum-0.6.2.0
 - dependent-sum-template-0.1.0.3
+- deriving-aeson-0.2.3
 - ekg-0.4.0.15
 - ekg-core-0.1.1.7
 - ekg-json-0.1.0.6
@@ -50,6 +51,7 @@ extra-deps:
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
+- th-utilities-0.2.4.0
 - servant-options-0.1.0.0
 - servant-github-webhook-0.4.1.0@sha256:6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753
 - sbv-8.6

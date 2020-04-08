@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Language.PlutusTx.Evaluation
@@ -25,8 +24,9 @@ import           PlutusPrelude
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
-import           Language.PlutusCore.Evaluation.Machine.Cek      hiding (evaluateCek, unsafeEvaluateCek)
-import qualified Language.PlutusCore.Evaluation.Machine.Cek      as PLC (evaluateCek, unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek                 hiding (evaluateCek, unsafeEvaluateCek)
+import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC (evaluateCek, unsafeEvaluateCek)
+import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 import qualified Control.Exception
@@ -43,7 +43,7 @@ stringBuiltins =
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Program TyName Name uni () -> Either (CekEvaluationException uni) (Plain Term uni)
-evaluateCek = PLC.evaluateCek stringBuiltins . toTerm
+evaluateCek = PLC.evaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
@@ -51,7 +51,7 @@ unsafeEvaluateCek
        , Typeable uni, uni `Everywhere` Pretty
        )
     => Program TyName Name uni () -> EvaluationResultDef uni
-unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins . toTerm
+unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
 
@@ -68,5 +68,5 @@ evaluateCekTrace p =
                 logDefinition = dynamicCallAssign logName emit (\_ -> ExBudget 1 1)
                 env = insertDynamicBuiltinNameDefinition logDefinition
                                                          stringBuiltins
-            Control.Exception.evaluate $ runCekCounting env $ toTerm p
+            Control.Exception.evaluate $ runCekCounting env PLC.defaultCostModel $ toTerm p
     in  (lg, view exBudgetStateTally state, res)

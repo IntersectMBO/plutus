@@ -8,7 +8,6 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -21,6 +20,7 @@ module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
     , TypedBuiltinName (..)
     , FoldArgs
+    , FoldArgsEx
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
@@ -34,6 +34,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -98,6 +99,11 @@ type family FoldArgs args r where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
+-- | Calculates the parameters of the costing function for a builtin.
+type family FoldArgsEx args where
+    FoldArgsEx '[]           = ExBudget
+    FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
+
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
 We need both while evaluting a 'DynamicBuiltinName', because 'TypeScheme' is required for
@@ -117,7 +123,7 @@ data DynamicBuiltinNameMeaning uni =
     forall args res. DynamicBuiltinNameMeaning
         (TypeScheme uni args res)
         (FoldArgs args res)
-        (FoldArgs args ExBudget)
+        (FoldArgsEx args)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
 data DynamicBuiltinNameDefinition uni =

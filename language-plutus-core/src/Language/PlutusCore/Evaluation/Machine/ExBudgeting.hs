@@ -1,8 +1,10 @@
 {-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -75,12 +77,19 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
     , SpendBudget(..)
+    , CostModel(..)
+    , CostingFunOneArgument(..)
+    , CostingFunTwoArguments(..)
+    , CostingFunThreeArguments(..)
     , estimateStaticStagedCost
     , exBudgetCPU
     , exBudgetMemory
     , exBudgetStateBudget
     , exBudgetStateTally
     , exceedsBudget
+    , runCostingFunOneArgument
+    , runCostingFunTwoArguments
+    , runCostingFunThreeArguments
     )
 where
 
@@ -95,6 +104,8 @@ import           Data.HashMap.Monoidal
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
+import           Deriving.Aeson
+import           Language.Haskell.TH.Syntax
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
@@ -106,6 +117,7 @@ data ExBudgetMode =
 
 -- This works nicely because @m@ contains @uni@ as parameter.
 class SpendBudget m uni | m -> uni where
+    builtinCostParams :: m CostModel
     spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
 
 data ExBudgetCategory
@@ -117,13 +129,15 @@ data ExBudgetCategory
     | BBuiltin StagedBuiltinName
     | BAST
     deriving stock (Show, Eq, Generic)
+    deriving anyclass NFData
 instance Hashable ExBudgetCategory
 instance (PrettyBy config) ExBudgetCategory where
     prettyBy _ = viaShow
 
 data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
-    deriving (Eq, Show, Generic)
+    deriving stock (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
+    deriving anyclass NFData
 instance PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", prettyBy config cpu, line
@@ -136,6 +150,7 @@ data ExBudgetState = ExBudgetState
     , _exBudgetStateBudget :: ExBudget  -- ^ for making sure we don't spend too much
     }
     deriving stock (Eq, Generic, Show)
+    deriving anyclass NFData
 instance PrettyBy config ExBudgetState where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
@@ -146,17 +161,86 @@ instance PrettyBy config ExBudgetState where
 newtype ExTally = ExTally (MonoidalHashMap ExBudgetCategory ExBudget)
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
+    deriving anyclass NFData
 instance PrettyBy config ExTally where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
           ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])
 
-$(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
-
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost
     :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
+
+data CostModel =
+    CostModel
+    { paramAddInteger           :: CostingFunTwoArguments
+    , paramSubtractInteger      :: CostingFunTwoArguments
+    , paramMultiplyInteger      :: CostingFunTwoArguments
+    , paramDivideInteger        :: CostingFunTwoArguments
+    , paramQuotientInteger      :: CostingFunTwoArguments
+    , paramRemainderInteger     :: CostingFunTwoArguments
+    , paramModInteger           :: CostingFunTwoArguments
+    , paramLessThanInteger      :: CostingFunTwoArguments
+    , paramLessThanEqInteger    :: CostingFunTwoArguments
+    , paramGreaterThanInteger   :: CostingFunTwoArguments
+    , paramGreaterThanEqInteger :: CostingFunTwoArguments
+    , paramEqInteger            :: CostingFunTwoArguments
+    , paramConcatenate          :: CostingFunTwoArguments
+    , paramTakeByteString       :: CostingFunTwoArguments
+    , paramDropByteString       :: CostingFunTwoArguments
+    , paramSHA2                 :: CostingFunOneArgument
+    , paramSHA3                 :: CostingFunOneArgument
+    , paramVerifySignature      :: CostingFunThreeArguments
+    , paramEqByteString         :: CostingFunTwoArguments
+    , paramLtByteString         :: CostingFunTwoArguments
+    , paramGtByteString         :: CostingFunTwoArguments
+    , paramIfThenElse           :: CostingFunThreeArguments
+    }
+    deriving (Show, Eq, Generic, Lift)
+    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] CostModel
+
+-- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
+-- TODO loglinear is currently linear
+
+data CostingFunOneArgument =
+    OneArgumentConstantCost Integer
+    | OneArgumentLogLinearCost Integer
+    deriving (Show, Eq, Generic, Lift)
+    deriving (FromJSON, ToJSON) via CustomJSON '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "OneArgument", CamelToSnake)] CostingFunOneArgument
+
+runCostingFunOneArgument :: CostingFunOneArgument -> ExMemory -> ExBudget
+runCostingFunOneArgument
+    (OneArgumentConstantCost c) _ = ExBudget (ExCPU c) (ExMemory c)
+runCostingFunOneArgument
+    (OneArgumentLogLinearCost factor) (ExMemory size1) = ExBudget (ExCPU $ size1 * factor) (ExMemory $ size1 * factor)
+
+data CostingFunTwoArguments =
+    TwoArgumentsConstantCost Integer
+    | TwoArgumentsAdditiveLogLinearCost Integer
+    deriving (Show, Eq, Generic, Lift)
+    deriving (FromJSON, ToJSON) via CustomJSON '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "TwoArguments", CamelToSnake)] CostingFunTwoArguments
+
+runCostingFunTwoArguments :: CostingFunTwoArguments -> ExMemory -> ExMemory -> ExBudget
+runCostingFunTwoArguments
+    (TwoArgumentsConstantCost c) _ _ = ExBudget (ExCPU c) (ExMemory c)
+runCostingFunTwoArguments
+    (TwoArgumentsAdditiveLogLinearCost factor) (ExMemory size1) (ExMemory size2) = ExBudget (ExCPU $ (size1 + size2) * factor) (ExMemory $ (size1 + size2) * factor)
+
+data CostingFunThreeArguments =
+    ThreeArgumentsConstantCost Integer
+    | ThreeArgumentsAdditiveLogLinearCost Integer
+    deriving (Show, Eq, Generic, Lift)
+    deriving (FromJSON, ToJSON) via CustomJSON '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ThreeArguments", CamelToSnake)] CostingFunThreeArguments
+
+runCostingFunThreeArguments :: CostingFunThreeArguments -> ExMemory -> ExMemory -> ExMemory -> ExBudget
+runCostingFunThreeArguments
+    (ThreeArgumentsConstantCost c) _ _ _ = ExBudget (ExCPU c) (ExMemory c)
+runCostingFunThreeArguments
+    (ThreeArgumentsAdditiveLogLinearCost factor) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
+        ExBudget (ExCPU $ (size1 + size2 + size3) * factor) (ExMemory $ (size1 + size2 + size3) * factor)
+
+$(mtraverse makeLenses [''ExBudgetState, ''ExBudget])
 
 exceedsBudget :: ExRestrictingBudget -> ExBudget -> Bool
 exceedsBudget (ExRestrictingBudget ex) budget = (view exBudgetCPU budget) > (view exBudgetCPU ex) || (view exBudgetMemory budget) > (view exBudgetMemory ex)

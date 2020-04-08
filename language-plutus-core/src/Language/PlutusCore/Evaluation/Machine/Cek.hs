@@ -111,9 +111,10 @@ type VarEnv uni = UniqueMap TermUnique (Closure uni)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { _cekEnvMeans      :: DynamicBuiltinNameMeanings uni
-    , _cekEnvVarEnv     :: VarEnv uni
-    , _cekEnvBudgetMode :: ExBudgetMode
+    { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
+    , _cekEnvVarEnv            :: VarEnv uni
+    , _cekEnvBudgetMode        :: ExBudgetMode
+    , _cekEnvBuiltinCostParams :: CostModel
     }
 
 makeLenses ''CekEnv
@@ -133,6 +134,7 @@ instance SpendBudget (CekM uni) uni where
             Restricting resb ->
                 when (exceedsBudget resb newBudget) $
                     throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
+    builtinCostParams = view cekEnvBuiltinCostParams
 
 data Frame uni
     = FrameApplyFun (VarEnv uni) (WithMemory Value uni)                          -- ^ @[V _]@
@@ -365,18 +367,20 @@ applyStagedBuiltinName
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
+applyStagedBuiltinName (StaticStagedBuiltinName name) args = do
+    params <- builtinCostParams
+    applyBuiltinName params name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
     -> ExBudgetMode
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
-runCek means mode term =
-    runCekM (CekEnv means mempty mode)
+runCek means mode params term =
+    runCekM (CekEnv means mempty mode params)
             (ExBudgetState mempty mempty)
         $ do
             -- We generate fresh variables during evaluation, see Note [Saved mapping example],
@@ -391,6 +395,7 @@ runCek means mode term =
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCekCounting means = runCek means Counting
@@ -399,17 +404,18 @@ runCekCounting means = runCek means Counting
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) (Plain Term uni)
-evaluateCek means = fst . runCekCounting means
+evaluateCek means params = fst . runCekCounting means params
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Typeable uni, uni `Everywhere` Pretty
        )
-    => DynamicBuiltinNameMeanings uni -> Plain Term uni -> EvaluationResultDef uni
-unsafeEvaluateCek means = either throw id . extractEvaluationResult . evaluateCek means
+    => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
+unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -417,6 +423,7 @@ readKnownCek
        , KnownType uni a
        )
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek means = evaluateCek means >=> readKnown
+readKnownCek means params = evaluateCek means params >=> readKnown
