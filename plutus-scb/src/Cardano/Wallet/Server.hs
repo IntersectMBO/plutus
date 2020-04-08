@@ -34,7 +34,7 @@ import           Servant                       ((:<|>) ((:<|>)), Application, Ha
 import           Servant.Client                (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
 
 import           Wallet.Effects                (ChainIndexEffect, NodeClientEffect, WalletEffect, ownOutputs, ownPubKey,
-                                                submitTxn, updatePaymentWithChange, walletSlot)
+                                                startWatching, submitTxn, updatePaymentWithChange, walletSlot)
 import           Wallet.Emulator.Error         (WalletAPIError)
 import           Wallet.Emulator.Wallet        (WalletState)
 import qualified Wallet.Emulator.Wallet        as Wallet
@@ -103,4 +103,9 @@ main Config {baseUrl} nodeBaseUrl chainIndexBaseUrl = do
             chainIndexManager <- newManager defaultManagerSettings
             pure $ mkClientEnv chainIndexManager chainIndexBaseUrl
     mVarState <- liftIO $ newMVar initialState
+    _ <- liftIO
+            $ runM
+            $ flip handleError (error . show @ClientError)
+            $ ChainIndexClient.handleChainIndexClient chainIndexEnv
+            $ startWatching (Wallet.ownAddress initialState)
     liftIO $ run port $ app nodeClientEnv chainIndexEnv mVarState
