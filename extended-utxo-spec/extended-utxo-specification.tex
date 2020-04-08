@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{11th March 2020}
+\date{8th April 2020}
 
 \author{}
 
@@ -111,6 +111,7 @@
 \newcommand{\scriptAddr}{\msf{scriptAddr}}
 \newcommand{\ctx}{\ensuremath{\s{Context}}}
 \newcommand{\toData}{\ensuremath{\s{toData}}}
+\newcommand{\toTxData}{\ensuremath{\s{toTxData}}}
 \newcommand{\mkContext}{\ensuremath{\s{mkContext}}}
 
 % Macros for eutxo things.
@@ -124,6 +125,7 @@
 \newcommand{\inputs}{\mi{inputs}}
 \newcommand{\outputs}{\mi{outputs}}
 \newcommand{\forge}{\mi{forge}}
+\newcommand{\forgeScripts}{\mi{forgeScripts}}
 \newcommand{\fee}{\mi{fee}}
 \newcommand{\addr}{\mi{addr}}
 \newcommand{\val}{\mi{value}}  %% \value is already defined
@@ -154,6 +156,9 @@
 \newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
 
 \newcommand{\qtymap}{\ensuremath{\s{Quantities}}}
+
+\newcommand{\applyScript}[1]{\ensuremath{\llbracket#1\rrbracket}}
+\newcommand{\applyMPScript}[1]{\ensuremath{\llbracket#1\rrbracket}}
 
 \newcommand\B{\ensuremath{\mathbb{B}}}
 \newcommand\N{\ensuremath{\mathbb{N}}}
@@ -370,7 +375,6 @@ encoding of lists and records.
 We assume that the scripting language has the ability to parse values
 of type \Data{}, converting them into a suitable internal representation.
 
-
 \section{EUTXO-1: Enhanced scripting}
 \label{sec:eutxo-1}
 The EUTXO-1 model adds the following new features to the model
@@ -437,7 +441,7 @@ the ledger.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
-    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
+    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\[4pt]
     \qty{} && \mbox{an amount of currency}\\
     \slotnum && \mbox{a slot number}\\
     \Address && \mbox{the ``address'' of a script in the blockchain}\\
@@ -447,10 +451,10 @@ the ledger.
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
     \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\
-    \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
+    \applyScript{\cdot}: \script \rightarrow \Data \times \cdots \times
     \Data \rightarrow \B && \mbox{application of a script to its arguments}\\
     \\
-    \multicolumn{3}{l}{\textsc{Defined types}}\\
+    \multicolumn{3}{l}{\textsc{Defined types}}\\[4pt]
     \s{Output } &=&(\addr: \Address,\\
                 & &\ \val: \qty,\\
                 & &\ \datumHash: \DataHash)\\
@@ -490,11 +494,11 @@ The Cardano implementation of EUTXO-1 uses the primitives given in
     \DataHash &=& \H\\
     \TxId &=& \H\\
     \txId : \eutxotx \rightarrow \TxId &=& t \mapsto \hash{t}\\
-    \script &=& \mbox{a Plutus Core program}\\
+    \script & & \mbox{a Plutus Core program}\\
     \scriptAddr : \script \rightarrow \Address &=& s \mapsto \hash{s}\\
-    \llbracket \cdots \rrbracket : \script \rightarrow \Data \times \Data \times
-    \Data \rightarrow \B &=& \mbox{typechecking the program and running}\\
-                             &&\mbox{the Plutus Core interpreter}\\
+    \applyScript{\cdot} : \script \rightarrow \Data \times \cdots \times
+    \Data \rightarrow \B & & \mbox{running the Plutus Core interpreter with a}\\
+                             &&\mbox{script and a number of data objects as input}\\
   \end{array}
   \end{displaymath}
   \caption{Cardano primitives for the EUTXO-1 model}
@@ -515,6 +519,13 @@ that output: this requirement is enforced in
 provided as parts of transaction inputs, even though they are
 conceptually part of the output being spent.  The reasons for
 this are explained in \cref{note:scripts}.
+
+\paragraph{Applying scripts}  A script $s$ may expect some number $n$
+of datum objects as arguments (the number $n$ depending on the type of
+the script).  The result of running the script with the datum objects
+$d_1,\ldots, d_n$ as arguments is denoted by
+$\applyScript{s}(d_1,\ldots,d_n)$.  As mentioned at the start of this
+section, validator scripts take three arguments.
 
 \paragraph{Datum witnesses.} The transaction may include the full
 value of the datum for each output that it creates.  See
@@ -570,13 +581,13 @@ related types.
                & &\ \fee: \qty,\\
                & &\ \forge: \qty)\\
      \\
-     \mkContext: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow\\
-      \ctx &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+     \mkContext: \eutxotx \times \s{Input} \times \s{Ledger} \rightarrow \ctx
+      && \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
       \\
       %% Without the break after the right arrow, the = sign is well
       %% over halfway across the pages, which is horrible. This makes
       %% it a bit better, but not much.
-     \toData: \ctx \rightarrow \Data &=& \mbox{encodes a \ctx{} as \Data}
+     \toData: \ctx \rightarrow \Data & & \mbox{encodes a \ctx{} as \Data}
   \end{array}
   \end{displaymath}
   \caption{The \ctx{} type for the EUTXO-1 model}
@@ -715,8 +726,8 @@ the latter in \cref{rule:all-inputs-validate}.
   \label{rule:all-inputs-validate}
   \textbf{All inputs validate}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket (i.\datum,\, i.\redeemer,\,  \toData(\mkContext(t,i,l))) = \true.
+    \textrm{For all } i \in t.\inputs,\ \applyScript{i.\validator}(i.\datum,\, i.\redeemer,
+    \,  \toData(\mkContext(t,i,l))) = \true.
   \end{displaymath}
 
 \item
@@ -737,7 +748,7 @@ the latter in \cref{rule:all-inputs-validate}.
 \caption{Validity of a transaction $t$ in the EUTXO-1 model}
 \label{fig:eutxo-1-validity}
 \end{ruledfigure}
-\todokwxm{Do we really needs the $\llbracket\cdots\rrbracket$ business?}
+\todokwxm{Do we really needs the $\applyScript{\cdots}$ business?}
 
 
 \noindent We say that a ledger
@@ -749,7 +760,7 @@ In practice, validity imposes a limit on the sizes of the
 $\validator$ \script{}, the $\redeemer$ and
 $\datum$ \Data{} fields, and the result of \toData. The validation of a
 single transaction must take place within one slot, so the evaluation
-of $\llbracket ~ \rrbracket$ cannot take longer than one slot.
+of $\applyScript{}$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
 
 %%\newpage
@@ -760,8 +771,10 @@ allow, among other things, the implementation of new currencies and
 \textit{non-fungible tokens} (NFTs).
 
 \paragraph{Multiple currencies.} The EUTXO-2 model allows an unlimited
-number of \textit{currencies}.  Each custom currency has a
-unique identifier.
+number of \textit{currencies}.  Each custom currency has a unique
+identifier and a \textit{monetary policy script} which may be used to
+limit the way in which the currency is used (for example, by only
+allowing specified users to create units of the currency).
 
 \todokwxm{We may wish to implement a DEX to enable exchange of custom
   currencies.  This is a little problematic in Ethereum because the
@@ -787,21 +800,31 @@ basic idea is that ordinary currencies have a single token whose
 sub-currency has an unlimited supply and NFTs have a number of tokens
 with the sub-currency for each token limited to a supply of one.
 
-The changes to the basic EUTXO-1 types are now quite simple:
-see \cref{fig:eutxo-2-types}.  We change the type of the $\val$ field
-in the \s{Output} type to be \qtymap{}, representing values of all currencies;
-we also change the type of the \forge{} field on transactions to \qtymap{}, to
-allow the creation and destruction of funds in all currencies; the
-supply of a currency can be reduced by forging a negative amount of that
-currency, as in EUTXO-1.
+The changes to the basic EUTXO-1 types are quite simple: see
+\cref{fig:eutxo-2-types}.  We change the type of the $\val$ field in
+the \s{Output} type to be \qtymap{}, representing values of all
+currencies.  We also change the type of the \forge{} field on
+transactions to \qtymap{}, to allow the creation and destruction of
+funds in all currencies; the supply of a currency can be reduced by
+forging a negative amount of that currency, as in EUTXO-1.  In
+addition, transactions now have a set $\forgeScripts$ of monetary policy
+scripts, each of which takes a single $\Data$ argument summarising the
+current transaction; we assume that there is a function $\toTxData:
+\eutxotx \rightarrow \Data$ which creates such objects.
+
+
+
+
 \begin{ruledfigure}{H}
   \begin{displaymath}
     \begin{array}{rll}
-    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
-    \currency  && \mbox{an identifier for a custom currency}\\
+      \multicolumn{3}{l}{\textsc{Ledger primitives}}\\[4pt]
     \token     && \mbox{a type consisting of identifiers for individual tokens}\\
     \\
-    \multicolumn{3}{l}{\textsc{Defined types}}\\
+    
+    \multicolumn{3}{l}{\textsc{Defined types}}\\[4pt]
+    \currency  &=& \Address \enspace\mbox{(an identifier for a custom currency)}\\
+    \\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
     \\
     \s{Output}_2 &=&(\addr: \Address,\\
@@ -820,7 +843,8 @@ currency, as in EUTXO-1.
                & &\ \i{validityInterval}: \Interval{\slotnum},\\
                & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qtymap,\\
-               & &\ \forge: \qtymap)\\
+               & &\ \forge: \qtymap,\\
+               & &\ \forgeScripts: \Set{\script})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -833,7 +857,6 @@ currency, as in EUTXO-1.
 \paragraph{ETUXO-2 on Cardano.}
 The Cardano implementation of EUTXO-2 uses the primitives given in
 \cref{fig:eutxo-2-types-cardano}.
-
 Cardano also defines an \emph{native currency} and \emph{native currency token}.
 This allows defining a native currency that behaves as a simple \qty{}. This
 is used in Fig~\ref{fig:cardano-fee-validity}.
@@ -861,8 +884,9 @@ function. This is well-defined, since finitely-supported functions form a monoid
 \label{sec:pendingtx-2}
 The \ctx{} type must be also be updated for the EUTXO-2 model.  All
 that is required is to replace \qty{} by \qtymap{} everywhere in
-\cref{fig:ptx-1-types} except for the \fee{} field: for reference
-the details are given in \cref{fig:ptx-2-types}.
+\cref{fig:ptx-1-types} except for the \fee{} field, and to add the
+monetary policy scripts: for reference the details are given in
+\cref{fig:ptx-2-types}.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{rll}
@@ -882,13 +906,15 @@ the details are given in \cref{fig:ptx-2-types}.
                  & &\ \i{validityInterval}: \Interval{\slotnum},\\
                  & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qtymap,\\
-                 & &\ \forge: \qtymap)\\
+                 & &\ \forge: \qtymap,\\
+                 & &\ \forgeScripts: \Set{\script})\\
     \\
-    \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow&\\
-    
-      \ctx_2 &=& \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
+    \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow \ctx_2 &&
+      \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
      \\
-    \toData_2: \ctx_2 \rightarrow \Data &=& \mbox{encodes a $\ctx_2$}
+     \toData_2: \ctx_2 \rightarrow \Data &~& \mbox{encodes a $\ctx_2$ object}\\
+     \\
+     \toTxData : \eutxotx \rightarrow \Data &~& \mbox{encodes a $\eutxotx$ object}
   \end{array}
   \end{displaymath}
   \caption{The \ctx{} type for the EUTXO-2 model}
@@ -940,12 +966,7 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
     \item the ledger $l$ is empty (that is, if it is the initial transaction).
     \item \label{rule:custom-forge}
       for every key $h \in \support(t.\forge)$, there
-      exists $i \in t.\inputs$ with
-      $$
-      h = \getSpent(i,l).\addr;
-      $$
-      in other words, some input must spend an output
-      whose address is $h$.
+      exists $s \in t.\forgeScripts$ with $\scriptAddr(s) = h$.
   \end{enumerate}
 
 \item
@@ -967,8 +988,8 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \label{rule:all-inputs-validate-2}
   \textbf{All inputs validate}
   \begin{displaymath}
-    \textrm{For all } i \in t.\inputs,\ \llbracket
-    i.\validator\rrbracket(i.\datum,\, i.\redeemer,\, \toData_2(\mkContext_2(t, i, l))) = \true
+    \textrm{For all } i \in t.\inputs,\ \applyScript{i.\validator}(i.\datum,\, i.\redeemer,
+    \, \toData_2(\mkContext_2(t, i, l))) = \true
   \end{displaymath}
 
 \item
@@ -984,6 +1005,13 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
   \begin{displaymath}
     \textrm{For all } i \in t.\inputs,\ \hashData(i.\datum) = \getSpent(i, l).\datumHash
   \end{displaymath}
+
+\item
+  \label{rule:all-mpss-run}
+  \textbf{All monetary policy scripts evaluate to true}
+  \begin{displaymath}
+    \textrm{For all } s \in t.\forgeScripts,\ \applyMPScript{s}(\toTxData(t)) = \true
+  \end{displaymath}
   
 \end{enumerate}
 \caption{Validity of a transaction $t$ in the EUTXO-2 model}
@@ -992,9 +1020,9 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \subsection{Remarks}
 \paragraph{Monetary policies.} 
-Rule~\ref{rule:custom-forge} can be used to enforce monetary policies
-for custom currencies: see Note~\ref{note:monetary-policies} for a
-detailed explanation.
+Rules~\ref{rule:custom-forge} and~\ref{rule:all-mpss-run} can be used
+to enforce monetary policies for custom currencies: see
+Note~\ref{note:monetary-policies} for a detailed explanation.
 
 \paragraph{Preservation of value over \qtymap{}.}
 In \cref{rule:value-is-preserved-2},
@@ -1190,7 +1218,7 @@ determine the full datum without it having to be kept in the UTXO set.
 
 This mechanism is \emph{optional}, since it incurs an increase in transaction
 size (and hence cost), and some clients may want to transmit the information
-off-chain instead to minimize these costs.
+off-chain instead to minimise these costs.
 
 Hence there is a $\datumWits$ field on transactions, which \emph{may}
 contain mappings from the $\DataHash$es used in the transaction to
@@ -1240,22 +1268,31 @@ also avoids overpayment due to overestimating the fees).
 
 \note{Monetary policies for custom currencies.}
 \label{note:monetary-policies}
-The new \textbf{Forging} rule in
-\cref{fig:eutxo-2-validity} enables custom currencies to
-implement their own monetary policies: for example, one might wish to
-place some limit on the amount of a currency that can be forged, or
-restrict the creation of the currency to owners of particular public
-keys.
+The new \textbf{Forging} rule in \cref{fig:eutxo-2-validity} enables
+custom currencies to implement their own monetary policies: for
+example, one might wish to place some limit on the amount of a
+currency that can be forged, or restrict the creation of the currency
+to owners of particular public keys.
 
 The idea is that a custom currency has a monetary policy which is
-defined by some script $H$, and the address $h = \scriptAddr(H)$ is used as the
-identifier of the currency.
+defined by some script $H$, and the address $h = \scriptAddr(H)$ is
+used as the identifier of the currency.
 
 Whenever a new quantity of the currency is forged,
-\cref{rule:custom-forge,rule:all-inputs-validate-2,rule:validator-scripts-hash-2}
-imply that $H$ must be executed; $H$ is provided with the \forge{}
-field of the transaction via the \ctx{} object, and so it knows how
-much of the currency is to be forged and can respond appropriately.
+Rules~\ref{rule:custom-forge} and~\ref{rule:all-mpss-run} of
+Figure~\ref{fig:eutxo-2-validity} imply that $H$ must be contained in
+the $\forgeScripts$ field of the transaction, and that it must be
+successfully executed; $H$ is provided with the details of the
+transaction via the $\Data$ object produced by $\toTxData$, so it has
+access to the \forge{} field of the transaction and knows how much of
+the currency is to be forged and can respond
+appropriately.\footnote{We do not insist that every monetary policy
+  script in a transaction is associated with a currency which the
+  transaction is actually forging, so a transaction may include
+  apparently unnecessary monetary policy scripts.  The creator of the
+  transaction is responsible for providing the contents of the
+  $\forgeScripts$ field and is free to include or exclude such scripts
+  as they see fit.}
 
 The advantage of this scheme is that custom currencies can be handled
 entirely within the smart contract system, without the need to
