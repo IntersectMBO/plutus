@@ -38,7 +38,6 @@ let
   pkgsMusl = import ./nix/default.nix {
     inherit system config sourcesOverride;
     crossSystem = lib.systems.examples.musl64;
-    overlays = [ (import ./nix/overlays/musl.nix) ];
   };
 
   # easy-purescript-nix has some kind of wacky internal IFD
