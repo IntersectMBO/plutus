@@ -80,6 +80,8 @@ eraseVTel' : ∀ {Φ} Γ Δ
   → (vtel : A.VTel Γ Δ σ As tel)
   → U.VTel n (len Γ) (subst (λ n → Untyped.Tel n (len Γ)) p (eraseTel tel))
 eraseVTel' Γ Δ σ As refl = eraseVTel Γ Δ σ As
+
+
 \end{code}
 
 \begin{code}
@@ -87,12 +89,12 @@ erase-decIf : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}{X}(p : Dec X)(t f : Γ ⊢
   Util.decIf p (erase t) (erase f) ≡ erase (Util.decIf p t f)
 erase-decIf (yes p) t f = refl
 erase-decIf (no ¬p) t f = refl
-
+{-
 erase-if : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(b : B.Bool)(t f : Γ ⊢ A) →
   (B.if b then erase t else erase f) ≡ erase (B.if b then t else f)
 erase-if B.false t f = refl
 erase-if B.true  t f = refl
-
+-}
 erase-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ}(mb : Util.Maybe B.Bool)
   → U.VERIFYSIG mb ≡ erase {Φ}{Γ} (A.VERIFYSIG mb)
 erase-VERIFYSIG (Util.just B.false) = refl
@@ -159,8 +161,21 @@ erase-BUILTIN ifThenElse Γ σ (_ ∷ _ ∷ _ ∷ []) (A.V-con (bool B.true)  ,,
 \end{code}
 
 \begin{code}
+subst—→T : ∀{m m' n}{ts ts' : Untyped.Tel m n}
+  → ts U.—→T ts'
+  → (p : m ≡ m')
+  → subst (λ m → Untyped.Tel m n) p ts U.—→T subst (λ m → Untyped.Tel m n) p ts'
+subst—→T p refl = p
+
 erase—→ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t t' : Γ ⊢ A}
   → t A.—→ t' → erase t U.—→ erase t' ⊎ erase t ≡ erase t'
+
+erase—→T : ∀{Φ}{Γ : Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}{As : List (Δ ⊢Nf⋆ *)}{ts ts' : A.Tel Γ Δ σ As}
+  → ts A.—→T ts'
+  → eraseTel ts U.—→T eraseTel ts' ⊎ eraseTel ts ≡ eraseTel ts' 
+erase—→T (A.here p)    = map U.here (cong (_∷ _)) (erase—→ p)
+erase—→T (A.there v p) = map (U.there (eraseVal v)) (cong (_ ∷_)) (erase—→T p)
+
 erase—→ (A.ξ-·₁ {M = M} p)                              = map
   U.ξ-·₁
   (cong (_· erase M))
@@ -189,22 +204,7 @@ erase—→ {Γ = Γ} (A.β-builtin bn σ tel vtel)             = inj₁ (subst
   (Untyped.builtin bn (lemma≤ bn) (eraseTel tel) U.—→_)
   (erase-BUILTIN bn _ σ tel vtel)
   (subst (U._—→ U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) (sym (lem-builtin bn (eraseTel tel) (lemma≤ bn) ≤‴-refl (lemma bn))) (U.β-builtin (subst (Vec (len Γ ⊢)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) ))
-erase—→ (A.ξ-builtin bn tel p) = ?
-{-
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel p q r) with erase—→ p
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₁ x = inj₁ (subst
-    (builtin bn (eraseTel tel) U.—→_)
-    (cong (builtin bn) (sym (erase-reconstTel Bs Ds σ telB t' q telD)))
-    (U.ξ-builtin
-      bn
-      (eraseTel tel)
-      (eraseVTel _ _ σ _ _ vtel)
-      x
-      (eraseTel telD)
-      (trans (sym (cong eraseTel r)) (erase-reconstTel Bs Ds σ telB t q telD))))
-erase—→ (A.ξ-builtin bn σ tel Bs Ds telB telD vtel {t = t}{t' = t'} p q r) | inj₂ y
-  = inj₂ (cong (builtin bn) (trans (trans (cong eraseTel (sym r)) (trans (erase-reconstTel Bs Ds σ telB t q telD) (cong (λ t → eraseTel telB ++ t ∷ eraseTel telD) y))) (sym (erase-reconstTel Bs Ds σ telB t' q telD))))
--}
+erase—→  (A.ξ-builtin bn σ {ts = ts}{ts' = ts'} p) = map (λ p → subst₂ U._—→_ (sym (lem-builtin bn (eraseTel ts) (lemma≤ bn) ≤‴-refl (lemma bn))) (sym (lem-builtin bn (eraseTel ts') (lemma≤ bn) ≤‴-refl (lemma bn))) (U.ξ-builtin bn (subst—→T p (lemma bn)))) (cong (builtin bn (lemma≤ bn))) (erase—→T p)
 erase—→ (A.E-·₂ p)                                      =
   inj₁ (U.E-·₂ (eraseFVal p))
 erase—→ A.E-·₁                                          = inj₁ U.E-·₁
