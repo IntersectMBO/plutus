@@ -20,15 +20,19 @@ in dimension "System" (systems genericPkgs) (systemName: system:
     packageSet = import ./default.nix { inherit system rev; checkMaterialization = true; };
     pkgs = packageSet.pkgs;
     lib = pkgs.lib;
-    collectChecks = _: ps: pkgs.recurseIntoAttrs (builtins.mapAttrs (_: p: p.checks) ps);
-    collectComponents = type: ps: packageSet.pkgs.haskell-nix.haskellLib.collectComponents' type ps;
     platformFilter = platformFilterGeneric pkgs system;
-  in filterAttrsOnlyRecursive (_: v: platformFilter v) (
-    dimension
-      "Haskell component"
-      {"library" = collectComponents; "tests" = collectComponents; "benchmarks" = collectComponents; "exes" = collectComponents; "checks" = collectChecks;}
-      (type: selector: (selector type) packageSet.haskell.projectPackages)
-    //
-    {
-      inherit (packageSet) docs papers dev plutus-playground marlowe-playground marlowe-symbolic-lambda;
-    }))
+  in filterAttrsOnlyRecursive (_: v: platformFilter v) {
+    inherit (packageSet) docs papers dev plutus-playground marlowe-playground marlowe-symbolic-lambda;
+    haskell =
+      let
+        # These functions pull out from the Haskell package set either all the components of a particular type, or
+        # all the checks.
+        collectChecks = _: ps: pkgs.recurseIntoAttrs (builtins.mapAttrs (_: p: p.checks) ps);
+        collectComponents = type: ps: packageSet.pkgs.haskell-nix.haskellLib.collectComponents' type ps;
+      # This computes the Haskell package set sliced by component type
+      in pkgs.recurseIntoAttrs (dimension
+        "Haskell component"
+        {"library" = collectComponents; "tests" = collectComponents; "benchmarks" = collectComponents; "exes" = collectComponents; "checks" = collectChecks;}
+        # Apply the selector to the Haskell package set
+        (type: selector: (selector type) packageSet.haskell.projectPackages));
+  })
