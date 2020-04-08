@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module Cardano.Wallet.Server
@@ -12,17 +11,17 @@ module Cardano.Wallet.Server
     , Config(..)
     ) where
 
+import qualified Cardano.ChainIndex.Client     as ChainIndexClient
 import qualified Cardano.Node.Client           as NodeClient
-import           Cardano.Node.Follower         (NodeFollowerEffect)
 import           Cardano.Wallet.API            (API)
 import           Cardano.Wallet.Mock
 import           Cardano.Wallet.Types          (Config (..))
 import           Control.Concurrent.MVar       (MVar, newMVar, putMVar, takeMVar)
+import           Control.Monad                 ((>=>))
 import qualified Control.Monad.Except          as MonadError
 import           Control.Monad.Freer           (Eff, runM)
 import           Control.Monad.Freer.Error     (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extra.Log (Log, runStderrLog)
-import           Control.Monad.Freer.Reader    (Reader, runReader)
 import           Control.Monad.Freer.State     (State, runState)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy.Char8    as Char8
@@ -30,44 +29,53 @@ import           Data.Proxy                    (Proxy (Proxy))
 import           Network.HTTP.Client           (defaultManagerSettings, newManager)
 import           Network.Wai.Handler.Warp      (run)
 import           Plutus.SCB.Arbitrary          ()
-import           Servant                       ((:<|>) ((:<|>)), Application, Handler (Handler), ServerError (..),
-                                                err400, hoistServer, serve)
+import           Servant                       ((:<|>) ((:<|>)), Application, Handler (Handler), NoContent (..),
+                                                ServerError (..), err400, err500, hoistServer, serve)
 import           Servant.Client                (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
-import           Servant.Extra                 (capture)
 
-type AppEffects m = '[NodeFollowerEffect, State MockWalletState, Log, Reader ClientEnv, Error ClientError, Error ServerError, m]
+import           Wallet.Effects                (ChainIndexEffect, NodeClientEffect, WalletEffect, ownOutputs, ownPubKey,
+                                                submitTxn, updatePaymentWithChange, walletSlot)
+import           Wallet.Emulator.Error         (WalletAPIError)
+import           Wallet.Emulator.Wallet        (WalletState)
+import qualified Wallet.Emulator.Wallet        as Wallet
+
+type AppEffects m = '[WalletEffect, NodeClientEffect, ChainIndexEffect, State WalletState, Log, Error WalletAPIError, Error ClientError, Error ServerError, m]
 
 runAppEffects ::
     ( MonadIO m
     )
     => ClientEnv
-    -> MockWalletState
+    -> ClientEnv
+    -> WalletState
     -> Eff (AppEffects m) a
-    -> m (Either ServerError (a, MockWalletState))
-runAppEffects clientEnv mockWalletState action =
+    -> m (Either ServerError (a, WalletState))
+runAppEffects nodeClientEnv chainIndexEnv walletState action =
     runM
             $ runError
-            $ flip handleError (\e -> throwError $ err400 { errBody = Char8.pack (show e) })
-            $ runReader clientEnv
+            $ flip handleError (\e -> throwError $ err500 { errBody = Char8.pack (show e) })
+            $ flip handleError (throwError . fromWalletAPIError)
             $ runStderrLog
-            $ runState mockWalletState
-            $ NodeClient.handleNodeFollowerClient clientEnv action
+            $ runState walletState
+            $ ChainIndexClient.handleChainIndexClient chainIndexEnv
+            $ NodeClient.handleNodeClientClient nodeClientEnv
+            $ Wallet.handleWallet action
 
 ------------------------------------------------------------
--- | Run all handlers, affecting a single, global 'MVar State'.
+-- | Run all handlers, affecting a single, global 'MVar WalletState'.
 --
 -- Note this code is pretty simplistic, as it makes every handler
 -- block on access to a single, global 'MVar'.  We could do something
 -- smarter, but I don't think it matters as this is only a mock.
 asHandler ::
     ClientEnv
-    -> MVar MockWalletState
+    -> ClientEnv
+    -> MVar WalletState
     -> Eff (AppEffects IO) a
     -> Handler a
-asHandler nodeClientEnv mVarState action =
+asHandler nodeClientEnv chainIndexEnv mVarState action =
     Handler $ do
         oldState <- liftIO $ takeMVar mVarState
-        result <- liftIO $ runAppEffects nodeClientEnv oldState action
+        result <- liftIO $ runAppEffects nodeClientEnv chainIndexEnv oldState action
         case result of
             Left err -> do
                 liftIO $ putMVar mVarState oldState
@@ -76,20 +84,23 @@ asHandler nodeClientEnv mVarState action =
                 liftIO $ putMVar mVarState newState
                 pure result_
 
-app :: ClientEnv -> MVar MockWalletState -> Application
-app nodeClientEnv mVarState =
+app :: ClientEnv -> ClientEnv -> MVar WalletState -> Application
+app nodeClientEnv chainIndexEnv mVarState =
     serve (Proxy @API) $
-    hoistServer (Proxy @API) (asHandler nodeClientEnv mVarState) $
-    wallets :<|> getOwnPubKey :<|> getWatchedAddresses :<|> startWatching :<|>
-    capture (selectCoin :<|> allocateAddress) :<|> valueAt
+    hoistServer (Proxy @API) (asHandler nodeClientEnv chainIndexEnv mVarState) $
+    (submitTxn >=> const (pure NoContent)) :<|> ownPubKey :<|> uncurry updatePaymentWithChange :<|>
+    walletSlot :<|> ownOutputs
 
-main :: (MonadIO m) => Config -> BaseUrl -> m ()
-main Config {baseUrl} nodeBaseUrl = do
+main :: (MonadIO m) => Config -> BaseUrl -> BaseUrl -> m ()
+main Config {baseUrl} nodeBaseUrl chainIndexBaseUrl = do
     let port = baseUrlPort baseUrl
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
             pure $ mkClientEnv nodeManager nodeBaseUrl
-    (_, populatedState) <- either (error . show) pure =<< runAppEffects nodeClientEnv initialState syncState
-    mVarState <- liftIO $ newMVar populatedState
-    liftIO $ run port $ app nodeClientEnv mVarState
+    chainIndexEnv <-
+        liftIO $ do
+            chainIndexManager <- newManager defaultManagerSettings
+            pure $ mkClientEnv chainIndexManager chainIndexBaseUrl
+    mVarState <- liftIO $ newMVar initialState
+    liftIO $ run port $ app nodeClientEnv chainIndexEnv mVarState

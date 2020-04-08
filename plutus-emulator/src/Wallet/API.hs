@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -90,7 +91,11 @@ import           Wallet.Emulator.Error
 import           Prelude                   hiding (Ordering (..))
 
 createPaymentWithChange :: Member WalletEffect effs => Value -> Eff effs (Set.Set TxIn, Maybe TxOut)
-createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
+createPaymentWithChange v =
+    let pmt = Payment{paymentInputs=Set.empty, paymentChangeOutput = Nothing} in
+    do
+        Payment{paymentInputs, paymentChangeOutput} <- updatePaymentWithChange v pmt
+        pure (paymentInputs, paymentChangeOutput)
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.

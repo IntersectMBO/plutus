@@ -1,11 +1,15 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE TemplateHaskell    #-}
 module Wallet.Effects(
     WalletEffects
     -- * Wallet effect
     , WalletEffect(..)
+    , Payment(..)
     , submitTxn
     , ownPubKey
     , updatePaymentWithChange
@@ -25,14 +29,27 @@ module Wallet.Effects(
     ) where
 
 import           Control.Monad.Freer.TH (makeEffect)
+import           Data.Aeson             (FromJSON, ToJSON)
 import qualified Data.Set               as Set
+import           GHC.Generics           (Generic)
 import           Ledger                 (Address, PubKey, PubKeyHash, Slot, Tx, TxIn, TxOut, Value)
 import           Ledger.AddressMap      (AddressMap, UtxoMap)
+
+-- | A payment consisting of a set of inputs to be spent, and
+--   an optional change output. The size of the payment is the
+--   difference between the total value of the inputs and the
+--   value of the output.
+data Payment =
+    Payment
+        { paymentInputs       :: Set.Set TxIn
+        , paymentChangeOutput :: Maybe TxOut
+        } deriving stock (Eq, Show, Generic)
+          deriving anyclass (ToJSON, FromJSON)
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
     OwnPubKey :: WalletEffect PubKey
-    UpdatePaymentWithChange :: Value -> (Set.Set TxIn, Maybe TxOut) -> WalletEffect (Set.Set TxIn, Maybe TxOut)
+    UpdatePaymentWithChange :: Value -> Payment -> WalletEffect Payment
     WalletSlot :: WalletEffect Slot
     OwnOutputs :: WalletEffect UtxoMap
 makeEffect ''WalletEffect

@@ -5,23 +5,16 @@ module Cardano.Wallet.API
     ( API
     ) where
 
-import           Cardano.Wallet.Types   (WalletId)
-import           Ledger                 (Address, PubKey, TxOutRef, Value)
-import           Ledger.AddressMap      (AddressMap)
-import           Servant.API            ((:<|>), (:>), Capture, Get, JSON, NoContent, Post, ReqBody)
-import           Wallet.Emulator.Wallet (Wallet)
+import           Ledger            (PubKey, Value)
+import           Ledger.AddressMap (UtxoMap)
+import           Ledger.Slot       (Slot)
+import           Ledger.Tx         (Tx)
+import           Servant.API       ((:<|>), (:>), Get, JSON, NoContent, Post, ReqBody)
+import           Wallet.Effects    (Payment)
 
--- | Note: This API uses the wholly-fictitious notion of an "active" wallet.
--- This is purely to fit in easily with the 'WalletEffect's 'ownPubKey'
--- call, which assumes there is a single public key we own. This will
--- have to be revisited later.
 type API
-     = "wallets" :> (Get '[ JSON] [Wallet]
-                     :<|> "active" :> "pubkey" :> Get '[ JSON] PubKey
-                     :<|> "watched-addresses" :> Get '[ JSON] AddressMap
-                     :<|> "start-watching" :> ReqBody '[ JSON] Address :> Post '[ JSON] NoContent
-                     :<|> (Capture "walletId" WalletId :> ("coin-selections" :> "random" :> ReqBody '[ JSON] Value :> Get '[ JSON] ( [( TxOutRef
-                                                                                                                                      , Value)]
-                                                                                                                                   , Value)
-                                                           :<|> "addresses" :> "new" :> Post '[ JSON] PubKey)
-                           :<|> "value-at" :> ReqBody '[ JSON] Address :> Get '[ JSON] Value))
+    = "submit-txn" :> ReqBody '[JSON] Tx :> Post '[JSON] NoContent
+      :<|> "own-public-key" :> Get '[JSON] PubKey
+      :<|> "update-payment-with-change" :> ReqBody '[JSON] (Value, Payment) :> Post '[JSON] Payment
+      :<|> "wallet-slot" :> Get '[JSON] Slot
+      :<|> "own-outputs" :> Get '[JSON] UtxoMap
