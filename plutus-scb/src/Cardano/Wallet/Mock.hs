@@ -1,5 +1,8 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -8,54 +11,84 @@
 
 module Cardano.Wallet.Mock where
 
-import           Cardano.Node.API               (NodeFollowerAPI (..))
-import           Cardano.Node.Types             (FollowerID)
-import           Cardano.Wallet.Types           (WalletId)
-import           Control.Lens                   (assign, ix, makeLenses, modifying, to, use)
-import           Control.Monad.Except           (MonadError, throwError)
-import           Control.Monad.Freer            (runM)
-import           Control.Monad.Freer.Error      (runError)
-import           Control.Monad.IO.Class         (MonadIO, liftIO)
-import           Control.Monad.Logger           (MonadLogger, logDebugN, logInfoN)
-import           Control.Monad.State            (MonadState)
-import           Data.Bifunctor                 (Bifunctor (..))
-import qualified Data.ByteString.Lazy           as BSL
-import qualified Data.ByteString.Lazy.Char8     as BSL8
-import qualified Data.Map                       as Map
-import           Data.Text.Encoding             (encodeUtf8)
-import           Language.Plutus.Contract.Trace (allWallets)
-import           Ledger                         (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value)
-import           Ledger.AddressMap              (AddressMap, UtxoMap, addAddress)
-import qualified Ledger.AddressMap              as AddressMap
-import           Plutus.SCB.Arbitrary           ()
-import           Plutus.SCB.Utils               (tshow)
-import           Servant                        (NoContent (NoContent), ServerError, err401, err404, err500, errBody)
-import           Test.QuickCheck                (arbitrary, generate)
-import           Wallet.API                     (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
-import           Wallet.Emulator.Wallet         (Wallet (Wallet))
-import qualified Wallet.Emulator.Wallet         as EM
+import           Cardano.Node.Follower           (NodeFollowerEffect, getBlocks, newFollower)
+import           Cardano.Node.Types              (FollowerID)
+import           Cardano.Wallet.Types            (WalletId)
+import           Control.Lens                    (at, ix, makeLenses, non, to, view, (^.))
+import           Control.Monad.Freer
+import           Control.Monad.Freer.Error       (Error, runError, throwError)
+import           Control.Monad.Freer.Extra.Log   (Log, logDebug, logInfo)
+import           Control.Monad.Freer.Extra.State (assign, modifying, use)
+import           Control.Monad.Freer.State       (State, gets)
+import           Control.Monad.IO.Class          (MonadIO, liftIO)
+import           Data.Bifunctor                  (Bifunctor (..))
+import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy.Char8      as BSL8
+import qualified Data.Map                        as Map
+import           Data.Text.Encoding              (encodeUtf8)
+import           Language.Plutus.Contract.Trace  (allWallets)
+import           Ledger                          (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value,
+                                                  pubKeyAddress)
+import           Ledger.AddressMap               (AddressMap, UtxoMap, addAddress)
+import qualified Ledger.AddressMap               as AddressMap
+import           Plutus.SCB.Arbitrary            ()
+import           Plutus.SCB.Utils                (tshow)
+import           Servant                         (NoContent (NoContent), ServerError, err401, err404, err500, errBody)
+import           Test.QuickCheck                 (arbitrary, generate)
+import           Wallet.API                      (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))
+import           Wallet.Effects                  (NodeClientEffect, WalletEffect (..))
+import qualified Wallet.Effects                  as W
+import           Wallet.Emulator.Wallet          (Payment (..), PaymentArgs (..), Wallet (Wallet))
+import qualified Wallet.Emulator.Wallet          as EM
 
-data State =
-    State
+data MockWalletState =
+    MockWalletState
         { _watchedAddresses :: AddressMap
         , _followerID       :: Maybe FollowerID
         }
     deriving (Show, Eq)
 
-makeLenses 'State
+makeLenses 'MockWalletState
+
+handleWallet :: -- TODO: Merge with 'Wallet.Emulator.handleWallet'
+                --       (the 'MockWalletState' and 'WalletState' types are
+                --        different)
+    ( Member (State MockWalletState) effs
+    , Member NodeClientEffect effs
+    , Member (Error WalletAPIError) effs
+    )
+    => Eff (WalletEffect ': effs) ~> Eff effs
+handleWallet = interpret $ \case
+    SubmitTxn tx -> W.publishTx tx
+    OwnPubKey -> return (EM.walletPubKey activeWallet)
+    UpdatePaymentWithChange vl (oldIns, changeOut) -> do
+        utxo <- gets (view watchedAddresses)
+        let pubK = EM.walletPubKey activeWallet
+            args   = PaymentArgs
+                        { availableFunds = utxo ^. AddressMap.fundsAt (pubKeyAddress pubK)
+                        , ownPubKey = pubK
+                        , requestedValue = vl
+                        }
+            pmt    = Payment{paymentInputs = oldIns, paymentChangeOutput = changeOut}
+        Payment{paymentInputs, paymentChangeOutput} <- EM.handleUpdatePaymentWithChange args pmt
+        pure (paymentInputs, paymentChangeOutput)
+    WalletSlot -> W.getClientSlot
+    OwnOutputs ->
+        let address = pubKeyAddress (EM.walletPubKey activeWallet) in
+        view (at address . non mempty) <$> gets (view watchedAddresses)
 
 -- TODO Should this call syncstate itself?
-initialState :: State
+initialState :: MockWalletState
 initialState =
-    State
+    MockWalletState
         { _watchedAddresses =
               foldr (addAddress . EM.walletAddress) mempty allWallets
         , _followerID = Nothing
         }
 
-wallets :: MonadLogger m => m [Wallet]
+wallets :: (Member Log effs) => Eff effs [Wallet]
 wallets = do
-    logInfoN "wallets"
+    logInfo "wallets"
     pure allWallets
 
 fromWalletAPIError :: WalletAPIError -> ServerError
@@ -66,79 +99,108 @@ fromWalletAPIError err@(PrivateKeyNotFound _) =
 fromWalletAPIError (OtherError text) =
     err500 {errBody = BSL.fromStrict $ encodeUtf8 text}
 
-valueAt :: (MonadLogger m, MonadState State m) => Address -> m Value
+valueAt ::
+    ( Member Log effs
+    , Member (State MockWalletState) effs
+    )
+    => Address
+    -> Eff effs Value
 valueAt address = do
-    logInfoN "valueAt"
+    logInfo "valueAt"
     value <- use (watchedAddresses . to AddressMap.values . ix address)
-    logInfoN $ "valueAt " <> tshow address <> ": " <> tshow value
+    logInfo $ "valueAt " <> tshow address <> ": " <> tshow value
     pure value
 
 selectCoin ::
-       (MonadLogger m, MonadState State m, MonadError ServerError m)
+    ( Member Log effs
+    , Member (State MockWalletState) effs
+    , Member (Error ServerError) effs
+    )
     => WalletId
     -> Value
-    -> m ([(TxOutRef, Value)], Value)
+    -> Eff effs ([(TxOutRef, Value)], Value)
 selectCoin walletId target = do
-    logInfoN "selectCoin"
-    logInfoN $ "  Wallet ID: " <> tshow walletId
-    logInfoN $ "     Target: " <> tshow target
+    logInfo "selectCoin"
+    logInfo $ "  Wallet ID: " <> tshow walletId
+    logInfo $ "     Target: " <> tshow target
     let address = EM.walletAddress (Wallet walletId)
     utxos :: UtxoMap <- use (watchedAddresses . AddressMap.fundsAt address)
     let funds :: [(TxOutRef, Value)]
         funds = fmap (second (txOutValue . txOutTxOut)) . Map.toList $ utxos
     result <- runM $ runError $ EM.selectCoin funds target
-    logInfoN $ "     Result: " <> tshow result
+    logInfo $ "     Result: " <> tshow result
     case result of
         Right value -> pure value
         Left err    -> throwError $ fromWalletAPIError err
 
-allocateAddress :: (MonadIO m, MonadLogger m) => WalletId -> m PubKey
+allocateAddress ::
+    ( LastMember m effs
+    , Member Log effs
+    , MonadIO m
+    )
+    => WalletId
+    -> Eff effs PubKey
 allocateAddress _ = do
-    logInfoN "allocateAddress"
-    liftIO $ generate arbitrary
+    logInfo "allocateAddress"
+    sendM $ liftIO $ generate arbitrary
 
-getOwnPubKey :: MonadLogger m => m PubKey
+getOwnPubKey :: Member Log effs => Eff effs PubKey
 getOwnPubKey = do
-    logInfoN "getOwnPubKey"
+    logInfo "getOwnPubKey"
     pure $ EM.walletPubKey activeWallet
 
 activeWallet :: Wallet
 activeWallet = Wallet 1
 
 getWatchedAddresses ::
-       (MonadIO m, MonadLogger m, MonadState State m) => m AddressMap
+    ( Member Log effs
+    , Member (State MockWalletState) effs
+    )
+    => Eff effs AddressMap
 getWatchedAddresses = do
-    logInfoN "getWatchedAddresses"
+    logInfo "getWatchedAddresses"
     use watchedAddresses
 
 startWatching ::
-       (MonadIO m, MonadLogger m, MonadState State m) => Address -> m NoContent
+    ( Member Log effs
+    , Member (State MockWalletState) effs
+    )
+    => Address
+    -> Eff effs NoContent
 startWatching address = do
-    logInfoN "startWatching"
+    logInfo "startWatching"
     modifying watchedAddresses (addAddress address)
     pure NoContent
 
 ------------------------------------------------------------
 -- | Synchronise the initial state.
--- At the moment, this means, "as the node for UTXOs at all our watched addresses.
-syncState :: (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m ()
+syncState ::
+    ( Member Log effs
+    , Member NodeFollowerEffect effs
+    , Member (State MockWalletState) effs
+    )
+    => Eff effs ()
 syncState = do
-    logDebugN "Synchronizing"
+    logDebug "Synchronizing"
     fID <- getFollowerID
-    blockchain <- blocks fID
-    logDebugN $ tshow fID <> " got " <> tshow (length blockchain) <> " blocks."
+    blockchain <- getBlocks fID
+    logDebug $ tshow fID <> " got " <> tshow (length blockchain) <> " blocks."
     modifying
         watchedAddresses
         (\m -> foldl (foldl (flip AddressMap.updateAllAddresses)) m blockchain)
-    logDebugN "Synchronized"
+    logDebug "Synchronized"
 
 getFollowerID ::
-       (MonadLogger m, NodeFollowerAPI m, MonadState State m) => m FollowerID
+    ( Member Log effs
+    , Member NodeFollowerEffect effs
+    , Member (State MockWalletState) effs
+    )
+    => Eff effs FollowerID
 getFollowerID =
     use followerID >>= \case
         Just fID -> pure fID
         Nothing -> do
-            logDebugN "Subscribing"
-            fID <- subscribe
+            logDebug "Subscribing"
+            fID <- newFollower
             assign followerID (Just fID)
             pure fID

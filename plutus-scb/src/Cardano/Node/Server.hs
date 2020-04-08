@@ -11,7 +11,7 @@ import           Control.Concurrent       (forkIO)
 import           Control.Concurrent.MVar  (MVar, newMVar)
 import           Control.Monad            (void)
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
-import           Control.Monad.Logger     (MonadLogger, logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger     (logInfoN, runStdoutLoggingT)
 import           Data.Proxy               (Proxy (Proxy))
 import qualified Network.Wai.Handler.Warp as Warp
 import           Servant                  ((:<|>) ((:<|>)), Application, hoistServer, serve)
@@ -38,12 +38,12 @@ app stateVar =
           (newFollower :<|> getBlocks)
           )
 
-main :: (MonadIO m, MonadLogger m) => MockServerConfig -> m ()
+main :: (MonadIO m) => MockServerConfig -> m ()
 main MockServerConfig { mscBaseUrl
                       , mscRandomTxInterval
                       , mscBlockReaper
                       , mscSlotLength
-                      } = do
+                      } = runStdoutLoggingT $ do
     stateVar <- liftIO $ newMVar initialAppState
     logInfoN "Starting slot coordination thread."
     void $

@@ -39,6 +39,7 @@ import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
 import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
+import Control.Monad.Freer.Log (LogMessage(..))
 
 evaluationPane ::
   forall m.
@@ -105,9 +106,9 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 
-emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg info)) =
+emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg (LogMessage { logMessageText }))) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> info ]
+    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String

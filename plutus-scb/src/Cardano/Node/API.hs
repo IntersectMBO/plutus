@@ -5,17 +5,12 @@ module Cardano.Node.API
     ( API
     , NodeAPI
     , FollowerAPI
-    , NodeFollowerAPI(..)
     ) where
 
-import           Cardano.Node.Types        (FollowerID)
-import           Control.Monad.Except      (ExceptT)
-import           Control.Monad.Logger      (LoggingT)
-import           Control.Monad.State       (StateT)
-import           Control.Monad.Trans.Class (lift)
-import           Ledger                    (Block, Slot, Tx)
-import           Servant.API               ((:<|>), (:>), Capture, Get, JSON, NoContent, Post, Put, ReqBody)
-import           Wallet.Emulator.Chain     (ChainEvent)
+import           Cardano.Node.Types    (FollowerID)
+import           Ledger                (Block, Slot, Tx)
+import           Servant.API           ((:<|>), (:>), Capture, Get, JSON, NoContent, Post, Put, ReqBody)
+import           Wallet.Emulator.Chain (ChainEvent)
 
 type API
      = "healthcheck" :> Get '[ JSON] NoContent
@@ -33,20 +28,3 @@ type NodeAPI
 type FollowerAPI
     = "subscribe" :> Put '[ JSON] FollowerID
         :<|> Capture "follower-id" FollowerID :> "blocks" :> Post '[ JSON] [Block]
-
-class Monad m => NodeFollowerAPI m where
-    -- FIXME names
-    subscribe :: m FollowerID
-    blocks :: FollowerID -> m [Block]
-
-instance (NodeFollowerAPI m) => NodeFollowerAPI (StateT state m) where
-    subscribe = lift subscribe
-    blocks = lift . blocks
-
-instance (NodeFollowerAPI m) => NodeFollowerAPI (LoggingT m) where
-    subscribe = lift subscribe
-    blocks = lift . blocks
-
-instance (NodeFollowerAPI m) => NodeFollowerAPI (ExceptT e m) where
-    subscribe = lift subscribe
-    blocks = lift . blocks

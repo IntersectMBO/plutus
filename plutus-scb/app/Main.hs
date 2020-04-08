@@ -14,8 +14,9 @@ import qualified Cardano.Wallet.Server         as WalletServer
 import           Control.Concurrent.Async      (Async, async, waitAny)
 import           Control.Lens.Indexed          (itraverse_)
 import           Control.Monad                 (void)
+import           Control.Monad.Freer.Extra.Log (logInfo)
 import           Control.Monad.IO.Class        (liftIO)
-import           Control.Monad.Logger          (logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger          (runStdoutLoggingT)
 import qualified Data.Aeson                    as JSON
 import qualified Data.ByteString.Lazy.Char8    as BS8
 import           Data.Foldable                 (traverse_)
@@ -30,7 +31,7 @@ import           Options.Applicative           (CommandFields, Mod, Parser, argu
                                                 infoOption, long, metavar, option, optional, prefs, progDesc, short,
                                                 showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
                                                 subparser, value, (<|>))
-import           Plutus.SCB.App                (App (App), runApp)
+import           Plutus.SCB.App                (App, runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
 import           Plutus.SCB.Types              (Config (Config), chainIndexConfig, nodeServerConfig,
@@ -233,7 +234,7 @@ runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
 runCliCommand config (ForkCommands commands) =
-    App . void . liftIO $ do
+    void . liftIO $ do
         threads <- traverse forkCommand commands
         waitAny threads
   where
@@ -247,21 +248,21 @@ runCliCommand _ (InstallContract path) = Core.installContract path
 runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
 runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
 runCliCommand _ ReportInstalledContracts = do
-    logInfoN "Installed Contracts"
-    traverse_ (logInfoN . render . pretty) =<< Core.installedContracts
+    logInfo "Installed Contracts"
+    traverse_ (logInfo . render . pretty) =<< Core.installedContracts
 runCliCommand _ ReportActiveContracts = do
-    logInfoN "Active Contracts"
-    traverse_ (logInfoN . render . pretty) =<< Core.activeContracts
+    logInfo "Active Contracts"
+    traverse_ (logInfo . render . pretty) =<< Core.activeContracts
 runCliCommand _ ReportTxHistory = do
-    logInfoN "Transaction History"
-    traverse_ (logInfoN . render . pretty) =<< Core.txHistory
+    logInfo "Transaction History"
+    traverse_ (logInfo . render . pretty) =<< Core.txHistory
 runCliCommand _ (UpdateContract uuid endpoint payload) =
     Core.updateContract uuid endpoint payload
 runCliCommand _ (ReportContractHistory uuid) = do
-    logInfoN "Contract History"
+    logInfo "Contract History"
     itraverse_
         (\index contract ->
-             logInfoN $ render (parens (pretty index) <+> pretty contract)) =<<
+             logInfo $ render (parens (pretty index) <+> pretty contract)) =<<
         Core.activeContractHistory uuid
 
 main :: IO ()
@@ -274,7 +275,7 @@ main = do
     traverse_ (EKG.forkServer "localhost") ekgPort
     result <-
         runApp config $ do
-            logInfoN $ "Running: " <> Text.pack (show cmd)
+            logInfo $ "Running: " <> Text.pack (show cmd)
             runCliCommand config cmd
     case result of
         Left err -> do
