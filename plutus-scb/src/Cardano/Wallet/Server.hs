@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -11,26 +12,46 @@ module Cardano.Wallet.Server
     , Config(..)
     ) where
 
-import           Cardano.Node.API          (NodeFollowerAPI (..))
-import qualified Cardano.Node.Client       as NodeClient
-import           Cardano.Wallet.API        (API)
+import qualified Cardano.Node.Client           as NodeClient
+import           Cardano.Node.Follower         (NodeFollowerEffect)
+import           Cardano.Wallet.API            (API)
 import           Cardano.Wallet.Mock
-import           Cardano.Wallet.Types      (Config (..))
-import           Control.Concurrent.MVar   (MVar, newMVar, putMVar, takeMVar)
-import           Control.Monad.Except      (ExceptT)
-import           Control.Monad.IO.Class    (MonadIO, liftIO)
-import           Control.Monad.Logger      (LoggingT, MonadLogger, logInfoN, runStderrLoggingT)
-import           Control.Monad.State       (MonadState, StateT, execStateT, runStateT, state)
-import           Control.Monad.Trans.Class (MonadTrans, lift)
-import           Data.Proxy                (Proxy (Proxy))
-import           Network.HTTP.Client       (defaultManagerSettings, newManager)
-import           Network.Wai.Handler.Warp  (run)
-import           Plutus.SCB.Arbitrary      ()
-import           Plutus.SCB.Utils          (tshow)
-import           Servant                   ((:<|>) ((:<|>)), Application, Handler (Handler), ServerError, hoistServer,
-                                            serve)
-import           Servant.Client            (BaseUrl (baseUrlPort), ClientEnv, ClientM, mkClientEnv, runClientM)
-import           Servant.Extra             (capture)
+import           Cardano.Wallet.Types          (Config (..))
+import           Control.Concurrent.MVar       (MVar, newMVar, putMVar, takeMVar)
+import qualified Control.Monad.Except          as MonadError
+import           Control.Monad.Freer           (Eff, runM)
+import           Control.Monad.Freer.Error     (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extra.Log (Log, runStderrLog)
+import           Control.Monad.Freer.Reader    (Reader, runReader)
+import           Control.Monad.Freer.State     (State, runState)
+import           Control.Monad.IO.Class        (MonadIO, liftIO)
+import qualified Data.ByteString.Lazy.Char8    as Char8
+import           Data.Proxy                    (Proxy (Proxy))
+import           Network.HTTP.Client           (defaultManagerSettings, newManager)
+import           Network.Wai.Handler.Warp      (run)
+import           Plutus.SCB.Arbitrary          ()
+import           Servant                       ((:<|>) ((:<|>)), Application, Handler (Handler), ServerError (..),
+                                                err400, hoistServer, serve)
+import           Servant.Client                (BaseUrl (baseUrlPort), ClientEnv, ClientError, mkClientEnv)
+import           Servant.Extra                 (capture)
+
+type AppEffects m = '[NodeFollowerEffect, State MockWalletState, Log, Reader ClientEnv, Error ClientError, Error ServerError, m]
+
+runAppEffects ::
+    ( MonadIO m
+    )
+    => ClientEnv
+    -> MockWalletState
+    -> Eff (AppEffects m) a
+    -> m (Either ServerError (a, MockWalletState))
+runAppEffects clientEnv mockWalletState action =
+    runM
+            $ runError
+            $ flip handleError (\e -> throwError $ err400 { errBody = Char8.pack (show e) })
+            $ runReader clientEnv
+            $ runStderrLog
+            $ runState mockWalletState
+            $ NodeClient.handleNodeFollowerClient clientEnv action
 
 ------------------------------------------------------------
 -- | Run all handlers, affecting a single, global 'MVar State'.
@@ -39,72 +60,36 @@ import           Servant.Extra             (capture)
 -- block on access to a single, global 'MVar'.  We could do something
 -- smarter, but I don't think it matters as this is only a mock.
 asHandler ::
-       MVar State
-    -> LoggingT (StateT State (ExceptT ServerError IO)) a
+    ClientEnv
+    -> MVar MockWalletState
+    -> Eff (AppEffects IO) a
     -> Handler a
-asHandler mVarState action =
+asHandler nodeClientEnv mVarState action =
     Handler $ do
         oldState <- liftIO $ takeMVar mVarState
-        (result, newState) <- runStateT (runStderrLoggingT action) oldState
-        liftIO $ putMVar mVarState newState
-        pure result
+        result <- liftIO $ runAppEffects nodeClientEnv oldState action
+        case result of
+            Left err -> do
+                liftIO $ putMVar mVarState oldState
+                MonadError.throwError $ err400 { errBody = Char8.pack (show err) }
+            Right (result_, newState) -> do
+                liftIO $ putMVar mVarState newState
+                pure result_
 
-app :: MVar State -> Application
-app mVarState =
+app :: ClientEnv -> MVar MockWalletState -> Application
+app nodeClientEnv mVarState =
     serve (Proxy @API) $
-    hoistServer (Proxy @API) (asHandler mVarState) $
+    hoistServer (Proxy @API) (asHandler nodeClientEnv mVarState) $
     wallets :<|> getOwnPubKey :<|> getWatchedAddresses :<|> startWatching :<|>
     capture (selectCoin :<|> allocateAddress) :<|> valueAt
 
-main :: (MonadIO m, MonadLogger m) => Config -> BaseUrl -> m ()
+main :: (MonadIO m) => Config -> BaseUrl -> m ()
 main Config {baseUrl} nodeBaseUrl = do
     let port = baseUrlPort baseUrl
-    logInfoN $ "Starting mock wallet server on port: " <> tshow port
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
             pure $ mkClientEnv nodeManager nodeBaseUrl
-    let nodeClient = flip runClientApp nodeClientEnv
-    let clientState = initialState
-    populatedState <- nodeClient $ execStateT syncState clientState
+    (_, populatedState) <- either (error . show) pure =<< runAppEffects nodeClientEnv initialState syncState
     mVarState <- liftIO $ newMVar populatedState
-    liftIO $ run port $ app mVarState
-
-newtype ClientApp m a =
-    ClientApp
-        { runClientApp :: ClientEnv -> m a
-        }
-
-instance Functor m => Functor (ClientApp m) where
-    fmap f (ClientApp x) = ClientApp (\env -> fmap f (x env))
-
-instance Applicative m => Applicative (ClientApp m) where
-    pure x = ClientApp (\_ -> pure x)
-    (ClientApp x) <*> (ClientApp y) = ClientApp (\env -> x env <*> y env)
-
-instance Monad m => Monad (ClientApp m) where
-    a >>= b =
-        ClientApp $ \env -> do
-            v <- runClientApp a env
-            runClientApp (b v) env
-
-instance Monad m => MonadState state (ClientApp (StateT state m)) where
-    state f = ClientApp (const (state f))
-
-instance MonadTrans ClientApp where
-    lift = ClientApp . const
-
-instance MonadLogger m => MonadLogger (ClientApp m)
-
-instance MonadIO m => NodeFollowerAPI (ClientApp m) where
-    subscribe = liftClientM NodeClient.newFollower
-    blocks = liftClientM . NodeClient.getBlocks
-
-liftClientM :: MonadIO m => ClientM a -> ClientApp m a
-liftClientM action =
-    ClientApp
-        (\env -> do
-             result <- liftIO $ runClientM action env
-             case result of
-                 Right value -> pure value
-                 Left err    -> error $ show err)
+    liftIO $ run port $ app nodeClientEnv mVarState

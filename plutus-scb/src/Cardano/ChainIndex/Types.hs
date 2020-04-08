@@ -11,16 +11,18 @@ import           Data.Sequence              (Seq)
 import           GHC.Generics               (Generic)
 import           Servant.Client             (BaseUrl)
 
+import           Cardano.Node.Types         (FollowerID)
 import           Wallet.Emulator.ChainIndex (ChainIndexEvent, ChainIndexState)
 
 data AppState =
     AppState
-        { _indexState  :: ChainIndexState
-        , _indexEvents :: Seq ChainIndexEvent
-        }
+        { _indexState      :: ChainIndexState
+        , _indexEvents     :: Seq ChainIndexEvent
+        , _indexFollowerID :: Maybe FollowerID
+        } deriving (Eq, Show)
 
 initialAppState :: AppState
-initialAppState = AppState mempty mempty
+initialAppState = AppState mempty mempty Nothing
 
 newtype ChainIndexConfig =
     ChainIndexConfig

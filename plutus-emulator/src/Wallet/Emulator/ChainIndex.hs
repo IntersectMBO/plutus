@@ -20,18 +20,16 @@ import           Control.Monad.Freer.Writer
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
-import qualified Wallet.API                 as WAPI
+import           Wallet.Effects             (ChainIndexEffect (..))
 import           Wallet.Emulator.NodeClient (BlockValidated (..))
 
 import           Ledger.Address             (Address)
 import           Ledger.AddressMap          (AddressMap)
 import qualified Ledger.AddressMap          as AM
 
-data ChainIndexEffect r where
-    StartWatching :: Address -> ChainIndexEffect ()
-    WatchedAddresses :: ChainIndexEffect AM.AddressMap
-    ChainIndexNotify :: BlockValidated -> ChainIndexEffect ()
-makeEffect ''ChainIndexEffect
+data ChainIndexControlEffect r where
+    ChainIndexNotify :: BlockValidated -> ChainIndexControlEffect ()
+makeEffect ''ChainIndexControlEffect
 
 data ChainIndexEvent =
     AddressStartWatching Address
@@ -53,17 +51,18 @@ makeLenses ''ChainIndexState
 
 type ChainIndexEffs = '[State ChainIndexState, Writer [ChainIndexEvent]]
 
-instance (Member ChainIndexEffect effs) => WAPI.ChainIndexAPI (Eff effs) where
-    watchedAddresses = watchedAddresses
-    startWatching = startWatching
+handleChainIndexControl
+    :: (Members ChainIndexEffs effs)
+    => Eff (ChainIndexControlEffect ': effs) ~> Eff effs
+handleChainIndexControl = interpret $ \case
+    ChainIndexNotify (BlockValidated txns) ->
+        tell [ReceiveBlockNotification] >> (modify $ \s ->
+            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
 
 handleChainIndex
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexEffect ': effs) ~> Eff effs
 handleChainIndex = interpret $ \case
-    ChainIndexNotify notification -> case notification of
-        BlockValidated txns -> tell [ReceiveBlockNotification] >> (modify $ \s ->
-            s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns))
     StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses

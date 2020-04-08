@@ -1,18 +1,12 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Wallet.Emulator.Types(
@@ -71,36 +65,36 @@ module Wallet.Emulator.Types(
     MonadEmulator,
     processEmulated,
     runWalletActionAndProcessPending,
+    runWalletControlActionAndProcessPending,
     fundsDistribution,
     emLog,
     selectCoin
     ) where
 
-import           Control.Lens                   hiding (index)
+import           Control.Lens               hiding (index)
 import           Control.Monad.Except
-import qualified Control.Monad.Freer            as Eff
-import qualified Control.Monad.Freer.Error      as Eff
-import qualified Control.Monad.Freer.Extras     as Eff
+import qualified Control.Monad.Freer        as Eff
+import qualified Control.Monad.Freer.Error  as Eff
+import qualified Control.Monad.Freer.Extras as Eff
 import           Control.Monad.State
-import           Data.Foldable                  (traverse_)
-import qualified Data.Text                      as T
-import           Prelude                        as P
+import           Data.Foldable              (traverse_)
+import qualified Data.Text                  as T
+import           Prelude                    as P
 
 import           Ledger
-import           Wallet.API                     (WalletAPIError (..))
+import           Wallet.API                 (WalletAPIError (..))
 
 import           Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
-import           Wallet.Emulator.SigningProcess
 import           Wallet.Emulator.Wallet
 
 type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [BlockValidated] -> Eff.Eff effs ()
-walletRecvBlocks w nots = void $ walletAction w (mapM_ go nots) where
+walletRecvBlocks w nots = void $ walletControlAction w (traverse_ go nots) where
     go noti = clientNotify noti >> chainIndexNotify noti
 
 -- | -- | Notify the given 'Wallet' that a block has been validated.
@@ -121,9 +115,13 @@ addBlocks :: Eff.Members EmulatorEffs effs => Integer -> Eff.Eff effs [Block]
 addBlocks i = traverse (const processPending) [1..i]
 
 -- | Add a number of blocks, notifying all the given 'Wallet's after each block.
-addBlocksAndNotify :: Eff.Members EmulatorEffs effs => [Wallet] -> Integer -> Eff.Eff effs ()
+addBlocksAndNotify :: Eff.Members EmulatorEffs effs => [Wallet] -> Integer -> Eff.Eff effs [Block]
 addBlocksAndNotify wallets i =
-    traverse_ (\_ -> processPending >>= walletsNotifyBlock wallets) [1..i]
+    let run = do
+            block <- processPending
+            walletsNotifyBlock wallets block
+            pure block
+    in traverse (const run) [1..i]
 
 type MonadEmulator e m = (MonadError e m, AsAssertionError e, MonadState EmulatorState m)
 
@@ -184,10 +182,22 @@ runWalletActionAndProcessPending
     :: Eff.Members EmulatorEffs effs
     => [Wallet]
     -> Wallet
-    -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect, SigningProcessEffect] a
+    -> Eff.Eff EmulatedWalletEffects a
     -> Eff.Eff effs ([Tx], a)
 runWalletActionAndProcessPending wallets wallet action = do
     result <- walletAction wallet action
-    block <- processPending
-    _ <- walletsNotifyBlock wallets block
-    pure (block, result)
+    block <- addBlocksAndNotify wallets 1
+    pure (concat block, result)
+
+-- | Run a control action as a wallet, subsequently process any pending
+--   transactions and notify wallets. Returns the new block.
+runWalletControlActionAndProcessPending
+    :: Eff.Members EmulatorEffs effs
+    => [Wallet]
+    -> Wallet
+    -> Eff.Eff EmulatedWalletControlEffects a
+    -> Eff.Eff effs ([Tx], a)
+runWalletControlActionAndProcessPending wallets wallet action = do
+    result <- walletControlAction wallet action
+    block <- addBlocksAndNotify wallets 1
+    pure (concat block, result)

@@ -48,13 +48,19 @@ healthcheck = pure NoContent
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
-addBlock :: (Member Log effs, Member ChainEffect effs) => Eff effs ()
+addBlock ::
+    ( Member Log effs
+    , Member ChainEffect effs
+    )
+    => Eff effs ()
 addBlock = do
     logInfo "Adding slot"
     void Chain.processBlock
 
 getBlocksSince ::
-       (Member ChainEffect effs, Member (State ChainState) effs)
+    ( Member ChainEffect effs
+    , Member (State ChainState) effs
+    )
     => Slot
     -> Eff effs [Block]
 getBlocksSince (Slot slotNumber) = do
