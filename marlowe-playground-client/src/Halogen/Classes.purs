@@ -8,6 +8,8 @@ import Types (FrontendState, View(..), _showBottomPanel, _view)
 
 foreign import closeDrawerIcon :: String
 
+foreign import closeDrawerArrowIcon :: String
+
 foreign import githubIcon :: String
 
 foreign import downloadIcon :: String

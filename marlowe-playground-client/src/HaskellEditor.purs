@@ -11,8 +11,8 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerIcon, codeEditor, footerPanelBg, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, noMargins, panelHeader, panelHeaderMain, panelSubHeader, panelSubHeaderMain, spaceLeft)
-import Halogen.HTML (HTML, a, button, code_, div, div_, h4, img, li, pre, pre_, section, slot, small_, text, ul)
+import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, pre, pre_, section, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.Monaco (monacoComponent)
@@ -31,11 +31,7 @@ render ::
   FrontendState ->
   Array (ComponentHTML HAction ChildSlots m)
 render state =
-  [ section [ classes [ panelHeader, aHorizontal ] ]
-      [ div [ classes [ panelHeaderMain, aHorizontal, noMargins, accentBorderBottom ] ]
-          [ h4 [] [ text "Haskell Contract" ] ]
-      ]
-  , section [ classes [ panelSubHeader, aHorizontal ] ]
+  [ section [ classes [ panelSubHeader, aHorizontal ] ]
       [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
           [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
               [ div [ classes [ ClassName "demos", spaceLeft ] ]
@@ -85,7 +81,7 @@ bottomPanel state =
                     ]
                 , div []
                     [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                        [ img [ classes (minimizeIcon state), src closeDrawerIcon, alt "close drawer icon" ] ]
+                        [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                     ]
                 ]
             ]

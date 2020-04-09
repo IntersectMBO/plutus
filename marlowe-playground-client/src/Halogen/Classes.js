@@ -3,6 +3,8 @@
 
 exports.closeDrawerIcon = require('static/images/close-drawer-icon.svg');
 
+exports.closeDrawerArrowIcon = require('static/images/icon-19.svg');
+
 exports.githubIcon = require('static/images/github.svg');
 
 exports.downloadIcon = require('static/images/download.svg');

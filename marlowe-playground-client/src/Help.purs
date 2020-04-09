@@ -1,35 +1,35 @@
 module Help where
 
-import Prelude
 import Data.Array as Array
 import Data.String (fromCodePointArray, toCodePointArray)
-import Halogen.Classes (mAlignCenter, readMoreIconWhite, tAlignCenter)
-import Halogen.HTML (HTML, h4, hr, img, p_, text)
+import Halogen.Classes (readMoreIconWhite)
+import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p_, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
+import Prelude (show, (<<<), (<>))
 import Types (HelpContext(..))
 
 toHTML :: forall p a. HelpContext -> Array (HTML p a)
-toHTML MarloweHelp =
-  [ img [ class_ mAlignCenter, src readMoreIconWhite, alt "read more icon" ]
-  , h4 [ class_ tAlignCenter ] [ text "Modelling contracts in Marlowe" ]
+toHTML helpType =
+  [ div [ class_ (ClassName "help-title") ]
+      [ img [ src readMoreIconWhite, alt "read more icon" ]
+      , h4 [] [ headerText helpType ]
+      ]
   , hr []
-  , p_ [ text "Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract" ]
+  , p_ [ bodyText helpType ]
   ]
+  where
+  headerText MarloweHelp = text "Modelling contracts in Marlowe"
 
-toHTML InputComposerHelp =
-  [ img [ class_ mAlignCenter, src readMoreIconWhite, alt "read more icon" ]
-  , h4 [ class_ tAlignCenter ] [ text "Input Composer" ]
-  , hr []
-  , p_ [ text "Something about the Input Composer" ]
-  ]
+  headerText InputComposerHelp = text "Input Composer"
 
-toHTML TransactionComposerHelp =
-  [ img [ class_ mAlignCenter, src readMoreIconWhite, alt "read more icon" ]
-  , h4 [ class_ tAlignCenter ] [ text "Transaction Composer" ]
-  , hr []
-  , p_ [ text "Something about the transaction composer" ]
-  ]
+  headerText TransactionComposerHelp = text "Transaction Composer"
+
+  bodyText MarloweHelp = text "Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract"
+
+  bodyText InputComposerHelp = text "The Input Composer allows you to choose any of the possible inputs to add to a transaction"
+
+  bodyText TransactionComposerHelp = text "The transaction composer shows you the contents of a transaction which is ready to apply. The inputs within a transaction are applied in order."
 
 holeText :: MarloweType -> String -> String
 holeText marloweType text = "Found a hole of type " <> dropEnd 4 (show marloweType) <> "\n" <> text <> "\nClick on Quick Fix below to see the options."

@@ -67,7 +67,7 @@ a:hover {
     padding: 0.5rem 1.5rem;
     position: relative;
     cursor: pointer;
-    position: relative;
+    top: 0.5rem;
     background: var(--gradient-bg);
     color: var(--white);
     border-radius: var(--border-radius);
@@ -97,6 +97,7 @@ a:hover {
     text-align: center;
     padding: 5px;
     border-radius: 6px;
+    font-size: 1rem;
 
     /* Position the tooltip text - see examples below! */
     position: absolute;
@@ -135,6 +136,16 @@ a:hover {
 }
 
 .download-btn>.tooltiptext::after {
+    left: 85%;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext {
+    right: -10px;
+    top: 30px;
+    width: 13em;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext::after {
     left: 85%;
 }
 

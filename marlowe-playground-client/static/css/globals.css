@@ -47,7 +47,7 @@ button:hover::before {
   opacity: 1;
 }
 
-button:hover {
+button:active {
   transform: var(--animate-btn);
 }
 
