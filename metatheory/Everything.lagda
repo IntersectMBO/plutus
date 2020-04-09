@@ -71,10 +71,11 @@ import Scoped
 import Scoped.RenamingSubstitution
 
 import Scoped.Reduction
-{-
+
 import Scoped.Extrication
 --import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
+{-
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
 import Scoped.Erasure.Reduction
