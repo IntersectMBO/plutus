@@ -4,13 +4,9 @@
 -}
 
 module Language.Marlowe.ACTUS.HP.BusinessEvents where
+import Data.Time
 
-data RiskFactorUpdateEvent =  CURS_UPDATE { exchangeRate :: Double } 
-                | SCMO_UPDATE { scalingIndex :: Double}
-                | RRMO_UPDATE { rate :: Double } deriving (Eq, Ord, Show)
-
-
-data ScheduledEvent = AD   -- Analysis Event Retrieves current contract states without alter these
+data BuisenessEvent = AD   -- Analysis Event Retrieves current contract states without alter these
                     | IED  -- Initial Exchange Date Scheduled date of first principal event, start of accrual calculation
                     | PR   -- Principal Redemption Scheduled principal redemption payment
                     | PI   -- Principal Increase Scheduled principal increase payments
@@ -30,8 +26,13 @@ data ScheduledEvent = AD   -- Analysis Event Retrieves current contract states w
                     | MR   -- Margin Call Date Scheduled margin call event
                     | STD  -- Settlement Date Date when payment for derivatives is settled
                     | MD   -- Maturity Date Scheduled maturity or expiry of a contract
-                    | CD   -- Credit Default Credit event of counterparty to a contract
+                    -- UNSCHEDULED
+                    | PP { payment :: Double } 
+                    | CE { date :: Day} -- Credit event of counterparty to a contract
+                    -- RISK FACTOR RESET
+                    | CURS_UPDATE { exchangeRate :: Double } 
+                    | SCMO_UPDATE { scalingIndex :: Double}
+                    | RRMO_UPDATE { rate :: Double }
                     deriving (Eq, Ord, Show)
                      
-data UnscheduledEvent = PP { payment :: Double } deriving (Eq, Ord, Show)     -- Principal Prepayment Unscheduled (early) repayment of principal outstanding
 
