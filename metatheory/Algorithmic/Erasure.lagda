@@ -221,19 +221,6 @@ lem-convTel (A ∷ As) p σ (t ,, ts) = trans
 lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
 lem-subst t refl = refl
 
-open import Relation.Nullary
-open import Data.Empty
-
--- these two may be in the standard library
-lem¬≤ : ∀{n} → ¬ (suc n Data.Nat.≤ n)
-lem¬≤ (s≤s p) = lem¬≤ p
-
-lem≤‴ : ∀{m n}(p q : m ≤‴ n) → p ≡ q
-lem≤‴ ≤‴-refl ≤‴-refl     = refl
-lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ q)))
-lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
-lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
-
 lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → (p : n ≤‴ arity b)
   → (q : n' ≤‴ arity b)
