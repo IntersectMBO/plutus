@@ -7,7 +7,7 @@ open import Scoped
 
 open import Data.Nat
 open import Data.Fin hiding (lift)
-open import Data.List
+open import Data.Vec
 open import Function
 \end{code}
 
@@ -29,9 +29,9 @@ ren⋆ ρ (con x) = con x
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 ren⋆ ρ missing = missing
 
-ren⋆L : ∀{m n} → Ren⋆ m n → List (ScopedTy m) → List (ScopedTy n)
-ren⋆L ρ⋆ []       = []
-ren⋆L ρ⋆ (A ∷ As) = ren⋆ ρ⋆ A ∷ ren⋆L ρ⋆ As
+ren⋆T : ∀{m n o} → Ren⋆ m n → Vec (ScopedTy m) o → Vec (ScopedTy n) o
+ren⋆T ρ⋆ []       = []
+ren⋆T ρ⋆ (A ∷ As) = ren⋆ ρ⋆ A ∷ ren⋆T ρ⋆ As
 
 Ren : ∀{m n} → Weirdℕ m → Weirdℕ n → Set
 Ren m n = WeirdFin m → WeirdFin n
@@ -45,8 +45,8 @@ lift ρ (S x) = S (ρ x)
 
 ren : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v → ScopedTm w
   → ScopedTm v
-renL : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
-  → List (ScopedTm w) → List (ScopedTm v)
+renT : ∀{m n o}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
+  → Vec (ScopedTm w) o → Vec (ScopedTm v) o
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
 ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
@@ -55,12 +55,12 @@ ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
-ren ρ⋆ ρ (builtin b As ts) = builtin b (ren⋆L ρ⋆ As) (renL ρ⋆ ρ ts)
+ren ρ⋆ ρ (builtin b As ts) = builtin b (ren⋆T ρ⋆ As) (renT ρ⋆ ρ ts)
 ren ρ⋆ ρ (wrap A B t) = wrap (ren⋆ ρ⋆ A) (ren⋆ ρ⋆ B) (ren ρ⋆ ρ t)
 ren ρ⋆ ρ (unwrap t) = unwrap (ren ρ⋆ ρ t)
 
-renL ρ⋆ ρ []       = []
-renL ρ⋆ ρ (t ∷ ts) = ren ρ⋆ ρ t ∷ renL ρ⋆ ρ ts
+renT ρ⋆ ρ []       = []
+renT ρ⋆ ρ (t ∷ ts) = ren ρ⋆ ρ t ∷ renT ρ⋆ ρ ts
 
 -- substitution
 Sub⋆ : ℕ → ℕ → Set
@@ -80,9 +80,9 @@ sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 sub⋆ ρ missing = missing
 
-sub⋆L : ∀{m n} → Sub⋆ m n → List (ScopedTy m) → List (ScopedTy n)
-sub⋆L σ⋆ []       = []
-sub⋆L σ⋆ (A ∷ As) = sub⋆ σ⋆ A ∷ sub⋆L σ⋆ As
+sub⋆T : ∀{m n o} → Sub⋆ m n → Vec (ScopedTy m) o → Vec (ScopedTy n) o
+sub⋆T σ⋆ []       = []
+sub⋆T σ⋆ (A ∷ As) = sub⋆ σ⋆ A ∷ sub⋆T σ⋆ As
 
 Sub : ∀{m n} → Weirdℕ m → Weirdℕ n → Set
 Sub v w = WeirdFin v → ScopedTm w
@@ -96,8 +96,8 @@ slift σ (S x) = ren id S (σ x)
 
 sub : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
   → ScopedTm v → ScopedTm w
-subL : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
-  → List (ScopedTm v) → List (ScopedTm w)
+subT : ∀{m n o}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
+  → Vec (ScopedTm v) o → Vec (ScopedTm w) o
 
 sub σ⋆ σ (` x) = σ x
 sub σ⋆ σ (Λ K t) = Λ K (sub (slift⋆ σ⋆) (⋆slift σ) t)
@@ -106,12 +106,12 @@ sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
-sub σ⋆ σ (builtin b As ts) = builtin b (sub⋆L σ⋆ As) (subL σ⋆ σ ts)
+sub σ⋆ σ (builtin b As ts) = builtin b (sub⋆T σ⋆ As) (subT σ⋆ σ ts)
 sub σ⋆ σ (wrap A B t) = wrap (sub⋆ σ⋆ A) (sub⋆ σ⋆ B) (sub σ⋆ σ t)
 sub σ⋆ σ (unwrap t) = unwrap (sub σ⋆ σ t)
 
-subL σ⋆ σ []       = []
-subL σ⋆ σ (t ∷ ts) = sub σ⋆ σ t ∷ subL σ⋆ σ ts
+subT σ⋆ σ []       = []
+subT σ⋆ σ (t ∷ ts) = sub σ⋆ σ t ∷ subT σ⋆ σ ts
 
 ext : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub v w → ScopedTm w → Sub (S v) w
 ext σ t Z = t

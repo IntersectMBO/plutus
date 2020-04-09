@@ -2,6 +2,8 @@
 module Utils where
 
 open import Relation.Binary.PropositionalEquality
+open import Data.Nat
+open import Data.Nat.Properties
 
 data Maybe (A : Set) : Set where
   just : A → Maybe A
@@ -29,4 +31,7 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
+
+z≤‴n : ∀ {n} → zero  ≤‴ n
+z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
 \end{code}

@@ -27,6 +27,31 @@ open import Raw
 \end{code}
 
 \begin{code}
+arity : Builtin → ℕ
+arity addInteger = 2
+arity subtractInteger = 2
+arity multiplyInteger = 2
+arity divideInteger = 2
+arity quotientInteger = 2
+arity remainderInteger = 2
+arity modInteger = 2
+arity lessThanInteger = 2
+arity lessThanEqualsInteger = 2
+arity greaterThanInteger = 2
+arity greaterThanEqualsInteger = 2
+arity equalsInteger = 2
+arity concatenate = 2
+arity takeByteString = 2
+arity dropByteString = 2
+arity sha2-256 = 1
+arity sha3-256 = 1
+arity verifySignature = 3
+arity equalsByteString = 2
+arity ifThenElse = 3
+
+arity⋆ : Builtin → ℕ
+arity⋆ ifThenElse = 1
+arity⋆ _ = 0
 
 open import Type
 
@@ -175,8 +200,10 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  builtin : (bn : Builtin) → List (ScopedTy n) → List (ScopedTm w)
-            → ScopedTm w
+  builtin : (bn : Builtin) 
+    → ∀{m} → m ≤‴ arity⋆ bn → Vec (ScopedTy n) m
+    → ∀{o} → o ≤‴ arity bn  → Vec (ScopedTm w) o
+    → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
@@ -246,7 +273,7 @@ scopeCheckTm (t · u) = do
   return (t · u)
 scopeCheckTm (con c) = just (con (deBruijnifyC c))
 scopeCheckTm (error A) = map error (scopeCheckTy A)
-scopeCheckTm (builtin b) = just (builtin b [] [])
+scopeCheckTm (builtin b) = just (builtin b z≤‴n [] z≤‴n [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -260,37 +287,11 @@ scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
 \begin{code}
 open import Data.Product
 open import Data.Sum
-
+{-
 builtinMatcher : ∀{n}{w : Weirdℕ n} → ScopedTm w
   → (Builtin × List (ScopedTy n) × List (ScopedTm w)) ⊎ ScopedTm w
 builtinMatcher (builtin b As ts) = inj₁ (b , As , ts)
 builtinMatcher t              = inj₂ t
-
-arity : Builtin → ℕ
-arity addInteger = 2
-arity subtractInteger = 2
-arity multiplyInteger = 2
-arity divideInteger = 2
-arity quotientInteger = 2
-arity remainderInteger = 2
-arity modInteger = 2
-arity lessThanInteger = 2
-arity lessThanEqualsInteger = 2
-arity greaterThanInteger = 2
-arity greaterThanEqualsInteger = 2
-arity equalsInteger = 2
-arity concatenate = 2
-arity takeByteString = 2
-arity dropByteString = 2
-arity sha2-256 = 1
-arity sha3-256 = 1
-arity verifySignature = 3
-arity equalsByteString = 2
-arity ifThenElse = 3
-
-arity⋆ : Builtin → ℕ
-arity⋆ ifThenElse = 1
-arity⋆ _ = 0
 
 open import Relation.Nullary
 
@@ -326,9 +327,11 @@ saturate (unwrap t)   = unwrap (saturate t)
 
 -- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
+-}
 \end{code}
 
 \begin{code}
+{-
 {-# TERMINATING #-}
 unsaturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
 
@@ -336,9 +339,11 @@ builtinBuilder : ∀{n}{w : Weirdℕ n} → Builtin → List (ScopedTy n) → Li
 builtinBuilder b [] [] = builtin b [] []
 builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
 builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
+-}
 \end{code}
 
 \begin{code}
+{-
 unsaturate (` x) = ` x
 unsaturate (Λ K t) = Λ K (unsaturate t)
 unsaturate (t ·⋆ A) = unsaturate t ·⋆ A
@@ -350,22 +355,28 @@ unsaturate (builtin b As bs) =
   builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
 unsaturate (wrap A B t) = wrap A B (unsaturate t)
 unsaturate (unwrap t)   = unwrap (unsaturate t)
+-}
 \end{code}
 
 \begin{code}
+{-
 unDeBruijnifyK : Kind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
+-}
 \end{code}
 
 \begin{code}
+{-
 wftoℕ : ∀{n}{w : Weirdℕ n} → WeirdFin w → ℕ
 wftoℕ Z = zero
 wftoℕ (S i) = ℕ.suc (wftoℕ i)
 wftoℕ (T i) = ℕ.suc (wftoℕ i)
+-}
 \end{code}
 
 \begin{code}
+{-
 unDeBruijnifyC : TermCon → RawTermCon
 unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
@@ -373,10 +384,11 @@ unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
 unDeBruijnifyC (char c)       = char c
 unDeBruijnifyC unit           = unit
-
+-}
 \end{code}
 
 \begin{code}
+{-
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
@@ -399,11 +411,13 @@ extricateScope (builtin bn _ _) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
+-}
 \end{code}
 
 -- UGLY PRINTING
 
 \begin{code}
+{-
 open import Data.String
 
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
@@ -445,4 +459,5 @@ ugly (builtin b As ts) =
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
+-}
 \end{code}
