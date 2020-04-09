@@ -8,6 +8,7 @@ import           Language.PlutusIR
 
 import qualified Language.PlutusCore.Pretty as PLC
 
+import qualified Data.Set                   as S
 import           Data.Text.Prettyprint.Doc  ((<+>))
 import qualified Data.Text.Prettyprint.Doc  as PP
 
@@ -24,8 +25,19 @@ data Provenance a = Original a
                   | TermBinding String (Provenance a)
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
-                  | NoProvenance
-                  deriving (Show, Eq)
+                  -- | Added for accumulating difference provenances when floating lets
+                  | MultipleSources (S.Set (Provenance a))
+                  deriving (Show, Eq, Ord)
+
+instance Ord a => Semigroup (Provenance a) where
+  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
+  x <> MultipleSources ps2 = MultipleSources (S.insert x ps2)
+  MultipleSources ps1 <> x = MultipleSources (S.insert x ps1)
+  x <> y = MultipleSources (S.fromList [x,y])
+
+-- workaround, use a smart constructor to replace the older NoProvenance data constructor
+noProvenance :: Provenance a
+noProvenance = MultipleSources S.empty
 
 data DatatypeComponent = Constructor
                        | ConstructorType
@@ -33,7 +45,7 @@ data DatatypeComponent = Constructor
                        | DestructorType
                        | DatatypeType
                        | PatternFunctor
-                       deriving (Show, Eq)
+                       deriving (Show, Eq, Ord)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case
@@ -71,4 +83,6 @@ instance PP.Pretty a => PP.Pretty (Provenance a) where
             in "(" <> rstr <> ")" <+> "let binding" <> ";" <+> "from" <+> PLC.pretty p
         TermBinding n p -> "term binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         TypeBinding n p -> "type binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
-        NoProvenance -> "<unknown>"
+        MultipleSources p1 -> case S.toList p1 of
+                                [] -> "<unknown>"
+                                l  -> PLC.prettyList l

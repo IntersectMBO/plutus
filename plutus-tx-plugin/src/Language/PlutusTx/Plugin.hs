@@ -302,15 +302,18 @@ runCompiler opts expr = do
     let (ctx :: PIR.CompilationCtx ()) = PIR.defaultCompilationCtx & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
 
     (pirT::PIRTerm PLC.DefaultUni) <- PIR.runDefT () $ compileExprWithDefs expr
-    -- We manually run a simplifier pass here before dumping/storing the PIR
-    (pirP::PIRProgram PLC.DefaultUni) <- PIR.Program () <$> (flip runReaderT ctx $ PIR.simplifyTerm pirT)
-    when (poDumpPir opts) $ liftIO $ print $ PP.pretty pirP
 
-    (plcP::PLCProgram PLC.DefaultUni) <- void <$> (flip runReaderT ctx $ PIR.compileProgram pirP)
-    when (poDumpPlc opts) $ liftIO $ print $ PP.pretty plcP
+    -- We manually run a simplifier+floating pass here before dumping/storing the PIR
+    pirT' <- flip runReaderT ctx $ PIR.compileToReadable pirT
+    let pirP = PIR.Program () . void $ pirT'
+
+    when (poDumpPir opts) . liftIO . print . PP.pretty $ pirP
+
+    (plcP::PLCProgram PLC.DefaultUni) <- PLC.Program () (PLC.defaultVersion ()) . void <$> (flip runReaderT ctx $ PIR.compileReadableToPlc pirT')
+    when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
-    when (poDoTypecheck opts) $ void $ do
+    when (poDoTypecheck opts) . void $ do
         stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
         PLC.typecheckPipeline (PLC.TypeCheckConfig stringBuiltinTypes) plcP
     pure (pirP, plcP)

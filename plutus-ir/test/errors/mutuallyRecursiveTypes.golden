@@ -1,1 +1,1 @@
-Unsupported construct: Mutually recursive datatypes ((recursive) let binding; from mutuallyRecursiveTypes:1:2)
+Unsupported construct: Mutually recursive datatypes ((recursive) let binding; from [ mutuallyRecursiveTypes:1:2 ])

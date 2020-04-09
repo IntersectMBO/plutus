@@ -141,7 +141,7 @@ typeCheckAgainst p plcTerm = do
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm applied
-    types <- PLC.getStringBuiltinTypes NoProvenance
+    types <- PLC.getStringBuiltinTypes noProvenance
     void $ PLC.inferType (PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }) compiled
 
 -- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.
