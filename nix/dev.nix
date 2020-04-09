@@ -68,10 +68,7 @@ pkgs.recurseIntoAttrs (rec {
         pkgs.nodejs-10_x
         pkgs.nodePackages_10_x.node-gyp
         pkgs.yarn
-        # yarn2nix won't seem to build on hydra, see
-        # https://github.com/moretea/yarn2nix/pull/103
-        # I can't figure out how to fix this...
-        #pkgs.yarn2nix-moretea.yarn2nix
+        pkgs.yarn2nix-moretea.yarn2nix
         easyPS.purs
         easyPS.psc-package
         easyPS.spago
