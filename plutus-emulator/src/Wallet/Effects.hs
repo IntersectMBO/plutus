@@ -10,6 +10,7 @@ module Wallet.Effects(
     -- * Wallet effect
     , WalletEffect(..)
     , Payment(..)
+    , emptyPayment
     , submitTxn
     , ownPubKey
     , updatePaymentWithChange
@@ -45,6 +46,10 @@ data Payment =
         , paymentChangeOutput :: Maybe TxOut
         } deriving stock (Eq, Show, Generic)
           deriving anyclass (ToJSON, FromJSON)
+
+-- | A payment with zero inputs and no change output
+emptyPayment :: Payment
+emptyPayment = Payment { paymentInputs = Set.empty, paymentChangeOutput = Nothing }
 
 data WalletEffect r where
     SubmitTxn :: Tx -> WalletEffect ()
