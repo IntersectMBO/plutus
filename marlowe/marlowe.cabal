@@ -58,7 +58,6 @@ library
     Language.Marlowe.ACTUS.HP.ContractTerms
     Language.Marlowe.ACTUS.HP.ContractGenerator
     Language.Marlowe.ACTUS.HP.ContractState
-    Language.Marlowe.ACTUS.HP.Observations
     Language.Marlowe.ACTUS.HP.Applicability
     Language.Marlowe.ACTUS.HP.Control
     Language.Marlowe.ACTUS.HP.POF.PAM
