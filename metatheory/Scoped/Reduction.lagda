@@ -61,6 +61,11 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
    -- a genuine runtime error returned from a builtin
    E-error : (A : ScopedTy n) → Error (error A)
 
+data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel m w → Set
+  where
+  here  : ∀{m t}{ts : Tel m w} → P t → Any P (t ∷ ts)
+  there : ∀{m t}{ts : Tel m w} → Value t → Any P ts → Any P (t ∷ ts)  
+
 VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
 VERIFYSIG (just false) = con (bool false)
 VERIFYSIG (just true)  = con (bool true)
@@ -238,18 +243,11 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
              → ∀{o'}(q : o' ≤‴ arity b)
              → (ts : Vec (ScopedTm w) o')
              → builtin b (≤‴-step p) As q ts —→ error missing
-{-
-  -- an error occured in one of reducing an argument
   E-builtin : (b : Builtin)
-             (As : List (ScopedTy n))
-             (ts : List (ScopedTm w))
-             {ts' : List (ScopedTm w)}
-             (vs : VTel w ts')
-             (t : ScopedTm w)
-             → Error t
-             → (ts'' : Tel w)
-             → builtin b As ts —→ error missing
--}
+            → (As : Vec (ScopedTy n) (arity⋆ b))
+            → (ts : Vec (ScopedTm w) (arity b))
+            → Any Error ts
+            → builtin b ≤‴-refl As ≤‴-refl ts —→ error missing
 \end{code}
 
 \begin{code}
@@ -269,9 +267,9 @@ data TelProgress {m}{n}{w : Weirdℕ n} : Tel m w → Set where
 {-
   step : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA)
    → {t t' : ScopedTm w} → t —→ t' → (telB : Tel w) → tel ≡ telA ++ Data.List.[ t ] ++ telB → TelProgress tel
-  error : (tel : Tel w)(telA : Tel w)(vtelA : VTel w telA){t : ScopedTm w}
-    → Error t → (telB : Tel w) → TelProgress tel
 -}
+  error : (ts : Tel m w) → Any Error ts → TelProgress ts
+
 \end{code}
 
 \begin{code}
@@ -324,6 +322,8 @@ progress-builtin : ∀ {n}{i : Weirdℕ n} bn
   → (As : Vec (ScopedTy n) (arity⋆ bn)) (tel : Tel (arity bn) i)
   → TelProgress tel → Progress (builtin bn ≤‴-refl As ≤‴-refl tel)
 progress-builtin bn As ts (done .ts vtel) = step (β-builtin vtel)
+progress-builtin bn As ts (error .ts p)   = step (E-builtin bn As ts p)
+
 {-
 progress-builtin bn As tel p with arity bn N.≟ Data.List.length tel
 progress-builtin bn As tel (done .tel vtel)               | yes p =
@@ -336,9 +336,9 @@ progress-builtin bn As tel p | no ¬p = done (V-builtin bn As tel)
 -}
 progressTelCons : ∀{m n}{i : Weirdℕ n}{t : ScopedTm i}
   → Progress t → {tel : Tel m i} → TelProgress tel → TelProgress (t ∷ tel)
-progressTelCons (step x) q            = {!!}
+progressTelCons (step p) q            = {!!}
 progressTelCons (done v) (done ts vs) = done (_ ∷ ts) (v , vs)
-progressTelCons (error x) q           = {!!}
+progressTelCons (error p) q           = error _ (here p)
 
 {-
 progressTelCons {t = t}(step p){tel}  q = step (t ∷ tel) [] tt p tel refl
