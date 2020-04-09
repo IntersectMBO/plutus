@@ -33,20 +33,24 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
   V-builtin : (b : Builtin)
-            →  ∀{o} (As : Vec (ScopedTy n) o)
-            →  ∀{o'}(ts : Vec (ScopedTm w) o')
-            → Value (builtin b As ts)
+            → ∀{o}
+            → (p : o ≤‴ arity⋆ b)
+            → (As : Vec (ScopedTy n) o)
+            → ∀{o'}
+            → (q : o' <‴ arity b)
+            → (ts : Vec (ScopedTm w) o')
+            → Value (builtin b p As (≤‴-step q) ts)
 
 voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
 voidVal w = V-con {w = w} unit
 
-Tel : ∀{n} → Weirdℕ n → Set
-Tel w = List (ScopedTm w)
+Tel : ∀{n} m → Weirdℕ n → Set
+Tel m w = Vec (ScopedTm w) m
 
 open import Data.Unit
-VTel : ∀{n}(w : Weirdℕ n) → Tel w → Set
-VTel w []       = ⊤
-VTel w (t ∷ ts) = Value t × VTel w ts
+VTel : ∀{n} m (w : Weirdℕ n) → Tel m w → Set
+VTel m       w []       = ⊤
+VTel (suc m) w (t ∷ ts) = Value t × VTel m w ts
 
 -- a term that satisfies this predicate has an error term in it somewhere
 -- or we encountered a rumtime type error
@@ -57,11 +61,12 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
 VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
 VERIFYSIG (just false) = con (bool false)
 VERIFYSIG (just true)  = con (bool true)
-VERIFYSIG nothing        = error (con bool)
+VERIFYSIG nothing      = error (con bool)
 
 
-BUILTIN : ∀{n}{w : Weirdℕ n} → Builtin
-  → List (ScopedTy n) → (ts : Tel w) → VTel w ts → ScopedTm w
+BUILTIN : ∀{n}{w : Weirdℕ n}
+  → (b : Builtin)
+  → Vec (ScopedTy n) (arity⋆ b) → (ts : Tel (arity b) w) → VTel (arity b) w ts → ScopedTm w
 BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.+ i'))
 BUILTIN addInteger _ _ _ = error (con integer)
@@ -121,7 +126,6 @@ BUILTIN equalsByteString _ _ _ = error (con bool)
 BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , _) = t
 BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , _) = u
 BUILTIN ifThenElse (A ∷ []) _ _ = error A
-BUILTIN ifThenElse _ _ _ = error (con (bool))
 
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
@@ -151,12 +155,21 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
               {ts : Tel w}
               (vs : VTel w ts)
             → builtin b As ts —→ BUILTIN b As ts vs
-  sat-builtin : {b : Builtin}
-              {As : List (ScopedTy n)}
-              {ts : List (ScopedTm w)}
-              {t : ScopedTm w}
-            → builtin b As ts · t —→ builtin b As (ts ++ Data.List.[ t ])
 -}
+  sat-builtin : {b : Builtin}
+            → ∀{o}{p : o ≤‴ arity⋆ b}
+            → {As : Vec (ScopedTy n) o}
+            → ∀{o'}{q : o' <‴ arity b}
+            → {ts : Vec (ScopedTm w) o'}
+            → {t : ScopedTm w}
+            → builtin b p As (≤‴-step q) ts · t —→ builtin b p As q (t ∷ ts)
+  sat⋆-builtin : {b : Builtin}
+            → ∀{o}{p : o <‴ arity⋆ b}
+            → {As : Vec (ScopedTy n) o}
+            → {A : ScopedTy n}
+            → builtin b (≤‴-step p) As z≤‴n [] ·⋆ A
+              —→ builtin b p (A ∷ As) z≤‴n []
+
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
@@ -228,7 +241,8 @@ data Progress {n}{i : Weirdℕ n}(t : ScopedTm i) : Set where
   step : ∀{t'} → t —→ t' → Progress t
   done : Value t → Progress t
   error : Error t → Progress t
-  
+
+{-
 data TelProgress {n}{w : Weirdℕ n} : Tel w → Set where
   done : (tel : Tel w)(vtel : VTel w tel) → TelProgress tel
 {-
@@ -354,4 +368,5 @@ run t (suc n) = runProg n (progress tt t)
 runProg n (step {t' = t'} p)  = run—→ p (run t' n)
 runProg n (done V)  = _ , refl , inl (just V)
 runProg n (error e) = _ , refl , inr e 
+-}
 \end{code}
