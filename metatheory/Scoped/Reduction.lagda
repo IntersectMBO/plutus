@@ -149,13 +149,12 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → (telB : List (ScopedTm w))
             → tel ≡ telA ++ Data.List.[ t ] ++ telB
             → builtin b As tel —→ builtin b As (telA ++ Data.List.[ t' ] ++ telB)
-
-  β-builtin : {b : Builtin}
-              {As : List (ScopedTy n)}
-              {ts : Tel w}
-              (vs : VTel w ts)
-            → builtin b As ts —→ BUILTIN b As ts vs
 -}
+  β-builtin : {b : Builtin}
+              {As : Vec (ScopedTy n) (arity⋆ b) }
+              {ts : Tel (arity b) w}
+              (vs : VTel (arity b) w ts)
+            → builtin b ≤‴-refl As ≤‴-refl ts —→ BUILTIN b As ts vs
   sat-builtin : {b : Builtin}
             → ∀{o}{p : o ≤‴ arity⋆ b}
             → {As : Vec (ScopedTy n) o}
