@@ -69,8 +69,9 @@ import Untyped.Reduction
 -- Extrinsically typed terms, reduction and evaluation
 import Scoped
 import Scoped.RenamingSubstitution
-{-
+
 import Scoped.Reduction
+{-
 import Scoped.Extrication
 --import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
