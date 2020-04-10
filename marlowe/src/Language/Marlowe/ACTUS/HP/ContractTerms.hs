@@ -84,7 +84,7 @@ data Cycle = Cycle
 
 
 data ContractTerms = PamContractTerms {
-  maturityDate :: Day
+  md :: Day
 } | LamContractTerms {
-  maturityDate :: Day
+  md :: Day
 }
