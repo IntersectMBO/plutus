@@ -83,16 +83,8 @@ data Cycle = Cycle
   } deriving (Show, Eq, Ord)
 
 
-{- generic representations of contract terms -}
-data GenericContractTerms = GenericContractTerms {
-    ratesAndSums :: Map ContractTerm [Double],
-    endOfMonthConventions :: Map ContractTerm [EOMC],
-    businessDayConventions :: Map ContractTerm [BDC],
-    dayCountConventions :: Map ContractTerm [DCC],
-    calendarTypes :: Map ContractTerm [CalendarType],
-    roles :: Map ContractTerm [ContractRole],
-    periods :: Map ContractTerm [Period],
-    stubs :: Map ContractTerm [Stub],
-    cycles :: Map ContractTerm [Cycle],
-    scalingEffects :: Map ContractTerm [ScalingEffect]
+data ContractTerms = PamContractTerms {
+  maturityDate :: Day
+} | LamContractTerms {
+  maturityDate :: Day
 }

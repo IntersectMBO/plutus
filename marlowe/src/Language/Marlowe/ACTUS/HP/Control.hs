@@ -116,13 +116,3 @@ haltOnUnscheduledEvent = let
         )
 
 -- todo Plutus event loop
-
-type EventTypeInt = Integer
-
-extractEventTypeInt :: State -> EventTypeInt
-extractEventTypeInt st = fromJust $ Map.lookup (ValueId (fromString"eventType")) (boundValues st) 
-
-isRiskFactor :: EventTypeInt -> Bool
-isRiskFactor k = k < 0
-
--- todo genMarloweValidator

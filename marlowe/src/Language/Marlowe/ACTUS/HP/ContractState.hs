@@ -1,16 +1,14 @@
 module Language.Marlowe.ACTUS.HP.ContractState where
 
 import Data.Time
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Data.Maybe
-import qualified Data.Maybe as Maybe
+import Data.Map
+
+type ContractId = String
+type ContractStates = Map ContractId ContractState
 
 data ContractState = ContractState
   { 
-    contractId :: String  
-  , t0  :: Day
+  t0  :: Day
   , tmd :: Day
   , nt  :: Double
   , ipnr :: Double

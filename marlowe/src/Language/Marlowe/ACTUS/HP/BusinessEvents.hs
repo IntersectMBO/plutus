@@ -1,8 +1,3 @@
-{- Describes event types 
-   Events could be scheduled or unscheduled.
-   Unscheduled events are often parametrized
--}
-
 module Language.Marlowe.ACTUS.HP.BusinessEvents where
 import Data.Time
 
