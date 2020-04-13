@@ -12,6 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Tuple (Tuple(..))
 import Examples.Marlowe.Contracts as Contracts
+import Halogen.Monaco (KeyBindings(..))
 import Marlowe.Semantics (AccountId(..), ChoiceId(..), Contract(..), Input(..), Token(..), Party(..))
 import MonadApp (class MonadApp, applyTransactions, extendWith, updateContractInState, updateContractInStateP, updateMarloweState, updatePossibleActions, updateStateP)
 import Network.RemoteData (RemoteData(..))
@@ -44,12 +45,14 @@ instance monadAppState :: MonadApp MockApp where
   haskellEditorSetMarkers _ = pure unit
   haskellEditorResize = pure unit
   haskellEditorSetTheme = pure unit
+  haskellEditorSetBindings binding = pure unit
   marloweEditorSetValue _ _ = pure unit
   marloweEditorGetValue = pure (Just Contracts.escrow)
   marloweEditorMoveCursorToPosition _ = pure unit
   marloweEditorResize = pure unit
   marloweEditorSetMarkers _ = pure unit
   marloweEditorSetTheme = pure unit
+  marloweEditorSetBindings binding = pure unit
   preventDefault _ = pure unit
   readFileFromDragEvent _ = pure ""
   updateContractInState contract = do
@@ -93,6 +96,8 @@ initialState =
     , showRightPanel: true
     , showBottomPanel: true
     , showErrorDetail: false
+    , haskellEditorKeybindings: DefaultBindings
+    , marloweEditorKeybindings: DefaultBindings
     }
 
 runTests :: forall a. MockApp a -> Tuple a FrontendState

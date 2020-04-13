@@ -30,6 +30,7 @@ import Gist (Gist, GistId, NewGist)
 import Global.Unsafe (unsafeStringify)
 import Halogen (HalogenM, liftAff, liftEffect, query, raise)
 import Halogen.Blockly (BlocklyQuery(..))
+import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode)
 import Language.Haskell.Monaco as HM
@@ -65,12 +66,14 @@ class
   haskellEditorSetMarkers :: Array IMarkerData -> m Unit
   haskellEditorResize :: m Unit
   haskellEditorSetTheme :: m Unit
+  haskellEditorSetBindings :: KeyBindings -> m Unit
   marloweEditorSetValue :: String -> Maybe Int -> m Unit
   marloweEditorGetValue :: m (Maybe String)
   marloweEditorResize :: m Unit
   marloweEditorMoveCursorToPosition :: IPosition -> m Unit
   marloweEditorSetMarkers :: Array IMarker -> m Unit
   marloweEditorSetTheme :: m Unit
+  marloweEditorSetBindings :: KeyBindings -> m Unit
   preventDefault :: DragEvent -> m Unit
   readFileFromDragEvent :: DragEvent -> m String
   updateContractInState :: String -> m Unit
@@ -122,6 +125,7 @@ instance monadAppHalogenApp ::
   haskellEditorSetMarkers markers = void $ wrap $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers unit)
   haskellEditorResize = void $ wrap $ query _haskellEditorSlot unit (Monaco.Resize unit)
   haskellEditorSetTheme = void $ wrap $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
+  haskellEditorSetBindings binding = void $ wrap $ query _haskellEditorSlot unit (Monaco.SetKeyBindings binding unit)
   marloweEditorResize = void $ wrap $ query _marloweEditorSlot unit (Monaco.Resize unit)
   marloweEditorSetValue contents i = void $ wrap $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
   marloweEditorGetValue = wrap $ query _marloweEditorSlot unit (Monaco.GetText identity)
@@ -149,6 +153,7 @@ instance monadAppHalogenApp ::
     assign (_marloweState <<< _Head <<< _editorErrors) errors
     pure unit
   marloweEditorSetTheme = void $ wrap $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+  marloweEditorSetBindings binding = void $ wrap $ query _marloweEditorSlot unit (Monaco.SetKeyBindings binding unit)
   preventDefault event = wrap $ liftEffect $ FileEvents.preventDefault event
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
