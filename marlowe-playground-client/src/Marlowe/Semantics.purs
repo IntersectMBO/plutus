@@ -1,7 +1,9 @@
 module Marlowe.Semantics where
 
 import Prelude
+import Control.Monad.Except (mapExcept, runExcept)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
+import Data.Either (Either(..))
 import Data.Foldable (class Foldable, any, foldl)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
@@ -19,6 +21,10 @@ import Data.Num (class Num)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Foreign.Class (class Encode, class Decode, encode, decode)
+import Foreign (F, readString)
+import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
+import Foreign.Generic (genericEncode, genericDecode)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
 
 type PubKey
@@ -33,6 +39,12 @@ derive instance genericParty :: Generic Party _
 derive instance eqParty :: Eq Party
 
 derive instance ordParty :: Ord Party
+
+instance encodeJsonParty :: Encode Party where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonParty :: Decode Party where
+  decode a = genericDecode aesonCompatibleOptions a
 
 instance showParty :: Show Party where
   show = genericShow
@@ -58,6 +70,21 @@ type TokenName
 
 data Token
   = Token CurrencySymbol TokenName
+
+instance encodeJsonToken :: Encode Token where
+  encode (Token "" "") = encode "ada"
+  encode (Token cur tok) = encode { currency: { unCurrencySymbol: cur }, token: { unTokenName: tok } }
+
+type TokenJson
+  = { currency :: { unCurrencySymbol :: String }, token :: { unTokenName :: String } }
+
+instance decodeJsonToken :: Decode Token where
+  decode a = do
+    mapExcept f (readString a)
+    where
+    f (Right "ada") = Right (Token "" "")
+
+    f _ = (\{ currency: { unCurrencySymbol: cur }, token: { unTokenName: tok } } -> Token cur tok) <$> runExcept (decode a :: F TokenJson)
 
 derive instance genericToken :: Generic Token _
 
@@ -106,6 +133,15 @@ instance monoidAssets :: Monoid Assets where
 newtype Slot
   = Slot BigInteger
 
+instance encodeJsonSlot :: Encode Slot where
+  encode (Slot n) = encode { getSlot: n }
+
+type SlotJson
+  = { getSlot :: BigInteger }
+
+instance decodeJsonSlot :: Decode Slot where
+  decode a = (\{ getSlot: s } -> Slot s) <$> (decode a :: F SlotJson)
+
 derive instance genericSlot :: Generic Slot _
 
 derive instance newtypeSlot :: Newtype Slot _
@@ -136,6 +172,12 @@ derive newtype instance hasArgsSlot :: Args Slot
 
 newtype Ada
   = Lovelace BigInteger
+
+instance encodeJsonAda :: Encode Ada where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonAda :: Decode Ada where
+  decode a = genericDecode aesonCompatibleOptions a
 
 derive instance genericAda :: Generic Ada _
 
@@ -170,6 +212,12 @@ derive instance eqAccountId :: Eq AccountId
 
 derive instance ordAccountId :: Ord AccountId
 
+instance encodeJsonAccountId :: Encode AccountId where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonAccountId :: Decode AccountId where
+  decode a = genericDecode aesonCompatibleOptions a
+
 instance showAccountId :: Show AccountId where
   show (AccountId number owner) = "(AccountId " <> show number <> " " <> show owner <> ")"
 
@@ -188,6 +236,12 @@ derive instance genericChoiceId :: Generic ChoiceId _
 derive instance eqChoiceId :: Eq ChoiceId
 
 derive instance ordChoiceId :: Ord ChoiceId
+
+instance encodeJsonChoiceId :: Encode ChoiceId where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonChoiceId :: Decode ChoiceId where
+  decode a = genericDecode aesonCompatibleOptions a
 
 instance showChoiceId :: Show ChoiceId where
   show (ChoiceId name owner) = "(ChoiceId " <> show name <> " " <> show owner <> ")"
@@ -213,6 +267,12 @@ derive instance eqValueId :: Eq ValueId
 
 derive instance ordValueId :: Ord ValueId
 
+instance encodeJsonValueId :: Encode ValueId where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonValueId :: Decode ValueId where
+  decode a = genericDecode aesonCompatibleOptions a
+
 instance showValueId :: Show ValueId where
   show (ValueId valueId) = show valueId
 
@@ -232,6 +292,12 @@ instance eqRational :: Eq Rational where
   eq (Rational n1 d1) (Rational n2 d2) = eq (d1 * n2) (d2 * n1)
 
 derive instance ordRational :: Ord Rational
+
+instance encodeJsonRational :: Encode Rational where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonRational :: Decode Rational where
+  decode a = genericDecode aesonCompatibleOptions a
 
 instance showRational :: Show Rational where
   show (Rational n d) = "(" <> show n <> "%" <> show d <> ")"
@@ -261,6 +327,12 @@ derive instance eqValue :: Eq Value
 
 derive instance ordValue :: Ord Value
 
+instance encodeJsonValue :: Encode Value where
+  encode a = genericEncode defaultOptions a
+
+instance decodeJsonValue :: Decode Value where
+  decode a = genericDecode defaultOptions a
+
 instance showValue :: Show Value where
   show v = genericShow v
 
@@ -289,6 +361,12 @@ derive instance genericObservation :: Generic Observation _
 derive instance eqObservation :: Eq Observation
 
 derive instance ordObservation :: Ord Observation
+
+instance encodeJsonObservation :: Encode Observation where
+  encode a = genericEncode defaultOptions a
+
+instance decodeJsonObservation :: Decode Observation where
+  decode a = genericDecode defaultOptions a
 
 instance showObservation :: Show Observation where
   show o = genericShow o
@@ -334,6 +412,12 @@ derive instance eqBound :: Eq Bound
 
 derive instance orBound :: Ord Bound
 
+instance encodeJsonBound :: Encode Bound where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonBound :: Decode Bound where
+  decode a = genericDecode aesonCompatibleOptions a
+
 instance showBound :: Show Bound where
   show = genericShow
 
@@ -354,6 +438,12 @@ derive instance genericAction :: Generic Action _
 derive instance eqAction :: Eq Action
 
 derive instance ordAction :: Ord Action
+
+instance encodeJsonAction :: Encode Action where
+  encode a = genericEncode defaultOptions a
+
+instance decodeJsonAction :: Decode Action where
+  decode a = genericDecode defaultOptions a
 
 instance showAction :: Show Action where
   show (Choice cid bounds) = "(Choice " <> show cid <> " " <> show bounds <> ")"
@@ -376,6 +466,12 @@ derive instance eqPayee :: Eq Payee
 
 derive instance ordPayee :: Ord Payee
 
+instance encodeJsonPayee :: Encode Payee where
+  encode a = genericEncode defaultOptions a
+
+instance decodeJsonPayee :: Decode Payee where
+  decode a = genericDecode defaultOptions a
+
 instance showPayee :: Show Payee where
   show v = genericShow v
 
@@ -394,6 +490,12 @@ derive instance genericCase :: Generic Case _
 derive instance eqCase :: Eq Case
 
 derive instance ordCase :: Ord Case
+
+instance encodeJsonCase :: Encode Case where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonCase :: Decode Case where
+  decode a = genericDecode aesonCompatibleOptions a
 
 instance showCase :: Show Case where
   show (Case action contract) = "Case " <> show action <> " " <> show contract
@@ -417,6 +519,12 @@ derive instance genericContract :: Generic Contract _
 derive instance eqContract :: Eq Contract
 
 derive instance ordContract :: Ord Contract
+
+instance encodeJsonContract :: Encode Contract where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonContract :: Decode Contract where
+  decode a = genericDecode aesonCompatibleOptions a
 
 instance showContract :: Show Contract where
   show v = genericShow v
@@ -1083,3 +1191,10 @@ instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
 
 maxOf :: Array Timeout -> Timeout
 maxOf = foldl max zero
+
+aesonCompatibleOptions :: Options
+aesonCompatibleOptions =
+  defaultOptions
+    { unwrapSingleConstructors = true
+    , sumEncoding = aesonSumEncoding
+    }

@@ -31,15 +31,19 @@ flag defer-plugin-errors
 library
   hs-source-dirs: src
   build-depends:
+    aeson -any,
     base -any,
     bytestring,
     containers -any,
+    deriving-aeson -any,
     mtl,
+    newtype-generics,
     template-haskell -any,
     plutus-tx -any,
     plutus-emulator -any,
     plutus-ledger,
     text,
+    vector,
     wl-pprint -any,
     freer-simple -any
   default-language: Haskell2010
@@ -78,6 +82,7 @@ test-suite marlowe-test
         Spec.Marlowe.Marlowe
       -- Spec.Actus
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,

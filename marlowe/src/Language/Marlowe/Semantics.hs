@@ -1,22 +1,25 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DefaultSignatures          #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE TemplateHaskell            #-}
 -- Big hammer, but helps
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-warn-orphans       #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
@@ -40,7 +43,14 @@ and actions (i.e. /Choices/) are passed as
 
 module Language.Marlowe.Semantics where
 
-import           GHC.Generics               (Generic)
+import           Control.Newtype.Generics   (Newtype)
+import qualified Data.Aeson                 as JSON
+import qualified Data.Aeson.Extras          as JSON
+import           Data.Aeson.Types           hiding (Error, Value)
+import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
+import           Data.Vector                (fromList, (!))
+import           Deriving.Aeson
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
 import qualified Language.PlutusTx          as PlutusTx
@@ -48,7 +58,7 @@ import           Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import           Language.PlutusTx.Lift     (makeLift)
 import           Language.PlutusTx.Prelude  hiding ((<>))
-import           Language.PlutusTx.Ratio    (denominator, numerator)
+import           Language.PlutusTx.Ratio    (Ratio, denominator, numerator)
 import           Ledger                     (Address (..), PubKeyHash (..), Slot (..), ValidatorHash)
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (Datum (..))
@@ -89,7 +99,7 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 -- * Aliaces
 
 data Party = PK PubKeyHash | Role TokenName
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 type NumAccount = Integer
@@ -113,7 +123,7 @@ type Accounts = Map (AccountId, Token) Integer
     refunded any money in the account when the contract terminates.
 -}
 data AccountId = AccountId NumAccount Party
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 
@@ -121,21 +131,25 @@ data AccountId = AccountId NumAccount Party
     which combines a name for the choice with the Party who had made the choice.
 -}
 data ChoiceId = ChoiceId ByteString Party
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
+
 
 {-| Token - represents a currency or token, it groups
     a pair of a currency symbol and token name.
 -}
 data Token = Token CurrencySymbol TokenName
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
+
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
 -}
 newtype ValueId = ValueId ByteString
-  deriving stock (Show,P.Eq,P.Ord)
+  deriving stock (Show,P.Eq,P.Ord,Generic)
+  deriving anyclass (Newtype)
+
 
 {-| Values include some quantities that change with time,
     including “the slot interval”, “the current balance of an account (in Lovelace)”,
@@ -153,7 +167,7 @@ data Value = AvailableMoney AccountId Token
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 
@@ -174,12 +188,14 @@ data Observation = AndObs Observation Observation
                  | ValueEQ Value Value
                  | TrueObs
                  | FalseObs
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
+
 data Bound = Bound Integer Integer
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
+
 
 {-| Actions happen at particular points during execution.
     Three kinds of action are possible:
@@ -196,7 +212,7 @@ data Bound = Bound Integer Integer
 data Action = Deposit AccountId Party Token Value
             | Choice ChoiceId [Bound]
             | Notify Observation
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 
@@ -206,14 +222,15 @@ data Action = Deposit AccountId Party Token Value
 -}
 data Payee = Account AccountId
            | Party Party
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
+
 
 {-  Plutus doesn't support mutually recursive data types yet.
     datatype Case is mutually recurvive with @Contract@
 -}
 data Case a = Case Action a
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 
@@ -229,7 +246,7 @@ data Contract = Close
               | If Observation Contract Contract
               | When [Case Contract] Timeout Contract
               | Let ValueId Value Contract
-  deriving stock (Show,Read,Generic,P.Eq,P.Ord)
+  deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
 
@@ -239,7 +256,8 @@ data State = State { accounts    :: Accounts
                    , choices     :: Map ChoiceId ChosenNum
                    , boundValues :: Map ValueId Integer
                    , minSlot     :: Slot }
-  deriving stock (Show,Read)
+  deriving stock (Show,Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 
 {-| Execution environment. Contains a slot interval of a transaction.
@@ -872,7 +890,112 @@ marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = 
     in preconditionsOk && outputOk
 
 
+
 -- Typeclass instances
+
+deriving instance FromJSON (Language.PlutusTx.Ratio.Ratio Integer)
+deriving instance ToJSON   (Language.PlutusTx.Ratio.Ratio Integer)
+
+
+customOptions :: Options
+customOptions = defaultOptions
+                { unwrapUnaryRecords = True
+                , sumEncoding = TaggedObject { tagFieldName = "tag", contentsFieldName = "contents" }
+                }
+
+
+instance FromJSON Party where
+    parseJSON = withObject "Party" $ \v -> do
+        tag <- v .: "tag"
+        case tag of
+            JSON.String "PK"   -> do
+                pk <- v .: "contents"
+                v <- JSON.decodeByteString pk
+                return $ PK (PubKeyHash (fromStrict v))
+            JSON.String "Role" -> do
+                JSON.String r <- v .: "contents"
+                return (Role (Val.TokenName (fromStrict (encodeUtf8 r))))
+            _ -> fail "Can't parse Party"
+
+instance ToJSON Party where
+    toJSON (PK pkh) = object
+        [ "tag" .= JSON.String "PK"
+        , "contents" .= JSON.String (JSON.encodeByteString (toStrict (getPubKeyHash pkh)))
+        ]
+    toJSON (Role (Val.TokenName name)) = object
+        [ "tag" .= JSON.String "Role"
+        , "contents" .= JSON.String (decodeUtf8 (toStrict name))
+        ]
+
+
+instance FromJSON AccountId where parseJSON v = genericParseJSON customOptions v
+instance ToJSON AccountId where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON ChoiceId where
+    parseJSON = withArray "ChoiceId" $ \arr ->
+        withText "ChoiceName" (\name -> do
+            party <- parseJSON (arr ! 1)
+            return $ ChoiceId (fromStrict (encodeUtf8 name)) party) (arr ! 0)
+
+instance ToJSON ChoiceId where
+    toJSON (ChoiceId x acc) = JSON.Array $ fromList
+        [ JSON.String (decodeUtf8 (toStrict x))
+        , toJSON acc
+        ]
+
+
+instance FromJSON Token where
+    parseJSON (JSON.String "ada") = return $ Token "" ""
+    parseJSON v = withObject "Token" (\tk -> do
+        curr <- tk .: "currency"
+        curr <- parseJSON curr
+        tok <- tk .: "token"
+        tok <- parseJSON tok
+        return $ Token curr tok) v
+
+instance ToJSON Token where
+    toJSON (Token "" "") = JSON.String "ada"
+    toJSON (Token cur tok) = JSON.object
+        [ ("currency", toJSON cur)
+        , ("token", toJSON tok)
+        ]
+
+
+instance FromJSON ValueId where
+    parseJSON = withText "ValueID" $ return . ValueId . fromStrict . encodeUtf8
+instance ToJSON ValueId where
+    toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
+
+
+instance FromJSON Value where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Value where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON Observation where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Observation where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON Bound where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Bound where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON Action where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Action where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON Payee where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Payee where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON a => FromJSON (Case a) where parseJSON v = genericParseJSON customOptions v
+instance ToJSON a => ToJSON (Case a) where toJSON v = genericToJSON customOptions v
+
+
+instance FromJSON Contract where parseJSON v = genericParseJSON customOptions v
+instance ToJSON Contract where toJSON v = genericToJSON customOptions v
+
+
 instance Eq Party where
     {-# INLINABLE (==) #-}
     (PK p1) == (PK p2) = p1 == p2
@@ -896,10 +1019,6 @@ instance Eq Token where
 instance Eq ValueId where
     {-# INLINABLE (==) #-}
     (ValueId n1) == (ValueId n2) = n1 == n2
-
-
-instance Read ValueId where
-    readsPrec p x = [(ValueId v, s) | (v, s) <- readsPrec p x]
 
 
 instance Pretty ValueId where
