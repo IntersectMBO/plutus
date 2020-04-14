@@ -38,12 +38,13 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
             → (q : o <‴ arity b)
             → (ts : Vec (ScopedTm w) o)
             → Value (builtin b ≤‴-refl As (≤‴-step q) ts)
-  V-builtin⋆ : (b : Builtin)
+{-  V-builtin⋆ : (b : Builtin)
             → ∀{o}
             → (p : o <‴ arity⋆ b)
             → (As : Vec (ScopedTy n) o)
-            → Value (builtin b (≤‴-step p) As z≤‴n [])
-
+            → (q : 0 <‴ arity b)
+            → Value (builtin b (≤‴-step p) As (≤‴-step q) [])
+-}
 voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
 voidVal w = V-con {w = w} unit
 
@@ -170,8 +171,9 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → ∀{o}{p : o <‴ arity⋆ b}
             → {As : Vec (ScopedTy n) o}
             → {A : ScopedTy n}
-            → builtin b (≤‴-step p) As z≤‴n [] ·⋆ A
-              —→ builtin b p (A ∷ As) z≤‴n []
+            → {q : 0 ≤‴ arity b}
+            → builtin b (≤‴-step p) As q [] ·⋆ A
+              —→ builtin b p (A ∷ As) q []
 
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
@@ -215,8 +217,9 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   E-builtin⋆· : (b : Builtin)
               → ∀{o}(p : o <‴ arity⋆ b)
               → (As : Vec (ScopedTy n) o)
+              → (q : 0 <‴ arity b)
               → (t : ScopedTm w)
-              → builtin b (≤‴-step p) As z≤‴n [] · t —→ error missing
+              → builtin b (≤‴-step p) As (≤‴-step q) [] · t —→ error missing
   E-builtinunwrap : {b : Builtin}
                   → ∀{o}{p : o ≤‴ arity⋆ b}
                   → {As : Vec (ScopedTy n) o}
@@ -226,14 +229,15 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   E-builtin⋆unwrap : {b : Builtin}
                    → ∀{o}{p : o <‴ arity⋆ b}
                    → {As : Vec (ScopedTy n) o}
-                   → unwrap (builtin b (≤‴-step p) As z≤‴n [])
+                   → {q : 0 ≤‴ arity b}
+                   → unwrap (builtin b (≤‴-step p) As q [])
                      —→ error missing
   E-builtin⋆ : (b : Builtin)
-             → ∀{o}(p : o <‴ arity⋆ b)
+             → ∀{o}(p : o ≤‴ arity⋆ b)
              → (As : Vec (ScopedTy n) o)
              → ∀{o'}(q : o' ≤‴ arity b)
              → (ts : Vec (ScopedTm w) o')
-             → builtin b (≤‴-step p) As q ts —→ error missing
+             → builtin b p As q ts —→ error missing
   E-builtin : (b : Builtin)
             → (As : Vec (ScopedTy n) (arity⋆ b))
             → (ts : Vec (ScopedTm w) (arity b))
@@ -276,8 +280,10 @@ progress·V (V-ƛ A t)             (done v)            = step (β-ƛ v)
 progress·V (V-Λ p)               (done v)            = step E-Λ·
 progress·V (V-con tcn)           (done v)            = step E-con·
 progress·V (V-wrap A B t)        (done v)            = step E-wrap·
-progress·V (V-builtin⋆ b p As)   (done v)            =
-  step (E-builtin⋆· b p As _)
+{-
+progress·V (V-builtin⋆ b p As q)   (done v)            =
+  step (E-builtin⋆· b p As q _)
+-}
 progress·V (V-builtin b As p ts) (done v)            = step sat-builtin
 
 progress· : ∀{n}{i : Weirdℕ n}
@@ -295,7 +301,7 @@ progress·⋆ (done (V-ƛ B t))             A = step E-ƛ·⋆
 progress·⋆ (done (V-Λ p))               A = step β-Λ
 progress·⋆ (done (V-con tcn))           A = step E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))    A = step E-wrap·⋆
-progress·⋆ (done (V-builtin⋆ b p As))   A = step sat⋆-builtin
+--progress·⋆ (done (V-builtin⋆ b p As q)) A = step sat⋆-builtin
 progress·⋆ (done (V-builtin b As p ts)) A = step E-builtin·⋆
 
 progress·⋆ (error (E-error A))          B = step E-·⋆
@@ -308,7 +314,7 @@ progress-unwrap (done (V-Λ p))               = step E-Λunwrap
 progress-unwrap (done (V-con tcn))           = step E-conunwrap
 progress-unwrap (done (V-wrap A B v))        = step (β-wrap v)
 progress-unwrap (done (V-builtin b As p ts)) = step E-builtinunwrap
-progress-unwrap (done (V-builtin⋆ b p As))   = step E-builtin⋆unwrap
+--progress-unwrap (done (V-builtin⋆ b p As q)) = step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
 progress-builtin : ∀ {n}{i : Weirdℕ n} bn
@@ -352,12 +358,17 @@ progress p (error A)         = error (E-error A)
 progress p (builtin b ≤‴-refl As ≤‴-refl ts) =
   progress-builtin b As ts (progressTel p ts)
 progress p (builtin b ≤‴-refl As (≤‴-step r) ts) = done (V-builtin b As r ts)
-progress p (builtin b (≤‴-step q) As r []) =
+-- TODO: currently fails in the presense of type args
+progress p (builtin b q As r ts) = step (E-builtin⋆ b q As r ts)
+{-
   done (subst (λ p → Value (builtin b (≤‴-step q) As p []))
               (lem≤‴ _ _)
-              (V-builtin⋆ b q As))
+              (V-builtin⋆ b q As {!!}))
+-}
+{-
 progress p (builtin b (≤‴-step q) As r (t ∷ ts)) =
   step (E-builtin⋆ b q As r (t ∷ ts))
+-}
 progress p (wrap A B t) with progress p t
 progress p (wrap A B t)          | step  q           = step (ξ-wrap q)
 progress p (wrap A B t)          | done  q           = done (V-wrap A B q)

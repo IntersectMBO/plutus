@@ -205,19 +205,6 @@ lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(t
   → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
 lem-erase refl refl t = refl
 
-
-{-
-lem-convTel : ∀{Φ Γ Γ' Δ}(As : List (Δ ⊢Nf⋆ *))(p : Γ ≡ Γ')
-  → (σ : ∀{J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)
-  → (tel : A.Tel Γ Δ σ As)
-  → subst (List ∘ _⊢) (lem≡Ctx p) (eraseTel tel)
-    ≡ eraseTel (convTel p σ As tel)
-lem-convTel []       p σ _         = sym (lem[]' (lem≡Ctx p))
-lem-convTel (A ∷ As) p σ (t ,, ts) = trans
-  (sym (lem∷ (lem≡Ctx p) (erase t) (eraseTel ts)))
-  (cong₂ _∷_ (lem-erase p refl t) (lem-convTel As p σ ts))
--}
-
 lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
 lem-subst t refl = refl
 
@@ -331,7 +318,6 @@ same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
 same'TC (AC.char c)       = refl
 same'TC AC.unit           = refl
-
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

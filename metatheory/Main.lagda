@@ -27,7 +27,7 @@ import Data.Maybe as M
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
 
-open import Check hiding (_>>=_; return)
+--open import Check hiding (_>>=_; return)
 open import Scoped.Extrication
 open import Type.BetaNBE
 
@@ -142,11 +142,11 @@ postulate
 
 open import Data.Vec hiding (_>>=_;_++_)
 
-open import Scoped.CK
+--open import Scoped.CK
 open import Algorithmic.CK
 
 data EvalMode : Set where
-  TCK CK : EvalMode
+  L TCK CK : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -157,6 +157,7 @@ evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
 evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
 evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
+{-
 evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
    inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
@@ -170,12 +171,13 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
-
+-}
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
+{-
 tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
 ... | nothing = inj₂ "Parse Error"
@@ -204,7 +206,7 @@ tcPLC plc with parse plc
 ... | inj₂ tyConError     = inj₂ "tyConError"
 ... | inj₂ builtinError   = inj₂ "builtinError"
 ... | inj₂ unwrapError    = inj₂ "unwrapError"
-
+-}
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
@@ -258,7 +260,7 @@ data TCOptions : Set where
 
 data Command : Set where
   Evaluate  : EvalOptions → Command
-  TypeCheck : TCOptions → Command
+--  TypeCheck : TCOptions → Command
 
 postulate execP : IO Command
 
@@ -272,10 +274,11 @@ evalInput : EvalMode → Input → IO (String ⊎ String)
 evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
 evalInput m StdInput       = imap (evalPLC m) getContents
 
+{-
 tcInput : Input → IO (String ⊎ String)
 tcInput (FileInput fn) = imap tcPLC (readFile fn)
 tcInput StdInput       = imap tcPLC getContents
-
+-}
 main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) =
   evalInput m i
@@ -283,13 +286,14 @@ main' (Evaluate (EvalOpts i m)) =
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
            ]
+{-           
 main' (TypeCheck (TCOpts i))    =
   (tcInput i)
   >>=
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
            ]
-
+-}
 main : IO ⊤
 main = execP >>= main'
 \end{code}
