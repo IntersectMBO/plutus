@@ -27,7 +27,7 @@ import Data.Maybe as M
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
 
---open import Check hiding (_>>=_; return)
+open import Check hiding (_>>=_; return)
 open import Scoped.Extrication
 open import Type.BetaNBE
 
@@ -142,11 +142,11 @@ postulate
 
 open import Data.Vec hiding (_>>=_;_++_)
 
---open import Scoped.CK
+open import Scoped.CK
 open import Algorithmic.CK
 
 data EvalMode : Set where
-  L TCK CK : EvalMode
+  TCK CK : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -157,10 +157,10 @@ evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
 evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
 evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
-{-
-evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
+
+evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+   inj₁ ("") -- prettyPrintTm (extricateScope (unsaturate t'')))
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
@@ -168,10 +168,10 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
 ... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
-  inj₁ (prettyPrintTm (extricateScope (extricate t''')))
+  inj₁ ("") -- (prettyPrintTm (extricateScope (extricate t''')))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
--}
+
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []

@@ -214,6 +214,7 @@ inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
 inferTypeBuiltin : ∀{Φ}{Γ : Ctx Φ}(bn : Builtin)
   → List (ScopedTy (len⋆ Φ)) → List (ScopedTm (len Γ))
   → (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)) ⊎ Error
+{-  
 inferTypeBuiltin addInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin addInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin subtractInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin subtractInteger (λ()) (` (S Z) ,, ` Z ,, _))))
 inferTypeBuiltin multiplyInteger [] [] = return ((con integer ⇒ con integer ⇒ con integer) ,, ƛ (ƛ (builtin multiplyInteger (λ()) (` (S Z) ,, ` Z ,, _))))
@@ -233,7 +234,9 @@ inferTypeBuiltin sha2-256 [] [] = return ((con bytestring ⇒ con bytestring) ,,
 inferTypeBuiltin sha3-256 [] [] = return ((con bytestring ⇒ con bytestring) ,, ƛ (builtin sha3-256 (λ()) (` Z ,, _)))
 inferTypeBuiltin verifySignature [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bytestring ⇒ con bool) ,, ƛ (ƛ (ƛ (builtin verifySignature (λ()) (` (S (S Z)) ,, ` (S Z) ,, (` Z) ,, _)))))
 inferTypeBuiltin equalsByteString [] [] = return ((con bytestring ⇒ con bytestring ⇒ con bool) ,, ƛ (ƛ (builtin equalsByteString (λ()) (` (S Z) ,, ` Z ,, _))))
+-}
 inferTypeBuiltin _ _ _ = inj₂ builtinError
+
 
 inferType Γ (` x)             =
   Data.Sum.map (λ{(A ,, x) → A ,, ` x}) id (inferVarType Γ x)
@@ -263,7 +266,9 @@ inferType Γ (error A)         = do
   * ,, A ← inferKind _ A
     where _ → inj₂ notTypeError
   return (A ,, error A)
-inferType Γ (builtin bn As ts) = inferTypeBuiltin bn As ts
+inferType Γ (builtin bn p As q ts) = return (con bool ,, error (con bool))
+
+ -- inferTypeBuiltin bn As ts
 inferType Γ (wrap pat arg L)  = do
   (K ⇒ *) ⇒ K' ⇒ * ,, pat ← inferKind _ pat
     where _ → inj₂ notPat
