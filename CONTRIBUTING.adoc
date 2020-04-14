@@ -58,7 +58,7 @@ how to generate the replacement hash.
 === Speed up Nix development by materializing the package set
 
 When you ask Nix to build a Haskell package, it recalculates the
-Hackage package set to use as an input. Even if this set hasn't
+Haskell package set to use as an input. Even if this set hasn't
 changed, and everything is already available on local disk, the
 recalculation itself can take a significant amount of time.
 
