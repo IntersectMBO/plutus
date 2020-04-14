@@ -159,7 +159,7 @@ library
         dependent-map -any,
         dependent-sum -any,
         dependent-sum-template -any,
-        deriving-aeson -any,
+        deriving-aeson >= 0.2.3,
         deriving-compat -any,
         deepseq -any,
         filepath -any,
