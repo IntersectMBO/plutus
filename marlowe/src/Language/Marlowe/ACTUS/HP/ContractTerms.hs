@@ -1,7 +1,7 @@
 module Language.Marlowe.ACTUS.HP.ContractTerms where
 
 import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Bool
 
 import Data.Time
 
@@ -30,7 +30,10 @@ data DCC =  DCC_A_AISDA
           | DCC_E30_360
           | DCC_B_252 deriving (Show)
 
-data CalendarType = NoCalendar | MondayToFriday deriving (Show)
+{- B-function -}
+type Calendar = Day -> Bool
+
+data CalendarType = NoCalendar | MondayToFriday | CustomCalendar {holidays :: [Day]} deriving (Show)
 
 data ContractRole = CR_RPA -- Real position asset
                   | CR_RPL -- Real position liability

@@ -61,6 +61,8 @@ library
     Language.Marlowe.ACTUS.HP.Control
     Language.Marlowe.ACTUS.HP.Schedule
     Language.Marlowe.ACTUS.HP.POF.PAM
+    Language.Marlowe.ACTUS.HP.Utility.DateShift
+    Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
