@@ -37,8 +37,6 @@ import           Data.Foldable         (fold)
 import           Data.Map              (Map)
 import qualified Data.Map              as Map
 import           Data.Maybe            (mapMaybe)
-import           Data.Monoid           (Monoid (..))
-import           Data.Semigroup        (Semigroup (..))
 import qualified Data.Set              as Set
 import           GHC.Generics          (Generic)
 

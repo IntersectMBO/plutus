@@ -24,11 +24,12 @@ import qualified Ledger                    as L
 import           Ledger.Tx                 (Tx (..))
 import qualified Ledger.Tx                 as Tx
 import qualified Wallet.API                as WAPI
+import           Wallet.Effects            (SigningProcessEffect (..))
 import           Wallet.Emulator.Wallet    (Wallet)
 import qualified Wallet.Emulator.Wallet    as Wallet
 
 newtype SigningProcess = SigningProcess {
-    unSigningProcess :: forall effs. (Members '[Error WAPI.WalletAPIError] effs) => [L.PubKeyHash] -> Tx -> Eff effs Tx
+    unSigningProcess :: forall effs. (Member (Error WAPI.WalletAPIError) effs) => [L.PubKeyHash] -> Tx -> Eff effs Tx
 }
 
 -- | The default signing process is 'signWallet'
@@ -61,15 +62,17 @@ signWallets wallets = SigningProcess $ \_ tx ->
 instance Show SigningProcess where
     show = const "SigningProcess <...>"
 
-data SigningProcessEffect r where
-    AddSignatures :: [L.PubKeyHash] -> Tx -> SigningProcessEffect Tx
-    SetSigningProcess :: SigningProcess -> SigningProcessEffect ()
-makeEffect ''SigningProcessEffect
+data SigningProcessControlEffect r where
+    SetSigningProcess :: SigningProcess -> SigningProcessControlEffect ()
+makeEffect ''SigningProcessControlEffect
 
 type SigningProcessEffs = '[State SigningProcess, Error WAPI.WalletAPIError]
 
-instance (Member SigningProcessEffect effs) => WAPI.SigningProcessAPI (Eff effs) where
-    addSignatures = addSignatures
+handleSigningProcessControl
+    :: (Members SigningProcessEffs effs)
+    => Eff (SigningProcessControlEffect ': effs) ~> Eff effs
+handleSigningProcessControl = interpret $ \case
+    SetSigningProcess proc -> put proc
 
 handleSigningProcess
     :: (Members SigningProcessEffs effs)
@@ -78,4 +81,3 @@ handleSigningProcess = interpret $ \case
     AddSignatures sigs tx -> do
         SigningProcess process <- get
         process sigs tx
-    SetSigningProcess proc -> put proc

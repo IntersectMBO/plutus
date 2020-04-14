@@ -1,0 +1,90 @@
+{
+  "add_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "subtract_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "multiply_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "divide_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "quotient_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "remainder_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "mod_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "less_than_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "less_than_eq_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "greater_than_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "greater_than_eq_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "eq_integer": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "concatenate": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "take_byte_string": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "drop_byte_string": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "sha2": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "sha3": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "verify_signature": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "eq_byte_string": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "lt_byte_string": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "gt_byte_string": {
+    "type": "constant_cost",
+    "arguments": 1
+  },
+  "if_then_else": {
+    "type": "constant_cost",
+    "arguments": 1
+  }
+}

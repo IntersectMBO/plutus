@@ -35,6 +35,7 @@ import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
 import           Hedgehog                                          hiding (Size, Var)
 import qualified Hedgehog.Gen                                      as Gen
+import qualified Hedgehog.Internal.Gen                             as Gen
 import qualified Hedgehog.Range                                    as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
@@ -98,5 +99,5 @@ genTypedBuiltinDef
 genTypedBuiltinDivide :: (Generatable uni, Monad m) => TypedBuiltinGenT uni m
 genTypedBuiltinDivide
     = updateTypedBuiltinGen @Integer
-          (Gen.filter (/= 0) . Gen.integral $ Range.linear 0 10)
+          (fromGenT (Gen.filterT (/= 0) . Gen.integral $ Range.linear 0 10))
     $ genTypedBuiltinDef

@@ -5,9 +5,7 @@ You can edit this file as you like.
 { name =
     "marlowe-playground-client"
 , dependencies =
-    [ "ace"
-    , "ace-halogen"
-    , "bigints"
+    [ "bigints"
     , "console"
     , "debug"
     , "effect"

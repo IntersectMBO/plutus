@@ -22,5 +22,6 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
+    pkgs.stack
   ];
 }

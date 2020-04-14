@@ -1,4 +1,3 @@
-{-# LANGUAGE AutoDeriveTypeable    #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -23,6 +22,7 @@ import           Control.Lens                               (itraverse, set, (&)
 import           Control.Monad                              (void)
 import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
+import qualified Control.Monad.Freer.Log                    as Log
 import           Control.Monad.IO.Class                     (MonadIO)
 import           Control.Monad.Reader                       (MonadReader)
 import qualified Crowdfunding
@@ -280,6 +280,8 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
+    , (genericShow <*> mkSumType) (Proxy @Log.LogLevel)
+    , (genericShow <*> mkSumType) (Proxy @Log.LogMessage)
     , (genericShow <*> mkSumType) (Proxy @EM.WalletEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainIndexEvent)

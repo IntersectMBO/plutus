@@ -6,7 +6,7 @@ import Data.Array (foldr, intercalate, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.HeytingAlgebra (not, (&&))
 import Data.Lens (to, view, (^.))
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
@@ -17,8 +17,9 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Gist (Gist)
 import Gists (GistAction(..), idPublishGist)
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, githubDisplay, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelHeader, panelHeaderMain, panelHeaderSide, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h4, h6, h6_, img, input, label, li, li_, p, p_, section, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.Classes (aHorizontal, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes as Classes
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, p, p_, section, slot, small, small_, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
@@ -32,11 +33,11 @@ import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
 import Monaco as Monaco
 import Network.RemoteData (RemoteData(..))
-import Prelude (class Show, bind, const, mempty, show, unit, ($), (/=), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, bind, const, discard, mempty, show, unit, ($), (<$>), (<<<), (<>), (>))
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.BottomPanel (isContractValid)
 import StaticData as StaticData
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _contract, _createGistResult, _editorErrors, _editorPreferences, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _createGistResult, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
 
 render ::
   forall m.
@@ -44,15 +45,7 @@ render ::
   FrontendState ->
   Array (ComponentHTML HAction ChildSlots m)
 render state =
-  [ section [ classes [ panelHeader, aHorizontal ] ]
-      [ div [ classes [ panelHeaderMain, aHorizontal, noMargins, accentBorderBottom ] ]
-          [ h4 [] [ text "Marlowe Contract" ] ]
-      , div [ classes [ panelHeaderSide, aHorizontal, accentBorderBottom ] ]
-          [ div [ classes ([ ClassName "vertical", ClassName "flip-container" ] <> githubDisplay state) ]
-              [ authButton state ]
-          ]
-      ]
-  , section [ classes [ panelSubHeader, aHorizontal ] ]
+  [ section [ classes [ panelSubHeader, aHorizontal ] ]
       [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
           [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
               [ div [ classes [ ClassName "demos", spaceLeft ] ]
@@ -63,14 +56,16 @@ render state =
               (demoScriptLink <$> Array.fromFoldable (map fst StaticData.marloweContracts))
           , div [ class_ (ClassName "code-to-blockly-wrap") ]
               [ button
-                  [ class_ smallBtn
+                  [ classes [ smallBtn, ClassName "tooltip" ]
                   , onClick $ const $ Just $ SetBlocklyCode
                   , enabled (isContractValid state)
                   ]
-                  [ img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ] ]
+                  [ span [ class_ (ClassName "tooltiptext") ] [ text "Send Contract to Blockly" ]
+                  , img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ]
+                  ]
               ]
           ]
-      , div [ classes [ panelSubHeaderSide ] ] []
+      , div [ classes [ panelSubHeaderSide ] ] [ authButton state ]
       ]
   , section [ class_ (ClassName "code-panel") ]
       [ div [ classes (codeEditor state) ]
@@ -93,13 +88,15 @@ marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< Marl
     let
       contents = fromMaybe initialContents mContents
     model <- liftEffect $ Monaco.getModel editor
-    liftEffect $ Monaco.setValue model contents
+    liftEffect do
+      Monaco.setValue model contents
+      -- Since the Simulation Tab is viewed before the Haskell tab we need to set the correct editor theme when things have been loaded
+      monaco <- Monaco.getMonaco
+      Monaco.setTheme monaco MM.daylightTheme.name
 
   component = monacoComponent $ MM.settings setup
 
   initialContents = fromMaybe "" $ Array.head $ map fst StaticData.marloweContracts
-
-  editorPreferences = view _editorPreferences state
 
 sidebar ::
   forall p.
@@ -118,7 +115,7 @@ sidebar state =
           , a [ onClick $ const $ Just $ ChangeHelpContext InputComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
           ]
       , inputComposer state
-      , div [ class_ aHorizontal ]
+      , div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
           [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
               [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Transaction Composer" ] ]
           , a [ onClick $ const $ Just $ ChangeHelpContext TransactionComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
@@ -186,7 +183,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
     , button
-        [ classes [ plusBtn, smallBtn ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) (IDeposit accountId party token value) []
@@ -207,7 +204,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
         , p [ class_ (ClassName "choice-error") ] error
         ]
     , button
-        [ classes [ plusBtn, smallBtn ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled (isEnabled && inBounds chosenNum bounds)
         , onClick $ const $ Just
             $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
@@ -226,7 +223,7 @@ inputItem isEnabled person NotifyInput =
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) INotify []
@@ -272,7 +269,10 @@ transactionComposer ::
 transactionComposer state =
   div [ classes [ ClassName "transaction-composer", ClassName "composer" ] ]
     [ ul [ class_ (ClassName "participants") ]
-        [ transaction state ]
+        if Array.null pendingInputs then
+          [ text "Empty transaction" ]
+        else
+          [ transaction state isEnabled ]
     , div [ class_ (ClassName "transaction-btns") ]
         [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
             [ li [ classes [ activeTextPrimary, bold, pointer ] ]
@@ -282,6 +282,7 @@ transactionComposer state =
                             Just <<< const Undo
                           else
                             const Nothing
+                    , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text "Undo" ]
                 ]
@@ -292,23 +293,26 @@ transactionComposer state =
                             Just <<< const ResetSimulator
                           else
                             const Nothing
+                    , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text "Reset" ]
                 ]
             , li [ classes [ activeTextPrimary, bold, pointer ] ]
                 [ a
                     [ onClick
-                        $ if isContractValid state then
+                        $ if isEnabled then
                             Just <<< const NextSlot
                           else
                             const Nothing
+                    , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text $ "Next Block (" <> show currentBlock <> ")" ]
                 ]
             , li_
                 [ button
                     [ onClick $ Just <<< const ApplyTransaction
-                    , enabled $ isContractValid state
+                    , enabled isEnabled
+                    , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text "Apply" ]
                 ]
@@ -318,18 +322,21 @@ transactionComposer state =
   where
   currentBlock = state ^. (_marloweState <<< _Head <<< _slot)
 
+  isEnabled = isContractValid state
+
+  pendingInputs = state ^. (_marloweState <<< _Head <<< _pendingInputs)
+
 transaction ::
   forall p.
   FrontendState ->
+  Boolean ->
   HTML p HAction
-transaction state =
+transaction state isEnabled =
   li [ classes [ ClassName "participant-a", noMargins ] ]
     [ ul
         []
         (map (transactionRow state isEnabled) (state ^. (_marloweState <<< _Head <<< _pendingInputs)))
     ]
-  where
-  isEnabled = state ^. (_marloweState <<< _Head <<< _contract) /= Nothing || state ^. (_marloweState <<< _Head <<< _editorErrors <<< to Array.null)
 
 transactionRow ::
   forall p.
@@ -350,7 +357,7 @@ transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber a
         , strong_ [ text (show party) ]
         ]
     , button
-        [ classes [ minusBtn, smallBtn, bold ]
+        [ classes [ minusBtn, smallBtn, bold, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just $ RemoveInput person input
         ]
@@ -368,7 +375,7 @@ transactionRow state isEnabled (Tuple input@(IChoice (ChoiceId choiceName choice
         , strong_ [ text (show choiceName) ]
         ]
     , button
-        [ classes [ minusBtn, smallBtn, bold ]
+        [ classes [ minusBtn, smallBtn, bold, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just $ RemoveInput person input
         ]
@@ -381,7 +388,7 @@ transactionRow state isEnabled (Tuple INotify person) =
         [ text "Notification"
         ]
     , button
-        [ classes [ minusBtn, smallBtn, bold ]
+        [ classes [ minusBtn, smallBtn, bold, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just $ RemoveInput person INotify
         ]

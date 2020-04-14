@@ -7,28 +7,29 @@ module Main
 
 import           PlutusPrelude
 
-import qualified Check.Spec                                 as Check
-import           Evaluation.Spec                            (test_evaluation)
+import qualified Check.Spec                                                 as Check
+import           Evaluation.Spec                                            (test_evaluation)
 import           Normalization.Check
 import           Normalization.Type
 import           Pretty.Readable
-import           TypeSynthesis.Spec                         (test_typecheck)
+import           TypeSynthesis.Spec                                         (test_typecheck)
 
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
-import           Language.PlutusCore.Generators.AST         as AST
+import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
-import qualified Data.ByteString.Lazy                       as BSL
-import qualified Data.Text                                  as T
-import           Data.Text.Encoding                         (encodeUtf8)
-import           Hedgehog                                   hiding (Var)
-import qualified Hedgehog.Gen                               as Gen
+import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.Text                                                  as T
+import           Data.Text.Encoding                                         (encodeUtf8)
+import           Hedgehog                                                   hiding (Var)
+import qualified Hedgehog.Gen                                               as Gen
 import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
@@ -167,7 +168,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
 evalFile contents =
     second prettyPlcDefText $
-        unsafeEvaluateCek mempty . toTerm . void <$> runQuoteT (parseScoped contents)
+        unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree
 testsEval = testGroup "golden evaluation tests" . fmap (asGolden evalFile)

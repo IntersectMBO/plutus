@@ -20,8 +20,8 @@ import           Language.PlutusIR.Compiler.Names
 import           Language.PlutusIR.MkPir
 
 import qualified Language.PlutusCore.MkPlc              as PLC
-import qualified Language.PlutusCore.Universe           as PLC
 import           Language.PlutusCore.Quote
+import qualified Language.PlutusCore.Universe           as PLC
 
 import           Control.Monad.Reader                   hiding (lift)
 import           Control.Monad.State                    hiding (lift)
@@ -42,7 +42,7 @@ import qualified Data.Text                              as T
 import           Data.Traversable
 
 -- Apparently this is how you're supposed to fail at TH time.
-dieTH :: Monad m => String -> m a
+dieTH :: MonadFail m => String -> m a
 dieTH message = fail $ "Generating Lift instances: " ++ message
 
 {- Note [Compiling at TH time and runtime]
@@ -186,12 +186,13 @@ sortedCons TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeCons=cons} =
     let sorted = sortBy (\(TH.constructorName -> (TH.Name o1 _)) (TH.constructorName -> (TH.Name o2 _)) -> compare o1 o2) cons
     in if tyName == ''Bool || tyName == ''[] then reverse sorted else sorted
 
-tvNameAndKind :: TH.Type -> THCompile (TH.Name, Kind ())
+tvNameAndKind :: TH.TyVarBndr -> THCompile (TH.Name, Kind ())
 tvNameAndKind = \case
-    TH.SigT (TH.VarT name) kind -> do
+    TH.KindedTV name kind -> do
         kind' <- (compileKind <=< normalizeAndResolve) kind
         pure (name, kind')
-    _ -> dieTH "Unknown sort of type variable"
+    -- TODO: is this what PlainTV actually means? That it's of kind Type?
+    TH.PlainTV name -> pure (name, Type ())
 
 ------------------
 -- Types and kinds
@@ -221,7 +222,7 @@ compileType = \case
                   case Map.lookup name vars of
                       Just ty -> pure ty
                       -- TODO: better runtime failures
-                      Nothing -> fail $ "Unknown local variable: " ++ show name
+                      Nothing -> Prelude.error $ "Unknown local variable: " ++ show name
              ||]
         else compileTypeableType t name
     t -> dieTH $ "Unsupported type: " ++ show t
@@ -258,6 +259,14 @@ class Typeable uni (a :: k) where
     -- | Get the Plutus IR type corresponding to this type.
     typeRep :: Proxy a -> RTCompile uni (Type TyName uni ())
 
+-- Just here so we can pin down the type variables without using TypeApplications in the generated code
+recordAlias' :: TH.Name -> RTCompileScope PLC.DefaultUni ()
+recordAlias' = recordAlias @TH.Name @PLC.DefaultUni @()
+
+-- Just here so we can pin down the type variables without using TypeApplications in the generated code
+defineDatatype' :: TH.Name -> DatatypeDef TyName Name PLC.DefaultUni () -> Set.Set TH.Name -> RTCompileScope PLC.DefaultUni ()
+defineDatatype' = defineDatatype
+
 -- TODO: there is an unpleasant amount of duplication between this and the main compiler, but
 -- I'm not sure how to unify them better
 compileTypeRep :: TH.DatatypeInfo -> THCompile (TH.TExpQ (RTCompile PLC.DefaultUni (Type TyName PLC.DefaultUni ())))
@@ -278,19 +287,21 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
             let
                 argTy' :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
                 argTy' = $$argTy
-            in flip runReaderT mempty $ do
-                maybeDefined <- lookupType () tyName
-                case maybeDefined of
-                    Just ty -> pure ty
-                    Nothing -> do
-                        (_, dtvd) <- mkTyVarDecl tyName typeKind
-                        tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
+                act :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+                act = do
+                    maybeDefined <- lookupType () tyName
+                    case maybeDefined of
+                        Just ty -> pure ty
+                        Nothing -> do
+                            (_, dtvd) <- mkTyVarDecl tyName typeKind
+                            tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
-                        alias <- withTyVars tvds $ mkIterTyLam (fmap snd tvds) <$> argTy'
-                        defineType tyName (PLC.Def dtvd alias) deps
-                        recordAlias @TH.Name @PLC.DefaultUni @() tyName
-                        pure alias
-            ||]
+                            alias <- withTyVars tvds $ mkIterTyLam (fmap snd tvds) <$> argTy'
+                            defineType tyName (PLC.Def dtvd alias) deps
+                            recordAlias' tyName
+                            pure alias
+            in flip runReaderT mempty act
+         ||]
     else do
         constrExprs <- traverse compileConstructorDecl cons
         deps <- gets getTyConDeps
@@ -298,33 +309,35 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
           let
               constrExprs' :: [Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni (VarDecl TyName Name PLC.DefaultUni ())]
               constrExprs' = $$(tyListE constrExprs)
-          in flip runReaderT mempty $ do
-              maybeDefined <- lookupType () tyName
-              case maybeDefined of
-                  Just ty -> pure ty
-                  Nothing -> do
-                      (_, dtvd) <- mkTyVarDecl tyName typeKind
-                      tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
+              act :: RTCompileScope PLC.DefaultUni (Type TyName PLC.DefaultUni ())
+              act = do
+                maybeDefined <- lookupType () tyName
+                case maybeDefined of
+                    Just ty -> pure ty
+                    Nothing -> do
+                        (_, dtvd) <- mkTyVarDecl tyName typeKind
+                        tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
-                      let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
-                      matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
+                        let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
+                        matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
 
-                      -- See Note [Occurrences of recursive names]
-                      let fakeDatatype = Datatype () dtvd [] matchName []
+                        -- See Note [Occurrences of recursive names]
+                        let fakeDatatype = Datatype () dtvd [] matchName []
 
-                      defineDatatype @_ @PLC.DefaultUni tyName (PLC.Def dtvd fakeDatatype) Set.empty
+                        defineDatatype' tyName (PLC.Def dtvd fakeDatatype) Set.empty
 
-                      withTyVars tvds $ do
-                          -- The TH expressions are in fact all functions that take the result type, so
-                          -- we need to apply them
-                          let constrActs :: RTCompileScope PLC.DefaultUni [VarDecl TyName Name PLC.DefaultUni ()]
-                              constrActs = sequence $ constrExprs' <*> [resultType]
-                          constrs <- constrActs
+                        withTyVars tvds $ do
+                            -- The TH expressions are in fact all functions that take the result type, so
+                            -- we need to apply them
+                            let constrActs :: RTCompileScope PLC.DefaultUni [VarDecl TyName Name PLC.DefaultUni ()]
+                                constrActs = sequence $ constrExprs' <*> [resultType]
+                            constrs <- constrActs
 
-                          let datatype = Datatype () dtvd (fmap snd tvds) matchName constrs
+                            let datatype = Datatype () dtvd (fmap snd tvds) matchName constrs
 
-                          defineDatatype tyName (PLC.Def dtvd datatype) deps
-                      pure $ mkTyVar () dtvd
+                            defineDatatype tyName (PLC.Def dtvd datatype) deps
+                        pure $ mkTyVar () dtvd
+          in flip runReaderT mempty act
           ||]
 
 compileConstructorDecl
@@ -379,7 +392,9 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
     -- We need the actual type parameters for the non-newtype case, and we have to do
     -- it out here, but it will give us redundant constraints in the newtype case,
     -- so we fudge it.
-    typeExprs <- if isNewtype dt then pure [] else traverse (compileType <=< normalizeAndResolve) tvs
+    typeExprs <- if isNewtype dt then pure [] else for tvs $ \tv -> do
+      (n, _) <- tvNameAndKind tv
+      compileType (TH.VarT n)
     pure $ do
         -- Build the patter for the clause definition. All the argument will be called "arg".
         patNames <- for argTys $ \_ -> TH.newName "arg"
@@ -393,7 +408,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
         rhsExpr <- if isNewtype dt
             then case liftExprs of
                     [argExpr] -> pure argExpr
-                    _     -> dieTH "Newtypes must have a single constructor with a single argument"
+                    _         -> dieTH "Newtypes must have a single constructor with a single argument"
             else
                 pure [||
                     -- We bind all the splices with explicit signatures to ensure we
@@ -417,7 +432,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         maybeConstructors <- lookupConstructors () tyName
                         constrs <- case maybeConstructors of
                             -- TODO: better runtime failures
-                            Nothing -> fail $ "Constructors not created for " ++ show tyName
+                            Nothing -> Prelude.error $ "Constructors not created for " ++ show tyName
                             Just cs -> pure cs
                         let constr = constrs !! index
 

@@ -1,9 +1,6 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Ace.EditSession as Session
-import Ace.Editor (getSession) as Editor
-import Ace.Types (Annotation, Editor)
 import Analytics (Event, defaultEvent, trackEvent)
 import Control.Bind (map, void, when)
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
@@ -28,7 +25,6 @@ import Data.Num (negate)
 import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
 import Data.String as String
 import Data.Tuple (Tuple(Tuple), fst, snd)
-import Editor (Action(..), Preferences, loadPreferences) as Editor
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -57,9 +53,10 @@ import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorHandleAction, haskellEditorResize, haskellEditorSetAnnotations, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
+import Monaco (IMarkerData, markerSeverity)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorResize, haskellEditorSetMarkers, haskellEditorSetTheme, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetTheme, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
-import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (-), (<$>), (<<<), (<>), (==))
+import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation (render) as Simulation
@@ -67,15 +64,14 @@ import Simulation.BottomPanel (bottomPanel) as Simulation
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
-mkInitialState :: Editor.Preferences -> FrontendState
-mkInitialState editorPreferences =
+initialState :: FrontendState
+initialState =
   FrontendState
     { view: Simulation
     , simulationBottomPanelView: CurrentStateView
-    , editorPreferences
     , compilationResult: NotAsked
     , marloweCompileResult: Right unit
     , authStatus: NotAsked
@@ -90,6 +86,7 @@ mkInitialState editorPreferences =
     , helpContext: MarloweHelp
     , showRightPanel: false
     , showBottomPanel: true
+    , showErrorDetail: false
     }
 
 ------------------------------------------------------------
@@ -100,9 +97,6 @@ mkMainFrame ::
   MonadAsk (SPSettings_ SPParams_) m =>
   n (Component HTML HQuery Unit Message m)
 mkMainFrame = do
-  editorPreferences <- Editor.loadPreferences
-  let
-    initialState = mkInitialState editorPreferences
   pure
     $ H.mkComponent
         { initialState: const initialState
@@ -175,9 +169,7 @@ showStateForHaskell ( State
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 toEvent :: HAction -> Maybe Event
-toEvent (HaskellEditorAction (Editor.HandleDropEvent _)) = Just $ defaultEvent "DropScript"
-
-toEvent (HaskellEditorAction _) = Just $ (defaultEvent "ConfigureEditor")
+toEvent (HaskellHandleEditorMessage _) = Just $ defaultEvent "HaskellHandleEditorMessage"
 
 toEvent (MarloweHandleEditorMessage _) = Just $ defaultEvent "MarloweHandleEditorMessage"
 
@@ -231,6 +223,8 @@ toEvent (ShowRightPanel val) = Just $ (defaultEvent "ShowRightPanel") { label = 
 
 toEvent (ShowBottomPanel val) = Just $ (defaultEvent "ShowBottomPanel") { label = Just $ show val }
 
+toEvent (ShowErrorDetail val) = Just $ (defaultEvent "ShowErrorDetail") { label = Just $ show val }
+
 toEvent (HandleBlocklyMessage Initialized) = Nothing
 
 toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
@@ -259,14 +253,14 @@ handleAction ::
   MonadApp m =>
   MonadState FrontendState m =>
   HAction -> m Unit
-handleAction (HaskellEditorAction subEvent) = haskellEditorHandleAction subEvent
-
 handleAction (MarloweHandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   saveMarloweBuffer text
   updateContractInState text
 
 handleAction (MarloweHandleEditorMessage (Monaco.MarkersChanged markers)) = marloweEditorSetMarkers markers
+
+handleAction (HaskellHandleEditorMessage _) = pure unit
 
 handleAction (MarloweHandleDragEvent event) = preventDefault event
 
@@ -286,8 +280,14 @@ handleAction CheckAuthStatus = do
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 
-handleAction (ChangeView view) = do
-  assign _view view
+handleAction (ChangeView HaskellEditor) = do
+  selectHaskellView
+
+handleAction (ChangeView Simulation) = do
+  selectSimulationView
+
+handleAction (ChangeView BlocklyEditor) = do
+  assign _view BlocklyEditor
   void resizeBlockly
 
 handleAction CompileHaskellProgram = do
@@ -299,9 +299,9 @@ handleAction CompileHaskellProgram = do
       result <- postContractHaskell $ SourceCode contents
       assign _compilationResult result
       -- Update the error display.
-      haskellEditorSetAnnotations
+      haskellEditorSetMarkers
         $ case result of
-            Success (JsonEither (Left errors)) -> toAnnotations errors
+            Success (JsonEither (Left errors)) -> toMarkers errors
             _ -> []
 
 handleAction (LoadHaskellScript key) = do
@@ -335,7 +335,7 @@ handleAction SendResult = do
   marloweEditorSetValue contract (Just 1)
   updateContractInState contract
   resetContract
-  assign _view (Simulation)
+  selectSimulationView
 
 handleAction ApplyTransaction = do
   saveInitialState
@@ -433,7 +433,6 @@ handleAction (ChangeSimulationView view) = do
   assign _simulationBottomPanelView view
   assign _showBottomPanel true
   marloweEditorResize
-  haskellEditorResize
 
 handleAction (ChangeHelpContext help) = do
   assign _helpContext help
@@ -443,8 +442,13 @@ handleAction (ShowRightPanel val) = assign _showRightPanel val
 
 handleAction (ShowBottomPanel val) = do
   assign _showBottomPanel val
-  haskellEditorResize
-  marloweEditorResize
+  view <- use _view
+  case view of
+    Simulation -> marloweEditorResize
+    HaskellEditor -> haskellEditorResize
+    _ -> pure unit
+
+handleAction (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction (HandleBlocklyMessage Initialized) = pure unit
 
@@ -518,28 +522,44 @@ handleGistAction LoadGist = do
   toEither x NotAsked = x
 
 ------------------------------------------------------------
-showCompilationErrorAnnotations ::
-  Array Annotation ->
-  Editor ->
-  Effect Unit
-showCompilationErrorAnnotations annotations editor = do
-  session <- Editor.getSession editor
-  Session.setAnnotations annotations session
+selectSimulationView ::
+  forall m.
+  MonadApp m =>
+  MonadState FrontendState m =>
+  m Unit
+selectSimulationView = do
+  assign _view (Simulation)
+  marloweEditorResize
+  marloweEditorSetTheme
 
-toAnnotations :: InterpreterError -> Array Annotation
-toAnnotations (TimeoutError _) = []
+selectHaskellView ::
+  forall m.
+  MonadApp m =>
+  MonadState FrontendState m =>
+  m Unit
+selectHaskellView = do
+  assign _view (HaskellEditor)
+  haskellEditorResize
+  haskellEditorSetTheme
 
-toAnnotations (CompilationErrors errors) = catMaybes (toAnnotation <$> errors)
+toMarkers :: InterpreterError -> Array IMarkerData
+toMarkers (TimeoutError _) = []
 
-toAnnotation :: CompilationError -> Maybe Annotation
-toAnnotation (RawError _) = Nothing
+toMarkers (CompilationErrors errors) = catMaybes (toMarker <$> errors)
 
-toAnnotation (CompilationError { row, column, text }) =
+toMarker :: CompilationError -> Maybe IMarkerData
+toMarker (RawError _) = Nothing
+
+toMarker (CompilationError { row, column, text }) =
   Just
-    { "type": "error"
-    , row: row - 1
-    , column
-    , text: String.joinWith "\\n" text
+    { severity: markerSeverity "Error"
+    , message: String.joinWith "\\n" text
+    , startLineNumber: row
+    , startColumn: column
+    , endLineNumber: row
+    , endColumn: column
+    , code: mempty
+    , source: mempty
     }
 
 render ::

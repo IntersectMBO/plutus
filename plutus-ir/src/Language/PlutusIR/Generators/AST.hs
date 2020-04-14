@@ -22,10 +22,11 @@ import qualified Language.PlutusCore.Universe       as PLC
 
 import           Hedgehog                           hiding (Var)
 import qualified Hedgehog.Gen                       as Gen
+import qualified Hedgehog.Internal.Gen              as Gen
 import qualified Hedgehog.Range                     as Range
 
 genName :: PLC.AstGen (Name ())
-genName = Gen.filter (not . isPirKw . nameString) PLC.genName where
+genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
     isPirKw name = name `elem`
         [ "vardecl", "typedecl"
         , "let"

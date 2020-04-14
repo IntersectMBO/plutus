@@ -46,6 +46,7 @@ library
     import: lang
     exposed-modules:
         Cardano.ChainIndex.API
+        Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
         Cardano.ChainIndex.Types
         Cardano.Node.API
@@ -71,8 +72,10 @@ library
         Plutus.SCB.Command
         Plutus.SCB.ContractCLI
         Plutus.SCB.Core
+        Plutus.SCB.Effects.Contract
+        Plutus.SCB.Effects.EventLog
+        Plutus.SCB.Effects.UUID
         Plutus.SCB.Events
-        Plutus.SCB.EventLog
         Plutus.SCB.Query
         Plutus.SCB.Relation
         Plutus.SCB.Types

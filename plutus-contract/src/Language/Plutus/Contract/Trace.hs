@@ -61,13 +61,11 @@ module Language.Plutus.Contract.Trace
 
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
-import           Control.Monad                                     (void, when, (>=>))
 import           Control.Monad.Except
 import qualified Control.Monad.Freer                               as Eff
 import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
-import           Control.Monad.Trans.Class                         (lift)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
@@ -108,16 +106,14 @@ import           Ledger.Tx                                         (Tx, txId)
 import           Ledger.TxId                                       (TxId)
 import           Ledger.Value                                      (Value)
 
-import           Wallet.API                                        (WalletAPIError, defaultSlotRange, payToPublicKey_)
+import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
-import qualified Wallet.Emulator.ChainIndex                        as EM
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import qualified Wallet.Emulator.NodeClient                        as EM
 import           Wallet.Emulator.SigningProcess                    (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess                    as EM
-import qualified Wallet.Emulator.Wallet                            as EM
 
 -- | Maximum number of iterations of `handleBlockchainEvents`.
 newtype MaxIterations = MaxIterations Natural
@@ -258,7 +254,7 @@ setSigningProcess
     -> SigningProcess
     -> ContractTrace s e m a ()
 setSigningProcess wallet signingProcess =
-    void $ lift $ runWallet wallet (EM.setSigningProcess signingProcess)
+    void $ lift $ runWalletControl wallet (EM.setSigningProcess signingProcess)
 
 -- | Add an event to every wallet's trace
 addEventAll
@@ -349,10 +345,20 @@ withInitialDistribution dist action =
 runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
-    -> Eff.Eff '[EM.WalletEffect, Eff.Error WalletAPIError, EM.NodeClientEffect, EM.ChainIndexEffect, EM.SigningProcessEffect] a
+    -> Eff.Eff EM.EmulatedWalletEffects a
     -> m ([Tx], a)
 runWallet w t = do
     (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
+    _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
+    pure (tx, result)
+
+runWalletControl
+    :: ( MonadEmulator (TraceError e) m )
+    => Wallet
+    -> Eff.Eff EM.EmulatedWalletControlEffects a
+    -> m ([Tx], a)
+runWalletControl w t = do
+    (tx, result) <- EM.processEmulated $ EM.runWalletControlActionAndProcessPending allWallets w t
     _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
     pure (tx, result)
 

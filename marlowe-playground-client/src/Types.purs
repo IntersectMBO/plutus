@@ -1,7 +1,6 @@
 module Types where
 
 import API (RunResult)
-import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Blockly.Types (BlocklyState)
 import Data.Array (uncons)
@@ -21,7 +20,6 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty (foldl1, (:|))
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Editor as Editor
 import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
@@ -48,11 +46,11 @@ data HQuery a
 
 data HAction
   -- Haskell Editor
-  = MarloweHandleEditorMessage Monaco.Message
+  = HaskellHandleEditorMessage Monaco.Message
+  | MarloweHandleEditorMessage Monaco.Message
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
   | MarloweMoveToPosition Pos Pos
-  | HaskellEditorAction Editor.Action
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
@@ -77,6 +75,7 @@ data HAction
   | ChangeHelpContext HelpContext
   | ShowRightPanel Boolean
   | ShowBottomPanel Boolean
+  | ShowErrorDetail Boolean
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   | SetBlocklyCode
@@ -88,7 +87,7 @@ data Message
 
 ------------------------------------------------------------
 type ChildSlots
-  = ( haskellEditorSlot :: H.Slot AceQuery AceMessage Unit
+  = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     )
@@ -132,7 +131,6 @@ newtype FrontendState
   = FrontendState
   { view :: View
   , simulationBottomPanelView :: SimulationBottomPanelView
-  , editorPreferences :: Editor.Preferences
   , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult RunResult))
   , marloweCompileResult :: Either (Array MarloweError) Unit
   , authStatus :: WebData AuthStatus
@@ -147,6 +145,7 @@ newtype FrontendState
   , helpContext :: HelpContext
   , showRightPanel :: Boolean
   , showBottomPanel :: Boolean
+  , showErrorDetail :: Boolean
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -162,9 +161,6 @@ _simulationBottomPanelView = _Newtype <<< prop (SProxy :: SProxy "simulationBott
 
 _helpContext :: Lens' FrontendState HelpContext
 _helpContext = _Newtype <<< prop (SProxy :: SProxy "helpContext")
-
-_editorPreferences :: Lens' FrontendState Editor.Preferences
-_editorPreferences = _Newtype <<< prop (SProxy :: SProxy "editorPreferences")
 
 _compilationResult :: Lens' FrontendState (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
 _compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
@@ -204,6 +200,9 @@ _showRightPanel = _Newtype <<< prop (SProxy :: SProxy "showRightPanel")
 
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+
+_showErrorDetail :: Lens' FrontendState Boolean
+_showErrorDetail = _Newtype <<< prop (SProxy :: SProxy "showErrorDetail")
 
 -- editable
 _timestamp ::

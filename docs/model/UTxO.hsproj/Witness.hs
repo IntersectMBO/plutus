@@ -1,6 +1,10 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE PackageImports, RecordWildCards #-}
-{-# LANGUAGE StandaloneDeriving, GADTs, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE PackageImports       #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 -- |
 -- Module      : Witness
@@ -16,31 +20,27 @@ module Witness (
 
   -- ** Scripts
   Script, script, scriptHash,
-  revealPreimageValidator, lockWithPublicKeyValidator, lockWithMultiSigValidator, 
+  revealPreimageValidator, lockWithPublicKeyValidator, lockWithMultiSigValidator,
   lockWithPublicKeyHashValidator, revealCollisionValidator, revealFixedPointValidator,
   lockUntilValidator,
 
   -- ** Witnesses
   Height, Witness, witness, noWitness, validatorHash, redeemerHash,
-  revealPreimage, lockWithPublicKey, lockWithKeyPair, lockWithMultiSig, lockWithPublicKeyHash, 
+  revealPreimage, lockWithPublicKey, lockWithKeyPair, lockWithMultiSig, lockWithPublicKeyHash,
   revealCollision, revealFixedPoint, lockUntil,
-  
+
   -- ** Witness validation
   validate
 ) where
-  
-import "cryptonite" 
-       Crypto.Hash
-import "cryptonite" 
-       Crypto.PubKey.ECC.ECDSA
-import qualified
-       Data.ByteArray             as BA
-import qualified 
-       Data.ByteString.Char8      as BS
-import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
 
-import Types
+import           "cryptonite" Crypto.Hash
+import           "cryptonite" Crypto.PubKey.ECC.ECDSA
+import qualified Data.ByteArray                       as BA
+import qualified Data.ByteString.Char8                as BS
+import           Language.Haskell.TH
+import           Language.Haskell.TH.Syntax
+
+import           Types
 
 
 instance BA.ByteArrayAccess String where
@@ -59,7 +59,7 @@ script scriptQ
     { scriptString <- (pprint . unType) <$> scriptQ
     ; [|| Script scriptString $$scriptQ ||]
     }
-    
+
 scriptHash :: Script t -> Digest SHA256
 scriptHash Script{..} = hash (hash . BS.pack $ scriptText :: Digest SHA256)
                         -- FIXME: we should serialise properly
@@ -79,11 +79,11 @@ revealPreimageValidator preimage
   = script [|| \state preimage -> show (hash preimage :: Digest SHA256) == digest ||]
   where
     digest = show (hash preimage :: Digest SHA256)
-    
+
 -- |This validator checks that the transaction signature matches the given public key.
 --
 lockWithPublicKeyValidator :: PublicKey -> Q (TExp (Script (State -> Signature -> Bool)))
-lockWithPublicKeyValidator pubkey 
+lockWithPublicKeyValidator pubkey
   = script [|| \state sig -> verify SHA256 pubkey sig (stateTxPreHash state) ||]
 
 -- |This validator checks that the specified number of transaction signatures are distinct and
@@ -97,36 +97,36 @@ lockWithMultiSigValidator pubkeys requiredSigCount
                  in
                    length sigs == requiredSigCount
                    && disjoint sigs
-                   && all (\sig -> 
+                   && all (\sig ->
                              any (\pubkey -> verify SHA256 pubkey sig (stateTxPreHash state)) pubkeys)
                           sigs
            ||]
 
 -- |This validator checks that the transaction signature matches the public key with the given hash.
 --
-lockWithPublicKeyHashValidator :: PublicKey 
+lockWithPublicKeyHashValidator :: PublicKey
                                -> Q (TExp (Script (State -> (PublicKey, Signature) -> Bool)))
-lockWithPublicKeyHashValidator pubKey 
-  = script [|| \state (pubKey, sig) -> 
-                 show (hash (show pubKey) :: Digest SHA256) == digest 
+lockWithPublicKeyHashValidator pubKey
+  = script [|| \state (pubKey, sig) ->
+                 show (hash (show pubKey) :: Digest SHA256) == digest
                  && verify SHA256 pubKey sig (stateTxPreHash state) ||]
   where
     digest = show (hash (show pubKey) :: Digest SHA256)    -- hash of public key
-    
+
 -- |This validator checks that the given two values produce a SHA1 collision.
 --
-revealCollisionValidator :: (BA.ByteArrayAccess v, Eq v) 
+revealCollisionValidator :: (BA.ByteArrayAccess v, Eq v)
                          => Q (TExp (Script (State -> (v, v) -> Bool)))
-revealCollisionValidator 
-  = script [|| \state (value1, value2) -> 
-                 value1 /= value2 
+revealCollisionValidator
+  = script [|| \state (value1, value2) ->
+                 value1 /= value2
                  && hash value1 == (hash value2 :: Digest SHA1) ||]
 
 -- |This validator checks that the value is a SHA256 fixed point.
 --
 revealFixedPointValidator :: BA.ByteArrayAccess v => Q (TExp (Script (State -> v -> Bool)))
-revealFixedPointValidator 
-  = script [|| \state value -> 
+revealFixedPointValidator
+  = script [|| \state value ->
                  digestFromByteString value == Just (hash value :: Digest SHA256) ||]
 
 -- |This validator checks that the transaction signature matches the given public key
@@ -134,8 +134,8 @@ revealFixedPointValidator
 --
 lockUntilValidator :: PublicKey -> Height -> Q (TExp (Script (State -> Signature -> Bool)))
 lockUntilValidator pubkey minHeight
-  = script [|| \state sig -> 
-                 stateHeight state >= minHeight 
+  = script [|| \state sig ->
+                 stateHeight state >= minHeight
                  && verify SHA256 pubkey sig (stateTxPreHash state) ||]
 
 
@@ -147,7 +147,7 @@ data Witness where
     { validator :: Script (State -> proof -> Bool)
     , redeemer  :: Script (State -> proof)
     } -> Witness
-    
+
 witness :: Q (TExp (Script (State -> proof -> Bool)))
         -> Q (TExp (Script (State -> proof)))
         -> Q (TExp Witness)
@@ -168,15 +168,15 @@ redeemerHash Witness{..} = scriptHash validator
 
 instance Show (Script t) where
   show = scriptText
-  
+
 deriving instance Show Witness
-    
+
 instance BA.ByteArrayAccess Witness where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly
   withByteArray = BA.withByteArray . BS.pack  . show    -- FIXME: we should serialise properly
 
 
--- Common witnesses    
+-- Common witnesses
 -- ----------------
 
 instance Lift Signature where
@@ -188,11 +188,11 @@ revealPreimage preimage = witness (revealPreimageValidator preimage) (script [||
 
 lockWithPublicKey :: PublicKey -> Signature -> Q (TExp Witness)
 lockWithPublicKey pubKey sig
-  = witness (lockWithPublicKeyValidator pubKey) 
+  = witness (lockWithPublicKeyValidator pubKey)
             (script [|| const sig ||])
 
 lockWithKeyPair :: BA.ByteArrayAccess h => KeyPair -> h -> Q (TExp Witness)
-lockWithKeyPair keys h 
+lockWithKeyPair keys h
   = do
     { sig <- runIO $ sign (toPrivateKey keys) SHA256 h
     ; lockWithPublicKey (toPublicKey keys) sig
@@ -205,10 +205,10 @@ lockWithMultiSig pubkeys requiredSigCount sigs
 
 lockWithPublicKeyHash :: PublicKey -> Signature -> Q (TExp Witness)
 lockWithPublicKeyHash pubKey sig
-  = witness (lockWithPublicKeyHashValidator pubKey) 
+  = witness (lockWithPublicKeyHashValidator pubKey)
             (script [|| const $ (pubKey, sig) ||])
-    
-revealCollision :: (BA.ByteArrayAccess v, Eq v, Lift v) => v -> v -> Q (TExp Witness) 
+
+revealCollision :: (BA.ByteArrayAccess v, Eq v, Lift v) => v -> v -> Q (TExp Witness)
 revealCollision value1 value2 = witness revealCollisionValidator (script [|| const (value1, value2) ||])
 
 revealFixedPoint :: (BA.ByteArrayAccess v, Lift v) => v -> Q (TExp Witness)
@@ -216,7 +216,7 @@ revealFixedPoint value = witness revealFixedPointValidator (script [|| const val
 
 lockUntil :: PublicKey -> Signature -> Height -> Q (TExp Witness)
 lockUntil pubKey sig minHeight
-  = witness (lockUntilValidator pubKey minHeight) 
+  = witness (lockUntilValidator pubKey minHeight)
             (script [|| const sig ||])
 
 
@@ -227,7 +227,7 @@ lockUntil pubKey sig minHeight
 -- the given transaction height.
 --
 validate :: Digest SHA256 -> State -> Witness -> Bool
-validate validatorHash state Witness{..} 
+validate validatorHash state Witness{..}
   | validatorHash /= scriptHash validator
   = False
   | otherwise

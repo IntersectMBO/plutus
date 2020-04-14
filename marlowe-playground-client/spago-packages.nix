@@ -5,30 +5,6 @@
 let
   inputs = {
 
-    "ace" = pkgs.stdenv.mkDerivation {
-        name = "ace";
-        version = "v7.0.0";
-        src = pkgs.fetchgit {
-          url = "https://github.com/slamdata/purescript-ace.git";
-          rev = "1fcf4f85f8f6c0bb83f4ef9b6de2adad9af82ad3";
-          sha256 = "1fwr4gdj4fcrrqnqf1h2553zxhcfgss3s32snma9hmz34iswjh2p";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
-    "ace-halogen" = pkgs.stdenv.mkDerivation {
-        name = "ace-halogen";
-        version = "purs-0.13";
-        src = pkgs.fetchgit {
-          url = "https://github.com/shmish111/purescript-ace-halogen";
-          rev = "87d6cc1ac9c6288eb40c13eedef1dc0e53f71132";
-          sha256 = "04xp1scifkmnym67lncbbwyng0b9agbghly11y94q87avjvq1819";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
     "aff" = pkgs.stdenv.mkDerivation {
         name = "aff";
         version = "v5.1.2";

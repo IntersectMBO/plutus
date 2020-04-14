@@ -56,7 +56,6 @@ module Ledger.Validation
 
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx
-import           Language.PlutusTx.Lift    (makeLift)
 import           Language.PlutusTx.Prelude
 import qualified Prelude                   as Haskell
 

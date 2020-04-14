@@ -6,8 +6,16 @@ cradle:
     component: "lib:language-plutus-core"
   - path: ./language-plutus-core/src
     component: "lib:language-plutus-core"
+  - path: ./language-plutus-core/common
+    component: "lib:language-plutus-core"
   - path: ./language-plutus-core/test
     component: "language-plutus-core:language-plutus-core-test"
+  - path: ./language-plutus-core/bench
+    component: "language-plutus-core:language-plutus-core-bench"
+  - path: ./language-plutus-core/weigh
+    component: "language-plutus-core:language-plutus-core-weigh"
+  - path: ./language-plutus-core/budgeting-bench
+    component: "language-plutus-core:language-plutus-core-budgeting-bench"
   - path: ./plutus-emulator/src
     component: "lib:plutus-emulator"
   - path: ./plutus-emulator/test

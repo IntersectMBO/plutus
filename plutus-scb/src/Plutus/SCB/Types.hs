@@ -25,7 +25,7 @@ import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Resumable         (ResumableError)
 import           Ledger.Address                             (Address)
 import           Ledger.Constraints                         (UnbalancedTx)
-import           Servant.Client                             (ServantError)
+import           Servant.Client                             (ClientError)
 import           Wallet.API                                 (WalletAPIError)
 
 newtype Contract =
@@ -58,9 +58,10 @@ data SCBError
     | ContractNotFound FilePath
     | ActiveContractStateNotFound UUID
     | ContractError (ResumableError Text)
-    | WalletClientError ServantError
-    | NodeClientError ServantError
-    | SigningProcessError ServantError
+    | WalletClientError ClientError
+    | NodeClientError ClientError
+    | SigningProcessError ClientError
+    | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
     | OtherError Text
@@ -84,9 +85,9 @@ instance Pretty PartiallyDecodedResponse where
     pretty PartiallyDecodedResponse {newState, hooks} =
         vsep
             [ "State:"
-            , indent 2 $ pretty $ BS8.unpack $ JSON.encodePretty newState
+            , indent 2 $ pretty $ take 120 $ BS8.unpack $ JSON.encodePretty newState
             , "Hooks:"
-            , indent 2 $ pretty $ BS8.unpack $ JSON.encodePretty hooks
+            , indent 2 $ pretty $ take 120 $ BS8.unpack $ JSON.encodePretty hooks
             ]
 
 data ActiveContractState =

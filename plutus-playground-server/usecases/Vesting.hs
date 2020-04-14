@@ -18,7 +18,6 @@ import           Control.Monad.Except              (throwError)
 import qualified Data.Map as Map
 import qualified Data.Text                         as T
 
-import           GHC.Generics                      (Generic)
 import           Language.Plutus.Contract          hiding (when)
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx

@@ -1,13 +1,11 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (let
-      (rec
-      )
+      (rec)
       (datatypebind
         (datatype
           (tyvardecl List (fun (type) (type)))
@@ -17,25 +15,59 @@
         )
       )
       (let
-        (nonrec
-        )
+        (rec)
         (termbind
           (strict)
           (vardecl
-            addInteger (fun (con integer) (fun (con integer) (con integer)))
+            mapDirect
+            (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
           )
-          (lam
-            arg
-            (con integer)
-            (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+          (abs
+            a
+            (type)
+            (abs
+              b
+              (type)
+              (lam
+                f
+                (fun a b)
+                (lam
+                  l
+                  [List a]
+                  [
+                    [
+                      [
+                        { [ { Nil_match a } l ] (fun Unit [List b]) }
+                        (lam thunk Unit { Nil b })
+                      ]
+                      (lam
+                        x
+                        a
+                        (lam
+                          xs
+                          [List a]
+                          (lam
+                            thunk
+                            Unit
+                            [
+                              [ { Cons b } [ f x ] ]
+                              [ [ { { mapDirect a } b } f ] xs ]
+                            ]
+                          )
+                        )
+                      )
+                    ]
+                    Unit
+                  ]
+                )
+              )
+            )
           )
         )
         (let
-          (nonrec
-          )
+          (nonrec)
           (termbind
-            (strict
-            )
+            (strict)
             (vardecl
               build
               (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
@@ -51,55 +83,16 @@
             )
           )
           (let
-            (rec
-            )
+            (nonrec)
             (termbind
-              (strict
-              )
+              (strict)
               (vardecl
-                mapDirect
-                (all a (type) (all b (type) (fun (fun a b) (fun [List a] [List b]))))
+                addInteger (fun (con integer) (fun (con integer) (con integer)))
               )
-              (abs
-                a
-                (type)
-                (abs
-                  b
-                  (type)
-                  (lam
-                    f
-                    (fun a b)
-                    (lam
-                      l
-                      [List a]
-                      [
-                        [
-                          [
-                            { [ { Nil_match a } l ] (fun Unit [List b]) }
-                            (lam thunk Unit { Nil b })
-                          ]
-                          (lam
-                            x
-                            a
-                            (lam
-                              xs
-                              [List a]
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  [ { Cons b } [ f x ] ]
-                                  [ [ { { mapDirect a } b } f ] xs ]
-                                ]
-                              )
-                            )
-                          )
-                        ]
-                        Unit
-                      ]
-                    )
-                  )
-                )
+              (lam
+                arg
+                (con integer)
+                (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
               )
             )
             [

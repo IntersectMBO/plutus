@@ -149,6 +149,7 @@ toSchemas fn ts = do
 args :: Type -> [Type]
 args (AppT (AppT ArrowT t1) as) = t1 : args as
 args (AppT (ConT _) _)          = []
+args (AppT (AppT (ConT _) _) _) = []
 args (ForallT _ _ as)           = args as
 args (ConT _)                   = []
 args (TupleT _)                 = []

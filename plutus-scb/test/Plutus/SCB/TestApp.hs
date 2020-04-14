@@ -1,48 +1,57 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeOperators              #-}
 
 -- | A test version of the 'App' stack which runs all operations in memory.
 -- No networking, no filesystem.
 module Plutus.SCB.TestApp
     ( runScenario
     , sync
-    , TestApp
+    , TestAppEffects
     , getFollowerID
     , valueAt
     ) where
 
-import           Cardano.Node.API                              (NodeFollowerAPI (..))
+import           Cardano.Node.Follower                         (NodeFollowerEffect, handleNodeFollower)
 import qualified Cardano.Node.Follower                         as NodeFollower
 import           Cardano.Node.Mock                             (NodeServerEffects)
 import qualified Cardano.Node.Mock                             as NodeServer
-import           Cardano.Node.Types                            (FollowerID)
+import           Cardano.Node.RandomTx                         (GenRandomTx, runGenRandomTx)
+import           Cardano.Node.Types                            (AppState, FollowerID, NodeFollowerState)
 import qualified Cardano.Node.Types                            as NodeServer
-import           Cardano.Wallet.Mock                           (followerID)
+import           Cardano.Wallet.Mock                           (MockWalletState, followerID)
 import qualified Cardano.Wallet.Mock                           as WalletServer
 import           Control.Concurrent.MVar                       (MVar, newMVar)
-import           Control.Lens                                  (assign, makeLenses, use, view, zoom)
+import           Control.Lens                                  (below, iso, makeLenses, view, zoom)
 import           Control.Monad                                 (void)
-import           Control.Monad.Except                          (throwError)
-import           Control.Monad.Except                          (ExceptT, MonadError, runExceptT)
-import           Control.Monad.Freer                           (Eff, interpret, interpretM, runM)
+import           Control.Monad.Freer
+import           Control.Monad.Freer.Error                     (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extra.Log                 (Log, logDebug, logInfo, runStderrLog)
+import           Control.Monad.Freer.Extra.State               (assign, use)
 import           Control.Monad.Freer.Extras                    (errorToMonadError, handleZoomedError, handleZoomedState,
-                                                                stateToMonadState)
+                                                                handleZoomedWriter, stateToMonadState, writeIntoState)
+import qualified Control.Monad.Freer.Log                       as EmulatorLog
+import           Control.Monad.Freer.State                     (State, runState)
+import           Control.Monad.Freer.Writer                    (Writer, runWriter)
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Control.Monad.Logger                          (LoggingT, MonadLogger, logDebugN, logInfoN,
                                                                 runStderrLoggingT)
-import           Control.Monad.State                           (MonadState, StateT (StateT), execStateT, runStateT)
 import           Data.Aeson                                    as JSON
 import           Data.Aeson.Types                              as JSON
 import           Data.Bifunctor                                (first)
-import           Data.Foldable                                 (traverse_)
+import           Data.Foldable                                 (toList, traverse_)
+import qualified Data.Sequence                                 as Seq
 import           Data.Text                                     (Text)
 import qualified Data.Text                                     as Text
 import           Eventful                                      (commandStoredAggregate, getLatestStreamProjection,
@@ -58,6 +67,9 @@ import           Ledger.AddressMap                             (UtxoMap)
 import qualified Ledger.AddressMap                             as AM
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
+import           Plutus.SCB.Effects.Contract                   (ContractEffect (..))
+import           Plutus.SCB.Effects.EventLog                   (EventLogEffect, handleEventLogSql, handleEventLogState)
+import           Plutus.SCB.Effects.UUID                       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                             (ChainEvent)
 import           Plutus.SCB.Query                              (pureProjection)
 import           Plutus.SCB.Types                              (SCBError (ContractCommandError, ContractNotFound, OtherError),
@@ -65,150 +77,200 @@ import           Plutus.SCB.Types                              (SCBError (Contra
 import           Plutus.SCB.Utils                              (abbreviate, tshow)
 import           Test.QuickCheck.Instances.UUID                ()
 
-import           Wallet.API                                    (ChainIndexAPI, NodeAPI, SigningProcessAPI, WalletAPI,
-                                                                WalletDiagnostics, addSignatures, logMsg, ownOutputs,
-                                                                ownPubKey, slot, startWatching, submitTxn,
-                                                                updatePaymentWithChange, watchedAddresses)
-import           Wallet.Emulator.SigningProcess                (SigningProcess)
+import qualified Cardano.ChainIndex.Server                     as ChainIndex
+import qualified Cardano.ChainIndex.Types                      as ChainIndex
+import           Wallet.API                                    (WalletAPIError, addSignatures, ownOutputs, ownPubKey,
+                                                                startWatching, submitTxn, updatePaymentWithChange,
+                                                                watchedAddresses)
+import           Wallet.Effects                                (ChainIndexEffect, NodeClientEffect,
+                                                                SigningProcessEffect, WalletEffect)
+import           Wallet.Emulator.Chain                         (ChainEffect, ChainState, handleChain)
+import qualified Wallet.Emulator.Chain
+import           Wallet.Emulator.ChainIndex                    (ChainIndexControlEffect, ChainIndexState,
+                                                                handleChainIndex, handleChainIndexControl)
+import qualified Wallet.Emulator.ChainIndex                    as ChainIndex
+import           Wallet.Emulator.MultiAgent                    (EmulatorEvent, chainEvent, chainIndexEvent,
+                                                                walletClientEvent, walletEvent)
+import           Wallet.Emulator.NodeClient                    (NodeClientState, NodeControlEffect, handleNodeClient,
+                                                                handleNodeControl)
+import qualified Wallet.Emulator.NodeClient
+import           Wallet.Emulator.SigningProcess                (SigningProcess, SigningProcessControlEffect,
+                                                                handleSigningProcess, handleSigningProcessControl)
 import qualified Wallet.Emulator.SigningProcess                as SP
-import           Wallet.Emulator.Wallet                        (Wallet (..))
+import           Wallet.Emulator.Wallet                        (Wallet (..), WalletState)
+import qualified Wallet.Emulator.Wallet
 
 data TestState =
     TestState
-        { _eventStore     :: EventMap ChainEvent
-        , _walletState    :: WalletServer.State
-        , _nodeState      :: MVar NodeServer.AppState
-        , _signingProcess :: SigningProcess
+        { _eventStore       :: EventMap ChainEvent
+        , _walletState      :: WalletServer.MockWalletState
+        , _nodeState        :: NodeServer.AppState
+        , _signingProcess   :: SigningProcess
+        , _nodeClientState  :: NodeClientState
+        , _chainEventLog    :: [ChainEvent]
+        , _emulatorEventLog :: [EmulatorEvent]
+        , _chainIndex       :: ChainIndex.AppState
         }
 
 makeLenses 'TestState
 
-newtype TestApp a =
-    TestApp
-        { runTestApp :: StateT TestState (LoggingT (ExceptT SCBError IO)) a
-        }
-    deriving newtype ( Functor
-                     , Applicative
-                     , Monad
-                     , MonadLogger
-                     , MonadIO
-                     , MonadState TestState
-                     , MonadError SCBError
-                     )
+defaultWallet :: Wallet
+defaultWallet = WalletServer.activeWallet
 
-initialTestState :: MonadIO m => m TestState
+initialTestState :: TestState
 initialTestState =
-    liftIO $ do
-        let _eventStore = emptyEventMap
-        -- ^ Set up the event log.
-        -- Set up the node.
-        _nodeState <- liftIO $ newMVar NodeServer.initialAppState
-        -- Set up the wallet.
-        let _walletState = WalletServer.initialState
-        let _signingProcess = SP.defaultSigningProcess (Wallet 1)
-        pure TestState {_eventStore, _nodeState, _walletState, _signingProcess}
+    TestState
+        { _eventStore = emptyEventMap
+        , _nodeState = NodeServer.initialAppState
+        , _walletState = WalletServer.initialState
+        , _signingProcess = SP.defaultSigningProcess WalletServer.activeWallet
+        , _nodeClientState = Wallet.Emulator.NodeClient.emptyNodeClientState
+        , _chainEventLog = []
+        , _emulatorEventLog = []
+        , _chainIndex = ChainIndex.initialAppState
+        }
 
-valueAt :: Address -> TestApp Ledger.Value
-valueAt address = TestApp $ zoom walletState $ WalletServer.valueAt address
+type TestAppEffects =
+    '[ GenRandomTx
+     , NodeFollowerEffect
+     , WalletEffect
+     , UUIDEffect
+     , ContractEffect
+     , ChainIndexEffect
+     , ChainIndexControlEffect
+     , NodeClientEffect
+     , NodeControlEffect
+     , SigningProcessEffect
+     , SigningProcessControlEffect
+     , ChainEffect
+     , EventLogEffect ChainEvent
+     , State NodeFollowerState
+     , State ChainState
+     , State AppState
+     , State MockWalletState
+     , State SigningProcess
+     , State NodeClientState
+     , State ChainIndex.AppState
+     , State ChainIndexState
+     , State (EventMap ChainEvent)
+     , EmulatorLog.Log
+     , Log
+     , Writer [Wallet.Emulator.Wallet.WalletEvent]
+     , Writer [Wallet.Emulator.NodeClient.NodeClientEvent]
+     , Writer [ChainIndex.ChainIndexEvent]
+     , Writer [Wallet.Emulator.Chain.ChainEvent]
+     , Writer [EmulatorEvent]
+     , Writer [ChainEvent]
+     , Error WalletAPIError
+     , Error SCBError
+     , State TestState
+     , IO
+     ]
 
-runScenario :: TestApp a -> IO ()
+valueAt :: Address -> Eff TestAppEffects Ledger.Value
+valueAt = WalletServer.valueAt
+
+runScenario :: Eff TestAppEffects a -> IO ()
 runScenario action = do
-    testState <- initialTestState
-    result <-
-        runExceptT $
-        runStderrLoggingT $
-        flip runStateT testState $
-        runTestApp $ do
-            sync
-            void action
-            events :: [ChainEvent] <-
-                fmap streamEventEvent <$> runGlobalQuery pureProjection
-            logDebugN "Final Event Stream"
-            logDebugN "--"
-            traverse_ (logDebugN . abbreviate 120 . tshow) events
-            logDebugN "--"
+    let testState = initialTestState
+    (result, finalState) <- runTestApp initialTestState $ do
+                Wallet.Emulator.Chain.processBlock
+                sync
+                void action
     case result of
-        Left err -> error $ show err
+        Left err -> do
+            runTestApp finalState $ do
+                events :: [ChainEvent] <-
+                    fmap streamEventEvent <$> runGlobalQuery pureProjection
+                logDebug "Final Event Stream"
+                logDebug "--"
+                traverse_ (logDebug . abbreviate 120 . tshow) events
+                logDebug "--"
+                logDebug "Final chain events"
+                logDebug "--"
+                chainEvents <- use (nodeState . NodeServer.eventHistory)
+                traverse_ (logDebug . abbreviate 120 . tshow) chainEvents
+                logDebug "--"
+                logDebug "Final emulator events"
+                logDebug "--"
+                chainEvents <- use emulatorEventLog
+                traverse_ (logDebug . abbreviate 120 . tshow) chainEvents
+                logDebug "--"
+                logDebug "Final chain index events"
+                logDebug "--"
+                chainIndexEvents <- use (chainIndex . ChainIndex.indexEvents)
+                traverse_ (logDebug . abbreviate 120 . tshow) chainIndexEvents
+                logDebug "--"
+            error $ show err
         Right _  -> pure ()
 
-sync :: TestApp ()
-sync =
-    use walletState >>= execStateT WalletServer.syncState >>= assign walletState
+handleContractTest ::
+    (Member (Error SCBError) effs)
+    => Eff (ContractEffect ': effs)
+    ~> Eff effs
+handleContractTest = interpret $ \case
+    InvokeContract (InitContract "game") ->
+        either throwError pure $ do
+            value <- fromResumable $ initialResponse Contracts.Game.game
+            fromString $ JSON.eitherDecode (JSON.encode value)
+    InvokeContract (UpdateContract "game" payload) ->
+        either throwError pure $ do
+            request <- fromString $ JSON.parseEither JSON.parseJSON payload
+            value <- fromResumable $ runUpdate Contracts.Game.game request
+            fromString $ JSON.eitherDecode (JSON.encode value)
+    InvokeContract (InitContract contractPath) ->
+        throwError $ ContractNotFound contractPath
+    InvokeContract (UpdateContract contractPath _) ->
+        throwError $ ContractNotFound contractPath
 
-getFollowerID :: TestApp FollowerID
+runTestApp :: TestState -> Eff TestAppEffects () -> IO (Either SCBError (), TestState)
+runTestApp state =
+    runM
+    . runState state
+    . runError
+    . interpret (handleZoomedError _WalletError)
+    . interpret (writeIntoState chainEventLog)
+    . interpret (writeIntoState emulatorEventLog)
+    . interpret (writeIntoState (nodeState . NodeServer.eventHistory))
+    . interpret (writeIntoState (chainIndex . ChainIndex.indexEvents . iso toList Seq.fromList))
+    . interpret (handleZoomedWriter (below (walletClientEvent defaultWallet)))
+    . interpret (handleZoomedWriter (below (walletEvent defaultWallet)))
+    . runStderrLog
+    . interpret (handleZoomedWriter (below (walletEvent defaultWallet . Wallet.Emulator.Wallet._WalletMsg)))
+    . interpret (handleZoomedState eventStore)
+    . interpret (handleZoomedState (chainIndex . ChainIndex.indexState))
+    . interpret (handleZoomedState chainIndex)
+    . interpret (handleZoomedState nodeClientState)
+    . interpret (handleZoomedState signingProcess)
+    . interpret (handleZoomedState walletState)
+    . interpret (handleZoomedState nodeState)
+    . interpret (handleZoomedState (nodeState . NodeServer.chainState))
+    . interpret (handleZoomedState (nodeState . NodeServer.followerState))
+    . handleEventLogState
+    . handleChain
+    . handleSigningProcessControl
+    . handleSigningProcess
+    . handleNodeControl
+    . handleNodeClient
+    . handleChainIndexControl
+    . handleChainIndex
+    . handleContractTest
+    . handleUUIDEffect
+    . WalletServer.handleWallet
+    . handleNodeFollower
+    . runGenRandomTx
+
+sync :: Eff TestAppEffects ()
+sync = do
+    WalletServer.syncState
+    ChainIndex.syncState
+
+getFollowerID :: Eff TestAppEffects FollowerID
 getFollowerID = do
     mID <- use (walletState . followerID)
     case mID of
         Just fID -> pure fID
         Nothing  -> throwError $ OtherError "TestApp not initialised correctly!"
-
-instance MonadEventStore ChainEvent TestApp where
-    refreshProjection projection =
-        TestApp . zoom eventStore $
-        getLatestStreamProjection stateGlobalEventStoreReader projection
-    runCommand aggregate source command =
-        TestApp . zoom eventStore $
-        commandStoredAggregate
-            stateEventStoreWriter
-            stateEventStoreReader
-            aggregate
-            (toUUID source)
-            command
-
-instance MonadContract TestApp where
-    invokeContract (InitContract "game") =
-        pure $ do
-            value <- fromResumable $ initialResponse Contracts.Game.game
-            fromString $ JSON.eitherDecode (JSON.encode value)
-    invokeContract (UpdateContract "game" payload) =
-        pure $ do
-            request <- fromString $ JSON.parseEither JSON.parseJSON payload
-            value <- fromResumable $ runUpdate Contracts.Game.game request
-            fromString $ JSON.eitherDecode (JSON.encode value)
-    invokeContract (InitContract contractPath) =
-        pure $ Left $ ContractNotFound contractPath
-    invokeContract (UpdateContract contractPath _) =
-        pure $ Left $ ContractNotFound contractPath
-
-instance WalletDiagnostics TestApp where
-    logMsg = logInfoN
-
-instance WalletAPI TestApp where
-    ownPubKey = WalletServer.getOwnPubKey
-    updatePaymentWithChange _ _ = error "UNIMPLEMENTED: updatePaymentWithChange"
-    ownOutputs = do
-        pk <- ownPubKey
-        am <- watchedAddresses
-        pure $ view (AM.fundsAt (Ledger.pubKeyAddress pk)) am
-
-instance ChainIndexAPI TestApp where
-    watchedAddresses =
-        TestApp . zoom walletState $ WalletServer.getWatchedAddresses
-    startWatching address =
-        TestApp . zoom walletState $ void $ WalletServer.startWatching address
-
-instance NodeAPI TestApp where
-    submitTxn tx = runChainEffects $ void $ NodeServer.addTx tx
-    slot = runChainEffects NodeServer.getCurrentSlot
-
-instance NodeFollowerAPI TestApp where
-    subscribe = runChainEffects NodeFollower.newFollower
-    blocks = runChainEffects . NodeFollower.getBlocks
-
-instance SigningProcessAPI TestApp where
-    addSignatures as tx =
-        runM $
-        interpretM errorToMonadError $
-        interpretM stateToMonadState $
-        interpret (handleZoomedError _WalletError) $
-        interpret (handleZoomedState signingProcess) $
-        SP.handleSigningProcess (SP.addSignatures as tx)
-
-runChainEffects :: Eff (NodeServerEffects IO) a -> TestApp a
-runChainEffects action =
-    TestApp . zoom nodeState . StateT $ \stateMVar -> do
-        result <- NodeServer.processChainEffects stateMVar action
-        pure (result, stateMVar)
 
 fromString :: Either String a -> Either SCBError a
 fromString = first (ContractCommandError 0 . Text.pack)

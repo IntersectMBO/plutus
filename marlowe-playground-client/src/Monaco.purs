@@ -87,35 +87,7 @@ simpleRuleCases regex cases = LanguageRule { regex, action: Cases { log: Nothing
 simpleRuleCasesWithLog :: Regex -> String -> Array (Tuple String String) -> LanguageRule
 simpleRuleCasesWithLog regex msg cases = LanguageRule { regex, action: Cases { log: Just msg, cases: (Object.fromFoldable cases) } }
 
-newtype MonarchLanguage
-  = MonarchLanguage
-  { brackets :: Maybe (Array MonarchLanguageBracket)
-  , defaultToken :: Maybe String
-  , ignoreCase :: Maybe Boolean
-  , start :: Maybe String
-  , tokenPostfix :: Maybe String
-  , tokenizer :: Object (Array LanguageRule)
-  -- FIXME: I need to have any record key I want here, to be extensible
-  , keywords :: Maybe (Array String)
-  }
-
-derive instance newtypeMonarchLanguage :: Newtype MonarchLanguage _
-
-derive instance genericMonarchLanguage :: Generic MonarchLanguage _
-
-derive newtype instance encodeMonarchLanguage :: Encode MonarchLanguage
-
-instance defaultMonarchLanguage :: Default MonarchLanguage where
-  default =
-    MonarchLanguage
-      { brackets: Nothing
-      , defaultToken: Nothing
-      , ignoreCase: Nothing
-      , start: Nothing
-      , tokenPostfix: Nothing
-      , tokenizer: mempty
-      , keywords: Nothing
-      }
+foreign import data MonarchLanguage :: Type
 
 foreign import data CompletionItemProvider :: Type
 
@@ -205,7 +177,9 @@ foreign import isError_ :: Fn1 MarkerSeverity Boolean
 
 foreign import getMonaco :: Effect Monaco
 
-foreign import create_ :: EffectFn4 Monaco HTMLElement String String Editor
+foreign import create_ :: EffectFn3 Monaco HTMLElement String Editor
+
+foreign import setTheme_ :: EffectFn2 Monaco String Unit
 
 foreign import onDidChangeContent_ :: forall a. EffectFn2 Editor ({} -> Effect a) Unit
 
@@ -213,13 +187,15 @@ foreign import registerLanguage_ :: EffectFn2 Monaco Foreign Unit
 
 foreign import defineTheme_ :: EffectFn2 Monaco Theme Unit
 
-foreign import setMonarchTokensProvider_ :: EffectFn3 Monaco String Foreign Unit
+foreign import setMonarchTokensProvider_ :: EffectFn3 Monaco String MonarchLanguage Unit
 
-foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (String -> Array IMarkerData) Unit
+foreign import setModelMarkers_ :: EffectFn4 Monaco ITextModel String (Array IMarkerData) Unit
 
 foreign import getModelMarkers_ :: EffectFn2 Monaco ITextModel (Array IMarker)
 
 foreign import getModel_ :: EffectFn1 Editor ITextModel
+
+foreign import getEditorId_ :: Fn1 Editor String
 
 foreign import getValue_ :: Fn1 ITextModel String
 
@@ -255,8 +231,11 @@ isError = runFn1 isError_
 completionItemKind :: String -> CompletionItemKind
 completionItemKind = runFn1 completionItemKind_
 
-create :: Monaco -> HTMLElement -> String -> String -> Effect Editor
-create = runEffectFn4 create_
+create :: Monaco -> HTMLElement -> String -> Effect Editor
+create = runEffectFn3 create_
+
+setTheme :: Monaco -> String -> Effect Unit
+setTheme monaco themeName = runEffectFn2 setTheme_ monaco themeName
 
 onDidChangeContent :: forall a. Editor -> ({} -> Effect a) -> Effect Unit
 onDidChangeContent = runEffectFn2 onDidChangeContent_
@@ -272,14 +251,13 @@ defineTheme :: Monaco -> Theme -> Effect Unit
 defineTheme = runEffectFn2 defineTheme_
 
 setMonarchTokensProvider :: Monaco -> String -> MonarchLanguage -> Effect Unit
-setMonarchTokensProvider monaco languageId languageDef =
-  let
-    languageDefF = encode languageDef
-  in
-    runEffectFn3 setMonarchTokensProvider_ monaco languageId languageDefF
+setMonarchTokensProvider = runEffectFn3 setMonarchTokensProvider_
 
 getModel :: Editor -> Effect ITextModel
 getModel = runEffectFn1 getModel_
+
+getEditorId :: Editor -> String
+getEditorId = runFn1 getEditorId_
 
 getValue :: ITextModel -> String
 getValue = runFn1 getValue_
@@ -287,7 +265,7 @@ getValue = runFn1 getValue_
 setValue :: ITextModel -> String -> Effect Unit
 setValue = runEffectFn2 setValue_
 
-setModelMarkers :: Monaco -> ITextModel -> String -> (String -> Array IMarkerData) -> Effect Unit
+setModelMarkers :: Monaco -> ITextModel -> String -> Array IMarkerData -> Effect Unit
 setModelMarkers = runEffectFn4 setModelMarkers_
 
 getModelMarkers :: Monaco -> ITextModel -> Effect (Array IMarker)

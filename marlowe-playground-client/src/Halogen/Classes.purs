@@ -8,6 +8,8 @@ import Types (FrontendState, View(..), _showBottomPanel, _view)
 
 foreign import closeDrawerIcon :: String
 
+foreign import closeDrawerArrowIcon :: String
+
 foreign import githubIcon :: String
 
 foreign import downloadIcon :: String
@@ -165,6 +167,11 @@ expanded :: Boolean -> ClassName
 expanded true = ClassName "expanded"
 
 expanded false = ClassName ""
+
+disabled :: Boolean -> ClassName
+disabled true = ClassName "disabled"
+
+disabled false = ClassName ""
 
 footerPanelBg :: FrontendState -> View -> Array ClassName
 footerPanelBg state HaskellEditor =

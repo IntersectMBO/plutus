@@ -10,13 +10,14 @@ module Evaluation.Machines
 where
 
 import           Common
-import qualified Data.Text                                        as T
+import qualified Data.Text                                                  as T
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.Text
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.FsTree
@@ -24,8 +25,8 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Generators.Test
 import           Language.PlutusCore.Pretty
 
-import           Language.PlutusCore.Examples.Everything          (examples)
-import           Language.PlutusCore.StdLib.Everything            (stdLib)
+import           Language.PlutusCore.Examples.Everything                    (examples)
+import           Language.PlutusCore.StdLib.Everything                      (stdLib)
 
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -46,7 +47,7 @@ test_machines :: TestTree
 test_machines = testGroup
     "machines"
     [ testMachine "CK" evaluateCk
-    , testMachine "CEK" $ evaluateCek mempty
+    , testMachine "CEK" $ evaluateCek mempty defaultCostModel
     ]
 
 testMemory :: ExMemoryUsage a => TestName -> a -> TestNested
@@ -64,7 +65,8 @@ testBudget :: TestName -> (Plain Term DefaultUni) -> TestNested
 testBudget name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+        prettyPlcReadableDef $ runCek mempty (Restricting (ExRestrictingBudget (ExBudget 1000 1000))) defaultCostModel term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni
 bunchOfFibs =
@@ -86,7 +88,8 @@ testCounting :: TestName -> (Plain Term DefaultUni) -> TestNested
 testCounting name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $ prettyPlcReadableDef $ runCekCounting mempty term)
+    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+        prettyPlcReadableDef $ runCekCounting mempty defaultCostModel term)
 
 test_counting :: TestTree
 test_counting =

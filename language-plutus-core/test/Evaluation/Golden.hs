@@ -18,6 +18,7 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Evaluation.Machine.Cek
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
@@ -116,7 +117,7 @@ goldenVsPretty name value =
         either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
 
 goldenVsEvaluated :: String -> Term TyName Name DefaultUni () -> TestTree
-goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty
+goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel 
 
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree

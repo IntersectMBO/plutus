@@ -22,7 +22,7 @@ module Crowdfunding where
 -- Note [Transactions in the crowdfunding campaign] explains the structure of
 -- this contract on the blockchain.
 
-import           Control.Applicative               (Alternative ((<|>)), Applicative (pure))
+import           Control.Applicative               (Applicative (pure))
 import           Control.Monad                     (void)
 import           Language.Plutus.Contract
 import qualified Language.Plutus.Contract.Constraints as Constraints
@@ -43,7 +43,6 @@ import qualified Ledger.Value                      as Value
 import           Playground.Contract
 import qualified Prelude                           as Haskell
 import           Prelude                           (Semigroup(..))
-import           Wallet.Emulator                   (Wallet)
 import qualified Wallet.Emulator                   as Emulator
 
 -- | A crowdfunding campaign.

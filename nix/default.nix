@@ -31,6 +31,9 @@ let
           // { inherit overlays sources; };
       })
       (import ./overlays/nixpkgs-overrides.nix)
+      # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
+      # checks, so we can include it unconditionally
+      (import ./overlays/musl.nix)
     ];
 
   pkgs = import nixpkgs {

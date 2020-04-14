@@ -18,6 +18,7 @@ import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
 import           Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
@@ -41,18 +42,18 @@ errors = testNested "Errors" [
   ]
 
 machInt :: CompiledCode PLC.DefaultUni Int
-machInt = plc @"machInt" (1::Int)
+machInt = plc (Proxy @"machInt") (1::Int)
 
 negativeInt :: CompiledCode PLC.DefaultUni Integer
-negativeInt = plc @"negativeInt" (-1 :: Integer)
+negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode PLC.DefaultUni (Integer -> Bool)
-caseInt = plc @"caseInt" (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
 recursiveNewtype :: CompiledCode PLC.DefaultUni (RecursiveNewtype)
-recursiveNewtype = plc @"recursiveNewtype" (RecursiveNewtype [])
+recursiveNewtype = plc (Proxy @"recursiveNewtype") (RecursiveNewtype [])
 
 {-# INLINABLE evenDirectLocal #-}
 evenDirectLocal :: Integer -> Bool
@@ -64,13 +65,13 @@ oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal
 
 -- FIXME: these seem to only get unfoldings when they're in a separate module, even with the simplifier pass
 mutualRecursionUnfoldingsLocal :: CompiledCode PLC.DefaultUni Bool
-mutualRecursionUnfoldingsLocal = plc @"mutualRecursionUnfoldingsLocal" (evenDirectLocal 4)
+mutualRecursionUnfoldingsLocal = plc (Proxy @"mutualRecursionUnfoldingsLocal") (evenDirectLocal 4)
 
 literalCaseInt :: CompiledCode PLC.DefaultUni (Integer -> Integer)
-literalCaseInt = plc @"literalCaseInt" (\case { 1 -> 2; x -> x})
+literalCaseInt = plc (Proxy @"literalCaseInt") (\case { 1 -> 2; x -> x})
 
 literalCaseBs :: CompiledCode PLC.DefaultUni (Builtins.ByteString -> Builtins.ByteString)
-literalCaseBs = plc @"literalCaseBs" (\x -> case x of { "abc" -> ""; x -> x})
+literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of { "abc" -> ""; x -> x})
 
 data AType = AType
 
@@ -83,4 +84,4 @@ instance Eq AType where
 -- Unfortunately, this actually succeeds, since the match gets turned into an equality and we can actually inline it.
 -- I'm leaving it here since I'd really prefer it were an error for consistency, but I'm not sure how to do that nicely.
 literalCaseOther :: CompiledCode PLC.DefaultUni (AType -> AType)
-literalCaseOther = plc @"literalCaseOther" (\x -> case x of { "abc" -> ""; x -> x})
+literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of { "abc" -> ""; x -> x})

@@ -1,33 +1,29 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (termbind
       (strict)
-      (vardecl csize (fun (con integer) (con integer)))
-      (lam x (con integer) x)
+      (vardecl
+        size
+        (all a (type) (fun [(lam a (type) (fun a (con integer))) a] (fun a (con integer))))
+      )
+      (abs a (type) (lam v [(lam a (type) (fun a (con integer))) a] v))
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
-        (nonstrict)
-        (vardecl
-          fSizedInteger [(lam a (type) (fun a (con integer))) (con integer)]
-        )
-        csize
+        (strict)
+        (vardecl csize (fun (con integer) (con integer)))
+        (lam x (con integer) x)
       )
       (let
-        (nonrec
-        )
+        (nonrec)
         (termbind
-          (strict
-          )
+          (nonstrict)
           (vardecl
-            size
-            (all a (type) (fun [(lam a (type) (fun a (con integer))) a] (fun a (con integer))))
+            fSizedInteger [(lam a (type) (fun a (con integer))) (con integer)]
           )
-          (abs a (type) (lam v [(lam a (type) (fun a (con integer))) a] v))
+          csize
         )
         (lam ds (con integer) [ [ { size (con integer) } fSizedInteger ] ds ])
       )

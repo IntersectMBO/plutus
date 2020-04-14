@@ -2,29 +2,30 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
     )
     (let
       (nonrec)
       (datatypebind
-        (datatype
-          (tyvardecl Bool (type))
-          
-          Bool_match
-          (vardecl True Bool) (vardecl False Bool)
-        )
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (let
         (nonrec)
         (termbind
           (strict)
           (vardecl
-            addInteger (fun (con integer) (fun (con integer) (con integer)))
+            subtractInteger
+            (fun (con integer) (fun (con integer) (con integer)))
           )
           (lam
             arg
             (con integer)
-            (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+            (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
           )
         )
         (let
@@ -54,14 +55,12 @@
             (termbind
               (strict)
               (vardecl
-                subtractInteger
-                (fun (con integer) (fun (con integer) (con integer)))
+                addInteger (fun (con integer) (fun (con integer) (con integer)))
               )
               (lam
                 arg
                 (con integer)
-                (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ]
-                )
+                (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
               )
             )
             (let

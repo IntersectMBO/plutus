@@ -38,7 +38,7 @@ import qualified Language.PlutusCore.Name               as PLC
 import           Control.Monad.Extra
 import           Control.Monad.Reader
 
-import           Data.List                              (reverse, sortBy)
+import           Data.List                              (sortBy)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
 import           Data.Traversable

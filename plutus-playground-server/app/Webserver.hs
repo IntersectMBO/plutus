@@ -34,7 +34,7 @@ import           Network.Wai.Middleware.RequestLogger           (logStdout)
 import qualified Playground.API                                 as PA
 import qualified Playground.Server                              as PS
 import           Servant                                        ((:<|>) ((:<|>)), (:>), Get, Handler (Handler), JSON,
-                                                                 PlainText, Raw, ServantErr, hoistServer, serve,
+                                                                 PlainText, Raw, ServerError, hoistServer, serve,
                                                                  serveDirectoryFileServer)
 import           Servant.Foreign                                (GenerateList, NoContent, Req, generateList)
 import           Servant.Prometheus                             (monitorEndpoints)
@@ -57,7 +57,7 @@ liftedAuthServer githubEndpoints config =
     hoistServer (Proxy @Auth.API) liftAuthToHandler Auth.server
   where
     liftAuthToHandler ::
-           ReaderT (Auth.GithubEndpoints, Auth.Config) (LoggingT (ExceptT ServantErr IO)) a
+           ReaderT (Auth.GithubEndpoints, Auth.Config) (LoggingT (ExceptT ServerError IO)) a
         -> Handler a
     liftAuthToHandler =
         Handler . runStderrLoggingT . flip runReaderT (githubEndpoints, config)

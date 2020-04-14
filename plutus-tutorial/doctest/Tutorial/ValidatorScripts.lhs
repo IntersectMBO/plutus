@@ -1,1 +1,0 @@
-../../doc/02-validator-scripts.adoc

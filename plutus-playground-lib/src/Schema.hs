@@ -51,7 +51,6 @@ import           Data.Eq.Deriving           (deriveEq1)
 import           Data.Functor.Foldable      (Fix (Fix), cata)
 import qualified Data.HashMap.Strict        as HashMap
 import qualified Data.Map
-import           Data.Monoid                ((<>))
 import           Data.Proxy                 (Proxy)
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text

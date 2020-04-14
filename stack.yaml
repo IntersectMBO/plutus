@@ -1,4 +1,4 @@
-resolver: lts-13.26
+resolver: lts-15.6
 
 packages:
 - language-plutus-core
@@ -26,35 +26,37 @@ packages:
 
 extra-deps:
 # Other missing packages
-- aws-lambda-haskell-runtime-2.0.1
-- semirings-0.4.2
-- aeson-1.4.6.0
+- aws-lambda-haskell-runtime-2.0.4
+- binary-instances-1.0.0.1
 - composition-prelude-2.0.2.1
-- resolv-0.1.1.2
+- constraints-extras-0.3.0.2
+- dependent-map-0.3
+- dependent-sum-0.6.2.0
+- dependent-sum-template-0.1.0.3
+- deriving-aeson-0.2.3
+- ekg-0.4.0.15
+- ekg-core-0.1.1.7
+- ekg-json-0.1.0.6
+- eventful-memory-0.2.0
+# A revision was added to keep the bounds down, we don't actually want this!
+# we work around the newer persistent-template by adding flags below
+- eventful-sql-common-0.2.0@rev:0
+- eventful-sqlite-0.2.0
+- github-0.24
+- github-webhooks-0.12.0
+- monoidal-containers-0.6.0.1
 - monad-stm-0.1.0.2
-- purescript-0.13.2
-# purescript won't build with versions later than this https://github.com/purescript/purescript/issues/3664
-- happy-1.19.9
-- servant-options-0.1.0.0
-- servant-subscriber-0.6.0.2
-- tasty-hedgehog-0.2.0.0
-- jwt-0.9.0
+- prometheus-2.1.3
+- row-types-0.3.1.0
 - time-out-0.2@sha256:b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2
 - time-interval-0.1.1@sha256:7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8
 - time-units-1.0.0@sha256:27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1
-- wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
+- th-utilities-0.2.4.0
+- servant-options-0.1.0.0
 - servant-github-webhook-0.4.1.0@sha256:6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753
-- binary-instances-1@sha256:e7768b92f34bc40cc5cabecc5c143dee6ab4bcb5eb441d58e15a0b000d64940b
-- binary-orphans-1.0.1@sha256:74d9a8e2c8c4dc8e11c9028ef103b930fc62f3943e45b1629f39114f2bfb5abb
-- time-compat-1.9.2.2@sha256:9998dc1b77b5067572ab708e94750f1061152f342e92ad1aba38aae63581174d
+- sbv-8.6
 - random-strings-0.1.1.0@sha256:935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677,2517
-- extensible-effects-5.0.0.1
-- sbv-8.4
-# to pull in https://github.com/jacobstanley/unix-compat/pull/43 so it works on musl
-- unix-compat-0.5.2
-- git: https://github.com/target/row-types
-  commit: 1e8d5e084ffd46f6c7842826a1f62c60820885df
-  # nix-sha256: 0ly5m4r8wkm8gdqyrqzsjfmp189yxsd4qp0zi3idrbgfaf45sk9k
+- wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 28c37771ef30b0d751960c061ef95627f05d290e
@@ -69,14 +71,16 @@ extra-deps:
 - git: https://github.com/michaelpj/unlit.git
   commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
   # nix-sha256: 145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff
-# Needs looser containers bound, committed upstream but not released
-- git: https://github.com/bitnomial/prometheus.git
-  commit: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
-  # nix-sha256: 0h836qp0ic587gfyfkj9a53p8rczja50sfy2y8ymx8wwkmq9zdgc
-# Need https://github.com/phadej/github/pull/387 and to be added back in to stackage
-- git: https://github.com/shmish111/github.git
-  commit: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
-  # nix-sha256: 0jx65x4c8s561nbxa0hv7mp8fvndfhs8i8gzxng7ym808n4n538i
+# Needs https://github.com/jpvillaisaza/slack-web/pull/80
+- git: https://github.com/michaelpj/slack-web.git
+  commit: 6ff88895c5da593e7bd09a46d7002441817aa6f8
+  # nix-sha256: 1115jngzx2hbvznhnrnm4qs9vn6hsjklxwiwa5i11npr2kxd5rm2
 extra-package-dbs: []
+
+ghc-options:
+  # Newer versions of persistent-template require some extra language extensions. Fortunately
+  # we can hack around this here rather than having to fork eventful & co (for now)
+  eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
+
 nix:
   packages: [zlib, gmp, openssl]

@@ -31,10 +31,12 @@ import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
+
 {-# ANN module ("HLint: ignore"::String) #-}
 
 roundPlc :: CompiledCode PLC.DefaultUni (Ratio.Rational -> Integer)
-roundPlc = plc @"roundPlc" Ratio.round
+roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
 tests =
@@ -115,4 +117,4 @@ genData =
             ]
 
 errorTrace :: CompiledCode PLC.DefaultUni (Integer)
-errorTrace = plc @"errorTrace" (PlutusTx.traceErrorH "")
+errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceErrorH "")

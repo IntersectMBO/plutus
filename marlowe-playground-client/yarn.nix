@@ -202,14 +202,6 @@
       };
     }
     {
-      name = "ace_builds___ace_builds_1.4.3.tgz";
-      path = fetchurl {
-        name = "ace_builds___ace_builds_1.4.3.tgz";
-        url  = "https://registry.yarnpkg.com/ace-builds/-/ace-builds-1.4.3.tgz";
-        sha1 = "789c5e72226c01d9bbe1095c8aeea37afb57f41b";
-      };
-    }
-    {
       name = "acorn_globals___acorn_globals_1.0.9.tgz";
       path = fetchurl {
         name = "acorn_globals___acorn_globals_1.0.9.tgz";

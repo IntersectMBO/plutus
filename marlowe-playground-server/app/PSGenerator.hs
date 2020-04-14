@@ -1,4 +1,3 @@
-{-# LANGUAGE AutoDeriveTypeable    #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
