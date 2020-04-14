@@ -84,7 +84,7 @@ type TypeEvalCheckM uni = Either (TypeEvalCheckError uni)
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
     :: ( Pretty internal, KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Eq, uni `Everywhere` Pretty
+       , Closed uni, uni `Everywhere` Eq, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst
        )
     => (Term TyName Name uni () -> Either (EvaluationException uni internal user) (Plain Term uni))
        -- ^ An evaluator.
@@ -105,8 +105,8 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
-       , uni `Everywhere` Eq, uni `Everywhere` Pretty, uni `Everywhere` ExMemoryUsage
+    :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` Eq
+       , uni `Everywhere` Pretty, uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage
        )
     => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do

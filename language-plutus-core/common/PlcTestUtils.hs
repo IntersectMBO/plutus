@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -58,7 +59,7 @@ trivialProgram = Program () (defaultVersion ())
 
 runPlc
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `EverywhereAll` [ExMemoryUsage, Pretty, PrettyConst], Typeable uni
        )
     => [a] -> ExceptT SomeException IO (EvaluationResultDef uni)
 runPlc values = do
@@ -73,14 +74,14 @@ ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 
 goldenPlc
-    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
+    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst)
      => String -> a -> TestNested
 goldenPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- getProgram value
     withExceptT toException $ deBruijnProgram p
 
 goldenPlcCatch
-    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
+    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst)
     => String -> a -> TestNested
 goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- getProgram value
@@ -88,14 +89,14 @@ goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
 
 goldenEval
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `EverywhereAll` [ExMemoryUsage, Pretty, PrettyConst], Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlc values)
 
 goldenEvalCatch
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `EverywhereAll` [ExMemoryUsage, Pretty, PrettyConst], Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runPlc values

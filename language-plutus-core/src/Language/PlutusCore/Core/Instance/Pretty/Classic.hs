@@ -2,8 +2,11 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -15,6 +18,7 @@ import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Instance.Recursive
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Universe
 
 import           Data.Functor.Foldable
@@ -37,13 +41,27 @@ instance (PrettyClassicBy configName (tyname a), GShow uni) =>
 
         prettyName = prettyBy config
 
+
+instance PrettyConst a => PrettyConst (ValueOf uni a)
+    where prettyConst (ValueOf u x) = prettyConst x
+
+instance (uni `Everywhere` PrettyConst, PrettyConst a) => PrettyConst (Some (ValueOf uni))
+    where prettyConst (Some (ValueOf _ x)) = prettyConst x
+
+--instance forall a . GShow a => GShow (Some)
+--   where gshowsPrec _ (Some x) = gshow x
+
+--instance GShow f => Show (Some f) where
+--    show (Some a) = "Some " ++ gshow a
+
+
 instance
         ( PrettyClassicBy configName (tyname a)
         , PrettyClassicBy configName (name a)
-        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        , GShow uni, Closed uni, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst --, uni `Everywhere` Show --
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> pretty b)
+        a (ConstantF _ b)      = parens' ("con" </> prettyConst b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n
@@ -57,6 +75,8 @@ instance
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
+
+
 
 instance PrettyClassicBy configName (Term tyname name uni a) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni a) where

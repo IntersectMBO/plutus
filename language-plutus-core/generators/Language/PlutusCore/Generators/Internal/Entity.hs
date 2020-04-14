@@ -36,6 +36,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
@@ -108,7 +109,7 @@ withTypedBuiltinGen k = Gen.choice
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` '[Eq, Pretty, ExMemoryUsage])
+    :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` '[Eq, Pretty, PrettyConst, ExMemoryUsage])
     => TypedBuiltinGenT uni m
     -> (forall a. AsKnownType uni a -> TermOf uni (EvaluationResultDef uni) -> GenT m c)
     -> GenT m c
