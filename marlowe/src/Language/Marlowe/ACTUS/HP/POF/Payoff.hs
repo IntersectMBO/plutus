@@ -15,7 +15,7 @@ payoff ev terms ContractState{..} termsCtx stateCtx = case terms of
         IED_EVENT{..}  -> _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED
         MD_EVENT{..}   -> _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
         PP_EVENT{..}   -> _POF_PP_PAM o_rf_CURS pp_payoff
-        PY_EVENT{..}   -> _POF_PY_PAM _PYTP o_rf_CURS rrmo _PYRT _cPYRT _CNTRL nt _DCC sd t _MD ipnr
+        PY_EVENT{..}   -> _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt _DCC sd t _MD ipnr
         FP_EVENT{..}   -> _POF_FP_PAM _FEB _FER o_rf_CURS _CNTRL _DCC sd t _MD nt fac
         PRD_EVENT{..}  -> _POF_PRD_PAM o_rf_CURS _CNTRL _PPRD ipac _DCC sd t _MD ipnr nt
         TD_EVENT{..}   -> _POF_TD_PAM o_rf_CURS _CNTRL _PTD ipac _DCC sd t _MD ipnr nt 

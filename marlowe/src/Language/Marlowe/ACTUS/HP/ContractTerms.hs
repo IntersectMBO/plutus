@@ -49,7 +49,7 @@ data ContractRole = CR_RPA -- Real position asset
                   | CR_PF  -- Pay fix leg
                   deriving (Show, Eq)
 
-data ScalingEffect =  SE_000
+data SCEF =  SE_000 --ScalingEffect
                     | SE_0N0
                     | SE_00M
                     | SE_0NM
@@ -58,15 +58,13 @@ data ScalingEffect =  SE_000
                     | SE_I0M
                     | SE_INM deriving (Show, Eq)
 
-data InterestCalculationBase = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq)
+data ICB = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq) --InterestCalculationBase
 
-data FeeBasis = FB_A | FB_N deriving (Show, Eq)
+data FB = FB_A | FB_N deriving (Show, Eq) --FeeBasis
 
-data PenaltyType = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq)
+data PT = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq) --PenaltyType
 
-data PrepaymentEffect = PE_N | PE_A | PE_M deriving (Show, Eq)
-
-data BoundTypes = INF | SUP
+data PE = PE_N | PE_A | PE_M deriving (Show, Eq) --PrepaymentEffect
 
 data Period = P_D -- Day
             | P_W -- Week
