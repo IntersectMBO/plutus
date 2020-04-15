@@ -75,60 +75,60 @@ VERIFYSIG nothing      = error (con bool)
 BUILTIN : ∀{n}{w : Weirdℕ n}
   → (b : Builtin)
   → Vec (ScopedTy n) (arity⋆ b) → (ts : Tel (arity b) w) → VTel (arity b) w ts → ScopedTm w
-BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   con (integer (i I.+ i'))
 BUILTIN addInteger _ _ _ = error (con integer)
-BUILTIN subtractInteger  _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN subtractInteger  _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   con (integer (i I.- i'))
 BUILTIN subtractInteger _ _ _ = error (con integer)
-BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   con (integer (i I.* i'))
 BUILTIN multiplyInteger _ _ _ = error (con integer)
-BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (div i i')))
 BUILTIN divideInteger _ _ _ = error (con integer)
-BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (quot i i')))
 BUILTIN quotientInteger _ _ _ = error (con integer)
-BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
     decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (rem i i')))
 BUILTIN remainderInteger _ _ _ = error (con integer)
-BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
     decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
 BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
-BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i'), tt) =
+BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i), tt) =
   decIf (i <? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanInteger _ _ _ = error (con bool)
-BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (i I.≤? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (i >? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger _ _ _ = error (con bool)
-BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (i ≥? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
+BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
   decIf (i I.≟ i') (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ _ = error (con bool)
 -- BS -> BS -> BS
-BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
+BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b') , V-con (bytestring b) , tt) = con (bytestring (append b b'))
 BUILTIN concatenate _ _ _ = error (con bytestring)
 -- Int -> BS -> BS
-BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (take i b))
+BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (integer i) , tt) = con (bytestring (take i b))
 BUILTIN takeByteString _ _ _ = error (con bytestring)
-BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (drop i b))
+BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (integer i) , tt) = con (bytestring (drop i b))
 BUILTIN dropByteString _ _ _ = error (con bytestring)
 -- BS -> BS
 BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-256 b))
 BUILTIN sha2-256 _ _ _ = error (con bytestring)
 BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN sha3-256 _ _ _ = error (con bytestring)
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
+BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring c) , V-con (bytestring d) , V-con (bytestring k) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
-BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
+BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b') , V-con (bytestring b) , tt) =
   con (bool (equals b b'))
 BUILTIN equalsByteString _ _ _ = error (con bool)
 BUILTIN ifThenElse (A ∷ []) (u ∷ t ∷ .(con (bool true))  ∷ []) (_ , _ , V-con (bool true)  , _) = t

@@ -10,7 +10,7 @@ import           System.Process
 import qualified MAlonzo.Code.Main  as M
 
 succeedingEvalTests = ["succInteger"
---        ,"unitval"
+        ,"unitval"
 --        ,"true"
 --        ,"false"
         ,"churchZero"
@@ -20,9 +20,9 @@ succeedingEvalTests = ["succInteger"
         ,"fibonacci"
         ,"NatRoundTrip"
         ,"ListSum"
-        ,"IfIntegers"
-        ,"ApplyAdd1"
-        ,"ApplyAdd2"
+--        ,"IfIntegers"
+--        ,"ApplyAdd1"
+--        ,"ApplyAdd2"
         ]
 
 failingEvalTests = [] -- ["DivideByZero"]
