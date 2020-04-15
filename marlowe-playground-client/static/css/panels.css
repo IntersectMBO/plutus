@@ -60,6 +60,10 @@
   width: 100%;
 }
 
+.demo-list li.active {
+  color: var(--secondary-color);
+}
+
 .demo-arrow,
 .github-icon,
 .drawer-icon,

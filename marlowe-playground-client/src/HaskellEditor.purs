@@ -12,7 +12,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
@@ -23,9 +23,9 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import Monaco as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
-import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==), (||))
+import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==), (||))
 import StaticData as StaticData
-import Types (ChildSlots, FrontendState, HAction(..), View(..), _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel)
+import Types (ChildSlots, FrontendState, HAction(..), View(..), _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel)
 
 render ::
   forall m.
@@ -64,7 +64,7 @@ render state =
     else
       option [ HTML.value (show item) ] [ text $ show item ]
 
-  demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
+  demoScriptLink key = li [ state ^. _activeHaskellDemo <<< activeClasses (eq key) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
 
 haskellEditor ::
   forall m.

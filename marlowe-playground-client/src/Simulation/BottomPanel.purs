@@ -16,7 +16,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -83,7 +83,7 @@ bottomPanel state =
         ]
     ]
   where
-  isActive view = if state ^. _simulationBottomPanelView <<< (to (eq view)) then [ ClassName "active-text" ] else []
+  isActive view = state ^. _simulationBottomPanelView <<< (activeClass (eq view))
 
   warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
 
@@ -321,7 +321,10 @@ panelContents state MarloweWarningsView =
   renderWarning warning =
     li [ classes [ ClassName "error-row" ] ]
       [ text warning.message
-      , a [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn ]
+      , a
+          [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn
+          , class_ underline
+          ]
           [ text $ show warning.startLineNumber ]
       ]
 
@@ -347,8 +350,11 @@ panelContents state MarloweErrorsView =
   renderError error =
     li [ classes [ ClassName "error-row", ClassName "flex-wrap" ] ]
       ( [ a [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
-            [ text error.firstLine ]
-        , a [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn ]
+            [ text $ (if state ^. _showErrorDetail then "- " else "+ ") <> error.firstLine ]
+        , a
+            [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn
+            , class_ underline
+            ]
             [ text $ show error.startLineNumber ]
         ]
           <> if (state ^. _showErrorDetail) then
