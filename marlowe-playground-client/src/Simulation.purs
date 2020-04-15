@@ -18,7 +18,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Gist (Gist)
 import Gists (GistAction(..), idPublishGist)
-import Halogen.Classes (aHorizontal, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, isActiveMarloweDemo, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
@@ -83,7 +83,7 @@ render state =
       ]
   ]
   where
-  demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]
+  demoScriptLink key = li [ classes (isActiveMarloweDemo state key) ] [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]
 
   keybindingItem item =
     if state ^. _marloweEditorKeybindings == item then

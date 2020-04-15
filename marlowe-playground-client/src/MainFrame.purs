@@ -65,7 +65,7 @@ import Simulation.BottomPanel (bottomPanel) as Simulation
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _haskellEditorKeybindings, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _activeHaskellDemo, _activeMarloweDemo, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _haskellEditorKeybindings, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 initialState :: FrontendState
@@ -90,6 +90,8 @@ initialState =
     , showErrorDetail: false
     , haskellEditorKeybindings: DefaultBindings
     , marloweEditorKeybindings: DefaultBindings
+    , activeMarloweDemo: mempty
+    , activeHaskellDemo: mempty
     }
 
 ------------------------------------------------------------
@@ -264,8 +266,11 @@ handleAction (MarloweHandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   saveMarloweBuffer text
   updateContractInState text
+  assign _activeMarloweDemo ""
 
 handleAction (MarloweHandleEditorMessage (Monaco.MarkersChanged markers)) = marloweEditorSetMarkers markers
+
+handleAction (HaskellHandleEditorMessage (Monaco.TextChanged text)) = assign _activeHaskellDemo ""
 
 handleAction (HaskellHandleEditorMessage _) = pure unit
 
@@ -322,6 +327,7 @@ handleAction (LoadHaskellScript key) = do
     Nothing -> pure unit
     Just contents -> do
       haskellEditorSetValue contents (Just 1)
+      assign _activeHaskellDemo key
 
 handleAction (LoadMarloweScript key) = do
   case Array.head
@@ -338,6 +344,7 @@ handleAction (LoadMarloweScript key) = do
       saveMarloweBuffer prettyContents
       updateContractInState prettyContents
       resetContract
+      assign _activeMarloweDemo key
 
 handleAction SendResult = do
   mContract <- use _compilationResult

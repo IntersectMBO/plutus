@@ -152,6 +152,8 @@ newtype FrontendState
   , showErrorDetail :: Boolean
   , haskellEditorKeybindings :: KeyBindings
   , marloweEditorKeybindings :: KeyBindings
+  , activeMarloweDemo :: String
+  , activeHaskellDemo :: String
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -215,6 +217,12 @@ _haskellEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "haskellEditorKe
 
 _marloweEditorKeybindings :: Lens' FrontendState KeyBindings
 _marloweEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "marloweEditorKeybindings")
+
+_activeMarloweDemo :: Lens' FrontendState String
+_activeMarloweDemo = _Newtype <<< prop (SProxy :: SProxy "activeMarloweDemo")
+
+_activeHaskellDemo :: Lens' FrontendState String
+_activeHaskellDemo = _Newtype <<< prop (SProxy :: SProxy "activeHaskellDemo")
 
 -- editable
 _timestamp ::

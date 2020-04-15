@@ -12,7 +12,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveHaskellDemo, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
@@ -64,7 +64,7 @@ render state =
     else
       option [ HTML.value (show item) ] [ text $ show item ]
 
-  demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
+  demoScriptLink key = li [ classes (isActiveHaskellDemo state key) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
 
 haskellEditor ::
   forall m.

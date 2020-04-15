@@ -4,7 +4,7 @@ import Prelude
 import Data.Lens (to, (^.))
 import Halogen (ClassName(..))
 import Halogen.HTML (HTML, span, text)
-import Types (FrontendState, View(..), _showBottomPanel, _view)
+import Types (FrontendState, View(..), _activeHaskellDemo, _activeMarloweDemo, _showBottomPanel, _view)
 
 foreign import closeDrawerIcon :: String
 
@@ -121,8 +121,11 @@ flexTen = ClassName "flex-ten"
 isActiveTab :: FrontendState -> View -> Array ClassName
 isActiveTab state activeView = if state ^. _view <<< (to (eq activeView)) then [ active ] else []
 
-isActiveDemo :: FrontendState -> Array ClassName
-isActiveDemo state = if true then [ ClassName "active-text" ] else []
+isActiveMarloweDemo :: FrontendState -> String -> Array ClassName
+isActiveMarloweDemo state demo = if state ^. _activeMarloweDemo <<< (to (eq demo)) then [ ClassName "active-text" ] else []
+
+isActiveHaskellDemo :: FrontendState -> String -> Array ClassName
+isActiveHaskellDemo state demo = if state ^. _activeHaskellDemo <<< (to (eq demo)) then [ ClassName "active-text" ] else []
 
 rTable :: ClassName
 rTable = ClassName "Rtable"
