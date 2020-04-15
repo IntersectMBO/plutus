@@ -364,11 +364,9 @@ unsaturate (unwrap t)   = unwrap (unsaturate t)
 \end{code}
 
 \begin{code}
-{-
 unDeBruijnifyK : Kind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
--}
 \end{code}
 
 \begin{code}
@@ -381,7 +379,6 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 \end{code}
 
 \begin{code}
-{-
 unDeBruijnifyC : TermCon → RawTermCon
 unDeBruijnifyC (integer i)    = integer i
 unDeBruijnifyC (bytestring b) = bytestring b
@@ -389,11 +386,9 @@ unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
 unDeBruijnifyC (char c)       = char c
 unDeBruijnifyC unit           = unit
--}
 \end{code}
 
 \begin{code}
-{-
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
@@ -412,11 +407,10 @@ extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con (unDeBruijnifyC c)
 extricateScope (error A) = error (extricateScopeTy A)
-extricateScope (builtin bn _ _) = builtin bn
+extricateScope (builtin bn _ _ _) = builtin bn -- TODO
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
--}
 \end{code}
 
 -- UGLY PRINTING

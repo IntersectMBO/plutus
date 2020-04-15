@@ -7,11 +7,14 @@ open import Scoped
 open import Untyped
 open import Untyped.RenamingSubstitution
 open import Builtin
+open import Utils
 
 open import Data.Nat
 open import Data.Fin
 open import Data.Vec
 open import Relation.Binary.PropositionalEquality
+open import Data.Sum
+open import Data.Product
 \end{code}
 
 \begin{code}
@@ -70,8 +73,8 @@ eraseTm (ƛ A t)                = ƛ (eraseTm t)
 eraseTm (t · u)                = eraseTm t · eraseTm u
 eraseTm (con c)                = con (eraseTC c)
 eraseTm (error A)              = error
-eraseTm (builtin bn p As q ts) =
-  builtin bn (subst (_ ≤‴_) (lemma bn) q) (eraseTel ts)
+eraseTm (builtin bn (inj₁ (p , refl)) As ts) = builtin bn (subst (_ ≤‴_) (lemma bn) z≤‴n) (eraseTel ts)
+eraseTm (builtin bn (inj₂ (p , q)) As ts) = builtin bn (subst (_ ≤‴_) (lemma bn) q) (eraseTel ts)
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
 \end{code}

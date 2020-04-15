@@ -68,16 +68,11 @@ step p (s ▻ ƛ A L)          = _ ,, _ ,, p ,, s ◅ V-ƛ A L
 step p (s ▻ (L · M))          = _ ,, _ ,, p ,, (s , (-· M)) ▻ L
 step p (s ▻ con cn)           = _ ,, _ ,, p ,, s ◅ V-con cn
   -- ^ why is i inferrable?
-step {i' = i'} p (s ▻ error A)           = _ ,, i' ,, p ,, ◆
-step {i' = i'} p (s ▻ builtin bn q As r ts) = _ ,, i' ,, p ,, ◆
 
-{-
-step p (s ▻ builtin bn r As r' []) with arity bn Data.Nat.≟ 0
-... | yes q = _ ,, _ ,, p ,, (s ▻  BUILTIN bn {!!} {!!} {!!} )
-... | no  q = _ ,, _ ,, p ,, (s ◅ {! V-builtin bn As [] !})
-step p (s ▻ builtin bn q As r (t ∷ tel)) =
-  _ ,, _ ,, p ,, (s , builtin- bn As {[]} _ tel) ▻ t
--}
+-- not attempting to compute builtins
+step {i' = i'} p (s ▻ builtin bn q As ts) = _ ,, i' ,, p ,, ◆
+
+step {i' = i'} p (s ▻ error A)           = _ ,, i' ,, p ,, ◆
 step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
 step p (s ▻ unwrap L)         = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
 step p (ε ◅ V)                = _ ,, _ ,, p ,, □ V
@@ -86,30 +81,29 @@ step p (_◅_ (s , (V-ƛ A L ·-)) {M} W)         = _ ,, _ ,, p ,, s ▻ (L [ M 
 step {i' = i'} p ((s , (V-Λ V ·-)) ◅ W)           = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , (V-con tcn ·-)) ◅ W)         = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , (V-wrap A B V ·-)) ◅ W)      = _ ,, i' ,, p ,, ◆
-{-
-step {i' = i'} p (_◅_ (s , (V-builtin b As q tel ·-)) {t} W) =
-  _ ,, i' ,, p ,, (s ▻ builtin b ≤‴-refl As {!q!} (tel Data.Vec.++ Data.Vec.[ t ])) -- (tel Data.List.++ Data.List.[ t ]) )
--}
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-ƛ A' L) = _ ,, i' ,, p ,, ◆
 step p ((s , (-·⋆ A)) ◅ V-Λ  t)  = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-wrap A' B V) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin b As q ts) = _ ,, i' ,, p ,, ◆
 step p ((s , wrap- A B) ◅ V) = _ ,, _ ,, p ,, (s ◅ V-wrap A B V)
+
+-- β-unwrap
+step           p ((s , unwrap-) ◅ V-wrap A B V) = _ ,, _ ,, p ,, (s ◅ V)
+-- error conditions
+step {i' = i'} p ((s , unwrap-) ◅ V-builtin b q As ts) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p ((s , unwrap-) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-ƛ A t) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-Λ V) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
-step p ((s , unwrap-) ◅ V-wrap A B V) = _ ,, _ ,, p ,, (s ◅ V)
-step {i' = i'} p ((s , unwrap-) ◅ V-builtin b As q ts) = _ ,, i' ,, p ,, ◆
+
 step p (□ V)                  = _ ,, _ ,, p ,, □ V
 step {i' = i'} p ◆              = _ ,, i' ,, p ,, ◆
+
+-- some builtin related cases
 step {i' = i'} p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) = _ ,, i' ,, p ,, ◆
-{-
-step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) with arity b Data.Nat.≟ length tel + 1
-... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN b As ? ? ) -- (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
-... | no q = _ ,, _ ,, p ,, (s ◅ V-builtin b As ? ) ---(tel Data.List.++ Data.List.[ t ]))
--}
- -- check for length here and return V-builtin if not?
+step {i' = i'} p ((s , (V-builtin⋆ b q As ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, ◆
 
 step {i' = i'} p ((s , (V-builtin b As q ts ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
 step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =

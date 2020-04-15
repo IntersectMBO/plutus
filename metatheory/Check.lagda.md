@@ -266,7 +266,8 @@ inferType Γ (error A)         = do
   * ,, A ← inferKind _ A
     where _ → inj₂ notTypeError
   return (A ,, error A)
-inferType Γ (builtin bn p As q ts) = return (con bool ,, error (con bool))
+inferType Γ (builtin bn p As ts) = return (con bool ,, error (con bool))
+ -- FIX ME
 
  -- inferTypeBuiltin bn As ts
 inferType Γ (wrap pat arg L)  = do

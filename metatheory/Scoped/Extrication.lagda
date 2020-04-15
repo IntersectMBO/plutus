@@ -8,6 +8,8 @@ open import Data.Nat.Properties
 open import Data.Fin
 open import Data.Vec
 open import Function using (_∘_)
+open import Data.Sum using (inj₁;inj₂)
+open import Data.Product renaming (_,_ to _,,_)
 
 open import Type
 open import Type.BetaNormal
@@ -156,6 +158,10 @@ extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆
 extricate (unwrap1 t) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
 extricate {Φ}{Γ} (builtin b σ ts) =
-  builtin b (≡2≤‴ (lemma⋆ b)) (extricateSub σ) (≡2≤‴ (lemma b)) (extricateTel σ _ ts)
+  builtin
+    b
+    (inj₂ ((lemma⋆ b) ,, (≡2≤‴ (lemma b))))
+    (extricateSub σ)
+    (extricateTel σ _ ts)
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}
