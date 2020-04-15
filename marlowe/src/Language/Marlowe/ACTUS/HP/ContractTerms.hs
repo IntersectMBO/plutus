@@ -84,6 +84,8 @@ data Cycle = Cycle
   , stub :: Stub
   } deriving (Show, Eq, Ord)
 
+-- all contract terms in a composite contract
+type ContractTermsContext = Map String ContractTerms
 
 data ContractTerms = PamContractTerms { 
     _MD :: Day

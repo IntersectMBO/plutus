@@ -13,7 +13,8 @@ type ShiftedSchedule = [ShiftedDay]
 
 data EventDay = EventDay {
     eventDay :: ShiftedDay,
-    event :: ScheduledEvent
+    event :: ScheduledEvent,
+    contractId :: String --todo we'll need separate contractId type with order that makes sub-contracts smaller than their parents
 }
 
 type EventSchedule = [EventDay]

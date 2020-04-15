@@ -8,8 +8,8 @@ import Language.Marlowe.ACTUS.HP.BusinessEvents
 import Language.Marlowe.ACTUS.HP.POF.PAM
 import Language.Marlowe.ACTUS.HP.ContractTerms
 
-payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Double
-payoff ev terms ContractState{..} = case terms of
+payoff :: ScheduledEvent -> ContractTerms -> ContractState -> ContractTermsContext -> ContractStateContext -> Double
+payoff ev terms ContractState{..} termsCtx stateCtx = case terms of
     PamContractTerms{..} -> case ev of 
         AD_EVENT{..}   -> _POF_AD_PAM
         IED_EVENT{..}  -> _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED

@@ -3,8 +3,8 @@ module Language.Marlowe.ACTUS.HP.ContractState where
 import Data.Time
 import Data.Map
 
-type ContractId = String
-type ContractStates = Map ContractId ContractState
+-- all contract states in a composite contract
+type ContractStateContext = Map String ContractState
 
 data ContractState = ContractState
   { 
