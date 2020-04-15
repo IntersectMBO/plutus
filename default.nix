@@ -143,13 +143,12 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
-        mkdir $out
-        ${server-invoker}/bin/plutus-playground psgenerator $out
-      '';
+    generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
+      mkdir $out
+      ${server-invoker}/bin/plutus-playground psgenerator $out
+    '';
 
-      in
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit easyPS;
         inherit (sources) nodejs-headers;
@@ -185,12 +184,12 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
-        mkdir $out
-        ${playground-exe}/bin/marlowe-playground-server psgenerator $out
-      '';
-      in
+    generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
+      mkdir $out
+      ${playground-exe}/bin/marlowe-playground-server psgenerator $out
+    '';
+
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
         inherit easyPS;
