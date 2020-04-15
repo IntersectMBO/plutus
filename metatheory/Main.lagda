@@ -267,7 +267,7 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 {-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (TCK | CK ) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (L | TCK | CK ) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (String ⊎ String)
