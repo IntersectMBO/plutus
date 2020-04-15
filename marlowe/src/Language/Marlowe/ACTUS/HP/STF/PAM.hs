@@ -12,7 +12,7 @@ import Data.Maybe
 r = contractRoleSign
 y = yearFraction
 
-_STF_AD_PAM st@ContractState{..} _DCC _MD = ContractState {
+_STF_AD_PAM st@ContractState{..} _DCC _MD = st {
     ipac = ipac + (y _DCC sd t _MD) * ipnr * nt,
     sd = t 
 }
@@ -25,9 +25,9 @@ _STF_IED_PAM st@ContractState{..} _DCC _MD _IPNR _IPANX _CNTRL _IPAC _NT =
         ipac' = if (isJust _IPAC) then (fromJust _IPAC)
                 else if (isJust _IPANX && (fromJust _IPANX) < t) then yy * nt' * ipnr'
                 else 0.0
-    in ContractState { nt = nt', ipnr = ipnr', ipac = ipac', sd = t }
+    in st { nt = nt', ipnr = ipnr', ipac = ipac', sd = t }
 
-_STF_MD_PAM st@ContractState{..} = ContractState {
+_STF_MD_PAM st@ContractState{..} = st {
     nt = 0.0,
     ipac = 0.0,
     feac = 0.0,
@@ -41,7 +41,7 @@ _STF_PP_PAM st@ContractState{..} pp_payoff _DCC _MD tfp_minus tfp_plus _FEB _FER
             FEB_N -> fac + (y _DCC sd t _MD) * nt * _FER
             otherwise -> ((y _DCC tfp_minus t _MD) / (y _DCC tfp_minus tfp_plus _MD)) * (r _CNTRL) * _FER
         nt' = nt - pp_payoff
-    in ContractState {ipac = ipac', fac = fac', nt = nt', sd = t}
+    in st {ipac = ipac', fac = fac', nt = nt', sd = t}
 
 _STF_PY_PAM st@ContractState{..} = st
 
@@ -49,7 +49,7 @@ _STF_FP_PAM st@ContractState{..} = st
 
 _STF_PRD_PAM st@ContractState{..} = st
 
-_STF_TD_PAM st@ContractState{..} = ContractState {
+_STF_TD_PAM st@ContractState{..} = st {
     nt = 0.0,
     ipac = 0.0,
     fac = 0.0,
