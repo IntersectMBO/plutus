@@ -71,6 +71,7 @@ VERIFYSIG (just false) = con (bool false)
 VERIFYSIG (just true)  = con (bool true)
 VERIFYSIG nothing      = error (con bool)
 
+-- this is currently in reverse order...
 BUILTIN : ∀{n}{w : Weirdℕ n}
   → (b : Builtin)
   → Vec (ScopedTy n) (arity⋆ b) → (ts : Tel (arity b) w) → VTel (arity b) w ts → ScopedTm w
@@ -130,8 +131,8 @@ BUILTIN verifySignature _ _ _ = error (con bytestring)
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   con (bool (equals b b'))
 BUILTIN equalsByteString _ _ _ = error (con bool)
-BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , _) = t
-BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , _) = u
+BUILTIN ifThenElse (A ∷ []) (u ∷ t ∷ .(con (bool true))  ∷ []) (_ , _ , V-con (bool true)  , _) = t
+BUILTIN ifThenElse (A ∷ []) (u ∷ t ∷ .(con (bool false)) ∷ []) (_ , _ , V-con (bool false) , _) = u
 BUILTIN ifThenElse (A ∷ []) _ _ = error A
 
 

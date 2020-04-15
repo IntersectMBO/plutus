@@ -87,9 +87,9 @@ mkTest eq mode test = TestInstance
 tests :: IO [Test]
 tests = do --return [ Test succeeds ] -- , Test fails ]
   return $ map Test
-    (map (mkTest M.alphaTm "evaluate") evalTestNames
-     ++
-     map (mkTest M.alphaTy "typecheck") tcTestNames)
+    (map (mkTest M.alphaTm "evaluate") evalTestNames )
+--     ++
+--     map (mkTest M.alphaTy "typecheck") tcTestNames)
   where
     fails = TestInstance
         { run = return $ Finished $ Fail "Always fails!"
