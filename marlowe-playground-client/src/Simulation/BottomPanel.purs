@@ -16,7 +16,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -83,7 +83,7 @@ bottomPanel state =
         ]
     ]
   where
-  isActive view = if state ^. _simulationBottomPanelView <<< (to (eq view)) then [ ClassName "active-text" ] else []
+  isActive view = state ^. _simulationBottomPanelView <<< (activeClass (eq view))
 
   warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
 
