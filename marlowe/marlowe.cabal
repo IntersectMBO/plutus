@@ -61,7 +61,11 @@ library
     Language.Marlowe.ACTUS.HP.Control
     Language.Marlowe.ACTUS.HP.Schedule
     Language.Marlowe.ACTUS.HP.POF.PAM
-      Language.Marlowe.ACTUS.HP.POF.Payoff
+    Language.Marlowe.ACTUS.HP.POF.Payoff
+    Language.Marlowe.ACTUS.HP.STF.PAM
+    Language.Marlowe.ACTUS.HP.STF.StateTransition
+    Language.Marlowe.ACTUS.HP.INIT.PAM
+    Language.Marlowe.ACTUS.HP.INIT.Init
     Language.Marlowe.ACTUS.HP.Utility.DateShift
     Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.HP.Utility.YearFraction

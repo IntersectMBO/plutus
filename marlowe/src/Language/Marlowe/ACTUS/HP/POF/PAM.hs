@@ -43,3 +43,6 @@ _POF_RR_PAM = 0.0
 
 _POF_RRF_PAM = 0.0
 
+_POF_SC_PAM = 0.0
+
+_POF_CE_PAM = 0.0

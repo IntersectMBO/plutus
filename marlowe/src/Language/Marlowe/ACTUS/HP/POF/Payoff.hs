@@ -23,5 +23,7 @@ payoff ev terms ContractState{..} termsCtx stateCtx = case terms of
         IPCI_EVENT{..} -> _POF_IPCI_PAM 
         RR_EVENT{..}   -> _POF_RR_PAM
         RRF_EVENT{..}  -> _POF_RRF_PAM
+        SC_EVENT{..}   -> _POF_RRF_PAM
+        CE_EVENT{..}   -> _POF_RRF_PAM
 
 
