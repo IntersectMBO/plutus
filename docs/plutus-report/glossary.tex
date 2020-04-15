@@ -215,6 +215,23 @@
 }
 
 % Scripting
+\newglossaryentry{cost-model}
+{
+  name=cost-model,
+  description={
+    A set of parameters which affect how the \gls{plutus-core} evaluator costs a program evaluation.
+    See \cref{sec:costing}.
+  }
+}
+\newglossaryentry{exunits}
+{
+  name=exunits,
+  description={
+    The units used to track execution costs.
+    A pair of ``abstract time'' and ``abstract memory''.
+    See \cref{sec:costing}.
+  }
+}
 \newglossaryentry{plutus-core}
 {
   name=Plutus Core,
@@ -304,6 +321,14 @@
 }]{paf}{PAF}{Plutus Application Framework}
 
 % Authoring
+\newglossaryentry{ghc-core}
+{
+  name=GHC Core,
+  description={
+    GHC's internal representation of Haskell.
+    A variant of \gls{system-f}.
+  }
+}
 \newglossaryentry{plutus-ir}
 {
   name=Plutus IR,

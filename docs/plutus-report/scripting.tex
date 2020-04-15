@@ -11,7 +11,7 @@ A formal specification for \gls{plutus-core} is available in \textcite{plutus-co
 We give a high-level overview of the language here, further details can be found in the above reference.
 
 \subsection{Requirements}
-\begin{requirement}[Design conservatism]
+\begin{requirement}[Conservatism]
 \label{req:script-lang-conservatism}
 Designing a new programming language is hard.
 It is very easy to make choices that come back to haunt you.
@@ -19,7 +19,7 @@ It is very easy to make choices that come back to haunt you.
 Moreover, whatever language we choose for our scripting language will be very hard to change, since it will be involved in transaction validation, and we want to be able to validate old transactions.
 So we can release new versions, but we must support old versions forever.
 
-This combination means that it is hard to get programming languages right, and it is hard for us to iterate on our scripting language.
+This combination means that it is hard for us to get the language right first time, and it is also hard for us to iterate on it.
 This suggests a case for \emph{conservatism}: pick things that are tried and tested, and don't try to innovate too much.
 
 Conservatism also makes requirements such as \cref{req:script-lang-formalization} easier to satisfy, as we can build on existing work.
@@ -36,9 +36,9 @@ But it is much easier for us to change the compilers than it is to change the sc
 \end{requirement}
 
 \begin{requirement}[Safety]
-\label{req:source-lang-reasoning}
+\label{req:script-lang-reasoning}
 Once submitted as part of a blockchain transaction, scripts are immutable.
-One must have absolute certainty as to what the code will do, otherwise there is risk that the value involved will be lost or stolen.
+Therefore we want as much certainty as we can get about what the code will do, otherwise there is risk that the value involved will be lost or stolen.
 \end{requirement}
 
 \begin{requirement}[Formalization]
@@ -76,7 +76,7 @@ We also want to use a statically-typed functional programming language, since we
 
 This suggests using some variant of the lambda calculus.
 We decided to start with \emph{\gls{system-f}}, also known as the polymorphic lambda calculus \autocite{Girard-thesis}.
-Haskell's internal language, GHC Core \parencite{jones1998transformation}, is also based on \gls{system-f} (no coincidence), but we make a couple of different decisions:
+Haskell's internal language, \gls{ghc-core} \parencite{jones1998transformation}, is also based on \gls{system-f} (no coincidence), but we make a couple of different decisions:
 \begin{enumerate}
   \item We do not have primitive datatypes and case expressions, rather we base our language on \emph{\gls{system-fomf}}, which extends \gls{system-f} with recursive types and higher-kinded types.
   \item Our language is strict, rather than lazy, by default.
@@ -85,7 +85,12 @@ Haskell's internal language, GHC Core \parencite{jones1998transformation}, is al
 
 As a result, the formal specification of our language can be described in one line: it is exactly \gls{system-fomf} with appropriate primitive types and operations.
 
-\todompj{Discuss builtins}
+
+\subsection{Datatypes}
+If we do not have primitive datatypes, how \emph{do} we deal with datatypes?
+The answer is that it is up to the compiler to encode them --- another example of the tradeoff discussed in \cref{req:script-lang-minimalism}.
+
+In our case \gls{plutus-ir} does have datatypes, so this is handled by the \gls{plutus-ir} compiler. See \cref{sec:plutus-ir} for more details.
 
 \subsection{Recursive types}
 
@@ -93,16 +98,10 @@ The one-line description above turns out not to be as unambiguous as one might h
 to choose between equirecursive types and isorecursive types \autocite[chapter 21]{pierce2002types}.
 
 There is a tradeoff here between simplicity of writing code in the language, and simplicity of the language's metatheory.
-Since \gls{plutus-core} is a compilation target rather than a source language, we opted to go for isorecursive types, which have the simpler metatheory.
+Since \gls{plutus-core} is a compilation target rather than a source language, we opted to go for isorecursive types, which have the simpler metatheory (aiding \cref{req:script-lang-formalization}).
 The complexity is handled by the \gls{plutus-ir} compiler.
 
 This choice is discussed more in \textcite{plutus-core-spec, peytonjones2019unraveling}.
-
-\subsection{Datatypes}
-If we do not have primitive datatypes, how \emph{do} we deal with datatypes?
-The answer is that it is up to the compiler to encode them --- another example of the tradeoff discussed in \cref{req:script-lang-minimalism}.
-
-In our case \gls{plutus-ir} does have datatypes, so this is handled by the \gls{plutus-ir} compiler. See \cref{sec:plutus-ir} for more details.
 
 \subsection{Recursive values}
 
@@ -111,6 +110,10 @@ It turns out that recursive types are sufficient to implement the usual array of
 Again, this encoding is handled by the \gls{plutus-ir} compiler, see \cref{sec:plutus-ir}.
 
 Doing this in full generality turns out to be surprisingly tricky, see \textcite{peytonjones2019unraveling}.
+
+\subsection{Builtin types and values}
+
+\todompj{Roman is drafting some material for this section}
 
 \subsection{Erasure}
 \label{sec:erasure}
@@ -135,7 +138,29 @@ Our formalization includes the type system and semantics, proofs of progress and
 This evaluator can be extracted to a Haskell executable, which we use to cross-test against the Haskell interpreter.
 
 \subsection{Costing}
+\label{sec:costing}
 
-\todompj{Write this.}
+The \gls{plutus-core} evaluator can track the \emph{cost} of evaluating a program.
+The \gls{plutus-core} evaluator can return the amount of resources consumed while evaluating a program, or work within a preset resource limit, halting if it is exceeded.
+The ledger itself is responsible for deciding how many \gls{exunits} the evaluation of a particular \gls{script} should be allowed.
+
+\subsubsection{Exunits}
+
+Resources are tracked in terms of two abstract units: abstract time, and abstract (peak) memory.
+Together we refer to these as \gls{exunits}.
+
+Why are the units here ``abstract''?
+They must be, because we need to be able to keep things deterministic (\cref{req:ledger-determinism}), and so we cannot use \emph{real} time or memory usage.
+Rather we have to define some abstract measures which we try to align with real resource usage.
+
+\subsubsection{Cost model}
+
+The \gls{plutus-core} evaluator is parameterized by a \gls{cost-model}.
+This is a set of parameters which affects how the evaluator assigns resource costs to various operations during evaluation.
+For example, there might be a parameter setting a multiplicative parameter for the time taken to do an integer addition.
+Eventually these will be stabilised and formalised as part of \textcite{plutus-core-spec}.
+
+We need to carefully calibrate the cost model so that the abstract costs we assign are well correlated with real costs.
+In combination with appropriate prices for \gls{exunits} this should ensure that script evaluation is economically viable for \glspl{slot-leader}.
 
 \end{document}
