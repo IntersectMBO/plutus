@@ -100,6 +100,9 @@ textSecondaryColor = ClassName "text-secondary-color"
 bold :: ClassName
 bold = ClassName "bold"
 
+underline :: ClassName
+underline = ClassName "underline"
+
 activeTextPrimary :: ClassName
 activeTextPrimary = ClassName "active-text-primary"
 
