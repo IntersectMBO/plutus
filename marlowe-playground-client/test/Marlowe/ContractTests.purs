@@ -98,6 +98,8 @@ initialState =
     , showErrorDetail: false
     , haskellEditorKeybindings: DefaultBindings
     , marloweEditorKeybindings: DefaultBindings
+    , activeHaskellDemo: mempty
+    , activeMarloweDemo: mempty
     }
 
 runTests :: forall a. MockApp a -> Tuple a FrontendState
