@@ -9,10 +9,12 @@ type ContractStates = Map ContractId ContractState
 data ContractState = ContractState
   { 
   t0  :: Day
+  , t :: Day --probably same as 'sd'
   , tmd :: Day
   , nt  :: Double
   , ipnr :: Double
   , ipac :: Double
+  , feac :: Double
   , fac :: Double
   , nsc :: Double
   , isc :: Double

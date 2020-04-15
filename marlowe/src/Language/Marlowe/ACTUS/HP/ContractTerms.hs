@@ -5,10 +5,9 @@ import Data.Bool
 
 import Data.Time
 
-data ContractTerm = CT | IPNR | IPDC | IED | NT | CLDR | BDC | EOMC | SD | CNTRL | FEANX | FECL | FEB | FER
-  | FEAC | IPANX | IPCL | IPAC | IPCED | IPCBANX | IPCBCL | IPCB | IPCBA | MD | CDD | PDIED | PRANX | PRCL | PRNXT | PRD
-  | PPRD | TD | PTD | RRMO | SCIXSD | SCANX | SCCL | SCEF | OPANX | OPCL | PYTP | PYRT | PPEF | RRANX | RRCL
-  | RRSP | RRPF | RRPC | RRLF | RRLC | RRNXT | RRMLT
+data PYTP = PYTP_A | PYTP_N | PYTP_I
+
+data FEB = FEB_A | FEB_N
 
 data EOMC = EOMC_EOM
           | EOMC_SD deriving (Show, Eq)
@@ -86,8 +85,20 @@ data Cycle = Cycle
   } deriving (Show, Eq, Ord)
 
 
-data ContractTerms = PamContractTerms {
-  md :: Day
-} | LamContractTerms {
-  md :: Day
-}
+data ContractTerms = PamContractTerms { 
+    _MD :: Day
+  , _CNTRL :: ContractRole
+  , _PDIED :: Double
+  , _NT :: Double
+  , _PYRT :: Double
+  , _PYTP :: PYTP
+  , _FEB :: FEB
+  , _FER :: Double
+  , _PPRD :: Double
+  , _PTD :: Double
+  , _cPYRT :: Double
+  , _DCC :: DCC
+  } | LamContractTerms { 
+    _MD :: Day
+  , _CNTRL :: ContractRole
+  }
