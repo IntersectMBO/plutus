@@ -669,11 +669,17 @@ Figure~\ref{fig:eutxo-1-validity} ensures that all of the transaction
 inputs refer to existing unspent outputs, and in these circumstances
 $\lookupTx$ will always succeed for the transactions of interest.
 
-We can now define what it means for a transaction $t$ of
-type $\eutxotx$ to be valid for a ledger $l$ during the slot $\msf{currentSlot}$: see
-\cref{fig:eutxo-1-validity}.  Our definition combines
-Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
-the latter in \cref{rule:all-inputs-validate}.
+It is not immediately obvious that the $\unspent$ function only yields
+a \textit{finite} set of outputs: however, this can be proved
+inductively, starting from the fact that the initial ledger is empty
+and that each transaction only produces a finite number of outputs.
+
+
+We can now define what it means for a transaction $t$ of type
+$\eutxotx$ to be valid for a ledger $l$ during the slot
+$\msf{currentSlot}$: see \cref{fig:eutxo-1-validity}.  Our definition
+combines Definitions 6 and 14 from \citep{Zahnentferner18-UTxO},
+differing from the latter in \cref{rule:all-inputs-validate}.
 \todokwxm{Check this.}
 
 \begin{ruledfigure}{H}
@@ -844,7 +850,7 @@ current transaction; we assume that there is a function $\toTxData:
                & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qtymap,\\
                & &\ \forge: \qtymap,\\
-               & &\ \forgeScripts: \Set{\script})\\
+               & &\ \forgeScripts: \FinSet{\script})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -907,7 +913,7 @@ monetary policy scripts: for reference the details are given in
                  & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap,\\
-                 & &\ \forgeScripts: \Set{\script})\\
+                 & &\ \forgeScripts: \FinSet{\script})\\
     \\
     \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow \ctx_2 &&
       \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
@@ -1096,6 +1102,18 @@ check pointwise equality over the union of their domains.
 
 The same applies to checking partial ordering pointwise, which can similarly
 be done over the union of the weak support.
+
+\medskip
+
+Mathematically, most of our finiteness restrictions are not strictly
+required.  For example, in the EUTXO-2 model
+(Section~\ref{sec:eutxo-2}) we could allow transactions with
+infinitely many monetary policy scripts and outputs with
+non-finitely-supported quantities of token currencies;  as long as the
+number of inputs and outputs of each transaction is finite the model
+remains mathematically sound.  However, the finite model presented in
+this document is more realistic from the point of view of real-world
+implementation.
 
 \note{The Basic UTXO model: Outputs and scripts.}
 \label{note:basic-utxo}
@@ -1302,12 +1320,12 @@ registry of custom currencies.
 In practice some refinement of this scheme will be required in order
 to (a) allow re-use of a monetary policy for different currencies, and
 (b) prevent unauthorised forging of a currency. To deal with (a) we
-can make the validator script unique by including a nonce. This still
-doesn't prevent unauthorised people from using the script $H$ to
+can make the monetary policy script unique by including a nonce. This
+still doesn't prevent unauthorised people from using the script $H$ to
 produce currency, but this can be prevented by, for instance,
-embedding a reference to an unspent output in the script and
-requiring that the currency can only be forged if the referenced
-output is spent at the same time, so it can only be forged once.
+embedding a reference to an unspent output in the script and requiring
+that the currency can only be forged if the referenced output is spent
+at the same time, so it can only be forged once.
 
 \smallskip
 \todokwxm{Is this exactly what we want?  I think that gives you a
