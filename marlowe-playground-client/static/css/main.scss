@@ -114,8 +114,8 @@ a:hover {
 }
 
 .upload-btn>.tooltiptext {
-    left: 0;
-    top: 40px;
+    left: 70%;
+    top: 50px;
 }
 
 .upload-btn>.tooltiptext::after {
@@ -123,7 +123,7 @@ a:hover {
 }
 
 .download-btn>.tooltiptext {
-    left: 65px;
+    right: 0px;
     top: 112%;
 }
 

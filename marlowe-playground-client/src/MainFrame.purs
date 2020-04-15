@@ -510,8 +510,12 @@ handleGistAction PublishGist =
         assign _createGistResult newResult
         gistId <- hoistMaybe $ preview (_Success <<< gistId <<< _GistId) newResult
         assign _gistUrl (Just gistId)
+        assign _loadGistResult $ Right NotAsked
 
-handleGistAction (SetGistUrl newGistUrl) = assign _gistUrl (Just newGistUrl)
+handleGistAction (SetGistUrl newGistUrl) = do
+  assign _createGistResult NotAsked
+  assign _loadGistResult $ Right NotAsked
+  assign _gistUrl (Just newGistUrl)
 
 handleGistAction LoadGist = do
   res <-
