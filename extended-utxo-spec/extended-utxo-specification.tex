@@ -413,9 +413,6 @@ proposed in~\citep{Zahnentferner18-UTxO}:
 
 \end{itemize}
 
-\todokwxm{There's the issue about whether validators return
-  \texttt{true/false} or \texttt{()/Error}. Remember to fix this when things have settled down.}
-
 \subsection{A Formal Description of the EUTXO-1 Model}
 \label{section:eutxo-spec}
 
@@ -682,7 +679,6 @@ $\eutxotx$ to be valid for a ledger $l$ during the slot
 $\msf{currentSlot}$: see \cref{fig:eutxo-1-validity}.  Our definition
 combines Definitions 6 and 14 from \citep{Zahnentferner18-UTxO},
 differing from the latter in \cref{rule:all-inputs-validate}.
-\todokwxm{Check this.}
 
 \begin{ruledfigure}{H}
 \begin{enumerate}
@@ -1255,9 +1251,6 @@ an outgoing datum, for example to confirm that its contents are
 correct in some sense. This can be useful when a datum is used to
 propagate information about the state of a contract to later
 transactions.  See~\cite{Plutus-book} for examples of this.
-\todokwxm{More specific reference?}
-
-
 
 \note{Determinism of the validation process.}
 \label{note:validation-determinism} The \ctx{} type is the only
@@ -1328,29 +1321,6 @@ produce currency, but this can be prevented by, for instance,
 embedding a reference to an unspent output in the script and requiring
 that the currency can only be forged if the referenced output is spent
 at the same time, so it can only be forged once.
-
-\smallskip
-\todokwxm{Is this exactly what we want?  I think that gives you a
-  single opportunity to forge the currency, and then you can't make
-  any more. I suppose that you could restrict the ability to forge to
-  a particular individual by requiring them to provide something
-  signed by their private key when they want to create new money.
-  Also, is this a case where an output of value zero would be useful?}
-
-\smallskip
-\todokwxm{The use of the term ``forging'' is a bit confusing here,
-  since it also means ``counterfeiting''.}
-
-% \todojm{I think there are two different concerns:
-%  (1) Using the same monetary policy multiple times;
-%   (2) Preventing unauthorised forging of a currency.
-
-% The "referencing an unspent output" trick accomplishes
-%   both but is mainly aimed at (2). You could also achieve (1) by
-%   embedding any kind of random data in the validator script, like a
-%   nonce.
-% }
-
 
 \note{Implications of the EUTXO-2 model.}
 \label{note:eutxo-2-implications}
