@@ -669,11 +669,13 @@ Figure~\ref{fig:eutxo-1-validity} ensures that all of the transaction
 inputs refer to existing unspent outputs, and in these circumstances
 $\lookupTx$ will always succeed for the transactions of interest.
 
-It is not immediately obvious that the $\unspent$ function only yields
-a \textit{finite} set of outputs: however, this can be proved
-inductively, starting from the fact that the initial ledger is empty
-and that each transaction only produces a finite number of outputs.
+It is perhaps not immediately obvious that the $\unspent$ function
+only yields a \textit{finite} set of outputs: however, this can be
+proved by induction on the slot number, using the facts that the
+initial ledger is empty and that each transaction only produces a
+finite number of outputs.
 
+\medskip
 
 We can now define what it means for a transaction $t$ of type
 $\eutxotx$ to be valid for a ledger $l$ during the slot
