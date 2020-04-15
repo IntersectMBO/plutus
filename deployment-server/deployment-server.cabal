@@ -62,7 +62,6 @@ executable deployment-server-exe
     , newtype-generics
     , optparse-generic
     , servant-github-webhook
-    , slack-web
     , text
     , warp
   default-language: Haskell2010

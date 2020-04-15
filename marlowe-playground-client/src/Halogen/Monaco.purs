@@ -1,22 +1,62 @@
 module Halogen.Monaco where
 
 import Data.Either (Either(..))
+import Data.Enum (class BoundedEnum, class Enum)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Bounded (genericBottom, genericTop)
+import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
+import Data.Generic.Rep.Eq (genericEq)
+import Data.Generic.Rep.Ord (genericCompare)
 import Data.Lens (view)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for_, traverse)
+import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Halogen (HalogenM, RefLabel)
+import Halogen (HalogenM, RefLabel, get, modify_)
 import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer(..), effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
 import Monaco as Monaco
-import Prelude (Unit, bind, const, discard, pure, unit, void, ($), (>>=))
+import Prelude (class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, pure, unit, void, ($), (>>=))
+
+data KeyBindings
+  = DefaultBindings
+  | Vim
+  | Emacs
+
+derive instance genericKeyBindings :: Generic KeyBindings _
+
+instance showKeyBindings :: Show KeyBindings where
+  show DefaultBindings = "Default"
+  show Vim = "Vim"
+  show Emacs = "Emacs"
+
+instance eqKeyBindings :: Eq KeyBindings where
+  eq = genericEq
+
+instance ordKeyBindings :: Ord KeyBindings where
+  compare = genericCompare
+
+instance enumKeyBindings :: Enum KeyBindings where
+  succ = genericSucc
+  pred = genericPred
+
+instance boundedKeyBindings :: Bounded KeyBindings where
+  bottom = genericBottom
+  top = genericTop
+
+instance boundedEnumKeyBindings :: BoundedEnum KeyBindings where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
 
 type State
-  = { editor :: Maybe Editor }
+  = { editor :: Maybe Editor
+    , deactivateBindings :: Effect Unit
+    }
 
 data Query a
   = SetText String a
@@ -25,6 +65,7 @@ data Query a
   | Resize a
   | SetTheme String a
   | SetModelMarkers (Array IMarkerData) a
+  | SetKeyBindings KeyBindings a
 
 data Action
   = Init
@@ -51,7 +92,7 @@ type Settings m
 monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Component HTML Query Unit Message m
 monacoComponent settings =
   H.mkComponent
-    { initialState: const { editor: Nothing }
+    { initialState: const { editor: Nothing, deactivateBindings: pure unit }
     , render: render settings
     , eval:
       H.mkEval
@@ -88,7 +129,7 @@ handleAction settings Init = do
         for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
         for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
       editor <- liftEffect $ Monaco.create monaco element languageId
-      void $ H.modify (const { editor: Just editor })
+      void $ H.modify (\s -> s { editor = Just editor })
       void $ H.subscribe $ effectEventSource (changeContentHandler monaco editor)
       H.lift $ settings.setup editor
     Nothing -> pure unit
@@ -155,3 +196,25 @@ handleQuery (SetModelMarkers markers next) = do
       model <- Monaco.getModel editor
       Monaco.setModelMarkers monaco model owner markers
       pure next
+
+handleQuery (SetKeyBindings DefaultBindings next) =
+  withEditor \editor -> do
+    { deactivateBindings } <- get
+    liftEffect deactivateBindings
+    pure next
+
+handleQuery (SetKeyBindings Emacs next) =
+  withEditor \editor -> do
+    { deactivateBindings } <- get
+    liftEffect deactivateBindings
+    disableEmacsMode <- liftEffect $ Monaco.enableEmacsBindings editor
+    modify_ (\s -> s { deactivateBindings = disableEmacsMode })
+    pure next
+
+handleQuery (SetKeyBindings Vim next) =
+  withEditor \editor -> do
+    { deactivateBindings } <- get
+    liftEffect deactivateBindings
+    disableVimMode <- liftEffect $ Monaco.enableVimBindings editor
+    modify_ (\s -> s { deactivateBindings = disableVimMode })
+    pure next

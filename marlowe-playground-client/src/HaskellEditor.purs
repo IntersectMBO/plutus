@@ -2,6 +2,7 @@ module HaskellEditor where
 
 import Data.Array as Array
 import Data.Either (Either(..))
+import Data.Enum (toEnum, upFromIncluding)
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (to, view, (^.))
 import Data.Map as Map
@@ -12,18 +13,19 @@ import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
 import Halogen.Classes (aHorizontal, accentBorderBottom, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, isActiveDemo, isActiveTab, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, pre, pre_, section, slot, small_, text, ul)
-import Halogen.HTML.Events (onClick)
+import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre, pre_, section, select, slot, small_, text, ul)
+import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
+import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import Monaco as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
-import Prelude (bind, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (||))
+import Prelude (bind, bottom, const, map, not, show, unit, ($), (<$>), (<<<), (<>), (==), (||))
 import StaticData as StaticData
-import Types (ChildSlots, FrontendState, HAction(..), View(..), _compilationResult, _haskellEditorSlot, _showBottomPanel)
+import Types (ChildSlots, FrontendState, HAction(..), View(..), _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel)
 
 render ::
   forall m.
@@ -41,6 +43,14 @@ render state =
           , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
               (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
           ]
+      , div [ class_ (ClassName "editor-options") ]
+          [ select
+              [ HTML.id_ "editor-options"
+              , class_ (ClassName "dropdown-header")
+              , onSelectedIndexChange (\idx -> HaskellSelectEditorKeyBindings <$> toEnum idx)
+              ]
+              (map keybindingItem (upFromIncluding bottom))
+          ]
       ]
   , section [ class_ (ClassName "code-panel") ]
       [ div [ classes (codeEditor state) ]
@@ -48,6 +58,12 @@ render state =
       ]
   ]
   where
+  keybindingItem item =
+    if state ^. _haskellEditorKeybindings == item then
+      option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
+    else
+      option [ HTML.value (show item) ] [ text $ show item ]
+
   demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
 
 haskellEditor ::
