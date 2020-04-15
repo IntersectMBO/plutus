@@ -158,14 +158,6 @@ button.small-btn {
   color: var(--secondary-color);
 }
 
-.active-text-primary {
-  color: var(--primary-color);
-}
-
-.active-text {
-  color: var(--secondary-color);
-}
-
 .accent-border-bottom {
   border-bottom: 1px solid var(--layout-accent-color);
 }

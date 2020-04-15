@@ -6,6 +6,7 @@ import Data.Array (foldr, intercalate, (:))
 import Data.Array as Array
 import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..))
+import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
 import Data.Lens (to, view, (^.))
 import Data.List.NonEmpty as NEL
@@ -17,10 +18,10 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Gist (Gist)
 import Gists (GistAction(..), idPublishGist)
-import Halogen.Classes (aHorizontal, active, activeTextPrimary, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, isActiveDemo, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
+import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, p, p_, section, slot, small, small_, span, strong_, text, ul, ul_)
-import Halogen.HTML.Events (onClick, onValueChange, onValueInput)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
@@ -33,11 +34,11 @@ import Marlowe.Monaco as MM
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
 import Monaco as Monaco
 import Network.RemoteData (RemoteData(..))
-import Prelude (class Show, bind, const, discard, mempty, show, unit, ($), (<$>), (<<<), (<>), (>))
+import Prelude (class Show, bind, bottom, const, discard, eq, mempty, show, unit, ($), (<$>), (<<<), (<>), (==), (>))
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.BottomPanel (isContractValid)
 import StaticData as StaticData
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _authStatus, _createGistResult, _helpContext, _loadGistResult, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _activeMarloweDemo, _authStatus, _createGistResult, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
 
 render ::
   forall m.
@@ -55,7 +56,15 @@ render state =
           , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
               (demoScriptLink <$> Array.fromFoldable (map fst StaticData.marloweContracts))
           , div [ class_ (ClassName "code-to-blockly-wrap") ]
-              [ button
+              [ div [ class_ (ClassName "editor-options") ]
+                  [ select
+                      [ HTML.id_ "editor-options"
+                      , class_ (ClassName "dropdown-header")
+                      , onSelectedIndexChange (\idx -> MarloweSelectEditorKeyBindings <$> toEnum idx)
+                      ]
+                      (map keybindingItem (upFromIncluding bottom))
+                  ]
+              , button
                   [ classes [ smallBtn, ClassName "tooltip" ]
                   , onClick $ const $ Just $ SetBlocklyCode
                   , enabled (isContractValid state)
@@ -74,7 +83,15 @@ render state =
       ]
   ]
   where
-  demoScriptLink key = li [ classes (isActiveDemo state) ] [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]
+  demoScriptLink key =
+    li [ state ^. _activeMarloweDemo <<< activeClasses (eq key) ]
+      [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]
+
+  keybindingItem item =
+    if state ^. _marloweEditorKeybindings == item then
+      option [ class_ (ClassName "selected-item"), HTML.value (show item) ] [ text $ show item ]
+    else
+      option [ HTML.value (show item) ] [ text $ show item ]
 
 marloweEditor ::
   forall m.
@@ -275,7 +292,7 @@ transactionComposer state =
           [ transaction state isEnabled ]
     , div [ class_ (ClassName "transaction-btns") ]
         [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-            [ li [ classes [ activeTextPrimary, bold, pointer ] ]
+            [ li [ classes [ bold, pointer ] ]
                 [ a
                     [ onClick
                         $ if hasHistory state then
@@ -286,7 +303,7 @@ transactionComposer state =
                     ]
                     [ text "Undo" ]
                 ]
-            , li [ classes [ activeTextPrimary, bold, pointer ] ]
+            , li [ classes [ bold, pointer ] ]
                 [ a
                     [ onClick
                         $ if hasHistory state then
@@ -297,7 +314,7 @@ transactionComposer state =
                     ]
                     [ text "Reset" ]
                 ]
-            , li [ classes [ activeTextPrimary, bold, pointer ] ]
+            , li [ classes [ bold, pointer ] ]
                 [ a
                     [ onClick
                         $ if isEnabled then

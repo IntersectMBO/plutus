@@ -22,6 +22,7 @@
 .panel-sub-header-main {
   min-height: 3.5rem;
 }
+
 .panel-sub-header-side {
   min-height: 3.5rem;
 }
@@ -57,6 +58,10 @@
   line-height: 1.2;
   text-align: center;
   width: 100%;
+}
+
+.demo-list li.active {
+  color: var(--secondary-color);
 }
 
 .demo-arrow,
@@ -394,7 +399,7 @@ button.minus-btn:hover {
   margin-top: 1rem;
 }
 
-#blocklyWorkspace > button {
+#blocklyWorkspace>button {
   margin: 1rem 0;
 }
 
@@ -404,4 +409,14 @@ button.minus-btn:hover {
 
 .error-content {
   padding-top: 1rem;
+}
+
+.editor-options {
+  margin: 0rem 1rem;
+}
+
+.editor-options select {
+  height: 30px;
+  border: none;
+  background-color: var(--bg-dark);
 }

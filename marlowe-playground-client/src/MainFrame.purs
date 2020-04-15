@@ -40,6 +40,7 @@ import Halogen.Classes (aCenter, aHorizontal, btnSecondary, flexCol, hide, iohkI
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
+import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
@@ -54,7 +55,7 @@ import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
 import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
 import Monaco (IMarkerData, markerSeverity)
-import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorResize, haskellEditorSetMarkers, haskellEditorSetTheme, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetMarkers, marloweEditorSetTheme, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
+import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorResize, haskellEditorSetBindings, haskellEditorSetMarkers, haskellEditorSetTheme, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetBindings, marloweEditorSetMarkers, marloweEditorSetTheme, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
 import Prelude (class Show, Unit, add, bind, const, discard, mempty, one, pure, show, unit, zero, ($), (<$>), (<<<), (<>), (==))
 import Servant.PureScript.Ajax (errorToString)
@@ -64,7 +65,7 @@ import Simulation.BottomPanel (bottomPanel) as Simulation
 import StaticData as StaticData
 import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
-import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
+import Types (ActionInput(..), ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), HelpContext(..), Message, SimulationBottomPanelView(..), View(..), _activeHaskellDemo, _activeMarloweDemo, _analysisState, _authStatus, _blocklySlot, _compilationResult, _createGistResult, _currentContract, _currentMarloweState, _gistUrl, _haskellEditorKeybindings, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweState, _oldContract, _pendingInputs, _possibleActions, _result, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, _simulationBottomPanelView, _slot, _state, _view, emptyMarloweState)
 import WebSocket (WebSocketResponseMessage(..))
 
 initialState :: FrontendState
@@ -87,6 +88,10 @@ initialState =
     , showRightPanel: false
     , showBottomPanel: true
     , showErrorDetail: false
+    , haskellEditorKeybindings: DefaultBindings
+    , marloweEditorKeybindings: DefaultBindings
+    , activeMarloweDemo: mempty
+    , activeHaskellDemo: mempty
     }
 
 ------------------------------------------------------------
@@ -171,6 +176,8 @@ showStateForHaskell ( State
 toEvent :: HAction -> Maybe Event
 toEvent (HaskellHandleEditorMessage _) = Just $ defaultEvent "HaskellHandleEditorMessage"
 
+toEvent (HaskellSelectEditorKeyBindings _) = Just $ defaultEvent "HaskellSelectEditorKeyBindings"
+
 toEvent (MarloweHandleEditorMessage _) = Just $ defaultEvent "MarloweHandleEditorMessage"
 
 toEvent (MarloweHandleDragEvent _) = Just $ defaultEvent "MarloweHandleDragEvent"
@@ -178,6 +185,8 @@ toEvent (MarloweHandleDragEvent _) = Just $ defaultEvent "MarloweHandleDragEvent
 toEvent (MarloweHandleDropEvent _) = Just $ defaultEvent "MarloweHandleDropEvent"
 
 toEvent (MarloweMoveToPosition _ _) = Just $ defaultEvent "MarloweMoveToPosition"
+
+toEvent (MarloweSelectEditorKeyBindings _) = Just $ defaultEvent "MarloweSelectEditorKeyBindings"
 
 toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
 
@@ -257,10 +266,17 @@ handleAction (MarloweHandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   saveMarloweBuffer text
   updateContractInState text
+  assign _activeMarloweDemo ""
 
 handleAction (MarloweHandleEditorMessage (Monaco.MarkersChanged markers)) = marloweEditorSetMarkers markers
 
+handleAction (HaskellHandleEditorMessage (Monaco.TextChanged text)) = assign _activeHaskellDemo ""
+
 handleAction (HaskellHandleEditorMessage _) = pure unit
+
+handleAction (HaskellSelectEditorKeyBindings bindings) = do
+  assign _haskellEditorKeybindings bindings
+  haskellEditorSetBindings bindings
 
 handleAction (MarloweHandleDragEvent event) = preventDefault event
 
@@ -273,6 +289,10 @@ handleAction (MarloweHandleDropEvent event) = do
 handleAction (MarloweMoveToPosition lineNumber column) = do
   marloweEditorMoveCursorToPosition { column, lineNumber }
 
+handleAction (MarloweSelectEditorKeyBindings bindings) = do
+  assign _marloweEditorKeybindings bindings
+  marloweEditorSetBindings bindings
+
 handleAction CheckAuthStatus = do
   assign _authStatus Loading
   authResult <- getOauthStatus
@@ -280,11 +300,9 @@ handleAction CheckAuthStatus = do
 
 handleAction (GistAction subEvent) = handleGistAction subEvent
 
-handleAction (ChangeView HaskellEditor) = do
-  selectHaskellView
+handleAction (ChangeView HaskellEditor) = selectHaskellView
 
-handleAction (ChangeView Simulation) = do
-  selectSimulationView
+handleAction (ChangeView Simulation) = selectSimulationView
 
 handleAction (ChangeView BlocklyEditor) = do
   assign _view BlocklyEditor
@@ -309,6 +327,7 @@ handleAction (LoadHaskellScript key) = do
     Nothing -> pure unit
     Just contents -> do
       haskellEditorSetValue contents (Just 1)
+      assign _activeHaskellDemo key
 
 handleAction (LoadMarloweScript key) = do
   case Array.head
@@ -325,6 +344,7 @@ handleAction (LoadMarloweScript key) = do
       saveMarloweBuffer prettyContents
       updateContractInState prettyContents
       resetContract
+      assign _activeMarloweDemo key
 
 handleAction SendResult = do
   mContract <- use _compilationResult

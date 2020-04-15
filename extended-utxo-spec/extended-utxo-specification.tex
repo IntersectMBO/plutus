@@ -338,6 +338,8 @@ the function $(-f)$ with the same support, given by
 \[ (-f)(k) = -f(k) \]
 Again, $\FinSup{K}{M}$ is a group with this operation.
 
+\smallskip
+
 See \cref{note:finitely-supported-functions} for discussion of using
 finitely-supported functions computationally.
 
@@ -412,9 +414,6 @@ proposed in~\citep{Zahnentferner18-UTxO}:
   \end{enumerate}
 
 \end{itemize}
-
-\todokwxm{There's the issue about whether validators return
-  \texttt{true/false} or \texttt{()/Error}. Remember to fix this when things have settled down.}
 
 \subsection{A Formal Description of the EUTXO-1 Model}
 \label{section:eutxo-spec}
@@ -669,12 +668,19 @@ Figure~\ref{fig:eutxo-1-validity} ensures that all of the transaction
 inputs refer to existing unspent outputs, and in these circumstances
 $\lookupTx$ will always succeed for the transactions of interest.
 
-We can now define what it means for a transaction $t$ of
-type $\eutxotx$ to be valid for a ledger $l$ during the slot $\msf{currentSlot}$: see
-\cref{fig:eutxo-1-validity}.  Our definition combines
-Definitions 6 and 14 from \citep{Zahnentferner18-UTxO}, differing from
-the latter in \cref{rule:all-inputs-validate}.
-\todokwxm{Check this.}
+It is perhaps not immediately obvious that the $\unspent$ function
+only yields a \textit{finite} set of outputs: however, this can be
+proved by induction on the slot number, using the facts that the
+initial ledger is empty and that each transaction only produces a
+finite number of outputs.
+
+\medskip
+
+We can now define what it means for a transaction $t$ of type
+$\eutxotx$ to be valid for a ledger $l$ during the slot
+$\msf{currentSlot}$: see \cref{fig:eutxo-1-validity}.  Our definition
+combines Definitions 6 and 14 from \citep{Zahnentferner18-UTxO},
+differing from the latter in \cref{rule:all-inputs-validate}.
 
 \begin{ruledfigure}{H}
 \begin{enumerate}
@@ -760,7 +766,7 @@ In practice, validity imposes a limit on the sizes of the
 $\validator$ \script{}, the $\redeemer$ and
 $\datum$ \Data{} fields, and the result of \toData. The validation of a
 single transaction must take place within one slot, so the evaluation
-of $\applyScript{}$ cannot take longer than one slot.
+of $\applyScript{\cdot}$ cannot take longer than one slot.
 \todokwxm{Do we need this $\uparrow$?}
 
 %%\newpage
@@ -821,8 +827,11 @@ current transaction; we assume that there is a function $\toTxData:
       \multicolumn{3}{l}{\textsc{Ledger primitives}}\\[4pt]
     \token     && \mbox{a type consisting of identifiers for individual tokens}\\
     \\
-    
-    \multicolumn{3}{l}{\textsc{Defined types}}\\[4pt]
+     \toTxData : \eutxotx \rightarrow \Data &~& \mbox{encode a transaction as $\Data$}
+     \\
+     \medskip
+     \\
+     \multicolumn{3}{l}{\textsc{Defined types}}\\[4pt]
     \currency  &=& \Address \enspace\mbox{(an identifier for a custom currency)}\\
     \\
     \qtymap   &=& \FinSup{\currency}{\FinSup{\token}{\qty}}\\
@@ -844,7 +853,7 @@ current transaction; we assume that there is a function $\toTxData:
                & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                & &\ \fee: \qtymap,\\
                & &\ \forge: \qtymap,\\
-               & &\ \forgeScripts: \Set{\script})\\
+               & &\ \forgeScripts: \FinSet{\script})\\
     \\
     \s{Ledger}_2 &=&\!\List{\eutxotx_2}\\
     \end{array}
@@ -907,14 +916,12 @@ monetary policy scripts: for reference the details are given in
                  & &\ \datumWits: \FinSup{\DataHash}{\Data},\\
                  & &\ \fee: \qtymap,\\
                  & &\ \forge: \qtymap,\\
-                 & &\ \forgeScripts: \Set{\script})\\
+                 & &\ \forgeScripts: \FinSet{\script})\\
     \\
     \mkContext_2: \eutxotx_2 \times \s{Input} \times \s{Ledger} \rightarrow \ctx_2 &&
       \mbox{\parbox[t]{6cm}{summarises a transaction in the context of an input and a ledger state}}\\
      \\
      \toData_2: \ctx_2 \rightarrow \Data &~& \mbox{encodes a $\ctx_2$ object}\\
-     \\
-     \toTxData : \eutxotx \rightarrow \Data &~& \mbox{encodes a $\eutxotx$ object}
   \end{array}
   \end{displaymath}
   \caption{The \ctx{} type for the EUTXO-2 model}
@@ -1034,10 +1041,9 @@ quantities of each of the individual currencies involved in the
 transaction are preserved.
 
 \paragraph{Preservation of value and forging.}
-Recall that values in $\forge$ can
-be negative whereas values in outputs must be non-negative. This allows
-currency to be destroyed as well as created. The
-\cref{rule:value-is-preserved-2} implies that a
+Recall that values in $\forge$ can be negative whereas values in
+outputs must be non-negative. This allows currency to be destroyed as
+well as created. Rule~\ref{rule:value-is-preserved-2} implies that a
 transaction is invalid if it attempts to destroy more of a currency
 than is actually available in its inputs.
 
@@ -1096,6 +1102,18 @@ check pointwise equality over the union of their domains.
 
 The same applies to checking partial ordering pointwise, which can similarly
 be done over the union of the weak support.
+
+\medskip
+
+Mathematically, most of our finiteness restrictions are not strictly
+required.  For example, in the EUTXO-2 model
+(Section~\ref{sec:eutxo-2}) we could allow transactions with
+infinitely many monetary policy scripts and outputs with
+non-finitely-supported quantities of token currencies;  as long as the
+number of inputs and outputs of each transaction is finite the model
+remains mathematically sound.  However, the finite model presented in
+this document is more realistic from the point of view of real-world
+implementation.
 
 \note{The Basic UTXO model: Outputs and scripts.}
 \label{note:basic-utxo}
@@ -1235,9 +1253,6 @@ an outgoing datum, for example to confirm that its contents are
 correct in some sense. This can be useful when a datum is used to
 propagate information about the state of a contract to later
 transactions.  See~\cite{Plutus-book} for examples of this.
-\todokwxm{More specific reference?}
-
-
 
 \note{Determinism of the validation process.}
 \label{note:validation-determinism} The \ctx{} type is the only
@@ -1302,35 +1317,12 @@ registry of custom currencies.
 In practice some refinement of this scheme will be required in order
 to (a) allow re-use of a monetary policy for different currencies, and
 (b) prevent unauthorised forging of a currency. To deal with (a) we
-can make the validator script unique by including a nonce. This still
-doesn't prevent unauthorised people from using the script $H$ to
+can make the monetary policy script unique by including a nonce. This
+still doesn't prevent unauthorised people from using the script $H$ to
 produce currency, but this can be prevented by, for instance,
-embedding a reference to an unspent output in the script and
-requiring that the currency can only be forged if the referenced
-output is spent at the same time, so it can only be forged once.
-
-\smallskip
-\todokwxm{Is this exactly what we want?  I think that gives you a
-  single opportunity to forge the currency, and then you can't make
-  any more. I suppose that you could restrict the ability to forge to
-  a particular individual by requiring them to provide something
-  signed by their private key when they want to create new money.
-  Also, is this a case where an output of value zero would be useful?}
-
-\smallskip
-\todokwxm{The use of the term ``forging'' is a bit confusing here,
-  since it also means ``counterfeiting''.}
-
-% \todojm{I think there are two different concerns:
-%  (1) Using the same monetary policy multiple times;
-%   (2) Preventing unauthorised forging of a currency.
-
-% The "referencing an unspent output" trick accomplishes
-%   both but is mainly aimed at (2). You could also achieve (1) by
-%   embedding any kind of random data in the validator script, like a
-%   nonce.
-% }
-
+embedding a reference to an unspent output in the script and requiring
+that the currency can only be forged if the referenced output is spent
+at the same time, so it can only be forged once.
 
 \note{Implications of the EUTXO-2 model.}
 \label{note:eutxo-2-implications}

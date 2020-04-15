@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -89,8 +90,9 @@ import           Wallet.Emulator.Error
 
 import           Prelude                   hiding (Ordering (..))
 
-createPaymentWithChange :: Member WalletEffect effs => Value -> Eff effs (Set.Set TxIn, Maybe TxOut)
-createPaymentWithChange v = updatePaymentWithChange v (Set.empty, Nothing)
+createPaymentWithChange :: Member WalletEffect effs => Value -> Eff effs Payment
+createPaymentWithChange v =
+    updatePaymentWithChange v emptyPayment
 
 -- | Transfer some funds to a number of script addresses, returning the
 -- transaction that was submitted.
@@ -104,8 +106,8 @@ payToScripts range ins = do
         totalVal     = fold $ fmap (view _2) ins
         otherOutputs = fmap (\(addr, vl, ds) -> TxOut addr vl (PayToScript (datumHash ds))) ins
         datas        = fmap (\(_, _, d) -> d) ins
-    (i, ownChange) <- createPaymentWithChange totalVal
-    createTxAndSubmit range i (maybe otherOutputs (:otherOutputs) ownChange) datas
+    Payment{paymentInputs, paymentChangeOutput} <- createPaymentWithChange totalVal
+    createTxAndSubmit range paymentInputs (maybe otherOutputs (:otherOutputs) paymentChangeOutput) datas
 
 -- | Transfer some funds to a number of script addresses.
 payToScripts_ ::
@@ -227,9 +229,9 @@ payToPublicKey ::
     )
     => SlotRange -> Value -> PubKey -> Eff effs Tx
 payToPublicKey range v pk = do
-    (i, own) <- createPaymentWithChange v
+    Payment{paymentInputs, paymentChangeOutput} <- createPaymentWithChange v
     let other = pubKeyTxOut v pk
-    createTxAndSubmit range i (other : maybeToList own) []
+    createTxAndSubmit range paymentInputs (other : maybeToList paymentChangeOutput) []
 
 -- | Transfer some funds to an address locked by a public key.
 payToPublicKey_ ::
