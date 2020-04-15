@@ -11,6 +11,9 @@ open import Data.String hiding (_<_)
 open import Data.Unit
 open import Data.Bool using (Bool)
 open import Data.Char using (Char)
+open import Data.Product using (_×_;_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Data.Sum using (_⊎_;inj₁)
 
 open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Utils
@@ -200,9 +203,11 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  builtin : (bn : Builtin) 
-    → ∀{m} → m ≤‴ arity⋆ bn → Vec (ScopedTy n) m
-    → ∀{o} → o ≤‴ arity bn  → Vec (ScopedTm w) o
+  builtin : (b : Builtin) 
+    → ∀{m o}
+    → (m ≤‴ arity⋆ b × o ≡ 0) ⊎ (m ≡ arity⋆ b × o ≤‴ arity b)
+    → Vec (ScopedTy n) m
+    → Vec (ScopedTm w) o
     → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
@@ -273,7 +278,7 @@ scopeCheckTm (t · u) = do
   return (t · u)
 scopeCheckTm (con c) = just (con (deBruijnifyC c))
 scopeCheckTm (error A) = map error (scopeCheckTy A)
-scopeCheckTm (builtin b) = just (builtin b z≤‴n [] z≤‴n [])
+scopeCheckTm (builtin b) = just (builtin b (inj₁ (z≤‴n , refl)) [] [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B

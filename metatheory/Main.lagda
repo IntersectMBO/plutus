@@ -177,7 +177,6 @@ junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
-{-
 tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
 ... | nothing = inj₂ "Parse Error"
@@ -187,7 +186,7 @@ tcPLC plc with parse plc
 ... | nothing = inj₂ "(Agda) scope error"
 ... | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') =
-  inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
+  inj₁ "" -- (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
 ... | inj₂ typeError = inj₂ "typeError"
 ... | inj₂ kindEqError = inj₂ "kindEqError"
 ... | inj₂ notTypeError = inj₂ "notTypeError"
@@ -196,17 +195,16 @@ tcPLC plc with parse plc
 ... | inj₂ notPat = inj₂ "notPat"
 ... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
 ... | inj₂ (typeEqError n n') = inj₂ (
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
+  "" -- prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
   Data.String.++
   "\n != \n"
   Data.String.++
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
-
+  "") -- prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"
 ... | inj₂ builtinError   = inj₂ "builtinError"
 ... | inj₂ unwrapError    = inj₂ "unwrapError"
--}
+
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
@@ -260,7 +258,7 @@ data TCOptions : Set where
 
 data Command : Set where
   Evaluate  : EvalOptions → Command
---  TypeCheck : TCOptions → Command
+  TypeCheck : TCOptions → Command
 
 postulate execP : IO Command
 
@@ -274,11 +272,10 @@ evalInput : EvalMode → Input → IO (String ⊎ String)
 evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
 evalInput m StdInput       = imap (evalPLC m) getContents
 
-{-
 tcInput : Input → IO (String ⊎ String)
 tcInput (FileInput fn) = imap tcPLC (readFile fn)
 tcInput StdInput       = imap tcPLC getContents
--}
+
 main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) =
   evalInput m i
@@ -286,14 +283,13 @@ main' (Evaluate (EvalOpts i m)) =
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
            ]
-{-           
 main' (TypeCheck (TCOpts i))    =
   (tcInput i)
   >>=
   Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
            , (λ e → putStrLn e >> exitFailure)
            ]
--}
+
 main : IO ⊤
 main = execP >>= main'
 \end{code}

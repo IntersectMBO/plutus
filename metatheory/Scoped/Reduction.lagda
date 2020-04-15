@@ -37,14 +37,13 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
             → ∀{o}
             → (q : o <‴ arity b)
             → (ts : Vec (ScopedTm w) o)
-            → Value (builtin b ≤‴-refl As (≤‴-step q) ts)
-{-  V-builtin⋆ : (b : Builtin)
+            → Value (builtin b (inr (refl , ≤‴-step q)) As ts)
+  V-builtin⋆ : (b : Builtin)
             → ∀{o}
             → (p : o <‴ arity⋆ b)
             → (As : Vec (ScopedTy n) o)
-            → (q : 0 <‴ arity b)
-            → Value (builtin b (≤‴-step p) As (≤‴-step q) [])
--}
+            → Value (builtin b (inl (≤‴-step p , refl)) As [])
+
 voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
 voidVal w = V-con {w = w} unit
 
@@ -71,7 +70,6 @@ VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
 VERIFYSIG (just false) = con (bool false)
 VERIFYSIG (just true)  = con (bool true)
 VERIFYSIG nothing      = error (con bool)
-
 
 BUILTIN : ∀{n}{w : Weirdℕ n}
   → (b : Builtin)
@@ -153,28 +151,30 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
             → {As : Vec (ScopedTy n) (arity⋆ b)}
               {ts ts' : Tel (arity b) w}
             → ts —→T ts'
-            → builtin b ≤‴-refl As ≤‴-refl ts
-              —→ builtin b ≤‴-refl As ≤‴-refl ts'
+            → builtin b (inr (refl , ≤‴-refl)) As ts
+              —→ builtin b (inr (refl , ≤‴-refl)) As ts'
   β-builtin : {b : Builtin}
               {As : Vec (ScopedTy n) (arity⋆ b) }
               {ts : Tel (arity b) w}
               (vs : VTel (arity b) w ts)
-            → builtin b ≤‴-refl As ≤‴-refl ts —→ BUILTIN b As ts vs
+            → builtin b (inr (refl , ≤‴-refl)) As ts —→ BUILTIN b As ts vs
   sat-builtin : {b : Builtin}
-            → ∀{o}{p : o ≤‴ arity⋆ b}
-            → {As : Vec (ScopedTy n) o}
+            → {As : Vec (ScopedTy n) (arity⋆ b)}
             → ∀{o'}{q : o' <‴ arity b}
             → {ts : Vec (ScopedTm w) o'}
             → {t : ScopedTm w}
-            → builtin b p As (≤‴-step q) ts · t —→ builtin b p As q (t ∷ ts)
+            → builtin b (inr (refl , ≤‴-step q)) As ts · t
+              —→ builtin b (inr (refl , q)) As (t ∷ ts)
   sat⋆-builtin : {b : Builtin}
             → ∀{o}{p : o <‴ arity⋆ b}
             → {As : Vec (ScopedTy n) o}
             → {A : ScopedTy n}
-            → {q : 0 ≤‴ arity b}
-            → builtin b (≤‴-step p) As q [] ·⋆ A
-              —→ builtin b p (A ∷ As) q []
-
+            → builtin b (inl (≤‴-step p , refl)) As [] ·⋆ A
+              —→ builtin b (inl (p , refl)) (A ∷ As) []
+  tick-builtin : {b : Builtin}
+            → {As : Vec (ScopedTy n) (arity⋆ b)}
+            → builtin b (inl (≤‴-refl , refl)) As []
+              —→ builtin b (inr (refl , z≤‴n)) As []
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
   β-wrap : {A B : ScopedTy n}{t : ScopedTm w}
     → Value t → unwrap (wrap A B t) —→ t
@@ -213,36 +213,35 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
               → ∀{o}{p : o <‴ arity b}
               → {ts : Vec (ScopedTm w) o}
               → {A : ScopedTy n}
-              → builtin b ≤‴-refl As (≤‴-step p) ts ·⋆ A —→ error missing
+              → builtin b (inr (refl , ≤‴-step p)) As ts ·⋆ A —→ error missing
   E-builtin⋆· : (b : Builtin)
               → ∀{o}(p : o <‴ arity⋆ b)
               → (As : Vec (ScopedTy n) o)
-              → (q : 0 <‴ arity b)
               → (t : ScopedTm w)
-              → builtin b (≤‴-step p) As (≤‴-step q) [] · t —→ error missing
+              → builtin b (inl (≤‴-step p , refl)) As [] · t —→ error missing
   E-builtinunwrap : {b : Builtin}
-                  → ∀{o}{p : o ≤‴ arity⋆ b}
-                  → {As : Vec (ScopedTy n) o}
+                  → {As : Vec (ScopedTy n) (arity⋆ b)}
                   → ∀{o'}{q : o' ≤‴ arity b}
                   → {ts : Vec (ScopedTm w) o'}
-                  → unwrap (builtin b p As q ts) —→ error missing
+                  → unwrap (builtin b (inr (refl , q)) As ts) —→ error missing
   E-builtin⋆unwrap : {b : Builtin}
                    → ∀{o}{p : o <‴ arity⋆ b}
                    → {As : Vec (ScopedTy n) o}
-                   → {q : 0 ≤‴ arity b}
-                   → unwrap (builtin b (≤‴-step p) As q [])
+                   → unwrap (builtin b (inl (≤‴-step p , refl)) As [])
                      —→ error missing
-  E-builtin⋆ : (b : Builtin)
-             → ∀{o}(p : o ≤‴ arity⋆ b)
-             → (As : Vec (ScopedTy n) o)
+{-
+E-builtin⋆ : (b : Builtin)
+             → (As : Vec (ScopedTy n) (arity b))
              → ∀{o'}(q : o' ≤‴ arity b)
              → (ts : Vec (ScopedTm w) o')
-             → builtin b p As q ts —→ error missing
+
+             → builtin b As ts {!!} —→ error missing
+-}
   E-builtin : (b : Builtin)
             → (As : Vec (ScopedTy n) (arity⋆ b))
             → (ts : Vec (ScopedTm w) (arity b))
             → Any Error ts
-            → builtin b ≤‴-refl As ≤‴-refl ts —→ error missing
+            → builtin b (inr (refl , ≤‴-refl)) As ts —→ error missing
 
 data _—→T_ {n}{w} where
   here  : ∀{m t t'}{ts : Tel m w} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
@@ -280,10 +279,8 @@ progress·V (V-ƛ A t)             (done v)            = step (β-ƛ v)
 progress·V (V-Λ p)               (done v)            = step E-Λ·
 progress·V (V-con tcn)           (done v)            = step E-con·
 progress·V (V-wrap A B t)        (done v)            = step E-wrap·
-{-
-progress·V (V-builtin⋆ b p As q)   (done v)            =
-  step (E-builtin⋆· b p As q _)
--}
+progress·V (V-builtin⋆ b As q)   (done v)            =
+  step (E-builtin⋆· b As q _)
 progress·V (V-builtin b As p ts) (done v)            = step sat-builtin
 
 progress· : ∀{n}{i : Weirdℕ n}
@@ -301,7 +298,7 @@ progress·⋆ (done (V-ƛ B t))             A = step E-ƛ·⋆
 progress·⋆ (done (V-Λ p))               A = step β-Λ
 progress·⋆ (done (V-con tcn))           A = step E-con·⋆
 progress·⋆ (done (V-wrap pat arg t))    A = step E-wrap·⋆
---progress·⋆ (done (V-builtin⋆ b p As q)) A = step sat⋆-builtin
+progress·⋆ (done (V-builtin⋆ b As p))   A = step sat⋆-builtin
 progress·⋆ (done (V-builtin b As p ts)) A = step E-builtin·⋆
 
 progress·⋆ (error (E-error A))          B = step E-·⋆
@@ -314,12 +311,12 @@ progress-unwrap (done (V-Λ p))               = step E-Λunwrap
 progress-unwrap (done (V-con tcn))           = step E-conunwrap
 progress-unwrap (done (V-wrap A B v))        = step (β-wrap v)
 progress-unwrap (done (V-builtin b As p ts)) = step E-builtinunwrap
---progress-unwrap (done (V-builtin⋆ b p As q)) = step E-builtin⋆unwrap
+progress-unwrap (done (V-builtin⋆ b As p))   = step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
 progress-builtin : ∀ {n}{i : Weirdℕ n} bn
   → (As : Vec (ScopedTy n) (arity⋆ bn)) (tel : Tel (arity bn) i)
-  → TelProgress tel → Progress (builtin bn ≤‴-refl As ≤‴-refl tel)
+  → TelProgress tel → Progress (builtin bn (inr (refl , ≤‴-refl)) As tel)
 progress-builtin bn As ts (done vs) = step (β-builtin vs)
 progress-builtin bn As ts (step p)  = step (ξ-builtin p)
 progress-builtin bn As ts (error p) = step (E-builtin bn As ts p)
@@ -355,20 +352,16 @@ progress p (ƛ A t)           = done (V-ƛ A t)
 progress p (t · u)           = progress· (progress p t) (progress p u)
 progress p (con c)           = done (V-con c)
 progress p (error A)         = error (E-error A)
-progress p (builtin b ≤‴-refl As ≤‴-refl ts) =
+-- type telescope is full
+progress p (builtin b (inl (≤‴-refl , refl)) As []) = step tick-builtin
+-- type telescope is not full yet
+progress p (builtin b (inl (≤‴-step q , refl)) As []) = done (V-builtin⋆ b q As)
+-- term telescope is full
+progress p (builtin b (inr (refl , ≤‴-refl)) As ts) =
   progress-builtin b As ts (progressTel p ts)
-progress p (builtin b ≤‴-refl As (≤‴-step r) ts) = done (V-builtin b As r ts)
--- TODO: currently fails in the presense of type args
-progress p (builtin b q As r ts) = step (E-builtin⋆ b q As r ts)
-{-
-  done (subst (λ p → Value (builtin b (≤‴-step q) As p []))
-              (lem≤‴ _ _)
-              (V-builtin⋆ b q As {!!}))
--}
-{-
-progress p (builtin b (≤‴-step q) As r (t ∷ ts)) =
-  step (E-builtin⋆ b q As r (t ∷ ts))
--}
+-- term telescope is not full yet
+progress p (builtin b (inr (refl , ≤‴-step snd)) As ts) = done (V-builtin b As snd ts)
+
 progress p (wrap A B t) with progress p t
 progress p (wrap A B t)          | step  q           = step (ξ-wrap q)
 progress p (wrap A B t)          | done  q           = done (V-wrap A B q)

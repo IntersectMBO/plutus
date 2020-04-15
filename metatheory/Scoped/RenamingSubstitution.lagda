@@ -55,7 +55,7 @@ ren ρ⋆ ρ (ƛ A t)  = ƛ (ren⋆ ρ⋆ A) (ren ρ⋆ (lift ρ) t)
 ren ρ⋆ ρ (t · u) = ren ρ⋆ ρ t · ren ρ⋆ ρ u
 ren ρ⋆ ρ (con x) = con x
 ren ρ⋆ ρ (error A) = error (ren⋆ ρ⋆ A)
-ren ρ⋆ ρ (builtin b p As q ts) = builtin b p (ren⋆T ρ⋆ As) q (renT ρ⋆ ρ ts)
+ren ρ⋆ ρ (builtin b p As ts) = builtin b p (ren⋆T ρ⋆ As) (renT ρ⋆ ρ ts)
 ren ρ⋆ ρ (wrap A B t) = wrap (ren⋆ ρ⋆ A) (ren⋆ ρ⋆ B) (ren ρ⋆ ρ t)
 ren ρ⋆ ρ (unwrap t) = unwrap (ren ρ⋆ ρ t)
 
@@ -106,7 +106,7 @@ sub σ⋆ σ (ƛ A t) = ƛ (sub⋆ σ⋆ A) (sub σ⋆ (slift σ) t)
 sub σ⋆ σ (t · u) = sub σ⋆ σ t · sub σ⋆ σ u
 sub σ⋆ σ (con c) = con c
 sub σ⋆ σ (error A) = error (sub⋆ σ⋆ A)
-sub σ⋆ σ (builtin b p As q ts) = builtin b p (sub⋆T σ⋆ As) q (subT σ⋆ σ ts)
+sub σ⋆ σ (builtin b p As ts) = builtin b p (sub⋆T σ⋆ As) (subT σ⋆ σ ts)
 sub σ⋆ σ (wrap A B t) = wrap (sub⋆ σ⋆ A) (sub⋆ σ⋆ B) (sub σ⋆ σ t)
 sub σ⋆ σ (unwrap t) = unwrap (sub σ⋆ σ t)
 
