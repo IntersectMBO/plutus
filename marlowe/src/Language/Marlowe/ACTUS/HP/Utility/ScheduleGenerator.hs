@@ -1,5 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
-module Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator where
+module Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator(
+  generateRecurrentSchedule,
+  endDateCorrection,
+  stubCorrection
+) where
 
 import Data.Char
 import Data.Time.Calendar

@@ -63,6 +63,9 @@ library
     Language.Marlowe.ACTUS.HP.POF.PAM
     Language.Marlowe.ACTUS.HP.Utility.DateShift
     Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
+    Language.Marlowe.ACTUS.HP.Utility.YearFraction
+    Language.Marlowe.ACTUS.HP.Utility.Annuity
+    Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
