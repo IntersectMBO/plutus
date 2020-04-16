@@ -13,7 +13,12 @@ is possible to apply either ξ-Λ inside ξ-·⋆ or β-Λ to the same
 term. Fixed.
 
 Added proof of determinism of the reduction rules to the source of the
-paper to paper source. Not shown in the pdf.
+paper to paper source. Not visible in the pdf.
 
 Added proof that progress returns an element of an 'exclusive or' to
-paper source. Not shown in the paper.
+paper source. Not visible in the pdf.
+
+16 April 2020:
+
+Added a proof that untype values do not reduce and that the untyped
+reduction rules are deterministic. Not visible in the pdf.

@@ -4306,4 +4306,19 @@ det (β-wrap p)   (ξ-unwrap q) = ⊥-elim (val (V-wrap p) (_ ,, q))
 det (ξ-unwrap p) (β-wrap q)   = ⊥-elim (val (V-wrap q) (_ ,, p))
 det (ξ-unwrap p) (ξ-unwrap q) = cong unwrap (det p q)
 det (ξ-wrap p)   (ξ-wrap q)   = cong (wrap _) (det p q)
+
+-- Untyped values cannot make progress
+valU : ∀{n}{t : n ⊢} → UValue t → ¬ (Σ (n ⊢) (t U—→_))
+valU (V-ƛ t) ()
+
+-- The untyped reduction rules are deterministic
+detU : ∀{n}{t t' t'' : n ⊢}
+  → (p : t U—→ t')(q : t U—→ t'') → t' ≡ t''
+detU (ξ-·₁ p)   (ξ-·₁ q)   = cong (_· _) (detU p q)
+detU (ξ-·₁ p)   (ξ-·₂ w q) = ⊥-elim (valU w (_ ,, p))
+detU (ξ-·₂ v p) (ξ-·₁ q)   = ⊥-elim (valU v (_ ,, q))
+detU (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (detU p q)
+detU (ξ-·₂ v p) (β-ƛ w)    = ⊥-elim (valU w (_ ,, p))
+detU (β-ƛ v)    (ξ-·₂ w q) = ⊥-elim (valU v (_ ,, q))
+detU (β-ƛ v)    (β-ƛ w)    = refl
 \end{code}
