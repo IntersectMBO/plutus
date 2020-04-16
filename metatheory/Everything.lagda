@@ -83,6 +83,6 @@ import Scoped.Erasure.RenamingSubstitution
 
 import Scoped.CK
 
--- import Check
+import Check
 import Main
 \end{code}

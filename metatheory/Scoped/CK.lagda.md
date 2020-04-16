@@ -7,6 +7,11 @@ module Scoped.CK where
 ```
 open import Function
 open import Data.Bool using (Bool;true;false)
+open import Data.String
+open import Data.Sum
+open import Data.Product
+open import Relation.Binary.PropositionalEquality using (refl;inspect;subst;sym;_≡_) renaming ([_] to [[_]])
+open import Data.Unit
 
 open import Type
 open import Type.BetaNormal
@@ -14,7 +19,6 @@ open import Scoped
 open import Scoped.Reduction hiding (step)
 open import Builtin
 open import Scoped.RenamingSubstitution
-open import Data.String
 open import Relation.Nullary
 open import Utils
 ```
@@ -58,7 +62,10 @@ open import Data.Nat
 
 VTel-extend : ∀{o n}{i : Weirdℕ n} → {tel : Tel i o} → VTel o i tel → {t : ScopedTm i} → Value t → VTel (suc o) i (tel :< t)
 VTel-extend {tel = []} vs {t} v = v ,, _
-VTel-extend {tel = t' ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v 
+VTel-extend {tel = t' ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v
+
+vtel-lem : ∀{m n}{i : Weirdℕ m}(p : 0 ≡ n) → VTel n i (subst (Tel i) p [])
+vtel-lem refl = tt
 
 step : ∀{n n'}{i : Weirdℕ n}{i' : Weirdℕ n'}
   → NoVar i' → State i i' → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × State i i'
@@ -70,8 +77,22 @@ step p (s ▻ (L · M))          = _ ,, _ ,, p ,, (s , (-· M)) ▻ L
 step p (s ▻ con cn)           = _ ,, _ ,, p ,, s ◅ V-con cn
   -- ^ why is i inferrable?
 
--- not attempting to compute builtins
-step {i' = i'} p (s ▻ builtin bn q As ts) = _ ,, i' ,, p ,, ◆
+-- type telescope is full
+step {i' = i'} p (s ▻ builtin bn (inj₁ (≤‴-refl ,, refl)) As ts) = _ ,, _ ,, p ,, (s ▻ builtin bn (inj₂ (refl ,, z≤‴n)) As ts)
+-- type telescope is not full yet
+step {i' = i'} p (s ▻ builtin bn (inj₁ (≤‴-step q ,, r)) As ts) = _ ,, _ ,, p ,, (s ◅ V-builtin⋆ bn q As)
+
+-- term telescope is full
+step {i' = i'} p (s ▻ builtin bn (inj₂ (q ,, ≤‴-refl)) As ts) with arity bn | inspect arity bn
+-- (annoying special case for builtin with no args)
+step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As ts)       | zero  | [[ eq ]] =
+  _ ,, _ ,, p ,, (s ▻ BUILTIN bn As (subst (Tel _) (sym eq) []) (vtel-lem (sym eq)))
+-- (case for builtin with at least one arg)
+step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As (t ∷ ts)) | suc n | [[ eq ]] =
+  _ ,, _ ,, p ,, ((s , builtin- bn As tt ts) ▻ t )
+  
+-- term telescope is not full
+step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-step r)) As ts) = _ ,, _ ,, p ,, (s ◅ V-builtin bn As r ts)
 
 step {i' = i'} p (s ▻ error A)           = _ ,, i' ,, p ,, ◆
 step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
