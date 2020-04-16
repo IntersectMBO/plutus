@@ -40,10 +40,10 @@ import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Help (marloweTypeMarkerText)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), Timeout, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
@@ -65,7 +65,7 @@ instance semigroupMax :: Semigroup MaxTimeout where
   append a b = max a b
 
 instance monoidMaxTimeout :: Monoid MaxTimeout where
-  mempty = MaxTimeout zero
+  mempty = MaxTimeout (Timeout zero zero)
 
 data Warning
   = NegativePayment IRange
@@ -209,7 +209,7 @@ constToObs true = Term TrueObs { row: 0, column: 0 }
 constToObs false = Term FalseObs { row: 0, column: 0 }
 
 constToVal :: BigInteger -> Term Value
-constToVal x = Term (Constant (Term x { row: 0, column: 0 })) { row: 0, column: 0 }
+constToVal x = Term (Constant x) { row: 0, column: 0 }
 
 -- | We lintContract through a contract term collecting all warnings and holes etc so that we can display them in the editor
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
@@ -254,19 +254,12 @@ lintContract env (Term (If obs c1 c2) _) = do
       markSimplification constToObs SimplifiableObservation obs sa
       pure unit
 
-lintContract env (Term (When cases hole@(Hole _ _ _) cont) _) = do
-  traverse_ (lintCase env) cases
-  modifying _holes (insertHole hole)
-  lintContract env cont
-  pure unit
-
-lintContract env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
+lintContract env (Term (When cases timeout@(Timeout slot pos) cont) _) = do
   let
-    timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange timeout pos))
+    timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange slot pos))
 
     newEnv = (over _maxTimeout (max timeout)) env
   traverse_ (lintCase newEnv) cases
-  modifying _holes (insertHole timeoutTerm)
   modifying _warnings (Set.union timeoutNotIncreasing)
   lintContract newEnv cont
   pure unit
@@ -393,11 +386,7 @@ lintValue env t@(Term (AvailableMoney acc token) pos) = do
   modifying _holes gatherHoles
   pure (ValueSimp pos false t)
 
-lintValue env (Term (Constant (Term v pos2)) pos) = pure (ConstantSimp pos false v)
-
-lintValue env t@(Term (Constant h@(Hole _ _ _)) pos) = do
-  modifying _holes (insertHole h)
-  pure (ValueSimp pos false t)
+lintValue env (Term (Constant v) pos) = pure (ConstantSimp pos false v)
 
 lintValue env t@(Term (NegValue a) pos) = do
   sa <- lintValue env a

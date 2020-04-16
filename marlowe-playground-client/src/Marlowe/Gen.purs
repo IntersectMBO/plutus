@@ -12,8 +12,8 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
-import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Timeout(..), Token(..), Value(..), ValueId(..))
+import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
@@ -39,7 +39,7 @@ genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
 genTimeout :: forall m. MonadGen m => MonadRec m => m Timeout
-genTimeout = genSlot
+genTimeout = Timeout <$> genSlot <*> pure { row: 0, column: 0 }
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -59,9 +59,9 @@ genTokenName = genString
 genParty :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Party
 genParty = oneOf $ pk :| [ role ]
   where
-  pk = PK <$> genTerm genPubKey
+  pk = PK <$> genPubKey
 
-  role = Role <$> genTerm genTokenName
+  role = Role <$> genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
 genCurrencySymbol = genString
@@ -75,9 +75,8 @@ genSlotInterval gen = do
 genBound :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Bound
 genBound = do
   from <- genBigInteger
-  from' <- genTerm $ pure from
-  to <- genTerm $ suchThat genBigInteger (\v -> v > from)
-  pure $ Bound from' to
+  to <- suchThat genBigInteger (\v -> v > from)
+  pure $ Bound from to
 
 genPosition :: forall m. MonadGen m => MonadRec m => m Pos
 genPosition = chooseInt 0 1000
@@ -97,19 +96,19 @@ genTerm g = do
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do
-  accountNumber <- genTerm genBigInteger
+  accountNumber <- genBigInteger
   accountOwner <- genTerm genParty
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Token
 genToken = do
-  currencySymbol <- genTerm genCurrencySymbol
-  tokenName <- genTerm genTokenName
+  currencySymbol <- genCurrencySymbol
+  tokenName <- genTokenName
   pure $ Token currencySymbol tokenName
 
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ChoiceId
 genChoiceId = do
-  choiceName <- genTerm genString
+  choiceName <- genString
   choiceOwner <- genTerm genParty
   pure $ ChoiceId choiceName choiceOwner
 
@@ -175,7 +174,7 @@ genValue' size
         oneOf $ pure SlotIntervalStart
           :| [ pure SlotIntervalEnd
             , AvailableMoney <$> genTerm genAccountId <*> genTerm genToken
-            , Constant <$> genTerm genBigInteger
+            , Constant <$> genBigInteger
             , NegValue <$> genNewValue
             , AddValue <$> genNewValue <*> genNewValue
             , SubValue <$> genNewValue <*> genNewValue
@@ -187,7 +186,7 @@ genValue' size
     oneOf $ pure SlotIntervalStart
       :| [ pure SlotIntervalEnd
         , AvailableMoney <$> genTerm genAccountId <*> genTerm genToken
-        , Constant <$> genTerm genBigInteger
+        , Constant <$> genBigInteger
         , UseValue <$> genTerm genValueId
         ]
 
@@ -273,7 +272,7 @@ genContract' size
         oneOf $ pure Close
           :| [ Pay <$> genTerm genAccountId <*> genTerm genPayee <*> genTerm genToken <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContract <*> genNewContract
-            , When <$> genCases newSize <*> genTerm genTimeout <*> genNewContract
+            , When <$> genCases newSize <*> genTimeout <*> genNewContract
             , Let <$> genTerm genValueId <*> genNewValue <*> genNewContract
             ]
   | otherwise = genLeaf

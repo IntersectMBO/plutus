@@ -15,8 +15,8 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
-import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Timeout(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
+import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
@@ -29,22 +29,23 @@ type HelperFunctions a
   = { mkHole :: String -> { row :: Pos, column :: Pos } -> Term a
     , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
     , mkBigInteger :: Int -> BigInteger
+    , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> Timeout
     , mkClose :: Contract
     , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
-    , mkWhen :: Array (Term Case) -> Term Slot -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> Timeout -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: Term ValueId -> Term Value -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
-    , mkBound :: Term BigInteger -> Term BigInteger -> Bound
+    , mkBound :: BigInteger -> BigInteger -> Bound
     , mkDeposit :: Term AccountId -> Term Party -> Term Token -> Term Value -> Action
     , mkChoice :: Term ChoiceId -> Array (Term Bound) -> Action
     , mkNotify :: Term Observation -> Action
-    , mkChoiceId :: Term String -> Term Party -> ChoiceId
+    , mkChoiceId :: String -> Term Party -> ChoiceId
     , mkValueId :: String -> ValueId
-    , mkAccountId :: Term BigInteger -> Term Party -> AccountId
-    , mkToken :: Term String -> Term String -> Token
-    , mkPK :: Term String -> Party
-    , mkRole :: Term String -> Party
+    , mkAccountId :: BigInteger -> Term Party -> AccountId
+    , mkToken :: String -> String -> Token
+    , mkPK :: String -> Party
+    , mkRole :: String -> Party
     , mkAccount :: Term AccountId -> Payee
     , mkParty :: Term Party -> Payee
     , mkAndObs :: Term Observation -> Term Observation -> Observation
@@ -59,7 +60,7 @@ type HelperFunctions a
     , mkTrueObs :: Observation
     , mkFalseObs :: Observation
     , mkAvailableMoney :: Term AccountId -> Term Token -> Value
-    , mkConstant :: Term BigInteger -> Value
+    , mkConstant :: BigInteger -> Value
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
@@ -76,6 +77,7 @@ helperFunctions =
   { mkHole: mkHole
   , mkTerm: Term
   , mkBigInteger: BigInteger.fromInt
+  , mkTimeout: \v pos -> Timeout (Slot (BigInteger.fromInt v)) pos
   , mkClose: Close
   , mkPay: Pay
   , mkWhen: When
@@ -234,8 +236,14 @@ slot = Slot <$> maybeParens bigInteger
 slotTerm :: Parser (Term Slot)
 slotTerm = parseTerm slot
 
+-- timeout :: Parser Timeout
+-- timeout = slot
 timeout :: Parser Timeout
-timeout = slot
+timeout = do
+  result <- bigIntegerTerm
+  case result of
+    (Hole _ _ pos) -> fail ""
+    (Term v pos) -> pure $ Timeout (Slot v) pos
 
 accountId :: Parser AccountId
 accountId =
@@ -243,7 +251,7 @@ accountId =
     skipSpaces
     void $ string "AccountId"
     void someWhiteSpace
-    first <- parseTerm $ maybeParens bigInteger
+    first <- bigInteger
     void someWhiteSpace
     second <- parseTerm $ parens party
     skipSpaces
@@ -255,7 +263,7 @@ choiceId =
     skipSpaces
     void $ string "ChoiceId"
     void someWhiteSpace
-    first <- parseTerm text
+    first <- text
     void someWhiteSpace
     second <- parseTerm $ parens party
     skipSpaces
@@ -278,7 +286,7 @@ rational = do
 recValue :: Parser Value
 recValue =
   (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId) <**> parseTerm (parens token))
-    <|> (Constant <$> (string "Constant" **> bigIntegerTerm))
+    <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
@@ -331,8 +339,8 @@ pubkey = text
 
 party :: Parser Party
 party =
-  (PK <$> (string "PK" **> parseTerm pubkey))
-    <|> (Role <$> (string "Role" **> parseTerm tokenName))
+  (PK <$> (string "PK" **> pubkey))
+    <|> (Role <$> (string "Role" **> tokenName))
 
 currencySymbol :: Parser CurrencySymbol
 currencySymbol = text
@@ -345,9 +353,9 @@ token = do
   skipSpaces
   void $ string "Token"
   void someWhiteSpace
-  first <- parseTerm text
+  first <- text
   void someWhiteSpace
-  second <- parseTerm text
+  second <- text
   skipSpaces
   pure $ Token first second
 
@@ -356,9 +364,9 @@ bound = do
   skipSpaces
   void $ string "Bound"
   void someWhiteSpace
-  first <- parseTerm $ maybeParens bigInteger
+  first <- bigInteger
   void someWhiteSpace
-  second <- parseTerm $ maybeParens bigInteger
+  second <- bigInteger
   skipSpaces
   pure (Bound first second)
 
@@ -398,7 +406,7 @@ recContract =
       <**> contract'
   )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
-    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> parseTerm timeout <**> contract')
+    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> timeout <**> contract')
     <|> (Let <$> (string "Let" **> parseTerm valueId) <**> value' <**> contract')
     <|> (fail "not a valid Contract")
   where
