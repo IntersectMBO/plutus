@@ -61,19 +61,19 @@ evalTestNames = ["succInteger"
                 ]
 
 tcTestNames  = ["succInteger"
---               ,"unitval"
---               ,"true"
---               ,"false"
+               ,"unitval"
+               ,"true"
+               ,"false"
                ,"churchZero"
                ,"churchSucc"
---               ,"overapplication"
---               ,"factorial"
---               ,"fibonacci"
+               ,"overapplication"
+               ,"factorial"
+               ,"fibonacci"
                ,"NatRoundTrip"
                ,"ListSum"
---               ,"IfIntegers"
---               ,"ApplyAdd1"
---               ,"ApplyAdd2"
+               ,"IfIntegers"
+               ,"ApplyAdd1"
+               ,"ApplyAdd2"
                ]
 
 mkTest :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> TestInstance
@@ -87,9 +87,9 @@ mkTest eq mode test = TestInstance
 tests :: IO [Test]
 tests = do --return [ Test succeeds ] -- , Test fails ]
   return $ map Test
-    (map (mkTest M.alphaTm "evaluate") evalTestNames )
---     ++
---     map (mkTest M.alphaTy "typecheck") tcTestNames)
+    (map (mkTest M.alphaTm "evaluate") evalTestNames
+     ++
+     map (mkTest M.alphaTy "typecheck") tcTestNames)
   where
     fails = TestInstance
         { run = return $ Finished $ Fail "Always fails!"
