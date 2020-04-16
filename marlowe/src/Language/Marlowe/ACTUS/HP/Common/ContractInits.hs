@@ -1,0 +1,1 @@
+module Language.Marlowe.ACTUS.HP.Common.ContractInits where

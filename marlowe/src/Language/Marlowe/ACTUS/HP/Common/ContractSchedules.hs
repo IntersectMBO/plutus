@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.Schedule.PAM where
+module Language.Marlowe.ACTUS.HP.Common.ContractSchedules where
 
 import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.HP.Utility.DateShift
