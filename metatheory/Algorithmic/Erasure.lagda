@@ -236,7 +236,7 @@ sameTel : ∀{Φ Γ Δ Δ'}
     ≡
     subst (λ n → Vec (n ⊢) (length As')) (lenLemma Γ) (eraseTel (nfTypeTel' σ As p As' q tel) )
 sameTel {Γ = Γ} σ [] refl .[] refl refl tel = lem[]' (lenLemma Γ)
-sameTel {Γ = Γ} σ (A ∷ As) refl .(nf A ∷ nfList As) refl r (t ,, ts) = trans (sym (lem∷' (suc-injective r) r (D.erase t) (D.eraseTel ts))) (trans (cong₂ _∷_ (same t) (sameTel σ As refl (nfList As) refl (suc-injective r) ts)) (trans (lem∷ (lenLemma Γ) (erase (nfType t)) (eraseTel (nfTypeTel σ As ts))) (cong (λ t → subst (λ n → Vec (n ⊢) (suc (length (nfList As)))) (lenLemma Γ) (t ∷ eraseTel (nfTypeTel σ As ts))) (lem-erase' ((sym
+sameTel {Γ = Γ} σ (A ∷ As) refl .(nf A ∷ nfList As) refl r (t D.∷ ts) = trans (sym (lem∷' (suc-injective r) r (D.erase t) (D.eraseTel ts))) (trans (cong₂ _∷_ (same t) (sameTel σ As refl (nfList As) refl (suc-injective r) ts)) (trans (lem∷ (lenLemma Γ) (erase (nfType t)) (eraseTel (nfTypeTel σ As ts))) (cong (λ t → subst (λ n → Vec (n ⊢) (suc (length (nfList As)))) (lenLemma Γ) (t ∷ eraseTel (nfTypeTel σ As ts))) (lem-erase' ((sym
       (trans
         (trans
           (subst-eval (embNf (nf A)) idCR (embNf ∘ nf ∘ σ))

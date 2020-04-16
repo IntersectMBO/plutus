@@ -196,11 +196,11 @@ embTel : ∀{Φ Γ Δ Δ'}(q : Δ' ≡ Δ)
 
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 
-embTel refl [] [] p σ x = tt
+embTel refl [] [] p σ x = Dec.[]
 embTel refl [] (A' ∷ As') () σ x
 embTel refl (A ∷ As) [] () σ x
 embTel refl (A ∷ As) (A' ∷ As') (p ,, p') σ (t Alg.∷ tel) =
-  Dec.conv (lemsub A A' σ p) (emb t) ,, embTel refl As As' p' σ tel
+  Dec.conv (lemsub A A' σ p) (emb t) Dec.∷ embTel refl As As' p' σ tel
 
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)

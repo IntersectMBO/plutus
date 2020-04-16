@@ -87,6 +87,6 @@ erase (error A)         = error
 
 open import Data.Product renaming (_,_ to _,,_)
 
-eraseTel {As = []}     _          = []
-eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
+eraseTel {As = []}     _         = []
+eraseTel {As = x ∷ As} (t ∷ tel) = erase t ∷ eraseTel tel
 \end{code}

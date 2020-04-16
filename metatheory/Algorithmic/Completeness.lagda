@@ -227,8 +227,8 @@ nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
 
-nfTypeTel σ []        _ = Norm.[]
-nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
+nfTypeTel σ []           _            = Norm.[]
+nfTypeTel {Γ} σ (A ∷ As) (M Syn.∷ Ms) =
   Norm.conv⊢
     refl
     (sym

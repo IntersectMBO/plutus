@@ -101,8 +101,8 @@ an abstraction, an application, a type abstraction, or a type
 application.
 
 \begin{code}
-Tel : ∀ {Γ⋆} Γ Δ → Sub Δ Γ⋆ → List (Δ ⊢⋆ *) → Set
-
+data Tel {Φ} Γ Δ (σ : Sub Δ Φ) : List (Δ ⊢⋆ *) → Set
+  
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   ` : {A : Φ ⊢⋆ *}
@@ -165,8 +165,9 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   error : (A : Φ ⊢⋆ *) → Γ ⊢ A
 
-Tel Γ Δ σ [] = ⊤
-Tel Γ Δ σ (A ∷ As) = Γ ⊢ subst σ A × Tel Γ Δ σ As
+data Tel {Φ} Γ Δ σ where
+  []  : Tel Γ Δ σ []
+  _∷_ : ∀{A As} → Γ ⊢ subst σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
 \end{code}
 
 \begin{code}
@@ -190,6 +191,6 @@ conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢⋆ *}
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
 
-convTel p σ []       _         = tt
-convTel p σ (A ∷ As) (t ,, ts) = conv⊢ p refl t ,, convTel p σ As ts
+convTel p σ []       []         = []
+convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 \end{code}

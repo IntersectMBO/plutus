@@ -81,9 +81,9 @@ renTel : ∀ {Φ Φ' Γ Γ' Δ}
  → Tel Γ Δ σ As
  → Tel Γ' Δ (⋆.ren ρ⋆ ∘ σ) As
 
-renTel _ ρ {As = []}     _         = _
-renTel _ ρ {As = A ∷ As} (M ,, Ms) =
-  conv⊢ refl (sym (⋆.ren-subst A)) (ren _ ρ M) ,, renTel _ ρ Ms
+renTel _ ρ {As = []}     []       = []
+renTel _ ρ {As = A ∷ As} (M ∷ Ms) =
+  conv⊢ refl (sym (⋆.ren-subst A)) (ren _ ρ M) ∷ renTel _ ρ Ms
 
 ren _ ρ (` x)    = ` (ρ x)
 ren _ ρ (ƛ N)    = ƛ (ren _ (ext _ ρ) N)
@@ -188,9 +188,9 @@ substTel : ∀ {Φ Ψ Γ Γ' Δ}
  → {As : List (Δ ⊢⋆ *)}
  → Tel Γ Δ σ' As
  → Tel Γ' Δ (⋆.subst σ⋆ ∘ σ') As
-substTel _ σ {As = []}     _         = _
-substTel _ σ {As = A ∷ As} (M ,, Ms) = 
-  conv⊢ refl (sym (⋆.subst-comp A)) (subst _ σ M)  ,, substTel _ σ Ms
+substTel _ σ {As = []}     []       = []
+substTel _ σ {As = A ∷ As} (M ∷ Ms) = 
+  conv⊢ refl (sym (⋆.subst-comp A)) (subst _ σ M) ∷ substTel _ σ Ms
 subst _ σ (` k)                       = σ k
 subst _ σ (ƛ N)                       = ƛ (subst _ (exts _ σ) N)
 subst _ σ (L · M)                     = subst _ σ L · subst _ σ M

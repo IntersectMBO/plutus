@@ -153,11 +153,6 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
   error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
-{-
-Tel Γ Δ σ [] = ⊤
-Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
--}
-
 data Tel {Φ} Γ Δ σ where
   []  : Tel Γ Δ σ []
   _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
