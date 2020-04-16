@@ -74,6 +74,8 @@ data Period = P_D -- Day
             | P_Y -- Year
             deriving (Show, Eq, Ord)
 
+data PREF = PREF_N | PREF_Y -- wether PP is allowed
+
 data Stub = ShortStub | LongStub deriving (Show, Eq, Ord)
 
 data Cycle = Cycle
@@ -81,6 +83,14 @@ data Cycle = Cycle
   , p :: Period
   , stub :: Stub
   } deriving (Show, Eq, Ord)
+
+data ScheduleConfig = ScheduleConfig
+  {
+    calendar :: Calendar
+  , includeEndDay :: Bool
+  , eomc :: EOMC
+  , bdc :: BDC
+  }
 
 -- all contract terms in a composite contract
 type ContractTermsContext = Map String ContractTerms
@@ -98,6 +108,11 @@ data ContractTerms = PamContractTerms {
   , _PTD :: Double
   , _cPYRT :: Double
   , _DCC :: DCC
+  , _IED :: Day
+  , _PREF :: PREF
+  , _OPCL :: Maybe Cycle
+  , _OPANX :: Maybe Day
+  , scfg :: ScheduleConfig
   } | LamContractTerms { 
     _MD :: Day
   , _CNTRL :: ContractRole

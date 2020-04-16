@@ -1,13 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator(
-  generateRecurrentSchedule,
-  endDateCorrection,
-  stubCorrection
+  generateRecurrentScheduleWithCorrections
+  , plusCycle
 ) where
 
 import Data.Char
 import Data.Time.Calendar
-import qualified Data.List as List
+import qualified Data.List as L
 
 import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.Schedule
@@ -39,12 +38,12 @@ type EndDay = Day
 
 stubCorrection :: Stub -> EndDay -> ShiftedSchedule -> ShiftedSchedule
 stubCorrection stub endDay schedule =
-  if (paymentDay $ List.last schedule) == endDay && stub == ShortStub then schedule else List.init schedule
+  if (paymentDay $ L.last schedule) == endDay && stub == ShortStub then schedule else L.init schedule
 
 endDateCorrection :: Bool -> EndDay -> Schedule -> Schedule
 endDateCorrection includeEndDay endDay schedule 
-  | includeEndDay && not (List.elem endDay schedule) = schedule ++ [endDay]
-  | (not includeEndDay) && (List.elem endDay schedule) = List.init schedule
+  | includeEndDay && not (L.elem endDay schedule) = schedule ++ [endDay]
+  | (not includeEndDay) && (L.elem endDay schedule) = L.init schedule
 
 generateRecurrentSchedule :: Cycle -> AnchorDay -> EndDay -> Schedule
 generateRecurrentSchedule cycle@Cycle{..} anchorDate endDate = 
@@ -55,6 +54,18 @@ generateRecurrentSchedule cycle@Cycle{..} anchorDate endDate =
                                                  in go current' (k + 1) (acc ++ [current]))
   in go anchorDate 0 []                                                
                                               
+
+generateRecurrentScheduleWithCorrections :: AnchorDay -> Cycle -> EndDay -> ScheduleConfig -> ShiftedSchedule
+generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig{..} = 
+  let schedule = generateRecurrentSchedule cycle anchorDate endDate
+      schedule' = endDateCorrection includeEndDay endDate schedule
+      schedule'' = L.map (applyEOMC anchorDate cycle eomc) schedule'
+      schedule''' = L.map (applyBDC bdc calendar) schedule''
+      schedule'''' = stubCorrection (stub cycle) endDate schedule'''
+  in  schedule''''
+
+plusCycle :: Day -> Cycle -> Day 
+plusCycle date cycle = shiftDate date (n cycle) (p cycle)
 
 shiftDate :: Day -> Integer -> Period -> Day
 shiftDate date n p =
@@ -68,8 +79,8 @@ shiftDate date n p =
 
 
 {- End of Month Convention -}
-applyEOMC :: Day -> Day -> Cycle -> EOMC -> Day
-applyEOMC date s cycle@Cycle{n = n, p = p} endOfMonthConvention
+applyEOMC :: Day -> Cycle -> EOMC -> Day -> Day
+applyEOMC s cycle@Cycle{n = n, p = p} endOfMonthConvention date
   | ((isLastDayOfMonthWithLessThan31Days s) &&
       p /= P_D && p /= P_W &&
       endOfMonthConvention == EOMC_EOM

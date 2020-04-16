@@ -1,4 +1,6 @@
-module Language.Marlowe.ACTUS.HP.Utility.DateShift(applyBDC) where
+{-# LANGUAGE RecordWildCards #-}
+
+module Language.Marlowe.ACTUS.HP.Utility.DateShift(applyBDC, applyBDCWithCfg) where
 
 import Debug.Trace
 
@@ -10,56 +12,60 @@ import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.Schedule
 
 {- Business Day Convention -}
-applyBDC :: Day -> BDC -> Calendar -> ShiftedDay
-applyBDC date BDC_NULL _ =
+
+applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
+applyBDCWithCfg ScheduleConfig{..} date = applyBDC bdc calendar date
+
+applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
+applyBDC BDC_NULL _ date =
   ShiftedDay {
     paymentDay = date, 
     calculationDay = date
   }
 
-applyBDC date BDC_SCF calendar =
+applyBDC BDC_SCF calendar date =
   ShiftedDay {
     paymentDay = maybeShiftToFollowingBusinessDay date calendar, 
     calculationDay = maybeShiftToFollowingBusinessDay date calendar
   }
   
-applyBDC date BDC_SCMF calendar =
+applyBDC BDC_SCMF calendar date =
   ShiftedDay {
     paymentDay = shiftModifiedFollowing date calendar, 
     calculationDay = shiftModifiedFollowing date calendar
   }
 
-applyBDC date BDC_CSF calendar =
+applyBDC BDC_CSF calendar date =
   ShiftedDay {
     paymentDay = maybeShiftToFollowingBusinessDay date calendar, 
     calculationDay = date
   }
 
-applyBDC date BDC_CSMF calendar =
+applyBDC BDC_CSMF calendar date =
   ShiftedDay {
     paymentDay = shiftModifiedFollowing date calendar, 
     calculationDay = date
   }
 
-applyBDC date BDC_SCP calendar =
+applyBDC BDC_SCP calendar date =
   ShiftedDay {
     paymentDay = maybeShiftToPreceedingBusinessDay date calendar, 
     calculationDay = maybeShiftToPreceedingBusinessDay date calendar
   }
 
-applyBDC date BDC_SCMP calendar =
+applyBDC BDC_SCMP calendar date =
   ShiftedDay {
     paymentDay = shiftModifiedPreceeding date calendar, 
     calculationDay = shiftModifiedPreceeding date calendar
   }
 
-applyBDC date BDC_CSP calendar =
+applyBDC BDC_CSP calendar date =
   ShiftedDay {
     paymentDay = maybeShiftToPreceedingBusinessDay date calendar, 
     calculationDay = date
   }
 
-applyBDC date BDC_CSMP calendar =
+applyBDC BDC_CSMP calendar date =
   ShiftedDay {
     paymentDay = shiftModifiedPreceeding date calendar, 
     calculationDay = date
