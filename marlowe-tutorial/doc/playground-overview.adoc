@@ -4,7 +4,8 @@
 This tutorial gives an overview of the Marlowe Playground, an online
 tool that allows users to create, to analyse, to interact with and to simulate the 
 operation of
-embedded Marlowe contracts. It is available at https://alpha.marlowe.iohkdev.io/[https://alpha.marlowe.iohkdev.io/]
+embedded Marlowe contracts. It is available at {marloweplayground}.
+// https://alpha.marlowe.iohkdev.io/[https://alpha.marlowe.iohkdev.io/]
 
 
 
@@ -46,7 +47,7 @@ image:simulation-tab.png[The Simulation tab]
 
 The simulation tab is selected on the left-hand side of the screen (number 1 in the figure). At the foot of this side of the screen, and on all tabs, is a link to the online tutorial for Marlowe (number 2). The pane also contains a number of example contracts, and these are selected above the main editor window (number 3).
 
-Contracts in the simulator can be transferred to the Blockly visual editor (button number 4), and if you have a github account, it's also possible to save contracts that you develop as _github gists_ (number 5). To do this log into your account using the  *Log in* button at the top right of the screen. You will then see buttons to allow you to *Publish* or save contracts as gists, and to *Load* contracts from github.
+Contracts in the simulator can be transferred to the Blockly visual editor (button number 4), and if you have a GitHub account, it's also possible to save contracts that you develop as _GitHub gists_ (number 5). To do this, log into your account using the  *Log in* button at the top right of the screen. You will then see buttons to allow you to *Publish* or save contracts as gists, and to *Load* contracts from GitHub.
 
 The tile at the foot of the window (number 6) gives information about the current contract and its state. The tab shown here will give information about the state of execution of the Marlowe contract, including the values held in the various accounts of the contract, choices and payments made, the current block number and so on. Other tabs give access to static analysis and its results, as well as other warnings and errors.
 
