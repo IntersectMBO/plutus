@@ -2,6 +2,8 @@
 module Utils where
 
 open import Relation.Binary.PropositionalEquality
+open import Data.Nat
+open import Data.Nat.Properties
 
 data Maybe (A : Set) : Set where
   just : A → Maybe A
@@ -18,6 +20,7 @@ map f (just a) = just (f a)
 map f nothing  = nothing
 
 open import Relation.Nullary
+open import Data.Empty
 
 decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
@@ -29,4 +32,23 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
+
+z≤‴n : ∀ {n} → zero  ≤‴ n
+z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
+
+lem¬≤ : ∀{n} → ¬ (suc n Data.Nat.≤ n)
+lem¬≤ (s≤s p) = lem¬≤ p
+
+lem≤‴ : ∀{m n}(p q : m ≤‴ n) → p ≡ q
+lem≤‴ ≤‴-refl ≤‴-refl     = refl
+lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ q)))
+lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
+lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
+
+open import Data.Vec
+
+_:<_ : ∀{A : Set}{n} → Vec A n → A → Vec A (suc n)
+[]        :< a = a ∷ []
+(a' ∷ as) :< a = a' ∷ (as :< a)
+
 \end{code}

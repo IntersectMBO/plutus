@@ -77,49 +77,13 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- an actual error term
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
 
-  -- error inside somewhere
-{-
-E-Λ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *} {L : Γ ,⋆ K ⊢ B}
-    → Error L → Error (Λ L)
-  E-·₁ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
-    → Error L → Error (L · M)
-  E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}{M : Γ ⊢ A}
-    → Error M → Error (L · M)
-  E-·⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}
-    {L : Γ ⊢ Π B}{A : Φ ⊢Nf⋆ K}
-    → Error L → Error (L ·⋆ A)
-  E-unwrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {L : Γ ⊢ ne (μ1 · pat · arg)}
-    → Error L
-    → Error (unwrap1 L)
-  E-wrap : ∀{Φ Γ K}
-    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
-    → {arg : Φ ⊢Nf⋆ K}
-    → {term : Γ ⊢  _}
-    → Error term
-    → Error (wrap1 pat arg term) 
-  E-builtin : ∀{Φ Γ}  → (bn : Builtin)
-    → let Δ ,, As ,, C = SIG bn in
-      (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → (vtel : VTel Γ Δ σ Bs telB)
-    → ∀{D}{t : Γ ⊢ substNf σ D}
-    → Error t
-    → (p : Bs ++ (D ∷ Ds) ≡ As)
-    → (telD : Tel Γ Δ σ Ds)
-    → Error (builtin bn σ tel)
--}
 \end{code}
 
 \begin{code}
 -- this should be a predicate over telescopes
 
-VTel Γ Δ σ []       tt         = ⊤
-VTel Γ Δ σ (A ∷ As) (t ,, tel) = Value t × VTel Γ Δ σ As tel
+VTel Γ Δ σ []       []        = ⊤
+VTel Γ Δ σ (A ∷ As) (t ∷ tel) = Value t × VTel Γ Δ σ As tel
 
 convVal :  ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')
   → ∀{t : Γ ⊢ A} → Value t → Value (conv⊢ p q t)
@@ -140,44 +104,44 @@ BUILTIN : ∀{Φ Γ}
     → (vtel : VTel Γ Δ σ As tel)
       -----------------------------
     → Γ ⊢ substNf σ C
-BUILTIN addInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   con (integer (i + j))
-BUILTIN subtractInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN subtractInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   con (integer (i - j))
-BUILTIN multiplyInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   con (integer (i ** j))
-BUILTIN divideInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (div i j)))
-BUILTIN quotientInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (quot i j)))
-BUILTIN remainderInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (rem i j)))
-BUILTIN modInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (∣ j ∣ Data.Nat.≟ zero) (error _) (con (integer (mod i j)))
-BUILTIN lessThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i <? j) (con (bool true)) (con (bool false))
-BUILTIN lessThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt)
+BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt)
   = decIf (i ≤? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i Builtin.Constant.Type.>? j) (con (bool true)) (con (bool false))
-BUILTIN greaterThanEqualsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i Builtin.Constant.Type.≥? j) (con (bool true)) (con (bool false))
-BUILTIN equalsInteger _ _ (V-con (integer i) ,, V-con (integer j) ,, tt) =
+BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (integer j) ,, tt) =
   decIf (i ≟ j) (con (bool true)) (con (bool false))
-BUILTIN concatenate _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
+BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
   con (bytestring (append b b'))
-BUILTIN takeByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
+BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   con (bytestring (take i b))
-BUILTIN dropByteString _ _ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
+BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
   con (bytestring (drop i b))
-BUILTIN sha2-256 _ _ (V-con (bytestring b) ,, tt) =
+BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) ,, tt) =
   con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 _ _ (V-con (bytestring b) ,, tt) =
+BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) ,, tt) =
   con (bytestring (SHA3-256 b))
-BUILTIN verifySignature _ _ (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
-BUILTIN equalsByteString _ _ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
-BUILTIN ifThenElse _ (_ ,, t ,, _ ,, _) (V-con (bool true)  ,, _) = t
-BUILTIN ifThenElse _ (_ ,, _ ,, u ,, _) (V-con (bool false) ,, _) = u
+BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con (bytestring d) ,, V-con (bytestring c) ,, tt) = VERIFYSIG (verifySig k d c)
+BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
+BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
+BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
 \end{code}
 
 # recontructing the telescope after a reduction step
@@ -190,14 +154,20 @@ reconstTel : ∀{Φ Γ Δ As} Bs Ds
     → (p : Bs ++ (C ∷ Ds) ≡ As)
     → (tel' : Tel Γ Δ σ Ds)
     → Tel Γ Δ σ As
-reconstTel [] Ds σ telB t' refl telD = t' ,, telD
-reconstTel (B ∷ Bs) Ds σ (X ,, telB) t' refl tel' =
-  X ,, reconstTel Bs Ds σ telB t' refl tel'
+reconstTel [] Ds σ telB t' refl telD = t' ∷ telD
+reconstTel (B ∷ Bs) Ds σ (X ∷ telB) t' refl tel' =
+  X ∷ reconstTel Bs Ds σ telB t' refl tel'
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
+data Any {Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}(P : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set) : ∀{As} → (ts : Tel Γ Δ σ As) → Set where
+  here : ∀ {A}{As}{t}{ts} → P t → Any P {As = A ∷ As} (t ∷ ts)
+  there : ∀ {A}{As}{t}{ts} → Value t → Any P ts → Any P {As = A ∷ As} (t ∷ ts)
+data _—→T_ {Φ}{Γ : Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J} : {As : List (Δ ⊢Nf⋆ *)}
+  → Tel Γ Δ σ As → Tel Γ Δ σ As → Set
+  
 infix 2 _—→_
 
 data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A') → Set where
@@ -260,16 +230,9 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
   ξ-builtin : ∀{Φ Γ} → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → (telD : Tel Γ Δ σ Ds)
-    → (vtel : VTel Γ Δ σ Bs telB)
-    → ∀{D}{t t' : Γ ⊢ substNf σ D}
-    → t —→ t'
-    → (p : Bs ++ (D ∷ Ds) ≡ As)
-    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-    → builtin bn σ tel —→ builtin bn σ (reconstTel Bs Ds σ telB t' p telD)
+    → {ts ts' : Tel Γ Δ σ As}
+    → ts —→T ts'
+    → builtin bn σ ts —→ builtin bn σ ts'
 
   E-·₂ : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *} {L : Γ ⊢ A ⇒ B}
     → Value L
@@ -290,16 +253,15 @@ data _—→_ : ∀ {Φ Γ} {A A' : Φ ⊢Nf⋆ *} → (Γ ⊢ A) → (Γ ⊢ A'
   E-builtin : ∀{Φ Γ}  → (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (tel : Tel Γ Δ σ As)
-    → ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → (vtel : VTel Γ Δ σ Bs telB)
-    → ∀{D}{t : Γ ⊢ substNf σ D}
-    → Error t
-    → (p : Bs ++ (D ∷ Ds) ≡ As)
-    → (telD : Tel Γ Δ σ Ds)
-    → builtin bn σ tel —→ error (substNf σ C)
+    → (ts : Tel Γ Δ σ As)
+    → Any Error ts
+    → builtin bn σ ts —→ error (substNf σ C)
 
+data _—→T_ {Φ}{Γ}{Δ}{σ} where
+  here  : ∀{A}{As}{t t'}{ts : Tel Γ Δ σ As}
+    → t —→ t' → (_∷_ {A = A} t ts) —→T (t' ∷ ts)
+  there : ∀{A As}{t}{ts ts' : Tel Γ Δ σ As}
+    → Value t → ts —→T ts' → (_∷_ {A = A} t ts) —→T (t ∷ ts')
 
 \end{code}
 
@@ -316,6 +278,8 @@ data _—↠_ {Φ Γ} : {A A' : Φ ⊢Nf⋆ *} → Γ ⊢ A → Γ ⊢ A' → Se
     → M' —↠ M''
       ---------
     → M —↠ M''
+
+
 \end{code}
 
 \begin{code}
@@ -341,27 +305,14 @@ data TelProgress
   {Δ}
   {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   {As : List (Δ ⊢Nf⋆ *)}
-  (tel : Tel Γ Δ σ As)
+  (ts : Tel Γ Δ σ As)
   : Set where
-  done : VTel Γ Δ σ As tel → TelProgress tel
-  step : ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → VTel Γ Δ σ Bs telB
-    → ∀{C}{t t' : Γ ⊢ substNf σ C}
-    → t —→ t'
-    → (telD : Tel Γ Δ σ Ds)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-    → TelProgress tel
+  done : VTel Γ Δ σ As ts → TelProgress ts
+  step : {ts' : Tel Γ Δ σ As}
+    → ts —→T ts'
+    → TelProgress ts
     
-  error : ∀ Bs Ds
-    → (telB : Tel Γ Δ σ Bs)
-    → VTel Γ Δ σ Bs telB
-    → ∀{C}{t  : Γ ⊢ substNf σ C}
-    → Error t
-    → Bs ++ (C ∷ Ds) ≡ As
-    → Tel Γ Δ σ Ds
-    → TelProgress tel
+  error : Any Error ts → TelProgress ts
 \end{code}
 
 \begin{code}
@@ -377,8 +328,8 @@ progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
   → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
-progress-· (step p)   q = step (ξ-·₁ p)
-progress-· (done V-ƛ) q = progress-·V V-ƛ q
+progress-· (step p)        q = step (ξ-·₁ p)
+progress-· (done V-ƛ)      q = progress-·V V-ƛ q
 progress-· (error E-error) q = step E-·₁
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
@@ -401,10 +352,8 @@ progress-builtin : ∀{Φ Γ} bn
   → Progress (builtin bn σ tel)
 progress-builtin bn σ tel (done vtel)                       =
   step (β-builtin bn σ tel vtel)
-progress-builtin bn σ tel (step Bs Ds telB vtel p telD q r) =
-  step (ξ-builtin bn σ tel Bs Ds telB telD vtel p q r)
-progress-builtin bn σ tel (error Bs Ds telB vtel e p telD)  =
-  step (E-builtin bn σ tel Bs Ds telB vtel e p telD)
+progress-builtin bn σ tel (step p) = step (ξ-builtin bn σ p)
+progress-builtin bn σ tel (error p) = step (E-builtin bn σ tel p)
 
 NoVar : ∀{Φ} → Ctx Φ → Set 
 NoVar ∅        = ⊤
@@ -424,25 +373,20 @@ progressTelCons : ∀ {Φ}{Γ : Ctx Φ} → NoVar Γ → ∀{Δ}
   → {As : List (Δ ⊢Nf⋆ *)}
   → {tel : Tel  Γ Δ σ As}
   → TelProgress tel
-  → TelProgress {As = A ∷ As} (t ,, tel)
-progressTelCons n (step p){As}{tel}   q                                =
-   step [] As tt tt p  tel refl refl 
-progressTelCons n (done v)            (done vtel)                      =
-  done (v ,, vtel)
-progressTelCons n (done v)            (step Bs Ds telB vtel p telD refl r)  =
-   step (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) p telD refl (cong (_ ,,_) r) 
-progressTelCons n (done v)            (error Bs Ds telB vtel e p telD) =
-  error (_ ∷ Bs) Ds (_ ,, telB) (v ,, vtel) e (cong (_ ∷_) p) telD
-progressTelCons n (error e) {As}{tel} q                                =
-  error [] As tt tt e refl tel
+  → TelProgress {As = A ∷ As} (t ∷ tel)
+progressTelCons n (step p)  q           = step (here p)
+progressTelCons n (error p) q           = error (here p)
+progressTelCons n (done v)  (done vtel) = done (v ,, vtel)
+progressTelCons n (done v)  (step p)    = step (there v p)
+progressTelCons n (done v)  (error p)   = error (there v p)
 
 progressTel : ∀ {Φ Γ} → NoVar Γ → ∀{Δ}
   → {σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}
   → {As : List (Δ ⊢Nf⋆ *)}
   → (tel : Tel Γ Δ σ As)
   → TelProgress tel
-progressTel p {As = []}     tt         = done tt
-progressTel p {As = A ∷ As} (t ,, tel) =
+progressTel p {As = []}     []        = done tt
+progressTel p {As = A ∷ As} (t ∷ tel) =
   progressTelCons p (progress p t) (progressTel p tel)
 
 progress-wrap :  ∀{Φ Γ} → NoVar Γ  → ∀{K}
@@ -450,8 +394,8 @@ progress-wrap :  ∀{Φ Γ} → NoVar Γ  → ∀{K}
    → {arg : Φ ⊢Nf⋆ K}
    → {term : Γ ⊢  nf (embNf pat · (μ1 · embNf pat) · embNf arg)}
    → Progress term → Progress (wrap1 pat arg term)
-progress-wrap n (step p)    = step (ξ-wrap p)
-progress-wrap n (done v)    = done (V-wrap v)
+progress-wrap n (step p)        = step (ξ-wrap p)
+progress-wrap n (done v)        = done (V-wrap v)
 progress-wrap n (error E-error) = step E-wrap
 
 progress p (` x)                = ⊥-elim (noVar p x)
@@ -464,6 +408,7 @@ progress p (unwrap1 M)          = progress-unwrap (progress p M)
 progress p (con c)              = done (V-con c)
 progress p (builtin bn σ X)     = progress-builtin bn σ X (progressTel p X)
 progress p (error A)            = error E-error
+
 --
 
 open import Data.Empty
@@ -476,32 +421,32 @@ open import Data.Empty
 val-red : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Σ (Γ ⊢ σ) (t —→_))
 val-red (V-wrap p) (.(wrap1 _ _ _) ,, ξ-wrap q) = val-red p (_ ,, q)
 
+valT-redT : ∀ {Φ Γ Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+  → {ts : Tel Γ Δ σ As} → VTel Γ Δ σ As ts → ¬ Σ (Tel Γ Δ σ As) (ts —→T_)
+valT-redT (v ,, vs) (.(_ ∷ _) ,, here p)    = val-red v (_ ,, p)
+valT-redT (v ,, vs) (.(_ ∷ _) ,, there w p) = valT-redT vs (_ ,, p)
+
 -- a value cannot be an error
 
 val-err : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Value t → ¬ (Error t)
 val-err () E-error
+
+valT-errT : ∀ {Φ Γ Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+  → {ts : Tel Γ Δ σ As} → VTel Γ Δ σ As ts → ¬ (Any Error ts)
+valT-errT (v ,, vs) (here p)    = val-err v p
+valT-errT (v ,, vs) (there w p) = valT-errT vs p
 
 -- an error cannot make progress
 
 red-err : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢ σ} → Σ (Γ ⊢ σ) (t —→_) → ¬ (Error t)
 red-err () E-error
 
--- nothing in a telescope of values can make progress
-vTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))
-  → (tel : Tel Γ Δ σ As)
-  → (vtel : VTel Γ Δ σ As tel)
-  → ∀ Bs Ds
-  → (telB : Tel Γ Δ σ Bs)
-  → (telD : Tel Γ Δ σ Ds)
-  → ∀{D}{t t' : Γ ⊢ substNf σ D}
-  → t —→ t'
-  → (p : Bs ++ (D ∷ Ds) ≡ As)
-  → (q : reconstTel Bs Ds σ telB t p telD ≡ tel)
-  → ⊥
-vTel Γ Δ σ _ (t ,, tel) (v ,, vtel) [] As telB telD r refl refl =
-  val-red v (_ ,, r)
-vTel Γ Δ σ _ (_ ,, tel) (_ ,, vtel) (_ ∷ Bs) Ds (_ ,, telB) telD r refl refl =
-  vTel Γ Δ σ _ tel vtel Bs Ds telB telD r refl refl
+redT-errT : ∀ {Φ Γ Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As : List (Δ ⊢Nf⋆ *)}
+  → {ts : Tel Γ Δ σ As} → Σ (Tel Γ Δ σ As) (ts —→T_) → ¬ (Any Error ts)
+redT-errT (.(_ ∷ _) ,, here p)    (here q)    = red-err (_ ,, p) q
+redT-errT (.(_ ∷ _) ,, there v p) (here q)    = val-err v q
+redT-errT (.(_ ∷ _) ,, here p)    (there w q) = val-red w (_ ,, p)
+redT-errT (.(_ ∷ _) ,, there v p) (there w q) = redT-errT (_ ,, p) q
 
 -- values are unique for a term
 valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A)
@@ -517,131 +462,9 @@ vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(A
   → (tel : Tel Γ Δ σ As)
   → (vtel vtel' : VTel Γ Δ σ As tel)
   → vtel ≡ vtel'
-vTelUniq Γ Δ σ [] tel vtel vtel' = refl
-vTelUniq Γ Δ σ (A ∷ As) (t ,, tel) (v ,, vtel) (v' ,, vtel') =
+vTelUniq Γ Δ σ [] [] vtel vtel' = refl
+vTelUniq Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) (v' ,, vtel') =
   cong₂ _,,_ (valUniq t v v') (vTelUniq Γ Δ σ As tel vtel vtel') 
-
-cong-just : {A : Set}{a a' : A} → Data.Maybe.just a ≡ just a' → a ≡ a'
-cong-just refl = refl
-
--- the ugly stuff concerning `reconstTel` is going to change soon
-
-reconstTel-step : ∀{Φ Γ Δ As C} B Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : Tel Γ Δ σ Bs)
-    → (t : Γ ⊢ substNf σ B)
-    → (t' : Γ ⊢ substNf σ C)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (p' : B ∷ Bs ++ (C ∷ Ds) ≡ B ∷ As)
-    → (tel : Tel Γ Δ σ Ds)
-    → reconstTel (B ∷ Bs) Ds σ (t ,, telB) t' p' tel
-      ≡
-      (t ,, reconstTel Bs Ds σ telB t' p tel)
-reconstTel-step B Bs Ds σ telB t t' refl refl tel = refl
-
-reconstTel-irr : ∀{Φ Γ Δ As C} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : Tel Γ Δ σ Bs)
-    → (t : Γ ⊢ substNf σ C)
-    → (p p' : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel : Tel Γ Δ σ Ds)
-    → reconstTel Bs Ds σ telB t p tel
-      ≡
-      reconstTel Bs Ds σ telB t p' tel
-reconstTel-irr Bs Ds σ telB t refl refl tel = refl
-
-lemX : ∀{Φ Γ Δ} B Bs Bs'
-  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-  → (telB : Tel Γ Δ σ Bs)
-  → (X : Bs ≡ Bs')
-  → (X' : B ∷ Bs ≡ B ∷ Bs')
-  → (t : Γ ⊢ substNf σ B)
-  → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) (cong (B ∷_) X) (t ,, telB)
-    ≡
-    (t ,, Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) X telB)
-lemX B Bs Bs' σ telB refl refl t = refl
-
-reconstTel-inj : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
-  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-  → (telB : Tel Γ Δ σ Bs)
-  → VTel Γ Δ σ Bs telB
-  → (telB' : Tel Γ Δ σ Bs')
-  → VTel Γ Δ σ Bs' telB'
-  → ∀{C}{t t' : Γ ⊢ substNf σ C}
-  → t —→ t'
-  → ∀{C'}{t'' t''' : Γ ⊢ substNf σ C'}
-  → t'' —→ t'''
-  → (p : Bs ++ (C ∷ Ds) ≡ As)
-  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
-  → (tel : Tel Γ Δ σ Ds)
-  → (tel' : Tel Γ Δ σ Ds')
-  → reconstTel Bs Ds σ telB t p tel ≡ reconstTel Bs' Ds' σ telB' t'' p' tel'
-  → (Σ (Bs ≡ Bs') λ p → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) p telB ≡ telB')
-  × (Σ (C ≡ C') λ p → Relation.Binary.PropositionalEquality.subst (λ C → Γ ⊢ substNf σ C) p t ≡ t'')
-  × (Σ (Ds ≡ Ds') λ p → Relation.Binary.PropositionalEquality.subst (Tel Γ Δ σ) p tel ≡ tel')
-reconstTel-inj [] [] Ds .Ds σ telB x telB' x₁ x₂ x₃ refl refl tel tel' x₄ = (refl ,, refl) ,, ((refl ,, (cong proj₁ x₄)) ,, (refl ,, (cong proj₂ x₄)))
-reconstTel-inj [] (x₅ ∷ Bs') Ds Ds' σ tt tt (t' ,, telB') (v' ,, vtel') q q' refl refl tel tel' x₄ =
-  ⊥-elim (val-red v' (_ ,, Relation.Binary.PropositionalEquality.subst (_—→ _) (cong proj₁ x₄) q))
-reconstTel-inj (x₅ ∷ Bs) [] Ds Ds' σ (t ,, telB) (v ,,  vtel) tt tt q q' refl refl tel tel' x₄ =
-  ⊥-elim (val-red v (_ ,, Relation.Binary.PropositionalEquality.subst (_—→ _) (sym (cong proj₁ x₄)) q'))
-reconstTel-inj (B ∷ Bs) (B' ∷ Bs') Ds Ds' σ (t ,, telB) (v ,, vtel) (t' ,, telB') (v' ,, vtel') q q' refl p' tel tel' x₄ with cong-just (cong head p')
-... | refl with reconstTel-inj Bs Bs' Ds Ds' σ telB vtel telB' vtel' q q' refl (cong-just (cong tail p')) tel tel' (cong proj₂ (trans x₄ (reconstTel-step B' Bs' Ds' σ telB' t' _ (cong-just (cong tail p')) p' tel')))
-... | (X ,, X') ,, Y = ((cong (B ∷_) X) ,, (trans (lemX B Bs Bs' σ telB X (cong (B ∷_) X) t) (cong₂ _,,_ (cong proj₁ (trans x₄ (reconstTel-step B' Bs' Ds' σ telB' t' _ (cong-just (cong tail p')) p' tel'))) X'))) ,, Y
-
-det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢ σ}
-  → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
-
-reconstTel-inj' : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
-  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-  → (telB : Tel Γ Δ σ Bs)
-  → VTel Γ Δ σ Bs telB
-  → (telB' : Tel Γ Δ σ Bs')
-  → VTel Γ Δ σ Bs' telB'
-  → ∀{C}{t t' : Γ ⊢ substNf σ C}
-  → t —→ t'
-  → ∀{C'}{t'' t''' : Γ ⊢ substNf σ C'}
-  → t'' —→ t'''
-  → (p : Bs ++ (C ∷ Ds) ≡ As)
-  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
-  → (tel : Tel Γ Δ σ Ds)
-  → (tel' : Tel Γ Δ σ Ds')
-  → reconstTel Bs Ds σ telB t p tel ≡ reconstTel Bs' Ds' σ telB' t'' p' tel'
-  → reconstTel Bs Ds σ telB t' p tel ≡ reconstTel Bs' Ds' σ telB' t''' p' tel'
-reconstTel-inj' Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄ with reconstTel-inj Bs Bs' Ds Ds' σ telB x telB' x₁ x₂ x₃ p p' tel tel' x₄
-... | (refl ,, refl) ,, (refl ,, refl) ,, (refl ,, refl) with p | p' | det x₂ x₃
-... | refl | refl | refl = refl
-
-postulate
- reconstTel-err : ∀{Φ Γ Δ As} Bs Ds
-  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-  → (telB : Tel Γ Δ σ Bs)
-  → VTel Γ Δ σ Bs telB
-  → ∀{C}{t : Γ ⊢ substNf σ C}
-  → Error t
-  → (p : Bs ++ (C ∷ Ds) ≡ As)
-  → (telD : Tel Γ Δ σ Ds)
-  → (tel : Tel Γ Δ σ As)
-  → VTel Γ Δ σ As tel
-  -- should have additional condition that the reconstTel = tel
-  → ⊥
-
-postulate
- reconstTel-err' : ∀{Φ Γ Δ As} Bs Bs' Ds Ds'
-  → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-  → (telB : Tel Γ Δ σ Bs)
-  → VTel Γ Δ σ Bs telB
-  → (telB' : Tel Γ Δ σ Bs')
-  → VTel Γ Δ σ Bs' telB'
-  → ∀{C}{t t' : Γ ⊢ substNf σ C}
-  → t —→ t'
-  → ∀{C'}{t'' : Γ ⊢ substNf σ C'}
-  → Error t''
-  → (p : Bs ++ (C ∷ Ds) ≡ As)
-  → (p' : Bs' ++ (C' ∷ Ds') ≡ As)
-  → (tel : Tel Γ Δ σ Ds)
-  → (tel' : Tel Γ Δ σ Ds')
-    -- should have additional condition that the reconstTels agree
-  → ⊥
 
 -- exclusive or
 _xor_ : Set → Set → Set
@@ -669,6 +492,11 @@ progress-xor t | done v  = (inj₁ v) ,, (λ { (v' ,, inj₁ p ,, q) → val-red
 progress-xor t | error e = (inj₂ ((inj₂ e) ,, (λ { (p ,, e) → red-err p e}))) ,, λ { (v ,, q) → val-err v e }
 
 -- the reduction rules are deterministic
+det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢ σ}
+  → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
+detT : ∀{Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As}{ts ts' ts'' : Tel Γ Δ σ As}
+    → (p : ts —→T ts')(q : ts —→T ts'') → ts' ≡ ts''
+
 det (ξ-·₁ p) (ξ-·₁ q) = cong (_· _) (det p q)
 det (ξ-·₁ p) (ξ-·₂ w q) = ⊥-elim (val-red w (_ ,, p))
 det (ξ-·₂ v p) (ξ-·₁ q) = ⊥-elim (val-red v (_ ,, q))
@@ -683,20 +511,18 @@ det (β-wrap1 p) (ξ-unwrap1 q) = ⊥-elim (val-red (V-wrap p) (_ ,, q))
 det (ξ-unwrap1 p) (β-wrap1 q) = ⊥-elim (val-red (V-wrap q) (_ ,, p))
 det (ξ-unwrap1 p) (ξ-unwrap1 q) = cong unwrap1 (det p q)
 det (ξ-wrap p) (ξ-wrap q) = cong (wrap1 _ _) (det p q)
-det (β-builtin bn σ tel vtel) (β-builtin .bn .σ .tel wtel) =
-   cong (BUILTIN bn σ tel) (vTelUniq _ _ σ _ tel vtel wtel)
-det (β-builtin bn σ tel vtel) (ξ-builtin .bn .σ .tel Bs Ds telB telD wtel q p q₁) = ⊥-elim (vTel _ _ σ _ tel vtel Bs  Ds telB telD q p q₁)
-det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (vTel _ _ σ _ tel vtel₁ Bs Ds telB telD p p₁ q)
-det (ξ-builtin bn σ tel Bs Ds telB telD vtel p p₁ q) (ξ-builtin .bn .σ .tel Bs' Ds' telB' telD' vtel' p' p'' q') = cong (builtin bn σ) (reconstTel-inj' Bs Bs' Ds Ds' σ telB vtel telB' vtel' p p' p₁ p'' telD telD' (trans q (sym q')))
-det (β-builtin .bn .σ .tel vtel) (E-builtin bn σ tel Bs Ds telB vtel₁ e p telD) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel₁ e p telD tel vtel)
-  -- impossible as the term t cannot be a val and an err
-det (ξ-builtin .bn .σ .tel Bs Ds telB telD vtel p p₁ q) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e p₂ telD₁) = ⊥-elim (reconstTel-err' Bs Bs₁ Ds Ds₁ σ telB vtel telB₁ vtel₁ p e p₁ p₂ telD telD₁)
-  -- impossible as the term t cannot reduce and be an err
-det (E-builtin .bn .σ .tel Bs Ds telB vtel e p telD) (E-builtin bn σ tel Bs₁ Ds₁ telB₁ vtel₁ e' p₁ telD₁) = refl
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (β-builtin .bn .σ .tel vtel₁) = ⊥-elim (reconstTel-err Bs Ds σ telB vtel e p telD tel vtel₁)
-  -- impossible as the term t cannot be an err and a val
-det (E-builtin bn σ tel Bs Ds telB vtel e p telD) (ξ-builtin .bn .σ .tel Bs₁ Ds₁ telB₁ telD₁ vtel₁ q p₁ q₁) = ⊥-elim (reconstTel-err' Bs₁ Bs Ds₁ Ds σ telB₁ vtel₁ telB vtel q e p₁ p telD₁ telD)
-  --impossible as the term t cannot be an err and reduce
+det (β-builtin bn σ ts vs) (β-builtin .bn .σ .ts ws) =
+  cong (BUILTIN bn σ ts) (vTelUniq _ _ σ _ ts vs ws)
+det (β-builtin bn σ ts vs) (ξ-builtin .bn .σ p) =
+  ⊥-elim (valT-redT vs (_ ,, p))
+det (ξ-builtin bn σ p) (β-builtin .bn .σ ts vs) =
+  ⊥-elim (valT-redT vs (_ ,, p))
+det (ξ-builtin bn σ p) (ξ-builtin .bn .σ p') = cong (builtin bn σ) (detT p p')
+det (β-builtin .bn .σ ts vs) (E-builtin bn σ ts' p) = ⊥-elim (valT-errT vs p)
+det (ξ-builtin bn σ p) (E-builtin bn .σ ts q) = ⊥-elim (redT-errT (_ ,, p) q)
+det (E-builtin bn σ ts p) (E-builtin bn σ ts q) = refl
+det (E-builtin bn σ ts p) (β-builtin .bn .σ .ts vs) = ⊥-elim (valT-errT vs p)
+det (E-builtin bn σ ts p) (ξ-builtin .bn .σ q) = ⊥-elim (redT-errT (_ ,, q) p)
 det E-·₁ (ξ-·₁ ())
 det (E-·₂ v) (ξ-·₁ p) = ⊥-elim (val-red v (_ ,, p))
 det (E-·₂ v) (E-·₂ w) = refl
@@ -707,3 +533,8 @@ det E-·₁ E-·₁ = refl
 det E-·⋆ E-·⋆ = refl
 det E-unwrap E-unwrap = refl
 det E-wrap E-wrap = refl
+
+detT (here p)    (here q)    = cong (_∷ _) (det p q)
+detT (here p)    (there w q) = ⊥-elim (val-red w (_ ,, p))
+detT (there v p) (here q)    = ⊥-elim (val-red v (_ ,, q))
+detT (there v p) (there w q) = cong (_ ∷_) (detT p q)

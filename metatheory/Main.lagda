@@ -146,7 +146,7 @@ open import Scoped.CK
 open import Algorithmic.CK
 
 data EvalMode : Set where
-  TCK CK : EvalMode
+  L TCK CK : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -157,9 +157,16 @@ evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
 evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
 evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
   ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
-evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ saturate t')
+evalPLC L plc | just nt | just t | just t' with S.run t' 10000000000
+evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
+  inj₁ (prettyPrintTm (extricateScope t''))
+evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing  =
+  inj₂ "didn't reduce in allowed steps"
+evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e        =
+  inj₂ "computed to error"
+evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ t')
 evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
-   inj₁ (prettyPrintTm (extricateScope (unsaturate t'')))
+   inj₁ (prettyPrintTm (extricateScope t''))
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
   inj₂ ("this shouldn't happen")
 evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
@@ -170,7 +177,6 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
 ... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
 ... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
-
 
 junk : ∀{n} → Vec String n
 junk {zero}      = []
@@ -199,7 +205,6 @@ tcPLC plc with parse plc
   "\n != \n"
   Data.String.++
   prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
-
 ... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
 ... | inj₂ tyConError     = inj₂ "tyConError"
 ... | inj₂ builtinError   = inj₂ "builtinError"
@@ -212,7 +217,6 @@ alphaTm plc1 plc2 | just plc1' | just plc2' | just plc1'' | just plc2'' = decRTm
 alphaTm plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
 alphaTm plc1 plc2 | _ | _ = Bool.false
 
-
 {-# COMPILE GHC alphaTm as alphaTm #-}
 printTy : ByteString → String
 printTy b with parseTy b
@@ -223,7 +227,6 @@ printTy b with parseTy b
 
 {-# COMPILE GHC printTy as printTy #-}
 
-
 alphaTy : ByteString → ByteString → Bool
 alphaTy plc1 plc2 with parseTy plc1 | parseTy plc2
 alphaTy plc1 plc2 | just plc1' | just plc2' with deBruijnifyTy plc1' | deBruijnifyTy plc2'
@@ -232,7 +235,6 @@ alphaTy plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
 alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
-
 
 {-# FOREIGN GHC import System.Environment #-}
 
@@ -265,7 +267,7 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 {-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (TCK | CK ) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (L | TCK | CK ) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (String ⊎ String)
