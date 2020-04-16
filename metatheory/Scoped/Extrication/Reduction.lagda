@@ -31,68 +31,64 @@ open import Relation.Nullary
 
 
 open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con booleanNf 
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 
-extricate—→ : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t t' : Γ ⊢ A}
+extricate—→ : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}{t t' : Γ ⊢ A}
   → t AR.—→ t' → extricate t SR.—→ extricate t'
 
-extricateVal : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t : Γ ⊢ A}
+extricateVal : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}{t : Γ ⊢ A}
   → AR.Value t → SR.Value (extricate t)
 extricateE : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}{t : Γ ⊢ A}
   → AR.Error t → SR.Error (extricate t)
 extricateE E-error = E-error _
-extricateE (E-·₁ p) = E-·₁ (extricateE p)
-extricateE (E-·₂ p) = E-·₂ (extricateE p)
-extricateE (E-·⋆ p) = E-·⋆ (extricateE p)
-extricateE (E-unwrap p) = E-unwrap (extricateE p)
-extricateE (E-Λ x) = {!!}
-extricateE (E-wrap x) = {!!}
-extricateE (E-builtin bn σ tel Bs Ds telB vtel e p telD) =
-  E-builtin (extricateE e)
 
-extricateVal V-ƛ = V-ƛ _ _ _
-extricateVal (V-Λ p) = {!!} -- SR.V-Λ _ _ _
-extricateVal (V-wrap p) = {!!} -- V-wrap _ _ _
+extricateVal V-ƛ = V-ƛ _ _
+extricateVal V-Λ = V-Λ _
+extricateVal (V-wrap p) = V-wrap _ _ (extricateVal p)
 extricateVal (V-con cn) = V-con (extricateC cn)
 
 extricateVTel :  ∀ {Φ} Γ Δ (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   (As : List (Δ ⊢Nf⋆ *))
   (tel : A.Tel Γ Δ σ As)
   → AR.VTel Γ Δ σ As tel
-  → SR.VTel (len Γ) (extricateTel σ As tel)
+  → SR.VTel (Data.List.length As) (len Γ) (extricateTel σ As tel)
 
 extricateVTel Γ Δ σ []       _ _ = tt
-extricateVTel Γ Δ σ (A ∷ As) (t Σ., tel) (v Σ., vtel) =
+extricateVTel Γ Δ σ (A ∷ As) (t ∷ tel) (v Σ., vtel) =
   extricateVal v ,, extricateVTel Γ Δ σ As tel vtel
 
 extricate-decIf : ∀{X Φ}{Γ : A.Ctx Φ}{A : Φ ⊢Nf⋆ *}(p : Dec X)(t f : Γ A.⊢ A) → decIf p (extricate t) (extricate f) ≡ extricate (decIf p t f)
 extricate-decIf (yes p) t f = refl
 extricate-decIf (no ¬p) t f = refl
 
+
 extricate-if : ∀{Φ}{Γ : A.Ctx Φ}{A : Φ ⊢Nf⋆ *}(b : Bool)(t f : Γ A.⊢ A) → (if b then extricate t else extricate f) ≡ extricate (if b then t else f)
 extricate-if Bool.true  t f = refl
 extricate-if Bool.false t f = refl
+
 
 extricate-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ}(p : Maybe Bool) → SR.VERIFYSIG p ≡ extricate {Φ}{Γ} (AR.VERIFYSIG p)
 extricate-VERIFYSIG (just Bool.false) = refl
 extricate-VERIFYSIG (just Bool.true)  = refl
 extricate-VERIFYSIG nothing           = refl
 
+
 extricate—→ (ξ-·₁ p)   = ξ-·₁ (extricate—→ p)
 extricate—→ (ξ-·₂ p q) = ξ-·₂ (extricateVal p) (extricate—→ q)
 extricate—→ (ξ-·⋆ p)   = ξ-·⋆ (extricate—→ p)
-extricate—→ (ξ-Λ x)    = {!!}
-extricate—→ (ξ-wrap x) = {!!}
-extricate—→ (β-ƛ {A = A}{N = N}{W = W}) = Eq.subst
-  (ƛ _ (extricateNf⋆ A) (extricate N) · extricate W  SR.—→_)
-  (lem[] N W)
-  SR.β-ƛ
-extricate—→ (β-Λ {K = K}{N = N}{W = W}) = Eq.subst
-  (Λ _ (extricateK K) (extricate N) ·⋆ extricateNf⋆ W SR.—→_)
-  (lem[]⋆ N W)
+
+extricate—→ (ξ-wrap p) = ξ-wrap (extricate—→ p)
+extricate—→ (β-ƛ {N = N}{V = V} p) = subst
+  (ƛ _ (extricate N) · extricate V SR.—→_)
+  (lem[] N V)
+  (SR.β-ƛ (extricateVal p))
+extricate—→ (β-Λ {N = N}{A = A}) = subst
+  (Λ _ (extricate N) ·⋆ extricateNf⋆ A SR.—→_)
+  (lem[]⋆ N A)
   SR.β-Λ
-extricate—→ β-wrap1 = β-wrap
+extricate—→ (β-wrap1 p) = β-wrap (extricateVal p)
 extricate—→ (ξ-unwrap1 p) = ξ-unwrap (extricate—→ p)
+{-
 extricate—→ (β-builtin addInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
   β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG addInteger))) _ vtel)
 extricate—→ (β-builtin subtractInteger σ _ vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) =
@@ -117,23 +113,23 @@ extricate—→ (β-builtin modInteger σ tel vtel@(V-con (integer i) ,, V-con (
   (SR.β-builtin {b = modInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG modInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG modInteger))) _ vtel))
 extricate—→ (β-builtin lessThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
   (builtin lessThanInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
-  (extricate-decIf (i Builtin.Constant.Type.<? j) A.true A.false)
+  (extricate-decIf (i Data.Integer.<? j) true false)
   (SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel))
 extricate—→ (β-builtin lessThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
   (builtin lessThanEqualsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
-  (extricate-decIf (i Data.Integer.≤? j) A.true A.false)
+  (extricate-decIf (i Data.Integer.≤? j) true false)
   (SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel))
 extricate—→ (β-builtin greaterThanInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
   (builtin greaterThanInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
-  (extricate-decIf (i Builtin.Constant.Type.>? j) A.true A.false)
+  (extricate-decIf (i Builtin.Constant.Type.>? j) true false)
   (SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel))
 extricate—→ (β-builtin greaterThanEqualsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = Eq.subst
   (builtin greaterThanEqualsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
-  (extricate-decIf (i Builtin.Constant.Type.≥? j) A.true A.false)
+  (extricate-decIf (i Builtin.Constant.Type.≥? j) true false)
   (SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel))
 extricate—→ (β-builtin equalsInteger σ tel vtel@(V-con (integer i) ,, V-con (integer j) ,, tt))  = Eq.subst
   (builtin equalsInteger [] (con (integer i) ∷ con (integer j) ∷ []) SR.—→_)
-  (extricate-decIf (i Data.Integer.≟ j) A.true A.false)
+  (extricate-decIf (i Data.Integer.≟ j) true false)
   (SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel))
 extricate—→ (β-builtin concatenate σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) =
   SR.β-builtin (extricateVTel _ _ σ (proj₁ (proj₂ (SIG concatenate))) _ vtel) 
@@ -149,7 +145,7 @@ extricate—→ (β-builtin verifySignature σ tel vtel@(V-con (bytestring k) ,,
   (SR.β-builtin {b = verifySignature}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG verifySignature))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG verifySignature))) _ vtel))
 extricate—→ (β-builtin equalsByteString σ tel vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = Eq.subst
   (builtin equalsByteString [] (con (bytestring b) ∷ con (bytestring b') ∷ []) SR.—→_)
-  (extricate-if (equals b b') A.true A.false)
+  (extricate-if (equals b b') true false)
   (SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) _ vtel))
 extricate—→ {Γ = Γ} (ξ-builtin addInteger σ tel [] .(con integer ∷ []) telB telD vtel p refl) =
   SR.ξ-builtin {b = addInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG addInteger))) tel}(extricateVTel Γ _ σ [] _ tt) (extricate—→ p) (extricateTel σ (con integer ∷ []) _)
@@ -281,10 +277,11 @@ extricate—→ (ξ-builtin equalsByteString σ tel (.(con bytestring) ∷ []) .
   SR.ξ-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel}(extricateVTel _ _ σ (con bytestring ∷ []) _ vtel) (extricate—→ p) (extricateTel σ [] tt)
 extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ []) Ds telB telD vtel p ())
 extricate—→ (ξ-builtin equalsByteString σ tel (B ∷ B' ∷ B'' ∷ Bs) Ds telB telD vtel p ())
+-}
 
 -- extrication for a sequence of steps
 
-extricate—→⋆ : ∀{Φ Γ K}{A : Φ ⊢Nf⋆ K}{t t' : Γ ⊢ A}
+extricate—→⋆ : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}{t t' : Γ ⊢ A}
   → t AR.—↠ t' → extricate t SR.—→⋆ extricate t'
 extricate—→⋆ refl—↠ = refl
 extricate—→⋆ (trans—↠ r p) = _—→⋆_.trans (extricate—→ r) (extricate—→⋆ p)
@@ -299,7 +296,7 @@ extricateProgress : ∀{A}{t : ∅ ⊢ A} → AR.Progress t
 extricateProgress (step p)    = step (extricate—→ p)
 extricateProgress (done v)    = done (extricateVal v)
 extricateProgress (error e)   = error (extricateE e)
-extricateProgress (neutral p) = {!!}
+
 
 
 extricateProgressTel : ∀{Φ Ψ}{Γ : Ctx Φ}
@@ -308,6 +305,7 @@ extricateProgressTel : ∀{Φ Ψ}{Γ : Ctx Φ}
   (tel : A.Tel Γ Ψ σ As)
   → AR.TelProgress tel
   → SR.TelProgress (extricateTel σ As tel)
+{-
 extricateProgressTel tel (done vtel)                       =
   done (extricateTel _ _ tel) (extricateVTel _ _ _ _ tel vtel)
 extricateProgressTel tel (step Bs Ds telB vtelB p q telD)  =
@@ -324,7 +322,6 @@ extricateProgressTel tel (error Bs Ds telB vtelB e q telD) =
     (extricateVTel _ _ _ _ telB vtelB)
     (extricateE e)
     (extricateTel _ _ telD)
-extricateProgressTel tel (neutral Bs Ds telB vtelB e q telD) = {!!}
 
 -- proofs below
 
@@ -333,21 +330,18 @@ extricate-progress-· : ∀{A B}{t : ∅ ⊢ A ⇒ B}(p : AR.Progress t) → (u 
 extricate-progress-· (step p)   u = refl
 extricate-progress-· (done (V-ƛ {A = A}{x = x}{N = N})) u = lem-step β-ƛ (lem[] N u)
 extricate-progress-· (error e)  u = refl
-extricate-progress-· (neutral p) u = {!!}
 
 extricate-progress-·⋆ : ∀{K x B}{t : ∅ ⊢ Π x B}(p : AR.Progress t) → (A : ∅ ⊢Nf⋆ K)
   → extricateProgress (AR.progress-·⋆ p A) ≡ SR.progress·⋆ (extricateProgress p) (extricateNf⋆ A)
 extricate-progress-·⋆ (step p)    A = refl
 extricate-progress-·⋆ (done (V-Λ {N = N} p)) A = {!!} -- lem-step β-Λ (lem[]⋆ N A)
 extricate-progress-·⋆ (error e)   A = refl
-extricate-progress-·⋆ (neutral p) A = {!!}
 
 extricate-progress-unwrap : ∀{K}{pat}{arg : ∅ ⊢Nf⋆ K}{t : ∅ ⊢ ne ((μ1 · pat) · arg)}(p : AR.Progress t)
   → extricateProgress (AR.progress-unwrap p) ≡ SR.progress-unwrap (extricateProgress p)
 extricate-progress-unwrap (step p)       = refl
 extricate-progress-unwrap (done V-wrap1) = {!!} -- refl
 extricate-progress-unwrap (error e)      = refl
-extricate-progress-unwrap (neutral p)    = {!!}
 
 extricate-progress-builtin : ∀ bn
   (σ : ∀{J} → proj₁ (SIG bn) ∋⋆ J → ∅ ⊢Nf⋆ J)
@@ -377,19 +371,19 @@ extricate-progress-builtin modInteger σ tel (done vtel@(V-con (integer i) ,, V-
   (extricate-decIf (∣ j ∣ Data.Nat.≟ 0) (error (con integer)) (con (integer (mod i j))))
 extricate-progress-builtin lessThanInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = lessThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanInteger))) _ vtel))  
-  (extricate-decIf (i Builtin.Constant.Type.<? j) A.true A.false)
+  (extricate-decIf (i Data.Integer.<? j) true false)
 extricate-progress-builtin lessThanEqualsInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = lessThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG lessThanEqualsInteger))) _ vtel))  
-  (extricate-decIf (i Data.Integer.≤? j) A.true A.false)
+  (extricate-decIf (i Data.Integer.≤? j) true false)
 extricate-progress-builtin greaterThanInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = greaterThanInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanInteger))) _ vtel))  
-  (extricate-decIf (i Builtin.Constant.Type.>? j) A.true A.false)
+  (extricate-decIf (i Builtin.Constant.Type.>? j) true false)
 extricate-progress-builtin greaterThanEqualsInteger σ tel (done vtel@ (V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = greaterThanEqualsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG greaterThanEqualsInteger))) _ vtel))  
-  (extricate-decIf (i Builtin.Constant.Type.≥? j) A.true A.false)
+  (extricate-decIf (i Builtin.Constant.Type.≥? j) true false)
 extricate-progress-builtin equalsInteger σ tel (done vtel@(V-con (integer i) ,, V-con (integer j) ,, tt)) = lem-step
   (SR.β-builtin {b = equalsInteger}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsInteger))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsInteger))) _ vtel))  
-  (extricate-decIf (i Data.Integer.≟ j) A.true A.false)
+  (extricate-decIf (i Data.Integer.≟ j) true false)
 extricate-progress-builtin concatenate σ tel (done (V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = refl
 extricate-progress-builtin takeByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
 extricate-progress-builtin dropByteString σ tel (done (V-con (integer i) ,, V-con (bytestring b) ,, tt)) = refl
@@ -400,7 +394,7 @@ extricate-progress-builtin verifySignature σ tel (done vtel@(V-con (bytestring 
   (extricate-VERIFYSIG (verifySig k d c))
 extricate-progress-builtin equalsByteString σ tel (done vtel@(V-con (bytestring b) ,, V-con (bytestring b') ,, tt)) = lem-step
   (SR.β-builtin {b = equalsByteString}{As = []}{extricateTel σ (proj₁ (proj₂ (SIG equalsByteString))) tel} (extricateVTel _ _ σ (proj₁ (proj₂ (SIG equalsByteString))) _ vtel))  
-  (extricate-if (equals b b') A.true A.false)
+  (extricate-if (equals b b') true false)
 extricate-progress-builtin addInteger σ tel (step [] .(con integer ∷ []) telB vtelB p refl telD) = refl
 extricate-progress-builtin addInteger σ tel (step (._ ∷ []) Ds telB vtelB p refl telD) = refl
 extricate-progress-builtin addInteger σ tel (step (B ∷ B' ∷ []) Ds telB vtelB p () telD)
@@ -496,25 +490,6 @@ extricate-progress-builtin sha2-256 σ tel (error Bs Ds telB vtelB e q telD) = r
 extricate-progress-builtin sha3-256 σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin verifySignature σ tel (error Bs Ds telB vtelB e q telD) = refl
 extricate-progress-builtin equalsByteString σ tel (error Bs Ds telB vtelB e q telD) = refl
-extricate-progress-builtin addInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin subtractInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin multiplyInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin divideInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin quotientInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin remainderInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin modInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin lessThanInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin lessThanEqualsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin greaterThanInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin greaterThanEqualsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin equalsInteger σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin concatenate σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin takeByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin dropByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin sha2-256 σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin sha3-256 σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin verifySignature σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
-extricate-progress-builtin equalsByteString σ tel (neutral Bs Ds telB vtelB p q telD) = {!!}
 
 open import Type.BetaNBE.RenamingSubstitution
 
@@ -528,12 +503,10 @@ extricateProgressTelCons-progressTelCons : ∀ Φ (A : Φ ⊢Nf⋆ *)(As : List 
    ≡
    SR.progressTelCons (extricateProgress tp) (extricateProgressTel tel telp)
 extricateProgressTelCons-progressTelCons Φ A As σ t (step p)  tel telp = refl
-extricateProgressTelCons-progressTelCons Φ A As σ t (neutral x) tel telp = {!!}
 extricateProgressTelCons-progressTelCons Φ A As σ t (error e) tel telp = refl
 extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (done vtel) = refl
 extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (step Bs Ds telB vtelB p q telD) = refl
 extricateProgressTelCons-progressTelCons Φ A As σ t (done vt) tel (error Bs Ds telB vtelB e p telD) = refl
-extricateProgressTelCons-progressTelCons Φ A As σ t (done x) tel (neutral Bs Ds telB x₁ x₂ x₃ x₄) = {!!}
 
 
 
@@ -588,14 +561,12 @@ extricateSteps (steps p (done N VN)) =
   _ ,, extricate—→⋆ p ,, inj₁ (just (extricateVal VN))
 extricateSteps (steps p out-of-gas) = _ ,, extricate—→⋆ p ,, (inj₁ nothing)
 extricateSteps (steps p (error e)) = _ ,, extricate—→⋆ p ,, inj₂ (extricateE e)
-extricateSteps (steps x (neutral x₁)) = {!!}
 
 extricate-run—→ : ∀{A}{t t' : ∅ ⊢ A}(p : t AR.—→ t')(q : AE.Steps t') →
   extricateSteps (eval—→ p q) ≡ run—→ (extricate—→ p) (extricateSteps q)
 extricate-run—→ p (steps q (done N VN)) = refl
 extricate-run—→ p (steps q out-of-gas)  = refl
 extricate-run—→ p (steps q (error e))   = refl
-extricate-run—→ p (steps q (neutral n)) = {!!}
 
 extricate-run : ∀{A}(t : ∅ ⊢ A) n
   → extricateSteps (eval (gas n) t) ≡ SR.run (extricate t) n
@@ -608,10 +579,10 @@ extricate-runProg (step p)  n = Eq.trans
   (cong (run—→ (extricate—→ p)) (extricate-run _ n))
 extricate-runProg (done v)  n = refl
 extricate-runProg (error e) n = refl
-extricate-runProg (neutral p) n = {!!}
 
 extricate-run t zero = refl
 extricate-run t (ℕ.suc n) = Eq.trans
   (extricate-runProg (AR.progress t) n)
   (cong (runProg n) (extricate-progress t)) 
+-}
 \end{code}
