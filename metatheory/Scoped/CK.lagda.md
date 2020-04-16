@@ -119,20 +119,20 @@ step {i' = i'} p ((s , unwrap-) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-ƛ A t) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-Λ V) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , unwrap-) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p ((s , (V-builtin⋆ b q As ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
 
 step p (□ V)                  = _ ,, _ ,, p ,, □ V
 step {i' = i'} p ◆              = _ ,, i' ,, p ,, ◆
 
 -- some builtin related cases
 -- processing of args done
-step {i' = i'} p (_◅_ (s , builtin- {o' = o'} b As {ts} vs [] q) {t} V) = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (subst (Tel _) (trans (+-comm 0 (suc o')) (sym q)) (ts :< t)) (vtel-lem (trans (+-comm 0 (suc o')) (sym q)) (ts :< t) (VTel-extend vs V)))
+step {i' = i'} p (_◅_ (s , builtin- b As {ts} vs [] q) {t} V) = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (subst (Tel _) (trans (+-comm 0 _) (sym q)) (ts :< t)) (vtel-lem (trans (+-comm 0 _) (sym q)) (ts :< t) (VTel-extend vs V)))
 -- more args to process
 step p (_◅_ (s , builtin- b As {ts} vs (t' ∷ ts') q) {t} V) =
   _ ,, _ ,, p ,, (s , builtin- b As { ts :< t } (VTel-extend vs V) ts' (trans q (cong suc (+-suc _ _)))) ▻ t'
 
-step {i' = i'} p ((s , (V-builtin⋆ b q As ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (V-builtin b As q ts ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p (_◅_ (s , (V-builtin b As q ts ·-)) {t} V) = _ ,, i' ,, p ,, (s ▻ builtin b (inj₂ (refl ,, q)) As (ts :< t))
+step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, ((s ▻ builtin b (inj₁ (q ,, refl)) (As :< A) []))
 ```
 
 ```
