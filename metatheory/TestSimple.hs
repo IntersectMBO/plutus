@@ -25,22 +25,22 @@ succeedingEvalTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
-failingEvalTests = [] -- ["DivideByZero"]
+failingEvalTests = ["DivideByZero"]
 
 succeedingTCTests = ["succInteger"
---        ,"unitval"
---        ,"true"
---        ,"false"
+        ,"unitval"
+        ,"true"
+        ,"false"
         ,"churchZero"
         ,"churchSucc"
---        ,"overapplication"
---        ,"factorial"
---        ,"fibonacci"
+        ,"overapplication"
+        ,"factorial"
+        ,"fibonacci"
         ,"NatRoundTrip"
         ,"ListSum"
---        ,"IfIntegers"
---        ,"ApplyAdd1"
---        ,"ApplyAdd2"
+        ,"IfIntegers"
+        ,"ApplyAdd1"
+        ,"ApplyAdd2"
         ]
 
 
@@ -72,5 +72,5 @@ runFailingTests mode (test:tests) = catch
 main = do
   runSucceedingTests "evaluate" succeedingEvalTests
   runFailingTests "evaluate" failingEvalTests
---  runSucceedingTests "typecheck" succeedingTCTests
+  runSucceedingTests "typecheck" succeedingTCTests
 
