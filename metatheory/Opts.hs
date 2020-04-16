@@ -32,9 +32,9 @@ evalMode = option auto
   (  long "mode"
   <> short 'm'
   <> metavar "MODE"
-  <> value L
+  <> value CK
   <> showDefault
-  <> help "Evaluation mode (either TCK or CK)" )
+  <> help "Evaluation mode (L, TCK or CK)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOpts <$> input <*> evalMode
