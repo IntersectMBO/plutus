@@ -66,9 +66,10 @@ depositAndPay accId from to date amount currency token continue =
     100 Close 
 
 
---todo multiple values
-haltOnUnscheduledEvent :: Case Contract
-haltOnUnscheduledEvent = let
+-- todo: read ContractId, read eventType, read riskFactors, read proposed payoff amount, 
+-- t0 t1 t2 - just counter
+readProposedEvent :: Case Contract
+readProposedEvent = let
     choiceOwner = Role $ TokenName $ fromString "oracle"
     choiceDefault = (Constant 0)
     choiceValueBound = [Bound 0 1000000]
@@ -77,7 +78,7 @@ haltOnUnscheduledEvent = let
     Case
         (Choice
             (ChoiceId
-                (fromString "event1")
+                (fromString "eventType_t0")
                 choiceOwner
             )
             choiceEventTypeBound
@@ -86,25 +87,25 @@ haltOnUnscheduledEvent = let
             [Case
                 (Choice
                     (ChoiceId
-                        (fromString "someValue")
+                        (fromString "riskFactor1_t0")
                         choiceOwner
                     )
                     choiceValueBound
                 )
                 (Let
-                    (fromString "eventType")
+                    (fromString "eventType_t0")
                     (ChoiceValue
                         (ChoiceId
-                            (fromString "event1")
+                            (fromString "eventType_t0")
                             choiceOwner
                         )
                         choiceDefault
                     )
                     (Let
-                        (fromString "someValue")
+                        (fromString "riskFactor1_t0")
                         (ChoiceValue
                             (ChoiceId
-                                (fromString "event1")
+                                (fromString "eventType_t0")
                                 choiceOwner
                             )
                             choiceDefault
@@ -115,4 +116,3 @@ haltOnUnscheduledEvent = let
             0 Close 
         )
 
--- todo Plutus event loop

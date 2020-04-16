@@ -11,16 +11,9 @@ data ShiftedDay = ShiftedDay {
 
 type ShiftedSchedule = [ShiftedDay]
 
-data EventDay = EventDay {
-    eventDay :: ShiftedDay,
-    event :: ScheduledEvent,
-    contractId :: String --todo we'll need separate contractId type with order that makes sub-contracts smaller than their parents
-}
-
-type EventSchedule = [EventDay]
-
 data CashFlow = CashFlow {
-    shiftedDay :: ShiftedDay,
+    cashContractId :: String,
+    cashPaymentDay :: Day,
     cashEvent :: ScheduledEvent,
     amount :: Double,
     currency :: String
