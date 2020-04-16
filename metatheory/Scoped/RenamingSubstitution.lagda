@@ -7,7 +7,7 @@ open import Scoped
 
 open import Data.Nat
 open import Data.Fin hiding (lift)
-open import Data.Vec
+open import Data.Vec using ([];_∷_)
 open import Function
 \end{code}
 
@@ -29,7 +29,7 @@ ren⋆ ρ (con x) = con x
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 ren⋆ ρ missing = missing
 
-ren⋆T : ∀{m n o} → Ren⋆ m n → Vec (ScopedTy m) o → Vec (ScopedTy n) o
+ren⋆T : ∀{m n o} → Ren⋆ m n → Tel⋆ m o → Tel⋆ n o
 ren⋆T ρ⋆ []       = []
 ren⋆T ρ⋆ (A ∷ As) = ren⋆ ρ⋆ A ∷ ren⋆T ρ⋆ As
 
@@ -46,7 +46,7 @@ lift ρ (S x) = S (ρ x)
 ren : ∀{m n}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v → ScopedTm w
   → ScopedTm v
 renT : ∀{m n o}{w : Weirdℕ m}{v : Weirdℕ n} → Ren⋆ m n → Ren w v
-  → Vec (ScopedTm w) o → Vec (ScopedTm v) o
+  → Tel w o → Tel v o
 
 ren ρ⋆ ρ (` x) = ` (ρ x)
 ren ρ⋆ ρ (Λ K t) = Λ K (ren (lift⋆ ρ⋆) (⋆lift ρ) t) 
@@ -80,7 +80,7 @@ sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 sub⋆ ρ missing = missing
 
-sub⋆T : ∀{m n o} → Sub⋆ m n → Vec (ScopedTy m) o → Vec (ScopedTy n) o
+sub⋆T : ∀{m n o} → Sub⋆ m n → Tel⋆ m o → Tel⋆ n o
 sub⋆T σ⋆ []       = []
 sub⋆T σ⋆ (A ∷ As) = sub⋆ σ⋆ A ∷ sub⋆T σ⋆ As
 
@@ -97,7 +97,7 @@ slift σ (S x) = ren id S (σ x)
 sub : ∀{m n}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
   → ScopedTm v → ScopedTm w
 subT : ∀{m n o}{v : Weirdℕ m}{w : Weirdℕ n} → Sub⋆ m n → Sub v w
-  → Vec (ScopedTm v) o → Vec (ScopedTm w) o
+  → Tel v o → Tel w o
 
 sub σ⋆ σ (` x) = σ x
 sub σ⋆ σ (Λ K t) = Λ K (sub (slift⋆ σ⋆) (⋆slift σ) t)

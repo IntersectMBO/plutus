@@ -11,8 +11,8 @@ import qualified MAlonzo.Code.Main  as M
 
 succeedingEvalTests = ["succInteger"
         ,"unitval"
---        ,"true"
---        ,"false"
+        ,"true"
+        ,"false"
         ,"churchZero"
         ,"churchSucc"
         ,"overapplication"
@@ -20,9 +20,9 @@ succeedingEvalTests = ["succInteger"
         ,"fibonacci"
         ,"NatRoundTrip"
         ,"ListSum"
---        ,"IfIntegers"
---        ,"ApplyAdd1"
---        ,"ApplyAdd2"
+        ,"IfIntegers"
+        ,"ApplyAdd1"
+        ,"ApplyAdd2"
         ]
 
 failingEvalTests = [] -- ["DivideByZero"]

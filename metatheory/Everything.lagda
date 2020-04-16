@@ -81,7 +81,7 @@ import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
 
---import Scoped.CK
+import Scoped.CK
 
 -- import Check
 import Main

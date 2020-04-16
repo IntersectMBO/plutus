@@ -9,13 +9,12 @@ open import Data.List hiding (map; _++_)
 open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
 open import Data.String hiding (_<_)
 open import Data.Unit
+open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
 open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
-
-open import Data.Vec hiding (_>>=_; map; _++_; [_])
 open import Utils
 open import Relation.Nullary
 open import Category.Monad
@@ -67,6 +66,9 @@ data ScopedTy (n : ℕ) : Set where
   con  : TyCon → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
+
+Tel⋆ : ℕ → ℕ → Set
+Tel⋆ n m = Vec (ScopedTy n) m
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
@@ -195,6 +197,8 @@ data TermCon : Set where
   char       : (c : Char) → TermCon
   unit       : TermCon
 
+Tel : ∀{n} → Weirdℕ n → ℕ → Set
+
 data ScopedTm {n}(w : Weirdℕ n) : Set where
   `    :    WeirdFin w → ScopedTm w
   Λ    :    Kind → ScopedTm (T w) → ScopedTm w
@@ -206,11 +210,13 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   builtin : (b : Builtin) 
     → ∀{m o}
     → (m ≤‴ arity⋆ b × o ≡ 0) ⊎ (m ≡ arity⋆ b × o ≤‴ arity b)
-    → Vec (ScopedTy n) m
-    → Vec (ScopedTm w) o
+    → Tel⋆ n m
+    → Tel w o
     → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
+
+Tel w n = Vec (ScopedTm w) n
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 

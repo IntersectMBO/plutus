@@ -11,9 +11,8 @@ open import Builtin.Constant.Type
 open import Utils
 
 open import Data.Sum renaming (inj₁ to inl; inj₂ to inr)
+open import Data.Vec using ([];_∷_;_++_)
 open import Data.Product
-open import Data.List hiding ([_]; drop; take)
-open import Data.Vec  hiding ([_]; drop; take)
 open import Function
 open import Data.Integer as I
 open import Data.Nat as N hiding (_<?_;_>?_;_≥?_)
@@ -33,26 +32,23 @@ data Value {n}{w : Weirdℕ n} : ScopedTm w → Set where
   V-con : (tcn : TermCon) → Value (con {n} tcn)
   V-wrap : (A B : ScopedTy n){t : ScopedTm w} → Value t → Value (wrap A B t)
   V-builtin : (b : Builtin)
-            → (As : Vec (ScopedTy n) (arity⋆ b))
+            → (As : Tel⋆ n (arity⋆ b))
             → ∀{o}
             → (q : o <‴ arity b)
-            → (ts : Vec (ScopedTm w) o)
+            → (ts : Tel w o)
             → Value (builtin b (inr (refl , ≤‴-step q)) As ts)
   V-builtin⋆ : (b : Builtin)
             → ∀{o}
             → (p : o <‴ arity⋆ b)
-            → (As : Vec (ScopedTy n) o)
+            → (As : Tel⋆ n o)
             → Value (builtin b (inl (≤‴-step p , refl)) As [])
 
 voidVal : ∀ {n}(w : Weirdℕ n) → Value {w = w} (con unit)
 voidVal w = V-con {w = w} unit
 
-Tel : ∀{n} m → Weirdℕ n → Set
-Tel m w = Vec (ScopedTm w) m
-
 open import Data.Unit
-VTel : ∀{n} m (w : Weirdℕ n) → Tel m w → Set
-VTel m       w []       = ⊤
+VTel : ∀{n} m (w : Weirdℕ n) → Tel w m → Set
+VTel 0       w []       = ⊤
 VTel (suc m) w (t ∷ ts) = Value t × VTel m w ts
 
 -- a term that satisfies this predicate has an error term in it somewhere
@@ -61,10 +57,10 @@ data Error {n}{w : Weirdℕ n} : ScopedTm w → Set where
    -- a genuine runtime error returned from a builtin
    E-error : (A : ScopedTy n) → Error (error A)
 
-data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel m w → Set
+data Any {n : ℕ}{w : Weirdℕ n}(P : ScopedTm w → Set) : ∀{m} → Tel w m → Set
   where
-  here  : ∀{m t}{ts : Tel m w} → P t → Any P (t ∷ ts)
-  there : ∀{m t}{ts : Tel m w} → Value t → Any P ts → Any P (t ∷ ts)  
+  here  : ∀{m t}{ts : Tel w m} → P t → Any P (t ∷ ts)
+  there : ∀{m t}{ts : Tel w m} → Value t → Any P ts → Any P (t ∷ ts)  
 
 VERIFYSIG : ∀{n}{w : Weirdℕ n} → Maybe Bool → ScopedTm w
 VERIFYSIG (just false) = con (bool false)
@@ -74,69 +70,68 @@ VERIFYSIG nothing      = error (con bool)
 -- this is currently in reverse order...
 BUILTIN : ∀{n}{w : Weirdℕ n}
   → (b : Builtin)
-  → Vec (ScopedTy n) (arity⋆ b) → (ts : Tel (arity b) w) → VTel (arity b) w ts → ScopedTm w
-BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+  → Tel⋆ n (arity⋆ b) → (ts : Tel w (arity b)) → VTel (arity b) w ts → ScopedTm w
+BUILTIN addInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.+ i'))
 BUILTIN addInteger _ _ _ = error (con integer)
-BUILTIN subtractInteger  _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN subtractInteger  _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.- i'))
 BUILTIN subtractInteger _ _ _ = error (con integer)
-BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN multiplyInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   con (integer (i I.* i'))
 BUILTIN multiplyInteger _ _ _ = error (con integer)
-BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN divideInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (div i i')))
 BUILTIN divideInteger _ _ _ = error (con integer)
-BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN quotientInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (quot i i')))
 BUILTIN quotientInteger _ _ _ = error (con integer)
-BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN remainderInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
     decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (rem i i')))
 BUILTIN remainderInteger _ _ _ = error (con integer)
-BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN modInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
     decIf (∣ i' ∣ N.≟ 0) (error (con integer)) (con (integer (mod i i')))
 BUILTIN modInteger _ _ _ = error (con integer)
 -- Int -> Int -> Bool
-BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i), tt) =
+BUILTIN lessThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i <? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanInteger _ _ _ = error (con bool)
-BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN lessThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i I.≤? i') (con (bool true)) (con (bool false))
 BUILTIN lessThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN greaterThanInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i >? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanInteger _ _ _ = error (con bool)
-BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN greaterThanEqualsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i ≥? i') (con (bool true)) (con (bool false))
 BUILTIN greaterThanEqualsInteger _ _ _ = error (con bool)
-BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i') , V-con (integer i) , tt) =
+BUILTIN equalsInteger _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (integer i') , tt) =
   decIf (i I.≟ i') (con (bool true)) (con (bool false))
 BUILTIN equalsInteger _ _ _ = error (con bool)
 -- BS -> BS -> BS
-BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b') , V-con (bytestring b) , tt) = con (bytestring (append b b'))
+BUILTIN concatenate _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) = con (bytestring (append b b'))
 BUILTIN concatenate _ _ _ = error (con bytestring)
 -- Int -> BS -> BS
-BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (integer i) , tt) = con (bytestring (take i b))
+BUILTIN takeByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (take i b))
 BUILTIN takeByteString _ _ _ = error (con bytestring)
-BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (integer i) , tt) = con (bytestring (drop i b))
+BUILTIN dropByteString _ (_ ∷ _ ∷ []) (V-con (integer i) , V-con (bytestring b) , tt) = con (bytestring (drop i b))
 BUILTIN dropByteString _ _ _ = error (con bytestring)
 -- BS -> BS
 BUILTIN sha2-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA2-256 b))
 BUILTIN sha2-256 _ _ _ = error (con bytestring)
 BUILTIN sha3-256 _ (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-256 b))
 BUILTIN sha3-256 _ _ _ = error (con bytestring)
-BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring c) , V-con (bytestring d) , V-con (bytestring k) , tt) = VERIFYSIG (verifySig k d c)
+BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN verifySignature _ _ _ = error (con bytestring)
 -- Int -> Int
-BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b') , V-con (bytestring b) , tt) =
+BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   con (bool (equals b b'))
 BUILTIN equalsByteString _ _ _ = error (con bool)
-BUILTIN ifThenElse (A ∷ []) (u ∷ t ∷ .(con (bool true))  ∷ []) (_ , _ , V-con (bool true)  , _) = t
-BUILTIN ifThenElse (A ∷ []) (u ∷ t ∷ .(con (bool false)) ∷ []) (_ , _ , V-con (bool false) , _) = u
+BUILTIN ifThenElse (A ∷ []) (.(con (bool true)) ∷ t ∷ u ∷ []) (V-con (bool true) , vt , vu , tt) = t
+BUILTIN ifThenElse (A ∷ []) (.(con (bool false)) ∷ t ∷ u ∷ []) (V-con (bool false) , vt , vu , tt) = u
 BUILTIN ifThenElse (A ∷ []) _ _ = error A
 
-
-data _—→T_ {n}{w : Weirdℕ n} : ∀{m} → Tel m w → Tel m w → Set
+data _—→T_ {n}{w : Weirdℕ n} : ∀{m} → Tel w m → Tel w m → Set
 
 data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   ξ-·₁ : {L L' M : ScopedTm w} → L —→ L' → L · M —→ L' · M
@@ -149,31 +144,31 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   β-Λ : ∀{K}{L : ScopedTm (T w)}{A : ScopedTy n}
       → (Λ K L) ·⋆ A —→ (L [ A ]⋆)
   ξ-builtin : {b : Builtin}
-            → {As : Vec (ScopedTy n) (arity⋆ b)}
-              {ts ts' : Tel (arity b) w}
+            → {As : Tel⋆ n (arity⋆ b)}
+              {ts ts' : Tel w (arity b)}
             → ts —→T ts'
             → builtin b (inr (refl , ≤‴-refl)) As ts
               —→ builtin b (inr (refl , ≤‴-refl)) As ts'
   β-builtin : {b : Builtin}
-              {As : Vec (ScopedTy n) (arity⋆ b) }
-              {ts : Tel (arity b) w}
+              {As : Tel⋆ n (arity⋆ b) }
+              {ts : Tel w (arity b)}
               (vs : VTel (arity b) w ts)
             → builtin b (inr (refl , ≤‴-refl)) As ts —→ BUILTIN b As ts vs
   sat-builtin : {b : Builtin}
-            → {As : Vec (ScopedTy n) (arity⋆ b)}
+            → {As : Tel⋆ n (arity⋆ b)}
             → ∀{o'}{q : o' <‴ arity b}
-            → {ts : Vec (ScopedTm w) o'}
+            → {ts : Tel w o'}
             → {t : ScopedTm w}
             → builtin b (inr (refl , ≤‴-step q)) As ts · t
-              —→ builtin b (inr (refl , q)) As (t ∷ ts)
+              —→ builtin b (inr (refl , q)) As (ts :< t)
   sat⋆-builtin : {b : Builtin}
             → ∀{o}{p : o <‴ arity⋆ b}
-            → {As : Vec (ScopedTy n) o}
+            → {As : Tel⋆ n o}
             → {A : ScopedTy n}
             → builtin b (inl (≤‴-step p , refl)) As [] ·⋆ A
-              —→ builtin b (inl (p , refl)) (A ∷ As) []
+              —→ builtin b (inl (p , refl)) (As :< A) []
   tick-builtin : {b : Builtin}
-            → {As : Vec (ScopedTy n) (arity⋆ b)}
+            → {As : Tel⋆ n (arity⋆ b)}
             → builtin b (inl (≤‴-refl , refl)) As []
               —→ builtin b (inr (refl , z≤‴n)) As []
   ξ-unwrap : {t t' : ScopedTm w} → t —→ t' → unwrap t —→ unwrap t'
@@ -210,24 +205,24 @@ data _—→_ {n}{w : Weirdℕ n} : ScopedTm w → ScopedTm w → Set where
   E-Λunwrap : ∀{K}{t : ScopedTm (T w)} → unwrap (Λ K t) —→ error missing
   E-conunwrap : ∀{tcn} → unwrap (con tcn) —→ error missing
   E-builtin·⋆ : {b : Builtin}
-              → {As : Vec (ScopedTy n) (arity⋆ b)}
+              → {As : Tel⋆ n (arity⋆ b)}
               → ∀{o}{p : o <‴ arity b}
-              → {ts : Vec (ScopedTm w) o}
+              → {ts : Tel w o}
               → {A : ScopedTy n}
               → builtin b (inr (refl , ≤‴-step p)) As ts ·⋆ A —→ error missing
   E-builtin⋆· : (b : Builtin)
               → ∀{o}(p : o <‴ arity⋆ b)
-              → (As : Vec (ScopedTy n) o)
+              → (As : Tel⋆ n o)
               → (t : ScopedTm w)
               → builtin b (inl (≤‴-step p , refl)) As [] · t —→ error missing
   E-builtinunwrap : {b : Builtin}
-                  → {As : Vec (ScopedTy n) (arity⋆ b)}
+                  → {As : Tel⋆ n (arity⋆ b)}
                   → ∀{o'}{q : o' ≤‴ arity b}
-                  → {ts : Vec (ScopedTm w) o'}
+                  → {ts : Tel w o'}
                   → unwrap (builtin b (inr (refl , q)) As ts) —→ error missing
   E-builtin⋆unwrap : {b : Builtin}
                    → ∀{o}{p : o <‴ arity⋆ b}
-                   → {As : Vec (ScopedTy n) o}
+                   → {As : Tel⋆ n o}
                    → unwrap (builtin b (inl (≤‴-step p , refl)) As [])
                      —→ error missing
 {-
@@ -239,14 +234,14 @@ E-builtin⋆ : (b : Builtin)
              → builtin b As ts {!!} —→ error missing
 -}
   E-builtin : (b : Builtin)
-            → (As : Vec (ScopedTy n) (arity⋆ b))
-            → (ts : Vec (ScopedTm w) (arity b))
+            → (As : Tel⋆ n (arity⋆ b))
+            → (ts : Tel w (arity b))
             → Any Error ts
             → builtin b (inr (refl , ≤‴-refl)) As ts —→ error missing
 
 data _—→T_ {n}{w} where
-  here  : ∀{m t t'}{ts : Tel m w} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
-  there : ∀{m t}{ts ts' : Tel m w}
+  here  : ∀{m t t'}{ts : Tel w m} → t —→ t' → (t ∷ ts) —→T (t' ∷ ts)
+  there : ∀{m t}{ts ts' : Tel w m}
     → Value t → ts —→T ts' → (t ∷ ts) —→T (t ∷ ts')
 \end{code}
 
@@ -262,10 +257,10 @@ data Progress {n}{i : Weirdℕ n}(t : ScopedTm i) : Set where
   done : Value t → Progress t
   error : Error t → Progress t
 
-data TelProgress {m}{n}{w : Weirdℕ n} : Tel m w → Set where
-  done : {tel : Tel m w}(vtel : VTel m w tel) → TelProgress tel
-  step : {ts ts' : Tel m w} → ts —→T ts' → TelProgress ts
-  error : {ts : Tel m w} → Any Error ts → TelProgress ts
+data TelProgress {m}{n}{w : Weirdℕ n} : Tel w m → Set where
+  done : {tel : Tel w m}(vtel : VTel m w tel) → TelProgress tel
+  step : {ts ts' : Tel w m} → ts —→T ts' → TelProgress ts
+  error : {ts : Tel w m} → Any Error ts → TelProgress ts
 
 \end{code}
 
@@ -316,19 +311,19 @@ progress-unwrap (done (V-builtin⋆ b As p))   = step E-builtin⋆unwrap
 progress-unwrap (error (E-error A))          = step E-unwrap
 
 progress-builtin : ∀ {n}{i : Weirdℕ n} bn
-  → (As : Vec (ScopedTy n) (arity⋆ bn)) (tel : Tel (arity bn) i)
+  → (As : Tel⋆ n (arity⋆ bn)) (tel : Tel i (arity bn))
   → TelProgress tel → Progress (builtin bn (inr (refl , ≤‴-refl)) As tel)
 progress-builtin bn As ts (done vs) = step (β-builtin vs)
 progress-builtin bn As ts (step p)  = step (ξ-builtin p)
 progress-builtin bn As ts (error p) = step (E-builtin bn As ts p)
 
 progressTelCons : ∀{m n}{i : Weirdℕ n}{t : ScopedTm i}
-  → Progress t → {tel : Tel m i} → TelProgress tel → TelProgress (t ∷ tel)
-progressTelCons (step p) q         = step (here p)
-progressTelCons (done v) (done vs) = done (v , vs)
-progressTelCons (done v) (step q)  = step (there v q)
-progressTelCons (done v) (error p) = error (there v p)
-progressTelCons (error p) q        = error (here p)
+  → {ts : Tel i m} → Progress t → TelProgress ts → TelProgress (t ∷ ts)
+progressTelCons (step p)  q         = step (here p)
+progressTelCons (done v)  (done vs) = done (v , vs)
+progressTelCons (done v)  (step q)  = step (there v q)
+progressTelCons (done v)  (error p) = error (there v p)
+progressTelCons (error p) q         = error (here p)
 
 open import Data.Empty
 
@@ -341,7 +336,7 @@ noVar : ∀{n}{i : Weirdℕ n} → NoVar i → WeirdFin i → ⊥
 noVar p (T x) = noVar p x
 
 progress : ∀{n}{i : Weirdℕ n} → NoVar i → (t : ScopedTm i) → Progress t
-progressTel : ∀{m n}{i : Weirdℕ n} → NoVar i → (tel : Tel m i)
+progressTel : ∀{m n}{i : Weirdℕ n} → NoVar i → (tel : Tel i m)
   → TelProgress tel
 progressTel p []       = done tt
 progressTel p (t ∷ ts) = progressTelCons (progress p t) (progressTel p ts)

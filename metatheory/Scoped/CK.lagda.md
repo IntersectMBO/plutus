@@ -16,6 +16,7 @@ open import Builtin
 open import Scoped.RenamingSubstitution
 open import Data.String
 open import Relation.Nullary
+open import Utils
 ```
 
 ```
@@ -31,7 +32,7 @@ data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
   unwrap- : ∀{n}{i : Weirdℕ n} → Frame i i
 
   builtin- : ∀{o o' o'' n}{i : Weirdℕ n} → Builtin → Vec (ScopedTy n) o
-    → {tel : Tel o' i} → VTel o' i tel → Tel o'' i →  Frame i i
+    → {tel : Tel i o'} → VTel o' i tel → Tel i o'' →  Frame i i
 
 data Stack : ∀{n n'}(i : Weirdℕ n)(i' : Weirdℕ n') → Set where
   ε   : ∀{n}{i : Weirdℕ n} → Stack i i
@@ -55,9 +56,9 @@ open import Data.Empty
 
 open import Data.Nat
 
-VTel-extend : ∀{o n}{i : Weirdℕ n} → {tel : Tel o i} → VTel o i tel → {t : ScopedTm i} → Value t → VTel (o + 1) i (tel Data.Vec.++ Data.Vec.[ t ])
+VTel-extend : ∀{o n}{i : Weirdℕ n} → {tel : Tel i o} → VTel o i tel → {t : ScopedTm i} → Value t → VTel (suc o) i (tel :< t)
 VTel-extend {tel = []} vs {t} v = v ,, _
-VTel-extend {tel = t' ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v
+VTel-extend {tel = t' ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v 
 
 step : ∀{n n'}{i : Weirdℕ n}{i' : Weirdℕ n'}
   → NoVar i' → State i i' → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × State i i'
@@ -107,7 +108,7 @@ step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = _ ,, i' ,, p ,, �
 
 step {i' = i'} p ((s , (V-builtin b As q ts ·-)) ◅ V) = _ ,, i' ,, p ,, ◆
 step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =
-  _ ,, _ ,, p ,, (s , builtin- b As { tel Data.Vec.++ Data.Vec.[ t ] } (VTel-extend vtel V) tel') ▻ t'
+  _ ,, _ ,, p ,, (s , builtin- b As { tel :< t } (VTel-extend vtel V) tel') ▻ t'
 ```
 
 ```

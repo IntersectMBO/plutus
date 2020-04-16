@@ -14,6 +14,8 @@ open import Data.Fin
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.Vec
+open import Data.Sum
+open import Data.Product
 open import Utils
 \end{code}
 
@@ -76,8 +78,8 @@ ren-erase ρ⋆ ρ (t · u)            =
   cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
 ren-erase ρ⋆ ρ (con x)                = refl
 ren-erase ρ⋆ ρ (error x)              = refl
-ren-erase ρ⋆ ρ (builtin bn p As q ts) =
-  cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
+ren-erase ρ⋆ ρ (builtin bn (inj₁ (p , refl)) As ts) = cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
+ren-erase ρ⋆ ρ (builtin bn (inj₂ y) As ts) = cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
 ren-erase ρ⋆ ρ (wrap pat ar t)    = ren-erase ρ⋆ ρ t
 ren-erase ρ⋆ ρ (unwrap t)         = ren-erase ρ⋆ ρ t
 
@@ -136,7 +138,10 @@ sub-erase σ⋆ σ (t · u)            =
   cong₂ _·_ (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
 sub-erase σ⋆ σ (con c)            = refl
 sub-erase σ⋆ σ (error A)          = refl
-sub-erase σ⋆ σ (builtin bn p As q ts) = cong
+sub-erase σ⋆ σ (builtin bn (inj₁ (p , refl)) As ts) = cong
+  (builtin bn _)
+  (subTel-erase σ⋆ σ ts)
+sub-erase σ⋆ σ (builtin bn (inj₂ p) As ts) = cong
   (builtin bn _)
   (subTel-erase σ⋆ σ ts)
 sub-erase σ⋆ σ (wrap pat arg t)   = sub-erase σ⋆ σ t

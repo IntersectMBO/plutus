@@ -45,4 +45,10 @@ lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴
 lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
 lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
 
+open import Data.Vec
+
+_:<_ : ∀{A : Set}{n} → Vec A n → A → Vec A (suc n)
+[]        :< a = a ∷ []
+(a' ∷ as) :< a = a' ∷ (as :< a)
+
 \end{code}

@@ -79,16 +79,12 @@ open import Data.Product as P
 open import Function hiding (_∋_)
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
-  → Vec (ScopedTy (len⋆ Γ)) (len⋆ Δ)
+  → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
 extricateSub {Δ = ∅}     σ = []
 extricateSub {Γ}{Δ ,⋆ K} σ =
-  Eq.subst (Vec (ScopedTy (len⋆ Γ)))
+  Eq.subst (Scoped.Tel⋆ (len⋆ Γ))
            (+-comm (len⋆ Δ) 1)
            (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ]) 
-
-extricateTyL : ∀{Φ n} → Vec (Φ ⊢Nf⋆ *) n → Vec (ScopedTy (len⋆ Φ)) n
-extricateTyL []       = []
-extricateTyL (A ∷ As) = extricateNf⋆ A ∷ extricateTyL As
 
 open import Data.List
 
@@ -140,7 +136,7 @@ lemma ifThenElse = refl
 ≡2≤‴ refl = ≤‴-refl
 
 extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(As : List (Δ ⊢Nf⋆ *))
-  → Tel Γ Δ σ As
+  → A.Tel Γ Δ σ As
   → Vec (ScopedTm (len Γ)) (length As)
 
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
