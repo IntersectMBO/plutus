@@ -42,26 +42,13 @@ instance (PrettyClassicBy configName (tyname a), GShow uni) =>
         prettyName = prettyBy config
 
 
-instance PrettyConst a => PrettyConst (ValueOf uni a)
-    where prettyConst (ValueOf u x) = prettyConst x
-
-instance (uni `Everywhere` PrettyConst, PrettyConst a) => PrettyConst (Some (ValueOf uni))
-    where prettyConst (Some (ValueOf _ x)) = prettyConst x
-
---instance forall a . GShow a => GShow (Some)
---   where gshowsPrec _ (Some x) = gshow x
-
---instance GShow f => Show (Some f) where
---    show (Some a) = "Some " ++ gshow a
-
-
 instance
         ( PrettyClassicBy configName (tyname a)
         , PrettyClassicBy configName (name a)
-        , GShow uni, Closed uni, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst --, uni `Everywhere` Show --
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> prettyConst b)
+        a (ConstantF _ b)      = parens' ("con" </> pretty b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n

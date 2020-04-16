@@ -128,7 +128,6 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Parser
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size

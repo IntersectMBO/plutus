@@ -47,6 +47,7 @@ library
         Language.PlutusCore.Normalize
         Language.PlutusCore.Normalize.Internal
         Language.PlutusCore.Pretty
+        Language.PlutusCore.Pretty.PrettyConst
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
@@ -112,7 +113,6 @@ library
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
         Language.PlutusCore.Pretty.Plc
-        Language.PlutusCore.Pretty.PrettyConst
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core

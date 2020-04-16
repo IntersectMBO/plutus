@@ -194,7 +194,7 @@ evaluateCk term = [] |> term
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 unsafeEvaluateCk
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty, uni `Everywhere` PrettyConst
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
     => Term TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk
