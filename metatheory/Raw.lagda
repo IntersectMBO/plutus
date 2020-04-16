@@ -84,6 +84,7 @@ decTermCon (string s) (string s') with s Data.String.≟ s'
 decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
+decTermCon unit unit = true
 decTermCon _ _ = false
 
 decBuiltin : (b b' : Builtin) → Bool

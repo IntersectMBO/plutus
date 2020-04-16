@@ -42,7 +42,7 @@ compareResult eq mode test = do
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail "it failed!"
+  return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 
 compareResult' :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResult' eq test = do
@@ -59,11 +59,12 @@ compareResult' eq test = do
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail "it failed!"
+  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ "L: '" ++ plcAgdaOutput1 ++ "' " ++ "CK: '" ++ plcAgdaOutput2 ++ "'"
+
 
 
 evalTestNames = ["succInteger"
---                ,"unitval"
+                ,"unitval"
                 ,"true"
                 ,"false"
                 ,"churchZero"
