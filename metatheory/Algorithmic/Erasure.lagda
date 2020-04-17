@@ -217,7 +217,7 @@ lem-erase refl refl t = refl
 
 lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
 lem-subst t refl = refl
-{-
+
 lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → (p : n ≤‴ arity b)
   → (q : n' ≤‴ arity b)
@@ -225,6 +225,7 @@ lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → Untyped.builtin b p ts ≡ builtin b q (subst (Vec (m ⊢)) r ts)
 lem-builtin b ts p q refl = cong (λ p → builtin b p ts) (lem≤‴ p q)
 
+{-
 lem-erase' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡ A')(t : Γ A.⊢ A)
   → erase t  ≡ erase (conv⊢ refl q t)
 lem-erase' {Γ = Γ} p t = trans

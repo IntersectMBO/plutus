@@ -8,8 +8,8 @@ open import Data.Fin
 import Data.Product as P
 open import Relation.Binary.PropositionalEquality
 open import Function hiding (_∋_)
-open import Data.List
-open import Data.Vec
+open import Data.List using (List;[];_∷_)
+open import Data.Vec using (Vec;[];_∷_;_++_)
 
 open import Utils
 open import Type
@@ -138,6 +138,45 @@ renTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (tel : A.Tel Γ Φ' σ As)
   → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renTel (erase-Ren ρ⋆ ρ) (eraseTel tel)
 
+-- these two could go in untyped
+renTel++ : {l l' m n : ℕ}(ρ : U.Ren m n)
+  → (ts : Untyped.Tel l m)(ts' : Untyped.Tel l' m)
+  → U.renTel ρ (ts ++ ts') ≡ U.renTel ρ ts ++ U.renTel ρ ts'
+renTel++ ρ []       ts' = refl
+renTel++ ρ (t ∷ ts) ts' = cong (_ ∷_) (renTel++ ρ ts ts')
+
+renTel:< : {l m n : ℕ}(ρ : U.Ren m n)
+  → (ts : Untyped.Tel l m)(t  : m Untyped.⊢)
+  → U.renTel ρ (ts :< t) ≡ U.renTel ρ ts :< U.ren ρ t
+renTel:< ρ []       t = refl
+renTel:< ρ (_ ∷ ts) t = cong (_ ∷_) (renTel:< ρ ts t)
+
+renTel⋆-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ)
+  → ∀ Φ'
+  → U.renTel (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') ≡ eraseTel⋆ Δ Φ'
+renTel⋆-erase ρ⋆ ρ ∅        = refl
+renTel⋆-erase {Γ = Γ} ρ⋆ ρ (Φ' ,⋆ K) = trans
+  (renTel:< (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') (con unit))
+  (cong (_:< _) (renTel⋆-erase ρ⋆ ρ Φ'))
+
+renTel'-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ)
+  → ∀ Φ'
+  → (As : List (Φ' ⊢Nf⋆ *))
+  → (σ : SubNf Φ' Φ)
+  → (tel : A.Tel Γ Φ' σ As)
+  → eraseTel⋆ Δ Φ' ++ eraseTel (A.renTel ρ⋆ ρ tel)
+    ≡
+    U.renTel (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ' ++ eraseTel tel)
+renTel'-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts = trans
+  (cong₂ _++_
+    (sym (renTel⋆-erase ρ⋆ ρ Φ'))
+    (renTel-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts) )
+  (sym (renTel++ (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') (eraseTel ts)))
+
 renTel-erase ρ⋆ ρ Φ' []       σ tel = refl
 renTel-erase ρ⋆ ρ Φ' (A ∷ As) σ (t ∷ tel) = cong₂ _∷_
   (trans (conv⊢-erase (sym (renNf-substNf σ ρ⋆ A)) (A.ren ρ⋆ ρ t))
@@ -173,7 +212,7 @@ ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (renNf-substNf σ ρ⋆ X)
     (builtin bn (renNf ρ⋆ ∘ σ) (A.renTel ρ⋆ ρ tel)))
-  (cong (builtin bn (lemma≤ bn)) (renTel-erase ρ⋆ ρ Φ As σ tel))
+  (cong (builtin bn (lemma≤ bn)) (renTel'-erase ρ⋆ ρ Φ As σ tel ))
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 
@@ -276,7 +315,7 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (substNf-comp σ' σ⋆ X)
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
-  (cong (builtin bn (lemma≤ bn)) (subTel-erase σ⋆ σ Φ As σ' tel))
+  (cong (builtin bn (lemma≤ bn)) {! subTel-erase σ⋆ σ Φ As σ' tel !})
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
