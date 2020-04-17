@@ -29,6 +29,7 @@ import qualified Data.Text.Encoding as T
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
+import Text.Read (readMaybe)
 
 {- Note [Keywords]
    This version of the lexer relaxes the syntax so that keywords (con,
@@ -70,6 +71,7 @@ $upper = [A-Z]
 
 $graphic = $printable # $white
 @quotedstring = \" ($graphic)* \"
+@quotedchar   = ' ($graphic)* ' -- Allow multiple characters so we can handle escape sequences
 
 tokens :-
 
@@ -97,6 +99,7 @@ tokens :-
     
     <conarg> bool        { mkKeyword KwBool        `andBegin` 0 }
     <conarg> bytestring  { mkKeyword KwByteString  `andBegin` 0 }
+    <conarg> char        { mkKeyword KwChar        `andBegin` 0 }
     <conarg> integer     { mkKeyword KwInteger     `andBegin` 0 }
     <conarg> string      { mkKeyword KwString      `andBegin` 0 }
     <conarg> unit        { mkKeyword KwUnit        `andBegin` 0 }
@@ -126,8 +129,11 @@ tokens :-
     -- ByteStrings
     <conarg> \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
 
+    -- Characters
+    <conarg> @quotedchar     { tok (\p s -> alex $ TkChar p (getCharLiteral s)) }  
+
     -- Strings
-    <conarg> @quotedstring     { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
+    <conarg> @quotedstring   { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
 
     -- Integer/size literals
     @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
@@ -178,6 +184,15 @@ asBytes _ = undefined -- safe b/c macro matches them in pairs
 asBSLiteral :: BSL.ByteString -> BSL.ByteString
 asBSLiteral = withBytes asBytes . BSL.tail
     where withBytes f = BSL.pack . f . BSL.unpack
+
+-- Convert a single-quoted string to a character.  This should handle escape codes correctly.
+getCharLiteral :: BSL.ByteString -> Char
+getCharLiteral s =
+    let str = ASCII.unpack s
+    in case Text.Read.readMaybe str :: Maybe Char of
+       Just c -> c
+       Nothing -> error $ "Lexical error: invalid character constant " ++ str
+       -- Using error here isn't ideal, but it'll go away when types can supply their own parsers
 
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments

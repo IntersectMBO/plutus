@@ -69,6 +69,7 @@ import Control.Monad.State
     integer       { TkKeyword $$ KwInteger }
     bool          { TkKeyword $$ KwBool }
     bytestring    { TkKeyword $$ KwByteString }
+    char          { TkKeyword $$ KwChar }
     string        { TkKeyword $$ KwString }
     unit          { TkKeyword $$ KwUnit }
     type          { TkKeyword $$ KwType }
@@ -87,6 +88,7 @@ import Control.Monad.State
 
     unitLit       { $$@TkUnit{} }
     boolLit       { $$@TkBool{} }
+    charLit       { $$@TkChar{}}
     integerLit    { $$@TkInt{} }
     naturalLit    { $$@TkNat{} }
     byteStringLit { $$@TkBS{} }
@@ -117,6 +119,7 @@ TyName : Name { TyName $1 }
 
 Constant : unitLit       { someValue (tkUnit $1) }
          | boolLit       { someValue (tkBool $1) }
+         | charLit       { someValue (tkChar $1) }
          | integerLit    { someValue (tkInt $1) }
          | naturalLit    { someValue (toInteger (tkNat $1)) }
          | byteStringLit { someValue (tkBytestring $1) }
@@ -136,6 +139,7 @@ Term : Name                                       { Var (nameAttribute $1) $1 }
 
 BuiltinType : integer    { mkTyBuiltin @Integer }
             | bool       { mkTyBuiltin @Bool }
+            | char       { mkTyBuiltin @Char }
             | bytestring { mkTyBuiltin @BSL.ByteString }
             | string     { mkTyBuiltin @String }
             | unit       { mkTyBuiltin @() }

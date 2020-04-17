@@ -31,6 +31,7 @@ data Keyword
     | KwAll
     | KwBool
     | KwByteString
+    | KwChar
     | KwString
     | KwInteger
     | KwUnit
@@ -63,8 +64,9 @@ data Token ann
               }
     | TkUnit       { tkLoc :: ann, tkUnit :: () }  -- A bit redundant
     | TkBool       { tkLoc :: ann, tkBool :: Bool }
-    | TkInt        { tkLoc :: ann, tkInt :: Integer }
     | TkBS         { tkLoc :: ann, tkBytestring :: BSL.ByteString }
+    | TkChar       { tkLoc :: ann, tkChar :: Char }
+    | TkInt        { tkLoc :: ann, tkInt :: Integer }
     | TkString     { tkLoc :: ann, tkString :: String }
     | TkBuiltinId  { tkLoc :: ann, tkBuiltinId :: T.Text }
     | TkNat        { tkLoc :: ann, tkNat :: Natural }
@@ -90,6 +92,7 @@ instance Pretty Keyword where
     pretty KwAll        = "all"
     pretty KwBool       = "bool"
     pretty KwByteString = "bytestring"
+    pretty KwChar       = "char"
     pretty KwInteger    = "integer"
     pretty KwString     = "string"
     pretty KwUnit       = "unit"
@@ -104,6 +107,7 @@ instance Pretty Keyword where
 instance Pretty (Token ann) where
     pretty (TkName _ n _)        = pretty n
     pretty (TkUnit _ u)          = pretty u
+    pretty (TkChar _ c)          = pretty c
     pretty (TkBool _ b)          = pretty b
     pretty (TkInt _ i)           = pretty i
     pretty (TkNat _ n)           = pretty n
