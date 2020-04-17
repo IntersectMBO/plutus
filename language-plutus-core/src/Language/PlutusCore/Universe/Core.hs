@@ -279,7 +279,7 @@ instance GShow uni => Pretty (Some (TypeIn uni)) where
 
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where
     pretty (Some s) = pretty s  -- calls prettyConst
-                      
+
 -------------------- 'Eq' / 'GEq'
 
 instance GEq f => Eq (Some f) where
