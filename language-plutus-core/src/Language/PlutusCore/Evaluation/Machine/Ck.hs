@@ -25,7 +25,7 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.PrettyConst
+import           Language.PlutusCore.Pretty                                 (PrettyConst)
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 

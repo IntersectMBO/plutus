@@ -27,7 +27,6 @@ import           Language.PlutusCore.Generators.Internal.TypeEvalCheck
 import           Language.PlutusCore.Generators.Internal.Utils
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Pretty.PrettyConst                ()
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except

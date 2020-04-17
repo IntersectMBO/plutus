@@ -17,7 +17,7 @@ import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty.PrettyConst
+import           Language.PlutusCore.Pretty                         (PrettyConst)
 
 import           Language.PlutusCore.StdLib.Data.List               as Plc
 import           Language.PlutusCore.StdLib.Data.Unit

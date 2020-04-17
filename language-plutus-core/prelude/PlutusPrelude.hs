@@ -129,8 +129,6 @@ import           GHC.Natural                             (Natural)
 
 import           Data.Functor.Compose
 
-import           Language.PlutusCore.Pretty.PrettyConst  ()
-
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
 

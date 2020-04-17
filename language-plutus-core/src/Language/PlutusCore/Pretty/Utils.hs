@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Pretty.Utils
-    ( prettyBytes,
+    ( prettyBytes
     ) where
 
 import           PlutusPrelude

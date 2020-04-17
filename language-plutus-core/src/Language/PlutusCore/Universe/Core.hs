@@ -47,7 +47,7 @@ import           Language.Haskell.TH.Lift
 import           Language.Haskell.TH.Syntax
 import           Text.Show.Deriving
 
-import           Language.PlutusCore.Pretty.PrettyConst
+import           Language.PlutusCore.Pretty (PrettyConst, prettyConst)
     
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
@@ -268,9 +268,6 @@ instance (GShow uni, Closed uni, uni `Everywhere` Show) => Show (ValueOf uni a) 
 
 -------------------- 'Pretty'
 
---instance PrettyConst a => PrettyConst (ValueOf uni a) where
---    prettyConst (ValueOf _ a) = prettyConst a
-
 instance GShow uni => Pretty (TypeIn uni a) where
     pretty (TypeIn uni) = pretty $ gshow uni
 
@@ -281,7 +278,7 @@ instance GShow uni => Pretty (Some (TypeIn uni)) where
     pretty (Some s) = pretty s
 
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where
-    pretty (Some s) = pretty s
+    pretty (Some s) = pretty s  -- calls prettyConst
                       
 -------------------- 'Eq' / 'GEq'
 
