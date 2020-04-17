@@ -13,11 +13,9 @@ module Language.PlutusCore.Universe.Default
     ( DefaultUni (..)
     ) where
 
-import qualified Language.PlutusCore.Pretty.Utils  as Utils
 import           Language.PlutusCore.Universe.Core
 
 import qualified Data.ByteString.Lazy              as BSL
-import           Data.Text.Prettyprint.Doc
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
