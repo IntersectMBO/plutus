@@ -107,7 +107,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 unsafeTypeEvalCheck
     :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` Eq
        , uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage
-       )  -- FIXME: why Pretty?
+       )
     => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostModel) termOfTbv
