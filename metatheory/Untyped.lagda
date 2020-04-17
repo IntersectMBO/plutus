@@ -48,7 +48,7 @@ arity sha2-256                 = 1
 arity sha3-256                 = 1
 arity verifySignature          = 3
 arity equalsByteString         = 2
-arity ifThenElse               = 3
+arity ifThenElse               = 4
 
 data _⊢ (n : ℕ) : Set
 Tel : ℕ → ℕ → Set

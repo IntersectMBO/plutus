@@ -31,7 +31,7 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
-import Declarative.Erasure
+--import Declarative.Erasure
 
 --import Declarative.Examples
 
@@ -51,9 +51,9 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
-import Algorithmic.Erasure
-import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.Erasure.Reduction
+--import Algorithmic.Erasure
+--import Algorithmic.Erasure.RenamingSubstitution
+--import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
 -- Terms, that carry witnesses of their type's reduction to normal form
 
@@ -78,7 +78,7 @@ import Scoped.Extrication.RenamingSubstitution
 
 import Scoped.Erasure
 
-import Scoped.Erasure.RenamingSubstitution
+--import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
 
 import Scoped.CK

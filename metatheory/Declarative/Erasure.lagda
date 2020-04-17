@@ -50,7 +50,7 @@ lemma sha2-256 = refl
 lemma sha3-256 = refl
 lemma verifySignature = refl
 lemma equalsByteString = refl
-lemma ifThenElse = refl
+lemma ifThenElse = ?
 
 lemma≤ : (b : Builtin) → length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
 lemma≤ b rewrite lemma b = ≤‴-refl
