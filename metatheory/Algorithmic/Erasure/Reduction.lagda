@@ -205,12 +205,18 @@ erase—→ {Γ = Γ} (A.β-Λ {N = N}{A = A})                          =
 erase—→ (A.β-wrap1 p)                                   = inj₂ refl
 erase—→ (A.ξ-unwrap1 p)                                 = erase—→ p
 erase—→ (A.ξ-wrap p)                                    = erase—→ p
-erase—→ {Γ = Γ} (A.β-builtin bn σ tel vtel)             = {!!} {- inj₁ (subst
-  (Untyped.builtin bn (lemma≤ bn) (eraseTel tel) U.—→_)
-  (erase-BUILTIN bn _ σ tel vtel)
-  (subst (U._—→ U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) (sym (lem-builtin bn (eraseTel tel) (lemma≤ bn) ≤‴-refl (lemma bn))) (U.β-builtin (subst (Vec (len Γ ⊢)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ _ σ _ (lemma bn) tel vtel)) )) -}
+erase—→ {Γ = Γ} (A.β-builtin b σ ts vs)                 = inj₁ (subst
+  (Untyped.builtin b (lemma≤ b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) U.—→_)
+  (erase-BUILTIN b _ σ ts vs)
+  (subst
+    (U._—→  U.BUILTIN b (subst (λ n → Untyped.Tel n (len Γ)) (lemma b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts)) (eraseVTel' Γ (proj₁ (SIG b)) σ (proj₁ (proj₂ (SIG b))) (lemma b) ts vs))
+    (sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) (lemma≤ b) ≤‴-refl (lemma b)))
+    (U.β-builtin (subst (λ n → Untyped.Tel n (len Γ)) (lemma b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts)) (eraseVTel' Γ (proj₁ (SIG b)) σ (proj₁ (proj₂ (SIG b))) (lemma b) ts vs))))
 erase—→  {Γ = Γ} (A.ξ-builtin b σ {ts = ts}{ts' = ts'} p) = map
-  (λ q → subst₂ U._—→_ (sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) (lemma≤ b) ≤‴-refl (lemma b))) ((sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts') (lemma≤ b) ≤‴-refl (lemma b)))) (U.ξ-builtin b (subst—→T (U.—→T++ q (eraseTel⋆ Γ (proj₁ (SIG b))) (eraseVTel⋆ Γ (proj₁ (SIG b)))) (lemma b))) )
+  (λ q → subst₂ U._—→_
+    (sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts) (lemma≤ b) ≤‴-refl (lemma b)))
+    (sym (lem-builtin b (eraseTel⋆ Γ (proj₁ (SIG b)) ++ eraseTel ts') (lemma≤ b) ≤‴-refl (lemma b)))
+    (U.ξ-builtin b (subst—→T (U.—→T++ q (eraseTel⋆ Γ (proj₁ (SIG b))) (eraseVTel⋆ Γ (proj₁ (SIG b)))) (lemma b))))
   (cong (λ ts → builtin b (lemma≤ b) (eraseTel⋆ Γ (proj₁ (SIG b)) ++ ts)))
   (erase—→T p)
 erase—→ (A.E-·₂ p)                                      =
