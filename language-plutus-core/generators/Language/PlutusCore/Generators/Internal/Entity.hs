@@ -36,7 +36,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                              (PrettyConst)
+import           Language.PlutusCore.Pretty                              (PrettyConst (..))
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
@@ -73,12 +73,12 @@ data IterAppValue uni head arg r = IterAppValue
     }
 
 instance ( PrettyBy config (Term TyName Name uni ())
-         , PrettyBy config head, PrettyBy config arg, Pretty r
+         , PrettyBy config head, PrettyBy config arg, PrettyConst r
          ) => PrettyBy config (IterAppValue uni head arg r) where
     prettyBy config (IterAppValue term pia y) = parens $ fold
         [ "{ ", prettyBy config term, line
         , "| ", prettyBy config pia, line
-        , "| ", pretty y, line
+        , "| ", prettyConst y, line
         , "}"
         ]
 
