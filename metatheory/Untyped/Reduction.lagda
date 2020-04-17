@@ -362,4 +362,12 @@ vTel++ : ∀{l l' n}
   → VTel (l Data.Nat.+ l') n (ts ++ ts')
 vTel++ []       vs        ts' vs' = vs'
 vTel++ (t ∷ ts) (v' , vs) ts' vs' = v' , vTel++ ts vs ts' vs'
+
+anyErr++ : ∀{l l' n}{ts : Tel l n} → Any Error ts → (ts' : Tel l' n) → VTel l' n ts' → Any Error (ts' ++ ts)
+anyErr++ p []         _           = p
+anyErr++ p (t' ∷ ts') (v' , vs') = there v' (anyErr++ p ts' vs')
+
+—→T++ : ∀{l l' n}{ts' ts'' : Tel l n} → ts' —→T ts'' → (ts : Tel l' n) → VTel l' n ts → (ts ++ ts') —→T (ts ++ ts'')
+—→T++ p []       vs = p
+—→T++ p (t ∷ ts) (v , vs) = there v (—→T++ p ts vs)
 \end{code}
