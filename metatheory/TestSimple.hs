@@ -25,6 +25,23 @@ succeedingEvalTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
+untypedEvalTests = ["succInteger"
+        ,"unitval"
+        ,"true"
+        ,"false"
+        ,"churchZero"
+        ,"churchSucc"
+--        ,"overapplication"
+--        ,"factorial"
+--        ,"fibonacci"
+        ,"NatRoundTrip"
+        ,"ListSum"
+--        ,"IfIntegers"
+--        ,"ApplyAdd1"
+        ,"ApplyAdd2"
+        ]
+
+
 failingEvalTests = ["DivideByZero"]
 
 succeedingTCTests = ["succInteger"
@@ -80,6 +97,8 @@ main = do
   runSucceedingTests "evaluate" (Just "CK") succeedingEvalTests
   putStrLn "running fail CK"
   runFailingTests "evaluate" (Just "CK") failingEvalTests
+  putStrLn "running succ U..."
+  runSucceedingTests "evaluate" (Just "U") untypedEvalTests
   putStrLn "running succ TC"
   runSucceedingTests "typecheck" Nothing succeedingTCTests
 

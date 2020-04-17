@@ -99,7 +99,11 @@ uglyFin (suc x) = "(S " +++ uglyFin x +++ ")"
 uglyTermCon : TermCon → String
 uglyTermCon (integer x) = "(integer " +++ Data.Integer.show x +++ ")"
 uglyTermCon (bytestring x) = "bytestring"
-uglyTermCon size = "size"
+uglyTermCon unit = "()"
+uglyTermCon (string s) = "(string " +++ s +++ ")"
+uglyTermCon (bool false) = "(bool " +++ "false" +++ ")"
+uglyTermCon (bool true) = "(bool " +++ "true" +++ ")"
+uglyTermCon (char c) = "(char)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
