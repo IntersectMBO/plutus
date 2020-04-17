@@ -110,7 +110,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 {t : n ⊢}
               → Value t
               → (p : l <‴ arity b)
-              → builtin b (≤‴-step p) ts · t —→ builtin b p (t ∷ ts)
+              → builtin b (≤‴-step p) ts · t —→ builtin b p (ts :< t)
 
   E-·₁ : {M : n ⊢} → error · M —→ error
   E-·₂ : {L : n ⊢} → FValue L → L · error —→ error

@@ -37,7 +37,7 @@ untypedEvalTests = ["succInteger"
         ,"NatRoundTrip"
         ,"ListSum"
 --        ,"IfIntegers"
---        ,"ApplyAdd1"
+        ,"ApplyAdd1"
         ,"ApplyAdd2"
         ]
 
