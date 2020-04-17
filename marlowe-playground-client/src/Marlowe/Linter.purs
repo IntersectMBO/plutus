@@ -41,7 +41,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
 import Help (marloweTypeMarkerText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -53,7 +53,7 @@ type Position
   = { row :: Pos, column :: Pos }
 
 newtype MaxTimeout
-  = MaxTimeout Timeout
+  = MaxTimeout (TermWrapper Slot)
 
 derive instance newtypeMaxTimeout :: Newtype MaxTimeout _
 
@@ -65,7 +65,7 @@ instance semigroupMax :: Semigroup MaxTimeout where
   append a b = max a b
 
 instance monoidMaxTimeout :: Monoid MaxTimeout where
-  mempty = MaxTimeout (Timeout zero zero)
+  mempty = MaxTimeout (TermWrapper zero zero)
 
 data Warning
   = NegativePayment IRange
@@ -163,7 +163,7 @@ derive newtype instance monoidLintEnv :: Monoid LintEnv
 _letBindings :: Lens' LintEnv (Set ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
-_maxTimeout :: Lens' LintEnv Timeout
+_maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
 data TemporarySimplification a b
@@ -254,7 +254,7 @@ lintContract env (Term (If obs c1 c2) _) = do
       markSimplification constToObs SimplifiableObservation obs sa
       pure unit
 
-lintContract env (Term (When cases timeout@(Timeout slot pos) cont) _) = do
+lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
   let
     timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange slot pos))
 

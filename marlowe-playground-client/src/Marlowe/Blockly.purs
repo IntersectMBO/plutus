@@ -25,7 +25,7 @@ import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Marlowe.Holes (Timeout(..))
+import Marlowe.Holes (TermWrapper(..))
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Party(..), Rational(..), Token(..), Value(..), ValueId(..))
 import Record (merge)
@@ -1055,7 +1055,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType Contract 
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
       Either.Left _ -> pure []
-    (Timeout slot _) <- parse Parser.timeout =<< getFieldValue block "timeout"
+    (TermWrapper slot _) <- parse Parser.timeout =<< getFieldValue block "timeout"
     contract <- parse (Parser.parseToValue Parser.contract) =<< statementToCode g block "contract"
     pure (When cases slot contract)
   blockDefinition LetContractType g block = do

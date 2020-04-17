@@ -21,7 +21,7 @@ import Data.String.Extra (unlines)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Marlowe.Semantics (ChosenNum, Money, Rational, PubKey, Slot(..), TokenName)
+import Marlowe.Semantics (ChosenNum, Money, PubKey, Rational, Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Parsing.StringParser (Pos)
@@ -353,31 +353,6 @@ instance termHasMarloweHoles :: (IsMarloweType a, HasMarloweHoles a) => HasMarlo
 instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
   getHoles as m = foldMap (\a -> getHoles a m) as
 
--- Parsable versions of the Marlowe types
--- Timeout is special, we want to be able to show warnings from the linter in the position
--- however as it is just a number we don't want to be able to have holes since that makes
--- working with blockly more difficult (since number values can't be null)
-data Timeout
-  = Timeout Slot { row :: Pos, column :: Pos }
-
-derive instance genericTimeout :: Generic Timeout _
-
-instance eqTimeout :: Eq Timeout where
-  eq (Timeout a _) (Timeout b _) = eq a b
-
-instance ordTimeout :: Ord Timeout where
-  compare (Timeout a _) (Timeout b _) = compare a b
-
-instance showTimeout :: Show Timeout where
-  show (Timeout (Slot v) _) = show v
-
-instance prettyTimeout :: Pretty Timeout where
-  pretty (Timeout (Slot slot) _) = pretty slot
-
-instance hasArgsTimeout :: Args Timeout where
-  hasArgs (Timeout slot _) = false
-  hasNestedArgs (Timeout slot _) = false
-
 data Bound
   = Bound BigInteger BigInteger
 
@@ -694,7 +669,7 @@ data Contract
   = Close
   | Pay (Term AccountId) (Term Payee) (Term Token) (Term Value) (Term Contract)
   | If (Term Observation) (Term Contract) (Term Contract)
-  | When (Array (Term Case)) Timeout (Term Contract)
+  | When (Array (Term Case)) (TermWrapper Slot) (Term Contract)
   | Let (TermWrapper ValueId) (Term Value) (Term Contract)
 
 derive instance genericContract :: Generic Contract _
@@ -713,7 +688,7 @@ instance contractFromTerm :: FromTerm Contract S.Contract where
   fromTerm Close = pure S.Close
   fromTerm (Pay a b c d e) = S.Pay <$> fromTerm a <*> fromTerm b <*> fromTerm c <*> fromTerm d <*> fromTerm e
   fromTerm (If a b c) = S.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
-  fromTerm (When as (Timeout b _) c) = S.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
+  fromTerm (When as (TermWrapper b _) c) = S.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
   fromTerm (Let a b c) = S.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
 
 instance contractIsMarloweType :: IsMarloweType Contract where

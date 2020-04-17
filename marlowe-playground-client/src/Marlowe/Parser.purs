@@ -15,7 +15,7 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
@@ -30,10 +30,10 @@ type HelperFunctions a
     , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
     , mkTermWrapper :: a -> { row :: Pos, column :: Pos } -> TermWrapper a
     , mkBigInteger :: Int -> BigInteger
-    , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> Timeout
+    , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> TermWrapper Slot
     , mkClose :: Contract
     , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
-    , mkWhen :: Array (Term Case) -> Timeout -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
@@ -79,7 +79,7 @@ helperFunctions =
   , mkTerm: Term
   , mkTermWrapper: TermWrapper
   , mkBigInteger: BigInteger.fromInt
-  , mkTimeout: \v pos -> Timeout (Slot (BigInteger.fromInt v)) pos
+  , mkTimeout: \v pos -> TermWrapper (Slot (BigInteger.fromInt v)) pos
   , mkClose: Close
   , mkPay: Pay
   , mkWhen: When
@@ -249,12 +249,12 @@ slot = Slot <$> maybeParens bigInteger
 slotTerm :: Parser (Term Slot)
 slotTerm = parseTerm slot
 
-timeout :: Parser Timeout
+timeout :: Parser (TermWrapper Slot)
 timeout = do
   result <- bigIntegerTerm
   case result of
     (Hole _ _ pos) -> fail ""
-    (Term v pos) -> pure $ Timeout (Slot v) pos
+    (Term v pos) -> pure $ TermWrapper (Slot v) pos
 
 accountId :: Parser AccountId
 accountId = parens accountId'
