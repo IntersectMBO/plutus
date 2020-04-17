@@ -342,4 +342,15 @@ detT (here p) (here q) = cong (_∷ _) (det p q)
 detT (here p) (there v q) = ⊥-elim (val-red v (_ , p))
 detT (there v p) (here q) = ⊥-elim (val-red v (_ , q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
+
+-- auxiliary functions
+
+vTel:< : ∀{l n}
+  → (ts : Tel l n)
+  → VTel l n ts → (t : n ⊢)
+  → Value t
+  → VTel (suc l) n (ts :< t)
+vTel:< []        vs        t v = v , tt
+vTel:< (t' ∷ ts) (v' , vs) t v = v' , (vTel:< ts vs t v)
+
 \end{code}

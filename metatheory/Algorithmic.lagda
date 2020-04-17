@@ -6,10 +6,13 @@ module Algorithmic where
 
 \begin{code}
 open import Function hiding (_∋_)
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.List hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.Unit
 
 open import Type
 open import Type.BetaNormal
-
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
@@ -17,10 +20,7 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Constant.Type
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List hiding ([_])
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Unit
+open import Utils
 \end{code}
 
 ## Fixity declarations
@@ -161,6 +161,25 @@ data Tel {Φ} Γ Δ σ where
 Utility functions
 
 \begin{code}
+_++T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → {As' : List (Δ ⊢Nf⋆ *)}
+  → (ts  : Tel Γ Δ σ As)
+  → (ts' : Tel Γ Δ σ As')
+  → Tel Γ Δ σ (As Data.List.++ As')
+[]       ++T ts' = ts'
+(t ∷ ts) ++T ts' = t ∷ (ts ++T ts')
+
+
+_:<T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → {A  : Δ ⊢Nf⋆ *}
+  → (ts : Tel Γ Δ σ As)
+  → (t : Γ ⊢ substNf σ A)
+  → Tel Γ Δ σ (As :<L A)
+[]        :<T t = t ∷ []
+(t' ∷ ts) :<T t = t' ∷ (ts :<T t)
+
 open import Type.BetaNormal.Equality
 
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}

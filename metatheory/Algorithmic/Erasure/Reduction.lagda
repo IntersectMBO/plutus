@@ -23,7 +23,7 @@ open import Builtin.Signature Ctx⋆ Kind
 open import Type.BetaNBE.RenamingSubstitution
 open import Data.Sum as S
 open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.List hiding (map; [_])
+open import Data.List using (List;[];_∷_)
 open import Data.Vec hiding (map; [_])
 open import Data.Product hiding (map) renaming (_,_ to _,,_)
 open import Data.Unit hiding (_≤_; _≤?_; _≟_)
@@ -72,6 +72,12 @@ eraseVTel Γ Δ σ []       tel       vtel        = _
 eraseVTel Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) =
   eraseVal v ,, eraseVTel Γ Δ σ As tel vtel 
 
+eraseVTel⋆ : ∀ {Φ}(Γ : Ctx Φ) Δ
+  → U.VTel (len⋆ Δ) (len Γ) (eraseTel⋆ Γ Δ)
+eraseVTel⋆ Γ ∅        = tt
+eraseVTel⋆ Γ (Δ ,⋆ K) =
+  U.vTel:< (eraseTel⋆ Γ Δ) (eraseVTel⋆ Γ Δ) (con unit) (U.V-con unit)
+
 eraseVTel' : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (As : List (Δ ⊢Nf⋆ *))
@@ -106,7 +112,7 @@ erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
-  → U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseVTel' Γ Δ σ As (lemma bn) tel vtel)
+  → U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel tel)) {! eraseVTel' Γ Δ σ As (lemma bn) tel vtel !}
     ≡ erase (A.BUILTIN bn σ tel vtel)
 erase-BUILTIN addInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
@@ -161,6 +167,7 @@ erase-BUILTIN ifThenElse Γ σ (_ ∷ _ ∷ _ ∷ []) (A.V-con (bool B.true)  ,,
 \end{code}
 
 \begin{code}
+{-
 subst—→T : ∀{m m' n}{ts ts' : Untyped.Tel m n}
   → ts U.—→T ts'
   → (p : m ≡ m')
@@ -230,4 +237,5 @@ erase-progress : ∀{Φ}{Γ : Ctx Φ} → A.NoVar Γ → ∀{A}(M : Γ ⊢ A)
   → U.Progress (erase M)
   ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
 erase-progress p t = eraseProgress t (A.progress p t)
+-}
 \end{code}
