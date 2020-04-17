@@ -81,11 +81,11 @@ eraseVTel⋆ Γ (Δ ,⋆ K) =
 eraseVTel' : ∀ {Φ} Γ Δ
   → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (As : List (Δ ⊢Nf⋆ *))
-  → ∀{n}(p : Data.List.length As ≡ n)
+  → ∀{n}(p : len⋆ Δ Data.Nat.+ Data.List.length As ≡ n)
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
-  → U.VTel n (len Γ) (subst (λ n → Untyped.Tel n (len Γ)) p (eraseTel tel))
-eraseVTel' Γ Δ σ As refl = eraseVTel Γ Δ σ As
+  → U.VTel n (len Γ) (subst (λ n → Untyped.Tel n (len Γ)) p (eraseTel⋆ Γ Δ ++ eraseTel tel))
+eraseVTel' Γ Δ σ As refl ts vs = U.vTel++ (eraseTel⋆ Γ Δ) (eraseVTel⋆ Γ Δ) (eraseTel ts) (eraseVTel Γ Δ σ As ts vs)
 
 
 \end{code}
@@ -112,7 +112,7 @@ erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
-  → U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel tel)) {! eraseVTel' Γ Δ σ As (lemma bn) tel vtel !}
+  → U.BUILTIN bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel⋆ Γ (proj₁ (SIG bn)) ++ eraseTel tel)) (eraseVTel' Γ Δ σ As (lemma bn) tel vtel)
     ≡ erase (A.BUILTIN bn σ tel vtel)
 erase-BUILTIN addInteger Γ σ (_ ∷ _ ∷ [])
   (A.V-con (integer i) ,, A.V-con (integer j) ,, tt) = refl
@@ -219,7 +219,6 @@ erase—→ A.E-·⋆                                          = inj₁ U.E-·�
 erase—→ A.E-unwrap                                      = inj₂ refl
 erase—→ A.E-wrap                                        = inj₂ refl
 erase—→ {Γ = Γ} (A.E-builtin bn σ tel p) = inj₁ (subst (U._—→ error) (sym (lem-builtin bn (eraseTel tel) (lemma≤ bn) ≤‴-refl (lemma bn))) (U.E-builtin bn (subst (λ n → Untyped.Tel n (len Γ)) (lemma bn) (eraseTel tel)) (eraseAnyErr' (lemma bn) tel p)))
-
 \end{code}
 
 -- returning nothing means that the typed step vanishes

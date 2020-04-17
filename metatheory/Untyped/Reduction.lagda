@@ -353,4 +353,13 @@ vTel:< : ∀{l n}
 vTel:< []        vs        t v = v , tt
 vTel:< (t' ∷ ts) (v' , vs) t v = v' , (vTel:< ts vs t v)
 
+
+vTel++ : ∀{l l' n}
+  → (ts : Tel l n)
+  → VTel l n ts 
+  → (ts' : Tel l' n)
+  → VTel l' n ts'
+  → VTel (l Data.Nat.+ l') n (ts ++ ts')
+vTel++ []       vs        ts' vs' = vs'
+vTel++ (t ∷ ts) (v' , vs) ts' vs' = v' , vTel++ ts vs ts' vs'
 \end{code}
