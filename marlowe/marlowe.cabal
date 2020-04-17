@@ -66,6 +66,8 @@ library
     Language.Marlowe.ACTUS.HP.STF.StateTransition
     Language.Marlowe.ACTUS.HP.SCHED.PAM
     Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule
+    Language.Marlowe.ACTUS.HP.INIT.PAM
+    Language.Marlowe.ACTUS.HP.INIT.StateInitialization
     Language.Marlowe.ACTUS.HP.Utility.DateShift
     Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.HP.Utility.YearFraction
