@@ -51,7 +51,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
---import Algorithmic.Erasure
+import Algorithmic.Erasure
 --import Algorithmic.Erasure.RenamingSubstitution
 --import Algorithmic.Erasure.Reduction
 import Algorithmic.CK

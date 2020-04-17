@@ -20,13 +20,13 @@ import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne �
 open import Type.RenamingSubstitution as T renaming (subst to sub) 
 open import Type.Equality
 open import Type.BetaNBE.Soundness
-
+open import Utils
 
 
 open import Data.Nat
 open import Data.Nat.Properties
-open import Data.Fin
-open import Data.List
+open import Data.Fin using (Fin;zero;suc)
+open import Data.List using (List;length;[];_∷_)
 open import Data.Vec
 open import Data.Product renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality
@@ -38,7 +38,11 @@ len ∅ = 0
 len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = suc (len Γ)
 
-lemma : (b : Builtin) →  length (proj₁ (proj₂ (AS.SIG b))) ≡ arity b
+len⋆ : Ctx⋆ → ℕ
+len⋆ ∅        = 0
+len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
+
+lemma : (b : Builtin) →  len⋆ (proj₁ (AS.SIG b)) + length (proj₁ (proj₂ (AS.SIG b))) ≡ arity b
 lemma addInteger = refl
 lemma subtractInteger = refl
 lemma multiplyInteger = refl
@@ -60,7 +64,8 @@ lemma verifySignature = refl
 lemma equalsByteString = refl
 lemma ifThenElse = refl
 
-lemma≤ : (b : Builtin) → length (proj₁ (proj₂ (AS.SIG b))) ≤‴ arity b
+lemma≤ : (b : Builtin)
+  → len⋆ (proj₁ (AS.SIG b)) + length (proj₁ (proj₂ (AS.SIG b))) ≤‴ arity b
 lemma≤ b rewrite lemma b = ≤‴-refl
 \end{code}
 
@@ -78,6 +83,10 @@ eraseTC (AC.bool b)       = bool b
 eraseTC (AC.char c)       = char c
 eraseTC AC.unit           = unit
 
+eraseTel⋆ : ∀{Φ}(Γ : Ctx Φ)(Δ : Ctx⋆) → Untyped.Tel (len⋆ Δ) (len Γ) 
+eraseTel⋆ _ ∅  = []
+eraseTel⋆ Γ (Δ ,⋆ K) = eraseTel⋆ Γ Δ :< con unit
+
 eraseTel : ∀{Φ Γ Δ}{σ : SubNf Δ Φ}{As : List (Δ ⊢Nf⋆ *)}
   → A.Tel Γ Δ σ As
   → Untyped.Tel (length As) (len Γ)
@@ -91,7 +100,8 @@ erase (_·⋆_ t A)           = erase t · plc_dummy
 erase (wrap1 pat arg t)    = erase t
 erase (unwrap1 t)          = erase t
 erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (builtin bn σ ts)    = builtin bn (lemma≤ bn) (eraseTel ts)
+erase {Γ = Γ} (builtin bn σ ts) =
+  builtin bn (lemma≤ bn) (eraseTel⋆ Γ (proj₁ (AS.SIG bn)) ++ eraseTel ts)
 erase (error A)            = error
 
 eraseTel {As = []}     _          = []
@@ -207,7 +217,7 @@ lem-erase refl refl t = refl
 
 lem-subst : ∀{n}(t : n ⊢)(p : n ≡ n) → subst _⊢ p t ≡ t
 lem-subst t refl = refl
-
+{-
 lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → (p : n ≤‴ arity b)
   → (q : n' ≤‴ arity b)
@@ -362,4 +372,5 @@ same' {Γ = Γ} (unwrap1 t) = same' t
 same' {Γ = Γ} (con x) = trans (cong con (same'TC {Γ = Γ} x)) (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
 same' {Γ = Γ} (builtin b σ ts) = trans (trans (lem-builtin b (eraseTel ts) (lemma≤ b) (D.lemma≤ b) (sym (nfTypeSIG≡₃ b))) (cong (builtin b (D.lemma≤ b)) (same'Tel σ (proj₁ (proj₂ (AS.SIG b))) ts (nfTypeSIG≡₁ b) (proj₁ (proj₂ (DS.SIG b))) (sym (nfTypeSIG≡₃ b)) (lemList' b) ))) (lemTel (same'Len Γ) b (D.eraseTel (embTel (nfTypeSIG≡₁ b) (proj₁ (proj₂ (AS.SIG b))) (proj₁ (proj₂ (DS.SIG b))) (lemList' b) σ ts)) (D.lemma≤ b)) 
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
+-}
 \end{code}

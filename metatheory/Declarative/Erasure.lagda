@@ -34,8 +34,8 @@ len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
-
-lemma : (b : Builtin) → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≡ arity b
+lemma : (b : Builtin)
+  → len⋆ (proj₁ (SIG b)) + length (proj₁ (proj₂ (SIG b))) ≡ arity b
 lemma addInteger = refl
 lemma subtractInteger = refl
 lemma multiplyInteger = refl
