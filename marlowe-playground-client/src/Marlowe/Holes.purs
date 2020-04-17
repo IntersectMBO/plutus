@@ -123,7 +123,7 @@ getMarloweConstructors AccountIdType = Map.singleton "AccountId" [ DefaultNumber
 
 getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" [ DefaultString "choiceNumber", DataArg "choiceOwner" ]
 
-getMarloweConstructors ValueIdType = Map.singleton "ValueId" [ NewtypeArg ]
+getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
@@ -151,7 +151,7 @@ getMarloweConstructors ValueType =
     , (Tuple "ChoiceValue" [ DataArg "choiceId", DataArg "value" ])
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
-    , (Tuple "UseValue" [ DataArg "valueId" ])
+    , (Tuple "UseValue" [ DefaultString "valueId" ])
     ]
 
 getMarloweConstructors ObservationType =
@@ -175,7 +175,7 @@ getMarloweConstructors ContractType =
     , (Tuple "Pay" [ DataArg "accountId", DataArg "payee", DataArg "token", DataArg "value", DataArg "contract" ])
     , (Tuple "If" [ DataArg "observation", DataArg "contract", DataArg "contract" ])
     , (Tuple "When" [ ArrayArg "case", DefaultNumber zero, DataArg "contract" ])
-    , (Tuple "Let" [ DataArg "valueId", DataArg "value", DataArg "contract" ])
+    , (Tuple "Let" [ DefaultString "valueId", DataArg "value", DataArg "contract" ])
     ]
 
 getMarloweConstructors BoundType = Map.singleton "Bound" [ DefaultNumber zero, DefaultNumber zero ]
@@ -185,7 +185,7 @@ getMarloweConstructors TokenType = Map.singleton "Token" [ DefaultString "", Def
 getMarloweConstructors PartyType =
   Map.fromFoldable
     [ (Tuple "PK" [ DefaultString "pubKey" ])
-    , (Tuple "Role" [ DataArg "token" ])
+    , (Tuple "Role" [ DefaultString "token" ])
     ]
 
 allMarloweConstructors :: Map String (Array Argument)
@@ -254,6 +254,30 @@ getPosition :: forall a. Term a -> { row :: Pos, column :: Pos }
 getPosition (Term _ pos) = pos
 
 getPosition (Hole _ _ pos) = pos
+
+data TermWrapper a
+  = TermWrapper a { row :: Pos, column :: Pos }
+
+derive instance genericTermWrapper :: Generic a r => Generic (TermWrapper a) _
+
+instance eqTermWrapper :: Eq a => Eq (TermWrapper a) where
+  eq (TermWrapper a _) (TermWrapper b _) = eq a b
+
+instance ordTermWrapper :: Ord a => Ord (TermWrapper a) where
+  compare (TermWrapper a _) (TermWrapper b _) = compare a b
+
+instance showTermWrapper :: Show a => Show (TermWrapper a) where
+  show (TermWrapper a _) = show a
+
+instance prettyTermWrapper :: Pretty a => Pretty (TermWrapper a) where
+  pretty (TermWrapper a _) = pretty a
+
+instance hasArgsTermWrapper :: Args a => Args (TermWrapper a) where
+  hasArgs (TermWrapper _ _) = false
+  hasNestedArgs (TermWrapper _ _) = false
+
+instance fromTermTermWrapper :: FromTerm a b => FromTerm (TermWrapper a) b where
+  fromTerm (TermWrapper a _) = fromTerm a
 
 -- a concrete type for holes only
 data MarloweHole
@@ -595,7 +619,7 @@ data Value
   | ChoiceValue (Term ChoiceId) (Term Value)
   | SlotIntervalStart
   | SlotIntervalEnd
-  | UseValue (Term ValueId)
+  | UseValue (TermWrapper ValueId)
 
 derive instance genericValue :: Generic Value _
 
@@ -687,7 +711,7 @@ data Contract
   | Pay (Term AccountId) (Term Payee) (Term Token) (Term Value) (Term Contract)
   | If (Term Observation) (Term Contract) (Term Contract)
   | When (Array (Term Case)) Timeout (Term Contract)
-  | Let (Term ValueId) (Term Value) (Term Contract)
+  | Let (TermWrapper ValueId) (Term Value) (Term Contract)
 
 derive instance genericContract :: Generic Contract _
 

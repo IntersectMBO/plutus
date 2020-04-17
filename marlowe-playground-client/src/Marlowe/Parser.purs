@@ -15,7 +15,7 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Timeout(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
@@ -28,13 +28,14 @@ import Type.Proxy (Proxy(..))
 type HelperFunctions a
   = { mkHole :: String -> { row :: Pos, column :: Pos } -> Term a
     , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
+    , mkTermWrapper :: a -> { row :: Pos, column :: Pos } -> TermWrapper a
     , mkBigInteger :: Int -> BigInteger
     , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> Timeout
     , mkClose :: Contract
     , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
     , mkWhen :: Array (Term Case) -> Timeout -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
-    , mkLet :: Term ValueId -> Term Value -> Term Contract -> Contract
+    , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
     , mkBound :: BigInteger -> BigInteger -> Bound
     , mkDeposit :: Term AccountId -> Term Party -> Term Token -> Term Value -> Action
@@ -69,13 +70,14 @@ type HelperFunctions a
     , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
-    , mkUseValue :: Term ValueId -> Value
+    , mkUseValue :: TermWrapper ValueId -> Value
     }
 
 helperFunctions :: forall a. HelperFunctions a
 helperFunctions =
   { mkHole: mkHole
   , mkTerm: Term
+  , mkTermWrapper: TermWrapper
   , mkBigInteger: BigInteger.fromInt
   , mkTimeout: \v pos -> Timeout (Slot (BigInteger.fromInt v)) pos
   , mkClose: Close
@@ -180,6 +182,17 @@ term' (Parser p) =
     -- FIXME: this position info is incorrect
     pure { result: Term result { row: start, column: end }, suffix }
 
+termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
+termWrapper (Parser p) =
+  Parser \{ pos, str } -> do
+    { result, suffix } <- p { pos, str }
+    let
+      start = pos
+
+      end = suffix.pos
+    -- FIXME: this position info is incorrect
+    pure { result: TermWrapper result { row: start, column: end }, suffix }
+
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)
 
@@ -236,8 +249,6 @@ slot = Slot <$> maybeParens bigInteger
 slotTerm :: Parser (Term Slot)
 slotTerm = parseTerm slot
 
--- timeout :: Parser Timeout
--- timeout = slot
 timeout :: Parser Timeout
 timeout = do
   result <- bigIntegerTerm
@@ -246,28 +257,32 @@ timeout = do
     (Term v pos) -> pure $ Timeout (Slot v) pos
 
 accountId :: Parser AccountId
-accountId =
-  parens do
-    skipSpaces
-    void $ string "AccountId"
-    void someWhiteSpace
-    first <- bigInteger
-    void someWhiteSpace
-    second <- parseTerm $ parens party
-    skipSpaces
-    pure $ AccountId first second
+accountId = parens accountId'
+
+accountId' :: Parser AccountId
+accountId' = do
+  skipSpaces
+  void $ string "AccountId"
+  void someWhiteSpace
+  first <- bigInteger
+  void someWhiteSpace
+  second <- parseTerm $ parens party
+  skipSpaces
+  pure $ AccountId first second
 
 choiceId :: Parser ChoiceId
-choiceId =
-  parens do
-    skipSpaces
-    void $ string "ChoiceId"
-    void someWhiteSpace
-    first <- text
-    void someWhiteSpace
-    second <- parseTerm $ parens party
-    skipSpaces
-    pure $ ChoiceId first second
+choiceId = parens choiceId'
+
+choiceId' :: Parser ChoiceId
+choiceId' = do
+  skipSpaces
+  void $ string "ChoiceId"
+  void someWhiteSpace
+  first <- text
+  void someWhiteSpace
+  second <- parseTerm $ parens party
+  skipSpaces
+  pure $ ChoiceId first second
 
 atomValue :: Parser Value
 atomValue =
@@ -298,7 +313,7 @@ recValue =
         v <- value'
         pure $ Scale s v
     <|> (ChoiceValue <$> (string "ChoiceValue" **> parseTerm choiceId) <**> value')
-    <|> (UseValue <$> (string "UseValue" **> parseTerm valueId))
+    <|> (UseValue <$> (string "UseValue" **> termWrapper valueId))
   where
   value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
 
@@ -407,7 +422,7 @@ recContract =
   )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
     <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> timeout <**> contract')
-    <|> (Let <$> (string "Let" **> parseTerm valueId) <**> value' <**> contract')
+    <|> (Let <$> (string "Let" **> termWrapper valueId) <**> value' <**> contract')
     <|> (fail "not a valid Contract")
   where
   contract' = parseTerm $ atomContract <|> fix \p -> parens recContract

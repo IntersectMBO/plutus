@@ -12,7 +12,7 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Timeout(..), Token(..), Value(..), ValueId(..))
+import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Timeout(..), Token(..), Value(..), ValueId(..))
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
@@ -93,6 +93,10 @@ genTerm :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> 
 genTerm g = do
   withHoles <- ask
   oneOf $ (Term <$> g <*> pure { row: 0, column: 0 }) :| (if withHoles then [ genHole ] else [])
+
+genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> m (TermWrapper a)
+genTermWrapper g = do
+  TermWrapper <$> g <*> pure { row: 0, column: 0 }
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
 genAccountId = do
@@ -180,14 +184,14 @@ genValue' size
             , SubValue <$> genNewValue <*> genNewValue
             , Scale <$> genTerm genRational <*> genNewValue
             , ChoiceValue <$> genTerm genChoiceId <*> genNewValue
-            , UseValue <$> genTerm genValueId
+            , UseValue <$> genTermWrapper genValueId
             ]
   | otherwise =
     oneOf $ pure SlotIntervalStart
       :| [ pure SlotIntervalEnd
         , AvailableMoney <$> genTerm genAccountId <*> genTerm genToken
         , Constant <$> genBigInteger
-        , UseValue <$> genTerm genValueId
+        , UseValue <$> genTermWrapper genValueId
         ]
 
 genObservation ::
@@ -273,7 +277,7 @@ genContract' size
           :| [ Pay <$> genTerm genAccountId <*> genTerm genPayee <*> genTerm genToken <*> genNewValue <*> genNewContract
             , If <$> genNewObservation <*> genNewContract <*> genNewContract
             , When <$> genCases newSize <*> genTimeout <*> genNewContract
-            , Let <$> genTerm genValueId <*> genNewValue <*> genNewContract
+            , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
             ]
   | otherwise = genLeaf
     where

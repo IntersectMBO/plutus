@@ -137,8 +137,7 @@ choiceId
 
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
-   -> hole {% ([hole]) => hole %}
-    | %string {% ([{value,line,col}]) => opts.mkTerm(opts.mkValueId(value))({row: line, column: col}) %}
+   -> %string {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({row: line, column: col}) %}
 # valueId -> lparen %VALUE_ID someWS string rparen
 
 accountId

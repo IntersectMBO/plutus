@@ -41,7 +41,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
 import Help (marloweTypeMarkerText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), TermWrapper(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -264,7 +264,7 @@ lintContract env (Term (When cases timeout@(Timeout slot pos) cont) _) = do
   lintContract newEnv cont
   pure unit
 
-lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
+lintContract env (Term (Let (TermWrapper valueId pos) value cont) _) = do
   let
     shadowedLet = if Set.member valueId (view _letBindings env) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
 
@@ -273,14 +273,6 @@ lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract newEnv cont
-
-lintContract env (Term (Let valueIdTerm@(Hole _ _ _) value cont) _) = do
-  let
-    gatherHoles = getHoles valueIdTerm
-  modifying _holes gatherHoles
-  sa <- lintValue env value
-  markSimplification constToVal SimplifiableValue value sa
-  lintContract env cont
 
 lintContract env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
@@ -466,14 +458,10 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
-lintValue env t@(Term (UseValue (Term valueId _)) pos) = do
+lintValue env t@(Term (UseValue (TermWrapper valueId _)) pos) = do
   let
     undefinedLet = if Set.member valueId (view _letBindings env) then mempty else Set.singleton (UndefinedUse (termToRange t pos))
   modifying _warnings (Set.union undefinedLet)
-  pure (ValueSimp pos false t)
-
-lintValue env t@(Term (UseValue hole) pos) = do
-  modifying _holes (insertHole hole)
   pure (ValueSimp pos false t)
 
 lintValue env hole@(Hole _ _ pos) = do
