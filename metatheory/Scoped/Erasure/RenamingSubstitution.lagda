@@ -49,6 +49,14 @@ lift-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
 lift-erase ρ zero    = refl
 lift-erase ρ (suc α) = refl
 
+ren-eraseTel⋆ : ∀{m n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
+  → (ρ⋆ : S.Ren⋆ n n')
+  → (ρ : S.Ren w w')
+  → (As : Tel⋆ n m)
+  → U.renTel (erase-Ren ρ) (eraseTel⋆ w As) ≡ eraseTel⋆ w' (S.ren⋆T ρ⋆ As)
+ren-eraseTel⋆ ρ⋆ ρ []       = refl
+ren-eraseTel⋆ ρ⋆ ρ (A ∷ As) = cong (con unit ∷_) (ren-eraseTel⋆ ρ⋆ ρ As)
+
 ren-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (ρ⋆ : S.Ren⋆ n n')
   → (ρ : S.Ren w w')
@@ -79,7 +87,12 @@ ren-erase ρ⋆ ρ (t · u)            =
 ren-erase ρ⋆ ρ (con x)                = refl
 ren-erase ρ⋆ ρ (error x)              = refl
 ren-erase ρ⋆ ρ (builtin bn (inj₁ (p , refl)) As ts) = cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
-ren-erase ρ⋆ ρ (builtin bn (inj₂ y) As ts) = cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
+ren-erase {w = w} ρ⋆ ρ (builtin bn (inj₂ (refl , snd)) As ts) = cong
+  (Untyped.builtin bn _)
+  (trans
+    (U.renTel++ (erase-Ren ρ) (eraseTel⋆ w As) (eraseTel ts))
+    (cong₂ _++_ (ren-eraseTel⋆ ρ⋆ ρ As) (ren-eraseTel ρ⋆ ρ ts)))
+    -- cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
 ren-erase ρ⋆ ρ (wrap pat ar t)    = ren-erase ρ⋆ ρ t
 ren-erase ρ⋆ ρ (unwrap t)         = ren-erase ρ⋆ ρ t
 
@@ -141,9 +154,9 @@ sub-erase σ⋆ σ (error A)          = refl
 sub-erase σ⋆ σ (builtin bn (inj₁ (p , refl)) As ts) = cong
   (builtin bn _)
   (subTel-erase σ⋆ σ ts)
-sub-erase σ⋆ σ (builtin bn (inj₂ p) As ts) = cong
+sub-erase σ⋆ σ (builtin bn (inj₂ p) As ts) = {!!} {- cong
   (builtin bn _)
-  (subTel-erase σ⋆ σ ts)
+  (subTel-erase σ⋆ σ ts) -}
 sub-erase σ⋆ σ (wrap pat arg t)   = sub-erase σ⋆ σ t
 sub-erase σ⋆ σ (unwrap t)         = sub-erase σ⋆ σ t
 
