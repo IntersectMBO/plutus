@@ -41,7 +41,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
 import Help (marloweTypeMarkerText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), TermWrapper(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Timeout(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -615,9 +615,6 @@ provideCodeActions uri markers' =
     Left _ -> []
     Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of
       Nothing -> []
-      Just BigIntegerType -> []
-      Just StringType -> []
-      Just SlotType -> []
       Just marloweType ->
         let
           m = getMarloweConstructors marloweType

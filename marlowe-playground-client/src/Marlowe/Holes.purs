@@ -30,11 +30,9 @@ import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedAr
 import Text.Pretty as P
 import Type.Proxy (Proxy(..))
 
+-- | These are Marlowe types that can be represented as holes
 data MarloweType
-  = StringType
-  | BigIntegerType
-  | SlotType
-  | AccountIdType
+  = AccountIdType
   | ChoiceIdType
   | ValueIdType
   | ActionType
@@ -73,12 +71,6 @@ allMarloweTypes :: Array MarloweType
 allMarloweTypes = upFromIncluding bottom
 
 readMarloweType :: String -> Maybe MarloweType
-readMarloweType "StringType" = Just StringType
-
-readMarloweType "BigIntegerType" = Just BigIntegerType
-
-readMarloweType "SlotType" = Just SlotType
-
 readMarloweType "AccountIdType" = Just AccountIdType
 
 readMarloweType "ChoiceIdType" = Just ChoiceIdType
@@ -113,12 +105,6 @@ data Argument
   | NewtypeArg
 
 getMarloweConstructors :: MarloweType -> Map String (Array Argument)
-getMarloweConstructors StringType = Map.singleton "String" [ NewtypeArg ]
-
-getMarloweConstructors BigIntegerType = Map.singleton "Integer" [ NewtypeArg ]
-
-getMarloweConstructors SlotType = Map.singleton "Integer" [ NewtypeArg ]
-
 getMarloweConstructors AccountIdType = Map.singleton "AccountId" [ DefaultNumber zero, DataArg "accHolder" ]
 
 getMarloweConstructors ChoiceIdType = Map.singleton "ChoiceId" [ DefaultString "choiceNumber", DataArg "choiceOwner" ]
@@ -301,30 +287,28 @@ instance showMarloweHole :: Show MarloweHole where
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
 
-instance stringIsMarloweType :: IsMarloweType String where
-  marloweType _ = StringType
-
-instance bigIntegerIsMarloweType :: IsMarloweType BigInteger where
-  marloweType _ = BigIntegerType
-
-marloweHoleToSuggestion :: Boolean -> IRange -> MarloweHole -> String -> CompletionItem
-marloweHoleToSuggestion stripParens range firstHole@(MarloweHole { marloweType }) constructorName =
+marloweHoleToSuggestionText :: Boolean -> MarloweHole -> String -> String
+marloweHoleToSuggestionText stripParens firstHole@(MarloweHole { marloweType }) constructorName =
   let
-    kind = completionItemKind "Constructor"
-
     m = getMarloweConstructors marloweType
 
     fullInsertText = constructMarloweType constructorName firstHole m
+  in
+    if stripParens then
+      fromMaybe fullInsertText
+        $ do
+            withoutPrefix <- stripPrefix (Pattern "(") $ trim fullInsertText
+            withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
+            pure withoutSuffix
+    else
+      fullInsertText
 
-    insertText =
-      if stripParens then
-        fromMaybe fullInsertText
-          $ do
-              withoutPrefix <- stripPrefix (Pattern "(") $ trim fullInsertText
-              withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
-              pure withoutSuffix
-      else
-        fullInsertText
+marloweHoleToSuggestion :: Boolean -> IRange -> MarloweHole -> String -> CompletionItem
+marloweHoleToSuggestion stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
+  let
+    kind = completionItemKind "Constructor"
+
+    insertText = marloweHoleToSuggestionText stripParens marloweHole constructorName
   in
     { label: constructorName, kind, range, insertText }
 
@@ -772,9 +756,6 @@ termToValue _ = Nothing
 
 class FromTerm a b where
   fromTerm :: a -> Maybe b
-
-instance slotMarloweType :: IsMarloweType Slot where
-  marloweType _ = SlotType
 
 -- Replace all holes of a certain name with the value
 replaceInPositions :: String -> MarloweHole -> Array MarloweHole -> String -> String
