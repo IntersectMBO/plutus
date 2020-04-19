@@ -1,5 +1,6 @@
 -- | This module defines types and functions related to "type-eval checking".
 
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -105,8 +106,8 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` Eq
-       , uni `Everywhere` PrettyConst, uni `Everywhere` ExMemoryUsage
+    :: ( KnownType uni a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
+       , uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
        )
     => TermOf uni a -> TermOf uni (EvaluationResultDef uni)
 unsafeTypeEvalCheck termOfTbv = do

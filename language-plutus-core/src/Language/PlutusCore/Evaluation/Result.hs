@@ -51,11 +51,6 @@ instance PrettyConst a => PrettyConst (EvaluationResult a) where
     prettyConst (EvaluationSuccess x) = prettyConst x
     prettyConst EvaluationFailure     = "Failure"
 
-    -- TODO: this suggests that the 'PrettyConst' class should be split into two separate classes as
-    -- this definition is pretty senseless.
-    parseConst "Failure" = EvaluationFailure
-    parseConst string    = EvaluationSuccess $ parseConst string
-
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess x) = prettyBy config x
     prettyBy _      EvaluationFailure     = "Failure"
