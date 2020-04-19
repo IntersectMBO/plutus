@@ -51,6 +51,8 @@ fileInput :: Parser Input
 fileInput = FileInput <$> strOption
   (  long "file"
   <> short 'f'
+  <> long "input"
+  <> short 'i'
   <> metavar "FILENAME"
   <> help "Input file" )
 
@@ -93,15 +95,15 @@ data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode Format
-type ExampleName = T.Text
-data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-newtype ExampleOptions = ExampleOptions ExampleMode
 data PrintMode = Classic | Debug deriving (Show, Read)
 data PrintOptions = PrintOptions Input PrintMode
 data PlcToCborOptions = PlcToCborOptions Input Output
 data CborToPlcOptions = CborToPlcOptions Input Output PrintMode
+type ExampleName = T.Text
+data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
+newtype ExampleOptions = ExampleOptions ExampleMode
 
-
+-- Main commands
 data Command = Typecheck TypecheckOptions
              | Eval EvalOptions
              | Example ExampleOptions
@@ -137,6 +139,23 @@ evalMode = option auto
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOptions <$> input <*> evalMode <*> format
 
+printMode :: Parser PrintMode
+printMode = option auto
+  (  long "print-mode"
+  <> metavar "MODE"
+  <> value Classic
+  <> showDefault
+  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+
+printOpts :: Parser PrintOptions
+printOpts = PrintOptions <$> input <*> printMode
+
+plcToCborOpts :: Parser PlcToCborOptions
+plcToCborOpts = PlcToCborOptions <$> input <*> output
+
+cborToPlcOpts :: Parser CborToPlcOptions
+cborToPlcOpts = CborToPlcOptions <$> input <*> output <*> printMode
+
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
 
@@ -158,23 +177,6 @@ exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
-
-printMode :: Parser PrintMode
-printMode = option auto
-  (  long "print-mode"
-  <> metavar "MODE"
-  <> value Classic
-  <> showDefault
-  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
-
-printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> input <*> printMode
-
-plcToCborOpts :: Parser PlcToCborOptions
-plcToCborOpts = PlcToCborOptions <$> input <*> output
-
-cborToPlcOpts :: Parser CborToPlcOptions
-cborToPlcOpts = CborToPlcOptions <$> input <*> output <*> printMode
 
 
 ---------------- Reading programs from files ----------------
