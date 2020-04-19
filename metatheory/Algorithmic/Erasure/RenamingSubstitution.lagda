@@ -327,7 +327,7 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (substNf-comp σ' σ⋆ X)
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
-  (cong (builtin bn (lemma≤ bn)) (subTel'-erase σ⋆ σ Φ As σ' tel ))
+  (cong (builtin bn (lemma≤ bn)) (subTel'-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)

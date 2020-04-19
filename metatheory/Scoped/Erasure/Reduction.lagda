@@ -19,11 +19,12 @@ open import Utils
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
-open import Data.Fin
-open import Data.List using (List;_++_;[_];_∷_;[])
-open import Data.Vec
+open import Data.Fin hiding (_+_)
+open import Data.List using (List;_∷_;[])
+open import Data.Vec using (Vec;_++_)
 open import Data.Product using (_,_)
 open import Data.Nat
+open import Data.Nat.Properties
 \end{code}
 
 \begin{code}
@@ -41,10 +42,12 @@ eraseVal (S.V-ƛ A t)             = U.V-F (U.V-ƛ (eraseTm t))
 eraseVal (S.V-Λ t)               = U.V-F (U.V-ƛ (U.weaken (eraseTm t)))
 eraseVal (S.V-con tcn)           = U.V-con (eraseTC tcn)
 eraseVal (S.V-wrap A B V)        = eraseVal V
-eraseVal (S.V-builtin b As p ts) = U.V-F (subst
+eraseVal {w = w} (S.V-builtin b As p ts) = U.V-F (subst (λ p → U.FValue (builtin b p (eraseTel⋆ w As ++ eraseTel ts))) {!lem!} (U.V-builtin b (eraseTel⋆ w As ++ eraseTel ts) ((subst (suc (arity⋆ b) + _ ≤‴_) (lemma b) (subst (_≤‴ arity⋆ b + Scoped.arity b) (+-suc (arity⋆ b) _) (+-monoʳ-≤‴ (arity⋆ b) p))) )))
+{- U.V-F (subst
   (λ p → U.FValue (builtin b p (eraseTel ts)))
   (lem-≤‴-step p (lemma b))
   (U.V-builtin b (eraseTel ts) (subst (_ ≤‴_) (lemma b) p))) 
+-}
 -- eraseVal (S.V-builtin⋆ b p As) = U.V-F {!U.V-builtin b []!}
 {-
 eraseVTel : ∀{n}{w : Weirdℕ n}(tel : S.Tel w) → S.VTel w tel

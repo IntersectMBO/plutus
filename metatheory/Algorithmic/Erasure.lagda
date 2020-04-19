@@ -127,6 +127,15 @@ lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
 lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 
+lenLemma⋆ : ∀ Φ → D.len⋆ Φ ≡ len⋆ Φ
+lenLemma⋆ ∅       = refl
+lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
+
+nfTypeSIG≡₁' : (bn : Builtin)
+  → D.len⋆ (proj₁ (DS.SIG bn)) ≡ len⋆ (proj₁ (AS.SIG bn))
+nfTypeSIG≡₁' b = trans (cong D.len⋆ (nfTypeSIG≡₁ b)) (lenLemma⋆ _)
+
+
 -- these lemmas for each clause of eraseVar and erase below could be
 -- avoided by using with but it would involve doing with on a long
 -- string of arguments, both contexts, equality proof above, and
@@ -192,6 +201,10 @@ lem[]' : ∀{n n'}(p : n ≡ n') →
   [] ≡ subst (λ n → Vec (n ⊢) 0) p []
 lem[]' refl = refl
 
+lem[]'' : ∀{n n'}(p : n ≡ n') →
+  [] ≡ subst (λ n → Vec (n ⊢) 0) p []
+lem[]'' refl = refl
+
 lem-plc_dummy : ∀{n n'}(p : n ≡ n') →
   plc_dummy ≡ subst _⊢ p plc_dummy
 lem-plc_dummy refl = refl
@@ -204,6 +217,15 @@ lem∷ refl t ts = refl
 lem∷' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(t : A)(ts : Vec A n)
   → t ∷ subst (Vec A) p ts ≡ subst (Vec A) q (t ∷ ts) 
 lem∷' refl refl t ts = refl
+
+lem:< : ∀{m n n'}(p : n ≡ n')(ts : Vec (n ⊢) m)(t : n ⊢)
+  → subst (λ n → Vec (n ⊢) m) p ts :< subst _⊢ p t ≡ subst (λ n → Vec (n ⊢) (suc m)) p (ts :< t) 
+lem:< refl ts t = refl
+
+lem:<' : ∀{A : Set}{n n'}(p : n ≡ n')(q : suc n ≡ suc n')(ts : Vec A n)(t : A)
+  → subst (Vec A) p ts :< t ≡ subst (Vec A) q (ts :< t) 
+lem:<' refl refl ts t = refl
+
 
 lemTel : ∀{m n n'}(p : n ≡ n')(bn : Builtin)(ts : Vec (n ⊢) m)
   → (q : m ≤‴ arity bn)
@@ -225,15 +247,30 @@ lem-builtin : ∀{m n n'}(b : Builtin)(ts : Untyped.Tel n m)
   → Untyped.builtin b p ts ≡ builtin b q (subst (Vec (m ⊢)) r ts)
 lem-builtin b ts p q refl = cong (λ p → builtin b p ts) (lem≤‴ p q)
 
-{-
+
 lem-erase' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡ A')(t : Γ A.⊢ A)
   → erase t  ≡ erase (conv⊢ refl q t)
 lem-erase' {Γ = Γ} p t = trans
   (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} refl)))
   (lem-erase refl p t)
 
+sameTel⋆ : ∀{Φ}{Γ : D.Ctx Φ}{Δ Δ'}
+  (p : Δ' ≡ Δ)
+  (q : D.len⋆ Δ ≡ len⋆ Δ')
+  (r : len (nfCtx Γ) ≡ D.len Γ)
+  → subst (Vec (D.len Γ ⊢)) q (D.eraseTel⋆ Γ Δ)
+    ≡ subst (λ n → Vec (n ⊢) (len⋆ Δ')) r (eraseTel⋆ (nfCtx Γ) Δ') 
+sameTel⋆         {Δ = ∅}      refl refl r = lem[]' r
+sameTel⋆ {Γ = Γ} {Δ = Δ ,⋆ K} refl q    r = trans
+  (trans
+    (sym (lem:<' (lenLemma⋆ Δ) q (D.eraseTel⋆ Γ Δ) (con unit)))
+    (cong₂ _:<_ (sameTel⋆ {Δ = Δ} refl (lenLemma⋆ Δ) r) (lemcon' r unit)))
+  (lem:< r (eraseTel⋆ (nfCtx Γ) Δ) (con unit))
+
+
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
+
 
 sameTel : ∀{Φ Γ Δ Δ'}
   (σ : T.Sub Δ Φ)
@@ -255,6 +292,45 @@ sameTel {Γ = Γ} σ (A ∷ As) refl .(nf A ∷ nfList As) refl r (t D.∷ ts) =
             (λ α → fund idCR (sym≡β (soundness (σ α))))
             (sym≡β (soundness A))))
         (sym (subst-eval A idCR σ))))) (nfType t)) )))
+
+subst++ : ∀{A : Set}{m m' n n'}
+  → (as : Vec A m)
+  → (as' : Vec A n)
+  → (p : m ≡ m')
+  → (q : n ≡ n')
+  → (r : m + n ≡ m' + n')
+  → subst (Vec A) r (as ++ as')
+    ≡ subst (Vec A) p as ++ subst (Vec A) q as'
+subst++ as as' refl refl refl = refl
+
+subst++' : ∀{o o' m n}
+  → (as : Vec (o ⊢) m)
+  → (as' : Vec (o ⊢) n)
+  → (p : o ≡ o')
+  → subst (λ o → Vec (o ⊢) (m + n)) p (as ++ as')
+    ≡ subst (λ o → Vec (o ⊢) m) p as ++ subst (λ o → Vec (o ⊢) n) p as'
+subst++' as as' refl = refl
+
++cancel : ∀{m m' n n'} → m + n ≡ m' + n' → m ≡ m' → n ≡ n'
++cancel p refl = +-cancelˡ-≡ _ p
+
+
+sameTel' : ∀{Φ Γ Δ Δ'}
+  (σ : T.Sub Δ Φ)
+  (As : List (Δ ⊢⋆ *))
+  (p : Δ' ≡ Δ)
+  (As' : List (Δ' ⊢Nf⋆ *))
+  (q : subst (λ Δ → List (Δ ⊢Nf⋆ *)) p As' ≡ nfList As)
+  (r : D.len⋆ Δ + length As ≡ len⋆ Δ' + length As')
+  (tel : D.Tel Γ Δ σ As)
+  → subst (Vec (D.len Γ ⊢)) r (D.eraseTel⋆ Γ Δ ++ D.eraseTel tel)
+    ≡
+    subst (λ n → Vec (n ⊢) (len⋆ Δ' + length As')) (lenLemma Γ) (eraseTel⋆ (nfCtx Γ) Δ' ++ eraseTel (nfTypeTel' σ As p As' q tel) )
+sameTel' {Γ = Γ}{Δ}{Δ'} σ As p As' q r tel = trans
+  (subst++ (D.eraseTel⋆ Γ Δ) (D.eraseTel tel) (trans (lenLemma⋆ Δ) (cong len⋆ (sym p))) (+cancel r (trans (lenLemma⋆ Δ) (cong len⋆ (sym p)))) r)
+  (trans
+    (cong₂ _++_ {!!} (sameTel σ As p As' q (+cancel r (trans (lenLemma⋆ Δ) (cong len⋆ (sym p)))) tel))
+    (sym (subst++' (eraseTel⋆ (nfCtx Γ) Δ') (eraseTel (nfTypeTel' σ As p As' q tel)) (lenLemma Γ))))
 
 open import Data.Unit
 same {Γ = Γ}(D.` x) =
@@ -287,7 +363,16 @@ same {Γ = Γ} (D.con tcn) = trans
   (cong con (sameTC {Γ = Γ} tcn))
   (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
 
-same {Γ = Γ} (D.builtin bn σ ts) = trans (trans (trans (lem-builtin bn (D.eraseTel ts) (D.lemma≤ bn) (lemma≤ bn) (nfTypeSIG≡₃ bn)) (cong (Untyped.builtin bn (lemma≤ bn)) (sameTel σ _ (sym (nfTypeSIG≡₁ bn)) _ (lemList bn) (nfTypeSIG≡₃ bn) ts))) (lemTel (lenLemma Γ) bn ((eraseTel
+same {Γ = Γ} (D.builtin b σ ts) = trans
+ (lem-builtin b (D.eraseTel⋆ Γ (proj₁ (DS.SIG b)) ++ D.eraseTel ts) (D.lemma≤ b) (lemma≤ b) (cong₂ _+_ (nfTypeSIG≡₁' b) (nfTypeSIG≡₃ b)))
+ (trans
+   (cong (Untyped.builtin b (lemma≤ b)) (sameTel' σ _ (sym (nfTypeSIG≡₁ b)) _ (lemList b) (cong₂ _+_ (nfTypeSIG≡₁' b) (nfTypeSIG≡₃ b)) ts))
+   (trans
+     (lemTel (lenLemma Γ) b (eraseTel⋆ (nfCtx Γ) (proj₁ (AS.SIG b)) ++ eraseTel (nfTypeTel' σ (proj₁ (proj₂ (DS.SIG b))) (sym (nfTypeSIG≡₁ b))
+          (proj₁ (proj₂ (AS.SIG b))) (lemList b) ts)) (lemma≤ b))
+     (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (lemσ σ (proj₂ (proj₂ (DS.SIG b))) (proj₂ (proj₂ (AS.SIG b))) (sym (nfTypeSIG≡₁ b)) (nfTypeSIG≡₂ b)) (builtin b (λ {J} x → nf (σ (subst (_∋⋆ J) (sym (nfTypeSIG≡₁ b)) x))) (nfTypeTel' σ (proj₁ (proj₂ (DS.SIG b))) (sym (nfTypeSIG≡₁ b)) (proj₁ (proj₂ (AS.SIG b))) (lemList b) ts))))))
+     
+{- trans (trans (trans (lem-builtin bn (D.eraseTel ts) (D.lemma≤ bn) (lemma≤ bn) (nfTypeSIG≡₃ bn)) (cong (Untyped.builtin bn (lemma≤ bn)) (sameTel σ _ (sym (nfTypeSIG≡₁ bn)) _ (lemList bn) (nfTypeSIG≡₃ bn) ts))) (lemTel (lenLemma Γ) bn ((eraseTel
   (nfTypeTel' (λ {J} → σ) (proj₁ (proj₂ (DS.SIG bn)))
    (sym (nfTypeSIG≡₁ bn)) (proj₁ (proj₂ (AS.SIG bn))) (lemList bn)
    ts))) (lemma≤ bn)))
@@ -296,9 +381,10 @@ same {Γ = Γ} (D.builtin bn σ ts) = trans (trans (trans (lem-builtin bn (D.era
          (λ {J} x → nf (σ (subst (_∋⋆ J) (sym (nfTypeSIG≡₁ bn)) x)))
          (nfTypeTel' σ (proj₁ (proj₂ (DS.SIG bn))) (sym (nfTypeSIG≡₁ bn))
           (proj₁ (proj₂ (AS.SIG bn))) (lemList bn) ts)))) 
+-}
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
 
-
+{-
 open import Algorithmic.Soundness
 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ

@@ -72,9 +72,6 @@ eraseTel : ∀{m n}{i : Weirdℕ n} → Vec (ScopedTm i) m → Vec (len i ⊢) m
 eraseTel []       = []
 eraseTel (t ∷ ts) = eraseTm t ∷ eraseTel ts
 
-+-monoʳ-≤‴ : (n₁ : ℕ) {x y : ℕ} → x ≤‴ y → n₁ + x ≤‴ n₁ + y
-+-monoʳ-≤‴ n p = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ n (≤″⇒≤ (≤‴⇒≤″ p))))
-
 eraseTm (` x)                  = ` (eraseVar x)
 eraseTm (Λ K t)                = ƛ (weaken (eraseTm t))
 eraseTm (t ·⋆ A)               = eraseTm t · plc_dummy
