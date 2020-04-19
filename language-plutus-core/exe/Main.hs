@@ -40,16 +40,13 @@ type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
 type ParsedProgram = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn
 type PlainProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
 
+data Format = Plc | Cbor  -- Input/output format for programs
+
 data Input = FileInput FilePath | StdInput
 
 getPlcInput :: Input -> IO String
 getPlcInput (FileInput file) = readFile file
 getPlcInput StdInput         = getContents
-
-getCborInput :: Input -> IO BSL.ByteString
-getCborInput StdInput         = BSL.getContents
-getCborInput (FileInput file) = BSL.readFile file
-
 
 parsePlcFile :: Input -> IO ParsedProgram
 parsePlcFile inp = do
@@ -65,14 +62,18 @@ parsePlcFile inp = do
         Right (Right (p :: ParsedProgram)) ->
             return p
 
+getCborInput :: Input -> IO BSL.ByteString
+getCborInput StdInput         = BSL.getContents
+getCborInput (FileInput file) = BSL.readFile file
+
 getProg :: Input -> Format -> IO ParsedProgram
 getProg inp fmt =
-    let fakeAlexPosn = PLC.AlexPn 0 0 0
-    in case fmt of
-       Plc  -> parsePlcFile inp
-       Cbor -> do
-         p <- getCborInput inp
-         return $ fakeAlexPosn <$ (deserialise p :: PlainProgram)  -- FIXME: may cause error
+    case fmt of
+      Plc  -> parsePlcFile inp
+      Cbor -> do
+               p <- getCborInput inp
+               return $ fakeAlexPosn <$ (deserialise p :: PlainProgram)  -- FIXME: may cause error
+                   where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 input :: Parser Input
 input = fileInput <|> stdInput
@@ -105,8 +106,6 @@ stdOutput :: Parser Output
 stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout" )
-
-data Format = Plc | Cbor
 
 format :: Parser Format
 format = flag Plc Cbor
@@ -294,26 +293,25 @@ runExample (ExampleOptions (ExampleSingle name)) = do
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
   let printMethod = case mode of
-                Classic -> PLC.prettyPlcClassicDef
-                Debug   -> PLC.prettyPlcClassicDebug
+            Classic -> PLC.prettyPlcClassicDef
+            Debug   -> PLC.prettyPlcClassicDebug
   in do
     p <- parsePlcFile inp
     putStrLn . show . printMethod $ p
 
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
-      p <- parsePlcFile inp
-      let cbor = serialise (() <$ p)
-      case outp of
-        FileOutput file -> BSL.writeFile file cbor
-        StdOutput       -> BSL8.putStrLn cbor
+  p <- parsePlcFile inp
+  let cbor = serialise (() <$ p)
+  case outp of
+    FileOutput file -> BSL.writeFile file cbor
+    StdOutput       -> BSL8.putStrLn cbor
 
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
   cbor <- getCborInput inp
   let plc = deserialise cbor :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
-      printMethod =
-          case mode of
+      printMethod = case mode of
             Classic -> PLC.prettyPlcClassicDef
             Debug   -> PLC.prettyPlcClassicDebug
   case outp of
