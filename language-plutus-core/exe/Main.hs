@@ -35,9 +35,10 @@ import           System.Exit
 import           Codec.Serialise
 import           Options.Applicative
 
+
+type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
+type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn
 type PlcParserError = PLC.Error PLC.DefaultUni PLC.AlexPosn
-type ParsedProgram = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn
-type PlainProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
 
 
 ---------------- Option parsers ----------------
@@ -84,9 +85,9 @@ data Format = Plc | Cbor  -- Input/output format for programs
 
 format :: Parser Format
 format = flag Plc Cbor
-  ( short 'c'
-  <> long "cbor"
+  ( long "cbor"
   <> long "CBOR"
+  <> short 'c'
   <> help "Input CBOR (default: input PLC)"
   )
 
@@ -269,7 +270,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
   let cbor = serialise (() <$ p)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL8.putStrLn cbor
+    StdOutput       -> BSL8.putStrLn cbor   -- BSL.putStrLn causes deprecation warnings
 
 
 ---------------- Convert a CBOR file to PLC source ----------------
@@ -277,7 +278,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
   cbor <- getCborInput inp
-  let plc = deserialise cbor :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
+  let plc = deserialise cbor :: PlainProgram
       printMethod = case mode of
             Classic -> PLC.prettyPlcClassicDef
             Debug   -> PLC.prettyPlcClassicDebug
