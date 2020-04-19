@@ -9,10 +9,12 @@ open import Data.List hiding (map; _++_)
 open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
 open import Data.String hiding (_<_)
 open import Data.Unit
+open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
 open import Data.Char using (Char)
-
-open import Data.Vec hiding (_>>=_; map; _++_; [_])
+open import Data.Product using (_×_;_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Data.Sum using (_⊎_;inj₁)
 open import Utils
 open import Relation.Nullary
 open import Category.Monad
@@ -27,6 +29,31 @@ open import Raw
 \end{code}
 
 \begin{code}
+arity : Builtin → ℕ
+arity addInteger = 2
+arity subtractInteger = 2
+arity multiplyInteger = 2
+arity divideInteger = 2
+arity quotientInteger = 2
+arity remainderInteger = 2
+arity modInteger = 2
+arity lessThanInteger = 2
+arity lessThanEqualsInteger = 2
+arity greaterThanInteger = 2
+arity greaterThanEqualsInteger = 2
+arity equalsInteger = 2
+arity concatenate = 2
+arity takeByteString = 2
+arity dropByteString = 2
+arity sha2-256 = 1
+arity sha3-256 = 1
+arity verifySignature = 3
+arity equalsByteString = 2
+arity ifThenElse = 3
+
+arity⋆ : Builtin → ℕ
+arity⋆ ifThenElse = 1
+arity⋆ _ = 0
 
 open import Type
 
@@ -39,6 +66,9 @@ data ScopedTy (n : ℕ) : Set where
   con  : TyCon → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
+
+Tel⋆ : ℕ → ℕ → Set
+Tel⋆ n m = Vec (ScopedTy n) m
 
 --{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
@@ -167,6 +197,8 @@ data TermCon : Set where
   char       : (c : Char) → TermCon
   unit       : TermCon
 
+Tel : ∀{n} → Weirdℕ n → ℕ → Set
+
 data ScopedTm {n}(w : Weirdℕ n) : Set where
   `    :    WeirdFin w → ScopedTm w
   Λ    :    Kind → ScopedTm (T w) → ScopedTm w
@@ -175,10 +207,16 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  builtin : (bn : Builtin) → List (ScopedTy n) → List (ScopedTm w)
-            → ScopedTm w
+  builtin : (b : Builtin) 
+    → ∀{m o}
+    → (m ≤‴ arity⋆ b × o ≡ 0) ⊎ (m ≡ arity⋆ b × o ≤‴ arity b)
+    → Tel⋆ n m
+    → Tel w o
+    → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
+
+Tel w n = Vec (ScopedTm w) n
 
 -- SCOPE CHECKING / CONVERSION FROM RAW TO SCOPED
 
@@ -246,7 +284,7 @@ scopeCheckTm (t · u) = do
   return (t · u)
 scopeCheckTm (con c) = just (con (deBruijnifyC c))
 scopeCheckTm (error A) = map error (scopeCheckTy A)
-scopeCheckTm (builtin b) = just (builtin b [] [])
+scopeCheckTm (builtin b) = just (builtin b (inj₁ (z≤‴n , refl)) [] [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -260,37 +298,11 @@ scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
 \begin{code}
 open import Data.Product
 open import Data.Sum
-
+{-
 builtinMatcher : ∀{n}{w : Weirdℕ n} → ScopedTm w
   → (Builtin × List (ScopedTy n) × List (ScopedTm w)) ⊎ ScopedTm w
 builtinMatcher (builtin b As ts) = inj₁ (b , As , ts)
 builtinMatcher t              = inj₂ t
-
-arity : Builtin → ℕ
-arity addInteger = 2
-arity subtractInteger = 2
-arity multiplyInteger = 2
-arity divideInteger = 2
-arity quotientInteger = 2
-arity remainderInteger = 2
-arity modInteger = 2
-arity lessThanInteger = 2
-arity lessThanEqualsInteger = 2
-arity greaterThanInteger = 2
-arity greaterThanEqualsInteger = 2
-arity equalsInteger = 2
-arity concatenate = 2
-arity takeByteString = 2
-arity dropByteString = 2
-arity sha2-256 = 1
-arity sha3-256 = 1
-arity verifySignature = 3
-arity equalsByteString = 2
-arity ifThenElse = 3
-
-arity⋆ : Builtin → ℕ
-arity⋆ ifThenElse = 1
-arity⋆ _ = 0
 
 open import Relation.Nullary
 
@@ -326,9 +338,11 @@ saturate (unwrap t)   = unwrap (saturate t)
 
 -- I don't think As or ts can be unsaturated, could be enforced by
   -- seperate representations for sat and unsat terms
+-}
 \end{code}
 
 \begin{code}
+{-
 {-# TERMINATING #-}
 unsaturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
 
@@ -336,9 +350,11 @@ builtinBuilder : ∀{n}{w : Weirdℕ n} → Builtin → List (ScopedTy n) → Li
 builtinBuilder b [] [] = builtin b [] []
 builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
 builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
+-}
 \end{code}
 
 \begin{code}
+{-
 unsaturate (` x) = ` x
 unsaturate (Λ K t) = Λ K (unsaturate t)
 unsaturate (t ·⋆ A) = unsaturate t ·⋆ A
@@ -350,6 +366,7 @@ unsaturate (builtin b As bs) =
   builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
 unsaturate (wrap A B t) = wrap A B (unsaturate t)
 unsaturate (unwrap t)   = unwrap (unsaturate t)
+-}
 \end{code}
 
 \begin{code}
@@ -359,10 +376,12 @@ unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
 \end{code}
 
 \begin{code}
+{-
 wftoℕ : ∀{n}{w : Weirdℕ n} → WeirdFin w → ℕ
 wftoℕ Z = zero
 wftoℕ (S i) = ℕ.suc (wftoℕ i)
 wftoℕ (T i) = ℕ.suc (wftoℕ i)
+-}
 \end{code}
 
 \begin{code}
@@ -373,7 +392,6 @@ unDeBruijnifyC (string s)     = string s
 unDeBruijnifyC (bool b)       = bool b
 unDeBruijnifyC (char c)       = char c
 unDeBruijnifyC unit           = unit
-
 \end{code}
 
 \begin{code}
@@ -395,7 +413,7 @@ extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con (unDeBruijnifyC c)
 extricateScope (error A) = error (extricateScopeTy A)
-extricateScope (builtin bn _ _) = builtin bn
+extricateScope (builtin bn _ _ _) = builtin bn -- TODO
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
@@ -404,6 +422,7 @@ extricateScope (unwrap t) = unwrap (extricateScope t)
 -- UGLY PRINTING
 
 \begin{code}
+{-
 open import Data.String
 
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
@@ -445,4 +464,5 @@ ugly (builtin b As ts) =
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"
 ugly (unwrap t) = "(unwrap " ++ ugly t ++ ")"
+-}
 \end{code}

@@ -38,7 +38,7 @@ import Declarative.Erasure
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
 import Declarative.StdLib.Nat
-import Main
+
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
@@ -67,17 +67,23 @@ import Untyped.RenamingSubstitution
 import Untyped.Reduction
 
 -- Extrinsically typed terms, reduction and evaluation
-
 import Scoped
 import Scoped.RenamingSubstitution
+
 import Scoped.Reduction
+
 import Scoped.Extrication
---import Scoped.Extrication.RenamingSubstitution
+import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
+
 import Scoped.Erasure
+
 import Scoped.Erasure.RenamingSubstitution
-import Scoped.Erasure.Reduction
+--import Scoped.Erasure.Reduction
+
 import Scoped.CK
 
 import Check
+import Main
 \end{code}
+

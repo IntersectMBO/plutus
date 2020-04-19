@@ -41,7 +41,7 @@ import qualified Ledger.Value              as Value
 import           Prelude                   as P
 import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
 import qualified Wallet.API                as WAPI
-import           Wallet.Effects            (ChainIndexEffect, NodeClientEffect, WalletEffect (..))
+import           Wallet.Effects            (ChainIndexEffect, NodeClientEffect, Payment (..), WalletEffect (..))
 import qualified Wallet.Effects            as W
 
 -- | A wallet in the emulator model.
@@ -113,16 +113,6 @@ data PaymentArgs =
         -- ^ The value that must be covered by the payment's inputs
         }
 
--- | A payment consisting of a set of inputs to be spent, and
---   an optional change output. The size of the payment is the
---   difference between the total value of the inputs and the
---   value of the output.
-data Payment =
-    Payment
-        { paymentInputs       :: Set.Set TxIn
-        , paymentChangeOutput :: Maybe TxOut
-        }
-
 handleUpdatePaymentWithChange ::
     ( Member (Error WAPI.WalletAPIError) effs
     )
@@ -170,7 +160,7 @@ handleWallet ::
 handleWallet = interpret $ \case
     SubmitTxn tx -> W.publishTx tx
     OwnPubKey -> toPublicKey <$> gets _ownPrivateKey
-    UpdatePaymentWithChange vl (oldIns, changeOut) -> do
+    UpdatePaymentWithChange vl pmt -> do
         utxo <- W.watchedAddresses
         ws <- get
         let pubK   = toPublicKey (ws ^. ownPrivateKey)
@@ -179,9 +169,7 @@ handleWallet = interpret $ \case
                         , ownPubKey = pubK
                         , requestedValue = vl
                         }
-            pmt    = Payment{paymentInputs = oldIns, paymentChangeOutput = changeOut}
-        Payment{paymentInputs, paymentChangeOutput} <- handleUpdatePaymentWithChange args pmt
-        pure (paymentInputs, paymentChangeOutput)
+        handleUpdatePaymentWithChange args pmt
     WalletSlot -> W.getClientSlot
     OwnOutputs -> do
         addr <- gets ownAddress

@@ -54,6 +54,44 @@ You can find the hash in link:./nix/haskell.nix[`nix/haskell.nix`]. All you need
 `stack-sha256` attribute, and rebuild something. You will see a command on stderr that will tell you
 how to generate the replacement hash.
 
+[[update-materialized]]
+=== Speed up Nix development by materializing the package set
+
+When you ask Nix to build a Haskell package, it recalculates the
+Haskell package set to use as an input. Even if this set hasn't
+changed, and everything is already available on local disk, the
+recalculation itself can take a significant amount of time.
+
+Thankfully we can cache that recalculation using https://github.com/input-output-hk/haskell.nix/blob/master/docs/user-guide/materialization.md[haskell.nix's materialization feature]. To do this:
+
+* Build once. Look for the build message that says:
+
+....
+trace: To materialize, point `materialized` to a copy of /nix/store/<somehash>-stack-to-nix-pkgs
+....
+
+* Note the exact path. Make a local copy of it:
+
+[source,sh]
+----
+cp -R /nix/store/<somehash>-stack-to-nix-pkgs nix/stack.materialized
+----
+
+NOTE: This must be a copy, not a symlink.
+
+* Edit `nix/haskell.nix`. Below the `stack-sha256` attribute add:
+
+[source,sh]
+----
+  materialized = ./stack.materialized;
+----
+
+The next time you build nix should use the materialized package set,
+the, "trace: To materialize..." message should disappear and your
+build should be noticiably faster.
+
+NOTE: Do not commit these changes! They should only be local to your machine.
+
 
 [[update-freeze]]
 === How to update `cabal.project.freeze`

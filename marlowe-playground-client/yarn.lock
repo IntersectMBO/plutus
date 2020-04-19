@@ -2562,6 +2562,11 @@ lodash.difference@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.difference/-/lodash.difference-4.5.0.tgz#9ccb4e505d486b91651345772885a2df27fd017c"
 
+lodash.kebabcase@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/lodash.kebabcase/-/lodash.kebabcase-4.1.1.tgz#8489b1cb0d29ff88195cceca448ff6d6cc295c36"
+  integrity sha1-hImxyw0p/4gZXM7KRI/21swpXDY=
+
 lodash.sortby@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
@@ -2569,6 +2574,11 @@ lodash.sortby@^4.7.0:
 lodash.tail@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/lodash.tail/-/lodash.tail-4.1.1.tgz#d2333a36d9e7717c8ad2f7cacafec7c32b444664"
+
+lodash.throttle@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
+  integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
 
 lodash@^4.0.0, lodash@^4.17.11, lodash@^4.17.3, lodash@~4.17.10:
   version "4.17.11"
@@ -2827,6 +2837,19 @@ monaco-editor@^0.20.0:
   version "0.20.0"
   resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.20.0.tgz#5d5009343a550124426cb4d965a4d27a348b4dea"
   integrity sha512-hkvf4EtPJRMQlPC3UbMoRs0vTAFAYdzFQ+gpMb8A+9znae1c43q8Mab9iVsgTcg/4PNiLGGn3SlDIa8uvK1FIQ==
+
+monaco-emacs@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/monaco-emacs/-/monaco-emacs-0.2.2.tgz#798cb7a71a26ee7067581e4c8745be5869c82110"
+  integrity sha512-v2FefXBSRc5WZC5jbfJ1F+kj1Nh4EO5Zxfubh8v4k/npveJzh0VmVUkMlpi1IeodcM4vIuJVZglpFr6ZM70Bkg==
+  dependencies:
+    lodash.kebabcase "^4.1.1"
+    lodash.throttle "^4.1.1"
+
+monaco-vim@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/monaco-vim/-/monaco-vim-0.1.7.tgz#6c0489f2adc59b6663817d98e1e8b59a8577281a"
+  integrity sha512-03K3OhmsxoUdgsWnHDJFont4gNMdut1dq9MPGml9S7RVp8gkt1v9ZJ0OhkUBnDkRMt8NX0+NP+aK7i+rxnqdUg==
 
 moo@^0.5.0, moo@^0.5.1:
   version "0.5.1"

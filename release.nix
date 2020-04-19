@@ -30,8 +30,8 @@ in lib.fix (jobsets: ciJobsets // {
       (allJobs ["linux" "tests"] jobsets)
       ++ (allJobs ["darwin" "tests"] jobsets)
       # Haskell tests
-      ++ (allJobs ["linux" "checks"] jobsets)
-      ++ (allJobs ["darwin" "checks"] jobsets)
+      ++ (allJobs ["linux" "haskell" "checks"] jobsets)
+      ++ (allJobs ["darwin" "haskell" "checks"] jobsets)
       # Various things that mostly just need to build on linux
       ++ (allJobs ["linux" "docs"] jobsets)
       ++ (allJobs ["linux" "papers"] jobsets)

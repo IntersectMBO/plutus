@@ -6,6 +6,7 @@ with packageSet; haskell.packages.shellFor {
     pkgs.ghcid
     pkgs.git
     pkgs.cacert
+    pkgs.nodejs
     pkgs.yarn
     pkgs.zlib
     pkgs.z3

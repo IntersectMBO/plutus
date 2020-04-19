@@ -24,6 +24,7 @@ import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
 import Halogen.Blockly (BlocklyQuery, BlocklyMessage)
+import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Holes (Holes, MarloweHole)
@@ -47,10 +48,13 @@ data HQuery a
 data HAction
   -- Haskell Editor
   = HaskellHandleEditorMessage Monaco.Message
+  | HaskellSelectEditorKeyBindings KeyBindings
+  -- Marlowe Editor
   | MarloweHandleEditorMessage Monaco.Message
   | MarloweHandleDragEvent DragEvent
   | MarloweHandleDropEvent DragEvent
   | MarloweMoveToPosition Pos Pos
+  | MarloweSelectEditorKeyBindings KeyBindings
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
@@ -146,6 +150,10 @@ newtype FrontendState
   , showRightPanel :: Boolean
   , showBottomPanel :: Boolean
   , showErrorDetail :: Boolean
+  , haskellEditorKeybindings :: KeyBindings
+  , marloweEditorKeybindings :: KeyBindings
+  , activeMarloweDemo :: String
+  , activeHaskellDemo :: String
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -203,6 +211,18 @@ _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
 
 _showErrorDetail :: Lens' FrontendState Boolean
 _showErrorDetail = _Newtype <<< prop (SProxy :: SProxy "showErrorDetail")
+
+_haskellEditorKeybindings :: Lens' FrontendState KeyBindings
+_haskellEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "haskellEditorKeybindings")
+
+_marloweEditorKeybindings :: Lens' FrontendState KeyBindings
+_marloweEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "marloweEditorKeybindings")
+
+_activeMarloweDemo :: Lens' FrontendState String
+_activeMarloweDemo = _Newtype <<< prop (SProxy :: SProxy "activeMarloweDemo")
+
+_activeHaskellDemo :: Lens' FrontendState String
+_activeHaskellDemo = _Newtype <<< prop (SProxy :: SProxy "activeHaskellDemo")
 
 -- editable
 _timestamp ::

@@ -105,3 +105,13 @@ exports.layout_ = function (editor) {
   editor.layout();
 }
 
+exports.enableVimBindings_ = function (editor) {
+  var vimMode = global.initVimMode(editor);
+  return (() => vimMode.dispose());
+}
+
+exports.enableEmacsBindings_ = function (editor) {
+  var emacsMode = new global.EmacsExtension(editor);
+  emacsMode.start();
+  return (() => emacsMode.dispose());
+}

@@ -3,13 +3,21 @@ module Scoped.Extrication where
 \end{code}
 
 \begin{code}
+open import Data.Nat
+open import Data.Nat.Properties
+open import Data.Fin
+open import Data.Vec
+open import Function using (_∘_)
+open import Data.Sum using (inj₁;inj₂)
+open import Data.Product renaming (_,_ to _,,_)
+
 open import Type
 open import Type.BetaNormal
 open import Algorithmic as A
 open import Scoped
+open import Builtin
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B
-open import Data.Nat
-open import Data.Fin
 open import Type.BetaNormal
 open import Type.RenamingSubstitution as T
 \end{code}
@@ -67,26 +75,74 @@ extricateC (bool b)       = bool b
 extricateC (char c)       = char c
 extricateC unit           = unit
 
-open import Data.List as L
 open import Data.Product as P
 open import Function hiding (_∋_)
 
-extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J) → List (ScopedTy (len⋆ Γ))
-extricateSub {Δ = ∅} σ = []
-extricateSub {Δ = Δ ,⋆ K} σ =
-  extricateSub {Δ = Δ} (σ ∘ S) ++ L.[ extricateNf⋆ (σ Z) ]
+extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
+  → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
+extricateSub {Δ = ∅}     σ = []
+extricateSub {Γ}{Δ ,⋆ K} σ =
+  Eq.subst (Scoped.Tel⋆ (len⋆ Γ))
+           (+-comm (len⋆ Δ) 1)
+           (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ]) 
 
-extricateTyL : ∀{Φ} → List (Φ ⊢Nf⋆ *) → List (ScopedTy (len⋆ Φ))
-extricateTyL []       = []
-extricateTyL (A ∷ As) = extricateNf⋆ A ∷ extricateTyL As
+open import Data.List
 
-extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(as : List (Δ ⊢Nf⋆ *))
-  → Tel Γ Δ σ as
-  → List (ScopedTm (len Γ))
+lemma⋆ : ∀ b → len⋆ (proj₁ (SIG b)) ≡ arity⋆ b
+lemma⋆ addInteger = refl
+lemma⋆ subtractInteger = refl
+lemma⋆ multiplyInteger = refl
+lemma⋆ divideInteger = refl
+lemma⋆ quotientInteger = refl
+lemma⋆ remainderInteger = refl
+lemma⋆ modInteger = refl
+lemma⋆ lessThanInteger = refl
+lemma⋆ lessThanEqualsInteger = refl
+lemma⋆ greaterThanInteger = refl
+lemma⋆ greaterThanEqualsInteger = refl
+lemma⋆ equalsInteger = refl
+lemma⋆ concatenate = refl
+lemma⋆ takeByteString = refl
+lemma⋆ dropByteString = refl
+lemma⋆ sha2-256 = refl
+lemma⋆ sha3-256 = refl
+lemma⋆ verifySignature = refl
+lemma⋆ equalsByteString = refl
+lemma⋆ ifThenElse = refl
+
+lemma : ∀ b → length (proj₁ (proj₂ (SIG b))) ≡ arity b
+lemma addInteger = refl
+lemma subtractInteger = refl
+lemma multiplyInteger = refl
+lemma divideInteger = refl
+lemma quotientInteger = refl
+lemma remainderInteger = refl
+lemma modInteger = refl
+lemma lessThanInteger = refl
+lemma lessThanEqualsInteger = refl
+lemma greaterThanInteger = refl
+lemma greaterThanEqualsInteger = refl
+lemma equalsInteger = refl
+lemma concatenate = refl
+lemma takeByteString = refl
+lemma dropByteString = refl
+lemma sha2-256 = refl
+lemma sha3-256 = refl
+lemma verifySignature = refl
+lemma equalsByteString = refl
+lemma ifThenElse = refl
+
+≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
+≡2≤‴ refl = ≤‴-refl
+
+extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(As : List (Δ ⊢Nf⋆ *))
+  → A.Tel Γ Δ σ As
+  → Vec (ScopedTm (len Γ)) (length As)
+
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
 
 extricateTel σ [] x = []
-extricateTel σ (A ∷ As) (t P., ts) = extricate t ∷ extricateTel σ As ts
+extricateTel σ (A ∷ As) (t ∷ ts) = extricate t ∷ extricateTel σ As ts
 
 extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
@@ -98,6 +154,10 @@ extricate {Φ}{Γ} (wrap1 pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆
 extricate (unwrap1 t) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
 extricate {Φ}{Γ} (builtin b σ ts) =
-  builtin b (extricateSub σ) (extricateTel σ _ ts)
+  builtin
+    b
+    (inj₂ ((lemma⋆ b) ,, (≡2≤‴ (lemma b))))
+    (extricateSub σ)
+    (extricateTel σ _ ts)
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

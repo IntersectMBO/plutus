@@ -30,7 +30,6 @@ import qualified Cardano.Node.Mock                             as NodeServer
 import           Cardano.Node.RandomTx                         (GenRandomTx, runGenRandomTx)
 import           Cardano.Node.Types                            (AppState, FollowerID, NodeFollowerState)
 import qualified Cardano.Node.Types                            as NodeServer
-import           Cardano.Wallet.Mock                           (MockWalletState, followerID)
 import qualified Cardano.Wallet.Mock                           as WalletServer
 import           Control.Concurrent.MVar                       (MVar, newMVar)
 import           Control.Lens                                  (below, iso, makeLenses, view, zoom)
@@ -103,7 +102,7 @@ import qualified Wallet.Emulator.Wallet
 data TestState =
     TestState
         { _eventStore       :: EventMap ChainEvent
-        , _walletState      :: WalletServer.MockWalletState
+        , _walletState      :: WalletState
         , _nodeState        :: NodeServer.AppState
         , _signingProcess   :: SigningProcess
         , _nodeClientState  :: NodeClientState
@@ -147,7 +146,7 @@ type TestAppEffects =
      , State NodeFollowerState
      , State ChainState
      , State AppState
-     , State MockWalletState
+     , State WalletState
      , State SigningProcess
      , State NodeClientState
      , State ChainIndex.AppState
@@ -256,18 +255,16 @@ runTestApp state =
     . handleChainIndex
     . handleContractTest
     . handleUUIDEffect
-    . WalletServer.handleWallet
+    . Wallet.Emulator.Wallet.handleWallet
     . handleNodeFollower
     . runGenRandomTx
 
 sync :: Eff TestAppEffects ()
-sync = do
-    WalletServer.syncState
-    ChainIndex.syncState
+sync = ChainIndex.syncState
 
 getFollowerID :: Eff TestAppEffects FollowerID
 getFollowerID = do
-    mID <- use (walletState . followerID)
+    mID <- use (chainIndex . ChainIndex.indexFollowerID)
     case mID of
         Just fID -> pure fID
         Nothing  -> throwError $ OtherError "TestApp not initialised correctly!"

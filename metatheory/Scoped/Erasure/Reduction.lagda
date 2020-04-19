@@ -13,32 +13,45 @@ open import Scoped.Erasure.RenamingSubstitution
 
 import Untyped.Reduction as U
 import Untyped.RenamingSubstitution as U
+open import Builtin
+open import Utils
+
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
 open import Data.Fin
 open import Data.List using (List;_++_;[_];_∷_;[])
+open import Data.Vec
 open import Data.Product using (_,_)
-open import Builtin
+open import Data.Nat
 \end{code}
 
 \begin{code}
+lem-≤‴-step : ∀{m n n'}(p : m <‴ n)(q : n ≡ n')
+  → ≤‴-step (subst (suc m ≤‴_) q p) ≡ subst (m ≤‴_) q (≤‴-step p)
+lem-≤‴-step p refl = refl
+
 erase—→ : ∀{n}{w : Weirdℕ n}{t t' : ScopedTm w}
   → t S.—→ t' → eraseTm t U.—→ eraseTm t' ⊎ eraseTm t ≡ eraseTm t'
 
 eraseVal : ∀{n}{w : Weirdℕ n}{t : ScopedTm w}
   → S.Value t
   → U.Value (eraseTm t)
-eraseVal (S.V-ƛ A t)           = U.V-ƛ (eraseTm t)
-eraseVal (S.V-Λ t)             = U.V-ƛ (U.weaken (eraseTm t))
-eraseVal (S.V-con tcn)         = U.V-con (eraseTC tcn)
-eraseVal (S.V-wrap A B V)      = eraseVal V
-eraseVal (S.V-builtin b As ts) = U.V-builtin b (eraseList ts)
-
+eraseVal (S.V-ƛ A t)             = U.V-F (U.V-ƛ (eraseTm t))
+eraseVal (S.V-Λ t)               = U.V-F (U.V-ƛ (U.weaken (eraseTm t)))
+eraseVal (S.V-con tcn)           = U.V-con (eraseTC tcn)
+eraseVal (S.V-wrap A B V)        = eraseVal V
+eraseVal (S.V-builtin b As p ts) = U.V-F (subst
+  (λ p → U.FValue (builtin b p (eraseTel ts)))
+  (lem-≤‴-step p (lemma b))
+  (U.V-builtin b (eraseTel ts) (subst (_ ≤‴_) (lemma b) p))) 
+-- eraseVal (S.V-builtin⋆ b p As) = U.V-F {!U.V-builtin b []!}
+{-
 eraseVTel : ∀{n}{w : Weirdℕ n}(tel : S.Tel w) → S.VTel w tel
-  → U.VTel (len w) (eraseList tel)
+  → U.VTel (len w) (eraseTel tel)
 eraseVTel []        _          = _
 eraseVTel (t ∷ tel) (v , vtel) = eraseVal v , eraseVTel tel vtel
+
 
 erase++ : ∀{n}{w : Weirdℕ n}(ts : List (ScopedTm w))(ts' : List (ScopedTm w))
   → eraseList ts ++ eraseList ts' ≡ eraseList (ts ++ ts')
@@ -94,4 +107,5 @@ erase—→ S.E-Λunwrap = inj₁ U.E-runtime
 erase—→ S.E-conunwrap = inj₁ U.E-runtime
 erase—→ (S.E-builtin·⋆ _ _ _ _) = inj₁ U.E-runtime
 erase—→ S.E-builtinunwrap = inj₁ U.E-runtime
+-}
 \end{code}

@@ -47,7 +47,7 @@ button:hover::before {
   opacity: 1;
 }
 
-button:hover {
+button:active {
   transform: var(--animate-btn);
 }
 
@@ -155,14 +155,6 @@ button.small-btn {
 }
 
 .text-secondary-color {
-  color: var(--secondary-color);
-}
-
-.active-text-primary {
-  color: var(--primary-color);
-}
-
-.active-text {
   color: var(--secondary-color);
 }
 

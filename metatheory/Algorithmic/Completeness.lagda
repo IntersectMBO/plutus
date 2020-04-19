@@ -14,6 +14,7 @@ open import Type.BetaNBE.RenamingSubstitution
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
+open import Data.Vec hiding ([_])
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -155,6 +156,28 @@ nfTypeSIG≡₂ verifySignature = refl
 nfTypeSIG≡₂ equalsByteString = refl
 nfTypeSIG≡₂ ifThenElse = refl
 
+nfTypeSIG≡₃ : (bn : Builtin) → length (proj₁ (proj₂ (SSig.SIG bn))) ≡ length (proj₁ (proj₂ (NSig.SIG bn)))
+nfTypeSIG≡₃ addInteger = refl
+nfTypeSIG≡₃ subtractInteger = refl
+nfTypeSIG≡₃ multiplyInteger = refl
+nfTypeSIG≡₃ divideInteger = refl
+nfTypeSIG≡₃ quotientInteger = refl
+nfTypeSIG≡₃ remainderInteger = refl
+nfTypeSIG≡₃ modInteger = refl
+nfTypeSIG≡₃ lessThanInteger = refl
+nfTypeSIG≡₃ lessThanEqualsInteger = refl
+nfTypeSIG≡₃ greaterThanInteger = refl
+nfTypeSIG≡₃ greaterThanEqualsInteger = refl
+nfTypeSIG≡₃ equalsInteger = refl
+nfTypeSIG≡₃ concatenate = refl
+nfTypeSIG≡₃ takeByteString = refl
+nfTypeSIG≡₃ dropByteString = refl
+nfTypeSIG≡₃ sha2-256 = refl
+nfTypeSIG≡₃ sha3-256 = refl
+nfTypeSIG≡₃ verifySignature = refl
+nfTypeSIG≡₃ equalsByteString = refl
+nfTypeSIG≡₃ ifThenElse = refl
+
 open import Builtin.Constant.Type
 
 lemcon : ∀{Φ Φ'}(p : Φ ≡ Φ')(tcn : TyCon)
@@ -204,8 +227,8 @@ nfTypeTel : ∀{Φ Γ Δ}(σ : Sub Δ Φ)(As : List (Δ ⊢⋆ *))
   → Syn.Tel Γ Δ σ As
   → Norm.Tel (nfCtx Γ) Δ (nf ∘ σ) (nfList As)
 
-nfTypeTel σ []        _ = _
-nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
+nfTypeTel σ []           _            = Norm.[]
+nfTypeTel {Γ} σ (A ∷ As) (M Syn.∷ Ms) =
   Norm.conv⊢
     refl
     (sym
@@ -220,7 +243,7 @@ nfTypeTel {Γ} σ (A ∷ As) (M ,, Ms) =
   -- this should be a lemma in NBE/RenSubst
   -- substNf (nf ∘ σ) (nf C) ≡ nf (subst σ C)
   -- also it might go away if we simplify the builtins post size removal
-  ,,
+  Norm.∷
   nfTypeTel σ As Ms
 
 

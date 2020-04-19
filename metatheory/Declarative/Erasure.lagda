@@ -12,16 +12,48 @@ open import Untyped.RenamingSubstitution as U
 \begin{code}
 open import Type
 open import Declarative
+open import Builtin
+
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢⋆_ ` con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
   renaming (TermCon to TyTermCon)
+
 open import Data.Nat
-open import Data.Fin
-open import Data.List
+open import Data.Fin using (Fin;zero;suc)
+open import Data.List using (List;length;[];_∷_)
+open import Data.Vec using ([]; _∷_)
+open import Relation.Binary.PropositionalEquality
+open import Data.Product using (proj₁;proj₂)
 
 len : ∀{Φ} → Ctx Φ → ℕ
 len ∅        = 0
 len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = suc (len Γ)
+
+lemma : (b : Builtin) →  length (proj₁ (proj₂ (SIG b))) ≡ arity b
+lemma addInteger = refl
+lemma subtractInteger = refl
+lemma multiplyInteger = refl
+lemma divideInteger = refl
+lemma quotientInteger = refl
+lemma remainderInteger = refl
+lemma modInteger = refl
+lemma lessThanInteger = refl
+lemma lessThanEqualsInteger = refl
+lemma greaterThanInteger = refl
+lemma greaterThanEqualsInteger = refl
+lemma equalsInteger = refl
+lemma concatenate = refl
+lemma takeByteString = refl
+lemma dropByteString = refl
+lemma sha2-256 = refl
+lemma sha3-256 = refl
+lemma verifySignature = refl
+lemma equalsByteString = refl
+lemma ifThenElse = refl
+
+lemma≤ : (b : Builtin) → length (proj₁ (proj₂ (SIG b))) ≤‴ arity b
+lemma≤ b rewrite lemma b = ≤‴-refl
 
 eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
 eraseVar Z     = zero 
@@ -38,7 +70,7 @@ eraseTC unit           = unit
 
 eraseTel : ∀{Φ Γ Δ}{σ : T.Sub Δ Φ}{As : List (Δ ⊢⋆ *)}
   → Declarative.Tel Γ Δ σ As
-  → Untyped.Tel (len Γ)
+  → Untyped.Tel (length As) (len Γ) 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase (` α)             = ` (eraseVar α)
@@ -50,11 +82,11 @@ erase (wrap1 pat arg t) = erase t
 erase (unwrap1 t)       = erase t
 erase (conv p t)        = erase t
 erase {Φ}{Γ} (con t)    = con (eraseTC {Γ = Γ} t)
-erase (builtin bn σ ts) = builtin bn (eraseTel ts)
+erase (builtin bn σ ts) = builtin bn (lemma≤ bn) (eraseTel ts)
 erase (error A)         = error
 
 open import Data.Product renaming (_,_ to _,,_)
 
-eraseTel {As = []}     _          = []
-eraseTel {As = x ∷ As} (t ,, tel) = erase t ∷ eraseTel tel
+eraseTel {As = []}     _         = []
+eraseTel {As = x ∷ As} (t ∷ tel) = erase t ∷ eraseTel tel
 \end{code}

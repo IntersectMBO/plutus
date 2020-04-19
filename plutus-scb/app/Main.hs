@@ -227,10 +227,11 @@ reportContractHistoryParser =
 ------------------------------------------------------------
 runCliCommand :: Config -> Command -> App ()
 runCliCommand _ Migrate = App.migrate
-runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
+runCliCommand Config {walletServerConfig, nodeServerConfig, chainIndexConfig} MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
+        (ChainIndex.ciBaseUrl chainIndexConfig)
 runCliCommand Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
 runCliCommand config (ForkCommands commands) =
