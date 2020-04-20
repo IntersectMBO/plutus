@@ -110,7 +110,7 @@ data _—→_ {n} : n ⊢ → n ⊢ → Set where
                 {t : n ⊢}
               → Value t
               → (p : l <‴ arity b)
-              → builtin b (≤‴-step p) ts · t —→ builtin b p (t ∷ ts)
+              → builtin b (≤‴-step p) ts · t —→ builtin b p (ts :< t)
 
   E-·₁ : {M : n ⊢} → error · M —→ error
   E-·₂ : {L : n ⊢} → FValue L → L · error —→ error
@@ -180,8 +180,8 @@ BUILTIN sha3-256 (_ ∷ []) (V-con (bytestring b) , tt) = con (bytestring (SHA3-
 BUILTIN verifySignature (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) , V-con (bytestring d) , V-con (bytestring c) , tt) = VERIFYSIG (verifySig k d c)
 BUILTIN equalsByteString (_ ∷ _ ∷ []) (V-con (bytestring b) , V-con (bytestring b') , tt) =
   con (bool (equals b b'))
-BUILTIN ifThenElse (_ ∷ t ∷ _ ∷ []) (V-con (bool true)  , vt , _ , tt) = t
-BUILTIN ifThenElse (_ ∷ _ ∷ u ∷ []) (V-con (bool false) , _ , vu , tt) = u
+BUILTIN ifThenElse (_ ∷ _ ∷ t ∷ _ ∷ []) (_ , V-con (bool true)  , vt , _ , tt) = t
+BUILTIN ifThenElse (_ ∷ _ ∷ _ ∷ u ∷ []) (_ , V-con (bool false) , _ , vu , tt) = u
 BUILTIN _ _ _ = error
 
 data ProgTel {l n}(tel : Tel l n) : Set where
@@ -342,4 +342,32 @@ detT (here p) (here q) = cong (_∷ _) (det p q)
 detT (here p) (there v q) = ⊥-elim (val-red v (_ , p))
 detT (there v p) (here q) = ⊥-elim (val-red v (_ , q))
 detT (there v p) (there w q) = cong (_ ∷_) (detT p q)
+
+-- auxiliary functions
+
+vTel:< : ∀{l n}
+  → (ts : Tel l n)
+  → VTel l n ts → (t : n ⊢)
+  → Value t
+  → VTel (suc l) n (ts :< t)
+vTel:< []        vs        t v = v , tt
+vTel:< (t' ∷ ts) (v' , vs) t v = v' , (vTel:< ts vs t v)
+
+
+vTel++ : ∀{l l' n}
+  → (ts : Tel l n)
+  → VTel l n ts 
+  → (ts' : Tel l' n)
+  → VTel l' n ts'
+  → VTel (l Data.Nat.+ l') n (ts ++ ts')
+vTel++ []       vs        ts' vs' = vs'
+vTel++ (t ∷ ts) (v' , vs) ts' vs' = v' , vTel++ ts vs ts' vs'
+
+anyErr++ : ∀{l l' n}{ts : Tel l n} → Any Error ts → (ts' : Tel l' n) → VTel l' n ts' → Any Error (ts' ++ ts)
+anyErr++ p []         _           = p
+anyErr++ p (t' ∷ ts') (v' , vs') = there v' (anyErr++ p ts' vs')
+
+—→T++ : ∀{l l' n}{ts' ts'' : Tel l n} → ts' —→T ts'' → (ts : Tel l' n) → VTel l' n ts → (ts ++ ts') —→T (ts ++ ts'')
+—→T++ p []       vs = p
+—→T++ p (t ∷ ts) (v , vs) = there v (—→T++ p ts vs)
 \end{code}

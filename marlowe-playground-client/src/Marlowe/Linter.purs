@@ -40,10 +40,10 @@ import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType(..), Observation(..), Term(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Help (marloweTypeMarkerText)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), Timeout, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
@@ -53,7 +53,7 @@ type Position
   = { row :: Pos, column :: Pos }
 
 newtype MaxTimeout
-  = MaxTimeout Timeout
+  = MaxTimeout (TermWrapper Slot)
 
 derive instance newtypeMaxTimeout :: Newtype MaxTimeout _
 
@@ -65,7 +65,7 @@ instance semigroupMax :: Semigroup MaxTimeout where
   append a b = max a b
 
 instance monoidMaxTimeout :: Monoid MaxTimeout where
-  mempty = MaxTimeout zero
+  mempty = MaxTimeout (TermWrapper zero zero)
 
 data Warning
   = NegativePayment IRange
@@ -163,7 +163,7 @@ derive newtype instance monoidLintEnv :: Monoid LintEnv
 _letBindings :: Lens' LintEnv (Set ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
-_maxTimeout :: Lens' LintEnv Timeout
+_maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
 data TemporarySimplification a b
@@ -209,7 +209,7 @@ constToObs true = Term TrueObs { row: 0, column: 0 }
 constToObs false = Term FalseObs { row: 0, column: 0 }
 
 constToVal :: BigInteger -> Term Value
-constToVal x = Term (Constant (Term x { row: 0, column: 0 })) { row: 0, column: 0 }
+constToVal x = Term (Constant x) { row: 0, column: 0 }
 
 -- | We lintContract through a contract term collecting all warnings and holes etc so that we can display them in the editor
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
@@ -254,24 +254,17 @@ lintContract env (Term (If obs c1 c2) _) = do
       markSimplification constToObs SimplifiableObservation obs sa
       pure unit
 
-lintContract env (Term (When cases hole@(Hole _ _ _) cont) _) = do
-  traverse_ (lintCase env) cases
-  modifying _holes (insertHole hole)
-  lintContract env cont
-  pure unit
-
-lintContract env (Term (When cases timeoutTerm@(Term timeout pos) cont) _) = do
+lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
   let
-    timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange timeout pos))
+    timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange slot pos))
 
     newEnv = (over _maxTimeout (max timeout)) env
   traverse_ (lintCase newEnv) cases
-  modifying _holes (insertHole timeoutTerm)
   modifying _warnings (Set.union timeoutNotIncreasing)
   lintContract newEnv cont
   pure unit
 
-lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
+lintContract env (Term (Let (TermWrapper valueId pos) value cont) _) = do
   let
     shadowedLet = if Set.member valueId (view _letBindings env) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
 
@@ -280,14 +273,6 @@ lintContract env (Term (Let valueIdTerm@(Term valueId pos) value cont) _) = do
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract newEnv cont
-
-lintContract env (Term (Let valueIdTerm@(Hole _ _ _) value cont) _) = do
-  let
-    gatherHoles = getHoles valueIdTerm
-  modifying _holes gatherHoles
-  sa <- lintValue env value
-  markSimplification constToVal SimplifiableValue value sa
-  lintContract env cont
 
 lintContract env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
@@ -393,11 +378,7 @@ lintValue env t@(Term (AvailableMoney acc token) pos) = do
   modifying _holes gatherHoles
   pure (ValueSimp pos false t)
 
-lintValue env (Term (Constant (Term v pos2)) pos) = pure (ConstantSimp pos false v)
-
-lintValue env t@(Term (Constant h@(Hole _ _ _)) pos) = do
-  modifying _holes (insertHole h)
-  pure (ValueSimp pos false t)
+lintValue env (Term (Constant v) pos) = pure (ConstantSimp pos false v)
 
 lintValue env t@(Term (NegValue a) pos) = do
   sa <- lintValue env a
@@ -477,14 +458,10 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
-lintValue env t@(Term (UseValue (Term valueId _)) pos) = do
+lintValue env t@(Term (UseValue (TermWrapper valueId _)) pos) = do
   let
     undefinedLet = if Set.member valueId (view _letBindings env) then mempty else Set.singleton (UndefinedUse (termToRange t pos))
   modifying _warnings (Set.union undefinedLet)
-  pure (ValueSimp pos false t)
-
-lintValue env t@(Term (UseValue hole) pos) = do
-  modifying _holes (insertHole hole)
   pure (ValueSimp pos false t)
 
 lintValue env hole@(Hole _ _ pos) = do
@@ -638,9 +615,6 @@ provideCodeActions uri markers' =
     Left _ -> []
     Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of
       Nothing -> []
-      Just BigIntegerType -> []
-      Just StringType -> []
-      Just SlotType -> []
       Just marloweType ->
         let
           m = getMarloweConstructors marloweType
