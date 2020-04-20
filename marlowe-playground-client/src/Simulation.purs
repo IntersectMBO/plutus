@@ -38,7 +38,7 @@ import Prelude (class Show, bind, bottom, const, discard, eq, mempty, show, unit
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.BottomPanel (isContractValid)
 import StaticData as StaticData
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _activeMarloweDemo, _authStatus, _createGistResult, _gistUrl, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction(..), HelpContext(..), _Head, _activeMarloweDemo, _authStatus, _createGistResult, _editorErrors, _gistUrl, _helpContext, _loadGistResult, _marloweEditorKeybindings, _marloweEditorSlot, _marloweState, _pendingInputs, _possibleActions, _showRightPanel, _slot)
 
 render ::
   forall m.
@@ -67,7 +67,7 @@ render state =
               , button
                   [ classes [ smallBtn, ClassName "tooltip" ]
                   , onClick $ const $ Just $ SetBlocklyCode
-                  , enabled (isContractValid state)
+                  , enabled isBlocklyEnabled
                   ]
                   [ span [ class_ (ClassName "tooltiptext") ] [ text "Send Contract to Blockly" ]
                   , img [ class_ (ClassName "blockly-btn-icon"), src blocklyIcon, alt "blockly logo" ]
@@ -83,6 +83,8 @@ render state =
       ]
   ]
   where
+  isBlocklyEnabled = view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
+
   demoScriptLink key =
     li [ state ^. _activeMarloweDemo <<< activeClasses (eq key) ]
       [ a [ onClick $ const $ Just $ LoadMarloweScript key ] [ text key ] ]

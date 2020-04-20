@@ -1,10 +1,9 @@
 module Halogen.Blockly where
 
-import Blockly (BlockDefinition, ElementId(..))
+import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
-import Blockly.Generator (Generator, newBlock, workspaceToCode)
+import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
-import Control.Alt ((<|>))
 import Control.Monad.Except (ExceptT(..), runExceptT, lift)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
@@ -22,15 +21,19 @@ import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
+import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
-import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
+import Text.Extra as Text
 import Text.Parsing.StringParser (runParser)
-import Text.Parsing.StringParser.Basic (parens)
-import Text.Pretty (genericPretty)
+import Text.Pretty (pretty)
+import Type.Proxy (Proxy(..))
 
 type BlocklyState
-  = { blocklyState :: Maybe BT.BlocklyState, generator :: Maybe Generator, errorMessage :: Maybe String }
+  = { blocklyState :: Maybe BT.BlocklyState
+    , generator :: Maybe Generator
+    , errorMessage :: Maybe String
+    }
 
 _blocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
 _blocklyState = prop (SProxy :: SProxy "blocklyState")
@@ -92,9 +95,9 @@ handleQuery (Resize next) = do
 handleQuery (SetCode code next) = do
   { blocklyState } <- get
   let
-    contract = case runParser Parser.contractValue code of
+    contract = case runParser (Parser.parseTerm Parser.contract) code of
       Right c -> c
-      Left _ -> Close
+      Left _ -> Hole "root_contract" Proxy { row: 0, column: 0 }
   case blocklyState of
     Nothing -> pure unit
     Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)
@@ -124,9 +127,14 @@ handleAction GetCode = do
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
-      code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ workspaceToCode blocklyState generator
-      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ runParser (parens Parser.contractValue <|> Parser.contractValue) code
-      lift <<< raise <<< CurrentCode <<< show <<< genericPretty $ contract
+      let
+        workspace = blocklyState.workspace
+
+        rootBlockName = blocklyState.rootBlockName
+      block <- ExceptT <<< pure <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+      code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
+      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
   case res of
     Left e -> assign _errorMessage $ Just e
     Right _ -> assign _errorMessage Nothing

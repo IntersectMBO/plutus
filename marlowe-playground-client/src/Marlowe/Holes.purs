@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (Pattern(..), length, stripPrefix, stripSuffix, trim)
+import Data.String (length)
 import Data.String.Extra (unlines)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -24,6 +24,7 @@ import Data.Tuple.Nested ((/\))
 import Marlowe.Semantics (ChosenNum, Money, PubKey, Rational, Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
+import Text.Extra as Text
 import Text.Parsing.StringParser (Pos)
 import Text.Parsing.StringParser.Basic (lines, replaceInPosition)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
@@ -103,6 +104,7 @@ data Argument
   | DefaultString String
   | DefaultNumber BigInteger
   | NewtypeArg
+  | GenArg MarloweType
 
 getMarloweConstructors :: MarloweType -> Map String (Array Argument)
 getMarloweConstructors AccountIdType = Map.singleton "AccountId" [ DefaultNumber zero, DataArg "accHolder" ]
@@ -113,14 +115,14 @@ getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ DataArg "accountId", DataArg "party", DataArg "token", DataArg "value" ])
+    [ (Tuple "Deposit" [ GenArg AccountIdType, DataArg "party", DataArg "token", DataArg "value" ])
     , (Tuple "Choice" [ DataArg "choiceId", ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg "observation" ])
     ]
 
 getMarloweConstructors PayeeType =
   Map.fromFoldable
-    [ (Tuple "Account" [ DataArg "accountId" ])
+    [ (Tuple "Account" [ GenArg AccountIdType ])
     , (Tuple "Party" [ DataArg "party" ])
     ]
 
@@ -128,13 +130,13 @@ getMarloweConstructors CaseType = Map.singleton "Case" [ DataArg "action", DataA
 
 getMarloweConstructors ValueType =
   Map.fromFoldable
-    [ (Tuple "AvailableMoney" [ DataArg "accountId", DataArg "token" ])
+    [ (Tuple "AvailableMoney" [ GenArg AccountIdType, DataArg "token" ])
     , (Tuple "Constant" [ DefaultNumber zero ])
     , (Tuple "NegValue" [ DataArg "value" ])
     , (Tuple "AddValue" [ DataArg "value", DataArg "value" ])
     , (Tuple "SubValue" [ DataArg "value", DataArg "value" ])
     , (Tuple "Scale" [ DataArg "rational", DataArg "value" ])
-    , (Tuple "ChoiceValue" [ DataArg "choiceId", DataArg "value" ])
+    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType, DataArg "value" ])
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
     , (Tuple "UseValue" [ DefaultString "valueId" ])
@@ -158,7 +160,7 @@ getMarloweConstructors ObservationType =
 getMarloweConstructors ContractType =
   Map.fromFoldable
     [ (Tuple "Close" [])
-    , (Tuple "Pay" [ DataArg "accountId", DataArg "payee", DataArg "token", DataArg "value", DataArg "contract" ])
+    , (Tuple "Pay" [ GenArg AccountIdType, DataArg "payee", DataArg "token", DataArg "value", DataArg "contract" ])
     , (Tuple "If" [ DataArg "observation", DataArg "contract", DataArg "contract" ])
     , (Tuple "When" [ ArrayArg "case", DefaultNumber zero, DataArg "contract" ])
     , (Tuple "Let" [ DefaultString "valueId", DataArg "value", DataArg "contract" ])
@@ -187,6 +189,12 @@ getMarloweTypeFromConstructor constructor =
   in
     Array.find f allMarloweTypes
 
+-- | Return a constructor name if there is exactly one constructor for a type
+getConstructorFromMarloweType :: MarloweType -> Maybe String
+getConstructorFromMarloweType t = case Set.toUnfoldable $ Map.keys (getMarloweConstructors t) of
+  [ constructorName ] -> Just constructorName
+  _ -> Nothing
+
 -- | Creates a String consisting of the data constructor name followed by argument holes
 --   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
@@ -205,12 +213,25 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
 
   showArgument _ NewtypeArg = ""
 
+  showArgument _ (GenArg marloweType) = case getConstructorFromMarloweType marloweType of
+    Nothing -> "?hole"
+    Just name ->
+      let
+        newArgs = getMarloweConstructors marloweType
+
+        hole = MarloweHole { name, marloweType, row: 0, column: 0 }
+      in
+        constructMarloweType name hole newArgs
+
   parens 1 1 text = text
 
   parens _ _ text = "(" <> text <> ")"
 
 mkHole :: forall a. String -> { row :: Pos, column :: Pos } -> Term a
 mkHole name position = Hole name Proxy position
+
+mkDefaultTerm :: forall a. a -> Term a
+mkDefaultTerm a = Term a { row: 0, column: 0 }
 
 data Term a
   = Term a { row :: Pos, column :: Pos }
@@ -265,6 +286,9 @@ instance hasArgsTermWrapper :: Args a => Args (TermWrapper a) where
 instance fromTermTermWrapper :: FromTerm a b => FromTerm (TermWrapper a) b where
   fromTerm (TermWrapper a _) = fromTerm a
 
+mkDefaultTermWrapper :: forall a. a -> TermWrapper a
+mkDefaultTermWrapper a = TermWrapper a { row: 0, column: 0 }
+
 -- a concrete type for holes only
 data MarloweHole
   = MarloweHole
@@ -295,11 +319,7 @@ marloweHoleToSuggestionText stripParens firstHole@(MarloweHole { marloweType }) 
     fullInsertText = constructMarloweType constructorName firstHole m
   in
     if stripParens then
-      fromMaybe fullInsertText
-        $ do
-            withoutPrefix <- stripPrefix (Pattern "(") $ trim fullInsertText
-            withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
-            pure withoutSuffix
+      Text.stripParens fullInsertText
     else
       fullInsertText
 
@@ -358,6 +378,8 @@ data Bound
 
 derive instance genericBound :: Generic Bound _
 
+derive instance eqBound :: Eq Bound
+
 instance showBound :: Show Bound where
   show v = genericShow v
 
@@ -382,6 +404,10 @@ data Party
   | Role TokenName
 
 derive instance genericParty :: Generic Party _
+
+derive instance eqParty :: Eq Party
+
+derive instance ordParty :: Ord Party
 
 instance showParty :: Show Party where
   show v = genericShow v
@@ -497,6 +523,8 @@ data Action
 
 derive instance genericAction :: Generic Action _
 
+derive instance eqAction :: Eq Action
+
 instance showAction :: Show Action where
   show v = genericShow v
 
@@ -521,9 +549,9 @@ data Payee
 
 derive instance genericPayee :: Generic Payee _
 
-derive instance eqParty :: Eq Party
+derive instance eqPayee :: Eq Payee
 
-derive instance ordParty :: Ord Party
+derive instance ordPayee :: Ord Payee
 
 instance showPayee :: Show Payee where
   show v = genericShow v
@@ -551,6 +579,8 @@ data Case
   = Case (Term Action) (Term Contract)
 
 derive instance genericCase :: Generic Case _
+
+derive instance eqCase :: Eq Case
 
 instance showCase :: Show Case where
   show v = genericShow v
@@ -673,6 +703,8 @@ data Contract
   | Let (TermWrapper ValueId) (Term Value) (Term Contract)
 
 derive instance genericContract :: Generic Contract _
+
+derive instance eqContract :: Eq Contract
 
 instance showContract :: Show Contract where
   show v = genericShow v

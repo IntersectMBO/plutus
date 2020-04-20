@@ -24,7 +24,9 @@ createBlocklyInstance :: Effect BlocklyState
 createBlocklyInstance = do
   blockly <- createBlocklyInstance_
   workspace <- runEffectFn1 createWorkspace_ blockly
-  pure { blockly, workspace }
+  let
+    rootBlockName = "root_contract"
+  pure { blockly, workspace, rootBlockName }
 
 newBlock :: forall r. STRef r Workspace -> String -> ST r (STRef r Block)
 newBlock = runFn3 newBlock_ STRef.new

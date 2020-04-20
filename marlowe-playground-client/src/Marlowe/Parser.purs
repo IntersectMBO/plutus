@@ -438,9 +438,6 @@ contract = do
   skipSpaces
   pure c
 
-contractValue :: Parser S.Contract
-contractValue = parseToValue contract
-
 testString :: String
 testString =
   """When [

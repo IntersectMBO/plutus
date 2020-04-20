@@ -33,7 +33,13 @@ genRational :: forall m. MonadGen m => MonadRec m => m Rational
 genRational = do
   n <- genBigInteger
   d <- genBigInteger
-  pure $ Rational n d
+  pure
+    -- this little fix is in Marlowe.Blockly so we need it here to make the tests work
+    
+    $ if d > zero then
+        Rational n d
+      else
+        Rational (-n) (-d)
 
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger

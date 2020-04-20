@@ -452,7 +452,12 @@ lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
 
 lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
   modifying _holes (getHoles choiceId)
-  pure (ValueSimp pos false t)
+  sa <- lintValue env a
+  case sa of
+    ConstantSimp _ _ c1 -> pure (ConstantSimp pos true (-c1))
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 
