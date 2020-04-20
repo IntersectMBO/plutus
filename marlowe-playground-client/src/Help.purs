@@ -38,27 +38,6 @@ holeText marloweType text = "Found a hole of type " <> dropEnd 4 (show marloweTy
   dropEnd n = fromCodePointArray <<< Array.dropEnd n <<< toCodePointArray
 
 marloweTypeMarkerText :: MarloweType -> String
-marloweTypeMarkerText StringType =
-  """Found a hole of type String
-
-A string is any text enclosed by double quotes, e.g. "my string".
-
-Replace this hole with a string.
-"""
-
-marloweTypeMarkerText BigIntegerType =
-  """Found a hole of type Integer
-
-Replace this hole with an integer, e.g. 10
-"""
-
-marloweTypeMarkerText SlotType =
-  """
-The slot number. This is a good proxy for time, since on the Cardano blockchain slots pass at a constant rate.
-
-Replace this hole with an integer, e.g. 10
-"""
-
 marloweTypeMarkerText AccountIdType =
   holeText AccountIdType
     """
