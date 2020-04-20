@@ -81,20 +81,22 @@ rsquare ->  manyWS %rsquare
 hole -> %hole {% ([hole]) => opts.mkHole(hole.value.substring(1))({row: hole.line, column: hole.col}) %}
 
 number
-   -> hole {% ([hole]) => hole %}
-    | %number {% ([n]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
-    | lparen %number rparen {% ([,n,]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
+   -> %number {% ([n]) => opts.mkBigInteger(n.value) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value) %}
+
+timeout
+   -> %number {% ([n]) => opts.mkTimeout(n.value)({row: n.line, column: n.col}) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkTimeout(n.value)({row: n.line, column: n.col}) %}
 
 string
-   -> hole {% ([hole]) => hole %}
-    | %string {% ([s]) => opts.mkTerm(s.value)({row: s.line, column: s.col}) %}
+   -> %string {% ([s]) => s.value %}
 
 topContract
    -> hole {% ([hole]) => hole %}
     | "Close" {% ([{line, col}]) => opts.mkTerm(opts.mkClose)({row: line, column: col}) %}
     | "Pay" someWS accountId someWS payee someWS token someWS value someWS contract {% ([{line, col},,accountId,,payee,,token,,value,,contract]) => opts.mkTerm(opts.mkPay(accountId)(payee)(token)(value)(contract))({row: line, column: col}) %}
     | "If" someWS observation someWS contract someWS contract {% ([{line, col},,observation,,contract1,,contract2]) => opts.mkTerm(opts.mkIf(observation)(contract1)(contract2))({row: line, column: col}) %}
-    | "When" someWS lsquare cases:* rsquare someWS number someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
+    | "When" someWS lsquare cases:* rsquare someWS timeout someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
     | "Let" someWS valueId someWS value someWS contract {% ([{line, col},,valueId,,value,,contract]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({row: line, column: col}) %}
 
 cases
@@ -135,8 +137,7 @@ choiceId
 
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
-   -> hole {% ([hole]) => hole %}
-    | %string {% ([{value,line,col}]) => opts.mkTerm(opts.mkValueId(value))({row: line, column: col}) %}
+   -> %string {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({row: line, column: col}) %}
 # valueId -> lparen %VALUE_ID someWS string rparen
 
 accountId

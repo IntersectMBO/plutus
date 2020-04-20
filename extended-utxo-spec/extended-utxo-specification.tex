@@ -4,7 +4,7 @@
 \title{The Extended UTXO Ledger Model}
 
 \pagestyle{plain}
-\date{8th April 2020}
+\date{18th April 2020}
 
 \author{}
 
@@ -447,6 +447,7 @@ the ledger.
     \DataHash && \mbox{the hash of an object of type \Data{}}\\
     \TxId && \mbox{the identifier of a transaction}\\
     \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
+    \lookupTx : \s{Ledger} \times \TxId \rightarrow \eutxotx && \mbox{a function retrieving a transaction via its identifier}\\
     \script && \mbox{the (opaque) type of scripts}\\
     \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
     \hashData : \Data \rightarrow \DataHash && \mbox{the hash of a data object}\\
@@ -504,9 +505,14 @@ The Cardano implementation of EUTXO-1 uses the primitives given in
   \label{fig:eutxo-1-types-cardano}
 \end{ruledfigure}
 
+\paragraph{Transaction identifiers.}  We assume that
+each transaction has a unique identifier (in Cardano, the hash of a
+$\eutxotx$ object) and that a transaction can be efficiently retrieved
+from a ledger using the $\lookupTx$ function.
+
 \paragraph{Inputs and outputs.} Note that a transaction has a
 \textsf{Set} of inputs but a \textsf{List} of outputs. See
-\cref{note:inputs-and-outputs} for a discussion of why.
+\cref{note:inputs-and-outputs} for a discussion of why this is.
 
 \paragraph{Validator addresses in outputs.} The \textit{addr} field
 of an output should contain the address of the validator script for
@@ -642,9 +648,6 @@ $t$ to be considered valid with respect to a ledger $l$.
 \begin{ruledfigure}{H}
   \begin{displaymath}
   \begin{array}{lll}
-  \multicolumn{3}{l}{\lookupTx : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
-  \lookupTx(l,id) &=& \textsf{find}(l, tx \mapsto \txId(tx) = id)\\
-  \\
   \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \FinSet{\s{OutputRef}}}\\
   \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
   \\
@@ -653,26 +656,24 @@ $t$ to be considered valid with respect to a ledger $l$.
   \unspent(t::l) &=& (\unspent(l) \setminus t.\inputs) \cup \txunspent(t)\\
   \\
   \multicolumn{3}{l}{\getSpent : \s{Input} \times \s{Ledger} \rightarrow \s{Output}}\\
-  \getSpent(i,l) &=& l\langle i.\outputref.\id \rangle.\outputs[i.\outputref.\idx]
+  \getSpent(i,l) &=& \lookupTx (l, i.\outputref.\id).\outputs[i.\outputref.\idx]
   \end{array}
   \end{displaymath}
-  \caption{Auxiliary functions for EUTXO-1 validation}
+  \caption{Auxiliary functions for transaction validation}
   \label{fig:validation-functions-1}
 \end{ruledfigure}
-
-\noindent The function $\lookupTx(l,id)$ looks up the unique
-transaction $T$ whose $\TxId$ is $id$, and can of course
-fail. However, during validation
-Rule~\ref{rule:all-inputs-refer-to-unspent-outputs} of
-Figure~\ref{fig:eutxo-1-validity} ensures that all of the transaction
-inputs refer to existing unspent outputs, and in these circumstances
-$\lookupTx$ will always succeed for the transactions of interest.
 
 It is perhaps not immediately obvious that the $\unspent$ function
 only yields a \textit{finite} set of outputs: however, this can be
 proved by induction on the slot number, using the facts that the
 initial ledger is empty and that each transaction only produces a
 finite number of outputs.
+
+Note also that $\getSpent$ uses the $\lookupTx$ function, which can of
+course fail if the ledger contains no transaction with the relevant
+identifier; however we only use $\getSpent$ during transaction
+validation, and our validity rules ensure that in that case
+transaction lookup will always succeed: see Note~\ref{note:tx-lookup-never-fails}.
 
 \medskip
 
@@ -708,10 +709,12 @@ differing from the latter in \cref{rule:all-inputs-validate}.
 
 \item
   \label{rule:forging}
-  \textbf{Forging} \\
-    A transaction with a non-zero \forge{}
-    field is only valid if the ledger $l$ is empty (that
-    is, if it is the initial transaction).
+  \textbf{Forging}
+  
+%% Don't delete this blank line ^
+  A transaction with a non-zero \forge{}
+  field is only valid if the ledger $l$ is empty (that
+  is, if it is the initial transaction).
 
 \item
   \label{rule:value-is-preserved}
@@ -966,7 +969,9 @@ EUTXO-2: see \cref{fig:eutxo-2-validity}.
 
 \item
   \label{rule:forging-2}
-  \textbf{Forging}\\
+  \textbf{Forging}
+
+  %% Don't delete this blank line ^
   A transaction with a non-zero \forge{} field is only
   valid if either:
   \begin{enumerate}
@@ -1281,6 +1286,20 @@ also avoids overpayment due to overestimating the fees).
   fail.  Thus we won't know how much the final transaction will cost
   until just before it happens.}
 
+\note{Transaction lookup during validation.}
+\label{note:tx-lookup-never-fails}
+Note that the $\getSpent$ function of
+Figure~\ref{fig:validation-functions-1} uses $\lookupTx$, which could
+fail if the relevant transaction does not exist.  However, we only use
+$\getSpent$ during transaction validation, and in that case
+Rule~\ref{rule:all-inputs-refer-to-unspent-outputs} of
+Figure~\ref{fig:eutxo-1-validity} and
+Rule~\ref{rule:all-inputs-refer-to-unspent-outputs-2} of
+Figure~\ref{fig:eutxo-2-validity} ensure that all of the transaction
+inputs refer to existing unspent outputs, and in these circumstances
+$\lookupTx$ will always succeed for the transactions of interest.
+
+  
 \note{Monetary policies for custom currencies.}
 \label{note:monetary-policies}
 The new \textbf{Forging} rule in \cref{fig:eutxo-2-validity} enables
