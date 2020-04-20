@@ -214,7 +214,7 @@ getProg inp fmt =
       Plc  -> parsePlcFile inp
       Cbor -> do
                p <- getCborInput inp
-               return $ fakeAlexPosn <$ (deserialise p :: PlainProgram)  -- FIXME: may cause error
+               return $ fakeAlexPosn <$ (deserialise p :: PlainProgram)
                    where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 
