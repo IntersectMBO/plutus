@@ -240,7 +240,7 @@ instance ( PLC.Closed uni
 
 instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.PrettyClassicBy configName (name a)
-         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni a) where
     prettyBy config (VarDecl _ n ty) = parens' ("vardecl" </> vsep' [prettyBy config n, prettyBy config ty])
 
@@ -260,7 +260,7 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
 
 instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.PrettyClassicBy configName (name a)
-         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni a) where
     prettyBy config (Datatype _ ty tyvars destr constrs) = parens' ("datatype" </> vsep' [
                                                                          prettyBy config ty,
@@ -270,7 +270,7 @@ instance ( PLC.PrettyClassicBy configName (tyname a)
 
 instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.PrettyClassicBy configName (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni a) where
     prettyBy config = \case
         TermBind _ s d t -> parens' ("termbind" </> vsep' [prettyBy config s, prettyBy config d, prettyBy config t])
@@ -279,7 +279,7 @@ instance ( PLC.PrettyClassicBy configName (tyname a)
 
 instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.PrettyClassicBy configName (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = \case
         Let _ r bs t -> parens' ("let" </> vsep' [prettyBy config r, vsep' . toList $ fmap (prettyBy config) bs, prettyBy config t])
@@ -296,7 +296,7 @@ instance ( PLC.PrettyClassicBy configName (tyname a)
 
 instance ( PLC.PrettyClassicBy configName (tyname a)
          , PLC.PrettyClassicBy configName (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni a) where
     prettyBy config (Program _ t) = parens' ("program" </> prettyBy config t)
 
@@ -307,30 +307,30 @@ instance (PLC.PrettyClassic (tyname a)) =>
 
 instance ( PLC.PrettyClassic (tyname a)
          , PLC.PrettyClassic (name a)
-         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (VarDecl tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic (tyname a)
          , PLC.PrettyClassic (name a)
-         , PLC.GShow uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (Datatype tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic (tyname a)
          , PLC.PrettyClassic (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (Binding tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic (tyname a)
          , PLC.PrettyClassic (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (Term tyname name uni a) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic (tyname a)
          , PLC.PrettyClassic (name a)
-         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty
+         , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (Program tyname name uni a) where
     pretty = PLC.prettyClassicDef

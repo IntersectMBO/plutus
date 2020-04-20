@@ -15,7 +15,7 @@
       )
       (let
         (nonrec)
-        (termbind (strict) (vardecl emptyString (con string)) (con ))
+        (termbind (strict) (vardecl emptyString (con string)) (con ""))
         (let
           (nonrec)
           (termbind

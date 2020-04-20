@@ -25,6 +25,7 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty                                 (PrettyConst)
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
@@ -193,7 +194,7 @@ evaluateCk term = [] |> term
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 unsafeEvaluateCk
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
     => Term TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk

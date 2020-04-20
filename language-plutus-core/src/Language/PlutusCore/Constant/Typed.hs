@@ -38,6 +38,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty                         (PrettyConst)
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
@@ -203,7 +204,7 @@ newtype OpaqueTerm uni (text :: Symbol) (unique :: Nat) = OpaqueTerm
     { unOpaqueTerm :: Term TyName Name uni ()
     }
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst) =>
             Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 

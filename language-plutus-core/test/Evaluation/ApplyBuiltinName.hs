@@ -32,7 +32,7 @@ import           Test.Tasty.Hedgehog
 -- we check that the results of the two computations match. We also check that each
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
-    :: (uni ~ DefaultUni, KnownType uni r, Pretty r)
+    :: (uni ~ DefaultUni, KnownType uni r, PrettyConst r)
     => TypedBuiltinName uni as r  -- ^ A (typed) builtin name to apply.
     -> FoldArgs as r              -- ^ The semantics of the builtin name. E.g. the semantics of
                                   -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.

@@ -16,6 +16,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Pretty                                 (PrettyConst)
 
 import           Control.Monad.Except
 
@@ -34,7 +35,7 @@ typecheckAnd action meanings term = runQuoteT $ do
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckEvaluateCek
     :: ( MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, Typeable uni, uni `Everywhere` Pretty
+       , Closed uni, uni `Everywhere` ExMemoryUsage, Typeable uni, uni `Everywhere` PrettyConst
        )
     => DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> m (EvaluationResultDef uni)
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek

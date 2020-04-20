@@ -14,6 +14,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Pretty                      (PrettyConst)
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 
@@ -54,7 +55,7 @@ instance (PrettyReadableBy configName (tyname a), GShow uni) =>
 instance
         ( PrettyReadableBy configName (tyname a)
         , PrettyReadableBy configName (name a)
-        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni a) where
     prettyBy config = \case
         Constant _ con         -> unitaryDoc config $ pretty con

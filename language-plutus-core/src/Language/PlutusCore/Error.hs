@@ -171,7 +171,7 @@ instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
             "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
             PrettyBy PrettyConfigPlc (TypeError uni ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
@@ -198,7 +198,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
         "Unknown dynamic built-in name at" <+> pretty ann <>
         ":" <+> pretty err
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e

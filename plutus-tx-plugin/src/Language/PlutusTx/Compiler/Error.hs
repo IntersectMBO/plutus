@@ -70,7 +70,7 @@ data Error uni a = PLCError (PLC.Error uni a)
                  deriving Typeable
 makeClassyPrisms ''Error
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.Pretty, PP.Pretty a) =>
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a) =>
             PP.Pretty (Error uni a) where
     pretty = PLC.prettyPlcClassicDebug
 
@@ -86,7 +86,7 @@ instance PLC.AsUniqueError (CompileError uni) () where
 instance uni1 ~ uni2 => PIR.AsError (CompileError uni1) uni2 (PIR.Provenance ()) where
     _Error = _NoContext . _PIRError
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.Pretty, PP.Pretty a) =>
+instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty a) =>
             PLC.PrettyBy PLC.PrettyConfigPlc (Error uni a) where
     prettyBy config = \case
         PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]

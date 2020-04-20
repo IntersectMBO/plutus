@@ -2,8 +2,11 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -14,6 +17,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Instance.Recursive
 import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Pretty                      (PrettyConst)
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Universe
 
@@ -37,13 +41,14 @@ instance (PrettyClassicBy configName (tyname a), GShow uni) =>
 
         prettyName = prettyBy config
 
+
 instance
         ( PrettyClassicBy configName (tyname a)
         , PrettyClassicBy configName (name a)
-        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> pretty b)
+        a (ConstantF _ b)      = parens' ("con" </> pretty b)  -- NB: actually calls prettyConst
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
         a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
         a (VarF _ n)           = prettyName n
@@ -57,6 +62,8 @@ instance
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
+
+
 
 instance PrettyClassicBy configName (Term tyname name uni a) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni a) where

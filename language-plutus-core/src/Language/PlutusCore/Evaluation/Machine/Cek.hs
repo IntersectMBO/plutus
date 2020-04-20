@@ -412,7 +412,7 @@ evaluateCek means params = fst . runCekCounting means params
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
     => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
 unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params

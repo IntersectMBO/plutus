@@ -244,7 +244,7 @@
                                           (termbind
                                             (strict)
                                             (vardecl emptyString (con string))
-                                            (con )
+                                            (con "")
                                           )
                                           (let
                                             (nonrec)
@@ -880,7 +880,7 @@
                                                                                               (con char)
                                                                                             }
                                                                                             (con
-                                                                                              n
+                                                                                              'n'
                                                                                             )
                                                                                           ]
                                                                                           [
@@ -890,7 +890,7 @@
                                                                                                 (con char)
                                                                                               }
                                                                                               (con
-                                                                                                o
+                                                                                                'o'
                                                                                               )
                                                                                             ]
                                                                                             [
@@ -900,7 +900,7 @@
                                                                                                   (con char)
                                                                                                 }
                                                                                                 (con
-                                                                                                  t
+                                                                                                  't'
                                                                                                 )
                                                                                               ]
                                                                                               [
@@ -910,7 +910,7 @@
                                                                                                     (con char)
                                                                                                   }
                                                                                                   (con
-                                                                                                     
+                                                                                                    ' '
                                                                                                   )
                                                                                                 ]
                                                                                                 [
@@ -920,7 +920,7 @@
                                                                                                       (con char)
                                                                                                     }
                                                                                                     (con
-                                                                                                      e
+                                                                                                      'e'
                                                                                                     )
                                                                                                   ]
                                                                                                   [
@@ -930,7 +930,7 @@
                                                                                                         (con char)
                                                                                                       }
                                                                                                       (con
-                                                                                                        n
+                                                                                                        'n'
                                                                                                       )
                                                                                                     ]
                                                                                                     [
@@ -940,7 +940,7 @@
                                                                                                           (con char)
                                                                                                         }
                                                                                                         (con
-                                                                                                          o
+                                                                                                          'o'
                                                                                                         )
                                                                                                       ]
                                                                                                       [
@@ -950,7 +950,7 @@
                                                                                                             (con char)
                                                                                                           }
                                                                                                           (con
-                                                                                                            u
+                                                                                                            'u'
                                                                                                           )
                                                                                                         ]
                                                                                                         [
@@ -960,7 +960,7 @@
                                                                                                               (con char)
                                                                                                             }
                                                                                                             (con
-                                                                                                              g
+                                                                                                              'g'
                                                                                                             )
                                                                                                           ]
                                                                                                           [
@@ -970,7 +970,7 @@
                                                                                                                 (con char)
                                                                                                               }
                                                                                                               (con
-                                                                                                                h
+                                                                                                                'h'
                                                                                                               )
                                                                                                             ]
                                                                                                             [
@@ -980,7 +980,7 @@
                                                                                                                   (con char)
                                                                                                                 }
                                                                                                                 (con
-                                                                                                                   
+                                                                                                                  ' '
                                                                                                                 )
                                                                                                               ]
                                                                                                               [
@@ -990,7 +990,7 @@
                                                                                                                     (con char)
                                                                                                                   }
                                                                                                                   (con
-                                                                                                                    s
+                                                                                                                    's'
                                                                                                                   )
                                                                                                                 ]
                                                                                                                 [
@@ -1000,7 +1000,7 @@
                                                                                                                       (con char)
                                                                                                                     }
                                                                                                                     (con
-                                                                                                                      i
+                                                                                                                      'i'
                                                                                                                     )
                                                                                                                   ]
                                                                                                                   [
@@ -1010,7 +1010,7 @@
                                                                                                                         (con char)
                                                                                                                       }
                                                                                                                       (con
-                                                                                                                        g
+                                                                                                                        'g'
                                                                                                                       )
                                                                                                                     ]
                                                                                                                     [
@@ -1020,7 +1020,7 @@
                                                                                                                           (con char)
                                                                                                                         }
                                                                                                                         (con
-                                                                                                                          n
+                                                                                                                          'n'
                                                                                                                         )
                                                                                                                       ]
                                                                                                                       [
@@ -1030,7 +1030,7 @@
                                                                                                                             (con char)
                                                                                                                           }
                                                                                                                           (con
-                                                                                                                            a
+                                                                                                                            'a'
                                                                                                                           )
                                                                                                                         ]
                                                                                                                         [
@@ -1040,7 +1040,7 @@
                                                                                                                               (con char)
                                                                                                                             }
                                                                                                                             (con
-                                                                                                                              t
+                                                                                                                              't'
                                                                                                                             )
                                                                                                                           ]
                                                                                                                           [
@@ -1050,7 +1050,7 @@
                                                                                                                                 (con char)
                                                                                                                               }
                                                                                                                               (con
-                                                                                                                                u
+                                                                                                                                'u'
                                                                                                                               )
                                                                                                                             ]
                                                                                                                             [
@@ -1060,7 +1060,7 @@
                                                                                                                                   (con char)
                                                                                                                                 }
                                                                                                                                 (con
-                                                                                                                                  r
+                                                                                                                                  'r'
                                                                                                                                 )
                                                                                                                               ]
                                                                                                                               [
@@ -1070,7 +1070,7 @@
                                                                                                                                     (con char)
                                                                                                                                   }
                                                                                                                                   (con
-                                                                                                                                    e
+                                                                                                                                    'e'
                                                                                                                                   )
                                                                                                                                 ]
                                                                                                                                 [
@@ -1080,7 +1080,7 @@
                                                                                                                                       (con char)
                                                                                                                                     }
                                                                                                                                     (con
-                                                                                                                                      s
+                                                                                                                                      's'
                                                                                                                                     )
                                                                                                                                   ]
                                                                                                                                   {

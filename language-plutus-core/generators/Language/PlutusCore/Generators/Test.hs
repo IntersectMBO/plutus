@@ -79,7 +79,7 @@ sampleProgramValueGolden folder name genTerm = do
 -- Checks whether a term generated along with the value it's supposed to compute to
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
-    :: (uni ~ DefaultUni, Pretty internal, KnownType uni a)
+    :: (uni ~ DefaultUni, Pretty internal, KnownType uni a, uni `Everywhere` PrettyConst)
     => (Term TyName Name uni () ->
             Either (EvaluationException uni internal user) (Term TyName Name uni ()))
                       -- ^ An evaluator.

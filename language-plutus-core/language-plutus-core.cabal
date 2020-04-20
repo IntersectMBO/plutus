@@ -112,6 +112,7 @@ library
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
         Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.PrettyConst
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core

@@ -173,9 +173,10 @@ instance (PrettyBy config (Term TyName Name uni ()), PrettyBy config err) =>
                 Nothing    -> mempty
                 Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, PrettyPlc err) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, PrettyPlc err) =>
             Show (ErrorWithCause uni err) where
     show = docString . prettyPlcReadableDebug
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Typeable uni, PrettyPlc err, Typeable err) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,
+          Typeable uni, PrettyPlc err, Typeable err) =>
             Exception (ErrorWithCause uni err)
