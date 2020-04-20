@@ -8,8 +8,8 @@ open import Data.Fin
 import Data.Product as P
 open import Relation.Binary.PropositionalEquality
 open import Function hiding (_∋_)
-open import Data.List
-open import Data.Vec
+open import Data.List using (List;[];_∷_)
+open import Data.Vec using (Vec;[];_∷_;_++_)
 
 open import Utils
 open import Type
@@ -125,6 +125,16 @@ ext⋆-erase {Γ = Γ} ρ⋆ ρ α = conv∋-erase
   (trans (sym (renNf-comp (backVar⋆ Γ α))) (renNf-comp (backVar⋆ Γ α)))
   (T (ρ (backVar Γ α)))
 
+renTel⋆-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ)
+  → ∀ Φ'
+  → U.renTel (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') ≡ eraseTel⋆ Δ Φ'
+renTel⋆-erase ρ⋆ ρ ∅        = refl
+renTel⋆-erase {Γ = Γ} ρ⋆ ρ (Φ' ,⋆ K) = trans
+  (U.renTel:< (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') (con unit))
+  (cong (_:< _) (renTel⋆-erase ρ⋆ ρ Φ'))
+
 ren-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.ren ρ⋆ ρ t) ≡ U.ren (erase-Ren ρ⋆ ρ) (erase t)
@@ -138,6 +148,21 @@ renTel-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
   → (tel : A.Tel Γ Φ' σ As)
   → eraseTel (A.renTel ρ⋆ ρ tel) ≡ U.renTel (erase-Ren ρ⋆ ρ) (eraseTel tel)
 
+renTel'-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (ρ⋆ : ⋆.Ren Φ Ψ)
+  → (ρ : A.Ren ρ⋆ Γ Δ)
+  → ∀ Φ'
+  → (As : List (Φ' ⊢Nf⋆ *))
+  → (σ : SubNf Φ' Φ)
+  → (tel : A.Tel Γ Φ' σ As)
+  → eraseTel⋆ Δ Φ' ++ eraseTel (A.renTel ρ⋆ ρ tel)
+    ≡
+    U.renTel (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ' ++ eraseTel tel)
+renTel'-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts = trans
+  (cong₂ _++_
+    (sym (renTel⋆-erase ρ⋆ ρ Φ'))
+    (renTel-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts) )
+  (sym (U.renTel++ (erase-Ren ρ⋆ ρ) (eraseTel⋆ Γ Φ') (eraseTel ts)))
 renTel-erase ρ⋆ ρ Φ' []       σ tel = refl
 renTel-erase ρ⋆ ρ Φ' (A ∷ As) σ (t ∷ tel) = cong₂ _∷_
   (trans (conv⊢-erase (sym (renNf-substNf σ ρ⋆ A)) (A.ren ρ⋆ ρ t))
@@ -173,7 +198,7 @@ ren-erase ρ⋆ ρ (builtin bn σ tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (renNf-substNf σ ρ⋆ X)
     (builtin bn (renNf ρ⋆ ∘ σ) (A.renTel ρ⋆ ρ tel)))
-  (cong (builtin bn (lemma≤ bn)) (renTel-erase ρ⋆ ρ Φ As σ tel))
+  (cong (builtin bn (lemma≤ bn)) (renTel'-erase ρ⋆ ρ Φ As σ tel ))
 ren-erase ρ⋆ ρ (error A)          = refl
 --
 
@@ -227,6 +252,16 @@ subTermCon-erase σ⋆ σ (AB.bool b)       = refl
 subTermCon-erase σ⋆ σ (AB.char c)       = refl
 subTermCon-erase σ⋆ σ AB.unit           = refl
 
+subTel⋆-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : A.Sub σ⋆ Γ Δ)
+  → ∀ Φ'
+  → U.subTel (erase-Sub σ⋆ σ) (eraseTel⋆ Γ Φ') ≡ eraseTel⋆ Δ Φ'
+subTel⋆-erase σ⋆ σ ∅        = refl
+subTel⋆-erase {Γ = Γ} σ⋆ σ (Φ' ,⋆ K) = trans
+  (U.subTel:< (erase-Sub σ⋆ σ) (eraseTel⋆ Γ Φ') (con unit))
+  (cong (_:< _) (subTel⋆-erase σ⋆ σ Φ'))
+
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.subst σ⋆ σ t) ≡ U.sub (erase-Sub σ⋆ σ) (erase t) 
@@ -245,6 +280,22 @@ subTel-erase σ⋆ σ Φ' (A ∷ As) σ' (t ∷ tel) = cong₂ _∷_
     (conv⊢-erase (sym (substNf-comp σ' σ⋆ A)) (A.subst σ⋆ σ t))
     (sub-erase σ⋆ σ t))
   (subTel-erase σ⋆ σ Φ' As σ' tel)
+
+subTel'-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}
+  → (σ⋆ : SubNf Φ Ψ)
+  → (σ : A.Sub σ⋆ Γ Δ)
+  → ∀ Φ'
+  → (As : List (Φ' ⊢Nf⋆ *))
+  → (σ' : SubNf Φ' Φ)
+  → (tel : A.Tel Γ Φ' σ' As)
+  → eraseTel⋆ Δ Φ' ++ eraseTel (A.substTel σ⋆ σ tel)
+    ≡
+    U.subTel (erase-Sub σ⋆ σ) (eraseTel⋆ Γ Φ' ++ eraseTel tel)
+subTel'-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts = trans
+  (cong₂ _++_
+    (sym (subTel⋆-erase ρ⋆ ρ Φ'))
+    (subTel-erase {Γ = Γ} ρ⋆ ρ Φ' As σ ts) )
+  (sym (U.subTel++ (erase-Sub ρ⋆ ρ) (eraseTel⋆ Γ Φ') (eraseTel ts)))
 
 sub-erase σ⋆ σ (` x) =   cong-erase-sub
     σ⋆
@@ -276,7 +327,7 @@ sub-erase σ⋆ σ (builtin bn σ' tel) = let Φ P., As P., X = SIG bn in trans
   (conv⊢-erase
     (substNf-comp σ' σ⋆ X)
     (builtin bn (substNf σ⋆ ∘ σ') (A.substTel σ⋆ σ tel)))
-  (cong (builtin bn (lemma≤ bn)) (subTel-erase σ⋆ σ Φ As σ' tel))
+  (cong (builtin bn (lemma≤ bn)) (subTel'-erase σ⋆ σ Φ As σ' tel))
 sub-erase σ⋆ σ (error A) = refl
 
 lem[]⋆ : ∀{Φ}{Γ : Ctx Φ}{K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)

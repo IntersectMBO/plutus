@@ -10,7 +10,8 @@ open import Builtin
 open import Utils
 
 open import Data.Nat
-open import Data.Fin
+open import Data.Nat.Properties
+open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 open import Data.Sum
@@ -23,7 +24,7 @@ len Z     = 0
 len (S i) = suc (len i)
 len (T i) = len i
 
-lemma : ∀ b → Scoped.arity b ≡ Untyped.arity b
+lemma : ∀ b → Scoped.arity⋆ b + Scoped.arity b ≡ Untyped.arity b
 lemma addInteger = refl
 lemma subtractInteger = refl
 lemma multiplyInteger = refl
@@ -61,6 +62,11 @@ eraseTC (char c)       = char c
 eraseTC unit           = unit
 
 eraseTm : ∀{n}{i : Weirdℕ n} → ScopedTm i → len i ⊢ 
+
+eraseTel⋆ : ∀{m n}(i : Weirdℕ n) → Vec (ScopedTy n) m → Vec (len i ⊢) m
+eraseTel⋆ i []       = []
+eraseTel⋆ i (A ∷ As) = plc_dummy ∷ eraseTel⋆ i As
+
 eraseTel : ∀{m n}{i : Weirdℕ n} → Vec (ScopedTm i) m → Vec (len i ⊢) m
 
 eraseTel []       = []
@@ -74,7 +80,10 @@ eraseTm (t · u)                = eraseTm t · eraseTm u
 eraseTm (con c)                = con (eraseTC c)
 eraseTm (error A)              = error
 eraseTm (builtin bn (inj₁ (p , refl)) As ts) = builtin bn (subst (_ ≤‴_) (lemma bn) z≤‴n) (eraseTel ts)
-eraseTm (builtin bn (inj₂ (p , q)) As ts) = builtin bn (subst (_ ≤‴_) (lemma bn) q) (eraseTel ts)
+eraseTm {i = i} (builtin bn (inj₂ (refl , q)) As ts) = builtin
+  bn
+  (subst (arity⋆ bn + _ ≤‴_) (lemma bn) (+-monoʳ-≤‴ (arity⋆ bn) q))
+  (eraseTel⋆ i As ++ eraseTel ts)
 eraseTm (wrap pat arg t)       = eraseTm t
 eraseTm (unwrap t)             = eraseTm t
 \end{code}

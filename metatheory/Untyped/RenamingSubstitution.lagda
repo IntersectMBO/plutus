@@ -232,4 +232,29 @@ lifts-comp g f zero    = refl
 lifts-comp g f (suc x) = trans
   (sym (ren-sub f suc (g x)))
   (sub-ren suc (lifts f) (g x))
+
+-- some auxiliary properties
+renTel++ : {l l' m n : ℕ}(ρ : Ren m n)
+  → (ts : Tel l m)(ts' : Tel l' m)
+  → renTel ρ (ts ++ ts') ≡ renTel ρ ts ++ renTel ρ ts'
+renTel++ ρ []       ts' = refl
+renTel++ ρ (t ∷ ts) ts' = cong (_ ∷_) (renTel++ ρ ts ts')
+
+renTel:< : {l m n : ℕ}(ρ : Ren m n)
+  → (ts : Tel l m)(t  : m ⊢)
+  → renTel ρ (ts :< t) ≡ renTel ρ ts :< ren ρ t
+renTel:< ρ []       t = refl
+renTel:< ρ (_ ∷ ts) t = cong (_ ∷_) (renTel:< ρ ts t)
+
+subTel++ : {l l' m n : ℕ}(σ : Sub m n)
+  → (ts : Tel l m)(ts' : Tel l' m)
+  → subTel σ (ts ++ ts') ≡ subTel σ ts ++ subTel σ ts'
+subTel++ σ []       ts' = refl
+subTel++ σ (t ∷ ts) ts' = cong (_ ∷_) (subTel++ σ ts ts')
+
+subTel:< : {l m n : ℕ}(σ : Sub m n)
+  → (ts : Tel l m)(t  : m ⊢)
+  → subTel σ (ts :< t) ≡ subTel σ ts :< sub σ t
+subTel:< σ []       t = refl
+subTel:< σ (_ ∷ ts) t = cong (_ ∷_) (subTel:< σ ts t)
 \end{code}
