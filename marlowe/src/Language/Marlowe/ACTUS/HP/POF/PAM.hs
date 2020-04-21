@@ -10,11 +10,14 @@ y = yearFraction
 
 _POF_AD_PAM = 0.0
 
-_POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED = o_rf_CURS * (r _CNTRL) * (-1) * (_NT + _PDIED)
+_POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED = 
+    o_rf_CURS * (r _CNTRL) * (-1) * (_NT + _PDIED)
 
-_POF_MD_PAM o_rf_CURS nsc nt isct ipac feac = o_rf_CURS * (nsc * nt + isct * ipac + feac)
+_POF_MD_PAM o_rf_CURS nsc nt isct ipac feac = 
+    o_rf_CURS * (nsc * nt + isct * ipac + feac)
 
-_POF_PP_PAM o_rf_CURS pp_payoff = o_rf_CURS * pp_payoff
+_POF_PP_PAM o_rf_CURS pp_payoff = 
+    o_rf_CURS * pp_payoff
 
 _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt _DCC sd t _MD ipnr = 
     case _PYTP of
