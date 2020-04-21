@@ -34,6 +34,19 @@ import           System.Exit
 import           Codec.Serialise
 import           Options.Applicative
 
+{- Note [Annotation types]
+   This program now reads and writes CBOR-serialised PLC ASTs.  In all
+   cases we require the annotation type to be ().  There are two
+   reasons for this.  Firstly, ASTs serialised for transmission to the
+   chain will always have unit annotations because this saves space
+   and makes things more compressible, so it makes sense for the
+   program to deal with these.  Secondly, the annotation type has to
+   be specified when we're deserialising CBOR (in order to check that
+   the AST has the correct type), so it's difficult to deal with CBOR
+   with arbitrary annotation types: fixing the annotation type to be ()
+   is the simplest thing to do and fits our use case.
+ -}
+
 
 type PlainProgram   = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni ()
 type ParsedProgram  = PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.AlexPosn
@@ -212,14 +225,14 @@ getProg inp fmt =
     case fmt of
       Plc  -> parsePlcFile inp
       Cbor -> do
-               p <- getCborInput inp
+               p <- getCborInput inp -- The type is constrained in the Right case below.
                case deserialiseOrFail p of
                  Left (DeserialiseFailure offset msg) ->
                      do
                        putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
                        exitFailure
-                 Right (r:: PlainProgram) ->
-                     return $ (fakeAlexPosn <$ r)
+                 Right (r::PlainProgram) ->       -- Input a ()-annotated AST: see Note [Annotation types].
+                     return $ (fakeAlexPosn <$ r) -- Change the annotation type to AlexPosn to match parsePlcFile.
                          where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 
@@ -270,7 +283,7 @@ runPrint (PrintOptions inp mode) =
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
   p <- parsePlcFile inp
-  let cbor = serialise (() <$ p)
+  let cbor = serialise (() <$ p) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor *> putStrLn ""
