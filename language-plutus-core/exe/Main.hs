@@ -5,10 +5,9 @@
 
 module Main (main) where
 
-import           Control.Exception                                          (toException)
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
-import           Data.Bifunctor                                             (first, second)
+import           Data.Bifunctor                                             (second)
 import           Data.Foldable                                              (traverse_)
 import qualified Language.PlutusCore                                        as PLC
 import qualified Language.PlutusCore.CBOR                                   ()
@@ -100,7 +99,7 @@ format = flag Plc Cbor
   ( long "cbor"
   <> long "CBOR"
   <> short 'c'
-  <> help "Input CBOR (default: input PLC)"
+  <> help "Input ()-annotated CBOR (default: input textual PLC source)"
   )
 
 
@@ -124,8 +123,19 @@ data Command = Typecheck TypecheckOptions
              | PlcToCbor PlcToCborOptions
              | CborToPlc CborToPlcOptions
 
+helpText :: String
+helpText =
+    "This program provides a number of utilities for dealing with "
+    ++ "Plutus Core programs, including typechecking, evaluation, and conversion "
+    ++ "between various formats.  The program also provides a number of example "
+    ++ "Plutus Core progrrams.  Some commands read or write Plutus Core abstract "
+    ++ "syntax trees serialised in CBOR format: ASTs are always written with "
+    ++ "unit annotations, and any CBOR-encoded AST supplied as input must also be "
+    ++ "equipped with unit annotations.  Attempting to read a CBOR AST with any "
+    ++ "non-unit annotation type will cause an error."
+
 plutus :: ParserInfo Command
-plutus = info (plutusOpts <**> helper) (progDesc "Plutus Core tool")
+plutus = info (plutusOpts <**> helper) (fullDesc <> header "Plutus Core tool" <> progDesc helpText)
 
 plutusOpts :: Parser Command
 plutusOpts = hsubparser (
@@ -133,8 +143,8 @@ plutusOpts = hsubparser (
     <> command "evaluate" (info (Eval <$> evalOpts) (progDesc "Evaluate a Plutus Core program"))
     <> command "example" (info (Example <$> exampleOpts) (progDesc "Show a Plutus Core program example. Usage: first request the list of available examples (optional step), then request a particular example by the name of a type/term. Note that evaluating a generated example may result in 'Failure'"))
     <> command "print" (info (Print <$> printOpts) (progDesc "Parse a program then prettyprint it"))
-    <> command "plc-to-cbor" (info (PlcToCbor <$> plcToCborOpts) (progDesc "Convert a PLC source file to CBOR"))
-    <> command "cbor-to-plc" (info (CborToPlc <$> cborToPlcOpts) (progDesc "Convert a CBOR file to PLC source"))
+    <> command "plc-to-cbor" (info (PlcToCbor <$> plcToCborOpts) (progDesc "Convert a PLC source file to ()-annotated CBOR"))
+    <> command "cbor-to-plc" (info (CborToPlc <$> cborToPlcOpts) (progDesc "Convert a ()-annotated CBOR file to PLC source"))
   )
 
 typecheckOpts :: Parser TypecheckOptions
