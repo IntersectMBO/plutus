@@ -15,11 +15,12 @@ import qualified Data.Aeson             as JSON
 
 import           Plutus.SCB.Types       (PartiallyDecodedResponse)
 
-data ContractCommand
-    = InitContract FilePath
-    | UpdateContract FilePath JSON.Value
+-- | Commands to update a contract. 't' identifies the contract.
+data ContractCommand t
+    = InitContract t
+    | UpdateContract t JSON.Value
     deriving (Show, Eq)
 
-data ContractEffect r where
-    InvokeContract :: ContractCommand -> ContractEffect PartiallyDecodedResponse
+data ContractEffect t r where
+    InvokeContract :: ContractCommand t -> ContractEffect  t PartiallyDecodedResponse
 makeEffect ''ContractEffect

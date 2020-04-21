@@ -41,7 +41,7 @@ import           Ledger.Index                            (UtxoIndex (UtxoIndex))
 import qualified Ledger.Index                            as UtxoIndex
 import           Plutus.SCB.Events                       (ChainEvent (NodeEvent, UserEvent), NodeEvent (BlockAdded),
                                                           UserEvent (ContractStateTransition))
-import           Plutus.SCB.Types                        (ActiveContractState, activeContract, activeContractId)
+import           Plutus.SCB.Types                        (ActiveContractState, activeContract, activeContractInstanceId)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -71,16 +71,16 @@ setProjection :: Ord a => Projection (Set a) a
 setProjection = contramap Set.singleton monoidProjection
 
 -- | A simple counter of all the events. This is the simplest 'Projection' that does any work.
-eventCount :: Projection (Sum Int) (VersionedStreamEvent ChainEvent)
+eventCount :: Projection (Sum Int) (VersionedStreamEvent (ChainEvent t))
 eventCount = contramap (const 1) monoidProjection
 
 -- | Retain the latest status for a given contract.
 latestContractStatus ::
-       Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+       Projection (Map UUID (ActiveContractState t)) (StreamEvent key position (ChainEvent t))
 latestContractStatus = projectionMapMaybe extractState monoidProjection
   where
     extractState (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-        let uuid = activeContractId $ activeContract state
+        let uuid = activeContractInstanceId $ activeContract state
          in Just $ Map.singleton uuid state
     extractState _ = Nothing
 
@@ -110,7 +110,8 @@ utxoAt (txById, UtxoIndex utxoIndex) address =
      in UtxoAtAddress {address, utxo}
 
 utxoIndexProjection ::
-       Projection (Map TxId Tx, UtxoIndex) (StreamEvent key position ChainEvent)
+    forall t key position.
+       Projection (Map TxId Tx, UtxoIndex) (StreamEvent key position (ChainEvent t))
 utxoIndexProjection =
     Projection
         { projectionSeed = (Map.empty, UtxoIndex Map.empty)
@@ -125,5 +126,5 @@ utxoIndexProjection =
          in (newTxById, newUtxoIndex)
     projectionEventHandler m _ = m
 
-blockCount :: Projection (Sum Integer) (StreamEvent key position ChainEvent)
+blockCount :: forall t key position. Projection (Sum Integer) (StreamEvent key position (ChainEvent t))
 blockCount = contramap (const 1) monoidProjection

@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Plutus.SCB.CoreSpec
     ( tests
@@ -23,6 +24,7 @@ import           Ledger.Ada                                    (lovelaceValueOf)
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect)
+import           Plutus.SCB.Effects.ContractTest               (TestContracts (..))
 import           Plutus.SCB.Effects.EventLog                   (EventLogEffect)
 import           Plutus.SCB.Effects.MultiAgent                 (SCBClientEffects, agentAction, agentControlAction)
 import           Plutus.SCB.Events                             (ChainEvent)
@@ -49,32 +51,32 @@ installContractTests =
         "installContract scenario"
         [ testCase "Initially there are no contracts installed" $
           runScenario $ do
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size installed
         , testCase "Initially there are no contracts active" $
           runScenario $ do
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase
               "Installing a contract successfully increases the installed contract count" $
           runScenario $ do
-              installContract "/bin/sh"
+              installContract @TestContracts Game
               --
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract" $
           runScenario $ do
-              installContract "game"
+              installContract Game
               --
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              void $ agentAction defaultWallet (activateContract "game")
+              void $ agentAction defaultWallet (activateContract Game)
               --
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size active
         ]
 
@@ -93,9 +95,9 @@ executionTests =
                       "Check our opening balance."
                       (lovelaceValueOf openingBalance)
                       balance0
-              installContract "game"
+              installContract Game
               -- need to add contract address to wallet's watched addresses
-              uuid <- agentAction defaultWallet (activateContract "game")
+              uuid <- agentAction defaultWallet (activateContract Game)
               syncAll
               assertTxCount
                   "Activating the game does not generate transactions."
@@ -138,22 +140,22 @@ executionTests =
         ]
 
 assertTxCount ::
-    ( Member (EventLogEffect ChainEvent) effs
+    ( Member (EventLogEffect (ChainEvent TestContracts)) effs
     , LastMember m effs
     , MonadIO m)
     => String
     -> Int
     -> Eff effs ()
 assertTxCount msg expected = do
-    txs <- runGlobalQuery txHistoryProjection
+    txs <- runGlobalQuery (txHistoryProjection @TestContracts)
     liftIO $ assertEqual msg expected $ length txs
 
 type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
-        , EventLogEffect ChainEvent
+        , EventLogEffect (ChainEvent TestContracts)
         , Log
-        , ContractEffect
+        , ContractEffect TestContracts
         , NodeFollowerEffect
         , EmulatorLog.Log
         ]
@@ -165,7 +167,7 @@ lock ::
     -> Contracts.Game.LockParams
     -> Eff effs ()
 lock uuid params =
-    updateContract uuid "lock" (toJSON params)
+    updateContract @TestContracts uuid "lock" (toJSON params)
 
 guess ::
     ( Members SpecEffects effs
@@ -175,4 +177,4 @@ guess ::
     -> Contracts.Game.GuessParams
     -> Eff effs ()
 guess uuid params =
-    updateContract uuid "guess" (toJSON params)
+    updateContract @TestContracts uuid "guess" (toJSON params)

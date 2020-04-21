@@ -28,29 +28,29 @@ import           Ledger.Constraints                         (UnbalancedTx)
 import           Servant.Client                             (ClientError)
 import           Wallet.API                                 (WalletAPIError)
 
-newtype Contract =
-    Contract
+newtype ContractExe =
+    ContractExe
         { contractPath :: FilePath
         }
     deriving (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty Contract where
-    pretty Contract {contractPath} = "Path:" <+> pretty contractPath
+instance Pretty ContractExe where
+    pretty ContractExe {contractPath} = "Path:" <+> pretty contractPath
 
-data ActiveContract =
+data ActiveContract t =
     ActiveContract
-        { activeContractId   :: UUID
-        , activeContractPath :: FilePath
+        { activeContractInstanceId :: UUID
+        , activeContractDefinition :: t
         }
     deriving (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty ActiveContract where
-    pretty ActiveContract {activeContractId, activeContractPath} =
+instance Pretty t => Pretty (ActiveContract t) where
+    pretty ActiveContract {activeContractInstanceId, activeContractDefinition} =
         vsep
-            [ "UUID:" <+> pretty (show activeContractId)
-            , "Path:" <+> pretty activeContractPath
+            [ "UUID:" <+> pretty (show activeContractInstanceId)
+            , "Definition:" <+> pretty activeContractDefinition
             ]
 
 data SCBError
@@ -90,15 +90,15 @@ instance Pretty PartiallyDecodedResponse where
             , indent 2 $ pretty $ take 120 $ BS8.unpack $ JSON.encodePretty hooks
             ]
 
-data ActiveContractState =
+data ActiveContractState t =
     ActiveContractState
-        { activeContract           :: ActiveContract
+        { activeContract           :: ActiveContract t
         , partiallyDecodedResponse :: PartiallyDecodedResponse
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty ActiveContractState where
+instance Pretty t => Pretty (ActiveContractState t) where
     pretty ActiveContractState {activeContract, partiallyDecodedResponse} =
         vsep
             [ "Contract:"

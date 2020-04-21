@@ -25,12 +25,12 @@ import           Plutus.SCB.Events.User     as Events.User
 import           Plutus.SCB.Events.Wallet   as Events.Wallet
 
 -- | A structure which ties together all possible event types into one parent.
-data ChainEvent
+data ChainEvent t
     = RecordRequest
           !(Events.Contract.RequestEvent Events.Contract.ContractRequest)
     | RecordResponse
           !(Events.Contract.ResponseEvent Events.Contract.ContractResponse)
-    | UserEvent !Events.User.UserEvent
+    | UserEvent !(Events.User.UserEvent t)
     | NodeEvent !Events.Node.NodeEvent
     | WalletEvent !Events.Wallet.WalletEvent
     deriving (Show, Eq, Generic)

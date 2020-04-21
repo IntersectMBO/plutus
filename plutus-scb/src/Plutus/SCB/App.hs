@@ -46,8 +46,8 @@ import           Plutus.SCB.Effects.Contract   (ContractEffect (..))
 import           Plutus.SCB.Effects.EventLog   (EventLogEffect (..), handleEventLogSql)
 import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events             (ChainEvent)
-import           Plutus.SCB.Types              (Config (Config), SCBError (..), chainIndexConfig, dbConfig,
-                                                nodeServerConfig, signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
+                                                dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
 import           Servant.Client                (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                (readProcessWithExitCode)
@@ -78,10 +78,10 @@ type AppBackend m =
          , SigningProcessEffect
          , Error ClientError
          , UUIDEffect
-         , ContractEffect
+         , ContractEffect ContractExe
          , ChainIndexEffect
          , Error ClientError
-         , EventLogEffect ChainEvent
+         , EventLogEffect (ChainEvent ContractExe)
          , Error SCBError
          , Writer [Wallet.Emulator.Wallet.WalletEvent]
          , Log
@@ -166,15 +166,15 @@ handleContractEffectApp ::
     , LastMember m effs
     , MonadIO m
     )
-    => Eff (ContractEffect ': effs)
+    => Eff (ContractEffect ContractExe ': effs)
     ~> Eff effs
 handleContractEffectApp = interpret $ \case
     InvokeContract contractCommand -> do
             (exitCode, stdout, stderr) <- sendM $ liftIO $
                 case contractCommand of
-                    InitContract contractPath ->
+                    InitContract (ContractExe contractPath) ->
                         readProcessWithExitCode contractPath ["init"] ""
-                    UpdateContract contractPath payload ->
+                    UpdateContract (ContractExe contractPath) payload ->
                         readProcessWithExitCode
                             contractPath
                             ["update"]
