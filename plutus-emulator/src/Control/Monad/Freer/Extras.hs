@@ -72,6 +72,21 @@ weakenEnd8 u = case decomp u of
     Left u' -> weaken $ weakenEnd7 u'
     Right t -> inj t
 
+weakenEnd9 :: forall effs a b c d e f g h i. Union '[a, b, c, d, e, f, g, h, i] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': effs)
+weakenEnd9 u = case decomp u of
+    Left u' -> weaken $ weakenEnd8 u'
+    Right t -> inj t
+
+weakenEnd10 :: forall effs a b c d e f g h i j. Union '[a, b, c, d, e, f, g, h, i, j] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': effs)
+weakenEnd10 u = case decomp u of
+    Left u' -> weaken $ weakenEnd9 u'
+    Right t -> inj t
+
+weakenEnd11 :: forall effs a b c d e f g h i j k. Union '[a, b, c, d, e, f, g, h, i, j, k] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': effs)
+weakenEnd11 u = case decomp u of
+    Left u' -> weaken $ weakenEnd10 u'
+    Right t -> inj t
+
 weakenUnder :: forall effs a b . Union (a ': effs) ~> Union (a ': b ': effs)
 weakenUnder u = case decomp u of
     Left u' -> weaken $ weaken u'
@@ -129,6 +144,24 @@ raiseEnd8 = loop where
     loop = \case
         Val a -> pure a
         E u q -> E (weakenEnd8 u) (tsingleton $ qComp q loop)
+
+raiseEnd9 :: forall effs a b c d e f g h i. Eff '[a, b, c, d, e, f, g, h, i] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': effs)
+raiseEnd9 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd9 u) (tsingleton $ qComp q loop)
+
+raiseEnd10 :: forall effs a b c d e f g h i j. Eff '[a, b, c, d, e, f, g, h, i, j] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': effs)
+raiseEnd10 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd10 u) (tsingleton $ qComp q loop)
+
+raiseEnd11 :: forall effs a b c d e f g h i j k. Eff '[a, b, c, d, e, f, g, h, i, j, k] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': effs)
+raiseEnd11 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd11 u) (tsingleton $ qComp q loop)
 
 raiseUnder :: forall effs a b . Eff (a ': effs) ~> Eff (a ': b ': effs)
 raiseUnder = loop where

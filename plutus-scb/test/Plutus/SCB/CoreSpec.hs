@@ -24,8 +24,9 @@ import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect)
 import           Plutus.SCB.Effects.EventLog                   (EventLogEffect)
+import           Plutus.SCB.Effects.MultiAgent                 (SCBClientEffects, agentAction, agentControlAction)
 import           Plutus.SCB.Events                             (ChainEvent)
-import           Plutus.SCB.TestApp                            (runScenario, sync, valueAt)
+import           Plutus.SCB.TestApp                            (defaultWallet, runScenario, sync, syncAll, valueAt)
 import           Plutus.SCB.Types                              (SCBError)
 import           Test.QuickCheck.Instances.UUID                ()
 import           Test.Tasty                                    (TestTree, testGroup)
@@ -71,7 +72,7 @@ installContractTests =
               installed <- installedContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              void $ activateContract "game"
+              void $ agentAction defaultWallet (activateContract "game")
               --
               active <- activeContracts
               liftIO $ assertEqual "" 1 $ Set.size active
@@ -85,7 +86,7 @@ executionTests =
           runScenario $ do
               let openingBalance = 10000
                   lockAmount = 15
-              address <- pubKeyAddress <$> ownPubKey
+              address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
               balance0 <- valueAt address
               liftIO $
                   assertEqual
@@ -94,19 +95,19 @@ executionTests =
                       balance0
               installContract "game"
               -- need to add contract address to wallet's watched addresses
-              uuid <- activateContract "game"
-              sync
+              uuid <- agentAction defaultWallet (activateContract "game")
+              syncAll
               assertTxCount
                   "Activating the game does not generate transactions."
                   0
-              lock
+              agentAction defaultWallet $ lock
                   uuid
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
                       }
               Chain.processBlock
-              sync
+              syncAll
               assertTxCount "Locking the game should produce one transaction" 1
               balance1 <- valueAt address
               liftIO $
@@ -114,19 +115,19 @@ executionTests =
                       "Locking the game should reduce our balance."
                       (lovelaceValueOf (openingBalance - lockAmount))
                       balance1
-              guess
+              agentAction defaultWallet $ guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
               Chain.processBlock
-              sync
+              syncAll
               assertTxCount "A wrong guess still produces a transaction." 2
-              guess
+              agentAction defaultWallet $ guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
               Chain.processBlock
-              sync
+              syncAll
               assertTxCount "A correct guess creates a third transaction." 3
               balance2 <- valueAt address
               liftIO $
@@ -151,9 +152,6 @@ type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
         , EventLogEffect ChainEvent
-        , NodeControlEffect
-        , ChainIndexControlEffect
-        , SigningProcessControlEffect
         , Log
         , ContractEffect
         , NodeFollowerEffect
@@ -161,8 +159,7 @@ type SpecEffects =
         ]
 
 lock ::
-    ( Members SpecEffects effs
-    , Members WalletEffects effs
+    ( Members SCBClientEffects effs
     )
     => UUID
     -> Contracts.Game.LockParams
