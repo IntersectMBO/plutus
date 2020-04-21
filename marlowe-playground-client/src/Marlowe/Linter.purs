@@ -461,6 +461,22 @@ lintValue env hole@(Hole _ _ pos) = do
   modifying _holes (insertHole hole)
   pure (ValueSimp pos false hole)
 
+lintValue env t@(Term (Cond c a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  sc <- lintObservation env c
+  case sa /\ sb /\ sc of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2 /\ ConstantSimp _ _ vc) -> pure (ConstantSimp pos true if vc then v1 else v2)
+    (_ /\ _ /\ ConstantSimp _ _ vc)
+      | vc -> pure (simplifyTo sa pos)
+    (_ /\ _ /\ ConstantSimp _ _ vc)
+      | not vc -> pure (simplifyTo sb pos)
+    _ -> do
+      markSimplification constToObs SimplifiableObservation c sc
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
+
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
   unReachable <- lintAction env action

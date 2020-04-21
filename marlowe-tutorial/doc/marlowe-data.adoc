@@ -129,6 +129,7 @@ data Value = AvailableMoney AccountId Token
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
+           | Cond Observation Value Value
 ----
 The different kinds of values – all of which are `Integer` – are pretty much self explanatory, but for completeness we have
 
@@ -136,6 +137,7 @@ The different kinds of values – all of which are `Integer` – are pretty much
 * Arithmetic constants and operators.
 * `Scale` multiplies a `Value` by a rational constant, say, 2/3, and rounds the result using 'half even' aka 'banking' rounding. So, 14/10 rounds to 1, both 15/10 and 25/10 rounds to 2.
 * The start and end of the current _slot interval_; see below for further discussion of this.
+* `Cond` represents if-expressions, that is - first argument to `Cond` is a condition (`Observation`) to check, second is a `Value` to take when condition is satisfied and the last one is a `Value` for unsatisfied condition; for example: `(Cond FalseObs (Constant 1) (Constant 2))` is equivalent to `(Constant 2)`
 
 Next we have observations
 

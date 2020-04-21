@@ -15,6 +15,7 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
+import Data.Unit (Unit(..), unit)
 import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
@@ -71,6 +72,7 @@ type HelperFunctions a
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
     , mkUseValue :: TermWrapper ValueId -> Value
+    , mkCond :: Term Observation -> Term Value -> Term Value -> Value
     }
 
 helperFunctions :: forall a. HelperFunctions a
@@ -120,6 +122,7 @@ helperFunctions =
   , mkSlotIntervalStart: SlotIntervalStart
   , mkSlotIntervalEnd: SlotIntervalEnd
   , mkUseValue: UseValue
+  , mkCond: Cond
   }
 
 data ContractParseError
@@ -298,8 +301,10 @@ rational = do
   denom <- bigInteger
   pure $ Rational num denom
 
-recValue :: Parser Value
-recValue =
+-- `unit` is needed in order to enforce strict evaluation order
+-- see https://stackoverflow.com/questions/36984245/undefined-value-reference-not-allowed-workaround/36991223#36991223
+recValue :: Unit -> Parser Value
+recValue _ =
   (AvailableMoney <$> (string "AvailableMoney" **> accountId) <**> parseTerm (parens token))
     <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
@@ -314,11 +319,14 @@ recValue =
         pure $ Scale s v
     <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId) <**> value')
     <|> (UseValue <$> (string "UseValue" **> termWrapper valueId))
+    <|> (Cond <$> (string "Cond" **> observation') <**> value' <**> value')
   where
-  value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (recValue unit))
 
-value :: Parser Value
-value = atomValue <|> recValue
+  observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
+
+value :: Unit -> Parser Value
+value _ = atomValue <|> recValue unit
 
 atomObservation :: Parser Observation
 atomObservation =
@@ -339,7 +347,7 @@ recObservation =
   where
   observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens value)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (value unit))
 
 observation :: Parser Observation
 observation = atomObservation <|> recObservation
@@ -393,7 +401,7 @@ action =
   where
   observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (recValue unit))
 
 case' :: Parser Case
 case' = do
@@ -429,7 +437,7 @@ recContract =
 
   observation' = parseTerm $ atomObservation <|> fix \p -> parens observation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens value)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (value unit))
 
 contract :: Parser Contract
 contract = do

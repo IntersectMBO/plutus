@@ -158,7 +158,7 @@ convertToSymbolicTrace ((lowS, highS, inp, pos):t) ((a, b, c, d):t2) =
 convertToSymbolicTrace _ _ = error "Provided symbolic trace is not long enough"
 
 -- Symbolic version evalValue
-symEvalVal :: Value -> SymState -> SInteger
+symEvalVal :: (Value Observation) -> SymState -> SInteger
 symEvalVal (AvailableMoney accId tok) symState =
   M.findWithDefault (literal 0) (accId, tok) (symAccounts symState)
 symEvalVal (Constant inte) symState = literal inte
@@ -185,6 +185,9 @@ symEvalVal SlotIntervalStart symState = lowSlot symState
 symEvalVal SlotIntervalEnd symState = highSlot symState
 symEvalVal (UseValue valId) symState =
   M.findWithDefault (literal 0) valId (symBoundValues symState)
+symEvalVal (Cond cond v1 v2) symState = ite (symEvalObs cond symState) 
+                                            (symEvalVal v1 symState) 
+                                            (symEvalVal v2 symState)
 
 -- Symbolic version evalObservation
 symEvalObs :: Observation -> SymState -> SBool

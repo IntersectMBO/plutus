@@ -17,6 +17,7 @@ import Test.Unit.QuickCheck (quickCheck)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (parens)
 import Text.Pretty (genericPretty)
+import Data.Unit (Unit(..), unit)
 
 all :: TestSuite
 all =
@@ -42,7 +43,7 @@ valueParser :: GenWithHoles Result
 valueParser = do
   v <- genValue
   let
-    result = runParser (parens value <|> value) (show v)
+    result = runParser (parens (value unit) <|> (value unit)) (show v)
 
     (expected :: Either String Value) = Right v
   pure (show result === show expected)
@@ -51,7 +52,7 @@ prettyValueParser :: GenWithHoles Result
 prettyValueParser = do
   v <- genValue
   let
-    result = runParser (parens value <|> value) (show $ genericPretty v)
+    result = runParser (parens (value unit) <|> (value unit)) (show $ genericPretty v)
 
     (expected :: Either String Value) = Right v
   pure (show result === show expected)

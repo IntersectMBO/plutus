@@ -39,6 +39,7 @@ const lexer = moo.compile({
                     'SlotIntervalStart',
                     'SlotIntervalEnd',
                     'UseValue',
+                    'Cond'
                 ],
                 ACCOUNT_ID: ['AccountId'],
                 TOKEN: ['Token'],
@@ -186,3 +187,4 @@ value
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({row: line, column: col}) %}
     | "SlotIntervalEnd" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalEnd)({row: line, column: col}) %}
     | lparen "UseValue" someWS valueId rparen {% ([,{line,col},,valueId,]) => opts.mkTerm(opts.mkUseValue(valueId))({row: line, column: col}) %}
+    | lparen "Cond" someWS observation someWS value someWS value rparen {% ([,{line,col},,oo,,v1,,v2,]) => opts.mkTerm(opts.mkCond(oo)(v1)(v2))({row: line, column: col}) %}

@@ -52,7 +52,7 @@ testFor PayeeType = mkTest false PayeeType (parse Parser.payee)
 
 testFor CaseType = mkTest false CaseType (parse Parser.case')
 
-testFor ValueType = mkTest false ValueType (parse Parser.value)
+testFor ValueType = mkTest false ValueType (parse (Parser.value unit))
 
 testFor ObservationType = mkTest false ObservationType (parse Parser.observation)
 
