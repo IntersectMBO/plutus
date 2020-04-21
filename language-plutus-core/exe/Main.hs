@@ -25,7 +25,6 @@ import qualified Language.PlutusCore.StdLib.Data.Integer                    as P
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
 import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.ByteString.Lazy.Char8                                 as BSL8
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import qualified Data.Text.IO                                               as T
@@ -214,8 +213,14 @@ getProg inp fmt =
       Plc  -> parsePlcFile inp
       Cbor -> do
                p <- getCborInput inp
-               return $ fakeAlexPosn <$ (deserialise p :: PlainProgram)
-                   where fakeAlexPosn = PLC.AlexPn 0 0 0
+               case deserialiseOrFail p of
+                 Left (DeserialiseFailure offset msg) ->
+                     do
+                       putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
+                       exitFailure
+                 Right (r:: PlainProgram) ->
+                     return $ (fakeAlexPosn <$ r)
+                         where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 
 ---------------- Typechecking ----------------
@@ -239,15 +244,13 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt) = do
   prog <- getProg inp fmt
   let evalFn = case mode of
-                 CK  -> first toException . PLC.extractEvaluationResult . PLC.evaluateCk
-                 CEK -> first toException . PLC.extractEvaluationResult . PLC.evaluateCek mempty PLC.defaultCostModel
+                 CK  -> PLC.unsafeEvaluateCk
+                 CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
   case evalFn . void . PLC.toTerm $ prog of
-    Left errEval -> do
-      print errEval
-      exitFailure
-    Right v -> do
+    PLC.EvaluationSuccess v -> do
       T.putStrLn $ PLC.prettyPlcDefText v
       exitSuccess
+    PLC.EvaluationFailure -> exitFailure
 
 
 ---------------- Parse and print a PLC source file ----------------
@@ -259,7 +262,7 @@ runPrint (PrintOptions inp mode) =
             Debug   -> PLC.prettyPlcClassicDebug
   in do
     p <- parsePlcFile inp
-    putStrLn . show . printMethod $ p
+    print . printMethod $ p
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -270,7 +273,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
   let cbor = serialise (() <$ p)
   case outp of
     FileOutput file -> BSL.writeFile file cbor
-    StdOutput       -> BSL8.putStrLn cbor   -- BSL.putStrLn causes deprecation warnings
+    StdOutput       -> BSL.putStr cbor *> putStrLn ""
 
 
 ---------------- Convert a CBOR file to PLC source ----------------
@@ -284,7 +287,7 @@ runCborToPlc (CborToPlcOptions inp outp mode) = do
             Debug   -> PLC.prettyPlcClassicDebug
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
-    StdOutput       -> putStrLn . show . printMethod $ plc
+    StdOutput       -> print . printMethod $ plc
 
 
 ---------------- Examples ----------------
