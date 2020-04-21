@@ -95,7 +95,7 @@ handleQuery (Resize next) = do
 handleQuery (SetCode code next) = do
   { blocklyState } <- get
   let
-    contract = case runParser (Parser.parseTerm Parser.contract) code of
+    contract = case Parser.parseContract code of
       Right c -> c
       Left _ -> Hole "root_contract" Proxy { row: 0, column: 0 }
   case blocklyState of

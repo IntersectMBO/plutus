@@ -6,7 +6,6 @@ import Blockly as Blockly
 import Blockly.Generator (Generator, getInputWithName, inputList, blockToCode)
 import Blockly.Headless as Headless
 import Blockly.Types (BlocklyState)
-import Control.Alt ((<|>))
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.ST (ST)
 import Control.Monad.ST as ST
@@ -19,15 +18,13 @@ import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Marlowe.Blockly (blockDefinitions, buildGenerator, toBlockly)
-import Marlowe.Gen (genContract)
+import Marlowe.Gen (genContract, genTerm)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
-import Marlowe.Holes (Contract)
+import Marlowe.Holes (Contract, Term)
 import Marlowe.Parser as Parser
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.Unit (Test, TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import Text.Parsing.StringParser (runParser)
-import Text.Parsing.StringParser.Basic (parens)
 
 all :: TestSuite
 all =
@@ -54,9 +51,9 @@ mkTestState = do
 
 c2b2c :: GenWithHoles Result
 c2b2c = do
-  contract <- genContract
+  contract <- genTerm genContract
   let
-    positionedContract = lmap show $ runParser (parens Parser.contract <|> Parser.contract) (show contract)
+    positionedContract = lmap show $ Parser.parseContract (show contract)
 
     -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
     -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
@@ -65,16 +62,16 @@ c2b2c = do
     result = unsafePerformEffect $ runContract contract
   pure (result === positionedContract)
 
-runContract :: Contract -> Effect (Either String Contract)
+runContract :: Term Contract -> Effect (Either String (Term Contract))
 runContract contract = do
   state <- liftEffect mkTestState
   pure $ ST.run (buildBlocks state.blocklyState contract)
   pure do
     rootBlock <- note "failed to get root block" $ getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
     code <- blockToCode rootBlock state.generator
-    lmap show $ runParser (parens Parser.contract <|> Parser.contract) code
+    lmap show $ Parser.parseContract code
 
-buildBlocks :: forall r. BlocklyState -> Contract -> ST r Unit
+buildBlocks :: forall r. BlocklyState -> Term Contract -> ST r Unit
 buildBlocks bs contract = do
   workspaceRef <- STRef.new bs.workspace
   let
