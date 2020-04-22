@@ -107,6 +107,7 @@ mkArgName t = case splitAt 1 (show t) of
 data Argument
   = ArrayArg String
   | DataArg MarloweType
+  | NamedDataArg String
   | DataArgIndexed Int MarloweType
   | DefaultString String
   | DefaultNumber BigInteger
@@ -123,7 +124,7 @@ getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ GenArg AccountIdType, DataArg PartyType, DataArg TokenType, DataArg ValueType ])
+    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "to_party", DataArg TokenType, DataArg ValueType ])
     , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg ObservationType ])
     ]
@@ -214,6 +215,8 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
   showArgument (ArrayArg arg) = "[ ?" <> arg <> " ]"
 
   showArgument (DataArg arg) = "?" <> mkArgName arg
+
+  showArgument (NamedDataArg arg) = "?" <> arg
 
   showArgument (DataArgIndexed i arg) = "?" <> mkArgName arg <> show i
 

@@ -77,13 +77,11 @@ newtype ElementId
 
 derive instance newtypeElementId :: Newtype ElementId _
 
-createBlocklyInstance :: ElementId -> ElementId -> Effect BlocklyState
-createBlocklyInstance workspaceElementId toolboxElementId = do
+createBlocklyInstance :: String -> ElementId -> ElementId -> Effect BlocklyState
+createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
   blockly <- createBlocklyInstance_
   toolbox <- runEffectFn1 getElementById_ (unwrap toolboxElementId)
   workspace <- runEffectFn3 createWorkspace_ blockly (unwrap workspaceElementId) (config toolbox)
-  let
-    rootBlockName = "root_contract"
   pure { blockly, workspace, rootBlockName }
   where
   config toolbox =

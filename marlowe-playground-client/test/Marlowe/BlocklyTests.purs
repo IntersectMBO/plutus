@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Marlowe.Blockly (blockDefinitions, buildGenerator, toBlockly)
+import Marlowe.Blockly (blockDefinitions, buildGenerator, rootBlockName, toBlockly)
 import Marlowe.Gen (genContract, genTerm)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Contract, Term)
@@ -37,7 +37,7 @@ quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
 
 mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
 mkTestState = do
-  blocklyState <- liftEffect $ Headless.createBlocklyInstance
+  blocklyState <- liftEffect $ Headless.createBlocklyInstance rootBlockName
   let
     _ =
       ST.run
@@ -76,7 +76,7 @@ buildBlocks :: forall r. BlocklyState -> Term Contract -> ST r Unit
 buildBlocks bs contract = do
   workspaceRef <- STRef.new bs.workspace
   let
-    mContract = getBlockById bs.workspace "root_contract"
+    mContract = getBlockById bs.workspace rootBlockName
   rootBlock <- case mContract of
     Nothing -> Headless.newBlock workspaceRef "BaseContractType" >>= STRef.read
     Just block -> pure block

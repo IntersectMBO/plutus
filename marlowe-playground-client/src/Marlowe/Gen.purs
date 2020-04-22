@@ -128,7 +128,7 @@ genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm (mkArgName 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadReader Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genAccountId <*> genTerm (mkArgName PartyType) genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
+    $ (Deposit <$> genAccountId <*> genTerm "to_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
     :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable (genTerm (mkArgName BoundType) genBound))
       , Notify <$> genTerm (mkArgName ObservationType) (genObservation' size)
       ]

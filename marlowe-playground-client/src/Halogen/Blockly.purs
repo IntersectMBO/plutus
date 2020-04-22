@@ -4,7 +4,7 @@ import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
-import Control.Monad.Except (ExceptT(..), runExceptT, lift)
+import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Control.Monad.State (modify_)
@@ -15,7 +15,7 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
 import Effect.Class (class MonadEffect)
-import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), get, liftEffect, mkComponent, raise)
+import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
 import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
@@ -48,7 +48,7 @@ data BlocklyQuery a
   | SetCode String a
 
 data BlocklyAction
-  = Inject (Array BlockDefinition)
+  = Inject String (Array BlockDefinition)
   | SetData Unit
   | GetCode
 
@@ -62,8 +62,8 @@ type Slots
 type DSL m a
   = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
 
-blockly :: forall m. MonadEffect m => Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
-blockly blockDefinitions =
+blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
+blockly rootBlockName blockDefinitions =
   mkComponent
     { initialState: const { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
     , render
@@ -71,7 +71,7 @@ blockly blockDefinitions =
       H.mkEval
         { handleQuery
         , handleAction
-        , initialize: Just $ Inject blockDefinitions
+        , initialize: Just $ Inject rootBlockName blockDefinitions
         , finalize: Nothing
         , receive: Just <<< SetData
         }
@@ -92,20 +92,21 @@ handleQuery (Resize next) = do
   pure $ Just next
 
 handleQuery (SetCode code next) = do
-  { blocklyState } <- get
-  let
-    contract = case Parser.parseContract code of
-      Right c -> c
-      Left _ -> Hole "root_contract" Proxy { row: 0, column: 0 }
-  case blocklyState of
+  mState <- use _blocklyState
+  case mState of
     Nothing -> pure unit
-    Just bs -> pure $ ST.run (buildBlocks newBlock bs contract)
+    Just bs -> do
+      let
+        contract = case Parser.parseContract code of
+          Right c -> c
+          Left _ -> Hole bs.rootBlockName Proxy { row: 0, column: 0 }
+      pure $ ST.run (buildBlocks newBlock bs contract)
   assign _errorMessage Nothing
   pure $ Just next
 
 handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
-handleAction (Inject blockDefinitions) = do
-  blocklyState <- liftEffect $ Blockly.createBlocklyInstance (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
+handleAction (Inject rootBlockName blockDefinitions) = do
+  blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
   let
     _ =
       ST.run
@@ -130,9 +131,9 @@ handleAction GetCode = do
         workspace = blocklyState.workspace
 
         rootBlockName = blocklyState.rootBlockName
-      block <- ExceptT <<< pure <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- ExceptT <<< pure <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
-      contract <- ExceptT <<< pure <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
+      code <- except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
+      contract <- except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
       lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
   case res of
     Left e -> assign _errorMessage $ Just e

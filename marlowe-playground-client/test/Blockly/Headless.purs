@@ -20,12 +20,10 @@ foreign import newBlock_ :: forall r. Fn3 NewSTRefFunction (STRef r Workspace) S
 initializeWorkspace :: BlocklyState -> Effect Unit
 initializeWorkspace state = runEffectFn2 initializeWorkspace_ state.blockly state.workspace
 
-createBlocklyInstance :: Effect BlocklyState
-createBlocklyInstance = do
+createBlocklyInstance :: String -> Effect BlocklyState
+createBlocklyInstance rootBlockName = do
   blockly <- createBlocklyInstance_
   workspace <- runEffectFn1 createWorkspace_ blockly
-  let
-    rootBlockName = "root_contract"
   pure { blockly, workspace, rootBlockName }
 
 newBlock :: forall r. STRef r Workspace -> String -> ST r (STRef r Block)

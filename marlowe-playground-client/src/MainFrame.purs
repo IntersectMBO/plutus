@@ -660,7 +660,7 @@ render state =
                 (HaskellEditor.render state)
             -- blockly
             , div [ classes ([ hide ] <> isActiveTab state BlocklyEditor) ]
-                [ slot _blocklySlot unit (blockly MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
+                [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
                 , MB.toolbox
                 , MB.workspaceBlocks
                 ]

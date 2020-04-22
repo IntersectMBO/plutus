@@ -166,7 +166,7 @@ hole =
       start = suffix.pos - (length name) - 1
 
       end = suffix.pos
-    -- FIXME: this position info is incorrect
+    -- this position info is incorrect however we don't use it anywhere at this time
     pure { result: Hole name Proxy { row: start, column: end }, suffix }
   where
   nameChars = alphaNum <|> char '_'
@@ -179,7 +179,7 @@ term' (Parser p) =
       start = pos
 
       end = suffix.pos
-    -- FIXME: this position info is incorrect
+    -- this position info is incorrect however we don't use it anywhere at this time
     pure { result: Term result { row: start, column: end }, suffix }
 
 termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
@@ -190,7 +190,7 @@ termWrapper (Parser p) =
       start = pos
 
       end = suffix.pos
-    -- FIXME: this position info is incorrect
+    -- this position info is incorrect however we don't use it anywhere at this time
     pure { result: TermWrapper result { row: start, column: end }, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
