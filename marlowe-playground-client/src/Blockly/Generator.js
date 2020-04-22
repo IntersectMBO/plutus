@@ -66,10 +66,10 @@ exports.insertGeneratorFunction_ = function (genRef, key, f) {
     };
 }
 
-exports.workspaceToCode_ = function (left, right, blocklyState, generator) {
+exports.blockToCode_ = function (left, right, block, generator) {
     try {
-        return right(generator.workspaceToCode(blocklyState.workspace));
-    } catch(err) {
+        return right(generator.blockToCode(block));
+    } catch (err) {
         console.log(err.message);
         return left(err.message);
     }
@@ -85,19 +85,19 @@ exports.connectToPrevious_ = function (blockRef, input) {
     };
 }
 
-exports.previousConnection_ = function(blockRef) {
-    return function() {
+exports.previousConnection_ = function (blockRef) {
+    return function () {
         return blockRef.value.previousConnection;
     }
 }
 
-exports.nextConnection_ = function(blockRef) {
-    return function() {
+exports.nextConnection_ = function (blockRef) {
+    return function () {
         return blockRef.value.nextConnection;
     }
 }
 
-exports.connect_ = function(from, to) {
+exports.connect_ = function (from, to) {
     return function () {
         from.connect(to);
     }
@@ -149,12 +149,15 @@ exports.unsafeThrowError_ = function (s) {
 
 exports.getBlockInputConnectedTo_ = function (left, right, input) {
     try {
-        var mBlock = input.connection.targetConnection.getSourceBlock();
+        var mTargetConnection = input.connection.targetConnection;
+        if (mTargetConnection == null) {
+            return left("no target connection found");
+        }
+        var mBlock = mTargetConnection.getSourceBlock();
         if (mBlock == null) {
             return left("no block found");
-        } else {
-            return right(mBlock);
         }
+        return right(mBlock);
     } catch (err) {
         return left(err.message);
     }

@@ -132,6 +132,9 @@ handleAction settings Init = do
       void $ H.modify (\s -> s { editor = Just editor })
       void $ H.subscribe $ effectEventSource (changeContentHandler monaco editor)
       H.lift $ settings.setup editor
+      model <- liftEffect $ Monaco.getModel editor
+      H.raise $ TextChanged (Monaco.getValue model)
+      pure unit
     Nothing -> pure unit
   where
   changeContentHandler monaco editor (Emitter emitter) = do
