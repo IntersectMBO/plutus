@@ -359,7 +359,7 @@ toDefinition (ActionType DepositActionType) =
         , args0:
           [ DummyCentre
           , Value { name: "party", check: "party", align: Right }
-          , Value { name: "amount", check: "value", align: Right }
+          , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
           , Value { name: "account_owner", check: "party", align: Right }
@@ -381,7 +381,7 @@ toDefinition (ActionType ChoiceActionType) =
         , args0:
           [ Input { name: "choice_name", text: "name", spellcheck: false }
           , DummyLeft
-          , Value { name: "choice_owner", check: "party", align: Right }
+          , Value { name: "party", check: "party", align: Right }
           , DummyLeft
           , Statement { name: "bounds", check: (show BoundsType), align: Right }
           , DummyLeft
@@ -518,7 +518,7 @@ toDefinition (ContractType PayContractType) =
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
-          , Value { name: "amount", check: "value", align: Right }
+          , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Value { name: "account_owner", check: "party", align: Right }
@@ -635,7 +635,7 @@ toDefinition (ObservationType ChoseSomethingObservationType) =
         { type: show ChoseSomethingObservationType
         , message0: "party %1 made choice %2"
         , args0:
-          [ Value { name: "choice_owner", check: "party", align: Right }
+          [ Value { name: "party", check: "party", align: Right }
           , Input { name: "choice_name", text: "name", spellcheck: false }
           ]
         , colour: "230"
@@ -843,7 +843,7 @@ toDefinition (ValueType ChoiceValueValueType) =
         , message0: "Choice %1 by %2 default %3"
         , args0:
           [ Input { name: "choice_name", text: "name", spellcheck: false }
-          , Value { name: "choice_owner", check: "party", align: Right }
+          , Value { name: "party", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           ]
         , colour: "135"
@@ -940,7 +940,12 @@ class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
 
 baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
-baseContractDefinition g block = statementToTerm g block (show BaseContractType) Parser.contract
+baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
+  Either.Left _ -> pure $ Hole "contract" Proxy { row: 0, column: 0 }
+  Either.Right s ->
+    (flip parse) s do
+      v <- Parser.contract
+      pure $ Term v { row: 0, column: 0 }
 
 getAllBlocks :: Block -> Array Block
 getAllBlocks currentBlock =
@@ -994,16 +999,16 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     accountOwner <- statementToTerm g block "account_owner" Parser.party
     tok <- statementToTerm g block "token" Parser.token
     let
-      accountId = mkDefaultTerm $ AccountId accountNumber accountOwner
+      accountId = AccountId accountNumber accountOwner
     party <- statementToTerm g block "party" Parser.party
-    amount <- statementToTerm g block "amount" Parser.value
+    amount <- statementToTerm g block "value" Parser.value
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountId party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "choice_owner" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.party
     let
-      choiceId = mkDefaultTerm $ ChoiceId choiceName choiceOwner
+      choiceId = ChoiceId choiceName choiceOwner
 
       inputs = inputList block
     boundsInput <- note "No Input with name \"bound\" found" $ getInputWithName inputs "bounds"
@@ -1024,7 +1029,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) wh
     accountNumber <- parse Parser.bigInteger =<< getFieldValue block "account_number"
     accountOwner <- statementToTerm g block "account_owner" Parser.party
     let
-      accountId = mkDefaultTerm $ AccountId accountNumber accountOwner
+      accountId = AccountId accountNumber accountOwner
     pure $ mkDefaultTerm (Account accountId)
   blockDefinition PartyPayeeType g block = do
     party <- statementToTerm g block "party" Parser.party
@@ -1054,9 +1059,9 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     accountOwner <- statementToTerm g block "account_owner" Parser.party
     tok <- statementToTerm g block "token" Parser.token
     let
-      accountId = mkDefaultTerm $ AccountId accountNumber accountOwner
+      accountId = AccountId accountNumber accountOwner
     payee <- statementToTerm g block "payee" Parser.payee
-    value <- statementToTerm g block "amount" Parser.value
+    value <- statementToTerm g block "value" Parser.value
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Pay accountId payee tok value contract)
   blockDefinition IfContractType g block = do
@@ -1096,9 +1101,9 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
     pure $ mkDefaultTerm (NotObs observation)
   blockDefinition ChoseSomethingObservationType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "choice_owner" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.party
     let
-      choiceId = mkDefaultTerm $ ChoiceId choiceName choiceOwner
+      choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoseSomething choiceId)
   blockDefinition ValueGEObservationType g block = do
     value1 <- statementToTerm g block "value1" Parser.value
@@ -1129,7 +1134,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     accountOwner <- statementToTerm g block "account_owner" Parser.party
     tok <- statementToTerm g block "token" Parser.token
     let
-      accountId = mkDefaultTerm (AccountId accountNumber accountOwner)
+      accountId = AccountId accountNumber accountOwner
     pure $ mkDefaultTerm (AvailableMoney accountId tok)
   blockDefinition ConstantValueType g block = do
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
@@ -1149,12 +1154,12 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     numerator <- parse Parser.bigInteger =<< getFieldValue block "numerator"
     denominator <- parse Parser.bigInteger =<< getFieldValue block "denominator"
     value <- statementToTerm g block "value" Parser.value
-    pure $ mkDefaultTerm (Scale (mkDefaultTerm (Rational numerator denominator)) value)
+    pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
-    choiceOwner <- statementToTerm g block "choice_owner" Parser.party
+    choiceOwner <- statementToTerm g block "party" Parser.party
     let
-      choiceId = mkDefaultTerm $ ChoiceId choiceName choiceOwner
+      choiceId = ChoiceId choiceName choiceOwner
     value <- statementToTerm g block "value" Parser.value
     pure $ mkDefaultTerm (ChoiceValue choiceId value)
   blockDefinition SlotIntervalStartValueType g block = pure $ mkDefaultTerm SlotIntervalStart
@@ -1220,7 +1225,7 @@ instance toBlocklyTerm :: ToBlockly a => ToBlockly (Term a) where
   toBlockly newBlock workspace input _ = pure unit
 
 instance toBlocklyPayee :: ToBlockly Payee where
-  toBlockly newBlock workspace input (Account (Term (AccountId accountNumber accountOwner) _)) = do
+  toBlockly newBlock workspace input (Account (AccountId accountNumber accountOwner)) = do
     block <- newBlock workspace (show AccountPayeeType)
     connectToOutput block input
     setField block "account_number" (show accountNumber)
@@ -1229,7 +1234,6 @@ instance toBlocklyPayee :: ToBlockly Payee where
     block <- newBlock workspace (show PartyPayeeType)
     connectToOutput block input
     inputToBlockly newBlock workspace block "party" party
-  toBlockly _ _ _ _ = pure unit
 
 instance toBlocklyParty :: ToBlockly Party where
   toBlockly newBlock workspace input (PK pk) = do
@@ -1279,34 +1283,20 @@ instance toBlocklyBounds :: ToBlockly (Array (Term Bound)) where
         nextBound newBlock workspace fromConnection tail
 
 oneCaseToBlockly :: forall r. NewBlockFunction r -> STRef r Workspace -> Case -> ST r (STRef r Block)
-oneCaseToBlockly newBlock workspace (Case (Term (Deposit (Term (AccountId accountNumber accountOwner) _) party tok value) _) cont) = do
+oneCaseToBlockly newBlock workspace (Case (Term (Deposit (AccountId accountNumber accountOwner) party tok value) _) cont) = do
   block <- newBlock workspace (show DepositActionType)
   setField block "account_number" (show accountNumber)
   inputToBlockly newBlock workspace block "account_owner" accountOwner
   inputToBlockly newBlock workspace block "token" tok
   inputToBlockly newBlock workspace block "party" party
-  inputToBlockly newBlock workspace block "amount" value
+  inputToBlockly newBlock workspace block "value" value
   inputToBlockly newBlock workspace block "contract" cont
   pure block
 
-oneCaseToBlockly newBlock workspace (Case (Term (Deposit (Hole _ _ _) party tok value) _) cont) = do
-  block <- newBlock workspace (show DepositActionType)
-  inputToBlockly newBlock workspace block "token" tok
-  inputToBlockly newBlock workspace block "party" party
-  inputToBlockly newBlock workspace block "amount" value
-  inputToBlockly newBlock workspace block "contract" cont
-  pure block
-
-oneCaseToBlockly newBlock workspace (Case (Term (Choice (Term (ChoiceId choiceName choiceOwner) _) bounds) _) cont) = do
+oneCaseToBlockly newBlock workspace (Case (Term (Choice (ChoiceId choiceName choiceOwner) bounds) _) cont) = do
   block <- newBlock workspace (show ChoiceActionType)
   setField block "choice_name" choiceName
-  inputToBlockly newBlock workspace block "choice_owner" choiceOwner
-  inputToBlockly newBlock workspace block "bounds" bounds
-  inputToBlockly newBlock workspace block "contract" cont
-  pure block
-
-oneCaseToBlockly newBlock workspace (Case (Term (Choice (Hole _ _ _) bounds) _) cont) = do
-  block <- newBlock workspace (show ChoiceActionType)
+  inputToBlockly newBlock workspace block "party" choiceOwner
   inputToBlockly newBlock workspace block "bounds" bounds
   inputToBlockly newBlock workspace block "contract" cont
   pure block
@@ -1347,14 +1337,14 @@ instance toBlocklyContract :: ToBlockly Contract where
   toBlockly newBlock workspace input Close = do
     block <- newBlock workspace (show CloseContractType)
     connectToPrevious block input
-  toBlockly newBlock workspace input (Pay (Term (AccountId accountNumber accountOwner) _) payee tok value contract) = do
+  toBlockly newBlock workspace input (Pay (AccountId accountNumber accountOwner) payee tok value contract) = do
     block <- newBlock workspace (show PayContractType)
     connectToPrevious block input
     setField block "account_number" (show accountNumber)
     inputToBlockly newBlock workspace block "account_owner" accountOwner
     inputToBlockly newBlock workspace block "token" tok
     inputToBlockly newBlock workspace block "payee" payee
-    inputToBlockly newBlock workspace block "amount" value
+    inputToBlockly newBlock workspace block "value" value
     inputToBlockly newBlock workspace block "contract" contract
   toBlockly newBlock workspace input (If observation contract1 contract2) = do
     block <- newBlock workspace (show IfContractType)
@@ -1374,7 +1364,6 @@ instance toBlocklyContract :: ToBlockly Contract where
     setField block "value_id" valueId
     inputToBlockly newBlock workspace block "value" value
     inputToBlockly newBlock workspace block "contract" contract
-  toBlockly _ _ _ _ = pure unit
 
 instance toBlocklyObservation :: ToBlockly Observation where
   toBlockly newBlock workspace input (AndObs observation1 observation2) = do
@@ -1391,11 +1380,11 @@ instance toBlocklyObservation :: ToBlockly Observation where
     block <- newBlock workspace (show NotObservationType)
     connectToOutput block input
     inputToBlockly newBlock workspace block "observation" observation
-  toBlockly newBlock workspace input (ChoseSomething (Term (ChoiceId choiceName choiceOwner) _)) = do
+  toBlockly newBlock workspace input (ChoseSomething (ChoiceId choiceName choiceOwner)) = do
     block <- newBlock workspace (show ChoseSomethingObservationType)
     connectToOutput block input
     setField block "choice_name" choiceName
-    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
+    inputToBlockly newBlock workspace block "party" choiceOwner
   toBlockly newBlock workspace input (ValueGE v1 v2) = do
     block <- newBlock workspace (show ValueGEObservationType)
     connectToOutput block input
@@ -1427,10 +1416,9 @@ instance toBlocklyObservation :: ToBlockly Observation where
   toBlockly newBlock workspace input FalseObs = do
     block <- newBlock workspace (show FalseObservationType)
     connectToOutput block input
-  toBlockly _ _ _ _ = pure unit
 
 instance toBlocklyValue :: ToBlockly Value where
-  toBlockly newBlock workspace input (AvailableMoney (Term (AccountId accountNumber accountOwner) _) tok) = do
+  toBlockly newBlock workspace input (AvailableMoney (AccountId accountNumber accountOwner) tok) = do
     block <- newBlock workspace (show AvailableMoneyValueType)
     connectToOutput block input
     setField block "account_number" (show accountNumber)
@@ -1454,7 +1442,7 @@ instance toBlocklyValue :: ToBlockly Value where
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2
-  toBlockly newBlock workspace input (Scale (Term (Rational numerator denominator) _) value) = do
+  toBlockly newBlock workspace input (Scale (TermWrapper (Rational numerator denominator) _) value) = do
     block <- newBlock workspace (show ScaleValueType)
     connectToOutput block input
     -- this makes sure the `-` sign is always on the top
@@ -1467,11 +1455,11 @@ instance toBlocklyValue :: ToBlockly Value where
     setField block "numerator" (show fixedNumerator)
     setField block "denominator" (show fixedDenominator)
     inputToBlockly newBlock workspace block "value" value
-  toBlockly newBlock workspace input (ChoiceValue (Term (ChoiceId choiceName choiceOwner) _) value) = do
+  toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input
     setField block "choice_name" choiceName
-    inputToBlockly newBlock workspace block "choice_owner" choiceOwner
+    inputToBlockly newBlock workspace block "party" choiceOwner
     inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input SlotIntervalStart = do
     block <- newBlock workspace (show SlotIntervalStartValueType)
@@ -1483,4 +1471,3 @@ instance toBlocklyValue :: ToBlockly Value where
     block <- newBlock workspace (show UseValueValueType)
     connectToOutput block input
     setField block "value_id" valueId
-  toBlockly _ _ _ _ = pure unit

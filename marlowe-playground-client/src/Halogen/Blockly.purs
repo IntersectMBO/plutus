@@ -25,7 +25,6 @@ import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Text.Extra as Text
-import Text.Parsing.StringParser (runParser)
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 

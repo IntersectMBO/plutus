@@ -25,6 +25,7 @@ import Marlowe.Parser as Parser
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.Unit (Test, TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
+import Text.Extra (stripParens)
 
 all :: TestSuite
 all =
@@ -32,7 +33,7 @@ all =
     test "c2b2c" $ quickCheckGen c2b2c
 
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
-quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
+quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) true
 
 mkTestState :: forall m. MonadEffect m => m { blocklyState :: BlocklyState, generator :: Generator }
 mkTestState = do
@@ -51,9 +52,9 @@ mkTestState = do
 
 c2b2c :: GenWithHoles Result
 c2b2c = do
-  contract <- genTerm genContract
+  contract <- genTerm "contract" genContract
   let
-    positionedContract = lmap show $ Parser.parseContract (show contract)
+    positionedContract = lmap show $ Parser.parseContract (stripParens $ show contract)
 
     -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
     -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
@@ -69,7 +70,7 @@ runContract contract = do
   pure do
     rootBlock <- note "failed to get root block" $ getBlockById state.blocklyState.workspace state.blocklyState.rootBlockName
     code <- blockToCode rootBlock state.generator
-    lmap show $ Parser.parseContract code
+    lmap show $ Parser.parseContract (stripParens code)
 
 buildBlocks :: forall r. BlocklyState -> Term Contract -> ST r Unit
 buildBlocks bs contract = do

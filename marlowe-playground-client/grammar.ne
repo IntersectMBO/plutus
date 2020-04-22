@@ -132,8 +132,7 @@ contract
     | lparen topContract rparen {% ([,contract,]) => contract %}
 
 choiceId
-   -> hole {% ([hole]) => hole %}
-    | lparen %CHOICE_ID someWS string someWS party rparen {% ([,{line,col},,cid,,party,]) => opts.mkTerm(opts.mkChoiceId(cid)(party))({row: line, column: col}) %}
+   -> lparen %CHOICE_ID someWS string someWS party rparen {% ([,{line,col},,cid,,party,]) => opts.mkChoiceId(cid)(party) %}
 
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
@@ -141,8 +140,7 @@ valueId
 # valueId -> lparen %VALUE_ID someWS string rparen
 
 accountId
-   -> hole {% ([hole]) => hole %}
-    | lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkTerm(opts.mkAccountId(aid)(party))({row: line, column: col}) %}
+   -> lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkAccountId(aid)(party) %}
 
 token
    -> hole {% ([hole]) => hole %}
@@ -174,7 +172,7 @@ observation
 
 rational
     -> hole {% ([hole]) => hole %}
-    | %number manyWS "%" manyWS %number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num.value)(denom.value))({row: num.line, column: num.col}) %}
+    | number manyWS %ratio manyWS number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num)(denom))({row: num.line, column: num.col}) %}
 
 value
    -> hole {% ([hole]) => hole %}

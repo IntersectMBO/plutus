@@ -32,14 +32,14 @@ type HelperFunctions a
     , mkBigInteger :: Int -> BigInteger
     , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> TermWrapper Slot
     , mkClose :: Contract
-    , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
+    , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
     , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
     , mkBound :: BigInteger -> BigInteger -> Bound
-    , mkDeposit :: Term AccountId -> Term Party -> Term Token -> Term Value -> Action
-    , mkChoice :: Term ChoiceId -> Array (Term Bound) -> Action
+    , mkDeposit :: AccountId -> Term Party -> Term Token -> Term Value -> Action
+    , mkChoice :: ChoiceId -> Array (Term Bound) -> Action
     , mkNotify :: Term Observation -> Action
     , mkChoiceId :: String -> Term Party -> ChoiceId
     , mkValueId :: String -> ValueId
@@ -47,12 +47,12 @@ type HelperFunctions a
     , mkToken :: String -> String -> Token
     , mkPK :: String -> Party
     , mkRole :: String -> Party
-    , mkAccount :: Term AccountId -> Payee
+    , mkAccount :: AccountId -> Payee
     , mkParty :: Term Party -> Payee
     , mkAndObs :: Term Observation -> Term Observation -> Observation
     , mkOrObs :: Term Observation -> Term Observation -> Observation
     , mkNotObs :: Term Observation -> Observation
-    , mkChoseSomething :: Term ChoiceId -> Observation
+    , mkChoseSomething :: ChoiceId -> Observation
     , mkValueGE :: Term Value -> Term Value -> Observation
     , mkValueGT :: Term Value -> Term Value -> Observation
     , mkValueLT :: Term Value -> Term Value -> Observation
@@ -60,14 +60,14 @@ type HelperFunctions a
     , mkValueEQ :: Term Value -> Term Value -> Observation
     , mkTrueObs :: Observation
     , mkFalseObs :: Observation
-    , mkAvailableMoney :: Term AccountId -> Term Token -> Value
+    , mkAvailableMoney :: AccountId -> Term Token -> Value
     , mkConstant :: BigInteger -> Value
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
     , mkRational :: BigInteger -> BigInteger -> Rational
-    , mkScale :: Term Rational -> Term Value -> Value
-    , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
+    , mkScale :: TermWrapper Rational -> Term Value -> Value
+    , mkChoiceValue :: ChoiceId -> Term Value -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
     , mkUseValue :: TermWrapper ValueId -> Value
@@ -300,7 +300,7 @@ rational = do
 
 recValue :: Parser Value
 recValue =
-  (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId) <**> parseTerm (parens token))
+  (AvailableMoney <$> (string "AvailableMoney" **> accountId) <**> parseTerm (parens token))
     <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
@@ -308,11 +308,11 @@ recValue =
     <|> do
         void $ string "Scale"
         skipSpaces
-        s <- parseTerm (parens rational)
+        s <- termWrapper (parens rational)
         skipSpaces
         v <- value'
         pure $ Scale s v
-    <|> (ChoiceValue <$> (string "ChoiceValue" **> parseTerm choiceId) <**> value')
+    <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId) <**> value')
     <|> (UseValue <$> (string "UseValue" **> termWrapper valueId))
   where
   value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
@@ -330,7 +330,7 @@ recObservation =
   (AndObs <$> (string "AndObs" **> observation') <**> observation')
     <|> (OrObs <$> (string "OrObs" **> observation') <**> observation')
     <|> (NotObs <$> (string "NotObs" **> observation'))
-    <|> (ChoseSomething <$> (string "ChoseSomething" **> parseTerm choiceId))
+    <|> (ChoseSomething <$> (string "ChoseSomething" **> choiceId))
     <|> (ValueGE <$> (string "ValueGE" **> value') <**> value')
     <|> (ValueGT <$> (string "ValueGT" **> value') <**> value')
     <|> (ValueLT <$> (string "ValueLT" **> value') <**> value')
@@ -346,7 +346,7 @@ observation = atomObservation <|> recObservation
 
 payee :: Parser Payee
 payee =
-  (Account <$> (string "Account" **> parseTerm accountId))
+  (Account <$> (string "Account" **> accountId))
     <|> (Party <$> (string "Party" **> parseTerm (parens party)))
 
 pubkey :: Parser PubKey
@@ -387,8 +387,8 @@ bound = do
 
 action :: Parser Action
 action =
-  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
-    <|> (Choice <$> (string "Choice" **> parseTerm choiceId) <**> array (maybeParens (parseTerm bound)))
+  (Deposit <$> (string "Deposit" **> accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
+    <|> (Choice <$> (string "Choice" **> choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
   observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
@@ -414,7 +414,7 @@ atomContract = pure Close <* string "Close"
 
 recContract :: Parser Contract
 recContract =
-  ( Pay <$> (string "Pay" **> parseTerm accountId)
+  ( Pay <$> (string "Pay" **> accountId)
       <**> parseTerm (parens payee)
       <**> parseTerm (parens token)
       <**> value'
