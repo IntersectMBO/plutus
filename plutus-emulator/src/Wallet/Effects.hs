@@ -27,13 +27,14 @@ module Wallet.Effects(
     , ChainIndexEffect(..)
     , startWatching
     , watchedAddresses
+    , transactionConfirmed
     ) where
 
 import           Control.Monad.Freer.TH (makeEffect)
 import           Data.Aeson             (FromJSON, ToJSON)
 import qualified Data.Set               as Set
 import           GHC.Generics           (Generic)
-import           Ledger                 (Address, PubKey, PubKeyHash, Slot, Tx, TxIn, TxOut, Value)
+import           Ledger                 (Address, PubKey, PubKeyHash, Slot, Tx, TxId, TxIn, TxOut, Value)
 import           Ledger.AddressMap      (AddressMap, UtxoMap)
 
 -- | A payment consisting of a set of inputs to be spent, and
@@ -75,6 +76,8 @@ makeEffect ''SigningProcessEffect
 data ChainIndexEffect r where
     StartWatching :: Address -> ChainIndexEffect ()
     WatchedAddresses :: ChainIndexEffect AddressMap
+    -- TODO: In the future we should have degrees of confirmation
+    TransactionConfirmed :: TxId -> ChainIndexEffect Bool
 makeEffect ''ChainIndexEffect
 
 -- | Effects that allow contracts to interact with the blockchain

@@ -35,7 +35,7 @@ import           Control.Monad.Freer.State       (State)
 import           Control.Monad.Freer.TH
 import           Control.Monad.Freer.Writer
 import           Data.Map                        (Map)
-import           Eventful.Store.Memory           (EventMap)
+import           Eventful.Store.Memory           (EventMap, emptyEventMap)
 
 import qualified Cardano.ChainIndex.Types        as CI
 import           Cardano.Node.Follower           (NodeFollowerEffect)
@@ -46,7 +46,7 @@ import qualified Cardano.Node.Types              as NodeServer
 
 import           Plutus.SCB.Effects.Contract     (ContractEffect (..))
 import           Plutus.SCB.Effects.ContractTest (TestContracts (..), handleContractTest)
-import           Plutus.SCB.Effects.EventLog     (EventLogEffect)
+import           Plutus.SCB.Effects.EventLog     (EventLogEffect, handleEventLogState)
 import           Plutus.SCB.Effects.UUID         (UUIDEffect)
 import           Plutus.SCB.Events               (ChainEvent)
 import           Plutus.SCB.Types                (SCBError (..))
@@ -77,6 +77,7 @@ data AgentState =
         , _nodeClientState     :: NC.NodeClientState
         , _chainIndexState     :: CI.AppState
         , _signingProcessState :: SP.SigningProcess
+        , _agentEventState     :: EventMap (ChainEvent TestContracts)
         }
 
 makeLenses 'AgentState
@@ -88,6 +89,7 @@ emptyAgentState wallet =
         , _nodeClientState = NC.emptyNodeClientState
         , _chainIndexState = CI.initialAppState
         , _signingProcessState = SP.defaultSigningProcess wallet
+        , _agentEventState = emptyEventMap
         }
 
 agentState :: Wallet.Wallet -> Lens' (Map Wallet AgentState) AgentState
@@ -124,7 +126,6 @@ type MultiAgentEffs =
     , Chain.ChainEffect
     , Error SCBError
     , Writer [EmulatorEvent]
-    , EventLogEffect (ChainEvent TestContracts)
     , UUIDEffect
     ]
 
@@ -147,7 +148,7 @@ handleMultiAgent = interpret $ \case
             & ChainIndex.handleChainIndex
             & SP.handleSigningProcess
             & subsume
-            & subsume
+            & handleEventLogState
             & NF.handleNodeFollower
             & subsume
             & subsume
@@ -159,6 +160,7 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (agentState wallet . chainIndexState . CI.indexState))
             & interpret (handleZoomedWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
+            & interpret (handleZoomedState (agentState wallet . agentEventState))
             where
                 p1 :: Prism' [EmulatorEvent] [Wallet.WalletEvent]
                 p1 = below (walletEvent wallet)

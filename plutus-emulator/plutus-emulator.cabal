@@ -94,7 +94,8 @@ library
         newtype-generics,
         http-api-data,
         freer-simple -any,
-        cardano-crypto
+        cardano-crypto,
+        semigroups -any
 
 test-suite plutus-emulator-test
     type: exitcode-stdio-1.0

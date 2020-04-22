@@ -1,3 +1,4 @@
+
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -20,8 +21,14 @@ module Plutus.SCB.TestApp
     , sync
     , syncAll
     , TestAppEffects
-    , valueAt
     , defaultWallet
+    , TestState
+    -- * Queries of the emulated state
+    , valueAt
+    , TxCounts(..)
+    , txCounts
+    , txValidated
+    , txMemPool
     ) where
 
 import           Cardano.Node.Follower                         (NodeFollowerEffect, handleNodeFollower)
@@ -34,6 +41,7 @@ import qualified Cardano.Node.Types                            as NodeServer
 import qualified Cardano.Wallet.Mock                           as WalletServer
 import           Control.Concurrent.MVar                       (MVar, newMVar)
 import           Control.Lens                                  hiding (use)
+import           Control.Lens.TH                               (makeLenses)
 import           Control.Monad                                 (void)
 import           Control.Monad.Except                          (ExceptT, MonadError, runExceptT)
 import           Control.Monad.Freer
@@ -57,6 +65,7 @@ import qualified Data.Map                                      as Map
 import qualified Data.Sequence                                 as Seq
 import           Data.Text                                     (Text)
 import qualified Data.Text                                     as Text
+import           Data.Text.Prettyprint.Doc
 import           Eventful                                      (commandStoredAggregate, getLatestStreamProjection,
                                                                 streamEventEvent)
 import           Eventful.Store.Memory                         (EventMap, emptyEventMap, stateEventStoreReader,
@@ -73,7 +82,7 @@ import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect (..))
 import           Plutus.SCB.Effects.ContractTest               (TestContracts, handleContractTest)
 import           Plutus.SCB.Effects.EventLog                   (EventLogEffect, handleEventLogSql, handleEventLogState)
-import           Plutus.SCB.Effects.MultiAgent                 (AgentState, MultiAgentSCBEffect)
+import           Plutus.SCB.Effects.MultiAgent                 (AgentState, MultiAgentSCBEffect, SCBClientEffects)
 import qualified Plutus.SCB.Effects.MultiAgent                 as SCB.MultiAgent
 import           Plutus.SCB.Effects.UUID                       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                             (ChainEvent)
@@ -107,10 +116,8 @@ import qualified Wallet.Emulator.Wallet
 
 data TestState =
     TestState
-        { _eventStore       :: EventMap (ChainEvent TestContracts)
-        , _agentStates      :: Map Wallet AgentState
+        { _agentStates      :: Map Wallet AgentState
         , _nodeState        :: NodeServer.AppState
-        , _chainEventLog    :: [ChainEvent TestContracts]
         , _emulatorEventLog :: [EmulatorEvent]
         }
 
@@ -122,34 +129,20 @@ defaultWallet = WalletServer.activeWallet
 initialTestState :: TestState
 initialTestState =
     TestState
-        { _eventStore = emptyEventMap
-        , _agentStates = Map.empty
+        { _agentStates = Map.empty
         , _nodeState = NodeServer.initialAppState
-        , _chainEventLog = []
         , _emulatorEventLog = []
         }
 
 type TestAppEffects =
     '[ MultiAgentSCBEffect
      , ChainEffect
-     , EventLogEffect (ChainEvent TestContracts)
      , State TestState
      , Log
+     , Error SCBError
      , IO
      ]
 
--- | The value at an address, in the UTXO set of the emulated node.
---   Note that the agents may have a different view of this (use 'syncAll'
---   to synchronise all agents)
-valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
-valueAt address =
-    use (nodeState
-        . NodeServer.chainState
-        . Wallet.Emulator.Chain.chainNewestFirst
-        . to (AM.values . AM.fromChain)
-        . at address
-        . non mempty
-        )
 
 runScenario :: Eff TestAppEffects a -> IO ()
 runScenario action = do
@@ -161,21 +154,22 @@ runScenario action = do
     case result of
         Left err -> do
             runTestApp finalState $ do
-                events :: [ChainEvent TestContracts] <-
-                    fmap streamEventEvent <$> runGlobalQuery pureProjection
-                logDebug "Final Event Stream"
-                logDebug "--"
-                traverse_ (logDebug . abbreviate 120 . tshow) events
-                logDebug "--"
+                -- FIXME show events of all wallets? (There are many!)
+                -- events :: [ChainEvent TestContracts] <-
+                --     fmap streamEventEvent <$> runGlobalQuery pureProjection
+                -- logDebug "Final Event Stream"
+                -- logDebug "--"
+                -- traverse_ (logDebug . abbreviate 120 . tshow . pretty) events
+                -- logDebug "--"
                 logDebug "Final chain events"
                 logDebug "--"
                 chainEvents <- use (nodeState . NodeServer.eventHistory)
-                traverse_ (logDebug . abbreviate 120 . tshow) chainEvents
+                traverse_ (logDebug . abbreviate 120 . tshow . pretty) chainEvents
                 logDebug "--"
                 logDebug "Final emulator events"
                 logDebug "--"
-                chainEvents <- use emulatorEventLog
-                traverse_ (logDebug . abbreviate 120 . tshow) chainEvents
+                emulatorEvents <- use emulatorEventLog
+                traverse_ (logDebug . abbreviate 120 . tshow . pretty) emulatorEvents
                 logDebug "--"
                 logDebug "Final chain index events (default wallet)"
                 logDebug "--"
@@ -197,34 +191,30 @@ runTestApp state action =
     $ flip handleError (throwError . WalletError)
 
     -- state handlers
-    $ interpret (handleZoomedState eventStore)
     $ interpret (handleZoomedState agentStates)
     $ interpret (handleZoomedState (nodeState . NodeServer.chainState))
     $ interpret (handleZoomedState (nodeState . NodeServer.followerState))
 
     -- writers
     $ interpret (writeIntoState emulatorEventLog)
-    $ interpret (writeIntoState chainEventLog)
     $ interpret (handleZoomedWriter @[EmulatorEvent] @_ @[Wallet.Emulator.Chain.ChainEvent] (below chainEvent))
 
     -- handlers for 'TestAppEffects'
     $ subsume
+    $ subsume
     $ runStderrLog
     $ subsume
-    $ handleEventLogState
     $ handleChain
     $ SCB.MultiAgent.handleMultiAgent
     $ raiseEnd6
         -- interpret the 'TestAppEffects' using
         -- the following list of effects
         @'[ Writer [Wallet.Emulator.Chain.ChainEvent]
-          , Writer [ChainEvent TestContracts]
           , Writer [EmulatorEvent]
 
           , State _
           , State _
           , State (Map Wallet AgentState)
-          , State (EventMap (ChainEvent TestContracts))
 
           , Error WalletAPIError
           , Error SCBError
@@ -237,8 +227,17 @@ runTestApp state action =
         action
 
 -- | Synchronise the agent's view of the blockchain with the node.
-sync :: Member MultiAgentSCBEffect effs => Wallet -> Eff effs ()
-sync wllt = SCB.MultiAgent.agentControlAction wllt ChainIndex.syncState
+sync ::
+    forall effs.
+    ( Member MultiAgentSCBEffect effs
+    )
+    => Wallet
+    -> Eff effs ()
+sync wllt = do
+    SCB.MultiAgent.agentControlAction wllt ChainIndex.syncState
+    SCB.MultiAgent.agentAction wllt $ do
+        processAllContractInboxes @TestContracts
+        processAllContractOutboxes @TestContracts
 
 -- | Run 'sync' for all agents
 syncAll :: Member MultiAgentSCBEffect effs => Eff effs ()
@@ -246,3 +245,37 @@ syncAll = traverse_ sync (Wallet <$> [1..10])
 
 fromString :: Either String a -> Either SCBError a
 fromString = first (ContractCommandError 0 . Text.pack)
+
+-- | Statistics about the transactions that have been validated by the emulated node.
+data TxCounts =
+    TxCounts
+        { _txValidated :: Int
+        -- ^ How many transactions were checked and added to the ledger
+        , _txMemPool   :: Int
+        -- ^ How many transactions remain in the mempool of the emulated node
+        } deriving (Eq, Ord, Show)
+
+txCounts :: Member (State TestState) effs => Eff effs TxCounts
+txCounts = do
+    chain <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
+    pool <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.txPool)
+    return
+        $ TxCounts
+            { _txValidated = lengthOf folded chain
+            , _txMemPool   = length pool
+            }
+
+-- | The value at an address, in the UTXO set of the emulated node.
+--   Note that the agents may have a different view of this (use 'syncAll'
+--   to synchronise all agents)
+valueAt :: Member (State TestState) effs => Address -> Eff effs Ledger.Value
+valueAt address =
+    use (nodeState
+        . NodeServer.chainState
+        . Wallet.Emulator.Chain.chainNewestFirst
+        . to (AM.values . AM.fromChain)
+        . at address
+        . non mempty
+        )
+
+makeLenses ''TxCounts

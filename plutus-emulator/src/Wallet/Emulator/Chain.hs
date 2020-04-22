@@ -150,3 +150,5 @@ validateEm h txn = do
         Right idx' -> do
             _ <- S.put idx'
             pure Nothing
+
+makePrisms ''ChainEvent

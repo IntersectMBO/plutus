@@ -21,7 +21,7 @@ import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad.Logger          (LogLevel (LevelDebug, LevelInfo), filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                    as JSON
 import qualified Data.ByteString.Lazy.Char8    as BS8
-import           Data.Foldable                 (traverse_)
+import           Data.Foldable                 (toList, traverse_)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as Text
 import           Data.Text.Prettyprint.Doc     (parens, pretty, (<+>))
@@ -36,9 +36,11 @@ import           Options.Applicative           (CommandFields, Mod, Parser, argu
 import           Plutus.SCB.App                (App, runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
-import           Plutus.SCB.Types              (ActiveContractState, Config (Config), ContractExe (..),
+import qualified Plutus.SCB.Core.ContractInstance as Instance
+import           Plutus.SCB.Types              (Config (Config), ContractExe (..),
                                                 chainIndexConfig, nodeServerConfig, signingProcessConfig,
                                                 walletServerConfig)
+import           Plutus.SCB.Events.Contract    (ContractInstanceId (..), ContractInstanceState)
 import           Plutus.SCB.Utils              (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server   as SCBServer
 import qualified PSGenerator
@@ -291,24 +293,24 @@ runCliCommand _ Config {signingProcessConfig} SigningProcess =
     SigningProcess.main signingProcessConfig
 runCliCommand _ _ (InstallContract path) = Core.installContract (ContractExe path)
 runCliCommand _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
-runCliCommand _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe uuid
+runCliCommand _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe (ContractInstanceId uuid)
 runCliCommand _ _ ReportInstalledContracts = do
     logInfo "Installed Contracts"
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
 runCliCommand _ _ ReportActiveContracts = do
     logInfo "Active Contracts"
-    traverse_ (logInfo . render . pretty) =<< Core.activeContracts @ContractExe
+    traverse_ (logInfo . render . pretty . toList) =<< Core.activeContracts @ContractExe
 runCliCommand _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
 runCliCommand _ _ (UpdateContract uuid endpoint payload) =
-    Core.updateContract @ContractExe uuid endpoint payload
+    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (Text.unpack endpoint) payload
 runCliCommand _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
-    contracts <- Core.activeContractHistory @ContractExe uuid
+    contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
     itraverse_ logContract contracts
     where
-      logContract :: Int -> ActiveContractState ContractExe -> App ()
+      logContract :: Int -> ContractInstanceState ContractExe -> App ()
       logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
 runCliCommand _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
