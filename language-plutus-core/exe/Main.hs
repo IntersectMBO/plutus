@@ -61,9 +61,7 @@ input = fileInput <|> stdInput
 
 fileInput :: Parser Input
 fileInput = FileInput <$> strOption
-  (  long "file"
-  <> short 'f'
-  <> long "input"
+  (  long "input"
   <> short 'i'
   <> metavar "FILENAME"
   <> help "Input file" )
