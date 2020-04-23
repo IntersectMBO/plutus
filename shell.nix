@@ -10,7 +10,8 @@ with packageSet; haskell.packages.shellFor {
     pkgs.yarn
     pkgs.zlib
     pkgs.z3
-    pkgs.sqlite-analyzer
+    # Broken on 20.03, needs a backport
+    # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
