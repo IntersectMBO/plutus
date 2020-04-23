@@ -190,7 +190,6 @@ footerPanelBg state _ =
   else
     [ ClassName "footer-panel-bg" ]
 
--- FIXME: get correct piece of state
 githubDisplay :: FrontendState -> Array ClassName
 githubDisplay state = if state ^. _showBottomPanel then [ ClassName "hover" ] else []
 

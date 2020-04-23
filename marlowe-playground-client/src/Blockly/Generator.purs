@@ -52,7 +52,7 @@ foreign import mkGenerator_ :: forall r. Fn3 NewSTRefFunction BlocklyState Strin
 
 foreign import insertGeneratorFunction_ :: forall r. Fn3 (STRef r Generator) String (Block -> String) (ST r Unit)
 
-foreign import workspaceToCode_ :: forall a b. Fn4 (a -> Either a b) (b -> Either a b) BlocklyState Generator (Either String String)
+foreign import blockToCode_ :: forall a b. Fn4 (a -> Either a b) (b -> Either a b) Block Generator (Either String String)
 
 foreign import inputList_ :: Fn1 Block (Array Input)
 
@@ -111,8 +111,8 @@ unsafeFromRight (Right a) = a
 
 unsafeFromRight (Left e) = runFn1 unsafeThrowError_ e
 
-workspaceToCode :: BlocklyState -> Generator -> Either String String
-workspaceToCode = runFn4 workspaceToCode_ Left Right
+blockToCode :: Block -> Generator -> Either String String
+blockToCode = runFn4 blockToCode_ Left Right
 
 inputList :: Block -> Array Input
 inputList = runFn1 inputList_

@@ -191,6 +191,8 @@ test-suite plutus-scb-test
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
         Plutus.SCB.TestApp
+        Plutus.SCB.Effects.ContractTest
+        Plutus.SCB.Effects.MultiAgent
 
     build-depends:
         QuickCheck -any,

@@ -34,6 +34,7 @@ exports.daylightTheme_ = {
         { token: '', foreground: red, background: 'fffffe' },
         { token: "number", foreground: purple },
         { token: "string", foreground: orange },
+        { token: "ratio", foreground: darkGreen },
         { token: "comma", foreground: darkGreen },
         { token: "lparen", foreground: darkGreen },
         { token: "rparen", foreground: darkGreen },

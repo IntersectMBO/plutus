@@ -416,7 +416,7 @@ lintValue env t@(Term (SubValue a b) pos) = do
       markSimplification constToVal SimplifiableValue b sb
       pure (ValueSimp pos false t)
 
-lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
+lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
   if (b == zero) then do
     modifying _warnings (Set.insert (DivisionByZero (termToRange r pos2)))
@@ -439,19 +439,12 @@ lintValue env t@(Term (Scale (Term r@(Rational a b) pos2) c) pos) = do
             pure unit
           else do
             markSimplification constToVal SimplifiableValue c sc
-          pure (ValueSimp pos isSimp (Term (Scale (Term (Rational na nb) pos2) c) pos))
-
-lintValue env t@(Term (Scale h@(Hole _ _ _) c) pos) = do
-  sc <- lintValue env c
-  case sc of
-    (ConstantSimp _ _ v)
-      | v == zero -> pure (ConstantSimp pos true zero)
-    _ -> do
-      markSimplification constToVal SimplifiableValue c sc
-      pure (ValueSimp pos false t)
+          pure (ValueSimp pos isSimp (Term (Scale (TermWrapper (Rational na nb) pos2) c) pos))
 
 lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
   modifying _holes (getHoles choiceId)
+  sa <- lintValue env a
+  markSimplification constToVal SimplifiableValue a sa
   pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
