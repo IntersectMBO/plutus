@@ -69,7 +69,7 @@ import qualified Ledger.AddressMap                             as AM
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect (..))
-import           Plutus.SCB.Effects.ContractTest               (handleContractTest)
+import           Plutus.SCB.Effects.ContractTest               (TestContracts, handleContractTest)
 import           Plutus.SCB.Effects.EventLog                   (EventLogEffect, handleEventLogSql, handleEventLogState)
 import           Plutus.SCB.Effects.MultiAgent                 (AgentState, MultiAgentSCBEffect)
 import qualified Plutus.SCB.Effects.MultiAgent                 as SCB.MultiAgent
@@ -105,10 +105,10 @@ import qualified Wallet.Emulator.Wallet
 
 data TestState =
     TestState
-        { _eventStore       :: EventMap ChainEvent
+        { _eventStore       :: EventMap (ChainEvent TestContracts)
         , _agentStates      :: Map Wallet AgentState
         , _nodeState        :: NodeServer.AppState
-        , _chainEventLog    :: [ChainEvent]
+        , _chainEventLog    :: [ChainEvent TestContracts]
         , _emulatorEventLog :: [EmulatorEvent]
         }
 
@@ -130,7 +130,7 @@ initialTestState =
 type TestAppEffects =
     '[ MultiAgentSCBEffect
      , ChainEffect
-     , EventLogEffect ChainEvent
+     , EventLogEffect (ChainEvent TestContracts)
      , State TestState
      , Log
      , IO
@@ -159,7 +159,7 @@ runScenario action = do
     case result of
         Left err -> do
             runTestApp finalState $ do
-                events :: [ChainEvent] <-
+                events :: [ChainEvent TestContracts] <-
                     fmap streamEventEvent <$> runGlobalQuery pureProjection
                 logDebug "Final Event Stream"
                 logDebug "--"
@@ -215,13 +215,13 @@ runTestApp state action =
         -- interpret the 'TestAppEffects' using
         -- the following list of effects
         @'[ Writer [Wallet.Emulator.Chain.ChainEvent]
-          , Writer [ChainEvent]
+          , Writer [ChainEvent TestContracts]
           , Writer [EmulatorEvent]
 
           , State _
           , State _
           , State (Map Wallet AgentState)
-          , State (EventMap ChainEvent)
+          , State (EventMap (ChainEvent TestContracts))
 
           , Error WalletAPIError
           , Error SCBError

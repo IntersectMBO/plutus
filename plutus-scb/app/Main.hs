@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Main
     ( main
@@ -34,7 +35,7 @@ import           Options.Applicative           (CommandFields, Mod, Parser, argu
 import           Plutus.SCB.App                (App, runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
-import           Plutus.SCB.Types              (Config (Config), chainIndexConfig, nodeServerConfig,
+import           Plutus.SCB.Types              (Config (Config), ContractExe (..), chainIndexConfig, nodeServerConfig,
                                                 signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils              (logErrorS, render)
 import           System.Exit                   (ExitCode (ExitFailure), exitSuccess, exitWith)
@@ -245,26 +246,26 @@ runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
 runCliCommand Config {signingProcessConfig} SigningProcess =
     SigningProcess.main signingProcessConfig
-runCliCommand _ (InstallContract path) = Core.installContract path
-runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
-runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
+runCliCommand _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe uuid
 runCliCommand _ ReportInstalledContracts = do
     logInfo "Installed Contracts"
-    traverse_ (logInfo . render . pretty) =<< Core.installedContracts
+    traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
 runCliCommand _ ReportActiveContracts = do
     logInfo "Active Contracts"
-    traverse_ (logInfo . render . pretty) =<< Core.activeContracts
+    traverse_ (logInfo . render . pretty) =<< Core.activeContracts @ContractExe
 runCliCommand _ ReportTxHistory = do
     logInfo "Transaction History"
-    traverse_ (logInfo . render . pretty) =<< Core.txHistory
+    traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
 runCliCommand _ (UpdateContract uuid endpoint payload) =
-    Core.updateContract uuid endpoint payload
+    Core.updateContract @ContractExe uuid endpoint payload
 runCliCommand _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
     itraverse_
         (\index contract ->
              logInfo $ render (parens (pretty index) <+> pretty contract)) =<<
-        Core.activeContractHistory uuid
+        Core.activeContractHistory @ContractExe uuid
 
 main :: IO ()
 main = do

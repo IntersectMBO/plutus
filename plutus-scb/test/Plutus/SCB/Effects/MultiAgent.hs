@@ -45,7 +45,7 @@ import qualified Cardano.Node.Types              as NF
 import qualified Cardano.Node.Types              as NodeServer
 
 import           Plutus.SCB.Effects.Contract     (ContractEffect (..))
-import           Plutus.SCB.Effects.ContractTest (handleContractTest)
+import           Plutus.SCB.Effects.ContractTest (TestContracts (..), handleContractTest)
 import           Plutus.SCB.Effects.EventLog     (EventLogEffect)
 import           Plutus.SCB.Effects.UUID         (UUIDEffect)
 import           Plutus.SCB.Events               (ChainEvent)
@@ -95,12 +95,12 @@ agentState wallet = at wallet . anon (emptyAgentState wallet) (const False)
 
 type SCBClientEffects =
     '[WalletEffect
-    , ContractEffect
+    , ContractEffect TestContracts
     , NodeClientEffect
     , ChainIndexEffect
     , SigningProcessEffect
     , UUIDEffect
-    , EventLogEffect ChainEvent
+    , EventLogEffect (ChainEvent TestContracts)
     , NodeFollowerEffect
     , Error WalletAPIError
     , Error SCBError
@@ -124,7 +124,7 @@ type MultiAgentEffs =
     , Chain.ChainEffect
     , Error SCBError
     , Writer [EmulatorEvent]
-    , EventLogEffect ChainEvent
+    , EventLogEffect (ChainEvent TestContracts)
     , UUIDEffect
     ]
 

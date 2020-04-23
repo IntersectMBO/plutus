@@ -32,9 +32,9 @@ import           Plutus.SCB.Events (ChainEvent (NodeEvent, UserEvent), NodeEvent
                                     UserEvent (ContractStateTransition, InstallContract))
 import qualified Plutus.SCB.Events as Events
 import           Plutus.SCB.Query  (nullProjection)
-import           Plutus.SCB.Types  (ActiveContractState, Contract)
+import           Plutus.SCB.Types  (ActiveContractState)
 
-installCommand :: Aggregate () ChainEvent Contract
+installCommand :: Aggregate () (ChainEvent t) t
 installCommand =
     Aggregate
         { aggregateProjection = nullProjection
@@ -42,26 +42,26 @@ installCommand =
               \() contract -> [UserEvent $ InstallContract contract]
         }
 
-saveBalancedTx :: Aggregate () ChainEvent Ledger.Tx
+saveBalancedTx :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
 saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
   where
     aggregateProjection = nullProjection
     aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
 
-saveBalancedTxResult :: Aggregate () ChainEvent Ledger.Tx
+saveBalancedTxResult :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
 saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
   where
     aggregateProjection = nullProjection
     aggregateCommandHandler _ tx = [Events.NodeEvent $ Events.SubmittedTx tx]
 
-saveContractState :: Aggregate () ChainEvent ActiveContractState
+saveContractState :: forall t. Aggregate () (ChainEvent t) (ActiveContractState t)
 saveContractState =
     Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
   where
     aggregateCommandHandler _ state =
         [UserEvent $ ContractStateTransition state]
 
-saveBlock :: Aggregate () ChainEvent [Ledger.Tx]
+saveBlock :: forall t. Aggregate () (ChainEvent t) [Ledger.Tx]
 saveBlock =
     Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
   where

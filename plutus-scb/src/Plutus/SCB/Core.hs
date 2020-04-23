@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -61,7 +62,7 @@ import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
 import           Data.Text                                  (Text)
 import qualified Data.Text                                  as Text
-import           Data.Text.Prettyprint.Doc                  (pretty, (<+>))
+import           Data.Text.Prettyprint.Doc                  (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite                    (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful                                   (Projection, StreamEvent (StreamEvent), UUID,
                                                              projectionMapMaybe)
@@ -78,16 +79,14 @@ import           Plutus.SCB.Events                          (ChainEvent (NodeEve
 import           Plutus.SCB.Query                           (blockCount, latestContractStatus, monoidProjection,
                                                              setProjection, utxoAt, utxoIndexProjection)
 import           Plutus.SCB.Types                           (ActiveContract (ActiveContract),
-                                                             ActiveContractState (ActiveContractState),
-                                                             Contract (Contract),
+                                                             ActiveContractState (ActiveContractState), ContractExe,
                                                              ContractHook (OwnPubKeyHook, TxHook, UtxoAtHook),
                                                              DbConfig (DbConfig),
                                                              PartiallyDecodedResponse (PartiallyDecodedResponse),
                                                              SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
-                                                             Source (..), activeContract, activeContractId,
-                                                             activeContractPath, contractPath, dbConfigFile,
-                                                             dbConfigPoolSize, hooks, newState,
-                                                             partiallyDecodedResponse, toUUID)
+                                                             Source (..), activeContract, activeContractDefinition,
+                                                             activeContractInstanceId, dbConfigFile, dbConfigPoolSize,
+                                                             hooks, newState, partiallyDecodedResponse, toUUID)
 import           Plutus.SCB.Utils                           (render, tshow)
 import qualified Wallet.API                                 as WAPI
 import           Wallet.Emulator.MultiAgent                 (EmulatedWalletEffects)
@@ -102,66 +101,76 @@ import           Wallet.API                                 (WalletEffect)
 import           Wallet.Effects                             (ChainIndexEffect, NodeClientEffect, SigningProcessEffect)
 import qualified Wallet.Effects                             as WalletEffects
 
-type ContractEffects =
-        '[ EventLogEffect ChainEvent
+type ContractEffects t =
+        '[ EventLogEffect (ChainEvent t)
          , Log
          , UUIDEffect
-         , ContractEffect
+         , ContractEffect FilePath
          , Error SCBError
          ]
 
 installContract ::
+    forall t effs.
     ( Member Log effs
-    , Member (EventLogEffect ChainEvent) effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    , Show t
     )
-    => FilePath
+    => t
     -> Eff effs ()
-installContract filePath = do
-    logInfo $ "Installing: " <> tshow filePath
+installContract contractHandle = do
+    logInfo $ "Installing: " <> tshow contractHandle
     void $
         runCommand
             installCommand
             UserEventSource
-            (Contract {contractPath = filePath})
+            contractHandle
     logInfo "Installed."
 
 lookupContract ::
-    ( Member (EventLogEffect ChainEvent) effs
+    forall t effs.
+    ( Member (EventLogEffect (ChainEvent t)) effs
     , Member (Error SCBError) effs
+    , Show t
+    , Ord t
     )
-    => FilePath
-    -> Eff effs Contract
-lookupContract filePath = do
+    => t
+    -> Eff effs t
+lookupContract t = do
     installed <- installedContracts
     let matchingContracts =
             Set.filter
-                (\Contract {contractPath} -> contractPath == filePath)
+                (\cp -> cp == t)
                 installed
     case Set.lookupMin matchingContracts of
         Just c  -> pure c
-        Nothing -> throwError (ContractNotFound filePath)
+        Nothing -> throwError (ContractNotFound (show t))
 
+-- | Create a new instance of the contract
 activateContract ::
+    forall t effs.
     ( Member Log effs
-    , Member (EventLogEffect ChainEvent) effs
+    , Member (EventLogEffect (ChainEvent t)) effs
     , Member (Error SCBError) effs
     , Member UUIDEffect effs
-    , Member ContractEffect effs
+    , Member (ContractEffect t) effs
+    , Show t
+    , Pretty t
+    , Ord t
     )
-    => FilePath
+    => t
     -> Eff effs UUID
 activateContract filePath = do
     logInfo "Finding Contract"
-    contract <- lookupContract filePath
-    activeContractId <- uuidNextRandom
+    contract <- lookupContract @t filePath
+    activeContractInstanceId <- uuidNextRandom
     logInfo "Initializing Contract"
-    response <- invokeContract $ InitContract (contractPath contract)
+    response <- invokeContract @t $ InitContract contract
     let activeContractState =
             ActiveContractState
                 { activeContract =
                       ActiveContract
-                          { activeContractId
-                          , activeContractPath = contractPath contract
+                          { activeContractInstanceId
+                          , activeContractDefinition = contract
                           }
                 , partiallyDecodedResponse = response
                 }
@@ -170,14 +179,18 @@ activateContract filePath = do
     logInfo . render $
         "Activated:" <+> pretty (activeContract activeContractState)
     logInfo "Done"
-    pure activeContractId
+    pure activeContractInstanceId
 
 updateContract ::
+    forall t effs.
        ( Members EmulatedWalletEffects effs
        , Member (Error SCBError) effs
-       , Member (EventLogEffect ChainEvent) effs
-       , Member ContractEffect effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (ContractEffect t) effs
        , Member NodeFollowerEffect effs
+       , Show t
+       , Pretty t
+       , Ord t
        )
     => UUID
     -> Text
@@ -185,15 +198,15 @@ updateContract ::
     -> Eff effs ()
 updateContract uuid endpointName endpointPayload = do
     logInfo "Finding Contract"
-    oldContractState <- lookupActiveContractState uuid
+    oldContractState <- lookupActiveContractState @t uuid
     logInfo $
         "Updating Contract: " <>
-        Text.pack (activeContractPath (activeContract oldContractState)) <>
+        Text.pack (show $ activeContract oldContractState) <>
         "/" <> endpointName
     fID <- newFollower
     void
-        $ execState @T  (oldContractState, [])
-        $ invokeContractUpdate fID (EventPayload endpointName endpointPayload)
+        $ execState @(ActiveContractStateHooks _)  (oldContractState, [])
+        $ invokeContractUpdate @t fID (EventPayload endpointName endpointPayload)
     logInfo "Handling Resulting Blockchain Events"
     logInfo "Done"
 
@@ -209,24 +222,28 @@ parseSingleHook parser response =
         Right result -> pure result
 
 handleContractHook ::
+    forall t effs.
        ( Members EmulatedWalletEffects effs
        , Member (Error SCBError) effs
-       , Member (EventLogEffect ChainEvent) effs
-       , Member (State T) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
        , Member NodeFollowerEffect effs
-       , Member ContractEffect effs
+       , Member (ContractEffect t) effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> ContractHook
     -> Eff effs ()
-handleContractHook _ (TxHook unbalancedTxs)  = handleTxHook unbalancedTxs
+handleContractHook _ (TxHook unbalancedTxs)  = handleTxHook @t unbalancedTxs
 handleContractHook i (UtxoAtHook address)  =
-    WalletEffects.startWatching address >> handleUtxoAtHook i address
-handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook i request
+    WalletEffects.startWatching address >> handleUtxoAtHook @t i address
+handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook @t i request
 
 handleTxHook ::
+    forall t effs.
        ( Members EmulatedWalletEffects effs
-       , Member (EventLogEffect ChainEvent) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
        )
     => UnbalancedTx
     -> Eff effs ()
@@ -238,36 +255,42 @@ handleTxHook unbalancedTx = do
     balancedTx <- Wallet.balanceWallet unbalancedTx
     signedTx <- WAPI.signWithOwnPublicKey balancedTx
     logInfo $ "Storing signed TX: " <> tshow signedTx
-    void $ runCommand saveBalancedTx WalletEventSource balancedTx
+    void $ runCommand (saveBalancedTx @t) WalletEventSource balancedTx
     logInfo $ "Submitting signed TX: " <> tshow signedTx
     balanceResult <- submitTx signedTx
-    void $ runCommand saveBalancedTxResult NodeEventSource balanceResult
+    void $ runCommand (saveBalancedTxResult @t) NodeEventSource balanceResult
 
 handleUtxoAtHook ::
+    forall t effs.
        ( Member (Error SCBError) effs
-       , Member (EventLogEffect ChainEvent) effs
-       , Member (State T) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
        , Member NodeFollowerEffect effs
-       , Member ContractEffect effs
+       , Member (ContractEffect t) effs
        , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> Ledger.Address
     -> Eff effs ()
 handleUtxoAtHook i address = do
     logDebug $ "Fetching utxo-at: " <> tshow address
-    utxoIndex <- runGlobalQuery utxoIndexProjection
+    utxoIndex <- runGlobalQuery (utxoIndexProjection @t)
     let utxoAtAddress = utxoAt utxoIndex address
     logDebug $ "Fetched utxo-at: " <> tshow utxoAtAddress
-    invokeContractUpdate i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
+    invokeContractUpdate @t i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
 
 handleOwnPubKeyHook ::
+    forall t effs.
        ( Member (Error SCBError) effs
-       , Member (EventLogEffect ChainEvent) effs
-       , Member (State T) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
        , Member NodeFollowerEffect effs
-       , Member ContractEffect effs
+       , Member (ContractEffect t) effs
        , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> OwnPubKeyRequest
@@ -276,7 +299,7 @@ handleOwnPubKeyHook _ NotWaitingForPubKey = pure ()
 handleOwnPubKeyHook i WaitingForPubKey = do
     logInfo "Handling 'own-pubkey' hook."
     key :: WAPI.PubKey <- WAPI.ownPubKey
-    invokeContractUpdate i $ EventPayload "own-pubkey" (JSON.toJSON key)
+    invokeContractUpdate @t i $ EventPayload "own-pubkey" (JSON.toJSON key)
 
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
@@ -298,43 +321,49 @@ hookParser =
         pure $ txHooks <> utxoAtHooks <> [ownPubKeyHook]
 
 reportContractStatus ::
+    forall t effs.
     ( Member Log effs
-    , Member (EventLogEffect ChainEvent) effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    , Pretty t
     )
     => UUID
     -> Eff effs ()
 reportContractStatus uuid = do
     logInfo "Finding Contract"
-    statuses <- runGlobalQuery latestContractStatus
+    statuses <- runGlobalQuery (latestContractStatus @t)
     logInfo $ render $ pretty $ Map.lookup uuid statuses
 
 lookupActiveContractState ::
+    forall t effs.
     ( Member (Error SCBError) effs
-    , Member (EventLogEffect ChainEvent) effs
+    , Member (EventLogEffect (ChainEvent t)) effs
     )
     => UUID
-    -> Eff effs ActiveContractState
+    -> Eff effs (ActiveContractState t)
 lookupActiveContractState uuid = do
     active <- activeContractStates
     case Map.lookup uuid active of
         Nothing -> throwError (ActiveContractStateNotFound uuid)
         Just s  -> return s
 
-type T = (ActiveContractState, [ContractHook])
+type ActiveContractStateHooks t = (ActiveContractState t, [ContractHook])
 
 invokeContractUpdate ::
-       ( Member (EventLogEffect ChainEvent) effs
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (Error SCBError) effs
-       , Member (State T) effs
+       , Member (State (ActiveContractStateHooks t )) effs
        , Member NodeFollowerEffect effs
-       , Member ContractEffect effs
+       , Member (ContractEffect t) effs
        , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> Payload
     -> Eff effs ()
 invokeContractUpdate i payload = do
-    oldContractState <- use @T _1
+    oldContractState <- use @(ActiveContractStateHooks t) _1
     -- Invoke the contract. Get the repsonse.
     response <- invokeContractUpdate_ oldContractState payload
     let newContractState =
@@ -345,65 +374,71 @@ invokeContractUpdate i payload = do
     void $ runCommand saveContractState ContractEventSource newContractState
     -- Append the new hooks.
     newHooks <- parseHooks response
-    assign @T _1 newContractState
-    pushHooks newHooks
-    processAllHooks i
+    assign @(ActiveContractStateHooks t) _1 newContractState
+    pushHooks @t newHooks
+    processAllHooks @t i
 
 processAllHooks ::
+    forall t effs.
        ( Members EmulatedWalletEffects effs
        , Member (Error SCBError) effs
-       , Member (EventLogEffect ChainEvent) effs
-       , Member (State T) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
        , Member NodeFollowerEffect effs
-       , Member ContractEffect effs
+       , Member (ContractEffect t) effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> Eff effs ()
 processAllHooks i =
-    popHook i >>= \case
+    popHook @t i >>= \case
         Nothing -> pure ()
         Just hook -> do
-            handleContractHook i hook
-            sync i
-            processAllHooks i
+            handleContractHook @t i hook
+            sync @t i
+            processAllHooks @t i
 
 sync ::
+    forall t effs.
        ( Member NodeFollowerEffect effs
-       , Member (EventLogEffect ChainEvent) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
        , Member Log effs
        )
     => FollowerID
     -> Eff effs ()
 sync i = do
     blocks <- getBlocks i
-    traverse_ (runCommand saveBlock NodeEventSource) blocks
-    count <- runGlobalQuery blockCount
+    traverse_ (runCommand (saveBlock @t) NodeEventSource) blocks
+    count <- runGlobalQuery (blockCount @t)
     logDebug $ "Block count is now: " <> tshow count
 
 -- | Old hooks go to the back of the queue.
 pushHooks ::
-       (Member (State T) effs)
+    forall t effs.
+       (Member (State (ActiveContractStateHooks t)) effs)
     => [ContractHook]
     -> Eff effs ()
-pushHooks newHooks = modifying @T _2 (\oldHooks -> oldHooks <> newHooks)
+pushHooks newHooks = modifying @(ActiveContractStateHooks t) _2 (\oldHooks -> oldHooks <> newHooks)
 
 popHook ::
-       ( Member (State T) effs
+    forall t effs.
+       ( Member (State (ActiveContractStateHooks t)) effs
        , Member Log effs
-       , Member (EventLogEffect ChainEvent) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
        , Member NodeFollowerEffect effs
        )
     => FollowerID
     -> Eff effs (Maybe ContractHook)
 popHook i = do
-    oldHooks <- use @T _2
+    oldHooks <- use @(ActiveContractStateHooks t) _2
     logDebug $ "Current Hooks: " <> tshow oldHooks
     case oldHooks of
         [] -> do
-            sync i
+            sync @t i
             pure Nothing
         (hook:newHooks) -> do
-            assign @T _2 newHooks
+            assign @(ActiveContractStateHooks t) _2 newHooks
             pure $ Just hook
 
 data Payload
@@ -418,75 +453,79 @@ encodePayload (EventPayload endpointName endpointValue) =
     , JSON.object [("tag", JSON.String endpointName), ("value", endpointValue)])
 
 invokeContractUpdate_ ::
-       (Member ContractEffect effs)
-    => ActiveContractState
+       (Member (ContractEffect t) effs)
+    => ActiveContractState t
     -> Payload
     -> Eff effs PartiallyDecodedResponse
-invokeContractUpdate_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
+invokeContractUpdate_ ActiveContractState { activeContract = ActiveContract {activeContractDefinition}
                                           , partiallyDecodedResponse = PartiallyDecodedResponse {newState}
                                           } payload =
     invokeContract $
-    UpdateContract activeContractPath $
+    UpdateContract activeContractDefinition $
     JSON.object [("oldState", newState), encodePayload payload]
 
-installedContracts :: Member (EventLogEffect ChainEvent) effs => Eff effs (Set Contract)
+installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set t)
 installedContracts = runGlobalQuery installedContractsProjection
 
 installedContractsProjection ::
-       Projection (Set Contract) (StreamEvent key position ChainEvent)
+    forall t key position.
+    Ord t => Projection (Set t) (StreamEvent key position (ChainEvent t))
 installedContractsProjection = projectionMapMaybe contractPaths setProjection
   where
     contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
         Just contract
     contractPaths _ = Nothing
 
-activeContracts :: Member (EventLogEffect ChainEvent) effs => Eff effs (Set ActiveContract)
+activeContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set (ActiveContract t))
 activeContracts = runGlobalQuery activeContractsProjection
 
 activeContractsProjection ::
-       Projection (Set ActiveContract) (StreamEvent key position ChainEvent)
+    forall t key position. Ord t =>
+       Projection (Set (ActiveContract t)) (StreamEvent key position (ChainEvent t))
 activeContractsProjection = projectionMapMaybe contractPaths setProjection
   where
     contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         Just $ activeContract state
     contractPaths _ = Nothing
 
-txHistory :: Member (EventLogEffect ChainEvent) effs => Eff effs [Ledger.Tx]
-txHistory = runGlobalQuery txHistoryProjection
+txHistory :: forall t effs. (Member (EventLogEffect (ChainEvent t)) effs) => Eff effs [Ledger.Tx]
+txHistory = runGlobalQuery (txHistoryProjection @t)
 
 txHistoryProjection ::
-       Projection [Ledger.Tx] (StreamEvent key position ChainEvent)
+    forall t key position.
+       Projection [Ledger.Tx] (StreamEvent key position (ChainEvent t))
 txHistoryProjection = projectionMapMaybe submittedTxs monoidProjection
   where
     submittedTxs (StreamEvent _ _ (NodeEvent (SubmittedTx tx))) = Just [tx]
     submittedTxs _                                              = Nothing
 
 activeContractHistory ::
-       Member (EventLogEffect ChainEvent) effs => UUID -> Eff effs [ActiveContractState]
+       Member (EventLogEffect (ChainEvent t)) effs => UUID -> Eff effs [ActiveContractState t]
 activeContractHistory uuid = runGlobalQuery activeContractHistoryProjection
   where
     activeContractHistoryProjection ::
-           Projection [ActiveContractState] (StreamEvent key position ChainEvent)
+           Projection [ActiveContractState t] (StreamEvent key position (ChainEvent t))
     activeContractHistoryProjection =
         projectionMapMaybe contractPaths monoidProjection
       where
         contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-            if activeContractId (activeContract state) == uuid
+            if activeContractInstanceId (activeContract state) == uuid
                 then Just [state]
                 else Nothing
         contractPaths _ = Nothing
 
 activeContractStates ::
-       Member (EventLogEffect ChainEvent) effs => Eff effs (Map UUID ActiveContractState)
+    forall t effs.
+       Member (EventLogEffect (ChainEvent t)) effs => Eff effs (Map UUID (ActiveContractState t))
 activeContractStates = runGlobalQuery activeContractStatesProjection
   where
     activeContractStatesProjection ::
-           Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+           Projection (Map UUID (ActiveContractState t)) (StreamEvent key position (ChainEvent t))
     activeContractStatesProjection =
         projectionMapMaybe contractStatePaths monoidProjection
       where
         contractStatePaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-            Just $ Map.singleton (activeContractId (activeContract state)) state
+            Just $ Map.singleton (activeContractInstanceId (activeContract state)) state
         contractStatePaths _ = Nothing
 
 ------------------------------------------------------------
@@ -509,10 +548,10 @@ type SCBEffects =
         , NodeFollowerEffect
         , WalletEffect
         , UUIDEffect
-        , ContractEffect
+        , ContractEffect ContractExe
         , ChainIndexEffect
         , NodeClientEffect
         , SigningProcessEffect
-        , EventLogEffect ChainEvent
+        , EventLogEffect (ChainEvent ContractExe)
         , Log
         ]

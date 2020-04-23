@@ -217,4 +217,5 @@ test-suite plutus-scb-test
         tasty-hunit -any,
         tasty-quickcheck -any,
         text -any,
-        transformers -any
+        transformers -any,
+        prettyprinter -any
