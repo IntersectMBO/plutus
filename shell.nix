@@ -16,6 +16,11 @@ with packageSet; haskell.packages.shellFor {
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
 
+    # Deployment tools
+    pkgs.terraform_0_11
+    pkgs.awscli
+    pkgs.aws_shell
+
     # Extra dev packages acquired from elsewhere
     # FIXME: Can't use this cabal until https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
     #dev.packages.cabal-install
