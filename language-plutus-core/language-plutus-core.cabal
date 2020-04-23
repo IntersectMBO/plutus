@@ -195,8 +195,10 @@ executable language-plutus-core-generate-evaluation-test
                  -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        cborg -any,
         hedgehog -any,
         language-plutus-core -any,
+        serialise -any,
         text -any
 
 test-suite language-plutus-core-test
@@ -287,6 +289,7 @@ executable plc
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
+        serialise -any,
         text -any,
         lens -any,
         prettyprinter -any,
