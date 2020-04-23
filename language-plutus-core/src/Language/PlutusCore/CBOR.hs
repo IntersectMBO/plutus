@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -9,7 +9,8 @@
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.
-module Language.PlutusCore.CBOR () where
+
+module Language.PlutusCore.CBOR (serialiseProg, deserialiseProg, deserialiseProgOrFail) where
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
@@ -23,6 +24,7 @@ import           PlutusPrelude
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
+import           Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Data.Proxy
 
@@ -272,3 +274,90 @@ instance Serialise UnknownDynamicBuiltinNameError
 instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (InternalTypeError uni ann)
 instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (TypeError uni ann)
 instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (Error uni ann)
+
+
+{- Serialising the unit annotation takes up space: () is converted to
+   the CBOR `null` value, which is encoded as the byte 0xF6.  In
+   typical examples these account for 30% or more of the bytes in a
+   serialised PLC program.  We don't actually need to serialise unit
+   annotations since we know where they're going to appear when we're
+   deserialising, and we know what the value has to be.  The
+   `InvisibleUnit` type below has a `Serialise` instance which
+   takes care of this for us: `serialise (InvisibleUnit () <$ prog)`
+    will serialise a program omitting the unit annotations, and
+   `deserialise` will give us back an `InvisibleUnit`-annotated program
+   which we can convert back to a ()-annotated program with `() <$ ...`.
+   The functions `serialiseProg`, `deserialiseProg` and `deserialiseProgOrFail`
+   do the conversions for us, so that the `InvisibleUnit` type doesn't have
+   to be exposed to uesrs.  These functions should always be used to serialise
+   and deserialise ()-annotated programs.
+
+   A possible problem is that `() <$ prog` has to visit every node in
+   the AST, which would incur a cost on chain.  `InvisibleUnit`
+   is coercible to `()` at zero cost, and this should extend to the
+   entire AST.  The functions below attempt to do this.
+-}
+
+newtype InvisibleUnit = InvisibleUnit ()
+
+instance Serialise InvisibleUnit where
+    encode = mempty
+    decode = pure (InvisibleUnit ())
+
+
+{- Everything works fine if you just use `<$` to change the annotations, but
+   things go wrong when you try to use `coerce`. -}
+
+serialiseProg :: (Closed uni, uni `Everywhere` Serialise) =>
+                 Program TyName Name uni () -> BSL.ByteString
+serialiseProg p =
+    let p1 = fmap (coerce :: () -> InvisibleUnit) p
+    in serialise p1
+
+{- You can also delete the type annotation on coerce and replace it with a
+   much more unpleasant one on p1.  What I can't get to work is to have
+
+     coerce p
+
+   instead of
+
+     fmap coerce p
+
+   This is annoying because it's presumably actually doing a lot of
+   the work that we're trying to avoid with coerce (although I don't
+   know that for sure).  This *does* work with a simple expression
+   language equipped with annotations, where the compiler knows that
+   the representation of an entire ()-annotated AST is the same as the
+   representation of the InvisibleUnit-annotated version.  Universes
+   seem to complicate matters, but I think there's more to it than
+   that because it doesn't work even if you fix uni to be
+   DefaultUniverse.
+-}
+
+deserialiseProg :: (Closed uni, uni `Everywhere` Serialise) =>
+                   BSL.ByteString -> Program TyName Name uni ()
+deserialiseProg s =
+    let p = deserialise s :: (Closed uni, uni `Everywhere` Serialise) =>
+            Program TyName Name uni InvisibleUnit
+    in fmap coerce p
+
+
+deserialiseProgOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
+                         BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
+deserialiseProgOrFail s =
+    let p = deserialiseOrFail s :: (Closed uni, uni `Everywhere` Serialise) =>
+                Either DeserialiseFailure (Program TyName Name uni InvisibleUnit)
+    in fmap (fmap coerce) p
+
+{-
+deserialiseProg2 :: BSL.ByteString -> Program TyName Name DefaultUni ()
+deserialiseProg2 s =
+    let p = deserialise s :: Program TyName Name DefaultUni InvisibleUnit
+    in coerce p :: Program TyName Name DefaultUni ()
+
+This gives the error:
+   Couldn't match type ‘InvisibleUnit’ with ‘()’
+        arising from a use of ‘coerce’
+
+I'm finding that rather mysterious.
+-}
