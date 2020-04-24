@@ -61,16 +61,16 @@ pangramContract = let
     alicePk = PK $ (pubKeyHash $ walletPubKey (Wallet 1))
     aliceAcc = AccountId 0 alicePk
     bobRole = Role "Bob"
-    const = Constant 100
+    constant = Constant 100
     choiceId = ChoiceId "choice" alicePk
     token = Token (CurrencySymbol "aa") (TokenName "name")
-    valueExpr = AddValue const (SubValue const (NegValue const))
+    valueExpr = AddValue constant (SubValue constant (NegValue constant))
     in When
         [ Case (Deposit aliceAcc alicePk ada valueExpr)
             (Let (ValueId "x") valueExpr
                 (Pay aliceAcc (Party bobRole) ada (UseValue (ValueId "x")) Close))
         , Case (Choice choiceId [Bound 0 1, Bound 10 20])
-            (If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId const `ValueEQ` Scale (1 % 10) const))
+            (If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId constant `ValueEQ` Scale (1 % 10) constant))
                 (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
                 Close)
         , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
