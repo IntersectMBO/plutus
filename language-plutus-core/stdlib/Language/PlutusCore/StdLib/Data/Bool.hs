@@ -37,10 +37,10 @@ false = mkConstant () False
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
 ifThenElse :: (TermLike term TyName Name uni, uni `IncludesAll` '[Bool, ()]) => term ()
 ifThenElse = runQuote $ do
-    a <- freshTyName () "a"
-    b <- freshName () "b"
-    x <- freshName () "x"
-    y <- freshName () "y"
+    a <- freshTyName "a"
+    b <- freshName "b"
+    x <- freshName "x"
+    y <- freshName "y"
     let unitFunA = TyFun () unit (TyVar () a)
     return
        . tyAbs () a (Type ())

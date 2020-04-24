@@ -17,7 +17,7 @@ import           Language.PlutusCore.Quote
 -- > all (A :: *). A -> A
 unit :: Type TyName uni ()
 unit = runQuote $ do
-    a <- freshTyName () "a"
+    a <- freshTyName "a"
     return
         . TyForall () a (Type ())
         . TyFun () (TyVar () a)
@@ -28,9 +28,9 @@ unit = runQuote $ do
 -- > /\(A :: *) -> \(x : A) -> x
 unitval :: TermLike term TyName Name uni => term ()
 unitval = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    x <- freshName "x"
     return
-        . tyAbs () a (Type ())
+        . tyAbs  () a (Type ())
         . lamAbs () x (TyVar () a)
         $ var () x

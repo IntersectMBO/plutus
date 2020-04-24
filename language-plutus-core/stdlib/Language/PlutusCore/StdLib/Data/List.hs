@@ -38,9 +38,9 @@ import           Language.PlutusCore.StdLib.Type
 -- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
 listData :: RecursiveType uni ()
 listData = runQuote $ do
-    a    <- freshTyName () "a"
-    list <- freshTyName () "list"
-    r    <- freshTyName () "r"
+    a    <- freshTyName "a"
+    list <- freshTyName "list"
+    r    <- freshTyName "r"
     let listA = TyApp () (TyVar () list) (TyVar () a)
     makeRecursiveType () list [TyVarDecl () a $ Type ()]
         . TyForall () r (Type ())
@@ -54,10 +54,10 @@ listData = runQuote $ do
 nil :: TermLike term TyName Name uni => term ()
 nil = runQuote $ do
     let RecursiveType list wrapList = listData
-    a <- freshTyName () "a"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    a <- freshTyName "a"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     let listA = TyApp () list (TyVar () a)
     return
         . tyAbs () a (Type ())
@@ -74,12 +74,12 @@ nil = runQuote $ do
 cons :: TermLike term TyName Name uni => term ()
 cons = runQuote $ do
     let RecursiveType list wrapList = listData
-    a  <- freshTyName () "a"
-    x  <- freshName () "x"
-    xs <- freshName () "xs"
-    r  <- freshTyName () "r"
-    z  <- freshName () "z"
-    f  <- freshName () "f"
+    a  <- freshTyName "a"
+    x  <- freshName "x"
+    xs <- freshName "xs"
+    r  <- freshTyName "r"
+    z  <- freshName "z"
+    f  <- freshName "f"
     let listA = TyApp () list (TyVar () a)
     return
         . tyAbs () a (Type ())
@@ -102,14 +102,14 @@ cons = runQuote $ do
 foldrList :: TermLike term TyName Name uni => term ()
 foldrList = runQuote $ do
     let list = _recursiveType listData
-    a   <- freshTyName () "a"
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    z   <- freshName () "z"
-    rec <- freshName () "rec"
-    xs  <- freshName () "xs"
-    x   <- freshName () "x"
-    xs' <- freshName () "xs'"
+    a   <- freshTyName "a"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    z   <- freshName "z"
+    rec <- freshName "rec"
+    xs  <- freshName "xs"
+    x   <- freshName "x"
+    xs' <- freshName "xs'"
     let listA = TyApp () list (TyVar () a)
     return
         . tyAbs () a (Type ())
@@ -134,10 +134,10 @@ foldrList = runQuote $ do
 map :: TermLike term TyName Name uni => term ()
 map = runQuote $ do
     let list = _recursiveType listData
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    f <- freshName () "f"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    b <- freshTyName "b"
+    f <- freshName "f"
+    x <- freshName "x"
     return
         . tyAbs () a (Type ())
         . tyAbs () b (Type ())
@@ -158,14 +158,14 @@ map = runQuote $ do
 foldList :: TermLike term TyName Name uni => term ()
 foldList = runQuote $ do
     let list = _recursiveType listData
-    a   <- freshTyName () "a"
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    rec <- freshName () "rec"
-    z   <- freshName () "z"
-    xs  <- freshName () "xs"
-    x   <- freshName () "x"
-    xs' <- freshName () "xs'"
+    a   <- freshTyName "a"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    rec <- freshName "rec"
+    z   <- freshName "z"
+    xs  <- freshName "xs"
+    x   <- freshName "x"
+    xs' <- freshName "xs'"
     let listA = TyApp () list (TyVar () a)
     return
         . tyAbs () a (Type ())
@@ -190,10 +190,10 @@ foldList = runQuote $ do
 reverse :: TermLike term TyName Name uni => term ()
 reverse = runQuote $ do
     let list = _recursiveType listData
-    a   <- freshTyName () "a"
-    xs  <- freshName () "xs"
-    x   <- freshName () "x"
-    r   <- freshName () "r"
+    a   <- freshTyName "a"
+    xs  <- freshName "xs"
+    x   <- freshName "x"
+    r   <- freshName "r"
     let vA = TyVar () a
         listA = TyApp () list vA
     return
@@ -219,11 +219,11 @@ reverse = runQuote $ do
 enumFromTo :: (TermLike term TyName Name uni, uni `IncludesAll` '[Integer, (), Bool]) => term ()
 enumFromTo = runQuote $ do
     let list = _recursiveType listData
-    n   <- freshName () "n"
-    m   <- freshName () "m"
-    rec <- freshName () "rec"
-    n'  <- freshName () "n'"
-    u   <- freshName () "u"
+    n   <- freshName "n"
+    m   <- freshName "m"
+    rec <- freshName "rec"
+    n'  <- freshName "n'"
+    u   <- freshName "u"
     let gtInteger  = builtin () $ BuiltinName () GreaterThanInteger
         int = mkTyBuiltin @Integer ()
         listInt = TyApp () list int

@@ -19,7 +19,7 @@ import           Language.PlutusCore.Universe
 -- > \(i : integer) -> addInteger i 1
 succInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
 succInteger = runQuote $ do
-    i  <- freshName () "i"
+    i  <- freshName "i"
     return
         . lamAbs () i (mkTyBuiltin @Integer ())
         . mkIterApp () (builtin () $ BuiltinName () AddInteger)

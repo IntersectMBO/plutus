@@ -128,8 +128,8 @@ checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
 
 termDefs
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Term tyname name uni ann
@@ -144,7 +144,7 @@ termDefs = cata $ \case
 
 typeDefs
     :: (Ord ann,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique tyname TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Type tyname uni ann
@@ -157,8 +157,8 @@ typeDefs = cata $ \case
 
 runTermDefs
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         Monad m)
     => Term tyname name uni ann
     -> m (UniqueInfos ann, [UniqueError ann])
@@ -166,7 +166,7 @@ runTermDefs = runWriterT . flip execStateT mempty . termDefs
 
 runTypeDefs
     :: (Ord ann,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique tyname TypeUnique,
         Monad m)
     => Type tyname uni ann
     -> m (UniqueInfos ann, [UniqueError ann])

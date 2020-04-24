@@ -95,15 +95,15 @@ data InternalTypeError uni ann
 makeClassyPrisms ''InternalTypeError
 
 data TypeError uni ann
-    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
+    = KindMismatch ann (Type TyName uni ()) (Kind ())  (Kind ())
     | TypeMismatch ann
         (Term TyName Name uni ())
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
     | InternalTypeErrorE ann (InternalTypeError uni ann)
-    | FreeTypeVariableE (TyName ann)
-    | FreeVariableE (Name ann)
+    | FreeTypeVariableE TyName
+    | FreeVariableE Name
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 

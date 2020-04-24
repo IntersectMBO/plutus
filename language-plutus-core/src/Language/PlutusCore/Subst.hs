@@ -36,7 +36,7 @@ purely = coerce
 -- | Applicatively replace a type variable using the given function.
 substTyVarA
     :: Applicative f
-    => (tyname ann -> f (Maybe (Type tyname uni ann)))
+    => (tyname -> f (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
     -> f (Type tyname uni ann)
 substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
@@ -45,7 +45,7 @@ substTyVarA _       ty                  = pure ty
 -- | Applicatively replace a variable using the given function.
 substVarA
     :: Applicative f
-    => (name ann -> f (Maybe (Term tyname name uni ann)))
+    => (name -> f (Maybe (Term tyname name uni ann)))
     -> Term tyname name uni ann
     -> f (Term tyname name uni ann)
 substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
@@ -53,14 +53,14 @@ substVarA _     t              = pure t
 
 -- | Replace a type variable using the given function.
 substTyVar
-    :: (tyname ann -> Maybe (Type tyname uni ann))
+    :: (tyname -> Maybe (Type tyname uni ann))
     -> Type tyname uni ann
     -> Type tyname uni ann
 substTyVar = purely substTyVarA
 
 -- | Replace a variable using the given function.
 substVar
-    :: (name ann -> Maybe (Term tyname name uni ann))
+    :: (name -> Maybe (Term tyname name uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 substVar = purely substVarA
@@ -68,7 +68,7 @@ substVar = purely substVarA
 -- | Naively monadically substitute type names (i.e. do not substitute binders).
 typeSubstTyNamesM
     :: Monad m
-    => (tyname ann -> m (Maybe (Type tyname uni ann)))
+    => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Type tyname uni ann
     -> m (Type tyname uni ann)
 typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
@@ -76,7 +76,7 @@ typeSubstTyNamesM = transformMOf typeSubtypes . substTyVarA
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
     :: Monad m
-    => (name ann -> m (Maybe (Term tyname name uni ann)))
+    => (name -> m (Maybe (Term tyname name uni ann)))
     -> Term tyname name uni ann
     -> m (Term tyname name uni ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
@@ -84,7 +84,7 @@ termSubstNamesM = transformMOf termSubterms . substVarA
 -- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNamesM
     :: Monad m
-    => (tyname ann -> m (Maybe (Type tyname uni ann)))
+    => (tyname -> m (Maybe (Type tyname uni ann)))
     -> Term tyname name uni ann
     -> m (Term tyname name uni ann)
 termSubstTyNamesM =
@@ -92,29 +92,29 @@ termSubstTyNamesM =
 
 -- | Naively substitute type names (i.e. do not substitute binders).
 typeSubstTyNames
-    :: (tyname ann -> Maybe (Type tyname uni ann))
+    :: (tyname -> Maybe (Type tyname uni ann))
     -> Type tyname uni ann
     -> Type tyname uni ann
 typeSubstTyNames = purely typeSubstTyNamesM
 
 -- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
-    :: (name ann -> Maybe (Term tyname name uni ann))
+    :: (name -> Maybe (Term tyname name uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 termSubstNames = purely termSubstNamesM
 
 -- | Naively substitute type names using the given function (i.e. do not substitute binders).
 termSubstTyNames
-    :: (tyname ann -> Maybe (Type tyname uni ann))
+    :: (tyname -> Maybe (Type tyname uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 termSubstTyNames = purely termSubstTyNamesM
 
 -- | Applicatively substitute *free* names using the given function.
 termSubstFreeNamesA
-    :: (Applicative f, HasUnique (name ann) TermUnique)
-    => (name ann -> f (Maybe (Term tyname name uni ann)))
+    :: (Applicative f, HasUnique name TermUnique)
+    => (name -> f (Maybe (Term tyname name uni ann)))
     -> Term tyname name uni ann
     -> f (Term tyname name uni ann)
 termSubstFreeNamesA f = go Set.empty where
@@ -134,8 +134,8 @@ termSubstFreeNamesA f = go Set.empty where
 
 -- | Substitute *free* names using the given function.
 termSubstFreeNames
-    :: HasUnique (name ann) TermUnique
-    => (name ann -> Maybe (Term tyname name uni ann))
+    :: HasUnique name TermUnique
+    => (name -> Maybe (Term tyname name uni ann))
     -> Term tyname name uni ann
     -> Term tyname name uni ann
 termSubstFreeNames = purely termSubstFreeNamesA
@@ -143,7 +143,7 @@ termSubstFreeNames = purely termSubstFreeNamesA
 -- Free variables
 
 -- | Get all the free term variables in a term.
-fvTerm :: Ord (name ann) => Term tyname name uni ann -> Set (name ann)
+fvTerm :: Ord name => Term tyname name uni ann -> Set name
 fvTerm = cata f
   where
     f (VarF _ n)        = singleton n
@@ -158,7 +158,7 @@ fvTerm = cata f
     f ErrorF{}          = Set.empty
 
 -- | Get all the free type variables in a term.
-ftvTerm :: Ord (tyname ann) => Term tyname name uni ann -> Set (tyname ann)
+ftvTerm :: Ord tyname => Term tyname name uni ann -> Set tyname
 ftvTerm = cata f
   where
     f (TyAbsF _ ty _ t)    = delete ty t
@@ -173,7 +173,7 @@ ftvTerm = cata f
     f BuiltinF{}           = Set.empty
 
 -- | Get all the free type variables in a type.
-ftvTy :: Ord (tyname ann) => Type tyname uni ann -> Set (tyname ann)
+ftvTy :: Ord tyname => Type tyname uni ann -> Set tyname
 ftvTy = cata f
   where
     f (TyVarF _ ty)          = singleton ty
@@ -190,15 +190,15 @@ setOf :: Getting (Set a) s a -> s -> Set a
 setOf g = foldMapOf g singleton
 
 -- | Get all the term variables in a term.
-vTerm :: Ord (name ann) => Term tyname name uni ann -> Set (name ann)
+vTerm :: Ord name => Term tyname name uni ann -> Set name
 vTerm = setOf $ termSubtermsDeep . termVars
 
 -- | Get all the type variables in a term.
-tvTerm :: Ord (tyname ann) => Term tyname name uni ann -> Set (tyname ann)
+tvTerm :: Ord tyname => Term tyname name uni ann -> Set tyname
 tvTerm = setOf $ termSubtypesDeep . typeTyVars
 
 -- | Get all the type variables in a type.
-tvTy :: Ord (tyname ann) => Type tyname uni ann -> Set (tyname ann)
+tvTy :: Ord tyname => Type tyname uni ann -> Set tyname
 tvTy = setOf $ typeSubtypesDeep . typeTyVars
 
 -- All uniques

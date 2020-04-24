@@ -64,8 +64,8 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
-    :: Eq (name a)
-    => name a -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
+    :: Eq name
+    => name -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
 substituteDb varFor new = go where
     go (Var ann var)            = if var == varFor then new else Var ann var
     go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
