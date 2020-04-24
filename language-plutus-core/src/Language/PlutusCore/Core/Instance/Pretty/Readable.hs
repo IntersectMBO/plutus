@@ -23,7 +23,7 @@ import           Data.Text.Prettyprint.Doc.Internal              (enclose)
 -- | Pretty-print a binding at the type level.
 prettyTypeBinding
     :: PrettyReadableBy configName tyname
-    => PrettyConfigReadable configName -> tyname -> (Kind a) -> Doc ann
+    => PrettyConfigReadable configName -> tyname -> Kind a -> Doc ann
 prettyTypeBinding config name kind
     | _pcrShowKinds config == ShowKindsYes = parens $ prName <+> "::" <+> prettyInBotBy config kind
     | otherwise                            = prName
