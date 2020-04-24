@@ -44,10 +44,10 @@ main = do
     evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
 
-compareName :: Name a -> Name a -> Bool
+compareName :: Name -> Name -> Bool
 compareName = (==) `on` nameString
 
-compareTyName :: TyName a -> TyName a -> Bool
+compareTyName :: TyName -> TyName -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'
 
 compareTerm
@@ -189,13 +189,13 @@ testsRewrite
 testEqTerm :: Bool
 testEqTerm =
     let
-        xName = Name () "x" (Unique 0)
-        yName = Name () "y" (Unique 1)
+        xName = Name "x" (Unique 0)
+        yName = Name "y" (Unique 1)
 
         varX = Var () xName
         varY = Var () yName
 
-        varType = TyVar () (TyName (Name () "a" (Unique 2)))
+        varType = TyVar () (TyName (Name "a" (Unique 2)))
 
         lamX = LamAbs () xName varType varX
         lamY = LamAbs () yName varType varY
@@ -213,9 +213,9 @@ testEqTerm =
 testRebindShadowedVariable :: Bool
 testRebindShadowedVariable =
     let
-        xName = TyName (Name () "x" (Unique 0))
-        yName = TyName (Name () "y" (Unique 1))
-        zName = TyName (Name () "z" (Unique 2))
+        xName = TyName (Name "x" (Unique 0))
+        yName = TyName (Name "y" (Unique 1))
+        zName = TyName (Name "z" (Unique 2))
 
         varX = TyVar () xName
         varY = TyVar () yName
@@ -241,10 +241,10 @@ testRebindShadowedVariable =
 testRebindCapturedVariable :: Bool
 testRebindCapturedVariable =
     let
-        wName = TyName (Name () "w" (Unique 0))
-        xName = TyName (Name () "x" (Unique 1))
-        yName = TyName (Name () "y" (Unique 2))
-        zName = TyName (Name () "z" (Unique 3))
+        wName = TyName (Name "w" (Unique 0))
+        xName = TyName (Name "x" (Unique 1))
+        yName = TyName (Name "y" (Unique 2))
+        zName = TyName (Name "z" (Unique 3))
 
         varW = TyVar () wName
         varX = TyVar () xName

@@ -22,8 +22,8 @@ test_appAppLamLam :: IO ()
 test_appAppLamLam = do
     let integer2 = mkTyBuiltin @Integer @DefaultUni ()
         Normalized integer2' = runQuote $ do
-            x <- freshTyName () "x"
-            y <- freshTyName () "y"
+            x <- freshTyName "x"
+            y <- freshTyName "y"
             normalizeType $ mkIterTyApp ()
                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
                 [integer2, integer2]

@@ -55,7 +55,7 @@ unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni a -
 unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m TyName
-resultTypeName (Datatype _ tn _ _ _) = getEnclosing >>= \p -> liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
+resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
 
 -- Datatypes
 

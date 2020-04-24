@@ -18,10 +18,10 @@ test_applyToValue =
                 )
     in isNormalType ty @?= True
 
-    where recVar = TyVar () (TyName (Name () "rec" (Unique 0)))
+    where recVar = TyVar () (TyName (Name "rec" (Unique 0)))
           datVar = TyVar () datName
-          datName = TyName (Name () "dat" (Unique 1))
-          aVar = TyVar () (TyName (Name () "a" (Unique 2)))
+          datName = TyName (Name "dat" (Unique 1))
+          aVar = TyVar () (TyName (Name "a" (Unique 2)))
 
 test_normalizationCheck :: TestTree
 test_normalizationCheck =

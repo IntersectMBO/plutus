@@ -328,7 +328,7 @@ withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k 
 withScopedArgIn funVarEnv argVarEnv arg            k = do
     let cost = memoryUsage ()
     argName <- freshName "arg"
-    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)  -- **************
+    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.

@@ -41,8 +41,8 @@ shadowed =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
-            ty <- freshTyName Ignore "ty"
-            let n = Name Ignore "yo" u
+            ty <- freshTyName "ty"
+            let n = Name "yo" u
             let term =
                     LamAbs (Tag 1) n (TyVar Ignore ty) $
                     LamAbs (Tag 2) n (TyVar Ignore ty) $
@@ -56,8 +56,8 @@ multiplyDefined =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
-            ty <- freshTyName Ignore "ty"
-            let n = Name Ignore "yo" u
+            ty <- freshTyName "ty"
+            let n = Name "yo" u
             let term =
                     Apply Ignore
                     (LamAbs (Tag 1) n (TyVar Ignore ty) (Var Ignore n))
@@ -71,7 +71,7 @@ incoherentUse =
     let
         u = Unique 0
         checked = runExcept $ runQuoteT $ do
-            let n = Name Ignore "yo" u
+            let n = Name "yo" u
             let ty = TyName n
             let term =
                     LamAbs (Tag 1) n (TyVar (Tag 2) ty) $
@@ -94,7 +94,7 @@ propRenameCheck = property $ do
 
 values :: TestTree
 values = runQuote $ do
-    aN <- freshTyName () "a"
+    aN <- freshTyName "a"
     let aV = TyVar () aN
         val = mkConstant @Integer @DefaultUni () 2
         nonVal = Error () aV
@@ -116,7 +116,7 @@ values = runQuote $ do
 
 normalTypes :: TestTree
 normalTypes = runQuote $ do
-    aN <- freshTyName () "a"
+    aN <- freshTyName "a"
     let integer = mkTyBuiltin @Integer @DefaultUni ()
         neutral = TyVar () aN
         normal = integer
@@ -144,8 +144,8 @@ normalTypes = runQuote $ do
 
 normalTypesCheck :: TestTree
 normalTypesCheck = runQuote $ do
-    aN <- freshTyName () "a"
-    xN <- freshName () "x"
+    aN <- freshTyName "a"
+    xN <- freshName "x"
     let integer = mkTyBuiltin @Integer ()
         aV = TyVar () aN
         xV = Var () xN

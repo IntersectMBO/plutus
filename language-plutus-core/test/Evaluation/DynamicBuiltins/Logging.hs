@@ -76,8 +76,8 @@ test_logInts :: TestTree
 test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
             let integer = mkTyBuiltin @Integer @DefaultUni ()
-            u <- freshName () "u"
-            x <- freshName () "x"
+            u <- freshName "u"
+            x <- freshName "x"
 
             return
                 $ mkIterApp () (mkIterInst () foldList [integer, unit])
