@@ -47,8 +47,8 @@ on how it is printed.
 getUntidiedOccString :: GHC.Name -> String
 getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 
-compileNameFresh :: MonadQuote m => GHC.Name -> m (PLC.Name ())
-compileNameFresh n = safeFreshName () $ T.pack $ getUntidiedOccString n
+compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
+compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
 compileVarFresh :: Compiling uni m => GHC.Var -> m (PLCVar uni)
 compileVarFresh v = do
@@ -59,8 +59,8 @@ compileVarFresh v = do
 lookupTyName :: Scope uni -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
-compileTyNameFresh :: MonadQuote m => GHC.Name -> m (PLC.TyName ())
-compileTyNameFresh n = safeFreshTyName () $ T.pack $ getUntidiedOccString n
+compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
+compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
 compileTyVarFresh :: Compiling uni m => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do

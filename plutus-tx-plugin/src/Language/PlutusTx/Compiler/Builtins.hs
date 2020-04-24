@@ -379,20 +379,20 @@ lookupBuiltinType name = do
 -- | The function 'error :: forall a . a'.
 errorFunc :: Compiling uni m => m (PIRTerm uni)
 errorFunc = do
-    n <- safeFreshTyName () "e"
+    n <- safeFreshTyName "e"
     pure $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
 -- | The delayed error function 'error :: forall a . () -> a'.
 delayedErrorFunc :: Compiling uni m => m (PIRTerm uni)
 delayedErrorFunc = do
-    n <- safeFreshTyName () "e"
+    n <- safeFreshTyName "e"
     let body = PIR.Error () (PIR.TyVar () n)
     PIR.TyAbs () n (PIR.Type ()) <$> delay body
 
 -- | The type 'forall a. a'.
 errorTy :: Compiling uni m => m (PIRType uni)
 errorTy = do
-    tyname <- safeFreshTyName () "a"
+    tyname <- safeFreshTyName "a"
     pure $ PIR.TyForall () tyname (PIR.Type ()) (PIR.TyVar () tyname)
 
 -- TODO: bind the converter to a name too. Need an appropriate GHC.Name for
@@ -404,7 +404,7 @@ scottBoolToHaskellBool = do
     let scottBoolTy = Bool.bool
     haskellBoolTy <- compileType GHC.boolTy
 
-    arg <- liftQuote $ freshName () "b"
+    arg <- liftQuote $ freshName "b"
     let instantiatedMatch = PIR.TyInst () (PIR.builtinNameAsTerm PLC.IfThenElse) haskellBoolTy
 
     haskellTrue <- compileDataConRef GHC.trueDataCon
@@ -417,7 +417,7 @@ scottBoolToHaskellBool = do
 etaExpand :: Compiling uni m => [PIRType uni] -> PIRTerm uni -> m (PIRTerm uni)
 etaExpand argTys term = do
     args <- for argTys $ \argTy -> do
-        name <- safeFreshName () "arg"
+        name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
     pure $ PIR.mkIterLamAbs args $ (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
@@ -426,7 +426,7 @@ etaExpand argTys term = do
 wrapRel :: Compiling uni m => PIRType uni -> Int -> PIRTerm uni -> m (PIRTerm uni)
 wrapRel argTy arity term = do
     args <- replicateM arity $ do
-        name <- safeFreshName () "arg"
+        name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
     converter <- scottBoolToHaskellBool
@@ -440,7 +440,7 @@ scottUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
 scottUnitToHaskellUnit = do
     let scottUnitTy = Unit.unit
 
-    arg <- liftQuote $ freshName () "b"
+    arg <- liftQuote $ freshName "b"
 
     haskellUnitVal <- compileDataConRef GHC.unitDataCon
     pure $ PIR.LamAbs () arg scottUnitTy haskellUnitVal
@@ -449,7 +449,7 @@ scottUnitToHaskellUnit = do
 wrapUnitFun :: Compiling uni m => PIRType uni -> PIRTerm uni -> m (PIRTerm uni)
 wrapUnitFun argTy term = do
     arg <- do
-        name <- safeFreshName () "arg"
+        name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
     converter <- scottUnitToHaskellUnit

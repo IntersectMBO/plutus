@@ -29,7 +29,7 @@ a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
 delay :: Compiling uni m => PIRTerm uni -> m (PIRTerm uni)
-delay body = PIR.LamAbs () <$> liftQuote (freshName () "thunk") <*> compileType GHC.unitTy <*> pure body
+delay body = PIR.LamAbs () <$> liftQuote (freshName "thunk") <*> compileType GHC.unitTy <*> pure body
 
 delayType :: Compiling uni m => PIRType uni -> m (PIRType uni)
 delayType orig = PIR.TyFun () <$> compileType GHC.unitTy <*> pure orig
