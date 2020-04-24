@@ -7,7 +7,7 @@
 , haskell-nix
 , buildPackages
 , metatheory
-, checkMaterialization
+, checkMaterialization 
 }:
 
 let
@@ -22,7 +22,7 @@ let
     };
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
-    # stack-sha256 = "0i4w89q34k6nf3k6kjiq8yzz6bhyz68psmlqisa4dczv517wp5i5";
+    stack-sha256 = "18y5rdj3dn5j7bzy87v21s7q7ibkj3z4ks8hfn76mrgyj8m4kxrc";
     inherit checkMaterialization;
     modules = [
         {

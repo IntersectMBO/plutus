@@ -130,6 +130,9 @@ colSm8 = ClassName "col-sm-8"
 colSm12 :: ClassName
 colSm12 = ClassName "col-sm-12"
 
+colMd3 :: ClassName
+colMd3 = ClassName "col-md-3"
+
 colMd4 :: ClassName
 colMd4 = ClassName "col-md-4"
 
@@ -144,6 +147,9 @@ colMd7 = ClassName "col-md-7"
 
 colMd8 :: ClassName
 colMd8 = ClassName "col-md-8"
+
+colLg2 :: ClassName
+colLg2 = ClassName "col-lg-2"
 
 colLg5 :: ClassName
 colLg5 = ClassName "col-lg-5"

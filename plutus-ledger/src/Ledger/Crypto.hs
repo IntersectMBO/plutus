@@ -37,7 +37,9 @@ import           Control.Newtype.Generics   (Newtype)
 import qualified Crypto.ECC.Ed25519Donna    as ED25519
 import           Crypto.Error               (throwCryptoError)
 import           Crypto.Hash                (Digest, SHA256, hash)
-import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, ToJSON (toJSON), ToJSONKey, (.:))
+import           Data.Aeson                 (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJSONKeyValue),
+                                             ToJSON (toJSON), ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue),
+                                             genericParseJSON, genericToJSON, (.:))
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.ByteArray             as BA
@@ -61,16 +63,22 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
+    deriving anyclass (Newtype, IotsType)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, ToJSON, FromJSON)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKey
 
+instance ToJSONKey PubKey where
+  toJSONKey = ToJSONKeyValue (genericToJSON JSON.defaultOptions) JSON.toEncoding
+
+instance FromJSONKey PubKey where
+  fromJSONKey = FromJSONKeyValue (genericParseJSON JSON.defaultOptions)
+
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BSL.ByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
     -- TODO: this should be here, but it upsets marlowe a bit. Should be fixed in the future.
     --deriving IsString via LedgerBytes
@@ -87,7 +95,7 @@ pubKeyHash pk = PubKeyHash $ BSL.fromStrict $ BA.convert h' where
 -- | A cryptographic private key.
 newtype PrivateKey = PrivateKey { getPrivateKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass ( ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
+    deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving (Show, Pretty) via LedgerBytes
 

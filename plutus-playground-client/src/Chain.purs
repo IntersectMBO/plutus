@@ -5,7 +5,7 @@ module Chain
   ) where
 
 import Bootstrap (empty, nbsp)
-import Chain.Types (State)
+import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
@@ -33,7 +33,7 @@ import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId)
+import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
@@ -49,10 +49,11 @@ evaluationPane ::
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ chainView
-        state
-        (AssocMap.toDataMap (AssocMap.Map walletKeys))
-        (wrap resultRollup)
+    [ SetChainFocus <<< Just
+        <$> chainView
+            state
+            (AssocMap.toDataMap (AssocMap.Map walletKeys))
+            (wrap resultRollup)
     , br_
     , div_
         [ h2_ [ text "Logs" ]

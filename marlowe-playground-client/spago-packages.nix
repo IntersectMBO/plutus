@@ -1133,6 +1133,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "uuid" = pkgs.stdenv.mkDerivation {
+        name = "uuid";
+        version = "v6.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/spicydonuts/purescript-uuid.git";
+          rev = "6de5e57a8529eca6ac956103f6341c4fa7dfb25e";
+          sha256 = "012sv8xngvyn65q28yl7n74rmspc9bn2g0dspl8wks4pn68ldvaq";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "variant" = pkgs.stdenv.mkDerivation {
         name = "variant";
         version = "v6.0.1";

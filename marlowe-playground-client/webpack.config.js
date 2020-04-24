@@ -11,13 +11,13 @@ const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
     isWebpackDevServer || !isWatch ? [] : [
-        function () {
-            this.plugin('done', function (stats) {
+        function(){
+            this.plugin('done', function(stats){
                 process.stderr.write(stats.toString('errors-only'));
             });
         }
     ]
-    ;
+;
 
 module.exports = {
     devtool: 'eval-source-map',
@@ -64,7 +64,7 @@ module.exports = {
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
                                 '../playground-common/src/**/*.purs',
-                                '../web-common/src/**/*.purs'
+                                '../web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),

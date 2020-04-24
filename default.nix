@@ -143,22 +143,21 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
-        mkdir $out
-        ${server-invoker}/bin/plutus-playground psgenerator $out
-      '';
+    generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
+      mkdir $out
+      ${server-invoker}/bin/plutus-playground psgenerator $out
+    '';
 
-      in
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
-        inherit easyPS;
         inherit (sources) nodejs-headers;
+        inherit easyPS;
         psSrc = generated-purescript;
         src = ./plutus-playground-client;
-        webCommonPath = ./web-common;
         packageJSON = ./plutus-playground-client/package.json;
         yarnLock = ./plutus-playground-client/yarn.lock;
         yarnNix = ./plutus-playground-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
         packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
@@ -185,26 +184,52 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
-        mkdir $out
-        ${playground-exe}/bin/marlowe-playground-server psgenerator $out
-      '';
-      in
+    generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
+      mkdir $out
+      ${playground-exe}/bin/marlowe-playground-server psgenerator $out
+    '';
+
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
         inherit easyPS;
         psSrc = generated-purescript;
         src = ./marlowe-playground-client;
-        webCommonPath = ./web-common;
         packageJSON = ./marlowe-playground-client/package.json;
         yarnLock = ./marlowe-playground-client/yarn.lock;
         yarnNix = ./marlowe-playground-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
         packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
       };
   });
+
+  plutus-scb = rec {
+    server-invoker= set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
+
+    generated-purescript = pkgs.runCommand "plutus-scb-purescript" {} ''
+      mkdir $out
+      ln -s ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
+      ${server-invoker}/bin/plutus-scb psgenerator $out
+    '';
+
+    client =
+      pkgs.callPackage ./nix/purescript.nix rec {
+        inherit (sources) nodejs-headers;
+        inherit easyPS;
+        psSrc = generated-purescript;
+        src = ./plutus-scb-client;
+        packageJSON = ./plutus-scb-client/package.json;
+        yarnLock = ./plutus-scb-client/yarn.lock;
+        yarnNix = ./plutus-scb-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+        packages = pkgs.callPackage ./plutus-scb-client/packages.nix {};
+        spagoPackages = pkgs.callPackage ./plutus-scb-client/spago-packages.nix {};
+        name = (pkgs.lib.importJSON packageJSON).name;
+        checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
+      };
+  };
 
   docker = rec {
     defaultPlaygroundConfig = pkgs.writeTextFile {

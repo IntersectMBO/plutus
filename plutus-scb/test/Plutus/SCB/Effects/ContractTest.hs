@@ -8,6 +8,7 @@
 module Plutus.SCB.Effects.ContractTest(
     TestContracts(..)
     , handleContractTest
+    , fromResumable
     ) where
 
 import           Control.Monad.Freer

@@ -2,7 +2,6 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -17,14 +16,13 @@ module PSGenerator
 
 import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
-import           Control.Applicative                        (empty, (<|>))
+import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (itraverse, set, (&))
 import           Control.Monad                              (void)
 import           Control.Monad.Catch                        (MonadMask)
 import           Control.Monad.Except                       (MonadError, runExceptT)
 import qualified Control.Monad.Freer.Log                    as Log
 import           Control.Monad.IO.Class                     (MonadIO)
-import           Control.Monad.Reader                       (MonadReader)
 import qualified Crowdfunding
 import qualified CrowdfundingSimulations
 import           Data.Aeson                                 (ToJSON, toJSON)
@@ -45,25 +43,12 @@ import           Gist                                       (Gist, GistFile, Gis
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
-import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), PSType, SumType,
-                                                             TypeInfo (TypeInfo), buildBridge, doCheck, equal, equal1,
-                                                             functor, genericShow, haskType, isTuple, mkSumType, order,
-                                                             psTypeParameters, typeModule, typeName, writePSTypesWith,
-                                                             (^==))
-import           Language.PureScript.Bridge.Builder         (BridgeData)
+import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
+                                                             equal, equal1, functor, genericShow, mkSumType, order,
+                                                             writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
-import           Language.PureScript.Bridge.PSTypes         (psArray, psInt, psString)
 import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger                                     (Address, Datum, MonetaryPolicy, PubKey, PubKeyHash,
-                                                             Redeemer, Signature, Tx, TxId, TxIn, TxInType, TxOut,
-                                                             TxOutRef, TxOutType, Validator)
-import           Ledger.Ada                                 (Ada)
-import           Ledger.Index                               (ValidationError)
-import           Ledger.Interval                            (Extended, Interval, LowerBound, UpperBound)
-import           Ledger.Scripts                             (ScriptError)
-import           Ledger.Slot                                (Slot)
-import           Ledger.Value                               (CurrencySymbol, TokenName, Value)
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
@@ -77,6 +62,7 @@ import           Playground.Types                           (CompilationResult (
                                                              simulationWallets, sourceCode, wallets)
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
+import qualified PSGenerator.Common
 import           Schema                                     (FormArgumentF, FormSchema, formArgumentToJson)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -94,157 +80,16 @@ import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
 import qualified Wallet.Emulator.Wallet                     as EM
 import           Wallet.Rollup.Types                        (AnnotatedTx, BeneficialOwner, DereferencedInput,
-                                                             SequenceId)
-
-psAssocMap :: MonadReader BridgeData m => m PSType
-psAssocMap =
-    TypeInfo "plutus-playground-client" "Language.PlutusTx.AssocMap" "Map" <$>
-    psTypeParameters
-
-psJson :: PSType
-psJson = TypeInfo "" "Data.RawJson" "RawJson" []
-
-psNonEmpty :: MonadReader BridgeData m => m PSType
-psNonEmpty =
-    TypeInfo "" "Data.Json.JsonNonEmptyList" "JsonNonEmptyList" <$>
-    psTypeParameters
-
-psJsonEither :: MonadReader BridgeData m => m PSType
-psJsonEither =
-    TypeInfo "" "Data.Json.JsonEither" "JsonEither" <$> psTypeParameters
-
-psJsonTuple :: MonadReader BridgeData m => m PSType
-psJsonTuple = TypeInfo "" "Data.Json.JsonTuple" "JsonTuple" <$> psTypeParameters
-
-integerBridge :: BridgePart
-integerBridge = do
-    typeName ^== "Integer"
-    pure psInt
-
-dataBridge :: BridgePart
-dataBridge = do
-    typeName ^== "Data"
-    typeModule ^== "Language.PlutusTx.Data"
-    pure psString
-
-assocMapBridge :: BridgePart
-assocMapBridge = do
-    typeName ^== "Map"
-    typeModule ^== "Language.PlutusTx.AssocMap"
-    psAssocMap
-
-ledgerBytesBridge :: BridgePart
-ledgerBytesBridge = do
-    typeName ^== "LedgerBytes"
-    typeModule ^== "LedgerBytes"
-    pure psString
-
-aesonBridge :: BridgePart
-aesonBridge = do
-    typeName ^== "Value"
-    typeModule ^== "Data.Aeson.Types.Internal"
-    pure psJson
-
-eitherBridge :: BridgePart
-eitherBridge = do
-    typeName ^== "Either"
-    psJsonEither
-
-tupleBridge :: BridgePart
-tupleBridge = do
-    doCheck haskType isTuple
-    psJsonTuple
-
-setBridge :: BridgePart
-setBridge = do
-    typeName ^== "Set"
-    typeModule ^== "Data.Set" <|> typeModule ^== "Data.Set.Internal"
-    psArray
-
-digestBridge :: BridgePart
-digestBridge = do
-    typeName ^== "Digest"
-    typeModule ^== "Crypto.Hash.Types"
-    pure psString
-
-scriptBridge :: BridgePart
-scriptBridge = do
-    typeName ^== "Script"
-    typeModule ^== "Ledger.Scripts"
-    pure psString
-
-validatorHashBridge :: BridgePart
-validatorHashBridge = do
-    typeName ^== "ValidatorHash"
-    typeModule ^== "Ledger.Scripts"
-    pure psString
-
-mpsHashBridge :: BridgePart
-mpsHashBridge = do
-    typeName ^== "MonetaryPolicyHash"
-    typeModule ^== "Ledger.Scripts"
-    pure psString
-
-dataHashBridge :: BridgePart
-dataHashBridge = do
-    typeName ^== "DatumHash"
-    typeModule ^== "Ledger.Scripts"
-    pure psString
-
-headersBridge :: BridgePart
-headersBridge = do
-    typeModule ^== "Servant.API.ResponseHeaders"
-    typeName ^== "Headers"
-    -- Headers should have two parameters, the list of headers and the return type.
-    psTypeParameters >>= \case
-        [_, returnType] -> pure returnType
-        _ -> empty
-
-headerBridge :: BridgePart
-headerBridge = do
-    typeModule ^== "Servant.API.Header"
-    typeName ^== "Header'"
-    empty
-
-nonEmptyBridge :: BridgePart
-nonEmptyBridge = do
-    typeName ^== "NonEmpty"
-    typeModule ^== "GHC.Base"
-    psNonEmpty
-
-byteStringBridge :: BridgePart
-byteStringBridge = do
-    typeName ^== "ByteString"
-    typeModule ^== "Data.ByteString.Lazy.Internal"
-    pure psString
-
--- | We represent 'Map' using an 'AssocMap'. It's not ideal, but it's
--- a fair way of representing JSON if your keys don't always have a
--- natural string representation.
-mapBridge :: BridgePart
-mapBridge = do
-    typeName ^== "Map"
-    typeModule ^== "Data.Map.Internal"
-    psAssocMap
+                                                             SequenceId, TxKey)
 
 myBridge :: BridgePart
 myBridge =
-    eitherBridge <|> tupleBridge <|> defaultBridge <|> integerBridge <|>
-    assocMapBridge <|>
-    aesonBridge <|>
-    setBridge <|>
-    digestBridge <|>
-    dataBridge <|>
-    scriptBridge <|>
-    headersBridge <|>
-    headerBridge <|>
-    nonEmptyBridge <|>
-    validatorHashBridge <|>
-    mpsHashBridge <|>
-    dataHashBridge <|>
-    byteStringBridge <|>
-    mapBridge <|>
-    ledgerBytesBridge
+    PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
+    PSGenerator.Common.languageBridge <|>
+    PSGenerator.Common.ledgerBridge <|>
+    PSGenerator.Common.servantBridge <|>
+    PSGenerator.Common.miscBridge <|>
+    defaultBridge
 
 data MyBridge
 
@@ -256,6 +101,7 @@ instance HasBridge MyBridge where
 
 myTypes :: [SumType 'Haskell]
 myTypes =
+    PSGenerator.Common.ledgerTypes <>
     [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
     , (functor <*> (genericShow <*> (equal <*> mkSumType)))
           (Proxy @(FunctionSchema A))
@@ -268,11 +114,6 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @Datum)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @Validator)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @MonetaryPolicy)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @Redeemer)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @Signature)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
           (Proxy @(FormArgumentF A))
@@ -286,33 +127,12 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainIndexEvent)
     , (genericShow <*> mkSumType) (Proxy @PlaygroundError)
-    , (genericShow <*> mkSumType) (Proxy @ValidationError)
-    , (genericShow <*> mkSumType) (Proxy @ScriptError)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Slot)
-    , (genericShow <*> mkSumType) (Proxy @WalletAPIError)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @Tx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletAPIError)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AnnotatedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxId)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIn)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOut)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxOutRef)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @TxInType)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @TxOutType)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKey)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @PubKeyHash)
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @Address)
-    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
-          (Proxy @(Interval A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
-          (Proxy @(LowerBound A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
-          (Proxy @(UpperBound A))
-    , (functor <*> (equal <*> (genericShow <*> mkSumType)))
-          (Proxy @(Extended A))
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Ada)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
     , mkSumType (Proxy @AuthStatus)
     , mkSumType (Proxy @AuthRole)
     , (order <*> mkSumType) (Proxy @GistId)
@@ -321,12 +141,9 @@ myTypes =
     , mkSumType (Proxy @NewGist)
     , mkSumType (Proxy @NewGistFile)
     , mkSumType (Proxy @Owner)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @Value)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @CurrencySymbol)
-    , (genericShow <*> (order <*> mkSumType)) (Proxy @TokenName)
     ]
 
 mySettings :: Settings
@@ -352,7 +169,8 @@ psModule name body = "module " <> name <> " where" <> body
 writeUsecases :: FilePath -> IO ()
 writeUsecases outputDir = do
     let usecases =
-            sourceCodeExport "vesting" vesting <> sourceCodeExport "game" game <>
+            sourceCodeExport "vesting" vesting <>
+            sourceCodeExport "game" game <>
             sourceCodeExport "crowdFunding" crowdFunding <>
             sourceCodeExport "errorHandling" errorHandling <>
             sourceCodeExport "starter" starter <>
@@ -376,8 +194,8 @@ writeTestData outputDir = do
         itraverse
             (\index ->
                  writeSimulation
-                     (outputDir </> "evaluation_response" <> show index <>
-                      ".json")
+                     (outputDir </> "evaluation_response" <>
+                      show index <> ".json")
                      contractDemoEditorContents)
             contractDemoSimulations
 

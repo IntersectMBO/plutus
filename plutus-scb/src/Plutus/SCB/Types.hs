@@ -16,6 +16,7 @@ import           Data.Aeson                                 (FromJSON, ToJSON)
 import qualified Data.Aeson                                 as Aeson
 import qualified Data.Aeson.Encode.Pretty                   as JSON
 import qualified Data.ByteString.Lazy.Char8                 as BS8
+import           Data.Map.Strict                            (Map)
 import           Data.Text                                  (Text)
 import           Data.Text.Prettyprint.Doc                  (Pretty, indent, pretty, vsep, (<+>))
 import           Data.UUID                                  (UUID)
@@ -23,9 +24,10 @@ import qualified Data.UUID                                  as UUID
 import           GHC.Generics                               (Generic)
 import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Resumable         (ResumableError)
+import           Ledger                                     (Blockchain, Tx, TxId, UtxoIndex)
 import           Ledger.Address                             (Address)
 import           Ledger.Constraints                         (UnbalancedTx)
-import           Servant.Client                             (ClientError)
+import           Servant.Client                             (BaseUrl, ClientError)
 import           Wallet.API                                 (WalletAPIError)
 
 newtype ContractExe =
@@ -122,10 +124,18 @@ data Config =
         { dbConfig             :: DbConfig
         , walletServerConfig   :: WalletServer.Config
         , nodeServerConfig     :: NodeServer.MockServerConfig
+        , scbWebserverConfig   :: WebserverConfig
         , chainIndexConfig     :: ChainIndex.ChainIndexConfig
         , signingProcessConfig :: SigningProcess.SigningProcessConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
+
+newtype WebserverConfig =
+    WebserverConfig
+        { baseUrl :: BaseUrl
+        }
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 data Source
     = ContractEventSource
@@ -139,5 +149,14 @@ toUUID ContractEventSource = UUID.fromWords 0 0 0 1
 toUUID WalletEventSource   = UUID.fromWords 0 0 0 2
 toUUID UserEventSource     = UUID.fromWords 0 0 0 3
 toUUID NodeEventSource     = UUID.fromWords 0 0 0 4
+
+data ChainOverview =
+    ChainOverview
+        { chainOverviewBlockchain     :: Blockchain
+        , chainOverviewUnspentTxsById :: Map TxId Tx
+        , chainOverviewUtxoIndex      :: UtxoIndex
+        }
+    deriving (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 makePrisms ''SCBError
