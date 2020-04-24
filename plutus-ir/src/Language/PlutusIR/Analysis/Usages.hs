@@ -34,20 +34,20 @@ allUsed usages = Map.keysSet $ Map.filter (> 0) usages
 
 -- | Compute the 'Usages' for a 'Term'.
 runTermUsages
-    :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Term tyname name uni a
     -> Usages
 runTermUsages term = execState (termUsages term) mempty
 
 -- | Compute the 'Usages' for a 'Type'.
 runTypeUsages
-    ::(PLC.HasUnique (tyname a) PLC.TypeUnique)
+    ::(PLC.HasUnique tyname PLC.TypeUnique)
     => Type tyname uni a
     -> Usages
 runTypeUsages ty = execState (typeUsages ty) mempty
 
 termUsages
-    :: (MonadState Usages m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (MonadState Usages m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Term tyname name uni a
     -> m ()
 termUsages (Var _ n) = modify (addUsage n)
@@ -55,7 +55,7 @@ termUsages term      = traverse_ termUsages (term ^.. termSubterms) >> traverse_
 
 -- TODO: move to language-plutus-core
 typeUsages
-    :: (MonadState Usages m, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (MonadState Usages m, PLC.HasUnique tyname PLC.TypeUnique)
     => Type tyname uni a
     -> m ()
 typeUsages (TyVar _ n) = modify (addUsage n)

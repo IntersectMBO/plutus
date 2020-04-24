@@ -48,7 +48,7 @@ requireExtension ext = do
 
 mkTyVarDecl :: (MonadQuote m) => TH.Name -> Kind () -> m (TH.Name, TyVarDecl TyName ())
 mkTyVarDecl name kind = do
-    tyName <- safeFreshTyName () $ showName name
+    tyName <- safeFreshTyName $ showName name
     pure (name, TyVarDecl () tyName kind)
 
 isNewtype :: TH.DatatypeInfo -> Bool

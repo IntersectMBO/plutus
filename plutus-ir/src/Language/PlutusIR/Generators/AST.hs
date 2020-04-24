@@ -25,7 +25,7 @@ import qualified Hedgehog.Gen                       as Gen
 import qualified Hedgehog.Internal.Gen              as Gen
 import qualified Hedgehog.Range                     as Range
 
-genName :: PLC.AstGen (Name ())
+genName :: PLC.AstGen Name
 genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
     isPirKw name = name `elem`
         [ "vardecl", "typedecl"
@@ -35,7 +35,7 @@ genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
         , "datatype"
         ]
 
-genTyName :: PLC.AstGen (TyName ())
+genTyName :: PLC.AstGen TyName
 genTyName = TyName <$> genName
 
 genRecursivity :: MonadGen m => m Recursivity

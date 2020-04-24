@@ -41,7 +41,7 @@ type DepGraph g = (G.Graph g, (G.Vertex g)~Node)
 --     x -> t
 -- @
 runTermDeps
-    :: (DepGraph g, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+    :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
     => Term tyname name uni a
     -> g
 runTermDeps t = runReader (termDeps t) Root
@@ -57,7 +57,7 @@ runTermDeps t = runReader (termDeps t) Root
 -- @
 --
 runTypeDeps
-    :: (DepGraph g, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique)
     => Type tyname uni a
     -> g
 runTypeDeps t = runReader (typeDeps t) Root
@@ -98,7 +98,7 @@ reference to the newly bound variable alongside the binding, but only in the cas
 -}
 
 bindingDeps
-    :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+    :: (DepGraph g, MonadReader Node m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
     => Binding tyname name uni a
     -> m g
 bindingDeps b = case b of
@@ -127,7 +127,7 @@ bindingDeps b = case b of
         pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
 
 varDeclDeps
-    :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+    :: (DepGraph g, MonadReader Node m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
     => VarDecl tyname name uni a
     -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
@@ -142,7 +142,7 @@ tyVarDeclDeps _ = pure G.empty
 -- | Compute the dependency graph of a term. Takes an initial 'Node' indicating what the term itself depends on
 -- (usually 'Root' if it is the real term you are interested in).
 termDeps
-    :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+    :: (DepGraph g, MonadReader Node m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
     => Term tyname name uni a
     -> m g
 termDeps = \case
@@ -159,7 +159,7 @@ termDeps = \case
 -- | Compute the dependency graph of a type. Takes an initial 'Node' indicating what the type itself depends on
 -- (usually 'Root' if it is the real type you are interested in).
 typeDeps
-    :: (DepGraph g, MonadReader Node m, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (DepGraph g, MonadReader Node m, PLC.HasUnique tyname PLC.TypeUnique)
     => Type tyname uni a
     -> m g
 typeDeps ty =
