@@ -80,8 +80,7 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: BSL.ByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, IotsType)
     deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, Hashable)
-    -- TODO: this should be here, but it upsets marlowe a bit. Should be fixed in the future.
-    --deriving IsString via LedgerBytes
+    deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKeyHash
 

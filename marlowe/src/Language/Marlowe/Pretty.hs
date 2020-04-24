@@ -8,7 +8,6 @@
 module Language.Marlowe.Pretty where
 
 import qualified Data.ByteString.Lazy    as BSL
-import qualified Data.Ratio              as R
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           GHC.Generics            ((:*:) ((:*:)), (:+:) (L1, R1), C, Constructor, D, Generic, K1 (K1), M1 (M1),
@@ -98,35 +97,17 @@ instance (Pretty a) => Pretty [a] where
   prettyFragment a = encloseSep lbracket rbracket comma (map prettyFragment a)
 
 
-{- This is temp ugly hack to not break Marlowe Playground.
-
-    In PureScript we use String to represent a PubKey,
-    and Integer to represent Slot.
-
-    During Analisys, Marlowe Playground PureScript pretty prints a contract,
-    and sends a String to backend, which 'read' a contract, and analyses it.
-
-    That's why we require @Haskell.read . PureScript.pretty == id@
-
+{-
     Currently, Marlowe Playground saves a Haskell contract to a file,
     and runs Haskell interpreter. A script usually pretty prints a contract
     to standard output, and that's get returned to the Playground as
     a Haskell compiled contract. It's parsed by PureScript.
 
     Thus, we require @PureScript.parse . Haskell.pretty == id
-
-    These two requirements break @Haskell.read . Haskell.show == id@
-
  -}
 
 instance (Show a) => Show (P.Ratio a) where
-    show r = show (P.numerator r) ++ " % " ++ show (P.denominator r)
-
-
-instance Read (P.Ratio Integer) where
-    readsPrec p x = [((R.numerator r) P.% (R.denominator r), s) | (r, s) <- readsPrec p x]
-
-
+    show r = "(" ++ show (P.numerator r) ++ " % " ++ show (P.denominator r) ++ ")"
 
 instance (Show a) => Pretty (P.Ratio a) where
     prettyFragment = text . show
@@ -137,24 +118,11 @@ instance Pretty Slot where
 instance Pretty PubKeyHash where
     prettyFragment (PubKeyHash bs) = prettyFragment bs
 
-instance Read PubKeyHash where
-    readsPrec p x = [(PubKeyHash v, s) | (v, s) <- readsPrec p x]
-
-instance Read Slot where
-    readsPrec p x = [(Slot v, s) | (v, s) <- readsPrec p x]
-
 instance Pretty BSL.ByteString where
     prettyFragment = text . show . BSL.toStrict
 
-
 instance Pretty Ada where
     prettyFragment x = prettyFragment (getLovelace x)
-
-instance Read CurrencySymbol where
-    readsPrec p x = [(CurrencySymbol v, s) | (v, s) <- readsPrec p x]
-
-instance Read TokenName where
-    readsPrec p x = [(TokenName v, s) | (v, s) <- readsPrec p x]
 
 deriving instance Pretty CurrencySymbol
 deriving instance Pretty TokenName

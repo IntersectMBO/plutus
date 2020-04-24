@@ -30,6 +30,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
+import Foreign.Generic (encodeJSON)
 import Gist (_GistId, gistFileContent, gistId)
 import Gists (GistAction(..))
 import Gists as Gists
@@ -131,7 +132,7 @@ analyticsTracking action = do
     Nothing -> pure unit
     Just event -> trackEvent event
 
--- | Patch so that result can be read by Read in Haskell 
+-- | Patch so that result can be read by Read in Haskell
 showAccountsTupleForHaskell ::
   forall k k2 v.
   Show k =>
@@ -140,19 +141,19 @@ showAccountsTupleForHaskell ::
   Tuple (Tuple k k2) v -> String
 showAccountsTupleForHaskell (Tuple (Tuple k k2) v) = "((" <> show k <> "," <> show k2 <> ")," <> show v <> ")"
 
--- | Patch so that result can be read by Read in Haskell 
+-- | Patch so that result can be read by Read in Haskell
 showTupleForHaskell :: forall k v. Show k => Show v => Tuple k v -> String
 showTupleForHaskell (Tuple k v) = "(" <> show k <> "," <> show v <> ")"
 
--- | Patch so that result can be read by Read in Haskell 
+-- | Patch so that result can be read by Read in Haskell
 showAccountsMapForHaskell :: forall k k2 v. Show k => Show k2 => Show v => Map (Tuple k k2) v -> String
 showAccountsMapForHaskell m = "fromList [" <> intercalate "," (map showAccountsTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
 
--- | Patch so that result can be read by Read in Haskell 
+-- | Patch so that result can be read by Read in Haskell
 showMapForHaskell :: forall k v. Show k => Show v => Map k v -> String
 showMapForHaskell m = "fromList [" <> intercalate "," (map showTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
 
--- | Patch so that result can be read by Read in Haskell 
+-- | Patch so that result can be read by Read in Haskell
 showStateForHaskell :: State -> String
 showStateForHaskell ( State
     { accounts
@@ -491,7 +492,7 @@ handleAction AnalyseContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (show contract) (showStateForHaskell currState)
+      checkContractForWarnings (encodeJSON contract) (showStateForHaskell currState)
       assign _analysisState Loading
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
