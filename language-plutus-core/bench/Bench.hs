@@ -3,13 +3,13 @@
 module Main (main) where
 
 import           Language.PlutusCore
+import           Language.PlutusCore.CBOR                                   (deserialiseProg, serialiseProg)
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck                  (unsafeEvaluateCk)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Pretty
 
-import           Codec.Serialise
 import           Control.Monad
 import           Criterion.Main
 import           Crypto
@@ -45,15 +45,17 @@ main =
                       , bench "stringLiteral" $ nf parse g
                       ]
 
-                , env sampleScript $ \ f ->
-                  let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
-                      typeCheckConcrete p = runQuoteT $ do
-                            bis <- traceBuiltins
-                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = bis }) p
-                      mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
-                  in
+                -- The sample cbor script in script.plci is no longer readable and I don't know where it came from
+                -- I'll add a replacement soon.
+                -- , env sampleScript $ \ f ->
+                --   let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
+                --       typeCheckConcrete p = runQuoteT $ do
+                --             bis <- traceBuiltins
+                --             inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                --       mkBench = bench "type-check" . nf typeCheckConcrete . deserialiseProg
+                  -- in
 
-                  bgroup "type-check" $ mkBench <$> [f]
+                  -- bgroup "type-check" $ mkBench <$> [f]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                   let typeCheckConcrete :: Program TyName Name DefaultUni AlexPosn -> Either (Error DefaultUni AlexPosn) (Normalized (Type TyName DefaultUni ()))
@@ -66,7 +68,7 @@ main =
                 , env sampleScript $ \ f ->
                     let renameConcrete :: Program TyName Name DefaultUni () -> Program TyName Name DefaultUni ()
                         renameConcrete = runQuote . rename
-                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialise
+                        mkBench = bench "rename (Plutus Tx)" . nf renameConcrete . deserialiseProg
                   in
 
                   bgroup "renamer" $ mkBench <$> [f]
@@ -80,16 +82,16 @@ main =
                     bgroup "renamer" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
-                    let mkBench src = bench "serialise" $ nf (fmap (serialise . void)) $ parse src
+                    let mkBench src = bench "serialise" $ nf (fmap (serialiseProg . void)) $ parse src
                     in
 
                     bgroup "CBOR" $ mkBench <$> [f, g, h]
 
                 , env largeTypeFiles $ \ ~(f, g, h) ->
                     let deserialiseProgram :: BSL.ByteString -> Program TyName Name DefaultUni ()
-                        deserialiseProgram = deserialise
+                        deserialiseProgram = deserialiseProg -- to get the type right
                         parseAndSerialise :: BSL.ByteString -> Either (ParseError AlexPosn) BSL.ByteString
-                        parseAndSerialise = fmap (serialise . void) . parse
+                        parseAndSerialise = fmap (serialiseProg . void) . parse
                         mkBench src = bench "deserialise" $ nf (fmap deserialiseProgram) $ parseAndSerialise src
                     in
 
