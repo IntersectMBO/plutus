@@ -36,9 +36,9 @@ compareResult eq mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode,"--file","tmp"] []
+  plcOutput <- readProcess "plc" [mode,"--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode,"--file","tmp"]  M.main)
+    (withArgs [mode,"--input","tmp"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
@@ -50,12 +50,12 @@ compareResult' eq test = do
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp","--mode","L"]  M.main)
+    (withArgs ["evaluate","--input","tmp","--mode","L"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   plcAgdaOutput2 <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp","--mode","CK"]  M.main)
+    (withArgs ["evaluate","--input","tmp","--mode","CK"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
