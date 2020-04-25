@@ -44,7 +44,7 @@ succeedingTCTests = ["succInteger"
         ]
 
 blah :: Maybe String -> [String]
-blah Nothing = []
+blah Nothing     = []
 blah (Just mode) = ["--mode",mode]
 
 -- this is likely to raise either an exitFailure or exitSuccess exception
@@ -53,7 +53,7 @@ runTest command mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
+  withArgs ([command,"--input","tmp"] ++ blah mode)  M.main
 
 runSucceedingTests :: String -> Maybe String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()
