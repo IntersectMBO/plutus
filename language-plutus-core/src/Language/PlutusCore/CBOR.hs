@@ -324,10 +324,8 @@ type Good uni = (Closed uni, uni `Everywhere` Serialise)
 serialiseProg :: forall uni . Good uni => Program TyName Name uni () -> BSL.ByteString
 serialiseProg p = serialise (coerce p :: Program TyName Name uni InvisibleUnit)
 
-
 deserialiseProg :: forall uni . Good uni => BSL.ByteString -> Program TyName Name uni ()
 deserialiseProg s = coerce (deserialise s :: Program TyName Name uni InvisibleUnit)
-
 
 deserialiseProgOrFail :: forall uni . Good uni => BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
 deserialiseProgOrFail s =
