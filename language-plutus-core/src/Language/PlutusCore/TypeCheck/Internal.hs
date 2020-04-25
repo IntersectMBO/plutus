@@ -150,19 +150,19 @@ lookupDynamicBuiltinNameM ann name = do
         Just ty -> liftDupable ty
 
 -- | Look up a type variable in the current context.
-lookupTyVarM :: TyName -> TypeCheckM uni ann (Kind ())
-lookupTyVarM name = do
+lookupTyVarM :: ann -> TyName -> TypeCheckM uni ann (Kind ())
+lookupTyVarM ann name = do
     mayKind <- asks $ lookupName name . _tceTyVarKinds
     case mayKind of
-        Nothing   -> throwError $ FreeTypeVariableE name
+        Nothing   -> throwError $ FreeTypeVariableE ann name
         Just kind -> pure kind
 
 -- | Look up a term variable in the current context.
-lookupVarM :: Name -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-lookupVarM name = do
+lookupVarM :: ann -> Name -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+lookupVarM ann name = do
     mayTy <- asks $ lookupName name . _tceVarTypes
     case mayTy of
-        Nothing -> throwError $ FreeVariableE name
+        Nothing -> throwError $ FreeVariableE ann name
         Just ty -> liftDupable ty
 
 -- #############
@@ -213,8 +213,8 @@ inferKindM (TyBuiltin _ _)         =
 -- [infer| G !- v :: k]
 -- ------------------------
 -- [infer| G !- var v :: k]
-inferKindM (TyVar _ v)             =
-    lookupTyVarM v
+inferKindM (TyVar ann v)           =
+    lookupTyVarM ann v
 
 -- [infer| G , n :: dom !- body :: cod]
 -- -------------------------------------------------
@@ -337,8 +337,8 @@ inferTypeM (Builtin _ bi)           =
 -- [infer| G !- v : ty]    ty ~>? vTy
 -- ----------------------------------
 -- [infer| G !- var v : vTy]
-inferTypeM (Var _ name)             =
-    lookupVarM name
+inferTypeM (Var ann name)           =
+    lookupVarM ann name
 
 -- [check| G !- dom :: *]    dom ~>? vDom    [infer| G , n : dom !- body : vCod]
 -- -----------------------------------------------------------------------------

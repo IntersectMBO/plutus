@@ -102,8 +102,8 @@ data TypeError uni ann
         (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
     | InternalTypeErrorE ann (InternalTypeError uni ann)
-    | FreeTypeVariableE TyName
-    | FreeVariableE Name
+    | FreeTypeVariableE ann TyName
+    | FreeVariableE ann Name
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
@@ -187,10 +187,10 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (FreeTypeVariableE name)          =
-        "Free type variable:" <+> prettyBy config name
-    prettyBy config (FreeVariableE name)              =
-        "Free variable:" <+> prettyBy config name
+    prettyBy config (FreeTypeVariableE ann name)          =
+        "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
+    prettyBy config (FreeVariableE ann name)              =
+        "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (InternalTypeErrorE ann err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty ann
