@@ -53,7 +53,7 @@ runTest command mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--input","tmp"] ++ blah mode)  M.main
+  withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
 
 runSucceedingTests :: String -> Maybe String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()
