@@ -294,9 +294,8 @@ instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
             KnownType uni (OpaqueTerm uni' text uniq) where
     toTypeAst _ =
         TyVar () . TyName $
-            Name ()
-                (Text.pack $ symbolVal @text Proxy)
-                (Unique . fromIntegral $ natVal @uniq Proxy)
+            Name (Text.pack $ symbolVal @text Proxy)
+                 (Unique . fromIntegral $ natVal @uniq Proxy)
 
     makeKnown = unOpaqueTerm
 

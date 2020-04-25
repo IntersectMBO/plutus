@@ -36,7 +36,7 @@ compareResult eq mode test = do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile "tmp" example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode,"--file","tmp"] []
+  plcOutput <- readProcess "plc" [mode,"--input","tmp"] []
   plcAgdaOutput <- catchOutput $ catch
     (withArgs [mode,"--file","tmp"]  M.main)
     (\ e -> case e of

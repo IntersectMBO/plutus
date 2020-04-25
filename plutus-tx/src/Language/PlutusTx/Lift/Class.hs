@@ -319,7 +319,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                         tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
                         let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
-                        matchName <- safeFreshName () (T.pack "match_" <> showName tyName)
+                        matchName <- safeFreshName (T.pack "match_" <> showName tyName)
 
                         -- See Note [Occurrences of recursive names]
                         let fakeDatatype = Datatype () dtvd [] matchName []
@@ -353,7 +353,7 @@ compileConstructorDecl TH.ConstructorInfo{TH.constructorName=name, TH.constructo
           in \resultType -> do
               tys' <- sequence tyExprs'
               let constrTy = mkIterTyFun () tys' resultType
-              constrName <- safeFreshName () $ showName name
+              constrName <- safeFreshName $ showName name
               pure $ VarDecl () constrName constrTy
           ||]
 

@@ -164,18 +164,18 @@ withVarEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendVarEnv :: Name ExMemory -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
+extendVarEnv :: Name -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
 extendVarEnv argName arg argVarEnv =
     insertByName argName $ Closure argVarEnv arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name ExMemory -> CekM uni (Closure uni)
+lookupVarName :: Name -> CekM uni (Closure uni)
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
         Nothing   -> throwingWithCause _MachineError
             OpenTermEvaluatedMachineError
-            (Just . Var () $ void varName)
+            (Just . Var () $ varName)
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -327,7 +327,7 @@ withScopedArgIn
 withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
 withScopedArgIn funVarEnv argVarEnv arg            k = do
     let cost = memoryUsage ()
-    argName <- freshName cost "arg"
+    argName <- freshName "arg"
     withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
 
 -- | Apply a function to an argument and proceed.

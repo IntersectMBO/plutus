@@ -73,7 +73,7 @@ genOverapplication = do
 -- > \(i : integer) -> product (enumFromTo 1 i)
 factorial :: uni `IncludesAll` '[Integer, (), Bool] => Term TyName Name uni ()
 factorial = runQuote $ do
-    i <- freshName () "i"
+    i <- freshName "i"
     let int = mkTyBuiltin @Integer ()
     return
         . LamAbs () i int
@@ -94,10 +94,10 @@ factorial = runQuote $ do
 -- >         i0
 naiveFib :: uni `IncludesAll` '[Integer, (), Bool] => Integer -> Term TyName Name uni ()
 naiveFib iv = runQuote $ do
-    i0  <- freshName () "i0"
-    rec <- freshName () "rec"
-    i   <- freshName () "i"
-    u   <- freshName () "u"
+    i0  <- freshName "i0"
+    rec <- freshName "rec"
+    i   <- freshName "i"
+    u   <- freshName "u"
     let
       intS = mkTyBuiltin @Integer ()
       fib = LamAbs () i0 intS
@@ -155,8 +155,8 @@ natSum = runQuote $ do
     let int = mkTyBuiltin @Integer ()
         nat = _recursiveType natData
         add = Builtin () (BuiltinName () AddInteger)
-    acc <- freshName () "acc"
-    n <- freshName () "n"
+    acc <- freshName "acc"
+    n <- freshName "n"
     return
         $ mkIterApp () (mkIterInst () foldList [nat, int])
           [   LamAbs () acc int

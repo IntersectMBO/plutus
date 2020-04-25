@@ -27,8 +27,8 @@ unitval = mkConstant () ()
 -- | 'seq' specified to '()' as a PLC term.
 sequ :: (TermLike term TyName Name uni, uni `Includes` ()) => term ()
 sequ = runQuote $ do
-    x <- freshName () "x"
-    y <- freshName () "y"
+    x <- freshName "x"
+    y <- freshName "y"
     return
         . lamAbs () x unit
         . lamAbs () y unit

@@ -51,11 +51,11 @@ constructorArgTypes :: VarDecl tyname name uni a -> [Type tyname uni a]
 constructorArgTypes = funTyArgs . varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
-unveilDatatype :: Eq (tyname a) => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a
+unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a
 unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == tyVarDeclName tn then Just dty else Nothing)
 
-resultTypeName :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m (TyName (Provenance a))
-resultTypeName (Datatype _ tn _ _ _) = getEnclosing >>= \p -> liftQuote $ freshTyName p $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
+resultTypeName :: Compiling m e uni a => Datatype TyName Name uni (Provenance a) -> m TyName
+resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ tyVarDeclName tn)
 
 -- Datatypes
 
@@ -282,7 +282,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = withEnclosing (Datatype
           -- these types appear *outside* the scope of the abstraction for the datatype, so we need to use the concrete datatype here
           -- see note [Abstract data types]
           let caseTypes = unveilDatatype (getType dty) d <$> fmap (constructorCaseType (TyVar p resultType)) constrs
-          caseArgNames <- for constrs (\c -> safeFreshName p $ "case_" <> T.pack (varDeclNameString c))
+          caseArgNames <- for constrs (\c -> safeFreshName $ "case_" <> T.pack (varDeclNameString c))
           pure $ zipWith (VarDecl p) caseArgNames caseTypes
 
     -- This is inelegant, but it should never fail
@@ -295,7 +295,7 @@ mkConstructor dty d@(Datatype _ _ tvs _ constrs) index = withEnclosing (Datatype
           -- see note [Abstract data types]
         let argTypes = unveilDatatype (getType dty) d <$> constructorArgTypes constr
         -- we don't have any names for these things, we just had the type, so we call them "arg_i
-        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName p $ "arg_" <> showText i)
+        argNames <- for [0..(length argTypes -1)] (\i -> safeFreshName $ "arg_" <> showText i)
         pure $ zipWith (VarDecl p) argNames argTypes
 
 
@@ -332,7 +332,7 @@ mkDestructor dty (Datatype _ _ tvs _ _) = withEnclosing (DatatypeComponent Destr
     -- dty t_1 .. t_n
     let appliedReal = PIR.mkIterTyApp p (getType dty) (fmap (PIR.mkTyVar p) tvs)
 
-    xn <- safeFreshName p "x"
+    xn <- safeFreshName "x"
     pure $
         -- /\t_1 .. t_n
         PIR.mkIterTyAbs tvs $

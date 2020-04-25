@@ -38,8 +38,8 @@ import           Control.Monad
 -- > /\(A :: *) -> \(x : A) -> x
 idFun :: TermLike term TyName Name uni => term ()
 idFun = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    x <- freshName "x"
     return
         . tyAbs () a (Type ())
         . lamAbs () x (TyVar () a)
@@ -50,10 +50,10 @@ idFun = runQuote $ do
 -- > /\(A B :: *) -> \(x : A) (y : B) -> x
 const :: TermLike term TyName Name uni => term ()
 const = runQuote $ do
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    x <- freshName () "x"
-    y <- freshName () "y"
+    a <- freshTyName "a"
+    b <- freshTyName "b"
+    x <- freshName "x"
+    y <- freshName "y"
     return
         . tyAbs () a (Type ())
         . tyAbs () b (Type ())
@@ -66,10 +66,10 @@ const = runQuote $ do
 -- > /\(A B :: *) -> \(f : A -> B) (x : A) -> f x
 applyFun :: TermLike term TyName Name uni => term ()
 applyFun = runQuote $ do
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    f <- freshName () "f"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    b <- freshTyName "b"
+    f <- freshName "f"
+    x <- freshName "x"
     return
         . tyAbs () a (Type ())
         . tyAbs () b (Type ())
@@ -82,8 +82,8 @@ applyFun = runQuote $ do
 -- > fix \(self :: * -> *) (a :: *) -> self a -> a
 selfData :: RecursiveType uni ()
 selfData = runQuote $ do
-    self <- freshTyName () "self"
-    a    <- freshTyName () "a"
+    self <- freshTyName "self"
+    a    <- freshTyName "a"
     makeRecursiveType () self [TyVarDecl () a $ Type ()]
         . TyFun () (TyApp () (TyVar () self) (TyVar () a))
         $ TyVar () a
@@ -94,8 +94,8 @@ selfData = runQuote $ do
 unroll :: TermLike term TyName Name uni => term ()
 unroll = runQuote $ do
     let self = _recursiveType selfData
-    a <- freshTyName () "a"
-    s <- freshName () "s"
+    a <- freshTyName "a"
+    s <- freshName "s"
     return
         . tyAbs () a (Type ())
         . lamAbs () s (TyApp () self $ TyVar () a)
@@ -114,11 +114,11 @@ fix = fst fixAndType
 fixAndType :: TermLike term TyName Name uni => (term (), Type TyName uni ())
 fixAndType = runQuote $ do
     let RecursiveType self wrapSelf = selfData
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    f <- freshName () "f"
-    s <- freshName () "s"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    b <- freshTyName "b"
+    f <- freshName "f"
+    s <- freshName "s"
+    x <- freshName "x"
     let funAB = TyFun () (TyVar () a) $ TyVar () b
         unrollFunAB = tyInst () unroll funAB
     let selfFunAB = TyApp () self funAB
@@ -151,14 +151,14 @@ trans f g q = pure $ TyFun () (TyApp () f q) (TyApp () g q)
 --
 -- > natTrans F G : forall Q :: * . F Q -> G Q
 natTrans :: Type TyName uni () -> Type TyName uni () -> Quote (Type TyName uni ())
-natTrans f g = freshTyName () "Q" >>= \q -> TyForall () q (Type ()) <$> trans f g (TyVar () q)
+natTrans f g = freshTyName "Q" >>= \q -> TyForall () q (Type ()) <$> trans f g (TyVar () q)
 
 -- | A type that looks like a natural transformation to Id.
 --
 -- > natTransId F : forall Q :: * . F Q -> Q
 natTransId :: Type TyName uni () -> Quote (Type TyName uni ())
 natTransId f = do
-    q <- freshTyName () "Q"
+    q <- freshTyName "Q"
     pure $ TyForall () q (Type ()) (TyFun () (TyApp () f (TyVar () q)) (TyVar () q))
 
 -- | The 'fixBy' combinator.
@@ -172,10 +172,10 @@ fixBy = fst fixByAndType
 
 fixByAndType :: TermLike term TyName Name uni => (term (), Type TyName uni ())
 fixByAndType = runQuote $ do
-    f <- freshTyName () "F"
+    f <- freshTyName "F"
 
     -- by : (F ~> Id) -> (F ~> Id)
-    by <- freshName () "by"
+    by <- freshName "by"
     byTy <- do
         nt1 <- natTransId (TyVar () f)
         nt2 <- natTransId (TyVar () f)
@@ -193,26 +193,26 @@ fixByAndType = runQuote $ do
         pure $ tyInst () (tyInst () fix nt1) nt2
 
     -- rec : (F ~> F) -> (F ~> Id)
-    recc <- freshName () "rec"
+    recc <- freshName "rec"
     reccTy <- do
       nt <- natTrans (TyVar () f) (TyVar () f)
       nt2 <- natTransId (TyVar () f)
       pure $ TyFun () nt nt2
 
     -- h : F ~> F
-    h <- freshName () "h"
+    h <- freshName "h"
     hty <- natTrans (TyVar () f) (TyVar () f)
 
     -- R :: *
     -- fr : F R
-    r <- freshTyName () "R"
-    fr <- freshName () "fr"
+    r <- freshTyName "R"
+    fr <- freshName "fr"
     let frTy = TyApp () (TyVar () f) (TyVar () r)
 
     -- Q :: *
     -- fq : F Q
-    q <- freshTyName () "Q"
-    fq <- freshName () "fq"
+    q <- freshTyName "Q"
+    fq <- freshName "fq"
     let fqTy = TyApp () (TyVar () f) (TyVar () q)
 
     -- inner = (/\ (Q :: *) -> \ q : F Q -> rec h {Q} (h {Q} q))
@@ -255,8 +255,8 @@ fixNAndType :: TermLike term TyName Name uni => Integer -> term () -> (term (), 
 fixNAndType n fixByTerm = runQuote $ do
     -- the list of pairs of A and B types
     asbs <- replicateM (fromIntegral n) $ do
-        a <- freshTyName () "a"
-        b <- freshTyName () "b"
+        a <- freshTyName "a"
+        b <- freshTyName "b"
         pure (a, b)
 
     let abFuns = fmap (\(a, b) -> TyFun () (TyVar () a) (TyVar () b)) asbs
@@ -267,10 +267,10 @@ fixNAndType n fixByTerm = runQuote $ do
 
     -- the type of fixN, as in the header comment
     fixNType <- do
-        q <- freshTyName () "Q"
+        q <- freshTyName "Q"
         let qvar = TyVar () q
         let argTy = TyForall () q (Type ()) (TyFun () (funTysTo qvar) (funTysTo qvar))
-        r <- freshTyName () "R"
+        r <- freshTyName "R"
         let rvar = TyVar () r
         let resTy = TyForall () r (Type ()) (TyFun () (funTysTo rvar) rvar)
         let fullTy = mkIterTyForall abTyVars $ TyFun () argTy resTy
@@ -278,35 +278,35 @@ fixNAndType n fixByTerm = runQuote $ do
 
     -- instantiatedFix = fixBy { \X :: * -> (A1 -> B1) -> ... -> (An -> Bn) -> X }
     instantiatedFix <- do
-        x <- freshTyName () "X"
+        x <- freshTyName "X"
         pure $ tyInst () fixByTerm (TyLam () x (Type ()) (funTysTo (TyVar () x)))
 
     -- f : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> (A1 -> B1) -> ... -> (An -> Bn) -> Q)
-    f <- freshName () "f"
+    f <- freshName "f"
     fTy <- do
-        q <- freshTyName () "Q"
+        q <- freshTyName "Q"
         pure $ TyForall () q (Type ()) $ TyFun () (funTysTo (TyVar () q)) (funTysTo (TyVar () q))
 
     -- k : forall Q :: * . ((A1 -> B1) -> ... -> (An -> Bn) -> Q) -> Q)
-    k <- freshName () "k"
+    k <- freshName "k"
     kTy <- do
-        q <- freshTyName () "Q"
+        q <- freshTyName "Q"
         pure $ TyForall () q (Type ()) $ TyFun () (funTysTo (TyVar () q)) (TyVar () q)
 
-    s <- freshTyName () "S"
+    s <- freshTyName "S"
 
     -- h : (A1 -> B1) -> ... -> (An -> Bn) -> S
-    h <- freshName () "h"
+    h <- freshName "h"
     let hTy = funTysTo (TyVar () s)
 
     -- branch (ai, bi) i = \x : ai -> k { bi } \(f1 : A1 -> B1) ... (fn : An -> Bn) . fi x
     let branch (a, b) i = do
             -- names and types for the f arguments
             fs <- ifor asbs $ \j (a',b') -> do
-                f_j <- freshName () $ "f_" <> showText j
+                f_j <- freshName $ "f_" <> showText j
                 pure $ VarDecl () f_j (TyFun () (TyVar () a') (TyVar () b'))
 
-            x <- freshName () "x"
+            x <- freshName "x"
 
             pure $
                 lamAbs () x (TyVar () a) $
@@ -358,9 +358,9 @@ getMutualFixOf
 getMutualFixOf ann fixn funs = do
     let funTys = map functionDefToType funs
 
-    q <- liftQuote $ freshTyName ann "Q"
+    q <- liftQuote $ freshTyName "Q"
     -- TODO: It was 'safeFreshName' previously. Should we perhaps have @freshName = safeFreshName@?
-    choose <- freshName ann "choose"
+    choose <- freshName "choose"
     let chooseTy = mkIterTyFun ann funTys (TyVar ann q)
 
     -- \v1 ... vn -> choose f1 ... fn

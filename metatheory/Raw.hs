@@ -93,17 +93,17 @@ unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
 unconvK (RKiFun _K _J) = KindArrow () (unconvK _K) (unconvK _J)
 
-varTm :: Int -> DeBruijn ()
-varTm i = DeBruijn () (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
+varTm :: Int -> DeBruijn
+varTm i = DeBruijn (T.pack [tmnames !! i]) (Index (naturalFromInteger 0))
 
-varTy :: Int -> DeBruijn ()
-varTy i = DeBruijn () (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
+varTy :: Int -> DeBruijn
+varTy i = DeBruijn (T.pack [tynames !! i]) (Index (naturalFromInteger 0))
 
 -- this should take a level and render levels as names
 unconvT :: Int -> RType -> Type TyDeBruijn DefaultUni ()
 unconvT i (RTyVar x)        =
-  --TyVar () (TyDeBruijn (DeBruijn () (T.pack (show (i,x))) (Index (naturalFromInteger x))))
-  TyVar () (TyDeBruijn (DeBruijn () (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
+  --TyVar () (TyDeBruijn (DeBruijn (T.pack (show (i,x))) (Index (naturalFromInteger x))))
+  TyVar () (TyDeBruijn (DeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (naturalFromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
   TyForall () (TyDeBruijn (varTy (i+1))) (unconvK k) (unconvT (i+1) t)
@@ -127,7 +127,7 @@ tynames = ['A' .. 'Z']
 
 unconv :: Int -> Int -> RTerm -> Term TyDeBruijn DeBruijn DefaultUni ()
 unconv tyi tmi (RVar x)          =
-  Var () (DeBruijn () (T.pack [tmnames !! (tmi - fromIntegral x)]) (Index (naturalFromInteger x)))
+  Var () (DeBruijn (T.pack [tmnames !! (tmi - fromIntegral x)]) (Index (naturalFromInteger x)))
 unconv tyi tmi (RTLambda k tm)   = TyAbs () (TyDeBruijn (varTy (tyi+1))) (unconvK k) (unconv (tyi+1) tmi tm)
 unconv tyi tmi (RTApp t ty)      = TyInst () (unconv tyi tmi t) (unconvT tyi ty)
 unconv tyi tmi (RLambda ty tm)   = LamAbs () (varTm (tmi+1)) (unconvT tyi ty) (unconv tyi (tmi+1) tm)

@@ -92,9 +92,9 @@ iterAppValueToTermOf (IterAppValue term _ y) = TermOf term y
 
 -- | Add to the 'ByteString' representation of a 'Name' its 'Unique'
 -- without any additional symbols inbetween.
-revealUnique :: Name a -> Name a
-revealUnique (Name ann name uniq) =
-    Name ann (name <> prettyText (unUnique uniq)) uniq
+revealUnique :: Name -> Name
+revealUnique (Name name uniq) =
+    Name (name <> prettyText (unUnique uniq)) uniq
 
 -- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
@@ -189,7 +189,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
             lambdaApply = withTypedBuiltinGen $ \argKt@AsKnownType -> do
                 -- Generate a name for the name representing the argument.
-                name <- lift $ revealUnique <$> freshName () "x"
+                name <- lift $ revealUnique <$> freshName "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 let argTy = toTypeAst argKt
                 -- Generate the argument.

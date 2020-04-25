@@ -60,8 +60,8 @@ safeName kind t =
         nonEmpty = if T.null dropped then "bad_name" else dropped
     in nonEmpty
 
-safeFreshName :: MonadQuote m => a -> T.Text -> m (PLC.Name a)
-safeFreshName ann s = liftQuote $ freshName ann $ safeName TermName s
+safeFreshName :: MonadQuote m => T.Text -> m PLC.Name
+safeFreshName s = liftQuote $ freshName $ safeName TermName s
 
-safeFreshTyName :: MonadQuote m => a -> T.Text -> m (PLC.TyName a)
-safeFreshTyName ann s = liftQuote $ freshTyName ann $ safeName TypeName s
+safeFreshTyName :: MonadQuote m => T.Text -> m PLC.TyName
+safeFreshTyName s = liftQuote $ freshTyName $ safeName TypeName s

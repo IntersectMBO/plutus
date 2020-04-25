@@ -31,7 +31,7 @@ typeSchemeToType = runQuote . go 0 where
         (_ :: Proxy '(text, uniq)) -> do
             let text = Text.pack $ symbolVal @text Proxy
                 uniq = fromIntegral $ natVal @uniq Proxy
-                a    = TyName $ Name () text $ Unique uniq
+                a    = TyName $ Name text $ Unique uniq
             TyForall () a (Type ()) <$> go i (schK Proxy)
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and

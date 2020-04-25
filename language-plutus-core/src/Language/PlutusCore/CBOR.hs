@@ -135,12 +135,12 @@ instance Serialise Unique where
     encode (Unique i) = encodeInt i
     decode = Unique <$> decodeInt
 
-instance Serialise ann => Serialise (Name ann) where
+instance Serialise Name where
     -- TODO: should we encode the name or not?
-    encode (Name ann txt u) = encode ann <> encode txt <> encode u
-    decode = Name <$> decode <*> decode <*> decode
+    encode (Name txt u) = encode txt <> encode u
+    decode = Name <$> decode <*> decode
 
-instance Serialise ann => Serialise (TyName ann) where
+instance Serialise TyName where
     encode (TyName n) = encode n
     decode = TyName <$> decode
 
@@ -158,7 +158,7 @@ instance Serialise ann => Serialise (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-instance (Closed uni, Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname uni ann) where
+instance (Closed uni, Serialise ann, Serialise tyname) => Serialise (Type tyname uni ann) where
     encode = cata a where
         a (TyVarF ann tn)        = encodeConstructorTag 0 <> encode ann <> encode tn
         a (TyFunF ann t t')      = encodeConstructorTag 1 <> encode ann <> t <> t'
@@ -194,8 +194,8 @@ instance Serialise ann => Serialise (Builtin ann) where
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (Term tyname name uni ann) where
     encode = cata a where
         a (VarF ann n)           = encodeConstructorTag 0 <> encode ann <> encode n
@@ -224,21 +224,21 @@ instance ( Closed uni
 
 instance ( Closed uni
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (VarDecl tyname name uni ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 
-instance (Serialise ann, Serialise (tyname ann))  => Serialise (TyVarDecl tyname ann) where
+instance (Serialise ann, Serialise tyname)  => Serialise (TyVarDecl tyname ann) where
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (Program tyname name uni ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
@@ -252,19 +252,19 @@ instance Serialise Special
 
 deriving newtype instance Serialise Index
 
-instance Serialise ann => Serialise (DeBruijn ann) where
-    encode (DeBruijn ann txt i) = encode ann <> encode txt <> encode i
-    decode = DeBruijn <$> decode <*> decode <*> decode
+instance Serialise DeBruijn where
+    encode (DeBruijn txt i) = encode txt <> encode i
+    decode = DeBruijn <$> decode <*> decode
 
-instance Serialise ann => Serialise (TyDeBruijn ann) where
+instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
 
 instance (Serialise ann) => Serialise (ParseError ann)
 instance ( Closed uni
          , uni `Everywhere` Serialise
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          , Serialise ann
          ) => Serialise (NormCheckError tyname name uni ann)
 instance (Serialise ann) => Serialise (UniqueError ann)

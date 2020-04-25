@@ -44,7 +44,7 @@ succeedingTCTests = ["succInteger"
         ]
 
 blah :: Maybe String -> [String]
-blah Nothing = []
+blah Nothing     = []
 blah (Just mode) = ["--mode",mode]
 
 -- this is likely to raise either an exitFailure or exitSuccess exception

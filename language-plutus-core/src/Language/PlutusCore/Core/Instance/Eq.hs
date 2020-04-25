@@ -25,7 +25,7 @@ import           Language.PlutusCore.Universe
 -- See Note [Annotations and equality].
 
 instance Eq (Kind ann) where
-    Type _                == Type   _              = True
+    Type _                == Type _                = True
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
     Type{}      == _ = False
     KindArrow{} == _ = False

@@ -69,7 +69,7 @@ typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK Proxy
 
 -- | Get the 'Denotation' of a variable.
-denoteVariable :: KnownType uni res => Name () -> res -> Denotation uni (Name ()) res
+denoteVariable :: KnownType uni res => Name -> res -> Denotation uni Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
@@ -92,7 +92,7 @@ insertDenotation denotation (DenotationContext vs) = DenotationContext $
 -- | Insert a variable into a 'DenotationContext'.
 insertVariable
     :: (GShow uni, KnownType uni a)
-    => Name () -> a -> DenotationContext uni -> DenotationContext uni
+    => Name -> a -> DenotationContext uni -> DenotationContext uni
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.

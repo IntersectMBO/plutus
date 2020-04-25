@@ -28,7 +28,7 @@ instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
         a TypeF{}             = "(type)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
-instance (PrettyClassicBy configName (tyname a), GShow uni) =>
+instance (PrettyClassicBy configName tyname, GShow uni) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname uni a) where
     prettyBy config = cata a where
         a (TyAppF _ t t')     = brackets (t <+> t')
@@ -43,8 +43,8 @@ instance (PrettyClassicBy configName (tyname a), GShow uni) =>
 
 
 instance
-        ( PrettyClassicBy configName (tyname a)
-        , PrettyClassicBy configName (name a)
+        ( PrettyClassicBy configName tyname
+        , PrettyClassicBy configName name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where

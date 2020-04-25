@@ -26,7 +26,7 @@ markNonFreshTerm = markNonFreshMax . uniquesTerm
 -- | Marks all the 'Unique's in a program as used, so they will not be generated in future. Useful if you
 -- have a program which was not generated in 'Quote'.
 markNonFreshProgram
-    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m)
     => Program tyname name uni ann
     -> m ()
 markNonFreshProgram (Program _ _ body) = markNonFreshTerm body
