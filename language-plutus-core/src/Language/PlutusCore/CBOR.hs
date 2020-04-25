@@ -11,7 +11,8 @@
 -- before touching anything in this file.  Also see the Note [Unit-anotated programs] before using
 -- anything in this file.
 
-module Language.PlutusCore.CBOR (serialiseProg, deserialiseProg, deserialiseProgOrFail) where
+module Language.PlutusCore.CBOR (serialiseProg, deserialiseProg, deserialiseProgOrFail,
+                                 serialiseTerm, deserialiseTerm, deserialiseTermOrFail) where
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
@@ -34,9 +35,9 @@ import           Data.Proxy
 DO NOT USE `serialise` AND `deserialise` FOR ()-ANNOTATED ASTs.
 
 Use ONLY the serialiseProg, deserialiseProg, deserialiseProgOrFail
-functions defined later.  These omit unit annotations in the CBOR,
-giving considerable space savings.  See Note [Serialising unit annotations]
-below.
+functions defined later (or the `Term` versions thereof).  These omit
+unit annotations in the CBOR, giving considerable space savings.  See
+Note [Serialising unit annotations] below.
 -}
 
 {- Note [Stable encoding of PLC]
@@ -321,6 +322,7 @@ instance Serialise InvisibleUnit where
 
 type Good uni = (Closed uni, uni `Everywhere` Serialise)
 
+-- Programs
 serialiseProg :: forall uni . Good uni => Program TyName Name uni () -> BSL.ByteString
 serialiseProg p = serialise (coerce p :: Program TyName Name uni InvisibleUnit)
 
@@ -330,3 +332,14 @@ deserialiseProg s = coerce (deserialise s :: Program TyName Name uni InvisibleUn
 deserialiseProgOrFail :: forall uni . Good uni => BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
 deserialiseProgOrFail s =
     fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Program TyName Name uni InvisibleUnit))
+
+-- Terms
+serialiseTerm :: forall uni . Good uni => Term TyName Name uni () -> BSL.ByteString
+serialiseTerm p = serialise (coerce p :: Term TyName Name uni InvisibleUnit)
+
+deserialiseTerm :: forall uni . Good uni => BSL.ByteString -> Term TyName Name uni ()
+deserialiseTerm s = coerce (deserialise s :: Term TyName Name uni InvisibleUnit)
+
+deserialiseTermOrFail :: forall uni . Good uni => BSL.ByteString -> Either DeserialiseFailure (Term TyName Name uni ())
+deserialiseTermOrFail s =
+    fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Term TyName Name uni InvisibleUnit))
