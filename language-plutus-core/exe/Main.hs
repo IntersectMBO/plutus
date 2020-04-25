@@ -227,22 +227,28 @@ getCborInput :: Input -> IO BSL.ByteString
 getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
+
+-- Load a PLC AST from a CBOR file
+loadPlcFromCborFile :: Input -> IO PlainProgram
+loadPlcFromCborFile inp = do
+  p <- getCborInput inp -- The type is constrained in the Right case below.
+  case deserialiseProgOrFail p of
+    Left (DeserialiseFailure offset msg) ->
+        do
+          putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
+          exitFailure
+    Right (r::PlainProgram) -> return r
+
+
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
 getProg :: Input -> Format -> IO ParsedProgram
 getProg inp fmt =
     case fmt of
       Plc  -> parsePlcFile inp
       Cbor -> do
-               p <- getCborInput inp -- The type is constrained in the Right case below.
-               case deserialiseProgOrFail p of
-                 Left (DeserialiseFailure offset msg) ->
-                     do
-                       putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
-                       exitFailure
-                 Right (r::PlainProgram) ->       -- Input a ()-annotated AST: see Note [Annotation types].
-                     return $ (fakeAlexPosn <$ r) -- Change the annotation type to AlexPosn to match parsePlcFile.
-                         where fakeAlexPosn = PLC.AlexPn 0 0 0
-
+               plc <-loadPlcFromCborFile inp
+               return (fakeAlexPosn <$ plc)  -- Adjust the return type to ParsedProgram
+                   where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 ---------------- Typechecking ----------------
 
@@ -301,11 +307,10 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
-  cbor <- getCborInput inp
-  let plc = deserialise cbor :: PlainProgram
-      printMethod = case mode of
-            Classic -> PLC.prettyPlcClassicDef
-            Debug   -> PLC.prettyPlcClassicDebug
+  plc <- loadPlcFromCborFile inp
+  let printMethod = case mode of
+                      Classic -> PLC.prettyPlcClassicDef
+                      Debug   -> PLC.prettyPlcClassicDebug
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
     StdOutput       -> print . printMethod $ plc
