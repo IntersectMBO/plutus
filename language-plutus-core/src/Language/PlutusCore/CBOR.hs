@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -7,7 +8,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
--- before touching anything in this file.
+-- before touching anything in this file.  Also see the Note [Unit-anotated programs] before using
+-- anything in this file.
 
 module Language.PlutusCore.CBOR (serialiseProg, deserialiseProg, deserialiseProgOrFail) where
 
@@ -26,6 +28,16 @@ import           Codec.Serialise
 import           Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Data.Proxy
+
+{- Note [Unit-annotated programs]
+
+DO NOT USE `serialise` AND `deserialise` FOR ()-ANNOTATED ASTs.
+
+Use ONLY the serialiseProg, deserialiseProg, deserialiseProgOrFail
+functions defined later.  These omit unit annotations in the CBOR,
+giving considerable space savings.  See Note [Serialising unit annotations]
+below.
+-}
 
 {- Note [Stable encoding of PLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -51,13 +63,13 @@ for testing.
 
 
 {- [Note: Encoding/decoding constructor tags]
-   Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
-   tags representing constructors.  These are just aliases for
-   `encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
-   sizes and will only use one byte for the tags we have here.  NB: Don't
-   use encodeTag or decodeTag; those are for use with a fixed set of CBOR
-   tags with predefined meanings which we shouldn't interfere with.
-   See http://hackage.haskell.org/package/serialise.
+Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
+tags representing constructors.  These are just aliases for
+`encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
+sizes and will only use one byte for the tags we have here.  NB: Don't
+use encodeTag or decodeTag; those are for use with a fixed set of CBOR
+tags with predefined meanings which we shouldn't interfere with.
+See http://hackage.haskell.org/package/serialise.
 -}
 encodeConstructorTag :: Word -> Encoding
 encodeConstructorTag = encodeWord
@@ -275,26 +287,29 @@ instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (T
 instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (Error uni ann)
 
 
-{- Serialising the unit annotation takes up space: () is converted to
-   the CBOR `null` value, which is encoded as the byte 0xF6.  In
-   typical examples these account for 30% or more of the bytes in a
-   serialised PLC program.  We don't actually need to serialise unit
-   annotations since we know where they're going to appear when we're
-   deserialising, and we know what the value has to be.  The
-   `InvisibleUnit` type below has a `Serialise` instance which
-   takes care of this for us: `serialise (InvisibleUnit () <$ prog)`
-    will serialise a program omitting the unit annotations, and
-   `deserialise` will give us back an `InvisibleUnit`-annotated program
-   which we can convert back to a ()-annotated program with `() <$ ...`.
-   The functions `serialiseProg`, `deserialiseProg` and `deserialiseProgOrFail`
-   do the conversions for us, so that the `InvisibleUnit` type doesn't have
-   to be exposed to uesrs.  These functions should always be used to serialise
-   and deserialise ()-annotated programs.
+{- Note [Serialising unit annotations]
 
-   A possible problem is that `() <$ prog` has to visit every node in
-   the AST, which would incur a cost on chain.  `InvisibleUnit`
-   is coercible to `()` at zero cost, and this should extend to the
-   entire AST.  The functions below attempt to do this.
+Serialising the unit annotation takes up space: () is converted to the
+CBOR `null` value, which is encoded as the byte 0xF6.  In typical
+examples these account for 30% or more of the bytes in a serialised
+PLC program.  We don't actually need to serialise unit annotations
+since we know where they're going to appear when we're deserialising,
+and we know what the value has to be.  The `InvisibleUnit` type below
+has instances which takes care of this for us: if we have an
+`InvisibleUnit`-annotated program `prog` then `serialise prog` will
+serialise a program omitting the annotations, and `deserialise` (with
+an appropriate type ascription) will give us back an
+`InvisibleUnit`-annotated program.
+
+We usually deal with ()-annotated ASTs, so the annotations have to be
+converted to and from `InvisibleUnit` if we wish to save space.  The
+obvious way to do this is to use `InvisibleUnit <$ ...` and
+`() <$ ...`, but these have the disadvantage that they have to traverse the
+entire AST and visit every annotation, adding an extra cost which may
+be undesirable when deserialising things on-chain.  However,
+`InvisibleUnit` has the same underlying representation as `()`, and
+we can exploit this using Data.Coerce.coerce to convert entire ASTs
+with no run-time overhead.
 -}
 
 newtype InvisibleUnit = InvisibleUnit ()
@@ -304,59 +319,16 @@ instance Serialise InvisibleUnit where
     decode = pure (InvisibleUnit ())
 
 
-{- Everything works fine if you just use `<$` to change the annotations, but
-   things go wrong when you try to use `coerce`. -}
+type Good uni = (Closed uni, uni `Everywhere` Serialise)
 
-serialiseProg :: (Closed uni, uni `Everywhere` Serialise) =>
-                 Program TyName Name uni () -> BSL.ByteString
-serialiseProg p =
-    let p1 = fmap (coerce :: () -> InvisibleUnit) p
-    in serialise p1
-
-{- You can also delete the type annotation on coerce and replace it with a
-   much more unpleasant one on p1.  What I can't get to work is to have
-
-     coerce p
-
-   instead of
-
-     fmap coerce p
-
-   This is annoying because it's presumably actually doing a lot of
-   the work that we're trying to avoid with coerce (although I don't
-   know that for sure).  This *does* work with a simple expression
-   language equipped with annotations, where the compiler knows that
-   the representation of an entire ()-annotated AST is the same as the
-   representation of the InvisibleUnit-annotated version.  Universes
-   seem to complicate matters, but I think there's more to it than
-   that because it doesn't work even if you fix uni to be
-   DefaultUniverse.
--}
-
-deserialiseProg :: (Closed uni, uni `Everywhere` Serialise) =>
-                   BSL.ByteString -> Program TyName Name uni ()
-deserialiseProg s =
-    let p = deserialise s :: (Closed uni, uni `Everywhere` Serialise) =>
-            Program TyName Name uni InvisibleUnit
-    in fmap coerce p
+serialiseProg :: forall uni . Good uni => Program TyName Name uni () -> BSL.ByteString
+serialiseProg p = serialise (coerce p :: Program TyName Name uni InvisibleUnit)
 
 
-deserialiseProgOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
-                         BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
+deserialiseProg :: forall uni . Good uni => BSL.ByteString -> Program TyName Name uni ()
+deserialiseProg s = coerce (deserialise s :: Program TyName Name uni InvisibleUnit)
+
+
+deserialiseProgOrFail :: forall uni . Good uni => BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
 deserialiseProgOrFail s =
-    let p = deserialiseOrFail s :: (Closed uni, uni `Everywhere` Serialise) =>
-                Either DeserialiseFailure (Program TyName Name uni InvisibleUnit)
-    in fmap (fmap coerce) p
-
-{-
-deserialiseProg2 :: BSL.ByteString -> Program TyName Name DefaultUni ()
-deserialiseProg2 s =
-    let p = deserialise s :: Program TyName Name DefaultUni InvisibleUnit
-    in coerce p :: Program TyName Name DefaultUni ()
-
-This gives the error:
-   Couldn't match type ‘InvisibleUnit’ with ‘()’
-        arising from a use of ‘coerce’
-
-I'm finding that rather mysterious.
--}
+    fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Program TyName Name uni InvisibleUnit))
