@@ -1,6 +1,7 @@
 -- Why is it needed here, but not in 'Universe.hs'?
 {-# LANGUAGE ExplicitNamespaces #-}
 
+
 module Language.PlutusCore
     (
       -- * Parser
