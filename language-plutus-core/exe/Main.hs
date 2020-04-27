@@ -10,7 +10,7 @@ import           Control.Monad.Trans.Except                                 (run
 import           Data.Bifunctor                                             (second)
 import           Data.Foldable                                              (traverse_)
 import qualified Language.PlutusCore                                        as PLC
-import           Language.PlutusCore.CBOR                                   (deserialiseProgOrFail, serialiseProg)
+import           Language.PlutusCore.CBOR                                   (SerialisePLC (..))
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
@@ -232,7 +232,7 @@ getCborInput (FileInput file) = BSL.readFile file
 loadPlcFromCborFile :: Input -> IO PlainProgram
 loadPlcFromCborFile inp = do
   p <- getCborInput inp -- The type is constrained in the Right case below.
-  case deserialiseProgOrFail p of
+  case deserialisePLCOrFail p of
     Left (DeserialiseFailure offset msg) ->
         do
           putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
@@ -297,7 +297,7 @@ runPrint (PrintOptions inp mode) =
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
   p <- parsePlcFile inp
-  let cbor = serialiseProg (() <$ p) -- Change annotations to (): see Note [Annotation types].
+  let cbor = serialisePLC (() <$ p) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor *> putStrLn ""

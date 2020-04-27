@@ -1,18 +1,18 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE ConstraintKinds         #-}
+{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE StandaloneDeriving      #-}
+{-# LANGUAGE TypeApplications        #-}
+{-# LANGUAGE TypeOperators           #-}
+{-# LANGUAGE UndecidableInstances    #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.  Also see the Note [Unit-anotated programs] before using
 -- anything in this file.
 
-module Language.PlutusCore.CBOR (serialiseProg, deserialiseProg, deserialiseProgOrFail,
-                                 serialiseTerm, deserialiseTerm, deserialiseTermOrFail) where
+module Language.PlutusCore.CBOR (SerialisePLC (..)) where
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
@@ -32,12 +32,12 @@ import           Data.Proxy
 
 {- Note [Unit-annotated programs]
 
-DO NOT USE `serialise` AND `deserialise` FOR ()-ANNOTATED ASTs.
+DO NOT USE `serialise` and `deserialise` or `encode` and `decode` FOR
+()-ANNOTATED ASTs.
 
-Use ONLY the serialiseProg, deserialiseProg, deserialiseProgOrFail
-functions defined later (or the `Term` versions thereof).  These omit
-unit annotations in the CBOR, giving considerable space savings.  See
-Note [Serialising unit annotations] below.
+Use ONLY the methods in the serialisePLC.  These omit unit annotations
+in the CBOR, giving considerable space savings.  See Note [Serialising
+unit annotations] below.
 -}
 
 {- Note [Stable encoding of PLC]
@@ -320,6 +320,7 @@ instance Serialise InvisibleUnit where
     decode = pure (InvisibleUnit ())
 
 
+{-
 type Good uni = (Closed uni, uni `Everywhere` Serialise)
 
 -- Programs
@@ -343,3 +344,21 @@ deserialiseTerm s = coerce (deserialise s :: Term TyName Name uni InvisibleUnit)
 deserialiseTermOrFail :: forall uni . Good uni => BSL.ByteString -> Either DeserialiseFailure (Term TyName Name uni ())
 deserialiseTermOrFail s =
     fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Term TyName Name uni InvisibleUnit))
+-}
+
+class SerialisePLC a where
+    serialisePLC         :: a -> ByteString
+    deserialisePLC       :: ByteString -> a
+    deserialisePLCOrFail :: ByteString -> Either DeserialiseFailure a
+
+instance (Closed uni, uni `Everywhere` Serialise) => SerialisePLC (Program TyName Name uni ()) where
+    serialisePLC p         = serialise (coerce p :: Program TyName Name uni InvisibleUnit)
+    deserialisePLC s       = coerce (deserialise s :: Program TyName Name uni InvisibleUnit)
+    deserialisePLCOrFail s = fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Program TyName Name uni InvisibleUnit))
+
+instance (Closed uni, uni `Everywhere` Serialise) => SerialisePLC (Term TyName Name uni ()) where
+    serialisePLC  t        = serialise (coerce t :: Term TyName Name uni InvisibleUnit)
+    deserialisePLC s       = coerce (deserialise s :: Term TyName Name uni InvisibleUnit)
+    deserialisePLCOrFail s = fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Term TyName Name uni InvisibleUnit))
+
+
