@@ -7,7 +7,7 @@
 , haskell-nix
 , buildPackages
 , metatheory
-, checkMaterialization 
+, checkMaterialization
 }:
 
 let
@@ -23,6 +23,8 @@ let
     # This turns the output into a fixed-output derivation, which speeds things
     # up, but means we need to invalidate this hash when we change stack.yaml.
     stack-sha256 = "1q17rcnlkv898hrpjx384knhg514w13chlbbxb0jahxm3k5zc9mk";
+    # See ../CONTRIBUTING.doc for help with materlialization
+    materialized = if builtins.pathExists ./stack.materialized then ./stack.materialized else null;
     inherit checkMaterialization;
     modules = [
         {
