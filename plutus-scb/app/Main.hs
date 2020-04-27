@@ -111,6 +111,7 @@ commandParser =
         , mockNodeParser
         , chainIndexParser
         , signingProcessParser
+        , reportTxHistoryParser
         , command
               "contracts"
               (info
@@ -120,7 +121,6 @@ commandParser =
                              , reportInstalledContractsParser
                              , activateContractParser
                              , reportActiveContractsParser
-                             , reportTxHistoryParser
                              , updateContractParser
                              , contractStatusParser
                              , reportContractHistoryParser
