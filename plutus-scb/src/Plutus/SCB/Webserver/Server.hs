@@ -17,6 +17,7 @@ import           Control.Monad.Except          (ExceptT (ExceptT))
 import           Control.Monad.Freer           (Eff, Member)
 import           Control.Monad.Freer.Extra.Log (logInfo)
 import           Control.Monad.IO.Class        (liftIO)
+import           Control.Monad.Logger          (LogLevel (LevelDebug))
 import           Data.Bifunctor                (first)
 import qualified Data.ByteString.Lazy.Char8    as LBS
 import           Data.Map                      (Map)
@@ -49,7 +50,7 @@ asHandler config action =
     Handler $
     ExceptT $
     fmap (first (\err -> err500 {errBody = LBS.pack $ show err})) $
-    runApp config action
+    runApp LevelDebug config action
 
 healthcheck :: Monad m => m ()
 healthcheck = pure ()
