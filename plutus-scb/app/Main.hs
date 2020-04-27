@@ -122,7 +122,7 @@ commandParser =
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
     command "psgenerator" $
-    flip info fullDesc $ do
+    flip info (fullDesc <> progDesc "Generate the frontend's PureScript files.") $ do
         _outputDir <-
             argument
                 str

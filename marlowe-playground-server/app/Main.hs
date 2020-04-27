@@ -15,8 +15,8 @@ import           Git                      (gitRev)
 import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
 import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                            disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                           option, prefs, short, showDefault, showHelpOnEmpty, showHelpOnError, str,
-                                           strOption, subparser, value)
+                                           option, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                           showHelpOnError, str, strOption, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -56,7 +56,7 @@ commandParser = subparser $ webserverCommandParser <> psGeneratorCommandParser
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
     command "psgenerator" $
-    flip info fullDesc $ do
+    flip info (fullDesc <> progDesc "Generate the frontend's PureScript files.") $ do
         _outputDir <-
             argument
                 str
