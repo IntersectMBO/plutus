@@ -235,7 +235,7 @@ reportTxHistoryParser =
 
 scbWebserverParser :: Mod CommandFields Command
 scbWebserverParser =
-    command "tx" $
+    command "webserver" $
     info
         (pure SCBWebserver)
         (fullDesc <> progDesc "Start the SCB backend webserver.")
