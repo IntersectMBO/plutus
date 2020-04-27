@@ -36,8 +36,9 @@ import           Options.Applicative           (CommandFields, Mod, Parser, argu
 import           Plutus.SCB.App                (App, runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
-import           Plutus.SCB.Types              (Config (Config), ContractExe (..), chainIndexConfig, nodeServerConfig,
-                                                signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Types              (ActiveContractState, Config (Config), ContractExe (..),
+                                                chainIndexConfig, nodeServerConfig, signingProcessConfig,
+                                                walletServerConfig)
 import           Plutus.SCB.Utils              (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server   as SCBServer
 import qualified PSGenerator
@@ -304,10 +305,11 @@ runCliCommand _ _ (UpdateContract uuid endpoint payload) =
     Core.updateContract @ContractExe uuid endpoint payload
 runCliCommand _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
-    itraverse_
-        (\index contract ->
-             logInfo $ render (parens (pretty index) <+> pretty contract)) =<<
-        Core.activeContractHistory @ContractExe uuid
+    contracts <- Core.activeContractHistory @ContractExe uuid
+    itraverse_ logContract contracts
+    where
+      logContract :: Int -> ActiveContractState ContractExe -> App ()
+      logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
 runCliCommand _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 
