@@ -15,7 +15,7 @@ import           Pretty.Readable
 import           TypeSynthesis.Spec                                         (test_typecheck)
 
 import           Language.PlutusCore
-import           Language.PlutusCore.CBOR                                   (deserialiseProgOrFail, serialiseProg)
+import           Language.PlutusCore.CBOR                                   (SerialisePLC (..))
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -92,7 +92,7 @@ instance Eq a => Eq (TextualProgram a) where
 propCBOR :: Property
 propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
-    Hedgehog.tripping prog serialiseProg deserialiseProgOrFail
+    Hedgehog.tripping prog serialisePLC deserialisePLCOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
