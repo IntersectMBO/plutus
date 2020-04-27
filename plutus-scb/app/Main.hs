@@ -18,7 +18,7 @@ import           Control.Lens.Indexed          (itraverse_)
 import           Control.Monad                 (void)
 import           Control.Monad.Freer.Extra.Log (logInfo)
 import           Control.Monad.IO.Class        (liftIO)
-import           Control.Monad.Logger          (runStdoutLoggingT)
+import           Control.Monad.Logger          (LogLevel (LevelDebug, LevelInfo), filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                    as JSON
 import qualified Data.ByteString.Lazy.Char8    as BS8
 import           Data.Foldable                 (traverse_)
@@ -29,7 +29,7 @@ import           Data.UUID                     (UUID)
 import           Data.Yaml                     (decodeFileThrow)
 import           Git                           (gitRev)
 import           Options.Applicative           (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                                disambiguate, eitherReader, fullDesc, help, helper, idm, info,
+                                                disambiguate, eitherReader, flag, fullDesc, help, helper, idm, info,
                                                 infoOption, long, metavar, option, optional, prefs, progDesc, short,
                                                 showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
                                                 subparser, value)
@@ -69,11 +69,19 @@ versionOption :: Parser (a -> a)
 versionOption =
     infoOption
         (Text.unpack gitRev)
-        (short 'v' <> long "version" <> help "Show the version")
+        (long "version" <> help "Show the version")
 
-commandLineParser :: Parser (Maybe Int, FilePath, Command)
+logLevelFlag :: Parser LogLevel
+logLevelFlag =
+    flag
+        LevelInfo
+        LevelDebug
+        (short 'v' <> long "verbose" <> help "Enable debugging output.")
+
+commandLineParser :: Parser (Maybe Int, LogLevel, FilePath, Command)
 commandLineParser =
-    (,,) <$> optional ekgPortParser <*> configFileParser <*> commandParser
+    (,,,) <$> optional ekgPortParser <*> logLevelFlag <*> configFileParser <*>
+    commandParser
 
 ekgPortParser :: Parser Int
 ekgPortParser =
@@ -259,64 +267,64 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand :: Config -> Command -> App ()
-runCliCommand _ Migrate = App.migrate
-runCliCommand Config {walletServerConfig, nodeServerConfig, chainIndexConfig} MockWallet =
+runCliCommand :: LogLevel -> Config -> Command -> App ()
+runCliCommand _ _ Migrate = App.migrate
+runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
-runCliCommand Config {nodeServerConfig} MockNode =
+runCliCommand _ Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
-runCliCommand config SCBWebserver = SCBServer.main config
-runCliCommand config (ForkCommands commands) =
+runCliCommand _ config SCBWebserver = SCBServer.main config
+runCliCommand minLogLevel config (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
         waitAny threads
   where
-    forkCommand :: Command -> IO (Async ())
-    forkCommand = async . void . runApp config . runCliCommand config
-runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
+    forkCommand ::  Command -> IO (Async ())
+    forkCommand = async . void . runApp minLogLevel config . runCliCommand minLogLevel config
+runCliCommand _ Config {nodeServerConfig, chainIndexConfig} ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
-runCliCommand Config {signingProcessConfig} SigningProcess =
+runCliCommand _ Config {signingProcessConfig} SigningProcess =
     SigningProcess.main signingProcessConfig
-runCliCommand _ (InstallContract path) = Core.installContract (ContractExe path)
-runCliCommand _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
-runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe uuid
-runCliCommand _ ReportInstalledContracts = do
+runCliCommand _ _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe uuid
+runCliCommand _ _ ReportInstalledContracts = do
     logInfo "Installed Contracts"
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
-runCliCommand _ ReportActiveContracts = do
+runCliCommand _ _ ReportActiveContracts = do
     logInfo "Active Contracts"
     traverse_ (logInfo . render . pretty) =<< Core.activeContracts @ContractExe
-runCliCommand _ ReportTxHistory = do
+runCliCommand _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
-runCliCommand _ (UpdateContract uuid endpoint payload) =
+runCliCommand _ _ (UpdateContract uuid endpoint payload) =
     Core.updateContract @ContractExe uuid endpoint payload
-runCliCommand _ (ReportContractHistory uuid) = do
+runCliCommand _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
     itraverse_
         (\index contract ->
              logInfo $ render (parens (pretty index) <+> pretty contract)) =<<
         Core.activeContractHistory @ContractExe uuid
-runCliCommand _ PSGenerator {_outputDir} =
+runCliCommand _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do
-    (ekgPort, configPath, cmd) <-
+    (ekgPort, minLogLevel, configPath, cmd) <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
     result <-
-        runApp config $ do
+        runApp minLogLevel config $ do
             logInfo $ "Running: " <> Text.pack (show cmd)
-            runCliCommand config cmd
+            runCliCommand minLogLevel config cmd
     case result of
         Left err -> do
-            runStdoutLoggingT $ logErrorS err
+            runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ logErrorS err
             exitWith (ExitFailure 1)
         Right _ -> exitSuccess

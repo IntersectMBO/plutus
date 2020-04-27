@@ -32,7 +32,7 @@ import           Control.Monad.Freer.Reader    (Reader, asks, runReader)
 import           Control.Monad.Freer.Writer    (Writer)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift       (MonadUnliftIO)
-import           Control.Monad.Logger          (LoggingT (..), MonadLogger, runStdoutLoggingT)
+import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLogger, filterLogger, runStdoutLoggingT)
 import           Data.Aeson                    (eitherDecode)
 import qualified Data.Aeson.Encode.Pretty      as JSON
 import qualified Data.ByteString.Lazy.Char8    as BSL8
@@ -145,9 +145,9 @@ runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcess
 
 type App a = Eff (AppBackend (LoggingT IO)) a
 
-runApp :: Config -> App a -> IO (Either SCBError a)
-runApp Config {dbConfig, nodeServerConfig, walletServerConfig, signingProcessConfig, chainIndexConfig} action =
-    runStdoutLoggingT $ do
+runApp :: LogLevel -> Config -> App a -> IO (Either SCBError a)
+runApp minLogLevel Config {dbConfig, nodeServerConfig, walletServerConfig, signingProcessConfig, chainIndexConfig} action =
+    runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ do
         walletClientEnv <- mkEnv (WalletServer.baseUrl walletServerConfig)
         nodeClientEnv <- mkEnv (NodeServer.mscBaseUrl nodeServerConfig)
         signingProcessEnv <- mkEnv (SigningProcess.spBaseUrl signingProcessConfig)
