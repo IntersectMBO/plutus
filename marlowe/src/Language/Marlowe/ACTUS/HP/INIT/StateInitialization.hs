@@ -7,4 +7,4 @@ import Language.Marlowe.ACTUS.HP.INIT.PAM
 
 inititializeState :: ContractTerms -> ContractState
 inititializeState terms = case terms of
-    PamContractTerms{..} -> _INIT_PAM
+    PamContractTerms{..} -> ContractState{}

@@ -5,9 +5,9 @@ import Data.Bool
 
 import Data.Time
 
-data PYTP = PYTP_A | PYTP_N | PYTP_I
+data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
 
-data FEB = FEB_A | FEB_N
+data FEB = FEB_A | FEB_N deriving (Show, Eq)
 
 data EOMC = EOMC_EOM
           | EOMC_SD deriving (Show, Eq)
