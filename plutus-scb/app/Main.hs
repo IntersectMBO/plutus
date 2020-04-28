@@ -237,7 +237,7 @@ reportActiveContractsParser =
 
 reportTxHistoryParser :: Mod CommandFields Command
 reportTxHistoryParser =
-    command "tx" $
+    command "local-chain" $
     info
         (pure ReportTxHistory)
         (fullDesc <> progDesc "Show all submitted transactions.")
