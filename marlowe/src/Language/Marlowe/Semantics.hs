@@ -390,6 +390,7 @@ data MarloweParams = MarloweParams {
         rolesCurrency           :: CurrencySymbol
     } deriving stock (Show)
 
+type CustomPreValidator = MarloweData -> Bool
 
 -- | Empty State for a given minimal 'Slot'
 emptyState :: Slot -> State
@@ -833,8 +834,8 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
     Marlowe Interpreter Validator generator.
 -}
 marloweValidator
-  :: MarloweParams -> MarloweData -> [Input] -> PendingTx -> Bool
-marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = let
+  :: CustomPreValidator -> MarloweParams -> MarloweData -> [Input] -> PendingTx -> Bool
+marloweValidator customPreValidator marloweParams dt@MarloweData{..} inputs pendingTx@PendingTx{..} = let
     {-  We require Marlowe Tx to have both lower bound and upper bounds in 'SlotRange'.
         All are inclusive.
     -}
@@ -863,7 +864,10 @@ marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = 
     -- ensure that a contract TxOut has what it suppose to have
     balancesOk = inputBalance == scriptInValue
 
-    preconditionsOk = positiveBalances && validInputs && balancesOk
+    -- check custom pre-validator
+    preValidationOk = customPreValidator dt
+
+    preconditionsOk = positiveBalances && validInputs && balancesOk && preValidationOk
 
     slotInterval = (minSlot, maxSlot)
     txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }

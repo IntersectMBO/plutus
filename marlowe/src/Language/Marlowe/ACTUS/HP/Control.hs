@@ -15,6 +15,8 @@ import Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import Data.Maybe
 import qualified Data.Maybe as Maybe
+import Language.Marlowe.ACTUS.HP.Schedule
+import Language.Marlowe.ACTUS.HP.ContractTerms
 
 type Currency = String
 type Tkn = String
@@ -90,6 +92,14 @@ inquiry timePosfix party oracle continue = let
         cont
     riskFactorsInquiry = (riskFactorInquiry "1") . (riskFactorInquiry "2") . (riskFactorInquiry "3")
     in (contractIdInquiry . eventTypeInquiry . riskFactorsInquiry . payoffInquiry . payoffCurrencyInquiry) continue
-    
-        
 
+genContract :: [InitiatorParty] -> Oracle -> Contract
+genContract parties oracle = Close
+
+stateParser :: State -> [CashFlow]
+stateParser state = []
+
+-- if contract is deposit or pay - gets cashflows from state parser and passes them to ActusValidator
+-- also checks that deposit and pay rewuire same amount of money as proposed cashflow
+actusMarloweValidator :: ContractTerms -> MarloweData -> Bool
+actusMarloweValidator terms marloweData = False

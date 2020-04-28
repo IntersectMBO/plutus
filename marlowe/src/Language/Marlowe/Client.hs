@@ -267,7 +267,7 @@ validatorScript params = mkValidatorScript ($$(PlutusTx.compile [|| validatorPar
     `PlutusTx.applyCode`
         PlutusTx.liftCode params)
   where
-    validatorParam k = Scripts.wrapValidator (marloweValidator k)
+    validatorParam k = Scripts.wrapValidator (marloweValidator (\_ -> True) k)
 
 
 {-| Make redeemer script -}
