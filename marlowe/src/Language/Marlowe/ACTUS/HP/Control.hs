@@ -18,10 +18,12 @@ import qualified Data.Maybe as Maybe
 
 type Currency = String
 type Tkn = String
-type Amount = Integer
-type From = Party
-type To = Party
-type AccountIdentifier = Int
+type TimePostfix = String
+type Amount = Language.Marlowe.Value
+type Oracle = String
+type InitiatorParty = String
+type From = String
+type To = String
 type Continuation = Contract
 
 cardanoEpochStart = 100
@@ -31,88 +33,63 @@ dayToSlotNumber d = let
     (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
     in fromIntegral secs - cardanoEpochStart `mod` 20
 
-depositAndPay :: AccountIdentifier -> From -> To -> Day -> Amount -> Currency -> Tkn -> Continuation -> Contract
-depositAndPay accId from to date amount currency token continue = 
-    let token = ada --todo (Token currency token)
+invoice :: From -> To -> Day -> Amount -> Currency -> Tkn -> Continuation -> Contract
+invoice from to date amount currency tokenName continue = 
+    let
+        party = Role $ TokenName $ fromString from
+        counterparty = Role $ TokenName $ fromString to
     in 
     When
-    [Case
-        (Deposit
-            (AccountId
-                0
-                to
-            )
-            from
-            token
-            (Constant amount)
-        )
-        (If
-            (ValueLE
-                SlotIntervalStart 
-                (Constant (dayToSlotNumber date))
-            )
-            (Pay
-                (AccountId
-                    1
-                    from -- (Role from)
-                )
-                (Party to) --(Role to))
-                token
-                (Constant amount)
-                continue 
-            )
-            Close 
-        )]
+        [Case
+            (Deposit (AccountId 0 party) party ada amount)
+                (Pay (AccountId 1 counterparty) (Party party) ada amount 
+                    continue)]
     100 Close 
 
 
--- todo: read ContractId, read eventType, read riskFactors, read proposed payoff amount, 
--- t0 t1 t2 - just counter
-readProposedEvent :: Case Contract
-readProposedEvent = let
-    choiceOwner = Role $ TokenName $ fromString "oracle"
-    choiceDefault = (Constant 0)
-    choiceValueBound = [Bound 0 1000000]
-    choiceEventTypeBound = [Bound 1 1]
-    in
-    Case
-        (Choice
-            (ChoiceId
-                (fromString "eventType_t0")
-                choiceOwner
-            )
-            choiceEventTypeBound
-        )
+inquiry :: TimePostfix -> InitiatorParty -> Oracle -> Contract -> Contract
+inquiry timePosfix party oracle continue = let
+    partyRole = Role $ TokenName $ fromString party
+    oracleRole = Role $ TokenName $ fromString oracle
+    inputTemplate inputChoiceId inputOwner inputDefault inputBound cont = 
         (When
-            [Case
-                (Choice
-                    (ChoiceId
-                        (fromString "riskFactor1_t0")
-                        choiceOwner
-                    )
-                    choiceValueBound
-                )
-                (Let
-                    (fromString "eventType_t0")
-                    (ChoiceValue
-                        (ChoiceId
-                            (fromString "eventType_t0")
-                            choiceOwner
-                        )
-                        choiceDefault
-                    )
-                    (Let
-                        (fromString "riskFactor1_t0")
-                        (ChoiceValue
-                            (ChoiceId
-                                (fromString "eventType_t0")
-                                choiceOwner
-                            )
-                            choiceDefault
-                        )
-                        Close 
-                    )
-                )]
-            0 Close 
-        )
+            [Case (Choice (ChoiceId inputChoiceId inputOwner) inputBound)
+                (Let (ValueId inputChoiceId) (ChoiceValue (ChoiceId inputChoiceId inputOwner) inputDefault)
+                    cont)]
+            0
+            Close) 
+    contractIdInquiry cont = inputTemplate 
+        (fromString ("contractId" ++ timePosfix)) 
+        partyRole 
+        (Constant 0) 
+        [Bound 0 1000000] 
+        cont
+    eventTypeInquiry cont = inputTemplate 
+        (fromString ("eventType" ++ timePosfix))
+        partyRole 
+        (Constant 0) 
+        [Bound 0 1000000] 
+        cont   
+    riskFactorInquiry i cont = inputTemplate 
+        (fromString ("riskFactor" ++ i ++ timePosfix)) 
+        oracleRole 
+        (Constant 0) 
+        [Bound 0 1000000] 
+        cont
+    payoffInquiry cont = inputTemplate 
+        (fromString ("payoff" ++ timePosfix)) 
+        partyRole 
+        (Constant 0) 
+        [Bound 0 1000000] 
+        cont
+    payoffCurrencyInquiry cont = inputTemplate 
+        (fromString ("payoffCurrency" ++ timePosfix)) 
+        partyRole 
+        (Constant 0) 
+        [Bound 0 1000000] 
+        cont
+    riskFactorsInquiry = (riskFactorInquiry "1") . (riskFactorInquiry "2") . (riskFactorInquiry "3")
+    in (contractIdInquiry . eventTypeInquiry . riskFactorsInquiry . payoffInquiry . payoffCurrencyInquiry) continue
+    
+        
 

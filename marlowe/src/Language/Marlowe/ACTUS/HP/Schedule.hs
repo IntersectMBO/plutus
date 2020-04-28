@@ -13,6 +13,8 @@ type ShiftedSchedule = [ShiftedDay]
 
 data CashFlow = CashFlow {
     cashContractId :: String,
+    cashParty :: String,
+    cashCounterParty :: String,
     cashPaymentDay :: Day,
     cashEvent :: ScheduledEvent,
     amount :: Double,
