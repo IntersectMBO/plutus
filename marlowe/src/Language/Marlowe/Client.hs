@@ -176,7 +176,7 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
             <> Text.pack (show address))
 
     let scriptIn = scriptTxIn ref validator redeemer dataValue
-    let computedResult = computeTransaction txInput marloweState marloweContract
+    let computedResult = computeTransactionWithReOpen params txInput marloweState marloweContract
 
     ((deducedTxOutputs, dataValues), marloweData) <- case computedResult of
         TransactionOutput {txOutPayments, txOutState, txOutContract} -> do
@@ -254,7 +254,8 @@ rolePayoutValidator (currency, role) _ pendingTx =
 marloweParams :: CurrencySymbol -> MarloweParams
 marloweParams rolesCurrency = MarloweParams
     { rolesCurrency = rolesCurrency
-    , rolePayoutValidatorHash = validatorHash rolePayoutScript }
+    , rolePayoutValidatorHash = validatorHash rolePayoutScript 
+    , reOpen = Close}
 
 
 defaultMarloweParams :: MarloweParams
