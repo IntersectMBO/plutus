@@ -33,7 +33,7 @@ validateCashFlow terms past present@CashFlow{..} =
         noUnreportedOverdue = checkAllScheduledEventsHappened cashPaymentDay schedule past 
     in case cashEvent of 
         PP_EVENT {..} -> noUnreportedOverdue -- maybe check that outstanding notional is still positive and compare pp_payoff to amount
-        CE_EVENT {..} -> True  
+        CE_EVENT {..} -> not noUnreportedOverdue  
         otherwise -> 
             let 
                 expectedPaymentDay = findPaymentDay cashPaymentDay schedule
@@ -41,4 +41,5 @@ validateCashFlow terms past present@CashFlow{..} =
             in noUnreportedOverdue && fromJust expectedPaymentDay == cashPaymentDay && expectedPayOff == amount 
     --todo check currency from contract terms
     --todocheck contractId
+    --todo check if party is eligble to initate this event
 

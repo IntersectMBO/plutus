@@ -28,10 +28,11 @@ type TimePostfix = String -- sequence number of event
 type Amount = Language.Marlowe.Value
 type MarloweBool = Language.Marlowe.Observation
 type Oracle = String
-type InitiatorParty = String
+type EventInitiatorParty = String
 type From = String
 type To = String
 type Continuation = Contract
+type EventInitiatorPartyId = Integer
 
 cardanoEpochStart = 100
 
@@ -58,8 +59,8 @@ roleSign :: TimePostfix -> String -> MarloweBool
 roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
 
 --todo read payment date 
-inquiry :: TimePostfix -> InitiatorParty -> Oracle -> Contract -> Contract
-inquiry timePosfix party oracle continue = let
+inquiry :: TimePostfix -> EventInitiatorParty -> EventInitiatorPartyId -> Oracle -> Contract -> Contract
+inquiry timePosfix party partyId oracle continue = let
     partyRole = Role $ TokenName $ fromString party
     oracleRole = Role $ TokenName $ fromString oracle
     inputTemplate inputChoiceId inputOwner inputDefault inputBound cont = 
@@ -111,11 +112,12 @@ inquiry timePosfix party oracle continue = let
         (Constant 0) 
         [Bound 0 1000000] 
         cont
+    addEventInitiatorParty cont = (Let (ValueId (fromString "party")) (Constant partyId) cont)
     riskFactorsInquiry = (riskFactorInquiry "1") . (riskFactorInquiry "2") . (riskFactorInquiry "3")
-    in (contractIdInquiry . eventTypeInquiry . riskFactorsInquiry . payoffInquiry . payoffCurrencyInquiry) continue
+    in (contractIdInquiry . eventTypeInquiry . riskFactorsInquiry . payoffInquiry . payoffCurrencyInquiry . addEventInitiatorParty) continue
 
-genContract :: [InitiatorParty] -> Oracle -> Contract
-genContract parties oracle = Close
+genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
+genContract parties partyIds oracle = Close
 
 data ContractVariable = ContractVariable {
     t :: Int,
