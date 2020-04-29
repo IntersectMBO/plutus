@@ -4,6 +4,7 @@ import Data.Map (Map)
 import Data.Bool
 
 import Data.Time
+import Language.Marlowe.ACTUS.HP.ContractState
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
 
@@ -96,7 +97,10 @@ data ScheduleConfig = ScheduleConfig
 type ContractTermsContext = Map String ContractTerms
 
 data ContractTerms = PamContractTerms { 
-    _MD :: Day
+  _SD :: Day
+  , _MD :: Day
+  , _TD :: Day
+  , _PRD :: Day
   , _CNTRL :: ContractRole
   , _PDIED :: Double
   , _NT :: Double
@@ -112,6 +116,27 @@ data ContractTerms = PamContractTerms {
   , _PREF :: PREF
   , _OPCL :: Maybe Cycle
   , _OPANX :: Maybe Day
+  , _SCIED :: Double
+  , _SCEF :: SCEF
+  , _SCCL :: Maybe Cycle
+  , _SCANX :: Maybe Day
+  , _RRCL :: Maybe Cycle
+  , _RRANX :: Maybe Day
+  , _RRNXT :: Maybe Double -- next reset date
+  , _RRSP :: Double
+  , _RRMLT :: Double
+  , _RRPF :: Double
+  , _RRPC :: Double
+  , _RRLC :: Double
+  , _RRLF :: Double
+  , _IPCED :: Maybe Day
+  , _IPCL :: Maybe Cycle
+  , _IPANX :: Maybe Day
+  , _IPNR :: Maybe Double
+  , _IPAC :: Maybe Double
+  , _FECL :: Maybe Cycle
+  , _FEANX :: Maybe Day
+  , _PRF :: ContractStatus
   , scfg :: ScheduleConfig
   } | LamContractTerms { 
     _MD :: Day

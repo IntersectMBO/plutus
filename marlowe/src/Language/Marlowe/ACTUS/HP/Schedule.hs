@@ -7,7 +7,7 @@ type Schedule = [Day]
 data ShiftedDay = ShiftedDay {
     paymentDay :: Day,
     calculationDay :: Day
-}
+} deriving (Eq, Ord)
 
 type ShiftedSchedule = [ShiftedDay]
 

@@ -2,6 +2,9 @@
 module Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator(
   generateRecurrentScheduleWithCorrections
   , plusCycle
+  , sup
+  , inf
+  , remove
 ) where
 
 import Data.Char
@@ -12,26 +15,14 @@ import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.Schedule
 import Language.Marlowe.ACTUS.HP.Utility.DateShift
 
-mapPeriod :: Char -> Period
-mapPeriod periodChar = case periodChar of
-  'D' -> P_D
-  'W' -> P_W
-  'M' -> P_M
-  'Q' -> P_Q
-  'H' -> P_H
-  'Y' -> P_Y
+sup :: [ShiftedDay] -> Day -> ShiftedDay
+sup set threshold = minimum (filter (\t -> (calculationDay t) > threshold) set)
 
-mapStub :: Char -> Stub
-mapStub stubChar = case stubChar of
-  '-' -> ShortStub
-  '+' -> LongStub
+inf :: [ShiftedDay] -> Day -> ShiftedDay
+inf set threshold = minimum (filter (\t -> (calculationDay t) < threshold) set)
 
-createCycle :: [Char] -> Cycle
-createCycle [n, periodChar, stubChar] = Cycle
-  { n = toInteger (digitToInt n)
-  , p = mapPeriod periodChar
-  , stub = mapStub stubChar
-  }
+remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
+remove d set = (filter (\t -> (calculationDay t) /= (calculationDay d)) set)
 
 type AnchorDay = Day
 type EndDay = Day

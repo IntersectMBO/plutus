@@ -8,9 +8,7 @@ type ContractStateContext = Map String ContractState
 
 data ContractState = ContractState
   { 
-  t0  :: Day
-  , t :: Day --probably same as 'sd'
-  , tmd :: Day
+  tmd :: Day
   , nt  :: Double
   , ipnr :: Double
   , ipac :: Double

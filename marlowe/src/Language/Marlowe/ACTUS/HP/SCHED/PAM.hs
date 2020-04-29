@@ -34,8 +34,8 @@ _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD =
                     else if isNothing _FEANX                   then Just (_IED `plusCycle` (fromJust _FECL)) 
                     else                                            _FEANX
 
-    in if fromMaybe 0.0 _FER == 0.0 then Nothing
-                                   else F.fmap (\s -> _S s (fromJust _FECL) _MD scfg) maybeS
+    in if _FER == 0.0 then Nothing
+                     else F.fmap (\s -> _S s (fromJust _FECL) _MD scfg) maybeS
 
 _SCHED_PRD_PAM scfg _PRD = Just [shift scfg _PRD]
 
@@ -49,4 +49,36 @@ _SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
 
     in if isNothing _IPNR then Nothing
                           else F.fmap (\s -> _S s (fromJust _IPCL) _MD scfg) maybeS
+
+_SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED = 
+    let maybeS  =   if      isNothing _IPANX && isNothing _IPCL then Nothing
+                    else if isNothing _IPANX                   then Just (_IED `plusCycle` (fromJust _IPCL)) 
+                    else                                            _IPANX
+
+    in if isNothing _IPCED then Nothing
+                           else F.fmap (\s -> _S s (fromJust _IPCL) (fromJust _IPCED) scfg) maybeS
+
+_SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = 
+    let maybeS  =   if      isNothing _RRANX                   then Just (_IED `plusCycle` (fromJust _RRCL)) 
+                    else                                            _RRANX
+        tt      =   F.fmap (\s -> _S s (fromJust _RRCL) _MD scfg) maybeS
+        trry    =   inf (fromJust tt) _SD
+    in if      isNothing _RRANX && isNothing _RRCL then Nothing
+       else if isNothing _RRNXT                   then F.fmap (remove trry) tt
+       else                                            tt
+
+_SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD = 
+    let maybeS  =   if   isNothing _RRANX                      then Just (_IED `plusCycle` (fromJust _RRCL)) 
+                    else                                            _RRANX
+        tt      =   F.fmap (\s -> _S s (fromJust _RRCL) _MD scfg) maybeS
+    in if      isNothing _RRANX && isNothing _RRCL then Nothing
+       else                                            tt
+
+_SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD = 
+    let maybeS  =   if   isNothing _SCANX && isNothing _SCCL    then Nothing 
+                    else if isNothing _SCANX                   then Just (_IED `plusCycle` (fromJust _SCCL))
+                    else                                            _SCANX
+        tt      =   F.fmap (\s -> _S s (fromJust _SCCL) _MD scfg) maybeS
+    in if    _SCEF == SE_000 then Nothing
+       else                      tt
 
