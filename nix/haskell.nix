@@ -20,11 +20,10 @@ let
       # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
       name = "plutus";
     };
-    # This turns the output into a fixed-output derivation, which speeds things
-    # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "1q17rcnlkv898hrpjx384knhg514w13chlbbxb0jahxm3k5zc9mk";
-    # See ../CONTRIBUTING.doc for help with materlialization
-    materialized = if builtins.pathExists ./stack.materialized then ./stack.materialized else null;
+    # These files need to be regenerated when you change the cabal files or stack resolver.
+    # See ../CONTRIBUTING.doc for more information.
+    materialized = ./stack.materialized;
+    # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     modules = [
         {
