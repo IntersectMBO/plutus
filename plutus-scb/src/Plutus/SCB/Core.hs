@@ -370,7 +370,7 @@ invokeContractUpdate ::
     -> Eff effs ()
 invokeContractUpdate i payload = do
     oldContractState <- use @(ActiveContractStateHooks t) _1
-    -- Invoke the contract. Get the repsonse.
+    -- Invoke the contract. Get the response.
     response <- invokeContractUpdate_ oldContractState payload
     let newContractState =
             oldContractState {partiallyDecodedResponse = response}

@@ -44,10 +44,7 @@ versionOption =
         (short 'v' <> long "version" <> help "Show the version")
 
 commandLineParser :: Parser Command
-commandLineParser = commandParser
-
-commandParser :: Parser Command
-commandParser = subparser $ mconcat [initialiseParser, updateParser]
+commandLineParser = subparser $ mconcat [initialiseParser, updateParser]
 
 initialiseParser :: Mod CommandFields Command
 initialiseParser =
