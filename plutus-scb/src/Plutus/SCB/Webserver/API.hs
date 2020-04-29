@@ -10,4 +10,4 @@ import           Servant.API                ((:<|>), (:>), Get, JSON)
 
 type API t
      = "healthcheck" :> Get '[ JSON] ()
-       :<|> "all" :> Get '[ JSON] (FullReport t)
+       :<|> "full-report" :> Get '[ JSON] (FullReport t)

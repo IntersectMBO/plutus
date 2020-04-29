@@ -22,7 +22,7 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Plutus.SCB.Webserver (SPParams_(SPParams_), getAll)
+import Plutus.SCB.Webserver (SPParams_(SPParams_), getFullreport)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (HAction(..), Query, State(..), WebData, _annotatedBlockchain, _chainState, _fullReport)
@@ -69,7 +69,7 @@ handleAction Init = handleAction LoadFullReport
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  reportResult <- runAjax $ getAll
+  reportResult <- runAjax getFullreport
   assign _fullReport reportResult
 
 handleAction (ChainAction newFocus) = do
