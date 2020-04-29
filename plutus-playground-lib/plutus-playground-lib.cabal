@@ -26,8 +26,8 @@ library
       Playground.TH
       Playground.Interpreter.Util
       Schema
-  other-modules:
       Playground.Schema
+  other-modules:
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wnoncanonical-monad-instances
