@@ -197,26 +197,28 @@ processAllContractInboxes = do
     itraverse_ (\cid (_, rsp) -> processFirstInboxMessage @t cid rsp) state
     logInfo "processAllContractInboxes end"
 
--- TODO different return type to indicate that the contract
--- does indeed exist
+-- | Generic error message for failures during the contract lookup
+newtype ContractLookupError = ContractLookupError { unContractLookupError :: String }
+
 lookupContract ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (Error SCBError) effs
     , Show t
     , Ord t
     )
     => t
-    -> Eff effs t
+    -> Eff effs (Either ContractLookupError t)
 lookupContract t = do
     installed <- Projections.installedContracts
     let matchingContracts =
             Set.filter
                 (\cp -> cp == t)
                 installed
-    case Set.lookupMin matchingContracts of
-        Just c  -> pure c
-        Nothing -> throwError (ContractNotFound (show t))
+    pure
+        $ maybe
+            (Left (ContractLookupError (show t)))
+            Right
+            (Set.lookupMin matchingContracts)
 
 -- | Create a new instance of the contract
 activateContract ::
@@ -234,7 +236,9 @@ activateContract ::
     -> Eff effs ContractInstanceId
 activateContract contract = do
     logInfo . render $ "Finding contract" <+> pretty contract
-    contractDef <- lookupContract @t contract
+    contractDef <-
+        either (throwError . ContractNotFound . unContractLookupError) pure =<<
+        lookupContract @t contract
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logInfo . render $ "Initializing contract instance with ID" <+> pretty activeContractInstanceId
     let currentIteration = iterationZero
