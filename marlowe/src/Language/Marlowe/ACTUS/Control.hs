@@ -138,7 +138,10 @@ inquiry timePosfix party partyId oracle continue = let
 
 --todo: combine invoice and inquiry
 genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
-genContract parties partyIds oracle = Close
+genContract parties partyIds oracle = --todo: for all initiators
+    inquiry "" "party" 0 "oracle" $ 
+        invoice "party" "counterparty" (UseValue $ ValueId (fromString "payoff")) 
+            Close
 
 data ContractVariable = ContractVariable {
     tickN :: Integer,
