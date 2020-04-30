@@ -197,7 +197,7 @@ typecheckScript (unScript -> p) =
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
-    toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . serialise
+    toJSON = JSON.String . JSON.encodeSerialise
 
 instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
