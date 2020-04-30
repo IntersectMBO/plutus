@@ -90,7 +90,8 @@ import           LedgerBytes                          (LedgerBytes (..))
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () }
   deriving stock Generic
 
--- Serialise scripts omitting unit annotations
+-- | Serialise scripts omitting unit annotations.
+-- See Note [Serialising Scripts] in Language.PlutusCore.CBOR
 instance Serialise Script where
     encode = encodePLC . unScript
     decode = liftM Script decodePLC

@@ -1,18 +1,24 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE ConstrainedClassMethods #-}
-{-# LANGUAGE ConstraintKinds         #-}
-{-# LANGUAGE FlexibleInstances       #-}
-{-# LANGUAGE StandaloneDeriving      #-}
-{-# LANGUAGE TypeApplications        #-}
-{-# LANGUAGE TypeOperators           #-}
-{-# LANGUAGE UndecidableInstances    #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
 -- before touching anything in this file.  Also see the Note [Unit-anotated programs] before using
 -- anything in this file.
 
-module Language.PlutusCore.CBOR (serialisePLC, deserialisePLC, deserialisePLCOrFail, DeserialiseFailure (..), encodePLC, decodePLC, encode, decode) where
+module Language.PlutusCore.CBOR ( encode
+                                , decode
+                                , encodePLC
+                                , decodePLC
+                                , deserialisePLC
+                                , serialisePLC
+                                , deserialisePLCOrFail
+                                , DeserialiseFailure (..)
+                                ) where
 -- Codec.CBOR.DeserialiseFailure is re-exported from this module for use with deserialisePLCOrFail
 
 import           Language.PlutusCore.Core
@@ -23,6 +29,7 @@ import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 import           PlutusPrelude
+
 
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
@@ -63,6 +70,7 @@ use encodeTag or decodeTag; those are for use with a fixed set of CBOR
 tags with predefined meanings which we shouldn't interfere with.
 See http://hackage.haskell.org/package/serialise.
 -}
+
 encodeConstructorTag :: Word -> Encoding
 encodeConstructorTag = encodeWord
 
@@ -310,22 +318,24 @@ instance Serialise InvisibleUnit where
     encode = mempty
     decode = pure (InvisibleUnit ())
 
+{- Note [Serialising Scripts]
 
-{-
-class SerialisePLC a where
-    serialisePLC         :: a -> ByteString
-    deserialisePLC       :: ByteString -> a
-    deserialisePLCOrFail :: ByteString -> Either DeserialiseFailure a
-
-instance (Closed uni, uni `Everywhere` Serialise) => SerialisePLC (Program TyName Name uni ()) where
-    serialisePLC p         = serialise (coerce p :: Program TyName Name uni InvisibleUnit)
-    deserialisePLC s       = coerce (deserialise s :: Program TyName Name uni InvisibleUnit)
-    deserialisePLCOrFail s = fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Program TyName Name uni InvisibleUnit))
-                             --
-instance (Closed uni, uni `Everywhere` Serialise) => SerialisePLC (Term TyName Name uni ()) where
-    serialisePLC  t        = serialise (coerce t :: Term TyName Name uni InvisibleUnit)
-    deserialisePLC s       = coerce (deserialise s :: Term TyName Name uni InvisibleUnit)
-    deserialisePLCOrFail s = fmap coerce (deserialiseOrFail s :: Either DeserialiseFailure (Term TyName Name uni InvisibleUnit))
+At first sight, all we need to do to serialise a script without unit
+annotations appearing in the CBOR is to coerce from `()` to
+`InvisibleUnit` and then apply `serialise` as normal.  However, this
+isn't sufficient for the ledger code. There are a number of places in
+Ledger.Scripts and elsewhere where hashes of objects (`Tx`, for
+example) are calculated by serialsing the entire object and
+calculating a hash, and these objects can contain Scripts themselves.
+Serialisation is achieved using the Generic instance of `Serialise`,
+which will just use `encode` on everything, including unit
+annotations.  There are two ways to overcome this.  Firstly, we could
+write explicit `Serialise` instances for everything.  This would be
+more space-efficient than the Generic encoding, but would introduce a
+lot of extra code.  The other way is to make `Ledger.Scripts.Script`
+a special instance of `Serialise` which performs the coercions for us.
+The functions below facilitate this, and are used to implement a suitable
+instance for `Script` in `Ledger.Scripts`.
 -}
 
 encodePLC :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> Encoding
@@ -337,13 +347,13 @@ decodePLC = do
       return $ (coerce p :: Program TyName Name uni ())
 
 
-
--- A local wrapper type to let us define convenience functions for
--- serialising and deserialising PLC programs, omitting unit
--- annotations.  We could define these in terms of encodePLC and
--- decodePLC analogously to how `serialise` etc are defined in
--- `Codec.Serialise`, but that code's moderately complicated.  It's
--- easier just to wrap the program and use the standard functions.
+{- A local wrapper type to help us define convenience functions for
+ serialising and deserialising PLC programs, omitting unit
+ annotations.  We could define these in terms of encodePLC and
+ decodePLC analogously to how `serialise` etc are defined in
+ `Codec.Serialise`, but that code's moderately complicated.  It's
+ easier just to wrap the program and use the standard functions.
+-}
 
 newtype WrapProg uni  = WrapProg { unWrapProg :: Program TyName Name uni () }
 
@@ -357,19 +367,6 @@ serialisePLC = serialise . WrapProg
 deserialisePLC :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program TyName Name uni ()
 deserialisePLC = unWrapProg <$> deserialise
 
-deserialisePLCOrFail :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
+deserialisePLCOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
+                        BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
 deserialisePLCOrFail = second unWrapProg <$> deserialiseOrFail
-
-{-
-
-We need Ledger.Script.Script to be an instance of Serialise which uses
-the InvisibleUnit thing, rather than just supplying serialiseScript
-and deserialiseScript functions which do the (de)serialisation for us.
-This is because there are a number of places in the Ledger code where
-hashes of objects are calculated by serialsing the entire object
-and calculating a hash, and these objects can contain Scripts themselves.
-Since this is done using the Generic instance of Serialise, we can't avoid
-using an instance of Serialise for Scripts, and the default one does the
-worng thing, including units in the CBOR.
-
--}
