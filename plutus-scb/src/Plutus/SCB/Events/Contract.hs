@@ -44,7 +44,7 @@ module Plutus.SCB.Events.Contract(
   ) where
 
 import           Control.Lens.TH                                   (makePrisms)
-import           Data.Aeson                                        (FromJSON, ToJSON, Value, FromJSONKey, ToJSONKey)
+import           Data.Aeson                                        (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy.Char8                        as BS8
 import           Data.Semigroup                                    (Max (..))

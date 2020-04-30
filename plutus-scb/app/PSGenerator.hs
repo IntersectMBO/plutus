@@ -13,40 +13,45 @@ module PSGenerator
     ( generate
     ) where
 
-import qualified Data.Aeson.Encode.Pretty                   as JSON
-import qualified Data.ByteString.Lazy                       as BSL
-import Language.Plutus.Contract.Effects.AwaitSlot  (WaitingForSlot)
-import Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
-import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, EndpointValue, ActiveEndpoints)
-import            Language.Plutus.Contract.Effects.OwnPubKey     (OwnPubKeyRequest)
-import           Language.Plutus.Contract.Effects.UtxoAt    (UtxoAtAddress)
-import Language.Plutus.Contract.Effects.WatchAddress  (AddressSet)
-import           Language.Plutus.Contract.Effects.WriteTx   (WriteTxResponse)
-import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger.Constraints.OffChain                (UnbalancedTx)
-import qualified Ledger.Index                               as Index
-import           Plutus.SCB.Events                          (ChainEvent)
-import           Plutus.SCB.Events.Contract                 (ContractRequest, ContractResponse, ContractIteration, ContractInstanceState, PartiallyDecodedResponse, ContractMailbox, ContractEvent, ContractInstanceId)
-import           Plutus.SCB.Events.Node                     (NodeEvent)
-import           Plutus.SCB.Events.User                     (UserEvent)
-import           Plutus.SCB.Events.Wallet                   (WalletEvent)
-import           Plutus.SCB.Types                           (ContractExe)
+import qualified Data.Aeson.Encode.Pretty                          as JSON
+import qualified Data.ByteString.Lazy                              as BSL
+import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints, EndpointDescription, EndpointValue)
+import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
+import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
+import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
+import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
+import           Language.PureScript.Bridge.TypeParameters         (A)
+import           Ledger.Constraints.OffChain                       (UnbalancedTx)
+import qualified Ledger.Index                                      as Index
+import           Plutus.SCB.Events                                 (ChainEvent)
+import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
+                                                                    ContractInstanceState, ContractIteration,
+                                                                    ContractMailbox, ContractRequest, ContractResponse,
+                                                                    PartiallyDecodedResponse)
+import           Plutus.SCB.Events.Node                            (NodeEvent)
+import           Plutus.SCB.Events.User                            (UserEvent)
+import           Plutus.SCB.Events.Wallet                          (WalletEvent)
+import           Plutus.SCB.Types                                  (ContractExe)
 import qualified PSGenerator.Common
-import           System.FilePath                            ((</>))
+import           System.FilePath                                   ((</>))
 
-import           Control.Applicative                        ((<|>))
-import           Control.Lens                               (set, (&))
-import           Data.Proxy                                 (Proxy (Proxy))
-import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                             equal, genericShow, mkSumType, writePSTypesWith)
-import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
-                                                             unwrapSingleConstructors)
-import qualified Plutus.SCB.Webserver.API                   as API
-import           Plutus.SCB.Webserver.Types                 (FullReport (FullReport), annotatedBlockchain, events,
-                                                             latestContractStatus, transactionMap, utxoIndex, walletMap)
-import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                             defaultSettings, languageBridge,
-                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           Control.Applicative                               ((<|>))
+import           Control.Lens                                      (set, (&))
+import           Data.Proxy                                        (Proxy (Proxy))
+import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
+                                                                    buildBridge, equal, genericShow, mkSumType,
+                                                                    writePSTypesWith)
+import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
+                                                                    unwrapSingleConstructors)
+import qualified Plutus.SCB.Webserver.API                          as API
+import           Plutus.SCB.Webserver.Types                        (FullReport (FullReport), annotatedBlockchain,
+                                                                    events, latestContractStatus, transactionMap,
+                                                                    utxoIndex, walletMap)
+import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
+                                                                    defaultSettings, languageBridge,
+                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
 
 myBridge :: BridgePart
 myBridge =

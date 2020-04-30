@@ -76,9 +76,9 @@ import           Plutus.SCB.Events.Contract                        (ContractEven
                                                                     ContractMailbox (..), ContractResponse (..),
                                                                     MailboxMessage (..))
 import qualified Plutus.SCB.Events.Contract                        as C
-import           Plutus.SCB.Types                        (ChainOverview (ChainOverview),
-                                                          chainOverviewBlockchain, chainOverviewUnspentTxsById,
-                                                          chainOverviewUtxoIndex) 
+import           Plutus.SCB.Types                                  (ChainOverview (ChainOverview),
+                                                                    chainOverviewBlockchain,
+                                                                    chainOverviewUnspentTxsById, chainOverviewUtxoIndex)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event

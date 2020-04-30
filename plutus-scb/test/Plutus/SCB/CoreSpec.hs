@@ -35,7 +35,7 @@ import           Plutus.SCB.Effects.ContractTest                   (TestContract
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
 import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEffects, agentAction, agentControlAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId)
-import           Plutus.SCB.Query                                  (txHistoryProjection, chainOverviewProjection)
+import           Plutus.SCB.Query                                  (chainOverviewProjection, txHistoryProjection)
 import           Plutus.SCB.TestApp                                (TestState, TxCounts (..), defaultWallet,
                                                                     runScenario, sync, syncAll, txCounts, txValidated,
                                                                     valueAt)
@@ -53,9 +53,9 @@ import           Wallet.Emulator.ChainIndex                        (ChainIndexCo
 import           Wallet.Emulator.NodeClient                        (NodeControlEffect)
 import           Wallet.Emulator.SigningProcess                    (SigningProcessControlEffect)
 import           Wallet.Emulator.Wallet                            (Wallet (..))
-import           Wallet.Rollup                                 (doAnnotateBlockchain)
-import           Wallet.Rollup.Types                           (DereferencedInput (DereferencedInput, InputNotFound),
-                                                                dereferencedInputs, isFound)
+import           Wallet.Rollup                                     (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                               (DereferencedInput (DereferencedInput, InputNotFound),
+                                                                    dereferencedInputs, isFound)
 
 tests :: TestTree
 tests = testGroup "SCB.Core" [installContractTests, executionTests]

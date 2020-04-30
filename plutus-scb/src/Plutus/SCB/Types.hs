@@ -14,14 +14,14 @@ import qualified Cardano.SigningProcess.Server      as SigningProcess
 import qualified Cardano.Wallet.Server              as WalletServer
 import           Control.Lens.TH                    (makePrisms)
 import           Data.Aeson                         (FromJSON, ToJSON)
-import           Data.Map.Strict                            (Map)
+import           Data.Map.Strict                    (Map)
 import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty, pretty, (<+>))
 import           Data.UUID                          (UUID)
 import qualified Data.UUID                          as UUID
-import           Ledger                                     (Blockchain, Tx, TxId, UtxoIndex) 
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.Resumable (ResumableError)
+import           Ledger                             (Blockchain, Tx, TxId, UtxoIndex)
 import           Servant.Client                     (BaseUrl, ClientError)
 import           Wallet.API                         (WalletAPIError)
 

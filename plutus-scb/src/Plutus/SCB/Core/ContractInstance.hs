@@ -1,13 +1,12 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 module Plutus.SCB.Core.ContractInstance(
-    sendContractStateMessages
-    , lookupContractState
+    lookupContractState
     , processFirstInboxMessage
     , processAllContractInboxes
     , lookupContract
@@ -259,7 +258,7 @@ processOwnPubkeyRequests = do
             logDebug . render $ "processOwnPubkeyRequest" <+> pretty i <+> pretty pk
             sendContractInboxMessage @t i it (OwnPubkeyResponse pk)
     unless (Map.null state) $ do
-        -- we only ask for the public key if there are actually any messages 
+        -- we only ask for the public key if there are actually any messages
         -- to process
         pk <- ownPubKey
         itraverse_ (go pk) state
@@ -276,7 +275,7 @@ processAwaitSlotRequests = do
     logInfo "processAwaitSlotRequests start"
     state <- Query.contractStates <$> runGlobalQuery (Query.awaitSlotRequests @t)
     unless (Map.null state) $ do
-        -- we only ask for the wallet slot if there are actually any messages 
+        -- we only ask for the wallet slot if there are actually any messages
         -- to process
         slot <- walletSlot
         itraverse_ (processAwaitSlotRequest @t slot) state
@@ -308,7 +307,7 @@ processUtxoAtRequests = do
     logInfo "processUtxoAtRequests start"
     state <- Query.contractStates <$> runGlobalQuery (Query.utxoAtRequests @t)
     unless (Map.null state) $ do
-        -- we only ask for the utxo index if there are actually any messages 
+        -- we only ask for the utxo index if there are actually any messages
         -- to process
         utxos <- watchedAddresses
         itraverse_ (processUtxoAtRequest @t utxos) state
