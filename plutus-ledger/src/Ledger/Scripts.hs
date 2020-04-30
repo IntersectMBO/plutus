@@ -55,10 +55,9 @@ module Ledger.Scripts(
 
 import qualified Prelude                              as Haskell
 
-import qualified Codec.CBOR.Write                     as Write
-import           Codec.Serialise                      (serialise)
-import           Codec.Serialise.Class                (Serialise, encode)
+import           Codec.Serialise                      (serialise, Serialise)
 import           Control.DeepSeq                      (NFData)
+import           Control.Monad                        (liftM)
 import           Control.Monad.Except                 (MonadError, runExcept, throwError)
 import           Crypto.Hash                          (Digest, SHA256, hash)
 import           Data.Aeson                           (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
@@ -74,6 +73,7 @@ import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                         (Generic)
 import           IOTS                                 (IotsType (iotsDefinition))
 import qualified Language.PlutusCore                  as PLC
+import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic as PLC
 import qualified Language.PlutusCore.Pretty           as PLC
 import           Language.PlutusTx                    (CompiledCode, IsData (..), getPlc, makeLift)
@@ -89,7 +89,11 @@ import           LedgerBytes                          (LedgerBytes (..))
 -- Note: the program inside the 'Script' should have normalized types.
 newtype Script = Script { unScript :: PLC.Program PLC.TyName PLC.Name PLC.DefaultUni () }
   deriving stock Generic
-  deriving newtype (Serialise)
+
+-- Serialise scripts omitting unit annotations
+instance Serialise Script where
+    encode = encodePLC . unScript
+    decode = liftM Script decodePLC
 
 instance IotsType Script where
   iotsDefinition = iotsDefinition @Haskell.String
@@ -192,7 +196,7 @@ typecheckScript (unScript -> p) =
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
-    toJSON = JSON.String . JSON.encodeSerialise
+    toJSON = JSON.String . JSON.encodeByteString . BSL.toStrict . serialise
 
 instance FromJSON Script where
     parseJSON = JSON.decodeSerialise
@@ -227,9 +231,9 @@ instance Show Validator where
 
 instance BA.ByteArrayAccess Validator where
     length =
-        BA.length . Write.toStrictByteString . encode
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encode
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: Data  }
@@ -240,9 +244,9 @@ newtype Datum = Datum { getDatum :: Data  }
 
 instance BA.ByteArrayAccess Datum where
     length =
-        BA.length . Write.toStrictByteString . encode
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encode
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: Data }
@@ -255,9 +259,9 @@ instance Pretty Redeemer where
 
 instance BA.ByteArrayAccess Redeemer where
     length =
-        BA.length . Write.toStrictByteString . encode
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encode
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | 'MonetaryPolicy' is a wrapper around 'Script's which are used as validators for forging constraints.
 newtype MonetaryPolicy = MonetaryPolicy { getMonetaryPolicy :: Script }
@@ -271,9 +275,9 @@ instance Show MonetaryPolicy where
 
 instance BA.ByteArrayAccess MonetaryPolicy where
     length =
-        BA.length . Write.toStrictByteString . encode
+        BA.length . BSL.toStrict . serialise
     withByteArray =
-        BA.withByteArray . Write.toStrictByteString . encode
+        BA.withByteArray . BSL.toStrict . serialise
 
 -- | Script runtime representation of a @Digest SHA256@.
 newtype ValidatorHash =
@@ -327,15 +331,15 @@ redeemerHash = RedeemerHash . Builtins.sha2_256 . BSL.fromStrict . BA.convert
 
 validatorHash :: Validator -> ValidatorHash
 validatorHash vl = ValidatorHash $ BSL.fromStrict $ BA.convert h' where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
-    e = encode vl
+    e = serialise vl
 
 monetaryPolicyHash :: MonetaryPolicy -> MonetaryPolicyHash
 monetaryPolicyHash vl = MonetaryPolicyHash $ BSL.fromStrict $ BA.convert h' where
-    h :: Digest SHA256 = hash $ Write.toStrictByteString e
+    h :: Digest SHA256 = hash $ BSL.toStrict e
     h' :: Digest SHA256 = hash h
-    e = encode vl
+    e = serialise vl
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.

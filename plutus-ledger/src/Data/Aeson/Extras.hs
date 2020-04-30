@@ -9,8 +9,7 @@ module Data.Aeson.Extras(
     ) where
 
 import qualified Codec.CBOR.Write       as Write
-import           Codec.Serialise        (deserialiseOrFail)
-import           Codec.Serialise.Class  (Serialise, encode)
+import           Codec.Serialise        (Serialise, deserialiseOrFail, encode)
 import           Control.Monad          ((>=>))
 import qualified Data.Aeson             as Aeson
 import qualified Data.Aeson.Types       as Aeson
