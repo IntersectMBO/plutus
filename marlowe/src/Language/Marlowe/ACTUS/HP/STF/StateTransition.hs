@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.HP.STF.StateTransition where
 import Data.Time
 import Language.Marlowe.ACTUS.HP.ContractState
 import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.STF.PAM
+import Language.Marlowe.ACTUS.HP.STF.StateTransitionSpec
 import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.HP.Schedule

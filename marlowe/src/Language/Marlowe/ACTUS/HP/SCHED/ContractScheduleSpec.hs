@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.HP.SCHED.PAM where
+module Language.Marlowe.ACTUS.HP.SCHED.ContractScheduleSpec where
 
 import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.HP.Utility.DateShift

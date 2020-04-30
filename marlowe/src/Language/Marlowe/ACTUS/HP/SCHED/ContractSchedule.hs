@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule where
 import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.BusinessEvents
 import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.SCHED.PAM
+import Language.Marlowe.ACTUS.HP.SCHED.ContractScheduleSpec
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
 schedule ev terms = 

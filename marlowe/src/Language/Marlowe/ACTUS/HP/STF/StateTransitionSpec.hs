@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.STF.PAM where
+module Language.Marlowe.ACTUS.HP.STF.StateTransitionSpec where
 
 import Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
 import Language.Marlowe.ACTUS.HP.Utility.YearFraction

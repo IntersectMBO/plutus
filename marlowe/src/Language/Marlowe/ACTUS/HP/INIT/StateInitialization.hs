@@ -4,7 +4,7 @@ module Language.Marlowe.ACTUS.HP.INIT.StateInitialization where
 import Language.Marlowe.ACTUS.HP.ContractTerms
 import Language.Marlowe.ACTUS.HP.ContractState
 import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.INIT.PAM
+import Language.Marlowe.ACTUS.HP.INIT.StateInitializationSpec
 import Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
 import Data.Maybe

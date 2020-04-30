@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.HP.POF.PAM where
+module Language.Marlowe.ACTUS.HP.POF.PayoffSpec where
 
 import Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
 import Language.Marlowe.ACTUS.HP.Utility.YearFraction

@@ -5,7 +5,7 @@ module Language.Marlowe.ACTUS.HP.POF.Payoff where
 import Data.Time
 import Language.Marlowe.ACTUS.HP.ContractState
 import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.POF.PAM
+import Language.Marlowe.ACTUS.HP.POF.PayoffSpec
 import Language.Marlowe.ACTUS.HP.ContractTerms
 
 payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> Double

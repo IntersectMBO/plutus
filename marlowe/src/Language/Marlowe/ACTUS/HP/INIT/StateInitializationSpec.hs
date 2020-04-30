@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.HP.INIT.PAM where
+module Language.Marlowe.ACTUS.HP.INIT.StateInitializationSpec where
 
 import Language.Marlowe.ACTUS.HP.ContractState
 import Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
