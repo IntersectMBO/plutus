@@ -15,7 +15,12 @@ module PSGenerator
 
 import qualified Data.Aeson.Encode.Pretty                   as JSON
 import qualified Data.ByteString.Lazy                       as BSL
+import Language.Plutus.Contract.Effects.AwaitSlot  (WaitingForSlot)
+import Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
+import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, EndpointValue, ActiveEndpoints)
+import            Language.Plutus.Contract.Effects.OwnPubKey     (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt    (UtxoAtAddress)
+import Language.Plutus.Contract.Effects.WatchAddress  (AddressSet)
 import           Language.Plutus.Contract.Effects.WriteTx   (WriteTxResponse)
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Ledger.Constraints.OffChain                (UnbalancedTx)
@@ -79,8 +84,18 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletEvent)
+
+    -- Contract request / response types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoints)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressSet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EndpointDescription)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnPubKeyRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIdSet)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
     ]
 
 mySettings :: Settings

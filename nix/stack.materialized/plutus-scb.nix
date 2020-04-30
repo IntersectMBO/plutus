@@ -145,6 +145,8 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Plutus/SCB/Command"
           "Plutus/SCB/ContractCLI"
           "Plutus/SCB/Core"
+          "Plutus/SCB/Core/ContractInstance"
+          "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/UUID"
@@ -152,14 +154,14 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Plutus/SCB/Webserver/API"
           "Plutus/SCB/Webserver/Server"
           "Plutus/SCB/Events"
-          "Plutus/SCB/Query"
-          "Plutus/SCB/Relation"
-          "Plutus/SCB/Types"
-          "Plutus/SCB/Utils"
           "Plutus/SCB/Events/Contract"
           "Plutus/SCB/Events/Node"
           "Plutus/SCB/Events/User"
           "Plutus/SCB/Events/Wallet"
+          "Plutus/SCB/Query"
+          "Plutus/SCB/Relation"
+          "Plutus/SCB/Types"
+          "Plutus/SCB/Utils"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -190,6 +192,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."unliftio-core" or (buildDepError "unliftio-core"))
             (hsPkgs."uuid" or (buildDepError "uuid"))
             (hsPkgs."yaml" or (buildDepError "yaml"))
+            (hsPkgs."containers" or (buildDepError "containers"))
             ];
           buildable = true;
           modules = [ "PSGenerator" ];
@@ -234,6 +237,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."text" or (buildDepError "text"))
             (hsPkgs."transformers" or (buildDepError "transformers"))
             (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
+            (hsPkgs."row-types" or (buildDepError "row-types"))
             ];
           buildable = true;
           modules = [
