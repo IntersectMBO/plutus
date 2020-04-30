@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.HP.ContractState where
+module Language.Marlowe.ACTUS.ContractState where
 
 import Data.Time
 import Data.Map

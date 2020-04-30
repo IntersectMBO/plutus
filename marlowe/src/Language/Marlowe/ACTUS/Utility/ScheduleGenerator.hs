@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator(
+module Language.Marlowe.ACTUS.Utility.ScheduleGenerator(
   generateRecurrentScheduleWithCorrections
   , plusCycle
   , sup
@@ -11,9 +11,9 @@ import Data.Char
 import Data.Time.Calendar
 import qualified Data.List as L
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.Utility.DateShift
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.Utility.DateShift
 
 sup :: [ShiftedDay] -> Day -> ShiftedDay
 sup set threshold = minimum (filter (\t -> (calculationDay t) > threshold) set)

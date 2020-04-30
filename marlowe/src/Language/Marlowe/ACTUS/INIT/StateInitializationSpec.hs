@@ -1,9 +1,9 @@
-module Language.Marlowe.ACTUS.HP.INIT.StateInitializationSpec where
+module Language.Marlowe.ACTUS.INIT.StateInitializationSpec where
 
-import Language.Marlowe.ACTUS.HP.ContractState
-import Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.HP.Utility.YearFraction
-import Language.Marlowe.ACTUS.HP.ContractTerms
+import Language.Marlowe.ACTUS.ContractState
+import Language.Marlowe.ACTUS.Utility.ContractRoleSign
+import Language.Marlowe.ACTUS.Utility.YearFraction
+import Language.Marlowe.ACTUS.ContractTerms
 import Data.Time
 import Data.Maybe
 

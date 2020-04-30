@@ -1,6 +1,6 @@
-module Language.Marlowe.ACTUS.HP.Schedule where
+module Language.Marlowe.ACTUS.Schedule where
 import Data.Time
-import Language.Marlowe.ACTUS.HP.BusinessEvents
+import Language.Marlowe.ACTUS.BusinessEvents
 
 type Schedule = [Day]
 

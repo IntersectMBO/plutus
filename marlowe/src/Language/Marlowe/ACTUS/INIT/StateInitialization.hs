@@ -1,12 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
-module Language.Marlowe.ACTUS.HP.INIT.StateInitialization where
+module Language.Marlowe.ACTUS.INIT.StateInitialization where
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.ContractState
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.INIT.StateInitializationSpec
-import Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule
-import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.ContractState
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule
+import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Data.Maybe
 
 inititializeState :: ContractTerms -> ContractState

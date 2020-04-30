@@ -1,11 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule where
+module Language.Marlowe.ACTUS.SCHED.ContractSchedule where
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.SCHED.ContractScheduleSpec
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
 schedule ev terms = 

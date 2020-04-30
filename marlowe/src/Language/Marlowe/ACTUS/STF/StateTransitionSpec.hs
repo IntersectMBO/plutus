@@ -1,11 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.STF.StateTransitionSpec where
+module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
 
-import Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.HP.Utility.YearFraction
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.ContractState
+import Language.Marlowe.ACTUS.Utility.ContractRoleSign
+import Language.Marlowe.ACTUS.Utility.YearFraction
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.ContractState
 import Data.Time
 import Data.Maybe
 

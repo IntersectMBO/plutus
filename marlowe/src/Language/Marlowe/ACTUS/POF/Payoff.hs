@@ -1,12 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.POF.Payoff where
+module Language.Marlowe.ACTUS.POF.Payoff where
 
 import Data.Time
-import Language.Marlowe.ACTUS.HP.ContractState
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.POF.PayoffSpec
-import Language.Marlowe.ACTUS.HP.ContractTerms
+import Language.Marlowe.ACTUS.ContractState
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.POF.PayoffSpec
+import Language.Marlowe.ACTUS.ContractTerms
 
 payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> Double
 payoff ev terms ContractState{..} t termsCtx stateCtx = case terms of

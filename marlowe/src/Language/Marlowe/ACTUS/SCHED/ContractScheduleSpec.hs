@@ -1,12 +1,12 @@
-module Language.Marlowe.ACTUS.HP.SCHED.ContractScheduleSpec where
+module Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec where
 
-import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
-import Language.Marlowe.ACTUS.HP.Utility.DateShift
-import Language.Marlowe.ACTUS.HP.Schedule
+import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+import Language.Marlowe.ACTUS.Utility.DateShift
+import Language.Marlowe.ACTUS.Schedule
 import Data.Time
 import Data.Maybe
 import qualified Data.Functor as F
-import Language.Marlowe.ACTUS.HP.ContractTerms
+import Language.Marlowe.ACTUS.ContractTerms
 
 _S = generateRecurrentScheduleWithCorrections
 shift = applyBDCWithCfg

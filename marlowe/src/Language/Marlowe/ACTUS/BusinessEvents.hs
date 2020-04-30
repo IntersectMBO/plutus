@@ -1,4 +1,4 @@
-module Language.Marlowe.ACTUS.HP.BusinessEvents where
+module Language.Marlowe.ACTUS.BusinessEvents where
 import Data.Time
 
 data EventType = AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR

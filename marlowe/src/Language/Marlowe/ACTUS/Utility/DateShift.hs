@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.Utility.DateShift(applyBDC, applyBDCWithCfg) where
+module Language.Marlowe.ACTUS.Utility.DateShift(applyBDC, applyBDCWithCfg) where
 
 import Debug.Trace
 
@@ -8,8 +8,8 @@ import Data.List as List
 import Data.Time
 import Data.Time.Calendar
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.Schedule
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Schedule
 
 {- Business Day Convention -}
 

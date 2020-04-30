@@ -1,10 +1,10 @@
-module Language.Marlowe.ACTUS.HP.Utility.YearFraction where
+module Language.Marlowe.ACTUS.Utility.YearFraction where
 
 import Data.Time
 import GHC.Stack
 import Debug.Trace
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
+import Language.Marlowe.ACTUS.ContractTerms
 
 yearFraction :: DCC -> Day -> Day -> Day -> Double
 yearFraction DCC_A_AISDA startDay endDay _

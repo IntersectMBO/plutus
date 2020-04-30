@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 {- This module contains templates for Marlowe constructs required by ACTUS logic -}
-module Language.Marlowe.ACTUS.HP.Control where
+module Language.Marlowe.ACTUS.Control where
 
 import Language.Marlowe
 import Data.Time
@@ -21,10 +21,10 @@ import Data.List
 import qualified Data.List as L
 import Data.Map
 import qualified Data.Map as Mp
-import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.ActusValidator
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.ActusValidator
 import Control.Arrow
 import Text.Regex.Posix
 
@@ -189,7 +189,7 @@ stateParser state =
                     XD   -> XD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
                     DV   -> DV_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
                     --todo: imports
-                    Language.Marlowe.ACTUS.HP.BusinessEvents.MR -> MR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    Language.Marlowe.ACTUS.BusinessEvents.MR -> MR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
                     STD  -> STD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
                     MD   -> MD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
                     PP   -> PP_EVENT { 

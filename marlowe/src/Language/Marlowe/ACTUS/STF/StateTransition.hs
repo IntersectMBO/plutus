@@ -1,15 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.STF.StateTransition where
+module Language.Marlowe.ACTUS.STF.StateTransition where
 
 import Data.Time
-import Language.Marlowe.ACTUS.HP.ContractState
-import Language.Marlowe.ACTUS.HP.BusinessEvents
-import Language.Marlowe.ACTUS.HP.STF.StateTransitionSpec
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
-import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule
+import Language.Marlowe.ACTUS.ContractState
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.STF.StateTransitionSpec
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Data.Maybe
 
 stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> ContractState

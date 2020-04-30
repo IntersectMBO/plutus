@@ -1,10 +1,10 @@
-module Language.Marlowe.ACTUS.HP.ContractTerms where
+module Language.Marlowe.ACTUS.ContractTerms where
 
 import Data.Map (Map)
 import Data.Bool
 
 import Data.Time
-import Language.Marlowe.ACTUS.HP.ContractState
+import Language.Marlowe.ACTUS.ContractState
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
 

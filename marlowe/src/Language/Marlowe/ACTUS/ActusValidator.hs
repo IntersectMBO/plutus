@@ -1,10 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.HP.ActusValidator where
+module Language.Marlowe.ACTUS.ActusValidator where
 
-import Language.Marlowe.ACTUS.HP.ContractTerms
-import Language.Marlowe.ACTUS.HP.Schedule
-import Language.Marlowe.ACTUS.HP.BusinessEvents
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.BusinessEvents
 
 import Language.Marlowe
 import Data.Time

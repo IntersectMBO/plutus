@@ -55,25 +55,25 @@ library
     Language.Marlowe.Util
     Language.Marlowe.Pretty
   other-modules:
-    Language.Marlowe.ACTUS.HP.BusinessEvents
-    Language.Marlowe.ACTUS.HP.ContractTerms
-    Language.Marlowe.ACTUS.HP.ActusValidator
-    Language.Marlowe.ACTUS.HP.ContractState
-    Language.Marlowe.ACTUS.HP.Control
-    Language.Marlowe.ACTUS.HP.Schedule
-    Language.Marlowe.ACTUS.HP.POF.PayoffSpec
-    Language.Marlowe.ACTUS.HP.POF.Payoff
-    Language.Marlowe.ACTUS.HP.STF.StateTransitionSpec
-    Language.Marlowe.ACTUS.HP.STF.StateTransition
-    Language.Marlowe.ACTUS.HP.SCHED.ContractScheduleSpec
-    Language.Marlowe.ACTUS.HP.SCHED.ContractSchedule
-    Language.Marlowe.ACTUS.HP.INIT.StateInitializationSpec
-    Language.Marlowe.ACTUS.HP.INIT.StateInitialization
-    Language.Marlowe.ACTUS.HP.Utility.DateShift
-    Language.Marlowe.ACTUS.HP.Utility.ScheduleGenerator
-    Language.Marlowe.ACTUS.HP.Utility.YearFraction
-    Language.Marlowe.ACTUS.HP.Utility.Annuity
-    Language.Marlowe.ACTUS.HP.Utility.ContractRoleSign
+    Language.Marlowe.ACTUS.BusinessEvents
+    Language.Marlowe.ACTUS.ContractTerms
+    Language.Marlowe.ACTUS.ActusValidator
+    Language.Marlowe.ACTUS.ContractState
+    Language.Marlowe.ACTUS.Control
+    Language.Marlowe.ACTUS.Schedule
+    Language.Marlowe.ACTUS.POF.PayoffSpec
+    Language.Marlowe.ACTUS.POF.Payoff
+    Language.Marlowe.ACTUS.STF.StateTransitionSpec
+    Language.Marlowe.ACTUS.STF.StateTransition
+    Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
+    Language.Marlowe.ACTUS.SCHED.ContractSchedule
+    Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+    Language.Marlowe.ACTUS.INIT.StateInitialization
+    Language.Marlowe.ACTUS.Utility.DateShift
+    Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+    Language.Marlowe.ACTUS.Utility.YearFraction
+    Language.Marlowe.ACTUS.Utility.Annuity
+    Language.Marlowe.ACTUS.Utility.ContractRoleSign
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
