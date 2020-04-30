@@ -15,12 +15,18 @@ import Data.String (IsString (fromString))
 import Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import Data.Maybe
+import Data.Map.Strict
 import qualified Data.Maybe as Maybe
 import Data.List
 import qualified Data.List as L
+import Data.Map
+import qualified Data.Map as Mp
 import Language.Marlowe.ACTUS.HP.Schedule
 import Language.Marlowe.ACTUS.HP.ContractTerms
+import Language.Marlowe.ACTUS.HP.BusinessEvents
 import Language.Marlowe.ACTUS.HP.ActusValidator
+import Control.Arrow
+import Text.Regex.Posix
 
 type Currency = String
 type Tkn = String
@@ -35,11 +41,15 @@ type Continuation = Contract
 type EventInitiatorPartyId = Integer
 
 cardanoEpochStart = 100
+marloweFixedPoint = 1000000000
 
 dayToSlotNumber :: Day -> Integer
 dayToSlotNumber d = let
     (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
     in fromIntegral secs - cardanoEpochStart `mod` 20
+
+slotRangeToDay :: Integer -> Integer -> Day
+slotRangeToDay start end = undefined
 
 --todo check roleSign, enforce a date
 invoice :: From -> To -> Day -> Amount -> Currency -> Tkn -> Continuation -> Contract
@@ -113,26 +123,100 @@ inquiry timePosfix party partyId oracle continue = let
         [Bound 0 1000000] 
         cont
     addEventInitiatorParty cont = (Let (ValueId (fromString "party")) (Constant partyId) cont)
-    riskFactorsInquiry = (riskFactorInquiry "1") . (riskFactorInquiry "2") . (riskFactorInquiry "3")
-    in (contractIdInquiry . eventTypeInquiry . riskFactorsInquiry . payoffInquiry . payoffCurrencyInquiry . addEventInitiatorParty) continue
+    riskFactorsInquiry = (riskFactorInquiry "1") >>> (riskFactorInquiry "2") >>> (riskFactorInquiry "3")
+    in (contractIdInquiry >>> eventTypeInquiry >>> riskFactorsInquiry >>> payoffInquiry >>> payoffCurrencyInquiry >>> addEventInitiatorParty) continue
 
+--todo: combine invoice and inquiry
 genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
 genContract parties partyIds oracle = Close
 
 data ContractVariable = ContractVariable {
-    t :: Int,
-    name :: String,
-    value :: Int
+    tickN :: Integer,
+    variableName :: String,
+    variableValue :: Integer
 }
+
+parseDouble :: Integer -> Double
+parseDouble int = (fromIntegral int) / marloweFixedPoint
 
 stateParser :: State -> [CashFlow] --todo should we raise error if last cashflow's event is only partially parsable?
 stateParser state =
     let 
-        parseVariable nameWithPrefix = ContractVariable {} --todo
-        parseCashFlowFromVar var = CashFlow {}
-    in [] --todo
+        parseVariable :: (String, Integer) -> ContractVariable
+        parseVariable (name, value) = ContractVariable {
+            tickN = read $ name =~ ".*_t(.*)",
+            variableName = name =~ "(.*)_t.*",
+            variableValue = value
+        }
+        isCompleteCashflow vars = 
+            -- todo: is there enough fields for cash flow 
+            -- todo: we should also validate that only last t has isCompleteCashflow = False
+            -- it is allowed for partial interpreter state
+            True 
+        parseCashFlowFromVars :: [ContractVariable] -> CashFlow    
+        parseCashFlowFromVars vars = 
+            let
+                t = tickN (head vars)
+                varsMap = Mp.fromList $ fmap (variableName &&& variableValue) vars
+                look :: String -> Integer
+                look name = fromJust $ Mp.lookup name varsMap
+                proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
+                parseCashEvent id = case eventTypeIdToEventType id of
+                    AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor1"}
+                    IED  -> IED_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
+                    PR   -> PR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
+                    PI   -> PI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
+                    PRF  -> PRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
+                    PY   -> PY_EVENT {
+                        o_rf_CURS = parseDouble $ look "riskFactor1", 
+                        o_rf_RRMO = parseDouble $ look "riskFactor2"
+                    }   
+                    FP   -> FP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
+                    PRD  -> PRD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    TD   -> TD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
+                    IP   -> IP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
+                    IPCI -> IPCI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"} 
+                    IPCB -> IPCB_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    RR   -> RR_EVENT {
+                        o_rf_CURS = parseDouble $ look "riskFactor1", 
+                        o_rf_RRMO = parseDouble $ look "riskFactor2"
+                    }   
+                    RRF  -> RRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    SC   -> SC_EVENT {
+                        o_rf_CURS = parseDouble $ look "riskFactor1", 
+                        o_rf_SCMO = parseDouble $ look "riskFactor4"
+                    }   
+                    XD   -> XD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    DV   -> DV_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    --todo: imports
+                    Language.Marlowe.ACTUS.HP.BusinessEvents.MR -> MR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    STD  -> STD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    MD   -> MD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    PP   -> PP_EVENT { 
+                        pp_payoff = parseDouble $ look "riskFactor3", 
+                        o_rf_CURS = parseDouble $ look "riskFactor1"
+                    } 
+                    CE   -> CE_EVENT { 
+                        date = proposedPaymentDate, 
+                        o_rf_CURS = parseDouble $ look "riskFactor1"
+                    }
+            in CashFlow {
+                tick = t,
+                cashContractId = show $ look "contractId",
+                cashParty = show $ look "party",
+                cashCounterParty = show $ look "counterparty",
+                cashPaymentDay = proposedPaymentDate,
+                cashEvent = parseCashEvent $ look "eventType", 
+                amount = parseDouble $ look "amount",
+                currency = show $ look "currency"
+            }
+        timeEq val1 val2 = (tickN val1) == (tickN val2)
+        flow :: [(String, Integer)] -> [CashFlow]
+        flow = (fmap parseVariable) >>> (groupBy timeEq) >>> (L.filter isCompleteCashflow) >>> (fmap parseCashFlowFromVars)
+    in [] --flow $ Map.toList $ boundValues state
 
 -- gets cashflows from state parser and passes them to ActusValidator
+-- todo: we should validate that contract is of simple form Choice -> Choice -> Pay -> Close
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser txOutState

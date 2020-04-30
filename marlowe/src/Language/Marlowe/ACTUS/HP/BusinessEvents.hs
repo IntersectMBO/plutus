@@ -1,7 +1,7 @@
 module Language.Marlowe.ACTUS.HP.BusinessEvents where
 import Data.Time
 
-data EventType = AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC
+data EventType = AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
 
 data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieves current contract states without alter these
                     | IED_EVENT {o_rf_CURS :: Double}   -- Initial Exchange Date Scheduled date of first principal event, start of accrual calculation
@@ -30,6 +30,8 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                      
 mapEventType :: ScheduledEvent -> EventType
 mapEventType event = case event of {
-    otherwise -> PP
+    _ -> PP --todo
 }
 
+eventTypeIdToEventType :: Integer -> EventType
+eventTypeIdToEventType id = AD --todo

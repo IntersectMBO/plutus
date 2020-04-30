@@ -34,6 +34,7 @@ library
     base -any,
     bytestring,
     containers -any,
+    regex-posix -any,
     mtl,
     template-haskell -any,
     plutus-tx -any,
