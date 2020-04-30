@@ -92,8 +92,8 @@ inquiry timePosfix party partyId oracle continue = let
         (Constant 0) 
         [Bound 0 1000000] 
         cont   
-    riskFactorInquiry i cont = inputTemplate 
-        (fromString ("riskFactor" ++ i ++ timePosfix)) 
+    riskFactorInquiry name cont = inputTemplate 
+        (fromString ("riskFactor-" ++ i ++ timePosfix)) 
         oracleRole 
         (Constant 0) 
         [Bound 0 1000000] 
@@ -123,8 +123,18 @@ inquiry timePosfix party partyId oracle continue = let
         [Bound 0 1000000] 
         cont
     addEventInitiatorParty cont = (Let (ValueId (fromString "party")) (Constant partyId) cont)
-    riskFactorsInquiry = (riskFactorInquiry "1") >>> (riskFactorInquiry "2") >>> (riskFactorInquiry "3")
-    in (contractIdInquiry >>> eventTypeInquiry >>> riskFactorsInquiry >>> payoffInquiry >>> payoffCurrencyInquiry >>> addEventInitiatorParty) continue
+    riskFactorsInquiry = 
+        (riskFactorInquiry "o_rf_CURS") >>> 
+        (riskFactorInquiry "o_rf_RRMO") >>> 
+        (riskFactorInquiry "o_rf_SCMO") >>>
+        (riskFactorInquiry "pp_payoff")
+    in (contractIdInquiry >>> 
+        eventTypeInquiry >>> 
+        riskFactorsInquiry >>> 
+        payoffInquiry >>> 
+        payoffCurrencyInquiry >>> 
+        addEventInitiatorParty
+    ) continue
 
 --todo: combine invoice and inquiry
 genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
@@ -162,43 +172,43 @@ stateParser state =
                 look name = fromJust $ Mp.lookup name varsMap
                 proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent id = case eventTypeIdToEventType id of
-                    AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor1"}
-                    IED  -> IED_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
-                    PR   -> PR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
-                    PI   -> PI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
-                    PRF  -> PRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
+                    AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
+                    IED  -> IED_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
+                    PR   -> PR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
+                    PI   -> PI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
+                    PRF  -> PRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
                     PY   -> PY_EVENT {
-                        o_rf_CURS = parseDouble $ look "riskFactor1", 
-                        o_rf_RRMO = parseDouble $ look "riskFactor2"
+                        o_rf_CURS = parseDouble $ look "riskFacto-ro_rf_CURS", 
+                        o_rf_RRMO = parseDouble $ look "riskFactor-o_rf_RRMO"
                     }   
-                    FP   -> FP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
-                    PRD  -> PRD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
-                    TD   -> TD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}  
-                    IP   -> IP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}   
-                    IPCI -> IPCI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"} 
-                    IPCB -> IPCB_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    FP   -> FP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
+                    PRD  -> PRD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
+                    TD   -> TD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
+                    IP   -> IP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
+                    IPCI -> IPCI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"} 
+                    IPCB -> IPCB_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
                     RR   -> RR_EVENT {
-                        o_rf_CURS = parseDouble $ look "riskFactor1", 
-                        o_rf_RRMO = parseDouble $ look "riskFactor2"
+                        o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS", 
+                        o_rf_RRMO = parseDouble $ look "riskFactor-o_rf_RRMO"
                     }   
-                    RRF  -> RRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    RRF  -> RRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
                     SC   -> SC_EVENT {
-                        o_rf_CURS = parseDouble $ look "riskFactor1", 
-                        o_rf_SCMO = parseDouble $ look "riskFactor4"
+                        o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS", 
+                        o_rf_SCMO = parseDouble $ look "riskFactor-o_rf_SCMO"
                     }   
-                    XD   -> XD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
-                    DV   -> DV_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    XD   -> XD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
+                    DV   -> DV_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
                     --todo: imports
-                    Language.Marlowe.ACTUS.BusinessEvents.MR -> MR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
-                    STD  -> STD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
-                    MD   -> MD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor1"}
+                    Language.Marlowe.ACTUS.BusinessEvents.MR -> MR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
+                    STD  -> STD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
+                    MD   -> MD_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}
                     PP   -> PP_EVENT { 
-                        pp_payoff = parseDouble $ look "riskFactor3", 
-                        o_rf_CURS = parseDouble $ look "riskFactor1"
+                        pp_payoff = parseDouble $ look "riskFactor-pp_payoff", 
+                        o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"
                     } 
                     CE   -> CE_EVENT { 
                         date = proposedPaymentDate, 
-                        o_rf_CURS = parseDouble $ look "riskFactor1"
+                        o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"
                     }
             in CashFlow {
                 tick = t,
