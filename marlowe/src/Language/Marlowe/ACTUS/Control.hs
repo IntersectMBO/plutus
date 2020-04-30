@@ -52,8 +52,8 @@ slotRangeToDay :: Integer -> Integer -> Day
 slotRangeToDay start end = undefined
 
 --todo check roleSign, enforce a date
-invoice :: From -> To -> Day -> Amount -> Currency -> Tkn -> Continuation -> Contract
-invoice from to date amount currency tokenName continue = 
+invoice :: From -> To -> Amount -> Continuation -> Contract
+invoice from to amount continue = 
     let
         party = Role $ TokenName $ fromString from
         counterparty = Role $ TokenName $ fromString to
@@ -69,7 +69,7 @@ roleSign :: TimePostfix -> String -> MarloweBool
 roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
 
 --todo read payment date 
-inquiry :: TimePostfix -> EventInitiatorParty -> EventInitiatorPartyId -> Oracle -> Contract -> Contract
+inquiry :: TimePostfix -> EventInitiatorParty -> EventInitiatorPartyId -> Oracle -> Continuation -> Contract
 inquiry timePosfix party partyId oracle continue = let
     partyRole = Role $ TokenName $ fromString party
     oracleRole = Role $ TokenName $ fromString oracle
@@ -93,7 +93,7 @@ inquiry timePosfix party partyId oracle continue = let
         [Bound 0 1000000] 
         cont   
     riskFactorInquiry name cont = inputTemplate 
-        (fromString ("riskFactor-" ++ i ++ timePosfix)) 
+        (fromString ("riskFactor-" ++ name ++ timePosfix)) 
         oracleRole 
         (Constant 0) 
         [Bound 0 1000000] 
@@ -169,7 +169,7 @@ stateParser state =
                 t = tickN (head vars)
                 varsMap = Mp.fromList $ fmap (variableName &&& variableValue) vars
                 look :: String -> Integer
-                look name = fromJust $ Mp.lookup name varsMap
+                look name = fromJust $ Mp.lookup (name ++ "_t" ++ (show t)) varsMap
                 proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent id = case eventTypeIdToEventType id of
                     AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
