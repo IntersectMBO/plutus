@@ -83,6 +83,7 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 ==== Specifications and design
 
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report] (draft)
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
 
