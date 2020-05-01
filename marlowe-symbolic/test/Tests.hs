@@ -95,7 +95,7 @@ shrinkValueId "beta"  = ["alpha"]
 shrinkValueId "alpha" = []
 shrinkValueId _       = []
 
-valueGenSized :: Int -> Gen Value
+valueGenSized :: Int -> Gen (Value Observation)
 valueGenSized s
   | s > 0 = oneof [ AvailableMoney <$> accountIdGen <*> tokenGen
                   , Constant <$> simpleIntegerGen
@@ -114,7 +114,7 @@ valueGenSized s
                       , UseValue <$> valueIdGen
                       ]
 
-shrinkValue :: Value -> [Value]
+shrinkValue :: (Value Observation) -> [(Value Observation)]
 shrinkValue (Constant x) = [Constant y | y <- shrinkSimpleInteger x]
 shrinkValue SlotIntervalStart = [Constant 0]
 shrinkValue SlotIntervalEnd = [Constant 0, SlotIntervalStart]

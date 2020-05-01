@@ -97,15 +97,15 @@ carolChoice = choice "carol" both
 
 -- the values chosen in choices
 
-aliceChosen, bobChosen :: Value
+aliceChosen, bobChosen :: (Value Observation)
 
 aliceChosen = ChoiceValue (ChoiceId choiceName "alice") defValue
 bobChosen   = ChoiceValue (ChoiceId choiceName "bob") defValue
 
-defValue :: Value
+defValue :: (Value Observation)
 defValue = Constant 42
 
 -- Value under escrow
 
-price :: Value
+price :: (Value Observation)
 price = Constant 450

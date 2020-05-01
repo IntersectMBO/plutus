@@ -149,6 +149,7 @@ getMarloweConstructors ValueType =
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
     , (Tuple "UseValue" [ DefaultString "valueId" ])
+    , (Tuple "Cond" [ DataArg ObservationType, DataArg ValueType, DataArg ValueType ])
     ]
 
 getMarloweConstructors ObservationType =
@@ -628,6 +629,7 @@ data Value
   | SlotIntervalStart
   | SlotIntervalEnd
   | UseValue (TermWrapper ValueId)
+  | Cond (Term Observation) (Term Value) (Term Value)
 
 derive instance genericValue :: Generic Value _
 
@@ -656,6 +658,7 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
   fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd
   fromTerm (UseValue a) = S.UseValue <$> fromTerm a
+  fromTerm (Cond c a b) = S.Cond <$> fromTerm c <*> fromTerm a <*> fromTerm b
 
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType

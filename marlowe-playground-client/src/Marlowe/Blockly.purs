@@ -23,6 +23,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Data.Unit (Unit(..), unit)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
 import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
@@ -246,6 +247,7 @@ data ValueType
   | SlotIntervalStartValueType
   | SlotIntervalEndValueType
   | UseValueValueType
+  | CondObservationValueValueType
 
 derive instance genericValueType :: Generic ValueType _
 
@@ -808,6 +810,22 @@ toDefinition (ValueType AddValueValueType) =
         }
         defaultBlockDefinition
 
+toDefinition (ValueType CondObservationValueValueType) =
+  BlockDefinition
+    $ merge
+        { type: show CondObservationValueValueType
+        , message0: "if %1 then %2 else %3"
+        , args0:
+          [ Value { name: "condition", check: "observation", align: Right }
+          , Value { name: "then", check: "value", align: Right }
+          , Value { name: "else", check: "value", align: Right }
+          ]
+        , colour: "135"
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
 toDefinition (ValueType SubValueValueType) =
   BlockDefinition
     $ merge
@@ -993,7 +1011,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     let
       accountId = AccountId accountNumber accountOwner
     party <- statementToTerm g block "to_party" Parser.party
-    amount <- statementToTerm g block "value" Parser.value
+    amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountId party tok amount)) contract)
   blockDefinition ChoiceActionType g block = do
@@ -1053,7 +1071,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     let
       accountId = AccountId accountNumber accountOwner
     payee <- statementToTerm g block "payee" Parser.payee
-    value <- statementToTerm g block "value" Parser.value
+    value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Pay accountId payee tok value contract)
   blockDefinition IfContractType g block = do
@@ -1075,7 +1093,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     pure $ mkDefaultTerm (When cases slot contract)
   blockDefinition LetContractType g block = do
     valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
-    value <- statementToTerm g block "value" Parser.value
+    value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Let valueId value contract)
 
@@ -1098,24 +1116,24 @@ instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Te
       choiceId = ChoiceId choiceName choiceOwner
     pure $ mkDefaultTerm (ChoseSomething choiceId)
   blockDefinition ValueGEObservationType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (ValueGE value1 value2)
   blockDefinition ValueGTObservationType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (ValueGT value1 value2)
   blockDefinition ValueLEObservationType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (ValueLE value1 value2)
   blockDefinition ValueLTObservationType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (ValueLT value1 value2)
   blockDefinition ValueEQObservationType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (ValueEQ value1 value2)
   blockDefinition TrueObservationType g block = pure $ mkDefaultTerm TrueObs
   blockDefinition FalseObservationType g block = pure $ mkDefaultTerm FalseObs
@@ -1132,33 +1150,38 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     constant <- parse Parser.bigInteger =<< getFieldValue block "constant"
     pure $ mkDefaultTerm (Constant constant)
   blockDefinition NegValueValueType g block = do
-    value <- statementToTerm g block "value" Parser.value
+    value <- statementToTerm g block "value" (Parser.value unit)
     pure $ mkDefaultTerm (NegValue value)
   blockDefinition AddValueValueType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (AddValue value1 value2)
   blockDefinition SubValueValueType g block = do
-    value1 <- statementToTerm g block "value1" Parser.value
-    value2 <- statementToTerm g block "value2" Parser.value
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (SubValue value1 value2)
   blockDefinition ScaleValueType g block = do
     numerator <- parse Parser.bigInteger =<< getFieldValue block "numerator"
     denominator <- parse Parser.bigInteger =<< getFieldValue block "denominator"
-    value <- statementToTerm g block "value" Parser.value
+    value <- statementToTerm g block "value" (Parser.value unit)
     pure $ mkDefaultTerm (Scale (mkDefaultTermWrapper (Rational numerator denominator)) value)
   blockDefinition ChoiceValueValueType g block = do
     choiceName <- getFieldValue block "choice_name"
     choiceOwner <- statementToTerm g block "party" Parser.party
     let
       choiceId = ChoiceId choiceName choiceOwner
-    value <- statementToTerm g block "value" Parser.value
+    value <- statementToTerm g block "value" (Parser.value unit)
     pure $ mkDefaultTerm (ChoiceValue choiceId value)
   blockDefinition SlotIntervalStartValueType g block = pure $ mkDefaultTerm SlotIntervalStart
   blockDefinition SlotIntervalEndValueType g block = pure $ mkDefaultTerm SlotIntervalEnd
   blockDefinition UseValueValueType g block = do
     valueId <- mkDefaultTermWrapper <<< ValueId <$> getFieldValue block "value_id"
     pure $ mkDefaultTerm (UseValue valueId)
+  blockDefinition CondObservationValueValueType g block = do
+    condition <- statementToTerm g block "condition" Parser.observation
+    thn <- statementToTerm g block "then" (Parser.value unit)
+    els <- statementToTerm g block "else" (Parser.value unit)
+    pure $ mkDefaultTerm (Cond condition thn els)
 
 buildBlocks :: forall r. NewBlockFunction r -> BlocklyState -> Term Contract -> ST r Unit
 buildBlocks newBlock bs contract = do
@@ -1467,3 +1490,9 @@ instance toBlocklyValue :: ToBlockly Value where
     block <- newBlock workspace (show UseValueValueType)
     connectToOutput block input
     setField block "value_id" valueId
+  toBlockly newBlock workspace input (Cond cond thn els) = do
+    block <- newBlock workspace (show CondObservationValueValueType)
+    connectToOutput block input
+    inputToBlockly newBlock workspace block "condition" cond
+    inputToBlockly newBlock workspace block "then" thn
+    inputToBlockly newBlock workspace block "else" els

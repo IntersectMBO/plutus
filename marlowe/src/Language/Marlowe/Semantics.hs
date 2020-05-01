@@ -157,16 +157,17 @@ newtype ValueId = ValueId ByteString
 
     Values can also be scaled, and combined using addition, subtraction, and negation.
 -}
-data Value = AvailableMoney AccountId Token
+data Value a = AvailableMoney AccountId Token
            | Constant Integer
-           | NegValue Value
-           | AddValue Value Value
-           | SubValue Value Value
-           | Scale Rational Value
-           | ChoiceValue ChoiceId Value
+           | NegValue (Value a)
+           | AddValue (Value a) (Value a)
+           | SubValue (Value a) (Value a)
+           | Scale Rational (Value a)
+           | ChoiceValue ChoiceId (Value a)
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
+           | Cond a (Value a) (Value a)
   deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -181,11 +182,11 @@ data Observation = AndObs Observation Observation
                  | OrObs Observation Observation
                  | NotObs Observation
                  | ChoseSomething ChoiceId
-                 | ValueGE Value Value
-                 | ValueGT Value Value
-                 | ValueLT Value Value
-                 | ValueLE Value Value
-                 | ValueEQ Value Value
+                 | ValueGE (Value Observation) (Value Observation)
+                 | ValueGT (Value Observation) (Value Observation)
+                 | ValueLT (Value Observation) (Value Observation)
+                 | ValueLE (Value Observation) (Value Observation)
+                 | ValueEQ (Value Observation) (Value Observation)
                  | TrueObs
                  | FalseObs
   deriving stock (Show,Generic,P.Eq,P.Ord)
@@ -209,7 +210,7 @@ data Bound = Bound Integer Integer
       Typically this would be done by one of the parties,
       or one of their wallets acting automatically.
 -}
-data Action = Deposit AccountId Party Token Value
+data Action = Deposit AccountId Party Token (Value Observation)
             | Choice ChoiceId [Bound]
             | Notify Observation
   deriving stock (Show,Generic,P.Eq,P.Ord)
@@ -242,10 +243,10 @@ data Case a = Case Action a
     it is possible that effects – payments – and warnings can be generated too.
 -}
 data Contract = Close
-              | Pay AccountId Payee Token Value Contract
+              | Pay AccountId Payee Token (Value Observation) Contract
               | If Observation Contract Contract
               | When [Case Contract] Timeout Contract
-              | Let ValueId Value Contract
+              | Let ValueId (Value Observation) Contract
   deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -450,7 +451,7 @@ fixInterval interval state =
 {-|
   Evaluates @Value@ given current @State@ and @Environment@
 -}
-evalValue :: Environment -> State -> Value -> Integer
+evalValue :: Environment -> State -> (Value Observation) -> Integer
 evalValue env state value = let
     eval = evalValue env state
     in case value of
@@ -483,6 +484,7 @@ evalValue env state value = let
             case Map.lookup valId (boundValues state) of
                 Just x  -> x
                 Nothing -> 0
+        Cond cond thn els    -> if evalObservation env state cond then eval thn else eval els
 
 
 -- | Evaluate 'Observation' to 'Bool'.
@@ -968,8 +970,8 @@ instance ToJSON ValueId where
     toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
 
 
-instance FromJSON Value where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Value where toJSON v = genericToJSON customOptions v
+instance FromJSON (Value Observation) where parseJSON v = genericParseJSON customOptions v
+instance ToJSON (Value Observation) where toJSON v = genericToJSON customOptions v
 
 
 instance FromJSON Observation where parseJSON v = genericParseJSON customOptions v
@@ -1055,7 +1057,7 @@ instance Eq ReduceEffect where
     _ == _ = False
 
 
-instance Eq Value where
+instance Eq a => Eq (Value a) where
     {-# INLINABLE (==) #-}
     AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
         acc1 == acc2 && tok1 == tok2
@@ -1068,6 +1070,7 @@ instance Eq Value where
     SlotIntervalStart == SlotIntervalStart = True
     SlotIntervalEnd   == SlotIntervalEnd   = True
     UseValue val1 == UseValue val2 = val1 == val2
+    Cond obs1 thn1 els1 == Cond obs2 thn2 els2 =  obs1 == obs2 && thn1 == thn2 && els1 == els2
     _ == _ = False
 
 
