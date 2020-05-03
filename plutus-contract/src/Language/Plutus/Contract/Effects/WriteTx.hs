@@ -63,7 +63,7 @@ type WriteTx = TxSymbol .== (WriteTxResponse, PendingTransactions)
 
 newtype PendingTransactions =
   PendingTransactions { unPendingTransactions :: [UnbalancedTx] }
-    deriving stock (Eq, Generic)
+    deriving stock (Eq, Generic, Show)
     deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
     deriving Pretty via (PrettyFoldable [] UnbalancedTx)
     deriving anyclass (IotsType)

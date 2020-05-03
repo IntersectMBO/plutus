@@ -13,37 +13,45 @@ module PSGenerator
     ( generate
     ) where
 
-import qualified Data.Aeson.Encode.Pretty                   as JSON
-import qualified Data.ByteString.Lazy                       as BSL
-import           Language.Plutus.Contract.Effects.UtxoAt    (UtxoAtAddress)
-import           Language.Plutus.Contract.Effects.WriteTx   (WriteTxResponse)
-import           Language.PureScript.Bridge.TypeParameters  (A)
-import           Ledger.Constraints.OffChain                (UnbalancedTx)
-import qualified Ledger.Index                               as Index
-import           Plutus.SCB.Events                          (ChainEvent)
-import           Plutus.SCB.Events.Contract                 (ContractRequest, ContractResponse, EventId, RequestEvent,
-                                                             ResponseEvent)
-import           Plutus.SCB.Events.Node                     (NodeEvent)
-import           Plutus.SCB.Events.User                     (UserEvent)
-import           Plutus.SCB.Events.Wallet                   (WalletEvent)
-import           Plutus.SCB.Types                           (ActiveContract, ActiveContractState, ContractExe,
-                                                             PartiallyDecodedResponse)
+import qualified Data.Aeson.Encode.Pretty                          as JSON
+import qualified Data.ByteString.Lazy                              as BSL
+import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints, EndpointDescription, EndpointValue)
+import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
+import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
+import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
+import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
+import           Language.PureScript.Bridge.TypeParameters         (A)
+import           Ledger.Constraints.OffChain                       (UnbalancedTx)
+import qualified Ledger.Index                                      as Index
+import           Plutus.SCB.Events                                 (ChainEvent)
+import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
+                                                                    ContractInstanceState, ContractIteration,
+                                                                    ContractMailbox, ContractRequest, ContractResponse,
+                                                                    PartiallyDecodedResponse)
+import           Plutus.SCB.Events.Node                            (NodeEvent)
+import           Plutus.SCB.Events.User                            (UserEvent)
+import           Plutus.SCB.Events.Wallet                          (WalletEvent)
+import           Plutus.SCB.Types                                  (ContractExe)
 import qualified PSGenerator.Common
-import           System.FilePath                            ((</>))
+import           System.FilePath                                   ((</>))
 
-import           Control.Applicative                        ((<|>))
-import           Control.Lens                               (set, (&))
-import           Data.Proxy                                 (Proxy (Proxy))
-import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                             equal, genericShow, mkSumType, writePSTypesWith)
-import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
-                                                             unwrapSingleConstructors)
-import qualified Plutus.SCB.Webserver.API                   as API
-import           Plutus.SCB.Webserver.Types                 (FullReport (FullReport), annotatedBlockchain, events,
-                                                             latestContractStatus, transactionMap, utxoIndex, walletMap)
-import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
-                                                             defaultSettings, languageBridge,
-                                                             writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           Control.Applicative                               ((<|>))
+import           Control.Lens                                      (set, (&))
+import           Data.Proxy                                        (Proxy (Proxy))
+import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
+                                                                    buildBridge, equal, genericShow, mkSumType,
+                                                                    writePSTypesWith)
+import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
+                                                                    unwrapSingleConstructors)
+import qualified Plutus.SCB.Webserver.API                          as API
+import           Plutus.SCB.Webserver.Types                        (FullReport (FullReport), annotatedBlockchain,
+                                                                    events, latestContractStatus, transactionMap,
+                                                                    utxoIndex, walletMap)
+import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
+                                                                    defaultSettings, languageBridge,
+                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
 
 myBridge :: BridgePart
 myBridge =
@@ -69,20 +77,30 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ActiveContract A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ActiveContractState A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PartiallyDecodedResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EventId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(RequestEvent A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ResponseEvent A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractIteration)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractMailbox)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletEvent)
+
+    -- Contract request / response types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoints)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressSet)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EndpointDescription)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnPubKeyRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIdSet)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
     ]
 
 mySettings :: Settings

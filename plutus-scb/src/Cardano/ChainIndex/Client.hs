@@ -15,7 +15,7 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error (Error, throwError)
 import           Control.Monad.IO.Class    (MonadIO (..))
 import           Data.Proxy                (Proxy (Proxy))
-import           Ledger                    (Address)
+import           Ledger                    (Address, TxId)
 import           Ledger.AddressMap         (AddressMap)
 import           Servant                   ((:<|>) (..), NoContent)
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
@@ -25,10 +25,11 @@ import           Wallet.Effects            (ChainIndexEffect (..))
 healthCheck :: ClientM NoContent
 startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
-(healthCheck, startWatching, watchedAddresses) =
-  (healthCheck_, startWatching_, watchedAddresses_)
+transactionConfirmed :: TxId -> ClientM Bool
+(healthCheck, startWatching, watchedAddresses, transactionConfirmed) =
+  (healthCheck_, startWatching_, watchedAddresses_, txConfirmed_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_  =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> txConfirmed_  =
         client (Proxy @API)
 
 handleChainIndexClient ::
@@ -47,3 +48,4 @@ handleChainIndexClient clientEnv =
       interpret $ \case
         StartWatching a -> void (runClient (startWatching a))
         WatchedAddresses -> runClient watchedAddresses
+        TransactionConfirmed txid -> runClient (transactionConfirmed txid)

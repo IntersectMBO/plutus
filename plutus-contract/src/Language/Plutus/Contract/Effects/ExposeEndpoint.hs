@@ -47,7 +47,7 @@ type HasEndpoint l a s =
   )
 
 newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDescription }
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
   deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
   deriving Pretty via (PrettyFoldable Set EndpointDescription)
 
