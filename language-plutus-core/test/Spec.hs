@@ -98,7 +98,7 @@ propCBOR = property $ do
 propCBORnoUnits :: Property
 propCBORnoUnits = property $ do
     prog <- forAllPretty $ runAstGen genProgram
-    Hedgehog.tripping prog serialisePLC deserialisePLCOrFail
+    Hedgehog.tripping prog serialiseOmittingUnits deserialiseRestoringUnitsOrFail
 
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.

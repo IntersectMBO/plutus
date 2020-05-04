@@ -6,20 +6,20 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
--- before touching anything in this file.  Also see the Note [Unit-anotated programs] before using
--- anything in this file.
+-- | Serialise instances for Plutus Core types. Make sure to read the
+-- Note [Stable encoding of PLC] before touching anything in this
+-- file.  Also see the Notes [Serialising unit annotations] and
+-- [Serialising Scripts] before using anything in this file.
 
 module Language.PlutusCore.CBOR ( encode
                                 , decode
-                                , encodePLC
-                                , decodePLC
-                                , deserialisePLC
-                                , serialisePLC
-                                , deserialisePLCOrFail
+                                , OmitUnitAnnotations (..)
+                                , serialiseOmittingUnits
+                                , deserialiseRestoringUnits
+                                , deserialiseRestoringUnitsOrFail
                                 , DeserialiseFailure (..)
                                 ) where
--- Codec.CBOR.DeserialiseFailure is re-exported from this module for use with deserialisePLCOrFail
+-- Codec.CBOR.DeserialiseFailure is re-exported from this module for use with deserialiseRestoringUnitsOrFail
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
@@ -34,7 +34,7 @@ import           PlutusPrelude
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
-import           Data.ByteString.Lazy           as BSL
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Data.Proxy
 
@@ -329,44 +329,29 @@ example) are calculated by serialsing the entire object and
 calculating a hash, and these objects can contain Scripts themselves.
 Serialisation is achieved using the Generic instance of `Serialise`,
 which will just use `encode` on everything, including unit
-annotations.  There are two ways to overcome this.  Firstly, we could
-write explicit `Serialise` instances for everything.  This would be
-more space-efficient than the Generic encoding, but would introduce a
-lot of extra code.  The other way is to make `Ledger.Scripts.Script`
-a special instance of `Serialise` which performs the coercions for us.
-The functions below facilitate this, and are used to implement a suitable
-instance for `Script` in `Ledger.Scripts`.
--}
+annotations.  we could overcome this by writing explicit `Serialise`
+instances for everything.  This would be more space-efficient than the
+Generic encoding, but would introduce a lot of extra code.  Instead,
+we provide a wrapper class with an instance which performs the
+coercions for us.  This is used in `Ledger.Scripts.Script` to
+derive a suitable instance of `Serialise` for scripts. -}
 
-encodePLC :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> Encoding
-encodePLC (p :: Program TyName Name uni ()) = encode (coerce p :: Program TyName Name uni InvisibleUnit)
+newtype OmitUnitAnnotations uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program TyName Name uni () }
 
-decodePLC :: (Closed uni, uni `Everywhere` Serialise) => Decoder s (Program TyName Name uni ())
-decodePLC = do
-      p :: Program TyName Name uni InvisibleUnit <- decode
-      return $ (coerce p :: Program TyName Name uni ())
+instance (Closed uni, uni `Everywhere` Serialise) => Serialise (OmitUnitAnnotations uni) where
+    encode (OmitUnitAnnotations p) = encode (coerce p :: Program TyName Name uni InvisibleUnit)
+    decode = do
+        p :: Program TyName Name uni InvisibleUnit <- decode
+        return $ OmitUnitAnnotations (coerce p :: Program TyName Name uni ())
 
 
-{-| A local wrapper type to help us define convenience functions for
- serialising and deserialising PLC programs, omitting unit
- annotations.  We could define these in terms of encodePLC and
- decodePLC analogously to how `serialise` etc are defined in
- `Codec.Serialise`, but that code's moderately complicated.  It's
- easier just to wrap the program and use the standard functions.
--}
+{-| Convenience functions for serialisation/deserialisation without units -}
+serialiseOmittingUnits :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> BSL.ByteString
+serialiseOmittingUnits = serialise . OmitUnitAnnotations
 
-newtype WrapProg uni  = WrapProg { unWrapProg :: Program TyName Name uni () }
+deserialiseRestoringUnits :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program TyName Name uni ()
+deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
 
-instance (Closed uni, uni `Everywhere` Serialise) => Serialise (WrapProg uni) where
-    encode = encodePLC . unWrapProg
-    decode = WrapProg <$> decodePLC
-
-serialisePLC :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> BSL.ByteString
-serialisePLC = serialise . WrapProg
-
-deserialisePLC :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program TyName Name uni ()
-deserialisePLC = unWrapProg <$> deserialise
-
-deserialisePLCOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
+deserialiseRestoringUnitsOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
                         BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
-deserialisePLCOrFail = second unWrapProg <$> deserialiseOrFail
+deserialiseRestoringUnitsOrFail = second restoreUnitAnnotations <$> deserialiseOrFail
