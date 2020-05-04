@@ -145,15 +145,16 @@ So we need to make builtin types and functions extensible.
 
 \subsubsection{Builtin types}
 
-Extensible builtin types are relatively straightforward on the type level, but become trickier on the value level.
-Values of builtin types are \emph{constants}, but what is a constant?
+Extensible builtin types are relatively straightforward on the type level where they are opaque --- we don't need to know anything about a type other than its kind in order to handle type normalization etc.
+However, values of builtin types (``constants'' in \gls{plutus-core}) are trickier.
 It's easy to say what a \code{Integer} constant should be: an integer!
 However, what about constants of extensible builtin types?
 
-We adopt an approach familiar from generic programming in dependently-typed languages, where we parameterize our language over a \emph{universe} of types.\footnote{
+We adopt an approach familiar from generic programming in dependently-typed languages, where we use a \emph{universe} of types to represent the types our programs can operate over.\footnote{
   Where do these types themselves come from?
-  We assume that we are working in some ``metalangauge'' which has types such as \code{Integer} that we can reuse in Plutus Core.
+  We assume that we are working in some ``metalanguage'' which has types such as \code{Integer} that we can reuse in Plutus Core.
 }
+In our case, we are entirely parametric over the universe itself, with different universes corresponding to different sets of builtin types.
 A constant then is then \emph{tagged} with a value corresponding to a type in that universe, and a value of that type.
 
 This does complicate interpretation of \gls{plutus-core} programs, since in order to interpret a program, you also need to know what universe of types it is expecting.
@@ -162,7 +163,7 @@ In practice this is not so bad: for most users (e.g. the \gls{cardano} ledger) t
 \paragraph{Builtin datatypes}
 
 Adding new types to \gls{plutus-core} is not very useful unless they have functions that can operate on them!
-A particularly common case is where the new type is (morally) a datatype, and should support pattern matching.
+A particularly common case is where the new type is a datatype, and should support pattern matching.
 We can support this by also providing a ``matching'' function as a builtin function.\footnote{
   These functions look just like the ``matchers'' for Scott-encoded datatypes, which is no coincidence.
 }
@@ -179,10 +180,11 @@ This seems feasible in principle, but we have not worked the details out yet.
 
 \subsubsection{Builtin functions}
 
-We could implement extensible builtin functions in a similar way to extensible builtin types: use some universe that catalogues the available builtin functions.
-However, this is increasingly tedious, and we don't have the same dependency on the available functions as we do on the types, since we don't have anything corresponding to constants.
+We could implement extensible builtin functions in a similar way to extensible builtin types: use some type (like the universe for types) that catalogues the available builtin functions.
+However, in practice we don't need to model the available functions quite as precisely, since the syntax doesn't depend on the available functions as it does on the available types.
 
 So instead we adopt a much simpler approach where the available builtin functions can be provided at runtime simply indexed by a name.
+We may change this in future to use the explicit catalogue of functions.
 
 \paragraph{Passing arguments to builtin functions}
 
@@ -206,7 +208,7 @@ Unfortunately this is quite a heavyweight and complex encoding for such a key us
 
 Instead, we require evaluators for polymorphic functions to be \emph{parametric}, which means in particular that they do not inspect their polymorphic arguments.
 We can thus pass the \emph{term itself} as the polymorphic argument, instead of needing to extract a value of an appropriate type in the metalanguage, as we do for other arguments.
-Thus, an evaluator for \code{const :: forall a b . a -> b -> a} takes two \emph{terms} and returns the first one.
+Thus, an evaluator for a builtin function which implements \code{const :: forall a b . a -> b -> a} would take two \emph{terms} and return the first one.
 
 \paragraph{Saturated builtin application}
 
@@ -223,7 +225,7 @@ There choice is fairly minor, but has a few consequences:
 \item
   Unsaturated builtins can be partially applied, saturated builtins cannot be --- but we can easily work around this by wrapping the builtin in a lambda, so this does not matter in practice.
 \item
-  Saturated builtins are easier to evaluate.
+  Saturated builtins are easier to write an efficient evaluator for.
   Unlike normal functions, we cannot do any real evaluation of a builtin function until we have \emph{all} the arguments.
   So it is easier if we only ever see them with all their arguments.
 \end{enumerate}
