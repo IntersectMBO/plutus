@@ -19,10 +19,10 @@
         "homepage": "",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "cc7196bff3fdb5957aabfe22c3fa88267047fe88",
-        "sha256": "1xfl7rnmmcm8qdlsfn3xjv91my6lirs5ysy01bmyblsl10y2z9iw",
+        "rev": "d4879bfd2b595d7fbd37da1a7bea5d0361975eb3",
+        "sha256": "0kzwg3mwziwx378kvbzhayy65abvk1axi12zvf2f92cs53iridwh",
         "type": "tarball",
-        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/cc7196bff3fdb5957aabfe22c3fa88267047fe88.tar.gz"
+        "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
     "haskell.nix": {
         "branch": "master",
