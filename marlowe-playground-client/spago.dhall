@@ -11,7 +11,6 @@ You can edit this file as you like.
     , "effect"
     , "functions"
     , "halogen"
-    , "matryoshka"
     , "node-fs"
     , "numerics"
     , "string-parsers"
