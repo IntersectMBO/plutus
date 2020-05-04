@@ -35,22 +35,29 @@ module Language.Plutus.Contract.Trace
     , execTrace
     , setSigningProcess
     -- * Constructing 'MonadEmulator' actions
+    , SlotNotifications(..)
     , runWallet
     , getHooks
     , callEndpoint
     , handleUtxoQueries
     , addBlocks
+    , addBlocks'
     , addBlocksUntil
+    , addBlocksUntil'
     , addEvent
     , addNamedEvent
     , addResponse
     , notifyInterestingAddresses
     , notifySlot
     , payToWallet
+    , respondToRequest
     -- * Handle blockchain events repeatedly
     , MaxIterations(..)
+    , defaultMaxIterations
+    , HandleBlockchainEventsOptions(..)
+    , defaultHandleBlockchainEventsOptions
     , handleBlockchainEvents
-    , handleBlockchainEventsTimeout
+    , handleBlockchainEventsOptions
     -- * Running 'MonadEmulator' actions
     , MonadEmulator
     , InitialDistribution
@@ -88,7 +95,8 @@ import           Numeric.Natural                                   (Natural)
 
 import           Language.Plutus.Contract                          (Contract (..), HasAwaitSlot, HasTxConfirmation,
                                                                     HasUtxoAt, HasWatchAddress, HasWriteTx, mapError,
-                                                                    waitingForBlockchainActions)
+                                                                    waitingForBlockchainActions,
+                                                                    waitingForSlotNotification)
 import           Language.Plutus.Contract.Checkpoint               (CheckpointStore)
 import qualified Language.Plutus.Contract.Resumable                as State
 import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
@@ -140,7 +148,7 @@ defaultMaxIterations = MaxIterations 20
 data TraceError e =
     TraceAssertionError EM.AssertionError
     | TContractError e
-    | HandleBlockchainEventsMaxIterationsExceeded MaxIterations
+    | HandleBlockchainEventsMaxIterationsExceeded Wallet MaxIterations
     | HookError Text
     deriving (Eq, Show)
 
@@ -208,7 +216,12 @@ initState ::
 initState wllts con = ContractTraceState wallets con where
     wallets = Map.fromList $ fmap (\a -> (a,emptyWalletState con)) wllts
 
--- | Add an event to the wallet's trace
+{-| Add an event to the wallet's trace. This verifies that the contract
+    currently has exactly one open request for the symbol @l@, and throws
+    a @HookError@ if it has 0, or more than 1, requests. Consider using
+    'respondToRequest' if you want to explicitly choose which request to
+    respond to.
+-}
 addEvent ::
     forall l s e m a.
     ( MonadEmulator (TraceError e) m
@@ -227,18 +240,20 @@ addEvent wallet event = do
             _ -> throwError $ HookError $ "More than one hook found for " <> tshow (Label @l)
     addResponse wallet hks
 
--- | A variant of 'addEvent' that takes the name of the endpoint as a value
---   instead of a type argument. This is useful for the playground where we
---   don't have the type-level symbol of user-defined endpoint calls.
---   Unfortunately this requires the 'V.Forall (Output s) V.Unconstrained1'
---   constraint. Luckily 'V.Forall (Output s) V.Unconstrained1' holds for all
---   schemas, so it doesn't restrict the callers of 'addNamedEvent'. But we
---   have to propagate it up to the top level :(
+{-| A variant of 'addEvent' that takes the name of the endpoint as a value
+    instead of a type argument. This is useful for the playground where we
+    don't have the type-level symbol of user-defined endpoint calls.
+
+    Unfortunately this requires the 'V.Forall (Output s) V.Unconstrained1'
+    constraint. Luckily 'V.Forall (Output s) V.Unconstrained1' holds for all
+    schemas, so it doesn't restrict the callers of 'addNamedEvent'. But we
+    have to propagate it up to the top level :(
+
+-}
 addNamedEvent ::
     forall s e m a.
     ( MonadEmulator (TraceError e) m
-    --   TODO: remove (using 'constraints' package)
-    , V.Forall (Output s) V.Unconstrained1
+    , V.Forall (Output s) V.Unconstrained1 -- TODO: remove
     )
     => String -- endpoint name
     -> Wallet
@@ -415,7 +430,7 @@ submitUnbalancedTx
     -> ContractTrace s e m a [Tx]
 submitUnbalancedTx wallet tx = do
     (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx tx) `Eff.catchError` \e -> pure $ Left e))
-    let event = WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res
+    let event = WriteTx.event $ view (from WriteTx.writeTxResponse) res
     addEvent @TxSymbol wallet event
     pure  txns
 
@@ -478,7 +493,8 @@ addTxEvents
 addTxEvents tx = do
     let addTxEventsWallet wllt = do
             idx <- lift (gets (view (EM.walletClientState wllt . EM.clientIndex)))
-            let watchAddressEvents = WatchAddress.events idx tx
+            currentSlot <- lift $ use (EM.chainState . EM.currentSlot)
+            let watchAddressEvents = WatchAddress.events currentSlot idx tx
             addInterestingTxEvents watchAddressEvents wllt
             addTxConfirmedEvent (txId tx) wllt
     traverse_ addTxEventsWallet allWallets
@@ -516,8 +532,8 @@ interestingAddresses
 interestingAddresses wllt =
     mapMaybe (WatchAddress.watchedAddress . rqRequest) <$> getHooks wllt
 
--- | Add a 'SlotChange' event to the wallet's event trace, informing the
---   contract of the current slot
+-- | Check whether the wallet's contract instance is waiting to be notified
+--   of a slot, and send the notification.
 notifySlot
     :: forall s e m a.
        ( MonadEmulator (TraceError e) m
@@ -526,29 +542,88 @@ notifySlot
     => Wallet
     -> ContractTrace s e m a ()
 notifySlot wallet = do
-    currentSlot <- lift $ gets (view (EM.walletClientStates . at wallet . non EM.emptyNodeClientState . EM.clientSlot))
-    let handleEvent e = case AwaitSlot.nextSlot e of
-            Just slot | slot <= currentSlot -> Just (AwaitSlot.event currentSlot)
-            _                               -> Nothing
+    currentSlot <- getCurrentSlot wallet
+    let handleEvent e = case AwaitSlot.request e of
+            Just waitingSlot | currentSlot >= waitingSlot -> Just (AwaitSlot.event currentSlot)
+            _                                             -> Nothing
     respondToRequest wallet handleEvent
 
+getCurrentSlot :: (MonadState EmulatorState m) => Wallet -> ContractTrace s e m a Slot
+getCurrentSlot wallet = lift $ gets (view (EM.walletClientStates . at wallet . non EM.emptyNodeClientState . EM.clientSlot))
+
+-- | Whether to update the internal slot counter of a wallet (that is, the wallet's notion
+--   of the current time)
+data SlotNotifications =
+        SendSlotNotifications
+        | DontSendSlotNotifications
+    deriving (Eq, Ord, Show)
+
+-- | @defaultSlotNotifications = SendSlotNotifications@
+defaultSlotNotifications :: SlotNotifications
+defaultSlotNotifications = SendSlotNotifications
+
 -- | Add a number of empty blocks to the blockchain.
-addBlocks
-    :: ( MonadEmulator (TraceError e) m )
-    => Integer
+addBlocks'
+    :: ( MonadEmulator (TraceError e) m
+       , AwaitSlot.HasAwaitSlot s
+       )
+    => SlotNotifications -- ^ Whether to notify all wallets after each block.
+    -> Integer -- ^ How many blocks to add.
     -> ContractTrace s e m a ()
-addBlocks i =
-    void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets i)
+addBlocks' n i = do
+    let notify = case n of
+            SendSlotNotifications     -> traverse_ notifySlot allWallets
+            DontSendSlotNotifications -> pure ()
+
+    replicateM_ (fromIntegral i) $ do
+        void $ lift $ EM.processEmulated (EM.addBlocksAndNotify allWallets 1)
+        notify
+
+-- | Add a number of empty blocks to the blockchain, updating each wallet's
+--   slot after each block
+addBlocks
+    :: ( MonadEmulator (TraceError e) m
+       , AwaitSlot.HasAwaitSlot s
+       )
+    => Integer -- ^ How many blocks to add.
+    -> ContractTrace s e m a ()
+addBlocks = addBlocks' SendSlotNotifications
 
 -- | Add blocks until the given slot has been reached.
 addBlocksUntil
-    :: ( MonadEmulator (TraceError e) m )
+    :: ( MonadEmulator (TraceError e) m
+       , AwaitSlot.HasAwaitSlot s
+       )
     => Slot
     -> ContractTrace s e m a ()
-addBlocksUntil sl = do
+addBlocksUntil = addBlocksUntil' SendSlotNotifications
+
+-- | Add blocks until the given slot has been reached.
+addBlocksUntil'
+    :: ( MonadEmulator (TraceError e) m
+       , AwaitSlot.HasAwaitSlot s
+       )
+    => SlotNotifications
+    -> Slot
+    -> ContractTrace s e m a ()
+addBlocksUntil' n sl = do
     currentSlot <- lift $ use (EM.chainState . EM.currentSlot)
     let Slot missing = sl - currentSlot
-    addBlocks (max 0 missing)
+    addBlocks' n (max 0 missing)
+
+-- | Options for 'handleBlockchainEvents'
+data HandleBlockchainEventsOptions =
+    HandleBlockchainEventsOptions
+        { maxIterations     :: MaxIterations
+        , slotNotifications :: SlotNotifications
+        }
+
+defaultHandleBlockchainEventsOptions :: HandleBlockchainEventsOptions
+defaultHandleBlockchainEventsOptions =
+    HandleBlockchainEventsOptions
+        { maxIterations = defaultMaxIterations
+        , slotNotifications = defaultSlotNotifications
+        }
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if there are unhandled events after 'defaultMaxIterations'.
@@ -559,35 +634,42 @@ handleBlockchainEvents
        , HasWriteTx s
        , HasOwnPubKey s
        , HasTxConfirmation s
+       , HasAwaitSlot s
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleBlockchainEvents = handleBlockchainEventsTimeout defaultMaxIterations
+handleBlockchainEvents = handleBlockchainEventsOptions defaultHandleBlockchainEventsOptions
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if the given number of iterations is exceeded
-handleBlockchainEventsTimeout
+handleBlockchainEventsOptions
     :: ( MonadEmulator (TraceError e) m
     , HasUtxoAt s
     , HasWatchAddress s
     , HasWriteTx s
     , HasOwnPubKey s
     , HasTxConfirmation s
+    , HasAwaitSlot s
     )
-    => MaxIterations
+    => HandleBlockchainEventsOptions
     -> Wallet
     -> ContractTrace s e m a ()
-handleBlockchainEventsTimeout (MaxIterations i) wallet = go 0 where
-    go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded (MaxIterations i)))
+handleBlockchainEventsOptions o wallet = go 0 where
+    HandleBlockchainEventsOptions{maxIterations=MaxIterations i,slotNotifications} = o
+    notify = case slotNotifications of
+                DontSendSlotNotifications -> pure ()
+                SendSlotNotifications     -> notifySlot wallet
+    go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded wallet (MaxIterations i)))
          | otherwise = do
+            sl <- getCurrentSlot wallet
             hks <- getHooks wallet
-            if any (waitingForBlockchainActions . rqRequest) hks
-                then do
-                    submitPendingTransactions wallet
-                    handleUtxoQueries wallet
-                    handleOwnPubKeyQueries wallet
-                    go (j + 1)
-                else pure ()
+            when (any (waitingForSlotNotification sl . rqRequest) hks) $ do
+                notify
+            when (any (waitingForBlockchainActions . rqRequest) hks) $ do
+                submitPendingTransactions wallet
+                handleUtxoQueries wallet
+                handleOwnPubKeyQueries wallet
+                go (j + 1)
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to

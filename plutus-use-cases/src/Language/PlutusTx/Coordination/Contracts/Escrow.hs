@@ -41,7 +41,7 @@ import           Control.Monad.Error.Lens       (throwing)
 
 import qualified Ledger
 import           Ledger                         (Datum(..), PubKeyHash, Slot, ValidatorHash, DatumHash, scriptOutputsAt,
-                                                 txSignedBy, valuePaidTo, interval, TxId, TxOutTx (..))
+                                                 txSignedBy, valuePaidTo, interval, TxId, TxOutTx (..), txId)
 import           Ledger.Interval                (after, before, from)
 import qualified Ledger.Interval                as Interval
 import qualified Ledger.Tx                      as Tx
@@ -246,7 +246,7 @@ pay inst escrow vl = mapError (review _EContractError) $ do
     pk <- ownPubKey
     let tx = Constraints.mustPayToTheScript (Ledger.pubKeyHash pk) vl
                 <> Constraints.mustValidateIn (Ledger.interval 1 (escrowDeadline escrow))
-    submitTxConstraints inst tx
+    txId <$> submitTxConstraints inst tx
 
 newtype RedeemSuccess = RedeemSuccess TxId
     deriving (Haskell.Eq, Show)
@@ -291,7 +291,7 @@ redeem inst escrow = mapError (review _EscrowError) $ do
     then throwing _RedeemFailed DeadlinePassed
     else if (foldMap (Tx.txOutValue . Tx.txOutTxOut) unspentOutputs) `lt` targetTotal escrow
          then throwing _RedeemFailed NotEnoughFundsAtAddress
-         else RedeemSuccess <$> submitTxConstraintsSpending inst unspentOutputs tx
+         else RedeemSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx
 
 newtype RefundSuccess = RefundSuccess TxId
     deriving (Haskell.Eq, Show)
@@ -323,7 +323,7 @@ refund inst escrow = do
         tx' = Typed.collectFromScriptFilter flt unspentOutputs Refund
                 <> Constraints.mustValidateIn (from (succ $ escrowDeadline escrow))
     if Constraints.modifiesUtxoSet tx'
-    then RefundSuccess <$> submitTxConstraintsSpending inst unspentOutputs tx'
+    then RefundSuccess . txId <$> submitTxConstraintsSpending inst unspentOutputs tx'
     else throwing _RefundFailed ()
 
 -- | Pay some money into the escrow contract. Then release all funds to their

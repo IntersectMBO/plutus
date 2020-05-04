@@ -56,17 +56,17 @@ tests =
         , cp "both (2)"
             (void $ Con.both (awaitSlot 10) (awaitSlot 20))
             (waitingForSlot w1 20)
-            $ addEvent @AwaitSlot.SlotSymbol w1 (AwaitSlot.event 10)
+            $ respondToRequest w1 (\_ -> Just $ AwaitSlot.event 10)
 
         , cp "fundsAtAddressGt"
             (void $ fundsAtAddressGt someAddress (Ada.adaValueOf 10))
-            (interestingAddress w1 someAddress)
-            $ pure ()
+            (queryingUtxoAt w1 someAddress)
+            (notifySlot w1)
 
         , cp "watchAddressUntil"
             (void $ watchAddressUntil someAddress 5)
-            (interestingAddress w1 someAddress /\ waitingForSlot w1 5)
-            $ pure ()
+            (waitingForSlot w1 5)
+            (pure ())
 
         , cp "endpoint"
             (endpoint @"ep" @())
@@ -104,7 +104,7 @@ tests =
 
         , cp "submit tx"
             (void $ submitTx mempty >> watchAddressUntil someAddress 20)
-            (waitingForSlot w1 20 /\ interestingAddress w1 someAddress)
+            (waitingForSlot w1 20)
             (handleBlockchainEvents w1 >> addBlocks 1)
 
         , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
@@ -153,7 +153,7 @@ tests =
 
         , cp "await tx confirmed"
             (let t = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey w2) (Ada.lovelaceValueOf 10)
-             in submitTx t >>= awaitTxConfirmed)
+             in submitTx t >>= awaitTxConfirmed . Ledger.txId)
             (assertDone w1 (const True) "should be done"
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
             (handleBlockchainEvents w1)

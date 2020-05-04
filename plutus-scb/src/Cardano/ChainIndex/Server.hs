@@ -42,13 +42,13 @@ import           Plutus.SCB.Utils                (tshow)
 import           Cardano.ChainIndex.API
 import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client             as NodeClient
-import           Cardano.Node.Follower           (NodeFollowerEffect)
+import           Cardano.Node.Follower           (NodeFollowerEffect, getSlot)
 import qualified Cardano.Node.Follower           as NodeFollower
 import           Wallet.Effects                  (ChainIndexEffect)
 import qualified Wallet.Effects                  as WalletEffects
 import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
 import qualified Wallet.Emulator.ChainIndex      as ChainIndex
-import           Wallet.Emulator.NodeClient      (BlockValidated (..))
+import           Wallet.Emulator.NodeClient      (ChainClientNotification (..))
 
 -- $chainIndex
 -- The SCB chain index that keeps track of transaction data (UTXO set enriched
@@ -102,8 +102,9 @@ syncState = do
     logDebug $ "Updating chain index with follower ID " <> tshow followerID
     newBlocks <- NodeFollower.getBlocks followerID
     logInfo $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
+    currentSlot <- SlotChanged <$> getSlot
     let notifications = BlockValidated <$> newBlocks
-    traverse_ ChainIndex.chainIndexNotify notifications
+    traverse_ ChainIndex.chainIndexNotify (notifications ++ [currentSlot])
 
 -- | Get the latest transactions from the node and update the index accordingly
 updateThread ::
@@ -141,10 +142,15 @@ fetchNewBlocks followerID nodeClientEnv mv = do
         either (error . show) pure
     logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
     logDebugN $ tshow newBlocks
+    logInfoN "Asking the node for the current slot"
+    curentSlot <-
+        liftIO $
+        runClientM NodeClient.getCurrentSlot nodeClientEnv >>=
+        either (error . show) pure
     let notifications = BlockValidated <$> newBlocks
     traverse_
         (processIndexEffects mv . ChainIndex.chainIndexNotify)
-        notifications
+        (notifications ++ [SlotChanged curentSlot])
 
 type ChainIndexEffects m
      = '[ ChainIndexControlEffect

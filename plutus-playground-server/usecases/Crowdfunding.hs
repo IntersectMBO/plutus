@@ -30,7 +30,7 @@ import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative(..), Semigroup(..))
 import           Ledger                            (PendingTx, PubKeyHash, pubKeyHash,
-                                                    Validator, pendingTxValidRange, valueSpent)
+                                                    Validator, pendingTxValidRange, valueSpent, txId)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Interval                   as Interval
@@ -177,7 +177,7 @@ contribute cmp = do
     let inst = scriptInstance cmp
         tx = Constraints.mustPayToTheScript contributor contribValue
                 <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
-    txId <- submitTxConstraints inst tx
+    txid <- fmap txId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntil (Scripts.scriptAddress inst) (campaignCollectionDeadline cmp)
 
@@ -185,7 +185,7 @@ contribute cmp = do
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
 
-    let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
+    let flt Ledger.TxOutRef{txOutRefId} _ = txid Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo Refund
                 <> Constraints.mustValidateIn (refundRange cmp)
                 <> Constraints.mustBeSignedBy contributor

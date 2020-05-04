@@ -15,15 +15,15 @@ import qualified Cardano.Wallet.Server          as WalletServer
 import           Control.Lens.TH                (makePrisms)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map.Strict                (Map)
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Strict                as Map
 import           Data.Text                      (Text)
 import           Data.Text.Prettyprint.Doc      (Pretty, pretty, (<+>))
 import           Data.UUID                      (UUID)
 import qualified Data.UUID                      as UUID
 import           GHC.Generics                   (Generic)
 import           Language.Plutus.Contract.Types (ContractError)
-import           Ledger                         (Blockchain, Tx, TxId, Block, txId)
-import Ledger.Index as UtxoIndex
+import           Ledger                         (Block, Blockchain, Tx, TxId, txId)
+import           Ledger.Index                   as UtxoIndex
 import           Plutus.SCB.Events              (ContractInstanceId)
 import           Servant.Client                 (BaseUrl, ClientError)
 import           Wallet.API                     (WalletAPIError)

@@ -24,7 +24,7 @@ import qualified Data.Set                   as Set
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics               (Generic)
 import           Wallet.Effects             (ChainIndexEffect (..))
-import           Wallet.Emulator.NodeClient (BlockValidated (..))
+import           Wallet.Emulator.NodeClient (ChainClientNotification (..))
 
 import           Ledger.Address             (Address)
 import           Ledger.AddressMap          (AddressMap)
@@ -34,7 +34,7 @@ import           Ledger.Tx                  (txId)
 import           Ledger.TxId                (TxId)
 
 data ChainIndexControlEffect r where
-    ChainIndexNotify :: BlockValidated -> ChainIndexControlEffect ()
+    ChainIndexNotify :: ChainClientNotification -> ChainIndexControlEffect ()
 makeEffect ''ChainIndexControlEffect
 
 data ChainIndexEvent =
@@ -64,6 +64,7 @@ handleChainIndexControl
     :: (Members ChainIndexEffs effs)
     => Eff (ChainIndexControlEffect ': effs) ~> Eff effs
 handleChainIndexControl = interpret $ \case
+    ChainIndexNotify (SlotChanged _) -> pure () -- todo: Keep a map of txns indexed by slot
     ChainIndexNotify (BlockValidated txns) ->
         tell [ReceiveBlockNotification] >> (modify $ \s ->
             s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns)

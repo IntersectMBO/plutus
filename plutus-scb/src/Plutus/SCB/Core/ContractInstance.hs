@@ -345,7 +345,7 @@ processWriteTxRequests = RequestHandler $ \req -> do
             balanceResult <- submitTx signedTx
             void $ runCommand (saveBalancedTxResult @t) NodeEventSource balanceResult
             pure balanceResult
-    let response = either WriteTxFailed (WriteTxSuccess . Ledger.txId) r
+    let response = either WriteTxFailed WriteTxSuccess r
     logInfo . render $ "processWriteTxRequest result:" <+> pretty response
     logInfo "processWriteTxRequests end"
     pure (WriteTxResponse response)
