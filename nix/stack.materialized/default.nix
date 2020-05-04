@@ -45,7 +45,6 @@
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
-        plutus-playground-lib = ./plutus-playground-lib.nix;
         plutus-tutorial = ./plutus-tutorial.nix;
         plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;

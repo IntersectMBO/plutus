@@ -128,8 +128,8 @@ in rec {
     server-invoker = let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
       runtimeGhc = haskell.packages.ghcWithPackages (ps: [
+        ps.playground-common
         ps.plutus-playground-server
-        ps.plutus-playground-lib
         ps.plutus-use-cases
       ]);
     in pkgs.runCommand "plutus-server-invoker" { buildInputs = [pkgs.makeWrapper]; } ''
@@ -157,7 +157,7 @@ in rec {
         packageJSON = ./plutus-playground-client/package.json;
         yarnLock = ./plutus-playground-client/yarn.lock;
         yarnNix = ./plutus-playground-client/yarn.nix;
-        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
+        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
         packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
@@ -198,7 +198,7 @@ in rec {
         packageJSON = ./marlowe-playground-client/package.json;
         yarnLock = ./marlowe-playground-client/yarn.lock;
         yarnNix = ./marlowe-playground-client/yarn.nix;
-        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
+        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
         packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;

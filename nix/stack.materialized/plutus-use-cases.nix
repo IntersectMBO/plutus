@@ -73,7 +73,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
-          (hsPkgs."plutus-playground-lib" or (buildDepError "plutus-playground-lib"))
+          (hsPkgs."playground-common" or (buildDepError "playground-common"))
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
           (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."template-haskell" or (buildDepError "template-haskell"))

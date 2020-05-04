@@ -35,10 +35,10 @@ import           Plutus.SCB.Effects.ContractTest                   (TestContract
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
 import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEffects, agentAction, agentControlAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId)
-import           Plutus.SCB.Query                                  (chainOverviewProjection, txHistoryProjection)
-import           Plutus.SCB.TestApp                                (TestState, TxCounts (..), defaultWallet,
+import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), defaultWallet,
                                                                     runScenario, sync, syncAll, txCounts, txValidated,
                                                                     valueAt)
+import           Plutus.SCB.Query                                  (chainOverviewProjection, txHistoryProjection)
 import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain)
 import           Plutus.SCB.Utils                                  (tshow)
 import           Test.QuickCheck.Instances.UUID                    ()

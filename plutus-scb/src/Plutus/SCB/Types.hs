@@ -22,6 +22,7 @@ import qualified Data.UUID                          as UUID
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.Resumable (ResumableError)
 import           Ledger                             (Blockchain, Tx, TxId, UtxoIndex)
+import           Plutus.SCB.Events                  (ContractInstanceId)
 import           Servant.Client                     (BaseUrl, ClientError)
 import           Wallet.API                         (WalletAPIError)
 
@@ -38,7 +39,7 @@ instance Pretty ContractExe where
 data SCBError
     = FileNotFound FilePath
     | ContractNotFound FilePath
-    | ActiveContractStateNotFound UUID
+    | ContractInstanceNotFound ContractInstanceId
     | ContractError (ResumableError Text)
     | WalletClientError ClientError
     | NodeClientError ClientError
@@ -46,6 +47,7 @@ data SCBError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
     | ContractCommandError Int Text
+    | InvalidUUIDError  Text
     | OtherError Text
     deriving (Show, Eq)
 

@@ -35,7 +35,7 @@ import Ledger.TxId (TxId(..))
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
 import Prelude (Ordering(..), const, eq, pure, show, ($), (<$>), (<<<), (<>))
 import Wallet.Emulator.Wallet (Wallet(..))
-import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..), TxKey(..))
+import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput(..), SequenceId(..))
 import Web.UIEvent.MouseEvent (MouseEvent)
 
 chainView :: forall p. State -> Map PubKeyHash Wallet -> AnnotatedBlockchain -> HTML p ChainFocus

@@ -85,8 +85,6 @@ anyone outside the team has interacted with out product!
 
 include::playground-common/ARCHITECTURE.adoc[]
 
-include::plutus-playground-lib/ARCHITECTURE.adoc[]
-
 include::plutus-playground-server/ARCHITECTURE.adoc[]
 
 include::marlowe-playground-server/ARCHITECTURE.adoc[]
@@ -94,6 +92,8 @@ include::marlowe-playground-server/ARCHITECTURE.adoc[]
 include::plutus-playground-client/ARCHITECTURE.adoc[]
 
 include::marlowe-playground-client/ARCHITECTURE.adoc[]
+
+include::playground-common/ARCHITECTURE.adoc[]
 
 include::web-common/ARCHITECTURE.adoc[]
 

@@ -29,6 +29,7 @@ import           Control.Monad.IO.Class             (MonadIO, liftIO)
 import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.Aeson                         as JSON
 import qualified Data.Aeson.Encode.Pretty           as JSON
+import           Data.Bifunctor                     (bimap, first)
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.ByteString.Lazy.Char8         as BS8
 import           Data.Row                           (type (.\\), AllUniqueLabels, Forall)
@@ -97,10 +98,9 @@ runCliCommand :: forall s m.
 runCliCommand schema Initialise = pure $ pure $ JSON.encodePretty $ initialResponse schema
 runCliCommand schema Update = do
     arg <- liftIO BSL.getContents
-    pure $
-        case JSON.eitherDecode arg of
-            Left err      -> Left $ JSON.encodePretty $ OtherError $ Text.pack err
-            Right request -> pure $ JSON.encodePretty $ runUpdate schema request
+    pure $ bimap JSON.encodePretty JSON.encodePretty $ do
+        request <- first (OtherError . Text.pack) (JSON.eitherDecode arg)
+        runUpdate schema request
 runCliCommand _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ BlockchainActions)
   pure $ Right $ JSON.encodePretty r

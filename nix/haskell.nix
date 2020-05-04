@@ -86,7 +86,6 @@ let
             plutus-emulator.package.ghcOptions = "-Werror";
             plutus-ir.package.ghcOptions = "-Werror";
             plutus-ledger.package.ghcOptions = "-Werror";
-            plutus-playground-lib.package.ghcOptions = "-Werror";
             plutus-playground-server.package.ghcOptions = "-Werror";
             plutus-scb.package.ghcOptions = "-Werror";
             plutus-tx.package.ghcOptions = "-Werror";

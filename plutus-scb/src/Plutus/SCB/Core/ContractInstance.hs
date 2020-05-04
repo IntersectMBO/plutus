@@ -243,8 +243,12 @@ activateContract contract = do
     logInfo . render $ "Initializing contract instance with ID" <+> pretty activeContractInstanceId
     let currentIteration = iterationZero
     response <- Contract.invokeContract @t $ InitContract contractDef
-    sendContractStateMessages @t contract activeContractInstanceId currentIteration response
-    logInfo . render $ "Activated contract instance:" <+> pretty activeContractInstanceId
+    logDebug . render $ "Response" <+> pretty activeContractInstanceId
+    case response of
+        Left err -> throwError $ ContractCommandError 1 err
+        Right initialState -> do
+            sendContractStateMessages @t contract activeContractInstanceId currentIteration initialState
+            logInfo . render $ "Activated contract instance:" <+> pretty activeContractInstanceId
     pure activeContractInstanceId
 
 processOwnPubkeyRequests ::

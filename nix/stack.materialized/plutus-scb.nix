@@ -69,6 +69,8 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"))
           (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
+          (hsPkgs."playground-common" or (buildDepError "playground-common"))
+          (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
           (hsPkgs."iots-export" or (buildDepError "iots-export"))
           (hsPkgs."QuickCheck" or (buildDepError "QuickCheck"))
           (hsPkgs."aeson" or (buildDepError "aeson"))
@@ -91,7 +93,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."optparse-applicative" or (buildDepError "optparse-applicative"))
           (hsPkgs."persistent" or (buildDepError "persistent"))
           (hsPkgs."persistent-sqlite" or (buildDepError "persistent-sqlite"))
-          (hsPkgs."playground-common" or (buildDepError "playground-common"))
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
           (hsPkgs."process" or (buildDepError "process"))
           (hsPkgs."quickcheck-instances" or (buildDepError "quickcheck-instances"))
@@ -141,6 +142,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Control/Monad/Freer/Extra/State"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
+          "Plutus/SCB/MockApp"
           "Plutus/SCB/Arbitrary"
           "Plutus/SCB/Command"
           "Plutus/SCB/ContractCLI"
@@ -148,7 +150,9 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Plutus/SCB/Core/ContractInstance"
           "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
+          "Plutus/SCB/Effects/ContractTest"
           "Plutus/SCB/Effects/EventLog"
+          "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
           "Plutus/SCB/Webserver/Types"
           "Plutus/SCB/Webserver/API"
@@ -185,8 +189,10 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
             (hsPkgs."purescript-bridge" or (buildDepError "purescript-bridge"))
+            (hsPkgs."row-types" or (buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (buildDepError "servant-purescript"))
             (hsPkgs."text" or (buildDepError "text"))
             (hsPkgs."unliftio-core" or (buildDepError "unliftio-core"))
@@ -240,13 +246,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."row-types" or (buildDepError "row-types"))
             ];
           buildable = true;
-          modules = [
-            "Plutus/SCB/CoreSpec"
-            "Plutus/SCB/RelationSpec"
-            "Plutus/SCB/TestApp"
-            "Plutus/SCB/Effects/ContractTest"
-            "Plutus/SCB/Effects/MultiAgent"
-            ];
+          modules = [ "Plutus/SCB/CoreSpec" "Plutus/SCB/RelationSpec" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
