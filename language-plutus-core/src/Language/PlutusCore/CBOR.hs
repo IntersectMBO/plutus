@@ -347,7 +347,7 @@ decodePLC = do
       return $ (coerce p :: Program TyName Name uni ())
 
 
-{- A local wrapper type to help us define convenience functions for
+{-| A local wrapper type to help us define convenience functions for
  serialising and deserialising PLC programs, omitting unit
  annotations.  We could define these in terms of encodePLC and
  decodePLC analogously to how `serialise` etc are defined in
