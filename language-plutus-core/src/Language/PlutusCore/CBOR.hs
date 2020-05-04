@@ -23,7 +23,6 @@ module Language.PlutusCore.CBOR ( encode
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
