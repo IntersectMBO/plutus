@@ -57,7 +57,6 @@ import qualified Prelude                              as Haskell
 
 import           Codec.Serialise                      (serialise, Serialise)
 import           Control.DeepSeq                      (NFData)
-import           Control.Monad                        (liftM)
 import           Control.Monad.Except                 (MonadError, runExcept, throwError)
 import           Crypto.Hash                          (Digest, SHA256, hash)
 import           Data.Aeson                           (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
