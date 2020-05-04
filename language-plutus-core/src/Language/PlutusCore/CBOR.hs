@@ -337,13 +337,7 @@ coercions for us.  This is used in `Ledger.Scripts.Script` to
 derive a suitable instance of `Serialise` for scripts. -}
 
 newtype OmitUnitAnnotations uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program TyName Name uni () }
-
-instance (Closed uni, uni `Everywhere` Serialise) => Serialise (OmitUnitAnnotations uni) where
-    encode (OmitUnitAnnotations p) = encode (coerce p :: Program TyName Name uni InvisibleUnit)
-    decode = do
-        p :: Program TyName Name uni InvisibleUnit <- decode
-        return $ OmitUnitAnnotations (coerce p :: Program TyName Name uni ())
-
+    deriving Serialise via Program TyName Name uni InvisibleUnit
 
 {-| Convenience functions for serialisation/deserialisation without units -}
 serialiseOmittingUnits :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> BSL.ByteString
