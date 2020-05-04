@@ -273,19 +273,6 @@ instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
 
-instance (Serialise ann) => Serialise (ParseError ann)
-instance ( Closed uni
-         , uni `Everywhere` Serialise
-         , Serialise tyname
-         , Serialise name
-         , Serialise ann
-         ) => Serialise (NormCheckError tyname name uni ann)
-instance (Serialise ann) => Serialise (UniqueError ann)
-instance Serialise UnknownDynamicBuiltinNameError
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (InternalTypeError uni ann)
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (TypeError uni ann)
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (Error uni ann)
-
 
 {- Note [Serialising unit annotations]
 
