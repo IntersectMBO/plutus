@@ -60,6 +60,7 @@ import qualified Ledger.Value               as Val
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
+
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 
 {- Functions that used in Plutus Core must be inlineable,
@@ -235,12 +236,23 @@ data Contract = Close
   deriving anyclass (Pretty)
 
 
+type LogicalTime = Integer
+
+data LoopState = LoopState { logicalTime       :: LogicalTime
+                            , originalContract :: Contract
+                            , stateHistory     :: Map LogicalTime State
+                             }
+  deriving stock (Show,Read)
+
+
 {-| Marlowe contract internal state. Stored in a /Datum/ of a transaction output.
 -}
-data State = State { accounts    :: Accounts
-                   , choices     :: Map ChoiceId ChosenNum
-                   , boundValues :: Map ValueId Integer
-                   , minSlot     :: Slot }
+data State = State { accounts         :: Accounts
+                   , choices          :: Map ChoiceId ChosenNum
+                   , boundValues      :: Map ValueId Integer
+                   , minSlot          :: Slot
+                   , loopState        :: Maybe LoopState
+                    }
   deriving stock (Show,Read)
 
 
@@ -375,23 +387,21 @@ data TransactionOutput =
     | Error TransactionError
   deriving stock (Show)
 
-
 {-|
     This data type is a content of a contract's /Datum/
 -}
 data MarloweData = MarloweData {
-        marloweState    :: State,
-        marloweContract :: Contract
+        marloweState     :: State,
+        marloweContract  :: Contract
     } deriving stock (Show)
 
 
 data MarloweParams = MarloweParams {
         rolePayoutValidatorHash :: ValidatorHash,
-        rolesCurrency           :: CurrencySymbol,
-        reOpen                  :: Contract
+        rolesCurrency           :: CurrencySymbol
     } deriving stock (Show)
 
-type CustomValidator = TransactionOutput -> Bool
+type PostValidator = TransactionOutput -> Bool
 
 -- | Empty State for a given minimal 'Slot'
 emptyState :: Slot -> State
@@ -729,27 +739,6 @@ computeTransaction tx state contract = let
             ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
         IntervalError error -> Error (TEIntervalError error)
 
--- | Same as computeTransaction, but allows for infinite loops, not part of semantics
-computeTransactionWithReOpen :: MarloweParams -> TransactionInput -> State -> Contract -> TransactionOutput
-computeTransactionWithReOpen params tx state contract = let
-    inputs = txInputs tx
-    in case fixInterval (txInterval tx) state of
-        IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
-            ApplyAllSuccess warnings payments newState cont ->
-                    if (contract == cont) && ((contract /= Close) || (Map.null $ accounts state))
-                    then Error TEUselessTransaction
-                    else let cont' = if cont == Close then reOpen params else cont
-                             applyPostfixes state = state --todo add incremental postfix to every value name
-                             newState' = if cont == Close && reOpen params /= Close then applyPostfixes newState else newState
-                         in TransactionOutput { txOutWarnings = warnings
-                                           , txOutPayments = payments
-                                           , txOutState = newState'
-                                           , txOutContract = cont' }
-            ApplyAllNoMatchError -> Error TEApplyNoMatchError
-            ApplyAllAmbiguousSlotIntervalError -> Error TEAmbiguousSlotIntervalError
-        IntervalError error -> Error (TEIntervalError error)
-
-
 -- | Calculates an upper bound for the maximum lifespan of a contract
 contractLifespanUpperBound :: Contract -> Integer
 contractLifespanUpperBound contract = case contract of
@@ -856,8 +845,8 @@ validateTxOutputs params pendingTx expectedTxOutputs = case expectedTxOutputs of
     Marlowe Interpreter Validator generator.
 -}
 marloweValidator
-  :: CustomValidator -> MarloweParams -> MarloweData -> [Input] -> PendingTx -> Bool
-marloweValidator customValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = let
+  :: MarloweParams -> MarloweData -> [Input] -> PendingTx -> Bool
+marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = let
     {-  We require Marlowe Tx to have both lower bound and upper bounds in 'SlotRange'.
         All are inclusive.
     -}
@@ -890,13 +879,82 @@ marloweValidator customValidator marloweParams MarloweData{..} inputs pendingTx@
 
     slotInterval = (minSlot, maxSlot)
     txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
-    expectedTxOutputs = computeTransactionWithReOpen marloweParams txInput marloweState marloweContract
+    expectedTxOutputs = computeTransaction txInput marloweState marloweContract
+
+    outputOk = validateTxOutputs marloweParams pendingTx expectedTxOutputs 
+
+    in preconditionsOk && outputOk
+
+
+-- | Same as computeTransaction, but allows for infinite loops, not part of semantics
+computeTransactionWithLoopSupport :: TransactionInput -> State -> Contract -> TransactionOutput
+computeTransactionWithLoopSupport tx state@State{..} contract = 
+    let txout = computeTransaction tx state contract
+    in if isJust loopState && (txOutContract txout) == Close 
+        then 
+                let loopSt = fromMaybe undefined loopState
+                    outSt = txOutState txout
+                    emptySt = emptyState minSlot
+                in txout {
+                    txOutContract = originalContract loopSt,
+                    txOutState = emptySt {
+                        loopState = Just (loopSt {
+                            logicalTime = (logicalTime loopSt) + 1,
+                            stateHistory = Map.insert (logicalTime loopSt) outSt (stateHistory loopSt)
+                        })
+                    }
+                }
+        else    txout
+
+
+
+
+{-|
+    Customizable Marlowe Interpreter Validator generator.
+-}
+customizableMarloweValidator
+  :: PostValidator -> MarloweParams -> MarloweData -> [Input] -> PendingTx -> Bool
+customizableMarloweValidator customValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = let
+    {-  We require Marlowe Tx to have both lower bound and upper bounds in 'SlotRange'.
+        All are inclusive.
+    -}
+    (minSlot, maxSlot) = case pendingTxValidRange of
+        Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
+        _ -> traceErrorH "Tx valid slot must have lower bound and upper bounds"
+
+    positiveBalances = validateBalances marloweState ||
+        traceErrorH "Invalid contract state. There exists an account with non positive balance"
+
+    {-  We do not check that a transaction contains exact input payments.
+        We only require an evidence from a party, e.g. a signature for PubKey party,
+        or a spend of a 'party role' token.
+        This gives huge flexibility by allowing parties to provide multiple
+        inputs (either other contracts or P2PKH).
+        Then, we check scriptOutput to be correct.
+     -}
+    validInputs = validateInputs marloweParams pendingTx inputs
+
+    PendingTxIn _ _ scriptInValue = pendingTxItem
+
+    -- total balance of all accounts in State
+    -- accounts must be positive, and we checked it above
+    inputBalance = totalBalance (accounts marloweState)
+
+    -- ensure that a contract TxOut has what it suppose to have
+    balancesOk = inputBalance == scriptInValue
+
+    preconditionsOk = positiveBalances && validInputs && balancesOk
+
+    slotInterval = (minSlot, maxSlot)
+    txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
+    expectedTxOutputs = computeTransactionWithLoopSupport marloweParams txInput marloweState marloweContract
 
     outputOk = validateTxOutputs marloweParams pendingTx expectedTxOutputs
 
     customValidationOk = customValidator expectedTxOutputs 
 
     in preconditionsOk && outputOk && customValidationOk
+
 
 
 -- Typeclass instances
@@ -1060,6 +1118,8 @@ makeLift ''Payee
 makeIsData ''Payee
 makeLift ''Contract
 makeIsData ''Contract
+makeLift ''LoopState
+makeIsData ''LoopState
 makeLift ''State
 makeIsData ''State
 makeLift ''Environment
