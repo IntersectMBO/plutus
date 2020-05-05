@@ -94,6 +94,11 @@
   width: 16px;
 }
 
+.simulation-btn-icon {
+  height: 16px;
+  width: 16px;
+}
+
 .code-panel {
   display: flex;
 }
@@ -392,6 +397,12 @@ button.minus-btn:hover {
   cursor: default;
 }
 
+.global-actions li a.disabled {
+  color: lightgray;
+  pointer-events: none;
+  cursor: default;
+}
+
 .rotate-left {
   transform: rotate(270deg);
 }
@@ -421,9 +432,7 @@ button.minus-btn:hover {
 }
 
 .editor-options select {
-  height: 30px;
-  border: none;
-  background-color: var(--bg-dark);
+  width: 6rem;
 }
 
 .analysis-result-title {
@@ -442,4 +451,51 @@ button.minus-btn:hover {
 .indented-loweralpha-enum {
   list-style-type: lower-alpha;
   padding-left: 1.5rem;
+}
+
+.contract-buttons {
+  width: 7rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.single-contract-button {
+  display: flex;
+  justify-content: space-between;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.wallet-contents .code {
+  height: auto;
+  min-height: 100px;
+  white-space: pre;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  padding-bottom: 3rem;
+}
+
+.wallet-contents .code code {
+  display: block;
+}
+
+.wallet-contents .code:before {
+  counter-reset: listing;
+}
+
+.wallet-contents .code code {
+  counter-increment: listing;
+}
+
+.wallet-contents .code code::before {
+  content: counter(listing);
+  display: inline-block;
+  margin-right: 1rem;
+  width: 36px;
+  padding-left: auto;
+  margin-left: auto;
+  text-align: right;
+  color: #237893;
+  background: var(--white);
 }
