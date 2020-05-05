@@ -35,7 +35,7 @@ module Language.PlutusTx.Coordination.Contracts.Escrow(
     , EscrowSchema
     ) where
 
-import           Control.Lens                   (prism', makeClassyPrisms)
+import           Control.Lens                   (makeClassyPrisms, review)
 import           Control.Monad                  (void)
 import           Control.Monad.Error.Lens       (throwing)
 
@@ -72,13 +72,14 @@ data RedeemFailReason = DeadlinePassed | NotEnoughFundsAtAddress
 data EscrowError =
     RedeemFailed RedeemFailReason
     | RefundFailed
-    | OtherEscrowError ContractError
+    | EContractError ContractError
     deriving Show
 
-instance AsContractError EscrowError where
-    _ContractError = prism' OtherEscrowError (\case { OtherEscrowError e -> Just e; _ -> Nothing})
-
 makeClassyPrisms ''EscrowError
+
+instance AsContractError EscrowError where
+    _ContractError = _EContractError
+
 -- $escrow
 -- The escrow contract implements the exchange of value between multiple
 -- parties. It is defined by a list of targets (public keys and script
@@ -202,9 +203,8 @@ scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
     wrap = Scripts.wrapValidator @PubKeyHash @Action
 
 escrowContract
-    :: (AsEscrowError e, AsContractError e)
-    => EscrowParams Datum
-    -> Contract EscrowSchema e ()
+    :: EscrowParams Datum
+    -> Contract EscrowSchema EscrowError ()
 escrowContract escrow =
     let inst = scriptInstance escrow
         payAndRefund = do
@@ -212,7 +212,7 @@ escrowContract escrow =
             _ <- pay inst escrow vl
             _ <- awaitSlot (escrowDeadline escrow)
             refund inst escrow
-    in void payAndRefund <|> void (redeemEp escrow)
+    in void payAndRefund `select` void (redeemEp escrow)
 
 -- | 'pay' with an endpoint that gets the owner's public key and the
 --   contribution.
@@ -221,19 +221,19 @@ payEp
     ( HasWriteTx s
     , HasOwnPubKey s
     , HasEndpoint "pay-escrow" Value s
-    , AsContractError e
+    , AsEscrowError e
     )
     => EscrowParams Datum
     -> Contract s e TxId
 payEp escrow = do
-    vl <- endpoint @"pay-escrow"
+    vl <- mapError (review _EContractError) (endpoint @"pay-escrow")
     pay (scriptInstance escrow) escrow vl
 
 -- | Pay some money into the escrow contract.
 pay
     :: ( HasWriteTx s
        , HasOwnPubKey s
-       , AsContractError e
+       , AsEscrowError e
        )
     => ScriptInstance Escrow
     -- ^ The instance
@@ -242,7 +242,7 @@ pay
     -> Value
     -- ^ How much money to pay in
     -> Contract s e TxId
-pay inst escrow vl = do
+pay inst escrow vl = mapError (review _EContractError) $ do
     pk <- ownPubKey
     let tx = Constraints.mustPayToTheScript (Ledger.pubKeyHash pk) vl
                 <> Constraints.mustValidateIn (Ledger.interval 1 (escrowDeadline escrow))
@@ -259,11 +259,12 @@ redeemEp
     , HasWriteTx s
     , HasEndpoint "redeem-escrow" () s
     , AsEscrowError e
-    , AsContractError e
     )
     => EscrowParams Datum
     -> Contract s e RedeemSuccess
-redeemEp escrow = endpoint @"redeem-escrow" >> redeem (scriptInstance escrow) escrow
+redeemEp escrow = 
+    mapError (review _EscrowError) $
+    endpoint @"redeem-escrow" >> redeem (scriptInstance escrow) escrow
 
 -- | Redeem all outputs at the contract address using a transaction that
 --   has all the outputs defined in the contract's list of targets.
@@ -273,12 +274,11 @@ redeem
     , HasAwaitSlot s
     , HasWriteTx s
     , AsEscrowError e
-    , AsContractError e
     )
     => ScriptInstance Escrow
     -> EscrowParams Datum
     -> Contract s e RedeemSuccess
-redeem inst escrow = do
+redeem inst escrow = mapError (review _EscrowError) $ do
     let addr = Scripts.scriptAddress inst
     currentSlot <- awaitSlot 0
     unspentOutputs <- utxoAt addr
@@ -303,23 +303,19 @@ refundEp
     , HasWriteTx s
     , HasOwnPubKey s
     , HasEndpoint "refund-escrow" () s
-    , AsEscrowError e
-    , AsContractError e
     )
     => EscrowParams Datum
-    -> Contract s e RefundSuccess
+    -> Contract s EscrowError RefundSuccess
 refundEp escrow = endpoint @"refund-escrow" >> refund (scriptInstance escrow) escrow
 
 -- | Claim a refund of the contribution.
 refund
     :: ( HasUtxoAt s
        , HasOwnPubKey s
-       , AsEscrowError e
-       , AsContractError e
        , HasWriteTx s)
     => ScriptInstance Escrow
     -> EscrowParams Datum
-    -> Contract s e RefundSuccess
+    -> Contract s EscrowError RefundSuccess
 refund inst escrow = do
     pk <- ownPubKey
     unspentOutputs <- utxoAt (Scripts.scriptAddress inst)
@@ -339,12 +335,10 @@ payRedeemRefund
        , HasWriteTx s
        , HasAwaitSlot s
        , HasOwnPubKey s
-       , AsEscrowError e
-       , AsContractError e
        )
     => EscrowParams Datum
     -> Value
-    -> Contract s e (Either RefundSuccess RedeemSuccess)
+    -> Contract s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
     let inst = scriptInstance params
     -- Pay the value 'vl' into the contract and, at the same time, wait

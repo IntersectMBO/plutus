@@ -14,7 +14,6 @@ module Vesting where
 -- TRIM TO HERE
 -- Vesting scheme as a PLC contract
 import           Control.Monad                     (void, when)
-import           Control.Monad.Except              (throwError)
 import qualified Data.Map as Map
 import qualified Data.Text                         as T
 
@@ -146,7 +145,7 @@ contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
 
 vestingContract :: VestingParams -> Contract VestingSchema T.Text ()
-vestingContract vesting = vest <|> retrieve
+vestingContract vesting = vest `select` retrieve
   where
     vest = endpoint @"vest funds" >> vestFundsC vesting
     retrieve = do

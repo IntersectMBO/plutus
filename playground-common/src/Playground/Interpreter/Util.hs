@@ -19,6 +19,7 @@ import           Data.Foldable                                   (traverse_)
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import           Data.Row                                        (Forall)
+import           Data.Row.Internal                               (Unconstrained1)
 import           Data.Text                                       (Text)
 import qualified Data.Text                                       as Text
 import qualified Data.Text.Encoding                              as Text
@@ -28,8 +29,8 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescri
 import           Language.Plutus.Contract.Schema                 (Event, Input, Output)
 import           Language.Plutus.Contract.Test                   (renderTraceContext)
 import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceState,
-                                                                  TraceError (ContractError), addBlocks, addBlocksUntil,
-                                                                  addEvent, handleBlockchainEvents,
+                                                                  TraceError (TContractError), addBlocks,
+                                                                  addBlocksUntil, addNamedEvent, handleBlockchainEvents,
                                                                   notifyInterestingAddresses, notifySlot, payToWallet,
                                                                   runTraceWithDistribution)
 import           Ledger                                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash,
@@ -73,7 +74,7 @@ type TraceResult
 
 analyzeEmulatorState ::
        forall s a.
-       (ContractRow s, Forall (Input s) Pretty, Forall (Output s) Pretty)
+       (Forall (Input s) Pretty, Forall (Output s) Pretty)
     => ContractTraceState s (TraceError Text) a
     -> EmulatorState
     -> Either PlaygroundError EvaluationResult
@@ -137,11 +138,11 @@ playgroundDecode expected input =
 -- | Evaluate a JSON payload from the Playground frontend against a given contract schema.
 stage ::
        forall s a.
-       ( ContractRow s
-       , HasBlockchainActions s
+       ( HasBlockchainActions s
        , Forall (Input s) FromJSON
        , Forall (Input s) Pretty
        , Forall (Output s) Pretty
+       , Forall (Output s) Unconstrained1
        )
     => Contract s Text a
     -> BSL.ByteString
@@ -189,6 +190,7 @@ expressionToTrace ::
        ( ContractRow s
        , MonadEmulator (TraceError Text) m
        , Forall (Input s) FromJSON
+       , Forall (Output s) Unconstrained1
        )
     => Expression
     -> ContractTrace s Text m a ()
@@ -208,7 +210,7 @@ expressionToTrace CallEndpoint { caller
             Just string ->
                 case JSON.eitherDecode string of
                     Left errs ->
-                        throwError . ContractError $
+                        throwError . TContractError $
                         "Error extracting JSON from arguments. Expected an array of JSON strings. " <>
                         Text.pack (show errs)
                     Right argument -> do
@@ -219,8 +221,8 @@ expressionToTrace CallEndpoint { caller
                                       , JSON.String (Text.pack (getEndpointDescription endpointDescription)))
                                     , ("value", JSON.object [("unEndpointValue", argument)])
                                     ]
-                        addEvent caller event
-            Nothing -> throwError . ContractError $ "Expected a String, but got: " <> Text.pack (show rawArgument)
+                        addNamedEvent (getEndpointDescription endpointDescription) caller event
+            Nothing -> throwError . TContractError $ "Expected a String, but got: " <> Text.pack (show rawArgument)
 
 decodePayload ::
        (MonadEmulator (TraceError Text) m, FromJSON r)
@@ -230,7 +232,7 @@ decodePayload ::
 decodePayload endpointDescription value =
     case JSON.fromJSON value of
         JSON.Error err ->
-            throwError . ContractError $
+            throwError . TContractError $
             "Error '" <> Text.pack err <> "' while decoding JSON arguments: " <>
             Text.pack (show value) <>
             "  for endpoint: " <>

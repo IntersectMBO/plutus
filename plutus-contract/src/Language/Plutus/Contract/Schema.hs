@@ -15,7 +15,6 @@
 module Language.Plutus.Contract.Schema(
       Handlers(..)
     , Event(..)
-    , generalise
     , initialise
     , Input
     , Output
@@ -24,7 +23,6 @@ module Language.Plutus.Contract.Schema(
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Row.Internal
-import qualified Data.Row.Records          as Records
 import qualified Data.Row.Variants         as Variants
 import           Data.Text.Prettyprint.Doc
 
@@ -66,30 +64,28 @@ deriving via JsonVar (Input s) instance (AllUniqueLabels (Input s), Forall (Inpu
 
 deriving via JsonVar (Input s) instance (Forall (Input s) ToJSON) => ToJSON (Event s)
 
-newtype Handlers s = Handlers { unHandlers :: Rec (Output s) }
+newtype Handlers s = Handlers { unHandlers :: Var (Output s) }
 
-deriving via (JsonRec (Output s)) instance Forall (Output s) ToJSON => ToJSON (Handlers s)
-deriving via (JsonRec (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)
+deriving via (JsonVar (Output s)) instance Forall (Output s) ToJSON => ToJSON (Handlers s)
+deriving via (JsonVar (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) FromJSON) => FromJSON (Handlers s)
 
 deriving newtype instance Forall (Output s) Show => Show (Handlers s)
 deriving newtype instance Forall (Output s) Eq   => Eq (Handlers s)
 
 instance (Forall (Output s) Pretty) => Pretty (Handlers s) where
   pretty (Handlers s) =
-    let entries = Records.eraseWithLabels @Pretty pretty s in
-    hang 1 (braces (vsep (fmap (\(lbl, vl) -> lbl <> colon <+> vl) entries)))
+    let (lbl, vl) = Variants.eraseWithLabels @Pretty pretty s in
+    hang 1 (braces $ vsep [lbl <> colon, vl])
 
-deriving via (MonoidRec (Output s)) instance (Forall (Output s) Semigroup) => Semigroup (Handlers s)
-
-deriving via (MonoidRec (Output s)) instance (AllUniqueLabels (Output s), Forall (Output s) Semigroup, Forall (Output s) Monoid) => Monoid (Handlers s)
-
-initialise :: forall (s :: Row *) l a. (AllUniqueLabels (Output s), Forall (Output s) Semigroup, Forall (Output s) Monoid, KnownSymbol l, HasType l a (Output s)) => a -> Handlers s
+initialise ::
+  forall (s :: Row *) l a.
+  ( KnownSymbol l
+  , HasType l a (Output s)
+  )
+  => a
+  -> Handlers s
 initialise a =
-  let Handlers h = mempty @(Handlers s)
-  in Handlers (Records.update (Label @l) a h)
-
-generalise :: forall s s'. (AllUniqueLabels (Output s'), Forall (Output s') Monoid, (Output s .// Output s') ~ (Output s')) => Handlers s -> Handlers s'
-generalise (Handlers l) = Handlers $ l .// Records.default' @Monoid @(Output s') mempty
+  Handlers (Variants.unsafeMakeVar @(Output s) @l (Label @l) a)
 
 --  | Given a schema 's', 'Input s' is the 'Row' type of the inputs that
 --    contracts with this schema accept. See [Contract Schema]

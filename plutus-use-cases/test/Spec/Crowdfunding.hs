@@ -11,7 +11,6 @@ import           Control.Monad.Except
 import           Data.ByteString.Lazy                                  (ByteString)
 import qualified Data.ByteString.Lazy                                  as BSL
 import           Data.Foldable                                         (traverse_)
-import qualified Data.Text                                             as T
 import qualified Data.Text.Encoding                                    as T
 import           Spec.Lib                                              (timesFeeAdjust)
 import qualified Spec.Lib                                              as Lib
@@ -36,7 +35,7 @@ w2 = Wallet 2
 w3 = Wallet 3
 w4 = Wallet 4
 
-theContract :: Contract CrowdfundingSchema T.Text ()
+theContract :: Contract CrowdfundingSchema ContractError ()
 theContract = crowdfunding theCampaign
 
 tests :: TestTree
@@ -66,7 +65,7 @@ tests = testGroup "crowdfunding"
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
             -- Tell the contract we're at slot 21, causing the transaction to be submitted
-            >> Trace.addEvent w1 (AwaitSlot.event 21)
+            >> Trace.addEvent @AwaitSlot.SlotSymbol w1 (AwaitSlot.event 21)
             -- This submits the transaction to the blockchain. Normally, the transaction would
             -- be validated right away and the funds of wallet 1 would increase. In this case
             -- the transaction is not validated because it has a validity interval that begins
@@ -136,12 +135,12 @@ tests = testGroup "crowdfunding"
         "test/Spec/contractError.txt"
         (renderPredicate
             (throwError "something went wrong")
-            (startCampaign))
+            (pure ()))
     ]
 
 renderPredicate
-    :: Contract CrowdfundingSchema T.Text ()
-    -> ContractTrace CrowdfundingSchema T.Text (EmulatorAction (TraceError T.Text)) () ()
+    :: Contract CrowdfundingSchema ContractError ()
+    -> ContractTrace CrowdfundingSchema ContractError (EmulatorAction (TraceError ContractError)) () ()
     -> IO ByteString
 renderPredicate contract trace = do
     case runTrace contract trace of

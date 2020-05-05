@@ -157,7 +157,7 @@ data FutureAction =
     deriving (Show)
 
 data FutureError =
-    TokenSetupFailed ContractError
+    TokenSetupFailed Currency.CurrencyError
     -- ^ Something went wrong during the setup of the two tokens
     | StateMachineError (SM.SMContractError FutureState FutureAction)
     | OtherFutureError ContractError
@@ -176,6 +176,9 @@ instance AsSMContractError FutureError FutureState FutureAction where
 instance AsContractError FutureError where
     _ContractError = _OtherFutureError
 
+instance AsCheckpointError FutureError where
+    _CheckpointError = _OtherFutureError . _CheckpointError
+
 type FutureSchema =
     BlockchainActions
         .\/ Endpoint "initialise-future" (FutureSetup, Role)
@@ -189,8 +192,8 @@ instance AsEscrowError FutureError where
 
 futureContract :: Future -> Contract FutureSchema FutureError ()
 futureContract ft = do
-    client <- joinFuture ft <|> initialiseFuture ft
-    void $ loopM (const $ selectEither (increaseMargin client) (settleFuture client <|> settleEarly client)) ()
+    client <- joinFuture ft `select` initialiseFuture ft
+    void $ loopM (const $ selectEither (increaseMargin client) (settleFuture client `select` settleEarly client)) ()
 
 -- | The data needed to initialise the futures contract.
 data FutureSetup =
@@ -446,7 +449,7 @@ initialiseFuture
        )
     => Future
     -> Contract s e (SM.StateMachineClient FutureState FutureAction)
-initialiseFuture future = do
+initialiseFuture future = mapError (review _FutureError) $ do
     (s, ownRole) <- endpoint @"initialise-future" @(FutureSetup, Role)
     -- Start by setting up the two tokens for the short and long positions.
     ftos <- setupTokens
@@ -484,7 +487,7 @@ initialiseFuture future = do
     -- throw an 'EscrowRefunded' error. If the escrow contract succeeded, the
     -- future is initialised and ready to go, so we return the 'FutureAccounts'
     -- with the token information.
-    e <- withContractError (review _EscrowFailed) escrowPayment
+    e <- mapError (review _EscrowFailed) escrowPayment
     either (throwing _EscrowRefunded) (\_ -> pure client) e
 
 -- | The @"settle-future"@ endpoint. Given an oracle value with the current spot
@@ -494,12 +497,11 @@ initialiseFuture future = do
 settleFuture
     :: ( HasEndpoint "settle-future" (SignedMessage (Observation Value)) s
        , HasBlockchainActions s
-       , AsSMContractError e FutureState FutureAction
-       , AsContractError e
+       , AsFutureError e
        )
     => SM.StateMachineClient FutureState FutureAction
     -> Contract s e ()
-settleFuture client = do
+settleFuture client = mapError (review _FutureError) $ do
     ov <- endpoint @"settle-future"
     void $ SM.runStep client (Settle ov)
 
@@ -546,13 +548,13 @@ joinFuture
        )
     => Future
     -> Contract s e (SM.StateMachineClient FutureState FutureAction)
-joinFuture ft = do
+joinFuture ft = mapError (review _FutureError) $ do
     (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
     inst <- checkpoint $ pure (scriptInstance ft owners)
     let client = machineClient inst ft owners
         escr = escrowParams client ft owners stp
         payment = Escrow.pay (Escrow.scriptInstance escr) escr (initialMargin ft)
-    void (withContractError (review _EscrowFailed) payment)
+    void $ mapError EscrowFailed payment
     pure client
 
 -- | Create two unique tokens that can be used for the short and long positions
@@ -567,12 +569,12 @@ setupTokens
        , AsFutureError e
        )
     => Contract s e FutureAccounts
-setupTokens = do
+setupTokens = mapError (review _FutureError) $ do
     pk <- ownPubKey
 
     -- Create the tokens using the currency contract, wrapping any errors in
     -- 'TokenSetupFailed'
-    cur <- withContractError (review _TokenSetupFailed) (Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)])
+    cur <- mapError TokenSetupFailed $ Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)]
     let sym = Currency.currencySymbol cur
     pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
 

@@ -25,28 +25,25 @@ module Plutus.SCB.ContractCLI
     , Command(..)
     ) where
 
-import           Control.Monad.IO.Class             (MonadIO, liftIO)
-import           Data.Aeson                         (FromJSON, ToJSON)
-import qualified Data.Aeson                         as JSON
-import qualified Data.Aeson.Encode.Pretty           as JSON
-import           Data.Bifunctor                     (bimap, first)
-import qualified Data.ByteString.Lazy               as BSL
-import qualified Data.ByteString.Lazy.Char8         as BS8
-import           Data.Row                           (type (.\\), AllUniqueLabels, Forall)
-import           Data.Text                          (Text)
-import qualified Data.Text                          as Text
-import           Git                                (gitRev)
-import           Language.Plutus.Contract           (BlockchainActions)
-import           Language.Plutus.Contract.Request   (Contract (..))
-import           Language.Plutus.Contract.Resumable (ResumableError (OtherError))
-import           Language.Plutus.Contract.Schema    (Input, Output)
-import           Language.Plutus.Contract.Servant   (initialResponse, runUpdate)
-import           Options.Applicative                (CommandFields, Mod, Parser, command, customExecParser,
-                                                     disambiguate, fullDesc, help, helper, idm, info, infoOption, long,
-                                                     prefs, progDesc, short, showHelpOnEmpty, showHelpOnError,
-                                                     subparser)
-import           Playground.Schema                  (EndpointToSchema, endpointsToSchemas)
-import           System.Exit                        (ExitCode (ExitFailure), exitSuccess, exitWith)
+import           Control.Monad.IO.Class          (MonadIO, liftIO)
+import           Data.Aeson                      (FromJSON, ToJSON)
+import qualified Data.Aeson                      as JSON
+import qualified Data.Aeson.Encode.Pretty        as JSON
+import           Data.Bifunctor                  (bimap)
+import qualified Data.ByteString.Lazy            as BSL
+import qualified Data.ByteString.Lazy.Char8      as BS8
+import           Data.Row                        (type (.\\), AllUniqueLabels, Forall)
+import           Data.Text                       (Text)
+import qualified Data.Text                       as Text
+import           Git                             (gitRev)
+import           Language.Plutus.Contract        (BlockchainActions, Contract)
+import           Language.Plutus.Contract.Schema (Input, Output)
+import qualified Language.Plutus.Contract.State  as ContractState
+import           Options.Applicative             (CommandFields, Mod, Parser, command, customExecParser, disambiguate,
+                                                  fullDesc, help, helper, idm, info, infoOption, long, prefs, progDesc,
+                                                  short, showHelpOnEmpty, showHelpOnError, subparser)
+import           Playground.Schema               (EndpointToSchema, endpointsToSchemas)
+import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
 data Command
     = Initialise
     | Update
@@ -83,36 +80,31 @@ exportSignatureParser =
 
 runCliCommand :: forall s m.
        ( AllUniqueLabels (Input s)
-       , AllUniqueLabels (Output s)
        , Forall (Input s) FromJSON
-       , Forall (Input s) ToJSON
        , Forall (Output s) ToJSON
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
+       , Forall (Input s) ToJSON
        , EndpointToSchema (s .\\ BlockchainActions)
        , MonadIO m
        )
     => Contract s Text ()
     -> Command
     -> m (Either BS8.ByteString BS8.ByteString)
-runCliCommand schema Initialise = pure $ pure $ JSON.encodePretty $ initialResponse schema
+runCliCommand schema Initialise = pure $ bimap JSON.encodePretty JSON.encodePretty $ ContractState.initialiseContract schema
 runCliCommand schema Update = do
     arg <- liftIO BSL.getContents
-    pure $ bimap JSON.encodePretty JSON.encodePretty $ do
-        request <- first (OtherError . Text.pack) (JSON.eitherDecode arg)
-        runUpdate schema request
+    pure $ bimap JSON.encodePretty JSON.encodePretty $
+        case JSON.eitherDecode arg of
+            Left err      -> Left $ Text.pack err
+            Right request -> ContractState.insertAndUpdateContract schema request
 runCliCommand _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ BlockchainActions)
   pure $ Right $ JSON.encodePretty r
 
 commandLineApp ::
        ( AllUniqueLabels (Input s)
-       , AllUniqueLabels (Output s)
        , Forall (Input s) FromJSON
        , Forall (Input s) ToJSON
        , Forall (Output s) ToJSON
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
        , EndpointToSchema (s .\\ BlockchainActions)
        )
     => Contract s Text ()

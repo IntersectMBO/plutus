@@ -40,7 +40,7 @@ tests =
 
     , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 2x, pay - FAILURE"
         (MS.contract params)
-        (assertContractError w1 (\case { ContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
+        (assertContractError w1 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (Ada.lovelaceValueOf 0))
         (lockProposeSignPay 2 1)
@@ -54,10 +54,10 @@ tests =
 
     , checkPredicate @MultiSigSchema @MultiSigError "lock, propose, sign 3x, pay x3 - FAILURE"
         (MS.contract params)
-        (assertContractError w1 (\case { ContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
+        (assertContractError w2 (\case { TContractError MS.MSStateMachineError{} -> True; _ -> False}) "contract should fail"
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10))
         /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
-        (lockProposeSignPay 3 3)
+        (lockProposeSignPay 3 2 >> callEndpoint @"propose-payment" w2 payment >> handleBlockchainEvents w2)
 
     , Lib.goldenPir "test/Spec/multisigStateMachine.pir" $$(PlutusTx.compile [|| MS.mkValidator ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ MS.scriptInstance params) 55500)
