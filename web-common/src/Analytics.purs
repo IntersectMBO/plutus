@@ -2,8 +2,12 @@ module Analytics
   ( trackEvent
   , Event
   , defaultEvent
+  , class IsEvent
+  , toEvent
+  , analyticsTracking
   ) where
 
+import Prelude
 import Data.Maybe (Maybe(..))
 import Data.Undefinable (Undefinable, toUndefinable)
 import Data.Unit (Unit)
@@ -35,3 +39,12 @@ trackEvent { action, category, label, value } =
     (toUndefinable category)
     (toUndefinable label)
     (toUndefinable value)
+
+class IsEvent a where
+  toEvent :: a -> Maybe Event
+
+analyticsTracking :: forall a. IsEvent a => a -> Effect Unit
+analyticsTracking action = do
+  case toEvent action of
+    Nothing -> pure unit
+    Just event -> trackEvent event
