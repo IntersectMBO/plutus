@@ -1,5 +1,7 @@
 module View (render) where
 
+import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
+import Plutus.SCB.Types (ContractExe(..))
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (badge, badgePrimary, cardBody_, cardHeader_, card_, col10_, col12_, col3_, col8_, col9_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
@@ -8,7 +10,6 @@ import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array as Array
 import Data.Json.JsonMap (JsonMap, _JsonMap)
-import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
 import Data.Lens (to, traversed, view)
 import Data.Lens.Extra (toArrayOf)
 import Data.Map as Map
@@ -28,14 +29,12 @@ import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData(..))
 import Plutus.SCB.Events (ChainEvent(..))
-import Plutus.SCB.Events.Contract (RequestEvent, ResponseEvent)
 import Plutus.SCB.Events.Node (NodeEvent(..))
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
-import Plutus.SCB.Types (ActiveContract(..), ActiveContractState(..), ContractExe(..))
 import Plutus.SCB.Webserver.Types (FullReport(..))
 import Prelude (class Eq, class Show, otherwise, show, ($), (+), (<$>), (<<<), (<>), (==))
-import Types (HAction(..), State(State), _hooks, _partiallyDecodedResponse)
+import Types (HAction(..), State(State), _contractInstanceId, _csCurrentState, _hooks)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 
@@ -66,7 +65,7 @@ fullReportPane chainState fullReport@(FullReport { events, latestContractStatus,
     , col8_ [ utxoIndexPane utxoIndex ]
     ]
 
-contractStatusPane :: forall p i. JsonMap JsonUUID (ActiveContractState ContractExe) -> HTML p i
+contractStatusPane :: forall p i. JsonMap ContractInstanceId (ContractInstanceState ContractExe) -> HTML p i
 contractStatusPane latestContractStatus =
   card_
     [ cardHeader_
@@ -76,11 +75,11 @@ contractStatusPane latestContractStatus =
         [ div_
             ( ( \(Tuple k v) ->
                   row_
-                    [ col3_ [ h3_ [ text $ view (_JsonUUID <<< to UUID.toString) k ] ]
-                    , col9_ [ pre_ [ text $ RawJson.pretty $ view (_partiallyDecodedResponse <<< _hooks) v ] ]
+                    [ col3_ [ h3_ [ text $ view (_contractInstanceId <<< to UUID.toString) k ] ]
+                    , col9_ [ pre_ [ text $ RawJson.pretty $ view (_csCurrentState <<< _hooks) v ] ]
                     ]
               )
-                <$> (Map.toUnfoldable $ unwrap latestContractStatus :: Array (Tuple JsonUUID (ActiveContractState ContractExe)))
+                <$> (Map.toUnfoldable $ unwrap latestContractStatus :: Array (Tuple ContractInstanceId (ContractInstanceState ContractExe)))
             )
         ]
     ]
@@ -147,22 +146,13 @@ countedEventPane (count /\ event) =
     ]
 
 showEvent :: forall p i. ChainEvent ContractExe -> HTML p i
-showEvent (RecordRequest subevent) =
+showEvent (ContractEvent subevent) =
   span_
     [ b_
-        [ text "Request:"
+        [ text "Contract:"
         , nbsp
         ]
-    , showRecordRequestEvent subevent
-    ]
-
-showEvent (RecordResponse subevent) =
-  span_
-    [ b_
-        [ text "Response:"
-        , nbsp
-        ]
-    , showRecordResponseEvent subevent
+    , showContractEvent subevent
     ]
 
 showEvent (UserEvent subevent) =
@@ -196,26 +186,23 @@ showUserEvent :: forall p i. UserEvent ContractExe -> HTML p i
 showUserEvent (InstallContract (ContractExe { contractPath })) = text $ "Install " <> contractPath
 
 showUserEvent ( ContractStateTransition
-    ( ActiveContractState
-      { activeContract: ActiveContract { activeContractInstanceId }
-    , partiallyDecodedResponse
+    ( ContractInstanceState
+      { csContract
+    , csCurrentState
     }
   )
-) = text $ "Update " <> show activeContractInstanceId
+) = text $ "Update " <> show csContract
 
 showNodeEvent :: forall p i. NodeEvent -> HTML p i
 showNodeEvent (BlockAdded []) = text $ "Empty block(s) added"
 
 showNodeEvent event = text $ show event
 
+showContractEvent :: forall p i a. Show a => ContractEvent a -> HTML p i
+showContractEvent event = text $ show event
+
 showWalletEvent :: forall p i. WalletEvent -> HTML p i
 showWalletEvent event = text $ show event
-
-showRecordRequestEvent :: forall p i e. Show e => RequestEvent e -> HTML p i
-showRecordRequestEvent event = text $ show event
-
-showRecordResponseEvent :: forall p i e. Show e => ResponseEvent e -> HTML p i
-showRecordResponseEvent event = text $ show event
 
 countConsecutive :: forall a. Eq a => Array a -> Array (Tuple Int a)
 countConsecutive = h <<< f

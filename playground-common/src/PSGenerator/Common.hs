@@ -133,9 +133,16 @@ scientificBridge = do
     typeModule ^== "Data.Scientific"
     pure psInt
 
+
+naturalBridge :: BridgePart
+naturalBridge = do
+    typeName ^== "Natural"
+    typeModule ^== "GHC.Natural"
+    pure psInt
+
 miscBridge :: BridgePart
 miscBridge =
-    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge
+    byteStringBridge <|> integerBridge <|> scientificBridge <|> digestBridge <|> naturalBridge
 
 ------------------------------------------------------------
 psAssocMap :: MonadReader BridgeData m => m PSType
