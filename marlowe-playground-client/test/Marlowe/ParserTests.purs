@@ -17,7 +17,6 @@ import Test.Unit.QuickCheck (quickCheck)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (parens)
 import Text.Pretty (genericPretty)
-import Data.Unit (Unit(..), unit)
 
 all :: TestSuite
 all =

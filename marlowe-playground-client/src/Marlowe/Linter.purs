@@ -20,6 +20,7 @@ import Data.Array as Array
 import Data.Array.NonEmpty (index)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..), hush)
+import Data.Function (on)
 import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
@@ -39,9 +40,9 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested ((/\), type (/\))
 import Help (marloweTypeMarkerText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (AccountId, Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -78,14 +79,28 @@ data Warning
   | DivisionByZero IRange
   | SimplifiableValue IRange (Term Value) (Term Value)
   | SimplifiableObservation IRange (Term Observation) (Term Observation)
+  | PayBeforeDeposit IRange AccountId
 
 derive instance genericWarning :: Generic Warning _
 
 instance eqWarning :: Eq Warning where
   eq = genericEq
 
+-- We order Warnings by their position first
 instance ordWarning :: Ord Warning where
-  compare = genericCompare
+  compare a b =
+    let
+      rangeA = getWarningRange a
+
+      rangeB = getWarningRange b
+
+      cmp f = (compare `on` f) rangeA rangeB
+    in
+      case cmp _.startLineNumber, cmp _.startColumn, cmp _.endLineNumber, cmp _.endColumn of
+        EQ, EQ, EQ, elc -> genericCompare a b
+        EQ, EQ, eln, _ -> eln
+        EQ, slc, _, _ -> slc
+        sln, _, _, _ -> sln
 
 instance showWarning :: Show Warning where
   show (NegativePayment _) = "The contract can make a non-positive payment"
@@ -98,6 +113,7 @@ instance showWarning :: Show Warning where
   show (DivisionByZero _) = "Scale construct divides by zero"
   show (SimplifiableValue _ oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
   show (SimplifiableObservation _ oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
+  show (PayBeforeDeposit _ account) = "The contract makes a payment to account " <> show account <> " before a deposit has been made"
 
 getWarningRange :: Warning -> IRange
 getWarningRange (NegativePayment range) = range
@@ -119,6 +135,8 @@ getWarningRange (DivisionByZero range) = range
 getWarningRange (SimplifiableValue range _ _) = range
 
 getWarningRange (SimplifiableObservation range _ _) = range
+
+getWarningRange (PayBeforeDeposit range _) = range
 
 newtype State
   = State
@@ -152,6 +170,7 @@ newtype LintEnv
   = LintEnv
   { letBindings :: Set ValueId
   , maxTimeout :: MaxTimeout
+  , deposits :: Set S.AccountId
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -165,6 +184,9 @@ _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
 _maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
+
+_deposits :: Lens' LintEnv (Set S.AccountId)
+_deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 
 data TemporarySimplification a b
   = ConstantSimp
@@ -236,6 +258,13 @@ lintContract env (Term t@(Pay acc payee token payment cont) pos) = do
     _ -> do
       pure unit
   markSimplification constToVal SimplifiableValue payment sa
+  case fromTerm acc of
+    Just accTerm -> do
+      let
+        deposits = view _deposits env
+      unless (Set.member accTerm deposits)
+        $ modifying _warnings (Set.insert (PayBeforeDeposit (termToRange t pos) acc))
+    _ -> pure unit
   lintContract env cont
 
 lintContract env (Term (If obs c1 c2) _) = do
@@ -479,50 +508,54 @@ lintValue env t@(Term (Cond c a b) pos) = do
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
-  unReachable <- lintAction env action
+  (unReachable /\ newEnv) <- lintAction env action
   if unReachable then do
     modifying _warnings (Set.insert (UnreachableCase (termToRange t pos)))
     pure unit
   else
     pure unit
-  lintContract env contract
+  lintContract newEnv contract
   pure unit
 
 lintCase env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
 
-lintAction :: LintEnv -> Term Action -> CMS.State State Boolean
+lintAction :: LintEnv -> Term Action -> CMS.State State (Boolean /\ LintEnv)
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
+    newEnv = case fromTerm acc of
+      Just accTerm -> over _deposits (Set.insert accTerm) env
+      _ -> env
+
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
   modifying _holes (gatherHoles)
-  sa <- lintValue env value
+  sa <- lintValue newEnv value
   case sa of
     (ConstantSimp _ _ v)
       | v <= zero -> do
         modifying _warnings (Set.insert (NegativeDeposit (termToRange t pos)))
-        pure false
+        pure $ false /\ newEnv
     _ -> do
       markSimplification constToVal SimplifiableValue value sa
-      pure false
+      pure $ false /\ newEnv
 
 lintAction env (Term (Choice choiceId bounds) _) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  pure false
+  pure $ false /\ env
 
 lintAction env (Term (Notify obs) _) = do
   sa <- lintObservation env obs
   case sa of
     (ConstantSimp _ _ c)
-      | not c -> pure true
+      | not c -> pure $ true /\ env
     _ -> do
       markSimplification constToObs SimplifiableObservation obs sa
-      pure false
+      pure $ false /\ env
 
 lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
-  pure false
+  pure $ false /\ env
 
 suggestions :: Boolean -> String -> IRange -> Array CompletionItem
 suggestions stripParens contract range =

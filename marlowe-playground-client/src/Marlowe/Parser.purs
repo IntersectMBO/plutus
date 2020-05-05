@@ -15,7 +15,7 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Data.Unit (Unit(..), unit)
+import Data.Unit (Unit, unit)
 import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
