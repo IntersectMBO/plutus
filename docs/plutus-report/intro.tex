@@ -1,6 +1,7 @@
 \section{The Plutus Platform}
 
 The \gls{plutus-platform} is a platform for writing \emph{applications} that interact with a \emph{distributed ledger} featuring \emph{scripting capabilities}, in particular the \gls{cardano} blockchain.
+A high-level architecture of the \gls{plutus-platform} on \gls{cardano} is shown in \cref{fig:platform-architecture}, with an emphasis on applications.
 
 \paragraph{Ledgers.}
 The \gls{plutus-platform} is designed to work with distributed ledgers (henceforth simply ``ledgers'').\footnote{
@@ -29,3 +30,10 @@ The point of the Platform is to enable such applications by providing support in
 While the modifications to the ledger may seem like the most technically substantive part of the work, most of the application behaviour is in the part that runs off the chain, and this requires a commensurate amount of support.
 
 The \gls{app} model is described in \cref{sec:paf}, and our support for authoring \glspl{app} in \cref{sec:sdk}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{paf-architecture.pdf}
+  \caption{Architecture of the \gls{plutus-platform}}
+  \label{fig:platform-architecture}
+\end{figure}
