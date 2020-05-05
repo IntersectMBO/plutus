@@ -372,7 +372,7 @@ button.minus-btn:hover {
 
 .error-row {
   display: flex;
-  width: 50%;
+  width: 100%;
   justify-content: space-between;
 }
 

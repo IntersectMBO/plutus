@@ -35,7 +35,6 @@ import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Ord, class Show, Unit, map, mempty, min, zero, (<<<))
 import Servant.PureScript.Ajax (AjaxError)
 import Text.Parsing.StringParser (Pos)
-import Type.Data.Boolean (kind Boolean)
 import Web.HTML.Event.DragEvent (DragEvent)
 
 _Head :: forall a. Lens (NonEmptyList a) (NonEmptyList a) a a

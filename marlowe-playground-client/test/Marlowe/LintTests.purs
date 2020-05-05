@@ -38,10 +38,13 @@ all = do
     test "Undefined Let" $ undefinedLet
     test "Non-positive Deposit" $ nonPositiveDeposit
     test "Non-positive Pay" $ nonPositivePay
+    test "Pay before deposit" $ payBeforeWarning
+    test "Pay before deposit in branch" $ payBeforeWarningBranch
   suite "Marlowe.Linter does not report good contracts" do
     test "Defined Let" $ undefinedLet
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
+    test "Pay to hole" payToHole
 
 letContract :: String -> String
 letContract subExpression = "Let \"simplifiableValue\" " <> subExpression <> " Close"
@@ -248,6 +251,21 @@ nonPositivePay = testWarningSimple (payContract "(Constant 0)") "The contract ca
 
 negativePay :: Test
 negativePay = testWarningSimple (payContract "(Constant -1)") "The contract can make a non-positive payment"
+
+payBeforeWarning :: Test
+payBeforeWarning = testWarningSimple contract "The contract makes a payment to account (AccountId 0 (Role \"role\")) before a deposit has been made"
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
+
+payBeforeWarningBranch :: Test
+payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment to account (AccountId 1 (Role \"role\")) before a deposit has been made"
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\")) (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (AccountId 1 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
+
+payToHole :: Test
+payToHole = testNoWarning contract
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 ?party) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 normalLet :: Test
 normalLet = testNoWarning "Let \"a\" (Constant 0) (Let \"b\" (UseValue \"a\") Close)"
