@@ -21,7 +21,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoi
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
-import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
+import           Language.Plutus.Contract.Effects.WriteTx          (PendingTransactions, WriteTxResponse)
 import           Language.PureScript.Bridge.TypeParameters         (A)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
 import qualified Ledger.Index                                      as Index
@@ -29,7 +29,7 @@ import           Plutus.SCB.Events                                 (ChainEvent)
 import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
                                                                     ContractInstanceState, ContractIteration,
                                                                     ContractMailbox, ContractRequest, ContractResponse,
-                                                                    PartiallyDecodedResponse)
+                                                                    MailboxMessage, PartiallyDecodedResponse)
 import           Plutus.SCB.Events.Node                            (NodeEvent)
 import           Plutus.SCB.Events.User                            (UserEvent)
 import           Plutus.SCB.Events.Wallet                          (WalletEvent)
@@ -41,7 +41,7 @@ import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Data.Proxy                                        (Proxy (Proxy))
 import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
-                                                                    buildBridge, equal, genericShow, mkSumType,
+                                                                    buildBridge, equal, genericShow, mkSumType, order,
                                                                     writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
                                                                     unwrapSingleConstructors)
@@ -55,12 +55,12 @@ import           Servant.PureScript                                (HasBridge, S
 
 myBridge :: BridgePart
 myBridge =
-    defaultBridge <|> PSGenerator.Common.aesonBridge <|>
-    PSGenerator.Common.containersBridge <|>
+    PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
     PSGenerator.Common.languageBridge <|>
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
-    PSGenerator.Common.miscBridge
+    PSGenerator.Common.miscBridge <|>
+    defaultBridge
 
 data MyBridge
 
@@ -79,7 +79,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PartiallyDecodedResponse)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
@@ -100,6 +100,8 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxIdSet)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PendingTransactions)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @MailboxMessage)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
     ]
 
