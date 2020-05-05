@@ -947,7 +947,7 @@ customizableMarloweValidator customValidator marloweParams MarloweData{..} input
 
     slotInterval = (minSlot, maxSlot)
     txInput = TransactionInput { txInterval = slotInterval, txInputs = inputs }
-    expectedTxOutputs = computeTransactionWithLoopSupport marloweParams txInput marloweState marloweContract
+    expectedTxOutputs = computeTransactionWithLoopSupport txInput marloweState marloweContract
 
     outputOk = validateTxOutputs marloweParams pendingTx expectedTxOutputs
 
