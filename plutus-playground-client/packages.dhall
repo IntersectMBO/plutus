@@ -119,7 +119,7 @@ let additions =
 
 
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.3-20190920/packages.dhall sha256:53873cf2fc4a343a41f335ee47c1706ecf755ac7c5a336e8eb03ad23165dfd28
+      https://github.com/purescript/package-sets/releases/download/psc-0.13.6-20200502/packages.dhall sha256:1e1ecbf222c709b76cc7e24cf63af3c2089ffd22bbb1e3379dfd3c07a1787694
 
 let overrides = {=}
 
@@ -141,7 +141,7 @@ let additions =
           , repo =
               "https://github.com/shmish111/purescript-servant-support"
           , version =
-              "purs-0.13"
+              "v10.0.0"
           }
       , foreign-generic =
               upstream.foreign-generic
@@ -150,27 +150,6 @@ let additions =
               , version =
                   "purs-0.13"
               }
-      , affjax =
-          { dependencies =
-              [ "aff"
-              , "argonaut-core"
-              , "arraybuffer-types"
-              , "web-xhr"
-              , "foreign"
-              , "form-urlencoded"
-              , "http-methods"
-              , "integers"
-              , "math"
-              , "media-types"
-              , "nullable"
-              , "refs"
-              , "unsafe-coerce"
-              ]
-          , repo =
-              "https://github.com/krisajenkins/purescript-affjax"
-          , version =
-              "purs-0.13"
-          }
       , ace-halogen =
           { dependencies =
               [ "ace"
