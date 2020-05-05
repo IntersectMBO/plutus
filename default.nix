@@ -205,7 +205,7 @@ in rec {
       };
   });
 
-  plutus-scb = rec {
+  plutus-scb = pkgs.recurseIntoAttrs (rec {
     server-invoker= set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
 
     generated-purescript = pkgs.runCommand "plutus-scb-purescript" {} ''
@@ -229,7 +229,7 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
-  };
+  });
 
   docker = rec {
     defaultPlaygroundConfig = pkgs.writeTextFile {
