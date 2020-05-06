@@ -161,7 +161,7 @@ stateParser state@State{..} =
                     PI   -> PI_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
                     PRF  -> PRF_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
                     PY   -> PY_EVENT {
-                        o_rf_CURS = parseDouble $ look "riskFacto-ro_rf_CURS", 
+                        o_rf_CURS = parseDouble $ look "riskFactor-ro_rf_CURS", 
                         o_rf_RRMO = parseDouble $ look "riskFactor-o_rf_RRMO"
                     }   
                     FP   -> FP_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
@@ -203,9 +203,12 @@ stateParser state@State{..} =
                 amount = parseDouble $ look "amount",
                 currency = show $ look "currency"
             }
-    in [] --flow $ Map.toList $ boundValues state
+    in if isJust loopState  then fmap parseCashFlow $ Map.keys stateHist
+                            else []
 
 -- gets cashflows from state parser and passes them to ActusValidator
+-- currently it takes O(n*n) but could be optimized to O(n) with memoization
+-- we can optimize it futher to O(1) by only validating inputs from latest transaction
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser txOutState

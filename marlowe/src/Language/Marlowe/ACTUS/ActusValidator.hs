@@ -30,7 +30,6 @@ type ValidatedCashFlows = [CashFlow]
 checkAllScheduledEventsHappened :: Day -> ShiftedSchedule -> ValidatedCashFlows -> Bool
 checkAllScheduledEventsHappened present schedule past = True --todo: minus credit events in past
 
---will do STF and POF through all validated events
 replayValidatedEvents :: ContractTerms -> [CashFlow] -> CashFlow -> Double
 replayValidatedEvents terms past present =
     let applyStateTransition st cf = stateTransition (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
