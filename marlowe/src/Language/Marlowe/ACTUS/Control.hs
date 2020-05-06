@@ -17,10 +17,6 @@ import qualified Language.PlutusTx.AssocMap as Map
 import Data.Maybe
 import Data.Map.Strict
 import qualified Data.Maybe as Maybe
-import Data.List
-import qualified Data.List as L
-import Data.Map
-import qualified Data.Map as Mp
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
@@ -143,36 +139,18 @@ genContract parties partyIds oracle = --todo: for all initiators
         invoice "party" "counterparty" (UseValue $ ValueId (fromString "payoff")) 
             Close
 
-data ContractVariable = ContractVariable {
-    tickN :: Integer,
-    variableName :: String,
-    variableValue :: Integer
-}
-
 parseDouble :: Integer -> Double
 parseDouble int = (fromIntegral int) / marloweFixedPoint
 
 stateParser :: State -> [CashFlow] --todo should we raise error if last cashflow's event is only partially parsable?
-stateParser state =
+stateParser state@State{..} =
     let 
-        parseVariable :: (String, Integer) -> ContractVariable
-        parseVariable (name, value) = ContractVariable {
-            tickN = read $ name =~ ".*_t(.*)",
-            variableName = name =~ "(.*)_t.*",
-            variableValue = value
-        }
-        isCompleteCashflow vars = 
-            -- todo: is there enough fields for cash flow 
-            -- todo: we should also validate that only last t has isCompleteCashflow = False
-            -- it is allowed for partial interpreter state
-            True 
-        parseCashFlowFromVars :: [ContractVariable] -> CashFlow    
-        parseCashFlowFromVars vars = 
+        stateHist = stateHistory $ fromJust loopState
+        parseCashFlow :: LogicalTime -> CashFlow    
+        parseCashFlow t = 
             let
-                t = tickN (head vars)
-                varsMap = Mp.fromList $ fmap (variableName &&& variableValue) vars
                 look :: String -> Integer
-                look name = fromJust $ Mp.lookup (name ++ "_t" ++ (show t)) varsMap
+                look name = Map.lookup (ValueId $ (fromString name)) $ fromJust $ Map.lookup t stateHist
                 proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent id = case eventTypeIdToEventType id of
                     AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
@@ -223,9 +201,6 @@ stateParser state =
                 amount = parseDouble $ look "amount",
                 currency = show $ look "currency"
             }
-        timeEq val1 val2 = (tickN val1) == (tickN val2)
-        flow :: [(String, Integer)] -> [CashFlow]
-        flow = (fmap parseVariable) >>> (groupBy timeEq) >>> (L.filter isCompleteCashflow) >>> (fmap parseCashFlowFromVars)
     in [] --flow $ Map.toList $ boundValues state
 
 -- gets cashflows from state parser and passes them to ActusValidator

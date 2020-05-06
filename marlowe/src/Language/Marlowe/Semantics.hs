@@ -895,7 +895,7 @@ computeTransactionWithLoopSupport tx state@State{..} contract =
                 let loopSt = fromMaybe undefined loopState
                     outSt = txOutState txout
                     emptySt = emptyState minSlot
-                in txout {
+                in txout { -- todo match error
                     txOutContract = originalContract loopSt,
                     txOutState = emptySt {
                         loopState = Just (loopSt {
