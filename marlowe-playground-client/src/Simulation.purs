@@ -74,7 +74,11 @@ render state =
                   ]
               ]
           ]
-      , div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel) ] ] [ authButton state ]
+      , div [ classes [ panelSubHeaderSide, expanded (state ^. _showRightPanel) ] ]
+          [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
+              [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
+          , authButton state
+          ]
       ]
   , section [ class_ (ClassName "code-panel") ]
       [ div [ classes (codeEditor state) ]
@@ -83,6 +87,8 @@ render state =
       ]
   ]
   where
+  showRightPanel = state ^. _showRightPanel
+
   isBlocklyEnabled = view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state
 
   demoScriptLink key =
@@ -126,9 +132,7 @@ sidebar state =
     showRightPanel = state ^. _showRightPanel
   in
     aside [ classes [ (ClassName "sidebar-composer"), expanded showRightPanel ] ]
-      [ a [ classes [ (ClassName "drawer-icon-click") ], onClick $ const $ Just $ ShowRightPanel (not showRightPanel) ]
-          [ img [ src closeDrawerIcon, class_ (ClassName "drawer-icon") ] ]
-      , div [ class_ aHorizontal ]
+      [ div [ class_ aHorizontal ]
           [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
               [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Input Composer" ] ]
           , a [ onClick $ const $ Just $ ChangeHelpContext InputComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
@@ -447,14 +451,16 @@ authButton state =
           [ idPublishGist
           , classes []
           ]
-          [ text "Failure" ]
+          [ text "Failed to login" ]
       Success Anonymous ->
-        a
-          [ idPublishGist
-          , classes [ ClassName "auth-button" ]
-          , href "/api/oauth/github"
-          ]
-          [ text "Save to GitHub"
+        div [ class_ (ClassName "auth-button-container") ]
+          [ a
+              [ idPublishGist
+              , classes [ ClassName "auth-button" ]
+              , href "/api/oauth/github"
+              ]
+              [ text "Save to GitHub"
+              ]
           ]
       Success GithubUser -> gist state
       Loading ->
@@ -536,7 +542,7 @@ gistInput state _ =
 
 gist :: forall p. FrontendState -> HTML p HAction
 gist state =
-  div [ classes [ ClassName "github-gist-panel", aHorizontal ] ]
+  div [ classes [ ClassName "github-gist-panel", aHorizontal, expanded (state ^. _showRightPanel) ] ]
     [ div [ classes [ ClassName "input-group-text", ClassName "upload-btn", ClassName "tooltip" ], onClick $ const $ Just $ GistAction PublishGist ]
         [ span [ class_ (ClassName "tooltiptext") ] [ publishTooltip publishStatus ]
         , gistButtonIcon arrowUp publishStatus

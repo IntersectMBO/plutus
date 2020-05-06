@@ -43,7 +43,13 @@ bottomPanel state =
             [ div [ classes (footerPanelBg state Simulation <> isActiveTab state Simulation) ]
                 [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
                     [ div [ classes ([ ClassName "panel-sub-header-main", aHorizontal ] <> (if state ^. _showBottomPanel then [ accentBorderBottom ] else [])) ]
-                        [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+                        [ ul [ class_ (ClassName "start-item") ]
+                            [ li [ class_ (ClassName "minimize-icon-container") ]
+                                [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
+                                    [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
+                                ]
+                            ]
+                        , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
                             [ li
                                 [ classes ((if hasRuntimeWarnings || hasRuntimeError then [ ClassName "error-tab" ] else []) <> isActive CurrentStateView)
                                 , onClick $ const $ Just $ ChangeSimulationView CurrentStateView
@@ -70,10 +76,6 @@ bottomPanel state =
                                 [ text "Contract Expiration: ", state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime <<< to text) ]
                             , li [ classes [ ClassName "space-left", Classes.stateLabel ] ]
                                 [ text "Current Blocks: ", state ^. (_marloweState <<< _Head <<< _slot <<< to show <<< to text) ]
-                            , li [ class_ (ClassName "space-left") ]
-                                [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
-                                ]
                             ]
                         ]
                     ]
