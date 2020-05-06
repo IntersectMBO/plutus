@@ -30,8 +30,8 @@ checkAllScheduledEventsHappened :: Day -> ShiftedSchedule -> ValidatedCashFlows 
 checkAllScheduledEventsHappened present schedule past = True --todo: minus credit events in past
 
 --will do STF and POF through all validated events
-replayValidatedEvents :: [ScheduledEvent] -> Double
-replayValidatedEvents events = undefined
+replayValidatedEvents :: ContractTerms -> [ScheduledEvent] -> Day -> Double
+replayValidatedEvents terms events day = undefined
 
 -- validated cashflows are part of transaction state, present is proposed cashflow
 validateCashFlow :: ContractTerms -> ValidatedCashFlows -> CashFlow -> Bool

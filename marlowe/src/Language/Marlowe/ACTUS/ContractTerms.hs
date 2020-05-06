@@ -97,7 +97,8 @@ data ScheduleConfig = ScheduleConfig
 type ContractTermsContext = Map String ContractTerms
 
 data ContractTerms = PamContractTerms { 
-  _SD :: Day
+  contractId :: String
+  , _SD :: Day
   , _MD :: Day
   , _TD :: Day
   , _PRD :: Day
