@@ -89,15 +89,15 @@ bottomPanel state =
     [ div [ classes (footerPanelBg state HaskellEditor <> isActiveTab state HaskellEditor) ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
             [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
-                [ div
+                [ div [ class_ (ClassName "minimize-icon-container") ]
+                    [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
+                        [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
+                    ]
+                , div
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "haskell-buttons" ])
                     ]
                     [ button [ onClick $ const $ Just CompileHaskellProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
                     , sendResultButton state
-                    ]
-                , div []
-                    [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                        [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                     ]
                 ]
             ]

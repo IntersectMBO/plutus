@@ -55,9 +55,11 @@ a:hover {
     display: none;
 }
 
+.auth-button-container {
+    margin-top: 5px;
+}
 .auth-button {
-    padding: 0.5rem 1.5rem;
-    position: relative;
+    padding: 0.4rem 1.5rem;
     cursor: pointer;
     top: 0.5rem;
     background: var(--gradient-bg);

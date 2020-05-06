@@ -29,6 +29,7 @@
 
 .panel-sub-header-main {
   display: flex;
+  justify-content: flex-start;
   font-weight: bold;
   color: var(--text-color-inactive);
 }
@@ -62,6 +63,10 @@
 
 .demo-list li.active {
   color: var(--secondary-color);
+}
+
+.minimize-icon-container {
+  padding-top: 6px;
 }
 
 .demo-arrow,
@@ -284,14 +289,13 @@ button.minus-btn:hover {
 }
 
 .footer-panel-bg.expanded {
-  /* height: 13rem; */
   padding: 0.5rem 2rem;
-  min-height: 13rem;
-  height: 13rem;
+  min-height: 16rem;
+  height: 16rem;
 }
 
 .expanded>.panel-contents {
-  height: 8rem;
+  height: 12rem;
   overflow-x: scroll;
   display: block;
 }
@@ -360,6 +364,7 @@ button.minus-btn:hover {
 
 .haskell-buttons {
   width: 17rem;
+  margin-left: 1rem;
 }
 
 .drawer-icon-click {
