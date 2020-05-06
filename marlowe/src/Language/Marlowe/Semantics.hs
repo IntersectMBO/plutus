@@ -256,9 +256,10 @@ type LogicalTime = Integer
 
 data LoopState = LoopState { logicalTime       :: LogicalTime
                             , originalContract :: Contract
-                            , stateHistory     :: Map LogicalTime State
+                            , stateHistory     :: Map LogicalTime (Map ValueId Integer)
                              }
   deriving stock (Show,Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 
 {-| Marlowe contract internal state. Stored in a /Datum/ of a transaction output.
@@ -906,19 +907,19 @@ marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = 
 
 -- | Same as computeTransaction, but allows for infinite loops, not part of semantics
 computeTransactionWithLoopSupport :: TransactionInput -> State -> Contract -> TransactionOutput
-computeTransactionWithLoopSupport tx state@State{..} contract = 
+computeTransactionWithLoopSupport tx state contract = 
     let txout = computeTransaction tx state contract
-    in if isJust loopState && (txOutContract txout) == Close 
+    in if isJust (loopState state) && (txOutContract txout) == Close 
         then 
-                let loopSt = fromMaybe undefined loopState
+                let loopSt = fromMaybe undefined (loopState state)
                     outSt = txOutState txout
-                    emptySt = emptyState minSlot
+                    emptySt = emptyState (minSlot state)
                 in txout { -- todo match error
                     txOutContract = originalContract loopSt,
                     txOutState = emptySt {
                         loopState = Just (loopSt {
                             logicalTime = (logicalTime loopSt) + 1,
-                            stateHistory = Map.insert (logicalTime loopSt) outSt (stateHistory loopSt)
+                            stateHistory = Map.insert (logicalTime loopSt) (boundValues outSt) (stateHistory loopSt)
                         })
                     }
                 }

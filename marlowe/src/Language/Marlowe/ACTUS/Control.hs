@@ -15,19 +15,19 @@ import Data.String (IsString (fromString))
 import Language.PlutusTx.AssocMap (Map)
 import qualified Language.PlutusTx.AssocMap as Map
 import Data.Maybe
-import Data.Map.Strict
 import qualified Data.Maybe as Maybe
+import Data.List
+import qualified Data.List as L
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ActusValidator
 import Control.Arrow
-import Text.Regex.Posix
 
 type Currency = String
 type Tkn = String
 type TimePostfix = String -- sequence number of event
-type Amount = Language.Marlowe.Value
+type Amount = (Language.Marlowe.Value Language.Marlowe.Observation)
 type MarloweBool = Language.Marlowe.Observation
 type Oracle = String
 type EventInitiatorParty = String
@@ -132,17 +132,19 @@ inquiry timePosfix party partyId oracle continue = let
         addEventInitiatorParty
     ) continue
 
---todo: combine invoice and inquiry
 genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
 genContract parties partyIds oracle = --todo: for all initiators
     inquiry "" "party" 0 "oracle" $ 
         invoice "party" "counterparty" (UseValue $ ValueId (fromString "payoff")) 
             Close
 
+
+--The logic below happens inside a smart-contract--
+
 parseDouble :: Integer -> Double
 parseDouble int = (fromIntegral int) / marloweFixedPoint
 
-stateParser :: State -> [CashFlow] --todo should we raise error if last cashflow's event is only partially parsable?
+stateParser :: State -> [CashFlow]
 stateParser state@State{..} =
     let 
         stateHist = stateHistory $ fromJust loopState
@@ -150,7 +152,7 @@ stateParser state@State{..} =
         parseCashFlow t = 
             let
                 look :: String -> Integer
-                look name = Map.lookup (ValueId $ (fromString name)) $ fromJust $ Map.lookup t stateHist
+                look name = fromJust $ Map.lookup (ValueId $ (fromString name)) $ fromJust $ Map.lookup t stateHist
                 proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent id = case eventTypeIdToEventType id of
                     AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
@@ -204,7 +206,6 @@ stateParser state@State{..} =
     in [] --flow $ Map.toList $ boundValues state
 
 -- gets cashflows from state parser and passes them to ActusValidator
--- todo: we should validate that contract is of simple form Choice -> Choice -> Pay -> Close
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser txOutState
