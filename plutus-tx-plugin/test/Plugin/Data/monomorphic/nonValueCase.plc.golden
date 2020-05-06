@@ -6,20 +6,20 @@
     )
     (let
       (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl MyEnum (type))
-          
-          MyEnum_match
-          (vardecl Enum MyEnum) (vardecl Enum MyEnum)
-        )
+      (termbind
+        (strict)
+        (vardecl error (all a (type) (fun Unit a)))
+        (abs e (type) (lam thunk Unit (error e)))
       )
       (let
         (nonrec)
-        (termbind
-          (strict)
-          (vardecl error (all a (type) (fun Unit a)))
-          (abs e (type) (lam thunk Unit (error e)))
+        (datatypebind
+          (datatype
+            (tyvardecl MyEnum (type))
+            
+            MyEnum_match
+            (vardecl Enum MyEnum) (vardecl Enum MyEnum)
+          )
         )
         (lam
           ds

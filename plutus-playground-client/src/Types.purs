@@ -78,9 +78,6 @@ _walletId = _Wallet <<< iso _.getWallet { getWallet: _ }
 _pubKey :: Lens' PubKey String
 _pubKey = _PubKey <<< prop (SProxy :: SProxy "getPubKey")
 
-_value :: Lens' Value (AssocMap.Map CurrencySymbol (AssocMap.Map TokenName Int))
-_value = _Value <<< prop (SProxy :: SProxy "getValue")
-
 _waitBlocks :: forall r a. Lens' { waitBlocks :: a | r } a
 _waitBlocks = prop (SProxy :: SProxy "waitBlocks")
 

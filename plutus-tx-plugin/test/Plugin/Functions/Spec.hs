@@ -18,6 +18,8 @@ import           Language.PlutusTx.Plugin
 
 import qualified Language.PlutusCore.Universe as PLC
 
+import           Data.Proxy
+
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
 
@@ -30,17 +32,17 @@ functions = testNested "Functions" [
 recursiveFunctions :: TestNested
 recursiveFunctions = testNested "recursive" [
     goldenPir "fib" fib
-    , goldenEval "fib4" [ getProgram fib, getProgram $ plc @"4" (4::Integer) ]
+    , goldenEval "fib4" [ getProgram fib, getProgram $ plc (Proxy @"4") (4::Integer) ]
     , goldenPir "sum" sumDirect
     , goldenEval "sumList" [ getProgram sumDirect, getProgram listConstruct3 ]
     , goldenPir "even" evenMutual
-    , goldenEval "even3" [ getProgram evenMutual, getProgram $ plc @"3" (3::Integer) ]
-    , goldenEval "even4" [ getProgram evenMutual, getProgram $ plc @"4" (4::Integer) ]
+    , goldenEval "even3" [ getProgram evenMutual, getProgram $ plc (Proxy @"3") (3::Integer) ]
+    , goldenEval "even4" [ getProgram evenMutual, getProgram $ plc (Proxy @"4") (4::Integer) ]
   ]
 
 fib :: CompiledCode PLC.DefaultUni (Integer -> Integer)
 -- not using case to avoid literal cases
-fib = plc @"fib" (
+fib = plc (Proxy @"fib") (
     let fib :: Integer -> Integer
         fib n = if Builtins.equalsInteger n 0
             then 0
@@ -50,14 +52,14 @@ fib = plc @"fib" (
     in fib)
 
 sumDirect :: CompiledCode PLC.DefaultUni ([Integer] -> Integer)
-sumDirect = plc @"sumDirect" (
+sumDirect = plc (Proxy @"sumDirect") (
     let sum :: [Integer] -> Integer
         sum []     = 0
         sum (x:xs) = Builtins.addInteger x (sum xs)
     in sum)
 
 evenMutual :: CompiledCode PLC.DefaultUni (Integer -> Bool)
-evenMutual = plc @"evenMutual" (
+evenMutual = plc (Proxy @"evenMutual") (
     let even :: Integer -> Bool
         even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
         odd :: Integer -> Bool
@@ -87,13 +89,13 @@ nandDirect :: Bool -> Bool -> Bool
 nandDirect = \(a :: Bool) -> \(b::Bool) -> if a then False else if b then False else True
 
 nandPlcDirect :: CompiledCode PLC.DefaultUni Bool
-nandPlcDirect = plc @"nandPlcDirect" (nandDirect True False)
+nandPlcDirect = plc (Proxy @"nandPlcDirect") (nandDirect True False)
 
 andPlcDirect :: CompiledCode PLC.DefaultUni Bool
-andPlcDirect = plc @"andPlcDirect" (andDirect True False)
+andPlcDirect = plc (Proxy @"andPlcDirect") (andDirect True False)
 
 andPlcExternal :: CompiledCode PLC.DefaultUni Bool
-andPlcExternal = plc @"andPlcExternal" (andExternal True False)
+andPlcExternal = plc (Proxy @"andPlcExternal") (andExternal True False)
 
 -- self-recursion
 allDirect :: (a -> Bool) -> [a] -> Bool
@@ -102,16 +104,16 @@ allDirect p l = case l of
     h:t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode PLC.DefaultUni Bool
-allPlcDirect = plc @"andPlcDirect" (allDirect (\(x::Integer) -> Builtins.greaterThanInteger x 5) [7, 6])
+allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x::Integer) -> Builtins.greaterThanInteger x 5) [7, 6])
 
 mutualRecursionUnfoldings :: CompiledCode PLC.DefaultUni Bool
-mutualRecursionUnfoldings = plc @"mutualRecursionUnfoldings" (evenDirect 4)
+mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)
 
 recordSelector :: CompiledCode PLC.DefaultUni (MyMonoRecord -> Integer)
-recordSelector = plc @"recordSelector" (\(x :: MyMonoRecord) -> mrA x)
+recordSelector = plc (Proxy @"recordSelector") (\(x :: MyMonoRecord) -> mrA x)
 
 recordSelectorExternal :: CompiledCode PLC.DefaultUni (MyExternalRecord -> Integer)
-recordSelectorExternal = plc @"recordSelectorExternal" (\(x :: MyExternalRecord) -> myExternal x)
+recordSelectorExternal = plc (Proxy @"recordSelectorExternal") (\(x :: MyExternalRecord) -> myExternal x)
 
 mapDirect :: (a -> b) -> [a] -> [b]
 mapDirect f l = case l of
@@ -119,10 +121,10 @@ mapDirect f l = case l of
     x:xs -> f x : mapDirect f xs
 
 polyMap :: CompiledCode PLC.DefaultUni ([Integer])
-polyMap = plc @"polyMap" (mapDirect (Builtins.addInteger 1) [0, 1])
+polyMap = plc (Proxy @"polyMap") (mapDirect (Builtins.addInteger 1) [0, 1])
 
 myDollar :: (a -> b) -> a -> b
 myDollar f a = f a
 
 applicationFunction :: CompiledCode PLC.DefaultUni (Integer)
-applicationFunction = plc @"applicationFunction" ((\x -> Builtins.addInteger 1 x) `myDollar` 1)
+applicationFunction = plc (Proxy @"applicationFunction") ((\x -> Builtins.addInteger 1 x) `myDollar` 1)

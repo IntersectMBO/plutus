@@ -31,14 +31,14 @@ infixr 6 <^>
 (f1 <^> f2) g s = f1 g s *> f2 g s
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from binders.
-typeTyBinds :: Traversal' (Type tyname uni ann) (tyname ann)
+typeTyBinds :: Traversal' (Type tyname uni ann) tyname
 typeTyBinds f = \case
     TyForall ann tn k ty -> f tn <&> \tn' -> TyForall ann tn' k ty
     TyLam ann tn k ty -> f tn <&> \tn' -> TyLam ann tn' k ty
     x -> pure x
 
 -- | Get all the direct child 'tyname a's of the given 'Type' from 'TyVar's.
-typeTyVars :: Traversal' (Type tyname uni ann) (tyname ann)
+typeTyVars :: Traversal' (Type tyname uni ann) tyname
 typeTyVars f = \case
     TyVar ann n -> TyVar ann <$> f n
     x -> pure x
@@ -68,19 +68,19 @@ typeSubtypesDeep :: Fold (Type tyname uni ann) (Type tyname uni ann)
 typeSubtypesDeep = cosmosOf typeSubtypes
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.
-termTyBinds :: Traversal' (Term tyname name uni ann) (tyname ann)
+termTyBinds :: Traversal' (Term tyname name uni ann) tyname
 termTyBinds f = \case
     TyAbs ann tn k t -> f tn <&> \tn' -> TyAbs ann tn' k t
     x -> pure x
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'LamAbs'es.
-termBinds :: Traversal' (Term tyname name uni ann) (name ann)
+termBinds :: Traversal' (Term tyname name uni ann) name
 termBinds f = \case
     LamAbs ann n ty t -> f n <&> \n' -> LamAbs ann n' ty t
     x -> pure x
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
-termVars :: Traversal' (Term tyname name uni ann) (name ann)
+termVars :: Traversal' (Term tyname name uni ann) name
 termVars f = \case
     Var ann n -> Var ann <$> f n
     x -> pure x

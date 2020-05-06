@@ -16,6 +16,7 @@ import           OptimizerSpec
 import           ParserSpec
 import           TransformSpec
 
+import           Language.PlutusCore.Pretty (PrettyConst)
 import           Language.PlutusCore.Quote
 
 import           Language.PlutusIR
@@ -40,7 +41,7 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni
-         , PLC.Closed uni, uni `PLC.Everywhere` Pretty, Typeable uni, Pretty a, Typeable a
+         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Typeable uni, Pretty a, Typeable a
          ) => GetProgram (Term TyName Name uni a) uni where
     getProgram = asIfThrown . fmap (trivialProgram . void) . compileAndMaybeTypecheck True
 

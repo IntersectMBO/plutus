@@ -21,17 +21,20 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Log        (Log)
+import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
 import qualified Data.Text                      as T
-import           Data.Text.Prettyprint.Doc      hiding (annotate)
+import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                   (Generic)
 import           Ledger                         hiding (to, value)
 import qualified Ledger.AddressMap              as AM
 import qualified Ledger.Index                   as Index
 import qualified Wallet.API                     as WAPI
+import qualified Wallet.Effects                 as Wallet
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.ChainIndex     as ChainIndex
 import qualified Wallet.Emulator.NodeClient     as NC
@@ -80,21 +83,79 @@ walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Ju
 chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
--- | The type of actions in the emulator. @n@ is the type (usually a monad implementing 'WalletAPI') in
--- which wallet actions take place.
+type EmulatedWalletEffects =
+        '[ Wallet.WalletEffect
+         , Error WAPI.WalletAPIError
+         , Wallet.NodeClientEffect
+         , Wallet.ChainIndexEffect
+         , Wallet.SigningProcessEffect
+         , Log
+         ]
+
+type EmulatedWalletControlEffects =
+        '[ NC.NodeControlEffect
+         , ChainIndex.ChainIndexControlEffect
+         , SP.SigningProcessControlEffect
+         , Log
+        ]
+
+{- Note [Control effects]
+
+Plutus contracts interact with the outside world through a number of different
+effects. These effects are captured in 'EmulatedWalletEffects'. They are
+supposed to be a realistic representation of the capabilities that contracts
+will have in the real world, when the system is released.
+
+In the tests we often want to simulate events that happened "outside of the
+contract". For example: A new block is added to the chain, or a user takes the
+transaction and emails it to another person to sign, before sending it to the
+node. These kinds of events cannot be expressed in 'EmulatedWalletEffects',
+because it would make the emulated wallet effects unrealistic - Plutus
+contracts in the real world will not have the power to decide when a new block
+gets added to the chain, or to control who adds their signature to a
+transaction.
+
+But in the emulated world of our unit tests we, the contract authors, would very
+much like to have this power. That is why there is a second list of emulator
+effects: 'EmulatedWalletControlEffects' are the of effects that only make sense
+in the emulator, but not in the real world. With 'EmulatedWalletControlEffects'
+we can control the blockchain and the lines of communication between the
+emulated components.
+
+By being clear about which of our (ie. the contract authors) actions
+require the full power of 'EmulatedWalletControlEffects', we can be more
+confident that our contracts will run in the real world, and not just in the
+test environment. That is why there are two similar but different constructors
+for 'MultiAgentEffect': 'WalletAction' is used for things that we will be able
+to do in the real world, and 'WalletControlAction' is for everything else.
+
+-}
+
+-- | The type of actions in the emulator.
 data MultiAgentEffect r where
-    -- | An direct action performed by a wallet. Usually represents a "user action", as it is
+    -- | A direct action performed by a wallet. Usually represents a "user action", as it is
     -- triggered externally.
-    WalletAction :: Wallet.Wallet -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r -> MultiAgentEffect r
+    WalletAction :: Wallet.Wallet -> Eff EmulatedWalletEffects r -> MultiAgentEffect r
+    -- | An action affecting the emulated parts of a wallet (only available in emulator - see note [Control effects].)
+    WalletControlAction :: Wallet.Wallet -> Eff EmulatedWalletControlEffects r -> MultiAgentEffect r
     -- | An assertion in the event stream, which can inspect the current state.
     Assertion :: Assertion -> MultiAgentEffect ()
 
+-- | Run an action in the context of a wallet (ie. agent)
 walletAction
     :: (Member MultiAgentEffect effs)
     => Wallet.Wallet
-    -> Eff '[Wallet.WalletEffect, Error WAPI.WalletAPIError, NC.NodeClientEffect, ChainIndex.ChainIndexEffect, SP.SigningProcessEffect] r
+    -> Eff EmulatedWalletEffects r
     -> Eff effs r
 walletAction wallet act = send (WalletAction wallet act)
+
+-- | Run a control action in the context of a wallet
+walletControlAction
+    :: (Member MultiAgentEffect effs)
+    => Wallet.Wallet
+    -> Eff EmulatedWalletControlEffects r
+    -> Eff effs r
+walletControlAction wallet = send . WalletControlAction wallet
 
 assertion :: (Member MultiAgentEffect effs) => Assertion -> Eff effs ()
 assertion a = send (Assertion a)
@@ -196,12 +257,13 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd5
+        & raiseEnd6
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
+        & interpret (handleZoomedWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
@@ -217,6 +279,31 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
+            p4 = below (walletEvent wallet . Wallet._WalletMsg)
+    WalletControlAction wallet act -> act
+        & raiseEnd4
+        & NC.handleNodeControl
+        & ChainIndex.handleChainIndexControl
+        & SP.handleSigningProcessControl
+        & interpret (handleZoomedWriter p4)
+        & interpret (handleZoomedState (walletState wallet))
+        & interpret (handleZoomedWriter p1)
+        & interpret (handleZoomedState (walletClientState wallet))
+        & interpret (handleZoomedWriter p2)
+        & interpret (handleZoomedState (walletChainIndexState wallet))
+        & interpret (handleZoomedWriter p3)
+        & interpret (handleZoomedState (signingProcessState wallet))
+        & interpret (writeIntoState emulatorLog)
+        where
+            p1 :: Prism' [EmulatorEvent] [Wallet.WalletEvent]
+            p1 = below (walletEvent wallet)
+            p2 :: Prism' [EmulatorEvent] [NC.NodeClientEvent]
+            p2 = below (walletClientEvent wallet)
+            p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
+            p3 = below (chainIndexEvent wallet)
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
+            p4 = below (walletEvent wallet . Wallet._WalletMsg)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.

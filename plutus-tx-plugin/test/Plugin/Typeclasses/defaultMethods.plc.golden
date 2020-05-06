@@ -1,96 +1,85 @@
 (program
   (let
-    (nonrec
-    )
-    (termbind
-      (strict)
-      (vardecl fDefaultMethodsInteger_cmethod (fun (con integer) (con integer)))
-      (lam a (con integer) a)
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl DefaultMethods (fun (type) (type)))
+        (tyvardecl a (type))
+        DefaultMethods_match
+        (vardecl
+          CConsDefaultMethods
+          (fun (fun a (con integer)) (fun (fun a (con integer)) [DefaultMethods a]))
+        )
+      )
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
         (strict)
         (vardecl
-          addInteger (fun (con integer) (fun (con integer) (con integer)))
+          method (all a (type) (fun [DefaultMethods a] (fun a (con integer))))
         )
-        (lam
-          arg
-          (con integer)
-          (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+        (abs
+          a
+          (type)
+          (lam
+            v
+            [DefaultMethods a]
+            [
+              { [ { DefaultMethods_match a } v ] (fun a (con integer)) }
+              (lam v (fun a (con integer)) (lam v (fun a (con integer)) v))
+            ]
+          )
         )
       )
       (let
-        (nonrec
-        )
+        (nonrec)
         (termbind
           (strict)
           (vardecl
-            fDefaultMethodsInteger_cmethod (fun (con integer) (con integer))
+            addInteger (fun (con integer) (fun (con integer) (con integer)))
           )
-          (lam a (con integer) [ [ addInteger a ] (con 1) ])
+          (lam
+            arg
+            (con integer)
+            (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+          )
         )
         (let
-          (nonrec
-          )
-          (datatypebind
-            (datatype
-              (tyvardecl
-                DefaultMethods (fun (type) (type))
-              )
-              (tyvardecl a (type))
-              DefaultMethods_match
-              (vardecl
-                CConsDefaultMethods
-                (fun (fun a (con integer)) (fun (fun a (con integer)) [DefaultMethods a]))
-              )
+          (nonrec)
+          (termbind
+            (strict)
+            (vardecl
+              fDefaultMethodsInteger_cmethod (fun (con integer) (con integer))
             )
+            (lam a (con integer) [ [ addInteger a ] (con 1) ])
           )
           (let
-            (nonrec
-            )
+            (nonrec)
             (termbind
-              (nonstrict)
-              (vardecl fDefaultMethodsInteger [DefaultMethods (con integer)])
-              [
-                [
-                  { CConsDefaultMethods (con integer) }
-                  fDefaultMethodsInteger_cmethod
-                ]
-                fDefaultMethodsInteger_cmethod
-              ]
+              (strict)
+              (vardecl
+                fDefaultMethodsInteger_cmethod (fun (con integer) (con integer))
+              )
+              (lam a (con integer) a)
             )
             (let
-              (nonrec
-              )
+              (nonrec)
               (termbind
-                (strict)
-                (vardecl
-                  method
-                  (all a (type) (fun [DefaultMethods a] (fun a (con integer))))
-                )
-                (abs
-                  a
-                  (type)
-                  (lam
-                    v
-                    [DefaultMethods a]
-                    [
-                      { [ { DefaultMethods_match a } v ] (fun a (con integer)) }
-                      (lam
-                        v (fun a (con integer)) (lam v (fun a (con integer)) v)
-                      )
-                    ]
-                  )
-                )
+                (nonstrict)
+                (vardecl fDefaultMethodsInteger [DefaultMethods (con integer)])
+                [
+                  [
+                    { CConsDefaultMethods (con integer) }
+                    fDefaultMethodsInteger_cmethod
+                  ]
+                  fDefaultMethodsInteger_cmethod
+                ]
               )
               (let
-                (nonrec
-                )
+                (nonrec)
                 (termbind
-                  (strict
-                  )
+                  (strict)
                   (vardecl
                     f
                     (all a (type) (fun [DefaultMethods a] (fun a (con integer))))

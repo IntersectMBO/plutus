@@ -16,7 +16,6 @@ import qualified Language.PlutusCore.Name            as PLC
 import qualified Language.PlutusCore.Rename.Internal as PLC
 
 import           Control.Monad.Reader
-import           Control.Monad.Trans.Class           (lift)
 import           Control.Monad.Trans.Cont            (ContT (..))
 
 import           Data.List.NonEmpty                  (NonEmpty)

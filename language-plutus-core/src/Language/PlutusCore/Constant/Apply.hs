@@ -3,10 +3,10 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -65,7 +65,7 @@ applyTypeSchemed
     => StagedBuiltinName
     -> TypeScheme uni args res
     -> FoldArgs args res
-    -> FoldArgs args ExBudget
+    -> FoldArgsEx args
     -> [Value TyName Name uni ExMemory]
     -> m (ConstAppResult uni ExMemory)
 applyTypeSchemed name = go where
@@ -73,7 +73,7 @@ applyTypeSchemed name = go where
         :: forall args'.
            TypeScheme uni args' res
         -> FoldArgs args' res
-        -> FoldArgs args' ExBudget
+        -> FoldArgsEx args'
         -> [Value TyName Name uni ExMemory]
         -> m (ConstAppResult uni ExMemory)
     go (TypeSchemeResult _)        y _ args =
@@ -91,15 +91,13 @@ applyTypeSchemed name = go where
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown $ void arg
+            let budget = exF $ termAnn arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    let
-                        budget :: ExBudget
-                        budget = (exF x)
                     spendBudget (BBuiltin name) arg budget
                     go schB (f x) budget args'
-                _ -> go schB (f x) (exF x) args'
+                _ -> go schB (f x) budget args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
@@ -109,7 +107,7 @@ applyTypedBuiltinName
        )
     => TypedBuiltinName uni args res
     -> FoldArgs args res
-    -> FoldArgs args ExBudget
+    -> FoldArgsEx args
     -> [Value TyName Name uni ExMemory]
     -> m (ConstAppResult uni ExMemory)
 applyTypedBuiltinName (TypedBuiltinName name schema) =
@@ -117,54 +115,53 @@ applyTypedBuiltinName (TypedBuiltinName name schema) =
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
--- TODO all of these cost functions
 applyBuiltinName
     :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , GShow uni, GEq uni, DefaultUni <: uni
-       )
-    => BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
-applyBuiltinName AddInteger           =
-    applyTypedBuiltinName typedAddInteger           (+) (\_ _ -> ExBudget 1 1)
-applyBuiltinName SubtractInteger      =
-    applyTypedBuiltinName typedSubtractInteger      (-) (\_ _ -> ExBudget 1 1)
-applyBuiltinName MultiplyInteger      =
-    applyTypedBuiltinName typedMultiplyInteger      (*) (\_ _ -> ExBudget 1 1)
-applyBuiltinName DivideInteger        =
-    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div) (\_ _ -> ExBudget 1 1)
-applyBuiltinName QuotientInteger      =
-    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot) (\_ _ -> ExBudget 1 1)
-applyBuiltinName RemainderInteger     =
-    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem) (\_ _ -> ExBudget 1 1)
-applyBuiltinName ModInteger           =
-    applyTypedBuiltinName typedModInteger           (nonZeroArg mod) (\_ _ -> ExBudget 1 1)
-applyBuiltinName LessThanInteger      =
-    applyTypedBuiltinName typedLessThanInteger      (<) (\_ _ -> ExBudget 1 1)
-applyBuiltinName LessThanEqInteger    =
-    applyTypedBuiltinName typedLessThanEqInteger    (<=) (\_ _ -> ExBudget 1 1)
-applyBuiltinName GreaterThanInteger   =
-    applyTypedBuiltinName typedGreaterThanInteger   (>) (\_ _ -> ExBudget 1 1)
-applyBuiltinName GreaterThanEqInteger =
-    applyTypedBuiltinName typedGreaterThanEqInteger (>=) (\_ _ -> ExBudget 1 1)
-applyBuiltinName EqInteger            =
-    applyTypedBuiltinName typedEqInteger            (==) (\_ _ -> ExBudget 1 1)
-applyBuiltinName Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (<>) (\_ _ -> ExBudget 1 1)
-applyBuiltinName TakeByteString       =
-    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (\_ _ -> ExBudget 1 1)
-applyBuiltinName DropByteString       =
-    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64) (\_ _ -> ExBudget 1 1)
-applyBuiltinName SHA2                 =
-    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2) (\_ -> ExBudget 1 1)
-applyBuiltinName SHA3                 =
-    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3) (\_ -> ExBudget 1 1)
-applyBuiltinName VerifySignature      =
-    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult) (\_ _ _ -> ExBudget 1 1)
-applyBuiltinName EqByteString         =
-    applyTypedBuiltinName typedEqByteString         (==) (\_ _ -> ExBudget 1 1)
-applyBuiltinName LtByteString         =
-    applyTypedBuiltinName typedLtByteString         (<) (\_ _ -> ExBudget 1 1)
-applyBuiltinName GtByteString         =
-    applyTypedBuiltinName typedGtByteString         (>) (\_ _ -> ExBudget 1 1)
-applyBuiltinName IfThenElse           =
-    applyTypedBuiltinName typedIfThenElse           (\b x y -> if b then x else y) (\_ _ _ -> ExBudget 1 1)
+    , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+    , GShow uni, GEq uni, DefaultUni <: uni
+    )
+    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
+applyBuiltinName params AddInteger           =
+    applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
+applyBuiltinName params SubtractInteger      =
+    applyTypedBuiltinName typedSubtractInteger      (-) (runCostingFunTwoArguments $ paramSubtractInteger params)
+applyBuiltinName params MultiplyInteger      =
+    applyTypedBuiltinName typedMultiplyInteger      (*) (runCostingFunTwoArguments $ paramMultiplyInteger params)
+applyBuiltinName params DivideInteger        =
+    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div) (runCostingFunTwoArguments $ paramDivideInteger params)
+applyBuiltinName params QuotientInteger      =
+    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot) (runCostingFunTwoArguments $ paramQuotientInteger params)
+applyBuiltinName params RemainderInteger     =
+    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem) (runCostingFunTwoArguments $ paramRemainderInteger params)
+applyBuiltinName params ModInteger           =
+    applyTypedBuiltinName typedModInteger           (nonZeroArg mod) (runCostingFunTwoArguments $ paramModInteger params)
+applyBuiltinName params LessThanInteger      =
+    applyTypedBuiltinName typedLessThanInteger      (<) (runCostingFunTwoArguments $ paramLessThanInteger params)
+applyBuiltinName params LessThanEqInteger    =
+    applyTypedBuiltinName typedLessThanEqInteger    (<=) (runCostingFunTwoArguments $ paramLessThanEqInteger params)
+applyBuiltinName params GreaterThanInteger   =
+    applyTypedBuiltinName typedGreaterThanInteger   (>) (runCostingFunTwoArguments $ paramGreaterThanInteger params)
+applyBuiltinName params GreaterThanEqInteger =
+    applyTypedBuiltinName typedGreaterThanEqInteger (>=) (runCostingFunTwoArguments $ paramGreaterThanEqInteger params)
+applyBuiltinName params EqInteger            =
+    applyTypedBuiltinName typedEqInteger            (==) (runCostingFunTwoArguments $ paramEqInteger params)
+applyBuiltinName params Concatenate          =
+    applyTypedBuiltinName typedConcatenate          (<>) (runCostingFunTwoArguments $ paramConcatenate params)
+applyBuiltinName params TakeByteString       =
+    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (runCostingFunTwoArguments $ paramTakeByteString params)
+applyBuiltinName params DropByteString       =
+    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64) (runCostingFunTwoArguments $ paramDropByteString params)
+applyBuiltinName params SHA2                 =
+    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2) (runCostingFunOneArgument $ paramSHA2 params)
+applyBuiltinName params SHA3                 =
+    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3) (runCostingFunOneArgument $ paramSHA3 params)
+applyBuiltinName params VerifySignature      =
+    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult) (runCostingFunThreeArguments $ paramVerifySignature params)
+applyBuiltinName params EqByteString         =
+    applyTypedBuiltinName typedEqByteString         (==) (runCostingFunTwoArguments $ paramEqByteString params)
+applyBuiltinName params LtByteString         =
+    applyTypedBuiltinName typedLtByteString         (<) (runCostingFunTwoArguments $ paramLtByteString params)
+applyBuiltinName params GtByteString         =
+    applyTypedBuiltinName typedGtByteString         (>) (runCostingFunTwoArguments $ paramGtByteString params)
+applyBuiltinName params IfThenElse           =
+    applyTypedBuiltinName typedIfThenElse           (\b x y -> if b then x else y) (runCostingFunThreeArguments $ paramIfThenElse params)

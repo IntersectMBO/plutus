@@ -3,7 +3,7 @@ module Marlowe.GenWithHoles where
 import Prelude
 import Control.Lazy (class Lazy)
 import Control.Monad.Gen (class MonadGen, chooseBool, chooseFloat, chooseInt, resize, sized)
-import Control.Monad.Reader (class MonadAsk, ReaderT(..))
+import Control.Monad.Reader (class MonadAsk, class MonadReader, ReaderT(..))
 import Control.Monad.Rec.Class (class MonadRec)
 import Test.QuickCheck.Gen (Gen)
 
@@ -24,6 +24,8 @@ derive newtype instance genWithGenWithHolessBind :: Bind GenWithHoles
 instance genWithGenWithHolessMonad :: Monad GenWithHoles
 
 derive newtype instance genWithGenWithHolessMonadAsk :: MonadAsk Boolean GenWithHoles
+
+derive newtype instance genWithGenWithHolessMonadReader :: MonadReader Boolean GenWithHoles
 
 instance genWithGenWithHolessLazy :: Lazy (GenWithHoles a) where
   defer f = f unit

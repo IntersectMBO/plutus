@@ -1,31 +1,39 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, length)
+import Data.Array (concatMap, drop, head, length)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, (^.))
+import Data.Lens (to, view, (^.))
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.String (take)
+import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, closeDrawerIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(ClassName), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>))
+import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>), (/=), (&&), (<$>))
 import Text.Parsing.StringParser (runParser)
-import Types (FrontendState, HAction(..), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
+import Text.Parsing.StringParser.Basic (lines)
+import Types (FrontendState, HAction(..), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _showErrorDetail, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
+
+isContractValid :: FrontendState -> Boolean
+isContractValid state =
+  (view (_marloweState <<< _Head <<< _contract) state /= Nothing)
+    && (view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state)
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
@@ -64,7 +72,7 @@ bottomPanel state =
                                 [ text "Current Blocks: ", state ^. (_marloweState <<< _Head <<< _slot <<< to show <<< to text) ]
                             , li [ class_ (ClassName "space-left") ]
                                 [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon state), src closeDrawerIcon, alt "close drawer icon" ] ]
+                                    [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                                 ]
                             ]
                         ]
@@ -75,7 +83,7 @@ bottomPanel state =
         ]
     ]
   where
-  isActive view = if state ^. _simulationBottomPanelView <<< (to (eq view)) then [ ClassName "active-text" ] else []
+  isActive view = state ^. _simulationBottomPanelView <<< (activeClass (eq view))
 
   warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
 
@@ -283,32 +291,89 @@ panelContents state StaticAnalysisView =
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
     ]
     [ analysisResultPane state
-    , button [ onClick $ const $ Just $ AnalyseContract, enabled (state ^. _analysisState <<< to isLoading <<< to not) ] [ text "Analyse" ]
+    , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
+        [ text (if loading then "Analysing..." else "Analyse") ]
     ]
+  where
+  loading = state ^. _analysisState <<< to isLoading
+
+  enabled' = not loading && isContractValid state
 
 panelContents state MarloweWarningsView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
     ]
-    (map renderWarning (state ^. (_marloweState <<< _Head <<< _editorWarnings)))
+    content
   where
+  warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
+
+  content =
+    if Array.null warnings then
+      [ pre [ class_ (ClassName "error-content") ] [ text "No warnings" ] ]
+    else
+      [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
+          [ div [] [ text "Description" ]
+          , div [] [ text "Line Number" ]
+          ]
+      , ul [] (map renderWarning warnings)
+      ]
+
   renderWarning warning =
-    pre [ class_ (ClassName "warning-content") ]
-      [ a [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn ]
-          [ text warning.message ]
+    li [ classes [ ClassName "error-row" ] ]
+      [ text warning.message
+      , a
+          [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn
+          , class_ underline
+          ]
+          [ text $ show warning.startLineNumber ]
       ]
 
 panelContents state MarloweErrorsView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
     ]
-    (map renderError (state ^. (_marloweState <<< _Head <<< _editorErrors)))
+    content
   where
-  renderError error =
-    pre [ class_ (ClassName "error-content") ]
-      [ a [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn ]
-          [ text error.message ]
+  errors = state ^. (_marloweState <<< _Head <<< _editorErrors <<< to (map formatError))
+
+  content =
+    if Array.null errors then
+      [ pre [ class_ (ClassName "error-content") ] [ text "No errors" ] ]
+    else
+      [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
+          [ div [] [ text "Description" ]
+          , div [] [ text "Line Number" ]
+          ]
+      , ul [] (map renderError errors)
       ]
+
+  renderError error =
+    li [ classes [ ClassName "error-row", ClassName "flex-wrap" ] ]
+      ( [ a [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
+            [ text $ (if state ^. _showErrorDetail then "- " else "+ ") <> error.firstLine ]
+        , a
+            [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn
+            , class_ underline
+            ]
+            [ text $ show error.startLineNumber ]
+        ]
+          <> if (state ^. _showErrorDetail) then
+              [ pre [ class_ (ClassName "error-content") ] [ text error.restLines ] ]
+            else
+              []
+      )
+
+  formatError { message, startColumn, startLineNumber } =
+    let
+      lines' = lines message
+
+      firstLine /\ restLines =
+        if (take 12 <$> head lines') == Just "Syntax error" then
+          "Syntax error" /\ (unlines $ drop 2 lines')
+        else
+          "Error" /\ unlines lines'
+    in
+      { message, startColumn, startLineNumber, firstLine, restLines }
 
 analysisResultPane :: forall p. FrontendState -> HTML p HAction
 analysisResultPane state =
@@ -329,7 +394,7 @@ analysisResultPane state =
           ]
       Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
         explanation
-          [ h3_ [ text "Analysis Result: Fail" ]
+          [ h3_ [ text "Analysis Result: Warnings Found" ]
           , text "Static analysis found the following counterexample:"
           , ul_
               [ li_
@@ -366,7 +431,7 @@ analysisResultPane state =
                   ]
               ]
           ]
-      _ -> text "Analysing..."
+      Loading -> text ""
 
 displayTransactionList :: forall p. String -> HTML p HAction
 displayTransactionList transactionList = case runParser transactionInputList transactionList of
@@ -480,7 +545,7 @@ displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok
 
 displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amount) =
   [ b_ [ text "TransactionNonPositivePay" ]
-  , text " - The contract is suppoused to make a payment of "
+  , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show amount ]
   , text " units of "
   , b_ [ text $ show tok ]
@@ -497,7 +562,7 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amo
 
 displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount expected) =
   [ b_ [ text "TransactionPartialPay" ]
-  , text " - The contract is suppoused to make a payment of "
+  , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show expected ]
   , text " units of "
   , b_ [ text $ show tok ]

@@ -1,6 +1,6 @@
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Plutus.SCB.Events.Wallet where
 
@@ -11,4 +11,4 @@ import           Ledger       (Tx)
 newtype WalletEvent =
     BalancedTx Tx
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving newtype (FromJSON, ToJSON)

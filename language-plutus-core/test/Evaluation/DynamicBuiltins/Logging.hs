@@ -17,6 +17,7 @@ import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Pretty                         (PrettyConst)
 
 import           Language.PlutusCore.StdLib.Data.List               as Plc
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -24,7 +25,6 @@ import           Language.PlutusCore.StdLib.Data.Unit
 import           Evaluation.DynamicBuiltins.Common
 
 import           Control.Monad.Except
-import           Data.Either                                        (isRight)
 import           Data.Proxy
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -48,7 +48,7 @@ handleDynamicIntegerToString = handleDynamicByMeaning dynamicIntegerToStringMean
 
 evaluateHandlersCek
     :: ( MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, Typeable uni, uni `Everywhere` Pretty
+       , Closed uni, uni `Everywhere` ExMemoryUsage, Typeable uni, uni `Everywhere` PrettyConst
        )
     => (AnEvaluator (OnChain '[] Term) uni m (EvaluationResultDef uni) ->
             OnChainEvaluator names Term uni r)
@@ -76,8 +76,8 @@ test_logInts :: TestTree
 test_logInts = testCase "logInts" $ do
     let term = runQuote $ do
             let integer = mkTyBuiltin @Integer @DefaultUni ()
-            u <- freshName () "u"
-            x <- freshName () "x"
+            u <- freshName "u"
+            x <- freshName "x"
 
             return
                 $ mkIterApp () (mkIterInst () foldList [integer, unit])

@@ -12,8 +12,8 @@ import           Language.PlutusCore.Quote
 -- > /\(A :: *) -> \(x : A) -> t
 constPartial :: TermLike term TyName Name uni => term () -> term ()
 constPartial t = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    x <- freshName "x"
     return
         . tyAbs () a (Type ())
         . lamAbs () x (TyVar () a)

@@ -13,7 +13,9 @@ open import Data.Nat
 open import Data.Fin
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Function
-open import Data.List
+open import Data.Vec
+open import Data.Sum
+open import Data.Product
 open import Utils
 \end{code}
 
@@ -47,20 +49,28 @@ lift-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
 lift-erase ρ zero    = refl
 lift-erase ρ (suc α) = refl
 
+ren-eraseTel⋆ : ∀{m n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
+  → (ρ⋆ : S.Ren⋆ n n')
+  → (ρ : S.Ren w w')
+  → (As : Tel⋆ n m)
+  → U.renTel (erase-Ren ρ) (eraseTel⋆ w As) ≡ eraseTel⋆ w' (S.ren⋆T ρ⋆ As)
+ren-eraseTel⋆ ρ⋆ ρ []       = refl
+ren-eraseTel⋆ ρ⋆ ρ (A ∷ As) = cong (con unit ∷_) (ren-eraseTel⋆ ρ⋆ ρ As)
+
 ren-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (ρ⋆ : S.Ren⋆ n n')
   → (ρ : S.Ren w w')
   → (t : ScopedTm w)
   → U.ren (erase-Ren ρ) (eraseTm t) ≡ eraseTm (S.ren ρ⋆ ρ t)
 
-ren-eraseList : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
+ren-eraseTel : ∀{m n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (ρ⋆ : S.Ren⋆ n n')
   → (ρ : S.Ren w w')
-  → (ts  : List (ScopedTm w))
-  → U.renList (erase-Ren ρ) (eraseList ts) ≡ eraseList (S.renL ρ⋆ ρ ts)
-ren-eraseList ρ⋆ ρ [] = refl
-ren-eraseList ρ⋆ ρ (t ∷ ts) =
- cong₂ _∷_ (ren-erase ρ⋆ ρ t) (ren-eraseList ρ⋆ ρ ts)
+  → (ts  : Vec (ScopedTm w) m)
+  → U.renTel (erase-Ren ρ) (eraseTel ts) ≡ eraseTel (S.renT ρ⋆ ρ ts)
+ren-eraseTel ρ⋆ ρ [] = refl
+ren-eraseTel ρ⋆ ρ (t ∷ ts) =
+ cong₂ _∷_ (ren-erase ρ⋆ ρ t) (ren-eraseTel ρ⋆ ρ ts)
 
 ren-erase ρ⋆ ρ (` x)              =
   cong (` ∘ eraseVar ∘ ρ) (backVar-eraseVar x) 
@@ -74,9 +84,14 @@ ren-erase ρ⋆ ρ (ƛ A t)            = cong
   (trans (U.ren-cong (lift-erase ρ) (eraseTm t)) (ren-erase ρ⋆ (S.lift ρ) t))
 ren-erase ρ⋆ ρ (t · u)            =
   cong₂ _·_ (ren-erase ρ⋆ ρ t) (ren-erase ρ⋆ ρ u)
-ren-erase ρ⋆ ρ (con x)            = refl
-ren-erase ρ⋆ ρ (error x)          = refl
-ren-erase ρ⋆ ρ (builtin bn As ts) = cong (builtin bn) (ren-eraseList ρ⋆ ρ ts)
+ren-erase ρ⋆ ρ (con x)                = refl
+ren-erase ρ⋆ ρ (error x)              = refl
+ren-erase ρ⋆ ρ (builtin bn (inj₁ (p , refl)) As ts) = cong (builtin bn _) (ren-eraseTel ρ⋆ ρ ts)
+ren-erase {w = w} ρ⋆ ρ (builtin bn (inj₂ (refl , snd)) As ts) = cong
+  (builtin bn _)
+  (trans
+    (U.renTel++ (erase-Ren ρ) (eraseTel⋆ w As) (eraseTel ts))
+    (cong₂ _++_ (ren-eraseTel⋆ ρ⋆ ρ As) (ren-eraseTel ρ⋆ ρ ts)))
 ren-erase ρ⋆ ρ (wrap pat ar t)    = ren-erase ρ⋆ ρ t
 ren-erase ρ⋆ ρ (unwrap t)         = ren-erase ρ⋆ ρ t
 
@@ -106,20 +121,28 @@ slift-erase {w' = w'} σ (suc α) = trans
                      (eraseTm (σ (backVar α)))))
   (ren-erase suc T (σ (backVar α)))
 
+sub-eraseTel⋆ : ∀{m n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
+  → (σ⋆ : S.Sub⋆ n n')
+  → (σ : S.Sub w w')
+  → (As : Tel⋆ n m)
+  → U.subTel (erase-Sub σ) (eraseTel⋆ w As) ≡ eraseTel⋆ w' (S.sub⋆T σ⋆ As)
+sub-eraseTel⋆ σ⋆ σ []       = refl
+sub-eraseTel⋆ σ⋆ σ (A ∷ As) = cong (con unit ∷_) (sub-eraseTel⋆ σ⋆ σ As)
+
 sub-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (σ⋆ : S.Sub⋆ n n')
   → (σ : S.Sub w w')
   → (t : ScopedTm w)
   → U.sub (erase-Sub σ) (eraseTm t) ≡ eraseTm (S.sub σ⋆ σ t)
 
-subList-erase : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
+subTel-erase : ∀{m n n'}{w : Weirdℕ n}{w' : Weirdℕ n'}
   → (σ⋆ : S.Sub⋆ n n')
   → (σ : S.Sub w w')
-  → (ts : List (ScopedTm w))
-  → U.subList (erase-Sub σ) (eraseList ts) ≡ eraseList (S.subL σ⋆ σ ts)
-subList-erase σ⋆ σ []       = refl
-subList-erase σ⋆ σ (t ∷ ts) =
-  cong₂ _∷_ (sub-erase σ⋆ σ t) (subList-erase σ⋆ σ ts)
+  → (ts : Vec (ScopedTm w) m)
+  → U.subTel (erase-Sub σ) (eraseTel ts) ≡ eraseTel (S.subT σ⋆ σ ts)
+subTel-erase σ⋆ σ []       = refl
+subTel-erase σ⋆ σ (t ∷ ts) =
+  cong₂ _∷_ (sub-erase σ⋆ σ t) (subTel-erase σ⋆ σ ts)
 
 sub-erase σ⋆ σ (` x) = cong (eraseTm ∘ σ) (backVar-eraseVar x)
 sub-erase σ⋆ σ (Λ K t)            = cong ƛ (trans
@@ -135,9 +158,14 @@ sub-erase σ⋆ σ (t · u)            =
   cong₂ _·_ (sub-erase σ⋆ σ t) (sub-erase σ⋆ σ u)
 sub-erase σ⋆ σ (con c)            = refl
 sub-erase σ⋆ σ (error A)          = refl
-sub-erase σ⋆ σ (builtin bn As ts) = cong
-  (builtin bn)
-  (subList-erase σ⋆ σ ts)
+sub-erase σ⋆ σ (builtin bn (inj₁ (p , refl)) As ts) = cong
+  (builtin bn _)
+  (subTel-erase σ⋆ σ ts)
+sub-erase {w = w} σ⋆ σ (builtin b (inj₂ (refl , p)) As ts) = cong
+  (builtin b _)
+  (trans
+    (U.subTel++ (erase-Sub σ) (eraseTel⋆ w As) (eraseTel ts))
+    (cong₂ _++_ (sub-eraseTel⋆ σ⋆ σ As) (subTel-erase σ⋆ σ ts)))
 sub-erase σ⋆ σ (wrap pat arg t)   = sub-erase σ⋆ σ t
 sub-erase σ⋆ σ (unwrap t)         = sub-erase σ⋆ σ t
 

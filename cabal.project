@@ -32,11 +32,6 @@ benchmarks: true
 -- and need to be kept in sync.
 source-repository-package
   type: git
-  location: https://github.com/target/row-types
-  tag: 1e8d5e084ffd46f6c7842826a1f62c60820885df
-
-source-repository-package
-  type: git
   location: https://github.com/shmish111/purescript-bridge.git
   tag: 28c37771ef30b0d751960c061ef95627f05d290e
 
@@ -52,15 +47,10 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/bitnomial/prometheus.git
-  tag: 69e4cefeb7d04d61a54cb0ae9fd57e2de134badb
-
-source-repository-package
-  type: git
   location: https://github.com/michaelpj/unlit.git
   tag: 9ca1112093c5ffd356fc99c7dafa080e686dd748
 
 source-repository-package
   type: git
-  location: https://github.com/shmish111/github.git
-  tag: cc27b9de4d5d0939235fa9a8b418de3ea4807bab
+  location: https://github.com/michaelpj/slack-web.git
+  tag: 6ff88895c5da593e7bd09a46d7002441817aa6f8

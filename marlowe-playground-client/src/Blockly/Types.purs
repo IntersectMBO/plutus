@@ -12,4 +12,4 @@ foreign import data Workspace :: Type
 foreign import data Block :: Type
 
 type BlocklyState
-  = { blockly :: Blockly, workspace :: Workspace }
+  = { blockly :: Blockly, workspace :: Workspace, rootBlockName :: String }

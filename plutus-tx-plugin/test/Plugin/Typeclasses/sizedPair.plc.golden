@@ -1,18 +1,16 @@
 (program
   (let
-    (nonrec
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-        (tyvardecl a (type)) (tyvardecl b (type))
-        Tuple2_match
-        (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl
+        size
+        (all a (type) (fun [(lam a (type) (fun a (con integer))) a] (fun a (con integer))))
       )
+      (abs a (type) (lam v [(lam a (type) (fun a (con integer))) a] v))
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
         (strict)
         (vardecl
@@ -25,108 +23,96 @@
         )
       )
       (let
-        (nonrec
-        )
-        (termbind
-          (strict
-          )
-          (vardecl
-            csize
-            (all a (type) (all b (type) (fun [(lam a (type) (fun a (con integer))) a] (fun [(lam a (type) (fun a (con integer))) b] (fun [[Tuple2 a] b] (con integer))))))
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                dSized
-                [(lam a (type) (fun a (con integer))) a]
-                (lam
-                  dSized
-                  [(lam a (type) (fun a (con integer))) b]
-                  (lam
-                    ds
-                    [[Tuple2 a] b]
-                    [
-                      { [ { { Tuple2_match a } b } ds ] (con integer) }
-                      (lam
-                        a
-                        a
-                        (lam b b [ [ addInteger [ dSized a ] ] [ dSized b ] ])
-                      )
-                    ]
-                  )
-                )
-              )
-            )
+        (nonrec)
+        (datatypebind
+          (datatype
+            (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+            (tyvardecl a (type)) (tyvardecl b (type))
+            Tuple2_match
+            (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
           )
         )
         (let
-          (nonrec
-          )
+          (nonrec)
           (termbind
             (strict)
             (vardecl csize (fun (con integer) (con integer)))
             (lam x (con integer) x)
           )
           (let
-            (nonrec
-            )
+            (nonrec)
             (termbind
-              (nonstrict
-              )
+              (nonstrict)
               (vardecl
-                fSizedTuple2
-                (all a (type) (all b (type) (fun [(lam a (type) (fun a (con integer))) a] (fun [(lam a (type) (fun a (con integer))) b] [(lam a (type) (fun a (con integer))) [[Tuple2 a] b]]))))
+                fSizedInteger
+                [(lam a (type) (fun a (con integer))) (con integer)]
               )
               csize
             )
             (let
-              (nonrec
-              )
+              (nonrec)
               (termbind
-                (nonstrict)
+                (strict)
                 (vardecl
-                  fSizedInteger
-                  [(lam a (type) (fun a (con integer))) (con integer)]
+                  csize
+                  (all a (type) (all b (type) (fun [(lam a (type) (fun a (con integer))) a] (fun [(lam a (type) (fun a (con integer))) b] (fun [[Tuple2 a] b] (con integer))))))
                 )
-                csize
+                (abs
+                  a
+                  (type)
+                  (abs
+                    b
+                    (type)
+                    (lam
+                      dSized
+                      [(lam a (type) (fun a (con integer))) a]
+                      (lam
+                        dSized
+                        [(lam a (type) (fun a (con integer))) b]
+                        (lam
+                          ds
+                          [[Tuple2 a] b]
+                          [
+                            { [ { { Tuple2_match a } b } ds ] (con integer) }
+                            (lam
+                              a
+                              a
+                              (lam
+                                b b [ [ addInteger [ dSized a ] ] [ dSized b ] ]
+                              )
+                            )
+                          ]
+                        )
+                      )
+                    )
+                  )
+                )
               )
               (let
-                (nonrec
-                )
+                (nonrec)
                 (termbind
-                  (nonstrict
-                  )
+                  (nonstrict)
                   (vardecl
-                    dSized
-                    [(lam a (type) (fun a (con integer))) [[Tuple2 (con integer)] (con integer)]]
+                    fSizedTuple2
+                    (all a (type) (all b (type) (fun [(lam a (type) (fun a (con integer))) a] (fun [(lam a (type) (fun a (con integer))) b] [(lam a (type) (fun a (con integer))) [[Tuple2 a] b]]))))
                   )
-                  [
-                    [
-                      { { fSizedTuple2 (con integer) } (con integer) }
-                      fSizedInteger
-                    ]
-                    fSizedInteger
-                  ]
+                  csize
                 )
                 (let
-                  (nonrec
-                  )
+                  (nonrec)
                   (termbind
-                    (strict
-                    )
+                    (nonstrict)
                     (vardecl
-                      size
-                      (all a (type) (fun [(lam a (type) (fun a (con integer))) a] (fun a (con integer))))
+                      dSized
+                      [(lam a (type) (fun a (con integer))) [[Tuple2 (con integer)] (con integer)]]
                     )
-                    (abs
-                      a
-                      (type)
-                      (lam v [(lam a (type) (fun a (con integer))) a] v)
-                    )
+                    [
+                      [
+                        { { fSizedTuple2 (con integer) } (con integer) }
+                        fSizedInteger
+                      ]
+                      fSizedInteger
+                    ]
                   )
                   (lam
                     ds

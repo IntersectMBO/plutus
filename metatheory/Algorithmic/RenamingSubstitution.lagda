@@ -108,9 +108,9 @@ ren ρ⋆ ρ (builtin bn σ X) = let _ ,, _ ,, A = SIG bn in conv⊢
   (builtin bn (renNf ρ⋆ ∘ σ) (renTel ρ⋆ ρ X))
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 
-renTel ρ⋆ ρ     {As = []}     _         = _
-renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ,, Ms) =
-  conv⊢ refl (sym (renNf-substNf σ ρ⋆ A)) (ren ρ⋆ ρ M) ,, renTel ρ⋆ ρ Ms
+renTel ρ⋆ ρ     {As = []}     []       = []
+renTel ρ⋆ ρ {σ} {As = A ∷ As} (M ∷ Ms) =
+  conv⊢ refl (sym (renNf-substNf σ ρ⋆ A)) (ren ρ⋆ ρ M) ∷ renTel ρ⋆ ρ Ms
 \end{code}
 
 \begin{code}
@@ -189,10 +189,10 @@ subst : ∀ {Φ Ψ Γ Δ}
     -------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Δ ⊢ substNf σ⋆ A)
 
-substTel σ⋆ σ      {As = []}     _         = _
-substTel σ⋆ σ {σ'} {As = A ∷ As} (M ,, Ms) =
+substTel σ⋆ σ      {As = []}     []       = []
+substTel σ⋆ σ {σ'} {As = A ∷ As} (M ∷ Ms) =
   conv⊢ refl (sym (substNf-comp σ' σ⋆ A)) (subst σ⋆ σ M)
-  ,,
+  ∷
   substTel σ⋆ σ Ms
 subst σ⋆ σ (` k)                     = σ k
 subst σ⋆ σ (ƛ N)                     = ƛ (subst σ⋆ (exts σ⋆ σ) N)

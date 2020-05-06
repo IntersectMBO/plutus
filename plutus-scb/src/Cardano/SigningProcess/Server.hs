@@ -18,7 +18,7 @@ import qualified Control.Monad.Freer.Error      as Eff
 import           Control.Monad.Freer.State      (State)
 import qualified Control.Monad.Freer.State      as Eff
 import           Control.Monad.IO.Class         (MonadIO (..))
-import           Control.Monad.Logger           (MonadLogger, logInfoN)
+import           Control.Monad.Logger           (logInfoN, runStdoutLoggingT)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Proxy                     (Proxy (..))
 import           GHC.Generics                   (Generic)
@@ -27,7 +27,9 @@ import qualified Network.Wai.Handler.Warp       as Warp
 import           Servant                        (Application, hoistServer, serve)
 import           Servant.Client                 (BaseUrl (baseUrlPort))
 import qualified Wallet.API                     as WAPI
-import           Wallet.Emulator.SigningProcess (SigningProcess, SigningProcessEffect)
+import           Wallet.Effects                 (SigningProcessEffect)
+import qualified Wallet.Effects                 as WE
+import           Wallet.Emulator.SigningProcess (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess as SP
 import           Wallet.Emulator.Wallet         (Wallet)
 
@@ -55,10 +57,10 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processSigningProcessEffects stateVar)
-        (uncurry SP.addSignatures)
+        (uncurry WE.addSignatures)
 
-main :: (MonadIO m, MonadLogger m) => SigningProcessConfig -> m ()
-main SigningProcessConfig{spWallet, spBaseUrl} = do
+main :: (MonadIO m) => SigningProcessConfig -> m ()
+main SigningProcessConfig{spWallet, spBaseUrl} = runStdoutLoggingT $ do
     stateVar <- liftIO $ newMVar (SP.defaultSigningProcess spWallet)
     let spPort = baseUrlPort spBaseUrl
     logInfoN $ "Starting signing process on port: " <> tshow spPort

@@ -18,8 +18,8 @@ import           Data.Foldable
 
 checkProgram
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
@@ -29,8 +29,8 @@ checkProgram p (Program _ _ t) = checkTerm p t
 
 checkTerm
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
@@ -42,7 +42,7 @@ checkTerm p t = do
 
 checkType
     :: (Ord ann,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)

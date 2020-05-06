@@ -24,6 +24,7 @@ import           Data.Text.Prettyprint.Doc  hiding (annotate)
 import           GHC.Generics               (Generic)
 import           Ledger
 import qualified Ledger.AddressMap          as AM
+import           Wallet.Effects             (NodeClientEffect (..))
 import           Wallet.Emulator.Chain
 
 data NodeClientEvent =
@@ -47,18 +48,22 @@ emptyNodeClientState = NodeClientState (Slot 0) mempty
 makeLenses ''NodeClientState
 
 -- | A notification sent to a node client about a change in the ledger.
-data Notification = BlockValidated Block -- ^ A new block has been validated.
-                  | CurrentSlot Slot -- ^ The current slot has changed.
+newtype BlockValidated = BlockValidated Block -- ^ A new block has been validated.
                   deriving (Show, Eq)
 
-data NodeClientEffect r where
-    PublishTx :: Tx -> NodeClientEffect ()
-    GetClientSlot :: NodeClientEffect Slot
-    GetClientIndex :: NodeClientEffect AM.AddressMap
-    ClientNotify :: Notification -> NodeClientEffect ()
-makeEffect ''NodeClientEffect
+data NodeControlEffect r where
+    ClientNotify :: BlockValidated -> NodeControlEffect ()
+makeEffect ''NodeControlEffect
 
 type NodeClientEffs = '[ChainEffect, State NodeClientState, Writer [NodeClientEvent]]
+
+handleNodeControl
+    :: (Members NodeClientEffs effs)
+    => Eff (NodeControlEffect ': effs) ~> Eff effs
+handleNodeControl = interpret $ \case
+    ClientNotify (BlockValidated blk) -> modify $ \s ->
+            s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
+              & clientSlot +~ 1
 
 handleNodeClient
     :: (Members NodeClientEffs effs)
@@ -66,9 +71,4 @@ handleNodeClient
 handleNodeClient = interpret $ \case
     PublishTx tx -> queueTx tx >> tell [TxSubmit (txId tx)]
     GetClientSlot -> gets _clientSlot
-    GetClientIndex -> gets _clientIndex
-    ClientNotify n -> case n of
-        BlockValidated blk -> modify $ \s ->
-            s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
-              & clientSlot +~ 1
-        CurrentSlot sl -> modify (\s -> s & clientSlot .~ sl)
+

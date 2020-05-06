@@ -18,7 +18,8 @@ module Plutus.SCB.Query
     , eventCount
     , latestContractStatus
     , utxoAt
-    , utxoIndexProjection,blockCount
+    , chainOverviewProjection
+    , blockCount
     , pureProjection
     ) where
 
@@ -41,7 +42,10 @@ import           Ledger.Index                            (UtxoIndex (UtxoIndex))
 import qualified Ledger.Index                            as UtxoIndex
 import           Plutus.SCB.Events                       (ChainEvent (NodeEvent, UserEvent), NodeEvent (BlockAdded),
                                                           UserEvent (ContractStateTransition))
-import           Plutus.SCB.Types                        (ActiveContractState, activeContract, activeContractId)
+import           Plutus.SCB.Types                        (ActiveContractState, ChainOverview (ChainOverview),
+                                                          activeContract, activeContractInstanceId,
+                                                          chainOverviewBlockchain, chainOverviewUnspentTxsById,
+                                                          chainOverviewUtxoIndex)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -71,16 +75,16 @@ setProjection :: Ord a => Projection (Set a) a
 setProjection = contramap Set.singleton monoidProjection
 
 -- | A simple counter of all the events. This is the simplest 'Projection' that does any work.
-eventCount :: Projection (Sum Int) (VersionedStreamEvent ChainEvent)
+eventCount :: Projection (Sum Int) (VersionedStreamEvent (ChainEvent t))
 eventCount = contramap (const 1) monoidProjection
 
 -- | Retain the latest status for a given contract.
-latestContractStatus ::
-       Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+latestContractStatus :: forall t key position.
+     Projection (Map UUID (ActiveContractState t)) (StreamEvent key position (ChainEvent t))
 latestContractStatus = projectionMapMaybe extractState monoidProjection
   where
     extractState (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-        let uuid = activeContractId $ activeContract state
+        let uuid = activeContractInstanceId $ activeContract state
          in Just $ Map.singleton uuid state
     extractState _ = Nothing
 
@@ -109,21 +113,33 @@ utxoAt (txById, UtxoIndex utxoIndex) address =
                 utxoIndex
      in UtxoAtAddress {address, utxo}
 
-utxoIndexProjection ::
-       Projection (Map TxId Tx, UtxoIndex) (StreamEvent key position ChainEvent)
-utxoIndexProjection =
-    Projection
-        { projectionSeed = (Map.empty, UtxoIndex Map.empty)
-        , projectionEventHandler
+emptyChainOverview :: ChainOverview
+emptyChainOverview =
+    ChainOverview
+        { chainOverviewBlockchain = []
+        , chainOverviewUnspentTxsById = Map.empty
+        , chainOverviewUtxoIndex = UtxoIndex Map.empty
         }
+
+chainOverviewProjection :: forall t key position.
+    Projection ChainOverview (StreamEvent key position (ChainEvent t))
+chainOverviewProjection =
+    Projection {projectionSeed = emptyChainOverview, projectionEventHandler}
   where
-    projectionEventHandler (oldTxById, oldUtxoIndex) (StreamEvent _ _ (NodeEvent (BlockAdded txs))) =
-        let newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
-            unprunedTxById =
+    projectionEventHandler ChainOverview { chainOverviewBlockchain = oldBlockchain
+                                         , chainOverviewUnspentTxsById = oldTxById
+                                         , chainOverviewUtxoIndex = oldUtxoIndex
+                                         } (StreamEvent _ _ (NodeEvent (BlockAdded txs))) =
+        let unprunedTxById =
                 foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
             newTxById = id unprunedTxById -- TODO Prune spent keys.
-         in (newTxById, newUtxoIndex)
+            newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
+         in ChainOverview
+                { chainOverviewBlockchain = txs : oldBlockchain
+                , chainOverviewUnspentTxsById = newTxById
+                , chainOverviewUtxoIndex = newUtxoIndex
+                }
     projectionEventHandler m _ = m
 
-blockCount :: Projection (Sum Integer) (StreamEvent key position ChainEvent)
+blockCount :: forall t key position. Projection (Sum Integer) (StreamEvent key position (ChainEvent t))
 blockCount = contramap (const 1) monoidProjection

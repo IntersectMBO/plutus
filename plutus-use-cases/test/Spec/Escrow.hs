@@ -11,8 +11,6 @@ import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Typed.Scripts                            as Scripts
 import qualified Spec.Lib                                        as Lib
 
-import           Wallet.Emulator                                 (walletPubKey)
-
 import           Language.PlutusTx.Coordination.Contracts.Escrow
 import           Language.PlutusTx.Lattice
 

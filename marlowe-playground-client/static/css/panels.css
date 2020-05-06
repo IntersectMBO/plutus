@@ -19,7 +19,10 @@
   flex: 4;
 }
 
-.panel-sub-header-main,
+.panel-sub-header-main {
+  min-height: 3.5rem;
+}
+
 .panel-sub-header-side {
   min-height: 3.5rem;
 }
@@ -57,6 +60,10 @@
   width: 100%;
 }
 
+.demo-list li.active {
+  color: var(--secondary-color);
+}
+
 .demo-arrow,
 .github-icon,
 .drawer-icon,
@@ -70,11 +77,11 @@
 }
 
 .expanded.minimize-icon {
-  transform: rotate(90deg);
+  transform: rotate(0deg);
 }
 
 .minimize-icon {
-  transform: rotate(-90deg);
+  transform: rotate(180deg);
 }
 
 .blockly-btn-icon {
@@ -121,6 +128,7 @@
 .panel-header-side,
 .panel-sub-header-side {
   padding-left: 20px;
+  padding-top: 12px;
 }
 
 .sidebar-composer {
@@ -162,13 +170,21 @@
 
 button.plus-btn {
   padding: 0.25rem 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 button.minus-btn {
   background: var(--error-color);
   padding: 0.3rem 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+button.minus-btn.disabled {
+  background: lightgray;
+}
+
+button.minus-btn.disabled:hover {
+  background: lightgray;
 }
 
 button.minus-btn:before {
@@ -188,6 +204,7 @@ button.minus-btn:hover {
   line-height: 1.4;
   flex: 1;
 }
+
 .participants em {
   display: inline-block;
   margin-bottom: 0.5rem;
@@ -204,12 +221,17 @@ button.minus-btn:hover {
   margin-top: 2rem;
   background: var(--accent-color);
   border-radius: var(--border-radius);
-  padding: 2rem;
+  padding: 0rem 1rem 1rem 1rem;
 }
 
-.documentation-panel img {
+.documentation-panel div {
+  display: flex;
+}
+
+.documentation-panel div img {
   display: block;
   max-width: 42px;
+  padding-right: 10px;
 }
 
 .documentation-panel hr {
@@ -342,4 +364,59 @@ button.minus-btn:hover {
 
 .drawer-icon-click {
   display: none;
+}
+
+.state-label {
+  font-weight: normal;
+}
+
+.error-row {
+  display: flex;
+  width: 50%;
+  justify-content: space-between;
+}
+
+.error-headers {
+  font-weight: bold;
+  padding: 1rem 0rem 0.5rem 0rem;
+}
+
+.demo-list li a.disabled {
+  color: lightgray;
+  pointer-events: none;
+  cursor: default;
+}
+
+.rotate-left {
+  transform: rotate(270deg);
+}
+
+.rotate-right {
+  transform: rotate(90deg);
+}
+
+.transaction-composer {
+  margin-top: 1rem;
+}
+
+#blocklyWorkspace>button {
+  margin: 1rem 0;
+}
+
+.analyse-btn {
+  margin: 1rem 0rem;
+}
+
+.error-content {
+  padding-top: 1rem;
+}
+
+.editor-options {
+  margin: 0rem 1rem;
+}
+
+.editor-options select {
+  height: 30px;
+  border: none;
+  background-color: var(--bg-dark);
 }

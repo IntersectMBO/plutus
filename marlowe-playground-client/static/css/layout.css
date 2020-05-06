@@ -21,6 +21,6 @@ main section {
 
 .sidebar-composer,
 .code-editor {
-  height: calc(100vh - 21vh);
+  height: 90vh;
   overflow-x: scroll;
 }

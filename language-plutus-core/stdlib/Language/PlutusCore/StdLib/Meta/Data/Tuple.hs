@@ -38,7 +38,7 @@ data Tuple term uni ann where
 -- > getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -> ... -> an -> r) -> r
 getTupleType :: MonadQuote m => ann -> Tuple term uni ann -> m (Type TyName uni ann)
 getTupleType ann (Tuple elTys _) = liftQuote $ do
-    r <- freshTyName ann "r"
+    r <- freshTyName "r"
     let caseTy = mkIterTyFun ann elTys $ TyVar ann r
     pure . TyForall ann r (Type ann) . TyFun ann caseTy $ TyVar ann r
 
@@ -50,8 +50,8 @@ getSpineToTuple
     :: (TermLike term TyName Name uni, MonadQuote m)
     => ann -> [(Type TyName uni ann, term ann)] -> m (Tuple term uni ann)
 getSpineToTuple ann spine = liftQuote $ do
-    r <- freshTyName ann "r"
-    f <- freshName ann "f"
+    r <- freshTyName "r"
+    f <- freshName "f"
     let (as, xs) = unzip spine
         caseTy = mkIterTyFun ann as $ TyVar ann r
         y = mkIterApp ann (var ann f) xs
@@ -66,7 +66,7 @@ tupleTypeTermAt
     => ann -> Int -> Tuple term uni ann -> m (Type TyName uni ann, term ann)
 tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
     args <- ifor elTys $ \i ty -> do
-        n <- freshName ann $ "arg_" <> showText i
+        n <- freshName $ "arg_" <> showText i
         pure $ VarDecl ann n ty
     let selectedTy  = elTys !! ind
         selectedArg = mkVar ann $ args !! ind
@@ -88,7 +88,7 @@ tupleDefAt
     :: (TermLike term TyName Name uni, MonadQuote m)
     => ann
     -> Int
-    -> Name ann
+    -> Name
     -> Tuple term uni ann
     -> m (TermDef term TyName Name uni ann)
 tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTermAt ann ind tuple
@@ -104,9 +104,9 @@ tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTe
 -- >     ) term
 bindTuple
     :: (TermLike term TyName Name uni, MonadQuote m)
-    => ann -> [Name ann] -> Tuple term uni ann -> term ann -> m (term ann)
+    => ann -> [Name] -> Tuple term uni ann -> term ann -> m (term ann)
 bindTuple ann names (Tuple elTys term) body = liftQuote $ do
-    tup <- freshName ann "tup"
+    tup <- freshName "tup"
     let tupVar = Tuple elTys $ var ann tup
     tupTy <- getTupleType ann tupVar
     tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
@@ -118,10 +118,10 @@ bindTuple ann names (Tuple elTys term) body = liftQuote $ do
 prodN :: Int -> Type TyName uni ()
 prodN arity = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
-        tn <- liftQuote $ freshTyName () $ "t_" <> showText i
+        tn <- liftQuote $ freshTyName $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
-    resultType <- liftQuote $ freshTyName () "r"
+    resultType <- liftQuote $ freshTyName "r"
     let caseType = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- \T_1 .. T_n
@@ -142,16 +142,16 @@ prodN arity = runQuote $ do
 prodNConstructor :: TermLike term TyName Name uni => Int -> term ()
 prodNConstructor arity = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
-        tn <- liftQuote $ freshTyName () $ "t_" <> showText i
+        tn <- liftQuote $ freshTyName $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
-    resultType <- liftQuote $ freshTyName () "r"
+    resultType <- liftQuote $ freshTyName "r"
 
     args <- for [0..(arity -1)] $ \i -> do
-        n <- liftQuote $ freshName () $ "arg_" <> showText i
+        n <- liftQuote $ freshName $ "arg_" <> showText i
         pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
 
-    caseArg <- liftQuote $ freshName () "case"
+    caseArg <- liftQuote $ freshName "case"
     let caseTy = mkIterTyFun () (fmap (mkTyVar ()) tyVars) (TyVar () resultType)
     pure $
         -- /\T_1 .. T_n
@@ -175,18 +175,18 @@ prodNConstructor arity = runQuote $ do
 prodNAccessor :: TermLike term TyName Name uni => Int -> Int -> term ()
 prodNAccessor arity index = runQuote $ do
     tyVars <- for [0..(arity-1)] $ \i -> do
-        tn <- liftQuote $ freshTyName () $ "t_" <> showText i
+        tn <- liftQuote $ freshTyName $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
     let tupleTy = mkIterTyApp () (prodN arity) (fmap (mkTyVar ()) tyVars)
         selectedTy = mkTyVar () $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do
-        n <- liftQuote $ freshName () $ "arg_" <> showText i
+        n <- liftQuote $ freshName $ "arg_" <> showText i
         pure $ VarDecl () n $ mkTyVar () $ tyVars !! i
     let selectedArg = mkVar () $ args !! index
 
-    tupleArg <- liftQuote $ freshName () "tuple"
+    tupleArg <- liftQuote $ freshName "tuple"
     pure $
         -- /\T_1 .. T_n
         mkIterTyAbs tyVars $

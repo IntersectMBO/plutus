@@ -44,16 +44,14 @@ bug workarounds.
 === How to update the generated Haskell package set
 
 The Nix code that builds all the Haskell packages and their dependencies is generated automatically.
-However, to avoid doing too much work all the time,
-we have *pinned* it with the hash of the result of the generation process.
+However, to avoid doing too much work all the time, we have checked the generated output in.
 
-IMPORTANT: This hash needs to be regenerated if you change any dependencies in cabal files
-or change the Stackage resolver.
+IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver. 
+But the CI will tell you if you've failed to do so.
 
-You can find the hash in link:./nix/haskell.nix[`nix/haskell.nix`]. All you need to do is comment out the
-`stack-sha256` attribute, and rebuild something. You will see a command on stderr that will tell you
-how to generate the replacement hash.
-
+You can find the files in link:./nix/stack.materialized[`nix/stack.materialized`]. 
+All you need to do is delete this directory, and then rebuild something. 
+You will see a command on stderr that will tell you how to generate the replacement files.
 
 [[update-freeze]]
 === How to update `cabal.project.freeze`
@@ -106,6 +104,8 @@ order:
 . Update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
 . Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
+. If the package is from a newer hackage, use `nix-shell -p niv --run "niv update haskell.nix"`
+to update the hackage index.
 
 === Code style
 

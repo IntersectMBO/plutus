@@ -26,7 +26,6 @@ import Data.Void (Void)
 import qualified Language.PlutusTx                as PlutusTx
 import           Language.PlutusTx.Prelude        hiding (check)
 import           Ledger.Constraints
-import           Ledger.Constraints.OnChain       (checkPendingTx)
 import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
 import           Ledger                           (Address, Value)

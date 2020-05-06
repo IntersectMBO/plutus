@@ -219,7 +219,7 @@ expressionToTrace CallEndpoint { caller
                         throwError . ContractError $
                         "All contract endpoints take a single input argument. If you need more, use a tuple or record.\nExpected a singleton list, but got: " <>
                         Text.pack (show arguments)
-            Nothing -> fail $ "Expected a [String], but got: " <> show arguments
+            Nothing -> throwError . ContractError $ "Expected a [String], but got: " <> Text.pack (show arguments)
 
 decodePayload ::
        (MonadEmulator (TraceError Text) m, FromJSON r)

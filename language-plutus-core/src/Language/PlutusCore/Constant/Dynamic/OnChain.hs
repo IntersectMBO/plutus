@@ -64,7 +64,7 @@ to evaluate.
 -}
 
 -- Well that's ugly.
-newtype OnChain (names :: [Symbol]) f (tyname :: GHC.Type -> GHC.Type) (name :: GHC.Type -> GHC.Type) (uni :: GHC.Type -> GHC.Type) ann = OnChain
+newtype OnChain (names :: [Symbol]) f tyname name (uni :: GHC.Type -> GHC.Type) ann = OnChain
     { unOnChain :: f tyname name uni ann
     }
 

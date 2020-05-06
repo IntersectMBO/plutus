@@ -10,6 +10,7 @@ module Marlowe.Monaco
 
 import Prelude
 import Data.Function.Uncurried (Fn1, runFn1)
+import Data.Maybe (Maybe(..))
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
 import Marlowe.Linter as Linter
@@ -41,16 +42,17 @@ documentFormattingEditProvider :: DocumentFormattingEditProvider
 documentFormattingEditProvider = runFn1 documentFormattingEditProvider_ Linter.format
 
 refLabel :: RefLabel
-refLabel = RefLabel "monacoEditor"
+refLabel = RefLabel "marloweEditor"
 
 settings :: forall m. (Editor -> m Unit) -> Settings m
 settings setup =
   { languageExtensionPoint
   , theme: daylightTheme
-  , tokensProvider
-  , completionItemProvider
-  , codeActionProvider
-  , documentFormattingEditProvider
+  , monarchTokensProvider: Nothing
+  , tokensProvider: Just tokensProvider
+  , completionItemProvider: Just completionItemProvider
+  , codeActionProvider: Just codeActionProvider
+  , documentFormattingEditProvider: Just documentFormattingEditProvider
   , refLabel
   , owner: "marloweEditor"
   , getModelMarkers: Linter.markers

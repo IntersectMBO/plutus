@@ -28,7 +28,7 @@ Since we are constructing a global substitution, so we need globally unique
 names to avoid clashes.
 -}
 
-type Substs uni a = Map.Map (Name a) (Term TyName Name uni a)
+type Substs uni a = Map.Map Name (Term TyName Name uni a)
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.
@@ -50,7 +50,7 @@ strictifyBinding = \case
     TermBind x NonStrict (VarDecl x' name ty) rhs -> do
         let ann = x
 
-        argName <- liftQuote $ freshName ann "arg"
+        argName <- liftQuote $ freshName "arg"
         -- TODO: These are created at every use site, we should bind them globally
         let unit = ann <$ Unit.unit
             unitval = ann <$ Unit.unitval

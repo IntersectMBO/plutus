@@ -22,10 +22,11 @@ import qualified Language.PlutusCore.Universe       as PLC
 
 import           Hedgehog                           hiding (Var)
 import qualified Hedgehog.Gen                       as Gen
+import qualified Hedgehog.Internal.Gen              as Gen
 import qualified Hedgehog.Range                     as Range
 
-genName :: PLC.AstGen (Name ())
-genName = Gen.filter (not . isPirKw . nameString) PLC.genName where
+genName :: PLC.AstGen Name
+genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
     isPirKw name = name `elem`
         [ "vardecl", "typedecl"
         , "let"
@@ -34,7 +35,7 @@ genName = Gen.filter (not . isPirKw . nameString) PLC.genName where
         , "datatype"
         ]
 
-genTyName :: PLC.AstGen (TyName ())
+genTyName :: PLC.AstGen TyName
 genTyName = TyName <$> genName
 
 genRecursivity :: MonadGen m => m Recursivity

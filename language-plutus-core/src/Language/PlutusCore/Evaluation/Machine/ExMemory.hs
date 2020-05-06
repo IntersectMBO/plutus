@@ -51,13 +51,13 @@ type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyBy config)
+  deriving newtype (Num, PrettyBy config, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyBy config)
+  deriving newtype (Num, PrettyBy config, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
@@ -93,7 +93,7 @@ instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUs
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
-deriving via (GenericExMemoryUsage (Name ann)) instance ExMemoryUsage ann => ExMemoryUsage (Name ann)
+deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
 deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
 deriving via (GenericExMemoryUsage (Builtin ann)) instance ExMemoryUsage ann => ExMemoryUsage (Builtin ann)
 deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
@@ -102,7 +102,7 @@ deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage Dy
 deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
   instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
     ExMemoryUsage (Term TyName Name uni ann)
-deriving newtype instance ExMemoryUsage ann => ExMemoryUsage (TyName ann)
+deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 

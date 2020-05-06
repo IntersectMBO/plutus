@@ -7,6 +7,7 @@
 , haskell-nix
 , buildPackages
 , metatheory
+, checkMaterialization
 }:
 
 let
@@ -19,9 +20,11 @@ let
       # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
       name = "plutus";
     };
-    # This turns the output into a fixed-output derivation, which speeds things
-    # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "1jzlddl4hrgc2qypwma2rn86anya1kakkdxffrh20gmy3b7azd55";
+    # These files need to be regenerated when you change the cabal files or stack resolver.
+    # See ../CONTRIBUTING.doc for more information.
+    materialized = ./stack.materialized;
+    # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
+    inherit checkMaterialization;
     modules = [
         {
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427
@@ -97,14 +100,6 @@ let
           };
         }
      ];
-    pkg-def-extras = [
-      # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
-      (hackage: {
-        packages = {
-          "hsc2hs" = (((hackage.hsc2hs)."0.68.4").revisions).default;
-        };
-      })
-    ];
   };
 
 in

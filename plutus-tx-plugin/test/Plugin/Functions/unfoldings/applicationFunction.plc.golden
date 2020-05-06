@@ -3,21 +3,21 @@
     (nonrec)
     (termbind
       (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        arg
-        (con integer)
-        (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
-      )
+      (vardecl myDollar (all a (type) (all b (type) (fun (fun a b) (fun a b)))))
+      (abs a (type) (abs b (type) (lam f (fun a b) (lam a a [ f a ]))))
     )
     (let
       (nonrec)
       (termbind
         (strict)
         (vardecl
-          myDollar (all a (type) (all b (type) (fun (fun a b) (fun a b))))
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
-        (abs a (type) (abs b (type) (lam f (fun a b) (lam a a [ f a ]))))
+        (lam
+          arg
+          (con integer)
+          (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+        )
       )
       [
         [

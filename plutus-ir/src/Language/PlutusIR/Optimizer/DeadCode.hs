@@ -24,7 +24,7 @@ import qualified Data.List.NonEmpty                      as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
-    :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Term tyname name uni a
     -> Term tyname name uni a
 removeDeadBindings t =
@@ -34,7 +34,7 @@ removeDeadBindings t =
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
-    :: (PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Term tyname name uni a
     -> Liveness
 calculateLiveness t =
@@ -50,7 +50,7 @@ live n =
     in asks $ Set.member (Deps.Variable u)
 
 liveBinding
-    :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Binding tyname name uni a
     -> m Bool
 liveBinding =
@@ -64,7 +64,7 @@ liveBinding =
         DatatypeBind _ (Datatype _ d _ destr constrs) -> or <$> (sequence $ [liveTyVarDecl d,  live destr] ++ fmap liveVarDecl constrs)
 
 processTerm
-    :: (MonadReader Liveness m, PLC.HasUnique (name a) PLC.TermUnique, PLC.HasUnique (tyname a) PLC.TypeUnique)
+    :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
     => Term tyname name uni a
     -> m (Term tyname name uni a)
 processTerm = \case

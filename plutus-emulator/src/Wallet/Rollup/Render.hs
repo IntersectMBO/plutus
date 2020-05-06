@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Wallet.Rollup.Render where
 
@@ -44,12 +45,11 @@ import           Wallet.Emulator.Types                 (Wallet (Wallet))
 import           Wallet.Rollup                         (doAnnotateBlockchain)
 import           Wallet.Rollup.Types                   (AnnotatedTx (AnnotatedTx),
                                                         BeneficialOwner (OwnedByPubKey, OwnedByScript),
-                                                        DereferencedInput (DereferencedInput, originalInput, refersTo),
+                                                        DereferencedInput (DereferencedInput, InputNotFound, originalInput, refersTo),
                                                         SequenceId (SequenceId, slotIndex, txIndex), balances,
                                                         dereferencedInputs, toBeneficialOwner, tx, txId)
 
-
-showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]]  -> Either Text Text
+showBlockchain :: [(PubKeyHash, Wallet)] -> [[Tx]] -> Either Text Text
 showBlockchain walletKeys blockchain =
     flip runReaderT (Map.fromList walletKeys) $ do
         annotatedBlockchain <- doAnnotateBlockchain blockchain
@@ -61,7 +61,8 @@ type RenderM = ReaderT (Map PubKeyHash Wallet) (Either Text)
 class Render a where
     render :: a -> RenderM (Doc ann)
 
-newtype RenderPretty a = RenderPretty a
+newtype RenderPretty a =
+    RenderPretty a
 
 instance Pretty a => Render (RenderPretty a) where
     render (RenderPretty a) = pure $ pretty a
@@ -120,7 +121,8 @@ instance Render TokenName where
 instance Render Builtins.ByteString where
     render = pure . pretty . JSON.encodeByteString . BSL.toStrict
 
-deriving via RenderPretty PlutusTx.Data instance Render PlutusTx.Data
+deriving via RenderPretty PlutusTx.Data instance
+         Render PlutusTx.Data
 
 deriving newtype instance Render Value
 
@@ -163,8 +165,11 @@ instance Render (Map PubKey Signature) where
             pure $ vsep $ intersperse mempty entries
 
 deriving via RenderPretty Text instance Render Text
+
 deriving via RenderPretty String instance Render String
+
 deriving via RenderPretty Integer instance Render Integer
+
 deriving via RenderPretty Address instance Render Address
 
 instance Render Wallet where
@@ -202,7 +207,7 @@ instance Render PubKeyHash where
          in "PubKeyHash:" <+> pretty (abbreviate 40 v)
 
 instance Render Signature where
-    render sig  =
+    render sig =
         pure $
         let v = JSON.encodeSerialise sig
          in "Signature:" <+> pretty (abbreviate 40 v)
@@ -225,6 +230,7 @@ instance Render a => Render (Set a) where
     render xs = vsep <$> traverse render (Set.toList xs)
 
 instance Render DereferencedInput where
+    render (InputNotFound txKey) = pure $ "Input not found:" <+> pretty txKey
     render DereferencedInput {originalInput, refersTo} =
         vsep <$>
         sequence
@@ -261,12 +267,7 @@ instance Render TxOut where
 indented :: Render a => a -> RenderM (Doc ann)
 indented x = indent 2 <$> render x
 
-numbered ::
-       Render a
-    => Doc ann
-    -> Doc ann
-    -> [a]
-    -> RenderM (Doc ann)
+numbered :: Render a => Doc ann -> Doc ann -> [a] -> RenderM (Doc ann)
 numbered separator title xs =
     vsep . intersperse mempty <$> itraverse numberedEntry xs
   where
@@ -276,13 +277,11 @@ numbered separator title xs =
 
 ------------------------------------------------------------
 lookupWallet ::
-       (MonadError Text m)
-    => PubKeyHash
-    -> Map PubKeyHash Wallet
-    -> m Wallet
-lookupWallet pkh walletKeys = case Map.lookup pkh walletKeys of
-    Nothing     -> throwError $ Text.pack $ "Could not find referenced PubKeyHash: " <> show pkh
-    Just wallet -> pure wallet
+       MonadError Text m => PubKeyHash -> Map PubKeyHash Wallet -> m Wallet
+lookupWallet pkh (Map.lookup pkh -> Just wallet) = pure wallet
+lookupWallet pkh _ =
+    throwError $
+    "Could not find referenced PubKeyHash: " <> Text.pack (show pkh)
 
 abbreviate :: Int -> Text -> Text
 abbreviate n t =

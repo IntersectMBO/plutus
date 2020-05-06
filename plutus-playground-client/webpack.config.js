@@ -56,7 +56,8 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/src/**/*.purs'
+                                '../playground-common/src/**/*.purs',
+                                '../web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),

@@ -53,9 +53,9 @@ import           GHC.Generics                          (Generic)
 --- TODO: add @con@.
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni where
-    var      :: ann -> name ann -> term ann
-    tyAbs    :: ann -> tyname ann -> Kind ann -> term ann -> term ann
-    lamAbs   :: ann -> name ann -> Type tyname uni ann -> term ann -> term ann
+    var      :: ann -> name -> term ann
+    tyAbs    :: ann -> tyname -> Kind ann -> term ann -> term ann
+    lamAbs   :: ann -> name -> Type tyname uni ann -> term ann -> term ann
     apply    :: ann -> term ann -> term ann -> term ann
     constant :: ann -> Some (ValueOf uni) -> term ann
     builtin  :: ann -> Builtin ann -> term ann
@@ -116,7 +116,7 @@ embed = \case
 -- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name uni ann = VarDecl
     { varDeclAnn  :: ann
-    , varDeclName :: name ann
+    , varDeclName :: name
     , varDeclType :: Type tyname uni ann
     } deriving (Functor, Show, Generic)
 
@@ -127,7 +127,7 @@ mkVar ann = var ann . varDeclName
 -- | A "type variable declaration", i.e. a name and a kind for a type variable.
 data TyVarDecl tyname ann = TyVarDecl
     { tyVarDeclAnn  :: ann
-    , tyVarDeclName :: tyname ann
+    , tyVarDeclName :: tyname
     , tyVarDeclKind :: Kind ann
     } deriving (Functor, Show, Generic)
 
@@ -169,7 +169,7 @@ data FunctionType tyname uni ann = FunctionType
 -- | A PLC function.
 data FunctionDef term tyname name uni ann = FunctionDef
     { _functionDefAnn  :: ann                          -- ^ An annotation.
-    , _functionDefName :: name ann                     -- ^ The name of a function.
+    , _functionDefName :: name                         -- ^ The name of a function.
     , _functionDefType :: FunctionType tyname uni ann  -- ^ The type of the function.
     , _functionDefTerm :: term ann                     -- ^ The definition of the function.
     }
@@ -189,7 +189,7 @@ functionDefVarDecl (FunctionDef ann name funTy _) = VarDecl ann name $ functionT
 -- | Make a 'FunctioDef'. Return 'Nothing' if the provided type is not functional.
 mkFunctionDef
     :: ann
-    -> name ann
+    -> name
     -> Type tyname uni ann
     -> term ann
     -> Maybe (FunctionDef term tyname name uni ann)

@@ -43,8 +43,8 @@ silly thing to write, but it does work.
 -- See Note [Typeable instances for function types]
 instance Typeable uni (->) where
     typeRep _ = do
-        a <- PLC.liftQuote $ PLC.freshTyName () "a"
-        b <- PLC.liftQuote $ PLC.freshTyName () "b"
+        a <- PLC.liftQuote $ PLC.freshTyName "a"
+        b <- PLC.liftQuote $ PLC.freshTyName "b"
         let tvda = TyVarDecl () a (Type ())
             tvdb = TyVarDecl () b (Type ())
         pure $ mkIterTyLam [tvda, tvdb] $ TyFun () (mkTyVar () tvda) (mkTyVar () tvdb)

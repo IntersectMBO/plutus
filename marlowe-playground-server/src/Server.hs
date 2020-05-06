@@ -40,7 +40,7 @@ import qualified Marlowe.Symbolic.Types.Request  as MSReq
 import qualified Marlowe.Symbolic.Types.Response as MSRes
 import           Network.HTTP.Types              (hContentType)
 import           Network.WebSockets.Connection   (Connection, PendingConnection, receiveData, sendTextData)
-import           Servant                         (ServantErr, err400, errBody, errHeaders)
+import           Servant                         (ServerError, err400, errBody, errHeaders)
 import           Servant.API                     ((:<|>) ((:<|>)), (:>), JSON, NoContent (NoContent), Post, ReqBody)
 import           Servant.Client                  (ClientEnv, ClientM, client, runClientM)
 import           Servant.Server                  (Handler, Server)

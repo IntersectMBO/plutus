@@ -38,7 +38,6 @@ import           Data.Foldable
 import qualified Data.Map                           as M
 import qualified Data.Text                          as T
 import           Data.Word
-import           GHC.Natural
 
 import qualified Control.Monad.Combinators.NonEmpty as NE
 import           Text.Megaparsec.Char
@@ -50,17 +49,15 @@ import qualified Text.Megaparsec.Char.Lexer         as Lex
 newtype ParserState = ParserState { identifiers :: M.Map T.Text PLC.Unique }
     deriving (Show)
 
-data ParseError = Overflow Natural Integer
-                | UnexpectedKeyword String
+data ParseError = UnexpectedKeyword String
                 | InternalError String
                 deriving (Eq, Ord, Show)
 
 type Error = Parsec.ParseError Char ParseError
 
 instance ShowErrorComponent ParseError where
-    showErrorComponent (Overflow sz i) = "Integer overflow: " ++ show i ++ " does not fit in " ++ show sz ++ " bytes"
     showErrorComponent (UnexpectedKeyword kw) = "Keyword " ++ kw ++ " used as identifier"
-    showErrorComponent (InternalError cause) = "Internal error: " ++ cause
+    showErrorComponent (InternalError cause)  = "Internal error: " ++ cause
 
 initial :: ParserState
 initial = ParserState M.empty
@@ -167,19 +164,20 @@ builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
     where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
           parseBuiltinName builtin = try $ string (prettyText builtin) >> pure builtin
 
-name :: Parser (Name SourcePos)
+name :: Parser Name
 name = lexeme $ try $ do
-    pos <- getSourcePos
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     if str `elem` reservedWords
         then customFailure $ UnexpectedKeyword $ show str
-        else Name pos str <$> intern str
+        else Name str <$> intern str
 
-var :: Parser (Name SourcePos)
+var :: Parser Name
 var = name
-tyVar :: Parser (TyName SourcePos)
+
+tyVar :: Parser TyName
 tyVar = TyName <$> name
+
 builtinVar :: Parser (PLC.Builtin SourcePos)
 builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
 
@@ -257,7 +255,7 @@ kind = inParens (typeKind <|> funKind)
         funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
 
 typ :: Parser (Type TyName PLC.DefaultUni SourcePos)
-typ = (tyVar >>= (\n -> return $ TyVar (nameAttribute $ unTyName n) n))
+typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
@@ -314,7 +312,7 @@ tyInstTerm :: Parametric
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 term' :: Parametric
-term' other = (var >>= (\n -> return $ PIR.var (nameAttribute n) n))
+term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
     <|> inBraces (tyInstTerm self)
     <|> inBrackets (appTerm self)

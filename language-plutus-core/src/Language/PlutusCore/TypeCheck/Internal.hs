@@ -132,11 +132,11 @@ runTypeCheckM config a =
         env = TypeCheckEnv config mempty mempty
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
-withTyVar :: TyName ann -> Kind () -> TypeCheckM uni ann a -> TypeCheckM uni ann a
+withTyVar :: TyName -> Kind () -> TypeCheckM uni ann a -> TypeCheckM uni ann a
 withTyVar name = local . over tceTyVarKinds . insertByName name
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
-withVar :: Name ann -> Normalized (Type TyName uni ()) -> TypeCheckM uni ann a -> TypeCheckM uni ann a
+withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni ann a -> TypeCheckM uni ann a
 withVar name = local . over tceVarTypes . insertByName name . pure
 
 -- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
@@ -150,19 +150,19 @@ lookupDynamicBuiltinNameM ann name = do
         Just ty -> liftDupable ty
 
 -- | Look up a type variable in the current context.
-lookupTyVarM :: TyName ann -> TypeCheckM uni ann (Kind ())
-lookupTyVarM name = do
+lookupTyVarM :: ann -> TyName -> TypeCheckM uni ann (Kind ())
+lookupTyVarM ann name = do
     mayKind <- asks $ lookupName name . _tceTyVarKinds
     case mayKind of
-        Nothing   -> throwError $ FreeTypeVariableE name
+        Nothing   -> throwError $ FreeTypeVariableE ann name
         Just kind -> pure kind
 
 -- | Look up a term variable in the current context.
-lookupVarM :: Name ann -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-lookupVarM name = do
+lookupVarM :: ann -> Name -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+lookupVarM ann name = do
     mayTy <- asks $ lookupName name . _tceVarTypes
     case mayTy of
-        Nothing -> throwError $ FreeVariableE name
+        Nothing -> throwError $ FreeVariableE ann name
         Just ty -> liftDupable ty
 
 -- #############
@@ -172,8 +172,8 @@ lookupVarM name = do
 dummyUnique :: Unique
 dummyUnique = Unique 0
 
-dummyTyName :: TyName ()
-dummyTyName = TyName (Name () "*" dummyUnique)
+dummyTyName :: TyName
+dummyTyName = TyName (Name "*" dummyUnique)
 
 dummyKind :: Kind ()
 dummyKind = Type ()
@@ -192,7 +192,7 @@ normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
     :: Normalized (Type TyName uni ())  -- ^ @ty@
-    -> TyName ()                    -- ^ @name@
+    -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
@@ -213,8 +213,8 @@ inferKindM (TyBuiltin _ _)         =
 -- [infer| G !- v :: k]
 -- ------------------------
 -- [infer| G !- var v :: k]
-inferKindM (TyVar _ v)             =
-    lookupTyVarM v
+inferKindM (TyVar ann v)           =
+    lookupTyVarM ann v
 
 -- [infer| G , n :: dom !- body :: cod]
 -- -------------------------------------------------
@@ -295,7 +295,7 @@ unfoldFixOf
 unfoldFixOf pat arg k = do
     let vPat = unNormalized pat
         vArg = unNormalized arg
-    a <- liftQuote $ freshTyName () "a"
+    a <- liftQuote $ freshTyName "a"
     normalizeTypeM $
         mkIterTyApp () vPat
             [ TyLam () a k . TyIFix () vPat $ TyVar () a
@@ -337,8 +337,8 @@ inferTypeM (Builtin _ bi)           =
 -- [infer| G !- v : ty]    ty ~>? vTy
 -- ----------------------------------
 -- [infer| G !- var v : vTy]
-inferTypeM (Var _ name)             =
-    lookupVarM name
+inferTypeM (Var ann name)           =
+    lookupVarM ann name
 
 -- [check| G !- dom :: *]    dom ~>? vDom    [infer| G , n : dom !- body : vCod]
 -- -----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ inferTypeM (LamAbs ann n dom body)  = do
 -- [infer| G !- abs n nK body : all (n :: nK) vBodyTy]
 inferTypeM (TyAbs _ n nK body)      = do
     let nK_ = void nK
-    TyForall () (void n) nK_ <<$>> withTyVar n nK_ (inferTypeM body)
+    TyForall () n nK_ <<$>> withTyVar n nK_ (inferTypeM body)
 
 -- [infer| G !- fun : vDom -> vCod]    [check| G !- arg : vDom]
 -- ------------------------------------------------------------

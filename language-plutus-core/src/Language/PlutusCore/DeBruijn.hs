@@ -41,31 +41,31 @@ newtype Index = Index Natural
     deriving newtype (Show, Num, Eq, Ord)
 
 -- | A term name as a de Bruijn index.
-data DeBruijn ann = DeBruijn { dbnAttribute :: ann, dbnString :: T.Text, dbnIndex :: Index }
-    deriving (Show, Functor, Generic)
+data DeBruijn = DeBruijn { dbnString :: T.Text, dbnIndex :: Index }
+    deriving (Show, Generic)
 
 -- | A type name as a de Bruijn index.
-newtype TyDeBruijn ann = TyDeBruijn (DeBruijn ann)
-    deriving (Show, Functor, Generic)
-instance Wrapped (TyDeBruijn ann)
+newtype TyDeBruijn = TyDeBruijn DeBruijn
+    deriving (Show, Generic)
+instance Wrapped TyDeBruijn
 
-instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
-    prettyBy config (DeBruijn _ txt (Index ix))
+instance HasPrettyConfigName config => PrettyBy config DeBruijn where
+    prettyBy config (DeBruijn txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
+deriving newtype instance HasPrettyConfigName config => PrettyBy config TyDeBruijn
 
 class HasIndex a where
     index :: Lens' a Index
 
-instance HasIndex (DeBruijn ann) where
+instance HasIndex DeBruijn where
     index = lens g s where
         g = dbnIndex
         s n i = n{dbnIndex=i}
 
-instance HasIndex (TyDeBruijn ann) where
+instance HasIndex TyDeBruijn where
     index = _Wrapped' . index
 
 -- Converting from normal names to DeBruijn indices, and vice versa
@@ -142,22 +142,22 @@ getUnique ix = do
 
 nameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Name ann -> m (DeBruijn ann)
-nameToDeBruijn (Name ann str u) = DeBruijn ann str <$> getIndex u
+    => Name -> m DeBruijn
+nameToDeBruijn (Name str u) = DeBruijn str <$> getIndex u
 
 tyNameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyName ann -> m (TyDeBruijn ann)
+    => TyName -> m TyDeBruijn
 tyNameToDeBruijn (TyName n) = TyDeBruijn <$> nameToDeBruijn n
 
 deBruijnToName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => DeBruijn ann -> m (Name ann)
-deBruijnToName (DeBruijn ann str ix) = Name ann str <$> getUnique ix
+    => DeBruijn -> m Name
+deBruijnToName (DeBruijn str ix) = Name str <$> getUnique ix
 
 deBruijnToTyName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyDeBruijn ann -> m (TyName ann)
+    => TyDeBruijn -> m TyName
 deBruijnToTyName (TyDeBruijn n) = TyName <$> deBruijnToName n
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'TyDeBruijn's.

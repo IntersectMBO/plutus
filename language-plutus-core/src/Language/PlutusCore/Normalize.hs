@@ -17,18 +17,18 @@ import           Control.Monad                          ((>=>))
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
 normalizeType
-    :: (HasUnique (tyname ann) TypeUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, MonadQuote m)
     => Type tyname uni ann -> m (Normalized (Type tyname uni ann))
 normalizeType = rename >=> runNormalizeTypeM . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesIn
-    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m)
     => Term tyname name uni ann -> m (Term tyname name uni ann)
 normalizeTypesIn = rename >=> runNormalizeTypeM . normalizeTypesInM
 
 -- | Normalize every 'Type' in a 'Program'.
 normalizeTypesInProgram
-    :: (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique, MonadQuote m)
+    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m)
     => Program tyname name uni ann -> m (Program tyname name uni ann)
 normalizeTypesInProgram (Program x v t) = Program x v <$> normalizeTypesIn t

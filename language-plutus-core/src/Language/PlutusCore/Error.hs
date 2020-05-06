@@ -60,7 +60,6 @@ throwingEither r e = case e of
 data ParseError ann
     = LexErr String
     | Unexpected (Token ann)
-    | Overflow ann Natural Integer
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''ParseError
 
@@ -96,15 +95,15 @@ data InternalTypeError uni ann
 makeClassyPrisms ''InternalTypeError
 
 data TypeError uni ann
-    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
+    = KindMismatch ann (Type TyName uni ()) (Kind ())  (Kind ())
     | TypeMismatch ann
         (Term TyName Name uni ())
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
     | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
     | InternalTypeErrorE ann (InternalTypeError uni ann)
-    | FreeTypeVariableE (TyName ann)
-    | FreeVariableE (Name ann)
+    | FreeTypeVariableE ann TyName
+    | FreeVariableE ann Name
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
@@ -135,9 +134,8 @@ asInternalError doc =
     "Please report this as a bug."
 
 instance Pretty ann => Pretty (ParseError ann) where
-    pretty (LexErr s)         = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t)     = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
-    pretty (Overflow ann _ _) = "Integer overflow at" <+> pretty ann <> "."
+    pretty (LexErr s)     = "Lexical error:" <+> Text (length s) (T.pack s)
+    pretty (Unexpected t) = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
@@ -173,7 +171,7 @@ instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
             "of the" <+> prettyBy config bi <+>
             "built-in is open"
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
             PrettyBy PrettyConfigPlc (TypeError uni ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
@@ -189,10 +187,10 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
         "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
         "," <> hardline <>
         "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
-    prettyBy config (FreeTypeVariableE name)          =
-        "Free type variable:" <+> prettyBy config name
-    prettyBy config (FreeVariableE name)              =
-        "Free variable:" <+> prettyBy config name
+    prettyBy config (FreeTypeVariableE ann name)          =
+        "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
+    prettyBy config (FreeVariableE ann name)              =
+        "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (InternalTypeErrorE ann err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty ann
@@ -200,7 +198,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
         "Unknown dynamic built-in name at" <+> pretty ann <>
         ":" <+> pretty err
 
-instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e

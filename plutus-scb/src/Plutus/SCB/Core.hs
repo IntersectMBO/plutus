@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -6,6 +7,7 @@
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -24,9 +26,7 @@ module Plutus.SCB.Core
     , activeContractHistory
     , Connection(Connection)
     , ContractCommand(..)
-    , MonadContract
     , invokeContract
-    , MonadEventStore
     , refreshProjection
     , runCommand
     , runGlobalQuery
@@ -34,23 +34,24 @@ module Plutus.SCB.Core
     , addProcessBus
     , Source(..)
     , toUUID
+    -- * Effects
+    , ContractEffects
+    , SCBEffects
     ) where
 
-import           Cardano.Node.API                           (NodeFollowerAPI, subscribe)
-import qualified Cardano.Node.API                           as NodeClient
+import           Cardano.Node.RandomTx                      (GenRandomTx)
 import           Cardano.Node.Types                         (FollowerID)
-import           Control.Error.Util                         (note)
-import           Control.Lens                               (assign, modifying, use, _1, _2)
+import           Control.Lens                               (_1, _2)
 import           Control.Monad                              (void)
-import           Control.Monad.Except                       (MonadError, throwError)
-import           Control.Monad.Except.Extras                (mapError)
-import           Control.Monad.IO.Class                     (MonadIO, liftIO)
+import           Control.Monad.Freer                        (Eff, Member, Members)
+import           Control.Monad.Freer.Error
+import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Extra.State            (assign, modifying, use)
+import           Control.Monad.Freer.State                  (State, execState)
 import           Control.Monad.IO.Unlift                    (MonadUnliftIO)
-import           Control.Monad.Logger                       (LoggingT, MonadLogger, logDebugN, logInfoN)
-import           Control.Monad.Reader                       (MonadReader, ReaderT, ask)
-import           Control.Monad.State                        (MonadState, StateT, execStateT)
-import           Control.Monad.Trans                        (lift)
-import           Data.Aeson                                 (FromJSON, ToJSON, withObject, (.:))
+import           Control.Monad.Logger                       (MonadLogger)
+import qualified Control.Monad.Logger                       as MonadLogger
+import           Data.Aeson                                 (withObject, (.:))
 import qualified Data.Aeson                                 as JSON
 import           Data.Aeson.Types                           (Parser)
 import qualified Data.Aeson.Types                           as JSON
@@ -61,235 +62,260 @@ import           Data.Set                                   (Set)
 import qualified Data.Set                                   as Set
 import           Data.Text                                  (Text)
 import qualified Data.Text                                  as Text
-import           Data.Text.Prettyprint.Doc                  (pretty, (<+>))
-import           Database.Persist.Sqlite                    (ConnectionPool, createSqlitePoolFromInfo,
-                                                             mkSqliteConnectionInfo, retryOnBusy, runSqlPool)
-import           Eventful                                   (Aggregate, EventStoreWriter, GlobalStreamProjection,
-                                                             ProcessManager (ProcessManager), Projection,
-                                                             StreamEvent (StreamEvent), UUID, VersionedEventStoreReader,
-                                                             VersionedStreamEvent, applyProcessManagerCommandsAndEvents,
-                                                             commandStoredAggregate, getLatestStreamProjection,
-                                                             globalStreamProjection, projectionMapMaybe,
-                                                             serializedEventStoreWriter,
-                                                             serializedGlobalEventStoreReader,
-                                                             serializedVersionedEventStoreReader, streamProjectionState,
-                                                             synchronousEventBusWrapper, uuidNextRandom)
-import           Eventful.Store.Sql                         (JSONString, SqlEvent, SqlEventStoreConfig,
-                                                             defaultSqlEventStoreConfig, jsonStringSerializer,
-                                                             sqlEventStoreReader, sqlGlobalEventStoreReader)
-import           Eventful.Store.Sqlite                      (sqliteEventStoreWriter)
+import           Data.Text.Prettyprint.Doc                  (Pretty, pretty, (<+>))
+import           Database.Persist.Sqlite                    (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
+import           Eventful                                   (Projection, StreamEvent (StreamEvent), UUID,
+                                                             projectionMapMaybe)
+import           Eventful.Store.Sql                         (defaultSqlEventStoreConfig)
 import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest (NotWaitingForPubKey, WaitingForPubKey))
 import qualified Language.Plutus.Contract.Wallet            as Wallet
+import           Ledger                                     (Tx)
 import qualified Ledger
-import           Ledger.Constraints                         (UnbalancedTx)
+import qualified Ledger.AddressMap                          as AM
+import           Ledger.Constraints.OffChain                (UnbalancedTx (unBalancedTxTx))
 import           Plutus.SCB.Command                         (installCommand, saveBalancedTx, saveBalancedTxResult,
                                                              saveBlock, saveContractState)
 import           Plutus.SCB.Events                          (ChainEvent (NodeEvent, UserEvent), NodeEvent (SubmittedTx),
                                                              UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Query                           (blockCount, latestContractStatus, monoidProjection,
-                                                             nullProjection, setProjection, utxoAt, utxoIndexProjection)
+import           Plutus.SCB.Query                           (blockCount, chainOverviewProjection, latestContractStatus,
+                                                             monoidProjection, setProjection, utxoAt)
 import           Plutus.SCB.Types                           (ActiveContract (ActiveContract),
-                                                             ActiveContractState (ActiveContractState),
-                                                             Contract (Contract),
+                                                             ActiveContractState (ActiveContractState), ContractExe,
                                                              ContractHook (OwnPubKeyHook, TxHook, UtxoAtHook),
                                                              DbConfig (DbConfig),
                                                              PartiallyDecodedResponse (PartiallyDecodedResponse),
-                                                             SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound, WalletError),
-                                                             Source (..), activeContract, activeContractId,
-                                                             activeContractPath, contractPath, dbConfigFile,
-                                                             dbConfigPoolSize, hooks, newState,
-                                                             partiallyDecodedResponse, toUUID)
-import           Plutus.SCB.Utils                           (liftError, render, tshow)
-import           Wallet.API                                 (ChainIndexAPI, NodeAPI, SigningProcessAPI, WalletAPI,
-                                                             WalletDiagnostics)
+                                                             SCBError (ActiveContractStateNotFound, ContractCommandError, ContractNotFound),
+                                                             Source (..), activeContract, activeContractDefinition,
+                                                             activeContractInstanceId, chainOverviewUnspentTxsById,
+                                                             chainOverviewUtxoIndex, dbConfigFile, dbConfigPoolSize,
+                                                             hooks, newState, partiallyDecodedResponse, toUUID)
+import           Plutus.SCB.Utils                           (render, tshow)
 import qualified Wallet.API                                 as WAPI
+import           Wallet.Emulator.MultiAgent                 (EmulatedWalletEffects)
 
-newtype Connection =
-    Connection (SqlEventStoreConfig SqlEvent JSONString, ConnectionPool)
+import           Cardano.Node.Follower                      (NodeFollowerEffect, getBlocks, newFollower)
+import           Plutus.SCB.Effects.Contract                (ContractCommand (..), ContractEffect, invokeContract)
+import           Plutus.SCB.Effects.EventLog                (Connection (..), EventLogEffect, addProcessBus,
+                                                             refreshProjection, runCommand, runGlobalQuery)
+import qualified Plutus.SCB.Effects.EventLog                as EventLog
+import           Plutus.SCB.Effects.UUID                    (UUIDEffect, uuidNextRandom)
+import           Wallet.API                                 (WalletEffect)
+import           Wallet.Effects                             (ChainIndexEffect, NodeClientEffect, SigningProcessEffect)
+import qualified Wallet.Effects                             as WalletEffects
+
+type ContractEffects t =
+        '[ EventLogEffect (ChainEvent t)
+         , Log
+         , UUIDEffect
+         , ContractEffect FilePath
+         , Error SCBError
+         ]
 
 installContract ::
-       (MonadLogger m, MonadEventStore ChainEvent m) => FilePath -> m ()
-installContract filePath = do
-    logInfoN $ "Installing: " <> tshow filePath
+    forall t effs.
+    ( Member Log effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    , Show t
+    )
+    => t
+    -> Eff effs ()
+installContract contractHandle = do
+    logInfo $ "Installing: " <> tshow contractHandle
     void $
         runCommand
             installCommand
             UserEventSource
-            (Contract {contractPath = filePath})
-    logInfoN "Installed."
+            contractHandle
+    logInfo "Installed."
 
+lookupContract ::
+    forall t effs.
+    ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (Error SCBError) effs
+    , Show t
+    , Ord t
+    )
+    => t
+    -> Eff effs t
+lookupContract t = do
+    installed <- installedContracts
+    let matchingContracts =
+            Set.filter
+                (\cp -> cp == t)
+                installed
+    case Set.lookupMin matchingContracts of
+        Just c  -> pure c
+        Nothing -> throwError (ContractNotFound (show t))
+
+-- | Create a new instance of the contract
 activateContract ::
-       ( MonadIO m
-       , MonadLogger m
-       , MonadEventStore ChainEvent m
-       , MonadContract m
-       , MonadError SCBError m
-       )
-    => FilePath
-    -> m UUID
+    forall t effs.
+    ( Member Log effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    , Member (Error SCBError) effs
+    , Member UUIDEffect effs
+    , Member (ContractEffect t) effs
+    , Show t
+    , Pretty t
+    , Ord t
+    )
+    => t
+    -> Eff effs UUID
 activateContract filePath = do
-    logInfoN "Finding Contract"
-    contract <- liftError $ lookupContract filePath
-    activeContractId <- liftIO uuidNextRandom
-    logInfoN "Initializing Contract"
-    response <-
-        liftError $ invokeContract $ InitContract (contractPath contract)
+    logInfo "Finding Contract"
+    contract <- lookupContract @t filePath
+    activeContractInstanceId <- uuidNextRandom
+    logInfo "Initializing Contract"
+    response <- invokeContract @t $ InitContract contract
     let activeContractState =
             ActiveContractState
                 { activeContract =
                       ActiveContract
-                          { activeContractId
-                          , activeContractPath = contractPath contract
+                          { activeContractInstanceId
+                          , activeContractDefinition = contract
                           }
                 , partiallyDecodedResponse = response
                 }
-    logInfoN "Storing Initial Contract State"
+    logInfo "Storing Initial Contract State"
     void $ runCommand saveContractState ContractEventSource activeContractState
-    logInfoN . render $
+    logInfo . render $
         "Activated:" <+> pretty (activeContract activeContractState)
-    logInfoN "Done"
-    pure activeContractId
+    logInfo "Done"
+    pure activeContractInstanceId
 
 updateContract ::
-       ( MonadLogger m
-       , MonadEventStore ChainEvent m
-       , MonadContract m
-       , MonadError SCBError m
-       , WalletAPI m
-       , NodeAPI m
-       , WalletDiagnostics m
-       , ChainIndexAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Members EmulatedWalletEffects effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (ContractEffect t) effs
+       , Member NodeFollowerEffect effs
+       , Show t
+       , Pretty t
+       , Ord t
        )
     => UUID
     -> Text
     -> JSON.Value
-    -> m ()
+    -> Eff effs ()
 updateContract uuid endpointName endpointPayload = do
-    logInfoN "Finding Contract"
-    oldContractState <- liftError $ lookupActiveContractState uuid
-    logInfoN $
+    logInfo "Finding Contract"
+    oldContractState <- lookupActiveContractState @t uuid
+    logInfo $
         "Updating Contract: " <>
-        Text.pack (activeContractPath (activeContract oldContractState)) <>
+        Text.pack (show $ activeContract oldContractState) <>
         "/" <> endpointName
-    fID <- subscribe
-    void $
-        execStateT
-            (invokeContractUpdate fID $
-             EventPayload endpointName endpointPayload)
-            (oldContractState, [])
-    --
-    logInfoN "Handling Resulting Blockchain Events"
-    logInfoN "Done"
+    fID <- newFollower
+    void
+        $ execState @(ActiveContractStateHooks _)  (oldContractState, [])
+        $ invokeContractUpdate @t fID (EventPayload endpointName endpointPayload)
+    logInfo "Handling Resulting Blockchain Events"
+    logInfo "Done"
 
 parseSingleHook ::
-       MonadError SCBError m
+    ( Member (Error SCBError) effs
+    )
     => (JSON.Value -> Parser a)
     -> PartiallyDecodedResponse
-    -> m a
+    -> Eff effs a
 parseSingleHook parser response =
     case JSON.parseEither parser (hooks response) of
         Left err     -> throwError $ ContractCommandError 0 $ Text.pack err
         Right result -> pure result
 
 handleContractHook ::
-       ( MonadError SCBError m
-       , MonadLogger m
-       , MonadEventStore ChainEvent m
-       , WalletAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , MonadContract m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , ChainIndexAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Members EmulatedWalletEffects effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
+       , Member NodeFollowerEffect effs
+       , Member (ContractEffect t) effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> ContractHook
-    -> m ()
-handleContractHook _ (TxHook unbalancedTxs)  = handleTxHook unbalancedTxs
-handleContractHook i (UtxoAtHook addresses)  = handleUtxoAtHook i addresses
-handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook i request
+    -> Eff effs ()
+handleContractHook _ (TxHook unbalancedTxs)  = handleTxHook @t unbalancedTxs
+handleContractHook i (UtxoAtHook address)  =
+    WalletEffects.startWatching address >> handleUtxoAtHook @t i address
+handleContractHook i (OwnPubKeyHook request) = handleOwnPubKeyHook @t i request
 
 handleTxHook ::
-       ( MonadError SCBError m
-       , MonadLogger m
-       , MonadEventStore ChainEvent m
-       , WalletAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , ChainIndexAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Members EmulatedWalletEffects effs
+       , Member (EventLogEffect (ChainEvent t)) effs
        )
     => UnbalancedTx
-    -> m ()
+    -> Eff effs ()
 handleTxHook unbalancedTx = do
-    logInfoN "Handling 'tx' hook."
-    logInfoN $ "Balancing unbalanced TX: " <> tshow unbalancedTx
-    balancedTx <- (mapError WalletError . Wallet.balanceWallet) unbalancedTx
+    logInfo "Handling 'tx' hook."
+    logInfo "Start watching contract addresses."
+    AM.addressesTouched <$> WalletEffects.watchedAddresses <*> pure (unBalancedTxTx unbalancedTx) >>= traverse_ WalletEffects.startWatching
+    logInfo $ "Balancing unbalanced TX: " <> tshow unbalancedTx
+    balancedTx <- Wallet.balanceWallet unbalancedTx
     signedTx <- WAPI.signWithOwnPublicKey balancedTx
-    logInfoN $ "Storing signed TX: " <> tshow signedTx
-    void $ runCommand saveBalancedTx WalletEventSource balancedTx
-    logInfoN $ "Submitting signed TX: " <> tshow signedTx
+    logInfo $ "Storing signed TX: " <> tshow signedTx
+    void $ runCommand (saveBalancedTx @t) WalletEventSource balancedTx
+    logInfo $ "Submitting signed TX: " <> tshow signedTx
     balanceResult <- submitTx signedTx
-    void $ runCommand saveBalancedTxResult NodeEventSource balanceResult
+    void $ runCommand (saveBalancedTxResult @t) NodeEventSource balanceResult
 
 handleUtxoAtHook ::
-       ( MonadError SCBError m
-       , MonadContract m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , MonadEventStore ChainEvent m
-       , MonadLogger m
-       , WalletAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , ChainIndexAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Member (Error SCBError) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
+       , Member NodeFollowerEffect effs
+       , Member (ContractEffect t) effs
+       , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> Ledger.Address
-    -> m ()
+    -> Eff effs ()
 handleUtxoAtHook i address = do
-    logDebugN $ "Fetching utxo-at: " <> tshow address
-    utxoIndex <- runGlobalQuery utxoIndexProjection
-    let utxoAtAddress = utxoAt utxoIndex address
-    logDebugN $ "Fetched utxo-at: " <> tshow utxoAtAddress
-    invokeContractUpdate i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
+    logDebug $ "Fetching utxo-at: " <> tshow address
+    chainOverview <- runGlobalQuery $ chainOverviewProjection @t
+    let utxoAtAddress =
+            utxoAt
+                ( chainOverviewUnspentTxsById chainOverview
+                , chainOverviewUtxoIndex chainOverview)
+                address
+    logDebug $ "Fetched utxo-at: " <> tshow utxoAtAddress
+    invokeContractUpdate @t i $ EventPayload "utxo-at" (JSON.toJSON utxoAtAddress)
 
 handleOwnPubKeyHook ::
-       ( MonadError SCBError m
-       , MonadContract m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , MonadEventStore ChainEvent m
-       , MonadLogger m
-       , WalletAPI m
-       , ChainIndexAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Member (Error SCBError) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
+       , Member NodeFollowerEffect effs
+       , Member (ContractEffect t) effs
+       , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> OwnPubKeyRequest
-    -> m ()
+    -> Eff effs ()
 handleOwnPubKeyHook _ NotWaitingForPubKey = pure ()
 handleOwnPubKeyHook i WaitingForPubKey = do
-    logInfoN "Handling 'own-pubkey' hook."
+    logInfo "Handling 'own-pubkey' hook."
     key :: WAPI.PubKey <- WAPI.ownPubKey
-    invokeContractUpdate i $ EventPayload "own-pubkey" (JSON.toJSON key)
+    invokeContractUpdate @t i $ EventPayload "own-pubkey" (JSON.toJSON key)
 
 -- | A wrapper around the NodeAPI function that returns some more
 -- useful evidence of the work done.
-submitTx :: (Monad m, NodeAPI m) => Ledger.Tx -> m Ledger.Tx
+submitTx :: (Member WalletEffect effs) => Ledger.Tx -> Eff effs Ledger.Tx
 submitTx tx = do
     WAPI.submitTxn tx
     pure tx
 
 parseHooks ::
-       MonadError SCBError m => PartiallyDecodedResponse -> m [ContractHook]
+       Member (Error SCBError) effs => PartiallyDecodedResponse -> Eff effs [ContractHook]
 parseHooks = parseSingleHook hookParser
 
 hookParser :: JSON.Value -> Parser [ContractHook]
@@ -301,124 +327,124 @@ hookParser =
         pure $ txHooks <> utxoAtHooks <> [ownPubKeyHook]
 
 reportContractStatus ::
-       (MonadLogger m, MonadEventStore ChainEvent m) => UUID -> m ()
+    forall t effs.
+    ( Member Log effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    , Pretty t
+    )
+    => UUID
+    -> Eff effs ()
 reportContractStatus uuid = do
-    logInfoN "Finding Contract"
-    statuses <- runGlobalQuery latestContractStatus
-    logInfoN $ render $ pretty $ Map.lookup uuid statuses
-
-lookupContract ::
-       MonadEventStore ChainEvent m => FilePath -> m (Either SCBError Contract)
-lookupContract filePath = do
-    installed <- installedContracts
-    let matchingContracts =
-            Set.filter
-                (\Contract {contractPath} -> contractPath == filePath)
-                installed
-    pure $ note (ContractNotFound filePath) $ Set.lookupMin matchingContracts
+    logInfo "Finding Contract"
+    statuses <- runGlobalQuery (latestContractStatus @t)
+    logInfo $ render $ pretty $ Map.lookup uuid statuses
 
 lookupActiveContractState ::
-       MonadEventStore ChainEvent m
+    forall t effs.
+    ( Member (Error SCBError) effs
+    , Member (EventLogEffect (ChainEvent t)) effs
+    )
     => UUID
-    -> m (Either SCBError ActiveContractState)
+    -> Eff effs (ActiveContractState t)
 lookupActiveContractState uuid = do
     active <- activeContractStates
-    pure $ note (ActiveContractStateNotFound uuid) $ Map.lookup uuid active
+    case Map.lookup uuid active of
+        Nothing -> throwError (ActiveContractStateNotFound uuid)
+        Just s  -> return s
 
-data ContractCommand
-    = InitContract FilePath
-    | UpdateContract FilePath JSON.Value
-    deriving (Show, Eq)
+type ActiveContractStateHooks t = (ActiveContractState t, [ContractHook])
 
 invokeContractUpdate ::
-       ( MonadError SCBError m
-       , MonadContract m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , MonadEventStore ChainEvent m
-       , MonadLogger m
-       , WalletAPI m
-       , ChainIndexAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member (Error SCBError) effs
+       , Member (State (ActiveContractStateHooks t )) effs
+       , Member NodeFollowerEffect effs
+       , Member (ContractEffect t) effs
+       , Members EmulatedWalletEffects effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
     -> Payload
-    -> m ()
+    -> Eff effs ()
 invokeContractUpdate i payload = do
-    oldContractState <- use _1
-    -- Invoke the contract. Get the repsonse.
+    oldContractState <- use @(ActiveContractStateHooks t) _1
+    -- Invoke the contract. Get the response.
     response <- invokeContractUpdate_ oldContractState payload
     let newContractState =
             oldContractState {partiallyDecodedResponse = response}
-    logDebugN . render $ "Updated: " <+> pretty newContractState
+    logDebug . render $ "Updated: " <+> pretty newContractState
     -- Store the new state
-    logInfoN "Storing Updated Contract State"
+    logInfo "Storing Updated Contract State"
     void $ runCommand saveContractState ContractEventSource newContractState
     -- Append the new hooks.
     newHooks <- parseHooks response
-    assign _1 newContractState
-    pushHooks newHooks
-    processAllHooks i
+    assign @(ActiveContractStateHooks t) _1 newContractState
+    pushHooks @t newHooks
+    processAllHooks @t i
 
 processAllHooks ::
-       ( MonadError SCBError m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , MonadEventStore ChainEvent m
-       , MonadLogger m
-       , MonadContract m
-       , WalletAPI m
-       , ChainIndexAPI m
-       , WalletDiagnostics m
-       , NodeAPI m
-       , NodeFollowerAPI m
-       , SigningProcessAPI m
+    forall t effs.
+       ( Members EmulatedWalletEffects effs
+       , Member (Error SCBError) effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member (State (ActiveContractStateHooks t)) effs
+       , Member NodeFollowerEffect effs
+       , Member (ContractEffect t) effs
+       , Pretty t
+       , Ord t
        )
     => FollowerID
-    -> m ()
+    -> Eff effs ()
 processAllHooks i =
-    popHook i >>= \case
+    popHook @t i >>= \case
         Nothing -> pure ()
         Just hook -> do
-            handleContractHook i hook
-            sync i
-            processAllHooks i
+            handleContractHook @t i hook
+            sync @t i
+            processAllHooks @t i
 
 sync ::
-       (MonadLogger m, MonadEventStore ChainEvent m, NodeFollowerAPI m)
+    forall t effs.
+       ( Member NodeFollowerEffect effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member Log effs
+       )
     => FollowerID
-    -> m ()
+    -> Eff effs ()
 sync i = do
-    blocks <- NodeClient.blocks i
-    traverse_ (runCommand saveBlock NodeEventSource) blocks
-    count <- runGlobalQuery blockCount
-    logDebugN $ "Block count is now: " <> tshow count
+    blocks <- getBlocks i
+    traverse_ (runCommand (saveBlock @t) NodeEventSource) blocks
+    count <- runGlobalQuery (blockCount @t)
+    logDebug $ "Block count is now: " <> tshow count
 
 -- | Old hooks go to the back of the queue.
 pushHooks ::
-       (MonadState (ActiveContractState, [ContractHook]) m)
+    forall t effs.
+       (Member (State (ActiveContractStateHooks t)) effs)
     => [ContractHook]
-    -> m ()
-pushHooks newHooks = modifying _2 (\oldHooks -> oldHooks <> newHooks)
+    -> Eff effs ()
+pushHooks newHooks = modifying @(ActiveContractStateHooks t) _2 (\oldHooks -> oldHooks <> newHooks)
 
 popHook ::
-       ( MonadEventStore ChainEvent m
-       , MonadState (ActiveContractState, [ContractHook]) m
-       , MonadLogger m
-       , NodeFollowerAPI m
+    forall t effs.
+       ( Member (State (ActiveContractStateHooks t)) effs
+       , Member Log effs
+       , Member (EventLogEffect (ChainEvent t)) effs
+       , Member NodeFollowerEffect effs
        )
     => FollowerID
-    -> m (Maybe ContractHook)
+    -> Eff effs (Maybe ContractHook)
 popHook i = do
-    oldHooks <- use _2
-    logDebugN $ "Current Hooks: " <> tshow oldHooks
+    oldHooks <- use @(ActiveContractStateHooks t) _2
+    logDebug $ "Current Hooks: " <> tshow oldHooks
     case oldHooks of
         [] -> do
-            sync i
+            sync @t i
             pure Nothing
         (hook:newHooks) -> do
-            assign _2 newHooks
+            assign @(ActiveContractStateHooks t) _2 newHooks
             pure $ Just hook
 
 data Payload
@@ -433,156 +459,105 @@ encodePayload (EventPayload endpointName endpointValue) =
     , JSON.object [("tag", JSON.String endpointName), ("value", endpointValue)])
 
 invokeContractUpdate_ ::
-       (MonadContract m, MonadError SCBError m)
-    => ActiveContractState
+       (Member (ContractEffect t) effs)
+    => ActiveContractState t
     -> Payload
-    -> m PartiallyDecodedResponse
-invokeContractUpdate_ ActiveContractState { activeContract = ActiveContract {activeContractPath}
+    -> Eff effs PartiallyDecodedResponse
+invokeContractUpdate_ ActiveContractState { activeContract = ActiveContract {activeContractDefinition}
                                           , partiallyDecodedResponse = PartiallyDecodedResponse {newState}
                                           } payload =
-    liftError $
     invokeContract $
-    UpdateContract activeContractPath $
+    UpdateContract activeContractDefinition $
     JSON.object [("oldState", newState), encodePayload payload]
 
-installedContracts :: MonadEventStore ChainEvent m => m (Set Contract)
+installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set t)
 installedContracts = runGlobalQuery installedContractsProjection
 
 installedContractsProjection ::
-       Projection (Set Contract) (StreamEvent key position ChainEvent)
+    forall t key position.
+    Ord t => Projection (Set t) (StreamEvent key position (ChainEvent t))
 installedContractsProjection = projectionMapMaybe contractPaths setProjection
   where
     contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
         Just contract
     contractPaths _ = Nothing
 
-activeContracts :: MonadEventStore ChainEvent m => m (Set ActiveContract)
+activeContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set (ActiveContract t))
 activeContracts = runGlobalQuery activeContractsProjection
 
 activeContractsProjection ::
-       Projection (Set ActiveContract) (StreamEvent key position ChainEvent)
+    forall t key position. Ord t =>
+       Projection (Set (ActiveContract t)) (StreamEvent key position (ChainEvent t))
 activeContractsProjection = projectionMapMaybe contractPaths setProjection
   where
     contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
         Just $ activeContract state
     contractPaths _ = Nothing
 
-txHistory :: MonadEventStore ChainEvent m => m [Ledger.Tx]
-txHistory = runGlobalQuery txHistoryProjection
+txHistory :: forall t effs. (Member (EventLogEffect (ChainEvent t)) effs) => Eff effs [Ledger.Tx]
+txHistory = runGlobalQuery (txHistoryProjection @t)
 
 txHistoryProjection ::
-       Projection [Ledger.Tx] (StreamEvent key position ChainEvent)
+    forall t key position.
+       Projection [Ledger.Tx] (StreamEvent key position (ChainEvent t))
 txHistoryProjection = projectionMapMaybe submittedTxs monoidProjection
   where
     submittedTxs (StreamEvent _ _ (NodeEvent (SubmittedTx tx))) = Just [tx]
     submittedTxs _                                              = Nothing
 
 activeContractHistory ::
-       MonadEventStore ChainEvent m => UUID -> m [ActiveContractState]
+       Member (EventLogEffect (ChainEvent t)) effs => UUID -> Eff effs [ActiveContractState t]
 activeContractHistory uuid = runGlobalQuery activeContractHistoryProjection
   where
     activeContractHistoryProjection ::
-           Projection [ActiveContractState] (StreamEvent key position ChainEvent)
+           Projection [ActiveContractState t] (StreamEvent key position (ChainEvent t))
     activeContractHistoryProjection =
         projectionMapMaybe contractPaths monoidProjection
       where
         contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-            if activeContractId (activeContract state) == uuid
+            if activeContractInstanceId (activeContract state) == uuid
                 then Just [state]
                 else Nothing
         contractPaths _ = Nothing
 
 activeContractStates ::
-       MonadEventStore ChainEvent m => m (Map UUID ActiveContractState)
+    forall t effs.
+       Member (EventLogEffect (ChainEvent t)) effs => Eff effs (Map UUID (ActiveContractState t))
 activeContractStates = runGlobalQuery activeContractStatesProjection
   where
     activeContractStatesProjection ::
-           Projection (Map UUID ActiveContractState) (StreamEvent key position ChainEvent)
+           Projection (Map UUID (ActiveContractState t)) (StreamEvent key position (ChainEvent t))
     activeContractStatesProjection =
         projectionMapMaybe contractStatePaths monoidProjection
       where
         contractStatePaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-            Just $ Map.singleton (activeContractId (activeContract state)) state
+            Just $ Map.singleton (activeContractInstanceId (activeContract state)) state
         contractStatePaths _ = Nothing
 
 ------------------------------------------------------------
 -- | Create a database 'Connection' containing the connection pool
 -- plus some configuration information.
 dbConnect ::
-       (MonadUnliftIO m, MonadLogger m, MonadReader DbConfig m) => m Connection
-dbConnect = do
-    DbConfig {dbConfigFile, dbConfigPoolSize} <- ask
+    ( MonadUnliftIO m
+    , MonadLogger m
+    )
+    => DbConfig
+    -> m EventLog.Connection
+dbConnect DbConfig {dbConfigFile, dbConfigPoolSize} = do
     let connectionInfo = mkSqliteConnectionInfo dbConfigFile
-    logDebugN "Connecting to DB"
+    MonadLogger.logDebugN "Connecting to DB"
     connectionPool <- createSqlitePoolFromInfo connectionInfo dbConfigPoolSize
-    pure $ Connection (defaultSqlEventStoreConfig, connectionPool)
+    pure $ EventLog.Connection (defaultSqlEventStoreConfig, connectionPool)
 
-------------------------------------------------------------
-class Monad m =>
-      MonadContract m
-    where
-    invokeContract ::
-           ContractCommand -> m (Either SCBError PartiallyDecodedResponse)
-
-instance MonadContract m => MonadContract (StateT state m) where
-    invokeContract = lift . invokeContract
-
-class Monad m =>
-      MonadEventStore event m
-    where
-    refreshProjection ::
-           GlobalStreamProjection state event
-        -> m (GlobalStreamProjection state event)
-    runCommand ::
-           Aggregate state event command -> Source -> command -> m [event]
-
-instance MonadEventStore event m => MonadEventStore event (StateT state m) where
-    refreshProjection = lift . refreshProjection
-    runCommand aggregate source command =
-        lift $ runCommand aggregate source command
-
-instance (FromJSON event, ToJSON event) =>
-         MonadEventStore event (ReaderT Connection (LoggingT IO)) where
-    refreshProjection projection = do
-        (Connection (sqlConfig, connectionPool)) <- ask
-        let reader =
-                serializedGlobalEventStoreReader jsonStringSerializer $
-                sqlGlobalEventStoreReader sqlConfig
-        flip runSqlPool connectionPool $
-            getLatestStreamProjection reader projection
-    runCommand aggregate source input = do
-        (Connection (sqlConfig, connectionPool)) <- ask
-        let reader =
-                serializedVersionedEventStoreReader jsonStringSerializer $
-                sqlEventStoreReader sqlConfig
-        let writer =
-                addProcessBus
-                    (serializedEventStoreWriter jsonStringSerializer $
-                     sqliteEventStoreWriter sqlConfig)
-                    reader
-        retryOnBusy . flip runSqlPool connectionPool $
-            commandStoredAggregate writer reader aggregate (toUUID source) input
-
-runGlobalQuery ::
-       MonadEventStore event m
-    => Projection a (VersionedStreamEvent event)
-    -> m a
-runGlobalQuery query =
-    fmap streamProjectionState <$> refreshProjection $
-    globalStreamProjection query
-
-addProcessBus ::
-       Monad m
-    => EventStoreWriter m event
-    -> VersionedEventStoreReader m event
-    -> EventStoreWriter m event
-addProcessBus writer reader =
-    synchronousEventBusWrapper
-        writer
-        [ \subwriter _ _ ->
-              applyProcessManagerCommandsAndEvents
-                  (ProcessManager nullProjection (const []) (const []))
-                  subwriter
-                  reader
-                  ()
+type SCBEffects =
+        '[ GenRandomTx
+        , NodeFollowerEffect
+        , WalletEffect
+        , UUIDEffect
+        , ContractEffect ContractExe
+        , ChainIndexEffect
+        , NodeClientEffect
+        , SigningProcessEffect
+        , EventLogEffect (ChainEvent ContractExe)
+        , Log
         ]

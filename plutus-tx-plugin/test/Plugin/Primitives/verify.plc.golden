@@ -1,7 +1,6 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -11,11 +10,9 @@
       )
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (termbind
-        (strict
-        )
+        (strict)
         (vardecl
           verifySignature
           (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))

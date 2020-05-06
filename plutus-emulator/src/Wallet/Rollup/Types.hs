@@ -6,13 +6,26 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE TemplateHaskell            #-}
+
 module Wallet.Rollup.Types where
 
-import           Control.Lens (makeLenses)
-import           Data.Aeson   (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
-import           Data.Map     (Map)
+import           Control.Lens              (makeLenses)
+import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
+import           Data.Map                  (Map)
+import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow)
 import           GHC.Generics
 import           Ledger
+
+data TxKey =
+    TxKey
+        { _txKeyTxId        :: TxId
+        , _txKeyTxOutRefIdx :: Integer
+        }
+    deriving (Show, Eq, Ord, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+instance Pretty TxKey where
+    pretty = viaShow
 
 data SequenceId =
     SequenceId
@@ -22,13 +35,18 @@ data SequenceId =
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-data DereferencedInput =
-    DereferencedInput
-        { originalInput :: TxIn
-        , refersTo      :: TxOut
-        }
+data DereferencedInput
+    = DereferencedInput
+          { originalInput :: TxIn
+          , refersTo      :: TxOut
+          }
+    | InputNotFound TxKey
     deriving (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+isFound :: DereferencedInput -> Bool
+isFound DereferencedInput {} = True
+isFound (InputNotFound _)    = False
 
 data BeneficialOwner
     = OwnedByPubKey PubKeyHash
@@ -56,3 +74,12 @@ data AnnotatedTx =
 makeLenses 'SequenceId
 
 makeLenses 'AnnotatedTx
+
+data Rollup =
+    Rollup
+        { _previousOutputs :: Map TxKey TxOut
+        , _rollingBalances :: Map BeneficialOwner Value
+        }
+    deriving (Show, Eq, Generic)
+
+makeLenses 'Rollup

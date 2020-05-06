@@ -96,6 +96,6 @@ data SharedName =
     | FixBy
     deriving (Show, Eq, Ord)
 
-toProgramName :: SharedName -> Quote (PLC.Name ())
-toProgramName (FixpointCombinator n) = freshName () ("fix" <> T.pack (show n))
-toProgramName FixBy                  = freshName () "fixBy"
+toProgramName :: SharedName -> Quote PLC.Name
+toProgramName (FixpointCombinator n) = freshName ("fix" <> T.pack (show n))
+toProgramName FixBy                  = freshName "fixBy"

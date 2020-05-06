@@ -28,7 +28,7 @@ import           Data.Row
 import           Data.String                        (IsString (fromString))
 import           GHC.Generics                       (Generic)
 import           Servant                            ((:<|>) ((:<|>)), (:>), Get, JSON, Post, ReqBody, err500, errBody)
-import           Servant.Server                     (Application, ServantErr, Server, serve)
+import           Servant.Server                     (Application, Server, ServerError, serve)
 
 import           Language.Plutus.Contract.Record    (Record)
 import qualified Language.Plutus.Contract.Record    as Rec
@@ -78,7 +78,7 @@ contractServer con = initialise :<|> run where
     run req = servantResp (runUpdate con req)
 
 servantResp
-    :: (Show e, MonadError ServantErr m)
+    :: (Show e, MonadError ServerError m)
     => Either (ResumableError e) (Response s)
     -> m (Response s)
 servantResp = \case

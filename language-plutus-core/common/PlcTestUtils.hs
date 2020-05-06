@@ -24,12 +24,13 @@ import           Common
 import           Language.PlutusCore
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Pretty
 
 import           Control.Exception
 import           Control.Monad.Except
-import qualified Data.Text.Prettyprint.Doc                       as PP
+import qualified Data.Text.Prettyprint.Doc                                  as PP
 import           System.IO.Unsafe
 
 -- | Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
@@ -57,13 +58,13 @@ trivialProgram = Program () (defaultVersion ())
 
 runPlc
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst, Typeable uni
        )
     => [a] -> ExceptT SomeException IO (EvaluationResultDef uni)
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps
-    liftEither . first toException . extractEvaluationResult . evaluateCek mempty $ toTerm p
+    liftEither . first toException . extractEvaluationResult . evaluateCek mempty defaultCostModel $ toTerm p
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
@@ -72,14 +73,14 @@ ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 
 goldenPlc
-    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
+    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
      => String -> a -> TestNested
 goldenPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
     p <- getProgram value
     withExceptT toException $ deBruijnProgram p
 
 goldenPlcCatch
-    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` Pretty)
+    :: (GetProgram a uni, GShow uni, Closed uni, uni `Everywhere` PrettyConst)
     => String -> a -> TestNested
 goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
     p <- getProgram value
@@ -87,14 +88,14 @@ goldenPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
 
 goldenEval
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst, Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlc values)
 
 goldenEvalCatch
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` Pretty, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst, Typeable uni
        )
     => String -> [a] -> TestNested
 goldenEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runPlc values

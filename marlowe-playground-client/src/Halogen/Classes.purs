@@ -1,12 +1,15 @@
 module Halogen.Classes where
 
 import Prelude
-import Data.Lens (to, (^.))
+import Data.Lens (Getter', to, (^.))
 import Halogen (ClassName(..))
-import Halogen.HTML (HTML, span, text)
+import Halogen.HTML (HTML, IProp, span, text)
+import Halogen.HTML.Properties (classes)
 import Types (FrontendState, View(..), _showBottomPanel, _view)
 
 foreign import closeDrawerIcon :: String
+
+foreign import closeDrawerArrowIcon :: String
 
 foreign import githubIcon :: String
 
@@ -98,8 +101,8 @@ textSecondaryColor = ClassName "text-secondary-color"
 bold :: ClassName
 bold = ClassName "bold"
 
-activeTextPrimary :: ClassName
-activeTextPrimary = ClassName "active-text-primary"
+underline :: ClassName
+underline = ClassName "underline"
 
 mAlignCenter :: ClassName
 mAlignCenter = ClassName "m-align-center"
@@ -116,11 +119,14 @@ flexFour = ClassName "flex-four"
 flexTen :: ClassName
 flexTen = ClassName "flex-ten"
 
-isActiveTab :: FrontendState -> View -> Array ClassName
-isActiveTab state activeView = if state ^. _view <<< (to (eq activeView)) then [ active ] else []
+activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
+activeClass p = to \x -> if p x then [ active ] else []
 
-isActiveDemo :: FrontendState -> Array ClassName
-isActiveDemo state = if true then [ ClassName "active-text" ] else []
+activeClasses :: forall r i a. (a -> Boolean) -> Getter' a (IProp ( class :: String | r ) i)
+activeClasses p = activeClass p <<< to classes
+
+isActiveTab :: FrontendState -> View -> Array ClassName
+isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
 
 rTable :: ClassName
 rTable = ClassName "Rtable"
@@ -166,6 +172,11 @@ expanded true = ClassName "expanded"
 
 expanded false = ClassName ""
 
+disabled :: Boolean -> ClassName
+disabled true = ClassName "disabled"
+
+disabled false = ClassName ""
+
 footerPanelBg :: FrontendState -> View -> Array ClassName
 footerPanelBg state HaskellEditor =
   if state ^. _showBottomPanel then
@@ -179,7 +190,6 @@ footerPanelBg state _ =
   else
     [ ClassName "footer-panel-bg" ]
 
--- FIXME: get correct piece of state
 githubDisplay :: FrontendState -> Array ClassName
 githubDisplay state = if state ^. _showBottomPanel then [ ClassName "hover" ] else []
 

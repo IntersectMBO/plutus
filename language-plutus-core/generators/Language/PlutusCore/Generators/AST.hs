@@ -43,12 +43,12 @@ all the machineries handle variables with same uniques from distinct scopes corr
 -- See Note [ScopeHandling].
 -- | The monad that generators run in. The environment is a list of names to choose from for
 -- generation of variables and binders.
-type AstGen = GenT (Reader [Name ()])
+type AstGen = GenT (Reader [Name])
 
 runAstGen :: MonadGen m => AstGen a -> m a
 runAstGen a = do
     names <- genNames
-    Gen.liftGen $ hoist (return . flip runReader names) a
+    Gen.fromGenT $ hoist (return . flip runReader names) a
 
 genVersion :: MonadGen m => m (Version ())
 genVersion = Version () <$> int' <*> int' <*> int' where
@@ -56,22 +56,22 @@ genVersion = Version () <$> int' <*> int' <*> int' where
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
-genNames :: MonadGen m => m [Name ()]
+genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
     let isKeyword n = n `elem` fmap prettyText allKeywords
         isBuiltin n = n `elem` fmap prettyText allBuiltinNames
         isReserved t = isKeyword t || isBuiltin t
-        genText = Gen.filter (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
+        genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
         text <- genText
-        return $ Name () text uniq
+        return $ Name text uniq
 
-genName :: AstGen (Name ())
+genName :: AstGen Name
 genName = ask >>= Gen.element
 
-genTyName :: AstGen (TyName ())
+genTyName :: AstGen TyName
 genTyName = TyName <$> genName
 
 genKind :: AstGen (Kind ())
@@ -138,7 +138,7 @@ subset1 s
 
 substAllNames
     :: Monad m
-    => (Name () -> m (Maybe (Name ())))
+    => (Name -> m (Maybe Name))
     -> Term TyName Name DefaultUni ()
     -> m (Term TyName Name DefaultUni ())
 substAllNames ren =
@@ -146,7 +146,7 @@ substAllNames ren =
     termSubstTyNamesM (fmap (fmap $ TyVar () . TyName) . ren . unTyName)
 
 -- See Note [ScopeHandling].
-allTermNames :: Term TyName Name DefaultUni () -> Set (Name ())
+allTermNames :: Term TyName Name DefaultUni () -> Set Name
 allTermNames term = vTerm term <> Set.map coerce (tvTerm term)
 
 -- See Note [Name mangling]
@@ -156,7 +156,7 @@ mangleNames term = do
     mayNamesMangle <- subset1 names
     for mayNamesMangle $ \namesMangle -> do
         let isNew name = not $ name `Set.member` namesMangle
-        newNames <- Gen.just $ ensure (not . null) . filter isNew <$> genNames
+        newNames <- Gen.justT $ ensure (not . null) . filter isNew <$> genNames
         let mang name
                 | name `Set.member` namesMangle = Just <$> Gen.element newNames
                 | otherwise                     = return Nothing

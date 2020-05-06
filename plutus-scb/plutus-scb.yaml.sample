@@ -2,6 +2,9 @@ dbConfig:
     dbConfigFile: scb-core.db
     dbConfigPoolSize: 20
 
+scbWebserverConfig:
+  baseUrl: http://localhost:8080
+
 walletServerConfig:
   baseUrl: http://localhost:8081
 

@@ -1,8 +1,16 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    (termbind
+      (strict)
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
+      )
     )
     (let
       (nonrec)
@@ -38,17 +46,8 @@
         )
         (let
           (nonrec)
-          (termbind
-            (strict)
-            (vardecl
-              subtractInteger
-              (fun (con integer) (fun (con integer) (con integer)))
-            )
-            (lam
-              arg
-              (con integer)
-              (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
-            )
+          (datatypebind
+            (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
           )
           (let
             (rec)

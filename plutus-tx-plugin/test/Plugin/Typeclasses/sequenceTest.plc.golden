@@ -1,246 +1,284 @@
 (program
   (let
-    (nonrec
-    )
+    (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+      (datatype
+        (tyvardecl Applicative (fun (fun (type) (type)) (type)))
+        (tyvardecl f (fun (type) (type)))
+        Applicative_match
+        (vardecl
+          CConsApplicative
+          (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f] (fun (all a (type) (fun a [f a])) (fun (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b])))) [Applicative f])))
+        )
+      )
     )
     (let
-      (nonrec
-      )
+      (nonrec)
       (datatypebind
-        (datatype
-          (tyvardecl Maybe (fun (type) (type)))
-          (tyvardecl a (type))
-          Maybe_match
-          (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
-        )
+        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
       )
       (let
-        (nonrec
-        )
+        (nonrec)
         (termbind
-          (strict
-          )
+          (strict)
           (vardecl
-            fApplicativeMaybe_c
-            (all a (type) (all b (type) (fun [Maybe (fun a b)] (fun [Maybe a] [Maybe b]))))
+            pure
+            (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (fun a [f a]))))
           )
           (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                ds
-                [Maybe (fun a b)]
+            f
+            (fun (type) (type))
+            (lam
+              v
+              [Applicative f]
+              [
+                { [ { Applicative_match f } v ] (all a (type) (fun a [f a])) }
                 (lam
-                  ds
-                  [Maybe a]
-                  [
-                    [
-                      [
-                        {
-                          [ { Maybe_match (fun a b) } ds ] (fun Unit [Maybe b])
-                        }
-                        (lam
-                          ipv
-                          (fun a b)
-                          (lam
-                            thunk
-                            Unit
-                            [
-                              [
-                                [
-                                  {
-                                    [ { Maybe_match a } ds ]
-                                    (fun Unit [Maybe b])
-                                  }
-                                  (lam
-                                    ipv
-                                    a
-                                    (lam thunk Unit [ { Just b } [ ipv ipv ] ])
-                                  )
-                                ]
-                                (lam thunk Unit { Nothing b })
-                              ]
-                              Unit
-                            ]
-                          )
-                        )
-                      ]
-                      (lam thunk Unit { Nothing b })
-                    ]
-                    Unit
-                  ]
+                  v
+                  [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                  (lam
+                    v
+                    (all a (type) (fun a [f a]))
+                    (lam
+                      v
+                      (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                      v
+                    )
+                  )
                 )
-              )
+              ]
             )
           )
         )
         (let
-          (nonrec
-          )
-          (termbind
-            (strict
-            )
-            (vardecl
-              fFunctorMaybe_cfmap
-              (all a (type) (all b (type) (fun (fun a b) (fun [Maybe a] [Maybe b]))))
-            )
-            (abs
-              a
-              (type)
-              (abs
-                b
-                (type)
-                (lam
-                  f
-                  (fun a b)
-                  (lam
-                    ds
-                    [Maybe a]
-                    [
-                      [
-                        [
-                          { [ { Maybe_match a } ds ] (fun Unit [Maybe b]) }
-                          (lam a a (lam thunk Unit [ { Just b } [ f a ] ]))
-                        ]
-                        (lam thunk Unit { Nothing b })
-                      ]
-                      Unit
-                    ]
-                  )
-                )
-              )
+          (rec)
+          (datatypebind
+            (datatype
+              (tyvardecl List (fun (type) (type)))
+              (tyvardecl a (type))
+              Nil_match
+              (vardecl Nil [List a])
+              (vardecl Cons (fun a (fun [List a] [List a])))
             )
           )
           (let
-            (nonrec
-            )
-            (datatypebind
-              (datatype
-                (tyvardecl
-                  Applicative (fun (fun (type) (type)) (type))
-                )
-                (tyvardecl f (fun (type) (type)))
-                Applicative_match
-                (vardecl
-                  CConsApplicative
-                  (fun [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f] (fun (all a (type) (fun a [f a])) (fun (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b])))) [Applicative f])))
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl
+                bad_name
+                (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))))
+              )
+              (abs
+                f
+                (fun (type) (type))
+                (lam
+                  v
+                  [Applicative f]
+                  [
+                    {
+                      [ { Applicative_match f } v ]
+                      (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                    }
+                    (lam
+                      v
+                      [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                      (lam
+                        v
+                        (all a (type) (fun a [f a]))
+                        (lam
+                          v
+                          (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                          v
+                        )
+                      )
+                    )
+                  ]
                 )
               )
             )
             (let
-              (nonrec
-              )
+              (nonrec)
               (termbind
-                (nonstrict)
-                (vardecl fApplicativeMaybe [Applicative Maybe])
-                [
-                  [ [ { CConsApplicative Maybe } fFunctorMaybe_cfmap ] Just ]
-                  fApplicativeMaybe_c
-                ]
+                (strict)
+                (vardecl
+                  p1Applicative
+                  (all f (fun (type) (type)) (fun [Applicative f] [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]))
+                )
+                (abs
+                  f
+                  (fun (type) (type))
+                  (lam
+                    v
+                    [Applicative f]
+                    [
+                      {
+                        [ { Applicative_match f } v ]
+                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                      }
+                      (lam
+                        v
+                        [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                        (lam
+                          v
+                          (all a (type) (fun a [f a]))
+                          (lam
+                            v
+                            (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
+                            v
+                          )
+                        )
+                      )
+                    ]
+                  )
+                )
               )
               (let
-                (nonrec
-                )
+                (rec)
                 (termbind
-                  (strict
-                  )
+                  (strict)
                   (vardecl
-                    p1Applicative
-                    (all f (fun (type) (type)) (fun [Applicative f] [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]))
+                    traverse
+                    (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
                   )
                   (abs
                     f
                     (fun (type) (type))
-                    (lam
-                      v
-                      [Applicative f]
-                      [
-                        {
-                          [
-                            { Applicative_match f } v
-                          ]
-                          [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
-                        }
+                    (abs
+                      a
+                      (type)
+                      (abs
+                        b
+                        (type)
                         (lam
-                          v
-                          [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
-                          (lam
-                            v
-                            (all a (type) (fun a [f a]))
+                          dApplicative
+                          [Applicative f]
+                          (let
+                            (nonrec)
+                            (termbind
+                              (nonstrict)
+                              (vardecl
+                                dFunctor
+                                [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
+                              )
+                              [ { p1Applicative f } dApplicative ]
+                            )
                             (lam
-                              v
-                              (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
-                              v
+                              ds
+                              (fun a [f b])
+                              (lam
+                                ds
+                                [List a]
+                                [
+                                  [
+                                    [
+                                      {
+                                        [ { Nil_match a } ds ]
+                                        (fun Unit [f [List b]])
+                                      }
+                                      (lam
+                                        thunk
+                                        Unit
+                                        [
+                                          {
+                                            [ { pure f } dApplicative ] [List b]
+                                          }
+                                          { Nil b }
+                                        ]
+                                      )
+                                    ]
+                                    (lam
+                                      h
+                                      a
+                                      (lam
+                                        t
+                                        [List a]
+                                        (lam
+                                          thunk
+                                          Unit
+                                          [
+                                            [
+                                              {
+                                                {
+                                                  [
+                                                    { bad_name f } dApplicative
+                                                  ]
+                                                  [List b]
+                                                }
+                                                [List b]
+                                              }
+                                              [
+                                                [
+                                                  {
+                                                    { dFunctor b }
+                                                    (fun [List b] [List b])
+                                                  }
+                                                  { Cons b }
+                                                ]
+                                                [ ds h ]
+                                              ]
+                                            ]
+                                            [
+                                              [
+                                                [
+                                                  { { { traverse f } a } b }
+                                                  dApplicative
+                                                ]
+                                                ds
+                                              ]
+                                              t
+                                            ]
+                                          ]
+                                        )
+                                      )
+                                    )
+                                  ]
+                                  Unit
+                                ]
+                              )
                             )
                           )
                         )
-                      ]
+                      )
                     )
                   )
                 )
                 (let
-                  (nonrec
-                  )
+                  (nonrec)
                   (termbind
-                    (strict
-                    )
-                    (vardecl
-                      bad_name
-                      (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))))
-                    )
-                    (abs
-                      f
-                      (fun (type) (type))
-                      (lam
-                        v
-                        [Applicative f]
-                        [
-                          {
-                            [
-                              { Applicative_match f } v
-                            ]
-                            (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
-                          }
-                          (lam
-                            v
-                            [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
-                            (lam
-                              v
-                              (all a (type) (fun a [f a]))
-                              (lam
-                                v
-                                (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
-                                v
-                              )
-                            )
-                          )
-                        ]
-                      )
-                    )
+                    (strict)
+                    (vardecl id (all a (type) (fun a a)))
+                    (abs a (type) (lam x a x))
                   )
                   (let
-                    (rec
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl List (fun (type) (type)))
-                        (tyvardecl a (type))
-                        Nil_match
-                        (vardecl Nil [List a])
-                        (vardecl Cons (fun a (fun [List a] [List a])))
+                    (nonrec)
+                    (termbind
+                      (strict)
+                      (vardecl
+                        sequence
+                        (all f (fun (type) (type)) (all a (type) (fun [Applicative f] (fun [List [f a]] [f [List a]]))))
+                      )
+                      (abs
+                        f
+                        (fun (type) (type))
+                        (abs
+                          a
+                          (type)
+                          (lam
+                            dApplicative
+                            [Applicative f]
+                            [
+                              [ { { { traverse f } [f a] } a } dApplicative ]
+                              { id [f a] }
+                            ]
+                          )
+                        )
                       )
                     )
                     (let
-                      (nonrec
-                      )
+                      (nonrec)
                       (termbind
-                        (strict
-                        )
+                        (strict)
                         (vardecl
                           build
                           (all a (type) (fun (all b (type) (fun (fun a (fun b b)) (fun b b))) [List a]))
@@ -256,207 +294,146 @@
                         )
                       )
                       (let
-                        (nonrec
-                        )
-                        (termbind
-                          (strict)
-                          (vardecl id (all a (type) (fun a a)))
-                          (abs a (type) (lam x a x))
+                        (nonrec)
+                        (datatypebind
+                          (datatype
+                            (tyvardecl Maybe (fun (type) (type)))
+                            (tyvardecl a (type))
+                            Maybe_match
+                            (vardecl Just (fun a [Maybe a]))
+                            (vardecl Nothing [Maybe a])
+                          )
                         )
                         (let
-                          (nonrec
-                          )
+                          (nonrec)
                           (termbind
-                            (strict
-                            )
+                            (strict)
                             (vardecl
-                              pure
-                              (all f (fun (type) (type)) (fun [Applicative f] (all a (type) (fun a [f a]))))
+                              fFunctorMaybe_cfmap
+                              (all a (type) (all b (type) (fun (fun a b) (fun [Maybe a] [Maybe b]))))
                             )
                             (abs
-                              f
-                              (fun (type) (type))
-                              (lam
-                                v
-                                [Applicative f]
-                                [
-                                  {
-                                    [ { Applicative_match f } v ]
-                                    (all a (type) (fun a [f a]))
-                                  }
+                              a
+                              (type)
+                              (abs
+                                b
+                                (type)
+                                (lam
+                                  f
+                                  (fun a b)
                                   (lam
-                                    v
-                                    [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
-                                    (lam
-                                      v
-                                      (all a (type) (fun a [f a]))
-                                      (lam
-                                        v
-                                        (all a (type) (all b (type) (fun [f (fun a b)] (fun [f a] [f b]))))
-                                        v
-                                      )
-                                    )
+                                    ds
+                                    [Maybe a]
+                                    [
+                                      [
+                                        [
+                                          {
+                                            [ { Maybe_match a } ds ]
+                                            (fun Unit [Maybe b])
+                                          }
+                                          (lam
+                                            a
+                                            a
+                                            (lam
+                                              thunk Unit [ { Just b } [ f a ] ]
+                                            )
+                                          )
+                                        ]
+                                        (lam thunk Unit { Nothing b })
+                                      ]
+                                      Unit
+                                    ]
                                   )
-                                ]
+                                )
                               )
                             )
                           )
                           (let
-                            (rec
-                            )
+                            (nonrec)
                             (termbind
-                              (strict
-                              )
+                              (strict)
                               (vardecl
-                                traverse
-                                (all f (fun (type) (type)) (all a (type) (all b (type) (fun [Applicative f] (fun (fun a [f b]) (fun [List a] [f [List b]]))))))
+                                fApplicativeMaybe_c
+                                (all a (type) (all b (type) (fun [Maybe (fun a b)] (fun [Maybe a] [Maybe b]))))
                               )
                               (abs
-                                f
-                                (fun (type) (type))
+                                a
+                                (type)
                                 (abs
-                                  a
+                                  b
                                   (type)
-                                  (abs
-                                    b
-                                    (type)
+                                  (lam
+                                    ds
+                                    [Maybe (fun a b)]
                                     (lam
-                                      dApplicative
-                                      [Applicative f]
-                                      (let
-                                        (nonrec
-                                        )
-                                        (termbind
-                                          (nonstrict
-                                          )
-                                          (vardecl
-                                            dFunctor
-                                            [(lam f (fun (type) (type)) (all a (type) (all b (type) (fun (fun a b) (fun [f a] [f b]))))) f]
-                                          )
-                                          [ { p1Applicative f } dApplicative ]
-                                        )
-                                        (lam
-                                          ds
-                                          (fun a [f b])
-                                          (lam
-                                            ds
-                                            [List a]
-                                            [
-                                              [
+                                      ds
+                                      [Maybe a]
+                                      [
+                                        [
+                                          [
+                                            {
+                                              [ { Maybe_match (fun a b) } ds ]
+                                              (fun Unit [Maybe b])
+                                            }
+                                            (lam
+                                              ipv
+                                              (fun a b)
+                                              (lam
+                                                thunk
+                                                Unit
                                                 [
-                                                  {
-                                                    [ { Nil_match a } ds ]
-                                                    (fun Unit [f [List b]])
-                                                  }
-                                                  (lam
-                                                    thunk
-                                                    Unit
+                                                  [
                                                     [
                                                       {
-                                                        [
-                                                          { pure f }
-                                                          dApplicative
-                                                        ]
-                                                        [List b]
+                                                        [ { Maybe_match a } ds ]
+                                                        (fun Unit [Maybe b])
                                                       }
-                                                      { Nil b }
+                                                      (lam
+                                                        ipv
+                                                        a
+                                                        (lam
+                                                          thunk
+                                                          Unit
+                                                          [
+                                                            { Just b }
+                                                            [ ipv ipv ]
+                                                          ]
+                                                        )
+                                                      )
                                                     ]
-                                                  )
-                                                ]
-                                                (lam
-                                                  h
-                                                  a
-                                                  (lam
-                                                    t
-                                                    [List a]
                                                     (lam
-                                                      thunk
-                                                      Unit
-                                                      [
-                                                        [
-                                                          {
-                                                            {
-                                                              [
-                                                                { bad_name f }
-                                                                dApplicative
-                                                              ]
-                                                              [List b]
-                                                            }
-                                                            [List b]
-                                                          }
-                                                          [
-                                                            [
-                                                              {
-                                                                {
-                                                                  dFunctor b
-                                                                }
-                                                                (fun [List b] [List b])
-                                                              }
-                                                              { Cons b }
-                                                            ]
-                                                            [ ds h ]
-                                                          ]
-                                                        ]
-                                                        [
-                                                          [
-                                                            [
-                                                              {
-                                                                {
-                                                                  { traverse f }
-                                                                  a
-                                                                }
-                                                                b
-                                                              }
-                                                              dApplicative
-                                                            ]
-                                                            ds
-                                                          ]
-                                                          t
-                                                        ]
-                                                      ]
+                                                      thunk Unit { Nothing b }
                                                     )
-                                                  )
-                                                )
-                                              ]
-                                              Unit
-                                            ]
-                                          )
-                                        )
-                                      )
+                                                  ]
+                                                  Unit
+                                                ]
+                                              )
+                                            )
+                                          ]
+                                          (lam thunk Unit { Nothing b })
+                                        ]
+                                        Unit
+                                      ]
                                     )
                                   )
                                 )
                               )
                             )
                             (let
-                              (nonrec
-                              )
+                              (nonrec)
                               (termbind
-                                (strict
-                                )
-                                (vardecl
-                                  sequence
-                                  (all f (fun (type) (type)) (all a (type) (fun [Applicative f] (fun [List [f a]] [f [List a]]))))
-                                )
-                                (abs
-                                  f
-                                  (fun (type) (type))
-                                  (abs
-                                    a
-                                    (type)
-                                    (lam
-                                      dApplicative
-                                      [Applicative f]
-                                      [
-                                        [
-                                          { { { traverse f } [f a] } a }
-                                          dApplicative
-                                        ]
-                                        { id [f a] }
-                                      ]
-                                    )
-                                  )
-                                )
+                                (nonstrict)
+                                (vardecl fApplicativeMaybe [Applicative Maybe])
+                                [
+                                  [
+                                    [
+                                      { CConsApplicative Maybe }
+                                      fFunctorMaybe_cfmap
+                                    ]
+                                    Just
+                                  ]
+                                  fApplicativeMaybe_c
+                                ]
                               )
                               [
                                 [

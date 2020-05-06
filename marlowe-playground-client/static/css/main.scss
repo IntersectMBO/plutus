@@ -51,14 +51,6 @@ a:hover {
     width: auto;
 }
 
-.error-tab.active-text {
-    color: red;
-}
-
-.error-tab {
-    color: lightcoral;
-}
-
 .hide {
     display: none;
 }
@@ -67,7 +59,7 @@ a:hover {
     padding: 0.5rem 1.5rem;
     position: relative;
     cursor: pointer;
-    position: relative;
+    top: 0.5rem;
     background: var(--gradient-bg);
     color: var(--white);
     border-radius: var(--border-radius);
@@ -97,6 +89,7 @@ a:hover {
     text-align: center;
     padding: 5px;
     border-radius: 6px;
+    font-size: 1rem;
 
     /* Position the tooltip text - see examples below! */
     position: absolute;
@@ -121,8 +114,8 @@ a:hover {
 }
 
 .upload-btn>.tooltiptext {
-    left: 0;
-    top: 40px;
+    left: 70%;
+    top: 50px;
 }
 
 .upload-btn>.tooltiptext::after {
@@ -130,11 +123,21 @@ a:hover {
 }
 
 .download-btn>.tooltiptext {
-    left: 65px;
+    right: 0px;
     top: 112%;
 }
 
 .download-btn>.tooltiptext::after {
+    left: 85%;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext {
+    right: -10px;
+    top: 30px;
+    width: 13em;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext::after {
     left: 85%;
 }
 

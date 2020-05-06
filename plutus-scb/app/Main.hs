@@ -1,7 +1,9 @@
+{-# LANGUAGE ApplicativeDo       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Main
     ( main
@@ -14,8 +16,9 @@ import qualified Cardano.Wallet.Server         as WalletServer
 import           Control.Concurrent.Async      (Async, async, waitAny)
 import           Control.Lens.Indexed          (itraverse_)
 import           Control.Monad                 (void)
+import           Control.Monad.Freer.Extra.Log (logInfo)
 import           Control.Monad.IO.Class        (liftIO)
-import           Control.Monad.Logger          (logInfoN, runStdoutLoggingT)
+import           Control.Monad.Logger          (LogLevel (LevelDebug, LevelInfo), filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                    as JSON
 import qualified Data.ByteString.Lazy.Char8    as BS8
 import           Data.Foldable                 (traverse_)
@@ -26,16 +29,19 @@ import           Data.UUID                     (UUID)
 import           Data.Yaml                     (decodeFileThrow)
 import           Git                           (gitRev)
 import           Options.Applicative           (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
-                                                disambiguate, eitherReader, fullDesc, help, helper, idm, info,
+                                                disambiguate, eitherReader, flag, fullDesc, help, helper, idm, info,
                                                 infoOption, long, metavar, option, optional, prefs, progDesc, short,
                                                 showHelpOnEmpty, showHelpOnError, str, strArgument, strOption,
-                                                subparser, value, (<|>))
-import           Plutus.SCB.App                (App (App), runApp)
+                                                subparser, value)
+import           Plutus.SCB.App                (App, runApp)
 import qualified Plutus.SCB.App                as App
 import qualified Plutus.SCB.Core               as Core
-import           Plutus.SCB.Types              (Config (Config), chainIndexConfig, nodeServerConfig,
-                                                signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Types              (ActiveContractState, Config (Config), ContractExe (..),
+                                                chainIndexConfig, nodeServerConfig, signingProcessConfig,
+                                                walletServerConfig)
 import           Plutus.SCB.Utils              (logErrorS, render)
+import qualified Plutus.SCB.Webserver.Server   as SCBServer
+import qualified PSGenerator
 import           System.Exit                   (ExitCode (ExitFailure), exitSuccess, exitWith)
 import qualified System.Remote.Monitoring      as EKG
 
@@ -54,17 +60,29 @@ data Command
     | ReportInstalledContracts
     | ReportActiveContracts
     | ReportTxHistory
+    | SCBWebserver
+    | PSGenerator
+          { _outputDir :: !FilePath
+          }
     deriving (Show, Eq)
 
 versionOption :: Parser (a -> a)
 versionOption =
     infoOption
         (Text.unpack gitRev)
-        (short 'v' <> long "version" <> help "Show the version")
+        (long "version" <> help "Show the version")
 
-commandLineParser :: Parser (Maybe Int, FilePath, Command)
+logLevelFlag :: Parser LogLevel
+logLevelFlag =
+    flag
+        LevelInfo
+        LevelDebug
+        (short 'v' <> long "verbose" <> help "Enable debugging output.")
+
+commandLineParser :: Parser (Maybe Int, LogLevel, FilePath, Command)
 commandLineParser =
-    (,,) <$> optional ekgPortParser <*> configFileParser <*> commandParser
+    (,,,) <$> optional ekgPortParser <*> logLevelFlag <*> configFileParser <*>
+    commandParser
 
 ekgPortParser :: Parser Int
 ekgPortParser =
@@ -83,31 +101,43 @@ configFileParser =
 
 commandParser :: Parser Command
 commandParser =
-    subparser
-        (mconcat
-             [ migrationParser
-             , allServersParser
-             , mockWalletParser
-             , mockNodeParser
-             , chainIndexParser
-             , signingProcessParser
-             ]) <|>
-    subparser
-        (command
-             "contracts"
-             (info
-                  (subparser
-                       (mconcat
-                            [ installContractParser
-                            , reportInstalledContractsParser
-                            , activateContractParser
-                            , reportActiveContractsParser
-                            , reportTxHistoryParser
-                            , updateContractParser
-                            , contractStatusParser
-                            , reportContractHistoryParser
-                            ]))
-                  (fullDesc <> progDesc "Manage your smart contracts.")))
+    subparser $
+    mconcat
+        [ migrationParser
+        , allServersParser
+        , mockWalletParser
+        , scbWebserverParser
+        , psGeneratorCommandParser
+        , mockNodeParser
+        , chainIndexParser
+        , signingProcessParser
+        , reportTxHistoryParser
+        , command
+              "contracts"
+              (info
+                   (subparser
+                        (mconcat
+                             [ installContractParser
+                             , reportInstalledContractsParser
+                             , activateContractParser
+                             , reportActiveContractsParser
+                             , updateContractParser
+                             , contractStatusParser
+                             , reportContractHistoryParser
+                             ]))
+                   (fullDesc <> progDesc "Manage your smart contracts."))
+        ]
+
+psGeneratorCommandParser :: Mod CommandFields Command
+psGeneratorCommandParser =
+    command "psgenerator" $
+    flip info (fullDesc <> progDesc "Generate the frontend's PureScript files.") $ do
+        _outputDir <-
+            argument
+                str
+                (metavar "OUTPUT_DIR" <>
+                 help "Output directory to write PureScript files to.")
+        pure PSGenerator {_outputDir}
 
 migrationParser :: Mod CommandFields Command
 migrationParser =
@@ -141,7 +171,14 @@ allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
     info
-        (pure (ForkCommands [MockNode, MockWallet, ChainIndex, SigningProcess]))
+        (pure
+             (ForkCommands
+                  [ MockNode
+                  , MockWallet
+                  , ChainIndex
+                  , SigningProcess
+                  , SCBWebserver
+                  ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
 signingProcessParser :: Mod CommandFields Command
@@ -200,10 +237,17 @@ reportActiveContractsParser =
 
 reportTxHistoryParser :: Mod CommandFields Command
 reportTxHistoryParser =
-    command "tx" $
+    command "local-chain" $
     info
         (pure ReportTxHistory)
         (fullDesc <> progDesc "Show all submitted transactions.")
+
+scbWebserverParser :: Mod CommandFields Command
+scbWebserverParser =
+    command "webserver" $
+    info
+        (pure SCBWebserver)
+        (fullDesc <> progDesc "Start the SCB backend webserver.")
 
 updateContractParser :: Mod CommandFields Command
 updateContractParser =
@@ -224,60 +268,65 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand :: Config -> Command -> App ()
-runCliCommand _ Migrate = App.migrate
-runCliCommand Config {walletServerConfig, nodeServerConfig} MockWallet =
+runCliCommand :: LogLevel -> Config -> Command -> App ()
+runCliCommand _ _ Migrate = App.migrate
+runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
-runCliCommand Config {nodeServerConfig} MockNode =
+        (ChainIndex.ciBaseUrl chainIndexConfig)
+runCliCommand _ Config {nodeServerConfig} MockNode =
     NodeServer.main nodeServerConfig
-runCliCommand config (ForkCommands commands) =
-    App . void . liftIO $ do
+runCliCommand _ config SCBWebserver = SCBServer.main config
+runCliCommand minLogLevel config (ForkCommands commands) =
+    void . liftIO $ do
         threads <- traverse forkCommand commands
         waitAny threads
   where
-    forkCommand :: Command -> IO (Async ())
-    forkCommand = async . void . runApp config . runCliCommand config
-runCliCommand Config {nodeServerConfig, chainIndexConfig} ChainIndex =
+    forkCommand ::  Command -> IO (Async ())
+    forkCommand = async . void . runApp minLogLevel config . runCliCommand minLogLevel config
+runCliCommand _ Config {nodeServerConfig, chainIndexConfig} ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
-runCliCommand Config {signingProcessConfig} SigningProcess =
+runCliCommand _ Config {signingProcessConfig} SigningProcess =
     SigningProcess.main signingProcessConfig
-runCliCommand _ (InstallContract path) = Core.installContract path
-runCliCommand _ (ActivateContract path) = void $ Core.activateContract path
-runCliCommand _ (ContractStatus uuid) = Core.reportContractStatus uuid
-runCliCommand _ ReportInstalledContracts = do
-    logInfoN "Installed Contracts"
-    traverse_ (logInfoN . render . pretty) =<< Core.installedContracts
-runCliCommand _ ReportActiveContracts = do
-    logInfoN "Active Contracts"
-    traverse_ (logInfoN . render . pretty) =<< Core.activeContracts
-runCliCommand _ ReportTxHistory = do
-    logInfoN "Transaction History"
-    traverse_ (logInfoN . render . pretty) =<< Core.txHistory
-runCliCommand _ (UpdateContract uuid endpoint payload) =
-    Core.updateContract uuid endpoint payload
-runCliCommand _ (ReportContractHistory uuid) = do
-    logInfoN "Contract History"
-    itraverse_
-        (\index contract ->
-             logInfoN $ render (parens (pretty index) <+> pretty contract)) =<<
-        Core.activeContractHistory uuid
+runCliCommand _ _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe uuid
+runCliCommand _ _ ReportInstalledContracts = do
+    logInfo "Installed Contracts"
+    traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
+runCliCommand _ _ ReportActiveContracts = do
+    logInfo "Active Contracts"
+    traverse_ (logInfo . render . pretty) =<< Core.activeContracts @ContractExe
+runCliCommand _ _ ReportTxHistory = do
+    logInfo "Transaction History"
+    traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
+runCliCommand _ _ (UpdateContract uuid endpoint payload) =
+    Core.updateContract @ContractExe uuid endpoint payload
+runCliCommand _ _ (ReportContractHistory uuid) = do
+    logInfo "Contract History"
+    contracts <- Core.activeContractHistory @ContractExe uuid
+    itraverse_ logContract contracts
+    where
+      logContract :: Int -> ActiveContractState ContractExe -> App ()
+      logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
+runCliCommand _ _ PSGenerator {_outputDir} =
+    liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
 main = do
-    (ekgPort, configPath, cmd) <-
+    (ekgPort, minLogLevel, configPath, cmd) <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
     result <-
-        runApp config $ do
-            logInfoN $ "Running: " <> Text.pack (show cmd)
-            runCliCommand config cmd
+        runApp minLogLevel config $ do
+            logInfo $ "Running: " <> Text.pack (show cmd)
+            runCliCommand minLogLevel config cmd
     case result of
         Left err -> do
-            runStdoutLoggingT $ logErrorS err
+            runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ logErrorS err
             exitWith (ExitFailure 1)
         Right _ -> exitSuccess

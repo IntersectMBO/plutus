@@ -1,11 +1,21 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
+import           Cardano.Node.Follower                         (NodeFollowerEffect)
+import           Control.Lens                                  (view, _1)
 import           Control.Monad                                 (void)
+import           Control.Monad.Freer                           (Eff, LastMember, Member, Members)
+import           Control.Monad.Freer.Error                     (Error)
+import           Control.Monad.Freer.Extra.Log                 (Log)
+import qualified Control.Monad.Freer.Log                       as EmulatorLog
 import           Control.Monad.IO.Class                        (MonadIO, liftIO)
 import           Data.Aeson                                    as JSON
 import qualified Data.Set                                      as Set
@@ -15,12 +25,31 @@ import           Ledger                                        (pubKeyAddress)
 import           Ledger.Ada                                    (lovelaceValueOf)
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
+import           Plutus.SCB.Effects.Contract                   (ContractEffect)
+import           Plutus.SCB.Effects.ContractTest               (TestContracts (..))
+import           Plutus.SCB.Effects.EventLog                   (EventLogEffect)
+import           Plutus.SCB.Effects.MultiAgent                 (SCBClientEffects, agentAction, agentControlAction)
 import           Plutus.SCB.Events                             (ChainEvent)
-import           Plutus.SCB.TestApp                            (TestApp, runScenario, sync, valueAt)
+import           Plutus.SCB.Query                              (chainOverviewProjection)
+import           Plutus.SCB.TestApp                            (defaultWallet, runScenario, sync, syncAll, valueAt)
+import           Plutus.SCB.TestApp                            (runScenario, sync, valueAt)
+import           Plutus.SCB.Types                              (SCBError)
+import           Plutus.SCB.Types                              (SCBError, chainOverviewBlockchain)
 import           Test.QuickCheck.Instances.UUID                ()
 import           Test.Tasty                                    (TestTree, testGroup)
-import           Test.Tasty.HUnit                              (HasCallStack, assertEqual, testCase)
+import           Test.Tasty.HUnit                              (HasCallStack, assertBool, assertEqual, testCase)
+import           Wallet.API                                    (ChainIndexEffect, NodeClientEffect,
+                                                                SigningProcessEffect, WalletAPIError, WalletEffect,
+                                                                ownPubKey)
 import           Wallet.API                                    (ownPubKey)
+import           Wallet.Effects                                (WalletEffects)
+import qualified Wallet.Emulator.Chain                         as Chain
+import           Wallet.Emulator.ChainIndex                    (ChainIndexControlEffect)
+import           Wallet.Emulator.NodeClient                    (NodeControlEffect)
+import           Wallet.Emulator.SigningProcess                (SigningProcessControlEffect)
+import           Wallet.Rollup                                 (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                           (DereferencedInput (DereferencedInput, InputNotFound),
+                                                                dereferencedInputs, isFound)
 
 tests :: TestTree
 tests = testGroup "SCB.Core" [installContractTests, executionTests]
@@ -31,32 +60,32 @@ installContractTests =
         "installContract scenario"
         [ testCase "Initially there are no contracts installed" $
           runScenario $ do
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size installed
         , testCase "Initially there are no contracts active" $
           runScenario $ do
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase
               "Installing a contract successfully increases the installed contract count" $
           runScenario $ do
-              installContract "/bin/sh"
+              installContract @TestContracts Game
               --
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 0 $ Set.size active
         , testCase "We can activate a contract" $
           runScenario $ do
-              installContract "game"
+              installContract Game
               --
-              installed <- installedContracts
+              installed <- installedContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size installed
               --
-              void $ activateContract "game"
+              void $ agentAction defaultWallet (activateContract Game)
               --
-              active <- activeContracts
+              active <- activeContracts @TestContracts
               liftIO $ assertEqual "" 1 $ Set.size active
         ]
 
@@ -68,27 +97,28 @@ executionTests =
           runScenario $ do
               let openingBalance = 10000
                   lockAmount = 15
-              address <- pubKeyAddress <$> ownPubKey
+              address <- pubKeyAddress <$> agentAction defaultWallet ownPubKey
               balance0 <- valueAt address
               liftIO $
                   assertEqual
                       "Check our opening balance."
                       (lovelaceValueOf openingBalance)
                       balance0
-              installContract "game"
-              --
-              uuid <- activateContract "game"
-              sync
+              installContract Game
+              -- need to add contract address to wallet's watched addresses
+              uuid <- agentAction defaultWallet (activateContract Game)
+              syncAll
               assertTxCount
                   "Activating the game does not generate transactions."
                   0
-              lock
+              agentAction defaultWallet $ lock
                   uuid
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
                       }
-              sync
+              Chain.processBlock
+              syncAll
               assertTxCount "Locking the game should produce one transaction" 1
               balance1 <- valueAt address
               liftIO $
@@ -96,17 +126,19 @@ executionTests =
                       "Locking the game should reduce our balance."
                       (lovelaceValueOf (openingBalance - lockAmount))
                       balance1
-              guess
+              agentAction defaultWallet $ guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
-              sync
+              Chain.processBlock
+              syncAll
               assertTxCount "A wrong guess still produces a transaction." 2
-              guess
+              agentAction defaultWallet $ guess
                   uuid
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
-              sync
+              Chain.processBlock
+              syncAll
               assertTxCount "A correct guess creates a third transaction." 3
               balance2 <- valueAt address
               liftIO $
@@ -114,23 +146,56 @@ executionTests =
                       "The wallet should now have its money back."
                       (lovelaceValueOf openingBalance)
                       balance2
+              chainOverview <- runGlobalQuery (chainOverviewProjection @TestContracts)
+              liftIO $ do
+                  annotatedBlockchain <-
+                      doAnnotateBlockchain
+                          (chainOverviewBlockchain chainOverview)
+                  let allDereferencedInputs :: [DereferencedInput]
+                      allDereferencedInputs =
+                          mconcat $
+                          dereferencedInputs <$> mconcat annotatedBlockchain
+                  assertBool
+                      "Full TX history can be annotated."
+                      (all isFound allDereferencedInputs)
         ]
 
 assertTxCount ::
-       (HasCallStack, MonadIO m, MonadEventStore ChainEvent m)
+    ( Member (EventLogEffect (ChainEvent TestContracts)) effs
+    , LastMember m effs
+    , MonadIO m)
     => String
     -> Int
-    -> m ()
+    -> Eff effs ()
 assertTxCount msg expected = do
-    txs <-
-        streamProjectionState <$>
-        refreshProjection (globalStreamProjection txHistoryProjection)
+    txs <- runGlobalQuery (txHistoryProjection @TestContracts)
     liftIO $ assertEqual msg expected $ length txs
 
-lock :: UUID -> Contracts.Game.LockParams -> TestApp ()
-lock uuid params =
-    updateContract uuid "lock" (toJSON params)
+type SpecEffects =
+        '[Error WalletAPIError
+        , Error SCBError
+        , EventLogEffect (ChainEvent TestContracts)
+        , Log
+        , ContractEffect TestContracts
+        , NodeFollowerEffect
+        , EmulatorLog.Log
+        ]
 
-guess :: UUID -> Contracts.Game.GuessParams -> TestApp ()
+lock ::
+    ( Members SCBClientEffects effs
+    )
+    => UUID
+    -> Contracts.Game.LockParams
+    -> Eff effs ()
+lock uuid params =
+    updateContract @TestContracts uuid "lock" (toJSON params)
+
+guess ::
+    ( Members SpecEffects effs
+    , Members WalletEffects effs
+    )
+    => UUID
+    -> Contracts.Game.GuessParams
+    -> Eff effs ()
 guess uuid params =
-    updateContract uuid "guess" (toJSON params)
+    updateContract @TestContracts uuid "guess" (toJSON params)

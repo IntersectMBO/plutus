@@ -3,6 +3,7 @@ module MainFrameTests
   ) where
 
 import Prelude
+import Animation (class MonadAnimate)
 import Auth (AuthRole(..), AuthStatus(..))
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except (runExcept)
@@ -107,7 +108,6 @@ instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   editorHandleAction _ = pure unit
   editorSetAnnotations annotations = pure unit
   --
-  delay time = pure unit
   saveBuffer contents =
     MockApp
       $ assign (_1 <<< _localStorage <<< at (unwrap bufferLocalStorageKey)) (Just contents)
@@ -136,6 +136,10 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
     case v of
       Loop cont -> tailRecM step cont
       Done result -> pure result
+
+-- | The mock app makes no attempt to animate anything, and just calls the embedded `action`.
+instance monadAnimateMockApp :: MonadAnimate (MockApp m) State where
+  animate toggle action = action
 
 execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
 execMockApp world queries = do

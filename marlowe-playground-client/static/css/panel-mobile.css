@@ -1,4 +1,4 @@
-@media (max-width:1024px) {
+@media (max-width:1200px) {
 
   .drawer-icon {
     display: block;
@@ -40,10 +40,25 @@
     transition: transform .3s ease-in-out;
   }
 
+  .panel-sub-header .panel-sub-header-side.expanded {
+    width: 500px;
+  }
+
   .panel-sub-header .panel-sub-header-side {
     position: absolute;
-    width: 0;
-    padding: 0;
+    top: 0;
+    right: 0;
+    width: 200px;
+    padding-left: 2.5rem;
+    background: var(--bg-light);
+    box-shadow: var(--box-shadow-left);
+    z-index: 1;
+    transform: translateX(95%);
+    transition: transform .3s ease-in-out;
+  }
+
+  .github-gist-panel {
+    width: 29rem;
   }
 
   .panel-header .panel-header-side.expanded,

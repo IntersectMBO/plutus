@@ -17,6 +17,9 @@
 
 # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
+# Whether to check that the pinned shas for haskell.nix are correct. We want this to be
+# false, generally, since it does more work, but we set it to true in the CI
+, checkMaterialization ? false
 }:
 
 
@@ -28,14 +31,13 @@ let
 
   iohkNix = import sources.iohk-nix {
     inherit system config;
-    # FIXME: should be 'nixpkgsOverride = sources.nixpkgs', but see https://github.com/input-output-hk/iohk-nix/pull/215
-    nixpkgsJsonOverride = ./nixpkgs.json;
+    # Make iohk-nix use our nixpkgs
+    sourcesOverride = { inherit (sources) nixpkgs; };
   };
 
   pkgsMusl = import ./nix/default.nix {
     inherit system config sourcesOverride;
     crossSystem = lib.systems.examples.musl64;
-    overlays = [ (import ./nix/overlays/musl.nix) ];
   };
 
   # easy-purescript-nix has some kind of wacky internal IFD
@@ -66,16 +68,16 @@ in rec {
 
   haskell = rec {
     # All the packages defined by our project, including dependencies
-    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
+    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Just the packages in the project
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
       // { inherit (packages) plc-agda; };
     # All the packages defined by our project, built for musl
-    muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory; };
+    muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Extra Haskell packages which we use but aren't part of the main project definition.
-    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; };
+    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; inherit checkMaterialization; };
   };
 
   tests = import ./nix/tests/default.nix {
@@ -90,7 +92,7 @@ in rec {
     };
   };
 
-  docs = {
+  docs = pkgs.recurseIntoAttrs {
     plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
     plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
     plutus-book = pkgs.callPackage ./plutus-book/doc { };
@@ -99,6 +101,7 @@ in rec {
     multi-currency = pkgs.callPackage ./docs/multi-currency { inherit latex; };
     extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
     lazy-machine = pkgs.callPackage ./docs/fomega/lazy-machine { inherit latex; };
+    plutus-report = pkgs.callPackage ./docs/plutus-report/default.nix { inherit latex; };
 
     combined-haddock = let
       haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
@@ -114,13 +117,13 @@ in rec {
     marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
   };
 
-  papers = {
+  papers = pkgs.recurseIntoAttrs {
     unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) Agda; inherit latex; };
     system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
     eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
   };
 
-  plutus-playground = rec {
+  plutus-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.plutus-playground-server.components.exes.plutus-playground-server;
     server-invoker = let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -140,30 +143,29 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
-        mkdir $out
-        ${server-invoker}/bin/plutus-playground psgenerator $out
-      '';
+    generated-purescript = pkgs.runCommand "plutus-playground-purescript" {} ''
+      mkdir $out
+      ${server-invoker}/bin/plutus-playground psgenerator $out
+    '';
 
-      in
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
-        inherit easyPS;
         inherit (sources) nodejs-headers;
+        inherit easyPS;
         psSrc = generated-purescript;
         src = ./plutus-playground-client;
-        webCommonPath = ./web-common;
         packageJSON = ./plutus-playground-client/package.json;
         yarnLock = ./plutus-playground-client/yarn.lock;
         yarnNix = ./plutus-playground-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
         packages = pkgs.callPackage ./plutus-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./plutus-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
-  };
+  });
 
-  marlowe-playground = rec {
+  marlowe-playground = pkgs.recurseIntoAttrs (rec {
     playground-exe = set-git-rev haskell.packages.marlowe-playground-server.components.exes.marlowe-playground-server;
     server-invoker = let
       # the playground uses ghc at runtime so it needs one packaged up with the dependencies it needs in one place
@@ -182,24 +184,50 @@ in rec {
         --set GHC_RTS "-M2G"
     '';
 
-    client = let
-      generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
-        mkdir $out
-        ${playground-exe}/bin/marlowe-playground-server psgenerator $out
-      '';
-      in
+    generated-purescript = pkgs.runCommand "marlowe-playground-purescript" {} ''
+      mkdir $out
+      ${playground-exe}/bin/marlowe-playground-server psgenerator $out
+    '';
+
+    client =
       pkgs.callPackage ./nix/purescript.nix rec {
         inherit (sources) nodejs-headers;
         inherit easyPS;
         psSrc = generated-purescript;
         src = ./marlowe-playground-client;
-        webCommonPath = ./web-common;
         packageJSON = ./marlowe-playground-client/package.json;
         yarnLock = ./marlowe-playground-client/yarn.lock;
         yarnNix = ./marlowe-playground-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" "../playground-common/src/**/*.purs" ];
         packages = pkgs.callPackage ./marlowe-playground-client/packages.nix {};
         spagoPackages = pkgs.callPackage ./marlowe-playground-client/spago-packages.nix {};
         name = (pkgs.lib.importJSON packageJSON).name;
+      };
+  });
+
+  plutus-scb = rec {
+    server-invoker= set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
+
+    generated-purescript = pkgs.runCommand "plutus-scb-purescript" {} ''
+      mkdir $out
+      ln -s ${haskell.packages.plutus-scb.src}/plutus-scb.yaml.sample plutus-scb.yaml
+      ${server-invoker}/bin/plutus-scb psgenerator $out
+    '';
+
+    client =
+      pkgs.callPackage ./nix/purescript.nix rec {
+        inherit (sources) nodejs-headers;
+        inherit easyPS;
+        psSrc = generated-purescript;
+        src = ./plutus-scb-client;
+        packageJSON = ./plutus-scb-client/package.json;
+        yarnLock = ./plutus-scb-client/yarn.lock;
+        yarnNix = ./plutus-scb-client/yarn.nix;
+        additionalPurescriptSources = [ "../web-common/**/*.purs" ];
+        packages = pkgs.callPackage ./plutus-scb-client/packages.nix {};
+        spagoPackages = pkgs.callPackage ./plutus-scb-client/spago-packages.nix {};
+        name = (pkgs.lib.importJSON packageJSON).name;
+        checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
   };
 
@@ -250,7 +278,7 @@ in rec {
               pkgs.coreutils
               pkgs.bash
               pkgs.git # needed by cabal-install
-              dev.packages.cabal-install
+              pkgs.cabal-install
             ];
       config = {
         Cmd = ["bash"];

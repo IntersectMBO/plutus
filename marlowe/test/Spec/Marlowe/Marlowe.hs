@@ -12,40 +12,36 @@ module Spec.Marlowe.Marlowe
     )
 where
 
-import           Control.Lens                   (view)
-import           Control.Monad                  (void)
-import qualified Control.Monad.Freer            as Eff
-import qualified Control.Monad.Freer.Error      as Eff
-import qualified Data.ByteString                as BS
-import           Data.Either                    (isRight)
-import qualified Data.Map.Strict                as Map
-import           Data.Ratio                     ((%))
+import           Control.Lens               (view)
+import           Control.Monad              (void)
+import qualified Control.Monad.Freer        as Eff
+import           Data.Aeson                 (decode, encode)
+import qualified Data.ByteString            as BS
+import           Data.Either                (isRight)
+import qualified Data.Map.Strict            as Map
+import           Data.Ratio                 ((%))
 import           Data.String
 
-import qualified Codec.CBOR.Write               as Write
-import qualified Codec.Serialise                as Serialise
-import           Hedgehog                       (Gen, Property, forAll, property, (===))
+import qualified Codec.CBOR.Write           as Write
+import qualified Codec.Serialise            as Serialise
+import           Hedgehog                   (Gen, Property, forAll, property, (===))
 import qualified Hedgehog
-import           Hedgehog.Gen                   (integral)
-import qualified Hedgehog.Gen                   as Gen
-import qualified Hedgehog.Range                 as Range
+import           Hedgehog.Gen               (integral)
+import qualified Hedgehog.Gen               as Gen
+import qualified Hedgehog.Range             as Range
 import           Language.Marlowe
-import qualified Language.PlutusTx.Prelude      as P
-import           Ledger                         hiding (Value)
-import           Ledger.Ada                     (adaValueOf)
-import qualified Ledger.Generators              as Gen
-import qualified Ledger.Value                   as Val
+import qualified Language.PlutusTx.Prelude  as P
+import           Ledger                     hiding (Value)
+import           Ledger.Ada                 (adaValueOf)
+import qualified Ledger.Generators          as Gen
+import qualified Ledger.Value               as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
-import           Test.Tasty.Hedgehog            (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
 import           Test.Tasty.HUnit
-import           Wallet                         (PubKey (..), WalletAPIError)
 import           Wallet.Emulator
-import           Wallet.Emulator.ChainIndex     (ChainIndexEffect)
-import qualified Wallet.Emulator.Generators     as Gen
-import           Wallet.Emulator.NodeClient
-import           Wallet.Emulator.SigningProcess (SigningProcessEffect)
-import           Wallet.Emulator.Wallet
+import qualified Wallet.Emulator.Generators as Gen
+import           Wallet.Emulator.MultiAgent (EmulatedWalletEffects)
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
@@ -56,11 +52,12 @@ limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ testProperty a 
 tests :: TestTree
 tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
-    , testCase "Pretty/Show/Read stuff" showReadStuff
+    , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
+    , testProperty "Values can be serialized to JSON" valueSerialization
     , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
     , testProperty "Scale rounding" scaleRoundingTest
     , limitedProperty "Zero Coupon Bond Contract" zeroCouponBondTest
@@ -216,7 +213,7 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
 
 
 pubKeyGen :: Gen PubKey
-pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 10)
+pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 9)
 
 
 uniqueContractHash :: IO ()
@@ -253,7 +250,7 @@ updateAll :: [Wallet] -> Eff.Eff EmulatorEffs ()
 updateAll wallets = processPending >>= void . walletsNotifyBlock wallets
 
 
-performNotify :: [Wallet] -> Wallet -> Eff.Eff '[WalletEffect, Eff.Error WalletAPIError, NodeClientEffect, ChainIndexEffect, SigningProcessEffect] (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
+performNotify :: [Wallet] -> Wallet -> Eff.Eff EmulatedWalletEffects (MarloweData, Tx) -> Eff.Eff EmulatorEffs (MarloweData, Tx)
 performNotify wallets actor action = do
     (md, tx) <- walletAction actor action
     processPending >>= void . walletsNotifyBlock wallets
@@ -326,25 +323,21 @@ scaleMulTest = property $ do
     eval (Scale (1 P.% 1) a) === eval a
 
 
-showReadStuff :: IO ()
-showReadStuff = do
-    assertEqual "alice" (Role "alice") (fromString "alice" :: Party)
-    assertEqual "alice" (Role "alice") (read "Role \"alice\"")
-    assertEqual "slot" (Slot 123) (read "123")
-    let
-        investor :: Party
-        investor = "investor"
-        issuer :: Party
-        issuer = "issuer"
-        contract = When [Case
-            (Deposit (AccountId 0 investor) investor ada (Constant 850))
-            (Pay (AccountId 0 investor) (Party issuer) ada (Constant 850)
-                (When [Case
-                    (Deposit (AccountId 0 investor) issuer ada (Constant 1000))
-                    (Pay (AccountId 0 investor) (Party investor) ada
-                        (Constant 1000) Close)] 20 Close))] 10 Close
+valueSerialization :: Property
+valueSerialization = property $ do
+    let pk1 = pubKeyHash $ toPublicKey privateKey1
+    let pk2 = pubKeyHash $ toPublicKey privateKey2
+    let value = boundedValue [PK pk1, PK pk2] []
+    a <- forAll value
+    case (decode $ encode a) of
+        Just decoded -> a === decoded
+        Nothing      -> Hedgehog.failure
 
-    let contract2 :: Contract = Let (ValueId "id") (Constant 12) Close
-    assertEqual "Contract" contract ((read . show . pretty) contract)
-    assertEqual "ValueId"  contract2 (read "Let \"id\" (Constant 12) Close")
-    assertEqual "ValueId"  contract2 ((read . show . pretty) contract2)
+pangramContractSerialization :: IO ()
+pangramContractSerialization = do
+    contract <- readFile "test/contract.json"
+    let decoded :: Maybe Contract
+        decoded = decode (fromString contract)
+    case decoded of
+        Just cont -> Just cont @=? (decode $ encode cont)
+        _         -> assertFailure "Nope"

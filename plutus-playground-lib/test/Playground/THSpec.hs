@@ -2,40 +2,43 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 module Playground.THSpec
     ( tests
     ) where
 
-import           Data.Text        (Text)
-import           Ledger.Value     (Value)
-import           Playground.TH    (mkFunctions, mkSingleFunction)
-import           Playground.Types (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
-import           Schema           (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
-import           Test.Tasty       (TestTree, testGroup)
-import           Test.Tasty.HUnit (assertEqual, testCase)
-import           Wallet           (MonadWallet)
+import           Control.Monad.Freer
+import           Data.Text           (Text)
+import           Ledger.Value        (Value)
+import           Playground.TH       (mkFunctions, mkSingleFunction)
+import           Playground.Types    (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
+import           Schema              (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
+import           Test.Tasty          (TestTree, testGroup)
+import           Test.Tasty.HUnit    (assertEqual, testCase)
+import           Wallet.Effects      (WalletEffect)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.
-f0 :: MonadWallet m => m ()
+f0 :: Member WalletEffect effs => Eff effs ()
 f0 = pure ()
 
-f1 :: MonadWallet m => m ()
+f1 :: Member WalletEffect effs => Eff effs ()
 f1 = pure ()
 
-f2 :: MonadWallet m => String -> m ()
+f2 :: Member WalletEffect effs => String -> Eff effs ()
 f2 _ = pure ()
 
-f3 :: MonadWallet m => String -> Value -> m ()
+f3 :: Member WalletEffect effs => String -> Value -> Eff effs ()
 f3 _ _ = pure ()
 
-f4 :: MonadWallet m => Text -> Text -> (Int, Int) -> [Text] -> m ()
+f4 :: Member WalletEffect effs => Text -> Text -> (Int, Int) -> [Text] -> Eff effs ()
 f4 _ _ _ _ = pure ()
 
 $(mkSingleFunction 'f0)

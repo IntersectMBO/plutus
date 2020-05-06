@@ -29,8 +29,8 @@ import           Language.PlutusCore.StdLib.Type
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
 natData :: RecursiveType uni ()
 natData = runQuote $ do
-    nat <- freshTyName () "nat"
-    r   <- freshTyName () "r"
+    nat <- freshTyName "nat"
+    r   <- freshTyName "r"
     makeRecursiveType () nat []
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -43,9 +43,9 @@ natData = runQuote $ do
 zero :: TermLike term TyName Name uni => term ()
 zero = runQuote $ do
     let RecursiveType nat wrapNat = natData
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
         . wrapNat []
         . tyAbs () r (Type ())
@@ -59,10 +59,10 @@ zero = runQuote $ do
 succ :: TermLike term TyName Name uni => term ()
 succ = runQuote $ do
     let RecursiveType nat wrapNat = natData
-    n <- freshName () "n"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    n <- freshName "n"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
         . lamAbs () n nat
         . wrapNat []
@@ -80,12 +80,12 @@ succ = runQuote $ do
 foldrNat :: TermLike term TyName Name uni => term ()
 foldrNat = runQuote $ do
     let nat = _recursiveType natData
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    z   <- freshName () "z"
-    rec <- freshName () "rec"
-    n   <- freshName () "n"
-    n'  <- freshName () "n'"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    z   <- freshName "z"
+    rec <- freshName "rec"
+    n   <- freshName "n"
+    n'  <- freshName "n'"
     return
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))
@@ -107,12 +107,12 @@ foldrNat = runQuote $ do
 foldNat :: TermLike term TyName Name uni => term ()
 foldNat = runQuote $ do
     let nat = _recursiveType natData
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    rec <- freshName () "rec"
-    z   <- freshName () "z"
-    n   <- freshName () "n"
-    n'  <- freshName () "n'"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    rec <- freshName "rec"
+    z   <- freshName "z"
+    n   <- freshName "n"
+    n'  <- freshName "n'"
     return
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))

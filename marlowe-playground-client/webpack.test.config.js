@@ -41,12 +41,16 @@ module.exports = {
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
                                 '../playground-common/src/**/*.purs',
-                                '../web-common/src/**/*.purs',
+                                '../web-common/**/*.purs',
                                 'test/**/*.purs'
                             ],
                         }
                     }
                 ]
+            },
+            {
+                test: /\.(gif|png|jpe?g|svg)$/i,
+                use: 'url-loader'
             },
         ]
     },

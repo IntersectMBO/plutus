@@ -6,10 +6,13 @@ module Algorithmic where
 
 \begin{code}
 open import Function hiding (_∋_)
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.List hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.Unit
 
 open import Type
 open import Type.BetaNormal
-
 open import Type.BetaNBE
 open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 open import Builtin
@@ -17,10 +20,7 @@ open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Constant.Type
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List hiding ([_])
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Unit
+open import Utils
 \end{code}
 
 ## Fixity declarations
@@ -93,7 +93,7 @@ application.
 \begin{code}
 open import Data.String
 
-Tel : ∀ {Φ} Γ Δ → (∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) → List (Δ ⊢Nf⋆ *) → Set
+data Tel {Φ} Γ Δ (σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J) : List (Δ ⊢Nf⋆ *) → Set
 
 data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
@@ -153,16 +153,34 @@ data _⊢_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
   error : ∀{Φ Γ} → (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
 
-Tel Γ Δ σ [] = ⊤
-Tel Γ Δ σ (A ∷ As) = Γ ⊢ substNf σ A × Tel Γ Δ σ As
-
+data Tel {Φ} Γ Δ σ where
+  []  : Tel Γ Δ σ []
+  _∷_ : ∀{A As} → Γ ⊢ substNf σ A → Tel Γ Δ σ As →  Tel Γ Δ σ (A ∷ As)
 \end{code}
 
 Utility functions
 
 \begin{code}
-open import Type.BetaNormal.Equality
+_++T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → {As' : List (Δ ⊢Nf⋆ *)}
+  → (ts  : Tel Γ Δ σ As)
+  → (ts' : Tel Γ Δ σ As')
+  → Tel Γ Δ σ (As Data.List.++ As')
+[]       ++T ts' = ts'
+(t ∷ ts) ++T ts' = t ∷ (ts ++T ts')
 
+
+_:<T_ : ∀ {Φ Γ Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}
+  → {As : List (Δ ⊢Nf⋆ *)}
+  → {A  : Δ ⊢Nf⋆ *}
+  → (ts : Tel Γ Δ σ As)
+  → (t : Γ ⊢ substNf σ A)
+  → Tel Γ Δ σ (As :<L A)
+[]        :<T t = t ∷ []
+(t' ∷ ts) :<T t = t' ∷ (ts :<T t)
+
+open import Type.BetaNormal.Equality
 
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'
@@ -187,6 +205,6 @@ convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
   → (σ : ∀{J} → Ψ ∋⋆ J → Φ ⊢Nf⋆ J)
   → (As : List (Ψ ⊢Nf⋆ *))
   → Tel Γ Ψ σ As → Tel Γ' Ψ σ As
-convTel p σ []       tt        = tt
-convTel p σ (A ∷ As) (t ,, ts) = conv⊢ p refl t ,, convTel p σ As ts
+convTel p σ []       []       = []
+convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 \end{code}

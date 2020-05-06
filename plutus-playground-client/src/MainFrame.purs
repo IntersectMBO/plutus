@@ -8,8 +8,10 @@ import Prelude
 import Ace.Types (Annotation)
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
-import Chain.Eval as Chain
-import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..))
+import Animation (class MonadAnimate, animate)
+import Chain.Eval (handleAction) as Chain
+import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..), _chainFocusAppearing, _value)
+import Chain.Types (initialState) as Chain
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
@@ -64,7 +66,7 @@ import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ActionEvent(..), ChildSlots, DragAndDropEventType(..), FieldEvent(..), FormArgument, FormEvent(..), HAction(..), Query, SimulatorAction, State(..), ValueEvent(..), View(..), WalletEvent(..), WebData, _actionDrag, _amount, _argumentValues, _arguments, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _recipient, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _value, _walletId, getKnownCurrencies, mkInitialValue, toArgument, toEvaluation)
+import Types (ActionEvent(..), ChildSlots, DragAndDropEventType(..), FieldEvent(..), FormArgument, FormEvent(..), HAction(..), Query, SimulatorAction, State(..), ValueEvent(..), View(..), WalletEvent(..), WebData, _actionDrag, _amount, _argumentValues, _arguments, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _recipient, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, mkInitialValue, toArgument, toEvaluation)
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
@@ -99,11 +101,7 @@ mkInitialState editorPreferences = do
         , authStatus: NotAsked
         , createGistResult: NotAsked
         , gistUrl: Nothing
-        , blockchainVisualisationState:
-          { chainFocus: Nothing
-          , chainFocusAppearing: false
-          , chainFocusAge: EQ
-          }
+        , blockchainVisualisationState: Chain.initialState
         }
 
 ------------------------------------------------------------
@@ -215,6 +213,7 @@ handleAction ::
   MonadState State m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadApp m =>
+  MonadAnimate m State =>
   HAction -> m Unit
 handleAction Mounted = pure unit
 
@@ -335,7 +334,9 @@ handleAction (PopulateAction n l event) = do
 handleAction (SetChainFocus newFocus) = do
   mAnnotatedBlockchain <-
     peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
-  zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain
+  animate
+    (_blockchainVisualisationState <<< _chainFocusAppearing)
+    (zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain)
 
 handleAction CompileProgram = do
   mContents <- editorGetContents

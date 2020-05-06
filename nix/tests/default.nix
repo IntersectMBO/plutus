@@ -1,5 +1,5 @@
 { pkgs, iohkNix, src, haskell }:
-{
+pkgs.recurseIntoAttrs {
   shellcheck = pkgs.callPackage iohkNix.tests.shellcheck { inherit src; };
   stylishHaskell = pkgs.callPackage ./stylish-haskell.nix {
     inherit src;

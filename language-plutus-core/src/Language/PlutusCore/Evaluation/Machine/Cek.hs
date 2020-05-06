@@ -60,8 +60,10 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
@@ -109,16 +111,17 @@ type VarEnv uni = UniqueMap TermUnique (Closure uni)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { _cekEnvMeans      :: DynamicBuiltinNameMeanings uni
-    , _cekEnvVarEnv     :: VarEnv uni
-    , _cekEnvBudgetMode :: ExBudgetMode
+    { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
+    , _cekEnvVarEnv            :: VarEnv uni
+    , _cekEnvBudgetMode        :: ExBudgetMode
+    , _cekEnvBuiltinCostParams :: CostModel
     }
 
 makeLenses ''CekEnv
 
 -- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
 -- get it back in case of error.
-type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
+type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (QuoteT (State ExBudgetState)))
 
 instance SpendBudget (CekM uni) uni where
     spendBudget key term budget = do
@@ -131,6 +134,7 @@ instance SpendBudget (CekM uni) uni where
             Restricting resb ->
                 when (exceedsBudget resb newBudget) $
                     throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
+    builtinCostParams = view cekEnvBuiltinCostParams
 
 data Frame uni
     = FrameApplyFun (VarEnv uni) (WithMemory Value uni)                          -- ^ @[V _]@
@@ -148,7 +152,7 @@ runCekM
     -> ExBudgetState
     -> CekM uni a
     -> (Either (CekEvaluationException uni) a, ExBudgetState)
-runCekM env s a = runState (runExceptT $ runReaderT a env) s
+runCekM env s a = runState (runQuoteT . runExceptT $ runReaderT a env) s
 
 -- | Get the current 'VarEnv'.
 getVarEnv :: CekM uni (VarEnv uni)
@@ -160,18 +164,18 @@ withVarEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendVarEnv :: Name ExMemory -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
+extendVarEnv :: Name -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
 extendVarEnv argName arg argVarEnv =
     insertByName argName $ Closure argVarEnv arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name ExMemory -> CekM uni (Closure uni)
+lookupVarName :: Name -> CekM uni (Closure uni)
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
         Nothing   -> throwingWithCause _MachineError
             OpenTermEvaluatedMachineError
-            (Just . Var () $ void varName)
+            (Just . Var () $ varName)
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -267,6 +271,65 @@ instantiateEvaluate con ty fun
     | otherwise                      =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
 
+{- Note [Saved mapping example]
+Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
+
+    id : all a. a -> a
+
+Notation:
+
+- the variable environment is denoted as @{ <var> :-> (<env>, <value>), ... }@
+- the context is denoted as a Haskell list of 'Frame's
+- 'computeCek' is denoted as @(|>)@
+- 'returnCek' is denoted as @(<|)@
+
+When evaluating
+
+    id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+
+We encounter the following state:
+
+    { i :-> ({}, 1) }
+    [ FrameApplyFun {} (id {integer -> integer})
+    , FrameApplyArg {} 0
+    ] |> \(j : integer) -> i
+
+and transition it into
+
+    { arg :-> ({ i :-> ({}, 1) }, \(j : integer) -> i) }
+    [ FrameApplyArg {} 0
+    ] <| id {integer -> integer} arg
+
+i.e. if the argument is not a constant, then we create a new variable, save the old environment in
+the closure of that variable and apply the function to the variable. This allows to restore the old
+environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
+
+    (\(j : integer) -> i)) 0
+
+which evaluates to @1@ in the old environment.
+-}
+
+-- See Note [Saved mapping example].
+-- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
+-- | If an argument to a built-in function is a constant, then feed it directly to the continuation
+-- that handles the argument and invoke the continuation in the caller's environment.
+-- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
+-- the created variable to the continuation and invoke the continuation in the caller's environment
+-- extended with a mapping from the created variable to the closure (i.e. original argument +
+-- its environment). The "otherwise" is only supposed to happen when handling an argument to a
+-- polymorphic built-in function.
+withScopedArgIn
+    :: VarEnv uni                            -- ^ The caller's envorinment.
+    -> VarEnv uni                            -- ^ The argument's environment.
+    -> WithMemory Value uni                  -- ^ The argument.
+    -> (WithMemory Value uni -> CekM uni a)  -- ^ A continuation handling the argument.
+    -> CekM uni a
+withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
+withScopedArgIn funVarEnv argVarEnv arg            k = do
+    let cost = memoryUsage ()
+    argName <- freshName "arg"
+    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
+
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -283,18 +346,15 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
     withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
-applyEvaluate funVarEnv argVarEnv con fun arg =
-        -- Instantiate all the free variable of the argument in case there are any
-        -- (which may happen when evaluating a term that contains polymorphic built-in functions).
-        -- See https://github.com/input-output-hk/plutus/issues/1882
-    let argClosed = dischargeVarEnv argVarEnv arg
-        term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage argClosed) fun argClosed
-    in case termAsPrimIterApp term of
+applyEvaluate funVarEnv argVarEnv con fun arg = do
+    withScopedArgIn funVarEnv argVarEnv arg $ \arg' ->
+        let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg') fun arg'
+        in case termAsPrimIterApp term of
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
-                withVarEnv funVarEnv $ case constAppResult of
+                case constAppResult of
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 
@@ -307,20 +367,25 @@ applyStagedBuiltinName
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
+applyStagedBuiltinName (StaticStagedBuiltinName name) args = do
+    params <- builtinCostParams
+    applyBuiltinName params name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
     -> ExBudgetMode
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
-runCek means mode term =
-    runCekM (CekEnv means mempty mode)
+runCek means mode params term =
+    runCekM (CekEnv means mempty mode params)
             (ExBudgetState mempty mempty)
         $ do
+            -- We generate fresh variables during evaluation, see Note [Saved mapping example],
+            -- hence making sure here that no accidental variable capture can occur.
+            markNonFreshTerm term
             spendBudget BAST memTerm (ExBudget 0 (termAnn memTerm))
             computeCek [] memTerm
     where
@@ -330,6 +395,7 @@ runCek means mode term =
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCekCounting means = runCek means Counting
@@ -338,17 +404,18 @@ runCekCounting means = runCek means Counting
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) (Plain Term uni)
-evaluateCek means = fst . runCekCounting means
+evaluateCek means params = fst . runCekCounting means params
 
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => DynamicBuiltinNameMeanings uni -> Plain Term uni -> EvaluationResultDef uni
-unsafeEvaluateCek means = either throw id . extractEvaluationResult . evaluateCek means
+    => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
+unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
@@ -356,6 +423,7 @@ readKnownCek
        , KnownType uni a
        )
     => DynamicBuiltinNameMeanings uni
+    -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek means = evaluateCek means >=> readKnown
+readKnownCek means params = evaluateCek means params >=> readKnown

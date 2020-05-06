@@ -5,9 +5,7 @@ You can edit this file as you like.
 { name =
     "marlowe-playground-client"
 , dependencies =
-    [ "ace"
-    , "ace-halogen"
-    , "bigints"
+    [ "bigints"
     , "console"
     , "debug"
     , "effect"
@@ -27,6 +25,7 @@ You can edit this file as you like.
     , "aff-coroutines"
     , "test-unit"
     , "undefinable"
+    , "uuid"
     ]
 , packages =
     ./packages.dhall
@@ -34,7 +33,7 @@ You can edit this file as you like.
     [ "src/**/*.purs"
     , "test/**/*.purs"
     , "generated/**/*.purs"
-    , "../web-common/src/**/*.purs"
+    , "../web-common/**/*.purs"
     , "../playground-common/src/**/*.purs"
     ]
 }

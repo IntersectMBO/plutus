@@ -1,9 +1,9 @@
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE MonoLocalBinds   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 module Spec.GameStateMachine(tests) where
 
 import           Test.Tasty
@@ -11,15 +11,14 @@ import qualified Test.Tasty.HUnit                                          as HU
 
 import qualified Spec.Lib                                                  as Lib
 
-import qualified Language.PlutusTx as PlutusTx
+import qualified Language.PlutusTx                                         as PlutusTx
 
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
-import           Language.PlutusTx.Coordination.Contracts.GameStateMachine (GameStateMachineSchema, LockArgs(..), GuessArgs(..))
 import           Language.PlutusTx.Lattice
 import qualified Ledger.Ada                                                as Ada
-import           Ledger.Value                                              (Value)
 import qualified Ledger.Typed.Scripts                                      as Scripts
+import           Ledger.Value                                              (Value)
 import qualified Wallet.Emulator                                           as EM
 
 tests :: TestTree
