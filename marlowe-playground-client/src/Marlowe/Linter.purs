@@ -41,7 +41,7 @@ import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\), type (/\))
-import Help (marloweTypeMarkerText)
+import Help (holeText)
 import Marlowe.Holes (AccountId, Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
@@ -610,7 +610,7 @@ holeToMarker hole@(MarloweHole { name, marloweType, row, column }) m constructor
   , startLineNumber: row
   , endColumn: column + (length name) + 1
   , endLineNumber: row
-  , message: marloweTypeMarkerText marloweType
+  , message: holeText marloweType
   , severity: markerSeverity "Warning"
   , code: ""
   , source: "Hole: " <> (dropEnd 4 $ show marloweType)

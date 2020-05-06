@@ -18,7 +18,7 @@ import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
 import Halogen.Query.EventSource (Emitter(..), Finalizer(..), effectEventSource)
-import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
+import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
 import Monaco as Monaco
 import Prelude (class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, pure, unit, void, ($), (>>=))
 
@@ -80,6 +80,7 @@ type Settings m
     , theme :: Theme
     , monarchTokensProvider :: Maybe MonarchLanguage
     , tokensProvider :: Maybe TokensProvider
+    , hoverProvider :: Maybe HoverProvider
     , completionItemProvider :: Maybe CompletionItemProvider
     , codeActionProvider :: Maybe CodeActionProvider
     , documentFormattingEditProvider :: Maybe DocumentFormattingEditProvider
@@ -125,6 +126,7 @@ handleAction settings Init = do
         Monaco.defineTheme monaco settings.theme
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
         for_ settings.tokensProvider $ Monaco.setTokensProvider monaco languageId
+        for_ settings.hoverProvider $ Monaco.registerHoverProvider monaco languageId
         for_ settings.completionItemProvider $ Monaco.registerCompletionItemProvider monaco languageId
         for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
         for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId

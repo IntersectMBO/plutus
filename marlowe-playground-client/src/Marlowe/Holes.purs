@@ -14,6 +14,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
+import Data.Semigroup.Foldable (foldMap1)
 import Data.Set (Set)
 import Data.Set as Set
 import Data.String (length, splitAt, toLower)
@@ -187,7 +188,20 @@ getMarloweConstructors PartyType =
     ]
 
 allMarloweConstructors :: Map String (Array Argument)
-allMarloweConstructors = foldl (\acc mt -> getMarloweConstructors mt <> acc) mempty allMarloweTypes
+allMarloweConstructors = foldMap getMarloweConstructors allMarloweTypes
+
+allMarloweConstructorNames :: Map String MarloweType
+allMarloweConstructorNames = foldMap f allMarloweTypes
+  where
+  f :: MarloweType -> Map String MarloweType
+  f marloweType' =
+    let
+      constructors = Map.keys $ getMarloweConstructors marloweType'
+
+      kvs :: Array (Tuple String MarloweType)
+      kvs = Set.toUnfoldable $ Set.map (\constructor -> Tuple constructor marloweType') constructors
+    in
+      Map.fromFoldable kvs
 
 -- Based on a String representation of a constructor get the MarloweType
 -- "Close" -> ContractType
