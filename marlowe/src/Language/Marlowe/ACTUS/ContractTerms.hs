@@ -121,6 +121,7 @@ data ContractTerms = PamContractTerms {
   , _SCEF :: SCEF
   , _SCCL :: Maybe Cycle
   , _SCANX :: Maybe Day
+  , _SCIXSD :: Double
   , _RRCL :: Maybe Cycle
   , _RRANX :: Maybe Day
   , _RRNXT :: Maybe Double -- next reset date
@@ -137,6 +138,7 @@ data ContractTerms = PamContractTerms {
   , _IPAC :: Maybe Double
   , _FECL :: Maybe Cycle
   , _FEANX :: Maybe Day
+  , _FEAC :: Maybe Double
   , _PRF :: ContractStatus
   , scfg :: ScheduleConfig
   } | LamContractTerms { 
