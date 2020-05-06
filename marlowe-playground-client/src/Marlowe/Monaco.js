@@ -3,6 +3,10 @@
 
 const monaco = require('src/Marlowe/Monaco.ts');
 
+exports.hoverProvider_ = function (hoverProvider) {
+    return new monaco.MarloweHoverProvider(hoverProvider);
+}
+
 exports.completionItemProvider_ = function (suggestionsProvider) {
     let uncurriedSuggestions = (stripParens, contract, range) => suggestionsProvider(stripParens)(contract)(range);
     return new monaco.MarloweCompletionItemProvider(uncurriedSuggestions);

@@ -1,6 +1,21 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moo from 'moo';
 
+export class MarloweHoverProvider implements monaco.languages.HoverProvider {
+
+  // This enables us to pass in a function from PureScript that provides hover information
+  hoverProvider: (word: string) => monaco.languages.Hover
+
+  constructor(hoverProvider) {
+    this.hoverProvider = hoverProvider;
+  }
+  provideHover(model: monaco.editor.ITextModel, position: monaco.Position, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.Hover> {
+    const word = model.getWordAtPosition(position);
+    return this.hoverProvider(word.word)
+  }
+
+}
+
 export class MarloweCompletionItemProvider implements monaco.languages.CompletionItemProvider {
 
   // This enables us to pass in a function from PureScript that provides suggestions based on a contract string

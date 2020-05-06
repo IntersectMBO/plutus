@@ -81,6 +81,10 @@ exports.markerSeverity_ = function (name) {
   return monaco.MarkerSeverity[name];
 }
 
+exports.registerHoverProvider_ = function (monaco, languageId, provider) {
+  monaco.languages.registerHoverProvider(languageId, provider);
+}
+
 exports.registerCompletionItemProvider_ = function (monaco, languageId, provider) {
   monaco.languages.registerCompletionItemProvider(languageId, provider);
 }
