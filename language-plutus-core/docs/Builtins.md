@@ -56,7 +56,7 @@ Then if you need more built-in types and functions you simply extend the `Builti
 This is a viable approach and it's what was originally implemented in Plutus Core, but it has a major downside of not being flexible:
 
 1. you can't easily add a `trace` function to the set of built-in functions to debug some code and then remove it once the bug is found. With this setup adding `trace` requires tinkering with the AST and updating all of the main procedures (type checking, evaluation, pretty-printing, what have you), which is extremely tedious
-2. more importantly, you can only have a single configuration of builtins. Given that Plutus is going to be run on different blockchains giving access to different primitives, it's not an option to have a hardcoded set of builtins
+2. more importantly, you can only have a single configuration of builtins. Given that Plutus is going to be run on different blockchains giving access to different primitives, it's not an option to have a hardcoded set of builtins. For example, privacy-preserving ledgers may restrict the kinds of computation that can be done, which may mean we only have some kinds of arithmetic operations.
 
 So we had to make builtins extensible. Which amounts to making the `BuilinType`, `Constant` and `BuiltinFunction` data types extensible. The first two are about extensible types and the last one is about extensible functions, so we'll consider those things separately.
 
@@ -191,6 +191,7 @@ Those two representations are very similar. Differences:
 - (2) requires adding another type variable, which can be annoying if you already have several of them (we do)
 - (2) is more expressive: it allows to specify at the type level what built-in functions a term may reference. Those can be built-in functions from a certain set (including the empty one) or you can instantiate `fun` with `Text` and get an equivalent of (1)
 - (1) requires adding another kind of errors: the name of a built-in function is not found in a mapping from built-in function names to their meanings during type checking or evaluation (not a big deal in practice)
+- (1) requires to parameterize the parser by a set of names of built-in functions, while in (2) this set is determined from the type of the result
 
 In general, differences are minor, so either of the approaches is fine. Currently we have (1), but we'll probably change it to (2) at some point.
 
@@ -262,10 +263,10 @@ where a built-in function can be partially applied, e.g. it's allowed to apply `
 
 Those two representations are very similar. Differences:
 
-- with unsaturated built-in functions we can write `map (addInteger 1) xs` while with saturated once we have to write `map (\x -> addInteger 1 x) xs`
+- with unsaturated built-in functions we can write `map (addInteger 1) xs` while with saturated once we have to write `map (\x -> addInteger 1 x) xs`. But the Plutus Tx compiler can probably do this transformation automatically
 - it seems that it's easier to implement an efficient evaluator with saturated built-in fuctions
 
-In general, differences are minor, so either of the approaches is fine. Currently we have (1), but we're going to change it to (2) at some point.
+In general, differences are minor, so either of the approaches is fine. Currently we have (2), but we're going to change it to (1) at some point.
 
 ## Failing built-in functions
 
@@ -275,7 +276,15 @@ Built-in functions are currently not allowed to catch failures. This was allowed
 
 ## Polymorphism
 
-So far we've been talking only about monomorphic built-in types and functions, but we can actually support polymorphism. In theory, it's possible to associate Plutus Core `all` with Haskell `forall`, so that Plutus Core
+So far we've been talking only about monomorphic built-in types and functions, but we can actually support polymorphism.
+
+We need polymorphic functions, because adding a data type like `Bool` to the universe requires adding its matching function to the set of built-in functions (so that booleans can be matched on, not just constructed) and the type of that function is
+
+```
+ifThenElse : all a. bool -> a -> a -> a
+```
+
+In theory, it's possible to associate Plutus Core `all` with Haskell `forall`, so that Plutus Core
 
 ```
 constPlc : all a b. a -> b -> a
