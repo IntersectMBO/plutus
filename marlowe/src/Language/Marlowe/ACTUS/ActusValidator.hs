@@ -13,6 +13,7 @@ import Language.Marlowe.ACTUS.STF.StateTransition
 import Language.Marlowe
 import Data.Time
 import Data.Maybe
+import Data.Maybe
 import Control.Arrow
 
 import Data.List
@@ -30,8 +31,13 @@ checkAllScheduledEventsHappened :: Day -> ShiftedSchedule -> ValidatedCashFlows 
 checkAllScheduledEventsHappened present schedule past = True --todo: minus credit events in past
 
 --will do STF and POF through all validated events
-replayValidatedEvents :: ContractTerms -> [ScheduledEvent] -> Day -> Double
-replayValidatedEvents terms events day = undefined
+replayValidatedEvents :: ContractTerms -> [CashFlow] -> CashFlow -> Double
+replayValidatedEvents terms past present =
+    let applyStateTransition st cf = stateTransition (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
+        calculatePayoff st cf = payoff (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
+        init = inititializeState terms
+        memory = L.foldl applyStateTransition init past
+    in calculatePayoff (applyStateTransition memory present) present
 
 -- validated cashflows are part of transaction state, present is proposed cashflow
 validateCashFlow :: ContractTerms -> ValidatedCashFlows -> CashFlow -> Bool
@@ -44,7 +50,7 @@ validateCashFlow terms past present =
         _ -> 
             let 
                 expectedPaymentDayOk = isPaymentDay (cashPaymentDay present) schedule
-                expectedPayOff = replayValidatedEvents terms (fmap cashEvent $ past ++ [present]) (cashCalculationDay present)
+                expectedPayOff = replayValidatedEvents terms past present
             in noUnreportedOverdue && expectedPaymentDayOk && expectedPayOff == amount present
     --todo check currency from contract terms
     --todocheck contractId
