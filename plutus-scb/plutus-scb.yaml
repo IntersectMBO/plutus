@@ -1,0 +1,25 @@
+dbConfig:
+    dbConfigFile: scb-core.db
+    dbConfigPoolSize: 20
+
+scbWebserverConfig:
+  baseUrl: http://localhost:8080
+
+walletServerConfig:
+  baseUrl: http://localhost:8081
+
+nodeServerConfig:
+  mscBaseUrl: http://localhost:8082
+  mscSlotLength: 5
+  mscRandomTxInterval: 20
+  mscBlockReaper:
+    brcInterval: 600
+    brcBlocksToKeep: 100
+
+chainIndexConfig:
+  ciBaseUrl: http://localhost:8083
+
+signingProcessConfig:
+  spBaseUrl: http://localhost:8084
+  spWallet: 
+    getWallet: 1

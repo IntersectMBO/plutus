@@ -99,6 +99,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."http-api-data" or (buildDepError "http-api-data"))
           (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
           (hsPkgs."cardano-crypto" or (buildDepError "cardano-crypto"))
+          (hsPkgs."semigroups" or (buildDepError "semigroups"))
           ];
         buildable = true;
         modules = [

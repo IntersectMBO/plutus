@@ -61,7 +61,7 @@ serializationTest =
         When
           [ Case (Deposit aliceAcc alicePk ada valueExpr)
               ( Let (ValueId "x") valueExpr
-                  (Pay aliceAcc (Party bobRole) ada (UseValue (ValueId "x")) Close)
+                  (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
               )
           , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
               ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId const `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))

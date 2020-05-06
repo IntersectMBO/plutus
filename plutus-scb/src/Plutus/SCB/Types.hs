@@ -1,34 +1,29 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 module Plutus.SCB.Types where
 
-import qualified Cardano.ChainIndex.Types                   as ChainIndex
-import qualified Cardano.Node.Server                        as NodeServer
-import qualified Cardano.SigningProcess.Server              as SigningProcess
-import qualified Cardano.Wallet.Server                      as WalletServer
-import           Control.Lens.TH                            (makePrisms)
-import           Data.Aeson                                 (FromJSON, ToJSON)
-import qualified Data.Aeson                                 as Aeson
-import qualified Data.Aeson.Encode.Pretty                   as JSON
-import qualified Data.ByteString.Lazy.Char8                 as BS8
-import           Data.Map.Strict                            (Map)
-import           Data.Text                                  (Text)
-import           Data.Text.Prettyprint.Doc                  (Pretty, indent, pretty, vsep, (<+>))
-import           Data.UUID                                  (UUID)
-import qualified Data.UUID                                  as UUID
-import           GHC.Generics                               (Generic)
-import           Language.Plutus.Contract.Effects.OwnPubKey (OwnPubKeyRequest)
-import           Language.Plutus.Contract.Resumable         (ResumableError)
-import           Ledger                                     (Blockchain, Tx, TxId, UtxoIndex)
-import           Ledger.Address                             (Address)
-import           Ledger.Constraints                         (UnbalancedTx)
-import           Servant.Client                             (BaseUrl, ClientError)
-import           Wallet.API                                 (WalletAPIError)
+import qualified Cardano.ChainIndex.Types           as ChainIndex
+import qualified Cardano.Node.Server                as NodeServer
+import qualified Cardano.SigningProcess.Server      as SigningProcess
+import qualified Cardano.Wallet.Server              as WalletServer
+import           Control.Lens.TH                    (makePrisms)
+import           Data.Aeson                         (FromJSON, ToJSON)
+import           Data.Map.Strict                    (Map)
+import           Data.Text                          (Text)
+import           Data.Text.Prettyprint.Doc          (Pretty, pretty, (<+>))
+import           Data.UUID                          (UUID)
+import qualified Data.UUID                          as UUID
+import           GHC.Generics                       (Generic)
+import           Language.Plutus.Contract.Resumable (ResumableError)
+import           Ledger                             (Blockchain, Tx, TxId, UtxoIndex)
+import           Servant.Client                     (BaseUrl, ClientError)
+import           Wallet.API                         (WalletAPIError)
 
 newtype ContractExe =
     ContractExe
@@ -39,21 +34,6 @@ newtype ContractExe =
 
 instance Pretty ContractExe where
     pretty ContractExe {contractPath} = "Path:" <+> pretty contractPath
-
-data ActiveContract t =
-    ActiveContract
-        { activeContractInstanceId :: UUID
-        , activeContractDefinition :: t
-        }
-    deriving (Show, Eq, Ord, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty t => Pretty (ActiveContract t) where
-    pretty ActiveContract {activeContractInstanceId, activeContractDefinition} =
-        vsep
-            [ "UUID:" <+> pretty (show activeContractInstanceId)
-            , "Definition:" <+> pretty activeContractDefinition
-            ]
 
 data SCBError
     = FileNotFound FilePath
@@ -68,46 +48,6 @@ data SCBError
     | ContractCommandError Int Text
     | OtherError Text
     deriving (Show, Eq)
-
-data ContractHook
-    = UtxoAtHook Address
-    | TxHook UnbalancedTx
-    | OwnPubKeyHook OwnPubKeyRequest
-    deriving (Show, Eq)
-
-data PartiallyDecodedResponse =
-    PartiallyDecodedResponse
-        { newState :: Aeson.Value
-        , hooks    :: Aeson.Value
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty PartiallyDecodedResponse where
-    pretty PartiallyDecodedResponse {newState, hooks} =
-        vsep
-            [ "State:"
-            , indent 2 $ pretty $ take 120 $ BS8.unpack $ JSON.encodePretty newState
-            , "Hooks:"
-            , indent 2 $ pretty $ take 120 $ BS8.unpack $ JSON.encodePretty hooks
-            ]
-
-data ActiveContractState t =
-    ActiveContractState
-        { activeContract           :: ActiveContract t
-        , partiallyDecodedResponse :: PartiallyDecodedResponse
-        }
-    deriving (Show, Eq, Generic)
-    deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty t => Pretty (ActiveContractState t) where
-    pretty ActiveContractState {activeContract, partiallyDecodedResponse} =
-        vsep
-            [ "Contract:"
-            , indent 2 $ pretty activeContract
-            , "Status:"
-            , indent 2 $ pretty partiallyDecodedResponse
-            ]
 
 data DbConfig =
     DbConfig

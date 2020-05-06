@@ -320,6 +320,7 @@ data Value
   | SlotIntervalStart
   | SlotIntervalEnd
   | UseValue ValueId
+  | Cond Observation Value Value
 
 derive instance genericValue :: Generic Value _
 
@@ -876,6 +877,7 @@ evalValue env state value =
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env
       UseValue valId -> fromMaybe zero $ Map.lookup valId (unwrap state).boundValues
+      Cond cond thn els -> if evalObservation env state cond then eval thn else eval els
 
 -- | Evaluate an @Observation@ to Bool
 evalObservation :: Environment -> State -> Observation -> Boolean

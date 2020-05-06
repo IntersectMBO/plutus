@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 module Cardano.Node.Types where
@@ -9,6 +10,7 @@ import           Control.Lens                   (Iso', iso, makeLenses, view)
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
+import           Data.Text.Prettyprint.Doc      (Pretty)
 import           Data.Time.Units                (Second)
 import           Data.Time.Units.Extra          ()
 import           GHC.Generics                   (Generic)
@@ -71,6 +73,6 @@ initialFollowerState = NodeFollowerState Map.empty
 
 newtype FollowerID = FollowerID Int
     deriving stock (Show, Eq, Ord, Generic)
-    deriving newtype (ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Integral, Enum, Real, Num)
+    deriving newtype (ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Integral, Enum, Real, Num, Pretty)
 
 makeLenses 'AppState

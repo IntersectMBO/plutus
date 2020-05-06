@@ -15,6 +15,7 @@ import           Pretty.Readable
 import           TypeSynthesis.Spec                                         (test_typecheck)
 
 import           Language.PlutusCore
+import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -94,6 +95,11 @@ propCBOR = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog serialise deserialiseOrFail
 
+propCBORnoUnits :: Property
+propCBORnoUnits = property $ do
+    prog <- forAllPretty $ runAstGen genProgram
+    Hedgehog.tripping prog serialiseOmittingUnits deserialiseRestoringUnitsOrFail
+
 -- Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
@@ -134,6 +140,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     [ tests
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip" propCBOR
+    , testProperty "serialization round-trip without units" propCBORnoUnits
     , testProperty "equality survives renaming" propRename
     , testProperty "equality does not survive mangling" propMangle
     , testGroup "de Bruijn transformation round-trip" $

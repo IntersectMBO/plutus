@@ -891,7 +891,7 @@ convertPayee (MS.Party party) _ _ maps = (Party newParty, mapsWithParty)
 convertBound :: MS.Bound -> Bound
 convertBound (MS.Bound from to) = (from, to)
 
-convertValue :: MS.Value -> Mappings -> (Value, Mappings)
+convertValue :: (MS.Value MS.Observation) -> Mappings -> (Value, Mappings)
 convertValue (MS.AvailableMoney accId (MS.Token csym tok)) maps =
     (AvailableMoney newAccId, mapsWithAccId)
   where (newAccId, mapsWithAccId) = convertAccId accId csym tok maps

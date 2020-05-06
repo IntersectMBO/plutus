@@ -34,11 +34,11 @@ partyGen = choice [ return $ Role "alice"
                  ]
 
 
-boundedValue :: [Party] -> [ChoiceId] -> Gen Value
+boundedValue :: [Party] -> [ChoiceId] -> Gen (Value Observation)
 boundedValue parties choices = sized $ boundedValueAux parties choices
 
 
-boundedValueAux :: [Party] -> [ChoiceId] -> Size -> Gen Value
+boundedValueAux :: [Party] -> [ChoiceId] -> Size -> Gen (Value Observation)
 boundedValueAux parties choices (Size s) = do
     let accounts  = [AccountId 0 p | p <- parties]
     let go s      = boundedValueAux parties choices (Size s)

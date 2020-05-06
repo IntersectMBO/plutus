@@ -72,6 +72,8 @@ library
         Plutus.SCB.Command
         Plutus.SCB.ContractCLI
         Plutus.SCB.Core
+        Plutus.SCB.Core.ContractInstance
+        Plutus.SCB.Core.Projections
         Plutus.SCB.Effects.Contract
         Plutus.SCB.Effects.EventLog
         Plutus.SCB.Effects.UUID
@@ -79,14 +81,14 @@ library
         Plutus.SCB.Webserver.API
         Plutus.SCB.Webserver.Server
         Plutus.SCB.Events
-        Plutus.SCB.Query
-        Plutus.SCB.Relation
-        Plutus.SCB.Types
-        Plutus.SCB.Utils
         Plutus.SCB.Events.Contract
         Plutus.SCB.Events.Node
         Plutus.SCB.Events.User
         Plutus.SCB.Events.Wallet
+        Plutus.SCB.Query
+        Plutus.SCB.Relation
+        Plutus.SCB.Types
+        Plutus.SCB.Utils
     other-modules:
         Servant.Extra
     hs-source-dirs: src
@@ -177,7 +179,8 @@ executable plutus-scb
         text -any,
         unliftio-core -any,
         uuid -any,
-        yaml -any
+        yaml -any,
+        containers -any
 
 executable plutus-contract
     main-is: Main.hs
@@ -228,4 +231,5 @@ test-suite plutus-scb-test
         tasty-quickcheck -any,
         text -any,
         transformers -any,
-        prettyprinter -any
+        prettyprinter -any,
+        row-types -any

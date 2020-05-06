@@ -126,6 +126,7 @@ const marloweLexer = moo.compile({
         'SlotIntervalStart',
         'SlotIntervalEnd',
         'UseValue',
+        'Cond',
         'Scale',
       ],
       ACCOUNT_ID: ['AccountId'],

@@ -10,7 +10,7 @@ import           Control.Monad.Trans.Except                                 (run
 import           Data.Bifunctor                                             (second)
 import           Data.Foldable                                              (traverse_)
 import qualified Language.PlutusCore                                        as PLC
-import qualified Language.PlutusCore.CBOR                                   ()
+import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
@@ -30,20 +30,20 @@ import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
 import           System.Exit
 
-import           Codec.Serialise
 import           Options.Applicative
 
-{- Note [Annotation types]
-   This program now reads and writes CBOR-serialised PLC ASTs.  In all
-   cases we require the annotation type to be ().  There are two
-   reasons for this.  Firstly, ASTs serialised for transmission to the
-   chain will always have unit annotations because this saves space
-   and makes things more compressible, so it makes sense for the
-   program to deal with these.  Secondly, the annotation type has to
-   be specified when we're deserialising CBOR (in order to check that
-   the AST has the correct type), so it's difficult to deal with CBOR
-   with arbitrary annotation types: fixing the annotation type to be ()
-   is the simplest thing to do and fits our use case.
+{- Note [Annotation types] This program now reads and writes
+   CBOR-serialised PLC ASTs.  In all cases we require the annotation
+   type to be ().  There are two reasons for this.  Firstly, ASTs
+   serialised for transmission to the chain will always have unit
+   annotations because we can save space by omitting annotations in
+   the CBOR (using the OmitUnitAnnotations class from CBOR.hs), so it
+   makes sense for the program to deal with these.  Secondly, the
+   annotation type has to be specified when we're deserialising CBOR
+   (in order to check that the AST has the correct type), so it's
+   difficult to deal with CBOR with arbitrary annotation types: fixing
+   the annotation type to be () is the simplest thing to do and fits
+   our use case.
  -}
 
 
@@ -227,22 +227,28 @@ getCborInput :: Input -> IO BSL.ByteString
 getCborInput StdInput         = BSL.getContents
 getCborInput (FileInput file) = BSL.readFile file
 
+
+-- Load a PLC AST from a CBOR file
+loadPlcFromCborFile :: Input -> IO PlainProgram
+loadPlcFromCborFile inp = do
+  p <- getCborInput inp -- The type is constrained in the Right case below.
+  case deserialiseRestoringUnitsOrFail p of  -- See Note [Annotation Types]
+    Left (DeserialiseFailure offset msg) ->
+        do
+          putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
+          exitFailure
+    Right (r::PlainProgram) -> return r
+
+
 -- Read either a PLC file or a CBOR file, depending on 'fmt'
 getProg :: Input -> Format -> IO ParsedProgram
 getProg inp fmt =
     case fmt of
       Plc  -> parsePlcFile inp
       Cbor -> do
-               p <- getCborInput inp -- The type is constrained in the Right case below.
-               case deserialiseOrFail p of
-                 Left (DeserialiseFailure offset msg) ->
-                     do
-                       putStrLn $ "Deserialisation failure at offset " ++ show offset ++ ": " ++ msg
-                       exitFailure
-                 Right (r::PlainProgram) ->       -- Input a ()-annotated AST: see Note [Annotation types].
-                     return $ (fakeAlexPosn <$ r) -- Change the annotation type to AlexPosn to match parsePlcFile.
-                         where fakeAlexPosn = PLC.AlexPn 0 0 0
-
+               plc <-loadPlcFromCborFile inp
+               return (fakeAlexPosn <$ plc)  -- Adjust the return type to ParsedProgram
+                   where fakeAlexPosn = PLC.AlexPn 0 0 0
 
 ---------------- Typechecking ----------------
 
@@ -291,7 +297,7 @@ runPrint (PrintOptions inp mode) =
 runPlcToCbor :: PlcToCborOptions -> IO ()
 runPlcToCbor (PlcToCborOptions inp outp) = do
   p <- parsePlcFile inp
-  let cbor = serialise (() <$ p) -- Change annotations to (): see Note [Annotation types].
+  let cbor = serialiseOmittingUnits (() <$ p) -- Change annotations to (): see Note [Annotation types].
   case outp of
     FileOutput file -> BSL.writeFile file cbor
     StdOutput       -> BSL.putStr cbor *> putStrLn ""
@@ -301,11 +307,10 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
-  cbor <- getCborInput inp
-  let plc = deserialise cbor :: PlainProgram
-      printMethod = case mode of
-            Classic -> PLC.prettyPlcClassicDef
-            Debug   -> PLC.prettyPlcClassicDebug
+  plc <- loadPlcFromCborFile inp
+  let printMethod = case mode of
+                      Classic -> PLC.prettyPlcClassicDef
+                      Debug   -> PLC.prettyPlcClassicDebug
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
     StdOutput       -> print . printMethod $ plc

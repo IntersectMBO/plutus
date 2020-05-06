@@ -10,24 +10,32 @@
 -- across to the test suite.
 module Plutus.SCB.Arbitrary where
 
-import           Data.Aeson                        (Value)
-import qualified Data.Aeson                        as Aeson
-import qualified Language.PlutusTx                 as PlutusTx
-import qualified Language.PlutusTx.AssocMap        as AssocMap
+import           Data.Aeson                                        (Value)
+import qualified Data.Aeson                                        as Aeson
+import           Data.Maybe                                        (listToMaybe)
+import qualified Data.Set                                          as Set
+import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..), TxIdSet (..))
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints (..), EndpointDescription (..),
+                                                                    EndpointValue (..))
+import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest (..))
+import qualified Language.PlutusTx                                 as PlutusTx
+import qualified Language.PlutusTx.AssocMap                        as AssocMap
 import qualified Ledger
-import           Ledger.Crypto                     (PubKey, PubKeyHash, Signature)
-import           Ledger.Interval                   (Extended, Interval, LowerBound, UpperBound)
-import           Ledger.Slot                       (Slot)
-import           Ledger.Tx                         (TxIn, TxInType, TxOutRef, TxOutType)
-import           Ledger.TxId                       (TxId)
-import           Ledger.Typed.Scripts              (wrapValidator)
-import           LedgerBytes                       (LedgerBytes)
+import           Ledger.Crypto                                     (PubKey, PubKeyHash, Signature)
+import           Ledger.Interval                                   (Extended, Interval, LowerBound, UpperBound)
+import           Ledger.Slot                                       (Slot)
+import           Ledger.Tx                                         (TxIn, TxInType, TxOutRef, TxOutType)
+import           Ledger.TxId                                       (TxId)
+import           Ledger.Typed.Scripts                              (wrapValidator)
+import           LedgerBytes                                       (LedgerBytes)
 import qualified LedgerBytes
 import           Plutus.SCB.Events.Contract
-import           Test.QuickCheck                   (Gen, oneof)
-import           Test.QuickCheck.Arbitrary.Generic (Arbitrary, arbitrary, genericArbitrary, genericShrink, shrink)
-import           Test.QuickCheck.Instances         ()
-import           Wallet                            (WalletAPIError)
+import           Test.QuickCheck                                   (Gen, oneof)
+import           Test.QuickCheck.Arbitrary.Generic                 (Arbitrary, arbitrary, genericArbitrary,
+                                                                    genericShrink, shrink)
+import           Test.QuickCheck.Instances                         ()
+import           Wallet                                            (WalletAPIError)
 
 instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
@@ -141,8 +149,18 @@ instance Arbitrary ContractRequest where
             [ AwaitSlotRequest <$> arbitrary
             , AwaitTxConfirmedRequest <$> arbitrary
             , UserEndpointRequest <$> arbitrary
-            , pure OwnPubkeyRequest
+            , pure (OwnPubkeyRequest WaitingForPubKey)
+            , pure (OwnPubkeyRequest NotWaitingForPubKey)
             ]
+
+instance Arbitrary TxIdSet where
+    arbitrary = TxIdSet . Set.fromList <$> arbitrary
+
+instance Arbitrary ActiveEndpoints where
+    arbitrary = ActiveEndpoints . Set.fromList . fmap EndpointDescription <$> arbitrary
+
+instance Arbitrary WaitingForSlot where
+    arbitrary = WaitingForSlot <$> arbitrary
 
 -- Maintainer's note: These requests are deliberately excluded - some
 -- problem with the arbitrary instances for the responses never
@@ -162,8 +180,9 @@ instance Arbitrary ContractRequest where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: ContractRequest -> Maybe (Gen ContractResponse)
-genResponse (AwaitSlotRequest slot)        = Just $ pure $ AwaitSlotResponse slot
-genResponse (AwaitTxConfirmedRequest txId) = Just $ pure $ AwaitTxConfirmedResponse txId
-genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary
-genResponse OwnPubkeyRequest               = Just $ OwnPubkeyResponse <$> arbitrary
+genResponse (AwaitSlotRequest (WaitingForSlot (Just slot)))        = Just $ pure $ AwaitSlotResponse slot
+genResponse (AwaitTxConfirmedRequest txIds) =
+    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $ listToMaybe $ Set.toList $ unTxIdSet txIds
+genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)
+genResponse (OwnPubkeyRequest WaitingForPubKey)               = Just $ OwnPubkeyResponse <$> arbitrary
 genResponse _                              = Nothing
