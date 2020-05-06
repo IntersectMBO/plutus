@@ -49,12 +49,12 @@
 }
 
 .simulation-tab .tab-icon {
-  background: url(../images/simulation-icon-grey.svg) 24px center no-repeat;
+  background: url(../images/simulation-icon-grey.svg) 29px center no-repeat;
   background-size: 50px;
 }
 
 .simulation-tab.active .tab-icon {
-  background: url(../images/simulation-icon.svg) center center no-repeat;
+  background: url(../images/simulation-icon.svg) 30px center no-repeat;
   background-size: 50px;
 }
 
