@@ -44,7 +44,7 @@ validateCashFlow terms past present =
         _ -> 
             let 
                 expectedPaymentDayOk = isPaymentDay (cashPaymentDay present) schedule
-                expectedPayOff = replayValidatedEvents (fmap cashEvent $ past ++ [present])
+                expectedPayOff = replayValidatedEvents terms (fmap cashEvent $ past ++ [present]) (cashCalculationDay present)
             in noUnreportedOverdue && expectedPaymentDayOk && expectedPayOff == amount present
     --todo check currency from contract terms
     --todocheck contractId

@@ -17,6 +17,7 @@ data CashFlow = CashFlow {
     cashParty :: String,
     cashCounterParty :: String,
     cashPaymentDay :: Day,
+    cashCalculationDay :: Day,
     cashEvent :: ScheduledEvent,
     amount :: Double,
     currency :: String
