@@ -427,7 +427,8 @@ emptyState sn = State
     { accounts = Map.empty
     , choices  = Map.empty
     , boundValues = Map.empty
-    , minSlot = sn }
+    , minSlot = sn
+    , loopState = Nothing }
 
 
 {-| Returns an owner of an account.
@@ -908,22 +909,25 @@ marloweValidator marloweParams MarloweData{..} inputs pendingTx@PendingTx{..} = 
 -- | Same as computeTransaction, but allows for infinite loops, not part of semantics
 computeTransactionWithLoopSupport :: TransactionInput -> State -> Contract -> TransactionOutput
 computeTransactionWithLoopSupport tx state contract = 
-    let txout = computeTransaction tx state contract
-    in if isJust (loopState state) && (txOutContract txout) == Close 
-        then 
-                let loopSt = fromMaybe undefined (loopState state)
-                    outSt = txOutState txout
-                    emptySt = emptyState (minSlot state)
-                in txout { -- todo match error
-                    txOutContract = originalContract loopSt,
-                    txOutState = emptySt {
-                        loopState = Just (loopSt {
-                            logicalTime = (logicalTime loopSt) + 1,
-                            stateHistory = Map.insert (logicalTime loopSt) (boundValues outSt) (stateHistory loopSt)
-                        })
-                    }
-                }
-        else    txout
+    case computeTransaction tx state contract of
+        Error x -> Error x
+        TransactionOutput wrnings paymnts outSt contrct -> 
+            if isJust (loopState state) && contrct == Close 
+                then 
+                        let loopSt = fromMaybe undefined (loopState state)
+                            emptySt = emptyState (minSlot state)
+                        in TransactionOutput {
+                            txOutWarnings = wrnings,
+                            txOutPayments = paymnts,
+                            txOutContract = originalContract loopSt,
+                            txOutState = emptySt {
+                                loopState = Just (loopSt {
+                                    logicalTime = (logicalTime loopSt) + 1,
+                                    stateHistory = Map.insert (logicalTime loopSt) (boundValues outSt) (stateHistory loopSt)
+                                })
+                            }
+                        }
+                else    TransactionOutput wrnings paymnts outSt contrct
 
 
 
