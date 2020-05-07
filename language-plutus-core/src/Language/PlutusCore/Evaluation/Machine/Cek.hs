@@ -199,6 +199,37 @@ dischargeVarEnv varEnv =
         Closure varEnv' term' <- lookupName name varEnv
         Just $ dischargeVarEnv varEnv' term'
 
+{- Note [Dropping environments of arguments]
+The CEK machine sometimes keeps in the environment those variables that are no longer required.
+This is a fundamental limitation of the CEK machine as it lacks garbage collection.
+There are alternative machines that implement some form of environment cleaning (CESK, for example).
+But if we're going to expore this space, it's better to jump straight to something close to actual
+hardware than to deal with inherently inefficient abstract machines.
+
+But if we could optimize the current evaluator at small development/maintenance cost, that would be
+useful. One such opportunity is to drop the environment of a constant as a constant can't reference
+any variables. So we do that in this line:
+
+    computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
+
+We can't drop the environment of a built-in function, because it can be polymorphic and thus can
+receive arbitrary terms as arguments.
+
+A 'TyAbs'- or 'LamAbs'-headed term may also reference free variables.
+
+In the 'Var' case we drop the current environment, look up the variable and use the environment
+stored in the looked up closure as per the normal control flow of the CEK machine.
+
+Note that if we had polymorphic built-in types, we couldn't drop the environment of a constant as,
+say, a `list nat` can contain arbitrary terms of type `nat` and thus can reference variables from
+the environment. Polymorphic built-in types complicate evaluation in general as unlifting, say,
+a `list integer` constant may require evaluating terms *inside* the constant (particularly, if that
+constant was constructed by a built-in function). Similar complications associated with looking into
+constants of polymorphic built-in types arise for other procedures (pretty-printing, type checking,
+substitution, anything).
+-}
+
+-- See Note [Dropping environments of arguments].
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
@@ -223,7 +254,7 @@ computeCek con t@(Unwrap _ term) = do
     computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
-computeCek con constant@Constant{} = returnCek con constant
+computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
 computeCek con bi@Builtin{}        = returnCek con bi
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
