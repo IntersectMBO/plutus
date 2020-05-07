@@ -3,7 +3,6 @@
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 
 const isWebpackDevServer = process.argv.some(a => path.basename(a) === 'webpack-dev-server');
 
@@ -11,16 +10,19 @@ const isWatch = process.argv.some(a => a === '--watch');
 
 const plugins =
     isWebpackDevServer || !isWatch ? [] : [
-        function(){
-            this.plugin('done', function(stats){
+        function () {
+            this.plugin('done', function (stats) {
                 process.stderr.write(stats.toString('errors-only'));
             });
         }
     ]
-;
+    ;
+
+// source map adds 20Mb to the output!
+const devtool = isWebpackDevServer ? 'eval-source-map' : false;
 
 module.exports = {
-    devtool: 'eval-source-map',
+    devtool,
 
     devServer: {
         contentBase: path.join(__dirname, "dist"),
@@ -118,9 +120,6 @@ module.exports = {
     },
 
     plugins: [
-        new webpack.LoaderOptionsPlugin({
-            debug: true
-        }),
         new HtmlWebpackPlugin({
             template: './static/index.html',
             favicon: 'static/favicon.ico',
@@ -128,7 +127,6 @@ module.exports = {
             productName: 'marlowe-playground',
             googleAnalyticsId: isWebpackDevServer ? 'UA-XXXXXXXXX-X' : 'UA-119953429-16'
         }),
-        new webpack.NormalModuleReplacementPlugin(/^echarts$/, 'echarts/dist/echarts.min.js'),
         new MonacoWebpackPlugin({
             languages: [],
         })
