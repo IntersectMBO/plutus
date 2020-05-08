@@ -492,7 +492,7 @@ handleAction AnalyseContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (encodeJSON contract) (showStateForHaskell currState)
+      checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
       assign _analysisState Loading
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit
