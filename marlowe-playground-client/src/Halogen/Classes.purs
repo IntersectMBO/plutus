@@ -149,6 +149,9 @@ header = ClassName "header"
 rTableEmptyRow :: ClassName
 rTableEmptyRow = ClassName "RTable-empty-row"
 
+rTableDataRow :: ClassName
+rTableDataRow = ClassName "RTable-data-row"
+
 stateLabel :: ClassName
 stateLabel = ClassName "state-label"
 

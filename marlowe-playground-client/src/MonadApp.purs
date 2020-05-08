@@ -48,7 +48,7 @@ import Network.RemoteData as RemoteData
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import StaticData (bufferLocalStorageKey, marloweBufferLocalStorageKey)
-import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, Message(..), WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _editorErrors, _editorWarnings, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
+import Types (ActionInput(..), ActionInputId, ChildSlots, FrontendState, HAction, MarloweState, Message(..), WebData, _Head, _blocklySlot, _contract, _currentMarloweState, _currentTransactionInput, _editorErrors, _editorWarnings, _haskellEditorSlot, _holes, _marloweEditorSlot, _marloweState, _moneyInContract, _oldContract, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, actionToActionInput, emptyMarloweState)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -158,7 +158,7 @@ instance monadAppHalogenApp ::
   readFileFromDragEvent event = wrap $ liftAff $ FileEvents.readFileFromDragEvent event
   updateContractInState contract = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contract)
   saveInitialState = saveInitialStateImpl
-  updateMarloweState f = wrap $ modifying _marloweState (extendWith (updatePossibleActions <<< f))
+  updateMarloweState f = wrap $ modifying _marloweState (extendWith (set _currentTransactionInput Nothing <<< updatePossibleActions <<< f))
   applyTransactions = wrap $ modifying _marloweState (extendWith updateStateImpl)
   resetContract = do
     newContract <- marloweEditorGetValueImpl
@@ -300,6 +300,7 @@ updateStateP oldState = actState
           <<< set _contract (Just txOutContract)
           <<< set _moneyInContract (moneyInContract txOutState)
           <<< over _payments (append (fromFoldable txOutPayments))
+          <<< set _currentTransactionInput (Just txInput)
       )
         oldState
     (Error txError) -> set _transactionError (Just txError) oldState
