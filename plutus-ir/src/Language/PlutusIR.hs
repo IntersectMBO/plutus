@@ -139,7 +139,7 @@ bindingSubtypes f = \case
 
 -- | All the identifiers/names introduced by this binding
 -- In case of a datatype-binding it has multiple identifiers: the type, constructors, match function
-bindingIds :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+bindingIds :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
             => Traversal' (Binding tyname name uni a) PLC.Unique
 bindingIds f = \case
    TermBind x s d t -> TermBind x s <$> varDeclIds f d <*> pure t
@@ -151,10 +151,10 @@ bindingIds f = \case
                     <*> PLC.theUnique f n
                     <*> traverse (varDeclIds f) vdecls)
 
-tyVarDeclIds :: PLC.HasUnique (tyname a) PLC.TypeUnique => Traversal' (TyVarDecl tyname a) PLC.Unique
+tyVarDeclIds :: PLC.HasUnique tyname PLC.TypeUnique => Traversal' (TyVarDecl tyname a) PLC.Unique
 tyVarDeclIds f = \(TyVarDecl a n b ) -> TyVarDecl a <$> PLC.theUnique f n <*> pure b
 
-varDeclIds :: PLC.HasUnique (name a) PLC.TermUnique => Traversal' (VarDecl tyname name uni a) PLC.Unique
+varDeclIds :: PLC.HasUnique name PLC.TermUnique => Traversal' (VarDecl tyname name uni a) PLC.Unique
 varDeclIds f = \(VarDecl a n b ) -> VarDecl a <$> PLC.theUnique f n <*> pure b
 
 -- Terms

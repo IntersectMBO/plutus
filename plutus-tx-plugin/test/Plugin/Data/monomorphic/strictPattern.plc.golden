@@ -9,35 +9,31 @@
         (vardecl StrictPattern (fun a (fun a [StrictPattern a])))
       )
     )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl WStrictPattern (all a (type) (fun a (fun a [StrictPattern a])))
-        )
-        (abs
+    (termbind
+      (strict)
+      (vardecl WStrictPattern (all a (type) (fun a (fun a [StrictPattern a]))))
+      (abs
+        a
+        (type)
+        (lam
+          dt
           a
-          (type)
           (lam
             dt
             a
-            (lam
-              dt
-              a
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl dt a) dt)
               (let
                 (nonrec)
                 (termbind (strict) (vardecl dt a) dt)
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl dt a) dt)
-                  [ [ { StrictPattern a } dt ] dt ]
-                )
+                [ [ { StrictPattern a } dt ] dt ]
               )
             )
           )
         )
       )
-      [ [ { WStrictPattern (con integer) } (con 1) ] (con 2) ]
     )
+    [ [ { WStrictPattern (con integer) } (con 1) ] (con 2) ]
   )
 )

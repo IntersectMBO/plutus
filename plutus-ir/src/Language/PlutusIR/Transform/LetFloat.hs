@@ -33,11 +33,13 @@ import           Data.Semigroup.Foldable
 {- Note [Float algorithm]
 The goal of this PIR->PIR transformation is to float lets to their closest-surrounding lambda/Lambda abstraction or
 let-strictNonValue and potentially merge adjacent lets into let-groups for
-better readability of the program's IR (and maybe reveal any later code optimizations).
+better readability of the program's IR (and potentially reveal any later code optimizations).
 
 Each let-binding is moved right underneath its closest-surrounding lambda/Lambda abstraction or let-strictNonValue (or at toplevel in case of no surrounding lambdas/lets).
-Then all let-bindings belonging to the same lambda/Lambda are merged into 1 or more let-groups. The order and the cardinality of
-the let-groups under the lambda/Lambda is determined by the dependency-graph of the program's IR.
+Afterwards, all let-bindings belonging to the same lambda/Lambda are merged into 1 or more let-groups. The ordering of
+the generated let-groups under a lambda/Lambda is determined by the dependency-graph of the program's IR. The cardinality of the generated let-groups
+is determined both by the order of already-generated let-groups of the same level (thus by the dependency-graph) and secondly by the lets' original recursivity
+(we do not merge originally-recursive lets).
 
 Note that we do not move (float) those let-bindings which are strict and their RHS is a non-value term. This is needed to preserve the denotational semantics of
 the original PIR program, as can be seen in the wrong-floated counter-example:
@@ -51,11 +53,12 @@ original: let nonstrict x =
 
 Specifically the algorithm is done in two passes:
 
-1st-pass: Traverses an IR term/program and for each let, mark the location of its closest-surrounding lambda or let-nonstrictvalue (or Top if no lambda),
-and store it into a mapping of let-name=>lambda/let-location. We call the closest-surrounding lambda/let-location the "Rank" of a let.
-We have an extra pass that cleans a PIR term from all those lets that are not let-strictNonValue (see `removeLets` function).
 
-2nd-pass: Traverses the cleanedup term to place the removed lets back again, this time  directly under their "Rank".
+1st-pass: Traverses an IR term/program and for each let, marks the location of its closest-surrounding lambda or let-nonstrictvalue (or Top if no lambda),
+and stores it into a mapping of let-name=>lambda/let-location. We call the closest-surrounding lambda/let-location the *Rank* of a let.
+We have an extra pass that cleans a PIR term from all those lets that are *not* let-strictNonValue; see Note [Cleaning lets].
+
+2nd-pass: Traverses the cleaned-up term to place the removed lets back again, this time  directly under their "Rank".
 During traversal, when a lambda-location of interest is reached (i.e. Rank),
 the algorithm consults the dependency graph to figure (a) the groupings of lets
 into let-groups based on their (mutual) recursivity (by utilizing the SCCs of the depgraph)
@@ -63,14 +66,27 @@ and (b) the correct code-generation *order* of the let-groups (by utilizing the 
 As an optimization, the algorithm merges adjacent *nonrec* let-groups into a single-group for better readability; this is possible
 because letnonrec in PlutusIR is linearly scoped.
 
-Invariants for algorithm:
+Example 1 (floating to the closest-surrounding lambda):
+
+\ x -> 1 + (2 * let i = 3 in i+4)
+==>
+\ x -> let i = 3 in 1 + (2 * i+4)
+
+Example 2 ( merging adjacent let-nonrecs):
+
+\ x -> letnonrec nonstrict x = 1 in letnonrec nonstrict y = 2 in x + y
+===>
+\ x -> letnonrec nonstrict {x=1; y=2} in x + y
+
+
+Invariants for the algorithm:
 
 a) Does not float lets outside surrounding lambda/Lambda abstractions/let-strictNonValue.
 This has the effect of preserving the nonstrict/strict semantics of the original program.
 b) Does not break scoping; only uses the `linear scoping` feature of let-nonrec  to merge adjacent letnonrecs
-c) It will not demote a letrec to a letnonrec (however it may promote nonrec to rec as a side-effect of rearranging lets)
+c) It will not demote a letrec to a letnonrec (however it may promote nonrec to rec as a consequence of rearranging lets)
 
-Note1:
+About (c):
 The algorithm may sometimes promote a nonrec to a rec; see for example `plutus-ir/test/transform/letFloat/nonrecToRec.golden`.
 This is by design, in the way we use the dependency graph to create the let-groups; the dependency graph
 may float upwards some nested let-rhses into an "outside" let-group, and this would require rec.
@@ -89,28 +105,30 @@ let rec {r = i
              in j
         }
 
-Note2:
+Non-guarantees of the algorithm:
+
 The algorithm does not guarantee that *fewer let-groups* will appear after the transformation,
-see for example `plutus-ir/test/transform/letFloat/rec3.golden`. This is for two reasons:
+see for example `plutus-ir/test/transform/letFloat/rec3.golden`. This can happen for two reasons:
 
-i) The algorithm breaks recursive groups apart when it sees that there are no dependencies between certain subgroups,
-which is a side effect of relying on the dependency-graph for determining the let-grouping
+i) The algorithm may split a recursive group into multiple groups when it sees that there are no dependencies between certain subgroups,
+which is a side-effect of relying on the dependency-graph for determining the let-grouping
 ii) The grouping may even be worsened by the "interleaving"/breaking of letnonrec and letrec groups;
-the order of generated lets relies on *a* topological sort of the dependency graph. Since there can be many
-topological sorts, there might be a different topological sort that if used instead would yield less (or more) let groups.
+the ordering of generated lets relies on *a* topological sort of the dependency graph. Since there can be many
+topological sorts, there might exist a topological sort different than the one used,
+which would otherwise yield less (or more) let groups.
 
-An example of floating to the closest-surrounding lambda:
+-}
 
-\ x -> 1 + (2 * let i = 3 in i+4)
-==>
-\ x -> let i = 3 in 1 + (2 * i+4)
+{- Note [Cleaning lets]
+Prior to floating the lets of a term (i.e. pass2), we clean up the term from (almost) all its `let` constructs, and
+store those separately in a LetUniqueId=>RhsTerm table (name RhsTable). This is done by the `removeLets` function.
+The resulting "cleaned-up" term is most-likely not a valid PIR program anymore because it contains free variables.
 
-An example of merging adjacent let-nonrecs:
-
-
-\ x -> letnonrec nonstrict x = 1 in letnonrec nonstrict y = 2 in x + y
-===>
-\ x -> letnonrec nonstrict {x=1; y=2} in x + y
+The `let` constructs that are not cleaned-up, are the strictNonValue ones:
+these lets won't become keys of the output-RhsTable, and thus will not be floated during pass2.
+This does not necessarily mean that these strictNonValue-lets will appear in the output cleaned-up term;
+they may appear inside the RHS values of the RhsTable (in case they are nested by a to-be-floated, "parent" let),
+so their original "absolute" position may still change after pass2 because their parent-let has been floated somewhere else.
 -}
 
 -- | During the first-pass we compute the  "rank" for every let-binding declared in the given PIR program.
@@ -179,7 +197,7 @@ makeLenses ''Rhs
 -- | First-pass: Traverses a Term to create the needed floating data:
 -- a mapping of let variable to float inside the term ==> to its corresponding rank.
 p1Term ::  forall name tyname uni a.
-       (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+       (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
        => Term tyname name uni a -> FloatData
 p1Term pir = toFloatData $ runReader
                            (goTerm pir)
@@ -256,18 +274,11 @@ type RhsTable tyname name uni a = M.Map
 
 
 
--- | This function takes a 'Term', cleans the 'Term' from most of its 'Let'-bindings and stores those lets into a separate table.
--- The output term is most-likely not a valid PIR program anymore, because it contains free variables.
---
--- NOTE: the strictNonValue-lets will not become keys in the RhsTable, i.e. will not be floated back.
--- This does not necessary mean that these strictNonValue-lets will appear in the output "cleaned" term;
--- they may be appear as RHS terms in the RhsTable, so their original "absolute" position may still change,
--- because their parent let may float somewhere else.
---
+-- | This function takes a 'Term', cleans the 'Term' from most of its 'Let'-bindings and
+-- stores those lets into a separate table.See Note [Cleaning lets]
 -- OPTIMIZE: this traversal may potentially be included/combined with the 1st-pass.
---
 removeLets :: forall name tyname uni a.
-           (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
            => Term tyname name uni a
            -> (Term tyname name uni a, RhsTable tyname name uni a)
 removeLets t =
@@ -286,7 +297,7 @@ removeLets t =
          Let a r bs tIn -> do
           curDepth <- ask
           bs' <- forM bs $ \b -> do
-            b' <- b&bindingSubterms go
+            b' <- b & bindingSubterms go
             if isStrictNonValue b
             then pure $ Just b' -- keep this let
             else do
@@ -300,11 +311,11 @@ removeLets t =
           let nbs' = catMaybes $ NE.toList bs'
           mkLet a r nbs' <$> go tIn
 
-         t' -> t'&termSubterms go
+         t' -> t' & termSubterms go
 
 -- | Starts the 2nd pass from the 'Top' depth and the toplevel expression of the cleanedup term (devoid of any lets).
 p2Term :: forall name tyname uni a.
-       (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Semigroup a)
+       (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a)
        => Term tyname name uni a --
        -> FloatData
        -> Term tyname name uni a
@@ -343,12 +354,12 @@ p2Term pir fd =
           -- here we have an opportunity to merge the "fixed" strictNonValue-let iff its in-term is a nonrec let
           letMergeOrWrap a r
           -- increase the depth in the RHS of each binding. the strictNonValue-lets are thus anchors (like lambdas/Lambdas)
-          <$> forM bs (\b -> b&bindingSubterms (incrDepth curDepth (b^.principal) floatData))
+          <$> forM bs (\b -> b & bindingSubterms (incrDepth curDepth (b^.principal) floatData))
           --  the inTerm has not increased-depth
           <*> goTerm curDepth floatData inTerm
 
           -- descend otherwise to apply the transformations to subterms
-        t' -> t'&termSubterms (goTerm curDepth floatData)
+        t' -> t' & termSubterms (goTerm curDepth floatData)
 
   -- | If a lambda/Lambda/LetStrictNonValue is found, the current location is updated (depth+Unique) and try to float in its body/RHS
   incrDepth :: PLC.HasUnique b b'
@@ -394,16 +405,16 @@ p2Term pir fd =
 
   -- | the dependency graph as before, but with datatype-bind nodes merged/reduced under the "principal" node, See Note [Principal].
   reducedDepGraph :: AM.AdjacencyMap PLC.Unique
-  reducedDepGraph = M.foldr (\rhs accGraph ->
-                               let ids = rhs^..rhsBinding.bindingIds
-                               in case ids of
-                                 -- A lot of binds are termbinds/typebinds with no vertices to merge.
-                                 -- This optimizes all these cases of termbinds/typebinds to avoid traversing in O(n) the graph
-                                 -- looking for "possible" merges, because there are none to be performed
-                                 [_nonDatatypeBind] -> accGraph
-                                 _   ->  AM.mergeVertices (`S.member` S.fromList ids) (rhs^.rhsBinding.principal) accGraph
-
-                            ) depGraph rhsTable
+  reducedDepGraph = M.foldr maybeMergeNode depGraph rhsTable
+    where
+      maybeMergeNode :: Rhs tyname name uni a -> AM.AdjacencyMap PLC.Unique -> AM.AdjacencyMap PLC.Unique
+      maybeMergeNode rhs = let ids = rhs^..rhsBinding.bindingIds
+                           in case ids of
+                               -- A lot of binds are termbinds/typebinds with no vertices to merge.
+                               -- This optimizes all these cases of termbinds/typebinds to avoid traversing in O(n) the graph
+                               -- looking for "possible" merges, because there are none to be performed
+                               [_nonDatatypeBind] -> id -- retain the accgraph
+                               _   ->  AM.mergeVertices (`S.member` S.fromList ids) (rhs^.rhsBinding.principal)
 
   -- |take the strongly-connected components of the reduced dep graph, because it may contain loops (introduced by the LetRecs)
   -- topologically sort these sccs, since we rely on linear (sorted) scoping in our 'genLets' code generation
@@ -440,12 +451,12 @@ p2Term pir fd =
                        -> NS.NESet PLC.Unique
                        -> State [NS.NESet PLC.Unique] (Term tyname name uni a -> Term tyname name uni a)
         genLetsFromScc accTerm scc = do
-              res <- forM (NS.toList scc) $ \v ->
+              visitedRhses <- forM (NS.toList scc) $ \v ->
                  case M.lookup v rhsTable of
                    Just rhs ->
                      let oldDepth = rhs^.rhsRank
                      in -- visit the generated rhs-term as well for any potential floating
-                       rhs&(rhsBinding.bindingSubterms)
+                       rhs & (rhsBinding.bindingSubterms)
                        (goTerm
                          -- inside the RHS we "pretend" that we are at the depth of the let in the original program,
                          -- since the depths of lets in FloatData correspond to the original depths.
@@ -454,7 +465,13 @@ p2Term pir fd =
                          (snd $ IM.split oldDepth restDepthTable))
                    _ -> error "Something went wrong: no rhs was found for this let in the rhstable."
 
-              let (newAnn, newRecurs, newBindings) = foldMap1 (\rhs ->
+              let (newAnn, newRecurs, newBindings) = foldMap1 rhsToTriple visitedRhses -- fold the triples using <>
+              pure $ letMergeOrWrap newAnn newRecurs newBindings . accTerm -- wrap the ACCumulator-wrapper function
+
+           where
+             rhsToTriple :: Rhs tyname name uni a
+                         -> (a, Recursivity, NE.NonEmpty (Binding tyname name uni a))
+             rhsToTriple rhs =
                       (rhs^.rhsAnn
                        -- if the SCC is a single node then use its original 'Recursivity';
                        -- otherwise, the SCC is  a group of nodes and we *have to* treat all of them in a 'letrec',
@@ -462,8 +479,7 @@ p2Term pir fd =
                       , if isSingleton scc then rhs^.rhsRecurs else Rec
                        -- lift the binding into a semigroup for accumulation
                       , pure $ rhs^.rhsBinding)
-                    ) res
-              pure $ letMergeOrWrap newAnn newRecurs newBindings . accTerm -- wrap the ACCumulator-wrapper function
+
 
 
 -- | Tries to merge a new let-triple (ann,recursivity,bindings) with a next in-term
@@ -491,7 +507,7 @@ letMergeOrWrap newAnn newRecurs newBindings = \case
 --
 -- NB: This transformation requires that the PLC.rename compiler-pass has prior been run.
 floatTerm :: forall name tyname uni a.
-          (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique, Semigroup a)
+          (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, Semigroup a)
           => Term tyname name uni a -> Term tyname name uni a
 floatTerm pir = p2Term pir
                 -- give the floatdata of the 1st pass to the start of the 2nd pass
@@ -505,7 +521,7 @@ floatTerm pir = p2Term pir
 -- | A getter that returns a single 'Unique' for a particular binding.
 -- We need this because let-datatypes introduce multiple identifiers, but in our 'RhsTable', we use a single Unique as the key.
 -- See Note [Principal]. See also: 'bindingIds'.
-principal :: (PLC.HasUnique (tyname a) PLC.TypeUnique, PLC.HasUnique (name a) PLC.TermUnique)
+principal :: (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
             => Getting r (Binding tyname name uni a) PLC.Unique
 principal = to $ \case TermBind _ _ (VarDecl _ n _) _ -> n ^. PLC.theUnique
                        TypeBind _ (TyVarDecl _ n _) _ -> n ^. PLC.theUnique
@@ -630,3 +646,4 @@ in the scope -- they couldn't know that an identifier was belonging to what grou
 At the end of p1, the p1data was transformed to floatdata by removing extraneous datatypebind entries, thus only keeping
 the principal identifier entry, as is in the current iteration of the algorithm.
 -}
+
