@@ -1,51 +1,102 @@
-# Plutus example project
+# Plutus Example Project
 
-## Getting started
+## Get Started
 
-The following should work on any machine that has nix installed however if you wish to avoid any problems you can setup a NixOS virtual machine, see the [NixOS section](#nixos) for more info.
+Two methods for developing Plutus applications are provided here:
 
-```bash
-# The plutus project contains this example project
-git clone https://github.com/input-output-hk/plutus.git
+1. Developing with Nix using a `nix-shell`
+2. Developing with Docker and VSCode dev containers
 
-# copy the project for yourself
-cp -r plutus/example my-example
-cd my-example
+The `nix-shell` environment has all the necessary tools configured for building
+Plutus applications. If you already have Nix installed, or a Haskell editor you
+prefer, you may enjoy this method.
 
-# We use a nix shell to ensure all tools and paths are set up correctly
-nix-shell
+The Docker/VSCode environment builds a full-featured Haskell/Plutus development environment
+based on Docker and VSCode. It requires only Docker and VSCode to be installed, and uses Haskell IDE
+Engine inside the container to provide a Haskell IDE. Those less familiar with Nix 
+may prefer this method.
 
-# update cabal for the first time
-cabal new-update
+### Developing with Nix
 
-# On some systems (e.g. NixOS) you need to tell cabal where some system libraries are
-# for example openssl. You can do this either in ~/.cabal/config or cabal.project.local
-# Just add the line `extra-lib-dirs: /run/current-system/sw/lib` to one of those files
-# Alternatively you can use the following command to add this to ~/.cabal/config
-# cabal user-config update -a "extra-lib-dirs: /run/current-system/sw/lib"
+This folder contains a `shell.nix` file that builds a configured development
+environment for Plutus projects. With [Nix installed](https://nixos.org/nix/manual/#chap-installation),
+you can follow these steps to enter the environment for this example project:
 
-# build the project
-cabal new-build
+#### 1. Clone the Plutus repository and copy this example project
 
-# install the haskell extension for vs code
-code --install-extension alanz.vscode-hie-server
-
-# launch vs code from this nix-shell
-# You must run `code` from within the nix shell in order for Haskell IDE Engine to work correctly
-code
+```
+$ git clone https://github.com/input-output-hk/plutus.git
+$ cp -r ./plutus/example <path to your project>
+$ cd <path to your project>
 ```
 
-## NixOS
+#### 2. Enter the nix-shell
 
-This directory also includes a `configuration.nix` file which can be used in a NixOS installation. This makes sure the correct system libraries are available as well as adding the Haskell IDE Engine cachix nix cache. This `configuration.nix` file can be used on a clean NixOS installation and everything will just work.
+```
+$ nix-shell
+```
 
-You can use this to easily setup a Virtual Box VM:
+The `nix-shell` command will examine the `shell.nix` file of this folder, and create
+an isolated environment where the packages and tools defined in that file are available.
 
-1. download the VirtualBox appliance from https://nixos.org/nixos/download.html
-2. import the appliance
-3. before starting the VM make sure you give it plenty of memory, 6Gb should be plenty
-4. start the machine
-5. run `sudo -i` with password `demo`
-6. replace `/etc/nixos/configuration.nix` with the file in this directory
-7. run `nixos-rebuild switch`
-8. run `exit` to get back to the demo user shell
+Once the `nix-shell` environment has loaded, you can edit your project files
+with any Haskell editor you prefer, then in the `nix-shell` you can build your project with 
+`cabal v2-build` or compile and run your project's executable with `cabal v2-run`.
+
+### Developing with Docker and VSCode
+
+The University of Wyoming's IOHK Blockchain Research and Development Lab
+maintains [Docker images for development on the Plutus Platform](https://hub.docker.com/repository/docker/uwyoiohk/plutus-development).
+Those images can be used as [VSCode dev containers](https://code.visualstudio.com/docs/remote/containers)
+to make a full-featured Plutus development environment.
+
+The images contain GHC with a configured Haskell IDE Engine installation that
+works out-of-the-box for Plutus development.
+
+##### Prerequisites:
+
+1. [Install Docker](https://docs.docker.com/get-docker/)
+2. [Install Visual Studio Code](https://code.visualstudio.com/)
+3. [Install the Remote Development Extension Pack for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
+
+After you've completed the prerequisites, follow the steps below:
+
+#### 1. Clone the Plutus repository and copy this example project
+
+```
+$ git clone https://github.com/input-output-hk/plutus.git
+$ cp -r ./plutus/example <path to your project>
+$ cd <path to your project>
+```
+
+#### 2. Open VSCode in your project folder
+
+If you've installed VSCode correctly and put it's CLI on your `PATH`,
+this can be done by running:
+
+```
+$ code <path to your project>
+```
+
+Or you can just open your project from inside VSCode.
+
+#### 3. Open your project in a container
+
+With the [Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
+installed in VSCode, you will see a green button at the bottom left corner of
+the window:
+
+![Remote development button](https://i.imgur.com/LfIEZsB.png)
+
+Click that button, and select the "Remote-Containers: Reopen in Container"
+option:
+
+![Reopen in Container](https://i.imgur.com/k1ELZel.jpg)
+
+This will reload your VSCode window, and place you inside a workspace folder (`/plutus`) in
+the container that is [bind mounted](https://docs.docker.com/storage/bind-mounts/)
+to your project's folder.
+
+Once inside the dev container, you can build your project with `cabal v2-build`
+or compile and run your project's executable with `cabal v2-run`. You can
+also stop/restart/remove the container whenever.
