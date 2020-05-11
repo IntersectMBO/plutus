@@ -30,6 +30,9 @@
         "servant-github-webhook" = (((hackage.servant-github-webhook)."0.4.1.0").revisions)."6ac456ccc6a2a96b30a7b80cd91b121f1b7e9bd33635641a6afbd6137700a753";
         "random-strings" = (((hackage.random-strings)."0.1.1.0").revisions)."935a7a23dab45411960df77636a29b44ce42b89eeb15f2b1e809d771491fa677";
         "wl-pprint" = (((hackage.wl-pprint)."1.2.1").revisions)."aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c";
+        "canonical-json" = (((hackage.canonical-json)."0.6.0.0").revisions)."9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2";
+        "cborg" = (((hackage.cborg)."0.2.2.0").revisions)."eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c";
+        "statistics-linreg" = (((hackage.statistics-linreg)."0.3").revisions)."95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f";
         "eventful-sql-common" = (((hackage.eventful-sql-common)."0.2.0").revisions).r0;
         language-plutus-core = ./language-plutus-core.nix;
         plutus-ir = ./plutus-ir.nix;
@@ -58,12 +61,66 @@
         cardano-crypto = ./.stack-to-nix.cache.2;
         unlit = ./.stack-to-nix.cache.3;
         slack-web = ./.stack-to-nix.cache.4;
+        typed-protocols = ./.stack-to-nix.cache.5;
+        typed-protocols-examples = ./.stack-to-nix.cache.6;
+        ouroboros-network = ./.stack-to-nix.cache.7;
+        ouroboros-network-framework = ./.stack-to-nix.cache.8;
+        io-sim = ./.stack-to-nix.cache.9;
+        io-sim-classes = ./.stack-to-nix.cache.10;
+        network-mux = ./.stack-to-nix.cache.11;
+        Win32-network = ./.stack-to-nix.cache.12;
+        cardano-prelude = ./.stack-to-nix.cache.13;
+        cardano-prelude-test = ./.stack-to-nix.cache.14;
+        cardano-binary = ./.stack-to-nix.cache.15;
+        cardano-binary-test = ./.stack-to-nix.cache.16;
+        cardano-crypto-class = ./.stack-to-nix.cache.17;
+        cardano-slotting = ./.stack-to-nix.cache.18;
+        byron-spec-chain = ./.stack-to-nix.cache.19;
+        byron-spec-ledger = ./.stack-to-nix.cache.20;
+        small-steps = ./.stack-to-nix.cache.21;
+        shelley-spec-non-integral = ./.stack-to-nix.cache.22;
+        shelley-spec-ledger = ./.stack-to-nix.cache.23;
+        shelley-spec-ledger-test = ./.stack-to-nix.cache.24;
+        contra-tracer = ./.stack-to-nix.cache.25;
         };
       };
   resolver = "lts-15.6";
   modules = [
     ({ lib, ... }:
-      { packages = {}; })
+      {
+        packages = {
+          "shelley-spec-ledger" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "cardano-binary-test" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "byron-spec-chain" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "cardano-binary" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "cardano-crypto-class" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "cardano-prelude-test" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "byron-spec-ledger" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "small-steps" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "cardano-prelude" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          "shelley-spec-ledger-test" = {
+            flags = { "development" = lib.mkOverride 900 true; };
+            };
+          };
+        })
     {
       packages = {
         "eventful-sql-common" = {
