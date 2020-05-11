@@ -28,7 +28,7 @@ import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Marlowe.Holes (Holes, MarloweHole)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionWarning, _minSlot, boundFrom, emptyState, evalValue)
+import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId, ChosenNum, Contract, Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput, TransactionWarning, _minSlot, boundFrom, emptyState, evalValue)
 import Marlowe.Symbolic.Types.Response (Result)
 import Monaco (IMarker)
 import Network.RemoteData (RemoteData)
@@ -122,6 +122,7 @@ data SimulationBottomPanelView
   | StaticAnalysisView
   | MarloweErrorsView
   | MarloweWarningsView
+  | MarloweLogView
 
 derive instance eqSimulationBottomPanelView :: Eq SimulationBottomPanelView
 
@@ -254,6 +255,7 @@ type MarloweState
     , editorWarnings :: Array IMarker
     , holes :: Holes
     , payments :: Array Payment
+    , currentTransactionInput :: Maybe TransactionInput
     }
 
 _possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
@@ -302,6 +304,9 @@ _currentMarloweState = _marloweState <<< _Head
 _currentContract :: Lens' FrontendState (Maybe Contract)
 _currentContract = _currentMarloweState <<< _contract
 
+_currentTransactionInput :: forall s a. Lens' { currentTransactionInput :: a | s } a
+_currentTransactionInput = prop (SProxy :: SProxy "currentTransactionInput")
+
 emptyMarloweState :: Slot -> MarloweState
 emptyMarloweState sn =
   { possibleActions: mempty
@@ -316,6 +321,7 @@ emptyMarloweState sn =
   , editorWarnings: mempty
   , holes: mempty
   , payments: []
+  , currentTransactionInput: Nothing
   }
 
 type WebData

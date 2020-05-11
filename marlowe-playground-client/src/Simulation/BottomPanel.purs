@@ -1,13 +1,13 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, drop, head, length)
+import Data.Array (concatMap, drop, fold, head, length, reverse)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, view, (^.))
+import Data.Lens (to, traversed, view, (^.), (^..))
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
@@ -16,19 +16,19 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableEmptyRow, simulationBottomPanel, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, simulationBottomPanel, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (<<<), (<>), (/=), (&&), (<$>))
+import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (/=), (<<<), (<>), (<$>))
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
-import Types (FrontendState, HAction(..), SimulationBottomPanelView(MarloweErrorsView, MarloweWarningsView, StaticAnalysisView, CurrentStateView), View(Simulation), _Head, _analysisState, _contract, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _showErrorDetail, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
+import Types (FrontendState, HAction(..), SimulationBottomPanelView(..), View(Simulation), _Head, _analysisState, _contract, _currentTransactionInput, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _showErrorDetail, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
 
 isContractValid :: FrontendState -> Boolean
 isContractValid state =
@@ -70,12 +70,11 @@ bottomPanel state =
                                 , onClick $ const $ Just $ ChangeSimulationView MarloweErrorsView
                                 ]
                                 [ a_ [ text $ "Errors" <> if Array.null errors then "" else " (" <> show (length errors) <> ")" ] ]
-                            ]
-                        , ul [ classes [ ClassName "end-item", aHorizontal ] ]
-                            [ li [ classes [ Classes.stateLabel ] ]
-                                [ text "Contract Expiration: ", state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime <<< to text) ]
-                            , li [ classes [ ClassName "space-left", Classes.stateLabel ] ]
-                                [ text "Current Blocks: ", state ^. (_marloweState <<< _Head <<< _slot <<< to show <<< to text) ]
+                            , li
+                                [ classes ([] <> isActive MarloweLogView)
+                                , onClick $ const $ Just $ ChangeSimulationView MarloweLogView
+                                ]
+                                [ a_ [ text $ "Logs" ] ]
                             ]
                         ]
                     ]
@@ -95,15 +94,13 @@ bottomPanel state =
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
 
-  contractMaxTime Nothing = "Closed"
-
-  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
-
 panelContents :: forall p. FrontendState -> SimulationBottomPanelView -> HTML p HAction
 panelContents state CurrentStateView =
   div [ class_ Classes.panelContents ]
     [ div [ classes [ rTable, rTable6cols, ClassName "panel-table" ] ]
         ( warningsRow <> errorRow
+            <> dataRow "Current Block" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
+            <> dataRow "Expiration Block" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
@@ -131,6 +128,10 @@ panelContents state CurrentStateView =
         )
     ]
   where
+  contractMaxTime Nothing = "Closed"
+
+  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
+
   warnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings)
 
   warningsRow =
@@ -213,6 +214,12 @@ panelContents state CurrentStateView =
     [ div [ classes [ rTableCell, first, Classes.header ] ]
         [ text title ]
     , div [ classes [ rTableCell, rTableEmptyRow, Classes.header ] ] [ text message ]
+    ]
+
+  dataRow title message =
+    [ div [ classes [ rTableCell, first, Classes.header ] ]
+        [ text title ]
+    , div [ classes [ rTableCell, rTableDataRow ] ] [ text message ]
     ]
 
   displayWarning' (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
@@ -376,6 +383,22 @@ panelContents state MarloweErrorsView =
           "Error" /\ unlines lines'
     in
       { message, startColumn, startLineNumber, firstLine, restLines }
+
+panelContents state MarloweLogView =
+  section
+    [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents, flexLeft ]
+    ]
+    content
+  where
+  inputLines = state ^.. (_marloweState <<< traversed <<< _currentTransactionInput <<< to txInputToLines)
+
+  content =
+    [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
+        [ div [] [ text "Action" ]
+        , div [] [ text "Slot" ]
+        ]
+    , ul [] (reverse (fold inputLines))
+    ]
 
 analysisResultPane :: forall p. FrontendState -> HTML p HAction
 analysisResultPane state =
@@ -591,3 +614,43 @@ displayWarning (TransactionShadowing valId oldVal newVal) =
   , b_ [ text (show newVal) ]
   , text "."
   ]
+
+txInputToLines :: forall p a. Maybe TransactionInput -> Array (HTML p a)
+txInputToLines Nothing = []
+
+txInputToLines (Just (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
+
+inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
+inputToLine (SlotInterval start end) (IDeposit (AccountId accountNumber accountOwner) party token money) =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "Deposit "
+        , strong_ [ text (show money) ]
+        , text " units of "
+        , strong_ [ text (show token) ]
+        , text " into account "
+        , strong_ [ text (show accountOwner <> " " <> show accountNumber <> "") ]
+        , text " as "
+        , strong_ [ text (show party) ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+inputToLine (SlotInterval start end) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "Participant "
+        , strong_ [ text (show choiceOwner) ]
+        , text " chooses the value "
+        , strong_ [ text (show chosenNum) ]
+        , text " for choice with id "
+        , strong_ [ text (show choiceName) ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+inputToLine (SlotInterval start end) INotify =
+  li [ classes [ ClassName "error-row" ] ]
+    [ text "Notify"
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
