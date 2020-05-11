@@ -120,7 +120,7 @@ in
       };
     };
 
-    services.prometheus2 = {
+    services.prometheus = {
         enable = true;
         alertmanagerURL = [ "localhost:9093" ];
         scrapeConfigs = [
