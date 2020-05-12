@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -32,6 +33,9 @@ import           Data.Proxy
 import qualified Data.Text                    as T
 import           Foreign.Storable
 import           GHC.Generics
+import           GHC.Integer
+import           GHC.Integer.Logarithms
+import           GHC.Prim
 
 {- Note [Memory Usage for Plutus]
 
@@ -119,7 +123,7 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage _ = 2 -- TODO
+  memoryUsage i = ExMemory (smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
 
 instance ExMemoryUsage BSL.ByteString where
   memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
