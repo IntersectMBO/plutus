@@ -76,5 +76,7 @@ marlowe-playground-server/playground.yaml
 .envrc
 *.org
 /plutus-scb.yaml
-/scb-core.db*
+*.db
+*.db-shm
+*.db-wal
 hie.yaml
