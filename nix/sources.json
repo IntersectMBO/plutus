@@ -24,16 +24,40 @@
         "type": "tarball",
         "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
+    "ghcide": {
+        "branch": "wip/cradle-fail",
+        "description": "A library for building Haskell IDE tooling",
+        "homepage": "",
+        "owner": "mpickering",
+        "repo": "ghcide",
+        "rev": "a783588c1d48ede01399e9797f1cf30dcb91d8cc",
+        "sha256": "1mvlmzs2r2h7npmydhzhzcfmpchw8b32si9qaarjyflxc3bq6r3l",
+        "type": "tarball",
+        "url": "https://github.com/mpickering/ghcide/archive/a783588c1d48ede01399e9797f1cf30dcb91d8cc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "haskell.nix": {
         "branch": "master",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "701c83fb43179d303c06a3f60003ae68597ccebc",
-        "sha256": "0afpvi2av0y6fk97kd9mx8bprvfyiizxp22qrgar2ph9mfvaixdm",
+        "rev": "61b1c8a06c74a83c0d2dc7d937d8daa6b32b2a2f",
+        "sha256": "1vi8is7h85sb8acymjcnkjm39fp5pal2wq9p7zdv5cmillzs2sza",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/701c83fb43179d303c06a3f60003ae68597ccebc.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/61b1c8a06c74a83c0d2dc7d937d8daa6b32b2a2f.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "hie-bios": {
+        "branch": "hkm/hie-project-file",
+        "description": null,
+        "homepage": null,
+        "owner": "hamishmack",
+        "repo": "hie-bios",
+        "rev": "4126bbc2381d31dc9064b36e75163254f52534d8",
+        "sha256": "06bh8pzqq9iiyfphls4k46f3s8w2vhq8vczadila482ixinx2ws7",
+        "type": "tarball",
+        "url": "https://github.com/hamishmack/hie-bios/archive/4126bbc2381d31dc9064b36e75163254f52534d8.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {

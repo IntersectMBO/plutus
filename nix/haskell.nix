@@ -8,6 +8,7 @@
 , buildPackages
 , metatheory
 , checkMaterialization
+, sources
 }:
 
 let
@@ -24,7 +25,7 @@ let
     # See ../CONTRIBUTING.doc for more information.
     materialized = ./stack.materialized;
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
-    inherit checkMaterialization;
+    inherit checkMaterialization sources;
     modules = [
         {
           # Borrowed from https://github.com/input-output-hk/haskell.nix/pull/427

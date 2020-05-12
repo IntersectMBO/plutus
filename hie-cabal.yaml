@@ -62,55 +62,23 @@ cradle:
     component: "lib:metatheory"
   - path: ./metatheory/test
     component: "metatheory:metatheory-test"
-  # These use the plutus plugin - HIE doesn't support plugins yet
-
-  # - path: ./marlowe/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:marlowe"
-  # - path: ./marlowe/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "marlowe:marlowe-test"
-  # - path: ./plutus-book/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-book"
-  # - path: ./plutus-book/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-book:plutus-book-test"
-  # - path: ./plutus-playground-server/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-playground-server"
-  # - path: ./plutus-playground-server/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-playground-server:plutus-playground-server-test"
-  # - path: ./plutus-tutorial/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-tutorial"
-  # - path: ./plutus-tutorial/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-tutorial:plutus-tutorial-test"
-  # - path: ./plutus-use-cases/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-use-cases"
-  # - path: ./plutus-use-cases/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-use-cases:plutus-use-cases-test"
+  - path: ./marlowe/src
+    component: "lib:marlowe"
+  - path: ./marlowe/test
+    component: "marlowe:marlowe-test"
+  - path: ./plutus-book/src
+    component: "lib:plutus-book"
+  - path: ./plutus-book/test
+    component: "plutus-book:plutus-book-test"
+  - path: ./plutus-playground-server/src
+    component: "lib:plutus-playground-server"
+  - path: ./plutus-playground-server/test
+    component: "plutus-playground-server:plutus-playground-server-test"
+  - path: ./plutus-tutorial/src
+    component: "lib:plutus-tutorial"
+  - path: ./plutus-tutorial/test
+    component: "plutus-tutorial:plutus-tutorial-test"
+  - path: ./plutus-use-cases/src
+    component: "lib:plutus-use-cases"
+  - path: ./plutus-use-cases/test
+    component: "plutus-use-cases:plutus-use-cases-test"

@@ -104,7 +104,10 @@ install args todo = do
                   , GHC.sm_eta_expand = False
                   }
         simpl = GHC.CoreDoSimplify 1 mode
-    pure $ simpl:pass:todo
+    pure $
+      if "skip" `elem` args
+        then todo
+        else simpl:pass:todo
 
 pluginPass :: PluginOptions -> GHC.ModGuts -> GHC.CoreM GHC.ModGuts
 pluginPass opts guts = do

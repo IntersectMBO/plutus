@@ -2,10 +2,7 @@
 pkgs.recurseIntoAttrs (rec {
   # Packages which are useful during development, but we don't depend upon directly to build our stuff
   packages = pkgs.recurseIntoAttrs {
-    # See comment on the definition about it not working
-    #cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
-    stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
-    hlint = haskell.extraPackages.hlint.components.exes.hlint;
+    inherit (haskell.extraPackages) cabal stylish-haskell hlint ghcide;
     purty = haskell.extraPackages.purty.components.exes.purty;
     purs = easyPS.purs;
     spago = easyPS.spago;

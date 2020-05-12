@@ -1,0 +1,32 @@
+packages: language-plutus-core
+          marlowe
+          plutus-emulator
+          plutus-ledger
+          plutus-tx
+          plutus-tx-plugin
+          plutus-use-cases
+          plutus-ir
+          plutus-playground-server
+          plutus-playground-lib
+          plutus-tutorial
+          plutus-book
+          plutus-scb
+          playground-common
+          marlowe-playground-server
+          marlowe-symbolic
+          marlowe-hspec
+          plutus-contract
+          plutus-contract-tasty
+          deployment-server
+          iots-export
+          metatheory
+
+write-ghc-environment-files: never
+
+package plutus-use-cases
+  ghc-options:
+    -fplugin-opt Language.PlutusTx.Plugin:skip
+package marlowe
+  ghc-options:
+    -fplugin-opt Language.PlutusTx.Plugin:skip
+

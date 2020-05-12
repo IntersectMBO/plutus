@@ -1,6 +1,6 @@
 let
   # The Hackage index-state we use for things
-  index-state = "2020-02-20T00:00:00Z";
+  index-state = "2020-04-20T00:00:00Z";
 
   unfreePredicate = pkg:
       let unfreePkgs = [ "kindlegen" ]; in
