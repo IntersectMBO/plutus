@@ -30,7 +30,7 @@ import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (abs)
 import Data.Set (Set)
@@ -40,7 +40,7 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
-import Data.Tuple.Nested ((/\), type (/\))
+import Data.Tuple.Nested ((/\))
 import Help (holeText)
 import Marlowe.Holes (AccountId, Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
@@ -72,7 +72,8 @@ data Warning
   = NegativePayment IRange
   | NegativeDeposit IRange
   | TimeoutNotIncreasing IRange
-  | UnreachableCase IRange
+  | UnreachableCaseEmptyChoice IRange
+  | UnreachableCaseFalseNotify IRange
   | UnreachableContract IRange
   | UndefinedUse IRange
   | ShadowedLet IRange
@@ -106,7 +107,8 @@ instance showWarning :: Show Warning where
   show (NegativePayment _) = "The contract can make a non-positive payment"
   show (NegativeDeposit _) = "The contract can make a non-positive deposit"
   show (TimeoutNotIncreasing _) = "Timeouts should always increase in value"
-  show (UnreachableCase _) = "This case will never be used"
+  show (UnreachableCaseEmptyChoice _) = "This case will never be used, because there are no options to choose"
+  show (UnreachableCaseFalseNotify _) = "This case will never be used, because the Observation is always false"
   show (UnreachableContract _) = "This contract is unreachable"
   show (UndefinedUse _) = "The contract tries to Use a ValueId that has not been defined in a Let"
   show (ShadowedLet _) = "Let is redefining a ValueId that already exists"
@@ -122,7 +124,9 @@ getWarningRange (NegativeDeposit range) = range
 
 getWarningRange (TimeoutNotIncreasing range) = range
 
-getWarningRange (UnreachableCase range) = range
+getWarningRange (UnreachableCaseEmptyChoice range) = range
+
+getWarningRange (UnreachableCaseFalseNotify range) = range
 
 getWarningRange (UnreachableContract range) = range
 
@@ -506,14 +510,17 @@ lintValue env t@(Term (Cond c a b) pos) = do
       markSimplification constToVal SimplifiableValue b sb
       pure (ValueSimp pos false t)
 
+data Effect
+  = ConstantDeposit S.AccountId
+  | NoEffect
+
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
 lintCase env t@(Term (Case action contract) pos) = do
-  (unReachable /\ newEnv) <- lintAction env action
-  if unReachable then do
-    modifying _warnings (Set.insert (UnreachableCase (termToRange t pos)))
-    pure unit
-  else
-    pure unit
+  effect <- lintAction env action
+  let
+    newEnv = case effect of
+      ConstantDeposit accTerm -> over _deposits (Set.insert accTerm) env
+      NoEffect -> env
   lintContract newEnv contract
   pure unit
 
@@ -521,41 +528,42 @@ lintCase env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
 
-lintAction :: LintEnv -> Term Action -> CMS.State State (Boolean /\ LintEnv)
+lintAction :: LintEnv -> Term Action -> CMS.State State Effect
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
-    newEnv = case fromTerm acc of
-      Just accTerm -> over _deposits (Set.insert accTerm) env
-      _ -> env
+    accTerm = maybe NoEffect ConstantDeposit (fromTerm acc)
 
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
   modifying _holes (gatherHoles)
-  sa <- lintValue newEnv value
+  sa <- lintValue env value
   case sa of
     (ConstantSimp _ _ v)
       | v <= zero -> do
         modifying _warnings (Set.insert (NegativeDeposit (termToRange t pos)))
-        pure $ false /\ newEnv
+        pure accTerm
     _ -> do
       markSimplification constToVal SimplifiableValue value sa
-      pure $ false /\ newEnv
+      pure accTerm
 
-lintAction env (Term (Choice choiceId bounds) _) = do
+lintAction env t@(Term (Choice choiceId bounds) pos) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  pure $ false /\ env
+  if Array.null bounds then
+    modifying _warnings (Set.insert (UnreachableCaseEmptyChoice (termToRange t pos)))
+  else
+    pure unit
+  pure NoEffect
 
-lintAction env (Term (Notify obs) _) = do
+lintAction env t@(Term (Notify obs) pos) = do
   sa <- lintObservation env obs
   case sa of
     (ConstantSimp _ _ c)
-      | not c -> pure $ true /\ env
-    _ -> do
-      markSimplification constToObs SimplifiableObservation obs sa
-      pure $ false /\ env
+      | not c -> do modifying _warnings (Set.insert (UnreachableCaseFalseNotify (termToRange t pos)))
+    _ -> do markSimplification constToObs SimplifiableObservation obs sa
+  pure NoEffect
 
 lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
-  pure $ false /\ env
+  pure NoEffect
 
 suggestions :: Boolean -> String -> IRange -> Array CompletionItem
 suggestions stripParens contract range =
