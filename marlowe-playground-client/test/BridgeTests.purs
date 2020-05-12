@@ -12,8 +12,10 @@ import Data.Integral (fromIntegral)
 import Data.String.Regex (replace)
 import Data.String.Regex.Flags (RegexFlags(..))
 import Data.String.Regex.Unsafe (unsafeRegex)
+import Data.Tuple (Tuple(..))
+import Data.Map as Map
 import Foreign.Generic (decodeJSON, encodeJSON)
-import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), Token(..), Value(..), ValueId(..))
+import Marlowe.Semantics (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Rational(..), Slot(..), State(..), Token(..), Value(..), ValueId(..))
 import Foreign (F, MultipleErrors)
 import Foreign.Class (class Decode)
 import Language.Haskell.Interpreter (CompilationError)
@@ -73,13 +75,27 @@ serializationTest =
           (Slot (fromIntegral 100))
           Close
 
+      state =
+        State
+          { accounts: Map.singleton (Tuple aliceAcc token) (fromIntegral 12)
+          , choices: Map.singleton choiceId (fromIntegral 42)
+          , boundValues: Map.fromFoldable [ Tuple (ValueId "x") (fromIntegral 1), Tuple (ValueId "y") (fromIntegral 2) ]
+          , minSlot: (Slot $ fromIntegral 123)
+          }
+
       json = encodeJSON contract
+
+      jsonState = encodeJSON state
     expectedJson <- liftEffect $ FS.readTextFile UTF8 "test/contract.json"
+    expectedStateJson <- liftEffect $ FS.readTextFile UTF8 "test/state.json"
     let
       rx = unsafeRegex "\\s+" (RegexFlags { global: true, ignoreCase: true, multiline: true, sticky: false, unicode: true })
 
       expected = replace rx "" expectedJson
+
+      expectedState = replace rx "" expectedStateJson
     equal expected json
+    equal expectedState jsonState
     equal (Right contract) (runExcept $ decodeJSON json)
 
 assertRight :: forall a. Either MultipleErrors a -> Test

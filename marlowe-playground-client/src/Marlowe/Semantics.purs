@@ -22,7 +22,7 @@ import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Foreign.Class (class Encode, class Decode, encode, decode)
-import Foreign (F, readString)
+import Foreign (F, readString, Foreign)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.Generic (genericEncode, genericDecode)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
@@ -546,6 +546,23 @@ newtype State
   }
 
 derive instance genericState :: Generic State _
+
+instance encodeJsonState :: Encode State where
+  encode (State a) = encode { accounts: accs, choices: chs, boundValues: bv1, minSlot: encode (a.minSlot) }
+    where
+    accs = encode (enc <$> (Map.toUnfoldable a.accounts :: Array (Tuple (Tuple AccountId Token) BigInteger)))
+
+    chs = encodeMap a.choices
+
+    bv1 = encodeMap a.boundValues
+
+    enc (Tuple x bal) = encodeTuple (Tuple (encodeTuple x) bal)
+
+    encodeMap :: forall a b. Encode a => Encode b => Map a b -> Foreign
+    encodeMap m = encode (encodeTuple <$> (Map.toUnfoldable m :: Array _))
+
+    encodeTuple :: forall a b. Encode a => Encode b => Tuple a b -> Foreign
+    encodeTuple (Tuple x y) = encode [ encode x, encode y ]
 
 derive instance newtypeState :: Newtype State _
 
