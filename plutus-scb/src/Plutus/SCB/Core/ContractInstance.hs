@@ -412,8 +412,7 @@ processNextTxAtRequest ::
     -> Eff effs ()
 processNextTxAtRequest i (_, AddressSet addr) = do
     let go :: Ledger.Address -> Eff effs ()
-        go address = do
-            logDebug . render $ "processNextTxAtRequest" <+> pretty i <+> pretty address
+        go address = logDebug . render $ "processNextTxAtRequest" <+> pretty i <+> pretty address
     traverse_ go (Set.toList addr)
 
 processTxConfirmedRequests ::
@@ -488,7 +487,7 @@ callContractEndpoint inst endpointName endpointValue = do
             (throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested any user input"))
             pure
             (Map.lookup inst state)
-    unless ((EndpointDescription endpointName) `Set.member` activeEndpointNames) $
+    unless (EndpointDescription endpointName `Set.member` activeEndpointNames) $
         throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested endpoint " <> Text.pack endpointName)
 
     sendContractInboxMessage @t inst it

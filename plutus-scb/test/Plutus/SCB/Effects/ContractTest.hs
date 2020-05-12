@@ -2,11 +2,9 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeOperators              #-}
 module Plutus.SCB.Effects.ContractTest(
     TestContracts(..)
@@ -17,12 +15,9 @@ module Plutus.SCB.Effects.ContractTest(
 import           Control.Monad                                     (void)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.State
 import           Data.Aeson                                        as JSON
 import           Data.Aeson.Types                                  as JSON
 import           Data.Bifunctor                                    (Bifunctor (..))
-import           Data.Map                                          (Map)
-import qualified Data.Map                                          as Map
 import           Data.Row
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
