@@ -33,7 +33,8 @@ all = do
   suite "Marlowe.Linter reports unreachable code" do
     test "Unreachable If branch (then)" $ unreachableThen
     test "Unreachable If branch (else)" $ unreachableElse
-    test "Unreachable Case" $ unreachableCase
+    test "Unreachable Case (Notify)" $ unreachableCaseNotify
+    test "Unreachable Case (empty Choice list)" $ unreachableCaseEmptyChoiceList
   suite "Marlowe.Linter reports bad contracts" do
     test "Undefined Let" $ undefinedLet
     test "Non-positive Deposit" $ nonPositiveDeposit
@@ -234,8 +235,15 @@ unreachableThen = testWarningSimple "If FalseObs Close Close" "This contract is 
 unreachableElse :: Test
 unreachableElse = testWarningSimple "If TrueObs Close Close" "This contract is unreachable"
 
-unreachableCase :: Test
-unreachableCase = testWarningSimple "When [Case (Notify FalseObs) Close] 10 Close" "This case will never be used"
+unreachableCaseNotify :: Test
+unreachableCaseNotify =
+  testWarningSimple "When [Case (Notify FalseObs) Close] 10 Close"
+    "This case will never be used, because the Observation is always false"
+
+unreachableCaseEmptyChoiceList :: Test
+unreachableCaseEmptyChoiceList =
+  testWarningSimple "When [Case (Choice (ChoiceId \"choice\" (Role \"alice\")) []) Close] 10 Close"
+    "This case will never be used, because there are no options to choose"
 
 undefinedLet :: Test
 undefinedLet = testWarningSimple (letContract "(UseValue \"simplifiableValue\")") "The contract tries to Use a ValueId that has not been defined in a Let"
