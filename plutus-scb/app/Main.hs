@@ -21,10 +21,13 @@ import           Control.Monad.IO.Class           (liftIO)
 import           Control.Monad.Logger             (LogLevel (LevelDebug, LevelInfo), filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                       as JSON
 import qualified Data.ByteString.Lazy.Char8       as BS8
-import           Data.Foldable                    (toList, traverse_)
+import           Data.Foldable                    (traverse_)
+import qualified Data.Map                         as Map
+import           Data.Set                         (Set)
+import qualified Data.Set                         as Set
 import           Data.Text                        (Text)
 import qualified Data.Text                        as Text
-import           Data.Text.Prettyprint.Doc        (parens, pretty, (<+>))
+import           Data.Text.Prettyprint.Doc        (Doc, indent, parens, pretty, vsep, (<+>))
 import           Data.UUID                        (UUID)
 import           Data.Yaml                        (decodeFileThrow)
 import           Git                              (gitRev)
@@ -298,7 +301,13 @@ runCliCommand _ _ ReportInstalledContracts = do
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
 runCliCommand _ _ ReportActiveContracts = do
     logInfo "Active Contracts"
-    traverse_ (logInfo . render . pretty . toList) =<< Core.activeContracts @ContractExe
+    instances <- Map.toAscList <$> Core.activeContracts @ContractExe
+    let format :: (ContractExe, Set ContractInstanceId) -> Doc a
+        format (contractExe, contractInstanceIds) =
+          vsep [ pretty contractExe
+               , indent 2 (vsep (pretty <$> Set.toList contractInstanceIds))
+               ]
+    traverse_ (logInfo . render . format) instances
 runCliCommand _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
