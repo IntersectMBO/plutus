@@ -132,15 +132,15 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance PrettyBy config (Term TyName Name uni ()) => PrettyBy config (ConstAppError uni) where
+instance PrettyM config (Term TyName Name uni ()) => PrettyM config (ConstAppError uni) where
     prettyBy config (ExcessArgumentsConstAppError args) = fold
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
-            PrettyBy config (MachineError uni err) where
+instance (Pretty err, PrettyM config (Term TyName Name uni ())) =>
+            PrettyM config (MachineError uni err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -154,8 +154,8 @@ instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name uni ())) =>
-            PrettyBy config (EvaluationError uni internal user) where
+instance (Pretty internal, Pretty user, PrettyM config (Term TyName Name uni ())) =>
+            PrettyM config (EvaluationError uni internal user) where
     prettyBy config (InternalEvaluationError err) = fold
         [ "Internal error:", hardline
         , prettyBy config err
@@ -165,8 +165,8 @@ instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name uni ()
         , pretty err
         ]
 
-instance (PrettyBy config (Term TyName Name uni ()), PrettyBy config err) =>
-            PrettyBy config (ErrorWithCause uni err) where
+instance (PrettyM config (Term TyName Name uni ()), PrettyM config err) =>
+            PrettyM config (ErrorWithCause uni err) where
     prettyBy config (ErrorWithCause err mayCause) =
         "An error has occurred: " <+> prettyBy config err <>
             case mayCause of

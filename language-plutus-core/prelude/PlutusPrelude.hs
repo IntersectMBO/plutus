@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -77,55 +79,45 @@ module PlutusPrelude
     , indent
     -- * Pretty-printing
     , Pretty (..)
-    , ShowPretty (..)
-    , DefaultPrettyBy (..)
-    , PrettyBy (..)
-    , PrettyConfigIgnore (..)
-    , PrettyConfigAttach (..)
+    , PrettyM (..)
     , docString
     , docText
     , prettyString
     , prettyText
-    , prettyStringBy
-    , prettyTextBy
-    -- * Custom pretty-printing functions
-    , module X
     -- * GHCi
     , printPretty
     -- * Text
     , showText
     ) where
 
-import           Control.Applicative                     (Alternative (..))
-import           Control.Arrow                           ((&&&))
-import           Control.Composition                     ((.*))
-import           Control.DeepSeq                         (NFData)
-import           Control.Exception                       (Exception, throw)
+import           Control.Applicative                (Alternative (..))
+import           Control.Arrow                      ((&&&))
+import           Control.Composition                ((.*))
+import           Control.DeepSeq                    (NFData)
+import           Control.Exception                  (Exception, throw)
 import           Control.Lens
-import           Control.Monad                           (guard, join, (<=<), (>=>))
-import           Data.Bifunctor                          (first, second)
-import           Data.Bool                               (bool)
-import qualified Data.ByteString.Lazy                    as BSL
-import           Data.Coerce                             (Coercible, coerce)
-import           Data.Either                             (fromRight, isRight)
-import           Data.Foldable                           (fold, toList)
-import           Data.Function                           (on)
-import           Data.Functor                            (void, ($>))
-import           Data.List                               (foldl')
-import           Data.List.NonEmpty                      (NonEmpty (..))
-import           Data.Maybe                              (fromMaybe, isJust, isNothing)
-import qualified Data.Text                               as T
-import qualified Data.Text.Encoding                      as TE
+import           Control.Monad                      (guard, join, (<=<), (>=>))
+import           Data.Bifunctor                     (first, second)
+import           Data.Bool                          (bool)
+import qualified Data.ByteString.Lazy               as BSL
+import           Data.Coerce                        (Coercible, coerce)
+import           Data.Either                        (fromRight, isRight)
+import           Data.Foldable                      (fold, toList)
+import           Data.Function                      (on)
+import           Data.Functor                       (void, ($>))
+import           Data.List                          (foldl')
+import           Data.List.NonEmpty                 (NonEmpty (..))
+import           Data.Maybe                         (fromMaybe, isJust, isNothing)
+import qualified Data.Text                          as T
+import qualified Data.Text.Encoding                 as TE
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom        as X
-import           Data.Text.Prettyprint.Doc.Render.String (renderString)
-import           Data.Text.Prettyprint.Doc.Render.Text   (renderStrict)
-import           Data.Traversable                        (for)
-import           Data.Typeable                           (Typeable)
-import           Data.Word                               (Word8)
+import           Data.Traversable                   (for)
+import           Data.Typeable                      (Typeable)
+import           Data.Word                          (Word8)
 import           Debug.Trace
 import           GHC.Generics
-import           GHC.Natural                             (Natural)
+import           GHC.Natural                        (Natural)
+import           Language.PlutusCore.Pretty.PrettyM
 
 import           Data.Functor.Compose
 
@@ -139,92 +131,30 @@ newtype ShowPretty a = ShowPretty
     } deriving (Eq)
 
 instance Pretty a => Show (ShowPretty a) where
-    show = prettyString . unShowPretty
+    show = prettyDef . unShowPretty
 
--- | This class is used in order to provide default implementations of 'PrettyBy' for
--- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
--- we can define a single 'DefaultPrettyBy' instance and then derive @PrettyBy Config a@ for each
--- @a@ provided the @a@ implements the @PrettyBy Subconfig1@, @PrettyBy Subconfig2@, etc instances.
---
--- Example:
---
--- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
--- >
--- > instance (PrettyBy Subconfig1 a, PrettyBy Subconfig2 a) => DefaultPrettyBy Config a where
--- >     defaultPrettyBy (Subconfig1 subconfig1) = prettyBy subconfig1
--- >     defaultPrettyBy (Subconfig2 subconfig2) = prettyBy subconfig2
---
--- Now having in scope  @PrettyBy Subconfig1 A@ and @PrettyBy Subconfig2 A@
--- and the same instances for @B@ we can write
---
--- > instance PrettyBy Config A
--- > instance PrettyBy Config B
---
--- and the instances will be derived for us.
-class DefaultPrettyBy config a where
-    defaultPrettyBy :: config -> a -> Doc ann
-
--- | Overloaded configurable conversion to 'Doc'. I.e. like 'Pretty', but parameterized by a @config@.
--- This class is interoperable with the 'Pretty' class via 'PrettyConfigIgnore' and 'PrettyConfigAttatch'.
-class PrettyBy config a where
-    prettyBy :: config -> a -> Doc ann
-    default prettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
-    prettyBy = defaultPrettyBy
-
--- | A newtype wrapper around @a@ whose point is to provide a 'PrettyBy config' instance
--- for anything that has a 'Pretty' instance.
-newtype PrettyConfigIgnore a = PrettyConfigIgnore
-    { unPrettyConfigIgnore :: a
-    }
-
--- | A config together with some value. The point is to provide a 'Pretty' instance
--- for anything that has a 'PrettyBy config' instance.
-data PrettyConfigAttach config a = PrettyConfigAttach config a
-
--- delete these instances on extraction as library
-instance PrettyBy config a => PrettyBy config [a] where
-    prettyBy config = list . fmap (prettyBy config)
-
-instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (Either a b) where
+instance (PrettyM config a, PrettyM config b) => PrettyM config (Either a b) where
     prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
     prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
 
-instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (a, b) where
-    prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
-
-instance PrettyBy config Integer where
+instance PrettyM config Integer where
     prettyBy _ = pretty
--- delete until here
-
-instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
-    prettyBy _ (PrettyConfigIgnore x) = pretty x
-
-instance PrettyBy config a => Pretty (PrettyConfigAttach config a) where
-    pretty (PrettyConfigAttach config x) = prettyBy config x
 
 -- | Render a 'Doc' as 'String'.
 docString :: Doc a -> String
-docString = renderString . layoutSmart defaultLayoutOptions
+docString = renderDef
 
 -- | Render a 'Doc' as 'Text'.
 docText :: Doc a -> T.Text
-docText = renderStrict . layoutSmart defaultLayoutOptions
+docText = renderDef
 
--- | Render a value as 'String'.
+-- | Pretty-print a value as 'String'.
 prettyString :: Pretty a => a -> String
-prettyString = docString . pretty
+prettyString = renderDef . pretty
 
--- | Render a value as strict 'Text'.
+-- | Pretty-print a value as strict 'Text'.
 prettyText :: Pretty a => a -> T.Text
-prettyText = docText . pretty
-
--- | Render a value as 'String'.
-prettyStringBy :: PrettyBy config a => config -> a -> String
-prettyStringBy = docString .* prettyBy
-
--- | Render a value as strict 'Text'.
-prettyTextBy :: PrettyBy config a => config -> a -> T.Text
-prettyTextBy = docText .* prettyBy
+prettyText = renderDef . pretty
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 (<<$>>) f = getCompose . fmap f . Compose

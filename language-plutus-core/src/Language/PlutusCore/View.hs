@@ -16,6 +16,7 @@ module Language.PlutusCore.View
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Pretty.PrettyM
 
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
@@ -31,7 +32,7 @@ type TermIterApp tyname name uni a =
 type PrimIterApp tyname name uni a =
     IterApp StagedBuiltinName (Value tyname name uni a)
 
-instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp head arg) where
+instance (PrettyM config head, PrettyM config arg) => PrettyM config (IterApp head arg) where
     prettyBy config (IterApp appHead appSpine) =
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 

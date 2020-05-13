@@ -4,15 +4,14 @@ module Language.PlutusCore.Pretty
     -- * Basic types and functions
       Doc
     , Pretty (..)
-    , PrettyBy (..)
-    , PrettyConfigIgnore (..)
-    , PrettyConfigAttach (..)
+    , PrettyM (..)
+    , IgnorePrettyConfig (..)
+    , AttachPrettyConfig (..)
     , docString
     , docText
     , prettyString
     , prettyText
-    , prettyStringBy
-    , prettyTextBy
+    , prettyDefBy
     -- * Defaults
     , prettyPlcDef
     , prettyPlcDefString
@@ -58,11 +57,12 @@ module Language.PlutusCore.Pretty
     , prettyBytes
     ) where
 
-import           PlutusPrelude
-
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
 import           Language.PlutusCore.Pretty.Default
 import           Language.PlutusCore.Pretty.Plc
+import           Language.PlutusCore.Pretty.PrettyM
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Pretty.Utils
+
+import           Data.Text.Prettyprint.Doc

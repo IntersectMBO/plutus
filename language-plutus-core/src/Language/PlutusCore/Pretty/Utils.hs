@@ -2,13 +2,19 @@
 
 module Language.PlutusCore.Pretty.Utils
     ( prettyBytes
+    , docString
+    , docText
+    , prettyString
+    , prettyText
     ) where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Pretty.PrettyM
+
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import           Data.Text.Prettyprint.Doc.Internal
 import           Numeric                            (showHex)
 
 asBytes :: Word8 -> Doc ann

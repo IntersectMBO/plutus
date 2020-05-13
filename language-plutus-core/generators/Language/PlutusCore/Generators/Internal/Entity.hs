@@ -71,9 +71,9 @@ data IterAppValue uni head arg r = IterAppValue
     , _iterTbv  :: r                        -- ^ As a Haskell value.
     }
 
-instance ( PrettyBy config (Term TyName Name uni ())
-         , PrettyBy config head, PrettyBy config arg, Pretty r
-         ) => PrettyBy config (IterAppValue uni head arg r) where
+instance ( PrettyM config (Term TyName Name uni ())
+         , PrettyM config head, PrettyM config arg, Pretty r
+         ) => PrettyM config (IterAppValue uni head arg r) where
     prettyBy config (IterAppValue term pia y) = parens $ fold
         [ "{ ", prettyBy config term, line
         , "| ", prettyBy config pia, line

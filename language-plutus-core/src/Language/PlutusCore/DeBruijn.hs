@@ -49,13 +49,13 @@ newtype TyDeBruijn ann = TyDeBruijn (DeBruijn ann)
     deriving (Show, Functor, Generic)
 instance Wrapped (TyDeBruijn ann)
 
-instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
+instance HasPrettyConfigName config => PrettyM config (DeBruijn ann) where
     prettyBy config (DeBruijn _ txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
+deriving newtype instance HasPrettyConfigName config => PrettyM config (TyDeBruijn ann)
 
 class HasIndex a where
     index :: Lens' a Index

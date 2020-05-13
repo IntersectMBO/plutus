@@ -2,11 +2,14 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UndecidableInstances      #-}
+
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Language.PlutusCore.Core.Instance.Pretty.Readable () where
 
@@ -14,73 +17,97 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Pretty.PrettyM
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 
-import           Data.Text.Prettyprint.Doc.Internal              (enclose)
+import           Control.Monad.Reader
+-- import qualified Data.Text.Prettyprint.Doc.Internal              as Doc (enclose)
+import           Data.Text.Prettyprint.Doc.Symbols.Ascii
+
+applicationPM
+    :: ( MonadReader env m, HasPrettyConfig env config, HasRenderContext config
+       , PrettyM config a, PrettyM config b
+       )
+    => a -> b -> m (Doc ann)
+applicationPM fun arg =
+    infixDoc juxtFixity $ \prettyL prettyR -> prettyL fun <+> prettyR arg
+
+-- | Pretty-print a @->@ between two things.
+arrowPM
+    :: ( MonadReader env m, HasPrettyConfig env config, HasRenderContext config
+       , PrettyM config a, PrettyM config b
+       )
+    => a -> b -> m (Doc ann)
+arrowPM a b =
+    infixDoc arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
 
 -- | Pretty-print a binding at the type level.
-prettyTypeBinding
-    :: PrettyReadableBy configName (tyname a)
-    => PrettyConfigReadable configName -> tyname a -> Kind a -> Doc ann
-prettyTypeBinding config name kind
-    | _pcrShowKinds config == ShowKindsYes = parens $ prName <+> "::" <+> prettyInBotBy config kind
-    | otherwise                            = prName
-    where prName = prettyBy config name
+typeBinderDoc
+    :: ( MonadReader env m, HasPrettyConfigReadable env configName
+       , PrettyReadableBy configName (tyname a)
+       )
+    => ((tyname a -> Kind a -> Doc ann) -> AnyToDoc (PrettyConfigReadable configName) ann -> Doc ann)
+    -> m (Doc ann)
+typeBinderDoc k = do
+    showKinds <- view $ prettyConfig . pcrShowKinds
+    withPrettyAt Forward botFixity $ \prettyBot -> do
+        let prettyBind name kind = case showKinds of
+                ShowKindsYes -> parens $ prettyBot name <+> "::" <+> prettyBot kind
+                ShowKindsNo  -> prettyBot name
+        encloseM binderFixity $ k prettyBind prettyBot
 
-instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
-    prettyBy config = \case
-        Type{}          -> unitaryDoc config "*"
-        KindArrow _ k l -> arrowDoc   config k l
+instance PrettyM (PrettyConfigReadable configName) (Kind a) where
+    prettyM = \case
+        Type{}          -> unitaryDoc "*"
+        KindArrow _ k l -> k `arrowPM` l
 
 instance (PrettyReadableBy configName (tyname a), GShow uni) =>
-        PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
-    prettyBy config = \case
-        TyApp _ fun arg         -> applicationDoc config fun arg
-        TyVar _ name            -> unit $ prettyName name
-        TyFun _ tyIn tyOut      -> arrowDoc config tyIn tyOut
-        TyIFix _ pat arg        -> rayR juxtApp $ \juxt -> "ifix" <+> juxt pat <+> juxt arg
-        TyForall _ name kind ty -> bind $ \bindBody ->
-            "all" <+> prettyTypeBinding config name kind <> "." <+> bindBody ty
-        TyBuiltin _ builtin     -> unit $ pretty builtin
-        TyLam _ name kind ty    -> bind $ \bindBody ->
-            "\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody ty
-      where
-        prettyName = prettyBy config
-        unit = unitaryDoc config
-        rayR = rayDoc config Forward
-        bind = binderDoc  config
+        PrettyM (PrettyConfigReadable configName) (Type tyname uni a) where
+    prettyM = \case
+        TyApp _ fun arg           -> fun `applicationPM` arg
+        TyVar _ name              -> prettyM name
+        TyFun _ tyIn tyOut        -> tyIn `arrowPM` tyOut
+        TyIFix _ pat arg          ->
+            sequenceDoc juxtFixity $ \prettyEl -> "ifix" <+> prettyEl pat <+> prettyEl arg
+        TyForall _ name kind body ->
+            typeBinderDoc $ \prettyBinding prettyBody ->
+                "all" <+> prettyBinding name kind <> "." <+> prettyBody body
+        TyBuiltin _ builtin       -> unitaryDoc $ pretty builtin
+        TyLam _ name kind body    ->
+            typeBinderDoc $ \prettyBinding prettyBody ->
+                "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
 
 instance
         ( PrettyReadableBy configName (tyname a)
         , PrettyReadableBy configName (name a)
         , GShow uni, Closed uni, uni `Everywhere` Pretty
-        ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni a) where
-    prettyBy config = \case
-        Constant _ con         -> unitaryDoc config $ pretty con
-        Builtin _ bi           -> unitaryDoc config $ pretty bi
-        Apply _ fun arg        -> applicationDoc config fun arg
-        Var _ name             -> unit $ prettyName name
-        TyAbs _ name kind body -> bind $ \bindBody ->
-            "/\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody body
-        TyInst _ fun ty        -> rayL juxtApp $ \juxt -> juxt fun <+> inBraces ty
-        LamAbs _ name ty body  -> bind $ \bindBody ->
-            "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
-        Unwrap _ term          -> rayR juxtApp $ \juxt -> "unwrap" <+> juxt term
-        IWrap _ pat arg term   -> rayR juxtApp $ \juxt ->
-            "iwrap" <+> juxt pat <+> juxt arg <+> juxt term
-        Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
-      where
-        prettyName = prettyBy config
-        unit = unitaryDoc  config
-        bind = binderDoc   config
-        rayL = rayDoc      config Backward
-        rayR = rayDoc      config Forward
-        comp = compoundDoc config
-        inBot    = prettyInBotBy config
-        inBraces = enclose "{" "}" . inBot
+        ) => PrettyM (PrettyConfigReadable configName) (Term tyname name uni a) where
+    prettyM = \case
+        Constant _ con         -> unitaryDoc $ pretty con
+        Builtin _ bi           -> unitaryDoc $ pretty bi
+        Apply _ fun arg        -> fun `applicationPM` arg
+        Var _ name             -> prettyM name
+        TyAbs _ name kind body ->
+            typeBinderDoc $ \prettyBinding prettyBody ->
+                "/\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
+        TyInst _ fun ty        ->
+            compoundDoc juxtFixity $ \prettyIn ->
+                prettyIn Backward juxtFixity fun <+> braces (prettyIn Forward botFixity ty)
+        LamAbs _ name ty body  ->
+            compoundDoc binderFixity $ \prettyIn ->
+                let prettyBot x = prettyIn Forward botFixity x
+                in "\\" <> parens (prettyBot name <+> ":" <+> prettyBot ty) <+> "->" <+> prettyBot body
+        Unwrap _ term          ->
+            sequenceDoc juxtFixity $ \prettyEl -> "unwrap" <+> prettyEl term
+        IWrap _ pat arg term   ->
+            sequenceDoc juxtFixity $ \prettyEl ->
+                "iwrap" <+> prettyEl pat <+> prettyEl arg <+> prettyEl term
+        Error _ ty             ->
+            compoundDoc juxtFixity $ \prettyIn ->
+                "error" <+> braces (prettyIn Forward botFixity ty)
 
 instance PrettyReadableBy configName (Term tyname name uni a) =>
-        PrettyBy (PrettyConfigReadable configName) (Program tyname name uni a) where
-    prettyBy config (Program _ version term) =
-        rayDoc config Forward juxtApp $ \juxt -> "program" <+> pretty version <+> juxt term
+        PrettyM (PrettyConfigReadable configName) (Program tyname name uni a) where
+    prettyM (Program _ version term) =
+        sequenceDoc juxtFixity $ \prettyEl -> "program" <+> pretty version <+> prettyEl term

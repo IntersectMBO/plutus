@@ -32,6 +32,7 @@ module Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.PrettyM
 
 import           Control.Lens
 import           Data.Hashable
@@ -159,10 +160,11 @@ lookupNameIndex
     => name -> UniqueMap unique2 a -> Maybe a
 lookupNameIndex = lookupUnique . coerce . view unique
 
-instance HasPrettyConfigName config => PrettyBy config (Name ann) where
-    prettyBy config (Name _ txt (Unique uniq))
-        | showsUnique = pretty txt <> "_" <> pretty uniq
-        | otherwise   = pretty txt
-        where PrettyConfigName showsUnique = toPrettyConfigName config
+instance HasPrettyConfigName config => PrettyM config (Name ann) where
+    prettyM (Name _ txt (Unique uniq)) = do
+        PrettyConfigName showsUnique <- view $ prettyConfig . to toPrettyConfigName
+        pure $ if showsUnique
+            then pretty txt <> "_" <> pretty uniq
+            else pretty txt
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyName ann)
+deriving newtype instance HasPrettyConfigName config => PrettyM config (TyName ann)

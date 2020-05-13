@@ -14,6 +14,7 @@ module Language.PlutusCore.Pretty.Classic
 import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.PrettyM
 
 -- | Configuration for the classic pretty-printing.
 newtype PrettyConfigClassic configName = PrettyConfigClassic
@@ -21,7 +22,7 @@ newtype PrettyConfigClassic configName = PrettyConfigClassic
     }
 
 -- | The "classically pretty-printable" constraint.
-type PrettyClassicBy configName = PrettyBy (PrettyConfigClassic configName)
+type PrettyClassicBy configName = PrettyM (PrettyConfigClassic configName)
 
 type PrettyClassic = PrettyClassicBy PrettyConfigName
 

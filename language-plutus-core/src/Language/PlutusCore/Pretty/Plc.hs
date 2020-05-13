@@ -32,6 +32,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.PrettyM
 import           Language.PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
@@ -57,9 +58,9 @@ data PrettyConfigPlc = PrettyConfigPlc
     }
 
 -- | The "pretty-printable PLC entity" constraint.
-type PrettyPlc = PrettyBy PrettyConfigPlc
+type PrettyPlc = PrettyM PrettyConfigPlc
 
--- | A constraint that allows to derive @PrettyBy PrettyConfigPlc@ instances, see below.
+-- | A constraint that allows to derive @PrettyM PrettyConfigPlc@ instances, see below.
 type DefaultPrettyPlcStrategy a =
        ( PrettyClassic a
        , PrettyReadable a
@@ -72,12 +73,12 @@ instance HasPrettyConfigName PrettyConfigPlcStrategy where
 instance HasPrettyConfigName PrettyConfigPlc where
     toPrettyConfigName = toPrettyConfigName . _pcpStrategy
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlcStrategy a where
-    defaultPrettyBy (PrettyConfigPlcClassic configClassic)   = prettyBy configClassic
-    defaultPrettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable
+instance DefaultPrettyPlcStrategy a => PrettyM PrettyConfigPlcStrategy (CompoundlyPretty a) where
+    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unCompoundlyPretty
+    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unCompoundlyPretty
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
-    defaultPrettyBy = defaultPrettyBy . _pcpStrategy
+instance DefaultPrettyPlcStrategy a => PrettyM PrettyConfigPlc (CompoundlyPretty a) where
+    prettyBy = prettyBy . _pcpStrategy
 
 -- | The 'PrettyConfigPlcOptions' used by default:
 -- print errors in full.

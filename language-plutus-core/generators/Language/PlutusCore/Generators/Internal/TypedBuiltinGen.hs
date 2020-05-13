@@ -59,8 +59,8 @@ type TypedBuiltinGen uni = TypedBuiltinGenT uni Identity
 
 type Generatable uni = (GShow uni, GEq uni, DefaultUni <: uni)
 
-instance (PrettyBy config a, PrettyBy config (Term TyName Name uni ())) =>
-        PrettyBy config (TermOf uni a) where
+instance (PrettyM config a, PrettyM config (Term TyName Name uni ())) =>
+        PrettyM config (TermOf uni a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm
