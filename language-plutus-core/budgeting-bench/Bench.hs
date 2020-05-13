@@ -26,6 +26,7 @@ import           Language.PlutusCore.MkPlc
 -- import           Control.Lens
 import           Criterion.Main
 import qualified Criterion.Types                                            as C
+import Data.Functor
 
 runTermBench :: String -> Plain Term DefaultUni -> Benchmark
 runTermBench name term = env
@@ -46,38 +47,30 @@ runTermBench name term = env
         -- FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..10]) ]
 
 benchSameTwoByteStrings :: BuiltinName -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBench name bsA bsA
-    where
-        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
+benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
 
 benchTwoByteStrings :: BuiltinName -> Benchmark
-benchTwoByteStrings name = createTwoTermBuiltinBench name bsA bsB
-    where
-        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
-        bsB = (expToBenchingBytestring seedB . fromInteger) <$> expsToBenchBS
+benchTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedB)
 
 benchBytestringOperations :: BuiltinName -> Benchmark -- TODO the numbers are a bit too big here
-benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BSL.ByteString name numbers bsA
+benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BSL.ByteString name numbers (byteStringsToBench seedA)
     where
-        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
         numbers = expToBenchingInteger <$> expsToBench
 
 createTwoTermBuiltinBench :: (DefaultUni `Includes` a, DefaultUni `Includes` b) => BuiltinName -> [(a, ExMemory)] -> [(b, ExMemory)] -> Benchmark
 createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
-        (flip fmap) as (\(x, xMem) ->
-            bgroup (show xMem) $ (flip fmap) bs (\(y, yMem) ->
+        as <&> (\(x, xMem) ->
+            bgroup (show xMem) $ bs <&> (\(y, yMem) ->
                 runTermBench (show yMem) $ mkIterApp () (builtin () $ BuiltinName () name) [(mkConstant () x), (mkConstant () y)]
             ))
 
 benchHashOperations :: BuiltinName -> Benchmark
 benchHashOperations name =
     bgroup (show name) $
-        (flip fmap) bs (\(x, xMem) ->
+        byteStringsToBench seedA <&> (\(x, xMem) ->
             runTermBench (show xMem) $ mkIterApp () (builtin () $ BuiltinName () name) [(mkConstant () x)]
         )
-    where
-        bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
 
 -- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
 sig :: BSL.ByteString
@@ -87,7 +80,7 @@ pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
-        (flip fmap) bs (\(x, xMem) ->
+        bs <&> (\(x, xMem) ->
             runTermBench (show xMem) $ mkIterApp () (builtin () $ BuiltinName () name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
         )
     where
@@ -96,6 +89,9 @@ benchVerifySignature =
 
 expsToBenchBS :: [Integer]
 expsToBenchBS = ((\(a :: Integer) -> 1^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..7])
+
+byteStringsToBench :: Seed -> [(BSL.ByteString, ExMemory)]
+byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
 
 expsToBench :: [Integer]
 expsToBench = ((\(a :: Integer) -> 2^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..8])

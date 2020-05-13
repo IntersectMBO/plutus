@@ -123,7 +123,7 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = ExMemory (smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
+  memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
 
 instance ExMemoryUsage BSL.ByteString where
   memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
