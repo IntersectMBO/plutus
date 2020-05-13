@@ -75,7 +75,7 @@
     SystemCallArchitectures = "native";
     CapabilityBoundingSet = "~CAP_SYS_ADMIN";
     # nginx needs to bind to 80 and write to /var/spool/nginx
-    AmbientCapabilities = "CAP_NET_BIND_SERVICE";
+    AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
     ReadWritePaths = "/var/spool/nginx";
   };
 
