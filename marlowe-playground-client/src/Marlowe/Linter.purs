@@ -4,6 +4,7 @@ module Marlowe.Linter
   , Position
   , MaxTimeout
   , Warning(..)
+  , WarningDetail(..)
   , _holes
   , _warnings
   , suggestions
@@ -42,7 +43,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested ((/\))
 import Help (holeText)
-import Marlowe.Holes (AccountId, Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as S
@@ -68,19 +69,47 @@ instance semigroupMax :: Semigroup MaxTimeout where
 instance monoidMaxTimeout :: Monoid MaxTimeout where
   mempty = MaxTimeout (TermWrapper zero zero)
 
-data Warning
-  = NegativePayment IRange
-  | NegativeDeposit IRange
-  | TimeoutNotIncreasing IRange
-  | UnreachableCaseEmptyChoice IRange
-  | UnreachableCaseFalseNotify IRange
-  | UnreachableContract IRange
-  | UndefinedUse IRange
-  | ShadowedLet IRange
-  | DivisionByZero IRange
-  | SimplifiableValue IRange (Term Value) (Term Value)
-  | SimplifiableObservation IRange (Term Observation) (Term Observation)
-  | PayBeforeDeposit IRange AccountId
+newtype Warning
+  = Warning
+  { warning :: WarningDetail
+  , range :: IRange
+  }
+
+data WarningDetail
+  = NegativePayment
+  | NegativeDeposit
+  | TimeoutNotIncreasing
+  | UnreachableCaseEmptyChoice
+  | UnreachableCaseFalseNotify
+  | UnreachableContract
+  | UndefinedUse
+  | ShadowedLet
+  | DivisionByZero
+  | SimplifiableValue (Term Value) (Term Value)
+  | SimplifiableObservation (Term Observation) (Term Observation)
+  | PayBeforeDeposit S.AccountId
+
+instance showWarningDetail :: Show WarningDetail where
+  show NegativePayment = "The contract can make a non-positive payment"
+  show NegativeDeposit = "The contract can make a non-positive deposit"
+  show TimeoutNotIncreasing = "Timeouts should always increase in value"
+  show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose"
+  show UnreachableCaseFalseNotify = "This case will never be used, because the Observation is always false"
+  show UnreachableContract = "This contract is unreachable"
+  show UndefinedUse = "The contract tries to Use a ValueId that has not been defined in a Let"
+  show ShadowedLet = "Let is redefining a ValueId that already exists"
+  show DivisionByZero = "Scale construct divides by zero"
+  show (SimplifiableValue oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
+  show (SimplifiableObservation oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
+  show (PayBeforeDeposit account) = "The contract makes a payment to account " <> show account <> " before a deposit has been made"
+
+derive instance genericWarningDetail :: Generic WarningDetail _
+
+instance eqWarningDetail :: Eq WarningDetail where
+  eq = genericEq
+
+instance ordWarningDetail :: Ord WarningDetail where
+  compare = genericCompare
 
 derive instance genericWarning :: Generic Warning _
 
@@ -89,12 +118,8 @@ instance eqWarning :: Eq Warning where
 
 -- We order Warnings by their position first
 instance ordWarning :: Ord Warning where
-  compare a b =
+  compare a@(Warning { range: rangeA }) b@(Warning { range: rangeB }) =
     let
-      rangeA = getWarningRange a
-
-      rangeB = getWarningRange b
-
       cmp f = (compare `on` f) rangeA rangeB
     in
       case cmp _.startLineNumber, cmp _.startColumn, cmp _.endLineNumber, cmp _.endColumn of
@@ -104,43 +129,10 @@ instance ordWarning :: Ord Warning where
         sln, _, _, _ -> sln
 
 instance showWarning :: Show Warning where
-  show (NegativePayment _) = "The contract can make a non-positive payment"
-  show (NegativeDeposit _) = "The contract can make a non-positive deposit"
-  show (TimeoutNotIncreasing _) = "Timeouts should always increase in value"
-  show (UnreachableCaseEmptyChoice _) = "This case will never be used, because there are no options to choose"
-  show (UnreachableCaseFalseNotify _) = "This case will never be used, because the Observation is always false"
-  show (UnreachableContract _) = "This contract is unreachable"
-  show (UndefinedUse _) = "The contract tries to Use a ValueId that has not been defined in a Let"
-  show (ShadowedLet _) = "Let is redefining a ValueId that already exists"
-  show (DivisionByZero _) = "Scale construct divides by zero"
-  show (SimplifiableValue _ oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
-  show (SimplifiableObservation _ oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
-  show (PayBeforeDeposit _ account) = "The contract makes a payment to account " <> show account <> " before a deposit has been made"
+  show (Warning warn) = show warn.warning
 
 getWarningRange :: Warning -> IRange
-getWarningRange (NegativePayment range) = range
-
-getWarningRange (NegativeDeposit range) = range
-
-getWarningRange (TimeoutNotIncreasing range) = range
-
-getWarningRange (UnreachableCaseEmptyChoice range) = range
-
-getWarningRange (UnreachableCaseFalseNotify range) = range
-
-getWarningRange (UnreachableContract range) = range
-
-getWarningRange (UndefinedUse range) = range
-
-getWarningRange (ShadowedLet range) = range
-
-getWarningRange (DivisionByZero range) = range
-
-getWarningRange (SimplifiableValue range _ _) = range
-
-getWarningRange (SimplifiableObservation range _ _) = range
-
-getWarningRange (PayBeforeDeposit range _) = range
+getWarningRange (Warning warn) = warn.range
 
 newtype State
   = State
@@ -222,11 +214,17 @@ simplifyTo (ConstantSimp _ _ c) pos = (ConstantSimp pos true c)
 
 simplifyTo (ValueSimp _ _ c) pos = (ValueSimp pos true c)
 
-markSimplification :: forall a b. Show b => (a -> Term b) -> (IRange -> Term b -> Term b -> Warning) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
+addWarning :: forall a. Show a => WarningDetail -> a -> { row :: Int, column :: Int } -> CMS.State State Unit
+addWarning warnDetail term pos =
+  modifying _warnings $ Set.insert
+    $ Warning
+        { warning: warnDetail
+        , range: termToRange term pos
+        }
+
+markSimplification :: forall a b. Show b => (a -> Term b) -> (Term b -> Term b -> WarningDetail) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
 markSimplification f c oriVal x
-  | isSimplified x = do
-    modifying _warnings (Set.insert (c (termToRange oriVal (getPosition oriVal)) oriVal (getValue f x)))
-    pure unit
+  | isSimplified x = addWarning (c oriVal (getValue f x)) oriVal (getPosition oriVal)
   | otherwise = pure unit
 
 constToObs :: Boolean -> Term Observation
@@ -249,25 +247,22 @@ lint contract = state
 lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
 
-lintContract env (Term t@(Pay acc payee token payment cont) pos) = do
+lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
   let
     gatherHoles = getHoles acc <> getHoles payee <> getHoles token
   modifying _holes gatherHoles
   sa <- lintValue env payment
   case sa of
     (ConstantSimp _ _ c)
-      | c <= zero -> do
-        modifying _warnings (Set.insert (NegativePayment (termToRange t pos)))
-        pure unit
-    _ -> do
-      pure unit
+      | c <= zero -> addWarning NegativePayment t pos
+    _ -> pure unit
   markSimplification constToVal SimplifiableValue payment sa
   case fromTerm acc of
     Just accTerm -> do
       let
         deposits = view _deposits env
       unless (Set.member accTerm deposits)
-        $ modifying _warnings (Set.insert (PayBeforeDeposit (termToRange t pos) acc))
+        (addWarning (PayBeforeDeposit accTerm) t pos)
     _ -> pure unit
   lintContract env cont
 
@@ -278,10 +273,10 @@ lintContract env (Term (If obs c1 c2) _) = do
   case sa of
     (ConstantSimp _ _ c) ->
       if c then do
-        modifying _warnings (Set.insert (UnreachableContract (termToRange c2 (getPosition c2))))
+        addWarning UnreachableContract c2 (getPosition c2)
         pure unit
       else do
-        modifying _warnings (Set.insert (UnreachableContract (termToRange c1 (getPosition c1))))
+        addWarning UnreachableContract c1 (getPosition c1)
         pure unit
     _ -> do
       markSimplification constToObs SimplifiableObservation obs sa
@@ -289,20 +284,16 @@ lintContract env (Term (If obs c1 c2) _) = do
 
 lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
   let
-    timeoutNotIncreasing = if timeout > (view _maxTimeout env) then mempty else Set.singleton (TimeoutNotIncreasing (termToRange slot pos))
-
     newEnv = (over _maxTimeout (max timeout)) env
   traverse_ (lintCase newEnv) cases
-  modifying _warnings (Set.union timeoutNotIncreasing)
+  when (timeout <= view _maxTimeout env) (addWarning TimeoutNotIncreasing slot pos)
   lintContract newEnv cont
   pure unit
 
 lintContract env (Term (Let (TermWrapper valueId pos) value cont) _) = do
   let
-    shadowedLet = if Set.member valueId (view _letBindings env) then Set.singleton (ShadowedLet (termToRange valueId pos)) else mempty
-
     newEnv = over _letBindings (Set.insert valueId) env
-  modifying _warnings (Set.union shadowedLet)
+  when (Set.member valueId (view _letBindings env)) $ addWarning ShadowedLet valueId pos
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract newEnv cont
@@ -452,7 +443,7 @@ lintValue env t@(Term (SubValue a b) pos) = do
 lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
   if (b == zero) then do
-    modifying _warnings (Set.insert (DivisionByZero (termToRange r pos2)))
+    addWarning DivisionByZero r pos2
     markSimplification constToVal SimplifiableValue c sc
     pure (ValueSimp pos false t)
   else
@@ -485,9 +476,7 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term (UseValue (TermWrapper valueId _)) pos) = do
-  let
-    undefinedLet = if Set.member valueId (view _letBindings env) then mempty else Set.singleton (UndefinedUse (termToRange t pos))
-  modifying _warnings (Set.union undefinedLet)
+  when (not $ Set.member valueId (view _letBindings env)) $ addWarning UndefinedUse t pos
   pure (ValueSimp pos false t)
 
 lintValue env hole@(Hole _ _ pos) = do
@@ -539,7 +528,7 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
   case sa of
     (ConstantSimp _ _ v)
       | v <= zero -> do
-        modifying _warnings (Set.insert (NegativeDeposit (termToRange t pos)))
+        addWarning NegativeDeposit t pos
         pure accTerm
     _ -> do
       markSimplification constToVal SimplifiableValue value sa
@@ -547,14 +536,14 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
 
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  when (Array.null bounds) $ modifying _warnings $ Set.insert $ UnreachableCaseEmptyChoice $ termToRange t pos
+  when (Array.null bounds) $ addWarning UnreachableCaseEmptyChoice t pos
   pure NoEffect
 
 lintAction env t@(Term (Notify obs) pos) = do
   sa <- lintObservation env obs
   case sa of
     (ConstantSimp _ _ c)
-      | not c -> modifying _warnings (Set.insert (UnreachableCaseFalseNotify (termToRange t pos)))
+      | not c -> addWarning UnreachableCaseFalseNotify t pos
     _ -> markSimplification constToObs SimplifiableObservation obs sa
   pure NoEffect
 
