@@ -547,18 +547,15 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
 
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  if Array.null bounds then
-    modifying _warnings (Set.insert (UnreachableCaseEmptyChoice (termToRange t pos)))
-  else
-    pure unit
+  when (Array.null bounds) $ modifying _warnings $ Set.insert $ UnreachableCaseEmptyChoice $ termToRange t pos
   pure NoEffect
 
 lintAction env t@(Term (Notify obs) pos) = do
   sa <- lintObservation env obs
   case sa of
     (ConstantSimp _ _ c)
-      | not c -> do modifying _warnings (Set.insert (UnreachableCaseFalseNotify (termToRange t pos)))
-    _ -> do markSimplification constToObs SimplifiableObservation obs sa
+      | not c -> modifying _warnings (Set.insert (UnreachableCaseFalseNotify (termToRange t pos)))
+    _ -> markSimplification constToObs SimplifiableObservation obs sa
   pure NoEffect
 
 lintAction env hole@(Hole _ _ _) = do
