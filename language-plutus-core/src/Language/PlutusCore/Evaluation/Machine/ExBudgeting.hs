@@ -78,9 +78,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExRestrictingBudget(..)
     , SpendBudget(..)
     , CostModel(..)
-    , CostingFunOneArgument(..)
-    , CostingFunTwoArguments(..)
-    , CostingFunThreeArguments(..)
+    , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
@@ -179,42 +177,41 @@ estimateStaticStagedCost _ _ = (1, 1)
 
 data CostModel =
     CostModel
-    { paramAddInteger           :: CostingFunTwoArguments
-    , paramSubtractInteger      :: CostingFunTwoArguments
-    , paramMultiplyInteger      :: CostingFunTwoArguments
-    , paramDivideInteger        :: CostingFunTwoArguments
-    , paramQuotientInteger      :: CostingFunTwoArguments
-    , paramRemainderInteger     :: CostingFunTwoArguments
-    , paramModInteger           :: CostingFunTwoArguments
-    , paramLessThanInteger      :: CostingFunTwoArguments
-    , paramLessThanEqInteger    :: CostingFunTwoArguments
-    , paramGreaterThanInteger   :: CostingFunTwoArguments
-    , paramGreaterThanEqInteger :: CostingFunTwoArguments
-    , paramEqInteger            :: CostingFunTwoArguments
-    , paramConcatenate          :: CostingFunTwoArguments
-    , paramTakeByteString       :: CostingFunTwoArguments -- TODO these two might be a bit interesting on size
-    , paramDropByteString       :: CostingFunTwoArguments
-    , paramSHA2                 :: CostingFunOneArgument
-    , paramSHA3                 :: CostingFunOneArgument
-    , paramVerifySignature      :: CostingFunThreeArguments
-    , paramEqByteString         :: CostingFunTwoArguments
-    , paramLtByteString         :: CostingFunTwoArguments
-    , paramGtByteString         :: CostingFunTwoArguments
-    , paramIfThenElse           :: CostingFunThreeArguments
+    { paramAddInteger           :: CostingFun ModelTwoArguments
+    , paramSubtractInteger      :: CostingFun ModelTwoArguments
+    , paramMultiplyInteger      :: CostingFun ModelTwoArguments
+    , paramDivideInteger        :: CostingFun ModelTwoArguments
+    , paramQuotientInteger      :: CostingFun ModelTwoArguments
+    , paramRemainderInteger     :: CostingFun ModelTwoArguments
+    , paramModInteger           :: CostingFun ModelTwoArguments
+    , paramLessThanInteger      :: CostingFun ModelTwoArguments
+    , paramLessThanEqInteger    :: CostingFun ModelTwoArguments
+    , paramGreaterThanInteger   :: CostingFun ModelTwoArguments
+    , paramGreaterThanEqInteger :: CostingFun ModelTwoArguments
+    , paramEqInteger            :: CostingFun ModelTwoArguments
+    , paramConcatenate          :: CostingFun ModelTwoArguments
+    , paramTakeByteString       :: CostingFun ModelTwoArguments -- TODO these two might be a bit interesting on size
+    , paramDropByteString       :: CostingFun ModelTwoArguments
+    , paramSHA2                 :: CostingFun ModelOneArgument
+    , paramSHA3                 :: CostingFun ModelOneArgument
+    , paramVerifySignature      :: CostingFun ModelThreeArguments
+    , paramEqByteString         :: CostingFun ModelTwoArguments
+    , paramLtByteString         :: CostingFun ModelTwoArguments
+    , paramGtByteString         :: CostingFun ModelTwoArguments
+    , paramIfThenElse           :: CostingFun ModelThreeArguments
     }
     deriving (Show, Eq, Generic, Lift, Default, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] CostModel
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
--- TODO loglinear is currently linear
 
-data CostingFunOneArgument = CostingFunOneArgument
-    { costingFunOneArgumentCpu    :: ModelOneArgument
-    , costingFunOneArgumentMemory :: ModelOneArgument
+data CostingFun model = CostingFun
+    { costingFunCpu    :: model
+    , costingFunMemory :: model
     }
     deriving (Show, Eq, Generic, Lift, Default, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "costingFunOneArgument", CamelToSnake)] CostingFunOneArgument
+        '[FieldLabelModifier (StripPrefix "costingFun", CamelToSnake)] (CostingFun model)
 
 data ModelOneArgument =
     ModelOneArgumentConstantCost Integer
@@ -225,9 +222,9 @@ data ModelOneArgument =
 instance Default ModelOneArgument where
     def = ModelOneArgumentConstantCost 1
 
-runCostingFunOneArgument :: CostingFunOneArgument -> ExMemory -> ExBudget
+runCostingFunOneArgument :: CostingFun ModelOneArgument -> ExMemory -> ExBudget
 runCostingFunOneArgument
-    (CostingFunOneArgument cpu mem) mem1 =
+    (CostingFun cpu mem) mem1 =
         ExBudget (ExCPU (runOneArgumentModel cpu mem1)) (ExMemory (runOneArgumentModel mem mem1))
 
 runOneArgumentModel :: ModelOneArgument -> ExMemory -> Integer
@@ -241,13 +238,6 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
-data CostingFunTwoArguments = CostingFunTwoArguments
-    { costingFunTwoArgumentsCpu    :: ModelTwoArguments
-    , costingFunTwoArgumentsMemory :: ModelTwoArguments
-    }
-    deriving (Show, Eq, Generic, Lift, Default, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "costingFunTwoArguments", CamelToSnake)] CostingFunTwoArguments
-
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
@@ -258,8 +248,8 @@ data ModelTwoArguments =
 instance Default ModelTwoArguments where
     def = ModelTwoArgumentsConstantCost 1
 
-runCostingFunTwoArguments :: CostingFunTwoArguments -> ExMemory -> ExMemory -> ExBudget
-runCostingFunTwoArguments (CostingFunTwoArguments cpu mem) mem1 mem2 =
+runCostingFunTwoArguments :: CostingFun ModelTwoArguments -> ExMemory -> ExMemory -> ExBudget
+runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
     ExBudget (ExCPU (runTwoArgumentModel cpu mem1 mem2)) (ExMemory (runTwoArgumentModel mem mem1 mem2))
 
 runTwoArgumentModel :: ModelTwoArguments -> ExMemory -> ExMemory -> Integer
@@ -267,15 +257,7 @@ runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) _ _ = c
 runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct?
-
-data CostingFunThreeArguments = CostingFunThreeArguments
-    { costingFunThreeArgumentsCpu    :: ModelThreeArguments
-    , costingFunThreeArgumentsMemory :: ModelThreeArguments
-    }
-    deriving (Show, Eq, Generic, Lift, Default, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "costingFunThreeArguments", CamelToSnake)] CostingFunThreeArguments
+        ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost Integer
@@ -292,8 +274,8 @@ runThreeArgumentModel (ModelThreeArgumentsConstantCost i) _ _ _ = i
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
     ceiling $ (fromInteger (size1 + size2 + size3)) * slope + intercept
 
-runCostingFunThreeArguments :: CostingFunThreeArguments -> ExMemory -> ExMemory -> ExMemory -> ExBudget
-runCostingFunThreeArguments (CostingFunThreeArguments cpu mem) mem1 mem2 mem3 =
+runCostingFunThreeArguments :: CostingFun ModelThreeArguments -> ExMemory -> ExMemory -> ExMemory -> ExBudget
+runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
     ExBudget (ExCPU $ runThreeArgumentModel cpu mem1 mem2 mem3) (ExMemory $ runThreeArgumentModel mem mem1 mem2 mem3)
 
 $(mtraverse makeLenses [''ExBudgetState, ''ExBudget])

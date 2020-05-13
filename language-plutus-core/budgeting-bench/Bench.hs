@@ -48,13 +48,13 @@ runTermBench name term = env
 benchSameTwoByteStrings :: BuiltinName -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBench name bsA bsA
     where
-        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
+        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 benchTwoByteStrings :: BuiltinName -> Benchmark
 benchTwoByteStrings name = createTwoTermBuiltinBench name bsA bsB
     where
-        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
-        bsB = (expToBenchingBytestring seedB . fromInteger) <$> expsToBench
+        bsA = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
+        bsB = (expToBenchingBytestring seedB . fromInteger) <$> expsToBenchBS
 
 benchBytestringOperations :: BuiltinName -> Benchmark -- TODO the numbers are a bit too big here
 benchBytestringOperations name = createTwoTermBuiltinBench @Integer @BSL.ByteString name numbers bsA
@@ -93,6 +93,9 @@ benchVerifySignature =
     where
         name = VerifySignature
         bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
+
+expsToBenchBS :: [Integer]
+expsToBenchBS = ((\(a :: Integer) -> 1^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..7])
 
 expsToBench :: [Integer]
 expsToBench = ((\(a :: Integer) -> 2^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..8])

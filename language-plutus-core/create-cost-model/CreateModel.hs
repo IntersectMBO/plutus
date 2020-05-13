@@ -93,51 +93,51 @@ linearAdditiveModel df = do
     Right x  -> pure x
 
 
-addInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger df = do
   addInt <- filterDF "AddInteger" df
   cpuModel <- linearAdditiveModel addInt
-  pure $ CostingFunTwoArguments (ModelTwoArgumentsAddedSizes cpuModel) def
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) def
 
-subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 subtractInteger _ = pure def
-multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 multiplyInteger _ = pure def
-divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger _ = pure def
-quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger _ = pure def
-remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 remainderInteger _ = pure def
-modInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 modInteger _ = pure def
-lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger _ = pure def
-lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqInteger _ = pure def
-greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanInteger _ = pure def
-greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanEqInteger _ = pure def
-eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqInteger _ = pure def
-concatenate :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 concatenate _ = pure def
-takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 takeByteString _ = pure def
-dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+dropByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 dropByteString _ = pure def
-sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunOneArgument
+sHA2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA2 _ = pure def
-sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunOneArgument
+sHA3 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sHA3 _ = pure def
-verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunThreeArguments
+verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 verifySignature _ = pure def
-eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+eqByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqByteString _ = pure def
-ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+ltByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 ltByteString _ = pure def
-gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunTwoArguments
+gtByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 gtByteString _ = pure def
-ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m CostingFunThreeArguments
+ifThenElse :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 ifThenElse _ = pure def
