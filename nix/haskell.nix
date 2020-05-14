@@ -58,7 +58,7 @@ let
             marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
               PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
             '';
-            marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
+            marlowe.components.tests.marlowe-test.preCheck = ''
               PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
             '';
             # In this case we can just propagate the native dependencies for the build of the test executable,

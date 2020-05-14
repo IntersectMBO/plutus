@@ -71,7 +71,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."http-client-tls" or (buildDepError "http-client-tls"))
           (hsPkgs."marlowe" or (buildDepError "marlowe"))
           (hsPkgs."containers" or (buildDepError "containers"))
-          (hsPkgs."sbv" or (buildDepError "sbv"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
           (hsPkgs."process" or (buildDepError "process"))
@@ -87,35 +86,8 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Marlowe/Symbolic/Types/Request"
           "Marlowe/Symbolic/Types/Response"
           "Marlowe/Symbolic/Types/API"
-          "Language/Marlowe/Analysis/FSSemantics"
           ];
         hsSourceDirs = [ "src" ];
-        };
-      tests = {
-        "marlowe-symbolic-test" = {
-          depends = [
-            (hsPkgs."base" or (buildDepError "base"))
-            (hsPkgs."containers" or (buildDepError "containers"))
-            (hsPkgs."marlowe" or (buildDepError "marlowe"))
-            (hsPkgs."marlowe-symbolic" or (buildDepError "marlowe-symbolic"))
-            (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-            (hsPkgs."sbv" or (buildDepError "sbv"))
-            (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
-            (hsPkgs."QuickCheck" or (buildDepError "QuickCheck"))
-            ];
-          buildable = true;
-          modules = [
-            "Tests"
-            "OldAnalysis/FSMap"
-            "OldAnalysis/FSSemantics"
-            "OldAnalysis/FSSet"
-            "OldAnalysis/IntegerArray"
-            "OldAnalysis/MkSymb"
-            "OldAnalysis/Numbering"
-            ];
-          hsSourceDirs = [ "test" ];
-          mainPath = [ "Spec.hs" ];
-          };
         };
       };
     } // rec {

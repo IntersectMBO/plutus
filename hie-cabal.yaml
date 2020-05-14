@@ -44,8 +44,6 @@ cradle:
     component: "marlowe-playground-server:marlowe-playground-server-test"
   - path: ./marlowe-symbolic/src
     component: "lib:marlowe-symbolic"
-  - path: ./marlowe-symbolic/test
-    component: "marlowe-symbolic:marlowe-symbolic-test"
   - path: ./plutus-contract/src
     component: "lib:plutus-contract"
   - path: ./plutus-contract/test

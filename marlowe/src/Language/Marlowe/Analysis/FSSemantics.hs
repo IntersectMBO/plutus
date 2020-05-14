@@ -1,3 +1,8 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 module Language.Marlowe.Analysis.FSSemantics where
 
 import           Data.List                  (foldl', genericIndex)
@@ -185,8 +190,8 @@ symEvalVal SlotIntervalStart symState = lowSlot symState
 symEvalVal SlotIntervalEnd symState = highSlot symState
 symEvalVal (UseValue valId) symState =
   M.findWithDefault (literal 0) valId (symBoundValues symState)
-symEvalVal (Cond cond v1 v2) symState = ite (symEvalObs cond symState) 
-                                            (symEvalVal v1 symState) 
+symEvalVal (Cond cond v1 v2) symState = ite (symEvalObs cond symState)
+                                            (symEvalVal v1 symState)
                                             (symEvalVal v2 symState)
 
 -- Symbolic version evalObservation
@@ -528,7 +533,7 @@ computeAndContinue transaction inps sta cont t =
 -- transactions and also computes the resulting list of warnings.
 executeAndInterpret :: State -> [(Integer, Integer, Integer, Integer)] -> Contract
                     -> [([TransactionInput], [TransactionWarning])]
-executeAndInterpret sta [] cont = []
+executeAndInterpret _ [] _ = []
 executeAndInterpret sta ((l, h, v, b):t) cont
   | b == 0 = computeAndContinue transaction [] sta cont t
   | otherwise =
@@ -550,7 +555,7 @@ executeAndInterpret sta ((l, h, v, b):t) cont
 interpretResult :: [(Integer, Integer, Integer, Integer)] -> Contract -> Maybe State
                 -> (Slot, [TransactionInput], [TransactionWarning])
 interpretResult [] _ _ = error "Empty result"
-interpretResult t@((l, h, v, b):_) c maybeState = (Slot l, tin, twa)
+interpretResult t@((l, _, _, _):_) c maybeState = (Slot l, tin, twa)
    where (tin, twa) = foldl' (\(accInp, accWarn) (elemInp, elemWarn) ->
                                  (accInp ++ elemInp, accWarn ++ elemWarn)) ([], []) $
                              executeAndInterpret initialState t c

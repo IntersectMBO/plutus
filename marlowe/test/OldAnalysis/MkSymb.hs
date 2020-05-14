@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -w #-}
 module OldAnalysis.MkSymb where
 
 import           Data.Either         (Either (..))

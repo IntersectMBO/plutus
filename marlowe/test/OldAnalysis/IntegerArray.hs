@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
+{-# OPTIONS_GHC -w #-}
 module OldAnalysis.IntegerArray where
 
 import           Data.List      (genericTake)
