@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
+{-# OPTIONS_GHC -w #-}
 module OldAnalysis.FSSet where
 
 import           Data.SBV

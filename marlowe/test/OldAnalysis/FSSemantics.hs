@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -w #-}
 module OldAnalysis.FSSemantics where
 
 import           Data.List                  (foldl')

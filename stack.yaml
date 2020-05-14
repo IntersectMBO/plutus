@@ -8,7 +8,6 @@ packages:
 - plutus-use-cases
 - playground-common
 - marlowe
-- marlowe-hspec
 - marlowe-playground-server
 - metatheory
 - plutus-ledger

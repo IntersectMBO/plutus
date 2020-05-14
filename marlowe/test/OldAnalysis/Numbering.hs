@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -w #-}
 module OldAnalysis.Numbering (Numbering, emptyNumbering, getNumbering, getLabel, numberOfLabels) where
 
 import           Data.Map.Strict (Map)

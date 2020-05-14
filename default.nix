@@ -114,7 +114,7 @@ in rec {
       };
     };
 
-    marlowe-tutorial = pkgs.callPackage ./marlowe-tutorial/doc { };
+    marlowe-tutorial = pkgs.callPackage ./marlowe/doc { };
   };
 
   papers = pkgs.recurseIntoAttrs {

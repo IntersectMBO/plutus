@@ -77,6 +77,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
           (hsPkgs."text" or (buildDepError "text"))
           (hsPkgs."vector" or (buildDepError "vector"))
+          (hsPkgs."sbv" or (buildDepError "sbv"))
           (hsPkgs."wl-pprint" or (buildDepError "wl-pprint"))
           (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
           ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));
@@ -90,6 +91,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/Marlowe/Client"
           "Language/Marlowe/Util"
           "Language/Marlowe/Pretty"
+          "Language/Marlowe/Analysis/FSSemantics"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -113,11 +115,23 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
             (hsPkgs."marlowe" or (buildDepError "marlowe"))
+            (hsPkgs."sbv" or (buildDepError "sbv"))
             (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
+            (hsPkgs."QuickCheck" or (buildDepError "QuickCheck"))
             (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
             ];
           buildable = true;
-          modules = [ "Spec/Marlowe/Common" "Spec/Marlowe/Marlowe" ];
+          modules = [
+            "Spec/Marlowe/Common"
+            "Spec/Marlowe/Marlowe"
+            "OldAnalysis/FSMap"
+            "OldAnalysis/FSSemantics"
+            "OldAnalysis/FSSet"
+            "OldAnalysis/IntegerArray"
+            "OldAnalysis/MkSymb"
+            "OldAnalysis/Numbering"
+            "Tests"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
