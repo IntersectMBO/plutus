@@ -88,7 +88,6 @@ test-suite marlowe-test
         OldAnalysis.IntegerArray
         OldAnalysis.MkSymb
         OldAnalysis.Numbering
-        Tests
       -- Spec.Actus
     build-depends:
         aeson -any,
@@ -101,6 +100,7 @@ test-suite marlowe-test
         freer-simple -any,
         tasty -any,
         tasty-hunit -any,
+        tasty-quickcheck,
         tasty-hedgehog >=0.2.0.0,
         text -any,
         serialise,
