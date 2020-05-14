@@ -1,0 +1,135 @@
+{ system
+  , compiler
+  , flags
+  , pkgs
+  , hsPkgs
+  , pkgconfPkgs
+  , errorHandler
+  , config
+  , ... }:
+  {
+    flags = {};
+    package = {
+      specVersion = "2.2";
+      identifier = { name = "plutus-contract"; version = "0.1.0.0"; };
+      license = "Apache-2.0";
+      copyright = "";
+      maintainer = "jann.mueller@iohk.io";
+      author = "Jann Müller";
+      homepage = "https://github.com/iohk/plutus#readme";
+      url = "";
+      synopsis = "";
+      description = "Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>";
+      buildType = "Simple";
+      isLocal = true;
+      detailLevel = "FullDetails";
+      licenseFiles = [ "LICENSE" "NOTICE" ];
+      dataDir = "";
+      dataFiles = [];
+      extraSrcFiles = [];
+      extraTmpFiles = [];
+      extraDocFiles = [];
+      };
+    components = {
+      "library" = {
+        depends = [
+          (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+          (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
+          (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
+          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
+          (hsPkgs."profunctors" or (errorHandler.buildDepError "profunctors"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."transformers-base" or (errorHandler.buildDepError "transformers-base"))
+          (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
+          (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+          (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+          (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          ];
+        buildable = true;
+        modules = [
+          "Data/Row/Extras"
+          "Language/Plutus/Contract"
+          "Language/Plutus/Contract/App"
+          "Language/Plutus/Contract/Effects/AwaitSlot"
+          "Language/Plutus/Contract/Effects/AwaitTxConfirmed"
+          "Language/Plutus/Contract/Effects/ExposeEndpoint"
+          "Language/Plutus/Contract/Effects/OwnPubKey"
+          "Language/Plutus/Contract/Effects/UtxoAt"
+          "Language/Plutus/Contract/Effects/WatchAddress"
+          "Language/Plutus/Contract/Effects/WriteTx"
+          "Language/Plutus/Contract/Request"
+          "Language/Plutus/Contract/Constraints"
+          "Language/Plutus/Contract/Schema"
+          "Language/Plutus/Contract/Trace"
+          "Language/Plutus/Contract/Record"
+          "Language/Plutus/Contract/IOTS"
+          "Language/Plutus/Contract/Servant"
+          "Language/Plutus/Contract/Resumable"
+          "Language/Plutus/Contract/StateMachine"
+          "Language/Plutus/Contract/StateMachine/OnChain"
+          "Language/Plutus/Contract/Tx"
+          "Language/Plutus/Contract/Util"
+          "Language/Plutus/Contract/Wallet"
+          "Language/Plutus/Contract/Typed/Tx"
+          ];
+        hsSourceDirs = [ "src" ];
+        };
+      tests = {
+        "contract-doctests" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            ];
+          build-tools = [
+            (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
+            (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
+            ];
+          buildable = true;
+          modules = [ "ContractAPI" ];
+          hsSourceDirs = [ "doctest" "doc" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-contract-test" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."extensible-effects" or (errorHandler.buildDepError "extensible-effects"))
+            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            ];
+          buildable = true;
+          modules = [ "Spec/Rows" "Spec/State" ];
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "Spec.hs" ];
+          };
+        };
+      };
+    } // rec { src = (pkgs.lib).mkDefault ../plutus-contract; }

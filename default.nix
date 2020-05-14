@@ -20,6 +20,7 @@
 # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
 # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
+, useCabalProject ? false
 }:
 
 
@@ -68,7 +69,7 @@ in rec {
 
   haskell = rec {
     # All the packages defined by our project, including dependencies
-    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization sources; };
+    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization sources useCabalProject; };
     # Just the packages in the project
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages

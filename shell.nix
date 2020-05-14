@@ -1,7 +1,10 @@
-{ packageSet ? import ./default.nix { rev = "in-nix-shell"; inherit sourcesOverride; }
+{ packageSet ? import ./default.nix { rev = "in-nix-shell"; inherit sourcesOverride checkMaterialization useCabalProject; }
 , sourcesOverride ? {}
+, checkMaterialization ? false
+, useCaseShell ? false
+, useCabalProject ? useCaseShell
 }:
-with packageSet; haskell.packages.shellFor {
+with packageSet; haskell.packages.shellFor ({
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -29,4 +32,7 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.spago
     pkgs.stack
   ];
-}
+} // pkgs.lib.optionalAttrs useCaseShell {
+  packages = ps: with ps; [ plutus-use-cases ];
+#  additional = ps: with ps; [ plutus-use-cases ];
+})

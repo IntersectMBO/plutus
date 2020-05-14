@@ -9,10 +9,28 @@
 , metatheory
 , checkMaterialization
 , sources
+, useCabalProject
 }:
 
 let
-  pkgSet = haskell-nix.stackProject {
+  makeProject = args: if useCabalProject
+    then haskell-nix.cabalProject (args // {
+      index-state = "2020-05-10T00:00:00Z";
+      ghc = buildPackages.haskell-nix.compiler.ghc883;
+
+      modules = args.modules ++ [{
+        # plan-to-nix does not expose `test: False` settings in cabal.project file
+        packages.byron-spec-chain.components.tests.chain-rules-test.buildable = lib.mkForce false;
+        packages.ouroboros-network.components.tests.test-network.buildable = lib.mkForce false;
+        packages.ouroboros-network-framework.components.tests.ouroboros-network-framework-tests.buildable = lib.mkForce false;
+        packages.small-steps.components.tests.examples.buildable = lib.mkForce false;
+        packages.small-steps.components.tests.doctests.buildable = lib.mkForce false;
+        packages.byron-spec-ledger.components.tests.doctests.buildable = lib.mkForce false;
+        packages.eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances";
+      }];
+    })
+    else haskell-nix.stackProject args;
+  pkgSet = makeProject {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
       filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [../.gitignore] root) root;
@@ -23,7 +41,7 @@ let
     };
     # These files need to be regenerated when you change the cabal files or stack resolver.
     # See ../CONTRIBUTING.doc for more information.
-    materialized = ./stack.materialized;
+    materialized = if useCabalProject then ./cabal.materialized else ./stack.materialized;
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization sources;
     modules = [

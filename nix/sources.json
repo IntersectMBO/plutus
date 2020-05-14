@@ -25,15 +25,15 @@
         "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
     "ghcide": {
-        "branch": "wip/cradle-fail",
+        "branch": "wip/object-files",
         "description": "A library for building Haskell IDE tooling",
         "homepage": "",
-        "owner": "mpickering",
+        "owner": "hamishmack",
         "repo": "ghcide",
-        "rev": "a783588c1d48ede01399e9797f1cf30dcb91d8cc",
-        "sha256": "1mvlmzs2r2h7npmydhzhzcfmpchw8b32si9qaarjyflxc3bq6r3l",
+        "rev": "97606ff0155e9f3028cedbcf5ea54b2a34ee349a",
+        "sha256": "0iyakikrqk724lxlsvn60i94sr52lrz5yyyw8cdc6cwgq04pdclq",
         "type": "tarball",
-        "url": "https://github.com/mpickering/ghcide/archive/a783588c1d48ede01399e9797f1cf30dcb91d8cc.tar.gz",
+        "url": "https://github.com/hamishmack/ghcide/archive/97606ff0155e9f3028cedbcf5ea54b2a34ee349a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -42,10 +42,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "61b1c8a06c74a83c0d2dc7d937d8daa6b32b2a2f",
-        "sha256": "1vi8is7h85sb8acymjcnkjm39fp5pal2wq9p7zdv5cmillzs2sza",
+        "rev": "83c85a0f2200fa63ed6122d66317069e5c7da1da",
+        "sha256": "14r17js48fzamm6mq9kc6a78k72lkdg8c2l4ja4ihqlib2xi4917",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/61b1c8a06c74a83c0d2dc7d937d8daa6b32b2a2f.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/83c85a0f2200fa63ed6122d66317069e5c7da1da.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hie-bios": {
@@ -54,10 +54,10 @@
         "homepage": null,
         "owner": "hamishmack",
         "repo": "hie-bios",
-        "rev": "4126bbc2381d31dc9064b36e75163254f52534d8",
-        "sha256": "06bh8pzqq9iiyfphls4k46f3s8w2vhq8vczadila482ixinx2ws7",
+        "rev": "a78ee61986b39786f55e2ba412d5f7406d3c2317",
+        "sha256": "1gqlmpry2xgwjwhjmrrvzzdx421x05fisyv2xca6rmlk1mnkjwhy",
         "type": "tarball",
-        "url": "https://github.com/hamishmack/hie-bios/archive/4126bbc2381d31dc9064b36e75163254f52534d8.tar.gz",
+        "url": "https://github.com/hamishmack/hie-bios/archive/a78ee61986b39786f55e2ba412d5f7406d3c2317.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
