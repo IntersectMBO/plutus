@@ -55,9 +55,6 @@ let
 
             # Fix missing executables on the paths of the test runners. This is arguably
             # a bug, and the fix is a bit of a hack.
-            marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
-              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-            '';
             marlowe.components.tests.marlowe-test.preCheck = ''
               PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
             '';
@@ -78,7 +75,6 @@ let
             iots-export.package.ghcOptions = "-Werror";
             language-plutus-core.package.ghcOptions = "-Werror";
             marlowe.package.ghcOptions = "-Werror";
-            marlowe-hspec.package.ghcOptions = "-Werror";
             marlowe-symbolic.package.ghcOptions = "-Werror";
             marlowe-playground-server.package.ghcOptions = "-Werror";
             playground-common.package.ghcOptions = "-Werror";
