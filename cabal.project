@@ -14,7 +14,6 @@ packages: language-plutus-core
           playground-common
           marlowe-playground-server
           marlowe-symbolic
-          marlowe-hspec
           plutus-contract
           plutus-contract-tasty
           deployment-server

@@ -111,7 +111,7 @@ include::plutus-scb/ARCHITECTURE.adoc[]
 
 include::plutus-tutorial/ARCHITECTURE.adoc[]
 
-include::marlowe-tutorial/ARCHITECTURE.adoc[]
+include::marlowe/ARCHITECTURE.adoc[]
 
 include::plutus-book/ARCHITECTURE.adoc[]
 

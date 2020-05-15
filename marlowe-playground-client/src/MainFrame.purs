@@ -54,7 +54,7 @@ import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (replaceInPositions)
 import Marlowe.Parser (contract, hole, parseTerm)
 import Marlowe.Parser as P
-import Marlowe.Semantics (ChoiceId, Input(..), State(..), inBounds)
+import Marlowe.Semantics (ChoiceId, Input(..), inBounds)
 import Monaco (IMarkerData, markerSeverity)
 import MonadApp (class MonadApp, applyTransactions, checkContractForWarnings, getGistByGistId, getOauthStatus, haskellEditorGetValue, haskellEditorResize, haskellEditorSetBindings, haskellEditorSetMarkers, haskellEditorSetTheme, haskellEditorSetValue, marloweEditorGetValue, marloweEditorMoveCursorToPosition, marloweEditorResize, marloweEditorSetBindings, marloweEditorSetMarkers, marloweEditorSetTheme, marloweEditorSetValue, patchGistByGistId, postContractHaskell, postGist, preventDefault, readFileFromDragEvent, resetContract, resizeBlockly, runHalogenApp, saveBuffer, saveInitialState, saveMarloweBuffer, scrollHelpPanel, setBlocklyCode, updateContractInState, updateMarloweState)
 import Network.RemoteData (RemoteData(..), _Success)
@@ -152,25 +152,6 @@ showAccountsMapForHaskell m = "fromList [" <> intercalate "," (map showAccountsT
 -- | Patch so that result can be read by Read in Haskell
 showMapForHaskell :: forall k v. Show k => Show v => Map k v -> String
 showMapForHaskell m = "fromList [" <> intercalate "," (map showTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
-
--- | Patch so that result can be read by Read in Haskell
-showStateForHaskell :: State -> String
-showStateForHaskell ( State
-    { accounts
-  , choices
-  , boundValues
-  , minSlot
-  }
-) =
-  "State {accounts = "
-    <> showAccountsMapForHaskell accounts
-    <> ", choices = "
-    <> showMapForHaskell choices
-    <> ", boundValues = "
-    <> showMapForHaskell boundValues
-    <> ", minSlot = "
-    <> show minSlot
-    <> "}"
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -492,7 +473,7 @@ handleAction AnalyseContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (encodeJSON contract) (showStateForHaskell currState)
+      checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
       assign _analysisState Loading
 
 handleGistAction :: forall m. MonadApp m => MonadState FrontendState m => GistAction -> m Unit

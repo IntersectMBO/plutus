@@ -122,7 +122,6 @@ in
 
     services.prometheus = {
         enable = true;
-        alertmanagerURL = [ "localhost:9093" ];
         scrapeConfigs = [
             {
               job_name = "node";

@@ -53,6 +53,7 @@ tests :: TestTree
 tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
     , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
+    , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
@@ -341,3 +342,15 @@ pangramContractSerialization = do
     case decoded of
         Just cont -> Just cont @=? (decode $ encode cont)
         _         -> assertFailure "Nope"
+
+stateSerialization :: IO ()
+stateSerialization = do
+    state <- readFile "test/state.json"
+    let decoded :: Maybe State
+        decoded = decode (fromString state)
+    case decoded of
+        Just st ->
+            case decode $ encode st of
+                Just st' -> assertBool "Should be equal" (st P.== st')
+                Nothing  -> assertFailure "Nope"
+        Nothing -> assertFailure "Nope"
