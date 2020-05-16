@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -11,11 +12,11 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-module Language.PlutusCore.Pretty.PrettyM where
+module Language.PlutusCore.Pretty.PrettyBy where
 --     ( Sole (..)
 --     , HasPrettyConfig (..)
--- --     , CompoundPrettyM (..)
---     , PrettyM (..)
+-- --     , CompoundPrettyBy (..)
+--     , PrettyBy (..)
 --     , prettyBy
 --     , IgnorePrettyConfig (..)
 --     , AttachPrettyConfig (..)
@@ -32,24 +33,23 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderLazy, renderStrict)
 
+-- newtype Sole a = Sole
+--     { unSole :: a
+--     }
+
+-- instance HasPrettyConfig (Sole config) config where
+--     prettyConfig = coerced
+
+class PrettyBy config a where
+    prettyBy :: config -> a -> Doc ann
+    default prettyBy :: Pretty a => config -> a -> Doc ann
+    prettyBy _ = pretty
+
 class HasPrettyConfig env config | env -> config where
     prettyConfig :: Lens' env config
 
-newtype Sole a = Sole
-    { unSole :: a
-    }
-
-instance HasPrettyConfig (Sole config) config where
-    prettyConfig = coerced
-
-class PrettyM config a where
-    {-# MINIMAL prettyM | prettyBy #-}
-
-    prettyM :: (MonadReader env m, HasPrettyConfig env config) => a -> m (Doc ann)
-    prettyM x = flip prettyBy x <$> view prettyConfig
-
-    prettyBy :: config -> a -> Doc ann
-    prettyBy = flip prettyM . Sole
+prettyM :: (PrettyBy config a, MonadReader env m, HasPrettyConfig env config) => a -> m (Doc ann)
+prettyM x = flip prettyBy x <$> view prettyConfig
 
 -- **************************
 -- ** Convenience functions *
@@ -75,13 +75,13 @@ prettyDef :: forall str a. (Pretty a, RenderDef str) => a -> str
 prettyDef = renderDef . pretty
 
 -- | Render a value as 'String'.
-prettyDefBy :: forall str a config. (PrettyM config a, RenderDef str) => config -> a -> str
+prettyDefBy :: forall str a config. (PrettyBy config a, RenderDef str) => config -> a -> str
 prettyDefBy config = renderDef . prettyBy config
 
 -- | Render a value as 'String'.
 prettyDefM
     :: forall str a m env config.
-       (PrettyM config a, MonadReader env m, HasPrettyConfig env config, RenderDef str)
+       (PrettyBy config a, MonadReader env m, HasPrettyConfig env config, RenderDef str)
     => a -> m str
 prettyDefM = fmap renderDef . prettyM
 
@@ -89,31 +89,33 @@ prettyDefM = fmap renderDef . prettyM
 -- ** Interop **
 -- *************
 
--- | A newtype wrapper around @a@ whose point is to provide a @PrettyM config@ instance
+-- | A newtype wrapper around @a@ whose point is to provide a @PrettyBy config@ instance
 -- for anything that has a 'Pretty' instance.
 newtype IgnorePrettyConfig a = IgnorePrettyConfig
     { unIgnorePrettyConfig :: a
-    }
-
-instance Pretty a => PrettyM config (IgnorePrettyConfig a) where
-    prettyM = pure . pretty . unIgnorePrettyConfig
+    } deriving newtype (Pretty)
+      deriving anyclass (PrettyBy config)
 
 -- | A config together with some value. The point is to provide a 'Pretty' instance
--- for anything that has a @PrettyM config@ instance.
+-- for anything that has a @PrettyBy config@ instance.
 data AttachPrettyConfig config a = AttachPrettyConfig !config !a
 
-instance PrettyM config a => Pretty (AttachPrettyConfig config a) where
+instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
     pretty (AttachPrettyConfig config x) = prettyBy config x
 
+-- withAttachPrettyConfig
+--     :: (MonadReader env m, HasPrettyConfig env config)
+--     => ((forall a. a -> AttachPrettyConfig config a) -> c) -> m c
+-- withAttachPrettyConfig k =
+--     view prettyConfig <&> \config -> k $ AttachPrettyConfig config
+
 withAttachPrettyConfig
-    :: (MonadReader env m, HasPrettyConfig env config)
-    => ((forall a. a -> AttachPrettyConfig config a) -> c) -> m c
-withAttachPrettyConfig k =
-    view prettyConfig <&> \config -> k $ AttachPrettyConfig config
+    :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
+withAttachPrettyConfig config k = k $ AttachPrettyConfig config
 
 -- data NoPrettyConfig = NoPrettyConfig
 
--- instance Pretty a => PrettyM NoPrettyConfig a where
+-- instance Pretty a => PrettyBy NoPrettyConfig a where
 --     prettyM = pure . pretty
 
 -- ******************************************
@@ -124,388 +126,402 @@ withAttachPrettyConfig k =
 
 newtype WithPrettyDefaults a = WithPrettyDefaults
     { unWithPrettyDefaults :: a
-    }
+    } deriving newtype (Pretty)
 
 newtype WithoutPrettyDefaults a = WithoutPrettyDefaults
     { unWithoutPrettyDefaults :: a
     }
 
--- TODO: use @default@.
-instance PrettyM config (WithPrettyDefaults Integer) where
-    prettyBy _ = pretty . unWithPrettyDefaults
 
+defaultPrettyFunctorBy
+    :: (Functor f, Pretty (f (AttachPrettyConfig config a)))
+    => config -> WithPrettyDefaults (f a) -> Doc ann
+defaultPrettyFunctorBy config (WithPrettyDefaults a) = pretty $ AttachPrettyConfig config <$> a
 
+defaultPrettyBifunctorBy
+    :: (Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b)))
+    => config -> WithPrettyDefaults (f a b) -> Doc ann
+defaultPrettyBifunctorBy config (WithPrettyDefaults a) =
+    withAttachPrettyConfig config $ \attach -> pretty $ bimap attach attach a
 
-defaultPrettyFunctorM
-    :: ( MonadReader env m, HasPrettyConfig env config, Functor f
-       , Pretty (f (AttachPrettyConfig config a))
-       )
-    => WithPrettyDefaults (f a) -> m (Doc ann)
-defaultPrettyFunctorM (WithPrettyDefaults a) =
-    withAttachPrettyConfig $ \attach -> pretty $ attach <$> a
-
-defaultPrettyBifunctorM
-    :: ( MonadReader env m, HasPrettyConfig env config, Bifunctor f
-       , Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b))
-       )
-    => WithPrettyDefaults (f a b) -> m (Doc ann)
-defaultPrettyBifunctorM (WithPrettyDefaults a) =
-    withAttachPrettyConfig $ \attach -> pretty $ bimap attach attach a
+instance PrettyBy config (WithPrettyDefaults ())
+instance PrettyBy config (WithPrettyDefaults Bool)
+instance PrettyBy config (WithPrettyDefaults Char)
 
-instance PrettyM config a => PrettyM config (WithPrettyDefaults [a]) where
-    prettyM = defaultPrettyFunctorM
+-- instance PrettyBy config (WithPrettyDefaults Integer)
+-- instance PrettyBy config (WithPrettyDefaults Int)
+-- instance PrettyBy config (WithPrettyDefaults Int8)
+-- instance PrettyBy config (WithPrettyDefaults Int16)
+-- instance PrettyBy config (WithPrettyDefaults Int32)
+-- instance PrettyBy config (WithPrettyDefaults Int64)
+-- instance PrettyBy config (WithPrettyDefaults Word)
+-- instance PrettyBy config (WithPrettyDefaults Word8)
+-- instance PrettyBy config (WithPrettyDefaults Word16)
+-- instance PrettyBy config (WithPrettyDefaults Word32)
+-- instance PrettyBy config (WithPrettyDefaults Word64)
 
-instance PrettyM config a => PrettyM config (WithPrettyDefaults (Maybe a)) where
-    prettyM = defaultPrettyFunctorM
+-- instance PrettyBy config (WithPrettyDefaults Float)
+-- instance PrettyBy config (WithPrettyDefaults Double)
 
-instance PrettyM config a => PrettyM config (WithPrettyDefaults (NonEmpty a)) where
-    prettyM = defaultPrettyFunctorM
+-- instance PrettyBy config (WithPrettyDefaults Text)
+-- instance PrettyBy config (WithPrettyDefaults Lazy.Text)
+-- instance PrettyBy config (WithPrettyDefaults Void)
+-- instance PrettyBy config (WithPrettyDefaults Natural)
 
-instance PrettyM config a => PrettyM config (WithPrettyDefaults (Identity a)) where
-    prettyM = defaultPrettyFunctorM
 
-instance (PrettyM config a, PrettyM config b) => PrettyM config (WithPrettyDefaults (a, b)) where
-    prettyM (WithPrettyDefaults a) =
-        withAttachPrettyConfig $ \attach -> pretty $ bimap attach attach a
+instance PrettyBy config a => PrettyBy config (WithPrettyDefaults [a]) where
+    prettyBy = defaultPrettyFunctorBy
 
-instance (PrettyM config a, PrettyM config b, PrettyM config c) =>
-            PrettyM config (WithPrettyDefaults (a, b, c)) where
-    prettyM (WithPrettyDefaults (x, y, z)) =
-        withAttachPrettyConfig $ \attach -> pretty (attach x, attach y, attach z)
+instance PrettyBy config a => PrettyBy config (WithPrettyDefaults (Maybe a)) where
+    prettyBy = defaultPrettyFunctorBy
 
-instance PrettyM config a => PrettyM config (WithPrettyDefaults (Const a b)) where
-    prettyM (WithPrettyDefaults a) =
-        withAttachPrettyConfig $ \attach -> pretty $ first attach a
+instance PrettyBy config a => PrettyBy config (WithPrettyDefaults (NonEmpty a)) where
+    prettyBy = defaultPrettyFunctorBy
 
+instance PrettyBy config a => PrettyBy config (WithPrettyDefaults (Identity a)) where
+    prettyBy = defaultPrettyFunctorBy
 
+instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (WithPrettyDefaults (a, b)) where
+    prettyBy = defaultPrettyBifunctorBy
 
-type family HasPrettyDefaults config :: Bool
+instance (PrettyBy config a, PrettyBy config b, PrettyBy config c) =>
+            PrettyBy config (WithPrettyDefaults (a, b, c)) where
+    prettyBy config (WithPrettyDefaults (x, y, z)) =
+        withAttachPrettyConfig config $ \attach -> pretty (attach x, attach y, attach z)
 
-class HasPrettyDefaults config ~ b => PrettyDispatchDefaultsM (b :: Bool) config a where
-    prettyDispatchDefaultsBy :: proxy b -> config -> a -> Doc ann
-    default prettyDispatchDefaultsBy
-        :: PrettyM config (WithPrettyDefaults a)
-        => proxy b -> config -> a -> Doc ann
-    prettyDispatchDefaultsBy _ config = prettyBy config . WithPrettyDefaults
+instance PrettyBy config a => PrettyBy config (WithPrettyDefaults (Const a b)) where
+    prettyBy config (WithPrettyDefaults a) =
+        withAttachPrettyConfig config $ \attach -> pretty $ first attach a
 
-instance (HasPrettyDefaults config ~ 'True, PrettyM config (WithPrettyDefaults a)) =>
-            PrettyDispatchDefaultsM 'True config a
 
-instance (HasPrettyDefaults config ~ 'False, PrettyM config (WithoutPrettyDefaults a)) =>
-            PrettyDispatchDefaultsM 'False config a where
-    prettyDispatchDefaultsBy _ config = prettyBy config . WithoutPrettyDefaults
 
+-- type family HasPrettyDefaults config :: Bool
 
+-- class HasPrettyDefaults config ~ b => PrettyDispatchDefaultsM (b :: Bool) config a where
+--     prettyDispatchDefaultsBy :: proxy b -> config -> a -> Doc ann
+--     default prettyDispatchDefaultsBy
+--         :: PrettyBy config (WithPrettyDefaults a)
+--         => proxy b -> config -> a -> Doc ann
+--     prettyDispatchDefaultsBy _ config = prettyBy config . WithPrettyDefaults
 
-type PrettyDefaultsM config = PrettyDispatchDefaultsM (HasPrettyDefaults config) config
+-- instance (HasPrettyDefaults config ~ 'True, PrettyBy config (WithPrettyDefaults a)) =>
+--             PrettyDispatchDefaultsM 'True config a
 
-newtype DefaultlyPretty a = DefaultlyPretty
-    { unDefaultlyPretty :: a
-    }
+-- instance (HasPrettyDefaults config ~ 'False, PrettyBy config (WithoutPrettyDefaults a)) =>
+--             PrettyDispatchDefaultsM 'False config a where
+--     prettyDispatchDefaultsBy _ config = prettyBy config . WithoutPrettyDefaults
 
-instance PrettyDefaultsM config a => PrettyM config (DefaultlyPretty a) where
-    prettyBy config = prettyDispatchDefaultsBy Proxy config . unDefaultlyPretty
 
-deriving via DefaultlyPretty Integer
-    instance PrettyDefaultsM config Integer => PrettyM config Integer
 
-deriving via DefaultlyPretty [a]
-    instance PrettyDefaultsM config [a] => PrettyM config [a]
-deriving via DefaultlyPretty (Maybe a)
-    instance PrettyDefaultsM config (Maybe a) => PrettyM config (Maybe a)
-deriving via DefaultlyPretty (NonEmpty a)
-    instance PrettyDefaultsM config (NonEmpty a) => PrettyM config (NonEmpty a)
-deriving via DefaultlyPretty (Identity a)
-    instance PrettyDefaultsM config (Identity a) => PrettyM config (Identity a)
-deriving via DefaultlyPretty (a, b)
-    instance PrettyDefaultsM config (a, b) => PrettyM config (a, b)
-deriving via DefaultlyPretty (a, b, c)
-    instance PrettyDefaultsM config (a, b, c) => PrettyM config (a, b, c)
-deriving via DefaultlyPretty (Const a b)
-    instance PrettyDefaultsM config (Const a b) => PrettyM config (Const a b)
+-- type PrettyDefaultsM config = PrettyDispatchDefaultsM (HasPrettyDefaults config) config
 
-{-
-
-instance Pretty () where
-instance Pretty Bool where
-instance Pretty Char where
-
-instance Pretty Int    where pretty = unsafeViaShow
-instance Pretty Int8   where pretty = unsafeViaShow
-instance Pretty Int16  where pretty = unsafeViaShow
-instance Pretty Int32  where pretty = unsafeViaShow
-instance Pretty Int64  where pretty = unsafeViaShow
-instance Pretty Word   where pretty = unsafeViaShow
-instance Pretty Word8  where pretty = unsafeViaShow
-instance Pretty Word16 where pretty = unsafeViaShow
-instance Pretty Word32 where pretty = unsafeViaShow
-instance Pretty Word64 where pretty = unsafeViaShow
-
-instance Pretty Float where pretty = unsafeViaShow
-instance Pretty Double where pretty = unsafeViaShow
-
-instance Pretty Text where pretty = vsep . map unsafeTextWithoutNewlines . T.splitOn "\n"
-instance Pretty Lazy.Text where pretty = pretty . Lazy.toStrict
-
-instance Pretty Void where pretty = absurd
-
-instance Pretty Natural where
-
--}
-
-data WC = WC
-type instance HasPrettyDefaults WC = 'True
-
-instance PrettyM WC WC where
-    prettyBy _ _ = pretty "WC"
-
--- >>> prettyBy WC (1 :: Integer)
--- 1
--- >>> prettyBy WC (1 :: Integer, 2 :: Integer)
--- (1, 2)
--- >>> prettyBy WC (1 :: Integer, WC)
--- (1, WC)
-
-data WoC = WoC
-type instance HasPrettyDefaults WoC = 'False
-instance PrettyM WoC (WithoutPrettyDefaults Integer) where
-    prettyBy _ _ = pretty "0"
-instance PrettyM WoC (WithoutPrettyDefaults (a, b)) where
-    prettyBy _ _ = pretty "1"
-
-instance PrettyM WoC WoC where
-    prettyBy _ _ = pretty "WoC"
-
--- >>> prettyBy WoC (1 :: Integer)
--- 0
--- >>> prettyBy WoC (1 :: Integer, 2 :: Integer)
--- 1
--- >>> prettyBy WoC (1 :: Integer, WoC)
--- 1
-
-
-
-
--- ********************************************
--- ** Default instances via compound configs **
--- ********************************************
-
-
-newtype CompoundlyPretty a = CompoundlyPretty
-    { unCompoundlyPretty :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable)
-
--- class CompoundPrettyM config a where
---     compoundPrettyM :: (MonadReader env m, HasPrettyConfig env config) => a -> m (Doc ann)
-
--- instance CompoundPrettyM config a => PrettyM (CompoundConfig config) a where
---     prettyM =
-
-
-
--- It's not necessary to deal with associativity, see: https://stackoverflow.com/a/43639618
--- But I find it easier and nicer than changing precedence on the fly.
--- | Associativity of an expression.
-data Associativity
-    = LeftAssociative
-    | RightAssociative
-    | NonAssociative
-    deriving (Eq)
-
--- | Fixity of an expression.
-data Fixity = Fixity
-    { _fixityPrecedence    :: !Double
-    , _fixityAssociativity :: !Associativity
-    }
-
--- | Determines whether we're going to the right of an operator or to the left.
-data Direction
-    = Forward   -- ^ To the right.
-    | Backward  -- ^ To the left.
-    deriving (Eq)
-
--- | A context that an expression is being rendered in.
-data RenderContext = RenderContext
-    { _rcDirection :: !Direction
-    , _rcFixity    :: !Fixity
-    }
-
--- | Enclose a 'Doc' in parens if required or leave it as is.
--- The need for enclosing is determined from an outer 'RenderContext' and the 'Doc's fixity.
-encloseIn
-    :: RenderContext  -- ^ An outer context.
-    -> Fixity         -- ^ An inner fixity.
-    -> Doc ann
-    -> Doc ann
-encloseIn (RenderContext dir (Fixity precOut assocOut)) (Fixity precIn assocIn) =
-    case precOut `compare` precIn of
-        LT -> id                      -- If the outer precedence is lower than the inner, then
-                                      -- do not add parens. E.g. in @Add x (Mul y z)@ the precedence
-                                      -- of @Add@ is lower than the one of @Mul@, hence there is
-                                      -- no need for parens in @x + y * z@.
-        GT -> parens                  -- If the outer precedence is greater than the inner, then
-                                      -- do add parens. E.g. in @Mul x (Add y z)@ the precedence
-                                      -- of @Mul@ is greater than the one of @Add@, hence
-                                      -- parens are needed in @x * (y + z)@.
-        EQ ->                         -- If precedences are equal, then judge from associativity.
-            case (assocOut, dir) of
-                _ | assocOut /= assocIn     -> parens  -- Associativities differ => parens are needed.
-                (LeftAssociative, Backward) -> id      -- No need for parens in @Add (Add x y) z@
-                                                       -- which is rendered as @x + y + z@.
-                (RightAssociative, Forward) -> id      -- No need for parens in @Concat xs (Concat xs zs)@
-                                                       -- which is rendered as @xs ++ ys ++ zs@.
-                _                           -> parens  -- Every other case requires parens.
-
-class HasRenderContext config where
-    renderContext :: Lens' config RenderContext
-
-encloseM
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Fixity -> Doc ann -> m (Doc ann)
-encloseM fixity doc =
-    view (prettyConfig . renderContext) <&> \context ->
-        encloseIn context fixity doc
-
--- -- | Adjust a 'PrettyConfigReadable' by setting new 'Fixity' and 'Direction' and call 'prettyBy'.
--- prettyInBy
---     :: PrettyReadableBy configName a
---     => PrettyConfigReadable configName -> Direction -> Fixity -> a -> Doc ann
--- prettyInBy config dir app = prettyBy $ setRenderContext (RenderContext dir app) config
-
--- prettyInContextM
---     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config, PrettyM config a)
---     => Direction -> Fixity -> a -> m (Doc ann)
--- prettyInContextM dir fixity =
---     locally (prettyConfig . renderContext) (\_ -> RenderContext dir fixity) . prettyM
-
--- -- | Pretty-print in 'botFixity'.
--- prettyInBotM
---     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config, PrettyM config a)
---     => a -> m (Doc ann)
--- prettyInBotM = prettyInContextM Forward botFixity
-
-withPrettyAt
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Direction -> Fixity -> ((forall a. PrettyM config a => a -> Doc ann) -> m r) -> m r
-withPrettyAt dir fixity cont = do
-    config <- view prettyConfig
-    cont $ prettyBy $ config & renderContext .~ RenderContext dir fixity
-
-withPrettyIn
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => ((forall a. PrettyM config a => Direction -> Fixity -> a -> Doc ann) -> m r) -> m r
-withPrettyIn cont = do
-    config <- view prettyConfig
-    cont $ \dir fixity -> prettyBy $ config & renderContext .~ RenderContext dir fixity
-
-type AnyToDoc config ann = forall a. PrettyM config a => a -> Doc ann
-
-compoundDoc
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Fixity
-    -> ((forall a. PrettyM config a => Direction -> Fixity -> a -> Doc ann) -> Doc ann)
-    -> m (Doc ann)
-compoundDoc fixity k = withPrettyIn $ \prettyIn -> encloseM fixity $ k prettyIn
-
-sequenceDoc
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Fixity
-    -> (AnyToDoc config ann -> Doc ann)
-    -> m (Doc ann)
-sequenceDoc fixity k = compoundDoc fixity $ \prettyIn -> k (prettyIn Forward fixity)
-
--- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'Backward'
--- direction, the other is in the 'Forward' direction) specialized to the supplied 'Fixity'
--- and apply 'enclose', specialized to the same 'Fixity', to the result.
--- The idea is that to the outside an expression has the same inner fixity as
--- it has the outer fixity to inner subexpressions.
-infixDoc
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Fixity
-    -> (AnyToDoc config ann -> AnyToDoc config ann -> Doc ann)
-    -> m (Doc ann)
-infixDoc fixity k =
-    compoundDoc fixity $ \prettyIn ->
-        k (prettyIn Backward fixity) (prettyIn Forward fixity)
-
-
-
-
-
--- | A fixity with the lowest precedence.
--- When used as a part of an outer context, never causes addition of parens.
-botFixity :: Fixity
-botFixity = Fixity 0 NonAssociative
-
--- encloseInBot :: Doc ann -> Doc ann
--- encloseInBot = encloseIn Forward botFixity
-
-
--- -- | This class is used in order to provide default implementations of 'PrettyM' for
--- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
--- -- we can define a single 'DefaultPrettyM' instance and then derive @PrettyM Config a@ for each
--- -- @a@ provided the @a@ implements the @PrettyM Subconfig1@, @PrettyM Subconfig2@, etc instances.
--- --
--- -- Example:
--- --
--- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
--- -- >
--- -- > instance (PrettyM Subconfig1 a, PrettyM Subconfig2 a) => DefaultPrettyM Config a where
--- -- >     defaultPrettyM (Subconfig1 subconfig1) = prettyBy subconfig1
--- -- >     defaultPrettyM (Subconfig2 subconfig2) = prettyBy subconfig2
--- --
--- -- Now having in scope  @PrettyM Subconfig1 A@ and @PrettyM Subconfig2 A@
--- -- and the same instances for @B@ we can write
--- --
--- -- > instance PrettyM Config A
--- -- > instance PrettyM Config B
--- --
--- -- and the instances will be derived for us.
--- class DefaultPrettyM config a where
---     defaultPrettyM :: config -> a -> Doc ann
-
--- -- | Overloaded configurable conversion to 'Doc'. I.e. like 'Pretty', but parameterized by a @config@.
--- -- This class is interoperable with the 'Pretty' class via 'PrettyConfigIgnore' and 'PrettyConfigAttatch'.
--- class PrettyM config a where
---     prettyBy :: config -> a -> Doc ann
---     default prettyBy :: DefaultPrettyM config a => config -> a -> Doc ann
---     prettyBy = defaultPrettyM
-
--- -- | A newtype wrapper around @a@ whose point is to provide a 'PrettyM config' instance
--- -- for anything that has a 'Pretty' instance.
--- newtype PrettyConfigIgnore a = PrettyConfigIgnore
---     { unPrettyConfigIgnore :: a
+-- newtype DefaultlyPretty a = DefaultlyPretty
+--     { unDefaultlyPretty :: a
 --     }
 
--- -- | A config together with some value. The point is to provide a 'Pretty' instance
--- -- for anything that has a 'PrettyM config' instance.
--- data PrettyConfigAttach config a = PrettyConfigAttach config a
+-- instance PrettyDefaultsM config a => PrettyBy config (DefaultlyPretty a) where
+--     prettyBy config = prettyDispatchDefaultsBy Proxy config . unDefaultlyPretty
 
--- -- delete these instances on extraction as library
--- instance PrettyM config a => PrettyM config [a] where
---     prettyBy config = list . fmap (prettyBy config)
+-- deriving via DefaultlyPretty Integer
+--     instance PrettyDefaultsM config Integer => PrettyBy config Integer
 
--- instance (PrettyM config a, PrettyM config b) => PrettyM config (Either a b) where
---     prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
---     prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
+-- deriving via DefaultlyPretty [a]
+--     instance PrettyDefaultsM config [a] => PrettyBy config [a]
+-- deriving via DefaultlyPretty (Maybe a)
+--     instance PrettyDefaultsM config (Maybe a) => PrettyBy config (Maybe a)
+-- deriving via DefaultlyPretty (NonEmpty a)
+--     instance PrettyDefaultsM config (NonEmpty a) => PrettyBy config (NonEmpty a)
+-- deriving via DefaultlyPretty (Identity a)
+--     instance PrettyDefaultsM config (Identity a) => PrettyBy config (Identity a)
+-- deriving via DefaultlyPretty (a, b)
+--     instance PrettyDefaultsM config (a, b) => PrettyBy config (a, b)
+-- deriving via DefaultlyPretty (a, b, c)
+--     instance PrettyDefaultsM config (a, b, c) => PrettyBy config (a, b, c)
+-- deriving via DefaultlyPretty (Const a b)
+--     instance PrettyDefaultsM config (Const a b) => PrettyBy config (Const a b)
 
--- instance (PrettyM config a, PrettyM config b) => PrettyM config (a, b) where
---     prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
+-- {-
 
--- instance PrettyM config Integer where
---     prettyBy _ = pretty
--- -- delete until here
+-- instance Pretty () where
+-- instance Pretty Bool where
+-- instance Pretty Char where
 
--- instance Pretty a => PrettyM config (PrettyConfigIgnore a) where
---     prettyBy _ (PrettyConfigIgnore x) = pretty x
+-- instance Pretty Int    where pretty = unsafeViaShow
+-- instance Pretty Int8   where pretty = unsafeViaShow
+-- instance Pretty Int16  where pretty = unsafeViaShow
+-- instance Pretty Int32  where pretty = unsafeViaShow
+-- instance Pretty Int64  where pretty = unsafeViaShow
+-- instance Pretty Word   where pretty = unsafeViaShow
+-- instance Pretty Word8  where pretty = unsafeViaShow
+-- instance Pretty Word16 where pretty = unsafeViaShow
+-- instance Pretty Word32 where pretty = unsafeViaShow
+-- instance Pretty Word64 where pretty = unsafeViaShow
 
--- instance PrettyM config a => Pretty (PrettyConfigAttach config a) where
---     pretty (PrettyConfigAttach config x) = prettyBy config x
+-- instance Pretty Float where pretty = unsafeViaShow
+-- instance Pretty Double where pretty = unsafeViaShow
 
--- -- | Render a value as 'String'.
--- prettyStringBy :: PrettyM config a => config -> a -> String
--- prettyStringBy config = docString . prettyBy config
+-- instance Pretty Text where pretty = vsep . map unsafeTextWithoutNewlines . T.splitOn "\n"
+-- instance Pretty Lazy.Text where pretty = pretty . Lazy.toStrict
 
--- -- | Render a value as strict 'Text'.
--- prettyTextBy :: PrettyM config a => config -> a -> T.Text
--- prettyTextBy config = docText . prettyBy config
+-- instance Pretty Void where pretty = absurd
+
+-- instance Pretty Natural where
+
+-- -}
+
+-- data WC = WC
+-- type instance HasPrettyDefaults WC = 'True
+
+-- instance PrettyBy WC WC where
+--     prettyBy _ _ = pretty "WC"
+
+-- -- >>> prettyBy WC (1 :: Integer)
+-- -- 1
+-- -- >>> prettyBy WC (1 :: Integer, 2 :: Integer)
+-- -- (1, 2)
+-- -- >>> prettyBy WC (1 :: Integer, WC)
+-- -- (1, WC)
+
+-- data WoC = WoC
+-- type instance HasPrettyDefaults WoC = 'False
+-- instance PrettyBy WoC (WithoutPrettyDefaults Integer) where
+--     prettyBy _ _ = pretty "0"
+-- instance PrettyBy WoC (WithoutPrettyDefaults (a, b)) where
+--     prettyBy _ _ = pretty "1"
+
+-- instance PrettyBy WoC WoC where
+--     prettyBy _ _ = pretty "WoC"
+
+-- -- >>> prettyBy WoC (1 :: Integer)
+-- -- 0
+-- -- >>> prettyBy WoC (1 :: Integer, 2 :: Integer)
+-- -- 1
+-- -- >>> prettyBy WoC (1 :: Integer, WoC)
+-- -- 1
+
+
+
+
+-- -- ********************************************
+-- -- ** Default instances via compound configs **
+-- -- ********************************************
+
+
+-- newtype CompoundlyPretty a = CompoundlyPretty
+--     { unCompoundlyPretty :: a
+--     } deriving (Show, Eq, Functor, Foldable, Traversable)
+
+-- -- class CompoundPrettyBy config a where
+-- --     compoundPrettyBy :: (MonadReader env m, HasPrettyConfig env config) => a -> m (Doc ann)
+
+-- -- instance CompoundPrettyBy config a => PrettyBy (CompoundConfig config) a where
+-- --     prettyM =
+
+
+
+-- -- It's not necessary to deal with associativity, see: https://stackoverflow.com/a/43639618
+-- -- But I find it easier and nicer than changing precedence on the fly.
+-- -- | Associativity of an expression.
+-- data Associativity
+--     = LeftAssociative
+--     | RightAssociative
+--     | NonAssociative
+--     deriving (Eq)
+
+-- -- | Fixity of an expression.
+-- data Fixity = Fixity
+--     { _fixityPrecedence    :: !Double
+--     , _fixityAssociativity :: !Associativity
+--     }
+
+-- -- | Determines whether we're going to the right of an operator or to the left.
+-- data Direction
+--     = Forward   -- ^ To the right.
+--     | Backward  -- ^ To the left.
+--     deriving (Eq)
+
+-- -- | A context that an expression is being rendered in.
+-- data RenderContext = RenderContext
+--     { _rcDirection :: !Direction
+--     , _rcFixity    :: !Fixity
+--     }
+
+-- -- | Enclose a 'Doc' in parens if required or leave it as is.
+-- -- The need for enclosing is determined from an outer 'RenderContext' and the 'Doc's fixity.
+-- encloseIn
+--     :: RenderContext  -- ^ An outer context.
+--     -> Fixity         -- ^ An inner fixity.
+--     -> Doc ann
+--     -> Doc ann
+-- encloseIn (RenderContext dir (Fixity precOut assocOut)) (Fixity precIn assocIn) =
+--     case precOut `compare` precIn of
+--         LT -> id                      -- If the outer precedence is lower than the inner, then
+--                                       -- do not add parens. E.g. in @Add x (Mul y z)@ the precedence
+--                                       -- of @Add@ is lower than the one of @Mul@, hence there is
+--                                       -- no need for parens in @x + y * z@.
+--         GT -> parens                  -- If the outer precedence is greater than the inner, then
+--                                       -- do add parens. E.g. in @Mul x (Add y z)@ the precedence
+--                                       -- of @Mul@ is greater than the one of @Add@, hence
+--                                       -- parens are needed in @x * (y + z)@.
+--         EQ ->                         -- If precedences are equal, then judge from associativity.
+--             case (assocOut, dir) of
+--                 _ | assocOut /= assocIn     -> parens  -- Associativities differ => parens are needed.
+--                 (LeftAssociative, Backward) -> id      -- No need for parens in @Add (Add x y) z@
+--                                                        -- which is rendered as @x + y + z@.
+--                 (RightAssociative, Forward) -> id      -- No need for parens in @Concat xs (Concat xs zs)@
+--                                                        -- which is rendered as @xs ++ ys ++ zs@.
+--                 _                           -> parens  -- Every other case requires parens.
+
+-- class HasRenderContext config where
+--     renderContext :: Lens' config RenderContext
+
+-- encloseM
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => Fixity -> Doc ann -> m (Doc ann)
+-- encloseM fixity doc =
+--     view (prettyConfig . renderContext) <&> \context ->
+--         encloseIn context fixity doc
+
+-- -- -- | Adjust a 'PrettyConfigReadable' by setting new 'Fixity' and 'Direction' and call 'prettyBy'.
+-- -- prettyInBy
+-- --     :: PrettyReadableBy configName a
+-- --     => PrettyConfigReadable configName -> Direction -> Fixity -> a -> Doc ann
+-- -- prettyInBy config dir app = prettyBy $ setRenderContext (RenderContext dir app) config
+
+-- -- prettyInContextM
+-- --     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config, PrettyBy config a)
+-- --     => Direction -> Fixity -> a -> m (Doc ann)
+-- -- prettyInContextM dir fixity =
+-- --     locally (prettyConfig . renderContext) (\_ -> RenderContext dir fixity) . prettyM
+
+-- -- -- | Pretty-print in 'botFixity'.
+-- -- prettyInBotM
+-- --     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config, PrettyBy config a)
+-- --     => a -> m (Doc ann)
+-- -- prettyInBotM = prettyInContextM Forward botFixity
+
+-- withPrettyAt
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => Direction -> Fixity -> ((forall a. PrettyBy config a => a -> Doc ann) -> m r) -> m r
+-- withPrettyAt dir fixity cont = do
+--     config <- view prettyConfig
+--     cont $ prettyBy $ config & renderContext .~ RenderContext dir fixity
+
+-- withPrettyIn
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => ((forall a. PrettyBy config a => Direction -> Fixity -> a -> Doc ann) -> m r) -> m r
+-- withPrettyIn cont = do
+--     config <- view prettyConfig
+--     cont $ \dir fixity -> prettyBy $ config & renderContext .~ RenderContext dir fixity
+
+-- type AnyToDoc config ann = forall a. PrettyBy config a => a -> Doc ann
+
+-- compoundDoc
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => Fixity
+--     -> ((forall a. PrettyBy config a => Direction -> Fixity -> a -> Doc ann) -> Doc ann)
+--     -> m (Doc ann)
+-- compoundDoc fixity k = withPrettyIn $ \prettyIn -> encloseM fixity $ k prettyIn
+
+-- sequenceDoc
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => Fixity
+--     -> (AnyToDoc config ann -> Doc ann)
+--     -> m (Doc ann)
+-- sequenceDoc fixity k = compoundDoc fixity $ \prettyIn -> k (prettyIn Forward fixity)
+
+-- -- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'Backward'
+-- -- direction, the other is in the 'Forward' direction) specialized to the supplied 'Fixity'
+-- -- and apply 'enclose', specialized to the same 'Fixity', to the result.
+-- -- The idea is that to the outside an expression has the same inner fixity as
+-- -- it has the outer fixity to inner subexpressions.
+-- infixDoc
+--     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
+--     => Fixity
+--     -> (AnyToDoc config ann -> AnyToDoc config ann -> Doc ann)
+--     -> m (Doc ann)
+-- infixDoc fixity k =
+--     compoundDoc fixity $ \prettyIn ->
+--         k (prettyIn Backward fixity) (prettyIn Forward fixity)
+
+
+
+
+
+-- -- | A fixity with the lowest precedence.
+-- -- When used as a part of an outer context, never causes addition of parens.
+-- botFixity :: Fixity
+-- botFixity = Fixity 0 NonAssociative
+
+-- -- encloseInBot :: Doc ann -> Doc ann
+-- -- encloseInBot = encloseIn Forward botFixity
+
+
+-- -- -- | This class is used in order to provide default implementations of 'PrettyBy' for
+-- -- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
+-- -- -- we can define a single 'DefaultPrettyBy' instance and then derive @PrettyBy Config a@ for each
+-- -- -- @a@ provided the @a@ implements the @PrettyBy Subconfig1@, @PrettyBy Subconfig2@, etc instances.
+-- -- --
+-- -- -- Example:
+-- -- --
+-- -- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
+-- -- -- >
+-- -- -- > instance (PrettyBy Subconfig1 a, PrettyBy Subconfig2 a) => DefaultPrettyBy Config a where
+-- -- -- >     defaultPrettyBy (Subconfig1 subconfig1) = prettyBy subconfig1
+-- -- -- >     defaultPrettyBy (Subconfig2 subconfig2) = prettyBy subconfig2
+-- -- --
+-- -- -- Now having in scope  @PrettyBy Subconfig1 A@ and @PrettyBy Subconfig2 A@
+-- -- -- and the same instances for @B@ we can write
+-- -- --
+-- -- -- > instance PrettyBy Config A
+-- -- -- > instance PrettyBy Config B
+-- -- --
+-- -- -- and the instances will be derived for us.
+-- -- class DefaultPrettyBy config a where
+-- --     defaultPrettyBy :: config -> a -> Doc ann
+
+-- -- -- | Overloaded configurable conversion to 'Doc'. I.e. like 'Pretty', but parameterized by a @config@.
+-- -- -- This class is interoperable with the 'Pretty' class via 'PrettyConfigIgnore' and 'PrettyConfigAttatch'.
+-- -- class PrettyBy config a where
+-- --     prettyBy :: config -> a -> Doc ann
+-- --     default prettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
+-- --     prettyBy = defaultPrettyBy
+
+-- -- -- | A newtype wrapper around @a@ whose point is to provide a 'PrettyBy config' instance
+-- -- -- for anything that has a 'Pretty' instance.
+-- -- newtype PrettyConfigIgnore a = PrettyConfigIgnore
+-- --     { unPrettyConfigIgnore :: a
+-- --     }
+
+-- -- -- | A config together with some value. The point is to provide a 'Pretty' instance
+-- -- -- for anything that has a 'PrettyBy config' instance.
+-- -- data PrettyConfigAttach config a = PrettyConfigAttach config a
+
+-- -- -- delete these instances on extraction as library
+-- -- instance PrettyBy config a => PrettyBy config [a] where
+-- --     prettyBy config = list . fmap (prettyBy config)
+
+-- -- instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (Either a b) where
+-- --     prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
+-- --     prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
+
+-- -- instance (PrettyBy config a, PrettyBy config b) => PrettyBy config (a, b) where
+-- --     prettyBy config (a, b) = parens (prettyBy config a <> line <> "," <+> prettyBy config b)
+
+-- -- instance PrettyBy config Integer where
+-- --     prettyBy _ = pretty
+-- -- -- delete until here
+
+-- -- instance Pretty a => PrettyBy config (PrettyConfigIgnore a) where
+-- --     prettyBy _ (PrettyConfigIgnore x) = pretty x
+
+-- -- instance PrettyBy config a => Pretty (PrettyConfigAttach config a) where
+-- --     pretty (PrettyConfigAttach config x) = prettyBy config x
+
+-- -- -- | Render a value as 'String'.
+-- -- prettyStringBy :: PrettyBy config a => config -> a -> String
+-- -- prettyStringBy config = docString . prettyBy config
+
+-- -- -- | Render a value as strict 'Text'.
+-- -- prettyTextBy :: PrettyBy config a => config -> a -> T.Text
+-- -- prettyTextBy config = docText . prettyBy config
