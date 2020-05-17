@@ -32,16 +32,16 @@ typeSize = cata a where
 -- | Count the number of AST nodes in a term.
 termSize :: Term tyname name uni ann -> Integer
 termSize = cata a where
-    a VarF{}              = 1
-    a (TyAbsF _ _ k t)    = 1 + kindSize k + t
-    a (ApplyF _ t t')     = 1 + t + t'
-    a (LamAbsF _ _ ty t)  = 1 + typeSize ty + t
-    a ConstantF{}         = 1
-    a BuiltinF{}          = 1
-    a (TyInstF _ t ty)    = 1 + t + typeSize ty
-    a (UnwrapF _ t)       = 1 + t
-    a (IWrapF _ ty ty' t) = 1 + typeSize ty + typeSize ty' + t
-    a (ErrorF _ ty)       = 1 + typeSize ty
+    a VarF{}                       = 1
+    a (TyAbsF _ _ k t)             = 1 + kindSize k + t
+    a (ApplyF _ t t')              = 1 + t + t'
+    a (LamAbsF _ _ ty t)           = 1 + typeSize ty + t
+    a (ApplyBuiltinF _ _ tys args) = 1 + sum (map typeSize tys) + sum args
+    a ConstantF{}                  = 1
+    a (TyInstF _ t ty)             = 1 + t + typeSize ty
+    a (UnwrapF _ t)                = 1 + t
+    a (IWrapF _ ty ty' t)          = 1 + typeSize ty + typeSize ty' + t
+    a (ErrorF _ ty)                = 1 + typeSize ty
 
 -- | Count the number of AST nodes in a program.
 programSize :: Program tyname name uni ann -> Integer

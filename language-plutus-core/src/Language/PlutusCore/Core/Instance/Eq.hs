@@ -22,6 +22,8 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
 import           Language.PlutusCore.Universe
 
+import           Control.Monad                    (zipWithM_)
+
 -- See Note [Annotations and equality].
 
 instance Eq (Kind ann) where
@@ -29,12 +31,6 @@ instance Eq (Kind ann) where
     KindArrow _ dom1 cod1 == KindArrow _ dom2 cod2 = dom1 == dom2 && cod1 == cod2
     Type{}      == _ = False
     KindArrow{} == _ = False
-
-instance Eq (Builtin ann) where
-    BuiltinName    _ name1 == BuiltinName    _ name2 = name1 == name2
-    DynBuiltinName _ name1 == DynBuiltinName _ name2 = name1 == name2
-    BuiltinName{}    == _ = False
-    DynBuiltinName{} == _ = False
 
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]
@@ -117,18 +113,20 @@ eqTermM (Var _ name1) (Var _ name2) =
     eqNameM name1 name2
 eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
-eqTermM (Builtin _ bi1) (Builtin _ bi2) =
-    eqM bi1 bi2
-eqTermM LamAbs{}   _ = empty
-eqTermM TyAbs{}    _ = empty
-eqTermM IWrap{}    _ = empty
-eqTermM Apply{}    _ = empty
-eqTermM Unwrap{}   _ = empty
-eqTermM Error{}    _ = empty
-eqTermM TyInst{}   _ = empty
-eqTermM Var{}      _ = empty
-eqTermM Constant{} _ = empty
-eqTermM Builtin{}  _ = empty
+eqTermM (ApplyBuiltin _ bn1 tys1 args1) (ApplyBuiltin _ bn2 tys2 args2) = do
+    eqM bn1 bn2
+    zipWithM_ eqTypeM tys1 tys2  -- FIXME: check
+    zipWithM_ eqTermM args1 args2
+eqTermM LamAbs       {} _ = empty
+eqTermM TyAbs        {} _ = empty
+eqTermM IWrap        {} _ = empty
+eqTermM Apply        {} _ = empty
+eqTermM Unwrap       {} _ = empty
+eqTermM Error        {} _ = empty
+eqTermM TyInst       {} _ = empty
+eqTermM Var          {} _ = empty
+eqTermM Constant     {} _ = empty
+eqTermM ApplyBuiltin {} _ = empty
 
 -- | Check equality of two 'Program's.
 eqProgramM

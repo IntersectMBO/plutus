@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Main (main) where
 
@@ -9,8 +12,10 @@ import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import           Data.Bifunctor                                             (second)
 import           Data.Foldable                                              (traverse_)
+import qualified GHC.IO.Exception
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
+import           Language.PlutusCore.Constant.Dynamic                       as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
@@ -105,7 +110,7 @@ data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
 data EvalMode = CK | CEK deriving (Show, Read)
 data EvalOptions = EvalOptions Input EvalMode Format
-data PrintMode = Classic | Debug deriving (Show, Read)
+data PrintMode = Classic | Debug | Readable | ReadableDebug deriving (Show, Read)
 data PrintOptions = PrintOptions Input PrintMode
 data PlcToCborOptions = PlcToCborOptions Input Output
 data CborToPlcOptions = CborToPlcOptions Input Output PrintMode
@@ -166,7 +171,8 @@ printMode = option auto
   <> metavar "MODE"
   <> value Classic
   <> showDefault
-  <> help "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug" )
+  <> (help $ "Print mode: Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
+             ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> input <*> printMode
@@ -252,10 +258,15 @@ getProg inp fmt =
 
 ---------------- Typechecking ----------------
 
+instance PLC.AsTypeError (GHC.IO.Exception.IOException) PLC.DefaultUni () where
+    _TypeError = error "EXCEPTION"
+-- FIXME: Just to get runTypecheck to typecheck
+
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
-    let cfg = PLC.defConfig
+    types <- PLC.runQuoteT $ getStringBuiltinTypes ()
+    let cfg = PLC.TypeCheckConfig types
     case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
       Left (e :: PlcParserError) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
@@ -272,7 +283,7 @@ runEval (EvalOptions inp mode fmt) = do
   prog <- getProg inp fmt
   let evalFn = case mode of
                  CK  -> PLC.unsafeEvaluateCk
-                 CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
+                 CEK -> PLC.unsafeEvaluateCek getStringBuiltinMeanings PLC.defaultCostModel
   case evalFn . void . PLC.toTerm $ prog of
     PLC.EvaluationSuccess v -> do
       T.putStrLn $ PLC.prettyPlcDefText v
@@ -282,14 +293,18 @@ runEval (EvalOptions inp mode fmt) = do
 
 ---------------- Parse and print a PLC source file ----------------
 
+getPrintMode :: PLC.PrettyBy PLC.PrettyConfigPlc a => PrintMode -> a -> Doc ann
+getPrintMode mode =
+    case mode of
+      Classic       -> PLC.prettyPlcClassicDef
+      Debug         -> PLC.prettyPlcClassicDebug
+      Readable      -> PLC.prettyPlcReadableDef
+      ReadableDebug -> PLC.prettyPlcReadableDebug
+
 runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) =
-  let printMethod = case mode of
-            Classic -> PLC.prettyPlcClassicDef
-            Debug   -> PLC.prettyPlcClassicDebug
-  in do
+runPrint (PrintOptions inp mode) = do
     p <- parsePlcFile inp
-    print . printMethod $ p
+    print . getPrintMode mode $ p
 
 
 ---------------- Convert a PLC source file to CBOR ----------------
@@ -308,9 +323,7 @@ runPlcToCbor (PlcToCborOptions inp outp) = do
 runCborToPlc :: CborToPlcOptions -> IO ()
 runCborToPlc (CborToPlcOptions inp outp mode) = do
   plc <- loadPlcFromCborFile inp
-  let printMethod = case mode of
-                      Classic -> PLC.prettyPlcClassicDef
-                      Debug   -> PLC.prettyPlcClassicDebug
+  let printMethod = getPrintMode mode
   case outp of
     FileOutput file -> writeFile file . show . printMethod $ plc
     StdOutput       -> print . printMethod $ plc

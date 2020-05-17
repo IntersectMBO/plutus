@@ -70,7 +70,8 @@ $upper = [A-Z]
 @special = \\\\ | \\\"
 
 $graphic = $printable # $white
-@quotedstring = \" ($graphic)* \"
+@quotedstring0 = \" ($graphic)* \"
+@quotedstring = \" ([$graphic \32] # \")* \"
 @quotedchar   = ' ($graphic)* ' -- Allow multiple characters so we can handle escape sequences
 
 tokens :-

@@ -101,12 +101,12 @@ termSubtypes f = \case
     TyInst ann t ty -> TyInst ann t <$> f ty
     IWrap ann ty1 ty2 t -> IWrap ann <$> f ty1 <*> f ty2 <*> pure t
     Error ann ty -> Error ann <$> f ty
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> traverse f tys <*> pure args  -- FIXME ::  pure args? traverse?
     t@TyAbs {} -> pure t
     a@Apply {} -> pure a
     u@Unwrap {} -> pure u
     v@Var {} -> pure v
     c@Constant {} -> pure c
-    b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni ann) (Type tyname uni ann)
@@ -122,10 +122,10 @@ termSubterms f = \case
     TyAbs ann n k t -> TyAbs ann n k <$> f t
     Apply ann t1 t2 -> Apply ann <$> f t1 <*> f t2
     Unwrap ann t -> Unwrap ann <$> f t
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> pure tys <*> traverse f args  -- FIXME
     e@Error {} -> pure e
     v@Var {} -> pure v
     c@Constant {} -> pure c
-    b@Builtin {} -> pure b
 
 -- | Get all the transitive child 'Term's of the given 'Term'.
 termSubtermsDeep :: Fold (Term tyname name uni ann) (Term tyname name uni ann)

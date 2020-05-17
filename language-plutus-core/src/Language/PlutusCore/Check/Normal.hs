@@ -30,16 +30,16 @@ checkTerm
 checkTerm p = throwingEither _NormCheckError $ check p
 
 check :: Term tyname name uni ann -> Either (NormCheckError tyname name uni ann) ()
-check (Error _ ty)           = normalType ty
-check (TyInst _ t ty)        = check t >> normalType ty
-check (IWrap _ pat arg term) = normalType pat >> normalType arg >> check term
-check (Unwrap _ t)           = check t
-check (LamAbs _ _ ty t)      = normalType ty >> check t
-check (Apply _ t1 t2)        = check t1 >> check t2
-check (TyAbs _ _ _ t)        = check t
-check Var{}                  = pure ()
-check Constant{}             = pure ()
-check Builtin{}              = pure ()
+check (Error _ ty)                = normalType ty
+check (TyInst _ t ty)             = check t >> normalType ty
+check (IWrap _ pat arg term)      = normalType pat >> normalType arg >> check term
+check (Unwrap _ t)                = check t
+check (LamAbs _ _ ty t)           = normalType ty >> check t
+check (Apply _ t1 t2)             = check t1 >> check t2
+check (TyAbs _ _ _ t)             = check t
+check Var{}                       = pure ()
+check Constant{}                  = pure ()
+check (ApplyBuiltin _ _ tys args) = mapM_ normalType tys >> mapM_ check args
 
 isNormalType :: Type tyname uni ann -> Bool
 isNormalType = isRight . normalType

@@ -224,7 +224,7 @@ enumFromTo = runQuote $ do
     rec <- freshName "rec"
     n'  <- freshName "n'"
     u   <- freshName "u"
-    let gtInteger  = builtin () $ BuiltinName () GreaterThanInteger
+    let gtInteger = StaticBuiltinName GreaterThanInteger
         int = mkTyBuiltin @Integer ()
         listInt = TyApp () list int
     return
@@ -234,7 +234,7 @@ enumFromTo = runQuote $ do
         $ [   lamAbs () rec (TyFun () int listInt)
             . lamAbs () n' int
             . mkIterApp () (tyInst () ifThenElse listInt)
-            $ [ mkIterApp () gtInteger [ var () n' , var () m]
+            $ [ applyBuiltin () gtInteger [] [var () n' , var () m]
               , lamAbs () u unit $ tyInst () nil int
               , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
                     [ var () n'
@@ -250,20 +250,34 @@ enumFromTo = runQuote $ do
 --
 -- > foldList {integer} {integer} addInteger 0
 sum :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
-sum = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
-        add = builtin () (BuiltinName () AddInteger)
-    return
-        . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ add , mkConstant @Integer () 0]
+sum = runQuote $ do  -- FIXME: CHECK
+        m <- freshName "m"
+        n <- freshName "n"
+        let int = mkTyBuiltin @Integer ()
+            add = lamAbs () m int   -- are these the right way round?
+                  . lamAbs () n int
+                  $ applyBuiltin () (StaticBuiltinName AddInteger) [] [var () m, var () n]
+            foldList' = mkIterInst () foldList [int, int]
+        return
+           . mkIterApp () foldList'
+           $ [ add , mkConstant @Integer () 0]
+
 
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
 product :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
-product = runQuote $ do
-    let int = mkTyBuiltin @Integer ()
-        mul = builtin () (BuiltinName () MultiplyInteger)
-    return
-        . mkIterApp () (mkIterInst () foldList [int, int])
-        $ [ mul , mkConstant @Integer () 1]
+product =
+    runQuote $ do  -- FIXME: CHECK
+        m <- freshName "m"
+        n <- freshName "n"
+        let int = mkTyBuiltin @Integer ()
+            mul = lamAbs () m int   -- are these the right way round?
+                  . lamAbs () n int
+                  $ applyBuiltin () (StaticBuiltinName MultiplyInteger) [] [var () m, var () n]
+            foldList' = mkIterInst () foldList [int, int]
+        return
+           . mkIterApp () foldList'
+           $ [ mul , mkConstant @Integer () 1]
+
+

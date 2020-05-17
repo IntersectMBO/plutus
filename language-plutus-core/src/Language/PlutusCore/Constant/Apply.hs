@@ -62,7 +62,7 @@ applyTypeSchemed
        ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
        , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => StagedBuiltinName
+    => BuiltinName
     -> TypeScheme uni args res
     -> FoldArgs args res
     -> FoldArgsEx args
@@ -111,7 +111,7 @@ applyTypedBuiltinName
     -> [Value TyName Name uni ExMemory]
     -> m (ConstAppResult uni ExMemory)
 applyTypedBuiltinName (TypedBuiltinName name schema) =
-    applyTypeSchemed (StaticStagedBuiltinName name) schema
+    applyTypeSchemed (StaticBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
@@ -120,7 +120,7 @@ applyBuiltinName
     , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
     , GShow uni, GEq uni, DefaultUni <: uni
     )
-    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
+    => CostModel -> StaticBuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
 applyBuiltinName params AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
 applyBuiltinName params SubtractInteger      =

@@ -51,21 +51,17 @@ type TermGen uni a = Gen (TermOf uni a)
 --
 -- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
 -- >     == if i < j then i + j else i - j
-genOverapplication :: Generatable uni => TermGen uni Integer
+genOverapplication :: Generatable uni => TermGen uni Integer  -- FIXME: Doesn't make sense any more???
 genOverapplication = do
     let typedInteger = AsKnownType
         integer = toTypeAst typedInteger
     TermOf ti i <- genTypedBuiltinDef typedInteger
     TermOf tj j <- genTypedBuiltinDef typedInteger
-    let term =
-            mkIterApp ()
-                (TyInst () (builtinNameAsTerm IfThenElse) . TyFun () integer $ TyFun () integer integer)
-                [ mkIterApp () (builtinNameAsTerm LessThanInteger) [ti, tj]
-                , builtinNameAsTerm AddInteger
-                , builtinNameAsTerm SubtractInteger
-                , ti
-                , tj
-                ]
+    let term =  mkStaticBuiltinApp IfThenElse  [TyFun () integer $ TyFun () integer integer]
+                     [ mkStaticBuiltinApp LessThanInteger [] [ti, tj]
+                     , mkStaticBuiltinApp AddInteger [] [ti,tj]
+                     , mkStaticBuiltinApp SubtractInteger [] [ti,tj]
+                     ]
     return . TermOf term $ if i < j then i + j else i - j
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
@@ -105,14 +101,11 @@ naiveFib iv = runQuote $ do
             [   LamAbs () rec (TyFun () intS intS)
               . LamAbs () i intS
               $ mkIterApp () (TyInst () ifThenElse intS)
-                  [ mkIterApp () (builtinNameAsTerm LessThanEqInteger)
-                      [Var () i, mkConstant @Integer () 1]
+                  [ mkStaticBuiltinApp LessThanEqInteger [] [Var () i, mkConstant @Integer () 1]
                   , LamAbs () u unit $ Var () i
-                  , LamAbs () u unit $ mkIterApp () (builtinNameAsTerm AddInteger)
-                      [ Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, mkConstant @Integer () 1]
-                      , Apply () (Var () rec) $ mkIterApp () (builtinNameAsTerm SubtractInteger)
-                          [Var () i, mkConstant @Integer () 2]
+                  , LamAbs () u unit $ mkStaticBuiltinApp AddInteger []
+                      [ Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 1]
+                      , Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 2]
                       ]
                   ]
             , Var () i0
@@ -154,14 +147,14 @@ natSum :: uni `Includes` Integer => Term TyName Name uni ()
 natSum = runQuote $ do
     let int = mkTyBuiltin @Integer ()
         nat = _recursiveType natData
-        add = Builtin () (BuiltinName () AddInteger)
+        add = ApplyBuiltin () (StaticBuiltinName AddInteger) []
     acc <- freshName "acc"
     n <- freshName "n"
     return
         $ mkIterApp () (mkIterInst () foldList [nat, int])
           [   LamAbs () acc int
             . LamAbs () n nat
-            . mkIterApp () add
+            . add
             $ [ Var () acc
               , mkIterApp () natToInteger [ Var () n ]
               ]
@@ -198,40 +191,47 @@ genIfIntegers = do
     return $ TermOf term value
 
 -- | Check that builtins can be partially applied.
+-- FIXME: not any more
 genApplyAdd1 :: Generatable uni => TermGen uni Integer
-genApplyAdd1 = do
+genApplyAdd1 = undefined
+{- do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, int])
-                [ Apply () (builtinNameAsTerm AddInteger) i
+                [ Apply () (staticBuiltinNameAsTerm AddInteger) i
                 , j
                 ]
     return . TermOf term $ iv + jv
+-}
 
 -- | Check that builtins can be partially applied.
+-- FIXME: not any more
 genApplyAdd2 :: Generatable uni => TermGen uni Integer
-genApplyAdd2 = do
+genApplyAdd2 = undefined
+{- do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
-                [ builtinNameAsTerm AddInteger
+                [ staticBuiltinNameAsTerm AddInteger
                 , i
                 , j
                 ]
     return . TermOf term $ iv + jv
+-}
+
 
 -- | Check that division by zero results in 'Error'.
 genDivideByZero :: Generatable uni => TermGen uni (EvaluationResult Integer)
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     TermOf i _ <- genTermLoose $ AsKnownType @_ @Integer
-    let term = mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer () 0]
+    let term = mkStaticBuiltinApp op [] [i, mkConstant @Integer () 0]
     return $ TermOf term EvaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
@@ -243,7 +243,7 @@ genDivideByZeroDrop = do
     TermOf i iv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () Function.const [int, int])
-                [ mkIterApp () (builtinNameAsTerm op) [i, mkConstant @Integer () 0]
+                [ mkStaticBuiltinApp  op [] [i, mkConstant @Integer () 0]
                 , mkConstant @Integer () iv
                 ]
     return $ TermOf term EvaluationFailure
@@ -258,8 +258,8 @@ fromInterestingTermGens f =
     , f "NatRoundTrip"     genNatRoundtrip
     , f "ListSum"          genListSum
     , f "IfIntegers"       genIfIntegers
-    , f "ApplyAdd1"        genApplyAdd1
-    , f "ApplyAdd2"        genApplyAdd2
+---    , f "ApplyAdd1"        genApplyAdd1   -- FIXME
+--    , f "ApplyAdd2"        genApplyAdd2   -- FIXME
     , f "DivideByZero"     genDivideByZero
     , f "DivideByZeroDrop" genDivideByZeroDrop
     ]

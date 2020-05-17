@@ -131,10 +131,13 @@ foldNat = runQuote $ do
 --
 -- > foldNat {integer} (addInteger 1) 1
 natToInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
-natToInteger = runQuote $ do
-    let addInteger = builtin () $ BuiltinName () AddInteger
+natToInteger =
+    runQuote $ do
+    n <- freshName "n"
+    let int = mkTyBuiltin @Integer ()
+        intZero = mkConstant @Integer () 0
+        intOne  = mkConstant @Integer () 1
+        addOne = lamAbs () n int
+                 $ applyBuiltin () (StaticBuiltinName AddInteger) [] [var () n, intOne]
     return $
-        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
-          [ apply () addInteger (mkConstant @Integer () 1)
-          , mkConstant @Integer () 0
-          ]
+        mkIterApp () (tyInst () foldNat int) [ addOne, intZero ]  -- FIXME: CHECK

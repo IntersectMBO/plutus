@@ -38,7 +38,6 @@ module Language.PlutusCore
     , termSubtypes
     , Type (..)
     , typeSubtypes
-    , Builtin (..)
     , Kind (..)
     , ParseError (..)
     , Version (..)
@@ -48,9 +47,9 @@ module Language.PlutusCore
     , Unique (..)
     , UniqueMap (..)
     , Value
-    , BuiltinName (..)
+    , StaticBuiltinName (..)
     , DynamicBuiltinName (..)
-    , StagedBuiltinName (..)
+    , BuiltinName (..)
     , Normalized (..)
     , defaultVersion
     , allBuiltinNames

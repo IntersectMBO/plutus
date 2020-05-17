@@ -42,6 +42,8 @@ import           Control.Monad.Reader
 import           Data.Map                               (Map)
 import qualified Data.Map                               as Map
 
+--import           Debug.Trace
+
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
@@ -54,7 +56,7 @@ The invariant is preserved. In future we will enforce the invariant.
 We write type rules in the bidirectional style.
 
 [infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
-'a' is not necessary a varible, e.g. [infer| G !- fun : dom -> cod] is fine too.
+'a' is not necessary a variable, e.g. [infer| G !- fun : dom -> cod] is fine too.
 It reads as follows: "infer the type of 'fun' in the context 'G', check that it's functional and
 bind the 'dom' variable to the domain and the 'cod' variable to the codomain of this type".
 
@@ -283,7 +285,7 @@ checkKindOfPatternFunctorM ann pat k =
 -- | Return the 'Type' of a 'BuiltinName'.
 typeOfBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName -> Type TyName uni ()
+    => StaticBuiltinName -> Type TyName uni ()
 typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
 
 -- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
@@ -303,17 +305,75 @@ unfoldFixOf pat arg k = do
             ]
 
 -- | Infer the type of a 'Builtin'.
+-- FIXME: Annoyingly we have to supply an annotation here for the error if the name isn't found
 inferTypeOfBuiltinM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Builtin ann -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+    => ann -> BuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 -- We have a weird corner case here: the type of a 'BuiltinName' can contain 'TypedBuiltinDyn', i.e.
 -- a static built-in name is allowed to depend on a dynamic built-in type which are not required
 -- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinM (BuiltinName    _   name) = normalizeType $ typeOfBuiltinName name
+inferTypeOfBuiltinM _ (StaticBuiltinName name) = normalizeType $ typeOfBuiltinName name
 -- TODO: inline this definition once we have only dynamic built-in names.
-inferTypeOfBuiltinM (DynBuiltinName ann name) = lookupDynamicBuiltinNameM ann name
+inferTypeOfBuiltinM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann name
+
+-- FIXME: in the PLC spec, do we have to check that A_i :: K_i?
+
+doTyArgs
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => Type TyName uni ()
+    -> [Type TyName uni ann]
+    -> [Value TyName Name uni ann]
+    -> [(TyName, Normalized (Type TyName uni ()))]
+    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+
+doTyArgs (TyForall () tyname kind ty') (tyarg:tyargs) args mapping = do
+  checkKindM  (typeAnn tyarg) tyarg (void kind)
+  tyarg' <- normalizeType (void tyarg)
+  doTyArgs ty' tyargs args ((tyname,tyarg'):mapping)
+doTyArgs (TyForall _ _tyname _kind _ty') [] _ _ = Prelude.error "Underinstantiated"
+doTyArgs ty' [] args mapping = doArgs ty' args mapping
+doTyArgs _  (_:_) _ _ = Prelude.error "Overinstantiated"  -- We've got a forall type but nowhere to instantiate it
+
+{-
+instantiateTyVars
+    :: Normalized (Type TyName uni ())
+    -> [(TyName, Type TyName uni a)]
+    -> ReaderT
+       (TypeCheckEnv uni)
+       (ExceptT (TypeError uni ann) Quote)
+       (Normalized (Type TyName uni ()))
+-}
+--instantiateTyVars normty mapping =
+--    foldM (\ty1 (name, newty) -> unNormalized $ substNormalizeTypeM newty name ty1) normty mapping
+
+doArgs
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => Type TyName uni ()
+    -> [Value TyName Name uni ann]
+    -> [(TyName, Normalized (Type TyName uni ()))]
+    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+doArgs ty [] mapping = do  -- no more arguments left, so substitute the type instantiations into the return type
+    let f ty1 (name, newty) = do
+          ty2 <- substNormalizeTypeM newty name ty1
+          return $ unNormalized ty2
+    ty' <- foldM f (void ty)  mapping  -- FIXME: still normalized after substitution?  Yes.
+    tyr <- normalizeTypeM ty'
+    return tyr
+doArgs (TyFun _ t1 t2) (arg:args) mapping =  do
+    let f ty1 (name, newty) = do
+          ty2 <- substNormalizeTypeM newty name ty1
+          return $ unNormalized ty2
+    t1' <- foldM f (void t1)  mapping  -- FIXME: still normalized after substitution?  Yes.
+    t1'norm <- normalizeTypeM t1'
+    checkTypeM (termAnn arg) arg t1'norm
+    doArgs t2 args mapping
+doArgs _ (_:_) _  = Prelude.error $ "Builtin overapplied"
+-- Can we tell if it's underapplied?  Suppose we have bn: int -> int -> int
+-- Does it take one argument or two?
+
+
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
@@ -328,11 +388,27 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
     -- See Note [PLC types and universes].
     pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
 
+
+
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
-inferTypeM (Builtin _ bi)           =
-    inferTypeOfBuiltinM bi
+--inferTypeM (Builtin _ bi)           =
+--    inferTypeOfBuiltinM bi
+
+-- bn : [a_1 :: K_1, ..., a_n:: K_m](B_1, ..., B_n)C
+-- G !- M_i : D_i
+-- D_i == [A_1,...,A_m/a_1,...,a_m]B_i
+----------------------------------------------------------------
+-- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
+
+inferTypeM (ApplyBuiltin ann bn tyargs args) = do
+  ty <- inferTypeOfBuiltinM ann bn
+  rty <- doTyArgs (unNormalized ty) tyargs args []
+  return rty
+--  FIXME: DO THIS PROPERLY
+
+
 
 -- [infer| G !- v : ty]    ty ~>? vTy
 -- ----------------------------------

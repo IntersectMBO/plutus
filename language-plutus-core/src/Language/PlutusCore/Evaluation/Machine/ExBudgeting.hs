@@ -126,7 +126,7 @@ data ExBudgetCategory
     | BIWrap
     | BUnwrap
     | BVar
-    | BBuiltin StagedBuiltinName
+    | BBuiltin BuiltinName
     | BAST
     deriving stock (Show, Eq, Generic)
     deriving anyclass NFData
@@ -169,7 +169,7 @@ instance PrettyBy config ExTally where
 
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
+    :: StaticBuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
 data CostModel =

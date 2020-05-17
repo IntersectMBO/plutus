@@ -18,6 +18,7 @@ import           Language.PlutusCore.Pretty                      (PrettyConst)
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 
+import           Data.Text.Prettyprint.Doc                       (braces, fillSep, group)
 import           Data.Text.Prettyprint.Doc.Internal              (enclose)
 
 -- | Pretty-print a binding at the type level.
@@ -52,25 +53,37 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
         rayR = rayDoc config Forward
         bind = binderDoc  config
 
+-- | Pretty-print an application of a builtin to its type and term -- arguments
+{- *** FIXME *** This is just a crude approximation to what it should really be
+   doing.  Also, it should probably go in Language.PlutusCore.Pretty.Readable,
+   but I'm not entirely sure  what's going on there. -}
+builtinApplicationDoc
+    :: (PrettyReadableBy configName ty, PrettyReadableBy configName term)
+    => PrettyConfigReadable configName -> Doc ann -> [ty] -> [term] -> Doc ann
+builtinApplicationDoc config builtinName tyargs args =
+    case tyargs of
+      [] -> builtinName </> fillSep (map (prettyBy config) args)
+      _  -> group (builtinName </> braces (fillSep $ map (prettyBy config) tyargs) </> (fillSep $ map (prettyBy config) args))
+
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni a) where
     prettyBy config = \case
-        Constant _ con         -> unitaryDoc config $ pretty con
-        Builtin _ bi           -> unitaryDoc config $ pretty bi
-        Apply _ fun arg        -> applicationDoc config fun arg
-        Var _ name             -> unit $ prettyName name
-        TyAbs _ name kind body -> bind $ \bindBody ->
+        Constant _ con             -> unitaryDoc config $ pretty con
+        ApplyBuiltin _ bn tys args -> builtinApplicationDoc config (pretty bn) tys args
+        Apply _ fun arg            -> applicationDoc config fun arg
+        Var _ name                 -> unit $ prettyName name
+        TyAbs _ name kind body     -> bind $ \bindBody ->
             "/\\" <> prettyTypeBinding config name kind <+> "->" <+> bindBody body
-        TyInst _ fun ty        -> rayL juxtApp $ \juxt -> juxt fun <+> inBraces ty
-        LamAbs _ name ty body  -> bind $ \bindBody ->
+        TyInst _ fun ty            -> rayL juxtApp $ \juxt -> juxt fun <+> inBraces ty
+        LamAbs _ name ty body      -> bind $ \bindBody ->
             "\\" <> parens (prettyName name <+> ":" <+> inBot ty) <+> "->" <+> bindBody body
-        Unwrap _ term          -> rayR juxtApp $ \juxt -> "unwrap" <+> juxt term
-        IWrap _ pat arg term   -> rayR juxtApp $ \juxt ->
+        Unwrap _ term              -> rayR juxtApp $ \juxt -> "unwrap" <+> juxt term
+        IWrap _ pat arg term       -> rayR juxtApp $ \juxt ->
             "iwrap" <+> juxt pat <+> juxt arg <+> juxt term
-        Error _ ty             -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
+        Error _ ty                 -> comp juxtApp $ \_ _ -> "error" <+> inBraces ty
       where
         prettyName = prettyBy config
         unit = unitaryDoc  config
