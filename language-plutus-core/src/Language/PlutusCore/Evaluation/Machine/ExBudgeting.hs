@@ -132,7 +132,7 @@ data ExBudgetCategory
     | BIWrap
     | BUnwrap
     | BVar
-    | BBuiltin StagedBuiltinName
+    | BBuiltin BuiltinName
     | BAST
     deriving stock (Show, Eq, Generic)
     deriving anyclass NFData
@@ -175,7 +175,7 @@ instance PrettyBy config ExTally where
 
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
+    :: StaticBuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
 -- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.

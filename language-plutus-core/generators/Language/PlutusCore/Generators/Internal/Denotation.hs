@@ -38,7 +38,6 @@ data Denotation uni object res = forall args. Denotation
     , _denotationItself :: FoldArgs args res                  -- ^ The denotation of the object.
                                                               -- E.g. the denotation of 'AddInteger' is '(+)'.
     , _denotationScheme :: TypeScheme uni args res            -- ^ The 'TypeScheme' of the object.
-                                                              -- See 'intIntInt' for example.
     }
 
 -- | A member of a 'DenotationContext'.
@@ -74,9 +73,15 @@ denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy
 
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName
-    :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni BuiltinName res
+    :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni StaticBuiltinName res
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (Builtin () . BuiltinName ()) meta scheme
+    Denotation name  (error $ "called (denoteTypedBuiltinName " ++ show name ++ ")") meta scheme
+-- FIXME: we can't have a denotation here any more because builtin names aren't terms now.
+
+{- Given bn with signature {ty1 ... tyM} arg1 ... argN
+   we need to produce
+   Abs (ty1 :: *) . Abs (ty2 :: *) ... Abs (tyM :: *) . lam (arg1 : ?) . lam (arg2 : ?) ... . lam (argN : ?) . ApplyBuiltin [ty1, ..., tyM] [arg1, ..., argN]
+-}
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation

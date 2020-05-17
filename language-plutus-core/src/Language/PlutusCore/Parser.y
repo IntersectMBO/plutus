@@ -98,13 +98,17 @@ import Control.Monad.State
 
 %%
 
-many(p)
-    : many(p) p { $2 : $1 }
+many1(p)  -- left-recursive parser for a sequence of p's;  result must be reversed before use, so always use 'many'
+    : many1(p) p { $2 : $1 }
     | { [] }
 
-some(p)
-    : some(p) p { $2 :| toList $1 }
+many(p) : many1(p) { reverse $1 }
+
+some1(p)  -- left-recursive parser for a nonempty sequence of p's;  result must be reversed before use, so always use 'some'
+    : some1(p) p { $2 :| toList $1 }
     | p { $1 :| [] }
+
+some(p) : some1(p) { NE.reverse $1 }
 
 parens(p)
     : openParen p closeParen { $2 }
@@ -129,17 +133,21 @@ Constant : unitLit       { someValue (tkUnit $1) }
          | byteStringLit { someValue (tkBytestring $1) }
          | stringLit     { someValue (tkString (fixStr $1)) } 
 
-Term : Var                                        { $1 }
-     | openParen abs TyName Kind Term closeParen  { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace       { tyInst $1 $2 (NE.reverse $3) }
-     | openParen lam Name Type Term closeParen    { LamAbs $2 $3 $4 $5 }
-       -- TODO should we reverse here or somewhere else?
-     | openBracket Term some(Term) closeBracket   { app $1 $2 (NE.reverse $3) }
-     | openParen con Constant closeParen          { Constant $2 $3 }
-     | openParen iwrap Type Type Term closeParen  { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinid closeParen     { mkBuiltin $2 (tkLoc $3) (tkBuiltinId $3) }
-     | openParen unwrap Term closeParen           { Unwrap $2 $3 }
-     | openParen errorTerm Type closeParen        { Error $2 $3 }
+Term : Var                                          { $1 }
+     | openParen abs TyName Kind Term closeParen    { TyAbs $2 $3 $4 $5 }
+     | openBrace Term some(Type) closeBrace         { tyInst $1 $2 $3 }
+     | openParen lam Name Type Term closeParen      { LamAbs $2 $3 $4 $5 }
+     | openBracket Term some(Term) closeBracket     { app $1 $2 $3 }
+     | openParen con Constant closeParen            { Constant $2 $3 }
+     | openParen iwrap Type Type Term closeParen    { IWrap $2 $3 $4 $5 }  
+     | openParen builtin builtinid many(Term) closeParen
+                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $3)) []  $4}
+                                                    {- (builtin b e1 ... en) -}      
+     | openParen builtin openBrace builtinid many(Type) closeBrace many(Term) closeParen  
+                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $4)) $5 $7}
+                                                    {- (builtin {b t1 ... tm} e1 ... en) -}
+     | openParen unwrap Term closeParen             { Unwrap $2 $3 }
+     | openParen errorTerm Type closeParen          { Error $2 $3 }
 
 BuiltinType : integer    { mkTyBuiltin @Integer }
             | bool       { mkTyBuiltin @Bool }
@@ -153,19 +161,20 @@ Type : TyVar { $1 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
      | openParen ifix Type Type closeParen { TyIFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
+     | openBracket Type some(Type) closeBracket { tyApps $1 $2 $3 }
      | openParen con BuiltinType closeParen { $3 $2 }
 
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
+
 
 {
 fixStr :: Token ann -> Token ann
 fixStr (TkString ann s) = TkString ann (read s)   
 fixStr t = t
   
-getBuiltinName :: T.Text -> Maybe BuiltinName
-getBuiltinName = \case
+getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
+getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
     "subtractInteger"          -> Just SubtractInteger
     "multiplyInteger"          -> Just MultiplyInteger
@@ -190,11 +199,11 @@ getBuiltinName = \case
     "ifThenElse"               -> Just IfThenElse
     _                          -> Nothing
 
-mkBuiltin :: a -> a -> T.Text -> Term TyName Name uni a
-mkBuiltin loc loc' ident = 
-   case getBuiltinName ident of 
-      Just b  -> Builtin loc $ BuiltinName loc' b
-      Nothing -> Builtin loc (DynBuiltinName loc' (DynamicBuiltinName ident))
+mkBuiltinName :: T.Text -> BuiltinName
+mkBuiltinName ident = 
+   case getStaticBuiltinName ident of 
+      Just b  -> StaticBuiltinName b
+      Nothing -> DynBuiltinName (DynamicBuiltinName ident)
 
 -- FIXME: at this point it would be good to have access to the current
 -- dynamic builtin names to check if a builtin with that name exists

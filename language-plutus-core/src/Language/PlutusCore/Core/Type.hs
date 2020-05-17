@@ -10,10 +10,9 @@ module Language.PlutusCore.Core.Type
     ( Gas(..)
     , Kind(..)
     , Type(..)
-    , BuiltinName(..)
+    , StaticBuiltinName(..)
     , DynamicBuiltinName(..)
-    , StagedBuiltinName(..)
-    , Builtin(..)
+    , BuiltinName(..)
     , Term(..)
     , Value
     , Version(..)
@@ -67,7 +66,7 @@ data Type tyname uni ann
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | Builtin functions
-data BuiltinName
+data StaticBuiltinName
     = AddInteger
     | SubtractInteger
     | MultiplyInteger
@@ -101,23 +100,21 @@ newtype DynamicBuiltinName = DynamicBuiltinName
       deriving newtype (NFData, Lift, Hashable)
 
 -- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
-data StagedBuiltinName
-    = StaticStagedBuiltinName  BuiltinName
-    | DynamicStagedBuiltinName DynamicBuiltinName
+-- FIXME: We used to have StagedBuiltinName, which was the same except without annotations.
+-- There are a number of places where these these have been replaced with BuiltinName
+-- with a fake annotation ().
+data BuiltinName
+    = StaticBuiltinName StaticBuiltinName
+    | DynBuiltinName DynamicBuiltinName
     deriving (Show, Eq, Generic, NFData, Lift, Hashable)
-
-data Builtin ann
-    = BuiltinName ann BuiltinName
-    | DynBuiltinName ann DynamicBuiltinName
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
-
+             
 data Term tyname name uni ann
     = Var ann name -- ^ a named variable
     | TyAbs ann tyname (Kind ann) (Term tyname name uni ann)
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni ann)
     | Apply ann (Term tyname name uni ann) (Term tyname name uni ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
-    | Builtin ann (Builtin ann)
+    | ApplyBuiltin ann BuiltinName [Type tyname uni ann] [Term tyname name uni ann]
     | TyInst ann (Term tyname name uni ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)
@@ -156,7 +153,7 @@ defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
 
 -- | The list of all 'BuiltinName's.
-allBuiltinNames :: [BuiltinName]
+allBuiltinNames :: [StaticBuiltinName]
 allBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
@@ -174,13 +171,13 @@ typeAnn (TyLam ann _ _ _   ) = ann
 typeAnn (TyApp ann _ _     ) = ann
 
 termAnn :: Term tyname name uni ann -> ann
-termAnn (Var ann _       ) = ann
-termAnn (TyAbs ann _ _ _ ) = ann
-termAnn (Apply ann _ _   ) = ann
-termAnn (Constant ann _  ) = ann
-termAnn (Builtin  ann _  ) = ann
-termAnn (TyInst ann _ _  ) = ann
-termAnn (Unwrap ann _    ) = ann
-termAnn (IWrap ann _ _ _ ) = ann
-termAnn (Error ann _     ) = ann
-termAnn (LamAbs ann _ _ _) = ann
+termAnn (Var ann _              ) = ann
+termAnn (TyAbs ann _ _ _        ) = ann
+termAnn (Apply ann _ _          ) = ann
+termAnn (Constant ann _         ) = ann
+termAnn (ApplyBuiltin ann _ _ _ ) = ann
+termAnn (TyInst ann _ _         ) = ann
+termAnn (Unwrap ann _           ) = ann
+termAnn (IWrap ann _ _ _        ) = ann
+termAnn (Error ann _            ) = ann
+termAnn (LamAbs ann _ _ _       ) = ann

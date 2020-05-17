@@ -21,8 +21,5 @@ succInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term (
 succInteger = runQuote $ do
     i  <- freshName "i"
     return
-        . lamAbs () i (mkTyBuiltin @Integer ())
-        . mkIterApp () (builtin () $ BuiltinName () AddInteger)
-        $ [ var () i
-          , mkConstant @Integer () 1
-          ]
+        . lamAbs () i (mkTyBuiltin @Integer ()) $
+          (applyBuiltin () (StaticBuiltinName AddInteger) [] [var () i, mkConstant @Integer () 1])

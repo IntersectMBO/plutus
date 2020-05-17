@@ -10,7 +10,7 @@ module Language.PlutusCore.Generators.AST
     , genTyName
     , genKind
     , genBuiltinName
-    , genBuiltin
+    , genStaticBuiltinName
     , genConstant
     , genType
     , genTerm
@@ -79,11 +79,11 @@ genKind = simpleRecursive nonRecursive recursive where
     nonRecursive = pure <$> sequence [Type] ()
     recursive = [KindArrow () <$> genKind <*> genKind]
 
-genBuiltinName :: AstGen BuiltinName
-genBuiltinName = Gen.element allBuiltinNames
+genStaticBuiltinName :: AstGen StaticBuiltinName
+genStaticBuiltinName = Gen.element allBuiltinNames
 
-genBuiltin :: AstGen (Builtin ())
-genBuiltin = BuiltinName () <$> genBuiltinName
+genBuiltinName :: AstGen BuiltinName
+genBuiltinName = StaticBuiltinName <$> genStaticBuiltinName
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
@@ -112,7 +112,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+    nonRecursive = undefined -- FIXME [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: AstGen (Program TyName Name DefaultUni ())
 genProgram = Program () <$> genVersion <*> genTerm

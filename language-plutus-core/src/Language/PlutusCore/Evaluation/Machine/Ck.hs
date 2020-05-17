@@ -10,7 +10,7 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     , CkEvaluationException
     , EvaluationResult (..)
     , EvaluationResultDef
-    , applyEvaluateCkBuiltinName
+    , applyEvaluateCkStaticBuiltinName
     , evaluateCk
     , unsafeEvaluateCk
     ) where
@@ -54,6 +54,8 @@ data Frame uni
     | FrameTyInstArg (Type TyName uni ())                      -- ^ @{_ A}@
     | FrameUnwrap                                              -- ^ @(unwrap _)@
     | FrameIWrap () (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
+    | FrameApplyBuiltin BuiltinName [Type TyName uni ()] [Value TyName Name uni ()] [Term TyName Name uni ()]
+                                                               -- ^ @(builtin bn A V* _ M*)
 
 type Context uni = [Frame uni]
 
@@ -67,16 +69,16 @@ substituteDb
     :: Eq name
     => name -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
 substituteDb varFor new = go where
-    go (Var ann var)            = if var == varFor then new else Var ann var
-    go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
-    go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
-    go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
-    go (Constant ann constant)  = Constant ann constant
-    go (Builtin ann bi)         = Builtin ann bi
-    go (TyInst ann fun arg)     = TyInst ann (go fun) arg
-    go (Unwrap ann term)        = Unwrap ann (go term)
-    go (IWrap ann pat arg term) = IWrap ann pat arg (go term)
-    go (Error ann ty)           = Error ann ty
+    go (Var ann var)                  = if var == varFor then new else Var ann var
+    go (TyAbs ann tyn ty body)        = TyAbs ann tyn ty (go body)
+    go (LamAbs ann var ty body)       = LamAbs ann var ty (goUnder var body)
+    go (Apply ann fun arg)            = Apply ann (go fun) (go arg)
+    go (Constant ann constant)        = Constant ann constant
+    go (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn tys (map go args)
+    go (TyInst ann fun arg)           = TyInst ann (go fun) arg
+    go (Unwrap ann term)              = Unwrap ann (go term)
+    go (IWrap ann pat arg term)       = IWrap ann pat arg (go term)
+    go (Error ann ty)                 = Error ann ty
 
     goUnder var term = if var == varFor then term else go term
 
@@ -93,17 +95,18 @@ substituteDb varFor new = go where
 (|>)
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
-stack |> TyInst _ fun ty        = FrameTyInstArg ty      : stack |> fun
-stack |> Apply _ fun arg        = FrameApplyArg arg      : stack |> fun
-stack |> IWrap ann pat arg term = FrameIWrap ann pat arg : stack |> term
-stack |> Unwrap _ term          = FrameUnwrap            : stack |> term
-stack |> tyAbs@TyAbs{}          = stack <| tyAbs
-stack |> lamAbs@LamAbs{}        = stack <| lamAbs
-stack |> bi@Builtin{}           = stack <| bi
-stack |> constant@Constant{}    = stack <| constant
-_     |> err@Error{}            =
+stack |> TyInst _ fun ty                  = FrameTyInstArg ty      : stack |> fun
+stack |> Apply _ fun arg                  = FrameApplyArg arg      : stack |> fun
+stack |> IWrap ann pat arg term           = FrameIWrap ann pat arg : stack |> term
+stack |> Unwrap _ term                    = FrameUnwrap            : stack |> term
+stack |> tyAbs@TyAbs{}                    = stack <| tyAbs
+stack |> lamAbs@LamAbs{}                  = stack <| lamAbs
+stack |> ApplyBuiltin _ bn tys []         = applyBuiltin stack bn tys []
+stack |> ApplyBuiltin _ bn tys (arg:args) = FrameApplyBuiltin bn tys [] args : stack |> arg
+stack |> constant@Constant{}              = stack <| constant
+_     |> err@Error{}                      =
     throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
-_     |> var@Var{}              =
+_     |> var@Var{}                        =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
 
 -- | The returning part of the CK machine. Rules are as follows:
@@ -127,6 +130,16 @@ FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
 FrameUnwrap            : stack <| wrapped = case wrapped of
     IWrap _ _ _ term -> stack <| term
     term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
+FrameApplyBuiltin bn tys values terms : stack <| value = case terms of
+                                                           [] -> applyBuiltin stack bn tys (value:values)
+                                                           arg:args -> FrameApplyBuiltin bn tys (value:values) args : stack |> arg
+
+applyBuiltin :: Context uni
+             -> BuiltinName
+             -> [Type TyName uni ()]
+             -> [Value TyName Name uni ()]
+             -> CkM uni (Term TyName Name uni ())
+applyBuiltin = undefined
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -161,20 +174,20 @@ applyEvaluate stack fun                    arg =
         case termAsPrimIterApp term of
             Nothing ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
-            Just (IterApp DynamicStagedBuiltinName{} _) ->
+            Just (IterApp DynBuiltinName{} _) ->
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
-            Just (IterApp (StaticStagedBuiltinName name) spine) -> do
-                constAppResult <- applyEvaluateCkBuiltinName name spine
+            Just (IterApp (StaticBuiltinName name) spine) -> do
+                constAppResult <- applyEvaluateCkStaticBuiltinName name spine
                 case constAppResult of
                     ConstAppSuccess res -> stack |> res
                     ConstAppStuck       -> stack <| term
 
-applyEvaluateCkBuiltinName
+applyEvaluateCkStaticBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
-applyEvaluateCkBuiltinName name args = do
+    => StaticBuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
+applyEvaluateCkStaticBuiltinName name args = do
     params <- builtinCostParams
     void <$> applyBuiltinName params name (withMemory <$> args)
 

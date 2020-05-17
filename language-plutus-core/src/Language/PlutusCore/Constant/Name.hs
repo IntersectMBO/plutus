@@ -53,13 +53,13 @@ instance (KnownType uni arg, KnownTypeScheme uni args res) =>
     knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
 
 -- | Automatically typify a 'BuiltinName'.
-makeTypedBuiltinName :: KnownTypeScheme uni args res => BuiltinName -> TypedBuiltinName uni args res
+makeTypedBuiltinName :: KnownTypeScheme uni args res => StaticBuiltinName -> TypedBuiltinName uni args res
 makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
 withTypedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName -> (forall args res. TypedBuiltinName uni args res -> c) -> c
+    => StaticBuiltinName -> (forall args res. TypedBuiltinName uni args res -> c) -> c
 withTypedBuiltinName AddInteger           k = k typedAddInteger
 withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
 withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger

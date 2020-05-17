@@ -9,8 +9,9 @@
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
-    , builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
+    , mkStaticBuiltinApp
+    , mkDynamicBuiltinApp
     , mkTyBuiltin
     , mkConstant
     , VarDecl (..)
@@ -53,26 +54,33 @@ import           GHC.Generics                          (Generic)
 --- TODO: add @con@.
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni where
-    var      :: ann -> name -> term ann
-    tyAbs    :: ann -> tyname -> Kind ann -> term ann -> term ann
-    lamAbs   :: ann -> name -> Type tyname uni ann -> term ann -> term ann
-    apply    :: ann -> term ann -> term ann -> term ann
-    constant :: ann -> Some (ValueOf uni) -> term ann
-    builtin  :: ann -> Builtin ann -> term ann
-    tyInst   :: ann -> term ann -> Type tyname uni ann -> term ann
-    unwrap   :: ann -> term ann -> term ann
-    iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
-    error    :: ann -> Type tyname uni ann -> term ann
-    termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
-    typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
+    var          :: ann -> name -> term ann
+    tyAbs        :: ann -> tyname -> Kind ann -> term ann -> term ann
+    lamAbs       :: ann -> name -> Type tyname uni ann -> term ann -> term ann
+    apply        :: ann -> term ann -> term ann -> term ann
+    constant     :: ann -> Some (ValueOf uni) -> term ann
+    applyBuiltin :: ann -> BuiltinName -> [Type tyname uni ann] -> [term ann] -> term ann
+    tyInst       :: ann -> term ann -> Type tyname uni ann -> term ann
+    unwrap       :: ann -> term ann -> term ann
+    iWrap        :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
+    error        :: ann -> Type tyname uni ann -> term ann
+    termLet      :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
+    typeLet      :: ann -> TypeDef tyname uni ann -> term ann -> term ann
+
+
+dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
+dynamicBuiltinNameAsTerm = undefined "dynamicBuiltinNameAsTerm"
 
 -- | Lift a 'BuiltinName' to 'Term'.
-builtinNameAsTerm :: TermLike term tyname name uni => BuiltinName -> term ()
-builtinNameAsTerm = builtin () . BuiltinName ()
+mkStaticBuiltinApp :: TermLike term tyname name uni
+                      => StaticBuiltinName -> [Type tyname uni ()] -> [term ()] -> term ()
+mkStaticBuiltinApp sbn tys args = applyBuiltin () (StaticBuiltinName sbn) tys args
+                         
 
 -- | Lift a 'DynamicBuiltinName' to 'Term'.
-dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
-dynamicBuiltinNameAsTerm = builtin () . DynBuiltinName ()
+mkDynamicBuiltinApp :: TermLike term tyname name uni
+                       => DynamicBuiltinName -> [Type tyname uni ()] -> [term ()] -> term ()
+mkDynamicBuiltinApp dbn tys args = applyBuiltin () (DynBuiltinName dbn) tys args
 
 -- | Embed a type from a universe into a PLC type.
 mkTyBuiltin
@@ -87,31 +95,31 @@ mkConstant
 mkConstant ann = constant ann . someValue
 
 instance TermLike (Term tyname name uni) tyname name uni where
-    var      = Var
-    tyAbs    = TyAbs
-    lamAbs   = LamAbs
-    apply    = Apply
-    constant = Constant
-    builtin  = Builtin
-    tyInst   = TyInst
-    unwrap   = Unwrap
-    iWrap    = IWrap
-    error    = Error
-    termLet  = mkImmediateLamAbs
-    typeLet  = mkImmediateTyAbs
+    var          = Var
+    tyAbs        = TyAbs
+    lamAbs       = LamAbs
+    apply        = Apply
+    constant     = Constant
+    applyBuiltin = ApplyBuiltin
+    tyInst       = TyInst
+    unwrap       = Unwrap
+    iWrap        = IWrap
+    error        = Error
+    termLet      = mkImmediateLamAbs
+    typeLet      = mkImmediateTyAbs
 
 embed :: TermLike term tyname name uni => Term tyname name uni ann -> term ann
 embed = \case
-    Var a n           -> var a n
-    TyAbs a tn k t    -> tyAbs a tn k (embed t)
-    LamAbs a n ty t   -> lamAbs a n ty (embed t)
-    Apply a t1 t2     -> apply a (embed t1) (embed t2)
-    Constant a c      -> constant a c
-    Builtin a bi      -> builtin a bi
-    TyInst a t ty     -> tyInst a (embed t) ty
-    Error a ty        -> error a ty
-    Unwrap a t        -> unwrap a (embed t)
-    IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
+    Var a n                    -> var a n
+    TyAbs a tn k t             -> tyAbs a tn k (embed t)
+    LamAbs a n ty t            -> lamAbs a n ty (embed t)
+    Apply a t1 t2              -> apply a (embed t1) (embed t2)
+    Constant a c               -> constant a c
+    ApplyBuiltin a bn tys args -> applyBuiltin a bn tys (map embed args)
+    TyInst a t ty              -> tyInst a (embed t) ty
+    Error a ty                 -> error a ty
+    Unwrap a t                 -> unwrap a (embed t)
+    IWrap a ty1 ty2 t          -> iWrap a ty1 ty2 (embed t)
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
 data VarDecl tyname name uni ann = VarDecl

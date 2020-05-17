@@ -88,7 +88,7 @@ data TypeScheme uni (args :: [GHC.Type]) res where
         -> TypeScheme uni args res
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName uni args res = TypedBuiltinName BuiltinName (TypeScheme uni args res)
+data TypedBuiltinName uni args res = TypedBuiltinName StaticBuiltinName (TypeScheme uni args res)
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --

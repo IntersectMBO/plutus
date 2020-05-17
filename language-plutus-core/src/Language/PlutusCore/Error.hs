@@ -90,7 +90,7 @@ makeClassyPrisms ''UnknownDynamicBuiltinNameError
 
 -- | An internal error occurred during type checking.
 data InternalTypeError uni ann
-    = OpenTypeOfBuiltin (Type TyName uni ()) (Builtin ())
+    = OpenTypeOfBuiltin (Type TyName uni ()) BuiltinName
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''InternalTypeError
 

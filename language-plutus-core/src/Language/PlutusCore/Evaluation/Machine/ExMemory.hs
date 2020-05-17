@@ -31,7 +31,6 @@ import qualified Data.ByteString.Lazy         as BSL
 import qualified Data.Kind                    as GHC
 import           Data.Proxy
 import qualified Data.Text                    as T
-import           Foreign.Storable
 import           GHC.Generics
 import           GHC.Integer
 import           GHC.Integer.Logarithms
@@ -97,15 +96,20 @@ instance (Generic a, GExMemoryUsage (Rep a)) => ExMemoryUsage (GenericExMemoryUs
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
+-- FAO @reactorkonk: This is needed to deal with the lists in ApplyBuiltin;
+-- There was an existing instance for String which had to be deleted.
+instance ExMemoryUsage a => ExMemoryUsage [a] where
+    memoryUsage l = sum $ fmap (\e -> memoryUsage e + 1) l
+
 deriving via (GenericExMemoryUsage Name) instance ExMemoryUsage Name
-deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
-deriving via (GenericExMemoryUsage (Builtin ann)) instance ExMemoryUsage ann => ExMemoryUsage (Builtin ann)
-deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
 deriving via (GenericExMemoryUsage BuiltinName) instance ExMemoryUsage BuiltinName
+deriving via (GenericExMemoryUsage (Type TyName uni ann)) instance ExMemoryUsage ann => ExMemoryUsage (Type TyName uni ann)
+deriving via (GenericExMemoryUsage (Kind ann)) instance ExMemoryUsage ann => ExMemoryUsage (Kind ann)
+deriving via (GenericExMemoryUsage StaticBuiltinName) instance ExMemoryUsage StaticBuiltinName
 deriving via (GenericExMemoryUsage DynamicBuiltinName) instance ExMemoryUsage DynamicBuiltinName
 deriving via (GenericExMemoryUsage (Term TyName Name uni ann))
-  instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
-    ExMemoryUsage (Term TyName Name uni ann)
+         instance (ExMemoryUsage ann, Closed uni, uni `Everywhere` ExMemoryUsage) =>
+             ExMemoryUsage (Term TyName Name uni ann)
 deriving newtype instance ExMemoryUsage TyName
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
@@ -139,9 +143,6 @@ instance ExMemoryUsage Char where
 
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
-
-instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
 
 withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
 withMemory x = fmap (const (memoryUsage x)) x

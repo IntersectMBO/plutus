@@ -25,7 +25,7 @@ instance DefaultPrettyPlcStrategy (Program tyname name uni ann) =>
     PrettyBy PrettyConfigPlc (Program tyname name uni ann)
 
 -- TODO: use @DerivingVia@.
-instance PrettyBy PrettyConfigPlc BuiltinName where
+instance PrettyBy PrettyConfigPlc StaticBuiltinName where
     prettyBy _ = pretty
-instance PrettyBy PrettyConfigPlc (Builtin ann) where
+instance PrettyBy PrettyConfigPlc BuiltinName where
     prettyBy _ = pretty

@@ -69,8 +69,8 @@ renameTermM (Unwrap ann term)          = Unwrap ann <$> renameTermM term
 renameTermM (Error ann ty)             = Error ann <$> renameTypeM ty
 renameTermM (TyInst ann term ty)       = TyInst ann <$> renameTermM term <*> renameTypeM ty
 renameTermM (Var ann name)             = Var ann <$> renameNameM name
+renameTermM (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn <$> mapM renameTypeM tys <*> mapM renameTermM args  -- FIXME: CHECK
 renameTermM con@Constant{}             = pure con
-renameTermM bi@Builtin{}               = pure bi
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

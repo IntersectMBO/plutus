@@ -48,17 +48,26 @@ instance
         , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
-        a (ConstantF _ b)      = parens' ("con" </> pretty b)  -- NB: actually calls prettyConst
-        a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
-        a (ApplyF _ t t')      = brackets' (vsep' [t, t'])
-        a (VarF _ n)           = prettyName n
-        a (TyAbsF _ n k t)     = parens' ("abs" </> vsep' [prettyName n, prettyBy config k, t])
-        a (TyInstF _ t ty)     = braces' (vsep' [t, prettyBy config ty])
+        a (ConstantF _ b)               = parens' ("con" </> pretty b)  -- NB: actually calls prettyConst
+        a (ApplyBuiltinF _ bn tys args) =
+            case tys of
+              [] -> parens' ("builtin" </> pretty bn </> vsep' args)  -- (builtin bn e1 ... eN)
+              _  -> parens' ("builtin"                                     -- ({builtin bn t1 ... tM} e1 ... eN)
+                             </> braces'(
+                                     pretty bn
+                                 </> vsep' (map (prettyBy config) tys)
+                                 )
+                             </> vsep' args
+                            )
+        a (ApplyF _ t t')               = brackets' (vsep' [t, t'])
+        a (VarF _ n)                    = prettyName n
+        a (TyAbsF _ n k t)              = parens' ("abs" </> vsep' [prettyName n, prettyBy config k, t])
+        a (TyInstF _ t ty)              = braces' (vsep' [t, prettyBy config ty])
         -- FIXME: only do the </> thing when there's a line break in the `vsep'` part?
-        a (LamAbsF _ n ty t)   = parens' ("lam" </> vsep' [prettyName n, prettyBy config ty, t])
-        a (UnwrapF _ t)        = parens' ("unwrap" </> t)
-        a (IWrapF _ pat arg t) = parens' ("iwrap" </> vsep' [prettyBy config pat, prettyBy config arg, t])
-        a (ErrorF _ ty)        = parens' ("error" </> prettyBy config ty)
+        a (LamAbsF _ n ty t)            = parens' ("lam" </> vsep' [prettyName n, prettyBy config ty, t])
+        a (UnwrapF _ t)                 = parens' ("unwrap" </> t)
+        a (IWrapF _ pat arg t)          = parens' ("iwrap" </> vsep' [prettyBy config pat, prettyBy config arg, t])
+        a (ErrorF _ ty)                 = parens' ("error" </> prettyBy config ty)
 
         prettyName :: PrettyClassicBy configName n => n -> Doc ann
         prettyName = prettyBy config
