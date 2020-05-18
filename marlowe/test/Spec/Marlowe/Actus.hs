@@ -8,6 +8,9 @@ import           Language.Marlowe.Semantics
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Language.Marlowe.ACTUS.ContractState
 import           Language.Marlowe.ACTUS.BusinessEvents
+import           Language.Marlowe.ACTUS.ActusValidator
+import           Language.Marlowe.ACTUS.Schedule
+import           Language.Marlowe.ACTUS.ProjectedCashFlows
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
@@ -20,13 +23,14 @@ import           Debug.Trace
 
 tests :: TestTree
 tests = testGroup "Actus"
-    [ testCase "Simple PAM contract" pamSimple
+    [ testCase "PAM static schedule" pamProjected
+    , testCase "Simple PAM contract + Marlowe IO" pamSimple
+    , testCase "Simple PAM contract" pamRePlay
     ]
 
-pamSimple :: IO ()
-pamSimple = do
-    let contractTerms = PamContractTerms {
-            contractId = ""
+contractTerms :: ContractTerms
+contractTerms = PamContractTerms {
+          contractId = "0"
         , _SD = fromGregorian 2008 10 22 -- start date
         , _MD = fromGregorian 2009 10 22 -- maturity date
         , _TD = fromGregorian 2009 10 22  -- termination date
@@ -82,6 +86,42 @@ pamSimple = do
         , _FEB = FEB_N
         , _FER = 0.03 -- fee rate
     }
+
+
+cashFlowFixture t date event amount = CashFlow {
+    tick = t,
+    cashContractId = "0",
+    cashParty = "party",
+    cashCounterParty = "counterparty",
+    cashPaymentDay = date,
+    cashCalculationDay = date,
+    cashEvent = event,
+    amount = amount,
+    currency = "ada"
+}
+
+fixtureEventIED = IED_EVENT 1.0
+fixtureEventMD = MD_EVENT 1.0
+
+
+pamProjected :: IO ()
+pamProjected = do 
+    let cfs = genProjectedCashflows contractTerms 
+    let cfsEmpty = null cfs
+    assertBool "Cashflows should not be empty" $ trace ("Projected CashFlows: " ++ (show cfs)) (not cfsEmpty)
+    return ()
+
+
+pamRePlay :: IO ()
+pamRePlay = do 
+    let cf1 = cashFlowFixture 0 (_SD contractTerms) fixtureEventIED 1100.0
+    let cf2 = cashFlowFixture 1 (_MD contractTerms) fixtureEventMD 1000.0
+    let result = validateCashFlow contractTerms [cf1] cf2
+    assertBool "Result" result
+
+
+pamSimple :: IO ()
+pamSimple = do
     let customValidator = actusMarloweValidator contractTerms
     let contract = genContract
     let initState = emptyState 0

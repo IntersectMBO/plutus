@@ -31,9 +31,15 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                     deriving (Eq, Ord, Show)
                      
 mapEventType :: ScheduledEvent -> EventType
-mapEventType event = case event of {
+mapEventType event = case event of 
     _ -> PP --todo
-}
+
+
+projectEvent :: EventType -> ScheduledEvent
+projectEvent eventType = case eventType of 
+    IED -> IED_EVENT 1.0
+    MD -> MD_EVENT 1.0
+    AD -> AD_EVENT 1.0
 
 eventTypeIdToEventType :: Integer -> EventType
 eventTypeIdToEventType id = AD --todo

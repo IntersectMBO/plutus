@@ -213,7 +213,7 @@ stateParser state@State{..} =
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser txOutState
-        steps = trace ("parsed cash flows:" ++ (show cashflows)) $ L.inits cashflows
+        steps = L.inits cashflows
         --todo simplify, stop early
         result = L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps
     in if null cashflows then True else result 
