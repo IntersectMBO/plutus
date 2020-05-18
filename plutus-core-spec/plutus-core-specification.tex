@@ -741,6 +741,7 @@ Higher-kinding introduces computation in types so we need the rule
     \begin{prooftree}
         \alwaysNoLine
         \AxiomC{$\mathit{bn}$ has signature $\sig{\alpha_1 :: K_1, ..., \alpha_k :: K_k}{B_1, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{A_i}{K_i}}\)}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
         \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_1, ..., A_k}{\alpha_1, ..., \alpha_k}{B_i}}\)}
         \alwaysSingleLine
