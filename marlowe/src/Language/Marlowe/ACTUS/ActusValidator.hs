@@ -41,7 +41,7 @@ replayValidatedEvents terms past present =
 -- validated cashflows are part of transaction state, present is proposed cashflow
 validateCashFlow :: ContractTerms -> ValidatedCashFlows -> CashFlow -> Bool
 validateCashFlow terms past present = 
-    let schedule = fromJust (genShiftedSchedule (mapEventType (cashEvent present)) terms)
+    let schedule = fromMaybe [] (genShiftedSchedule (mapEventType (cashEvent present)) terms)
         noUnreportedOverdue = checkAllScheduledEventsHappened (cashPaymentDay present) schedule past 
     in case (cashEvent present) of 
         PP_EVENT {..} -> noUnreportedOverdue -- maybe check that outstanding notional is still positive and compare pp_payoff to amount

@@ -1,9 +1,13 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Language.Marlowe.ACTUS.BusinessEvents where
 import Data.Time
+import Data.Maybe
+import Data.Tuple
 
 data EventType = 
     AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
-    deriving (Enum)
+    deriving (Eq)
 
 data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieves current contract states without alter these
                     | IED_EVENT {o_rf_CURS :: Double}   -- Initial Exchange Date Scheduled date of first principal event, start of accrual calculation
@@ -32,7 +36,9 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                      
 mapEventType :: ScheduledEvent -> EventType
 mapEventType event = case event of 
-    _ -> PP --todo
+    AD_EVENT{..} -> MD
+    MD_EVENT{..} -> MD
+    IED_EVENT{..} -> IED
 
 
 projectEvent :: EventType -> ScheduledEvent
@@ -41,8 +47,10 @@ projectEvent eventType = case eventType of
     MD -> MD_EVENT 1.0
     AD -> AD_EVENT 1.0
 
-eventTypeIdToEventType :: Integer -> EventType
-eventTypeIdToEventType id = AD --todo
+eventEnumTable = [(AD, 0), (IED, 1), (MD, 2)] --can't use Enums in Plutus???
+
+eventTypeIdToEventType :: Integer -> EventType 
+eventTypeIdToEventType = fromJust . flip lookup (map swap eventEnumTable)
 
 eventTypeToEventTypeId :: EventType -> Integer
-eventTypeToEventTypeId ev = 0
+eventTypeToEventTypeId = fromJust . flip lookup eventEnumTable

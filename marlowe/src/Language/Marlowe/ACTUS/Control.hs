@@ -145,6 +145,26 @@ genContract  =
 parseDouble :: Integer -> Double
 parseDouble int = (fromIntegral int) / marloweFixedPoint
 
+
+appendPresentState :: State -> State
+appendPresentState state = 
+    if isJust $ Map.lookup (ValueId $ (fromString "payoffCurrency")) (boundValues state)
+        then    let 
+                    emptyLoopSt = LoopState {
+                        logicalTime = 0,
+                        stateHistory = Map.empty
+                    }
+                    loopSt = fromMaybe emptyLoopSt (loopState state)
+                    state' = state {
+                        loopState = Just (loopSt {
+                            originalContract = Close,
+                            logicalTime = (logicalTime loopSt) + 1,
+                            stateHistory = Map.insert (logicalTime loopSt) (boundValues state) (stateHistory loopSt)
+                        })
+                    }
+                in trace ("?????" ++ (show state')) state'
+        else    state
+
 stateParser :: State -> [CashFlow]
 stateParser state@State{..} =
     let 
@@ -154,7 +174,7 @@ stateParser state@State{..} =
             let
                 look :: String -> Integer
                 look name = fromJust $ Map.lookup (ValueId $ (fromString name)) $ fromJust $ Map.lookup t stateHist
-                proposedPaymentDate = slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
+                proposedPaymentDate = fromGregorian 2008 10 20 -- slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent id = case eventTypeIdToEventType id of
                     AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
                     IED  -> IED_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
@@ -212,9 +232,9 @@ stateParser state@State{..} =
 -- we can optimize it futher to O(1) by only validating inputs from latest transaction
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
-    let cashflows = stateParser txOutState
-        steps = L.inits cashflows
-        --todo simplify, stop early
-        result = L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps
+    let cashflows = stateParser (appendPresentState txOutState) 
+        -- steps = L.inits cashflows
+        -- result = L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps
+        result = validateCashFlow terms (L.init cashflows) (L.last cashflows) --todo THIS IS NOT SECURE
     in if null cashflows then True else result 
 actusMarloweValidator _ (Error _) = False

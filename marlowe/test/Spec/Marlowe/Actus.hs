@@ -138,9 +138,9 @@ pamSimple = do
     let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
     let txOutput = computeTransactionWithLoopSupport txInput initState contract
     let validationResult = trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ customValidator txOutput
-    let parsedCashFlows = stateParser $ txOutState txOutput
+    let parsedCashFlows = stateParser $ (appendPresentState $ txOutState txOutput)
     let parsedCashFlowsEmpty = null parsedCashFlows
-    assertBool "Result" validationResult
     assertBool "ParsedCashflows are empty" $ not parsedCashFlowsEmpty
+    assertBool "Result" validationResult
     assertEqual "Contract is not closed" Close (txOutContract txOutput)
 
