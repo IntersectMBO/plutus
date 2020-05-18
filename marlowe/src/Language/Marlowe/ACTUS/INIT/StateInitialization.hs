@@ -9,15 +9,18 @@ import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Schedule
 import Data.Maybe
+import Language.Marlowe.ACTUS.Utility.DateShift
+
+shift = applyBDCWithCfg
 
 inititializeState :: ContractTerms -> ContractState
 inititializeState terms = 
     case terms of
         PamContractTerms{..} -> 
             let 
-                fpSchedule = fromJust $ schedule FP terms
-                ipSchedule = fromJust $ schedule IP terms
                 t0 = _SD
+                fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
+                ipSchedule = fromMaybe [shift scfg t0] $ schedule IP terms
                 tminus = calculationDay $ sup ipSchedule t0
                 tfp_minus = calculationDay $ sup fpSchedule t0
                 tfp_plus = calculationDay $ inf fpSchedule t0

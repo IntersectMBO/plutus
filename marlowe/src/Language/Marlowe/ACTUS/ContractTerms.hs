@@ -98,13 +98,13 @@ type ContractTermsContext = Map String ContractTerms
 
 data ContractTerms = PamContractTerms { 
   contractId :: String
+  , _IED :: Day -- Initial Exchange Date
   , _SD :: Day -- start date
   , _MD :: Day -- maturity date
   , _TD :: Day -- termination date
   , _PRD :: Day -- purchase date
-  , _IED :: Day -- Initial Exchange Date
   , _CNTRL :: ContractRole
-  , _PDIED :: Double -- Premium Discount At IED
+  , _PDIED :: Double -- Premium / Discount At IED
   , _NT :: Double -- Notional
   , _PPRD :: Double -- Price At Purchase Date
   , _PTD :: Double -- Price At Termination Date

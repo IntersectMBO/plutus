@@ -36,11 +36,16 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER
                 else if isJust _FEAC     then fromJust _FEAC
                 else if _FEB == FEB_N     then (y _DCC tfp_minus t0 _MD) * nt * fromJust _FER
                 else                          ((y _DCC tfp_minus t0 _MD) / (y _DCC tfp_minus tfp_plus _MD)) * fromJust _FER
+        feac  = if     isNothing _FER   then 0.0 --todo: ask Nils how to intialize this. Is it same as Feac??
+                else if isJust _FEAC     then fromJust _FEAC
+                else if _FEB == FEB_N     then (y _DCC tfp_minus t0 _MD) * nt * fromJust _FER
+                else                          ((y _DCC tfp_minus t0 _MD) / (y _DCC tfp_minus tfp_plus _MD)) * fromJust _FER
+  
         nsc   = if scef_xNx _SCEF        then _SCIXSD
                                          else 1.0
         isc   = if scef_Ixx _SCEF        then _SCIXSD
                                          else 1.0
         prf   = _PRF
         sd    = t0
-    in ContractState { tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, nsc = nsc, isc = isc, prf = prf, sd = sd }
+    in ContractState { tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
     

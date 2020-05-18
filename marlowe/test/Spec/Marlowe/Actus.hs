@@ -31,13 +31,13 @@ tests = testGroup "Actus"
 contractTerms :: ContractTerms
 contractTerms = PamContractTerms {
           contractId = "0"
+        , _IED = fromGregorian 2008 10 20 -- Initial Exchange Date
         , _SD = fromGregorian 2008 10 22 -- start date
         , _MD = fromGregorian 2009 10 22 -- maturity date
         , _TD = fromGregorian 2009 10 22  -- termination date
-        , _PRD = fromGregorian 2009 10 22 -- purchase date
-        , _IED = fromGregorian 2009 10 22 -- Initial Exchange Date
+        , _PRD = fromGregorian 2008 10 20 -- purchase date
         , _CNTRL = CR_LG
-        , _PDIED = 100.0 -- Premium Discount At IED
+        , _PDIED = -100.0 -- Discount At IED
         , _NT = 1000.0 -- Notional
         , _PPRD = 1200.0 -- Price At Purchase Date
         , _PTD = 1200.0 -- Price At Termination Date
@@ -100,10 +100,6 @@ cashFlowFixture t date event amount = CashFlow {
     currency = "ada"
 }
 
-fixtureEventIED = IED_EVENT 1.0
-fixtureEventMD = MD_EVENT 1.0
-
-
 pamProjected :: IO ()
 pamProjected = do 
     let cfs = genProjectedCashflows contractTerms 
@@ -114,8 +110,8 @@ pamProjected = do
 
 pamRePlay :: IO ()
 pamRePlay = do 
-    let cf1 = cashFlowFixture 0 (_SD contractTerms) fixtureEventIED 1100.0
-    let cf2 = cashFlowFixture 1 (_MD contractTerms) fixtureEventMD 1000.0
+    let cf1 = cashFlowFixture 0 (_SD contractTerms) (projectEvent IED) 1100.0
+    let cf2 = cashFlowFixture 1 (_MD contractTerms) (projectEvent MD) 1100.0
     let result = validateCashFlow contractTerms [cf1] cf2
     assertBool "Result" result
 

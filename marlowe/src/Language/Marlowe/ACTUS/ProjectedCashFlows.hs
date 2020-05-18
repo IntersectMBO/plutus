@@ -27,14 +27,14 @@ genProjectedCashflows terms = let
     scheduleEvent e = fmap (projectPreserveDate e) (getSchedule e)
     events = concatMap scheduleEvent eventTypes
 
-    applyStateTransition (st, _, _) (ev, date) = (stateTransition ev terms st (calculationDay date) undefined undefined, ev, date)
+    applyStateTransition (st, ev, date) (ev', date') = (stateTransition ev terms st (calculationDay date) undefined undefined, ev', date')
     calculatePayoff (st, ev, date) = payoff ev terms st (calculationDay date) undefined undefined
 
     init = (inititializeState terms, (projectEvent AD), ShiftedDay analysisDate analysisDate)
-    states = L.scanl applyStateTransition init events
-    payoffs = L.map calculatePayoff states
+    states = L.tail $ L.scanl applyStateTransition init events
+    payoffs = L.map calculatePayoff $ states
 
-    genCashflow ((ev, d), payoff) = CashFlow {
+    genCashflow ((_, ev, d), payoff) = CashFlow {
         tick = 0,
         cashContractId = "0",
         cashParty = "party",
@@ -45,7 +45,7 @@ genProjectedCashflows terms = let
         amount = payoff,
         currency = "ada"
     }
-    in L.map genCashflow $ L.zip events payoffs
+    in L.map genCashflow $ L.zip states payoffs
 
 
 

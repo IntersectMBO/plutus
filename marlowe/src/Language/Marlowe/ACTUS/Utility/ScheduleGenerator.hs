@@ -16,10 +16,10 @@ import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.Utility.DateShift
 
 sup :: [ShiftedDay] -> Day -> ShiftedDay
-sup set threshold = minimum (filter (\t -> (calculationDay t) > threshold) set)
+sup set threshold = minimum (filter (\t -> (calculationDay t) >= threshold) set)
 
 inf :: [ShiftedDay] -> Day -> ShiftedDay
-inf set threshold = minimum (filter (\t -> (calculationDay t) < threshold) set)
+inf set threshold = maximum (filter (\t -> (calculationDay t) <= threshold) set)
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d set = (filter (\t -> (calculationDay t) /= (calculationDay d)) set)

@@ -12,13 +12,17 @@ import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Data.Maybe
 
+import Language.Marlowe.ACTUS.Utility.DateShift
+
+shift = applyBDCWithCfg
+
 stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> ContractState
 stateTransition ev terms st@ContractState{..} t termsCtx stateCtx = 
     case terms of
         PamContractTerms{..} -> 
             let 
-                fpSchedule = fromJust $ schedule FP terms
                 t0 = _SD
+                fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
                 tfp_minus = calculationDay $ sup fpSchedule t0
                 tfp_plus = calculationDay $ inf fpSchedule t0
             in case ev of 

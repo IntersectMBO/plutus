@@ -36,7 +36,7 @@ replayValidatedEvents terms past present =
         calculatePayoff st cf = payoff (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
         init = inititializeState terms
         memory = L.foldl applyStateTransition init past
-    in calculatePayoff (applyStateTransition memory present) present
+    in calculatePayoff memory present
 
 -- validated cashflows are part of transaction state, present is proposed cashflow
 validateCashFlow :: ContractTerms -> ValidatedCashFlows -> CashFlow -> Bool
