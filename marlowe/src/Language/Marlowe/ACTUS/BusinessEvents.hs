@@ -1,7 +1,9 @@
 module Language.Marlowe.ACTUS.BusinessEvents where
 import Data.Time
 
-data EventType = AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
+data EventType = 
+    AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR
+    deriving (Enum)
 
 data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieves current contract states without alter these
                     | IED_EVENT {o_rf_CURS :: Double}   -- Initial Exchange Date Scheduled date of first principal event, start of accrual calculation

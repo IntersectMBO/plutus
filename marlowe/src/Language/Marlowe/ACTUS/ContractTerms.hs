@@ -98,30 +98,34 @@ type ContractTermsContext = Map String ContractTerms
 
 data ContractTerms = PamContractTerms { 
   contractId :: String
-  , _SD :: Day
-  , _MD :: Day
-  , _TD :: Day
-  , _PRD :: Day
+  , _SD :: Day -- start date
+  , _MD :: Day -- maturity date
+  , _TD :: Day -- termination date
+  , _PRD :: Day -- purchase date
+  , _IED :: Day -- Initial Exchange Date
   , _CNTRL :: ContractRole
-  , _PDIED :: Double
-  , _NT :: Double
-  , _PYRT :: Double
-  , _PYTP :: PYTP
-  , _FEB :: FEB
-  , _FER :: Double
-  , _PPRD :: Double
-  , _PTD :: Double
+  , _PDIED :: Double -- Premium Discount At IED
+  , _NT :: Double -- Notional
+  , _PPRD :: Double -- Price At Purchase Date
+  , _PTD :: Double -- Price At Termination Date
+  , _DCC :: DCC -- Date Count Convention
+  , _PREF :: PREF -- allow PP
+  , _PRF :: ContractStatus
+  , scfg :: ScheduleConfig
+  -- Penalties
+  , _PYRT :: Double -- Penalty Rate
+  , _PYTP :: PYTP -- Penalty Pype
   , _cPYRT :: Double
-  , _DCC :: DCC
-  , _IED :: Day
-  , _PREF :: PREF
+  -- Optionality
   , _OPCL :: Maybe Cycle
   , _OPANX :: Maybe Day
+  -- Scaling:
   , _SCIED :: Double
   , _SCEF :: SCEF
   , _SCCL :: Maybe Cycle
   , _SCANX :: Maybe Day
   , _SCIXSD :: Double
+  -- Rate Reset
   , _RRCL :: Maybe Cycle
   , _RRANX :: Maybe Day
   , _RRNXT :: Maybe Double -- next reset date
@@ -131,16 +135,18 @@ data ContractTerms = PamContractTerms {
   , _RRPC :: Double
   , _RRLC :: Double
   , _RRLF :: Double
+  -- Interest
   , _IPCED :: Maybe Day
   , _IPCL :: Maybe Cycle
   , _IPANX :: Maybe Day
   , _IPNR :: Maybe Double
   , _IPAC :: Maybe Double
+  -- Fee
   , _FECL :: Maybe Cycle
   , _FEANX :: Maybe Day
   , _FEAC :: Maybe Double
-  , _PRF :: ContractStatus
-  , scfg :: ScheduleConfig
+  , _FEB :: FEB  -- fee basis
+  , _FER :: Double -- fee rate
   } | LamContractTerms { 
     _MD :: Day
   , _CNTRL :: ContractRole
