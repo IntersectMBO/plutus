@@ -202,12 +202,12 @@
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \AxiomC{$bn$ has signature $\sig{\alpha_1 :: K_1, ..., \alpha_k :: K_k}{B_1, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
-        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
+        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_1, ..., A_k}{\alpha_1, ..., \alpha_k}{B_i}}\)}
         \alwaysSingleLine
         \RightLabel{builtin}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_1 ... A_k}{M_1 ... M_n}}{\subst{A_1, ..., A_k}{\alpha_1, ..., \alpha_k}{C}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
