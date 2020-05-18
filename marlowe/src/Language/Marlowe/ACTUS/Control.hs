@@ -162,7 +162,7 @@ appendPresentState state =
                             stateHistory = Map.insert (logicalTime loopSt) (boundValues state) (stateHistory loopSt)
                         })
                     }
-                in trace ("?????" ++ (show state')) state'
+                in state'
         else    state
 
 stateParser :: State -> [CashFlow]
