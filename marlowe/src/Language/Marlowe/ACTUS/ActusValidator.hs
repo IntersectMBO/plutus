@@ -44,6 +44,7 @@ validateCashFlow terms past present =
     let schedule = fromMaybe [] (genShiftedSchedule (mapEventType (cashEvent present)) terms)
         noUnreportedOverdue = checkAllScheduledEventsHappened (cashPaymentDay present) schedule past 
     in case (cashEvent present) of 
+        AD_EVENT {..} -> True
         PP_EVENT {..} -> noUnreportedOverdue -- maybe check that outstanding notional is still positive and compare pp_payoff to amount
         CE_EVENT {..} -> not noUnreportedOverdue  
         _ -> 

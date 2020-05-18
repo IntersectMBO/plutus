@@ -20,6 +20,7 @@ import           Data.String (IsString (fromString))
 import           Ledger.Crypto
 import           Ledger.Value
 import           Debug.Trace
+import           Ledger.Ada                 (adaSymbol, adaToken)
 
 tests :: TestTree
 tests = testGroup "Actus"
@@ -27,6 +28,9 @@ tests = testGroup "Actus"
     , testCase "Simple PAM contract + Marlowe IO" pamSimple
     , testCase "Simple PAM contract" pamRePlay
     ]
+
+ada :: Token
+ada = Token adaSymbol adaToken
 
 contractTerms :: ContractTerms
 contractTerms = PamContractTerms {
@@ -110,8 +114,8 @@ pamProjected = do
 
 pamRePlay :: IO ()
 pamRePlay = do 
-    let cf1 = cashFlowFixture 0 (_SD contractTerms) (projectEvent IED) 1100.0
-    let cf2 = cashFlowFixture 1 (_MD contractTerms) (projectEvent MD) 1100.0
+    let cf1 = cashFlowFixture 0 (_SD contractTerms) (projectEvent IED) 900.0
+    let cf2 = cashFlowFixture 1 (_MD contractTerms) (projectEvent MD) 1000.0
     let result = validateCashFlow contractTerms [cf1] cf2
     assertBool "Result" result
 
@@ -124,20 +128,23 @@ pamSimple = do
     let inputs = (let 
                 mkChoice role choice value = 
                     IChoice (ChoiceId (fromString choice) (Role $ TokenName $ fromString role)) value
+                mkDeposit role value = 
+                    (IDeposit (AccountId 0 (Role $ TokenName $ fromString role)) (Role $ TokenName $ fromString role) ada value)
                 chooseContractId = mkChoice "party" "contractId" 10
-                chooseEventType = mkChoice "party" "eventType" (eventTypeToEventTypeId IP)
+                chooseEventType = mkChoice "party" "eventType" (eventTypeToEventTypeId AD)
                 chooseRiskFactor1 = mkChoice "oracle" "riskFactor-o_rf_CURS" 0
                 chooseRiskFactor2 = mkChoice "oracle" "riskFactor-o_rf_RRMO" 0
                 chooseRiskFactor3 = mkChoice "oracle" "riskFactor-o_rf_SCMO" 0
                 chooseRiskFactor4 = mkChoice "oracle" "riskFactor-pp_payoff" 0
                 choosePayoff = mkChoice "party" "payoff" 0
                 choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
+                deposit = mkDeposit "party" 0
                 in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
-                chooseRiskFactor4, choosePayoff, choosePayoffCurrency])
-        --(IDeposit AccountId Party ada 100)
+                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, deposit])
+        --
     let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
     let txOutput = computeTransactionWithLoopSupport txInput initState contract
-    let validationResult = trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ customValidator txOutput
+    let validationResult = customValidator txOutput --trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ 
     let parsedCashFlows = stateParser $ (appendPresentState $ txOutState txOutput)
     let parsedCashFlowsEmpty = null parsedCashFlows
     assertBool "ParsedCashflows are empty" $ not parsedCashFlowsEmpty
