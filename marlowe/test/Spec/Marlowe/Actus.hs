@@ -7,11 +7,16 @@ import           Language.Marlowe.ACTUS.Control
 import           Language.Marlowe.Semantics
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Language.Marlowe.ACTUS.ContractState
+import           Language.Marlowe.ACTUS.BusinessEvents
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
 import           Data.Maybe
-
+import           Language.Marlowe.Client
+import           Data.String (IsString (fromString))
+import           Ledger.Crypto
+import           Ledger.Value
+import           Debug.Trace
 
 tests :: TestTree
 tests = testGroup "Actus"
@@ -77,4 +82,29 @@ pamSimple = do
         , _FEB = FEB_N
         , _FER = 0.03 -- fee rate
     }
-    assertBool  "Result" True
+    let customValidator = actusMarloweValidator contractTerms
+    let contract = genContract
+    let initState = emptyState 0
+    let inputs = (let 
+                mkChoice role choice value = 
+                    IChoice (ChoiceId (fromString choice) (Role $ TokenName $ fromString role)) value
+                chooseContractId = mkChoice "party" "contractId" 10
+                chooseEventType = mkChoice "party" "eventType" (eventTypeToEventTypeId IP)
+                chooseRiskFactor1 = mkChoice "oracle" "riskFactor-o_rf_CURS" 0
+                chooseRiskFactor2 = mkChoice "oracle" "riskFactor-o_rf_RRMO" 0
+                chooseRiskFactor3 = mkChoice "oracle" "riskFactor-o_rf_SCMO" 0
+                chooseRiskFactor4 = mkChoice "oracle" "riskFactor-pp_payoff" 0
+                choosePayoff = mkChoice "party" "payoff" 0
+                choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
+                in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
+                chooseRiskFactor4, choosePayoff, choosePayoffCurrency])
+        --(IDeposit AccountId Party ada 100)
+    let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
+    let txOutput = computeTransactionWithLoopSupport txInput initState contract
+    let validationResult = trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ customValidator txOutput
+    let parsedCashFlows = stateParser $ txOutState txOutput
+    let parsedCashFlowsEmpty = null parsedCashFlows
+    assertBool "Result" validationResult
+    assertBool "ParsedCashflows are empty" $ not parsedCashFlowsEmpty
+    assertEqual "Contract is not closed" Close (txOutContract txOutput)
+

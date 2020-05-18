@@ -68,7 +68,6 @@ import qualified Ledger.Value               as Val
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
-
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
 
 {- Functions that used in Plutus Core must be inlineable,

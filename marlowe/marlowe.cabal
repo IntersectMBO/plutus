@@ -109,7 +109,7 @@ test-suite marlowe-test
         hedgehog -any,
         lens -any,
         memory -any,
-        time -any,
+            time -any,
         bytestring -any,
         freer-simple -any,
         tasty -any,

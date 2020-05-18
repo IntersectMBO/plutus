@@ -23,6 +23,7 @@ import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ActusValidator
 import Control.Arrow
+import Debug.Trace
 
 type Currency = String
 type Tkn = String
@@ -59,7 +60,7 @@ invoice from to amount continue =
             (Deposit (AccountId 0 party) party ada amount)
                 (Pay (AccountId 1 counterparty) (Party party) ada amount 
                     continue)]
-    100 Close 
+    1000000000 Close 
 
 roleSign :: TimePostfix -> String -> MarloweBool
 roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
@@ -74,7 +75,7 @@ inquiry timePosfix party partyId oracle continue = let
             [Case (Choice (ChoiceId inputChoiceId inputOwner) inputBound)
                 (Let (ValueId inputChoiceId) (ChoiceValue (ChoiceId inputChoiceId inputOwner) inputDefault)
                     cont)]
-            0
+            1000000000
             Close) 
     contractIdInquiry cont = inputTemplate 
         (fromString ("contractId" ++ timePosfix)) 
@@ -120,20 +121,20 @@ inquiry timePosfix party partyId oracle continue = let
         cont
     addEventInitiatorParty cont = (Let (ValueId (fromString "party")) (Constant partyId) cont)
     riskFactorsInquiry = 
-        (riskFactorInquiry "o_rf_CURS") >>> 
-        (riskFactorInquiry "o_rf_RRMO") >>> 
-        (riskFactorInquiry "o_rf_SCMO") >>>
+        (riskFactorInquiry "o_rf_CURS") . 
+        (riskFactorInquiry "o_rf_RRMO") . 
+        (riskFactorInquiry "o_rf_SCMO") .
         (riskFactorInquiry "pp_payoff")
-    in (contractIdInquiry >>> 
-        eventTypeInquiry >>> 
-        riskFactorsInquiry >>> 
-        payoffInquiry >>> 
-        payoffCurrencyInquiry >>> 
+    in (contractIdInquiry . 
+        eventTypeInquiry . 
+        riskFactorsInquiry . 
+        payoffInquiry . 
+        payoffCurrencyInquiry . 
         addEventInitiatorParty
     ) continue
 
-genContract :: [EventInitiatorParty] -> [EventInitiatorPartyId] -> Oracle -> Contract
-genContract parties partyIds oracle = --todo: for all initiators
+genContract :: Contract
+genContract  = 
     inquiry "" "party" 0 "oracle" $ 
         invoice "party" "counterparty" (UseValue $ ValueId (fromString "payoff")) 
             Close
@@ -212,5 +213,8 @@ stateParser state@State{..} =
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser txOutState
-        steps = L.inits cashflows
-    in L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps --todo simplify, stop early, check empty list
+        steps = trace ("parsed cash flows:" ++ (show cashflows)) $ L.inits cashflows
+        --todo simplify, stop early
+        result = L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps
+    in if null cashflows then True else result 
+actusMarloweValidator _ (Error _) = False

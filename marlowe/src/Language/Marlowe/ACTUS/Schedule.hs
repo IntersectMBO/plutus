@@ -21,6 +21,6 @@ data CashFlow = CashFlow {
     cashEvent :: ScheduledEvent,
     amount :: Double,
     currency :: String
-}
+} deriving (Show)
 
 type CashFlows = [CashFlow]

@@ -37,3 +37,6 @@ mapEventType event = case event of {
 
 eventTypeIdToEventType :: Integer -> EventType
 eventTypeIdToEventType id = AD --todo
+
+eventTypeToEventTypeId :: EventType -> Integer
+eventTypeToEventTypeId ev = 0
