@@ -1,11 +1,10 @@
 module Halogen.Classes where
 
 import Prelude
-import Data.Lens (Getter', to, (^.))
+import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
 import Halogen.HTML (HTML, IProp, span, text)
 import Halogen.HTML.Properties (classes)
-import Types (FrontendState, View(..), _showBottomPanel, _view)
 
 foreign import closeDrawerIcon :: String
 
@@ -125,9 +124,6 @@ activeClass p = to \x -> if p x then [ active ] else []
 activeClasses :: forall r i a. (a -> Boolean) -> Getter' a (IProp ( class :: String | r ) i)
 activeClasses p = activeClass p <<< to classes
 
-isActiveTab :: FrontendState -> View -> Array ClassName
-isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
-
 rTable :: ClassName
 rTable = ClassName "Rtable"
 
@@ -158,18 +154,6 @@ stateLabel = ClassName "state-label"
 pointer :: ClassName
 pointer = ClassName "pointer"
 
-analysisPanel :: FrontendState -> Array ClassName
-analysisPanel state = if state ^. _showBottomPanel then [ ClassName "analysis-panel" ] else [ ClassName "analysis-panel", ClassName "collapse" ]
-
-simulationBottomPanel :: FrontendState -> Array ClassName
-simulationBottomPanel state = if state ^. _showBottomPanel then [ ClassName "simulation-bottom-panel" ] else [ ClassName "simulation-bottom-panel", ClassName "collapse" ]
-
-codeEditor :: FrontendState -> Array ClassName
-codeEditor state = if state ^. _showBottomPanel then [ ClassName "code-editor" ] else [ ClassName "code-editor", ClassName "expanded" ]
-
-haskellEditor :: FrontendState -> Array ClassName
-haskellEditor state = if state ^. _showBottomPanel then [ ClassName "code-panel", ClassName "haskell-editor" ] else [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
-
 expanded :: Boolean -> ClassName
 expanded true = ClassName "expanded"
 
@@ -180,24 +164,23 @@ disabled true = ClassName "disabled"
 
 disabled false = ClassName ""
 
-footerPanelBg :: FrontendState -> View -> Array ClassName
-footerPanelBg state HaskellEditor =
-  if state ^. _showBottomPanel then
-    [ ClassName "footer-panel-bg", ClassName "expanded", ClassName "footer-panel-haskell" ]
-  else
-    [ ClassName "footer-panel-bg", ClassName "footer-panel-haskell" ]
-
-footerPanelBg state _ =
-  if state ^. _showBottomPanel then
-    [ ClassName "footer-panel-bg", ClassName "expanded" ]
-  else
-    [ ClassName "footer-panel-bg" ]
-
-githubDisplay :: FrontendState -> Array ClassName
-githubDisplay state = if state ^. _showBottomPanel then [ ClassName "hover" ] else []
-
-minimizeIcon :: FrontendState -> Array ClassName
-minimizeIcon state = if state ^. _showBottomPanel then [ ClassName "minimize-icon", ClassName "expanded" ] else [ ClassName "minimize-icon" ]
-
 spanText :: forall p i. String -> HTML p i
 spanText s = span [] [ text s ]
+
+sidebarComposer :: ClassName
+sidebarComposer = ClassName "sidebar-composer"
+
+codeEditor :: Boolean -> Array ClassName
+codeEditor true = [ ClassName "code-editor" ]
+
+codeEditor false = [ ClassName "code-editor", ClassName "expanded" ]
+
+haskellEditor :: Boolean -> Array ClassName
+haskellEditor true = [ ClassName "code-panel", ClassName "haskell-editor" ]
+
+haskellEditor false = [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
+
+minimizeIcon :: Boolean -> Array ClassName
+minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
+
+minimizeIcon false = [ ClassName "minimize-icon" ]

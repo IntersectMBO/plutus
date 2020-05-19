@@ -7,7 +7,8 @@ import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, traversed, view, (^.), (^..))
+import Data.Lens (to, traversed, (^.), (^..))
+import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
@@ -16,7 +17,7 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, isActiveTab, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, simulationBottomPanel, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
@@ -25,28 +26,34 @@ import Marlowe.Parser (transactionInputList, transactionWarningList)
 import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
-import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (/=), (<<<), (<>), (<$>))
+import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Simulation.Types (Action(..), BottomPanelView(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
+import Simulation.State (_contract, _currentTransactionInput, _editorErrors, _editorWarnings, _payments, _slot, _state, _transactionError, _transactionWarnings)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
-import Types (FrontendState, HAction(..), SimulationBottomPanelView(..), View(Simulation), _Head, _analysisState, _contract, _currentTransactionInput, _editorErrors, _editorWarnings, _marloweState, _payments, _showBottomPanel, _showErrorDetail, _simulationBottomPanelView, _slot, _state, _transactionError, _transactionWarnings)
 
-isContractValid :: FrontendState -> Boolean
-isContractValid state =
-  (view (_marloweState <<< _Head <<< _contract) state /= Nothing)
-    && (view (_marloweState <<< _Head <<< _editorErrors <<< to Array.null) state)
+simulationBottomPanel :: State -> Array ClassName
+simulationBottomPanel state = if state ^. _showBottomPanel then [ ClassName "simulation-bottom-panel" ] else [ ClassName "simulation-bottom-panel", ClassName "collapse" ]
 
-bottomPanel :: forall p. FrontendState -> HTML p HAction
+footerPanelBg :: Boolean -> Array ClassName
+footerPanelBg display =
+  if display then
+    [ ClassName "footer-panel-bg", ClassName "expanded" ]
+  else
+    [ ClassName "footer-panel-bg" ]
+
+bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
   div [ classes (simulationBottomPanel state) ]
     [ div [ class_ flex ]
         [ div [ class_ flexTen ]
-            [ div [ classes (footerPanelBg state Simulation <> isActiveTab state Simulation) ]
+            [ div [ classes (footerPanelBg (state ^. _showBottomPanel) <> [ active ]) ]
                 [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
                     [ div [ classes ([ ClassName "panel-sub-header-main", aHorizontal ] <> (if state ^. _showBottomPanel then [ accentBorderBottom ] else [])) ]
                         [ ul [ class_ (ClassName "start-item") ]
                             [ li [ class_ (ClassName "minimize-icon-container") ]
                                 [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
-                                    [ img [ classes (minimizeIcon state), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
+                                    [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
                                 ]
                             ]
                         , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
@@ -78,13 +85,13 @@ bottomPanel state =
                             ]
                         ]
                     ]
-                , panelContents state (state ^. _simulationBottomPanelView)
+                , panelContents state (state ^. _bottomPanelView)
                 ]
             ]
         ]
     ]
   where
-  isActive view = state ^. _simulationBottomPanelView <<< (activeClass (eq view))
+  isActive view = state ^. _bottomPanelView <<< (activeClass (eq view))
 
   warnings = state ^. (_marloweState <<< _Head <<< _editorWarnings)
 
@@ -94,7 +101,7 @@ bottomPanel state =
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
 
-panelContents :: forall p. FrontendState -> SimulationBottomPanelView -> HTML p HAction
+panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =
   div [ class_ Classes.panelContents ]
     [ div [ classes [ rTable, rTable6cols, ClassName "panel-table" ] ]
@@ -331,7 +338,7 @@ panelContents state MarloweWarningsView =
     li [ classes [ ClassName "error-row" ] ]
       [ text warning.message
       , a
-          [ onClick $ const $ Just $ MarloweMoveToPosition warning.startLineNumber warning.startColumn
+          [ onClick $ const $ Just $ MoveToPosition warning.startLineNumber warning.startColumn
           , class_ underline
           ]
           [ text $ show warning.startLineNumber ]
@@ -361,7 +368,7 @@ panelContents state MarloweErrorsView =
       ( [ a [ onClick $ const $ Just $ ShowErrorDetail (state ^. (_showErrorDetail <<< to not)) ]
             [ text $ (if state ^. _showErrorDetail then "- " else "+ ") <> error.firstLine ]
         , a
-            [ onClick $ const $ Just $ MarloweMoveToPosition error.startLineNumber error.startColumn
+            [ onClick $ const $ Just $ MoveToPosition error.startLineNumber error.startColumn
             , class_ underline
             ]
             [ text $ show error.startLineNumber ]
@@ -400,7 +407,7 @@ panelContents state MarloweLogView =
     , ul [] (reverse (fold inputLines))
     ]
 
-analysisResultPane :: forall p. FrontendState -> HTML p HAction
+analysisResultPane :: forall p. State -> HTML p Action
 analysisResultPane state =
   let
     result = state ^. _analysisState
@@ -458,7 +465,7 @@ analysisResultPane state =
           ]
       Loading -> text ""
 
-displayTransactionList :: forall p. String -> HTML p HAction
+displayTransactionList :: forall p. String -> HTML p Action
 displayTransactionList transactionList = case runParser transactionInputList transactionList of
   Right pTL ->
     ol_
@@ -489,7 +496,7 @@ displayTransactionList transactionList = case runParser transactionInputList tra
       )
   Left _ -> code_ [ text transactionList ]
 
-displayInputList :: forall p. List Input -> HTML p HAction
+displayInputList :: forall p. List Input -> HTML p Action
 displayInputList inputList =
   ol_
     ( do
@@ -528,7 +535,7 @@ displayInput (INotify) =
   , b_ [ text "True" ]
   ]
 
-displayWarningList :: forall p. String -> HTML p HAction
+displayWarningList :: forall p. String -> HTML p Action
 displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
   Right pWL ->
     ol_
@@ -538,7 +545,7 @@ displayWarningList transactionWarnings = case runParser transactionWarningList t
       )
   Left _ -> code_ [ text transactionWarnings ]
 
-displayWarnings :: forall p. Array TransactionWarning -> HTML p HAction
+displayWarnings :: forall p. Array TransactionWarning -> HTML p Action
 displayWarnings [] = text mempty
 
 displayWarnings warnings =
@@ -554,7 +561,7 @@ displayWarnings warnings =
         $ foldMap (\warning -> [ li_ (displayWarning warning) ]) warnings
     ]
 
-displayWarning :: forall p. TransactionWarning -> Array (HTML p HAction)
+displayWarning :: forall p. TransactionWarning -> Array (HTML p Action)
 displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok amount) =
   [ b_ [ text "TransactionNonPositiveDeposit" ]
   , text " - Party "
