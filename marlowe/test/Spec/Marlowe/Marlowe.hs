@@ -234,7 +234,7 @@ validatorSize :: IO ()
 validatorSize = do
     let validator = validatorScript defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool "Validator is too large" (vsize < 800000)
+    assertBool "Validator is too large" (vsize < 616000)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished

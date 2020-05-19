@@ -1,0 +1,9 @@
+(let (nonrec)
+     (termbind (strict) (vardecl i (con integer)) (con 3))
+     [(lam x (con integer)
+          (let (nonrec)
+             (termbind (strict) (vardecl j (con integer)) [(builtin addInteger) i (con 1)])
+             j
+             )) (con 4)]
+)
+

@@ -9,30 +9,26 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
+    (termbind
+      (strict)
+      (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        arg
+        (con integer)
         (lam
           arg
           (con integer)
-          (lam
-            arg
-            (con integer)
-            [
-              (lam
-                b
-                (con bool)
-                [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-              )
-              [ [ (builtin lessThanInteger) arg ] arg ]
-            ]
-          )
+          [
+            (lam
+              b
+              (con bool)
+              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+            )
+            [ [ (builtin lessThanInteger) arg ] arg ]
+          ]
         )
       )
-      (lam ds (con integer) (lam ds (con integer) [ [ lessThanInteger ds ] ds ])
-      )
     )
+    (lam ds (con integer) (lam ds (con integer) [ [ lessThanInteger ds ] ds ]))
   )
 )

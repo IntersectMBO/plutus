@@ -1,6 +1,15 @@
 (program
   (let
     (nonrec)
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+      )
+    )
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -9,114 +18,87 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-      )
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl
-            subtractInteger
-            (fun (con integer) (fun (con integer) (con integer)))
-          )
-          (lam
-            arg
-            (con integer)
-            (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
-          )
-        )
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        arg
+        (con integer)
+        (lam
+          arg
+          (con integer)
+          [
             (lam
-              arg
-              (con integer)
+              b
+              (con bool)
+              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+            )
+            [ [ (builtin equalsInteger) arg ] arg ]
+          ]
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
+      )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (let
+      (rec)
+      (termbind
+        (strict)
+        (vardecl fib (fun (con integer) (con integer)))
+        (lam
+          n
+          (con integer)
+          [
+            [
+              [
+                {
+                  [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                  (fun Unit (con integer))
+                }
+                (lam thunk Unit (con 0))
+              ]
               (lam
-                arg
-                (con integer)
+                thunk
+                Unit
                 [
-                  (lam
-                    b
-                    (con bool)
-                    [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                  )
-                  [ [ (builtin equalsInteger) arg ] arg ]
-                ]
-              )
-            )
-          )
-          (let
-            (nonrec)
-            (termbind
-              (strict)
-              (vardecl
-                addInteger (fun (con integer) (fun (con integer) (con integer)))
-              )
-              (lam
-                arg
-                (con integer)
-                (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
-              )
-            )
-            (let
-              (rec)
-              (termbind
-                (strict)
-                (vardecl fib (fun (con integer) (con integer)))
-                (lam
-                  n
-                  (con integer)
                   [
                     [
-                      [
-                        {
-                          [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
-                          (fun Unit (con integer))
-                        }
-                        (lam thunk Unit (con 0))
-                      ]
-                      (lam
-                        thunk
-                        Unit
-                        [
-                          [
-                            [
-                              {
-                                [ Bool_match [ [ equalsInteger n ] (con 1) ] ]
-                                (fun Unit (con integer))
-                              }
-                              (lam thunk Unit (con 1))
-                            ]
-                            (lam
-                              thunk
-                              Unit
-                              [
-                                [
-                                  addInteger
-                                  [ fib [ [ subtractInteger n ] (con 1) ] ]
-                                ]
-                                [ fib [ [ subtractInteger n ] (con 2) ] ]
-                              ]
-                            )
-                          ]
-                          Unit
-                        ]
-                      )
+                      {
+                        [ Bool_match [ [ equalsInteger n ] (con 1) ] ]
+                        (fun Unit (con integer))
+                      }
+                      (lam thunk Unit (con 1))
                     ]
-                    Unit
+                    (lam
+                      thunk
+                      Unit
+                      [
+                        [ addInteger [ fib [ [ subtractInteger n ] (con 1) ] ] ]
+                        [ fib [ [ subtractInteger n ] (con 2) ] ]
+                      ]
+                    )
                   ]
-                )
+                  Unit
+                ]
               )
-              fib
-            )
-          )
+            ]
+            Unit
+          ]
         )
       )
+      fib
     )
   )
 )

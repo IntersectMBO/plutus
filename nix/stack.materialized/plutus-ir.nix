@@ -68,6 +68,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
           (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
           (hsPkgs."containers" or (buildDepError "containers"))
+          (hsPkgs."nonempty-containers" or (buildDepError "nonempty-containers"))
           (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))
           (hsPkgs."lens" or (buildDepError "lens"))
           (hsPkgs."mtl" or (buildDepError "mtl"))
@@ -75,6 +76,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
           (hsPkgs."recursion-schemes" or (buildDepError "recursion-schemes"))
           (hsPkgs."serialise" or (buildDepError "serialise"))
+          (hsPkgs."semigroupoids" or (buildDepError "semigroupoids"))
           (hsPkgs."text" or (buildDepError "text"))
           (hsPkgs."transformers" or (buildDepError "transformers"))
           (hsPkgs."algebraic-graphs" or (buildDepError "algebraic-graphs"))
@@ -105,6 +107,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/PlutusIR/Transform/ThunkRecursions"
           "Language/PlutusIR/Transform/Rename"
           "Language/PlutusIR/Transform/NonStrict"
+          "Language/PlutusIR/Transform/LetFloat"
           ];
         hsSourceDirs = [ "src" ];
         };
