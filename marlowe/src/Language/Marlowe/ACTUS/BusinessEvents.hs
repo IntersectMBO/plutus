@@ -29,23 +29,22 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                     | MR_EVENT {o_rf_CURS :: Double}   -- Margin Call Date Scheduled margin call event
                     | STD_EVENT {o_rf_CURS :: Double}  -- Settlement Date Date when payment for derivatives is settled
                     | MD_EVENT {o_rf_CURS :: Double}   -- Maturity Date Scheduled maturity or expiry of a contract
-                    -- UNSCHEDULED
                     | PP_EVENT { pp_payoff :: Double, o_rf_CURS :: Double} 
                     | CE_EVENT { date :: Day, o_rf_CURS :: Double} -- Credit event of counterparty to a contract
                     deriving (Eq, Ord, Show)
                      
 mapEventType :: ScheduledEvent -> EventType
 mapEventType event = case event of 
-    AD_EVENT{..} -> MD
-    MD_EVENT{..} -> MD
+    AD_EVENT{..}  -> MD
+    MD_EVENT{..}  -> MD
     IED_EVENT{..} -> IED
 
 
 projectEvent :: EventType -> ScheduledEvent
 projectEvent eventType = case eventType of 
     IED -> IED_EVENT 1.0
-    MD -> MD_EVENT 1.0
-    AD -> AD_EVENT 1.0
+    MD  -> MD_EVENT 1.0
+    AD  -> AD_EVENT 1.0
 
 eventEnumTable = [(AD, 0), (IED, 1), (MD, 2)] --can't use Enums in Plutus???
 

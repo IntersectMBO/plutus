@@ -58,6 +58,7 @@ library
     Language.Marlowe.Client
     Language.Marlowe.Util
     Language.Marlowe.Pretty
+    Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.BusinessEvents
     Language.Marlowe.ACTUS.ContractTerms
     Language.Marlowe.ACTUS.ActusValidator
@@ -67,6 +68,7 @@ library
     Language.Marlowe.ACTUS.Schedule
     Language.Marlowe.ACTUS.POF.PayoffSpec
     Language.Marlowe.ACTUS.POF.Payoff
+    Language.Marlowe.ACTUS.POF.PayoffLp
     Language.Marlowe.ACTUS.STF.StateTransitionSpec
     Language.Marlowe.ACTUS.STF.StateTransition
     Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
