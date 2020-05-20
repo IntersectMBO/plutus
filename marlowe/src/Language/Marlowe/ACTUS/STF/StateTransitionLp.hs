@@ -1,0 +1,105 @@
+{-# LANGUAGE RecordWildCards #-}
+
+module Language.Marlowe.ACTUS.STF.StateTransitionLp where
+
+import Data.Time
+import Language.Marlowe
+import Language.Marlowe.ACTUS.ContractState
+import Language.Marlowe.ACTUS.BusinessEvents
+import Language.Marlowe.ACTUS.STF.StateTransitionSpec
+import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+import Language.Marlowe.ACTUS.Schedule
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule
+import Language.Marlowe.ACTUS.Utility.ContractRoleSign
+import Language.Marlowe.ACTUS.Utility.YearFraction
+import Language.Marlowe.ACTUS.MarloweCompat
+import Data.Maybe
+
+import Language.Marlowe.ACTUS.Utility.DateShift
+
+shift = applyBDCWithCfg
+
+stateTransition :: ContractTerms -> Integer -> Contract -> Contract
+stateTransition terms t continue = 
+    case terms of
+        PamContractTerms{..} -> 
+            let 
+                t0 = _SD
+                fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
+                tfp_minus = calculationDay $ sup fpSchedule t0
+                tfp_plus = calculationDay $ inf fpSchedule t0
+                y_sd_t = undefined
+                y_tfpminus_t = undefined
+                y_tfpminus_tfpplus = undefined
+                y_ipanx_t = undefined
+                r_CNTRL = undefined
+                time = undefined
+                ipanx_lt_t = undefined --(fromJust _IPANX) < time
+            in dispatchStateTransition t continue (\ev -> \st -> case ev of 
+                AD   -> _STF_AD_PAM st time y_sd_t
+                IED  -> _STF_IED_PAM st time y_ipanx_t ipanx_lt_t y_sd_t 
+                            (constntMaybe _IPNR)
+                            _IPANX 
+                            r_CNTRL 
+                            (constntMaybe _IPAC) 
+                            (constnt _NT)
+                MD   -> _STF_MD_PAM st time
+                PP   -> _STF_PP_PAM st time (useval "pp_payoff" t) y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL
+                PY   -> _STF_PY_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB)
+                            (constnt _FER)
+                            r_CNTRL
+                FP   -> _STF_FP_PAM st time y_sd_t
+                PRD  -> _STF_PRD_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL 
+                TD   -> _STF_IP_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL 
+                IP   -> _STF_IPCI_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL
+                IPCI -> _STF_IPCI_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL
+                RR   -> _STF_RR_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER) 
+                            r_CNTRL 
+                            (constnt _RRLF) 
+                            (constnt _RRLC) 
+                            (constnt _RRPC) 
+                            (constnt _RRPF) 
+                            (constnt _RRMLT) 
+                            (constnt _RRSP) 
+                            (useval "o_rf_RRMO" t)
+                RRF  -> _STF_RRF_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER)
+                            r_CNTRL 
+                            (constntMaybe _RRNXT)
+                SC   -> _STF_SC_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
+                            (enum _FEB) 
+                            (constnt _FER)
+                            r_CNTRL 
+                            _SCEF 
+                            (useval "o_rf_SCMO" t) 
+                            (constnt _SCIED)
+                CE   -> _STF_CE_PAM st time y_sd_t)
+
+
+     
+
+    
+     
+    
+     
+    

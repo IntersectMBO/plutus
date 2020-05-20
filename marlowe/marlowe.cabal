@@ -71,6 +71,7 @@ library
     Language.Marlowe.ACTUS.POF.PayoffLp
     Language.Marlowe.ACTUS.STF.StateTransitionSpec
     Language.Marlowe.ACTUS.STF.StateTransition
+    Language.Marlowe.ACTUS.STF.StateTransitionLp
     Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
     Language.Marlowe.ACTUS.SCHED.ContractSchedule
     Language.Marlowe.ACTUS.INIT.StateInitializationSpec

@@ -1,12 +1,6 @@
 module Language.Marlowe.ACTUS.POF.PayoffSpec where
 
-import Language.Marlowe.ACTUS.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.Utility.YearFraction
 import Language.Marlowe.ACTUS.ContractTerms
-import Data.Time
-
-r = contractRoleSign
-y = yearFraction
 
 _POF_IED_PAM o_rf_CURS r_CNTRL _NT _PDIED = 
     - o_rf_CURS * r_CNTRL * (_NT + _PDIED)

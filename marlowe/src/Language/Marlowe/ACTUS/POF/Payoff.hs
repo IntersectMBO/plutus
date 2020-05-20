@@ -12,10 +12,10 @@ import Language.Marlowe.ACTUS.Utility.YearFraction
 import Data.Time
 
 payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> Double
-payoff ev terms ContractState{..} t termsCtx stateCtx = case terms of 
+payoff ev terms ContractStatePoly{..} t termsCtx stateCtx = case terms of 
     PamContractTerms{..} -> 
-        let y_sd_t = (yearFraction _DCC sd t _MD)
-            r_CNTRL = (contractRoleSign _CNTRL)
+        let y_sd_t = yearFraction _DCC sd t _MD
+            r_CNTRL = contractRoleSign _CNTRL
         in  case ev of 
                 IED_EVENT{..}  -> _POF_IED_PAM o_rf_CURS r_CNTRL _NT _PDIED
                 MD_EVENT{..}   -> _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
