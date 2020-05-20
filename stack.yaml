@@ -1,6 +1,7 @@
 resolver: lts-15.6
 
 packages:
+- prettyprinter-configurable
 - language-plutus-core
 - plutus-ir
 - plutus-tx

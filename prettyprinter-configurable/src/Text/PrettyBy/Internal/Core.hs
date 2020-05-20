@@ -1,22 +1,30 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DefaultSignatures          #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DerivingVia                #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
-module Data.Text.PrettyprintM.Doc.Core
+module Text.PrettyBy.Internal.Core
     ( PrettyBy (..)
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
+    , DefaultPrettyBy (..)
+    , NonDefaultPrettyBy (..)
+    , HasPrettyDefaults
     , DefaultlyPretty (..)
     ) where
 
@@ -28,8 +36,8 @@ import           Data.Int
 import           Data.List.NonEmpty (NonEmpty (..))
 import           Data.Maybe
 import           Data.Proxy
-import qualified Data.Text                       as Strict
-import qualified Data.Text.Lazy                  as Lazy
+import qualified Data.Text                          as Strict
+import qualified Data.Text.Lazy                     as Lazy
 import           Data.Text.Prettyprint.Doc
 import           Data.Void
 import           Data.Word
@@ -63,10 +71,6 @@ data AttachPrettyConfig config a = AttachPrettyConfig !config !a
 
 instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
     pretty (AttachPrettyConfig config x) = prettyBy config x
-
-type instance HasPrettyDefaults () = 'True
-
--- Auxiliary functions.
 
 withAttachPrettyConfig
     :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
@@ -166,6 +170,8 @@ class NonDefaultPrettyBy config a where
 -- ...
 
 type family HasPrettyDefaults config :: Bool
+
+type instance HasPrettyDefaults () = 'True
 
 class HasPrettyDefaults config ~ b => DispatchDefaultPrettyBy (b :: Bool) config a where
     dispatchDefaultPrettyBy     :: proxy b -> config -> a   -> Doc ann
@@ -314,63 +320,3 @@ deriving via DefaultlyPretty Char
 -- abc
 deriving via DefaultlyPretty (Maybe a)
     instance PrettyDefaultsBy config (Maybe a) => PrettyBy config (Maybe a)
-
-
-
--- Examples
-
-data DC = DC
-type instance HasPrettyDefaults DC = 'True
-
-instance PrettyBy DC DC where
-    prettyBy _ _ = pretty "DC"
-
--- >>> prettyBy DC (1 :: Integer)
--- 1
--- >>> prettyBy DC (1 :: Integer, 2 :: Integer)
--- (1, 2)
--- >>> prettyBy DC (1 :: Integer, DC)
--- (1, DC)
--- >>> prettyBy DC [Just 'a', Nothing, Just 'b']
--- ab
--- >>> prettyBy DC [[Just 'a'], [Nothing, Just 'b']]
--- [a, b]
--- >>> braces (prettyBy DC (Nothing :: Maybe Bool))
--- {}
-
--- >>> pretty [Just 'a', Nothing, Just 'b']
--- ab
--- >>> pretty [[Just 'a'], [Nothing, Just 'b']]
--- [a, b]
--- >>> braces (prettyBy DC (Nothing :: Maybe Bool))
--- {}
-
-
-data WoC = WoC
-type instance HasPrettyDefaults WoC = 'False
-instance NonDefaultPrettyBy WoC Char
-instance NonDefaultPrettyBy WoC Strict.Text
-instance NonDefaultPrettyBy WoC Integer where
-    nonDefaultPrettyBy _ _ = pretty "0"
-instance (PrettyBy WoC a, PrettyBy WoC b) => NonDefaultPrettyBy WoC (a, b)
-instance PrettyBy WoC a => NonDefaultPrettyBy WoC (Maybe a) where
-    nonDefaultPrettyBy _ Nothing  = pretty "Nothing"
-    nonDefaultPrettyBy _ (Just x) = pretty "Just" <+> parens (prettyBy WoC x)
-
-    nonDefaultPrettyListBy = defaultPrettyFunctorBy
-instance PrettyBy WoC a => NonDefaultPrettyBy WoC [a]
---     nonDefaultPrettyBy = defaultPrettyFunctorBy
-
-instance PrettyBy WoC WoC where
-    prettyBy _ _ = pretty "WoC"
-
--- >>> prettyBy WoC (1 :: Integer)
--- 0
--- >>> prettyBy WoC (1 :: Integer, 2 :: Integer)
--- (0, 0)
--- >>> prettyBy WoC [Just 'a', Nothing, Just 'b']
--- [Just (a), Nothing, Just (b)]
--- >>> prettyBy WoC "abc"
--- abc
--- >>> prettyBy WoC (1 :: Integer, WoC)
--- (0, WoC)

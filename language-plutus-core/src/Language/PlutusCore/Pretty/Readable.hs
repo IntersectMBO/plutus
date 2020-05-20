@@ -80,20 +80,6 @@ binderFixity = Fixity 1 RightAssociative
 arrowFixity :: Fixity
 arrowFixity = Fixity 2 RightAssociative
 
--- | The fixity of juxtaposition.
-juxtFixity :: Fixity
-juxtFixity = Fixity 10 LeftAssociative
-
--- | The fixity of a unitary expression which is safe to render
--- without parens in any context.
-unitFixity :: Fixity
-unitFixity = Fixity 11 NonAssociative
-
--- | A fixity with the highest precedence.
--- When used as a part of an outer context, always causes addition of parens.
-topFixity :: Fixity
-topFixity = Fixity 12 NonAssociative
-
 -- | A 'PrettyConfigReadable' with the fixity specified to 'topFixity'.
 topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext Forward topFixity

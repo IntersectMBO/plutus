@@ -1,0 +1,53 @@
+name:                prettyprinter-configurable
+version:             0.1.0.0
+-- synopsis:
+-- description:
+-- homepage:            https://github.com/githubuser/prettyprinter-configurable#readme
+license-file:        LICENSE
+author:              David Luposchainsky, effectfully
+maintainer:          plutus@iohk.io
+category:            User Interfaces, Text
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+    hs-source-dirs: src
+    exposed-modules:
+        Text.PrettyBy
+        Text.PrettyBy.Internal.Core
+        Text.PrettyBy.Monad
+        Text.PrettyBy.Fixity
+    build-depends:
+        base,
+        prettyprinter,
+        mtl,
+        text,
+        microlens
+    default-language: Haskell2010
+    ghc-options:
+        -Wall
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities
+
+test-suite prettyprinter-configurable-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test
+    other-modules:
+        Default
+    default-language: Haskell2010
+    build-depends:
+        prettyprinter-configurable,
+        base,
+        prettyprinter,
+        text,
+        QuickCheck,
+        tasty,
+        tasty-hunit,
+        tasty-quickcheck
+    ghc-options:
+        -threaded -rtsopts -with-rtsopts=-N
+        -Wall
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities
