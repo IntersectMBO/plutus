@@ -80,9 +80,6 @@ _InSlot = iso (_.getSlot <<< unwrap) (wrap <<< { getSlot: _ })
 _slot :: forall r a. Lens' { slot :: a | r } a
 _slot = prop (SProxy :: SProxy "slot")
 
-_endpointName :: forall r a. Lens' { endpointName :: a | r } a
-_endpointName = prop (SProxy :: SProxy "endpointName")
-
 _functionName :: forall r a. Lens' { functionName :: a | r } a
 _functionName = prop (SProxy :: SProxy "functionName")
 
@@ -234,9 +231,6 @@ _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
 _actionDrag :: Lens' State (Maybe Int)
 _actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
-
-type Signatures
-  = Array (FunctionSchema FormSchema)
 
 _simulationActions :: Lens' Simulation (Array SimulatorAction)
 _simulationActions = _Newtype <<< prop (SProxy :: SProxy "simulationActions")

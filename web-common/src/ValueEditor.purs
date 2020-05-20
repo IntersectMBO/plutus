@@ -5,6 +5,8 @@ import Prelude hiding (div,min)
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Int as Int
 import Data.Lens (view)
 import Data.Tuple (Tuple(..), fst)
@@ -19,6 +21,11 @@ import Playground.Lenses (_currencySymbol, _tokenName)
 
 data ValueEvent
   = SetBalance CurrencySymbol TokenName Int
+
+derive instance genericValueEvent :: Generic ValueEvent _
+
+instance showValueEvent :: Show ValueEvent where
+  show = genericShow
 
 valueForm :: forall p i. (ValueEvent -> i) -> Value -> HTML p i
 valueForm handler (Value { getValue: balances }) =

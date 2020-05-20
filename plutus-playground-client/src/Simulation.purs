@@ -28,11 +28,12 @@ import Language.Haskell.Interpreter as PI
 import Ledger.Slot (Slot)
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
+import Playground.Lenses (_endpointName)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (ContractCall(..), EvaluationResult, FunctionSchema, PlaygroundError(..), Simulation(..), _CallEndpoint, _EndpointName, _FunctionSchema)
 import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema (FormArgumentF, FormSchema)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), SimulatorAction)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), SimulatorAction, Signatures)
 import Validation (_arguments, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -44,7 +45,7 @@ simulationPane ::
   forall m.
   Value ->
   Maybe Int ->
-  Array (FunctionSchema FormSchema) ->
+  Signatures ->
   Cursor Simulation ->
   WebData (JsonEither PlaygroundError EvaluationResult) ->
   ComponentHTML HAction ChildSlots m

@@ -22,6 +22,8 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Console (log)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
@@ -70,6 +72,7 @@ handleAction ::
   MonadAff m =>
   MonadAnimate m State =>
   MonadAsk (SPSettings_ SPParams_) m =>
+  MonadEffect m =>
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
@@ -95,6 +98,8 @@ handleAction (ChainAction newFocus) = do
   animate
     (_chainState <<< _chainFocusAppearing)
     (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)
+handleAction (InvokeContractEndpoint subaction) = do
+  liftEffect $ log $ "TRIGGER: " <> show subaction
 
 runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action

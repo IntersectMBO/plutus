@@ -1,12 +1,14 @@
 module Schema.Types where
 
-import Data.Lens
 import Prelude
 import Chain.Types (_value)
 import Data.Array as Array
 import Data.Foldable (fold, foldMap)
 import Data.Functor.Foldable (Fix(..))
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonTuple (JsonTuple)
+import Data.Lens (_2, _Just, over, set)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -25,9 +27,9 @@ import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(.
 import Ledger.Slot (Slot)
 import Ledger.Value (CurrencySymbol(..), Value(..))
 import Matryoshka (Algebra, ana, cata)
-import Playground.Types (ContractCall(..), KnownCurrency(..), _PayToWallet)
-import Schema (FormArgumentF(..), FormSchema(..))
 import Playground.Lenses (_recipient, _amount)
+import Playground.Types (ContractCall(..), FunctionSchema, KnownCurrency(..), _PayToWallet)
+import Schema (FormArgumentF(..), FormSchema(..))
 import ValueEditor (ValueEvent(..))
 import Wallet.Emulator.Wallet (Wallet)
 
@@ -35,11 +37,21 @@ data SimulationAction
   = ModifyActions ActionEvent
   | PopulateAction Int Int FormEvent
 
+derive instance genericSimulationAction :: Generic SimulationAction _
+
+instance showSimulationAction :: Show SimulationAction where
+  show = genericShow
+
 data FormEvent
   = SetField FieldEvent
   | SetSubField Int FormEvent
   | AddSubField
   | RemoveSubField Int
+
+derive instance genericFormEvent :: Generic FormEvent _
+
+instance showFormEvent :: Show FormEvent where
+  show value = genericShow value
 
 data FieldEvent
   = SetIntField (Maybe Int)
@@ -50,6 +62,11 @@ data FieldEvent
   | SetValueField ValueEvent
   | SetSlotRangeField (Interval Slot)
 
+derive instance genericFieldEvent :: Generic FieldEvent _
+
+instance showFieldEvent :: Show FieldEvent where
+  show = genericShow
+
 data ActionEvent
   = AddAction SimulatorAction
   | AddWaitAction Int
@@ -59,6 +76,11 @@ data ActionEvent
   | SetPayToWalletValue Int ValueEvent
   | SetPayToWalletRecipient Int Wallet
 
+derive instance genericActionEvent :: Generic ActionEvent _
+
+instance showActionEvent :: Show ActionEvent where
+  show = genericShow
+
 type SimulatorAction
   = ContractCall FormArgument
 
@@ -67,6 +89,9 @@ type Expression
 
 type FormArgument
   = Fix FormArgumentF
+
+type Signatures
+  = Array (FunctionSchema FormSchema)
 
 toArgument :: Value -> FormSchema -> FormArgument
 toArgument initialValue = ana algebra

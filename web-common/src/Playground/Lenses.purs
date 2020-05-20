@@ -18,3 +18,6 @@ _amount = prop (SProxy :: SProxy "amount")
 
 _recipient :: forall r a. Lens' { recipient :: a | r } a
 _recipient = prop (SProxy :: SProxy "recipient")
+
+_endpointName :: forall r a. Lens' { endpointName :: a | r } a
+_endpointName = prop (SProxy :: SProxy "endpointName")

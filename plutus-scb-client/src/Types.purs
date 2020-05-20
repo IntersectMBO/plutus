@@ -14,9 +14,11 @@ import Data.Newtype (class Newtype)
 import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Network.RemoteData (RemoteData)
+import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport, _FullReport)
+import Schema.Types (SimulationAction)
 import Servant.PureScript.Ajax (AjaxError)
 import Wallet.Rollup.Types (AnnotatedTx)
 
@@ -29,6 +31,7 @@ data HAction
   = Init
   | LoadFullReport
   | ChainAction (Maybe ChainFocus)
+  | InvokeContractEndpoint SimulationAction
 
 newtype State
   = State

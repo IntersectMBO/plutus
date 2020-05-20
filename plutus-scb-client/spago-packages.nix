@@ -293,6 +293,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "fixed-points" = pkgs.stdenv.mkDerivation {
+        name = "fixed-points";
+        version = "v5.1.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/slamdata/purescript-fixed-points.git";
+          rev = "44ae7a7135bd17dc6d865d31f166a8cf5fa65c7e";
+          sha256 = "14acfi7897z2vd8mq52h0gz8x31wyrvalb490rqjf4nyk73vhg36";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "foldable-traversable" = pkgs.stdenv.mkDerivation {
         name = "foldable-traversable";
         version = "v4.1.1";
@@ -600,6 +612,18 @@ let
           url = "https://github.com/purescript/purescript-math.git";
           rev = "8be36d24f9d2d8795adf04791446bbc458297b9b";
           sha256 = "1msmy9w7y6fij62sdc55w68gpwkhm6lhgc8qjisjk4sxx1wdg1rr";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "matryoshka" = pkgs.stdenv.mkDerivation {
+        name = "matryoshka";
+        version = "v0.4.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/slamdata/purescript-matryoshka.git";
+          rev = "caaca2d836d52159ba7963333996286a00428394";
+          sha256 = "1vm8papnpkmf4w51v6a2cnq408ayi75nz5b5zwiwksd35c8x2g64";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
