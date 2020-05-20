@@ -43,6 +43,7 @@ test-suite prettyprinter-configurable-test
         prettyprinter,
         text,
         QuickCheck,
+        quickcheck-text,
         tasty,
         tasty-hunit,
         tasty-quickcheck
