@@ -27,7 +27,7 @@ import           Ledger.Interval                           (Extended, Interval, 
 import           Ledger.Scripts                            (ScriptError)
 import           Ledger.Slot                               (Slot)
 import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
-import           Playground.Types                          (EndpointName, FunctionSchema)
+import           Playground.Types                          (ContractCall, EndpointName, FunctionSchema, KnownCurrency)
 import           Schema                                    (FormArgumentF, FormSchema)
 import           Wallet.API                                (WalletAPIError)
 import qualified Wallet.Emulator.Wallet                    as EM
@@ -275,6 +275,8 @@ playgroundTypes =
     , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
           (Proxy @(FormArgumentF A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointName)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     ] <>
     [ (order <*> mkSumType) (Proxy @GistId)
     , mkSumType (Proxy @Gist)

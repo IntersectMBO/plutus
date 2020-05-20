@@ -1,6 +1,7 @@
 module ValueEditor where
 
-import Prelude hiding (div, min)
+import Prelude hiding (div,min)
+
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array
@@ -14,7 +15,10 @@ import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Properties (InputType(InputNumber), classes, min, placeholder, required, type_, value)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol, TokenName, Value(Value))
-import Types (ValueEvent(SetBalance), _currencySymbol, _tokenName)
+import Playground.Lenses (_currencySymbol, _tokenName)
+
+data ValueEvent
+  = SetBalance CurrencySymbol TokenName Int
 
 valueForm :: forall p i. (ValueEvent -> i) -> Value -> HTML p i
 valueForm handler (Value { getValue: balances }) =

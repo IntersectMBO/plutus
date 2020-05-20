@@ -1,7 +1,6 @@
 module View (render) where
 
 import Types
-import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container, container_, empty, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
 import Bootstrap as Bootstrap
@@ -28,6 +27,8 @@ import Language.Haskell.Interpreter (_SourceCode)
 import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
 import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
+import Schema.Types (mkInitialValue)
+import Simulation (actionsErrorPane, simulationPane)
 import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 

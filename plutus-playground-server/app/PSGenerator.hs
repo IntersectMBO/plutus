@@ -107,7 +107,6 @@ myTypes =
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EM.Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Simulation)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
@@ -126,7 +125,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
     ]

@@ -1,4 +1,4 @@
-module TypesTests
+module Schema.TypesTests
   ( all
   ) where
 
@@ -24,13 +24,14 @@ import Schema (FormSchema(..), FormArgumentF(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
-import Types (FormArgument, SimulatorAction, formArgumentToJson, mkInitialValue, toArgument)
+import Types
+import Schema.Types
 import Validation (ValidationError(..), validate, withPath)
 import Wallet.Emulator.Wallet (Wallet(..))
 
 all :: TestSuite
 all =
-  suite "Types" do
+  suite "Schema.Types" do
     validateTests
     toArgumentTests
     formArgumentToJsonTests

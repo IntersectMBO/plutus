@@ -14,7 +14,7 @@ import StaticDataTests as StaticDataTests
 import Language.PlutusTx.AssocMapTests as Language.PlutusTx.AssocMapTests
 import MainFrameTests as MainFrameTests
 import Test.Unit.Main (runTest)
-import TypesTests as TypesTests
+import Schema.TypesTests as Schema.TypesTests
 
 foreign import forDeps :: Effect Unit
 
@@ -32,4 +32,4 @@ main =
     StaticDataTests.all
     Language.PlutusTx.AssocMapTests.all
     MainFrameTests.all
-    TypesTests.all
+    Schema.TypesTests.all
