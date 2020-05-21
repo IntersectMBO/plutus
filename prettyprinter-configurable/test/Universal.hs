@@ -24,8 +24,8 @@ data ViaPretty
     = ViaPretty
     deriving stock (Show)
 
-instance Pretty a => UniversalPrettyBy ViaPretty a where
-    universalPrettyBy ViaPretty x =
+instance Pretty a => PrettyBy ViaPretty (UniversallyPretty a) where
+    prettyBy ViaPretty (UniversallyPretty x) =
         "Proudly printed via Pretty:" <+> pretty x
 
 data D
@@ -67,9 +67,9 @@ data ConfigSum
     | ConfigSum2 Config2
     deriving stock (Show)
 
-instance (PrettyBy Config1 a, PrettyBy Config2 a) => UniversalPrettyBy ConfigSum a where
-    universalPrettyBy (ConfigSum1 Config1) = prettyBy Config1
-    universalPrettyBy (ConfigSum2 Config2) = prettyBy Config2
+instance (PrettyBy Config1 a, PrettyBy Config2 a) => PrettyBy ConfigSum (UniversallyPretty a) where
+    prettyBy (ConfigSum1 Config1) = prettyBy Config1 . unUniversallyPretty
+    prettyBy (ConfigSum2 Config2) = prettyBy Config2 . unUniversallyPretty
 
 deriving via UniversallyPretty D instance PrettyBy ConfigSum D
 

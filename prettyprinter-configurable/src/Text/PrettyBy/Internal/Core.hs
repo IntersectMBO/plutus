@@ -22,7 +22,6 @@ module Text.PrettyBy.Internal.Core
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
-    , UniversalPrettyBy (..)
     , UniversallyPretty (..)
     , DefaultPrettyBy (..)
     , NonDefaultPrettyBy (..)
@@ -78,21 +77,9 @@ withAttachPrettyConfig
     :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
 withAttachPrettyConfig config k = k $ AttachPrettyConfig config
 
--- **************
--- **  **
--- **************
-
-class UniversalPrettyBy config a where
-    universalPrettyBy :: config -> a -> Doc ann
-    default universalPrettyBy :: Pretty a => config -> a -> Doc ann
-    universalPrettyBy _ = pretty
-
 newtype UniversallyPretty a = UniversallyPretty
     { unUniversallyPretty :: a
     }
-
-instance UniversalPrettyBy config a => PrettyBy config (UniversallyPretty a) where
-    prettyBy config = universalPrettyBy config . unUniversallyPretty
 
 -- **************
 -- ** Defaults **
