@@ -203,14 +203,24 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };
-        "plutus-contract" = {
+        "plutus-game" = {
           depends = [
             (hsPkgs."base" or (buildDepError "base"))
             (hsPkgs."plutus-scb" or (buildDepError "plutus-scb"))
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
             ];
           buildable = true;
-          hsSourceDirs = [ "contract" ];
+          hsSourceDirs = [ "game-contract" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-currency" = {
+          depends = [
+            (hsPkgs."base" or (buildDepError "base"))
+            (hsPkgs."plutus-scb" or (buildDepError "plutus-scb"))
+            (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "currency-contract" ];
           mainPath = [ "Main.hs" ];
           };
         };
