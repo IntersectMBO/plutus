@@ -59,6 +59,7 @@ library
     Language.Marlowe.Util
     Language.Marlowe.Pretty
     Language.Marlowe.ACTUS.MarloweCompat
+    Language.Marlowe.ACTUS.Ops
     Language.Marlowe.ACTUS.BusinessEvents
     Language.Marlowe.ACTUS.ContractTerms
     Language.Marlowe.ACTUS.ActusValidator

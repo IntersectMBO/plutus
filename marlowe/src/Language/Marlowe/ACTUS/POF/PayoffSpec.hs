@@ -1,6 +1,7 @@
 module Language.Marlowe.ACTUS.POF.PayoffSpec where
 
 import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.Ops
 
 _POF_IED_PAM o_rf_CURS r_CNTRL _NT _PDIED = 
     - o_rf_CURS * r_CNTRL * (_NT + _PDIED)
@@ -16,7 +17,7 @@ _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT r_CNTRL nt ipnr y_sd_t =
         PYTP_A -> o_rf_CURS * r_CNTRL * _PYRT
         PYTP_N -> _cPYRT
         PYTP_I -> let c = o_rf_CURS * r_CNTRL * y_sd_t * nt
-                 in c * (max 0 (ipnr - o_rf_RRMO))
+                 in c * (_max _zero (ipnr - o_rf_RRMO))
 
 _POF_FP_PAM _FEB _FER o_rf_CURS r_CNTRL nt fac y_sd_t = 
     let c = o_rf_CURS * _FER in

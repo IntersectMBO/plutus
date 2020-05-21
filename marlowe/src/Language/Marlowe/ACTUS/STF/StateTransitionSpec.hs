@@ -5,9 +5,7 @@ module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.ContractState
 import Data.Maybe
-
-zero :: forall a. Num a => a
-zero = fromInteger 0
+import Language.Marlowe.ACTUS.Ops
 
 _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
     ipac = ipac + y_sd_t * ipnr * nt,
@@ -17,16 +15,16 @@ _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
 _STF_IED_PAM st@ContractStatePoly{..} t y_ipanx_t ipanx_LT_t y_sd_t _IPNR _IPANX r_CNTRL _IPAC _NT = 
     let 
         nt' = r_CNTRL * _NT
-        ipnr' = if (isNothing _IPNR) then zero else (fromJust _IPNR)
+        ipnr' = if (isNothing _IPNR) then _zero else (fromJust _IPNR)
         ipac' = if (isJust _IPAC) then (fromJust _IPAC)
                 else if (isJust _IPANX && ipanx_LT_t) then y_ipanx_t * nt' * ipnr'
-                else zero
+                else _zero
     in st { nt = nt', ipnr = ipnr', ipac = ipac', sd = t }
 
 _STF_MD_PAM st@ContractStatePoly{..} t = st {
-    nt = zero,
-    ipac = zero,
-    feac = zero,
+    nt = _zero,
+    ipac = _zero,
+    feac = _zero,
     sd = t
 }
 
@@ -44,7 +42,7 @@ _STF_PY_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
 
 _STF_FP_PAM st@ContractStatePoly{..} t y_sd_t = st {
     ipac = ipac + y_sd_t * ipnr * nt,
-    fac = zero,
+    fac = _zero,
     sd = t 
 }
 
@@ -52,17 +50,17 @@ _STF_PRD_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _
     _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL
 
 _STF_TD_PAM st@ContractStatePoly{..} t = st {
-    nt = zero,
-    ipac = zero,
-    fac = zero,
-    ipnr = zero,
+    nt = _zero,
+    ipac = _zero,
+    fac = _zero,
+    ipnr = _zero,
     sd = t
 }
 
 _STF_IP_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL = 
     let
         st' = _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL
-    in st' {ipac = zero}
+    in st' {ipac = _zero}
 
 _STF_IPCI_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL = 
     let
@@ -73,14 +71,14 @@ _STF_IPCI_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
 _STF_RR_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO = 
     let
         st' = _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL
-        delta_r = (min (max (o_rf_RRMO * _RRMLT + _RRSP - ipnr) _RRPF) _RRPC)
-        ipnr' = (min (max (ipnr + delta_r) _RRLF) _RRLC)
+        delta_r = (_min (_max (o_rf_RRMO * _RRMLT + _RRSP - ipnr) _RRPF) _RRPC)
+        ipnr' = (_min (_max (ipnr + delta_r) _RRLF) _RRLC)
     in st' {ipnr = ipnr'}
 
 _STF_RRF_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _RRNXT = 
     let
         st' = _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL
-    in st' {ipnr = fromMaybe zero _RRNXT}
+    in st' {ipnr = fromMaybe _zero _RRNXT}
 
 _STF_SC_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _SCEF o_rf_SCMO _SCIED = 
     let
