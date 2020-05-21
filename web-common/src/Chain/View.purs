@@ -7,8 +7,8 @@ import Bootstrap as Bootstrap
 import Bootstrap.Extra (clickable)
 import Data.Array ((:))
 import Data.Array as Array
-import Data.Array.Extra (intersperse)
 import Data.Foldable (foldMap, foldr)
+import Data.Foldable.Extra (interleave)
 import Data.FoldableWithIndex (foldMapWithIndex, foldrWithIndex)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int (toNumber)
@@ -385,7 +385,7 @@ showPubKeyHash (PubKeyHash { getPubKeyHash: p }) =
 valueView :: forall p i. Value -> HTML p i
 valueView (Value { getValue: (AssocMap.Map []) }) = empty
 
-valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (intersperse hr_ (currencyView <$> currencies))
+valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_ (currencyView <$> currencies))
   where
   currencyView :: JsonTuple CurrencySymbol (AssocMap.Map TokenName Int) -> HTML p i
   currencyView (JsonTuple (currency /\ (AssocMap.Map tokens))) =
