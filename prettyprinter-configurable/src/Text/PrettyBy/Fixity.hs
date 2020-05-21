@@ -10,8 +10,8 @@ module Text.PrettyBy.Fixity where
 import           Text.PrettyBy.Internal.Core
 import           Text.PrettyBy.Monad
 
-import           Data.Text.Prettyprint.Doc
 import           Lens.Micro
+import           Text.Pretty
 
 -- It's not necessary to deal with associativity, see: https://stackoverflow.com/a/43639618
 -- But I find it easier and nicer than changing precedence on the fly.

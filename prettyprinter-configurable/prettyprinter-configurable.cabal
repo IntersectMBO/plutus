@@ -14,10 +14,12 @@ cabal-version:       >=1.10
 library
     hs-source-dirs: src
     exposed-modules:
+        Text.Pretty
         Text.PrettyBy
+        Text.PrettyBy.Default
+        Text.PrettyBy.Fixity
         Text.PrettyBy.Internal.Core
         Text.PrettyBy.Monad
-        Text.PrettyBy.Fixity
     build-depends:
         base,
         prettyprinter,
@@ -37,6 +39,7 @@ test-suite prettyprinter-configurable-test
     other-modules:
         Default
         NonDefault
+        Universal
     default-language: Haskell2010
     build-depends:
         prettyprinter-configurable,

@@ -10,12 +10,12 @@ module NonDefault
 
 import           Text.PrettyBy
 
-import           Data.Char                 (intToDigit)
-import           Data.Text                 (Text)
-import           Data.Text.Prettyprint.Doc
-import           Numeric                   (showIntAtBase)
+import           Data.Char        (intToDigit)
+import           Data.Text        (Text)
+import           Numeric          (showIntAtBase)
 import           Test.Tasty
 import           Test.Tasty.HUnit
+import           Text.Pretty
 
 -- | A pretty-printing config.
 data CustomDefaults = CustomDefaults

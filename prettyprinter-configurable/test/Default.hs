@@ -17,12 +17,12 @@ import           Text.PrettyBy.Fixity
 import           Text.PrettyBy.Monad
 
 import           Data.Proxy
-import qualified Data.Text                 as Text
+import qualified Data.Text             as Text
 import           Data.Text.Arbitrary
-import           Data.Text.Prettyprint.Doc
 import           Test.QuickCheck
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
+import           Text.Pretty
 
 newtype OnlyType = OnlyType RenderContext
 

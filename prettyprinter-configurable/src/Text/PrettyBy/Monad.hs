@@ -11,9 +11,9 @@ import           Text.PrettyBy.Internal.Core
 
 import           Control.Monad.Reader
 import           Data.Functor.Const
-import           Data.Text.Prettyprint.Doc
 import           Lens.Micro
 import           Lens.Micro.Internal         (( #. ))
+import           Text.Pretty
 
 view :: MonadReader s m => Getting a s a -> m a
 view l = asks (getConst #. l Const)
@@ -33,11 +33,6 @@ newtype Sole a = Sole
 
 instance HasPrettyConfig (Sole config) config where
     prettyConfig f (Sole x) = Sole <$> f x
-
--- viaPrettyM
---     :: (forall env m. MonadPretty config env m => a -> m (Doc ann))
---     -> config -> a -> Doc ann
--- viaPrettyM pM config x = runReader (pM x) $ Sole config
 
 viaPrettyM :: (a -> Reader (Sole config) (Doc ann)) -> config -> a -> Doc ann
 viaPrettyM pM config x = runReader (pM x) $ Sole config
