@@ -8,7 +8,9 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeApplications          #-}
 
-module Default where
+module Default
+    ( test_default
+    ) where
 
 import           Text.PrettyBy
 import           Text.PrettyBy.Fixity
@@ -29,8 +31,8 @@ instance HasRenderContext OnlyType where
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy [a]) where
     prettyBy = viaPrettyM $ \_ ->
-        compoundDocM unitFixity $ \prettyIn ->
-            brackets $ prettyIn Forward botFixity (Proxy @a)
+        withPrettyAt Forward botFixity $ \prettyBot ->
+            unitDocM . brackets . prettyBot $ Proxy @a
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy (Maybe a)) where
     prettyBy = viaPrettyM $ \_ ->
@@ -40,13 +42,14 @@ instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy (Maybe a)) wher
 instance (PrettyBy OnlyType (Proxy a), PrettyBy OnlyType (Proxy b)) =>
             PrettyBy OnlyType (Proxy (a, b)) where
     prettyBy = viaPrettyM $ \_ ->
-        compoundDocM unitFixity $ \prettyIn -> mconcat
-            [ "("
-            , prettyIn Forward botFixity $ Proxy @a
-            , ", "
-            , prettyIn Forward botFixity $ Proxy @b
-            , ")"
-            ]
+        withPrettyAt Forward botFixity $ \prettyBot ->
+            unitDocM $ mconcat
+                [ "("
+                , prettyBot $ Proxy @a
+                , ", "
+                , prettyBot $ Proxy @b
+                , ")"
+                ]
 
 instance PrettyBy OnlyType (Proxy Integer) where
     prettyBy = viaPrettyM $ \_ ->

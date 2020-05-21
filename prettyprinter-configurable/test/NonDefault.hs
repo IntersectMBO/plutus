@@ -1,28 +1,84 @@
-data WoC = WoC
-type instance HasPrettyDefaults WoC = 'False
-instance NonDefaultPrettyBy WoC Char
-instance NonDefaultPrettyBy WoC Strict.Text
-instance NonDefaultPrettyBy WoC Integer where
-    nonDefaultPrettyBy _ _ = pretty "0"
-instance (PrettyBy WoC a, PrettyBy WoC b) => NonDefaultPrettyBy WoC (a, b)
-instance PrettyBy WoC a => NonDefaultPrettyBy WoC (Maybe a) where
-    nonDefaultPrettyBy _ Nothing  = pretty "Nothing"
-    nonDefaultPrettyBy _ (Just x) = pretty "Just" <+> parens (prettyBy WoC x)
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
 
+module NonDefault
+    ( test_nonDefault
+    ) where
+
+import           Text.PrettyBy
+
+import           Data.Char                 (intToDigit)
+import           Data.Text                 (Text)
+import           Data.Text.Prettyprint.Doc
+import           Numeric                   (showIntAtBase)
+import           Test.Tasty
+import           Test.Tasty.HUnit
+
+-- | A pretty-printing config.
+data CustomDefaults = CustomDefaults
+    { _noDefaultsIntBase :: Integer  -- ^ At what base to pretty-print an 'Integer'.
+    , _noDefaultsListDef :: Bool     -- ^ Whether to pretty-print a list using 'prettyListBy'
+                                     -- (of the 'PrettyBy' class) or as any 'Functor' via
+                                     -- 'defaultPrettyFunctorBy'.
+    }
+
+-- Disable pretty-printing defaults.
+type instance HasPrettyDefaults CustomDefaults = 'False
+
+-- Use the default pretty-printing for 'Char'
+instance NonDefaultPrettyBy CustomDefaults Char
+
+-- Use the default pretty-printing for 'Char'
+instance NonDefaultPrettyBy CustomDefaults Text
+
+-- Pretty-print an 'Integer' at base stored in the config.
+instance NonDefaultPrettyBy CustomDefaults Integer where
+    nonDefaultPrettyBy (CustomDefaults base _) i = pretty $ showIntAtBase base intToDigit i ""
+
+instance PrettyBy CustomDefaults a => NonDefaultPrettyBy CustomDefaults (Maybe a) where
+    -- By default 'Nothing' gets pretty-printed as an empty string and @Just x@ as @x@,
+    -- here we overload that behavior.
+    nonDefaultPrettyBy _      Nothing  = "Nothing"
+    nonDefaultPrettyBy config (Just x) = "Just" <+> parens (prettyBy config x)
+
+    -- Directly pretty-print a list of 'Maybe's without filtering out all the 'Nothing's first
+    -- (which is the default behavior).
     nonDefaultPrettyListBy = defaultPrettyFunctorBy
-instance PrettyBy WoC a => NonDefaultPrettyBy WoC [a]
---     nonDefaultPrettyBy = defaultPrettyFunctorBy
 
-instance PrettyBy WoC WoC where
-    prettyBy _ _ = pretty "WoC"
+-- Pretty-print a list either using the 'prettyListBy' function of 'PrettyBy' (the default) or
+-- as any 'Functor' via 'defaultPrettyFunctorBy' depending on the value of the '_noDefaultsListDef'
+-- field of the config.
+instance PrettyBy CustomDefaults a => NonDefaultPrettyBy CustomDefaults [a] where
+    nonDefaultPrettyBy config@(CustomDefaults _ listDef)
+        | listDef   = prettyListBy config
+        | otherwise = defaultPrettyFunctorBy config
 
--- >>> prettyBy WoC (1 :: Integer)
--- 0
--- >>> prettyBy WoC (1 :: Integer, 2 :: Integer)
--- (0, 0)
--- >>> prettyBy WoC [Just 'a', Nothing, Just 'b']
--- [Just (a), Nothing, Just (b)]
--- >>> prettyBy WoC "abc"
--- abc
--- >>> prettyBy WoC (1 :: Integer, WoC)
--- (0, WoC)
+makeTestCase
+    :: (PrettyBy CustomDefaults a, Show a)
+    => String -> CustomDefaults -> a -> String -> TestTree
+makeTestCase name config x res = testCase header $ show (prettyBy config x) @?= res where
+    header = (if null name then "" else name ++ ": ") ++ show x ++ " ~> " ++ res
+
+test_nonDefault :: TestTree
+test_nonDefault = testGroup "default"
+    [ makeTestCase "" (CustomDefaults 2 True) 'a' "a"
+    , makeTestCase "base = 2"  (CustomDefaults 2  True) (12 :: Integer) "1100"
+    , makeTestCase "base = 8"  (CustomDefaults 8  True) (12 :: Integer) "14"
+    , makeTestCase "base = 10" (CustomDefaults 10 True) (12 :: Integer) "12"
+      -- Default pretty-printing for a list of 'Char's is not overloaded, hence depending on whether
+      -- default pretty-printing of lists is enabled or not, results are different
+    , makeTestCase "listDef = True " (CustomDefaults 2 True)  ("ab12" :: String) "ab12"
+    , makeTestCase "listDef = False" (CustomDefaults 2 False) ("ab12" :: String) "[a, b, 1, 2]"
+      -- ... and the same holds if the list is stored in a 'Just'.
+    , makeTestCase "listDef = True " (CustomDefaults 2 True)  (Just ("ab12" :: String)) "Just (ab12)"
+    , makeTestCase "listDef = False" (CustomDefaults 2 False) (Just ("ab12" :: String)) "Just ([a, b, 1, 2])"
+      -- Default pretty-printing for a list of 'Maybe's is overloaded, hence regardless of whether
+      -- default pretty-printing of lists is enabled or not, the result is the same.
+    , makeTestCase "listDef = True " (CustomDefaults 2 True)
+        [Just 'a', Nothing, Just 'b'] "[Just (a), Nothing, Just (b)]"
+    , makeTestCase "listDef = False" (CustomDefaults 2 False)
+        [Just 'a', Nothing, Just 'b'] "[Just (a), Nothing, Just (b)]"
+    ]
