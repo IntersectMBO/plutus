@@ -14,6 +14,7 @@ import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.Utility.ContractRoleSign
 import Language.Marlowe.ACTUS.Utility.YearFraction
 import Language.Marlowe.ACTUS.MarloweCompat
+import Language.Marlowe.ACTUS.Ops
 import Data.Maybe
 
 import Language.Marlowe.ACTUS.Utility.DateShift
@@ -26,16 +27,20 @@ stateTransition terms t continue =
         PamContractTerms{..} -> 
             let 
                 t0 = _SD
+                time = SlotIntervalStart
                 fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
-                tfp_minus = calculationDay $ sup fpSchedule t0
-                tfp_plus = calculationDay $ inf fpSchedule t0
-                y_sd_t = undefined
-                y_tfpminus_t = undefined
-                y_tfpminus_tfpplus = undefined
-                y_ipanx_t = undefined
-                r_CNTRL = undefined
-                time = undefined
-                ipanx_lt_t = undefined --(fromJust _IPANX) < time
+                tfp_minus = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ sup fpSchedule t0
+                tfp_plus = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ inf fpSchedule t0
+                ipanx = constnt $ fromInteger $  dayToSlotNumber $ fromJust _IPANX
+
+                y_sd_t = _y _DCC (useval "sd" t) time undefined
+                y_tfpminus_t = _y _DCC tfp_minus time undefined
+                y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus undefined
+                y_ipanx_t = _y _DCC ipanx time undefined
+                r_CNTRL = _r _CNTRL
+
+                ipanx_lt_t = Cond (ValueLT ipanx time) _one _zero
+                
             in dispatchStateTransition t continue (\ev -> \st -> case ev of 
                 AD   -> _STF_AD_PAM st time y_sd_t
                 IED  -> _STF_IED_PAM st time y_ipanx_t ipanx_lt_t y_sd_t 

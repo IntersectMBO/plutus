@@ -10,8 +10,7 @@ import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import Language.Marlowe.ACTUS.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.Utility.YearFraction
+import Language.Marlowe.ACTUS.Ops
 import Data.Maybe
 
 import Language.Marlowe.ACTUS.Utility.DateShift
@@ -27,12 +26,12 @@ stateTransition ev terms st@ContractStatePoly{..} t termsCtx stateCtx =
                 fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
                 tfp_minus = calculationDay $ sup fpSchedule t0
                 tfp_plus = calculationDay $ inf fpSchedule t0
-                y_sd_t = yearFraction _DCC sd t _MD
-                y_tfpminus_t = yearFraction _DCC tfp_minus t _MD
-                y_tfpminus_tfpplus = yearFraction _DCC tfp_minus tfp_plus _MD
-                y_ipanx_t = yearFraction _DCC (fromJust _IPANX) t _MD
-                r_CNTRL = contractRoleSign _CNTRL
-                ipanx_lt_t = (fromJust _IPANX) < t
+                y_sd_t = _y _DCC sd t _MD
+                y_tfpminus_t = _y _DCC tfp_minus t _MD
+                y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus _MD
+                y_ipanx_t = _y _DCC (fromJust _IPANX) t _MD
+                r_CNTRL = _r _CNTRL
+                ipanx_lt_t = if (fromJust _IPANX) < t then _one else _zero
             in case ev of 
                 AD_EVENT{..}   -> _STF_AD_PAM st t y_sd_t
                 IED_EVENT{..}  -> _STF_IED_PAM st t y_ipanx_t ipanx_lt_t y_sd_t _IPNR _IPANX r_CNTRL _IPAC _NT

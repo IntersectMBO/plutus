@@ -4,6 +4,7 @@ module Language.Marlowe.ACTUS.POF.PayoffLp where
 
 import Data.Time
 import Language.Marlowe
+import Language.Marlowe.ACTUS.Ops
 import Language.Marlowe.ACTUS.ContractState
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.POF.PayoffSpec
@@ -13,8 +14,8 @@ import Language.Marlowe.ACTUS.MarloweCompat
 payoff :: ContractTerms -> Integer -> (Value Observation)
 payoff terms t = case terms of
     PamContractTerms{..} -> 
-        let y_sd_t = undefined
-            r_CNTRL = undefined
+        let y_sd_t = _y _DCC (useval "sd" t) SlotIntervalStart undefined
+            r_CNTRL = _r _CNTRL
         in  dispatchEvent t 0 (\ev -> 
                 case ev of 
                     IED  -> _POF_IED_PAM 

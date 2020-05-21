@@ -31,6 +31,7 @@ instance ActusOps (Value Observation) where
     _min a b = (Cond (ValueLT a b) a b)
     _max a b = (Cond (ValueGT a b) a b)
     _zero = Constant 0
+    _one = Constant $ round $ marloweFixedPoint
 
 instance YearFractionOps (Value Observation) (Value Observation) where
     _y _ from to _ = (from - to) / (Constant (360 * 24 * 60 * 60))

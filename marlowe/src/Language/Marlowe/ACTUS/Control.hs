@@ -24,6 +24,7 @@ import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ActusValidator
 import Control.Arrow
 import Debug.Trace
+import Language.Marlowe.ACTUS.Ops
 
 type Currency = String
 type Tkn = String
@@ -36,17 +37,6 @@ type From = String
 type To = String
 type Continuation = Contract
 type EventInitiatorPartyId = Integer
-
-cardanoEpochStart = 100
-marloweFixedPoint = 1000000000
-
-dayToSlotNumber :: Day -> Integer
-dayToSlotNumber d = let
-    (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
-    in fromIntegral secs - cardanoEpochStart `mod` 20
-
-slotRangeToDay :: Integer -> Integer -> Day
-slotRangeToDay start end = undefined
 
 --todo check roleSign, enforce a date
 invoice :: From -> To -> Amount -> Continuation -> Contract

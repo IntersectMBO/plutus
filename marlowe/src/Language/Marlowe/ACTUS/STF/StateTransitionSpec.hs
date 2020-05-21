@@ -17,7 +17,7 @@ _STF_IED_PAM st@ContractStatePoly{..} t y_ipanx_t ipanx_LT_t y_sd_t _IPNR _IPANX
         nt' = r_CNTRL * _NT
         ipnr' = if (isNothing _IPNR) then _zero else (fromJust _IPNR)
         ipac' = if (isJust _IPAC) then (fromJust _IPAC)
-                else if (isJust _IPANX && ipanx_LT_t) then y_ipanx_t * nt' * ipnr'
+                else if (isJust _IPANX) then ipanx_LT_t * y_ipanx_t * nt' * ipnr'
                 else _zero
     in st { nt = nt', ipnr = ipnr', ipac = ipac', sd = t }
 
