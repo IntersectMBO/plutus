@@ -52,10 +52,10 @@ letval :: String -> Integer -> (Value Observation) -> Contract -> Contract
 letval name t val cont = (Let (ValueId (fromString $ name ++ "_" ++ (show t))) val cont)
 
 constnt :: Double -> (Value Observation)
-constnt v = Constant undefined --todo
+constnt v = Constant $ round $ v * marloweFixedPoint
 
 constntMaybe :: Maybe Double -> Maybe (Value Observation)
-constntMaybe v = Just $ Constant undefined --todo
+constntMaybe v = fmap (\v' -> Constant $ round $ v' * marloweFixedPoint) v  
 
 enum :: forall a. a -> a 
 enum = id
@@ -66,7 +66,7 @@ dispatchEvent t defaultValue handler =
         eventId ev = Constant $ eventTypeToEventTypeId ev 
         eventIdInput = useval "eventType_" t
         cond cont ev = (Cond (ValueEQ (eventId ev) eventIdInput) (handler ev) cont)
-    in L.foldl cond defaultValue [AD]
+    in L.foldl cond defaultValue [AD, IED, MD]
 
 dispatchStateTransition :: Integer -> Contract -> EventHandlerSTF -> Contract
 dispatchStateTransition t continue handler = 

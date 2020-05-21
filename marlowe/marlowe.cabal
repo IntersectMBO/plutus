@@ -65,6 +65,7 @@ library
     Language.Marlowe.ACTUS.ActusValidator
     Language.Marlowe.ACTUS.ContractState
     Language.Marlowe.ACTUS.Control
+    Language.Marlowe.ACTUS.ControlLp
     Language.Marlowe.ACTUS.ProjectedCashFlows
     Language.Marlowe.ACTUS.Schedule
     Language.Marlowe.ACTUS.POF.PayoffSpec

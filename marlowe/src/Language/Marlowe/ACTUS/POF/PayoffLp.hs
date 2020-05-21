@@ -11,8 +11,8 @@ import Language.Marlowe.ACTUS.POF.PayoffSpec
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.MarloweCompat
 
-payoff :: ContractTerms -> Integer -> (Value Observation)
-payoff terms t = case terms of
+payoffLp :: ContractTerms -> Integer -> (Value Observation)
+payoffLp terms t = case terms of
     PamContractTerms{..} -> 
         let y_sd_t = _y _DCC (useval "sd" t) SlotIntervalStart undefined
             r_CNTRL = _r _CNTRL

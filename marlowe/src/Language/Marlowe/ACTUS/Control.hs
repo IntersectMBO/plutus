@@ -129,7 +129,6 @@ genContract  =
         invoice "party" "counterparty" (UseValue $ ValueId (fromString "payoff")) 
             Close
 
-
 --The logic below happens inside a smart-contract--
 
 parseDouble :: Integer -> Double
@@ -228,3 +227,4 @@ actusMarloweValidator terms TransactionOutput{..} =
         result = validateCashFlow terms (L.init cashflows) (L.last cashflows) --todo THIS IS NOT SECURE
     in if null cashflows then True else result 
 actusMarloweValidator _ (Error _) = False
+

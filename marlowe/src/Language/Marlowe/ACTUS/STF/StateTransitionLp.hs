@@ -21,13 +21,14 @@ import Language.Marlowe.ACTUS.Utility.DateShift
 
 shift = applyBDCWithCfg
 
-stateTransition :: ContractTerms -> Integer -> Contract -> Contract
-stateTransition terms t continue = 
+stateTransitionLp :: ContractTerms -> Integer -> Contract -> Contract
+stateTransitionLp terms t continue = 
     case terms of
         PamContractTerms{..} -> 
             let 
                 t0 = _SD
                 time = SlotIntervalStart
+                --todo refactor: factor out date to slot, factor _y and _r back in, introduce _lt _gt type-class
                 fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
                 tfp_minus = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ sup fpSchedule t0
                 tfp_plus = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ inf fpSchedule t0

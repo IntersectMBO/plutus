@@ -4,7 +4,9 @@ module Spec.Marlowe.Actus
 where
 
 import           Language.Marlowe.ACTUS.Control
+import           Language.Marlowe.ACTUS.ControlLp
 import           Language.Marlowe.Semantics
+import           Language.Marlowe.Pretty
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Language.Marlowe.ACTUS.ContractState
 import           Language.Marlowe.ACTUS.BusinessEvents
@@ -27,6 +29,7 @@ tests = testGroup "Actus"
     [ testCase "PAM static schedule" pamProjected
     , testCase "Simple PAM contract + Marlowe IO" pamSimple
     , testCase "Simple PAM contract" pamRePlay
+    , testCase "Generate PAM-LP" pamLpGeneration
     ]
 
 ada :: Token
@@ -125,7 +128,8 @@ pamSimple = do
     let customValidator = actusMarloweValidator contractTerms
     let contract = genContract
     let initState = emptyState 0
-    let inputs = (let 
+    let inputs = 
+            (let 
                 mkChoice role choice value = 
                     IChoice (ChoiceId (fromString choice) (Role $ TokenName $ fromString role)) value
                 mkDeposit role value = 
@@ -139,7 +143,7 @@ pamSimple = do
                 choosePayoff = mkChoice "party" "payoff" 0
                 choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
                 deposit = mkDeposit "party" 0
-                in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
+            in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
                 chooseRiskFactor4, choosePayoff, choosePayoffCurrency, deposit])
         --
     let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
@@ -147,7 +151,13 @@ pamSimple = do
     let validationResult = customValidator txOutput --trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ 
     let parsedCashFlows = stateParser $ (appendPresentState $ txOutState txOutput)
     let parsedCashFlowsEmpty = null parsedCashFlows
-    assertBool "ParsedCashflows are empty" $ not parsedCashFlowsEmpty
-    assertBool "Result" validationResult
-    assertEqual "Contract is not closed" Close (txOutContract txOutput)
+    assertBool "Parsed cashflows are not empty" $ not parsedCashFlowsEmpty
+    assertBool "Validation result" validationResult
+    assertEqual "Contract is closed" Close (txOutContract txOutput)
+
+pamLpGeneration :: IO ()
+pamLpGeneration = do
+    let pamLp = genLpContract contractTerms 1 Close
+    --putStrLn (show $ pretty pamLp)
+    assertBool "Contract Generated" $ pamLp /= Close
 
