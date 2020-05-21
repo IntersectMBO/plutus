@@ -43,7 +43,6 @@ library
     plutus-tx -any,
     plutus-emulator -any,
     plutus-ledger,
-    plutus-wallet-api,
     plutus-contract,
     text,
     vector,

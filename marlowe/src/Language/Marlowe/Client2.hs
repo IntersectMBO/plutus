@@ -33,14 +33,15 @@ import           Language.Marlowe.Semantics hiding (Contract)
 import qualified Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (DataValue (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), TxOutTx (..), interval,
+import           Ledger                     (Datum (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), TxOutRef(..), TxOutTx (..), interval,
 
                                              mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut,
-                                             txOutRefs, txOutTxData, pubKeyAddress)
+                                             txOutRefs, pubKeyAddress)
 import           Ledger.Ada                 (adaValueOf)
 import           Ledger.AddressMap                 (outRefMap)
-import           Ledger.Scripts             (RedeemerValue (..), Validator)
+import           Ledger.Scripts             (Redeemer (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
+import Ledger.Constraints.OffChain (UnbalancedTx(..))
 import qualified Ledger.Value               as Val
 import Debug.Trace
 
@@ -87,7 +88,7 @@ createContract contract = do
         address = Ledger.scriptAddress validator
 
         marloweData = MarloweData {
-            marloweCreator = creator,
+            -- marloweCreator = creator,
             marloweContract = contract,
             marloweState = emptyState slot }
         ds = DataValue $ PlutusTx.toData marloweData
@@ -120,7 +121,7 @@ applyInputs creator inputs = do
     let [(ref, out)] = Map.toList (outRefMap utxo)
 
 
-    let convert :: TxOutRef -> TxOutTx -> Maybe (TxOutRef, Val.Value, DataValue, MarloweData)
+    let convert :: TxOutRef -> TxOutTx -> Maybe (TxOutRef, Val.Value, Datum, MarloweData)
         convert ref out = case txOutTxData out of
             Just dv -> case PlutusTx.fromData (getDataScript dv) of
                 Just marloweData -> Just (ref, txOutValue (txOutTxOut out), dv, marloweData)
@@ -144,7 +145,7 @@ applyInputs creator inputs = do
         TransactionOutput {txOutPayments, txOutState, txOutContract} -> do
 
             let marloweData = MarloweData {
-                    marloweCreator,
+                    -- marloweCreator,
                     marloweContract = txOutContract,
                     marloweState = txOutState }
 
@@ -176,7 +177,7 @@ applyInputs creator inputs = do
     txPaymentOuts :: [Payment] -> UnbalancedTx
     txPaymentOuts payments = let
         ps = foldr collectPayments Map.empty payments
-        in foldMap (\(pk, value) -> payToPubKeyHash value pk) (Map.toList ps)
+        in foldMap (\(pk, value) -> pubKeyHashTxOut value pk) (Map.toList ps)
 
     collectPayments :: Payment -> Map Party Money -> Map Party Money
     collectPayments (Payment party money) payments = let
@@ -195,5 +196,5 @@ validatorScript creator = mkValidatorScript ($$(PlutusTx.compile [|| validatorPa
 
 
 {-| Make redeemer script -}
-mkRedeemer :: [Input] -> RedeemerValue
-mkRedeemer inputs = RedeemerValue (PlutusTx.toData inputs)
+mkRedeemer :: [Input] -> Redeemer
+mkRedeemer inputs = Redeemer (PlutusTx.toData inputs)
