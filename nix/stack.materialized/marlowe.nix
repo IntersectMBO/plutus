@@ -108,6 +108,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
             (hsPkgs."tasty" or (buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-quickcheck" or (buildDepError "tasty-quickcheck"))
             (hsPkgs."tasty-hedgehog" or (buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (buildDepError "text"))
             (hsPkgs."serialise" or (buildDepError "serialise"))
@@ -130,7 +131,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             "OldAnalysis/IntegerArray"
             "OldAnalysis/MkSymb"
             "OldAnalysis/Numbering"
-            "Tests"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

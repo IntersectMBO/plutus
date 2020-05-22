@@ -1,22 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main(main) where
 
--- import qualified Spec.Actus
 import qualified Spec.Marlowe.Marlowe
-import           System.Exit
-import qualified Tests
 
 import           Test.Tasty
+import           Test.Tasty.QuickCheck
 
 main :: IO ()
-main = do
-    good <- and <$> sequence [Tests.runTests]
-    if good
-    then defaultMain tests
-    else exitFailure
+main = defaultMain tests
 
 
 tests :: TestTree
-tests = testGroup "Marlowe Contracts"
-        [ Spec.Marlowe.Marlowe.tests
-        ]
+tests = testGroup "Marlowe"
+    [ testGroup "Contracts" [ Spec.Marlowe.Marlowe.tests]
+    , testGroup "Static Analysis"
+        [ testProperty "No false positives" Spec.Marlowe.Marlowe.prop_noFalsePositives ]
+    ]
