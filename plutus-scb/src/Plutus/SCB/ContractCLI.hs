@@ -7,6 +7,18 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-|
+Create a command line application from a @Contract schema Text ()@. For example:
+
+> game :: AsContractError e => Contract GameSchema e ()
+> game = lock <|> guess
+>
+> ...
+>
+> main :: IO ()
+> main = commandLineApp game
+
+-}
 module Plutus.SCB.ContractCLI
     ( commandLineApp
     , runCliCommand
