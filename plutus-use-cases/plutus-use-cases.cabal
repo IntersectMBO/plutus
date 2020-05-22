@@ -103,8 +103,7 @@ test-suite plutus-use-cases-test
         plutus-tx -any,
         plutus-contract -any,
         plutus-ledger -any,
-        plutus-use-cases -any,
-        plutus-contract-tasty -any
+        plutus-use-cases -any
     build-depends:
         base >=4.9 && <5,
         aeson -any,

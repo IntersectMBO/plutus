@@ -13,7 +13,6 @@ packages: language-plutus-core
           marlowe-playground-server
           marlowe-symbolic
           plutus-contract
-          plutus-contract-tasty
           deployment-server
           iots-export
           metatheory

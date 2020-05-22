@@ -91,6 +91,9 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
           (hsPkgs."semigroups" or (buildDepError "semigroups"))
           (hsPkgs."cryptonite" or (buildDepError "cryptonite"))
+          ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
+          (hsPkgs."tasty" or (buildDepError "tasty"))
+          (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
           ];
         buildable = true;
         modules = [
@@ -137,7 +140,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Wallet/Graph"
           "Control/Monad/Freer/Extras"
           "Control/Monad/Freer/Log"
-          ];
+          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "Language/Plutus/Contract/Test";
         hsSourceDirs = [ "src" ];
         };
       tests = {
@@ -183,7 +186,12 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."aeson" or (buildDepError "aeson"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));
           buildable = true;
-          modules = [ "Spec/Emulator" "Spec/Rows" "Spec/State" ];
+          modules = [
+            "Spec/Contract"
+            "Spec/Emulator"
+            "Spec/Rows"
+            "Spec/State"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

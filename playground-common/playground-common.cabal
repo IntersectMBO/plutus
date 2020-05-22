@@ -72,7 +72,6 @@ library
         plutus-ledger -any,
         row-types -any,
         prettyprinter -any,
-        plutus-contract-tasty -any,
         plutus-tx -any,
         purescript-bridge -any,
         recursion-schemes -any,

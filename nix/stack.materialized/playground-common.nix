@@ -95,7 +95,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
           (hsPkgs."row-types" or (buildDepError "row-types"))
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
-          (hsPkgs."plutus-contract-tasty" or (buildDepError "plutus-contract-tasty"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."purescript-bridge" or (buildDepError "purescript-bridge"))
           (hsPkgs."recursion-schemes" or (buildDepError "recursion-schemes"))

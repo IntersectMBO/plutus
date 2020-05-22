@@ -129,7 +129,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
-            (hsPkgs."plutus-contract-tasty" or (buildDepError "plutus-contract-tasty"))
             (hsPkgs."base" or (buildDepError "base"))
             (hsPkgs."aeson" or (buildDepError "aeson"))
             (hsPkgs."bytestring" or (buildDepError "bytestring"))

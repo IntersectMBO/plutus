@@ -109,6 +109,13 @@ library
         semigroups -any,
         cryptonite >=0.25
 
+    if !(impl(ghcjs) || os(ghcjs))
+        exposed-modules:
+            Language.Plutus.Contract.Test
+        build-depends:
+            tasty -any,
+            tasty-hunit -any,
+
 test-suite contract-doctests
     type: exitcode-stdio-1.0
     hs-source-dirs:
@@ -139,6 +146,7 @@ test-suite plutus-contract-test
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
+        Spec.Contract
         Spec.Emulator
         Spec.Rows
         Spec.State

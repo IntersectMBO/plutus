@@ -48,7 +48,6 @@
         plutus-tutorial = ./plutus-tutorial.nix;
         plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;
-        plutus-contract-tasty = ./plutus-contract-tasty.nix;
         plutus-scb = ./plutus-scb.nix;
         deployment-server = ./deployment-server.nix;
         iots-export = ./iots-export.nix;
