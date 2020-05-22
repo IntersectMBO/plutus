@@ -35,21 +35,21 @@ import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
 import           Ledger                     (Datum (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), TxOutRef(..), TxOutTx (..), interval,
 
-                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut,
+                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, validatorHash, txOutDatum,
                                              txOutRefs, pubKeyAddress)
 import           Ledger.Ada                 (adaValueOf)
 import           Ledger.AddressMap                 (outRefMap)
 import           Ledger.Scripts             (Redeemer (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
-import Ledger.Constraints.OffChain (UnbalancedTx(..))
+import Ledger.Constraints
 import qualified Ledger.Value               as Val
 import Debug.Trace
 
 type MarloweSchema =
     BlockchainActions
-        .\/ Endpoint "create" Marlowe.Contract
-        .\/ Endpoint "apply-inputs" (PubKeyHash, [Input])
-        .\/ Endpoint "sub" PubKeyHash
+        .\/ Endpoint "create" (MarloweParams, Marlowe.Contract)
+        .\/ Endpoint "apply-inputs" (MarloweParams, [Input])
+        .\/ Endpoint "sub" MarloweParams
 
 
 marloweContract2 :: forall e. (AsContractError e)
@@ -58,18 +58,18 @@ marloweContract2 = do
     create <|> apply {- <|> void sub -}
   where
     sub = do
-        creator <- endpoint @"sub" @PubKeyHash @MarloweSchema
+        creator <- endpoint @"sub" @MarloweParams @MarloweSchema
         pk <- ownPubKey
         let validator = validatorScript creator
             address = Ledger.scriptAddress validator
         void $ utxoAt address
         utxoAt (pubKeyAddress pk)
     create = do
-        cont <- endpoint @"create" @Marlowe.Contract @MarloweSchema
-        createContract cont
+        (params, cont) <- endpoint @"create" @(MarloweParams, Marlowe.Contract) @MarloweSchema
+        createContract params cont
     apply = do
-        (creator, inputs) <- endpoint @"apply-inputs" @(PubKeyHash, [Input]) @MarloweSchema
-        MarloweData{..} <- applyInputs creator inputs
+        (params, inputs) <- endpoint @"apply-inputs" @(MarloweParams, [Input]) @MarloweSchema
+        MarloweData{..} <- applyInputs params inputs
         case marloweContract of
             Close -> void apply --pure ()
             _ -> void apply
@@ -79,35 +79,35 @@ marloweContract2 = do
     Uses wallet public key to generate a unique script address.
  -}
 createContract :: (AsContractError e)
-    => Marlowe.Contract
+    => MarloweParams
+    -> Marlowe.Contract
     -> Contract MarloweSchema e ()
-createContract contract = do
+createContract params contract = do
     slot <- awaitSlot 0
     creator <- pubKeyHash <$> ownPubKey
-    let validator = validatorScript creator
-        address = Ledger.scriptAddress validator
+    let validator = validatorScript params
+        vh = validatorHash validator
 
         marloweData = MarloweData {
-            -- marloweCreator = creator,
             marloweContract = contract,
             marloweState = emptyState slot }
-        ds = DataValue $ PlutusTx.toData marloweData
+        ds = Datum $ PlutusTx.toData marloweData
 
     let payValue = adaValueOf 1
 
     let slotRange = interval slot (slot + 10)
-    let tx = payToScript payValue address ds
-             <> mustBeValidIn slotRange
+    let tx = mustPayToOtherScript vh ds payValue
+             <> mustValidateIn slotRange
     void $ submitTx tx
 
 
 applyInputs :: (AsContractError e)
-    => PubKeyHash
+    => MarloweParams
     -> [Input]
     -> Contract MarloweSchema e MarloweData
-applyInputs creator inputs = do
+applyInputs params inputs = do
     let redeemer = mkRedeemer inputs
-        validator = validatorScript creator
+        validator = validatorScript params
         address = scriptAddress validator
     traceM "Here"
     slot <- awaitSlot 0
@@ -122,8 +122,8 @@ applyInputs creator inputs = do
 
 
     let convert :: TxOutRef -> TxOutTx -> Maybe (TxOutRef, Val.Value, Datum, MarloweData)
-        convert ref out = case txOutTxData out of
-            Just dv -> case PlutusTx.fromData (getDataScript dv) of
+        convert ref out = case txOutDatum (txOutTxOut out) of
+            Just dv -> case PlutusTx.fromData (getDatum dv) of
                 Just marloweData -> Just (ref, txOutValue (txOutTxOut out), dv, marloweData)
                 _ -> Nothing
             _ -> Nothing
@@ -155,15 +155,14 @@ applyInputs creator inputs = do
                         txWithPayouts = txPaymentOuts txOutPayments
                         totalPayouts = foldMap (\(Payment _ v) -> v) txOutPayments
                         finalBalance = totalIncome P.- totalPayouts
-                        dataValue = DataValue (PlutusTx.toData marloweData)
+                        dataValue = Datum (PlutusTx.toData marloweData)
                         scriptOut = payToScript finalBalance address dataValue
                         in scriptOut <> txWithPayouts
 
             return (deducedTxOutputs, marloweData)
         Error txError -> throwing _OtherError $ (Text.pack $ show txError)
     traceM "Here7"
-    let scriptIn = scriptTxIn ref validator redeemer dataValue
-    let finalTx = tx <> mustSpendInput scriptIn <> mustBeValidIn slotRange
+    let finalTx = tx <> mustSpendScriptOutput ref redeemer <> mustValidateIn slotRange
     traceM ("AAAAAAA" <> show finalTx)
     throwing _OtherError $ (Text.pack $ show finalTx)
     void $ submitTx finalTx
@@ -188,11 +187,12 @@ applyInputs creator inputs = do
 
 
 {-| Generate a validator script for 'creator' PubKey -}
-validatorScript :: PubKeyHash -> Validator
-validatorScript creator = mkValidatorScript ($$(PlutusTx.compile [|| validatorParam ||])
+validatorScript :: MarloweParams -> Validator
+validatorScript params = mkValidatorScript ($$(PlutusTx.compile [|| validatorParam ||])
     `PlutusTx.applyCode`
-        PlutusTx.liftCode creator)
-    where validatorParam k = Scripts.wrapValidator (marloweValidator k)
+        PlutusTx.liftCode params)
+  where
+    validatorParam k = Scripts.wrapValidator (marloweValidator k)
 
 
 {-| Make redeemer script -}
