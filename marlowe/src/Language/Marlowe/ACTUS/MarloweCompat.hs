@@ -9,7 +9,6 @@ import Language.Marlowe
 import Language.Marlowe.ACTUS.Ops
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ContractState
-import Language.Marlowe.ACTUS.Control
 import Language.Marlowe.ACTUS.Utility.ContractRoleSign
 import Data.String (IsString (fromString))
 import Data.List
@@ -84,6 +83,7 @@ dispatchStateTransition t continue handler =
             , sd = (useval "sd" (t - 1))
             , prnxt = (useval "prnxt" (t - 1))
             , ipcb = (useval "ipcb" (t - 1))
+            , prf = undefined
             }
         handler_tmd ev = tmd $ handler ev inputState
         handler_nt ev = nt $ handler ev inputState

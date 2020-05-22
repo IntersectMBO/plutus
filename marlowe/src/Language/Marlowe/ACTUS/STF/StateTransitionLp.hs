@@ -1,24 +1,22 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Marlowe.ACTUS.STF.StateTransitionLp where
+module Language.Marlowe.ACTUS.STF.StateTransitionLp (stateTransitionLp) where
 
-import Data.Time
 import Language.Marlowe
-import Language.Marlowe.ACTUS.ContractState
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.STF.StateTransitionSpec
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import Language.Marlowe.ACTUS.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.Utility.YearFraction
 import Language.Marlowe.ACTUS.MarloweCompat
 import Language.Marlowe.ACTUS.Ops
 import Data.Maybe
+import Data.Time
 
 import Language.Marlowe.ACTUS.Utility.DateShift
 
+shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 stateTransitionLp :: ContractTerms -> Integer -> Contract -> Contract
@@ -99,7 +97,8 @@ stateTransitionLp terms t continue =
                             _SCEF 
                             (useval "o_rf_SCMO" t) 
                             (constnt _SCIED)
-                CE   -> _STF_CE_PAM st time y_sd_t)
+                CE   -> _STF_CE_PAM st time y_sd_t
+                _    -> st)
 
 
      

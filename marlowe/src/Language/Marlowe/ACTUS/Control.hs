@@ -1,36 +1,26 @@
 {-# LANGUAGE RecordWildCards #-}
 
 {- This module contains templates for Marlowe constructs required by ACTUS logic -}
-module Language.Marlowe.ACTUS.Control where
+module Language.Marlowe.ACTUS.Control(invoice, inquiry, genContract, stateParser, actusMarloweValidator, appendPresentState) where
 
-import Language.Marlowe
 import Data.Time
-import Data.Time.Clock
-import Data.Time.Clock.POSIX
-import Data.Time.Clock.System
-import Wallet 
-import Ledger.Crypto
+
 import Ledger.Value
 import Data.String (IsString (fromString))
-import Language.PlutusTx.AssocMap (Map)
+
 import qualified Language.PlutusTx.AssocMap as Map
 import Data.Maybe
-import qualified Data.Maybe as Maybe
-import Data.List
 import qualified Data.List as L
+
+import Language.Marlowe
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ActusValidator
-import Control.Arrow
-import Debug.Trace
 import Language.Marlowe.ACTUS.Ops
 
-type Currency = String
-type Tkn = String
 type TimePostfix = String -- sequence number of event
 type Amount = (Language.Marlowe.Value Language.Marlowe.Observation)
-type MarloweBool = Language.Marlowe.Observation
 type Oracle = String
 type EventInitiatorParty = String
 type From = String
@@ -52,8 +42,8 @@ invoice from to amount continue =
                     continue)]
     1000000000 Close 
 
-roleSign :: TimePostfix -> String -> MarloweBool
-roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
+--roleSign :: TimePostfix -> String -> MarloweBool
+--roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
 
 --todo read payment date 
 inquiry :: TimePostfix -> EventInitiatorParty -> EventInitiatorPartyId -> Oracle -> Continuation -> Contract
@@ -97,24 +87,13 @@ inquiry timePosfix party partyId oracle continue = let
         (Constant 0) 
         [Bound 0 1000000] 
         cont
-    paymentSlotStartInquiry cont = inputTemplate 
-        (fromString ("paymentSlotStart" ++ timePosfix)) 
-        partyRole 
-        (Constant 0) 
-        [Bound 0 1000000] 
-        cont
-    paymentSlotStartInquiry cont = inputTemplate 
-        (fromString ("paymentSlotEnd" ++ timePosfix)) 
-        partyRole 
-        (Constant 0) 
-        [Bound 0 1000000] 
-        cont
     addEventInitiatorParty cont = (Let (ValueId (fromString "party")) (Constant partyId) cont)
     riskFactorsInquiry = 
         (riskFactorInquiry "o_rf_CURS") . 
         (riskFactorInquiry "o_rf_RRMO") . 
         (riskFactorInquiry "o_rf_SCMO") .
         (riskFactorInquiry "pp_payoff")
+        
     in (contractIdInquiry . 
         eventTypeInquiry . 
         riskFactorsInquiry . 
@@ -140,6 +119,7 @@ appendPresentState state =
     if isJust $ Map.lookup (ValueId $ (fromString "payoffCurrency")) (boundValues state)
         then    let 
                     emptyLoopSt = LoopState {
+                        originalContract = undefined,
                         logicalTime = 0,
                         stateHistory = Map.empty
                     }
@@ -155,7 +135,7 @@ appendPresentState state =
         else    state
 
 stateParser :: State -> [CashFlow]
-stateParser state@State{..} =
+stateParser State{..} =
     let 
         stateHist = stateHistory $ fromJust loopState
         parseCashFlow :: LogicalTime -> CashFlow    
@@ -163,8 +143,8 @@ stateParser state@State{..} =
             let
                 look :: String -> Integer
                 look name = fromJust $ Map.lookup (ValueId $ (fromString name)) $ fromJust $ Map.lookup t stateHist
-                proposedPaymentDate = fromGregorian 2008 10 20 -- slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
-                parseCashEvent id = case eventTypeIdToEventType id of
+                proposedPaymentDate = fromGregorian 2008 10 20 --todo slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
+                parseCashEvent eventId = case eventTypeIdToEventType eventId of
                     AD   -> AD_EVENT {o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"}
                     IED  -> IED_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}   
                     PR   -> PR_EVENT {o_rf_CURS  = parseDouble $ look "riskFactor-o_rf_CURS"}  
@@ -200,7 +180,7 @@ stateParser state@State{..} =
                         o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"
                     } 
                     CE   -> CE_EVENT { 
-                        date = proposedPaymentDate, 
+                        creditDate = proposedPaymentDate, 
                         o_rf_CURS = parseDouble $ look "riskFactor-o_rf_CURS"
                     }
             in CashFlow {
@@ -209,6 +189,7 @@ stateParser state@State{..} =
                 cashParty = show $ look "party",
                 cashCounterParty = show $ look "counterparty",
                 cashPaymentDay = proposedPaymentDate,
+                cashCalculationDay = undefined,
                 cashEvent = parseCashEvent $ look "eventType", 
                 amount = parseDouble $ look "amount",
                 currency = show $ look "currency"
@@ -216,14 +197,9 @@ stateParser state@State{..} =
     in if isJust loopState  then fmap parseCashFlow $ Map.keys stateHist
                             else []
 
--- gets cashflows from state parser and passes them to ActusValidator
--- currently it takes O(n*n) but could be optimized to O(n) with memoization
--- we can optimize it futher to O(1) by only validating inputs from latest transaction
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput{..} = 
     let cashflows = stateParser (appendPresentState txOutState) 
-        -- steps = L.inits cashflows
-        -- result = L.foldl (\b -> \l -> b && validateCashFlow terms (L.init l) (L.last l)) True steps
         result = validateCashFlow terms (L.init cashflows) (L.last cashflows) --todo THIS IS NOT SECURE
     in if null cashflows then True else result 
 actusMarloweValidator _ (Error _) = False

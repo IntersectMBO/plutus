@@ -30,7 +30,7 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                     | STD_EVENT {o_rf_CURS :: Double}  -- Settlement Date Date when payment for derivatives is settled
                     | MD_EVENT {o_rf_CURS :: Double}   -- Maturity Date Scheduled maturity or expiry of a contract
                     | PP_EVENT { pp_payoff :: Double, o_rf_CURS :: Double} 
-                    | CE_EVENT { date :: Day, o_rf_CURS :: Double} -- Credit event of counterparty to a contract
+                    | CE_EVENT { creditDate :: Day, o_rf_CURS :: Double} -- Credit event of counterparty to a contract
                     deriving (Eq, Ord, Show)
                      
 mapEventType :: ScheduledEvent -> EventType

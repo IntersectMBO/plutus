@@ -2,10 +2,8 @@
 
 module Language.Marlowe.ACTUS.POF.PayoffLp where
 
-import Data.Time
 import Language.Marlowe
 import Language.Marlowe.ACTUS.Ops
-import Language.Marlowe.ACTUS.ContractState
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.POF.PayoffSpec
 import Language.Marlowe.ACTUS.ContractTerms

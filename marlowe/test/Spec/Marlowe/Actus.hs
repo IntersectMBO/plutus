@@ -17,11 +17,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
 import           Data.Maybe
-import           Language.Marlowe.Client
 import           Data.String (IsString (fromString))
-import           Ledger.Crypto
 import           Ledger.Value
-import           Debug.Trace
 import           Ledger.Ada                 (adaSymbol, adaToken)
 
 tests :: TestTree
@@ -94,7 +91,7 @@ contractTerms = PamContractTerms {
         , _FER = 0.03 -- fee rate
     }
 
-
+cashFlowFixture :: Integer -> Day -> ScheduledEvent -> Double -> CashFlow
 cashFlowFixture t date event amount = CashFlow {
     tick = t,
     cashContractId = "0",
@@ -142,9 +139,9 @@ pamSimple = do
                 chooseRiskFactor4 = mkChoice "oracle" "riskFactor-pp_payoff" 0
                 choosePayoff = mkChoice "party" "payoff" 0
                 choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
-                deposit = mkDeposit "party" 0
+                doDeposit = mkDeposit "party" 0
             in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
-                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, deposit])
+                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, doDeposit])
         --
     let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
     let txOutput = computeTransactionWithLoopSupport txInput initState contract
