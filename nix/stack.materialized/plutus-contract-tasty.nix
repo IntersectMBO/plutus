@@ -65,7 +65,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."iots-export" or (buildDepError "iots-export"))
           (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
@@ -103,7 +102,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."lens" or (buildDepError "lens"))
             (hsPkgs."transformers" or (buildDepError "transformers"))
             (hsPkgs."extensible-effects" or (buildDepError "extensible-effects"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))

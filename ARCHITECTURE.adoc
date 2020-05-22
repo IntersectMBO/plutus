@@ -41,8 +41,6 @@ running on. There are two reasons for this:
 
 include::plutus-ledger/ARCHITECTURE.adoc[]
 
-include::plutus-emulator/ARCHITECTURE.adoc[]
-
 == Contract modelling
 
 We want to help people write "contracts". When we say that, we mean both:

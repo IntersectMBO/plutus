@@ -69,7 +69,6 @@ library
         process -any,
         prometheus >=2,
         plutus-contract -any,
-        plutus-emulator -any,
         plutus-ledger -any,
         row-types -any,
         prettyprinter -any,
@@ -120,8 +119,8 @@ test-suite playground-common-test
         tasty-hunit -any,
         freer-simple -any,
         playground-common -any,
-        plutus-emulator -any,
         plutus-ledger -any,
+        plutus-contract -any,
         recursion-schemes -any,
         text -any,
         wl-pprint-text -any

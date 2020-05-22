@@ -264,7 +264,6 @@ in rec {
         let runtimeGhc =
               haskell.packages.ghcWithPackages (ps: [
                 ps.language-plutus-core
-                ps.plutus-emulator
                 ps.plutus-ledger
                 ps.plutus-tx
                 ps.plutus-tx-plugin

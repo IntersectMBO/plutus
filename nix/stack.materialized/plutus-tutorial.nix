@@ -71,7 +71,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))
             (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
             (hsPkgs."containers" or (buildDepError "containers"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));

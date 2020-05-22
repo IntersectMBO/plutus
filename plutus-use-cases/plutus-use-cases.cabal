@@ -62,7 +62,6 @@ library
         plutus-contract -any,
         playground-common -any,
         plutus-ledger -any,
-        plutus-emulator -any,
         template-haskell -any,
         lens -any,
         text -any,
@@ -105,7 +104,6 @@ test-suite plutus-use-cases-test
         plutus-contract -any,
         plutus-ledger -any,
         plutus-use-cases -any,
-        plutus-emulator -any,
         plutus-contract-tasty -any
     build-depends:
         base >=4.9 && <5,
@@ -149,7 +147,7 @@ benchmark plutus-use-cases-bench
         plutus-use-cases -any,
         plutus-ledger -any,
         bytestring -any,
-        plutus-emulator -any
+        plutus-contract -any
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin -any

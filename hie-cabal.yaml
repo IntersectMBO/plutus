@@ -16,10 +16,6 @@ cradle:
     component: "language-plutus-core:language-plutus-core-weigh"
   - path: ./language-plutus-core/budgeting-bench
     component: "language-plutus-core:language-plutus-core-budgeting-bench"
-  - path: ./plutus-emulator/src
-    component: "lib:plutus-emulator"
-  - path: ./plutus-emulator/test
-    component: "plutus-emulator:plutus-emulator-test"
   - path: ./plutus-tx/src
     component: "lib:plutus-tx"
   - path: ./plutus-tx/compiler
