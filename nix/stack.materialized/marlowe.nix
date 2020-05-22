@@ -131,7 +131,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             "OldAnalysis/IntegerArray"
             "OldAnalysis/MkSymb"
             "OldAnalysis/Numbering"
-            "Tests"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
