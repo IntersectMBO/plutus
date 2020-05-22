@@ -12,7 +12,6 @@ packages:
 - metatheory
 - plutus-ledger
 - plutus-playground-server
-- plutus-playground-lib
 - plutus-tutorial
 - plutus-book
 - plutus-contract

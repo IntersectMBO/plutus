@@ -10,7 +10,6 @@ module Playground.Interpreter.Util
 
 import           Control.Lens                    (view)
 import           Control.Monad.Except            (throwError)
-import qualified Control.Newtype.Generics        as Newtype
 import           Data.Aeson                      (FromJSON, eitherDecode)
 import qualified Data.Aeson                      as JSON
 import           Data.Bifunctor                  (first)
@@ -45,8 +44,8 @@ import           Playground.Types                (ContractCall (AddBlocks, AddBl
                                                   resultBlockchain, resultRollup, sender, simulatorWalletBalance,
                                                   simulatorWalletWallet, slot, walletKeys)
 import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.Chain           (ChainState (..))
-import           Wallet.Emulator.NodeClient      (NodeClientState (..), clientIndex)
+import           Wallet.Emulator.Chain           (ChainState (ChainState), _chainNewestFirst, _index, _txPool)
+import           Wallet.Emulator.NodeClient      (NodeClientState, clientIndex)
 import           Wallet.Emulator.Types           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
                                                   Wallet)
 import           Wallet.Emulator.Wallet          (walletAddress, walletPubKey)
@@ -117,7 +116,7 @@ postProcessEvaluation (resultBlockchain, emulatorLog, emulatorTrace, fundsDistri
             , emulatorLog
             , emulatorTrace
             , fundsDistribution
-            , walletKeys = fmap (\(pk, w) -> (pubKeyHash pk, w)) walletKeys
+            , walletKeys = first pubKeyHash <$> walletKeys
             }
 
 playgroundDecode ::
@@ -209,11 +208,10 @@ expressionToTrace CallEndpoint { caller
                     Right [argument] -> do
                         event :: Event s <-
                             decodePayload endpointName $
-                            JSON.object
-                                [ ( "tag"
-                                  , JSON.String $ Newtype.unpack endpointName)
-                                , ("value", argument)
-                                ]
+                                JSON.object
+                                    [ ("tag", JSON.toJSON endpointName)
+                                    , ("value", JSON.object [("unEndpointValue", argument)])
+                                    ]
                         addEvent caller event
                     Right _ ->
                         throwError . ContractError $

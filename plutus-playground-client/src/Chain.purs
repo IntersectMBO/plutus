@@ -9,6 +9,7 @@ import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
+import Control.Monad.Freer.Log (LogMessage(..))
 import Data.Array as Array
 import Data.Array.Extra (collapse)
 import Data.Int as Int
@@ -31,15 +32,15 @@ import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
+import Playground.Lenses (_tokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _walletId)
+import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
 import Wallet.Emulator.Chain (ChainEvent(..))
+import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
 import Wallet.Emulator.NodeClient (NodeClientEvent(..))
-import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
 import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
-import Control.Monad.Freer.Log (LogMessage(..))
 
 evaluationPane ::
   forall m.

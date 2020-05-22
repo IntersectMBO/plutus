@@ -55,7 +55,7 @@ module Ledger.Scripts(
 
 import qualified Prelude                              as Haskell
 
-import           Codec.Serialise                      (serialise, Serialise)
+import           Codec.Serialise                      (Serialise, serialise)
 import           Control.DeepSeq                      (NFData)
 import           Control.Monad.Except                 (MonadError, runExcept, throwError)
 import           Crypto.Hash                          (Digest, SHA256, hash)

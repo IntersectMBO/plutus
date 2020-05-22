@@ -25,7 +25,6 @@ module Plutus.SCB.Effects.MultiAgent(
     ) where
 
 import           Control.Lens
-import           Control.Lens.TH
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extra.Log
@@ -40,9 +39,7 @@ import           Eventful.Store.Memory           (EventMap, emptyEventMap)
 import qualified Cardano.ChainIndex.Types        as CI
 import           Cardano.Node.Follower           (NodeFollowerEffect)
 import qualified Cardano.Node.Follower           as NF
-import qualified Cardano.Node.Mock               as NodeServer
 import qualified Cardano.Node.Types              as NF
-import qualified Cardano.Node.Types              as NodeServer
 
 import           Plutus.SCB.Effects.Contract     (ContractEffect (..))
 import           Plutus.SCB.Effects.ContractTest (TestContracts (..), handleContractTest)
@@ -195,4 +192,3 @@ handleMultiAgent = interpret $ \case
                 p3 = below (chainIndexEvent wallet)
                 p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
                 p4 = below (walletEvent wallet . Wallet._WalletMsg)
-

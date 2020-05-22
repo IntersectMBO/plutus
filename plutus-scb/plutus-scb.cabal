@@ -68,6 +68,7 @@ library
         Control.Monad.Freer.Extra.State
         Data.Time.Units.Extra
         Plutus.SCB.App
+        Plutus.SCB.MockApp
         Plutus.SCB.Arbitrary
         Plutus.SCB.Command
         Plutus.SCB.ContractCLI
@@ -75,7 +76,9 @@ library
         Plutus.SCB.Core.ContractInstance
         Plutus.SCB.Core.Projections
         Plutus.SCB.Effects.Contract
+        Plutus.SCB.Effects.ContractTest
         Plutus.SCB.Effects.EventLog
+        Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
         Plutus.SCB.Webserver.Types
         Plutus.SCB.Webserver.API
@@ -98,6 +101,8 @@ library
         plutus-tx -any,
         plutus-tx-plugin -any,
         plutus-contract -any,
+        playground-common -any,
+        plutus-use-cases -any,
         iots-export -any
     build-depends:
         QuickCheck -any,
@@ -173,8 +178,10 @@ executable plutus-scb
         plutus-ledger -any,
         plutus-contract -any,
         plutus-emulator -any,
+        plutus-use-cases -any,
         prettyprinter >=1.1.0.1,
         purescript-bridge -any,
+        row-types -any,
         servant-purescript -any,
         text -any,
         unliftio-core -any,
@@ -203,9 +210,6 @@ test-suite plutus-scb-test
     other-modules:
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
-        Plutus.SCB.TestApp
-        Plutus.SCB.Effects.ContractTest
-        Plutus.SCB.Effects.MultiAgent
 
     build-depends:
         QuickCheck -any,

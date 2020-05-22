@@ -54,6 +54,7 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras                  (PrettyShow (..))
 import           Data.UUID                                         (UUID)
 import           GHC.Generics                                      (Generic)
+import           Servant                                           (FromHttpApiData)
 
 import qualified Language.Plutus.Contract.Effects.WriteTx          as W
 import           Ledger.Address                                    (Address)
@@ -109,15 +110,17 @@ one of those requests being handled.
 
 -- | Unique ID for contract instance
 newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
-    deriving  (Eq, Ord, Show, Generic)
-    deriving newtype (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
+    deriving (Eq, Ord, Show, Generic)
+    deriving newtype (FromHttpApiData, FromJSONKey, ToJSONKey)
+    deriving anyclass (FromJSON, ToJSON)
     deriving Pretty via (PrettyShow UUID)
 
 -- | How many times the contract has been advanced (how many events have been
 --   fed to it)
 newtype ContractIteration = ContractIteration { unContractIteration :: Natural }
-    deriving  (Eq, Ord, Show, Generic)
-    deriving newtype (FromJSON, ToJSON, Pretty, Enum)
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+    deriving newtype (Pretty, Enum)
     deriving Semigroup via (Max Natural)
 
 instance Monoid ContractIteration where
@@ -154,20 +157,20 @@ data ContractResponse =
   | UserEndpointResponse Text (EndpointValue Value)
   | OwnPubkeyResponse PubKey
   | UtxoAtResponse UtxoAtAddress
-  | NextTxAtResponse (Address, Tx)
+  | NextTxAtResponse Address Tx
   | WriteTxResponse W.WriteTxResponse
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
 instance Pretty ContractResponse where
     pretty = \case
-        AwaitSlotResponse s        -> "AwaitSlot:" <+> pretty s
-        UserEndpointResponse n r     -> "UserEndpoint:" <+> pretty n <+> pretty r
-        OwnPubkeyResponse pk       -> "OwnPubKey:" <+> pretty pk
-        UtxoAtResponse utxo        -> "UtxoAt:" <+> pretty utxo
-        NextTxAtResponse r         -> "NextTxAt:" <+> pretty r
-        WriteTxResponse w          -> "WriteTx:" <+> pretty w
-        AwaitTxConfirmedResponse w -> "AwaitTxConfirmed:" <+> pretty w
+        AwaitSlotResponse s         -> "AwaitSlot:" <+> pretty s
+        UserEndpointResponse n r    -> "UserEndpoint:" <+> pretty n <+> pretty r
+        OwnPubkeyResponse pk        -> "OwnPubKey:" <+> pretty pk
+        UtxoAtResponse utxo         -> "UtxoAt:" <+> pretty utxo
+        NextTxAtResponse address tx -> "NextTxAt:" <+> pretty address <+> pretty tx
+        WriteTxResponse w           -> "WriteTx:" <+> pretty w
+        AwaitTxConfirmedResponse w  -> "AwaitTxConfirmed:" <+> pretty w
 
 data ContractInstanceState t =
     ContractInstanceState

@@ -44,8 +44,8 @@ newtype TxConfirmed =
 newtype TxIdSet =
     TxIdSet { unTxIdSet :: Set TxId }
         deriving stock (Eq, Ord, Generic, Show)
-        deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
-        deriving anyclass IotsType
+        deriving newtype (Semigroup, Monoid)
+        deriving anyclass (ToJSON, FromJSON, IotsType)
         deriving Pretty via (PrettyFoldable Set TxId)
 
 type TxConfirmation = TxConfirmationSym .== (TxConfirmed, TxIdSet)

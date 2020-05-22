@@ -60,7 +60,7 @@ library
         language-plutus-core -any,
         plutus-tx -any,
         plutus-contract -any,
-        plutus-playground-lib -any,
+        playground-common -any,
         plutus-ledger -any,
         plutus-emulator -any,
         template-haskell -any,

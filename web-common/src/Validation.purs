@@ -7,13 +7,14 @@ import Data.Foldable (class Foldable)
 import Data.Functor.Foldable (Fix)
 import Data.Generic.Rep (class Generic)
 import Data.Json.JsonTuple (JsonTuple(..))
-import Data.Lens (view)
+import Data.Lens (Lens', view)
+import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
+import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Matryoshka (Algebra, cata)
-import Schema (FormArgumentF(..))
 import Playground.Types (ContractCall(..), _FunctionSchema)
-import Types (_argumentValues, _arguments)
+import Schema (FormArgumentF(..))
 
 class Validation a where
   validate :: a -> Array (WithPath ValidationError)
@@ -116,3 +117,9 @@ instance simulatorActionValidation :: Validation (ContractCall (Fix FormArgument
     where
     args :: Array (Fix FormArgumentF)
     args = view (_argumentValues <<< _FunctionSchema <<< _arguments) call
+
+_arguments :: forall r a. Lens' { arguments :: a | r } a
+_arguments = prop (SProxy :: SProxy "arguments")
+
+_argumentValues :: forall r a. Lens' { argumentValues :: a | r } a
+_argumentValues = prop (SProxy :: SProxy "argumentValues")

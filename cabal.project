@@ -7,7 +7,6 @@ packages: language-plutus-core
           plutus-use-cases
           plutus-ir
           plutus-playground-server
-          plutus-playground-lib
           plutus-tutorial
           plutus-book
           plutus-scb

@@ -14,7 +14,7 @@ module Playground.THSpec
     ( tests
     ) where
 
-import           Control.Monad.Freer
+import           Control.Monad.Freer (Eff, Member)
 import           Data.Text           (Text)
 import           Ledger.Value        (Value)
 import           Playground.TH       (mkFunctions, mkSingleFunction)

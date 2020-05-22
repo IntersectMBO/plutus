@@ -148,14 +148,23 @@ colMd7 = ClassName "col-md-7"
 colMd8 :: ClassName
 colMd8 = ClassName "col-md-8"
 
+colMd12 :: ClassName
+colMd12 = ClassName "col-md-12"
+
 colLg2 :: ClassName
 colLg2 = ClassName "col-lg-2"
+
+colLg4 :: ClassName
+colLg4 = ClassName "col-lg-4"
 
 colLg5 :: ClassName
 colLg5 = ClassName "col-lg-5"
 
 colLg7 :: ClassName
 colLg7 = ClassName "col-lg-7"
+
+colLg8 :: ClassName
+colLg8 = ClassName "col-lg-8"
 
 colAuto :: ClassName
 colAuto = ClassName "col-auto"
@@ -406,9 +415,6 @@ formCheckLabel = ClassName "form-check-label"
 formText :: ClassName
 formText = ClassName "form-text"
 
-textMuted :: ClassName
-textMuted = ClassName "text-muted"
-
 inputGroup :: ClassName
 inputGroup = ClassName "input-group"
 
@@ -482,6 +488,15 @@ textTruncate = ClassName "text-truncate"
 
 textCenter :: ClassName
 textCenter = ClassName "text-center"
+
+textLeft :: ClassName
+textLeft = ClassName "text-left"
+
+textRight :: ClassName
+textRight = ClassName "text-right"
+
+textMuted :: ClassName
+textMuted = ClassName "text-muted"
 
 -- | Because of the clash with the HTML tag, it's recommended to use this class name qualified.
 -- eq. `table [ classes [ Bootstrap.table, tableStriped ] ] [ ... ] `

@@ -27,13 +27,13 @@ import qualified Cardano.Wallet.Client         as WalletClient
 import qualified Cardano.Wallet.Server         as WalletServer
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error     (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log (Log, logInfo, runStderrLog, writeToLog)
+import           Control.Monad.Freer.Extra.Log (Log, logDebug, logInfo, runStderrLog, writeToLog)
 import           Control.Monad.Freer.Reader    (Reader, asks, runReader)
 import           Control.Monad.Freer.Writer    (Writer)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift       (MonadUnliftIO)
 import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLogger, filterLogger, runStdoutLoggingT)
-import           Data.Aeson                    (eitherDecode)
+import           Data.Aeson                    (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty      as JSON
 import qualified Data.ByteString.Lazy.Char8    as BSL8
 import qualified Data.Text                     as Text
@@ -162,31 +162,38 @@ runApp minLogLevel Config {dbConfig, nodeServerConfig, walletServerConfig, signi
                 <*> pure baseUrl
 
 handleContractEffectApp ::
-    ( Member (Error SCBError) effs
-    , LastMember m effs
-    , MonadIO m
-    )
-    => Eff (ContractEffect ContractExe ': effs)
-    ~> Eff effs
-handleContractEffectApp = interpret $ \case
-    InvokeContract contractCommand -> do
-            (exitCode, stdout, stderr) <- sendM $ liftIO $
-                case contractCommand of
-                    InitContract (ContractExe contractPath) ->
-                        readProcessWithExitCode contractPath ["init"] ""
-                    UpdateContract (ContractExe contractPath) payload ->
-                        readProcessWithExitCode
-                            contractPath
-                            ["update"]
-                            (BSL8.unpack (JSON.encodePretty payload))
-            case exitCode of
-                ExitFailure code ->
-                    throwError $ ContractCommandError code (Text.pack stderr)
-                ExitSuccess ->
-                    case eitherDecode (BSL8.pack stdout) of
-                        Right value -> pure value
-                        Left err ->
-                            throwError $ ContractCommandError 0 (Text.pack err)
+       (Member Log effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
+    => Eff (ContractEffect ContractExe ': effs) ~> Eff effs
+handleContractEffectApp =
+    interpret $ \case
+        InvokeContract contractCommand ->
+            liftProcess $
+            case contractCommand of
+                InitContract (ContractExe contractPath) ->
+                    readProcessWithExitCode contractPath ["init"] ""
+                UpdateContract (ContractExe contractPath) payload ->
+                    readProcessWithExitCode
+                        contractPath
+                        ["update"]
+                        (BSL8.unpack (JSON.encodePretty payload))
+        ExportSchema (ContractExe contractPath) ->
+            liftProcess $
+            readProcessWithExitCode contractPath ["export-signature"] ""
+
+liftProcess ::
+       (LastMember m effs, MonadIO m, FromJSON b, Member Log effs, Member (Error SCBError) effs)
+    => IO (ExitCode, String, String)
+    -> Eff effs b
+liftProcess process = do
+    (exitCode, stdout, stderr) <- sendM $ liftIO process
+    case exitCode of
+        ExitFailure code ->
+            throwError $ ContractCommandError code (Text.pack stderr)
+        ExitSuccess -> do
+            logDebug $ "Response: " <> Text.pack stdout
+            case eitherDecode (BSL8.pack stdout) of
+                Right value -> pure value
+                Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
 
 -- | Initialize/update the database to hold events.
 migrate :: App ()
