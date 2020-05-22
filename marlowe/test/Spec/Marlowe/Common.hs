@@ -138,8 +138,8 @@ valueGenSized s
                   , AddValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , SubValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , ChoiceValue <$> choiceIdGen <*> valueGenSized (s - 1)
-                  , Scale <$> rationalGen <*> valueGenSized (s `quot` 2)
-                  , Cond  <$> observationGenSized s
+                  , Scale <$> rationalGen <*> valueGenSized (s - 1)
+                  , Cond  <$> observationGenSized (s `quot` 3)
                           <*> valueGenSized (s `quot` 2)
                           <*> valueGenSized (s `quot` 2)
                   , return SlotIntervalStart
@@ -174,7 +174,8 @@ shrinkValue value = case value of
     SubValue val1 val2 -> Constant 0 : val1 : val2 : ([SubValue x val2 | x <- shrinkValue val1]
                          ++ [SubValue val1 y | y <- shrinkValue val2])
     Scale r val -> Constant 0 : val : [Scale r v | v <- shrinkValue val]
-    Cond b val1 val2 -> Constant 0 : val1 : val2 : ([Cond b x val2 | x <- shrinkValue val1]
+    Cond b val1 val2 -> Constant 0 : val1 : val2 : ([Cond x val1 val2 | x <- shrinkObservation b]
+                         ++ [Cond b x val2 | x <- shrinkValue val1]
                          ++ [Cond b val1 y | y <- shrinkValue val2])
 
 
@@ -290,7 +291,7 @@ contractRelGenSized s bn
                   , If <$> observationGenSized (s `quot` 4)
                        <*> contractRelGenSized (s `quot` 3) bn
                        <*> contractRelGenSized (s `quot` 3) bn
-                  , Let <$> valueIdGen <*> valueGenSized (s `quot` 4) <*> contractRelGenSized (s `quot` 4) bn
+                  , Let <$> valueIdGen <*> valueGenSized (s `quot` 2) <*> contractRelGenSized (s `quot` 2) bn
                   , do timeOutDelta <- simpleIntegerGen
                        numCases <- listLengthGen
                        let newTimeout = bn + timeOutDelta
@@ -314,7 +315,8 @@ contractGen = sized contractGenSized
 shrinkContract :: Contract -> [Contract]
 shrinkContract cont = case cont of
     Close -> []
-    Let vid val cont -> Close:cont:[Let vid v cont | v <- shrinkValue val]
+    Let vid val cont -> Close : cont : ([Let vid v cont | v <- shrinkValue val]
+              ++ [Let vid val c | c <- shrinkContract cont])
     Pay accId payee tok val cont ->
         Close:cont:([Pay accId payee tok val c | c <- shrinkContract cont]
               ++ [Pay accId payee tok v cont | v <- shrinkValue val]
