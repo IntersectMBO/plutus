@@ -8,14 +8,9 @@
 module Main (main) where
 
 import           Language.PlutusCore
--- import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek
--- import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
--- import           Language.PlutusCore.Evaluation.Machine.ExMemory
--- import           Language.PlutusCore.FsTree
--- import           Language.PlutusCore.Generators.Interesting
 import qualified Data.ByteString.Lazy                                       as BSL
 import           Hedgehog
 import           Hedgehog.Internal.Gen
@@ -23,7 +18,6 @@ import           Hedgehog.Internal.Tree
 import           Hedgehog.Range
 import           Language.PlutusCore.MkPlc
 
--- import           Control.Lens
 import           Criterion.Main
 import qualified Criterion.Types                                            as C
 import Data.Functor
@@ -33,18 +27,9 @@ runTermBench name term = env
     (do
         (_result, budget) <-
           pure $ runCekCounting mempty defaultCostModel term
-        -- print result
-        -- print (budget ^. (exBudgetStateBudget.exBudgetCPU) :: ExCPU)
         pure budget
         )
     (\_ -> bench name $ nf (unsafeEvaluateCek mempty defaultCostModel) term)
-
--- bunchOfFibs :: PlcFolderContents DefaultUni
--- bunchOfFibs =
---     let
---         fibFile i = plcTermFile (show i) (naiveFib i)
---     in
-        -- FolderContents [ treeFolderContents "Fib" (fibFile <$> [1..10]) ]
 
 benchSameTwoByteStrings :: BuiltinName -> Benchmark
 benchSameTwoByteStrings name = createTwoTermBuiltinBench name (byteStringsToBench seedA) (byteStringsToBench seedA)
@@ -85,10 +70,10 @@ benchVerifySignature =
         )
     where
         name = VerifySignature
-        bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBench
+        bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 expsToBenchBS :: [Integer]
-expsToBenchBS = ((\(a :: Integer) -> 1^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..7])
+expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..5])
 
 byteStringsToBench :: Seed -> [(BSL.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
@@ -113,7 +98,6 @@ expToBenchingInteger :: Integer -> (Integer, ExMemory)
 expToBenchingInteger e =
             let
                 x = ((3 :: Integer) ^ e)
-                -- ceilSize = smallInteger (integerLog2# x)
             in (x, memoryUsage x)
 
 benchTwoInt :: BuiltinName -> Benchmark
@@ -122,36 +106,12 @@ benchTwoInt builtinName =
     where
         numbers = expToBenchingInteger <$> expsToBench
 
--- calibratingBench :: Benchmark
--- calibratingBench =
---     env
---         (pure $ mkConstant @Integer @DefaultUni () 0)
---         (\x -> bench "calibration" $ nf (unsafeEvaluateCek @DefaultUni mempty defaultCostModel) x)
-
+-- Creates the .csv file consumed by create-cost-model. The data in said csv is
+-- time taken for all the builtin operations, as measured by criterion.
+-- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    -- let twoIntNames = [MultiplyInteger]
-    -- _ <- CP.try @CP.SomeException $ removeFile "output.csv" -- because otherwise benching will append to the old csv
-    -- TODO remove the time limit
-    -- parFoldMap (Simple Terminate) 5 runBuiltinBench mappend mempty twoIntNames
-    -- benchToRun <- execParser $ info (p <**> helper) fullDesc
-    -- runBuiltinBench benchToRun
     defaultMainWith (defaultConfig { C.csvFile = Just $ "language-plutus-core/budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]
-        -- parseTwoIntName string = lookup string ((\n -> (show n, n)) <$> twoIntNames)
-        -- p :: Parser BuiltinName
-        -- p = option (maybeReader parseTwoIntName) (long "toRun")
-{-       foldPlcFolderContents
-        bgroup
-        (\name _ -> bgroup name [])
-        runTermBench
-        bunchOfFibs -}
-
-{-     [ env largeTypeFiles $ \ ~(f, g, h) ->
-                    let mkBench = bench "pretty" . nf (fmap prettyPlcDefText) . parse
-                    in
-
-                    bgroup "prettyprint" $ mkBench <$> [f, g, h]
-                ] -}

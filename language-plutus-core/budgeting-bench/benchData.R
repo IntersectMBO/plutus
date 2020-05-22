@@ -3,8 +3,6 @@ local({r <- getOption("repos")
        options(repos=r)
 })
 
-# TODO nix should take care of this
-# install.packages("tidyverse")
 library(ggplot2)
 library(dplyr)
 library(stringr)

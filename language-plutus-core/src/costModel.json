@@ -106,8 +106,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 5.8103e-10,
-                "intercept": 0
+                "slope": 3.1372e-9,
+                "intercept": 1.0e-4
             },
             "type": "added_sizes"
         }

@@ -126,7 +126,7 @@ instance ExMemoryUsage Integer where
   memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
 
 instance ExMemoryUsage BSL.ByteString where
-  memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
+  memoryUsage bsl = ExMemory $ (toInteger $ BSL.length bsl) `div` 8
 
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
@@ -141,7 +141,7 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
+  memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
 
 withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
 withMemory x = fmap (const (memoryUsage x)) x

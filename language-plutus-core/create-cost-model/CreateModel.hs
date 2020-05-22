@@ -6,7 +6,6 @@
 module Main where
 
 import           Foreign.R
--- import qualified Foreign.R.Type as R
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
 import           Data.Aeson
@@ -20,6 +19,9 @@ import           Data.Vector
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.R
+
+{- See Note [Creation of the Cost Model]
+-}
 
 main :: IO ()
 main = do

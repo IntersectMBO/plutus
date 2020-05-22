@@ -29,8 +29,6 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
-    # From haskell.nix
-    (pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )
     pkgs.stack
   ];
 }
