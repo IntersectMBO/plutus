@@ -33,7 +33,7 @@ tests = testGroup "token account"
         /\ assertNotDone w1 "contract should not have any errors"
         -- /\ walletFundsChange w1 (Ada.adaValueOf (-1))
         )
-        (  callEndpoint @"create" w1 (Close)
+        (  callEndpoint @"create" w1 (defaultMarloweParams, Close)
            >> handleBlockchainEvents w1 )
     , zeroCouponBondTest
     ]
@@ -48,9 +48,11 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
     /\ walletFundsChange alice (adaValueOf (150))
     ) $ do
     -- Init a contract
-    let alicePk = pubKeyHash $ walletPubKey alice
+    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
         aliceAcc = AccountId 0 alicePk
-        bobPk = pubKeyHash $ walletPubKey bob
+        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+
+    let params = defaultMarloweParams
 
     let zeroCouponBond = When [ Case
             (Deposit aliceAcc alicePk ada (Constant 850_000_000))
@@ -62,7 +64,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
                     ] (Slot 200) Close
                 ))] (Slot 100) Close
 
-    callEndpoint @"create" alice zeroCouponBond
+    callEndpoint @"create" alice (params, zeroCouponBond)
     notifyInterestingAddresses alice
     notifyInterestingAddresses bob
     addBlocks 10
@@ -72,7 +74,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
     notifySlot bob
     -- callEndpoint @"sub" alice (alicePk)
     -- callEndpoint @"sub" bob (alicePk)
-    callEndpoint @"apply-inputs" alice (alicePk, [IDeposit aliceAcc alicePk ada 850_000_000])
+    callEndpoint @"apply-inputs" alice (params, [IDeposit aliceAcc alicePk ada 850_000_000])
     notifyInterestingAddresses alice
     notifyInterestingAddresses bob
     addBlocks 10
@@ -82,7 +84,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
     notifySlot bob
     -- callEndpoint @"sub" alice (alicePk)
     -- callEndpoint @"sub" bob (alicePk)
-    callEndpoint @"apply-inputs" bob (alicePk, [IDeposit aliceAcc bobPk ada 1000_000_000])
+    callEndpoint @"apply-inputs" bob (params, [IDeposit aliceAcc bobPk ada 1000_000_000])
     handleBlockchainEvents alice
     handleBlockchainEvents bob
     notifySlot alice

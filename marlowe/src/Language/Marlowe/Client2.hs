@@ -33,11 +33,11 @@ import           Language.Marlowe.Semantics hiding (Contract)
 import qualified Language.Marlowe.Semantics as Marlowe
 import qualified Language.PlutusTx          as PlutusTx
 import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     (Datum (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), TxOutRef(..), TxOutTx (..), interval,
+import           Ledger                     (PendingTx, CurrencySymbol, TokenName, Address(..),Datum (..), PubKeyHash (..), pubKeyHash, Slot (..), Tx, TxOut (..), TxOutRef(..), TxOutTx (..), interval,
 
-                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, validatorHash, txOutDatum,
-                                             txOutRefs, pubKeyAddress)
-import           Ledger.Ada                 (adaValueOf)
+                                             mkValidatorScript, pubKeyHashTxOut, scriptAddress, scriptTxIn, scriptTxOut, validatorHash, txOutDatum, txOutTxDatum,
+                                             txOutRefs, scriptTxOut', valueSpent, pubKeyAddress)
+import           Ledger.Ada                 (adaSymbol, adaValueOf)
 import           Ledger.AddressMap                 (outRefMap)
 import           Ledger.Scripts             (Redeemer (..), Validator)
 import qualified Ledger.Typed.Scripts       as Scripts
@@ -109,6 +109,7 @@ applyInputs params inputs = do
     let redeemer = mkRedeemer inputs
         validator = validatorScript params
         address = scriptAddress validator
+        vh = validatorHash validator
     traceM "Here"
     slot <- awaitSlot 0
     traceM "Here1"
@@ -118,11 +119,11 @@ applyInputs params inputs = do
     traceM "Here3"
     utxo <- utxoAt address
     traceM "Here4"
-    let [(ref, out)] = Map.toList (outRefMap utxo)
+    let [(ref, out)] = Map.toList utxo
 
 
     let convert :: TxOutRef -> TxOutTx -> Maybe (TxOutRef, Val.Value, Datum, MarloweData)
-        convert ref out = case txOutDatum (txOutTxOut out) of
+        convert ref out = case (txOutTxDatum out) of
             Just dv -> case PlutusTx.fromData (getDatum dv) of
                 Just marloweData -> Just (ref, txOutValue (txOutTxOut out), dv, marloweData)
                 _ -> Nothing
@@ -156,15 +157,15 @@ applyInputs params inputs = do
                         totalPayouts = foldMap (\(Payment _ v) -> v) txOutPayments
                         finalBalance = totalIncome P.- totalPayouts
                         dataValue = Datum (PlutusTx.toData marloweData)
-                        scriptOut = payToScript finalBalance address dataValue
+                        scriptOut = mustPayToOtherScript vh dataValue finalBalance
                         in scriptOut <> txWithPayouts
 
             return (deducedTxOutputs, marloweData)
         Error txError -> throwing _OtherError $ (Text.pack $ show txError)
     traceM "Here7"
     let finalTx = tx <> mustSpendScriptOutput ref redeemer <> mustValidateIn slotRange
-    traceM ("AAAAAAA" <> show finalTx)
-    throwing _OtherError $ (Text.pack $ show finalTx)
+    -- traceM ("AAAAAAA" <> show finalTx)
+    throwing _OtherError $ (Text.pack $ {- show finalTx -} "AAA" )
     void $ submitTx finalTx
     pure md
   where
@@ -173,17 +174,47 @@ applyInputs params inputs = do
 
     totalIncome = foldMap collectDeposits inputs
 
-    txPaymentOuts :: [Payment] -> UnbalancedTx
-    txPaymentOuts payments = let
-        ps = foldr collectPayments Map.empty payments
-        in foldMap (\(pk, value) -> pubKeyHashTxOut value pk) (Map.toList ps)
+    isAddress address (TxOut{txOutAddress}, _) = txOutAddress == address
+
+    -- txPaymentOuts :: [Payment] -> UnbalancedTx
+    txPaymentOuts payments = foldMap paymentToTxOut paymentsByParty
+      where
+        paymentsByParty = Map.toList $ foldr collectPayments Map.empty payments
+
+        paymentToTxOut (party, value) = case party of
+            PK pk  -> mustPayToPubKey pk value
+            Role role -> let
+                dataValue = Datum $ PlutusTx.toData (rolesCurrency params, role)
+                in mustPayToOtherScript (rolePayoutValidatorHash params) dataValue value
+
+
+
 
     collectPayments :: Payment -> Map Party Money -> Map Party Money
     collectPayments (Payment party money) payments = let
-        newValue = case Map.lookup party payments of
-            Just value -> value P.+ money
-            Nothing    -> money
+        newValue = money P.+ P.fromMaybe P.zero (Map.lookup party payments)
         in Map.insert party newValue payments
+
+rolePayoutScript :: Validator
+rolePayoutScript = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]))
+  where
+    wrapped = Scripts.wrapValidator rolePayoutValidator
+
+
+{-# INLINABLE rolePayoutValidator #-}
+rolePayoutValidator :: (CurrencySymbol, TokenName) -> () -> PendingTx -> Bool
+rolePayoutValidator (currency, role) _ pendingTx =
+    Val.valueOf (valueSpent pendingTx) currency role P.> 0
+
+
+marloweParams :: CurrencySymbol -> MarloweParams
+marloweParams rolesCurrency = MarloweParams
+    { rolesCurrency = rolesCurrency
+    , rolePayoutValidatorHash = validatorHash rolePayoutScript }
+
+
+defaultMarloweParams :: MarloweParams
+defaultMarloweParams = marloweParams adaSymbol
 
 
 {-| Generate a validator script for 'creator' PubKey -}
