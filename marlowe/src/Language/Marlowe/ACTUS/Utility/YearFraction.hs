@@ -1,7 +1,6 @@
 module Language.Marlowe.ACTUS.Utility.YearFraction where
 
 import Data.Time
-import GHC.Stack
 import Debug.Trace
 
 import Language.Marlowe.ACTUS.ContractTerms
@@ -71,6 +70,8 @@ yearFraction DCC_E30_360 startDay endDay _
     (traceShow startDay)
     (traceShow endDay)
     error ("Year fraction error: second date must be more recent")
+
+yearFraction dcc _ _ _ = error ("Unsupported day count convention: " ++ (show dcc))
 
 isLastDayOfMonth :: Integer -> Int -> Int -> Bool
 isLastDayOfMonth year month day =

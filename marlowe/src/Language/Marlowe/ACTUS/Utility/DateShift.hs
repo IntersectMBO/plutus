@@ -2,11 +2,7 @@
 
 module Language.Marlowe.ACTUS.Utility.DateShift(applyBDC, applyBDCWithCfg) where
 
-import Debug.Trace
-
-import Data.List as List
 import Data.Time
-import Data.Time.Calendar
 
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.Schedule

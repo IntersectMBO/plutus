@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
 
 module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
 

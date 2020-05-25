@@ -1,8 +1,6 @@
 module Language.Marlowe.ACTUS.ContractTerms where
 
 import Data.Map (Map)
-import Data.Bool
-
 import Data.Time
 import Language.Marlowe.ACTUS.ContractState
 

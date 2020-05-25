@@ -7,7 +7,6 @@ module Language.Marlowe.ACTUS.Utility.ScheduleGenerator(
   , remove
 ) where
 
-import Data.Char
 import Data.Time.Calendar
 import qualified Data.List as L
 
@@ -35,9 +34,10 @@ endDateCorrection :: Bool -> EndDay -> Schedule -> Schedule
 endDateCorrection includeEndDay endDay schedule 
   | includeEndDay && not (L.elem endDay schedule) = schedule ++ [endDay]
   | (not includeEndDay) && (L.elem endDay schedule) = L.init schedule
+  | schedule
 
 generateRecurrentSchedule :: Cycle -> AnchorDay -> EndDay -> Schedule
-generateRecurrentSchedule cycle@Cycle{..} anchorDate endDate = 
+generateRecurrentSchedule Cycle{..} anchorDate endDate = 
   let 
     go :: Day -> Integer -> [Day] -> [Day]
     go current k acc = if current > endDate then acc
@@ -71,7 +71,7 @@ shiftDate date n p =
 
 {- End of Month Convention -}
 applyEOMC :: Day -> Cycle -> EOMC -> Day -> Day
-applyEOMC s cycle@Cycle{n = n, p = p} endOfMonthConvention date
+applyEOMC s Cycle{n = n, p = p} endOfMonthConvention date
   | ((isLastDayOfMonthWithLessThan31Days s) &&
       p /= P_D && p /= P_W &&
       endOfMonthConvention == EOMC_EOM
@@ -88,7 +88,7 @@ isLastDayOfMonthWithLessThan31Days date =
 
 moveToEndOfMonth :: Day -> Day
 moveToEndOfMonth date =
-  let (day, month, year) = toGregorian date
+  let (_, month, year) = toGregorian date
       monthLength = gregorianMonthLength (toInteger year) month
   in
     fromGregorian (toInteger year) month monthLength

@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Utility.Annuity where
 
-import Data.Maybe
 import Data.Time
 import qualified Data.List as List
 
@@ -10,7 +9,7 @@ import Language.Marlowe.ACTUS.Utility.YearFraction
 
 calculateAnnuity ::
   DCC -> [Day] -> Day -> Day -> Day -> Double -> Double -> Double -> Double
-calculateAnnuity dcc prSchedule maturityDate s t n a r =
+calculateAnnuity dcc prSchedule maturityDate s _ n a r =
   let scheduleTimes = List.filter (> s) prSchedule
       m = (List.length scheduleTimes) - 1
   in

@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
 module Language.Marlowe.ACTUS.POF.PayoffSpec where
 
 import Language.Marlowe.ACTUS.ContractTerms

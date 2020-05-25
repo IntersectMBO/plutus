@@ -9,8 +9,6 @@ import Language.Marlowe.ACTUS.Utility.YearFraction
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe
 import Data.Time
-import Data.Time.Clock
-import Data.Time.Clock.POSIX
 import Data.Time.Clock.System
 
 class ActusOps a where 

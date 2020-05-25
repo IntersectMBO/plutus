@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
 module Language.Marlowe.ACTUS.INIT.StateInitializationSpec where
 
 import Language.Marlowe.ACTUS.ContractState

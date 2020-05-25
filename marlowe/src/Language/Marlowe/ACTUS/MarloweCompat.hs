@@ -4,12 +4,9 @@
 module Language.Marlowe.ACTUS.MarloweCompat where
 
 import Language.Marlowe
-import Language.Marlowe.ACTUS.Ops
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ContractState
-import Language.Marlowe.ACTUS.Utility.ContractRoleSign
 import Data.String (IsString (fromString))
-import Data.List
 import qualified Data.List as L
 
 type EventHandler = EventType -> (Value Observation)

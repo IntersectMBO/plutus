@@ -1,11 +1,11 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+
 module Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec where
 
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Utility.DateShift
-import Language.Marlowe.ACTUS.Schedule
-import Data.Time
 import Data.Maybe
-import qualified Data.Functor as F
 import Language.Marlowe.ACTUS.ContractTerms
 
 _S = generateRecurrentScheduleWithCorrections
