@@ -62,7 +62,7 @@ _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED =
     in result
 
 _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = 
-    let maybeS  |    isNothing _RRANX                 = Just $ _IED `plusCycle` fromJust _RRCL
+    let maybeS  | isNothing _RRANX                 = Just $ _IED `plusCycle` fromJust _RRCL
                 | otherwise                           = _RRANX
 
         tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
@@ -89,7 +89,7 @@ _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
                 | otherwise                           = _SCANX
 
         tt      = (\s -> _S s (fromJust _SCCL) _MD scfg) <$> maybeS
-        
+
         result  | _SCEF == SE_000                      = Nothing
                 | otherwise                           = tt
     in result
