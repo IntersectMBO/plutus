@@ -23,16 +23,16 @@ stateTransition ev terms st@ContractStatePoly{..} t =
     case terms of
         PamContractTerms{..} -> 
             let 
-                t0 = _SD
-                fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
-                tfp_minus = calculationDay $ sup fpSchedule t0
-                tfp_plus = calculationDay $ inf fpSchedule t0
-                y_sd_t = _y _DCC sd t _MD
-                y_tfpminus_t = _y _DCC tfp_minus t _MD
+                t0                 = _SD
+                fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
+                tfp_minus          = calculationDay $ sup fpSchedule t0
+                tfp_plus           = calculationDay $ inf fpSchedule t0
+                y_sd_t             = _y _DCC sd t _MD
+                y_tfpminus_t       = _y _DCC tfp_minus t _MD
                 y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus _MD
-                y_ipanx_t = _y _DCC (fromJust _IPANX) t _MD
-                r_CNTRL = _r _CNTRL
-                ipanx_lt_t = if (fromJust _IPANX) < t then _one else _zero
+                y_ipanx_t          = _y _DCC (fromJust _IPANX) t _MD
+                r_CNTRL            = _r _CNTRL
+                ipanx_lt_t         = if fromJust _IPANX < t then _one else _zero
             in case ev of 
                 AD_EVENT{..}   -> _STF_AD_PAM st t y_sd_t
                 IED_EVENT{..}  -> _STF_IED_PAM st t y_ipanx_t ipanx_lt_t y_sd_t _IPNR _IPANX r_CNTRL _IPAC _NT

@@ -16,9 +16,9 @@ _SCHED_IED_PAM scfg _IED = Just [shift scfg _IED]
 _SCHED_MD_PAM scfg tmd = Just [shift scfg tmd]
 
 _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD = 
-    let maybeS  =   if      isNothing _OPANX && isNothing _OPCL then Nothing
-                    else if isNothing _OPANX                   then Just (_IED `plusCycle` (fromJust _OPCL)) 
-                    else                                            _OPANX
+    let maybeS  | isNothing _OPANX && isNothing _OPCL = Nothing
+                | isNothing _OPANX                   = Just $ _IED `plusCycle` fromJust _OPCL
+                | otherwise                          = _OPANX
 
     in case _PREF of 
         PREF_N -> Nothing
@@ -30,55 +30,67 @@ _SCHED_PY_PAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD =
         _      -> _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
 
 _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD = 
-    let maybeS  =   if      isNothing _FEANX && isNothing _FECL then Nothing
-                    else if isNothing _FEANX                   then Just (_IED `plusCycle` (fromJust _FECL)) 
-                    else                                            _FEANX
+    let maybeS  | isNothing _FEANX && isNothing _FECL = Nothing
+                | isNothing _FEANX                   = Just $ _IED `plusCycle` fromJust _FECL 
+                | otherwise                          = _FEANX
 
-    in if _FER == 0.0 then Nothing
-                     else (\s -> _S s (fromJust _FECL) _MD scfg) <$> maybeS
+        result  | _FER == 0.0                         = Nothing
+                | otherwise                          = (\s -> _S s (fromJust _FECL) _MD scfg) <$> maybeS
+    in result
 
 _SCHED_PRD_PAM scfg _PRD = Just [shift scfg _PRD]
 
 _SCHED_TD_PAM scfg _TD = Just [shift scfg _TD]
 
 _SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD = 
-    let maybeS  =   if      isNothing _IPANX && isNothing _IPCL then Nothing
-                    else if isJust _IPCED                      then _IPCED
-                    else if isNothing _IPANX                   then Just (_IED `plusCycle` (fromJust _IPCL)) 
-                    else                                            _IPANX
+    let maybeS  | isNothing _IPANX && isNothing _IPCL  = Nothing
+                | isJust _IPCED                       = _IPCED
+                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL 
+                | otherwise                           = _IPANX
 
-    in if isNothing _IPNR then Nothing
-                          else (\s -> _S s (fromJust _IPCL) _MD scfg) <$> maybeS
+        result  | isNothing _IPNR                     = Nothing
+                | otherwise                           = (\s -> _S s (fromJust _IPCL) _MD scfg) <$> maybeS
+    in result
 
 _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED = 
-    let maybeS  =   if      isNothing _IPANX && isNothing _IPCL then Nothing
-                    else if isNothing _IPANX                   then Just (_IED `plusCycle` (fromJust _IPCL)) 
-                    else                                            _IPANX
+    let maybeS  | isNothing _IPANX && isNothing _IPCL  = Nothing
+                | isNothing _IPANX                    = Just $ _IED `plusCycle` fromJust _IPCL 
+                | otherwise                           =  _IPANX
 
-    in if isNothing _IPCED then Nothing
-                           else (\s -> _S s (fromJust _IPCL) (fromJust _IPCED) scfg) <$> maybeS
+        result  | isNothing _IPCED                    = Nothing
+                | otherwise                           = (\s -> _S s (fromJust _IPCL) (fromJust _IPCED) scfg) <$> maybeS
+    in result
 
 _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = 
-    let maybeS  =   if      isNothing _RRANX                   then Just (_IED `plusCycle` (fromJust _RRCL)) 
-                    else                                            _RRANX
-        tt      =   (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
-        trry    =   inf (fromJust tt) _SD
-    in if      isNothing _RRANX && isNothing _RRCL then Nothing
-       else if isNothing _RRNXT                   then (remove trry) <$> tt
-       else                                            tt
+    let maybeS  |    isNothing _RRANX                 = Just $ _IED `plusCycle` fromJust _RRCL
+                | otherwise                           = _RRANX
+
+        tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
+        trry    = inf (fromJust tt) _SD
+
+        result  | isNothing _RRANX && isNothing _RRCL  = Nothing
+                | isNothing _RRNXT                    = remove trry <$> tt
+                | otherwise                           = tt
+    in result
 
 _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD = 
-    let maybeS  =   if   isNothing _RRANX                      then Just (_IED `plusCycle` (fromJust _RRCL)) 
-                    else                                            _RRANX
-        tt      =   (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
-    in if      isNothing _RRANX && isNothing _RRCL then Nothing
-       else                                            tt
+    let maybeS  | isNothing _RRANX                    = Just $ _IED `plusCycle` fromJust _RRCL 
+                | otherwise                           = _RRANX
+
+        tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
+        
+        result  | isNothing _RRANX && isNothing _RRCL  = Nothing 
+                | otherwise                           = tt
+    in result                                           
 
 _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD = 
-    let maybeS  =   if   isNothing _SCANX && isNothing _SCCL    then Nothing 
-                    else if isNothing _SCANX                   then Just (_IED `plusCycle` (fromJust _SCCL))
-                    else                                            _SCANX
-        tt      =   (\s -> _S s (fromJust _SCCL) _MD scfg) <$> maybeS
-    in if    _SCEF == SE_000 then Nothing
-       else                      tt
+    let maybeS  | isNothing _SCANX && isNothing _SCCL  = Nothing 
+                | isNothing _SCANX                     = Just $ _IED `plusCycle` fromJust _SCCL
+                | otherwise                           = _SCANX
+
+        tt      = (\s -> _S s (fromJust _SCCL) _MD scfg) <$> maybeS
+        
+        result  | _SCEF == SE_000                      = Nothing
+                | otherwise                           = tt
+    in result
 

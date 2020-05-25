@@ -1,8 +1,8 @@
 module Language.Marlowe.ACTUS.ContractTerms where
 
-import Data.Map (Map)
-import Data.Time
-import Language.Marlowe.ACTUS.ContractState
+import           Data.Map                       ( Map )
+import           Data.Time
+import           Language.Marlowe.ACTUS.ContractState
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
 
@@ -94,7 +94,7 @@ data ScheduleConfig = ScheduleConfig
 -- all contract terms in a composite contract
 type ContractTermsContext = Map String ContractTerms
 
-data ContractTerms = PamContractTerms { 
+data ContractTerms = PamContractTerms {
   contractId :: String
   , _IED :: Day -- Initial Exchange Date
   , _SD :: Day -- start date
@@ -145,7 +145,7 @@ data ContractTerms = PamContractTerms {
   , _FEAC :: Maybe Double
   , _FEB :: FEB  -- fee basis
   , _FER :: Double -- fee rate
-  } | LamContractTerms { 
+  } | LamContractTerms {
     _MD :: Day
   , _CNTRL :: ContractRole
   }

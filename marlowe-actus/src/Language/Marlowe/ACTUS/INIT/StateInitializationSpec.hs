@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.INIT.StateInitializationSpec where
 
 import Language.Marlowe.ACTUS.ContractState
@@ -24,28 +25,34 @@ scef_Ixx _      = False
 --t0 == SD
 _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF = 
     let 
-        tmd   = _MD
-        nt    = if _IED > t0             then 0.0 
-                else                          (r _CNTRL) * _NT
-        ipnr  = if _IED > t0             then 0.0 
-                else                          fromMaybe 0.0 _IPNR
-        ipac  = if      isNothing _IPNR  then 0.0 
-                else if isJust _IPAC     then fromJust _IPAC
-                else                          (y _DCC tminus t0 _MD) * nt * ipnr
-        fac   = if      isNothing _FER   then 0.0
-                else if isJust _FEAC     then fromJust _FEAC
-                else if _FEB == FEB_N     then (y _DCC tfp_minus t0 _MD) * nt * fromJust _FER
-                else                          ((y _DCC tfp_minus t0 _MD) / (y _DCC tfp_minus tfp_plus _MD)) * fromJust _FER
-        feac  = if     isNothing _FER   then 0.0 --todo: ask Nils how to intialize this. Is it same as Feac??
-                else if isJust _FEAC     then fromJust _FEAC
-                else if _FEB == FEB_N     then (y _DCC tfp_minus t0 _MD) * nt * fromJust _FER
-                else                          ((y _DCC tfp_minus t0 _MD) / (y _DCC tfp_minus tfp_plus _MD)) * fromJust _FER
-  
-        nsc   = if scef_xNx _SCEF        then _SCIXSD
-                                         else 1.0
-        isc   = if scef_Ixx _SCEF        then _SCIXSD
-                                         else 1.0
-        prf   = _PRF
-        sd    = t0
+        tmd                                     = _MD
+        nt     
+                | _IED > t0                     = 0.0 
+                | otherwise                     = r _CNTRL * _NT
+        ipnr    
+                | _IED > t0                     = 0.0 
+                | otherwise                     = fromMaybe 0.0 _IPNR
+        ipac    
+                | isNothing _IPNR               = 0.0 
+                | isJust _IPAC                  = fromJust _IPAC
+                | otherwise                     = y _DCC tminus t0 _MD * nt * ipnr
+        fac
+                | isNothing _FER                = 0.0
+                | isJust _FEAC                  = fromJust _FEAC
+                | _FEB == FEB_N                  = y _DCC tfp_minus t0 _MD * nt * fromJust _FER
+                | otherwise                     = (y _DCC tfp_minus t0 _MD / y _DCC tfp_minus tfp_plus _MD) * fromJust _FER        
+        feac
+                | isNothing _FER                = 0.0
+                | isJust _FEAC                  = fromJust _FEAC
+                | _FEB == FEB_N                  = y _DCC tfp_minus t0 _MD * nt * fromJust _FER
+                | otherwise                     = (y _DCC tfp_minus t0 _MD / y _DCC tfp_minus tfp_plus _MD) * fromJust _FER
+        nsc     
+                | scef_xNx _SCEF                = _SCIXSD
+                | otherwise                     = 1.0
+        isc     
+                | scef_Ixx _SCEF                = _SCIXSD
+                | otherwise                     = 1.0
+        prf                                     = _PRF
+        sd                                      = t0
     in ContractStatePoly { prnxt = 0.0, ipcb = 0.0, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
     

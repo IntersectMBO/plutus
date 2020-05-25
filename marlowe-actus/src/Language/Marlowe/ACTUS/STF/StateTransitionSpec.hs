@@ -17,9 +17,9 @@ _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
 _STF_IED_PAM st@ContractStatePoly{..} t y_ipanx_t ipanx_LT_t _ _IPNR _IPANX r_CNTRL _IPAC _NT = 
     let 
         nt' = r_CNTRL * _NT
-        ipnr' = if (isNothing _IPNR) then _zero else (fromJust _IPNR)
-        ipac' = if (isJust _IPAC) then (fromJust _IPAC)
-                else if (isJust _IPANX) then ipanx_LT_t * y_ipanx_t * nt' * ipnr'
+        ipnr' = if isNothing _IPNR then _zero else fromJust _IPNR
+        ipac' = if isJust _IPAC then fromJust _IPAC
+                else if isJust _IPANX then ipanx_LT_t * y_ipanx_t * nt' * ipnr'
                 else _zero
     in st { nt = nt', ipnr = ipnr', ipac = ipac', sd = t }
 
@@ -48,8 +48,7 @@ _STF_FP_PAM st@ContractStatePoly{..} t y_sd_t = st {
     sd = t 
 }
 
-_STF_PRD_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL = 
-    _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL
+_STF_PRD_PAM st@ContractStatePoly{..} = _STF_PY_PAM st 
 
 _STF_TD_PAM st@ContractStatePoly{..} t = st {
     nt = _zero,

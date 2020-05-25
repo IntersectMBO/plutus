@@ -1,8 +1,8 @@
-{-# LANGUAGE ExistentialQuantification #-} 
+{-# LANGUAGE ExistentialQuantification #-}
 module Language.Marlowe.ACTUS.ContractState where
 
-import Data.Time
-import Data.Map
+import           Data.Time
+import           Data.Map
 
 -- all contract states in a composite contract
 type ContractStateContext = Map String ContractState
@@ -10,7 +10,7 @@ type ContractStateContext = Map String ContractState
 type ContractState = ContractStatePoly Double Day
 
 data ContractStatePoly a b = ContractStatePoly
-  { 
+  {
   tmd :: b
   , nt  :: a
   , ipnr :: a
