@@ -25,3 +25,4 @@ schedule ev terms =
                 RRF  -> _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD 
                 SC   -> _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD 
                 CE   -> Nothing
+        LamContractTerms{..} -> undefined

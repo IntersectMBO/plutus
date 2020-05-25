@@ -73,7 +73,7 @@ payoffLp terms t = case terms of
                                 (useval "nt" t) 
                                 y_sd_t
                     _    -> constnt 0)
-        
+    LamContractTerms{..} -> undefined
 
             
         

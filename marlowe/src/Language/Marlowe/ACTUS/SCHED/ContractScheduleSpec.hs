@@ -22,7 +22,7 @@ _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD =
 
     in case _PREF of 
         PREF_N -> Nothing
-        PREF_Y -> F.fmap (\s -> _S s (fromJust _OPCL) _MD scfg) maybeS
+        PREF_Y -> (\s -> _S s (fromJust _OPCL) _MD scfg) <$> maybeS
 
 _SCHED_PY_PAM scfg _PYTP _PREF _OPCL _IED _OPANX _MD = 
     case _PYTP of
@@ -35,7 +35,7 @@ _SCHED_FP_PAM scfg _FER _FECL _IED _FEANX _MD =
                     else                                            _FEANX
 
     in if _FER == 0.0 then Nothing
-                     else F.fmap (\s -> _S s (fromJust _FECL) _MD scfg) maybeS
+                     else (\s -> _S s (fromJust _FECL) _MD scfg) <$> maybeS
 
 _SCHED_PRD_PAM scfg _PRD = Just [shift scfg _PRD]
 
@@ -48,7 +48,7 @@ _SCHED_IP_PAM scfg _IPNR _IED _IPANX _IPCL _IPCED _MD =
                     else                                            _IPANX
 
     in if isNothing _IPNR then Nothing
-                          else F.fmap (\s -> _S s (fromJust _IPCL) _MD scfg) maybeS
+                          else (\s -> _S s (fromJust _IPCL) _MD scfg) <$> maybeS
 
 _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED = 
     let maybeS  =   if      isNothing _IPANX && isNothing _IPCL then Nothing
@@ -56,21 +56,21 @@ _SCHED_IPCI_PAM scfg _IED _IPANX _IPCL _IPCED =
                     else                                            _IPANX
 
     in if isNothing _IPCED then Nothing
-                           else F.fmap (\s -> _S s (fromJust _IPCL) (fromJust _IPCED) scfg) maybeS
+                           else (\s -> _S s (fromJust _IPCL) (fromJust _IPCED) scfg) <$> maybeS
 
 _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD = 
     let maybeS  =   if      isNothing _RRANX                   then Just (_IED `plusCycle` (fromJust _RRCL)) 
                     else                                            _RRANX
-        tt      =   F.fmap (\s -> _S s (fromJust _RRCL) _MD scfg) maybeS
+        tt      =   (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
         trry    =   inf (fromJust tt) _SD
     in if      isNothing _RRANX && isNothing _RRCL then Nothing
-       else if isNothing _RRNXT                   then F.fmap (remove trry) tt
+       else if isNothing _RRNXT                   then (remove trry) <$> tt
        else                                            tt
 
 _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD = 
     let maybeS  =   if   isNothing _RRANX                      then Just (_IED `plusCycle` (fromJust _RRCL)) 
                     else                                            _RRANX
-        tt      =   F.fmap (\s -> _S s (fromJust _RRCL) _MD scfg) maybeS
+        tt      =   (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
     in if      isNothing _RRANX && isNothing _RRCL then Nothing
        else                                            tt
 
@@ -78,7 +78,7 @@ _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD =
     let maybeS  =   if   isNothing _SCANX && isNothing _SCCL    then Nothing 
                     else if isNothing _SCANX                   then Just (_IED `plusCycle` (fromJust _SCCL))
                     else                                            _SCANX
-        tt      =   F.fmap (\s -> _S s (fromJust _SCCL) _MD scfg) maybeS
+        tt      =   (\s -> _S s (fromJust _SCCL) _MD scfg) <$> maybeS
     in if    _SCEF == SE_000 then Nothing
        else                      tt
 

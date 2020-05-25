@@ -47,6 +47,7 @@ stateTransition ev terms st@ContractStatePoly{..} t termsCtx stateCtx =
                 RRF_EVENT{..}  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _RRNXT 
                 SC_EVENT{..}   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _SCEF o_rf_SCMO _SCIED
                 CE_EVENT{..}   -> _STF_CE_PAM st t y_sd_t
+        LamContractTerms{..} -> undefined
 
 
      

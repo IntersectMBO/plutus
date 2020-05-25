@@ -1,6 +1,4 @@
 {-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {- This module provides compatibility between Num and MarloweValue -}
 
 module Language.Marlowe.ACTUS.MarloweCompat where
@@ -13,30 +11,6 @@ import Language.Marlowe.ACTUS.Utility.ContractRoleSign
 import Data.String (IsString (fromString))
 import Data.List
 import qualified Data.List as L
-
-instance Num (Value Observation) where
-    negate      = NegValue
-    (+)         = AddValue
-    (*)         = AddValue --todo
-    fromInteger = Constant
-    abs         = undefined
-    signum      = undefined
-
-instance Fractional (Value Observation) where
-    recip x          = NegValue x --todo
-    x / y            = AddValue x y --todo
-
-instance ActusOps (Value Observation) where
-    _min a b = (Cond (ValueLT a b) a b)
-    _max a b = (Cond (ValueGT a b) a b)
-    _zero = Constant 0
-    _one = Constant $ round $ marloweFixedPoint
-
-instance YearFractionOps (Value Observation) (Value Observation) where
-    _y _ from to _ = (from - to) / (Constant (360 * 24 * 60 * 60))
-
-instance RoleSignOps (Value Observation) where
-    _r x = Constant $ round $ contractRoleSign x
 
 type EventHandler = EventType -> (Value Observation)
 
@@ -54,7 +28,7 @@ constnt :: Double -> (Value Observation)
 constnt v = Constant $ round $ v * marloweFixedPoint
 
 constntMaybe :: Maybe Double -> Maybe (Value Observation)
-constntMaybe v = fmap (\v' -> Constant $ round $ v' * marloweFixedPoint) v  
+constntMaybe = fmap (\v' -> Constant $ round $ v' * marloweFixedPoint) 
 
 enum :: forall a. a -> a 
 enum = id

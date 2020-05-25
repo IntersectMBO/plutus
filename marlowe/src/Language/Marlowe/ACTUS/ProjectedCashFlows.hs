@@ -24,7 +24,7 @@ genProjectedCashflows terms = let
 
     projectPreserveDate e d = ((projectEvent e), d)
     getSchedule e = fromMaybe [] $ schedule e terms
-    scheduleEvent e = fmap (projectPreserveDate e) (getSchedule e)
+    scheduleEvent e = (projectPreserveDate e) <$> (getSchedule e)
     events = concatMap scheduleEvent eventTypes
 
     applyStateTransition (st, ev, date) (ev', date') = (stateTransition ev terms st (calculationDay date) undefined undefined, ev', date')
@@ -45,7 +45,7 @@ genProjectedCashflows terms = let
         amount = payoff,
         currency = "ada"
     }
-    in L.map genCashflow $ L.zip states payoffs
+    in genCashflow <$> L.zip states payoffs
 
 
 

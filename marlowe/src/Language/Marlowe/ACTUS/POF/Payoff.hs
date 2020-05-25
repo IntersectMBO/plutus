@@ -26,5 +26,6 @@ payoff ev terms ContractStatePoly{..} t termsCtx stateCtx = case terms of
                 TD_EVENT{..}   -> _POF_TD_PAM o_rf_CURS r_CNTRL _PTD ipac ipnr nt y_sd_t
                 IP_EVENT{..}   -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
                 _             -> 0.0
+    LamContractTerms{..} -> undefined
 
 

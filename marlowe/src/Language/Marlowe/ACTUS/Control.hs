@@ -17,7 +17,6 @@ import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.ActusValidator
-import Language.Marlowe.ACTUS.Ops
 
 type TimePostfix = String -- sequence number of event
 type Amount = (Language.Marlowe.Value Language.Marlowe.Observation)
@@ -194,7 +193,7 @@ stateParser State{..} =
                 amount = parseDouble $ look "amount",
                 currency = show $ look "currency"
             }
-    in if isJust loopState  then fmap parseCashFlow $ Map.keys stateHist
+    in if isJust loopState  then parseCashFlow <$> Map.keys stateHist
                             else []
 
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool

@@ -26,3 +26,4 @@ inititializeState terms =
                 tfp_plus = calculationDay $ inf fpSchedule t0
             in _INIT_PAM t0 tminus tfp_minus tfp_plus 
                     _MD _IED _IPNR _CNTRL _NT _IPAC _DCC (Just _FER) _FEAC _FEB _SCEF _SCIXSD _PRF
+        LamContractTerms{..} -> undefined

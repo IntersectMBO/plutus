@@ -1215,6 +1215,21 @@ instance Eq State where
         && choices l == choices r
         && boundValues l == boundValues r
 
+instance P.Num (Value Observation) where
+    negate      = NegValue
+    (+)         = AddValue
+    (*)         = AddValue --todo
+    fromInteger = Constant
+    abs         = undefined
+    signum      = undefined
+
+instance P.Fractional (Value Observation) where
+    recip x          = NegValue x --todo
+    x / y            = AddValue x y --todo
+    fromRational     = undefined
+
+marloweFixedPoint :: Double
+marloweFixedPoint = 1000000000.0
 
 -- Lifting data types to Plutus Core
 makeLift ''Party

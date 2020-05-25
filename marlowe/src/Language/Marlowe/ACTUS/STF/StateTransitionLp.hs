@@ -99,6 +99,7 @@ stateTransitionLp terms t continue =
                             (constnt _SCIED)
                 CE   -> _STF_CE_PAM st time y_sd_t
                 _    -> st)
+        LamContractTerms{..} -> undefined
 
 
      
