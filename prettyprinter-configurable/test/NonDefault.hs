@@ -8,6 +8,7 @@ module NonDefault
     ( test_nonDefault
     ) where
 
+import           Text.Pretty
 import           Text.PrettyBy
 
 import           Data.Char        (intToDigit)
@@ -15,7 +16,6 @@ import           Data.Text        (Text)
 import           Numeric          (showIntAtBase)
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Text.Pretty
 
 -- | A pretty-printing config.
 data CustomDefaults = CustomDefaults
@@ -73,8 +73,10 @@ test_nonDefault = testGroup "default"
     , makeTestCase "listDef = True " (CustomDefaults 2 True)  ("ab12" :: String) "ab12"
     , makeTestCase "listDef = False" (CustomDefaults 2 False) ("ab12" :: String) "[a, b, 1, 2]"
       -- ... and the same holds if the list is stored in a 'Just'.
-    , makeTestCase "listDef = True " (CustomDefaults 2 True)  (Just ("ab12" :: String)) "Just (ab12)"
-    , makeTestCase "listDef = False" (CustomDefaults 2 False) (Just ("ab12" :: String)) "Just ([a, b, 1, 2])"
+    , makeTestCase "listDef = True " (CustomDefaults 2 True)
+        (Just ("ab12" :: String)) "Just (ab12)"
+    , makeTestCase "listDef = False" (CustomDefaults 2 False)
+        (Just ("ab12" :: String)) "Just ([a, b, 1, 2])"
       -- Default pretty-printing for a list of 'Maybe's is overloaded, hence regardless of whether
       -- default pretty-printing of lists is enabled or not, the result is the same.
     , makeTestCase "listDef = True " (CustomDefaults 2 True)

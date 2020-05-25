@@ -14,11 +14,11 @@ module Universal
     ( test_universal
     ) where
 
+import           Text.Pretty
 import           Text.PrettyBy
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Text.Pretty
 
 data ViaPretty
     = ViaPretty
@@ -48,11 +48,11 @@ test_universalViaPretty = testGroup "ViaPretty"
 
 data Config1
     = Config1
-    deriving (Show)
+    deriving stock (Show)
 
 data Config2
     = Config2
-    deriving (Show)
+    deriving stock (Show)
 
 instance PrettyBy Config1 D where
     prettyBy Config1 C1 = "Config1_C1"

@@ -29,6 +29,8 @@ module Text.PrettyBy.Internal.Core
     , DefaultlyPretty (..)
     ) where
 
+import           Text.Pretty
+
 import           Data.Bifunctor
 import           Data.Functor.Const
 import           Data.Coerce
@@ -39,7 +41,6 @@ import           Data.Maybe
 import           Data.Proxy
 import qualified Data.Text                          as Strict
 import qualified Data.Text.Lazy                     as Lazy
-import           Text.Pretty
 import           Data.Void
 import           Data.Word
 import           GHC.Natural

@@ -12,9 +12,9 @@ module Default
     ( test_default
     ) where
 
+import           Text.Pretty
 import           Text.PrettyBy
 import           Text.PrettyBy.Fixity
-import           Text.PrettyBy.Monad
 
 import           Data.Proxy
 import qualified Data.Text             as Text
@@ -22,7 +22,6 @@ import           Data.Text.Arbitrary
 import           Test.QuickCheck
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
-import           Text.Pretty
 
 newtype OnlyType = OnlyType RenderContext
 
@@ -30,18 +29,18 @@ instance HasRenderContext OnlyType where
     renderContext f (OnlyType context) = OnlyType <$> f context
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy [a]) where
-    prettyBy = viaPrettyM $ \_ ->
+    prettyBy = inContextM $ \_ ->
         withPrettyAt Forward botFixity $ \prettyBot ->
             unitDocM . brackets . prettyBot $ Proxy @a
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy (Maybe a)) where
-    prettyBy = viaPrettyM $ \_ ->
+    prettyBy = inContextM $ \_ ->
         sequenceDocM juxtFixity $ \prettyEl ->
             "Maybe" <+> prettyEl (Proxy @a)
 
 instance (PrettyBy OnlyType (Proxy a), PrettyBy OnlyType (Proxy b)) =>
             PrettyBy OnlyType (Proxy (a, b)) where
-    prettyBy = viaPrettyM $ \_ ->
+    prettyBy = inContextM $ \_ ->
         withPrettyAt Forward botFixity $ \prettyBot ->
             unitDocM $ mconcat
                 [ "("
@@ -52,16 +51,16 @@ instance (PrettyBy OnlyType (Proxy a), PrettyBy OnlyType (Proxy b)) =>
                 ]
 
 instance PrettyBy OnlyType (Proxy Integer) where
-    prettyBy = viaPrettyM $ \_ ->
-        unitDocM "Integer"
+    prettyBy = inContextM $ \_ ->
+        "Integer"
 
 instance PrettyBy OnlyType (Proxy Char) where
-    prettyBy = viaPrettyM $ \_ ->
-        unitDocM "Char"
+    prettyBy = inContextM $ \_ ->
+        "Char"
 
 instance PrettyBy OnlyType (Proxy Text) where
-    prettyBy = viaPrettyM $ \_ ->
-        unitDocM "Text"
+    prettyBy = inContextM $ \_ ->
+        "Text"
 
 type TestCaseConstr a = (Show a, Pretty a, PrettyBy () a, PrettyBy OnlyType (Proxy a), Arbitrary a)
 

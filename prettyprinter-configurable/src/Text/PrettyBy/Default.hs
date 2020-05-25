@@ -9,6 +9,7 @@ module Text.PrettyBy.Default
     , prettyDefM
     ) where
 
+import           Text.Pretty
 import           Text.PrettyBy
 import           Text.PrettyBy.Monad
 
@@ -16,7 +17,6 @@ import qualified Data.Text                               as Strict
 import qualified Data.Text.Lazy                          as Lazy
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderLazy, renderStrict)
-import           Text.Pretty
 
 layoutDef :: Doc ann -> SimpleDocStream ann
 layoutDef = layoutSmart defaultLayoutOptions

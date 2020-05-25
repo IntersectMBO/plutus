@@ -40,12 +40,15 @@ test-suite prettyprinter-configurable-test
         Default
         NonDefault
         Universal
+        Expr
     default-language: Haskell2010
     build-depends:
         prettyprinter-configurable,
         base,
         prettyprinter,
         text,
+        megaparsec,
+        parser-combinators,
         QuickCheck,
         quickcheck-text,
         tasty,
