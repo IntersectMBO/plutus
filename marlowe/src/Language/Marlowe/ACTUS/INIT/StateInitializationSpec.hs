@@ -5,7 +5,6 @@ import Language.Marlowe.ACTUS.ContractState
 import Language.Marlowe.ACTUS.Utility.ContractRoleSign
 import Language.Marlowe.ACTUS.Utility.YearFraction
 import Language.Marlowe.ACTUS.ContractTerms
-import Data.Time
 import Data.Maybe
 
 r = contractRoleSign
@@ -48,5 +47,5 @@ _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER
                                          else 1.0
         prf   = _PRF
         sd    = t0
-    in ContractStatePoly { tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
+    in ContractStatePoly { prnxt = 0.0, ipcb = 0.0, tmd = tmd, nt = nt, ipnr = ipnr, ipac = ipac, fac = fac, feac = feac, nsc = nsc, isc = isc, prf = prf, sd = sd }
     

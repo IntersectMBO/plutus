@@ -9,8 +9,10 @@ import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Schedule
 import Data.Maybe
+import Data.Time
 import Language.Marlowe.ACTUS.Utility.DateShift
 
+shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 inititializeState :: ContractTerms -> ContractState

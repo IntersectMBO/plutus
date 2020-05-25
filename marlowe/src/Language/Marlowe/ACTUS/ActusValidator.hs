@@ -10,9 +10,7 @@ import Language.Marlowe.ACTUS.INIT.StateInitialization
 import Language.Marlowe.ACTUS.POF.Payoff
 import Language.Marlowe.ACTUS.STF.StateTransition
 
-import Language.Marlowe
 import Data.Time
-import Data.Maybe
 import Data.Maybe
 import Control.Arrow
 
@@ -32,8 +30,8 @@ checkAllScheduledEventsHappened present schedule past = True --todo: minus credi
 
 replayValidatedEvents :: ContractTerms -> [CashFlow] -> CashFlow -> Double
 replayValidatedEvents terms past present =
-    let applyStateTransition st cf = stateTransition (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
-        calculatePayoff st cf = payoff (cashEvent cf) terms st (cashCalculationDay cf) undefined undefined
+    let applyStateTransition st cf = stateTransition (cashEvent cf) terms st (cashCalculationDay cf)
+        calculatePayoff st cf = payoff (cashEvent cf) terms st (cashCalculationDay cf)
         init = inititializeState terms
         memory = L.foldl applyStateTransition init past
     in calculatePayoff memory present

@@ -71,7 +71,7 @@ shiftDate date n p =
 
 {- End of Month Convention -}
 applyEOMC :: Day -> Cycle -> EOMC -> Day -> Day
-applyEOMC s Cycle{n = n, p = p} endOfMonthConvention date
+applyEOMC s Cycle{..} endOfMonthConvention date
   | ((isLastDayOfMonthWithLessThan31Days s) &&
       p /= P_D && p /= P_W &&
       endOfMonthConvention == EOMC_EOM

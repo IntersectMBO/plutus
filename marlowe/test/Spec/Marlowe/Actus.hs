@@ -6,7 +6,7 @@ where
 import           Language.Marlowe.ACTUS.Control
 import           Language.Marlowe.ACTUS.ControlLp
 import           Language.Marlowe.Semantics
-import           Language.Marlowe.Pretty
+--import           Language.Marlowe.Pretty
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Language.Marlowe.ACTUS.ContractState
 import           Language.Marlowe.ACTUS.BusinessEvents
@@ -16,7 +16,6 @@ import           Language.Marlowe.ACTUS.ProjectedCashFlows
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
-import           Data.Maybe
 import           Data.String (IsString (fromString))
 import           Ledger.Value
 import           Ledger.Ada                 (adaSymbol, adaToken)

@@ -15,10 +15,11 @@ import Data.Maybe
 
 import Language.Marlowe.ACTUS.Utility.DateShift
 
+shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
-stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractTermsContext -> ContractStateContext -> ContractState
-stateTransition ev terms st@ContractStatePoly{..} t termsCtx stateCtx = 
+stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractState
+stateTransition ev terms st@ContractStatePoly{..} t = 
     case terms of
         PamContractTerms{..} -> 
             let 
@@ -47,6 +48,7 @@ stateTransition ev terms st@ContractStatePoly{..} t termsCtx stateCtx =
                 RRF_EVENT{..}  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _RRNXT 
                 SC_EVENT{..}   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER r_CNTRL _SCEF o_rf_SCMO _SCIED
                 CE_EVENT{..}   -> _STF_CE_PAM st t y_sd_t
+                _             -> st
         LamContractTerms{..} -> undefined
 
 

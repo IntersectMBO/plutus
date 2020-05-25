@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.POF.PayoffSpec where
 
 import Language.Marlowe.ACTUS.ContractTerms
@@ -19,6 +20,7 @@ _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT r_CNTRL nt ipnr y_sd_t =
         PYTP_N -> _cPYRT
         PYTP_I -> let c = o_rf_CURS * r_CNTRL * y_sd_t * nt
                  in c * (_max _zero (ipnr - o_rf_RRMO))
+        PYTP_O -> undefined --todo ask Neils
 
 _POF_FP_PAM _FEB _FER o_rf_CURS r_CNTRL nt fac y_sd_t = 
     let c = o_rf_CURS * _FER in

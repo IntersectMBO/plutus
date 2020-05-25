@@ -11,7 +11,6 @@ import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.INIT.StateInitialization
 import Language.Marlowe.ACTUS.POF.Payoff
 import Language.Marlowe.ACTUS.STF.StateTransition
-import Data.List
 import qualified Data.List as L
 import Data.Maybe
 import Data.Time
@@ -27,8 +26,8 @@ genProjectedCashflows terms = let
     scheduleEvent e = (projectPreserveDate e) <$> (getSchedule e)
     events = concatMap scheduleEvent eventTypes
 
-    applyStateTransition (st, ev, date) (ev', date') = (stateTransition ev terms st (calculationDay date) undefined undefined, ev', date')
-    calculatePayoff (st, ev, date) = payoff ev terms st (calculationDay date) undefined undefined
+    applyStateTransition (st, ev, date) (ev', date') = (stateTransition ev terms st (calculationDay date), ev', date')
+    calculatePayoff (st, ev, date) = payoff ev terms st (calculationDay date)
 
     init = (inititializeState terms, (projectEvent AD), ShiftedDay analysisDate analysisDate)
     states = L.tail $ L.scanl applyStateTransition init events

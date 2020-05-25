@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
 
@@ -13,7 +14,7 @@ _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
     sd = t 
 }
 
-_STF_IED_PAM st@ContractStatePoly{..} t y_ipanx_t ipanx_LT_t y_sd_t _IPNR _IPANX r_CNTRL _IPAC _NT = 
+_STF_IED_PAM st@ContractStatePoly{..} t y_ipanx_t ipanx_LT_t _ _IPNR _IPANX r_CNTRL _IPAC _NT = 
     let 
         nt' = r_CNTRL * _NT
         ipnr' = if (isNothing _IPNR) then _zero else (fromJust _IPNR)
@@ -87,12 +88,12 @@ _STF_SC_PAM st@ContractStatePoly{..} t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _F
         nsc' = case _SCEF of 
             SE_00M -> nsc 
             SE_I00 -> nsc
-            otherwise -> (o_rf_SCMO - _SCIED) / _SCIED
+            _ -> (o_rf_SCMO - _SCIED) / _SCIED
         isc' = case _SCEF of 
             SE_0N0 -> isc
             SE_00M -> isc 
             SE_0NM -> isc
-            otherwise -> (o_rf_SCMO - _SCIED) / _SCIED
+            _ -> (o_rf_SCMO - _SCIED) / _SCIED
     in st' {nsc = nsc', isc = isc'}
 
 _STF_CE_PAM st@ContractStatePoly{..} t y_sd_t = _STF_AD_PAM st t y_sd_t
