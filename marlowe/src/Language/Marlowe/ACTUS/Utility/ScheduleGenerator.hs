@@ -34,7 +34,7 @@ endDateCorrection :: Bool -> EndDay -> Schedule -> Schedule
 endDateCorrection includeEndDay endDay schedule 
   | includeEndDay && not (L.elem endDay schedule) = schedule ++ [endDay]
   | (not includeEndDay) && (L.elem endDay schedule) = L.init schedule
-  | schedule
+  | otherwise = schedule
 
 generateRecurrentSchedule :: Cycle -> AnchorDay -> EndDay -> Schedule
 generateRecurrentSchedule Cycle{..} anchorDate endDate = 
