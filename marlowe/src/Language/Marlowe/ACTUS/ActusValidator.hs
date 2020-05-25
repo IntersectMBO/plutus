@@ -14,7 +14,6 @@ import Data.Time
 import Data.Maybe
 import Control.Arrow
 
-import Data.List
 import qualified Data.List as L
 
 genShiftedSchedule :: EventType -> ContractTerms -> Maybe ShiftedSchedule
@@ -32,8 +31,8 @@ replayValidatedEvents :: ContractTerms -> [CashFlow] -> CashFlow -> Double
 replayValidatedEvents terms past present =
     let applyStateTransition st cf = stateTransition (cashEvent cf) terms st (cashCalculationDay cf)
         calculatePayoff st cf = payoff (cashEvent cf) terms st (cashCalculationDay cf)
-        init = inititializeState terms
-        memory = L.foldl applyStateTransition init past
+        initialState = inititializeState terms
+        memory = L.foldl applyStateTransition initialState past
     in calculatePayoff memory present
 
 -- validated cashflows are part of transaction state, present is proposed cashflow

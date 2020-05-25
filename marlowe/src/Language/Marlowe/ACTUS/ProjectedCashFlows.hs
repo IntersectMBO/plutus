@@ -29,9 +29,9 @@ genProjectedCashflows terms = let
     applyStateTransition (st, ev, date) (ev', date') = (stateTransition ev terms st (calculationDay date), ev', date')
     calculatePayoff (st, ev, date) = payoff ev terms st (calculationDay date)
 
-    init = (inititializeState terms, (projectEvent AD), ShiftedDay analysisDate analysisDate)
-    states = L.tail $ L.scanl applyStateTransition init events
-    payoffs = L.map calculatePayoff $ states
+    initialState = (inititializeState terms, (projectEvent AD), ShiftedDay analysisDate analysisDate)
+    states = L.tail $ L.scanl applyStateTransition initialState events
+    payoffs = calculatePayoff <$> states
 
     genCashflow ((_, ev, d), payoff) = CashFlow {
         tick = 0,
