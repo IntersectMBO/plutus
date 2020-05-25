@@ -93,11 +93,11 @@ instance PrettyBy RenderContext Expr where
             sequenceDocM ToTheLeft facFixity $ \prettyEl ->
                 prettyEl e <> "!"
         IfThenElse c e1 e2 ->
-            compoundDocM ifThenElseFixity $ \prettyIn ->
+            infixDocM ifThenElseFixity $ \prettyL prettyR ->
                 group . hang 4 $ vsep
-                    [ "if"   <+> prettyIn ToTheLeft  ifThenElseFixity c
-                    , "then" <+> prettyIn ToTheLeft  ifThenElseFixity e1
-                    , "else" <+> prettyIn ToTheRight ifThenElseFixity e2
+                    [ "if"   <+> prettyL c
+                    , "then" <+> prettyR e1
+                    , "else" <+> prettyR e2
                     ]
 
 whitespace :: (MonadParsec e s m, Token s ~ Char) => m ()
@@ -213,7 +213,7 @@ test_expr = testGroup "expr"
     , makeTestCase "if (a) then (b) else (c)" "if a then b else c"
     , makeTestCase
           "if if a then b else c then if d then e else f else if g then h else i"
-          "if (if a then b else c) then (if d then e else f) else if g then h else i"
+          "if (if a then b else c) then if d then e else f else if g then h else i"
 
     , makeTestCase "~(if a then b else c)" "~(if a then b else c)"
     , makeTestCase "-(if a then b else c)" "- if a then b else c"
@@ -226,4 +226,7 @@ test_expr = testGroup "expr"
     , makeTestCase "if (a == b) then (c + d) else (e * f)" "if a == b then c + d else e * f"
     , makeTestCase "a + (if b then c else d)" "a + if b then c else d"
     , makeTestCase "(if a then b else c) * d" "(if a then b else c) * d"
+
+    , makeTestCase "(a + if b then c else d) * e" "(a + if b then c else d) * e"
+    , makeTestCase "(a * if b then c else d) * e" "(a * if b then c else d) * e"
     ]
