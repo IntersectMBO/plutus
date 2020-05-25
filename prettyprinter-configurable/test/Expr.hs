@@ -25,81 +25,80 @@ import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer     as Lexer
 
--- >>> True && if False then False else True
--- True
--- >>> (if False then False else True) && True
--- True
-
 data Expr
     = Var Text
     | Not Expr
-    | And Expr Expr
     | Or Expr Expr
+    | And Expr Expr
     | Eq Expr Expr
+    | Neg Expr
+    | Add Expr Expr
+    | Mul Expr Expr
+    | Fac Expr
     | IfThenElse Expr Expr Expr
     deriving (Show)
 
-andFixity :: Fixity
-andFixity = Fixity 3 RightAssociative
+notFixity :: Fixity
+notFixity = unary RightAssociative 9
 
 orFixity :: Fixity
-orFixity = Fixity 2 RightAssociative
+orFixity = binary RightAssociative 2
+
+andFixity :: Fixity
+andFixity = binary RightAssociative 3
 
 eqFixity :: Fixity
-eqFixity = Fixity 4 LeftAssociative
+eqFixity = binary NonAssociative 4
+
+negFixity :: Fixity
+negFixity = unary LeftAssociative 6
+
+addFixity :: Fixity
+addFixity = binary LeftAssociative 6
+
+mulFixity :: Fixity
+mulFixity = binary LeftAssociative 7
+
+facFixity :: Fixity
+facFixity = unary LeftAssociative 9
 
 ifThenElseFixity :: Fixity
-ifThenElseFixity = Fixity (-5) NonAssociative
+ifThenElseFixity = prefix RightAssociative (-5) 8
 
 instance PrettyBy RenderContext Expr where
     prettyBy = inContextM $ \case
         Var v -> unitDocM $ pretty v
         Not e ->
-            sequenceDocM juxtFixity $ \prettyEl ->
-                "not" <+> prettyEl e
-        And e1 e2 ->
-            infixDocM andFixity $ \prettyL prettyR ->
-                prettyL e1 <+> "&&" <+> prettyR e2
+            sequenceDocM ToTheRight notFixity $ \prettyEl ->
+                "~" <> prettyEl e
         Or e1 e2 ->
             infixDocM orFixity $ \prettyL prettyR ->
                 prettyL e1 <+> "||" <+> prettyR e2
+        And e1 e2 ->
+            infixDocM andFixity $ \prettyL prettyR ->
+                prettyL e1 <+> "&&" <+> prettyR e2
         Eq e1 e2 ->
             infixDocM eqFixity $ \prettyL prettyR ->
                 prettyL e1 <+> "==" <+> prettyR e2
+        Neg e ->
+            sequenceDocM ToTheRight negFixity $ \prettyEl ->
+                "-" <+> prettyEl e
+        Add e1 e2 ->
+            infixDocM addFixity $ \prettyL prettyR ->
+                prettyL e1 <+> "+" <+> prettyR e2
+        Mul e1 e2 ->
+            infixDocM mulFixity $ \prettyL prettyR ->
+                prettyL e1 <+> "*" <+> prettyR e2
+        Fac e ->
+            sequenceDocM ToTheLeft facFixity $ \prettyEl ->
+                prettyEl e <> "!"
         IfThenElse c e1 e2 ->
-            withPrettyAt Forward ifThenElseFixity $ \prettyBot ->
-                encloseM ifThenElseFixity . group . hang 4 $ vsep
-                    [ "if" <+> prettyBot c
-                    , "then" <+> prettyBot e1
-                    , "else" <+> prettyBot e2
+            compoundDocM ifThenElseFixity $ \prettyIn ->
+                group . hang 4 $ vsep
+                    [ "if"   <+> prettyIn ToTheLeft  ifThenElseFixity c
+                    , "then" <+> prettyIn ToTheLeft  ifThenElseFixity e1
+                    , "else" <+> prettyIn ToTheRight ifThenElseFixity e2
                     ]
-
-
-
--- >>> prettyBy botRenderContext $ IfThenElse (Bool True) (Bool False) (And (Bool False) (Bool True))
--- if True then False else False && True
-
--- >>> prettyBy botRenderContext $ IfThenElse (Bool True) (And (Bool False) (And (Bool False) (And (Bool False) (And (Bool False) (And (Bool False) (Bool True)))))) (And (Bool False) (Bool True))
--- if True
---     then False && False && False && False && False && True
---     else False && True
-
--- >>> prettyBy botRenderContext $ And (Bool True) (IfThenElse (Bool True) (And (Bool False) (And (Bool False) (And (Bool False) (And (Bool False) (And (Bool False) (Bool True)))))) (And (Bool False) (Bool True)))
--- True && (if True
---              then False && False && False && False && False && True
---              else False && True)
-
--- >>> prettyBy botRenderContext $ "a" `Or` Not "b"
-
--- >>> prettyBy botRenderContext $ Not (Bool True) `And` Bool False
--- not true && false
-
--- >>> prettyBy botRenderContext $ (Bool False `And` Bool True) `Or`
--- false || not true
-
--- >>> prettyBy botRenderContext $ Not (Bool True) `And` Bool False
--- not true && false
-
 
 whitespace :: (MonadParsec e s m, Token s ~ Char) => m ()
 whitespace = Lexer.space space1 empty empty
@@ -119,9 +118,15 @@ type Parser = ParsecT Void Text Identity
 
 opTable :: [[Operator Parser Expr]]
 opTable =
-    [ [ operator Prefix "not" Not
+    [ [ operator Prefix "~" Not
+      , operator Postfix "!" Fac
       ]
-    , [ operator InfixL "==" Eq
+    , [ operator InfixL "*" Mul
+      ]
+    , [ operator InfixL "+" Add
+      , operator Prefix "-" Neg
+      ]
+    , [ operator InfixN "==" Eq
       ]
     , [ operator InfixR "&&" And
       ]
@@ -161,42 +166,64 @@ parseExpr = first errorBundlePretty . runParser (between whitespace eof exprP) "
 instance IsString Expr where
     fromString = either error id . parseExpr . fromString
 
--- >>> :set -XOverloadedStrings
--- >>> "b" :: Expr
--- Var "b"
--- >>> parseExpr "if b then c else d"
--- Right (IfThenElse (Var "b") (Var "c") (Var "d"))
-
--- a or (not b)
--- (a and b) or c
--- (a or b) and b
-
 makeTestCase :: Expr -> String -> TestTree
 makeTestCase expr res = testCase res $ show (prettyBy botRenderContext expr) @?= res
-
-test :: Bool
-test = b where b = _
 
 test_expr :: TestTree
 test_expr = testGroup "expr"
     [ makeTestCase "(a)" "a"
-    , makeTestCase "(not (a))" "not a"
+
+    , makeTestCase "(~(a))" "~a"
+    , makeTestCase "~(~a)" "~~a"
+    , makeTestCase "~(a || b)" "~(a || b)"
+    , makeTestCase "~(a && b)" "~(a && b)"
+    , makeTestCase "((~a) || (~b))" "~a || ~b"
+    , makeTestCase "((~a) && (~b))" "~a && ~b"
+
     , makeTestCase "((a) && (b))" "a && b"
-    , makeTestCase "((not a) || (not b))" "not a || not b"
-    , makeTestCase "(a && b) || (c && d)" "a && b || c && d"
-    , makeTestCase "(a || b) && (c || d)" "(a || b) && (c || d)"
-    , makeTestCase "(a && b) == (c || d)" "(a && b) == (c || d)"
-    , makeTestCase "(a || b) == (c && d)" "(a || b) == (c && d)"
-    , makeTestCase "(a == b) || (c == d)" "a == b || c == d"
     , makeTestCase "(a && b) && c" "(a && b) && c"
     , makeTestCase "a && (b && c)" "a && b && c"
-    , makeTestCase "(a == b) == c" "a == b == c"
-    , makeTestCase "a == (b == c)" "a == (b == c)"
+    , makeTestCase "(a && b) || (c && d)" "a && b || c && d"
+    , makeTestCase "(a || b) && (c || d)" "(a || b) && (c || d)"
+
+    , makeTestCase "-(a)" "- a"
+    , makeTestCase "-(-a)" "- (- a)"
+    , makeTestCase "-(a + b)" "- (a + b)"
+    , makeTestCase "-(a * b)" "- a * b"
+    , makeTestCase "(-a) + (-b)" "- a + (- b)"
+    , makeTestCase "(-a) * (-b)" "(- a) * (- b)"
+
+    , makeTestCase "(a)!" "a!"
+    , makeTestCase "(a!)!" "a!!"
+    , makeTestCase "(a + b)!" "(a + b)!"
+    , makeTestCase "(a * b)!" "(a * b)!"
+    , makeTestCase "(a!) + (b!)" "a! + b!"
+    , makeTestCase "(a!) * (b!)" "a! * b!"
+
+    , makeTestCase "-(a!)" "- a!"
+    , makeTestCase "(-a)!" "(- a)!"
+
+    , makeTestCase "((a) + (b))" "a + b"
+    , makeTestCase "(a + b) + c" "a + b + c"
+    , makeTestCase "a + (b + c)" "a + (b + c)"
+    , makeTestCase "(a * b) + (c * d)" "a * b + c * d"
+    , makeTestCase "(a + b) * (c + d)" "(a + b) * (c + d)"
+    , makeTestCase "(a + b) == (c * d)" "a + b == c * d"
+
     , makeTestCase "if (a) then (b) else (c)" "if a then b else c"
-    , makeTestCase "if (a && b) then (c || d) else (e == f)" "if a && b then c || d else e == f"
-    , makeTestCase "a || if b then c else d" "a || (if b then c else d)"
-    , makeTestCase "(if a then b else c) && d" "(if a then b else c) && d"
     , makeTestCase
           "if if a then b else c then if d then e else f else if g then h else i"
-          "if (if a then b else c) then (if d then e else f) else (if g then h else i)"
+          "if (if a then b else c) then (if d then e else f) else if g then h else i"
+
+    , makeTestCase "~(if a then b else c)" "~(if a then b else c)"
+    , makeTestCase "-(if a then b else c)" "- if a then b else c"
+    , makeTestCase "(if a then b else c)!" "(if a then b else c)!"
+
+    , makeTestCase "if (a && b) then (c || d) else (e == f)" "if a && b then c || d else e == f"
+    , makeTestCase "a || (if b then c else d)" "a || if b then c else d"
+    , makeTestCase "(if a then b else c) && d" "(if a then b else c) && d"
+
+    , makeTestCase "if (a == b) then (c + d) else (e * f)" "if a == b then c + d else e * f"
+    , makeTestCase "a + (if b then c else d)" "a + if b then c else d"
+    , makeTestCase "(if a then b else c) * d" "(if a then b else c) * d"
     ]

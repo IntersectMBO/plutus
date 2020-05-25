@@ -66,14 +66,25 @@ flipDirection :: Direction -> Direction
 flipDirection ToTheLeft  = ToTheRight
 flipDirection ToTheRight = ToTheLeft
 
-toOuterPrec :: Direction -> Arity prec -> prec
-toOuterPrec _          (Nullary prec)    = prec
-toOuterPrec ToTheLeft  (Unary _ precInn) = precInn
-toOuterPrec ToTheRight (Unary precOut _) = precOut
-toOuterPrec _          (Binary prec)     = prec
+-- toOuterPrec :: Direction -> Arity prec -> prec
+-- toOuterPrec _          (Nullary prec)    = prec
+-- toOuterPrec ToTheLeft  (Unary _ precInn) = precInn
+-- toOuterPrec ToTheRight (Unary precOut _) = precOut
+-- toOuterPrec _          (Binary prec)     = prec
+
+-- toInnerPrec :: Direction -> Arity prec -> prec
+-- toInnerPrec = toOuterPrec . flipDirection
+
+toOuterPrec :: Arity prec -> prec
+toOuterPrec (Nullary prec)    = prec
+toOuterPrec (Unary precOut _) = precOut
+toOuterPrec (Binary prec)     = prec
 
 toInnerPrec :: Direction -> Arity prec -> prec
-toInnerPrec = toOuterPrec . flipDirection
+toInnerPrec _          (Nullary prec)    = prec
+toInnerPrec ToTheLeft  (Unary precOut _) = precOut
+toInnerPrec ToTheRight (Unary _ precInn) = precInn
+toInnerPrec _          (Binary prec)     = prec
 
 -- | Enclose an @a@ in parens if required or leave it as is.
 -- The need for enclosing is determined from an outer 'RenderContext' and the inner fixity.
@@ -102,31 +113,5 @@ encloseIn parens (RenderContext dir (Fixity assocOut fixityPrecOut)) (Fixity ass
                                                       -- which is rendered as @xs ++ ys ++ zs@.
             _                              -> parens  -- Every other case requires parens.
   where
-    precOut = toOuterPrec dir fixityPrecOut
+    precOut = toOuterPrec fixityPrecOut
     precInn = toInnerPrec dir fixityPrecInn
-
-
-
--- - (- 3)
--- ~~b
-
--- 5 * (- 3) ~> 5 * (- 3)
--- (- 3) * 5 ~> (- 3) * 5
--- - (3 * 5) ~> - 3 * 5
-
--- 5 + (- 3) ~> 5 + (- 3)
--- (- 3) + 5 ~> - 3 + 5    -- Only for the left-associative @+@?
--- - (3 + 5) ~> - (3 + 5)
-
--- if_then_else_ -- right associative
-
-
--- - (- x)
--- x + (-y)
-
--- ~~x
--- x && ~y
-
--- newtype Precedence = Precedence
---     { unPrecedence :: Double
---     } deriving newtype (Show, Eq, Ord, Num)

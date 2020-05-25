@@ -30,18 +30,18 @@ instance HasRenderContext OnlyType where
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy [a]) where
     prettyBy = inContextM $ \_ ->
-        withPrettyAt Forward botFixity $ \prettyBot ->
+        withPrettyAt ToTheRight botFixity $ \prettyBot ->
             unitDocM . brackets . prettyBot $ Proxy @a
 
 instance PrettyBy OnlyType (Proxy a) => PrettyBy OnlyType (Proxy (Maybe a)) where
     prettyBy = inContextM $ \_ ->
-        sequenceDocM juxtFixity $ \prettyEl ->
+        sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
             "Maybe" <+> prettyEl (Proxy @a)
 
 instance (PrettyBy OnlyType (Proxy a), PrettyBy OnlyType (Proxy b)) =>
             PrettyBy OnlyType (Proxy (a, b)) where
     prettyBy = inContextM $ \_ ->
-        withPrettyAt Forward botFixity $ \prettyBot ->
+        withPrettyAt ToTheRight botFixity $ \prettyBot ->
             unitDocM $ mconcat
                 [ "("
                 , prettyBot $ Proxy @a

@@ -78,10 +78,11 @@ compoundDocM fixity k = withPrettyIn $ \prettyIn -> encloseM fixity $ k prettyIn
 
 sequenceDocM
     :: MonadPrettyContext config env m
-    => Fixity
+    => Direction
+    -> Fixity
     -> (AnyToDoc config ann -> Doc ann)
     -> m (Doc ann)
-sequenceDocM fixity k = compoundDocM fixity $ \prettyIn -> k (prettyIn FromOutside fixity)
+sequenceDocM dir fixity k = compoundDocM fixity $ \prettyIn -> k (prettyIn dir fixity)
 
 -- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'Backward'
 -- direction, the other is in the 'Forward' direction) specialized to the supplied 'Fixity'
@@ -96,9 +97,6 @@ infixDocM
 infixDocM fixity k =
     compoundDocM fixity $ \prettyIn ->
         k (prettyIn ToTheLeft fixity) (prettyIn ToTheRight fixity)
-
--- (a + b) * (c + d)
--- (a * b) + (c * d)
 
 juxtPrettyM
     :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)
