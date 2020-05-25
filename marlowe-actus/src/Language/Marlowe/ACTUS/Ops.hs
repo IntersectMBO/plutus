@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 
 module Language.Marlowe.ACTUS.Ops where
