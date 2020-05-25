@@ -22,7 +22,7 @@ genProjectedCashflows terms =
 
         projectPreserveDate e d = (projectEvent e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
-        scheduleEvent e = (projectPreserveDate e) <$> (getSchedule e)
+        scheduleEvent e = projectPreserveDate e <$> getSchedule e
         events = concatMap scheduleEvent eventTypes
 
         applyStateTransition (st, ev, date) (ev', date') =
@@ -32,7 +32,7 @@ genProjectedCashflows terms =
 
         initialState =
             ( inititializeState terms
-            , (projectEvent AD)
+            , projectEvent AD
             , ShiftedDay analysisDate analysisDate
             )
         states  = L.tail $ L.scanl applyStateTransition initialState events

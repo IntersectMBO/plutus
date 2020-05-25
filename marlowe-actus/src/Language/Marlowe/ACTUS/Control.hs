@@ -172,7 +172,7 @@ stateParser State {..} =
                 look :: String -> Integer
                 look name =
                     fromJust
-                        $ Map.lookup (ValueId $ (fromString name))
+                        $ Map.lookup (ValueId $ fromString name)
                         $ fromJust
                         $ Map.lookup t stateHist
                 proposedPaymentDate = fromGregorian 2008 10 20 --todo slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
@@ -241,7 +241,7 @@ stateParser State {..} =
 
 actusMarloweValidator :: ContractTerms -> TransactionOutput -> Bool
 actusMarloweValidator terms TransactionOutput {..} =
-    let cashflows = stateParser (appendPresentState txOutState)
+    let cashflows = stateParser $ appendPresentState txOutState
         result    = validateCashFlow terms (L.init cashflows) (L.last cashflows) --todo THIS IS NOT SECURE
     in  null cashflows || result
 actusMarloweValidator _ (Error _) = False

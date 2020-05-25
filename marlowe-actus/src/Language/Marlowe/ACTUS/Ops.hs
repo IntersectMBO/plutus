@@ -41,7 +41,7 @@ instance ActusOps (Value Observation) where
     _one  = Constant $ round marloweFixedPoint
 
 instance YearFractionOps (Value Observation) (Value Observation) where
-    _y _ from to _ = (from - to) / (Constant (360 * 24 * 60 * 60))
+    _y _ from to _ = (from - to) / Constant (360 * 24 * 60 * 60)
 
 instance RoleSignOps (Value Observation) where
     _r x = Constant $ round $ contractRoleSign x

@@ -107,7 +107,7 @@ pamProjected :: IO ()
 pamProjected = do 
     let cfs = genProjectedCashflows contractTerms 
     let cfsEmpty = null cfs
-    assertBool "Cashflows should not be empty" $ (not cfsEmpty) --trace ("Projected CashFlows: " ++ (show cfs))
+    assertBool "Cashflows should not be empty" (not cfsEmpty) --trace ("Projected CashFlows: " ++ (show cfs))
     return ()
 
 
