@@ -1,4 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+
 module Language.Marlowe.ACTUS.Utility.ScheduleGenerator
   ( generateRecurrentScheduleWithCorrections
   , plusCycle
@@ -17,14 +19,14 @@ import           Language.Marlowe.ACTUS.Utility.DateShift
 
 sup :: [ShiftedDay] -> Day -> ShiftedDay
 sup set threshold =
-  minimum (filter (\t -> (calculationDay t) >= threshold) set)
+  minimum [t | t <- set, calculationDay t >= threshold]
 
 inf :: [ShiftedDay] -> Day -> ShiftedDay
 inf set threshold =
-  maximum (filter (\t -> (calculationDay t) <= threshold) set)
+  maximum [t | t <- set, calculationDay t <= threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
-remove d set = (filter (\t -> (calculationDay t) /= (calculationDay d)) set)
+remove d = filter (\t -> calculationDay t /= calculationDay d)
 
 type AnchorDay = Day
 type EndDay = Day
@@ -58,9 +60,9 @@ generateRecurrentScheduleWithCorrections
 generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
   = let schedule     = generateRecurrentSchedule cycle anchorDate endDate
         schedule'    = endDateCorrection includeEndDay endDate schedule
-        schedule''   = L.map (applyEOMC anchorDate cycle eomc) schedule'
-        schedule'''  = L.map (applyBDC bdc calendar) schedule''
-        schedule'''' = stubCorrection (stub cycle) endDate schedule'''
+        schedule''    = applyEOMC anchorDate cycle eomc <$> schedule'
+        schedule'''   = applyBDC bdc calendar <$> schedule''
+        schedule''''   = stubCorrection (stub cycle) endDate schedule'''
     in  schedule''''
 
 plusCycle :: Day -> Cycle -> Day
@@ -79,14 +81,10 @@ shiftDate date n p = case p of
 {- End of Month Convention -}
 applyEOMC :: Day -> Cycle -> EOMC -> Day -> Day
 applyEOMC s Cycle {..} endOfMonthConvention date
-  | (  (isLastDayOfMonthWithLessThan31Days s)
-    && p
-    /= P_D
-    && p
-    /= P_W
-    && endOfMonthConvention
-    == EOMC_EOM
-    )
+  | isLastDayOfMonthWithLessThan31Days s
+    && p /= P_D
+    && p /= P_W
+    && endOfMonthConvention == EOMC_EOM   
   = moveToEndOfMonth date
   | otherwise
   = date

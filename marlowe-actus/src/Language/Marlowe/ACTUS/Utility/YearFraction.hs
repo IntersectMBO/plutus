@@ -76,11 +76,10 @@ yearFraction DCC_E30_360 startDay endDay _
         )
           / 360.0
   | otherwise
-  = 
-    error "Year fraction error: second date must be more recent"
+  = error "Year fraction error: second date must be more recent"
 
 yearFraction dcc _ _ _ =
-  error ("Unsupported day count convention: " ++ (show dcc))
+  error $ "Unsupported day count convention: " ++ show dcc
 
 isLastDayOfMonth :: Integer -> Int -> Int -> Bool
 isLastDayOfMonth year month day = day == gregorianMonthLength year month

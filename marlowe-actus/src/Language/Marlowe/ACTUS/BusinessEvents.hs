@@ -38,7 +38,7 @@ mapEventType event = case event of
     AD_EVENT {..}  -> MD
     MD_EVENT {..}  -> MD
     IED_EVENT {..} -> IED
-    _              -> undefined
+    _             -> undefined
 
 
 projectEvent :: EventType -> ScheduledEvent
