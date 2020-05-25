@@ -13,6 +13,6 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Marlowe Contracts"
-        [ Spec.Marlowe.Marlowe.tests
-       
+        [ 
+                Spec.Marlowe.Actus.tests
         ]

@@ -1,16 +1,16 @@
 cabal-version: 2.0
-name: marlowe
+name: marlowe-actus
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
   LICENSE
   NOTICE
 build-type: Simple
-maintainer: alexander.nemish@iohk.io
+maintainer: dmytro.kondratiuk@iohk.io
 stability: experimental
-author: Alexander Nemish
+author: Dmytro Kondratiuk
 synopsis:
-  Marlowe: financial contracts on Cardano Computation Layer
+  Marlowe ACTUS: financial contracts on Cardano Computation Layer
 description:
   A reference implementation of Marlowe, domain-specific language targeted at
   the execution of financial contracts in the style of Peyton Jones et al
@@ -42,6 +42,7 @@ library
     plutus-tx -any,
     plutus-emulator -any,
     plutus-ledger,
+    marlowe -any,
     text,
     vector,
     wl-pprint -any,
@@ -53,11 +54,31 @@ library
                       DeriveFunctor DeriveFoldable
                       DeriveTraversable
   exposed-modules:
-    Language.Marlowe
-    Language.Marlowe.Semantics
-    Language.Marlowe.Client
-    Language.Marlowe.Util
-    Language.Marlowe.Pretty
+    Language.Marlowe.ACTUS.MarloweCompat
+    Language.Marlowe.ACTUS.Ops
+    Language.Marlowe.ACTUS.BusinessEvents
+    Language.Marlowe.ACTUS.ContractTerms
+    Language.Marlowe.ACTUS.ActusValidator
+    Language.Marlowe.ACTUS.ContractState
+    Language.Marlowe.ACTUS.Control
+    Language.Marlowe.ACTUS.ControlLp
+    Language.Marlowe.ACTUS.ProjectedCashFlows
+    Language.Marlowe.ACTUS.Schedule
+    Language.Marlowe.ACTUS.POF.PayoffSpec
+    Language.Marlowe.ACTUS.POF.Payoff
+    Language.Marlowe.ACTUS.POF.PayoffLp
+    Language.Marlowe.ACTUS.STF.StateTransitionSpec
+    Language.Marlowe.ACTUS.STF.StateTransition
+    Language.Marlowe.ACTUS.STF.StateTransitionLp
+    Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
+    Language.Marlowe.ACTUS.SCHED.ContractSchedule
+    Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+    Language.Marlowe.ACTUS.INIT.StateInitialization
+    Language.Marlowe.ACTUS.Utility.DateShift
+    Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+    Language.Marlowe.ACTUS.Utility.YearFraction
+    Language.Marlowe.ACTUS.Utility.Annuity
+    Language.Marlowe.ACTUS.Utility.ContractRoleSign
   other-modules:
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
@@ -65,11 +86,6 @@ library
     -Wredundant-constraints -Widentities
     -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
 
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin -any
-
-  if flag(defer-plugin-errors)
-    ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
   build-tool-depends: unlit:unlit -any
 
 test-suite marlowe-test
@@ -79,8 +95,7 @@ test-suite marlowe-test
     main-is: Spec.hs
     other-modules:
       -- Spec.Common
-        Spec.Marlowe.Common
-        Spec.Marlowe.Marlowe
+        Spec.Marlowe.Actus
       -- Spec.Actus
     build-depends:
         aeson -any,
