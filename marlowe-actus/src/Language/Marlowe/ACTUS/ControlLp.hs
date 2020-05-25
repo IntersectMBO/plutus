@@ -16,10 +16,10 @@ import           Data.String                    ( IsString(fromString) )
 import           Language.Marlowe
 
 expectedPayoffAt :: Integer -> ValueId
-expectedPayoffAt t = ValueId $ fromString $ "expected-payoff_" ++ (show t)
+expectedPayoffAt t = ValueId $ fromString $ "expected-payoff_" ++ show t
 
 payoffAt :: Integer -> ValueId
-payoffAt t = ValueId (fromString $ "payoff_" ++ (show t))
+payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
 
 lpValidator :: Integer -> Contract -> Contract
 lpValidator t continue =

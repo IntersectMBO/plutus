@@ -48,7 +48,7 @@ contractTerms = PamContractTerms {
         , _PREF = PREF_Y -- allow PP
         , _PRF = CS_PF
         , scfg = ScheduleConfig {
-            calendar = (\_ -> True)
+            calendar = const True
             , includeEndDay = False
             , eomc = EOMC_EOM
             , bdc = BDC_NULL
@@ -91,7 +91,7 @@ contractTerms = PamContractTerms {
     }
 
 cashFlowFixture :: Integer -> Day -> ScheduledEvent -> Double -> CashFlow
-cashFlowFixture t date event amount = CashFlow {
+cashFlowFixture t date event amnt = CashFlow {
     tick = t,
     cashContractId = "0",
     cashParty = "party",
@@ -99,7 +99,7 @@ cashFlowFixture t date event amount = CashFlow {
     cashPaymentDay = date,
     cashCalculationDay = date,
     cashEvent = event,
-    amount = amount,
+    amount = amnt,
     currency = "ada"
 }
 
@@ -125,11 +125,11 @@ pamSimple = do
     let contract = genContract
     let initState = emptyState 0
     let inputs = 
-            (let 
-                mkChoice role choice value = 
-                    IChoice (ChoiceId (fromString choice) (Role $ TokenName $ fromString role)) value
-                mkDeposit role value = 
-                    (IDeposit (AccountId 0 (Role $ TokenName $ fromString role)) (Role $ TokenName $ fromString role) ada value)
+            let 
+                mkChoice role choice = 
+                    IChoice $ ChoiceId (fromString choice) (Role $ TokenName $ fromString role)
+                mkDeposit role = 
+                    IDeposit (AccountId 0 $ Role $ TokenName $ fromString role) (Role $ TokenName $ fromString role) ada
                 chooseContractId = mkChoice "party" "contractId" 10
                 chooseEventType = mkChoice "party" "eventType" (eventTypeToEventTypeId AD)
                 chooseRiskFactor1 = mkChoice "oracle" "riskFactor-o_rf_CURS" 0
@@ -140,7 +140,7 @@ pamSimple = do
                 choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
                 doDeposit = mkDeposit "party" 0
             in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
-                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, doDeposit])
+                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, doDeposit]
         --
     let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
     let txOutput = computeTransactionWithLoopSupport txInput initState contract

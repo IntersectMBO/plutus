@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 {- This module contains cashflows that would happen without unscheduled events and risk factors -}
 
 module Language.Marlowe.ACTUS.ProjectedCashFlows where
@@ -22,7 +20,7 @@ genProjectedCashflows terms =
         eventTypes   = [IED, MD]
         analysisDate = fromGregorian 2008 10 22
 
-        projectPreserveDate e d = ((projectEvent e), d)
+        projectPreserveDate e d = (projectEvent e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
         scheduleEvent e = (projectPreserveDate e) <$> (getSchedule e)
         events = concatMap scheduleEvent eventTypes
@@ -40,7 +38,7 @@ genProjectedCashflows terms =
         states  = L.tail $ L.scanl applyStateTransition initialState events
         payoffs = calculatePayoff <$> states
 
-        genCashflow ((_, ev, d), payoff) = CashFlow
+        genCashflow ((_, ev, d), pff) = CashFlow
             { tick               = 0
             , cashContractId     = "0"
             , cashParty          = "party"
@@ -48,7 +46,7 @@ genProjectedCashflows terms =
             , cashPaymentDay     = paymentDay d
             , cashCalculationDay = calculationDay d
             , cashEvent          = ev
-            , amount             = payoff
+            , amount             = pff
             , currency           = "ada"
             }
     in

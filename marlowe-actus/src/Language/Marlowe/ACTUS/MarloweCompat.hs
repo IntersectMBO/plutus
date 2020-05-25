@@ -9,21 +9,20 @@ import           Language.Marlowe.ACTUS.ContractState
 import           Data.String                    ( IsString(fromString) )
 import qualified Data.List                     as L
 
-type EventHandler = EventType -> (Value Observation)
+type EventHandler = EventType -> Value Observation
 
 type EventHandlerSTF = EventType -> ContractStateMarlowe -> ContractStateMarlowe
 
 type ContractStateMarlowe
     = ContractStatePoly (Value Observation) (Value Observation)
 
-useval :: String -> Integer -> (Value Observation)
-useval name t = (UseValue (ValueId (fromString $ name ++ "_" ++ (show t))))
+useval :: String -> Integer -> Value Observation
+useval name t = UseValue $ ValueId $ fromString $ name ++ "_" ++ show t
 
-letval :: String -> Integer -> (Value Observation) -> Contract -> Contract
-letval name t val cont =
-    (Let (ValueId (fromString $ name ++ "_" ++ (show t))) val cont)
+letval :: String -> Integer -> Value Observation -> Contract -> Contract
+letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
-constnt :: Double -> (Value Observation)
+constnt :: Double -> Value Observation
 constnt v = Constant $ round $ v * marloweFixedPoint
 
 constntMaybe :: Maybe Double -> Maybe (Value Observation)
@@ -33,29 +32,29 @@ enum :: forall a . a -> a
 enum = id
 
 dispatchEvent
-    :: Integer -> (Value Observation) -> EventHandler -> (Value Observation)
+    :: Integer -> Value Observation -> EventHandler -> Value Observation
 dispatchEvent t defaultValue handler =
     let
         eventId ev = Constant $ eventTypeToEventTypeId ev
         eventIdInput = useval "eventType_" t
         cond cont ev =
-            (Cond (ValueEQ (eventId ev) eventIdInput) (handler ev) cont)
+            Cond (ValueEQ (eventId ev) eventIdInput) (handler ev) cont
     in
         L.foldl cond defaultValue [AD, IED, MD]
 
 dispatchStateTransition :: Integer -> Contract -> EventHandlerSTF -> Contract
 dispatchStateTransition t continue handler =
-    let inputState = ContractStatePoly { tmd   = (useval "tmd" (t - 1))
-                                       , nt    = (useval "nt" (t - 1))
-                                       , ipnr  = (useval "ipnr" (t - 1))
-                                       , ipac  = (useval "ipac" (t - 1))
-                                       , feac  = (useval "feac" (t - 1))
-                                       , fac   = (useval "fac" (t - 1))
-                                       , nsc   = (useval "nsc" (t - 1))
-                                       , isc   = (useval "isc" (t - 1))
-                                       , sd    = (useval "sd" (t - 1))
-                                       , prnxt = (useval "prnxt" (t - 1))
-                                       , ipcb  = (useval "ipcb" (t - 1))
+    let inputState = ContractStatePoly { tmd   = useval "tmd" $  t - 1
+                                       , nt    = useval "nt" $  t - 1
+                                       , ipnr  = useval "ipnr" $  t - 1
+                                       , ipac  = useval "ipac" $  t - 1
+                                       , feac  = useval "feac" $  t - 1
+                                       , fac   = useval "fac" $  t - 1
+                                       , nsc   = useval "nsc" $  t - 1
+                                       , isc   = useval "isc" $  t - 1
+                                       , sd    = useval "sd" $  t - 1
+                                       , prnxt = useval "prnxt" $  t - 1
+                                       , ipcb  = useval "ipcb" $  t - 1
                                        , prf   = undefined
                                        }
         handler_tmd ev = tmd $ handler ev inputState

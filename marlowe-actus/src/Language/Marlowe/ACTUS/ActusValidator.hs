@@ -26,7 +26,7 @@ type ValidatedCashFlows = [CashFlow]
 
 checkAllScheduledEventsHappened
     :: Day -> ShiftedSchedule -> ValidatedCashFlows -> Bool
-checkAllScheduledEventsHappened present schedule past = True --todo: minus credit events in past
+checkAllScheduledEventsHappened _ _ _ = True --todo: minus credit events in past
 
 replayValidatedEvents :: ContractTerms -> [CashFlow] -> CashFlow -> Double
 replayValidatedEvents terms past present =
@@ -42,21 +42,22 @@ replayValidatedEvents terms past present =
 validateCashFlow :: ContractTerms -> ValidatedCashFlows -> CashFlow -> Bool
 validateCashFlow terms past present =
     let
-        schedule = fromMaybe
+        sched = fromMaybe
             []
             (genShiftedSchedule (mapEventType (cashEvent present)) terms)
+            
         noUnreportedOverdue = checkAllScheduledEventsHappened
             (cashPaymentDay present)
-            schedule
+            sched
             past
     in
-        case (cashEvent present) of
+        case cashEvent present of
             AD_EVENT {..} -> True
             PP_EVENT {..} -> noUnreportedOverdue -- maybe check that outstanding notional is still positive and compare pp_payoff to amount
             CE_EVENT {..} -> not noUnreportedOverdue
             _ ->
                 let expectedPaymentDayOk =
-                            isPaymentDay (cashPaymentDay present) schedule
+                            isPaymentDay (cashPaymentDay present) sched
                     expectedPayOff = replayValidatedEvents terms past present
                 in  noUnreportedOverdue
                         && expectedPaymentDayOk
