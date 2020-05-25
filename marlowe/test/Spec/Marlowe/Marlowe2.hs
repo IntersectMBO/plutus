@@ -28,14 +28,14 @@ import           Ledger.Ada                 (adaValueOf)
 
 tests :: TestTree
 tests = testGroup "token account"
-    [ checkPredicate @MarloweSchema @ContractError "Create a Marlowe Contract" marloweContract2
+    [ {- checkPredicate @MarloweSchema @ContractError "Create a Marlowe Contract" marloweContract2
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
         -- /\ walletFundsChange w1 (Ada.adaValueOf (-1))
         )
         (  callEndpoint @"create" w1 (defaultMarloweParams, Close)
            >> handleBlockchainEvents w1 )
-    , zeroCouponBondTest
+    ,  -}zeroCouponBondTest
     ]
 
 
@@ -44,8 +44,9 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
     (assertNoFailedTransactions
     /\ emulatorLog (const False) ""
     /\ assertDone w1 (const True) "contract should close"
-    /\ walletFundsChange bob (adaValueOf (-150))
-    /\ walletFundsChange alice (adaValueOf (150))
+    /\ assertDone w2 (const True) "contract should close"
+    -- /\ walletFundsChange bob (adaValueOf (-150))
+    -- /\ walletFundsChange alice (adaValueOf (150))
     ) $ do
     -- Init a contract
     let alicePk = PK $ (pubKeyHash $ walletPubKey alice)

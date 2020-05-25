@@ -13,7 +13,7 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Marlowe"
-    [ testGroup "Contracts" [ Spec.Marlowe.Marlowe.tests, Spec.Marlowe.Marlowe2.tests]
+    [ testGroup "Contracts" [ {- Spec.Marlowe.Marlowe.tests, -} Spec.Marlowe.Marlowe2.tests]
     , testGroup "Static Analysis"
-        [ testProperty "No false positives" Spec.Marlowe.Marlowe.prop_noFalsePositives ]
+        [ {- testProperty "No false positives" Spec.Marlowe.Marlowe.prop_noFalsePositives -} ]
     ]
