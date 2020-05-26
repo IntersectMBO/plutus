@@ -23,10 +23,7 @@ letval :: String -> Integer -> Value Observation -> Contract -> Contract
 letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
 constnt :: Double -> Value Observation
-constnt v = Constant $ round $ v * marloweFixedPoint
-
-constntMaybe :: Maybe Double -> Maybe (Value Observation)
-constntMaybe = fmap (\v' -> Constant $ round $ v' * marloweFixedPoint)
+constnt = Constant . round <$> (marloweFixedPoint *)
 
 enum :: forall a . a -> a
 enum = id
