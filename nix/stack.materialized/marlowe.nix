@@ -69,12 +69,14 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
           (hsPkgs."containers" or (buildDepError "containers"))
           (hsPkgs."deriving-aeson" or (buildDepError "deriving-aeson"))
+          (hsPkgs."lens" or (buildDepError "lens"))
           (hsPkgs."mtl" or (buildDepError "mtl"))
           (hsPkgs."newtype-generics" or (buildDepError "newtype-generics"))
           (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
+          (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
           (hsPkgs."text" or (buildDepError "text"))
           (hsPkgs."vector" or (buildDepError "vector"))
           (hsPkgs."sbv" or (buildDepError "sbv"))
@@ -89,6 +91,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/Marlowe"
           "Language/Marlowe/Semantics"
           "Language/Marlowe/Client"
+          "Language/Marlowe/Client2"
           "Language/Marlowe/Util"
           "Language/Marlowe/Pretty"
           "Language/Marlowe/Analysis/FSSemantics"
@@ -115,6 +118,8 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."cborg" or (buildDepError "cborg"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
+            (hsPkgs."plutus-contract-tasty" or (buildDepError "plutus-contract-tasty"))
             (hsPkgs."marlowe" or (buildDepError "marlowe"))
             (hsPkgs."sbv" or (buildDepError "sbv"))
             (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
@@ -131,6 +136,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             "OldAnalysis/IntegerArray"
             "OldAnalysis/MkSymb"
             "OldAnalysis/Numbering"
+            "Spec/Marlowe/Marlowe2"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

@@ -90,6 +90,7 @@ zeroCouponBondTest = checkPredicate @MarloweSchema @ContractError "ZCB" marloweC
     handleBlockchainEvents bob
     notifySlot alice
     notifySlot bob
+    handleBlockchainEvents bob
 
 
 

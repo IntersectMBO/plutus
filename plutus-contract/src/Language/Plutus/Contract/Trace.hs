@@ -43,6 +43,7 @@ module Language.Plutus.Contract.Trace
     , notifyInterestingAddresses
     , notifySlot
     , payToWallet
+    , handleOwnPubKeyQueries
     -- * Handle blockchain events repeatedly
     , MaxIterations(..)
     , handleBlockchainEvents
