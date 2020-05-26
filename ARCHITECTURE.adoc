@@ -41,8 +41,6 @@ running on. There are two reasons for this:
 
 include::plutus-ledger/ARCHITECTURE.adoc[]
 
-include::plutus-emulator/ARCHITECTURE.adoc[]
-
 == Contract modelling
 
 We want to help people write "contracts". When we say that, we mean both:
@@ -56,8 +54,6 @@ These packages are geared towards providing the tools to do that, and building
 up examples to ensure that we have adequate functionality.
 
 include::plutus-contract/ARCHITECTURE.adoc[]
-
-include::plutus-contract-tasty/ARCHITECTURE.adoc[]
 
 include::plutus-use-cases/ARCHITECTURE.adoc[]
 

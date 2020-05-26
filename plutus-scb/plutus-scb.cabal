@@ -97,7 +97,6 @@ library
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
-        plutus-emulator -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
         plutus-contract -any,
@@ -177,7 +176,6 @@ executable plutus-scb
         plutus-scb -any,
         plutus-ledger -any,
         plutus-contract -any,
-        plutus-emulator -any,
         plutus-use-cases -any,
         prettyprinter >=1.1.0.1,
         purescript-bridge -any,
@@ -227,7 +225,6 @@ test-suite plutus-scb-test
         plutus-scb -any,
         plutus-use-cases -any,
         plutus-ledger -any,
-        plutus-emulator -any,
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,

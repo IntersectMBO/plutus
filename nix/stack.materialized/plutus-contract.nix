@@ -65,7 +65,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."iots-export" or (buildDepError "iots-export"))
           (hsPkgs."aeson" or (buildDepError "aeson"))
@@ -73,6 +72,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."containers" or (buildDepError "containers"))
           (hsPkgs."lens" or (buildDepError "lens"))
           (hsPkgs."text" or (buildDepError "text"))
+          (hsPkgs."hashable" or (buildDepError "hashable"))
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
           (hsPkgs."servant" or (buildDepError "servant"))
           (hsPkgs."servant-server" or (buildDepError "servant-server"))
@@ -81,12 +81,19 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."profunctors" or (buildDepError "profunctors"))
           (hsPkgs."transformers" or (buildDepError "transformers"))
           (hsPkgs."warp" or (buildDepError "warp"))
+          (hsPkgs."newtype-generics" or (buildDepError "newtype-generics"))
+          (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
           (hsPkgs."transformers-base" or (buildDepError "transformers-base"))
           (hsPkgs."monad-control" or (buildDepError "monad-control"))
           (hsPkgs."mmorph" or (buildDepError "mmorph"))
           (hsPkgs."row-types" or (buildDepError "row-types"))
           (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
+          (hsPkgs."semigroups" or (buildDepError "semigroups"))
+          (hsPkgs."cryptonite" or (buildDepError "cryptonite"))
+          ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
+          (hsPkgs."tasty" or (buildDepError "tasty"))
+          (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
           ];
         buildable = true;
         modules = [
@@ -114,7 +121,26 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/Plutus/Contract/Util"
           "Language/Plutus/Contract/Wallet"
           "Language/Plutus/Contract/Typed/Tx"
-          ];
+          "Wallet/Emulator"
+          "Wallet/Emulator/Types"
+          "Wallet/Emulator/Generators"
+          "Wallet/Emulator/Chain"
+          "Wallet/Emulator/ChainIndex"
+          "Wallet/Emulator/Error"
+          "Wallet/Emulator/NodeClient"
+          "Wallet/Emulator/MultiAgent"
+          "Wallet/Emulator/SigningProcess"
+          "Wallet/Emulator/Wallet"
+          "Wallet/Rollup"
+          "Wallet/Rollup/Types"
+          "Wallet/Rollup/Render"
+          "Wallet"
+          "Wallet/API"
+          "Wallet/Effects"
+          "Wallet/Graph"
+          "Control/Monad/Freer/Extras"
+          "Control/Monad/Freer/Log"
+          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "Language/Plutus/Contract/Test";
         hsSourceDirs = [ "src" ];
         };
       tests = {
@@ -141,23 +167,31 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
         "plutus-contract-test" = {
           depends = [
             (hsPkgs."base" or (buildDepError "base"))
+            (hsPkgs."bytestring" or (buildDepError "bytestring"))
             (hsPkgs."containers" or (buildDepError "containers"))
             (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
             (hsPkgs."tasty" or (buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-hedgehog" or (buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (buildDepError "text"))
             (hsPkgs."mtl" or (buildDepError "mtl"))
             (hsPkgs."aeson" or (buildDepError "aeson"))
             (hsPkgs."lens" or (buildDepError "lens"))
             (hsPkgs."transformers" or (buildDepError "transformers"))
             (hsPkgs."extensible-effects" or (buildDepError "extensible-effects"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
-            ];
+            (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
+            (hsPkgs."aeson" or (buildDepError "aeson"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));
           buildable = true;
-          modules = [ "Spec/Rows" "Spec/State" ];
+          modules = [
+            "Spec/Contract"
+            "Spec/Emulator"
+            "Spec/Rows"
+            "Spec/State"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

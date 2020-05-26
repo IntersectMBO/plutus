@@ -75,7 +75,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
           (hsPkgs."playground-common" or (buildDepError "playground-common"))
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
           (hsPkgs."lens" or (buildDepError "lens"))
           (hsPkgs."text" or (buildDepError "text"))
@@ -130,8 +129,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
-            (hsPkgs."plutus-contract-tasty" or (buildDepError "plutus-contract-tasty"))
             (hsPkgs."base" or (buildDepError "base"))
             (hsPkgs."aeson" or (buildDepError "aeson"))
             (hsPkgs."bytestring" or (buildDepError "bytestring"))
@@ -180,7 +177,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."bytestring" or (buildDepError "bytestring"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [ "Scott" "Recursion" "IFix" "Opt" ];

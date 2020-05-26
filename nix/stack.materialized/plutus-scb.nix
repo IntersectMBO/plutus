@@ -65,7 +65,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
           (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
           (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"))
           (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
@@ -188,7 +187,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-scb" or (buildDepError "plutus-scb"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
             (hsPkgs."purescript-bridge" or (buildDepError "purescript-bridge"))
@@ -234,7 +232,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."plutus-scb" or (buildDepError "plutus-scb"))
             (hsPkgs."plutus-use-cases" or (buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-emulator" or (buildDepError "plutus-emulator"))
             (hsPkgs."quickcheck-instances" or (buildDepError "quickcheck-instances"))
             (hsPkgs."servant-client" or (buildDepError "servant-client"))
             (hsPkgs."tasty" or (buildDepError "tasty"))

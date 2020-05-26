@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-module Main(main) where
+module Spec.Emulator(tests) where
 
 
 import           Control.Lens
@@ -57,10 +57,6 @@ import qualified Wallet.Emulator.NodeClient as NC
 import           Wallet.Emulator.Types
 import qualified Wallet.Emulator.Wallet     as Wallet
 import qualified Wallet.Graph
-
-
-main :: IO ()
-main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "all tests" [
