@@ -85,7 +85,7 @@ _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD =
 
 _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD = 
     let maybeS  | isNothing _SCANX && isNothing _SCCL  = Nothing 
-                | isNothing _SCANX                     = Just $ _IED `plusCycle` fromJust _SCCL
+                | isNothing _SCANX                    = Just $ _IED `plusCycle` fromJust _SCCL
                 | otherwise                           = _SCANX
 
         tt      = (\s -> _S s (fromJust _SCCL) _MD scfg) <$> maybeS
