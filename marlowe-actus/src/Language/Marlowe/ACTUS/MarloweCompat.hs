@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards            #-}
 {- This module provides compatibility between Num and MarloweValue -}
 
 module Language.Marlowe.ACTUS.MarloweCompat where
@@ -8,6 +7,7 @@ import           Language.Marlowe.ACTUS.BusinessEvents
 import           Language.Marlowe.ACTUS.ContractState
 import           Data.String                    ( IsString(fromString) )
 import qualified Data.List                     as L
+      
 
 type EventHandler = EventType -> Value Observation
 

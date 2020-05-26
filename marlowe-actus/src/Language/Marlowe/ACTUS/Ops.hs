@@ -19,6 +19,9 @@ class ActusOps a where
 class YearFractionOps a b where
     _y :: DCC -> a -> a -> a -> b
 
+class DateOps a b where
+    _lt :: a -> a -> b --returns pseudo-boolean
+
 class RoleSignOps a where
     _r :: ContractRole -> a
 
@@ -27,6 +30,9 @@ instance ActusOps Double where
     _max  = max
     _zero = 0.0
     _one  = 1.0
+
+instance DateOps Day Double where
+    _lt a b = if a < b then 1.0 else 0.0
 
 instance YearFractionOps Day Double where
     _y = yearFraction
@@ -39,6 +45,9 @@ instance ActusOps (Value Observation) where
     _max a b = Cond (ValueGT a b) a b
     _zero = Constant 0
     _one  = Constant $ round marloweFixedPoint
+
+instance DateOps (Value Observation) (Value Observation) where
+    _lt a b = Cond (ValueLT a b) _one _zero
 
 instance YearFractionOps (Value Observation) (Value Observation) where
     _y _ from to _ = (from - to) / Constant (360 * 24 * 60 * 60)
@@ -56,3 +65,6 @@ dayToSlotNumber d =
 
 slotRangeToDay :: Integer -> Integer -> Day
 slotRangeToDay _ _ = undefined
+
+marloweDate :: Day -> Value Observation
+marloweDate = Constant . fromInteger . dayToSlotNumber

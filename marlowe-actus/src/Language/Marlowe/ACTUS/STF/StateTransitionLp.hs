@@ -28,56 +28,53 @@ stateTransitionLp terms t continue =
                 time       = SlotIntervalStart
                 --todo refactor: factor out date to slot, factor _y and _r back in, introduce _lt _gt type-class
                 fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
-                tfp_minus  = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ sup fpSchedule t0
-                tfp_plus   = constnt $ fromInteger $ dayToSlotNumber $ calculationDay $ inf fpSchedule t0
-                ipanx      = constnt $ fromInteger $ dayToSlotNumber $ fromJust _IPANX
+                tfp_minus  = marloweDate $ calculationDay $ sup fpSchedule t0
+                tfp_plus   = marloweDate $ calculationDay $ inf fpSchedule t0
+                ipanx      = marloweDate <$> _IPANX
 
                 y_sd_t             = _y _DCC (useval "sd" t) time undefined
                 y_tfpminus_t       = _y _DCC tfp_minus time undefined
                 y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus undefined
-                y_ipanx_t          = _y _DCC ipanx time undefined
-                r_CNTRL            = _r _CNTRL
-
-                ipanx_lt_t         = Cond (ValueLT ipanx time) _one _zero
+                y_ipanx_t          = _y _DCC (fromJust ipanx) time undefined
                 
-            in dispatchStateTransition t continue (\ev -> \st -> case ev of 
+            in dispatchStateTransition t continue (\ev st -> case ev of 
                 AD   -> _STF_AD_PAM st time y_sd_t
-                IED  -> _STF_IED_PAM st time y_ipanx_t ipanx_lt_t y_sd_t 
+                IED  -> _STF_IED_PAM st time y_ipanx_t 
                             (constntMaybe _IPNR)
-                            _IPANX 
-                            r_CNTRL 
+                            ipanx 
+                            _CNTRL 
                             (constntMaybe _IPAC) 
                             (constnt _NT)
                 MD   -> _STF_MD_PAM st time
                 PP   -> _STF_PP_PAM st time (useval "pp_payoff" t) y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL
+                            _CNTRL
                 PY   -> _STF_PY_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB)
                             (constnt _FER)
-                            r_CNTRL
+                            _CNTRL
                 FP   -> _STF_FP_PAM st time y_sd_t
                 PRD  -> _STF_PRD_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL 
+                            _CNTRL 
                 TD   -> _STF_IP_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL 
+                            _CNTRL 
                 IP   -> _STF_IPCI_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL
+                            _CNTRL
                 IPCI -> _STF_IPCI_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL
+                            _CNTRL
                 RR   -> _STF_RR_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER) 
-                            r_CNTRL 
+                            _CNTRL 
                             (constnt _RRLF) 
                             (constnt _RRLC) 
                             (constnt _RRPC) 
@@ -88,12 +85,12 @@ stateTransitionLp terms t continue =
                 RRF  -> _STF_RRF_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER)
-                            r_CNTRL 
+                            _CNTRL 
                             (constntMaybe _RRNXT)
                 SC   -> _STF_SC_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus 
                             (enum _FEB) 
                             (constnt _FER)
-                            r_CNTRL 
+                            _CNTRL 
                             _SCEF 
                             (useval "o_rf_SCMO" t) 
                             (constnt _SCIED)
