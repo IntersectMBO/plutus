@@ -23,8 +23,8 @@ payoff ev terms ContractStatePoly {..} t = case terms of
                 PY_EVENT {..}  -> _POF_PY_PAM _PYTP o_rf_CURS o_rf_RRMO _PYRT _cPYRT _CNTRL nt ipnr y_sd_t
                 FP_EVENT {..}  -> _POF_FP_PAM _FEB _FER o_rf_CURS _CNTRL nt fac y_sd_t
                 PRD_EVENT {..} -> _POF_PRD_PAM o_rf_CURS _CNTRL _PPRD ipac ipnr nt y_sd_t
-                TD_EVENT {..} -> _POF_TD_PAM o_rf_CURS _CNTRL _PTD ipac ipnr nt y_sd_t
-                IP_EVENT {..} -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
+                TD_EVENT {..}  -> _POF_TD_PAM o_rf_CURS _CNTRL _PTD ipac ipnr nt y_sd_t
+                IP_EVENT {..}  -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
                 _             -> 0.0
     LamContractTerms {..} -> undefined
 
