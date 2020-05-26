@@ -19,19 +19,19 @@ shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractState
-stateTransition ev terms st@ContractStatePoly{..} t = 
-    case terms of
-        PamContractTerms{..} -> 
-            let 
-                t0                 = _SD
-                fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
-                tfp_minus          = calculationDay $ sup fpSchedule t0
-                tfp_plus           = calculationDay $ inf fpSchedule t0
-                y_sd_t             = _y _DCC sd t _MD
-                y_tfpminus_t       = _y _DCC tfp_minus t _MD
-                y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus _MD
-                y_ipanx_t          = _y _DCC (fromJust _IPANX) t _MD
-            in case ev of 
+stateTransition ev terms@ContractTerms{..} st@ContractStatePoly{..} t = 
+    let 
+        t0                 = _SD
+        fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
+        tfp_minus          = calculationDay $ sup fpSchedule t0
+        tfp_plus           = calculationDay $ inf fpSchedule t0
+        y_sd_t             = _y _DCC sd t _MD
+        y_tfpminus_t       = _y _DCC tfp_minus t _MD
+        y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus _MD
+        y_ipanx_t          = _y _DCC (fromJust _IPANX) t _MD
+    in case contractType of
+        PAM -> 
+            case ev of 
                 AD_EVENT{..}   -> _STF_AD_PAM st t y_sd_t
                 IED_EVENT{..}  -> _STF_IED_PAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT
                 MD_EVENT{..}   -> _STF_MD_PAM st t
@@ -47,7 +47,7 @@ stateTransition ev terms st@ContractStatePoly{..} t =
                 SC_EVENT{..}   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED
                 CE_EVENT{..}   -> _STF_CE_PAM st t y_sd_t
                 _             -> st
-        LamContractTerms{..} -> undefined
+        LAM -> undefined
 
 
      

@@ -20,43 +20,43 @@ shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
 stateTransitionLp :: ContractTerms -> Integer -> Contract -> Contract
-stateTransitionLp terms t continue = 
-    case terms of
-        PamContractTerms{..} -> 
-            let 
-                __IPANX = marloweDate <$> _IPANX
-                __IPNR  = constnt <$> _IPNR
-                __IPAC  = constnt <$> _IPAC
-                __NT    = constnt _NT
-                __FEB   = enum _FEB
-                __FER   = constnt _FER
-                (__RRLF, __RRLC, __RRPC, __RRPF, __RRMLT, __RRSP) =
-                        ( constnt _RRLF
-                        , constnt _RRLC
-                        , constnt _RRPC
-                        , constnt _RRPF
-                        , constnt _RRMLT
-                        , constnt _RRSP
-                        )
-                __RRNXT            = constnt <$> _RRNXT
-                __SCIED            = constnt _SCIED
-                __o_rf_RRMO        = useval "o_rf_RRMO" t
-                __o_rf_SCMO        = useval "o_rf_SCMO" t
-                __pp_payoff        = useval "pp_payoff" t
+stateTransitionLp terms@ContractTerms{..} t continue = 
+    let 
+        __IPANX = marloweDate <$> _IPANX
+        __IPNR  = constnt <$> _IPNR
+        __IPAC  = constnt <$> _IPAC
+        __NT    = constnt _NT
+        __FEB   = enum _FEB
+        __FER   = constnt _FER
+        (__RRLF, __RRLC, __RRPC, __RRPF, __RRMLT, __RRSP) =
+                ( constnt _RRLF
+                , constnt _RRLC
+                , constnt _RRPC
+                , constnt _RRPF
+                , constnt _RRMLT
+                , constnt _RRSP
+                )
+        __RRNXT            = constnt <$> _RRNXT
+        __SCIED            = constnt _SCIED
+        __o_rf_RRMO        = useval "o_rf_RRMO" t
+        __o_rf_SCMO        = useval "o_rf_SCMO" t
+        __pp_payoff        = useval "pp_payoff" t
 
-                -- dates:
-                t0                 = _SD
-                time               = SlotIntervalStart
-                fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
-                tfp_minus = marloweDate $ calculationDay $ sup fpSchedule t0
-                tfp_plus = marloweDate $ calculationDay $ inf fpSchedule t0
+        -- dates:
+        t0                 = _SD
+        time               = SlotIntervalStart
+        fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
+        tfp_minus = marloweDate $ calculationDay $ sup fpSchedule t0
+        tfp_plus = marloweDate $ calculationDay $ inf fpSchedule t0
 
-                y_sd_t             = _y _DCC (useval "sd" t) time undefined
-                y_tfpminus_t       = _y _DCC tfp_minus time undefined
-                y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus undefined
-                y_ipanx_t          = _y _DCC (fromJust __IPANX) time undefined
+        y_sd_t             = _y _DCC (useval "sd" t) time undefined
+        y_tfpminus_t       = _y _DCC tfp_minus time undefined
+        y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus undefined
+        y_ipanx_t          = _y _DCC (fromJust __IPANX) time undefined
                         
-            in dispatchStateTransition t continue $ \ev st -> case ev of 
+    in case contractType of
+        PAM -> 
+            dispatchStateTransition t continue $ \ev st -> case ev of 
                 AD   -> _STF_AD_PAM st time y_sd_t
                 IED  -> _STF_IED_PAM st time y_ipanx_t __IPNR __IPANX _CNTRL __IPAC __NT
                 MD   -> _STF_MD_PAM st time
@@ -72,7 +72,7 @@ stateTransitionLp terms t continue =
                 SC   -> _STF_SC_PAM st time y_sd_t y_tfpminus_t y_tfpminus_tfpplus __FEB __FER _CNTRL _SCEF __o_rf_SCMO __SCIED
                 CE   -> _STF_CE_PAM st time y_sd_t
                 _    -> st
-        LamContractTerms{..} -> undefined
+        LAM -> undefined
 
 
      

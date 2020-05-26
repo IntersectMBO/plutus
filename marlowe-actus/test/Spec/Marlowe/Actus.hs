@@ -32,8 +32,9 @@ ada :: Token
 ada = Token adaSymbol adaToken
 
 contractTerms :: ContractTerms
-contractTerms = PamContractTerms {
+contractTerms = ContractTerms {
           contractId = "0"
+        , contractType = PAM
         , _IED = fromGregorian 2008 10 20 -- Initial Exchange Date
         , _SD = fromGregorian 2008 10 22 -- start date
         , _MD = fromGregorian 2009 10 22 -- maturity date

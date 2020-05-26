@@ -8,8 +8,8 @@ import           Language.Marlowe.ACTUS.Schedule
 import           Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]
-schedule ev terms = case terms of
-    PamContractTerms {..} -> case ev of
+schedule ev ContractTerms {..} = case contractType of
+    PAM -> case ev of
         IED  -> _SCHED_IED_PAM scfg _IED
         MD   -> _SCHED_MD_PAM scfg _MD
         PP   -> _SCHED_PP_PAM scfg _PREF _OPCL _IED _OPANX _MD
@@ -23,4 +23,4 @@ schedule ev terms = case terms of
         RRF  -> _SCHED_RRF_PAM scfg _IED _RRANX _RRCL _MD
         SC   -> _SCHED_SC_PAM scfg _IED _SCEF _SCANX _SCCL _MD
         _    -> Nothing
-    LamContractTerms {..} -> undefined
+    LAM -> undefined

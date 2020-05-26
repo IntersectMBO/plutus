@@ -11,11 +11,11 @@ import           Language.Marlowe.ACTUS.Ops
 
 
 payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> Double
-payoff ev terms ContractStatePoly {..} t = case terms of
-    PamContractTerms {..} ->
-        let
-            y_sd_t  = _y _DCC sd t _MD
-        in
+payoff ev ContractTerms{..} ContractStatePoly {..} t = 
+    let
+        y_sd_t = _y _DCC sd t _MD
+    in case contractType of
+        PAM ->
             case ev of
                 IED_EVENT {..} -> _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED
                 MD_EVENT {..}  -> _POF_MD_PAM o_rf_CURS nsc nt isc ipac feac
@@ -26,6 +26,6 @@ payoff ev terms ContractStatePoly {..} t = case terms of
                 TD_EVENT {..}  -> _POF_TD_PAM o_rf_CURS _CNTRL _PTD ipac ipnr nt y_sd_t
                 IP_EVENT {..}  -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
                 _             -> 0.0
-    LamContractTerms {..} -> undefined
+        LAM -> undefined
 
 
