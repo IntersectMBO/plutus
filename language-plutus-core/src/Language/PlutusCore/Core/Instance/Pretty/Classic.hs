@@ -20,13 +20,13 @@ import           Language.PlutusCore.Universe
 import           Data.Functor.Foldable
 import           Data.Text.Prettyprint.Doc.Custom
 
-instance PrettyM (PrettyConfigClassic configName) (Kind a) where
+instance PrettyBy (PrettyConfigClassic configName) (Kind a) where
     prettyBy _ = cata a where
         a TypeF{}             = "(type)"
         a (KindArrowF _ k k') = parens ("fun" <+> k <+> k')
 
 instance (PrettyClassicBy configName (tyname a), GShow uni) =>
-        PrettyM (PrettyConfigClassic configName) (Type tyname uni a) where
+        PrettyBy (PrettyConfigClassic configName) (Type tyname uni a) where
     prettyBy config = cata a where
         a (TyAppF _ t t')     = brackets (t <+> t')
         a (TyVarF _ n)        = prettyName n
@@ -42,7 +42,7 @@ instance
         ( PrettyClassicBy configName (tyname a)
         , PrettyClassicBy configName (name a)
         , GShow uni, Closed uni, uni `Everywhere` Pretty
-        ) => PrettyM (PrettyConfigClassic configName) (Term tyname name uni a) where
+        ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni a) where
     prettyBy config = cata a where
         a (ConstantF _ b)      = parens' ("con" </> pretty b)
         a (BuiltinF _ bi)      = parens' ("builtin" </> pretty bi)
@@ -60,6 +60,6 @@ instance
         prettyName = prettyBy config
 
 instance PrettyClassicBy configName (Term tyname name uni a) =>
-        PrettyM (PrettyConfigClassic configName) (Program tyname name uni a) where
+        PrettyBy (PrettyConfigClassic configName) (Program tyname name uni a) where
     prettyBy config (Program _ version term) =
         parens' $ "program" <+> pretty version <//> prettyBy config term

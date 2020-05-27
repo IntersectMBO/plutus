@@ -13,10 +13,11 @@ module Text.PrettyBy.Fixity
     , module Text.PrettyBy.Fixity
     ) where
 
-import           Text.Fixity                 as Export
+import           Text.Fixity                  as Export
 import           Text.Pretty
-import           Text.PrettyBy.Internal.Core
-import           Text.PrettyBy.Monad
+import           Text.PrettyBy.Internal
+import           Text.PrettyBy.Internal.Utils
+import           Text.PrettyBy.Monad          as Export
 
 import           Control.Monad.Reader
 import           Data.String

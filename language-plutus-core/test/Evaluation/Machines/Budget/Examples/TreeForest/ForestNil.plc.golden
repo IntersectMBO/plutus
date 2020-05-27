@@ -1,4 +1,4 @@
-((Left An error has occurred:  User error:
+( (Left An error has occurred:  User error:
 The limit ({ cpu: 1000
 | mem: 1000
 }) was reached by the execution environment. Final state: ({ cpu: 0
@@ -11,4 +11,4 @@ Caused by: (/\(a :: *) -> iwrap (\(rec :: ((* -> (* -> * -> *) -> *) -> *) -> *)
 | budget: ({ cpu: 0
 | mem: 1067
 })
-}))
+}) )

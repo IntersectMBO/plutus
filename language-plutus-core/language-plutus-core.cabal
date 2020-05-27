@@ -171,6 +171,7 @@ library
         monoidal-containers,
         mtl -any,
         prettyprinter >=1.1.0.1,
+        prettyprinter-configurable -any,
         recursion-schemes -any,
         safe-exceptions -any,
         semigroups -any,

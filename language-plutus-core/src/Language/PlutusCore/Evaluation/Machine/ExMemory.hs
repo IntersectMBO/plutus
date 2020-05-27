@@ -52,14 +52,18 @@ type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 -- | Counts size in machine words (64bit for the near future)
 newtype ExMemory = ExMemory Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyM config, NFData)
+  deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
+-- You have to use a standalone declaration for deriving a 'PrettyBy' instance.
+-- Yes, I also hate that.
+deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExMemory
 
 -- | Counts CPU units - no fixed base, proportional.
 newtype ExCPU = ExCPU Integer
   deriving (Eq, Ord, Show)
-  deriving newtype (Num, PrettyM config, NFData)
+  deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
+deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExCPU
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

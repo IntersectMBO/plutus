@@ -9,8 +9,8 @@ import           Test.Tasty
 
 main :: IO ()
 main = defaultMain $ testGroup "all"
-    -- [ test_default
-    -- , test_nonDefault
-    -- , test_universal
-    [ test_expr
+    [ test_default
+    , test_nonDefault
+    , test_universal
+    , test_expr
     ]

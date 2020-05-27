@@ -1,5 +1,14 @@
 module Text.PrettyBy
-    ( module Export
+    ( PrettyBy (..)
+    , IgnorePrettyConfig (..)
+    , AttachPrettyConfig (..)
+    , UniversallyPretty (..)
+    , withAttachPrettyConfig
+    , defaultPrettyFunctorBy
+    , defaultPrettyBifunctorBy
+    , NonDefaultPrettyBy (..)
+    , HasPrettyDefaults
+    , PrettyDefaultBy
     ) where
 
-import           Text.PrettyBy.Internal.Core as Export
+import           Text.PrettyBy.Internal

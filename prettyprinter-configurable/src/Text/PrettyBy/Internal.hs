@@ -1,9 +1,10 @@
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DefaultSignatures          #-}
+{-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
@@ -13,37 +14,41 @@
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
-module Text.PrettyBy.Internal.Core
+module Text.PrettyBy.Internal
     ( PrettyBy (..)
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
+    , UniversallyPretty (..)
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
-    , UniversallyPretty (..)
+    , AttachDefaultPrettyConfig (..)
     , DefaultPrettyBy (..)
     , NonDefaultPrettyBy (..)
     , HasPrettyDefaults
+    , DispatchPrettyDefaultBy (..)
+    , PrettyDefaultBy
     , DefaultlyPretty (..)
     ) where
 
 import           Text.Pretty
 
 import           Data.Bifunctor
-import           Data.Functor.Const
 import           Data.Coerce
+import           Data.Functor.Const
 import           Data.Functor.Identity
 import           Data.Int
-import           Data.List.NonEmpty (NonEmpty (..))
+import           Data.List.NonEmpty    (NonEmpty (..))
 import           Data.Maybe
-import           Data.Proxy
-import qualified Data.Text                          as Strict
-import qualified Data.Text.Lazy                     as Lazy
+import qualified Data.Text             as Strict
+import qualified Data.Text.Lazy        as Lazy
 import           Data.Void
 import           Data.Word
 import           GHC.Natural
+import           GHC.TypeLits
 
 -- **********
 -- ** Core **
@@ -78,6 +83,27 @@ withAttachPrettyConfig
     :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
 withAttachPrettyConfig config k = k $ AttachPrettyConfig config
 
+-- Fix the docs.
+-- -- | This class is used in order to provide default implementations of 'PrettyM' for
+-- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
+-- -- we can define a single 'DefaultPrettyM' instance and then derive @PrettyM Config a@ for each
+-- -- @a@ provided the @a@ implements the @PrettyM Subconfig1@, @PrettyM Subconfig2@, etc instances.
+-- --
+-- -- Example:
+-- --
+-- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
+-- -- >
+-- -- > instance (PrettyM Subconfig1 a, PrettyM Subconfig2 a) => DefaultPrettyM Config a where
+-- -- >     defaultPrettyM (Subconfig1 subconfig1) = prettyBy subconfig1
+-- -- >     defaultPrettyM (Subconfig2 subconfig2) = prettyBy subconfig2
+-- --
+-- -- Now having in scope  @PrettyM Subconfig1 A@ and @PrettyM Subconfig2 A@
+-- -- and the same instances for @B@ we can write
+-- --
+-- -- > instance PrettyM Config A
+-- -- > instance PrettyM Config B
+-- --
+-- -- and the instances will be derived for us.
 newtype UniversallyPretty a = UniversallyPretty
     { unUniversallyPretty :: a
     }
@@ -114,7 +140,7 @@ class DefaultPrettyBy config a where
     default defaultPrettyListBy :: config -> [a] -> Doc ann
     defaultPrettyListBy config = pretty . map (AttachDefaultPrettyConfig config)
 
-instance PrettyDefaultsBy config Strict.Text => DefaultPrettyBy config Char where
+instance PrettyBy config Strict.Text => DefaultPrettyBy config Char where
     defaultPrettyListBy config = prettyBy config . Strict.pack
 
 instance PrettyBy config a => DefaultPrettyBy config (Maybe a) where
@@ -158,9 +184,10 @@ instance (PrettyBy config a, PrettyBy config b, PrettyBy config c) =>
     defaultPrettyBy config (x, y, z) =
         withAttachPrettyConfig config $ \attach -> pretty (attach x, attach y, attach z)
 
+-- Non-polykinded, because @Pretty (Const a b)@ is not poly-kinded either.
 instance PrettyBy config a => DefaultPrettyBy config (Const a b) where
     defaultPrettyBy config a =
-        withAttachPrettyConfig config $ \attach -> pretty $ first attach a
+       withAttachPrettyConfig config $ \attach -> pretty $ first attach a
 
 -- The 'NonDefaultPrettyBy' class and its none instances.
 
@@ -179,32 +206,83 @@ type family HasPrettyDefaults config :: Bool
 
 type instance HasPrettyDefaults () = 'True
 
-class HasPrettyDefaults config ~ b => DispatchDefaultPrettyBy (b :: Bool) config a where
-    dispatchDefaultPrettyBy     :: proxy b -> config -> a   -> Doc ann
-    dispatchDefaultPrettyListBy :: proxy b -> config -> [a] -> Doc ann
+class HasPrettyDefaults config ~ b => DispatchPrettyDefaultBy (b :: Bool) config a where
+    dispatchPrettyDefaultBy     :: config -> a   -> Doc ann
+    dispatchPrettyDefaultListBy :: config -> [a] -> Doc ann
 
 instance (HasPrettyDefaults config ~ 'True, DefaultPrettyBy config a) =>
-            DispatchDefaultPrettyBy 'True config a where
-    dispatchDefaultPrettyBy     _ = defaultPrettyBy
-    dispatchDefaultPrettyListBy _ = defaultPrettyListBy
+            DispatchPrettyDefaultBy 'True config a where
+    dispatchPrettyDefaultBy     = defaultPrettyBy
+    dispatchPrettyDefaultListBy = defaultPrettyListBy
 
 instance (HasPrettyDefaults config ~ 'False, NonDefaultPrettyBy config a) =>
-            DispatchDefaultPrettyBy 'False config a where
-    dispatchDefaultPrettyBy     _ = nonDefaultPrettyBy
-    dispatchDefaultPrettyListBy _ = nonDefaultPrettyListBy
+            DispatchPrettyDefaultBy 'False config a where
+    dispatchPrettyDefaultBy     = nonDefaultPrettyBy
+    dispatchPrettyDefaultListBy = nonDefaultPrettyListBy
 
-type PrettyDefaultsBy config = DispatchDefaultPrettyBy (HasPrettyDefaults config) config
+{- Note [Definition of PrettyDefaultBy]
+A class alias throws "this makes type inference for inner bindings fragile" warnings
+in user code, so we opt for a type alias in the definition of 'PrettyDefaultBy'.
+
+I also tried the following representation
+
+    class PrettyDefaultBy config a where
+        type HasPrettyDefaults config :: Bool
+        prettyDefaultsBy :: config -> a -> Doc ann
+        prettyDefaultsListBy :: config -> [a] -> Doc ann
+
+with both the methods having default implementations in terms of methods of the
+'DispatchPrettyDefaultBy' class, so that 'PrettyDefaultBy' does not unwind to a creepy
+type in errors, but then the user has to write things like
+
+    instance DefaultPrettyBy () a => PrettyDefaultBy () a where
+        type HasPrettyDefaults () = 'True
+
+which is wordy and leaks 'DefaultPrettyBy' to the user, which is something that the user
+does not see otherwise.
+
+Instead, we fix the problem of 'PrettyDefaultBy' unwinding to a creepy type by using a custom
+type error, 'HasPrettyDefaultsStuckError', which is thrown whenever @HasPrettyDefaults config@
+is stuck. This way the user's code either type checks or gives a nice error and so the whole
+'DispatchPrettyDefaultBy' thing does not leak to the user.
+
+See https://kcsongor.github.io/report-stuck-families for how detection of a stuck type family
+application is implemented.
+-}
+
+type family ThrowOnStuck err (b :: Bool) :: Bool where
+    ThrowOnStuck _   'True  = 'True
+    ThrowOnStuck _   'False = 'False
+    ThrowOnStuck err _      = err
+
+-- We have to use a type family here rather than a type alias, because otherwise it evaluates too early.
+type family HasPrettyDefaultsStuckError config :: Bool where
+    HasPrettyDefaultsStuckError config = TypeError
+        (     'Text "No ’HasPrettyDefaults’ is specified for " ':<>: 'ShowType config
+        ':$$: 'Text "Either you're trying to derive an instance, in which case you have to use"
+        ':$$: 'Text "  standalone deriving and need to explicitly put a ‘PrettyDefaultBy config’"
+        ':$$: 'Text "  constraint in the instance context for each type in your data type"
+        ':$$: 'Text "  that supports default pretty-printing"
+        ':$$: 'Text "Or you're trying to pretty-print a value of a type supporting default"
+        ':$$: 'Text "  pretty-printing using a config, for which ‘HasPrettyDefaults’ is not specified"
+        )
+
+type NonStuckHasPrettyDefaults config =
+    ThrowOnStuck (HasPrettyDefaultsStuckError config) (HasPrettyDefaults config)
+
+-- See Note [Definition of PrettyDefaultBy].
+type PrettyDefaultBy config = DispatchPrettyDefaultBy (NonStuckHasPrettyDefaults config) config
 
 newtype DefaultlyPretty a = DefaultlyPretty
     { unDefaultlyPretty :: a
     }
 
-coerceDispatcher :: Coercible a b => (config -> a -> Doc ann) -> config -> b -> Doc ann
-coerceDispatcher = coerce
+coerceDispatchPrettyDefaults :: Coercible a b => (config -> a -> Doc ann) -> config -> b -> Doc ann
+coerceDispatchPrettyDefaults = coerce
 
-instance PrettyDefaultsBy config a => PrettyBy config (DefaultlyPretty a) where
-    prettyBy     = coerceDispatcher @a   $ dispatchDefaultPrettyBy     Proxy
-    prettyListBy = coerceDispatcher @[a] $ dispatchDefaultPrettyListBy Proxy
+instance PrettyDefaultBy config a => PrettyBy config (DefaultlyPretty a) where
+    prettyBy     = coerceDispatchPrettyDefaults @a   dispatchPrettyDefaultBy
+    prettyListBy = coerceDispatchPrettyDefaults @[a] dispatchPrettyDefaultListBy
 
 -- 'PrettyBy' instances for types supporting default pretty-printing.
 
@@ -212,7 +290,7 @@ instance PrettyDefaultsBy config a => PrettyBy config (DefaultlyPretty a) where
 -- >>> prettyBy () ([] :: [Void])
 -- []
 deriving via DefaultlyPretty Void
-    instance PrettyDefaultsBy config Void => PrettyBy config Void
+    instance PrettyDefaultBy config Void => PrettyBy config Void
 
 -- |
 -- >>> prettyBy () ()
@@ -223,73 +301,73 @@ deriving via DefaultlyPretty Void
 -- >>> prettyBy () (error "Strict?" :: ())
 -- ()
 deriving via DefaultlyPretty ()
-    instance PrettyDefaultsBy config () => PrettyBy config ()
+    instance PrettyDefaultBy config () => PrettyBy config ()
 
 -- |
 -- >>> prettyBy () True
 -- True
 deriving via DefaultlyPretty Bool
-    instance PrettyDefaultsBy config Bool => PrettyBy config Bool
+    instance PrettyDefaultBy config Bool => PrettyBy config Bool
 
 deriving via DefaultlyPretty Natural
-    instance PrettyDefaultsBy config Natural => PrettyBy config Natural
+    instance PrettyDefaultBy config Natural => PrettyBy config Natural
 deriving via DefaultlyPretty Integer
-    instance PrettyDefaultsBy config Integer => PrettyBy config Integer
+    instance PrettyDefaultBy config Integer => PrettyBy config Integer
 deriving via DefaultlyPretty Int
-    instance PrettyDefaultsBy config Int => PrettyBy config Int
+    instance PrettyDefaultBy config Int => PrettyBy config Int
 deriving via DefaultlyPretty Int8
-    instance PrettyDefaultsBy config Int8 => PrettyBy config Int8
+    instance PrettyDefaultBy config Int8 => PrettyBy config Int8
 deriving via DefaultlyPretty Int16
-    instance PrettyDefaultsBy config Int16 => PrettyBy config Int16
+    instance PrettyDefaultBy config Int16 => PrettyBy config Int16
 deriving via DefaultlyPretty Int32
-    instance PrettyDefaultsBy config Int32 => PrettyBy config Int32
+    instance PrettyDefaultBy config Int32 => PrettyBy config Int32
 deriving via DefaultlyPretty Int64
-    instance PrettyDefaultsBy config Int64 => PrettyBy config Int64
+    instance PrettyDefaultBy config Int64 => PrettyBy config Int64
 deriving via DefaultlyPretty Word
-    instance PrettyDefaultsBy config Word => PrettyBy config Word
+    instance PrettyDefaultBy config Word => PrettyBy config Word
 deriving via DefaultlyPretty Word8
-    instance PrettyDefaultsBy config Word8 => PrettyBy config Word8
+    instance PrettyDefaultBy config Word8 => PrettyBy config Word8
 deriving via DefaultlyPretty Word16
-    instance PrettyDefaultsBy config Word16 => PrettyBy config Word16
+    instance PrettyDefaultBy config Word16 => PrettyBy config Word16
 deriving via DefaultlyPretty Word32
-    instance PrettyDefaultsBy config Word32 => PrettyBy config Word32
+    instance PrettyDefaultBy config Word32 => PrettyBy config Word32
 deriving via DefaultlyPretty Word64
-    instance PrettyDefaultsBy config Word64 => PrettyBy config Word64
+    instance PrettyDefaultBy config Word64 => PrettyBy config Word64
 deriving via DefaultlyPretty Float
-    instance PrettyDefaultsBy config Float => PrettyBy config Float
+    instance PrettyDefaultBy config Float => PrettyBy config Float
 deriving via DefaultlyPretty Double
-    instance PrettyDefaultsBy config Double => PrettyBy config Double
+    instance PrettyDefaultBy config Double => PrettyBy config Double
 deriving via DefaultlyPretty Strict.Text
-    instance PrettyDefaultsBy config Strict.Text => PrettyBy config Strict.Text
+    instance PrettyDefaultBy config Strict.Text => PrettyBy config Strict.Text
 deriving via DefaultlyPretty Lazy.Text
-    instance PrettyDefaultsBy config Lazy.Text => PrettyBy config Lazy.Text
+    instance PrettyDefaultBy config Lazy.Text => PrettyBy config Lazy.Text
 
 -- |
 --
 -- >>> pretty (Identity True)
 -- True
 deriving via DefaultlyPretty (Identity a)
-    instance PrettyDefaultsBy config (Identity a) => PrettyBy config (Identity a)
+    instance PrettyDefaultBy config (Identity a) => PrettyBy config (Identity a)
 
 -- |
 -- >>> pretty (False, "abc")
 -- (False, abc)
 deriving via DefaultlyPretty (a, b)
-    instance PrettyDefaultsBy config (a, b) => PrettyBy config (a, b)
+    instance PrettyDefaultBy config (a, b) => PrettyBy config (a, b)
 
 -- |
 -- >>> pretty ('a', "bcd", True)
 -- (a, bcd, True)
 deriving via DefaultlyPretty (a, b, c)
-    instance PrettyDefaultsBy config (a, b, c) => PrettyBy config (a, b, c)
+    instance PrettyDefaultBy config (a, b, c) => PrettyBy config (a, b, c)
 
 -- |
 -- >>> pretty (Const 1 :: Const Integer Bool)
 -- 1
 deriving via DefaultlyPretty (Const a b)
-    instance PrettyDefaultsBy config (Const a b) => PrettyBy config (Const a b)
+    instance PrettyDefaultBy config (Const a b) => PrettyBy config (Const a b)
 
--- | 'prettyBy' for @[a]@ is defined in terms of 'prettyListBy'.
+-- | 'prettyBy' for @[a]@ is defined in terms of 'prettyListBy' by default.
 --
 -- >>> prettyBy () [True, False]
 -- [True, False]
@@ -298,21 +376,21 @@ deriving via DefaultlyPretty (Const a b)
 -- >>> prettyBy () [Just False, Nothing, Just True]
 -- [False, True]
 deriving via DefaultlyPretty [a]
-    instance PrettyDefaultsBy config [a] => PrettyBy config [a]
+    instance PrettyDefaultBy config [a] => PrettyBy config [a]
 
 deriving via DefaultlyPretty (NonEmpty a)
-    instance PrettyDefaultsBy config (NonEmpty a) => PrettyBy config (NonEmpty a)
+    instance PrettyDefaultBy config (NonEmpty a) => PrettyBy config (NonEmpty a)
 
 -- | By default a 'String' (i.e. @[Char]@) is converted to a @Text@ first and then pretty-printed.
 -- So make sure that if you have any non-default pretty-printing for @Char@ or @Text@,
--- they must be in sync.
+-- they're in sync.
 --
 -- >>> prettyBy () 'a'
 -- a
 -- >>> prettyBy () "abc"
 -- abc
 deriving via DefaultlyPretty Char
-    instance PrettyDefaultsBy config Char => PrettyBy config Char
+    instance PrettyDefaultBy config Char => PrettyBy config Char
 
 -- | By default a @[Maybe a]@ is converted to @[a]@ first and only then pretty-printed.
 --
@@ -325,4 +403,4 @@ deriving via DefaultlyPretty Char
 -- >>> prettyBy () [Nothing, Just 'a', Just 'b', Nothing, Just 'c']
 -- abc
 deriving via DefaultlyPretty (Maybe a)
-    instance PrettyDefaultsBy config (Maybe a) => PrettyBy config (Maybe a)
+    instance PrettyDefaultBy config (Maybe a) => PrettyBy config (Maybe a)

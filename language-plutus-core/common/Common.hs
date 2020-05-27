@@ -13,16 +13,14 @@ module Common
     , nestedGoldenVsDocM
     ) where
 
-import           PlutusPrelude                      hiding ((</>))
+import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.PrettyM
-
-import           Control.Monad.Reader               (Reader, runReader)
-import qualified Control.Monad.Reader               as Reader
-import qualified Data.ByteString.Lazy               as BSL
-import           Data.Text                          (Text)
-import           Data.Text.Encoding                 (encodeUtf8)
-import           System.FilePath                    ((</>))
+import           Control.Monad.Reader (Reader, runReader)
+import qualified Control.Monad.Reader as Reader
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Text            (Text)
+import           Data.Text.Encoding   (encodeUtf8)
+import           System.FilePath      ((</>))
 import           Test.Tasty
 import           Test.Tasty.Golden
 

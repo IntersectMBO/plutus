@@ -1,6 +1,7 @@
 -- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
 
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TypeFamilies    #-}
 
 module Language.PlutusCore.Pretty.Classic
@@ -14,15 +15,16 @@ module Language.PlutusCore.Pretty.Classic
 import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Pretty.PrettyM
 
 -- | Configuration for the classic pretty-printing.
 newtype PrettyConfigClassic configName = PrettyConfigClassic
     { _pccConfigName :: configName
     }
 
+type instance HasPrettyDefaults (PrettyConfigClassic _) = 'True
+
 -- | The "classically pretty-printable" constraint.
-type PrettyClassicBy configName = PrettyM (PrettyConfigClassic configName)
+type PrettyClassicBy configName = PrettyBy (PrettyConfigClassic configName)
 
 type PrettyClassic = PrettyClassicBy PrettyConfigName
 

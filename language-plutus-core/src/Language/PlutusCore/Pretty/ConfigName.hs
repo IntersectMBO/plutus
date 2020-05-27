@@ -26,8 +26,8 @@ Consider the 'PrettyConfigClassic' class
 
 (which only specifies how to print a PLC name) and this hypothethical instance:
 
-    instance PrettyM configName (tyname a) =>
-            PrettyM (PrettyConfigClassic configName) (Type tyname a)
+    instance PrettyBy configName (tyname a) =>
+            PrettyBy (PrettyConfigClassic configName) (Type tyname a)
 
 which determines how to pretty-print a 'Type' provided you know how to pretty-print a @tyname a@
 by a 'configName'. "Makes sense" you might think, but our names are tricky:
@@ -65,8 +65,8 @@ i.e. there is a 'PrettyConfigName' at the current level, but you can descend fur
 will be a a 'PrettyConfigName' as well. While this might work, we're not in the Inception movie
 and hence we define
 
-    instance PrettyM (PrettyConfigClassic configName) (tyname a) =>
-            PrettyM (PrettyConfigClassic configName) (Type tyname a)
+    instance PrettyBy (PrettyConfigClassic configName) (tyname a) =>
+            PrettyBy (PrettyConfigClassic configName) (Type tyname a)
 
 i.e. require that a @tyname a@ must be pretty-printable with the same config as an entire 'Type'.
 
@@ -81,7 +81,7 @@ pretty-printing strategy used), so we do the following twist: for any pretty-pri
 we require that it must contain a PLC names pretty-printing config and then define a single instance
 for each of the PLC names. E.g. for 'Name' it looks like this:
 
-    instance HasPrettyConfigName config => PrettyM config (Name ann) where
+    instance HasPrettyConfigName config => PrettyBy config (Name ann) where
 
 i.e. "you can pretty-print a 'Name' using any config as long as a 'PrettyConfigName' can be
 extracted from it". This results in O(n + m) number of instances, with 'HasPrettyConfigName'

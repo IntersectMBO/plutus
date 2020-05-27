@@ -10,7 +10,7 @@ module Text.PrettyBy.Default
     ) where
 
 import           Text.Pretty
-import           Text.PrettyBy
+import           Text.PrettyBy.Internal
 import           Text.PrettyBy.Monad
 
 import qualified Data.Text                               as Strict

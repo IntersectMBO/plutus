@@ -2,8 +2,10 @@
 -- This module also defines custom pretty-printing functions for PLC types as a convenience.
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Pretty.Plc
@@ -32,7 +34,6 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Pretty.PrettyM
 import           Language.PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
@@ -57,10 +58,12 @@ data PrettyConfigPlc = PrettyConfigPlc
     , _pcpStrategy :: PrettyConfigPlcStrategy
     }
 
--- | The "pretty-printable PLC entity" constraint.
-type PrettyPlc = PrettyM PrettyConfigPlc
+type instance HasPrettyDefaults PrettyConfigPlc = 'True
 
--- | A constraint that allows to derive @PrettyM PrettyConfigPlc@ instances, see below.
+-- | The "pretty-printable PLC entity" constraint.
+type PrettyPlc = PrettyBy PrettyConfigPlc
+
+-- | A constraint that allows to derive @PrettyBy PrettyConfigPlc@ instances, see below.
 type DefaultPrettyPlcStrategy a =
        ( PrettyClassic a
        , PrettyReadable a
@@ -73,11 +76,11 @@ instance HasPrettyConfigName PrettyConfigPlcStrategy where
 instance HasPrettyConfigName PrettyConfigPlc where
     toPrettyConfigName = toPrettyConfigName . _pcpStrategy
 
-instance DefaultPrettyPlcStrategy a => PrettyM PrettyConfigPlcStrategy (CompoundlyPretty a) where
-    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unCompoundlyPretty
-    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unCompoundlyPretty
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlcStrategy (UniversallyPretty a) where
+    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unUniversallyPretty
+    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unUniversallyPretty
 
-instance DefaultPrettyPlcStrategy a => PrettyM PrettyConfigPlc (CompoundlyPretty a) where
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (UniversallyPretty a) where
     prettyBy = prettyBy . _pcpStrategy
 
 -- | The 'PrettyConfigPlcOptions' used by default:

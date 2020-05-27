@@ -10,8 +10,6 @@ module Language.PlutusCore.Pretty.Utils
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Pretty.PrettyM
-
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import           Data.Text.Prettyprint.Doc.Internal

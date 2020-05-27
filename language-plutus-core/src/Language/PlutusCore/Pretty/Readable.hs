@@ -1,48 +1,21 @@
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
 
-module Language.PlutusCore.Pretty.Readable where
---     ( Associativity (..)
---     , Fixity (..)
---     , Direction (..)
---     , RenderContext (..)
---     , ShowKinds (..)
---     , PrettyConfigReadable (..)
---     , PrettyReadableBy
---     , PrettyReadable
---     , botFixity
---     , binderFixity
---     , arrowFixity
---     , juxtFixity
---     , unitFixity
---     , topFixity
---     , topPrettyConfigReadable
---     , botPrettyConfigReadable
---     , setRenderContext
---     , encloseInContext
---     , AnyToDocBy
---     , prettyInBy
---     , prettyInBotBy
---     , unitaryDoc
---     , rayDoc
---     , binderDoc
---     , compoundDoc
---     , applicationDoc
---     , arrowDoc
---     ) where
+module Language.PlutusCore.Pretty.Readable
+    ( module Export
+    , module Language.PlutusCore.Pretty.Readable
+    ) where
 
 import           PlutusPrelude
 
 import           Language.PlutusCore.Pretty.ConfigName
-import           Language.PlutusCore.Pretty.PrettyM
 
 import           Control.Lens
-import           Control.Monad.Reader
+import           Text.PrettyBy.Fixity                  as Export
 
 data ShowKinds
     = ShowKindsYes
@@ -56,8 +29,10 @@ data PrettyConfigReadable configName = PrettyConfigReadable
     , _pcrShowKinds     :: ShowKinds
     }
 
+type instance HasPrettyDefaults (PrettyConfigReadable _) = 'True
+
 -- | The "readably pretty-printable" constraint.
-type PrettyReadableBy configName = PrettyM (PrettyConfigReadable configName)
+type PrettyReadableBy configName = PrettyBy (PrettyConfigReadable configName)
 
 type PrettyReadable = PrettyReadableBy PrettyConfigName
 
@@ -74,69 +49,16 @@ instance HasRenderContext (PrettyConfigReadable configName) where
 
 -- | The fixity of a binder.
 binderFixity :: Fixity
-binderFixity = Fixity 1 RightAssociative
+binderFixity = Fixity RightAssociative 1
 
 -- | The fixity of @(->)@.
 arrowFixity :: Fixity
-arrowFixity = Fixity 2 RightAssociative
-
--- | A 'PrettyConfigReadable' with the fixity specified to 'topFixity'.
-topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
-topPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext Forward topFixity
+arrowFixity = Fixity RightAssociative 2
 
 -- | A 'PrettyConfigReadable' with the fixity specified to 'botFixity'.
 botPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
-botPrettyConfigReadable configName = PrettyConfigReadable configName $ RenderContext Forward botFixity
+botPrettyConfigReadable configName = PrettyConfigReadable configName botRenderContext
 
--- -- | Adjust a 'PrettyConfigReadable' by setting new 'Fixity' and 'Direction' and call 'prettyBy'.
--- prettyInBy
---     :: PrettyReadableBy configName a
---     => PrettyConfigReadable configName -> Direction -> Fixity -> a -> Doc ann
--- prettyInBy config dir app = prettyBy $ setRenderContext (RenderContext dir app) config
-
--- -- | Pretty-print in 'botFixity'.
--- prettyInBotBy :: PrettyReadableBy configName a => PrettyConfigReadable configName -> a -> Doc ann
--- prettyInBotBy config = prettyInBy config Forward botFixity
-
--- -- | Call 'encloseInContext' on 'unitFixity'.
--- unitaryDoc :: PrettyConfigReadable configName -> Doc ann -> Doc ann
--- unitaryDoc config = encloseInContext (_pcrRenderContext config) unitFixity
-
--- -- This perhaps makes less sense than 'compoundDoc', because to the outside binders
--- -- can look differently than how they look to the inside, but whatever.
--- -- | Instantiate a supplied continuation with a pretty-printer specialized to the supplied
--- -- 'Fixity' and apply 'encloseInContext', specialized to the same 'Fixity', to the result.
--- rayDoc
---     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
---     => Direction
---     -> Fixity
---     -> (AnyToDoc config ann -> Doc ann)
---     -> m (Doc ann)
--- rayDoc dir fixity k = withPrettyIn $ \prettyIn -> encloseM fixity $ k (prettyIn dir fixity)
-
--- -- | 'rayDoc' specialized to 'binderFixity'.
--- binderDoc
---     :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
---     => (AnyToDoc config ann -> Doc ann)
---     -> m (Doc ann)
--- binderDoc = rayDoc Forward binderFixity
-
--- | Call 'encloseM' on 'unitFixity'.
-unitaryDoc
-    :: (MonadReader env m, HasPrettyConfig env config, HasRenderContext config)
-    => Doc ann -> m (Doc ann)
-unitaryDoc = encloseM unitFixity
-
--- unitaryP
---     :: ( MonadReader env m, HasPrettyConfig env config, HasRenderContext config
---        , Pretty a
---        )
---     => a -> m (Doc ann)
--- unitaryP = unitaryDoc . pretty
-
--- unitaryPM
---     :: ( MonadReader env m, HasPrettyConfig env config, HasRenderContext config
---        , PrettyM config a
---        )
---     => a -> m (Doc ann)
--- unitaryPM = prettyM >=> unitaryDoc
+-- | A 'PrettyConfigReadable' with the fixity specified to 'topFixity'.
+topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
+topPrettyConfigReadable configName = PrettyConfigReadable configName topRenderContext

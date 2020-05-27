@@ -47,7 +47,7 @@ instance Alternative EvaluationResult where
     EvaluationSuccess x <|> _ = EvaluationSuccess x
     EvaluationFailure   <|> a = a
 
-instance PrettyM config a => PrettyM config (EvaluationResult a) where
+instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess value) = prettyBy config value
     prettyBy _      EvaluationFailure         = "Failure"
 

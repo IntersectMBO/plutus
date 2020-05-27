@@ -1,17 +1,8 @@
 module Text.Fixity.Internal
     ( Associativity (..)
-    , Arity (..)
     , Fixity (..)
     , Direction (..)
     , RenderContext (..)
-    , nullary
-    , unary
-    , prefix
-    , postfix
-    , binary
-    , flipDirection
-    , toOuterPrec
-    , toInnerPrec
     , encloseIn
     ) where
 
@@ -24,16 +15,10 @@ data Associativity
     | NonAssociative
     deriving (Show, Eq)
 
-data Arity prec
-    = Nullary !prec
-    | Unary !prec !prec
-    | Binary !prec
-    deriving (Show, Eq)
-
 -- | Fixity of an operator.
 data Fixity prec = Fixity
     { _fixityAssociativity :: !Associativity
-    , _fixityArity         :: !(Arity prec)
+    , _fixityPrecedence    :: !prec
     } deriving (Show, Eq)
 
 data Direction
@@ -47,46 +32,12 @@ data RenderContext prec = RenderContext
     , _renderContextFixity    :: !(Fixity prec)
     } deriving (Show, Eq)
 
-nullary :: Associativity -> prec -> Fixity prec
-nullary assoc = Fixity assoc . Nullary
+-- two precedencies
+-- (a + if b then c else d) * e
+-- (a * if b then c else d) * e
+-- (a # (b ? @ % c)) $ d
 
-unary :: Associativity -> prec -> Fixity prec
-unary assoc prec = Fixity assoc $ Unary prec prec
-
-prefix :: Associativity -> prec -> prec -> Fixity prec
-prefix assoc precL precR = Fixity assoc $ Unary precL precR
-
-postfix :: Associativity -> prec -> prec -> Fixity prec
-postfix assoc precL precR = Fixity assoc $ Unary precR precL
-
-binary :: Associativity -> prec -> Fixity prec
-binary assoc = Fixity assoc . Binary
-
-flipDirection :: Direction -> Direction
-flipDirection ToTheLeft  = ToTheRight
-flipDirection ToTheRight = ToTheLeft
-
--- toOuterPrec :: Direction -> Arity prec -> prec
--- toOuterPrec _          (Nullary prec)    = prec
--- toOuterPrec ToTheLeft  (Unary _ precInn) = precInn
--- toOuterPrec ToTheRight (Unary precOut _) = precOut
--- toOuterPrec _          (Binary prec)     = prec
-
--- toInnerPrec :: Direction -> Arity prec -> prec
--- toInnerPrec = toOuterPrec . flipDirection
-
-toOuterPrec :: Arity prec -> prec
-toOuterPrec (Nullary prec)    = prec
-toOuterPrec (Unary precOut _) = precOut
-toOuterPrec (Binary prec)     = prec
-
-toInnerPrec :: Direction -> Arity prec -> prec
-toInnerPrec _          (Nullary prec)    = prec
-toInnerPrec ToTheLeft  (Unary precOut _) = precOut
-toInnerPrec ToTheRight (Unary _ precInn) = precInn
-toInnerPrec _          (Binary prec)     = prec
-
--- | Enclose an @a@ in parens if required or leave it as is.
+-- | Enclose an @a@ (using the provided function) if required or leave it as is.
 -- The need for enclosing is determined from an outer 'RenderContext' and the inner fixity.
 encloseIn
     :: Ord prec
@@ -95,7 +46,7 @@ encloseIn
     -> Fixity prec         -- ^ An inner fixity.
     -> a
     -> a
-encloseIn parens (RenderContext dir (Fixity assocOut fixityPrecOut)) (Fixity assocInn fixityPrecInn) =
+encloseIn parens (RenderContext dir (Fixity assocOut precOut)) (Fixity assocInn precInn) =
     case precOut `compare` precInn of
         LT -> id                       -- If the outer precedence is lower than the inner, then
                                        -- do not add parens. E.g. in @Add x (Mul y z)@ the precedence
@@ -112,6 +63,3 @@ encloseIn parens (RenderContext dir (Fixity assocOut fixityPrecOut)) (Fixity ass
             (RightAssociative, ToTheRight) -> id      -- No need for parens in @Concat xs (Concat ys zs)@
                                                       -- which is rendered as @xs ++ ys ++ zs@.
             _                              -> parens  -- Every other case requires parens.
-  where
-    precOut = toOuterPrec fixityPrecOut
-    precInn = toInnerPrec dir fixityPrecInn

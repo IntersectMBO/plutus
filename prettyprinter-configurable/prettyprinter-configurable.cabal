@@ -20,7 +20,8 @@ library
         Text.PrettyBy
         Text.PrettyBy.Default
         Text.PrettyBy.Fixity
-        Text.PrettyBy.Internal.Core
+        Text.PrettyBy.Internal
+        Text.PrettyBy.Internal.Utils
         Text.PrettyBy.Monad
     build-depends:
         base,

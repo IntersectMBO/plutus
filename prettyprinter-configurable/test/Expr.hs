@@ -39,31 +39,31 @@ data Expr
     deriving (Show)
 
 notFixity :: Fixity
-notFixity = unary RightAssociative 9
+notFixity = Fixity RightAssociative 9
 
 orFixity :: Fixity
-orFixity = binary RightAssociative 2
+orFixity = Fixity RightAssociative 2
 
 andFixity :: Fixity
-andFixity = binary RightAssociative 3
+andFixity = Fixity RightAssociative 3
 
 eqFixity :: Fixity
-eqFixity = binary NonAssociative 4
+eqFixity = Fixity NonAssociative 4
 
 negFixity :: Fixity
-negFixity = unary LeftAssociative 6
+negFixity = Fixity LeftAssociative 6
 
 addFixity :: Fixity
-addFixity = binary LeftAssociative 6
+addFixity = Fixity LeftAssociative 6
 
 mulFixity :: Fixity
-mulFixity = binary LeftAssociative 7
+mulFixity = Fixity LeftAssociative 7
 
 facFixity :: Fixity
-facFixity = unary LeftAssociative 9
+facFixity = Fixity LeftAssociative 9
 
 ifThenElseFixity :: Fixity
-ifThenElseFixity = prefix RightAssociative (-5) 8
+ifThenElseFixity = Fixity RightAssociative (-5)
 
 instance PrettyBy RenderContext Expr where
     prettyBy = inContextM $ \case
@@ -216,17 +216,17 @@ test_expr = testGroup "expr"
           "if (if a then b else c) then if d then e else f else if g then h else i"
 
     , makeTestCase "~(if a then b else c)" "~(if a then b else c)"
-    , makeTestCase "-(if a then b else c)" "- if a then b else c"
+    , makeTestCase "-(if a then b else c)" "- (if a then b else c)"
     , makeTestCase "(if a then b else c)!" "(if a then b else c)!"
 
     , makeTestCase "if (a && b) then (c || d) else (e == f)" "if a && b then c || d else e == f"
-    , makeTestCase "a || (if b then c else d)" "a || if b then c else d"
+    , makeTestCase "a || (if b then c else d)" "a || (if b then c else d)"
     , makeTestCase "(if a then b else c) && d" "(if a then b else c) && d"
 
     , makeTestCase "if (a == b) then (c + d) else (e * f)" "if a == b then c + d else e * f"
-    , makeTestCase "a + (if b then c else d)" "a + if b then c else d"
+    , makeTestCase "a + (if b then c else d)" "a + (if b then c else d)"
     , makeTestCase "(if a then b else c) * d" "(if a then b else c) * d"
 
-    , makeTestCase "(a + if b then c else d) * e" "(a + if b then c else d) * e"
-    , makeTestCase "(a * if b then c else d) * e" "(a * if b then c else d) * e"
+    , makeTestCase "(a + if b then c else d) * e" "(a + (if b then c else d)) * e"
+    , makeTestCase "(a * if b then c else d) * e" "a * (if b then c else d) * e"
     ]

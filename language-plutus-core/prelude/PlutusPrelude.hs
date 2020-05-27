@@ -78,12 +78,17 @@ module PlutusPrelude
     , bsToStr
     , indent
     -- * Pretty-printing
+    , ShowPretty (..)
     , Pretty (..)
-    , PrettyM (..)
+    , PrettyBy (..)
+    , HasPrettyDefaults
+    , PrettyDefaultBy
+    , UniversallyPretty (..)
     , docString
     , docText
     , prettyString
     , prettyText
+    , renderDef
     -- * GHCi
     , printPretty
     -- * Text
@@ -99,7 +104,6 @@ import           Control.Lens
 import           Control.Monad                      (guard, join, (<=<), (>=>))
 import           Data.Bifunctor                     (first, second)
 import           Data.Bool                          (bool)
-import qualified Data.ByteString.Lazy               as BSL
 import           Data.Coerce                        (Coercible, coerce)
 import           Data.Either                        (fromRight, isRight)
 import           Data.Foldable                      (fold, toList)
@@ -108,8 +112,6 @@ import           Data.Functor                       (void, ($>))
 import           Data.List                          (foldl')
 import           Data.List.NonEmpty                 (NonEmpty (..))
 import           Data.Maybe                         (fromMaybe, isJust, isNothing)
-import qualified Data.Text                          as T
-import qualified Data.Text.Encoding                 as TE
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable                   (for)
 import           Data.Typeable                      (Typeable)
@@ -117,7 +119,11 @@ import           Data.Word                          (Word8)
 import           Debug.Trace
 import           GHC.Generics
 import           GHC.Natural                        (Natural)
-import           Language.PlutusCore.Pretty.PrettyM
+import           Text.PrettyBy.Internal
+import           Text.PrettyBy.Default
+import qualified Data.ByteString.Lazy               as BSL
+import qualified Data.Text                          as T
+import qualified Data.Text.Encoding                 as TE
 
 import           Data.Functor.Compose
 
@@ -133,12 +139,14 @@ newtype ShowPretty a = ShowPretty
 instance Pretty a => Show (ShowPretty a) where
     show = prettyDef . unShowPretty
 
-instance (PrettyM config a, PrettyM config b) => PrettyM config (Either a b) where
-    prettyBy config (Left a)  = parens ("Left" <+> prettyBy config a)
-    prettyBy config (Right b) = parens ("Right" <+> prettyBy config b)
+instance (Pretty a, Pretty b) => Pretty (Either a b) where
+    pretty (Left  x) = parens ("Left"  <+> pretty x)
+    pretty (Right y) = parens ("Right" <+> pretty y)
 
-instance PrettyM config Integer where
-    prettyBy _ = pretty
+instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Either a b) where
+    defaultPrettyBy = defaultPrettyBifunctorBy
+deriving via DefaultlyPretty (Either a b)
+    instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
 
 -- | Render a 'Doc' as 'String'.
 docString :: Doc a -> String

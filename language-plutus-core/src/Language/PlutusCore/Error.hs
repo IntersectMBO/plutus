@@ -148,9 +148,9 @@ instance Pretty ann => Pretty (UniqueError ann) where
         "Variable" <+> pretty u <+> "is free at" <+> pretty use
 
 instance ( Pretty ann
-         , PrettyM config (Type tyname uni ann)
-         , PrettyM config (Term tyname name uni ann)
-         ) => PrettyM config (NormCheckError tyname name uni ann) where
+         , PrettyBy config (Type tyname uni ann)
+         , PrettyBy config (Term tyname name uni ann)
+         ) => PrettyBy config (NormCheckError tyname name uni ann) where
     prettyBy config (BadType ann ty expct) =
         "Malformed type at" <+> pretty ann <>
         ". Type" <+>  squotes (prettyBy config ty) <+>
@@ -164,7 +164,7 @@ instance Pretty UnknownDynamicBuiltinNameError where
     pretty (UnknownDynamicBuiltinNameErrorE dbn) =
         "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
 
-instance GShow uni => PrettyM PrettyConfigPlc (InternalTypeError uni ann) where
+instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
     prettyBy config (OpenTypeOfBuiltin ty bi)        =
         asInternalError $
             "The type" <+> prettyBy config ty <+>
@@ -172,7 +172,7 @@ instance GShow uni => PrettyM PrettyConfigPlc (InternalTypeError uni ann) where
             "built-in is open"
 
 instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
-            PrettyM PrettyConfigPlc (TypeError uni ann) where
+            PrettyBy PrettyConfigPlc (TypeError uni ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -199,7 +199,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
         ":" <+> pretty err
 
 instance (GShow uni, Closed uni, uni `Everywhere` Pretty, Pretty ann) =>
-            PrettyM PrettyConfigPlc (Error uni ann) where
+            PrettyBy PrettyConfigPlc (Error uni ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e

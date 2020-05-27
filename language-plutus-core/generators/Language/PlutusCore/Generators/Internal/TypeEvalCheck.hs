@@ -67,8 +67,8 @@ data TypeEvalCheckResult uni = TypeEvalCheckResult
       -- ^ The result of evaluation of the term.
     }
 
-instance (PrettyM config (Error uni ()), PrettyM config (Value TyName Name uni ())) =>
-        PrettyM config (TypeEvalCheckError uni) where
+instance (PrettyBy config (Error uni ()), PrettyBy config (Value TyName Name uni ())) =>
+        PrettyBy config (TypeEvalCheckError uni) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err
     prettyBy _      (TypeEvalCheckErrorException err)             =

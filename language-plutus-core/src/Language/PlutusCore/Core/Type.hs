@@ -33,7 +33,6 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.Pretty.PrettyM
 
 import           Control.Lens
 import           Data.Hashable
@@ -141,7 +140,7 @@ newtype Normalized a = Normalized
     } deriving (Show, Eq, Functor, Foldable, Traversable, Lift, Generic)
       deriving newtype NFData
       deriving Applicative via Identity
-deriving newtype instance PrettyM config a => PrettyM config (Normalized a)
+deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 
 -- | All kinds of uniques an entity contains.
 type family HasUniques a :: Constraint

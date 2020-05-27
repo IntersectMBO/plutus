@@ -4,7 +4,7 @@ module Language.PlutusCore.Pretty
     -- * Basic types and functions
       Doc
     , Pretty (..)
-    , PrettyM (..)
+    , PrettyBy (..)
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
     , docString
@@ -46,7 +46,6 @@ module Language.PlutusCore.Pretty
     , prettyClassicDef
     , prettyClassicDebug
     -- * Readable view
-    , RenderContext (..)
     , ShowKinds (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
@@ -61,8 +60,9 @@ import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
 import           Language.PlutusCore.Pretty.Default
 import           Language.PlutusCore.Pretty.Plc
-import           Language.PlutusCore.Pretty.PrettyM
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Pretty.Utils
 
-import           Data.Text.Prettyprint.Doc
+import           Text.Pretty
+import           Text.PrettyBy
+import           Text.PrettyBy.Default
