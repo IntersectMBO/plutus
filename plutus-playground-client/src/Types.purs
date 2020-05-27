@@ -34,7 +34,7 @@ import Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
 import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema(..), KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
 import Schema (FormSchema)
-import Schema.Types (FormArgument, SimulationAction, SimulatorAction, Expression, formArgumentToJson)
+import Schema.Types (FormArgument, SimulationAction,  Expression, formArgumentToJson)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -96,23 +96,23 @@ traverseFunctionSchema f (FunctionSchema { endpointDescription, arguments: oldAr
   where
   rewrap newArguments = FunctionSchema { endpointDescription, arguments: newArguments }
 
-traverseSimulatorAction ::
+traverseContractCall ::
   forall m b a.
   Applicative m =>
   (a -> m b) ->
   ContractCall a -> m (ContractCall b)
-traverseSimulatorAction _ (AddBlocks addBlocks) = pure $ AddBlocks addBlocks
+traverseContractCall _ (AddBlocks addBlocks) = pure $ AddBlocks addBlocks
 
-traverseSimulatorAction _ (AddBlocksUntil addBlocksUntil) = pure $ AddBlocksUntil addBlocksUntil
+traverseContractCall _ (AddBlocksUntil addBlocksUntil) = pure $ AddBlocksUntil addBlocksUntil
 
-traverseSimulatorAction _ (PayToWallet payToWallet) = pure $ PayToWallet payToWallet
+traverseContractCall _ (PayToWallet payToWallet) = pure $ PayToWallet payToWallet
 
-traverseSimulatorAction f (CallEndpoint { caller, argumentValues: oldArgumentValues }) = rewrap <$> traverseFunctionSchema f oldArgumentValues
+traverseContractCall f (CallEndpoint { caller, argumentValues: oldArgumentValues }) = rewrap <$> traverseFunctionSchema f oldArgumentValues
   where
   rewrap newArgumentValues = CallEndpoint { caller, argumentValues: newArgumentValues }
 
-toExpression :: SimulatorAction -> Maybe Expression
-toExpression = traverseSimulatorAction encodeForm
+toExpression :: ContractCall FormArgument -> Maybe Expression
+toExpression = traverseContractCall encodeForm
   where
   encodeForm :: FormArgument -> Maybe RawJson
   encodeForm argument = (RawJson <<< encodeJSON) <$> formArgumentToJson argument
@@ -231,7 +231,7 @@ _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 _actionDrag :: Lens' State (Maybe Int)
 _actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
 
-_simulationActions :: Lens' Simulation (Array SimulatorAction)
+_simulationActions :: Lens' Simulation (Array (ContractCall FormArgument))
 _simulationActions = _Newtype <<< prop (SProxy :: SProxy "simulationActions")
 
 _simulationWallets :: Lens' Simulation (Array SimulatorWallet)

@@ -33,7 +33,7 @@ import Playground.Schema (actionArgumentForm)
 import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError(..), Simulation(..), _CallEndpoint, _FunctionSchema)
 import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema (FormArgumentF)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), SimulatorAction, Signatures)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), Signatures)
 import Validation (_arguments, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
@@ -130,7 +130,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array SimulatorAction -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -152,7 +152,7 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> SimulatorAction -> Tuple String (HTML p HAction)
+actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
 actionPane isValidWallet actionDrag index action =
   Tuple (show index)
     $ responsiveThird
@@ -318,7 +318,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array SimulatorAction -> HTML p HAction
+evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsPane evaluationResult actions =
   col_
     [ button

@@ -68,7 +68,7 @@ instance showFieldEvent :: Show FieldEvent where
   show = genericShow
 
 data ActionEvent
-  = AddAction SimulatorAction
+  = AddAction (ContractCall FormArgument)
   | AddWaitAction Int
   | RemoveAction Int
   | SetWaitTime Int Int
@@ -80,9 +80,6 @@ derive instance genericActionEvent :: Generic ActionEvent _
 
 instance showActionEvent :: Show ActionEvent where
   show = genericShow
-
-type SimulatorAction
-  = ContractCall FormArgument
 
 type Expression
   = ContractCall RawJson
@@ -234,8 +231,7 @@ handleFormEvent initialValue event = cata (Fix <<< algebra event)
 
   algebra _ arg = arg
 
-
-handleActionEvent :: ActionEvent -> Array SimulatorAction -> Array SimulatorAction
+handleActionEvent :: ActionEvent -> Array (ContractCall FormArgument) -> Array (ContractCall FormArgument)
 handleActionEvent (AddAction action) = flip Array.snoc action
 
 handleActionEvent (AddWaitAction blocks) = flip Array.snoc (AddBlocks { blocks })
