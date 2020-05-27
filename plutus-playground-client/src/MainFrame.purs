@@ -59,7 +59,7 @@ import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
 import Playground.Types (ContractCall, ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..),  mkInitialValue)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInitialValue)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
