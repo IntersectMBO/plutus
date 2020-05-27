@@ -25,3 +25,6 @@ _endpointDescription = prop (SProxy :: SProxy "endpointDescription")
 
 _getEndpointDescription :: Lens' EndpointDescription String
 _getEndpointDescription = _EndpointDescription <<< prop (SProxy :: SProxy "getEndpointDescription")
+
+_schema :: forall r a. Lens' { schema :: a | r } a
+_schema = prop (SProxy :: SProxy "schema")

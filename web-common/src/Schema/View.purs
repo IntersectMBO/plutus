@@ -28,10 +28,14 @@ import Schema (FormArgumentF(..))
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 
-actionArgumentForm :: forall p. Int -> FormArgument -> HTML p SimulationAction
-actionArgumentForm index argument =
+actionArgumentForm ::
+  forall p i.
+  (FormEvent -> i) ->
+  FormArgument ->
+  HTML p i
+actionArgumentForm wrapper argument =
   div [ class_ wasValidated ]
-    [ PopulateAction index <$> actionArgumentField [ show index ] false argument ]
+    [ wrapper <$> actionArgumentField [] false argument ]
 
 actionArgumentField ::
   forall p.

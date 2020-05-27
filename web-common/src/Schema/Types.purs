@@ -28,7 +28,7 @@ import Ledger.Slot (Slot)
 import Ledger.Value (CurrencySymbol(..), Value(..))
 import Matryoshka (Algebra, ana, cata)
 import Playground.Lenses (_recipient, _amount)
-import Playground.Types (ContractCall(..), FunctionSchema, KnownCurrency(..), _PayToWallet)
+import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..), _PayToWallet)
 import Schema (FormArgumentF(..), FormSchema(..))
 import ValueEditor (ValueEvent(..))
 import Wallet.Emulator.Wallet (Wallet)
@@ -248,3 +248,13 @@ handleActionEvent (SetWaitUntilTime index slot) = set (ix index) (AddBlocksUntil
 
 handleValueEvent :: ValueEvent -> Value -> Value
 handleValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
+
+-- | This only exists because of the orphan instance restriction.
+traverseFunctionSchema ::
+  forall m a b.
+  Applicative m =>
+  (a -> m b) ->
+  FunctionSchema a -> m (FunctionSchema b)
+traverseFunctionSchema f (FunctionSchema { endpointDescription, argument: oldArgument }) = rewrap <$> f oldArgument
+  where
+  rewrap newArgument = FunctionSchema { endpointDescription, argument: newArgument }
