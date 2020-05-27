@@ -913,6 +913,9 @@ at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
   violated then the function immediately returns $\errorU$
+
+\item Every built-in function returns either a value or the term \texttt{(error)}.
+
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments.
@@ -1246,21 +1249,22 @@ closed values, but in the CEK machine arguments are closures.  We
 assume that the mechanism for evaluating built-in functions in the CEK
 machine can accept closures as arguments, and that
 \begin{itemize}
-\item Evaluation of built-in functions always terminates (returning a full term, not
-a closure).
+\item Evaluation of built-in functions always terminates, returning either a value or \texttt{(error)}
+(this is true for all of the current built-in functions).
+
 
 \item For closures $C_1, \ldots, C_n$, evaluation of
   $\builtin{bn}{A_1 \ldots A_k}{C_1 \ldots C_n}$ fails in the CEK
 machine (returning $\error{A}$ for some type $A$) if and only
 if evaluation of $\builtin{bn}{A_1 \\ \ldots  %% Extends way into the margin without this
-A_k}{\discharge{C_1} \ldots \discharge{C_n}}$ fails (returning $\errorU$)according to
+A_k}{\discharge{C_1} \ldots \discharge{C_n}}$ fails (returning $\errorU$) according to
 Figure~\ref{fig:builtins}.
 
 \item For closures $C_1, \ldots, C_n$,
   $\builtin{bn}{A_1 \ldots A_k}{C_1 \ldots C_n}$
-evaluates to a term $M$ in the CEK machine if and only if 
+evaluates to a value $V$ in the CEK machine if and only if 
   $\builtin{bn}{A_1 \ldots A_k}{\discharge{C_1} \ldots \discharge{C_n}}$
-evaluates to the same term $M$ according to Figure~\ref{fig:builtins}.% <- No space before footnot marker.
+evaluates to the same value $V$ according to Figure~\ref{fig:builtins}.% <- No space before footnote marker.
 \footnote{One way to ensure that these conditions hold would be to discharge all of the
 closures and then use the same mechanism as in the CK machine, but this would
 reintroduce the very inefficiencies which the CEK machine is designed to avoid.}
@@ -1269,6 +1273,16 @@ reintroduce the very inefficiencies which the CEK machine is designed to avoid.}
 A future version of this document will contain a
 specification of built-in function evaluation which will cover this
 issue in detail.
+
+% [NOTE] We'll need to assume (or deduce from the specification of
+% builtins) that builtins always return terms that are well-typed and
+% which don't contain any out-of-scope variables (We'll need these
+% conditions for the CK machine as well).  This doesn't matter at the
+% moment because our fixed set of builtins always return values of
+% built-in types or `error` (which annoyingly isn't a value), but when
+% we have extensible builtins (including polymorphic ones) things will
+% be trickier.
+
 
 \subsubsection{Comparison of the CK and CEK machines}
 If the CK and CEK machines are run with the same program as input then
@@ -1329,7 +1343,8 @@ $1 \le i \le n$.
 
 \noindent Then we require that
 \begin{itemize}
-\item Evaluation of built-in functions always terminates (returning a full term, not a closure).
+\item Evaluation of built-in functions always terminates, returning either a value or \texttt{(error)}.
+
 \item In the untyped CEK machine, evaluation of 
   $\builtinU{bn}{C_1 \ldots C_n}$
 fails (returning $\errorU$) if and only if evaluation of 
@@ -1338,9 +1353,9 @@ fails according to Figure~\ref{fig:builtins}.
 
 \item In the untyped CEK machine,
   $\builtinU{bn}{C_1 \ldots C_n}$
-evaluates to the untyped term $N$ if and only if
+evaluates to the untyped value $V$ if and only if
   $\builtin{bn}{A_1 \ldots A_k}{V_1 \ldots V_n}$
-evaluates to a typed term $M$ (according to Figure~\ref{fig:builtins}) with $\erase{M} = N$.
+evaluates to a typed term $W$ (according to Figure~\ref{fig:builtins}) with $\erase{W} = V$.
 \end{itemize}
 
 \subsubsection{Comparison of the typed CK machine and the untyped CEK machine}
