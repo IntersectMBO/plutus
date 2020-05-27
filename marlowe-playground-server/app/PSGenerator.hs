@@ -16,7 +16,6 @@ module PSGenerator
 
 import           API                                        (RunResult)
 import qualified API
-import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, (&))
@@ -29,12 +28,11 @@ import qualified Data.Set                                   as Set ()
 import qualified Data.Text.Encoding                         as T ()
 import qualified Data.Text.IO                               as T ()
 import qualified Escrow
-import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError, InterpreterResult,
                                                              SourceCode, Warning)
 import           Language.Marlowe.Pretty                    (pretty)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                             mkSumType, order, writePSTypesWith)
+                                                             mkSumType, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), defaultSwitch, genForeign)
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
@@ -72,18 +70,11 @@ myTypes :: [SumType 'Haskell]
 myTypes =
     PSGenerator.Common.ledgerTypes <>
     PSGenerator.Common.walletTypes <>
+    PSGenerator.Common.playgroundTypes <>
     [ mkSumType (Proxy @RunResult)
     , mkSumType (Proxy @SourceCode)
     , mkSumType (Proxy @CompilationError)
     , mkSumType (Proxy @InterpreterError)
-    , mkSumType (Proxy @AuthStatus)
-    , mkSumType (Proxy @AuthRole)
-    , (order <*> mkSumType) (Proxy @GistId)
-    , mkSumType (Proxy @Gist)
-    , mkSumType (Proxy @GistFile)
-    , mkSumType (Proxy @NewGist)
-    , mkSumType (Proxy @NewGistFile)
-    , mkSumType (Proxy @Owner)
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
     , mkSumType (Proxy @MSRes.Response)

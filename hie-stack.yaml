@@ -18,10 +18,6 @@ cradle:
     component: "language-plutus-core:language-plutus-core-weigh"
   - path: ./language-plutus-core/budgeting-bench
     component: "language-plutus-core:language-plutus-core-budgeting-bench"
-  - path: ./plutus-emulator/src
-    component: "plutus-emulator:lib"
-  - path: ./plutus-emulator/test
-    component: "plutus-emulator:plutus-emulator-test"
   - path: ./plutus-tx/src
     component: "plutus-tx:lib"
   - path: ./plutus-tx/compiler
@@ -46,8 +42,6 @@ cradle:
     component: "marlowe-playground-server:marlowe-playground-server-test"
   - path: ./marlowe-symbolic/src
     component: "marlowe-symbolic:lib"
-  - path: ./marlowe-symbolic/test
-    component: "marlowe-symbolic:marlowe-symbolic-test"
   - path: ./plutus-contract/src
     component: "plutus-contract:lib"
   - path: ./plutus-contract/test

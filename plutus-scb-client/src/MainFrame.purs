@@ -13,19 +13,26 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
-import Data.Lens (assign, to)
+import Data.Foldable (traverse_)
+import Data.Json.JsonUUID (_JsonUUID)
+import Data.Lens (assign, to, toArrayOf, traversed, view)
+import Data.Lens.At (at)
 import Data.Lens.Extra (peruse)
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Console (log)
 import Halogen (Component, hoist)
 import Halogen as H
 import Halogen.HTML (HTML)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Plutus.SCB.Webserver (SPParams_(SPParams_), getAll)
+import Plutus.SCB.Webserver (SPParams_(SPParams_), getContractByContractinstanceidSchema, getFullreport)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (HAction(..), Query, State(..), WebData, _annotatedBlockchain, _chainState, _fullReport)
+import Types (HAction(..), Query, State(..), WebData, _annotatedBlockchain, _chainState, _contractInstanceId, _contractSignatures, _csContract, _fullReport, _latestContractStatuses)
 import View as View
 
 initialState :: State
@@ -33,6 +40,7 @@ initialState =
   State
     { fullReport: NotAsked
     , chainState: Chain.initialState
+    , contractSignatures: Map.empty
     }
 
 ------------------------------------------------------------
@@ -64,13 +72,25 @@ handleAction ::
   MonadAff m =>
   MonadAnimate m State =>
   MonadAsk (SPSettings_ SPParams_) m =>
+  MonadEffect m =>
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  reportResult <- runAjax $ getAll
+  reportResult <- runAjax getFullreport
   assign _fullReport reportResult
+  case reportResult of
+    Success fullReport ->
+      traverse_
+        ( \instanceId -> do
+            let uuid = view (_contractInstanceId <<< _JsonUUID <<< to UUID.toString) instanceId
+            contractSchema <- runAjax $ getContractByContractinstanceidSchema uuid
+            assign (_contractSignatures <<< at instanceId) (Just contractSchema)
+        )
+        (toArrayOf (_latestContractStatuses <<< traversed <<< _csContract) fullReport)
+    _ -> pure unit
+  pure unit
 
 handleAction (ChainAction newFocus) = do
   mAnnotatedBlockchain <-
@@ -78,10 +98,8 @@ handleAction (ChainAction newFocus) = do
   animate
     (_chainState <<< _chainFocusAppearing)
     (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)
+handleAction (InvokeContractEndpoint subaction) = do
+  liftEffect $ log $ "TRIGGER: " <> show subaction
 
-runAjax ::
-  forall m a.
-  Monad m =>
-  ExceptT AjaxError m a ->
-  m (WebData a)
+runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action

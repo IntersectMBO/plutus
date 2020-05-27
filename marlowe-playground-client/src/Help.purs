@@ -1,6 +1,8 @@
 module Help where
 
 import Data.Array as Array
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.String (fromCodePointArray, toCodePointArray)
@@ -9,8 +11,17 @@ import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p_, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
 import Marlowe.Holes as Holes
-import Prelude (show, (<<<), (<>), (<$>))
-import Types (HelpContext(..))
+import Prelude (class Show, show, (<$>), (<<<), (<>))
+
+data HelpContext
+  = MarloweHelp
+  | InputComposerHelp
+  | TransactionComposerHelp
+
+derive instance genericHelpContext :: Generic HelpContext _
+
+instance showHelpContext :: Show HelpContext where
+  show = genericShow
 
 toHTML :: forall p a. HelpContext -> Array (HTML p a)
 toHTML helpType =

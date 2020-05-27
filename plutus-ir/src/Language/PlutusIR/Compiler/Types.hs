@@ -37,7 +37,7 @@ data CompilationCtx a = CompilationCtx {
 makeLenses ''CompilationCtx
 
 defaultCompilationCtx :: CompilationCtx a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts NoProvenance
+defaultCompilationCtx = CompilationCtx defaultCompilationOpts noProvenance
 
 getEnclosing :: MonadReader (CompilationCtx a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -85,6 +85,7 @@ type Compiling m e uni a =
     , AsError e uni (Provenance a)
     , MonadError e m
     , MonadQuote m
+    , Ord a
     )
 
 type TermDef tyname name uni a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni a)

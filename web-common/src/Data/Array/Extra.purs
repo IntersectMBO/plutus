@@ -1,15 +1,17 @@
 module Data.Array.Extra
   ( move
-  , intersperse
   , lookup
   , collapse
   ) where
 
 import Prelude
+
 import Data.Array (snoc, foldl)
 import Data.Array as Array
+import Data.Foldable (class Foldable, intercalate)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
 import Data.Maybe (Maybe, fromMaybe)
+import Data.Monoid (class Monoid)
 import Data.Tuple (fst, snd)
 import Data.Tuple.Nested (type (/\), (/\))
 
@@ -22,13 +24,6 @@ move source destination before
       midway <- Array.deleteAt source before
       after <- Array.insertAt destination x midway
       pure after
-
-intersperse :: forall a. a -> Array a -> Array a
-intersperse sep = foldl reducer []
-  where
-  reducer [] x = [ x ]
-
-  reducer acc x = snoc (snoc acc sep) x
 
 lookup :: forall k v. Eq k => k -> Array (k /\ v) -> Maybe v
 lookup key = map snd <<< Array.find (fst >>> (==) key)

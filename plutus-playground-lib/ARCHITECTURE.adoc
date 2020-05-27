@@ -1,3 +1,0 @@
-=== `plutus-playground-lib`
-
-This package contains some library code for the Plutus Playground.

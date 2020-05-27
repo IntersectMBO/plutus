@@ -20,15 +20,10 @@
         (termbind
           (nonstrict)
           (vardecl y (con integer))
-          (let
-            (nonrec)
-            (termbind
-              (nonstrict)
-              (vardecl y (con integer))
-              [ [ multiplyInteger ds ] (con 1) ]
-            )
-            [ [ multiplyInteger y ] y ]
-          )
+          [ [ multiplyInteger ds ] (con 1) ]
+        )
+        (termbind
+          (nonstrict) (vardecl y (con integer)) [ [ multiplyInteger y ] y ]
         )
         [ [ multiplyInteger y ] y ]
       )

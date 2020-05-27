@@ -1,15 +1,13 @@
 module Types where
 
 import Prelude
+
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
-import Data.Array as Array
-import Data.Foldable (fold, foldMap)
-import Data.Functor.Foldable (Fix)
 import Data.Generic.Rep (class Generic)
 import Data.Json.JsonEither (JsonEither)
 import Data.Json.JsonTuple (JsonTuple)
@@ -17,51 +15,34 @@ import Data.Lens (Iso', Lens', Traversal', _Right, iso)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Monoid.Additive (Additive(..))
+import Data.Maybe (Maybe, fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson(..))
-import Data.String.Extra (toHex) as String
 import Data.Symbol (SProxy(..))
-import Data.Traversable (sequence, traverse)
-import Data.Tuple (Tuple)
-import Data.Tuple.Nested ((/\))
+import Data.Traversable (traverse)
 import Editor as Editor
-import Foreign (Foreign)
-import Foreign.Class (encode)
 import Foreign.Generic (encodeJSON)
-import Foreign.Object as FO
 import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
 import Halogen.Chartist as Chartist
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult, SourceCode, _InterpreterResult)
-import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Crypto (PubKey, PubKeyHash, _PubKey)
-import Ledger.Interval (Extended(..), Interval(..), LowerBound(..), UpperBound(..))
 import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
-import Ledger.Value (CurrencySymbol(..), TokenName, Value(..), _CurrencySymbol, _TokenName, _Value)
-import Matryoshka (Algebra, ana, cata)
+import Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
-import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema(..), KnownCurrency(..), PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
-import Schema (FormSchema(..), FormArgumentF(..))
+import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema(..), KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
+import Schema (FormSchema)
+import Schema.Types (FormArgument, SimulationAction, SimulatorAction, Expression, formArgumentToJson)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
+import ValueEditor (ValueEvent)
 import Wallet.Emulator.Wallet (Wallet, _Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 import Web.HTML.Event.DragEvent (DragEvent)
-
-type FormArgument
-  = Fix FormArgumentF
-
-type SimulatorAction
-  = ContractCall FormArgument
-
-type Expression
-  = ContractCall RawJson
 
 _simulatorWallet :: forall r a. Lens' { simulatorWallet :: a | r } a
 _simulatorWallet = prop (SProxy :: SProxy "simulatorWallet")
@@ -90,12 +71,6 @@ _caller = prop (SProxy :: SProxy "caller")
 _functionArguments :: forall r a. Lens' { functionArguments :: a | r } a
 _functionArguments = prop (SProxy :: SProxy "functionArguments")
 
-_amount :: forall r a. Lens' { amount :: a | r } a
-_amount = prop (SProxy :: SProxy "amount")
-
-_recipient :: forall r a. Lens' { recipient :: a | r } a
-_recipient = prop (SProxy :: SProxy "recipient")
-
 _blocks :: forall r a. Lens' { blocks :: a | r } a
 _blocks = prop (SProxy :: SProxy "blocks")
 
@@ -105,26 +80,11 @@ _InSlot = iso (_.getSlot <<< unwrap) (wrap <<< { getSlot: _ })
 _slot :: forall r a. Lens' { slot :: a | r } a
 _slot = prop (SProxy :: SProxy "slot")
 
-_endpointName :: forall r a. Lens' { endpointName :: a | r } a
-_endpointName = prop (SProxy :: SProxy "endpointName")
-
 _functionName :: forall r a. Lens' { functionName :: a | r } a
 _functionName = prop (SProxy :: SProxy "functionName")
 
-_arguments :: forall r a. Lens' { arguments :: a | r } a
-_arguments = prop (SProxy :: SProxy "arguments")
-
-_argumentValues :: forall r a. Lens' { argumentValues :: a | r } a
-_argumentValues = prop (SProxy :: SProxy "argumentValues")
-
 _argumentSchema :: forall r a. Lens' { argumentSchema :: a | r } a
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
-
-_currencySymbol :: Lens' CurrencySymbol String
-_currencySymbol = _CurrencySymbol <<< prop (SProxy :: SProxy "unCurrencySymbol")
-
-_tokenName :: Lens' TokenName String
-_tokenName = _TokenName <<< prop (SProxy :: SProxy "unTokenName")
 
 ------------------------------------------------------------
 -- | These only exist because of the orphan instance restriction.
@@ -192,9 +152,8 @@ data HAction
   -- Wallets.
   | ModifyWallets WalletEvent
   -- Actions.
-  | ModifyActions ActionEvent
+  | ChangeSimulation SimulationAction
   | EvaluateActions
-  | PopulateAction Int Int FormEvent
   -- Chain.
   | SetChainFocus (Maybe ChainFocus)
 
@@ -202,18 +161,6 @@ data WalletEvent
   = AddWallet
   | RemoveWallet Int
   | ModifyBalance Int ValueEvent
-
-data ValueEvent
-  = SetBalance CurrencySymbol TokenName Int
-
-data ActionEvent
-  = AddAction SimulatorAction
-  | AddWaitAction Int
-  | RemoveAction Int
-  | SetWaitTime Int Int
-  | SetWaitUntilTime Int Slot
-  | SetPayToWalletValue Int ValueEvent
-  | SetPayToWalletRecipient Int Wallet
 
 data DragAndDropEventType
   = DragStart
@@ -230,21 +177,6 @@ instance showDragAndDropEventType :: Show DragAndDropEventType where
   show DragOver = "DragOver"
   show DragLeave = "DragLeave"
   show Drop = "Drop"
-
-data FieldEvent
-  = SetIntField (Maybe Int)
-  | SetBoolField Boolean
-  | SetStringField String
-  | SetHexField String
-  | SetRadioField String
-  | SetValueField ValueEvent
-  | SetSlotRangeField (Interval Slot)
-
-data FormEvent
-  = SetField FieldEvent
-  | SetSubField Int FormEvent
-  | AddSubField
-  | RemoveSubField Int
 
 ------------------------------------------------------------
 type ChildSlots
@@ -299,9 +231,6 @@ _simulations = _Newtype <<< prop (SProxy :: SProxy "simulations")
 
 _actionDrag :: Lens' State (Maybe Int)
 _actionDrag = _Newtype <<< prop (SProxy :: SProxy "actionDrag")
-
-type Signatures
-  = Array (FunctionSchema FormSchema)
 
 _simulationActions :: Lens' Simulation (Array SimulatorAction)
 _simulationActions = _Newtype <<< prop (SProxy :: SProxy "simulationActions")
@@ -365,86 +294,6 @@ instance showView :: Show View where
   show Simulations = "Simulation"
   show Transactions = "Transactions"
 
-------------------------------------------------------------
-toArgument :: Value -> FormSchema -> FormArgument
-toArgument initialValue = ana algebra
-  where
-  algebra :: FormSchema -> FormArgumentF FormSchema
-  algebra FormSchemaUnit = FormUnitF
-
-  algebra FormSchemaBool = FormBoolF false
-
-  algebra FormSchemaInt = FormIntF Nothing
-
-  algebra FormSchemaString = FormStringF Nothing
-
-  algebra FormSchemaHex = FormHexF Nothing
-
-  algebra (FormSchemaRadio xs) = FormRadioF xs Nothing
-
-  algebra (FormSchemaArray xs) = FormArrayF xs []
-
-  algebra (FormSchemaMaybe x) = FormMaybeF x Nothing
-
-  algebra FormSchemaValue = FormValueF initialValue
-
-  algebra FormSchemaSlotRange = FormSlotRangeF defaultSlotRange
-
-  algebra (FormSchemaTuple a b) = FormTupleF a b
-
-  algebra (FormSchemaObject xs) = FormObjectF xs
-
-  algebra (FormSchemaUnsupported x) = FormUnsupportedF x
-
-defaultSlotRange :: Interval Slot
-defaultSlotRange =
-  Interval
-    { ivFrom: LowerBound NegInf true
-    , ivTo: UpperBound PosInf true
-    }
-
-------------------------------------------------------------
-formArgumentToJson :: FormArgument -> Maybe Foreign
-formArgumentToJson = cata algebra
-  where
-  algebra :: Algebra FormArgumentF (Maybe Foreign)
-  algebra FormUnitF = Just $ encode (mempty :: Array Unit)
-
-  algebra (FormBoolF b) = Just $ encode b
-
-  algebra (FormIntF n) = encode <$> n
-
-  algebra (FormStringF str) = encode <$> str
-
-  algebra (FormRadioF _ option) = encode <$> option
-
-  algebra (FormHexF str) = encode <<< String.toHex <$> str
-
-  algebra (FormTupleF (Just fieldA) (Just fieldB)) = Just $ encode [ fieldA, fieldB ]
-
-  algebra (FormTupleF _ _) = Nothing
-
-  algebra (FormMaybeF _ field) = encode <$> field
-
-  algebra (FormArrayF _ fields) = Just $ encode fields
-
-  algebra (FormObjectF fields) = encodeFields fields
-    where
-    encodeFields :: Array (JsonTuple String (Maybe Foreign)) -> Maybe Foreign
-    encodeFields xs = map (encode <<< FO.fromFoldable) $ prepareObject xs
-
-    prepareObject :: Array (JsonTuple String (Maybe Foreign)) -> Maybe (Array (Tuple String Foreign))
-    prepareObject = traverse processTuples
-
-    processTuples :: JsonTuple String (Maybe Foreign) -> Maybe (Tuple String Foreign)
-    processTuples = unwrap >>> sequence
-
-  algebra (FormValueF x) = Just $ encode x
-
-  algebra (FormSlotRangeF x) = Just $ encode x
-
-  algebra (FormUnsupportedF _) = Nothing
-
 --- Language.Haskell.Interpreter ---
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
@@ -454,22 +303,3 @@ _warnings = prop (SProxy :: SProxy "warnings")
 
 getKnownCurrencies :: forall m. MonadState State m => m (Array KnownCurrency)
 getKnownCurrencies = fromMaybe [] <$> peruse (_successfulCompilationResult <<< _knownCurrencies)
-
-mkInitialValue :: Array KnownCurrency -> Int -> Value
-mkInitialValue currencies initialBalance = Value { getValue: value }
-  where
-  value =
-    map (map unwrap)
-      $ fold
-      $ foldMap
-          ( \(KnownCurrency { hash, knownTokens }) ->
-              map
-                ( \tokenName ->
-                    AssocMap.fromTuples
-                      [ CurrencySymbol { unCurrencySymbol: hash }
-                          /\ AssocMap.fromTuples [ tokenName /\ Additive initialBalance ]
-                      ]
-                )
-                $ Array.fromFoldable knownTokens
-          )
-          currencies

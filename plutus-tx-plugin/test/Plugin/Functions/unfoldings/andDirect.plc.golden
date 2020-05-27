@@ -2,6 +2,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl Bool (type))
         
@@ -9,68 +12,51 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-      )
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl nandDirect (fun Bool (fun Bool Bool)))
-          (lam
-            ds
-            Bool
-            (lam
-              ds
-              Bool
-              [
+    (termbind
+      (strict)
+      (vardecl nandDirect (fun Bool (fun Bool Bool)))
+      (lam
+        ds
+        Bool
+        (lam
+          ds
+          Bool
+          [
+            [
+              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
+              (lam
+                thunk
+                Unit
                 [
                   [
-                    { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False)
-                  ]
-                  (lam
-                    thunk
-                    Unit
                     [
-                      [
-                        [
-                          { [ Bool_match ds ] (fun Unit Bool) }
-                          (lam thunk Unit False)
-                        ]
-                        (lam thunk Unit True)
-                      ]
-                      Unit
+                      { [ Bool_match ds ] (fun Unit Bool) }
+                      (lam thunk Unit False)
                     ]
-                  )
-                ]
-                Unit
-              ]
-            )
-          )
-        )
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl andDirect (fun Bool (fun Bool Bool)))
-            (lam
-              ds
-              Bool
-              (lam
-                ds
-                Bool
-                [
-                  [ nandDirect [ [ nandDirect ds ] ds ] ]
-                  [ [ nandDirect ds ] ds ]
+                    (lam thunk Unit True)
+                  ]
+                  Unit
                 ]
               )
-            )
-          )
-          [ [ andDirect True ] False ]
+            ]
+            Unit
+          ]
         )
       )
     )
+    (termbind
+      (strict)
+      (vardecl andDirect (fun Bool (fun Bool Bool)))
+      (lam
+        ds
+        Bool
+        (lam
+          ds
+          Bool
+          [ [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ] ]
+        )
+      )
+    )
+    [ [ andDirect True ] False ]
   )
 )

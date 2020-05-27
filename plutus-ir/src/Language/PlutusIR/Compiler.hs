@@ -1,12 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Language.PlutusIR.Compiler (
     compileTerm,
-    compileProgram,
-    simplifyTerm,
+    compileToReadable,
+    compileReadableToPlc,
     Compiling,
     Error (..),
     AsError (..),
     Provenance (..),
+    noProvenance,
     CompilationOpts,
     coOptimize,
     defaultCompilationOpts,
@@ -23,6 +24,7 @@ import           Language.PlutusIR.Compiler.Lower
 import           Language.PlutusIR.Compiler.Provenance
 import           Language.PlutusIR.Compiler.Types
 import qualified Language.PlutusIR.Optimizer.DeadCode        as DeadCode
+import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
 import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
 import           Language.PlutusIR.Transform.Rename          ()
 import qualified Language.PlutusIR.Transform.ThunkRecursions as ThunkRec
@@ -36,15 +38,30 @@ import           Control.Monad.Reader
 simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name uni b -> m (Term TyName Name uni b)
 simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
 
--- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m e uni a => Term TyName Name uni a -> m (PLCTerm uni a)
-compileTerm =
+-- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
+-- Note: It assumes globally unique names
+floatTerm :: (MonadReader (CompilationCtx a) m, Semigroup b) => Term TyName Name uni b -> m (Term TyName Name uni b)
+floatTerm = runIfOpts (pure . LetFloat.floatTerm)
+
+-- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
+-- We stop momentarily here to give a chance to the tx-plugin
+-- to dump a "readable" version of pir (i.e. floated).
+compileToReadable :: (PLC.MonadQuote m, MonadReader (CompilationCtx a) m, Ord b)
+                  => Term TyName Name uni b -> m (Term TyName Name uni (Provenance b))
+compileToReadable =
     (pure . original)
     >=> simplifyTerm
     >=> (pure . ThunkRec.thunkRecursions)
-    -- We need globally unique names for compiling non-strict bindings away
+    -- We need globally unique names for floating and compiling non-strict bindings away
     >=> PLC.rename
-    >=> NonStrict.compileNonStrictBindings
+    >=> floatTerm
+
+-- | The 2nd half of the PIR compiler pipeline.
+-- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language construsts to PLC.
+-- Note: the result *does* have globally unique names.
+compileReadableToPlc :: Compiling m e uni a => Term TyName Name uni (Provenance a) -> m (PLCTerm uni a)
+compileReadableToPlc =
+    NonStrict.compileNonStrictBindings
     >=> Let.compileLets Let.Types
     >=> Let.compileLets Let.RecTerms
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
@@ -53,6 +70,7 @@ compileTerm =
     >=> Let.compileLets Let.NonRecTerms
     >=> lowerTerm
 
--- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m e uni a => Program TyName Name uni a -> m (PLC.Program TyName Name uni (Provenance a))
-compileProgram (Program a t) = PLC.Program (Original a) (PLC.defaultVersion (Original a)) <$> compileTerm t
+
+--- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
+compileTerm :: Compiling m e uni a => Term TyName Name uni a -> m (PLCTerm uni a)
+compileTerm = compileToReadable >=> compileReadableToPlc

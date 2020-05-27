@@ -1,23 +1,17 @@
 (program
   (let
     (nonrec)
+    (termbind (strict) (vardecl emptyByteString (con bytestring)) (con #))
     (termbind
       (strict)
       (vardecl monoId (fun (con bytestring) (con bytestring)))
       (lam x (con bytestring) x)
     )
-    (let
-      (nonrec)
-      (termbind (strict) (vardecl emptyByteString (con bytestring)) (con #))
-      (let
-        (nonrec)
-        (termbind
-          (nonstrict)
-          (vardecl aByteString (con bytestring))
-          [ monoId emptyByteString ]
-        )
-        aByteString
-      )
+    (termbind
+      (nonstrict)
+      (vardecl aByteString (con bytestring))
+      [ monoId emptyByteString ]
     )
+    aByteString
   )
 )

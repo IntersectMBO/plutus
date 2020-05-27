@@ -13,8 +13,12 @@ module PSGenerator
     ( generate
     ) where
 
+import           Control.Applicative                               ((<|>))
+import           Control.Lens                                      (set, (&))
+import           Control.Monad                                     (void)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Proxy                                        (Proxy (Proxy))
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints, EndpointDescription, EndpointValue)
@@ -22,9 +26,16 @@ import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyReq
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
 import           Language.Plutus.Contract.Effects.WriteTx          (PendingTransactions, WriteTxResponse)
+import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
+                                                                    buildBridge, equal, genericShow, mkSumType, order,
+                                                                    writePSTypesWith)
+import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
+                                                                    unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters         (A)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
-import qualified Ledger.Index                                      as Index
+import           Plutus.SCB.Core                                   (activateContract, installContract)
+import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
+import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
 import           Plutus.SCB.Events                                 (ChainEvent)
 import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
                                                                     ContractInstanceState, ContractIteration,
@@ -33,29 +44,23 @@ import           Plutus.SCB.Events.Contract                        (ContractEven
 import           Plutus.SCB.Events.Node                            (NodeEvent)
 import           Plutus.SCB.Events.User                            (UserEvent)
 import           Plutus.SCB.Events.Wallet                          (WalletEvent)
+import           Plutus.SCB.MockApp                                (defaultWallet, syncAll)
+import qualified Plutus.SCB.MockApp                                as MockApp
 import           Plutus.SCB.Types                                  (ContractExe)
-import qualified PSGenerator.Common
-import           System.FilePath                                   ((</>))
-
-import           Control.Applicative                               ((<|>))
-import           Control.Lens                                      (set, (&))
-import           Data.Proxy                                        (Proxy (Proxy))
-import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
-                                                                    buildBridge, equal, genericShow, mkSumType, order,
-                                                                    writePSTypesWith)
-import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
-                                                                    unwrapSingleConstructors)
 import qualified Plutus.SCB.Webserver.API                          as API
-import           Plutus.SCB.Webserver.Types                        (FullReport (FullReport), annotatedBlockchain,
-                                                                    events, latestContractStatus, transactionMap,
-                                                                    utxoIndex, walletMap)
+import qualified Plutus.SCB.Webserver.Server                       as Webserver
+import           Plutus.SCB.Webserver.Types                        (ContractSignatureResponse, FullReport)
+import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
                                                                     writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           System.FilePath                                   ((</>))
+import qualified Wallet.Emulator.Chain                             as Chain
 
 myBridge :: BridgePart
 myBridge =
-    PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
+    PSGenerator.Common.aesonBridge <|>
+    PSGenerator.Common.containersBridge <|>
     PSGenerator.Common.languageBridge <|>
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
@@ -73,18 +78,23 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
     PSGenerator.Common.ledgerTypes <>
+    PSGenerator.Common.playgroundTypes <>
     PSGenerator.Common.walletTypes <>
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PartiallyDecodedResponse)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
+    , (equal <*> (genericShow <*> mkSumType))
+          (Proxy @(ContractSignatureResponse A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @PartiallyDecodedResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractIteration)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractMailbox)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @MailboxMessage)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
@@ -101,7 +111,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @PendingTransactions)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @MailboxMessage)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
     ]
 
@@ -113,18 +122,27 @@ mySettings =
 ------------------------------------------------------------
 writeTestData :: FilePath -> IO ()
 writeTestData outputDir = do
-    let fullReport :: FullReport ContractExe =
-            FullReport
-                { latestContractStatus = mempty
-                , events = mempty
-                , transactionMap = mempty
-                , utxoIndex = Index.initialise mempty
-                , annotatedBlockchain = mempty
-                , walletMap = mempty
-                }
+    (fullReport, currencySchema) <-
+        MockApp.runScenario $ do
+            result <-
+                agentAction defaultWallet $ do
+                    installContract @TestContracts Currency
+                    installContract @TestContracts Game
+                    currencyInstance <- activateContract Currency
+                    void $ activateContract Game
+                    report :: FullReport TestContracts <- Webserver.fullReport
+                    schema :: ContractSignatureResponse TestContracts <-
+                        Webserver.contractSchema currencyInstance
+                    pure (report, schema)
+            syncAll
+            void Chain.processBlock
+            pure result
     BSL.writeFile
         (outputDir </> "full_report_response.json")
         (JSON.encodePretty fullReport)
+    BSL.writeFile
+        (outputDir </> "contract_schema_response.json")
+        (JSON.encodePretty currencySchema)
 
 ------------------------------------------------------------
 generate :: FilePath -> IO ()

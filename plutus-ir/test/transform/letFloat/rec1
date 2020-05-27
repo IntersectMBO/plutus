@@ -1,0 +1,17 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl i2 (con integer)) (con 3))
+  (let
+    (rec)
+    (termbind (strict) (vardecl j (con integer)) [(builtin addInteger) (con 3) k])
+    (termbind (strict) (vardecl k (con integer)) [(builtin addInteger) (con 3) j])
+    (let
+      (nonrec)
+      (termbind (strict)
+         (vardecl i1 (con integer))
+            [ [ (builtin addInteger) k ] (con 3) ]
+       )
+       [ [ (builtin addInteger) (con 5) ] [ [ (builtin addInteger) j ] i2 ] ]
+    )
+  )
+)

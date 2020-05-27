@@ -1,22 +1,23 @@
 module View (render) where
 
-import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
-import Plutus.SCB.Types (ContractExe(..))
+import Playground.Lenses
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, cardBody_, cardHeader_, card_, col10_, col12_, col3_, col8_, col9_, container_, nbsp, row_)
+import Bootstrap (badge, badgePrimary, cardBody_, cardHeader_, card_, col10_, col12_, col2_, col5_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus)
 import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array as Array
-import Data.Json.JsonMap (JsonMap, _JsonMap)
+import Data.FunctorWithIndex (mapWithIndex)
+import Data.Json.JsonMap (JsonMap(..))
+import Data.Json.JsonUUID (_JsonUUID)
 import Data.Lens (to, traversed, view)
 import Data.Lens.Extra (toArrayOf)
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
 import Data.RawJson as RawJson
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple)
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
@@ -28,13 +29,19 @@ import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData(..))
+import Playground.Schema (actionArgumentForm)
+import Playground.Types (_EndpointName, _FunctionSchema)
 import Plutus.SCB.Events (ChainEvent(..))
+import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
 import Plutus.SCB.Events.Node (NodeEvent(..))
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
-import Plutus.SCB.Webserver.Types (FullReport(..))
+import Plutus.SCB.Types (ContractExe(..))
+import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport(..))
 import Prelude (class Eq, class Show, otherwise, show, ($), (+), (<$>), (<<<), (<>), (==))
-import Types (HAction(..), State(State), _contractInstanceId, _csCurrentState, _hooks)
+import Schema.Types (Signatures, SimulationAction, FormArgument, mkInitialValue, toArgument)
+import Types (HAction(..), State(State), WebData, _contractInstanceId, _csContract, _csCurrentState, _hooks)
+import Validation (_arguments)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 
@@ -42,71 +49,107 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { chainState, fullReport }) =
+render (State { chainState, fullReport, contractSignatures }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ div_
             $ case fullReport of
-                Success report -> [ fullReportPane chainState report ]
+                Success report -> [ fullReportPane chainState contractSignatures report ]
                 Failure error -> [ ajaxErrorPane error ]
                 Loading -> [ icon Spinner ]
                 NotAsked -> [ icon Spinner ]
         ]
     ]
 
-fullReportPane :: forall p. Chain.State -> FullReport ContractExe -> HTML p HAction
-fullReportPane chainState fullReport@(FullReport { events, latestContractStatus, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
+fullReportPane ::
+  forall p.
+  Chain.State ->
+  Map ContractInstanceId (WebData (ContractSignatureResponse ContractExe)) ->
+  FullReport ContractExe ->
+  HTML p HAction
+fullReportPane chainState contractSignatures fullReport@(FullReport { events, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
   row_
-    [ col10_ [ contractStatusPane latestContractStatus ]
+    [ col10_ [ contractStatusesPane contractSignatures latestContractStatuses ]
     , col12_ [ ChainAction <<< Just <$> annotatedBlockchainPane chainState walletMap annotatedBlockchain ]
     , col12_ [ eventsPane events ]
     , col8_ [ transactionPane transactionMap ]
     , col8_ [ utxoIndexPane utxoIndex ]
     ]
 
-contractStatusPane :: forall p i. JsonMap ContractInstanceId (ContractInstanceState ContractExe) -> HTML p i
-contractStatusPane latestContractStatus =
+contractStatusesPane ::
+  forall p t.
+  Map ContractInstanceId (WebData (ContractSignatureResponse t)) ->
+  Array (ContractInstanceState t) ->
+  HTML p HAction
+contractStatusesPane contractSignatures latestContractStatuses =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ div_
-            ( ( \(Tuple k v) ->
-                  row_
-                    [ col3_ [ h3_ [ text $ view (_contractInstanceId <<< to UUID.toString) k ] ]
-                    , col9_ [ pre_ [ text $ RawJson.pretty $ view (_csCurrentState <<< _hooks) v ] ]
-                    ]
-              )
-                <$> (Map.toUnfoldable $ unwrap latestContractStatus :: Array (Tuple ContractInstanceId (ContractInstanceState ContractExe)))
-            )
-        ]
+        [ InvokeContractEndpoint <$> div_ (contractStatusPane contractSignatures <$> latestContractStatuses) ]
     ]
 
+contractStatusPane ::
+  forall p t.
+  Map ContractInstanceId (WebData (ContractSignatureResponse t)) ->
+  ContractInstanceState t -> HTML p SimulationAction
+contractStatusPane contractSignatures contractInstance =
+  row_
+    [ col2_ [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ] ]
+    , col5_ [ pre_ [ text $ RawJson.pretty $ view (_csCurrentState <<< _hooks) contractInstance ] ]
+    , col5_
+        $ case Map.lookup (view _csContract contractInstance) contractSignatures of
+            Just (Success (ContractSignatureResponse signature)) -> [ foo signature ]
+            Just (Failure err) -> [ ajaxErrorPane err ]
+            Just Loading -> [ icon Spinner ]
+            Just NotAsked -> []
+            Nothing -> []
+    ]
+
+foo :: forall p. Signatures -> HTML p SimulationAction
+foo signatures =
+  let
+    initialValue = mkInitialValue [] 0
+  in
+    div_
+      ( mapWithIndex
+          ( \index sig ->
+              let
+                formArguments :: Array FormArgument
+                formArguments = toArgument initialValue <$> view (_FunctionSchema <<< _arguments) sig
+              in
+                card_
+                  [ cardHeader_ [ h2_ [ text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) sig ] ]
+                  , cardBody_ [ actionArgumentForm index formArguments ]
+                  ]
+          )
+          signatures
+      )
+
 annotatedBlockchainPane :: forall p. Chain.State -> JsonMap PubKeyHash Wallet -> Array (Array AnnotatedTx) -> HTML p ChainFocus
-annotatedBlockchainPane chainState walletMap chain =
+annotatedBlockchainPane chainState (JsonMap walletMap) chain =
   card_
     [ cardHeader_
         [ h2_ [ text "Blockchain" ]
         ]
     , cardBody_
-        [ chainView chainState (unwrap walletMap) $ AnnotatedBlockchain chain
+        [ chainView chainState walletMap $ AnnotatedBlockchain chain
         ]
     ]
 
 transactionPane ::
   forall p i.
   JsonMap TxId Tx -> HTML p i
-transactionPane txMap =
+transactionPane (JsonMap txMap) =
   card_
     [ cardHeader_
         [ h2_ [ text "Txs" ]
         ]
     , cardBody_
         ( toArrayOf
-            ( _JsonMap
-                <<< traversed
+            ( traversed
                 <<< to (\x -> div_ [ code_ [ text $ show x ] ])
             )
             txMap
