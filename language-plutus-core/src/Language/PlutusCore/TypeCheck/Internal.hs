@@ -322,54 +322,45 @@ inferTypeOfBuiltinM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann n
 
 doTyArgs
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Type TyName uni ()
+    => BuiltinName
+    -> Type TyName uni ()
     -> [Type TyName uni ann]
     -> [Value TyName Name uni ann]
     -> [(TyName, Normalized (Type TyName uni ()))]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 
-doTyArgs (TyForall () tyname kind ty') (tyarg:tyargs) args mapping = do
+doTyArgs bn (TyForall () tyname kind ty') (tyarg:tyargs) args mapping = do
   checkKindM  (typeAnn tyarg) tyarg (void kind)
   tyarg' <- normalizeType (void tyarg)
-  doTyArgs ty' tyargs args ((tyname,tyarg'):mapping)
-doTyArgs (TyForall _ _tyname _kind _ty') [] _ _ = Prelude.error "Underinstantiated"
-doTyArgs ty' [] args mapping = doArgs ty' args mapping
-doTyArgs _  (_:_) _ _ = Prelude.error "Overinstantiated"  -- We've got a forall type but nowhere to instantiate it
+  doTyArgs bn ty' tyargs args ((tyname,tyarg'):mapping)
+doTyArgs bn (TyForall _ _tyname _kind _ty') [] _ _ = Prelude.error $ "Underinstantiated: " ++ show bn
+doTyArgs bn ty' [] args mapping = doArgs bn ty' args mapping
+doTyArgs bn _  (_:_) _ _ = Prelude.error $ "Overinstantiated: " ++ show bn -- We've got a forall type but nowhere to instantiate it
 
-{-
-instantiateTyVars
-    :: Normalized (Type TyName uni ())
-    -> [(TyName, Type TyName uni a)]
-    -> ReaderT
-       (TypeCheckEnv uni)
-       (ExceptT (TypeError uni ann) Quote)
-       (Normalized (Type TyName uni ()))
--}
---instantiateTyVars normty mapping =
---    foldM (\ty1 (name, newty) -> unNormalized $ substNormalizeTypeM newty name ty1) normty mapping
 
 doArgs
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Type TyName uni ()
+    => BuiltinName
+    -> Type TyName uni ()
     -> [Value TyName Name uni ann]
     -> [(TyName, Normalized (Type TyName uni ()))]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-doArgs ty [] mapping = do  -- no more arguments left, so substitute the type instantiations into the return type
+doArgs _ ty [] mapping = do  -- no more arguments left, so substitute the type instantiations into the return type
     let f ty1 (name, newty) = do
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
     ty' <- foldM f (void ty)  mapping  -- FIXME: still normalized after substitution?  Yes.
     tyr <- normalizeTypeM ty'
     return tyr
-doArgs (TyFun _ t1 t2) (arg:args) mapping =  do
+doArgs bn (TyFun _ t1 t2) (arg:args) mapping =  do
     let f ty1 (name, newty) = do
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
     t1' <- foldM f (void t1)  mapping  -- FIXME: still normalized after substitution?  Yes.
     t1'norm <- normalizeTypeM t1'
     checkTypeM (termAnn arg) arg t1'norm
-    doArgs t2 args mapping
-doArgs _ (_:_) _  = Prelude.error $ "Builtin overapplied"
+    doArgs bn t2 args mapping
+doArgs bn _ (_:_) _  = Prelude.error $ "Builtin overapplied: " ++ show bn
 -- Can we tell if it's underapplied?  Suppose we have bn: int -> int -> int
 -- Does it take one argument or two?
 
@@ -404,7 +395,7 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 
 inferTypeM (ApplyBuiltin ann bn tyargs args) = do
   ty <- inferTypeOfBuiltinM ann bn
-  rty <- doTyArgs (unNormalized ty) tyargs args []
+  rty <- doTyArgs bn (unNormalized ty) tyargs args []
   return rty
 --  FIXME: DO THIS PROPERLY
 

@@ -147,6 +147,7 @@ data Frame uni
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
     | FrameApplyBuiltin                                                          -- ^ @(builtin bn A V* _ M*)
+      (VarEnv uni)
       BuiltinName
       [Type TyName uni ExMemory]
       [Closure uni]                     -- Computed arguments as closures
@@ -235,12 +236,12 @@ computeCek ctx lamAbs@LamAbs{}     = returnCek ctx lamAbs
 computeCek ctx constant@Constant{} = returnCek ctx constant
 computeCek ctx t@(ApplyBuiltin ann bn tys []) = do
     spendBudget BIWrap t (ExBudget 1 1) -- FIXME:  BIWrap
-    applyBuiltin ann ctx bn tys []
+    varEnv <- getVarEnv
+    applyBuiltin varEnv ann ctx bn tys []
 computeCek ctx t@(ApplyBuiltin _ bn tys (arg:args)) = do
   spendBudget BIWrap t (ExBudget 1 1) -- FIXME:  BIWrap
-  computeCek (FrameApplyBuiltin bn tys [] args : ctx) arg
-
-
+  varEnv <- getVarEnv
+  withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args : ctx) arg
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
 computeCek ctx t@(Var _ varName)   = do
@@ -273,24 +274,25 @@ returnCek (FrameUnwrap : ctx) dat = case dat of
     IWrap _ _ _ term -> returnCek ctx term
     term             ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just (void term)
-returnCek (FrameApplyBuiltin bn tys closures terms : ctx) value = do
+returnCek (FrameApplyBuiltin env bn tys closures terms : ctx) value = do
     varEnv <- getVarEnv  -- closure for just-computed argument
     let cl = Closure varEnv value  -- closure for just-computed argument
     case terms of
-      []       -> applyBuiltin () ctx bn tys (cl:closures)
-      arg:args -> computeCek (FrameApplyBuiltin bn tys (cl:closures) args : ctx) arg
+      []       -> applyBuiltin env () ctx bn tys (reverse $ cl:closures) -- We've accumulated the argument closures in reverse
+      arg:args -> withVarEnv env $ computeCek (FrameApplyBuiltin env bn tys (cl:closures) args : ctx) arg
 
 applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-                 => ann
+                 => VarEnv uni
+                 -> ann
                  -> Context uni
                  -> BuiltinName
                  -> [Type TyName uni ExMemory]
                  -> [Closure uni]
                  -> CekM uni (Term TyName Name uni ())
-applyBuiltin ann ctx bn tys args =
-    let fixArgs = Prelude.map _closureValue . reverse
-        fixedArgs = fixArgs args
-    in  -- Debug.Trace.trace ("Calling " ++ show bn ++ " on " ++  show (length args) ++ " arguments") $
+applyBuiltin venv ann ctx bn tys args =
+    let fixArg (Closure env val) = val
+        fixedArgs = Prelude.map fixArg args
+    in
     do
       -- More careful for dynamic names?
       params <- builtinCostParams  -- FIXME: What are we doing with this?

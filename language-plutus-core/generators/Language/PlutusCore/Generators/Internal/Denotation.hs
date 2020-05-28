@@ -1,8 +1,10 @@
 -- | This module defines tools for associating PLC terms with their corresponding
 -- Haskell values.
 
+{-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeOperators             #-}
 
 module Language.PlutusCore.Generators.Internal.Denotation
@@ -10,6 +12,7 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , DenotationContextMember(..)
     , DenotationContext(..)
     , denoteVariable
+    , builtinNameToTerm
     , denoteTypedBuiltinName
     , insertVariable
     , insertTypedBuiltinName
@@ -20,7 +23,9 @@ import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
@@ -30,6 +35,8 @@ import           Data.Dependent.Map                                (DMap)
 import qualified Data.Dependent.Map                                as DMap
 import           Data.Functor.Compose
 import           Data.Proxy
+import           Data.Text                                         (append, pack)
+import           GHC.TypeLits
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation uni object res = forall args. Denotation
@@ -57,7 +64,7 @@ newtype DenotationContext uni = DenotationContext
     }
 
 -- Here the only search that we need to perform is the search for things that return an appropriate
--- @r@, be them variables or functions. Better if we also take types of arguments into account,
+-- @r@, be they variables or functions. Better if we also take types of arguments into account,
 -- but it is not required as we can always generate an argument out of thin air in a rank-0 setting
 -- (without @Void@).
 
@@ -71,17 +78,81 @@ typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK Proxy
 denoteVariable :: KnownType uni res => Name -> res -> Denotation uni Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
+
+
+{- The code below takes a type scheme of the form
+
+      forall a1 ... forall aK . ty1 -> ... -> tyN -> resultTy
+
+   (possibly K and/or N are 0) and returns lists of TyVarDecls and
+   TyVars to be used to wrap a builtin application in a sequence of
+   lambda abstractions and type abstractions.  It actually returns a
+   Maybe, failing if the type scheme is of the wrong form.  This can
+   probably be done a lot more cleanly.
+-}
+type TypeComponents uni = ([TyVarDecl TyName ()], [VarDecl TyName Name uni ()])
+
+splitTypeScheme :: TypeScheme uni args res -> Quote (Maybe (TypeComponents uni))
+splitTypeScheme = split1 []
+    where mkVd :: Type TyName uni () -> Quote (VarDecl TyName Name uni ())
+          mkVd ty = do
+            u <- freshUnique
+            let argname = Name (append (pack "arg") (pack . show . unUnique $ u)) u
+            -- FIXME: this is making the unique explicit in the
+            -- variable name, since otherwise `plc example` gives you
+            -- examples where builtins take lots of arguments with the
+            -- same name.
+            pure $ VarDecl () argname ty
+
+          split1 :: [TyVarDecl TyName ()] -> TypeScheme uni args res -> Quote (Maybe (TypeComponents uni))
+          split1 tvds (TypeSchemeResult _)           = pure $ Just (reverse tvds, []) -- Only type variables, no types
+          split1 tvds (TypeSchemeArrow tyA schB)     = do
+            vd <- mkVd $ toTypeAst tyA
+            split2 tvds [vd] schB  -- At the end of the type variables, look for types
+          split1 tvds (TypeSchemeAllType proxy schK) = -- Found a type variable
+              case proxy of
+                (_ :: Proxy '(text, uniq)) ->
+                    let text = pack $ symbolVal @text Proxy
+                        uniq = fromIntegral $ natVal @uniq Proxy  -- Can we just make a new unique here?
+                        a    = TyName $ Name text $ Unique uniq
+                        tvd = TyVarDecl () a (Type ()) -- FIXME: will we ever need a higher kind here?
+                    in split1 (tvd : tvds) (schK Proxy)
+
+          split2 :: [TyVarDecl TyName ()] -> [VarDecl TyName Name uni ()] -> TypeScheme uni args res -> Quote (Maybe (TypeComponents uni))
+          split2 tvds vds (TypeSchemeResult _)       = pure $ Just (reverse tvds, reverse vds)  -- Nothing left
+          split2 tvds vds (TypeSchemeArrow tyA schB) = do  -- Found a type
+            vd <- mkVd $ toTypeAst tyA
+            split2 tvds (vd : vds) schB
+          split2 _ _ (TypeSchemeAllType _ _ )         = pure Nothing  -- Found a type variable after a type
+
+{- Since built-in names don't make sense on their own, we produce a term
+   which wraps the name in a sequence of abstractions and lambdas and
+   then applies the name to the relevant types and variables. This
+   isn't ideal, but it does what's required for testing.
+
+   Problem: when we call splitTypeScheme it generates uniques, but
+   every time we call it it starts again at 0.  This can cause
+   problems if we have nested applications of builtins (I think this
+   happens in the `IfIntegers` example, causing `plc example -a` to
+   fail occasionally).  [Although looking at it again, maybe that's
+   not what's causing the problem.]
+
+   Do we have to make lots more stuff run in the Quote monad to fix this?
+-}
+builtinNameToTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
+builtinNameToTerm scheme name =
+    case runQuote $ splitTypeScheme scheme of
+      Nothing -> Prelude.error "Malformed type scheme in denoteTypedBuiltinName"  -- FIXME: proper error.
+      Just (tvds, vds) ->
+          let tyArgs     = map (TyVar () . tyVarDeclName) tvds
+              termArgs   = map (Var () . varDeclName) vds
+          in mkIterTyAbs tvds (mkIterLamAbs vds (ApplyBuiltin () (StaticBuiltinName name) tyArgs termArgs))
+
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName
     :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni StaticBuiltinName res
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name  (error $ "called (denoteTypedBuiltinName " ++ show name ++ ")") meta scheme
--- FIXME: we can't have a denotation here any more because builtin names aren't terms now.
-
-{- Given bn with signature {ty1 ... tyM} arg1 ... argN
-   we need to produce
-   Abs (ty1 :: *) . Abs (ty2 :: *) ... Abs (tyM :: *) . lam (arg1 : ?) . lam (arg2 : ?) ... . lam (argN : ?) . ApplyBuiltin [ty1, ..., tyM] [arg1, ..., argN]
--}
+    Denotation name (builtinNameToTerm scheme) meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation

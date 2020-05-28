@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
+{-# OPTIONS_GHC -fno-warn-unused-top-binds -fno-warn-redundant-constraints #-}
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)
@@ -57,7 +58,7 @@ genOverapplication = do
         integer = toTypeAst typedInteger
     TermOf ti i <- genTypedBuiltinDef typedInteger
     TermOf tj j <- genTypedBuiltinDef typedInteger
-    let term =  mkStaticBuiltinApp IfThenElse  [TyFun () integer $ TyFun () integer integer]
+    let term =  mkStaticBuiltinApp IfThenElse [integer]
                      [ mkStaticBuiltinApp LessThanInteger [] [ti, tj]
                      , mkStaticBuiltinApp AddInteger [] [ti,tj]
                      , mkStaticBuiltinApp SubtractInteger [] [ti,tj]
@@ -88,6 +89,7 @@ factorial = runQuote $ do
 -- >                         (rec (subtractInteger i 1))
 -- >                         (rec (subtractInteger i 2)))
 -- >         i0
+
 naiveFib :: uni `IncludesAll` '[Integer, (), Bool] => Integer -> Term TyName Name uni ()
 naiveFib iv = runQuote $ do
     i0  <- freshName "i0"
@@ -103,9 +105,9 @@ naiveFib iv = runQuote $ do
               $ mkIterApp () (TyInst () ifThenElse intS)
                   [ mkStaticBuiltinApp LessThanEqInteger [] [Var () i, mkConstant @Integer () 1]
                   , LamAbs () u unit $ Var () i
-                  , LamAbs () u unit $ mkStaticBuiltinApp AddInteger []
-                      [ Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 1]
-                      , Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 2]
+                  , LamAbs () u unit $ mkStaticBuiltinApp AddInteger [] [
+                          Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 1]
+                        , Apply () (Var () rec) $ mkStaticBuiltinApp SubtractInteger [] [Var () i, mkConstant @Integer () 2]
                       ]
                   ]
             , Var () i0
@@ -190,40 +192,43 @@ genIfIntegers = do
                 [b, instConst i, instConst j]
     return $ TermOf term value
 
--- | Check that builtins can be partially applied.
--- FIXME: not any more
+{- FIXME: ApplyAdd1 and AppyAdd2 no longer do what they're supposed to.
+   Originally they checked that builtins could be partially applied,
+   but now they check that a builtin wrapped in lambdas can be
+   partially applied, which isn't really what we want.  (Also,
+   subtraction might be a better example because addition could be
+   getting the arguments the worng way round somewhere, and it wouldn't
+   show up because addition is commutative.)
+-}
+           
 genApplyAdd1 :: Generatable uni => TermGen uni Integer
-genApplyAdd1 = undefined
-{- do
+genApplyAdd1 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
+        TypedBuiltinName name scheme = typedAddInteger
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [int, int])
-                [ Apply () (staticBuiltinNameAsTerm AddInteger) i
+            mkIterApp () (mkIterInst () applyFun [int, int])    -- [{ApplyFun int int} [addInteger i] j]
+                [ Apply () (builtinNameToTerm scheme name) i
                 , j
                 ]
     return . TermOf term $ iv + jv
--}
 
--- | Check that builtins can be partially applied.
--- FIXME: not any more
 genApplyAdd2 :: Generatable uni => TermGen uni Integer
-genApplyAdd2 = undefined
-{- do
+genApplyAdd2 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
+        TypedBuiltinName name scheme = typedAddInteger
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
-                [ staticBuiltinNameAsTerm AddInteger
+            mkIterApp () (mkIterInst () applyFun [int, TyFun () int int]) -- [[[{ApplyFun int (fun int int)} addInteger] i] j] 
+                [ builtinNameToTerm scheme name
                 , i
                 , j
                 ]
     return . TermOf term $ iv + jv
--}
 
 
 -- | Check that division by zero results in 'Error'.
@@ -258,8 +263,8 @@ fromInterestingTermGens f =
     , f "NatRoundTrip"     genNatRoundtrip
     , f "ListSum"          genListSum
     , f "IfIntegers"       genIfIntegers
----    , f "ApplyAdd1"        genApplyAdd1   -- FIXME
---    , f "ApplyAdd2"        genApplyAdd2   -- FIXME
+    , f "ApplyAdd1"        genApplyAdd1
+    , f "ApplyAdd2"        genApplyAdd2
     , f "DivideByZero"     genDivideByZero
     , f "DivideByZeroDrop" genDivideByZeroDrop
     ]

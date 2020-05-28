@@ -224,8 +224,7 @@ enumFromTo = runQuote $ do
     rec <- freshName "rec"
     n'  <- freshName "n'"
     u   <- freshName "u"
-    let gtInteger = StaticBuiltinName GreaterThanInteger
-        int = mkTyBuiltin @Integer ()
+    let int = mkTyBuiltin @Integer ()
         listInt = TyApp () list int
     return
         . lamAbs () n int
@@ -234,7 +233,7 @@ enumFromTo = runQuote $ do
         $ [   lamAbs () rec (TyFun () int listInt)
             . lamAbs () n' int
             . mkIterApp () (tyInst () ifThenElse listInt)
-            $ [ applyBuiltin () gtInteger [] [var () n' , var () m]
+            $ [ mkStaticBuiltinApp GreaterThanInteger [] [ var () n' , var () m]
               , lamAbs () u unit $ tyInst () nil int
               , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
                     [ var () n'
