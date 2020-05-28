@@ -19,10 +19,10 @@
 \begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}          & \textrm{left application}\\
-                       &   &     & \inAppRightFrame{C}            & \textrm{right application}\\
-                       &   &     & \inBuiltinU{bn}{C^*}{\_}{M^*}  & \textrm{builtin application}\\
-                       &   &     & \inForceFrame                  & \textrm{force}
+        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}                  & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{C}                    & \textrm{right application}\\
+                       &   &     & (\inBuiltinU{bn}{C^*}{\_}{M^*}, \rho)  & \textrm{builtin application}\\
+                       &   &     & \inForceFrame                          & \textrm{force}
     \end{array}\]
     \caption{Grammar of reduction frames for type-erased Plutus Core}
     \label{fig:untyped-cek-reduction-frames}
@@ -47,18 +47,18 @@
   s;\rho & \compute \appU{M}{N}                       &~\mapsto~& s,\inAppLeftFrame{N};\rho \compute M\\
   s;\rho & \compute \builtinU{bn}{\!\!}               &~\mapsto~& s;\rho \compute M
                                                  \enspace (\textit{$bn$ computes to $M$}) \\
-  s;\rho & \compute \builtinU{bn}{M \repetition{M}}   &~\mapsto~& s,\inBuiltinU{bn}{}{\_}{\repetition{M}};\rho \compute M\\
+  s;\rho & \compute \builtinU{bn}{M \repetition{M}}   &~\mapsto~& s,(\inBuiltinU{bn}{}{\_}{\repetition{M}}, \rho);\rho \compute M\\
   s;\rho & \compute \errorU                           &~\mapsto~& \ckerror{}\\
   \\[-10pt] %% Put some vertical space between compute and return rules, but not a whole line
   \cdot & \return V                              &~\mapsto~& \square (V,\rho)\\
   s,\inAppLeftFrame{N};\rho& \return V               &~\mapsto~& s,\inAppRightFrame{V};\rho \compute N\\
   \blue{s,\inAppRightFrame{(\lam{x}{A}{M}, \rho^{\prime})}; \rho} &\breturn V &~\bmapsto~& \blue{s;\rho^{\prime}[x\mapsto (V,\rho)] \compute M}\\  %% Modified
   s,\inForceFrame{};\rho & \return \delay{M}          &~\mapsto~& s;\rho \compute M\\
-  s,\inBuiltinU{bn}{\repetition{C}}{\_}{M \repetition{M}};\rho & \return V
-                                                 &~\mapsto~& s,\inBuiltinU{bn}{\repetition{C}(V,\rho)}{\_}{\repetition{M}};\rho
+  s,(\inBuiltinU{bn}{\repetition{C}}{\_}{M \repetition{M}}, \rho^{\prime});\rho & \return V
+                                                 &~\mapsto~& s,(\inBuiltinU{bn}{\repetition{C}(V,\rho)}{\_}{\repetition{M}}, \rho^{\prime});\rho^{\prime}
                                                  \compute M\\
-  s,\inBuiltinU{bn}{\repetition{C}}{\_}{};\rho & \return V
-                                                 &~\mapsto~&  s;\rho \compute M
+  s,(\inBuiltinU{bn}{\repetition{C}}{\_}{}, \rho^{\prime});\rho & \return V
+                                                 &~\mapsto~&  s;\rho^{\prime} \compute M
                                                  \enspace (\textit{$bn$ computes on $\repetition{C}(V,\rho)$ to $M$})\\
     \end{alignat*}
 \end{minipage}

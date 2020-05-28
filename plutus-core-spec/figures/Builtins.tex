@@ -113,12 +113,12 @@
         \\
         \texttt{emptyByteString}   &   \sig{}{}{\str}   &   - & -   & \text{the empty bytestring} & \\
         %&&\\
-        \texttt{concatenate}   &   \sig{}{\str,\str}{\str}   &   - & b_0 , b_1   & b_0\cdot  b_1 & \\
+        \texttt{concatenate}   &   \sig{}{\str,\str}{\str}   &   - & b_1 , b_2   & b_1\cdot  b_2 & \\
         %&&\\
 
-        \texttt{equalsByteString}       &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 == b_1\\
-        \texttt{lessThanByteString}     &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 < b_1\\
-        \texttt{greaterThanByteString}  &   \sig{}{\str,\str}{\boolean}   & - & b_0 , b_1 & b_0 > b_1\\
+        \texttt{equalsByteString}       &   \sig{}{\str,\str}{\boolean}   & - & b_1 , b_2 & b_1 == b_2\\
+        \texttt{lessThanByteString}     &   \sig{}{\str,\str}{\boolean}   & - & b_1 , b_2 & b_1 < b_2\\
+        \texttt{greaterThanByteString}  &   \sig{}{\str,\str}{\boolean}   & - & b_1 , b_2 & b_1 > b_2\\
         \texttt{takeByteString}         &   \sig{}{\integer,\str}{\str}   & - &   i, b    & \texttt{take} \ i \  b\\
         \texttt{dropByteString}         &   \sig{}{\integer,\str}{\str}   & - &   i, b    & \texttt{drop} \ i \  b\\
         %&&\\
