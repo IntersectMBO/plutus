@@ -35,7 +35,7 @@
   s & \compute \app{M}{N}                   &~\mapsto~&  s,\inAppLeftFrame{N} \compute M\\
   s & \compute \builtin{bn}{\repetition{A}}{\!\!}
                                             &~\mapsto~&  s \compute M
-                                            \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}})\\
+                                            \quad (\textit{$bn$ computes on $\repetition{A}$ to $M$ according to Fig.~\ref{fig:builtins}}\,)\\
   s & \compute \builtin{bn}{\repetition{A}}{M \repetition{M}}
                                             &~\mapsto~&  s,\inBuiltin{bn}{\repetition{A}}{}{\_}{\repetition{M}} \compute M\\
   s & \compute \error{A}                    &~\mapsto~&  \ckerror{}\\
@@ -54,7 +54,7 @@
   s,\inBuiltin{bn}{\repetition{A}}{\repetition{V}}{\_}{} &\return V
                                             &~\mapsto~& s \compute M
                                               \quad (\textit{$bn$ computes on $\repetition{A}$ and $\repetition{V}V$
-                                              to $M$ according to Fig.~\ref{fig:builtins}})\\
+                                              to $M$ \textup{(}Fig.~\ref{fig:builtins}\,\textup{)}})\\
     \end{alignat*}
 \end{minipage}
     \caption{CK machine transitions}
