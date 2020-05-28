@@ -11,6 +11,9 @@ where
 import           Language.Marlowe.ACTUS.STF.StateTransitionLp
 import           Language.Marlowe.ACTUS.POF.PayoffLp
 import           Language.Marlowe.ACTUS.Control
+import           Language.Marlowe.ACTUS.Ops
+import           Language.Marlowe.ACTUS.Schedule
+import           Language.Marlowe.ACTUS.ProjectedCashFlows
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Data.String                    ( IsString(fromString) )
 import           Language.Marlowe
@@ -36,8 +39,12 @@ genLpContract terms t continue =
         $ stateTransitionLp terms t
         $ Let (expectedPayoffAt t) (payoffLp terms t)
         $ lpValidator t
-        $ invoice "party" "counterparty" (UseValue $ payoffAt t)
+        $ invoice "party" "counterparty" (UseValue $ payoffAt t) 1000000
         $ continue
 
 genStaticContract :: ContractTerms -> Contract
-genStaticContract = undefined
+genStaticContract terms = 
+    let
+        cfs = genProjectedCashflows terms
+        gen CashFlow{..} = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
+    in foldl (flip gen) Close cfs

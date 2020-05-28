@@ -36,8 +36,8 @@ type Continuation = Contract
 type EventInitiatorPartyId = Integer
 
 --todo check roleSign, enforce a date
-invoice :: From -> To -> Amount -> Continuation -> Contract
-invoice from to amount continue =
+invoice :: From -> To -> Amount -> Slot -> Continuation -> Contract
+invoice from to amount timeout continue =
     let party        = Role $ TokenName $ fromString from
         counterparty = Role $ TokenName $ fromString to
     in  When
@@ -50,7 +50,7 @@ invoice from to amount continue =
                        continue
                   )
             ]
-            1000000000
+            timeout
             Close
 
 --roleSign :: TimePostfix -> String -> MarloweBool
@@ -129,12 +129,13 @@ genContract = inquiry "" "party" 0 "oracle" $ invoice
     "party"
     "counterparty"
     (UseValue $ ValueId (fromString "payoff"))
+    1000000000
     Close
 
 --The logic below happens inside a smart-contract--
 
 parseDouble :: Integer -> Double
-parseDouble int = (fromIntegral int) / marloweFixedPoint
+parseDouble int = fromIntegral int / marloweFixedPoint
 
 
 appendPresentState :: State -> State

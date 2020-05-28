@@ -53,4 +53,3 @@ genProjectedCashflows terms =
         genCashflow <$> L.zip states payoffs
 
 
-
