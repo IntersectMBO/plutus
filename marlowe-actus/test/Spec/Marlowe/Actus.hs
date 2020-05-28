@@ -6,7 +6,7 @@ where
 import           Language.Marlowe.ACTUS.Control
 import           Language.Marlowe.ACTUS.ControlLp
 import           Language.Marlowe.Semantics
---import           Language.Marlowe.Pretty
+import           Language.Marlowe.Pretty
 import           Language.Marlowe.ACTUS.ContractTerms
 import           Language.Marlowe.ACTUS.ContractState
 import           Language.Marlowe.ACTUS.BusinessEvents
@@ -23,9 +23,11 @@ import           Ledger.Ada                 (adaSymbol, adaToken)
 tests :: TestTree
 tests = testGroup "Actus"
     [ testCase "PAM static schedule" pamProjected
+    , testCase "PAM static contract" pamStatic
     , testCase "Simple PAM contract + Marlowe IO" pamSimple
     , testCase "Simple PAM contract" pamRePlay
     , testCase "Generate PAM-LP" pamLpGeneration
+
     ]
 
 ada :: Token
@@ -111,6 +113,13 @@ pamProjected = do
     assertBool "Cashflows should not be empty" (not cfsEmpty) --trace ("Projected CashFlows: " ++ (show cfs))
     return ()
 
+pamStatic :: IO ()
+pamStatic = do 
+    let contract = genStaticContract contractTerms 
+    --print $ pretty contract
+    assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
+    return ()
+
 
 pamRePlay :: IO ()
 pamRePlay = do 
@@ -155,6 +164,6 @@ pamSimple = do
 pamLpGeneration :: IO ()
 pamLpGeneration = do
     let pamLp = genLpContract contractTerms 1 Close
-    --putStrLn (show $ pretty pamLp)
+    -- print $ pretty pamLp
     assertBool "Contract Generated" $ pamLp /= Close
 

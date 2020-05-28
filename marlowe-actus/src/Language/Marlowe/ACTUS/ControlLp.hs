@@ -40,7 +40,7 @@ genLpContract terms t continue =
         $ Let (expectedPayoffAt t) (payoffLp terms t)
         $ lpValidator t
         $ invoice "party" "counterparty" (UseValue $ payoffAt t) 1000000
-        $ continue
+        continue
 
 genStaticContract :: ContractTerms -> Contract
 genStaticContract terms = 
