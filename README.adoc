@@ -83,14 +83,15 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 ==== Specifications and design
 
-- https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
-- https://hydra.iohk.io/job/Cardano/plutus/docs.extended-utxo-spec.x86_64-linux/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report] (draft)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
 
 ==== Academic papers
 
-- https://hydra.iohk.io/job/Cardano/plutus/papers.unraveling-recursion.x86_64-linux/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/papers.system-f-in-agda.x86_64-linux/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/papers.eutxo.x86_64-linux/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
 
 == Where to go next
 

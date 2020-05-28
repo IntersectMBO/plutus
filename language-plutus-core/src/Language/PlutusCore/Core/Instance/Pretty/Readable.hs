@@ -15,6 +15,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Pretty                      (PrettyConst)
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 
@@ -37,9 +38,9 @@ arrowPM a b =
 -- | Pretty-print a binding at the type level.
 typeBinderDoc
     :: ( MonadReader env m, HasPrettyConfigReadable env configName
-       , PrettyReadableBy configName (tyname a)
+       , PrettyReadableBy configName tyname
        )
-    => ((tyname a -> Kind a -> Doc ann) -> AnyToDoc (PrettyConfigReadable configName) ann -> Doc ann)
+    => ((tyname -> Kind a -> Doc ann) -> AnyToDoc (PrettyConfigReadable configName) ann -> Doc ann)
     -> m (Doc ann)
 typeBinderDoc k = do
     showKinds <- view $ prettyConfig . pcrShowKinds
@@ -54,7 +55,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
         Type{}          -> "*"
         KindArrow _ k l -> k `arrowPM` l
 
-instance (PrettyReadableBy configName (tyname a), GShow uni) =>
+instance (PrettyReadableBy configName tyname, GShow uni) =>
         PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
         TyApp _ fun arg           -> fun `applicationPM` arg
@@ -71,9 +72,9 @@ instance (PrettyReadableBy configName (tyname a), GShow uni) =>
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
 
 instance
-        ( PrettyReadableBy configName (tyname a)
-        , PrettyReadableBy configName (name a)
-        , GShow uni, Closed uni, uni `Everywhere` Pretty
+        ( PrettyReadableBy configName tyname
+        , PrettyReadableBy configName name
+        , GShow uni, Closed uni, uni `Everywhere` PrettyConst
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni a) where
     prettyBy = inContextM $ \case
         Constant _ con         -> unitDocM $ pretty con

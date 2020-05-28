@@ -11,7 +11,6 @@ You can edit this file as you like.
     , "effect"
     , "functions"
     , "halogen"
-    , "matryoshka"
     , "node-fs"
     , "numerics"
     , "string-parsers"
@@ -25,6 +24,7 @@ You can edit this file as you like.
     , "aff-coroutines"
     , "test-unit"
     , "undefinable"
+    , "uuid"
     ]
 , packages =
     ./packages.dhall
@@ -32,7 +32,6 @@ You can edit this file as you like.
     [ "src/**/*.purs"
     , "test/**/*.purs"
     , "generated/**/*.purs"
-    , "../web-common/src/**/*.purs"
-    , "../playground-common/src/**/*.purs"
+    , "../web-common/**/*.purs"
     ]
 }

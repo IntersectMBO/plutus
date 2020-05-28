@@ -1,0 +1,133 @@
+[#playground-overview]
+== The Marlowe Playground
+
+This tutorial gives an overview of the Marlowe Playground, an online
+tool that allows users to create, to analyse, to interact with and to simulate the 
+operation of
+embedded Marlowe contracts. It is available at {marloweplayground}.
+// https://alpha.marlowe.iohkdev.io/[https://alpha.marlowe.iohkdev.io/]
+
+
+
+=== Introducing the Marlowe Playground
+
+For Marlowe to be usable in practice, users need to be able to
+understand how contracts will behave once deployed to the blockchain,
+but without doing the deployment. We can do that by simulating their
+behaviour off-chain, interactively stepping through the evaluation of a
+contract in the browser-based tool, the Marlowe Playground, a web tool
+that supports the interactive construction, revision, and simulation of
+smart-contracts written in Marlowe.
+
+The playground has three top-level tabs,
+
+* The Haskell Editor
+* The Simulator
+* Blockly, the visual editor
+
+and we look at these three in turn now.
+
+We use *bold* type for buttons and other components in what follows.
+
+=== The Haskell Editor: developing embedded contracts
+
+The editor supports the development of Marlowe contracts, described in Haskell. We can use Haskell to make contract definitions more readable by using Haskell definitions for sub-components, abbreviations, and simple template functions. The Haskell editor tab is shown in the following image. 
+
+image:haskell-editor.png[The Haskell editor]
+
+The figure shows that the tool is in the Haskell editor pane (number 1 in the diagram). The tool contains a number of example contracts, and in this case we are looking at the “escrow” contract (number 2). To describe a Marlowe contract in the editor, we have to define a top-level value `contract` of type `Contract` (number 3); it is this value that is converted to pure Marlowe with the *Compile* button (number 4), and which we can *Send to simulator* with the eponymous button (number 5).
+
+=== Simulating Marlowe contracts
+
+The second tab in the Marlowe Playground allows users to simulate
+Marlowe contracts transaction by transaction. Typically these are 
+contracts developed in the Haskell editor or within Blockly, but they can also be entered and modified in the editor pane here too.
+
+image:simulation-tab.png[The Simulation tab]
+
+The simulation tab is selected on the left-hand side of the screen (number 1 in the figure). At the foot of this side of the screen, and on all tabs, is a link to the online tutorial for Marlowe (number 2). The pane also contains a number of example contracts, and these are selected above the main editor window (number 3).
+
+Contracts in the simulator can be transferred to the Blockly visual editor (button number 4), and if you have a GitHub account, it's also possible to save contracts that you develop as _GitHub gists_ (number 5). To do this, log into your account using the  *Log in* button at the top right of the screen. You will then see buttons to allow you to *Publish* or save contracts as gists, and to *Load* contracts from GitHub.
+
+The tile at the foot of the window (number 6) gives information about the current contract and its state. The tab shown here will give information about the state of execution of the Marlowe contract, including the values held in the various accounts of the contract, choices and payments made, the current block number and so on. Other tabs give access to static analysis and its results, as well as other warnings and errors.
+
+In simulating a contract there are two stages
+
+* Inputs are chosen, and form part of
+* Transactions that aggregate a number of inputs and payments.
+
+Inputs are chosen (number 7) from the inputs that are relevant at the particular point of the contract. By relevant here we mean that these are the (only) inputs that will make the contract progress at this stage. In other words, input choice is "intelligent". An input is added to the transaction that is being built by selecting the *+* button (number 7).
+
+Once the relevant inputs have been chosen, and these appear here in the box (number 8), the transaction can be added to the chain by selecting *Apply*. But other controls are available here too:
+
+* *Next block* will advance the current block number.
+* *Undo* will undo the last action made in the simulator. This means that we can explore a contract interactively, making some moves, undoing some of them, and then proceeding in a different direction.
+* *Reset* will reset the contract and its state back to their initial values: the full contract and an empty state.
+
+In the bottom right-hand corner (number 9) is a box for contextual help information.
+
+=== Building contracts with Blockly
+
+The playground provides a mechanism for creating and viewing contracts in a visual form, rather than in text. This is given by the third tab in the playground.
+
+image:Blockly-tab-1.png[The Blockly tab]
+
+The Blockly tab is indicated on the left-hand side (number 1). In the main part of the window, a contract is shown (number 2). Contracts built using the visual editor can be transferred to the simulator with the *To code* button (number 3), and visual elements for all the different Marlowe types are selected below that (number 4). If `Contract` is selected then we see
+
+image:Blockly-tab-2.png[Contracts in the Blockly tab]
+
+where we can see visual versions of the five different kinds of contract (number 1). These can be selected and moved to the main part of the window, and be snapped together to form a contract.
+
+=== Performing a simulation
+
+Moving back to the simulation tab, and selecting the _Escrow_ contract we see
+
+image:sim-1.png[Simulation step 1]
+
+Here we focus on the input composer, which at each stage shows only those inputs that will make the contract progress. In this case we require Alice to deposit 450 Ada. We can do that with the *+* button next to this input. After doing that we see 
+
+image:sim-2.png[Simulation step 2]
+
+with the input as part of the transaction to perform. We can then add this transaction to the blockchain by selecting *Apply*, but note that we can also use the other controls to *Undo* the last step (here to move the input out of the transaction), to *Reset* to the initial state, or to move to the *Next block*. 
+
+Assuming that we do select *Apply* we then see at the foot of the screen that the deposit has taken place
+
+image:sim-3.png[Simulation step 3]
+
+and this remains in view if we add Alice's and Bob's choices to the transaction. Note also the the current state of the contract is shown in the main part of the window, and indeed we are waiting at this stage for choices from Alice and Bob.
+
+If Alice and Bob make different choices, and we apply the transaction we then see
+
+image:sim-4.png[Simulation step 4]
+
+and at this point in the evolution of the contract we are awaiting a choice from Carol to arbitrate the outcome.
+
+
+=== Analysing a contract
+
+The static analysis of a contract is performed by selecting the *Static analysis* tab in the pane at the foot of the page.
+
+image:static-analysis.png[Static analysis]
+
+Clicking the *Analyse* button results in the current contract _in the current state_ being analysed. The result is either to say that the contract passed all the tests, or to explain how it fails, and giving the sequence of transactions that lead to the error. As an exercise try this with the `Escrow` contract, changing the initial deposit from Alice to something smaller than 450 Ada.
+
+
+[caption=""]
+.Exercise
+====
+
+Use the Marlowe Playground to interact with the `+escrow+` contract in
+the various scenarios discussed earlier, in the tutorial on
+xref:using-marlowe#using-marlowe[using Marlowe].
+
+Explore making some changes to the contract, and interactions with those
+modified contracts.
+====
+
+[caption=""]
+.Exercise
+====
+
+Use the Marlowe Playground to explore the other contracts presented in
+there: the deposit incentive contract, and the crowd-funding example.
+====

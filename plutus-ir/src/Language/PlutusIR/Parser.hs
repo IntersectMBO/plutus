@@ -164,19 +164,20 @@ builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
     where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
           parseBuiltinName builtin = try $ string (prettyText builtin) >> pure builtin
 
-name :: Parser (Name SourcePos)
+name :: Parser Name
 name = lexeme $ try $ do
-    pos <- getSourcePos
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     if str `elem` reservedWords
         then customFailure $ UnexpectedKeyword $ show str
-        else Name pos str <$> intern str
+        else Name str <$> intern str
 
-var :: Parser (Name SourcePos)
+var :: Parser Name
 var = name
-tyVar :: Parser (TyName SourcePos)
+
+tyVar :: Parser TyName
 tyVar = TyName <$> name
+
 builtinVar :: Parser (PLC.Builtin SourcePos)
 builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
 
@@ -254,7 +255,7 @@ kind = inParens (typeKind <|> funKind)
         funKind  = KindArrow <$> reservedWord "fun" <*> kind <*> kind
 
 typ :: Parser (Type TyName PLC.DefaultUni SourcePos)
-typ = (tyVar >>= (\n -> return $ TyVar (nameAttribute $ unTyName n) n))
+typ = (tyVar >>= (\n -> getSourcePos >>= \p -> return $ TyVar p n))
     <|> (inParens $ funType <|> allType <|> lamType <|> ifixType <|> conType)
     <|> inBrackets appType
 
@@ -311,7 +312,7 @@ tyInstTerm :: Parametric
 tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 term' :: Parametric
-term' other = (var >>= (\n -> return $ PIR.var (nameAttribute n) n))
+term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
     <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
     <|> inBraces (tyInstTerm self)
     <|> inBrackets (appTerm self)

@@ -126,8 +126,8 @@ test_dynamicId =
                     , zer
                     ] where
                           constIntegerInteger = runQuote $ do
-                              i <- freshName () "i"
-                              j <- freshName () "j"
+                              i <- freshName "i"
+                              j <- freshName "j"
                               return
                                   . LamAbs () i integer
                                   . LamAbs () j integer

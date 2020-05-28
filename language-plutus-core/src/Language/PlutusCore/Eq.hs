@@ -164,8 +164,8 @@ withTwinBindings name1 name2 k =
 -- See Note [Modulo alpha].
 -- | Check equality of two names.
 eqNameM
-    :: (HasRenaming ren unique, HasUnique (name ann) unique, Eq unique)
-    => name ann -> name ann -> EqRename ren
+    :: (HasRenaming ren unique, HasUnique name unique, Eq unique)
+    => name -> name -> EqRename ren
 eqNameM name1 name2 = do
     mayUniq2' <- lookupNameM $ LR name1
     mayUniq1' <- lookupNameM $ RL name2

@@ -48,6 +48,12 @@
   color: var(--text-color-inactive);
 }
 
+.RTable-data-row {
+  text-align: left;
+  padding: 0.25em 1.2em;
+  margin-top: 0.2em;
+}
+
 .Rtable-single-column-row {
   text-align: left;
 }
@@ -73,6 +79,10 @@
 }
 
 .Rtable--6cols>.RTable-empty-row {
+  width: 83.3%;
+}
+
+.Rtable--6cols>.RTable-data-row {
   width: 83.3%;
 }
 

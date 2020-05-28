@@ -41,31 +41,30 @@ import           Instances.TH.Lift                     ()
 import           Language.Haskell.TH.Syntax            (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
-data Name ann = Name
-    { nameAttribute :: ann
-    , nameString    :: T.Text -- ^ The identifier name, for use in error messages.
-    , nameUnique    :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
-    } deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+data Name = Name
+    { nameString :: T.Text -- ^ The identifier name, for use in error messages.
+    , nameUnique :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+    } deriving (Show, Generic, NFData, Lift, Hashable)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
-newtype TyName ann = TyName { unTyName :: Name ann }
+newtype TyName = TyName { unTyName :: Name }
     deriving (Show, Generic, Lift)
-    deriving newtype (Eq, Ord, Functor, NFData, Hashable)
-instance Wrapped (TyName ann)
+    deriving newtype (Eq, Ord, NFData, Hashable)
+instance Wrapped TyName
 
 -- | Apply a function to the string representation of a 'Name'.
-mapNameString :: (T.Text -> T.Text) -> Name ann -> Name ann
+mapNameString :: (T.Text -> T.Text) -> Name -> Name
 mapNameString f name = name { nameString = f $ nameString name }
 
 -- | Apply a function to the string representation of a 'TyName'.
-mapTyNameString :: (T.Text -> T.Text) -> TyName ann -> TyName ann
+mapTyNameString :: (T.Text -> T.Text) -> TyName -> TyName
 mapTyNameString f (TyName name) = TyName $ mapNameString f name
 
-instance Eq (Name ann) where
+instance Eq Name where
     (==) = (==) `on` nameUnique
 
-instance Ord (Name ann) where
+instance Ord Name where
     (<=) = (<=) `on` nameUnique
 
 -- | A unique identifier
@@ -97,12 +96,12 @@ class Coercible unique Unique => HasUnique a unique | a -> unique where
 instance HasUnique Unique Unique where
     unique = id
 
-instance HasUnique (Name ann) TermUnique where
+instance HasUnique Name TermUnique where
     unique = lens g s where
         g = TermUnique . nameUnique
         s n (TermUnique u) = n{nameUnique=u}
 
-instance HasUnique (TyName ann) TypeUnique
+instance HasUnique TyName TypeUnique
 
 -- | A lens focused on the 'Unique' of a name.
 theUnique :: HasUnique name unique => Lens' name Unique
@@ -159,10 +158,10 @@ lookupNameIndex
     => name -> UniqueMap unique2 a -> Maybe a
 lookupNameIndex = lookupUnique . coerce . view unique
 
-instance HasPrettyConfigName config => PrettyBy config (Name ann) where
-    prettyBy config (Name _ txt (Unique uniq))
+instance HasPrettyConfigName config => PrettyBy config Name where
+    prettyBy config (Name txt (Unique uniq))
         | showsUnique = pretty txt <> "_" <> pretty uniq
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyName ann)
+deriving newtype instance HasPrettyConfigName config => PrettyBy config TyName

@@ -11,10 +11,14 @@ module Marlowe.Monaco
 import Prelude
 import Data.Function.Uncurried (Fn1, runFn1)
 import Data.Maybe (Maybe(..))
+import Data.Unfoldable as Unfoldable
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
+import Help as Help
 import Marlowe.Linter as Linter
-import Monaco (CodeAction, CodeActionProvider, CompletionItem, CompletionItemProvider, DocumentFormattingEditProvider, Editor, IMarkerData, IRange, IStandaloneThemeData, LanguageExtensionPoint(..), Theme, TokensProvider, Uri)
+import Monaco (CodeAction, CodeActionProvider, CompletionItem, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarkdownString, IMarkerData, IRange, IStandaloneThemeData, LanguageExtensionPoint(..), Theme, TokensProvider, Uri)
+
+foreign import hoverProvider_ :: Fn1 (String -> { contents :: Array IMarkdownString }) HoverProvider
 
 foreign import completionItemProvider_ :: Fn1 (Boolean -> String -> IRange -> Array CompletionItem) CompletionItemProvider
 
@@ -31,6 +35,16 @@ languageExtensionPoint = LanguageExtensionPoint { id: "marlowe" }
 
 daylightTheme :: Theme
 daylightTheme = { name: "marlowe-playground-daylight", themeData: daylightTheme_ }
+
+hoverProvider :: HoverProvider
+hoverProvider =
+  runFn1 hoverProvider_ \constructor ->
+    let
+      vs = Unfoldable.fromMaybe (Help.helpForConstructor constructor)
+
+      items = map (\value -> { value }) vs
+    in
+      { contents: items }
 
 completionItemProvider :: CompletionItemProvider
 completionItemProvider = runFn1 completionItemProvider_ Linter.suggestions
@@ -50,6 +64,7 @@ settings setup =
   , theme: daylightTheme
   , monarchTokensProvider: Nothing
   , tokensProvider: Just tokensProvider
+  , hoverProvider: Just hoverProvider
   , completionItemProvider: Just completionItemProvider
   , codeActionProvider: Just codeActionProvider
   , documentFormattingEditProvider: Just documentFormattingEditProvider

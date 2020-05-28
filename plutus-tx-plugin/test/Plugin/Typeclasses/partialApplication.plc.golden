@@ -3,126 +3,103 @@
     (nonrec)
     (datatypebind
       (datatype
+        (tyvardecl Ordering (type))
+        
+        Ordering_match
+        (vardecl EQ Ordering) (vardecl GT Ordering) (vardecl LT Ordering)
+      )
+    )
+    (datatypebind
+      (datatype
         (tyvardecl Bool (type))
         
         Bool_match
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-      )
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl
-            lessThanEqInteger (fun (con integer) (fun (con integer) Bool))
-          )
-          (lam
-            arg
-            (con integer)
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        arg
+        (con integer)
+        (lam
+          arg
+          (con integer)
+          [
             (lam
-              arg
-              (con integer)
-              [
-                (lam
-                  b
-                  (con bool)
-                  [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                )
-                [ [ (builtin lessThanEqualsInteger) arg ] arg ]
-              ]
+              b
+              (con bool)
+              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
             )
-          )
-        )
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
-            (lam
-              arg
-              (con integer)
-              (lam
-                arg
-                (con integer)
-                [
-                  (lam
-                    b
-                    (con bool)
-                    [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                  )
-                  [ [ (builtin equalsInteger) arg ] arg ]
-                ]
-              )
-            )
-          )
-          (let
-            (nonrec)
-            (datatypebind
-              (datatype
-                (tyvardecl Ordering (type))
-                
-                Ordering_match
-                (vardecl EQ Ordering)
-                (vardecl GT Ordering)
-                (vardecl LT Ordering)
-              )
-            )
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl
-                  fOrdData_ccompare
-                  (fun (con integer) (fun (con integer) Ordering))
-                )
-                (lam
-                  x
-                  (con integer)
-                  (lam
-                    y
-                    (con integer)
-                    [
-                      [
-                        [
-                          {
-                            [ Bool_match [ [ equalsInteger x ] y ] ]
-                            (fun Unit Ordering)
-                          }
-                          (lam thunk Unit EQ)
-                        ]
-                        (lam
-                          thunk
-                          Unit
-                          [
-                            [
-                              [
-                                {
-                                  [ Bool_match [ [ lessThanEqInteger x ] y ] ]
-                                  (fun Unit Ordering)
-                                }
-                                (lam thunk Unit LT)
-                              ]
-                              (lam thunk Unit GT)
-                            ]
-                            Unit
-                          ]
-                        )
-                      ]
-                      Unit
-                    ]
-                  )
-                )
-              )
-              fOrdData_ccompare
-            )
-          )
+            [ [ (builtin equalsInteger) arg ] arg ]
+          ]
         )
       )
     )
+    (termbind
+      (strict)
+      (vardecl lessThanEqInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        arg
+        (con integer)
+        (lam
+          arg
+          (con integer)
+          [
+            (lam
+              b
+              (con bool)
+              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+            )
+            [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+          ]
+        )
+      )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (strict)
+      (vardecl
+        fOrdData_ccompare (fun (con integer) (fun (con integer) Ordering))
+      )
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          [
+            [
+              [
+                { [ Bool_match [ [ equalsInteger x ] y ] ] (fun Unit Ordering) }
+                (lam thunk Unit EQ)
+              ]
+              (lam
+                thunk
+                Unit
+                [
+                  [
+                    [
+                      {
+                        [ Bool_match [ [ lessThanEqInteger x ] y ] ]
+                        (fun Unit Ordering)
+                      }
+                      (lam thunk Unit LT)
+                    ]
+                    (lam thunk Unit GT)
+                  ]
+                  Unit
+                ]
+              )
+            ]
+            Unit
+          ]
+        )
+      )
+    )
+    fOrdData_ccompare
   )
 )

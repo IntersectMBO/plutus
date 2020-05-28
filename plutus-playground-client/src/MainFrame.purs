@@ -8,8 +8,10 @@ import Prelude
 import Ace.Types (Annotation)
 import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
-import Chain.Eval as Chain
-import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..))
+import Animation (class MonadAnimate, animate)
+import Chain.Eval (handleAction) as Chain
+import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..), _chainFocusAppearing)
+import Chain.Types (initialState) as Chain
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
@@ -27,9 +29,8 @@ import Data.Array (deleteAt, snoc) as Array
 import Data.Array.Extra (move) as Array
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Functor.Foldable (Fix(..))
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
-import Data.Lens (Traversal', _2, _Just, _Right, assign, modifying, over, set, to, traversed, use)
+import Data.Lens (Traversal', _Just, _Right, assign, modifying, over, to, traversed, use)
 import Data.Lens.Extra (peruse)
 import Data.Lens.Fold (maximumOf, preview)
 import Data.Lens.Index (ix)
@@ -52,19 +53,19 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
-import Ledger.Value (Value)
-import Matryoshka (cata)
 import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
-import Playground.Types (ContractCall(..), ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(SimulatorWallet), _CallEndpoint, _FunctionSchema, _PayToWallet)
-import Schema (FormArgumentF(..))
+import Playground.Types (ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(SimulatorWallet), _CallEndpoint, _FunctionSchema)
+import Schema.Types (ActionEvent(..), SimulationAction(..), handleActionActionEvent, handleActionForm, handleActionValueEvent, mkInitialValue)
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ActionEvent(..), ChildSlots, DragAndDropEventType(..), FieldEvent(..), FormArgument, FormEvent(..), HAction(..), Query, SimulatorAction, State(..), ValueEvent(..), View(..), WalletEvent(..), WebData, _actionDrag, _amount, _argumentValues, _arguments, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _recipient, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _value, _walletId, getKnownCurrencies, mkInitialValue, toArgument, toEvaluation)
+import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Validation (_argumentValues, _arguments)
+import ValueEditor (ValueEvent(..))
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
 import Web.HTML.Event.DataTransfer as DataTransfer
@@ -99,11 +100,7 @@ mkInitialState editorPreferences = do
         , authStatus: NotAsked
         , createGistResult: NotAsked
         , gistUrl: Nothing
-        , blockchainVisualisationState:
-          { chainFocus: Nothing
-          , chainFocusAppearing: false
-          , chainFocusAge: EQ
-          }
+        , blockchainVisualisationState: Chain.initialState
         }
 
 ------------------------------------------------------------
@@ -186,35 +183,39 @@ toEvent (ModifyWallets (RemoveWallet _)) = Just $ (defaultEvent "RemoveWallet") 
 
 toEvent (ModifyWallets (ModifyBalance _ (SetBalance _ _ _))) = Just $ (defaultEvent "SetBalance") { category = Just "Wallet" }
 
-toEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
-
 toEvent (ActionDragAndDrop _ eventType _) = Just $ (defaultEvent (show eventType)) { category = Just "Action" }
-
-toEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
-
-toEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
-
-toEvent (ModifyActions (SetPayToWalletValue _ _)) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
-
-toEvent (ModifyActions (SetPayToWalletRecipient _ _)) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
-
-toEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
-
-toEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
 
 toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = Just "Action" }
 
-toEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+toEvent (ChangeSimulation subAction) = toActionEvent subAction
 
 toEvent (SetChainFocus (Just (FocusTx _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
 
 toEvent (SetChainFocus Nothing) = Nothing
+
+toActionEvent :: SimulationAction -> Maybe Event
+toActionEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+
+toActionEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
+
+toActionEvent (ModifyActions (AddWaitAction _)) = Just $ (defaultEvent "AddWaitAction") { category = Just "Action" }
+
+toActionEvent (ModifyActions (RemoveAction _)) = Just $ (defaultEvent "RemoveAction") { category = Just "Action" }
+
+toActionEvent (ModifyActions (SetPayToWalletValue _ _)) = Just $ (defaultEvent "SetPayToWalletValue") { category = Just "Action" }
+
+toActionEvent (ModifyActions (SetPayToWalletRecipient _ _)) = Just $ (defaultEvent "SetPayToWalletRecipient") { category = Just "Action" }
+
+toActionEvent (ModifyActions (SetWaitTime _ _)) = Just $ (defaultEvent "SetWaitTime") { category = Just "Action" }
+
+toActionEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "SetWaitUntilTime") { category = Just "Action" }
 
 handleAction ::
   forall m.
   MonadState State m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadApp m =>
+  MonadAnimate m State =>
   HAction -> m Unit
 handleAction Mounted = pure unit
 
@@ -258,7 +259,7 @@ handleAction (ChangeView view) = do
   assign _currentView view
   when (view == Transactions) resizeBalancesChart
 
-handleAction (ModifyActions actionEvent) = modifying (_simulations <<< _current <<< _simulationActions) (handleActionActionEvent actionEvent)
+handleAction (ChangeSimulation (ModifyActions actionEvent)) = modifying (_simulations <<< _current <<< _simulationActions) (handleActionActionEvent actionEvent)
 
 handleAction EvaluateActions =
   void
@@ -315,7 +316,7 @@ handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
   modifying (_simulations <<< _current <<< _simulationWallets) (handleActionWalletEvent (mkSimulatorWallet knownCurrencies) action)
 
-handleAction (PopulateAction n l event) = do
+handleAction (ChangeSimulation (PopulateAction n l event)) = do
   knownCurrencies <- getKnownCurrencies
   let
     initialValue = mkInitialValue knownCurrencies 0
@@ -335,7 +336,9 @@ handleAction (PopulateAction n l event) = do
 handleAction (SetChainFocus newFocus) = do
   mAnnotatedBlockchain <-
     peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
-  zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain
+  animate
+    (_blockchainVisualisationState <<< _chainFocusAppearing)
+    (zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain)
 
 handleAction CompileProgram = do
   mContents <- editorGetContents
@@ -452,68 +455,6 @@ handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
     (ix walletIndex <<< _simulatorWalletBalance)
     (handleActionValueEvent action)
     wallets
-
-handleActionValueEvent :: ValueEvent -> Value -> Value
-handleActionValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
-
-handleActionActionEvent :: ActionEvent -> Array SimulatorAction -> Array SimulatorAction
-handleActionActionEvent (AddAction action) = flip Array.snoc action
-
-handleActionActionEvent (AddWaitAction blocks) = flip Array.snoc (AddBlocks { blocks })
-
-handleActionActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
-
-handleActionActionEvent (SetWaitTime index blocks) = set (ix index) (AddBlocks { blocks })
-
-handleActionActionEvent (SetPayToWalletValue index valueEvent) = over (ix index <<< _PayToWallet <<< _amount) (handleActionValueEvent valueEvent)
-
-handleActionActionEvent (SetPayToWalletRecipient index recipient) = set (ix index <<< _PayToWallet <<< _recipient) recipient
-
-handleActionActionEvent (SetWaitUntilTime index slot) = set (ix index) (AddBlocksUntil { slot })
-
-handleActionForm ::
-  Value ->
-  FormEvent ->
-  FormArgument ->
-  FormArgument
-handleActionForm initialValue event = cata (Fix <<< algebra event)
-  where
-  algebra (SetField (SetIntField n)) (FormIntF _) = FormIntF n
-
-  algebra (SetField (SetBoolField n)) (FormBoolF _) = FormBoolF n
-
-  algebra (SetField (SetStringField s)) (FormStringF _) = FormStringF (Just s)
-
-  algebra (SetField (SetHexField s)) (FormHexF _) = FormHexF (Just s)
-
-  algebra (SetField (SetRadioField s)) (FormRadioF options _) = FormRadioF options (Just s)
-
-  algebra (SetField (SetValueField valueEvent)) (FormValueF value) = FormValueF $ handleActionValueEvent valueEvent value
-
-  algebra (SetField (SetSlotRangeField newInterval)) arg@(FormSlotRangeF _) = FormSlotRangeF newInterval
-
-  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF (handleActionForm initialValue subEvent field1) field2
-
-  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleActionForm initialValue subEvent field2)
-
-  algebra (SetSubField 0 subEvent) (FormMaybeF schema field) = FormMaybeF schema $ over _Just (handleActionForm initialValue subEvent) field
-
-  algebra (SetSubField n subEvent) (FormArrayF schema fields) = FormArrayF schema $ over (ix n) (handleActionForm initialValue subEvent) fields
-
-  algebra (SetSubField n subEvent) s@(FormObjectF fields) = FormObjectF $ over (ix n <<< _Newtype <<< _2) (handleActionForm initialValue subEvent) fields
-
-  -- As the code stands, this is the only guarantee we get that every
-  -- value in the array will conform to the schema: the fact that we
-  -- create the 'empty' version from the same schema template.
-  -- Is more type safety than that possible? Probably.
-  -- Is it worth the research effort? Perhaps. :thinking_face:
-  algebra AddSubField (FormArrayF schema fields) = FormArrayF schema $ Array.snoc fields (toArgument initialValue schema)
-
-  algebra AddSubField arg = arg
-
-  algebra (RemoveSubField n) arg@(FormArrayF schema fields) = (FormArrayF schema (fromMaybe fields (Array.deleteAt n fields)))
-
-  algebra _ arg = arg
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit
 replaceViewOnSuccess result source target = do

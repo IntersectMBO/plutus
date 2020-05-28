@@ -39,6 +39,7 @@ const lexer = moo.compile({
                     'SlotIntervalStart',
                     'SlotIntervalEnd',
                     'UseValue',
+                    'Cond'
                 ],
                 ACCOUNT_ID: ['AccountId'],
                 TOKEN: ['Token'],
@@ -81,20 +82,22 @@ rsquare ->  manyWS %rsquare
 hole -> %hole {% ([hole]) => opts.mkHole(hole.value.substring(1))({row: hole.line, column: hole.col}) %}
 
 number
-   -> hole {% ([hole]) => hole %}
-    | %number {% ([n]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
-    | lparen %number rparen {% ([,n,]) => opts.mkTerm(opts.mkBigInteger(n.value))({row: n.line, column: n.col}) %}
+   -> %number {% ([n]) => opts.mkBigInteger(n.value) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkBigInteger(n.value) %}
+
+timeout
+   -> %number {% ([n]) => opts.mkTimeout(n.value)({row: n.line, column: n.col}) %}
+    | lparen %number rparen {% ([,n,]) => opts.mkTimeout(n.value)({row: n.line, column: n.col}) %}
 
 string
-   -> hole {% ([hole]) => hole %}
-    | %string {% ([s]) => opts.mkTerm(s.value)({row: s.line, column: s.col}) %}
+   -> %string {% ([s]) => s.value %}
 
 topContract
    -> hole {% ([hole]) => hole %}
     | "Close" {% ([{line, col}]) => opts.mkTerm(opts.mkClose)({row: line, column: col}) %}
     | "Pay" someWS accountId someWS payee someWS token someWS value someWS contract {% ([{line, col},,accountId,,payee,,token,,value,,contract]) => opts.mkTerm(opts.mkPay(accountId)(payee)(token)(value)(contract))({row: line, column: col}) %}
     | "If" someWS observation someWS contract someWS contract {% ([{line, col},,observation,,contract1,,contract2]) => opts.mkTerm(opts.mkIf(observation)(contract1)(contract2))({row: line, column: col}) %}
-    | "When" someWS lsquare cases:* rsquare someWS number someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
+    | "When" someWS lsquare cases:* rsquare someWS timeout someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
     | "Let" someWS valueId someWS value someWS contract {% ([{line, col},,valueId,,value,,contract]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({row: line, column: col}) %}
 
 cases
@@ -130,18 +133,15 @@ contract
     | lparen topContract rparen {% ([,contract,]) => contract %}
 
 choiceId
-   -> hole {% ([hole]) => hole %}
-    | lparen %CHOICE_ID someWS string someWS party rparen {% ([,{line,col},,cid,,party,]) => opts.mkTerm(opts.mkChoiceId(cid)(party))({row: line, column: col}) %}
+   -> lparen %CHOICE_ID someWS string someWS party rparen {% ([,{line,col},,cid,,party,]) => opts.mkChoiceId(cid)(party) %}
 
 # FIXME: There is a difference between the Haskell pretty printer and the purescript parser
 valueId
-   -> hole {% ([hole]) => hole %}
-    | %string {% ([{value,line,col}]) => opts.mkTerm(opts.mkValueId(value))({row: line, column: col}) %}
+   -> %string {% ([{value,line,col}]) => opts.mkTermWrapper(opts.mkValueId(value))({row: line, column: col}) %}
 # valueId -> lparen %VALUE_ID someWS string rparen
 
 accountId
-   -> hole {% ([hole]) => hole %}
-    | lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkTerm(opts.mkAccountId(aid)(party))({row: line, column: col}) %}
+   -> lparen %ACCOUNT_ID someWS number someWS party rparen {% ([,{line,col},,aid,,party,]) => opts.mkAccountId(aid)(party) %}
 
 token
    -> hole {% ([hole]) => hole %}
@@ -173,7 +173,7 @@ observation
 
 rational
     -> hole {% ([hole]) => hole %}
-    | %number manyWS "%" manyWS %number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num.value)(denom.value))({row: num.line, column: num.col}) %}
+    | number manyWS %ratio manyWS number {%([num,,,,denom,]) => opts.mkTerm(opts.mkRational(num)(denom))({row: num.line, column: num.col}) %}
 
 value
    -> hole {% ([hole]) => hole %}
@@ -187,3 +187,4 @@ value
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({row: line, column: col}) %}
     | "SlotIntervalEnd" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalEnd)({row: line, column: col}) %}
     | lparen "UseValue" someWS valueId rparen {% ([,{line,col},,valueId,]) => opts.mkTerm(opts.mkUseValue(valueId))({row: line, column: col}) %}
+    | lparen "Cond" someWS observation someWS value someWS value rparen {% ([,{line,col},,oo,,v1,,v2,]) => opts.mkTerm(opts.mkCond(oo)(v1)(v2))({row: line, column: col}) %}

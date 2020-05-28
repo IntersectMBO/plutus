@@ -12,7 +12,6 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{todonotes}
 \usepackage{paralist}
-\usepackage{subfiles}
 
 % Smaller margins are nicer for this kind of content, I think.
 \usepackage[margin=2.5cm]{geometry}
@@ -67,16 +66,20 @@
 \title{The Plutus Platform \\
   {\large \sc An IOHK technical report}}
 \date{}
+\author{
+  Michael Peyton Jones \\ {\small \texttt{michael.peyton-jones@iohk.io}} \\
+  \and Roman Kireev \\ {\small \texttt{roman.kireev@iohk.io}}
+}
 
 \maketitle
 
 \tableofcontents
 
-\subfile{intro}
-\subfile{ledger}
-\subfile{scripting}
-\subfile{applications}
-\subfile{authoring}
+\input{intro}
+\input{ledger}
+\input{scripting}
+\input{applications}
+\input{authoring}
 
 % Print the glossary
 \printglossaries

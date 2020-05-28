@@ -21,60 +21,53 @@
                       (fun Nat_i4 (all out_Nat_i0 (type) (fun out_Nat_i1 (fun (fun Nat_i5 out_Nat_i1) out_Nat_i1))))
                       [
                         (lam
-                          three_i0
-                          Nat_i5
+                          tup_i0
+                          (all r_i0 (type) (fun (fun (fun Nat_i6 Nat_i6) r_i1) r_i1))
                           [
                             (lam
-                              tup_i0
-                              (all r_i0 (type) (fun (fun (fun Nat_i7 Nat_i7) r_i1) r_i1))
+                              stupidZero_i0
+                              (fun Nat_i6 Nat_i6)
                               [
+                                (lam three_i0 Nat_i7 [ stupidZero_i2 three_i1 ])
+                                [ Suc_i4 [ Suc_i4 [ Suc_i4 Zero_i5 ] ] ]
+                              ]
+                            )
+                            [
+                              { tup_i1 (fun Nat_i5 Nat_i5) }
+                              (lam arg_0_i0 (fun Nat_i6 Nat_i6) arg_0_i1)
+                            ]
+                          ]
+                        )
+                        (abs
+                          r_i0
+                          (type)
+                          (lam
+                            f_i0
+                            (fun (fun Nat_i6 Nat_i6) r_i2)
+                            [
+                              f_i1
+                              [
+                                { { fix1_i7 Nat_i6 } Nat_i6 }
                                 (lam
                                   stupidZero_i0
                                   (fun Nat_i7 Nat_i7)
-                                  [ stupidZero_i1 three_i3 ]
-                                )
-                                [
-                                  { tup_i1 (fun Nat_i6 Nat_i6) }
-                                  (lam arg_0_i0 (fun Nat_i7 Nat_i7) arg_0_i1)
-                                ]
-                              ]
-                            )
-                            (abs
-                              r_i0
-                              (type)
-                              (lam
-                                f_i0
-                                (fun (fun Nat_i7 Nat_i7) r_i2)
-                                [
-                                  f_i1
-                                  [
-                                    { { fix1_i8 Nat_i7 } Nat_i7 }
-                                    (lam
-                                      stupidZero_i0
-                                      (fun Nat_i8 Nat_i8)
+                                  (lam
+                                    n_i0
+                                    Nat_i8
+                                    [
+                                      [
+                                        { [ match_Nat_i5 n_i1 ] Nat_i8 } Zero_i7
+                                      ]
                                       (lam
-                                        n_i0
-                                        Nat_i9
-                                        [
-                                          [
-                                            { [ match_Nat_i6 n_i1 ] Nat_i9 }
-                                            Zero_i8
-                                          ]
-                                          (lam
-                                            pred_i0
-                                            Nat_i10
-                                            [ stupidZero_i3 pred_i1 ]
-                                          )
-                                        ]
+                                        pred_i0 Nat_i9 [ stupidZero_i3 pred_i1 ]
                                       )
-                                    )
-                                  ]
-                                ]
-                              )
-                            )
-                          ]
+                                    ]
+                                  )
+                                )
+                              ]
+                            ]
+                          )
                         )
-                        [ Suc_i2 [ Suc_i2 [ Suc_i2 Zero_i3 ] ] ]
                       ]
                     )
                   )

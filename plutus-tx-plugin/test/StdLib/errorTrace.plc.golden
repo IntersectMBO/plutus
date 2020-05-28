@@ -4,116 +4,100 @@
     (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
+    (termbind
+      (strict)
+      (vardecl error (all a (type) (fun Unit a)))
+      (abs e (type) (lam thunk Unit (error e)))
+    )
     (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl trace (fun (con string) Unit))
-        (lam
-          arg (con string) [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
+      (rec)
+      (datatypebind
+        (datatype
+          (tyvardecl List (fun (type) (type)))
+          (tyvardecl a (type))
+          Nil_match
+          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
         )
       )
       (let
         (nonrec)
-        (termbind (strict) (vardecl emptyString (con string)) (con ))
+        (termbind
+          (strict)
+          (vardecl
+            appendString (fun (con string) (fun (con string) (con string)))
+          )
+          (lam
+            arg
+            (con string)
+            (lam arg (con string) [ [ (builtin append) arg ] arg ])
+          )
+        )
+        (termbind
+          (strict)
+          (vardecl charToString (fun (con char) (con string)))
+          (lam arg (con char) [ (builtin charToString) arg ])
+        )
+        (termbind (strict) (vardecl emptyString (con string)) (con ""))
         (let
-          (nonrec)
+          (rec)
           (termbind
             (strict)
-            (vardecl charToString (fun (con char) (con string)))
-            (lam arg (con char) [ (builtin charToString) arg ])
+            (vardecl toPlutusString (fun [List (con char)] (con string)))
+            (lam
+              str
+              [List (con char)]
+              [
+                [
+                  [
+                    { [ { Nil_match (con char) } str ] (fun Unit (con string)) }
+                    (lam thunk Unit emptyString)
+                  ]
+                  (lam
+                    c
+                    (con char)
+                    (lam
+                      rest
+                      [List (con char)]
+                      (lam
+                        thunk
+                        Unit
+                        [
+                          [ appendString [ charToString c ] ]
+                          [ toPlutusString rest ]
+                        ]
+                      )
+                    )
+                  )
+                ]
+                Unit
+              ]
+            )
           )
           (let
             (nonrec)
             (termbind
               (strict)
-              (vardecl
-                appendString (fun (con string) (fun (con string) (con string)))
-              )
+              (vardecl trace (fun (con string) Unit))
               (lam
                 arg
                 (con string)
-                (lam arg (con string) [ [ (builtin append) arg ] arg ])
+                [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
               )
             )
-            (let
-              (rec)
-              (datatypebind
-                (datatype
-                  (tyvardecl List (fun (type) (type)))
-                  (tyvardecl a (type))
-                  Nil_match
-                  (vardecl Nil [List a])
-                  (vardecl Cons (fun a (fun [List a] [List a])))
-                )
-              )
-              (let
-                (rec)
-                (termbind
-                  (strict)
-                  (vardecl toPlutusString (fun [List (con char)] (con string)))
-                  (lam
-                    str
-                    [List (con char)]
-                    [
-                      [
-                        [
-                          {
-                            [ { Nil_match (con char) } str ]
-                            (fun Unit (con string))
-                          }
-                          (lam thunk Unit emptyString)
-                        ]
-                        (lam
-                          c
-                          (con char)
-                          (lam
-                            rest
-                            [List (con char)]
-                            (lam
-                              thunk
-                              Unit
-                              [
-                                [ appendString [ charToString c ] ]
-                                [ toPlutusString rest ]
-                              ]
-                            )
-                          )
-                        )
-                      ]
-                      Unit
-                    ]
-                  )
-                )
-                (let
-                  (nonrec)
-                  (termbind
-                    (strict)
-                    (vardecl error (all a (type) (fun Unit a)))
-                    (abs e (type) (lam thunk Unit (error e)))
-                  )
-                  (let
-                    (nonrec)
-                    (termbind
-                      (strict)
-                      (vardecl
-                        traceErrorH (all a (type) (fun [List (con char)] a))
-                      )
-                      (abs
-                        a
-                        (type)
-                        (lam
-                          str
-                          [List (con char)]
-                          [ { error a } [ trace [ toPlutusString str ] ] ]
-                        )
-                      )
-                    )
-                    [ { traceErrorH (con integer) } { Nil (con char) } ]
-                  )
+            (termbind
+              (strict)
+              (vardecl traceErrorH (all a (type) (fun [List (con char)] a)))
+              (abs
+                a
+                (type)
+                (lam
+                  str
+                  [List (con char)]
+                  [ { error a } [ trace [ toPlutusString str ] ] ]
                 )
               )
             )
+            [ { traceErrorH (con integer) } { Nil (con char) } ]
           )
         )
       )

@@ -113,6 +113,7 @@ library
         Language.PlutusCore.Pretty.ConfigName
         Language.PlutusCore.Pretty.Default
         Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.PrettyConst
         Language.PlutusCore.Pretty.Readable
         Language.PlutusCore.Pretty.Utils
         Language.PlutusCore.Universe.Core
@@ -159,7 +160,7 @@ library
         dependent-map -any,
         dependent-sum -any,
         dependent-sum-template -any,
-        deriving-aeson -any,
+        deriving-aeson >= 0.2.3,
         deriving-compat -any,
         deepseq -any,
         filepath -any,
@@ -195,8 +196,10 @@ executable language-plutus-core-generate-evaluation-test
                  -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        cborg -any,
         hedgehog -any,
         language-plutus-core -any,
+        serialise -any,
         text -any
 
 test-suite language-plutus-core-test
@@ -287,6 +290,7 @@ executable plc
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
+        serialise -any,
         text -any,
         lens -any,
         prettyprinter -any,

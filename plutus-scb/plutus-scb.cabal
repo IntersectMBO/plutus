@@ -68,31 +68,40 @@ library
         Control.Monad.Freer.Extra.State
         Data.Time.Units.Extra
         Plutus.SCB.App
+        Plutus.SCB.MockApp
         Plutus.SCB.Arbitrary
         Plutus.SCB.Command
         Plutus.SCB.ContractCLI
         Plutus.SCB.Core
+        Plutus.SCB.Core.ContractInstance
+        Plutus.SCB.Core.Projections
         Plutus.SCB.Effects.Contract
+        Plutus.SCB.Effects.ContractTest
         Plutus.SCB.Effects.EventLog
+        Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
+        Plutus.SCB.Webserver.Types
+        Plutus.SCB.Webserver.API
+        Plutus.SCB.Webserver.Server
         Plutus.SCB.Events
+        Plutus.SCB.Events.Contract
+        Plutus.SCB.Events.Node
+        Plutus.SCB.Events.User
+        Plutus.SCB.Events.Wallet
         Plutus.SCB.Query
         Plutus.SCB.Relation
         Plutus.SCB.Types
         Plutus.SCB.Utils
     other-modules:
-        Plutus.SCB.Events.Contract
-        Plutus.SCB.Events.Node
-        Plutus.SCB.Events.User
-        Plutus.SCB.Events.Wallet
         Servant.Extra
     hs-source-dirs: src
     build-depends:
         plutus-ledger -any,
-        plutus-emulator -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
         plutus-contract -any,
+        playground-common -any,
+        plutus-use-cases -any,
         iots-export -any
     build-depends:
         QuickCheck -any,
@@ -145,16 +154,19 @@ executable plutus-scb
     main-is: Main.hs
     hs-source-dirs: app
     other-modules:
+        PSGenerator
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wno-missing-import-lists -Wredundant-constraints -O0
     build-depends:
         aeson -any,
+        aeson-pretty -any,
         async -any,
         base >=4.9 && <5,
         bytestring -any,
         ekg -any,
+        filepath -any,
         freer-simple -any,
         lens -any,
         monad-logger -any,
@@ -163,15 +175,34 @@ executable plutus-scb
         playground-common -any,
         plutus-scb -any,
         plutus-ledger -any,
+        plutus-contract -any,
+        plutus-use-cases -any,
         prettyprinter >=1.1.0.1,
+        purescript-bridge -any,
+        row-types -any,
+        servant-purescript -any,
         text -any,
         unliftio-core -any,
         uuid -any,
-        yaml -any
+        yaml -any,
+        containers -any
 
-executable plutus-contract
+executable plutus-game
     main-is: Main.hs
-    hs-source-dirs: contract
+    hs-source-dirs: game-contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any,
+        plutus-use-cases -any
+
+executable plutus-currency
+    main-is: Main.hs
+    hs-source-dirs: currency-contract
     other-modules:
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
@@ -190,7 +221,6 @@ test-suite plutus-scb-test
     other-modules:
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
-        Plutus.SCB.TestApp
 
     build-depends:
         QuickCheck -any,
@@ -208,11 +238,12 @@ test-suite plutus-scb-test
         plutus-scb -any,
         plutus-use-cases -any,
         plutus-ledger -any,
-        plutus-emulator -any,
         quickcheck-instances -any,
         servant-client -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any,
         text -any,
-        transformers -any
+        transformers -any,
+        prettyprinter -any,
+        row-types -any

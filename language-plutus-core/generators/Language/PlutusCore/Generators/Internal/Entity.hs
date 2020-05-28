@@ -36,6 +36,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty                              (PrettyConst (..))
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
@@ -72,12 +73,12 @@ data IterAppValue uni head arg r = IterAppValue
     }
 
 instance ( PrettyBy config (Term TyName Name uni ())
-         , PrettyBy config head, PrettyBy config arg, Pretty r
+         , PrettyBy config head, PrettyBy config arg, PrettyConst r
          ) => PrettyBy config (IterAppValue uni head arg r) where
     prettyBy config (IterAppValue term pia y) = parens $ fold
         [ "{ ", prettyBy config term, line
         , "| ", prettyBy config pia, line
-        , "| ", pretty y, line
+        , "| ", prettyConst y, line
         , "}"
         ]
 
@@ -91,9 +92,9 @@ iterAppValueToTermOf (IterAppValue term _ y) = TermOf term y
 
 -- | Add to the 'ByteString' representation of a 'Name' its 'Unique'
 -- without any additional symbols inbetween.
-revealUnique :: Name a -> Name a
-revealUnique (Name ann name uniq) =
-    Name ann (name <> prettyText (unUnique uniq)) uniq
+revealUnique :: Name -> Name
+revealUnique (Name name uniq) =
+    Name (name <> prettyText (unUnique uniq)) uniq
 
 -- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
@@ -108,7 +109,7 @@ withTypedBuiltinGen k = Gen.choice
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` '[Eq, Pretty, ExMemoryUsage])
+    :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage])
     => TypedBuiltinGenT uni m
     -> (forall a. AsKnownType uni a -> TermOf uni (EvaluationResultDef uni) -> GenT m c)
     -> GenT m c
@@ -188,7 +189,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
             -- Generate a lambda and immediately apply it to a generated argument of a generated type.
             lambdaApply = withTypedBuiltinGen $ \argKt@AsKnownType -> do
                 -- Generate a name for the name representing the argument.
-                name <- lift $ revealUnique <$> freshName () "x"
+                name <- lift $ revealUnique <$> freshName "x"
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 let argTy = toTypeAst argKt
                 -- Generate the argument.

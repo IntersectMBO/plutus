@@ -3,59 +3,66 @@
 {-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns
--fno-warn-name-shadowing
--fno-warn-unused-do-bind
--fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( tests
+    ( prop_noFalsePositives, tests
     )
 where
 
-import           Control.Lens               (view)
-import           Control.Monad              (void)
-import qualified Control.Monad.Freer        as Eff
-import qualified Data.ByteString            as BS
-import           Data.Either                (isRight)
-import qualified Data.Map.Strict            as Map
-import           Data.Ratio                 ((%))
+import           Control.Exception                     (SomeException, catch)
+import           Data.Maybe                            (isJust)
+import           Language.Marlowe
+import           Language.Marlowe.Analysis.FSSemantics
+import           Language.Marlowe.Semantics
+import           Ledger                                (pubKeyHash)
+import qualified OldAnalysis.FSSemantics               as OldAnalysis
+import           System.IO.Unsafe                      (unsafePerformIO)
+
+import           Control.Lens                          (view)
+import           Control.Monad                         (void)
+import qualified Control.Monad.Freer                   as Eff
+import           Data.Aeson                            (decode, encode)
+import qualified Data.ByteString                       as BS
+import           Data.Either                           (isRight)
+import qualified Data.Map.Strict                       as Map
+import           Data.Ratio                            ((%))
 import           Data.String
 
-import qualified Codec.CBOR.Write           as Write
-import qualified Codec.Serialise            as Serialise
-import           Hedgehog                   (Gen, Property, forAll, property, (===))
+import qualified Codec.CBOR.Write                      as Write
+import qualified Codec.Serialise                       as Serialise
 import qualified Hedgehog
-import           Hedgehog.Gen               (integral)
-import qualified Hedgehog.Gen               as Gen
-import qualified Hedgehog.Range             as Range
 import           Language.Marlowe
-import qualified Language.PlutusTx.Prelude  as P
-import           Ledger                     hiding (Value)
-import           Ledger.Ada                 (adaValueOf)
-import qualified Ledger.Generators          as Gen
-import qualified Ledger.Value               as Val
+import qualified Language.PlutusTx.Prelude             as P
+import           Ledger                                hiding (Value)
+import           Ledger.Ada                            (adaValueOf)
+import qualified Ledger.Generators                     as Gen
+import qualified Ledger.Value                          as Val
 import           Spec.Marlowe.Common
 import           Test.Tasty
-import           Test.Tasty.Hedgehog        (HedgehogTestLimit (..), testProperty)
+import           Test.Tasty.Hedgehog                   (HedgehogTestLimit (..))
+import qualified Test.Tasty.Hedgehog                   as Hedgehog
 import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck
 import           Wallet.Emulator
-import qualified Wallet.Emulator.Generators as Gen
-import           Wallet.Emulator.MultiAgent (EmulatedWalletEffects)
+import qualified Wallet.Emulator.Generators            as Gen
+import           Wallet.Emulator.MultiAgent            (EmulatedWalletEffects)
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
 {-# ANN module ("HLint: ignore Redundant if" :: String) #-}
 
-limitedProperty :: TestName -> Property -> TestTree
-limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ testProperty a b
+limitedProperty :: TestName -> Hedgehog.Property -> TestTree
+limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ Hedgehog.testProperty a b
 
 tests :: TestTree
 tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
-    , testCase "Pretty/Show/Read stuff" showReadStuff
+    , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
+    , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
+    , testProperty "Values can be serialized to JSON" valueSerialization
     , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
     , testProperty "Scale rounding" scaleRoundingTest
     , limitedProperty "Zero Coupon Bond Contract" zeroCouponBondTest
@@ -71,7 +78,7 @@ bob = Wallet 2
 carol = Wallet 3
 
 
-zeroCouponBondTest :: Property
+zeroCouponBondTest :: Hedgehog.Property
 zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
@@ -111,7 +118,7 @@ bobToken :: Val.Value
 bobToken = Val.singleton "11" "bob" 1
 
 
-zeroCouponBondRolesTest :: Property
+zeroCouponBondRolesTest :: Hedgehog.Property
 zeroCouponBondRolesTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000 <> aliceToken)
@@ -143,7 +150,7 @@ zeroCouponBondRolesTest = checkMarloweTrace (MarloweScenario {
     assertOwnFundsEq bob (adaValueOf 0 <> bobToken)
 
 
-trustFundTest :: Property
+trustFundTest :: Hedgehog.Property
 trustFundTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
@@ -180,7 +187,7 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     assertOwnFundsEq bob (adaValueOf 1256)
 
 
-makeProgressTest :: Property
+makeProgressTest :: Hedgehog.Property
 makeProgressTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
@@ -210,10 +217,6 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
     assertOwnFundsEq bob (adaValueOf 1500)
 
 
-pubKeyGen :: Gen PubKey
-pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 9)
-
-
 uniqueContractHash :: IO ()
 uniqueContractHash = do
     let params cs = MarloweParams
@@ -231,15 +234,15 @@ validatorSize :: IO ()
 validatorSize = do
     let validator = validatorScript defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool "Validator is too large" (vsize < 600000)
+    assertBool "Validator is too large" (vsize < 616000)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished
 --   successfully with an empty transaction pool.
-checkMarloweTrace :: MarloweScenario -> Eff.Eff EmulatorEffs () -> Property
-checkMarloweTrace MarloweScenario{mlInitialBalances} t = property $ do
+checkMarloweTrace :: MarloweScenario -> Eff.Eff EmulatorEffs () -> Hedgehog.Property
+checkMarloweTrace MarloweScenario{mlInitialBalances} t = Hedgehog.property $ do
     let model = Gen.generatorModel { Gen.gmInitialBalance = mlInitialBalances }
-    (result, st) <- forAll $ Gen.runTraceOn model t
+    (result, st) <- Hedgehog.forAll $ Gen.runTraceOn model t
     Hedgehog.assert (isRight result)
     Hedgehog.assert (null (view (chainState . txPool) st))
 
@@ -258,88 +261,144 @@ performNotify wallets actor action = do
 
 checkEqValue :: Property
 checkEqValue = property $ do
-    pk1 <- pubKeyHash <$> forAll pubKeyGen
-    pk2 <- pubKeyHash <$> forAll pubKeyGen
-    let value = boundedValue [PK pk1, PK pk2] []
-    a <- forAll value
-    b <- forAll value
-    c <- forAll value
-    Hedgehog.assert (a P.== a) -- reflective
-    Hedgehog.assert (a P.== b == b P.== a) -- symmetric
-    -- transitive
-    Hedgehog.assert (if a P.== b && b P.== c then a P.== c else True)
+    let gen = do
+            a <- valueGen
+            b <- valueGen
+            c <- valueGen
+            return (a, b, c)
+    forAll gen $ \(a, b, c) ->
+        (a P.== a) -- reflective
+            .&&. (a P.== b == b P.== a) -- symmetric
+            .&&. (if a P.== b && b P.== c then a P.== c else True) -- transitive
 
 
 doubleNegation :: Property
 doubleNegation = property $ do
-    pk1 <- pubKeyHash <$> forAll pubKeyGen
-    pk2 <- pubKeyHash <$> forAll pubKeyGen
-    let value = boundedValue [PK pk1, PK pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
-    a <- forAll value
-    eval (NegValue (NegValue a)) === eval a
+    forAll valueGen $ \a -> eval (NegValue (NegValue a)) === eval a
 
 
 valuesFormAbelianGroup :: Property
 valuesFormAbelianGroup = property $ do
-    let pk1 = pubKeyHash $ toPublicKey privateKey1
-    let pk2 = pubKeyHash $ toPublicKey privateKey2
-    let value = boundedValue [PK pk1, PK pk2] []
+    let gen = do
+            a <- valueGen
+            b <- valueGen
+            c <- valueGen
+            return (a, b, c)
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
-    a <- forAll value
-    b <- forAll value
-    c <- forAll value
-    -- associativity of addition
-    eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c))
-    -- commutativity of addition
-    eval (AddValue a b) === eval (AddValue b a)
-    -- additive identity
-    eval (AddValue a (Constant 0)) === eval a
-    -- additive inverse
-    eval (AddValue a (NegValue a)) === 0
-    -- substraction works
-    eval (SubValue (AddValue a b) b) === eval a
+    forAll gen $ \(a, b, c) ->
+        -- associativity of addition
+        eval (AddValue (AddValue a b) c) === eval (AddValue a (AddValue b c)) .&&.
+        -- commutativity of addition
+        eval (AddValue a b) === eval (AddValue b a) .&&.
+        -- additive identity
+        eval (AddValue a (Constant 0)) === eval a .&&.
+        -- additive inverse
+        eval (AddValue a (NegValue a)) === 0 .&&.
+        -- substraction works
+        eval (SubValue (AddValue a b) b) === eval a
 
 
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
     -- test half-even rounding
-    n <- forAll amount
-    d <- forAll (Gen.filter (/= 0) amount)
-    eval (Scale (n P.% d) (Constant 1)) === round (n % d)
+    let gen = do
+            n <- amount
+            d <- suchThat amount (/= 0)
+            return (n, d)
+    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === round (n % d)
 
 
 scaleMulTest :: Property
 scaleMulTest = property $ do
-    let pk1 = pubKeyHash $ toPublicKey privateKey1
-    let pk2 = pubKeyHash $ toPublicKey privateKey2
-    let value = boundedValue [PK pk1, PK pk2] []
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
-    a <- forAll value
-    eval (Scale (0 P.% 1) a) === 0
-    eval (Scale (1 P.% 1) a) === eval a
+    forAll valueGen $ \a ->
+        eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
 
 
-showReadStuff :: IO ()
-showReadStuff = do
-    assertEqual "alice" (Role "alice") (fromString "alice" :: Party)
-    assertEqual "alice" (Role "alice") (read "Role \"alice\"")
-    assertEqual "slot" (Slot 123) (read "123")
-    let
-        investor :: Party
-        investor = "investor"
-        issuer :: Party
-        issuer = "issuer"
-        contract = When [Case
-            (Deposit (AccountId 0 investor) investor ada (Constant 850))
-            (Pay (AccountId 0 investor) (Party issuer) ada (Constant 850)
-                (When [Case
-                    (Deposit (AccountId 0 investor) issuer ada (Constant 1000))
-                    (Pay (AccountId 0 investor) (Party investor) ada
-                        (Constant 1000) Close)] 20 Close))] 10 Close
+valueSerialization :: Property
+valueSerialization = property $ do
+    forAll valueGen $ \a ->
+        let decoded :: Maybe (Value Observation)
+            decoded = decode $ encode a
+        in Just a === decoded
 
-    let contract2 :: Contract = Let (ValueId "id") (Constant 12) Close
-    assertEqual "Contract" contract ((read . show . pretty) contract)
-    assertEqual "ValueId"  contract2 (read "Let \"id\" (Constant 12) Close")
-    assertEqual "ValueId"  contract2 ((read . show . pretty) contract2)
+
+pangramContractSerialization :: IO ()
+pangramContractSerialization = do
+    contract <- readFile "test/contract.json"
+    let decoded :: Maybe Contract
+        decoded = decode (fromString contract)
+    case decoded of
+        Just cont -> Just cont @=? (decode $ encode cont)
+        _         -> assertFailure "Nope"
+
+
+stateSerialization :: IO ()
+stateSerialization = do
+    state <- readFile "test/state.json"
+    let decoded :: Maybe State
+        decoded = decode (fromString state)
+    case decoded of
+        Just st ->
+            case decode $ encode st of
+                Just st' -> assertBool "Should be equal" (st P.== st')
+                Nothing  -> assertFailure "Nope"
+        Nothing -> assertFailure "Nope"
+
+
+noFalsePositivesForContract :: Contract -> Property
+noFalsePositivesForContract cont =
+  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
+                                   (\exc -> return $ Left (Left (exc :: SomeException)))
+                      return (case res of
+                                Left err -> counterexample (show err) False
+                                Right answer ->
+                                   tabulate "Has counterexample" [show (isJust answer)]
+                                   (case answer of
+                                      Nothing ->
+                                         tabulate "Is empty contract" [show (cont == Close)]
+                                                  True
+                                      Just (is, li, warns) ->
+                                         counterexample ("Trace: " ++ show (is, li)) $
+                                         tabulate "Number of warnings" [show (length warns)]
+                                                  (warns =/= []))))
+
+
+wrapLeft :: IO (Either a b) -> IO (Either (Either c a) b)
+wrapLeft r = do tempRes <- r
+                return (case tempRes of
+                          Left x  -> Left (Right x)
+                          Right y -> Right y)
+
+
+prop_noFalsePositives :: Property
+prop_noFalsePositives = forAllShrink contractGen shrinkContract noFalsePositivesForContract
+
+
+sameAsOldImplementation :: Contract -> Property
+sameAsOldImplementation cont =
+  unsafePerformIO (do res <- catch (wrapLeft $ warningsTrace cont)
+                                   (\exc -> return $ Left (Left (exc :: SomeException)))
+                      res2 <- catch (wrapLeft $ OldAnalysis.warningsTrace cont)
+                                    (\exc -> return $ Left (Left (exc :: SomeException)))
+                      return (case (res, res2) of
+                                 (Right Nothing, Right Nothing) ->
+                                    label "No counterexample" True
+                                 (Right (Just _), Right Nothing) ->
+                                    label "Old version couldn't see counterexample" True
+                                 (Right (Just _), Right (Just _)) ->
+                                    label "Both versions found counterexample" True
+                                 (Left _, Left _) ->
+                                    label "Both solvers failed" True
+                                 (Left _, _) ->
+                                    label "Solver for new version failed" True
+                                 (_, Left _) ->
+                                    label "Solver for old version failed" True
+                                 problems -> counterexample (show problems) False))
+
+
+runManuallySameAsOldImplementation :: Property
+runManuallySameAsOldImplementation =
+  forAllShrink contractGen shrinkContract sameAsOldImplementation

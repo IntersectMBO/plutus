@@ -17,6 +17,11 @@
         gc.automatic = true;
 		    gc.options = "--delete-older-than 7d";
       };
+      
+      ## This was temporarily required when upgrading to 20.03 (weirdly from 19.09)
+      ## In future upgrades you may need to set this to 20.03 (or 29.03, not sure) and deploy then remove and deploy again
+      # system.stateVersion = "19.03";
+
       imports = [ <nixpkgs/nixos/modules/virtualisation/amazon-image.nix> ];
 
       systemd.services.amazon-init.wantedBy = pkgs.lib.mkForce [ ];

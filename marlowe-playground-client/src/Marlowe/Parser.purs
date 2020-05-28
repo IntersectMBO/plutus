@@ -15,8 +15,9 @@ import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
-import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), Timeout, TransactionInput(..), TransactionWarning(..), TokenName)
+import Data.Unit (Unit, unit)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
+import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
@@ -28,29 +29,31 @@ import Type.Proxy (Proxy(..))
 type HelperFunctions a
   = { mkHole :: String -> { row :: Pos, column :: Pos } -> Term a
     , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
+    , mkTermWrapper :: a -> { row :: Pos, column :: Pos } -> TermWrapper a
     , mkBigInteger :: Int -> BigInteger
+    , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> TermWrapper Slot
     , mkClose :: Contract
-    , mkPay :: Term AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
-    , mkWhen :: Array (Term Case) -> Term Slot -> Term Contract -> Contract
+    , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
-    , mkLet :: Term ValueId -> Term Value -> Term Contract -> Contract
+    , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
-    , mkBound :: Term BigInteger -> Term BigInteger -> Bound
-    , mkDeposit :: Term AccountId -> Term Party -> Term Token -> Term Value -> Action
-    , mkChoice :: Term ChoiceId -> Array (Term Bound) -> Action
+    , mkBound :: BigInteger -> BigInteger -> Bound
+    , mkDeposit :: AccountId -> Term Party -> Term Token -> Term Value -> Action
+    , mkChoice :: ChoiceId -> Array (Term Bound) -> Action
     , mkNotify :: Term Observation -> Action
-    , mkChoiceId :: Term String -> Term Party -> ChoiceId
+    , mkChoiceId :: String -> Term Party -> ChoiceId
     , mkValueId :: String -> ValueId
-    , mkAccountId :: Term BigInteger -> Term Party -> AccountId
-    , mkToken :: Term String -> Term String -> Token
-    , mkPK :: Term String -> Party
-    , mkRole :: Term String -> Party
-    , mkAccount :: Term AccountId -> Payee
+    , mkAccountId :: BigInteger -> Term Party -> AccountId
+    , mkToken :: String -> String -> Token
+    , mkPK :: String -> Party
+    , mkRole :: String -> Party
+    , mkAccount :: AccountId -> Payee
     , mkParty :: Term Party -> Payee
     , mkAndObs :: Term Observation -> Term Observation -> Observation
     , mkOrObs :: Term Observation -> Term Observation -> Observation
     , mkNotObs :: Term Observation -> Observation
-    , mkChoseSomething :: Term ChoiceId -> Observation
+    , mkChoseSomething :: ChoiceId -> Observation
     , mkValueGE :: Term Value -> Term Value -> Observation
     , mkValueGT :: Term Value -> Term Value -> Observation
     , mkValueLT :: Term Value -> Term Value -> Observation
@@ -58,24 +61,27 @@ type HelperFunctions a
     , mkValueEQ :: Term Value -> Term Value -> Observation
     , mkTrueObs :: Observation
     , mkFalseObs :: Observation
-    , mkAvailableMoney :: Term AccountId -> Term Token -> Value
-    , mkConstant :: Term BigInteger -> Value
+    , mkAvailableMoney :: AccountId -> Term Token -> Value
+    , mkConstant :: BigInteger -> Value
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
     , mkRational :: BigInteger -> BigInteger -> Rational
-    , mkScale :: Term Rational -> Term Value -> Value
-    , mkChoiceValue :: Term ChoiceId -> Term Value -> Value
+    , mkScale :: TermWrapper Rational -> Term Value -> Value
+    , mkChoiceValue :: ChoiceId -> Term Value -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
-    , mkUseValue :: Term ValueId -> Value
+    , mkUseValue :: TermWrapper ValueId -> Value
+    , mkCond :: Term Observation -> Term Value -> Term Value -> Value
     }
 
 helperFunctions :: forall a. HelperFunctions a
 helperFunctions =
   { mkHole: mkHole
   , mkTerm: Term
+  , mkTermWrapper: TermWrapper
   , mkBigInteger: BigInteger.fromInt
+  , mkTimeout: \v pos -> TermWrapper (Slot (BigInteger.fromInt v)) pos
   , mkClose: Close
   , mkPay: Pay
   , mkWhen: When
@@ -116,6 +122,7 @@ helperFunctions =
   , mkSlotIntervalStart: SlotIntervalStart
   , mkSlotIntervalEnd: SlotIntervalEnd
   , mkUseValue: UseValue
+  , mkCond: Cond
   }
 
 data ContractParseError
@@ -162,7 +169,7 @@ hole =
       start = suffix.pos - (length name) - 1
 
       end = suffix.pos
-    -- FIXME: this position info is incorrect
+    -- this position info is incorrect however we don't use it anywhere at this time
     pure { result: Hole name Proxy { row: start, column: end }, suffix }
   where
   nameChars = alphaNum <|> char '_'
@@ -175,8 +182,19 @@ term' (Parser p) =
       start = pos
 
       end = suffix.pos
-    -- FIXME: this position info is incorrect
+    -- this position info is incorrect however we don't use it anywhere at this time
     pure { result: Term result { row: start, column: end }, suffix }
+
+termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
+termWrapper (Parser p) =
+  Parser \{ pos, str } -> do
+    { result, suffix } <- p { pos, str }
+    let
+      start = pos
+
+      end = suffix.pos
+    -- this position info is incorrect however we don't use it anywhere at this time
+    pure { result: TermWrapper result { row: start, column: end }, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)
@@ -234,32 +252,40 @@ slot = Slot <$> maybeParens bigInteger
 slotTerm :: Parser (Term Slot)
 slotTerm = parseTerm slot
 
-timeout :: Parser Timeout
-timeout = slot
+timeout :: Parser (TermWrapper Slot)
+timeout = do
+  result <- bigIntegerTerm
+  case result of
+    (Hole _ _ pos) -> fail ""
+    (Term v pos) -> pure $ TermWrapper (Slot v) pos
 
 accountId :: Parser AccountId
-accountId =
-  parens do
-    skipSpaces
-    void $ string "AccountId"
-    void someWhiteSpace
-    first <- parseTerm $ maybeParens bigInteger
-    void someWhiteSpace
-    second <- parseTerm $ parens party
-    skipSpaces
-    pure $ AccountId first second
+accountId = parens accountId'
+
+accountId' :: Parser AccountId
+accountId' = do
+  skipSpaces
+  void $ string "AccountId"
+  void someWhiteSpace
+  first <- bigInteger
+  void someWhiteSpace
+  second <- parseTerm $ parens party
+  skipSpaces
+  pure $ AccountId first second
 
 choiceId :: Parser ChoiceId
-choiceId =
-  parens do
-    skipSpaces
-    void $ string "ChoiceId"
-    void someWhiteSpace
-    first <- parseTerm text
-    void someWhiteSpace
-    second <- parseTerm $ parens party
-    skipSpaces
-    pure $ ChoiceId first second
+choiceId = parens choiceId'
+
+choiceId' :: Parser ChoiceId
+choiceId' = do
+  skipSpaces
+  void $ string "ChoiceId"
+  void someWhiteSpace
+  first <- text
+  void someWhiteSpace
+  second <- parseTerm $ parens party
+  skipSpaces
+  pure $ ChoiceId first second
 
 atomValue :: Parser Value
 atomValue =
@@ -275,27 +301,32 @@ rational = do
   denom <- bigInteger
   pure $ Rational num denom
 
-recValue :: Parser Value
-recValue =
-  (AvailableMoney <$> (string "AvailableMoney" **> parseTerm accountId) <**> parseTerm (parens token))
-    <|> (Constant <$> (string "Constant" **> bigIntegerTerm))
+-- `unit` is needed in order to enforce strict evaluation order
+-- see https://stackoverflow.com/questions/36984245/undefined-value-reference-not-allowed-workaround/36991223#36991223
+recValue :: Unit -> Parser Value
+recValue _ =
+  (AvailableMoney <$> (string "AvailableMoney" **> accountId) <**> parseTerm (parens token))
+    <|> (Constant <$> (string "Constant" **> bigInteger))
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
     <|> do
         void $ string "Scale"
         skipSpaces
-        s <- parseTerm (parens rational)
+        s <- termWrapper (parens rational)
         skipSpaces
         v <- value'
         pure $ Scale s v
-    <|> (ChoiceValue <$> (string "ChoiceValue" **> parseTerm choiceId) <**> value')
-    <|> (UseValue <$> (string "UseValue" **> parseTerm valueId))
+    <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId) <**> value')
+    <|> (UseValue <$> (string "UseValue" **> termWrapper valueId))
+    <|> (Cond <$> (string "Cond" **> observation') <**> value' <**> value')
   where
-  value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (recValue unit))
 
-value :: Parser Value
-value = atomValue <|> recValue
+  observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
+
+value :: Unit -> Parser Value
+value _ = atomValue <|> recValue unit
 
 atomObservation :: Parser Observation
 atomObservation =
@@ -307,7 +338,7 @@ recObservation =
   (AndObs <$> (string "AndObs" **> observation') <**> observation')
     <|> (OrObs <$> (string "OrObs" **> observation') <**> observation')
     <|> (NotObs <$> (string "NotObs" **> observation'))
-    <|> (ChoseSomething <$> (string "ChoseSomething" **> parseTerm choiceId))
+    <|> (ChoseSomething <$> (string "ChoseSomething" **> choiceId))
     <|> (ValueGE <$> (string "ValueGE" **> value') <**> value')
     <|> (ValueGT <$> (string "ValueGT" **> value') <**> value')
     <|> (ValueLT <$> (string "ValueLT" **> value') <**> value')
@@ -316,14 +347,14 @@ recObservation =
   where
   observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens value)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (value unit))
 
 observation :: Parser Observation
 observation = atomObservation <|> recObservation
 
 payee :: Parser Payee
 payee =
-  (Account <$> (string "Account" **> parseTerm accountId))
+  (Account <$> (string "Account" **> accountId))
     <|> (Party <$> (string "Party" **> parseTerm (parens party)))
 
 pubkey :: Parser PubKey
@@ -331,8 +362,8 @@ pubkey = text
 
 party :: Parser Party
 party =
-  (PK <$> (string "PK" **> parseTerm pubkey))
-    <|> (Role <$> (string "Role" **> parseTerm tokenName))
+  (PK <$> (string "PK" **> pubkey))
+    <|> (Role <$> (string "Role" **> tokenName))
 
 currencySymbol :: Parser CurrencySymbol
 currencySymbol = text
@@ -345,9 +376,9 @@ token = do
   skipSpaces
   void $ string "Token"
   void someWhiteSpace
-  first <- parseTerm text
+  first <- text
   void someWhiteSpace
-  second <- parseTerm text
+  second <- text
   skipSpaces
   pure $ Token first second
 
@@ -356,21 +387,21 @@ bound = do
   skipSpaces
   void $ string "Bound"
   void someWhiteSpace
-  first <- parseTerm $ maybeParens bigInteger
+  first <- bigInteger
   void someWhiteSpace
-  second <- parseTerm $ maybeParens bigInteger
+  second <- bigInteger
   skipSpaces
   pure (Bound first second)
 
 action :: Parser Action
 action =
-  (Deposit <$> (string "Deposit" **> parseTerm accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
-    <|> (Choice <$> (string "Choice" **> parseTerm choiceId) <**> array (maybeParens (parseTerm bound)))
+  (Deposit <$> (string "Deposit" **> accountId) <**> parseTerm (parens party) <**> parseTerm (parens token) <**> value')
+    <|> (Choice <$> (string "Choice" **> choiceId) <**> array (maybeParens (parseTerm bound)))
     <|> (Notify <$> (string "Notify" **> observation'))
   where
   observation' = parseTerm $ atomObservation <|> fix \p -> parens recObservation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens recValue)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (recValue unit))
 
 case' :: Parser Case
 case' = do
@@ -391,22 +422,22 @@ atomContract = pure Close <* string "Close"
 
 recContract :: Parser Contract
 recContract =
-  ( Pay <$> (string "Pay" **> parseTerm accountId)
+  ( Pay <$> (string "Pay" **> accountId)
       <**> parseTerm (parens payee)
       <**> parseTerm (parens token)
       <**> value'
       <**> contract'
   )
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
-    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> parseTerm timeout <**> contract')
-    <|> (Let <$> (string "Let" **> parseTerm valueId) <**> value' <**> contract')
+    <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> timeout <**> contract')
+    <|> (Let <$> (string "Let" **> termWrapper valueId) <**> value' <**> contract')
     <|> (fail "not a valid Contract")
   where
   contract' = parseTerm $ atomContract <|> fix \p -> parens recContract
 
   observation' = parseTerm $ atomObservation <|> fix \p -> parens observation
 
-  value' = parseTerm $ atomValue <|> fix (\p -> parens value)
+  value' = parseTerm $ atomValue <|> fix (\p -> parens (value unit))
 
 contract :: Parser Contract
 contract = do
@@ -414,9 +445,6 @@ contract = do
   c <- (atomContract <|> recContract)
   skipSpaces
   pure c
-
-contractValue :: Parser S.Contract
-contractValue = parseToValue contract
 
 testString :: String
 testString =

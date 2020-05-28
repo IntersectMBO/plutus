@@ -27,7 +27,7 @@ import qualified Language.PlutusIR.MkPir                       as PIR
 
 import qualified Language.PlutusCore                           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic          as PLC
-import           Language.PlutusCore.Pretty                    (Pretty)
+import           Language.PlutusCore.Pretty                    (PrettyConst) 
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function      as PLC
 import qualified Language.PlutusCore.StdLib.Meta.Data.Function as PLC
@@ -40,7 +40,7 @@ import           Control.Monad.Reader                          hiding (lift)
 import           Data.Proxy
 import qualified Data.Typeable                                 as GHC
 
-type Throwable uni = (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` Pretty, GHC.Typeable uni)
+type Throwable uni = (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni)
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
@@ -141,7 +141,7 @@ typeCheckAgainst p plcTerm = do
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm applied
-    types <- PLC.getStringBuiltinTypes NoProvenance
+    types <- PLC.getStringBuiltinTypes noProvenance
     void $ PLC.inferType (PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }) compiled
 
 -- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.

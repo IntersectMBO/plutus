@@ -89,6 +89,8 @@ simpleRuleCasesWithLog regex msg cases = LanguageRule { regex, action: Cases { l
 
 foreign import data MonarchLanguage :: Type
 
+foreign import data HoverProvider :: Type
+
 foreign import data CompletionItemProvider :: Type
 
 foreign import data CodeActionProvider :: Type
@@ -110,6 +112,10 @@ foreign import data MarkerSeverity :: Type
 foreign import data TokensProvider :: Type
 
 foreign import data Uri :: Type
+
+type IMarkdownString
+  = { value :: String
+    }
 
 type IRange
   = { startLineNumber :: Int
@@ -207,6 +213,8 @@ foreign import completionItemKind_ :: Fn1 String CompletionItemKind
 
 foreign import markerSeverity_ :: Fn1 String MarkerSeverity
 
+foreign import registerHoverProvider_ :: EffectFn3 Monaco String HoverProvider Unit
+
 foreign import registerCompletionItemProvider_ :: EffectFn3 Monaco String CompletionItemProvider Unit
 
 foreign import registerCodeActionProvider_ :: EffectFn3 Monaco String CodeActionProvider Unit
@@ -218,6 +226,10 @@ foreign import setPosition_ :: EffectFn2 Editor IPosition Unit
 foreign import revealLine_ :: EffectFn2 Editor Int Unit
 
 foreign import layout_ :: EffectFn1 Editor Unit
+
+foreign import enableVimBindings_ :: EffectFn1 Editor (Effect Unit)
+
+foreign import enableEmacsBindings_ :: EffectFn1 Editor (Effect Unit)
 
 markerSeverity :: String -> MarkerSeverity
 markerSeverity = runFn1 markerSeverity_
@@ -274,6 +286,9 @@ getModelMarkers = runEffectFn2 getModelMarkers_
 setTokensProvider :: Monaco -> String -> TokensProvider -> Effect Unit
 setTokensProvider = runEffectFn3 setTokensProvider_
 
+registerHoverProvider :: Monaco -> String -> HoverProvider -> Effect Unit
+registerHoverProvider = runEffectFn3 registerHoverProvider_
+
 registerCompletionItemProvider :: Monaco -> String -> CompletionItemProvider -> Effect Unit
 registerCompletionItemProvider = runEffectFn3 registerCompletionItemProvider_
 
@@ -291,3 +306,9 @@ revealLine = runEffectFn2 revealLine_
 
 layout :: Editor -> Effect Unit
 layout = runEffectFn1 layout_
+
+enableVimBindings :: Editor -> Effect (Effect Unit)
+enableVimBindings = runEffectFn1 enableVimBindings_
+
+enableEmacsBindings :: Editor -> Effect (Effect Unit)
+enableEmacsBindings = runEffectFn1 enableEmacsBindings_

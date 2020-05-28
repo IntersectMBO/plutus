@@ -62,8 +62,8 @@ test_typecheckAvailable =
 -- > /\ (A :: *) -> \(x : A) -> x x
 selfApply :: Term TyName Name uni ()
 selfApply = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
+    a <- freshTyName "a"
+    x <- freshName "x"
     return
         . TyAbs () a (Type ())
         . LamAbs () x (TyVar () a)

@@ -20,9 +20,10 @@ let
       # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
       name = "plutus";
     };
-    # This turns the output into a fixed-output derivation, which speeds things
-    # up, but means we need to invalidate this hash when we change stack.yaml.
-    stack-sha256 = "12c36c3b9ip6186kmsgi1mf79hi6r3vn9r6qrfmmsnrjm73h81s4";
+    # These files need to be regenerated when you change the cabal files or stack resolver.
+    # See ../CONTRIBUTING.doc for more information.
+    materialized = ./stack.materialized;
+    # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization;
     modules = [
         {
@@ -54,10 +55,7 @@ let
 
             # Fix missing executables on the paths of the test runners. This is arguably
             # a bug, and the fix is a bit of a hack.
-            marlowe-hspec.components.tests.marlowe-hspec-test.preCheck = ''
-              PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
-            '';
-            marlowe-symbolic.components.tests.marlowe-symbolic-test.preCheck = ''
+            marlowe.components.tests.marlowe-test.preCheck = ''
               PATH=${lib.makeBinPath [ pkgs.z3 ]}:$PATH
             '';
             # In this case we can just propagate the native dependencies for the build of the test executable,
@@ -77,7 +75,6 @@ let
             iots-export.package.ghcOptions = "-Werror";
             language-plutus-core.package.ghcOptions = "-Werror";
             marlowe.package.ghcOptions = "-Werror";
-            marlowe-hspec.package.ghcOptions = "-Werror";
             marlowe-symbolic.package.ghcOptions = "-Werror";
             marlowe-playground-server.package.ghcOptions = "-Werror";
             playground-common.package.ghcOptions = "-Werror";
@@ -85,11 +82,8 @@ let
             #plc-agda.package.ghcOptions = "-Werror";
             plutus-book.package.ghcOptions = "-Werror";
             plutus-contract.package.ghcOptions = "-Werror";
-            plutus-contract-tasty.package.ghcOptions = "-Werror";
-            plutus-emulator.package.ghcOptions = "-Werror";
             plutus-ir.package.ghcOptions = "-Werror";
             plutus-ledger.package.ghcOptions = "-Werror";
-            plutus-playground-lib.package.ghcOptions = "-Werror";
             plutus-playground-server.package.ghcOptions = "-Werror";
             plutus-scb.package.ghcOptions = "-Werror";
             plutus-tx.package.ghcOptions = "-Werror";

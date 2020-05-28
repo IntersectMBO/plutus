@@ -1133,6 +1133,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "uuid" = pkgs.stdenv.mkDerivation {
+        name = "uuid";
+        version = "v6.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/spicydonuts/purescript-uuid.git";
+          rev = "6de5e57a8529eca6ac956103f6341c4fa7dfb25e";
+          sha256 = "012sv8xngvyn65q28yl7n74rmspc9bn2g0dspl8wks4pn68ldvaq";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "variant" = pkgs.stdenv.mkDerivation {
         name = "variant";
         version = "v6.0.1";
@@ -1282,8 +1294,6 @@ let
 
   getGlob = pkg: ''\".spago/${pkg.name}/${pkg.version}/src/**/*.purs\"'';
 
-  getStoreGlob = pkg: ''\"${pkg.outPath}/src/**/*.purs\"'';
-
 in {
   inherit inputs;
 
@@ -1301,38 +1311,9 @@ in {
       >>$out echo "#!/usr/bin/env bash"
       >>$out echo
       >>$out echo "echo building project..."
-      >>$out echo "purs compile ${builtins.toString (
-        builtins.map getGlob (builtins.attrValues inputs))}" \"\$@\"
+      >>$out echo "purs compile \"\$@\" ${builtins.toString (
+        builtins.map getGlob (builtins.attrValues inputs))}"
       >>$out echo "echo done."
       chmod +x $out
   '';
-
-  buildFromNixStore = pkgs.runCommand "build-from-store" {} ''
-      >>$out echo "#!/usr/bin/env bash"
-      >>$out echo
-      >>$out echo "echo building project using sources from nix store..."
-      >>$out echo "purs compile ${builtins.toString (
-        builtins.map getStoreGlob (builtins.attrValues inputs))}" \"\$@\"
-      >>$out echo "echo done."
-      chmod +x $out
-  '';
-
-  mkBuildProjectOutput =
-    { src, purs }:
-
-    pkgs.stdenv.mkDerivation {
-      name = "build-project-output";
-      src = src;
-
-      buildInputs = [ purs ];
-
-      installPhase = ''
-        mkdir -p $out
-        purs compile "$src/**/*.purs" ${builtins.toString
-          (builtins.map
-            (x: ''"${x.outPath}/src/**/*.purs"'')
-            (builtins.attrValues inputs))}
-        mv output $out
-      '';
-    };
 }

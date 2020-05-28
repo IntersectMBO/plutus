@@ -51,21 +51,15 @@ a:hover {
     width: auto;
 }
 
-.error-tab.active-text {
-    color: red;
-}
-
-.error-tab {
-    color: lightcoral;
-}
-
 .hide {
     display: none;
 }
 
+.auth-button-container {
+    margin-top: 5px;
+}
 .auth-button {
-    padding: 0.5rem 1.5rem;
-    position: relative;
+    padding: 0.4rem 1.5rem;
     cursor: pointer;
     top: 0.5rem;
     background: var(--gradient-bg);
@@ -122,8 +116,8 @@ a:hover {
 }
 
 .upload-btn>.tooltiptext {
-    left: 0;
-    top: 40px;
+    left: 70%;
+    top: 50px;
 }
 
 .upload-btn>.tooltiptext::after {
@@ -131,7 +125,7 @@ a:hover {
 }
 
 .download-btn>.tooltiptext {
-    left: 65px;
+    right: 0px;
     top: 112%;
 }
 

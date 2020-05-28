@@ -187,7 +187,7 @@ lookupDestructor
     :: forall key uni ann m . (MonadDefs key uni ann m)
     => ann -> key -> m (Maybe (Term TyName Name uni ann))
 lookupDestructor x name = do
-    ds <- liftDef @key @uni $ DefT $ use datatypeDefs
+    ds <- liftDef @key @uni @ann $ DefT $ use datatypeDefs
     pure $ case Map.lookup name ds of
         Just (PLC.Def{PLC.defVal=(Datatype _ _ _ destr _)}, _) -> Just $ Var x destr
         Nothing                                                -> Nothing

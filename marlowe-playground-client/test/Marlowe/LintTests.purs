@@ -33,15 +33,19 @@ all = do
   suite "Marlowe.Linter reports unreachable code" do
     test "Unreachable If branch (then)" $ unreachableThen
     test "Unreachable If branch (else)" $ unreachableElse
-    test "Unreachable Case" $ unreachableCase
+    test "Unreachable Case (Notify)" $ unreachableCaseNotify
+    test "Unreachable Case (empty Choice list)" $ unreachableCaseEmptyChoiceList
   suite "Marlowe.Linter reports bad contracts" do
     test "Undefined Let" $ undefinedLet
     test "Non-positive Deposit" $ nonPositiveDeposit
     test "Non-positive Pay" $ nonPositivePay
+    test "Pay before deposit" $ payBeforeWarning
+    test "Pay before deposit in branch" $ payBeforeWarningBranch
   suite "Marlowe.Linter does not report good contracts" do
     test "Defined Let" $ undefinedLet
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
+    test "Pay to hole" payToHole
 
 letContract :: String -> String
 letContract subExpression = "Let \"simplifiableValue\" " <> subExpression <> " Close"
@@ -231,8 +235,15 @@ unreachableThen = testWarningSimple "If FalseObs Close Close" "This contract is 
 unreachableElse :: Test
 unreachableElse = testWarningSimple "If TrueObs Close Close" "This contract is unreachable"
 
-unreachableCase :: Test
-unreachableCase = testWarningSimple "When [Case (Notify FalseObs) Close] 10 Close" "This case will never be used"
+unreachableCaseNotify :: Test
+unreachableCaseNotify =
+  testWarningSimple "When [Case (Notify FalseObs) Close] 10 Close"
+    "This case will never be used, because the Observation is always false"
+
+unreachableCaseEmptyChoiceList :: Test
+unreachableCaseEmptyChoiceList =
+  testWarningSimple "When [Case (Choice (ChoiceId \"choice\" (Role \"alice\")) []) Close] 10 Close"
+    "This case will never be used, because there are no options to choose"
 
 undefinedLet :: Test
 undefinedLet = testWarningSimple (letContract "(UseValue \"simplifiableValue\")") "The contract tries to Use a ValueId that has not been defined in a Let"
@@ -248,6 +259,21 @@ nonPositivePay = testWarningSimple (payContract "(Constant 0)") "The contract ca
 
 negativePay :: Test
 negativePay = testWarningSimple (payContract "(Constant -1)") "The contract can make a non-positive payment"
+
+payBeforeWarning :: Test
+payBeforeWarning = testWarningSimple contract "The contract makes a payment to account (AccountId 0 (Role \"role\")) before a deposit has been made"
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
+
+payBeforeWarningBranch :: Test
+payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment to account (AccountId 1 (Role \"role\")) before a deposit has been made"
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\")) (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (AccountId 1 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
+
+payToHole :: Test
+payToHole = testNoWarning contract
+  where
+  contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 ?party) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 normalLet :: Test
 normalLet = testNoWarning "Let \"a\" (Constant 0) (Let \"b\" (UseValue \"a\") Close)"

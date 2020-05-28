@@ -18,7 +18,7 @@ import           Language.PlutusCore.Quote
 -- > all (r :: *). r -> (r -> r) -> r
 churchNat :: Type TyName uni ()
 churchNat = runQuote $ do
-    r <- freshTyName () "r"
+    r <- freshTyName "r"
     return
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -30,11 +30,11 @@ churchNat = runQuote $ do
 -- > /\(r :: *) -> \(z : r) (f : r -> r) -> z
 churchZero :: TermLike term TyName Name uni => term ()
 churchZero = runQuote $ do
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
-        . tyAbs () r (Type ())
+        . tyAbs  () r (Type ())
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         $ var () z
@@ -44,16 +44,16 @@ churchZero = runQuote $ do
 -- > \(n : nat) -> /\(r :: *) -> \(z : r) (f : r -> r) -> f (n {r} z f)
 churchSucc :: TermLike term TyName Name uni => term ()
 churchSucc = runQuote $ do
-    n <- freshName () "n"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    n <- freshName "n"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
         . lamAbs () n churchNat
-        . tyAbs () r (Type ())
+        . tyAbs  () r (Type ())
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
-        . apply () (var () f)
+        . apply  () (var () f)
         $ mkIterApp () (tyInst () (var () n) $ TyVar () r)
           [ var () z
           , var () f

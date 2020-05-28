@@ -64,3 +64,28 @@ WARNING: altering some ssh keys in terraform instances can result in machines be
 ## Deployment Server
 
 If you wish to use the continuous delivery deployment server then please read the [Readme](../deployment-server/README.md).
+
+## Changing User Data
+
+Sometimes it is necessary to change the `user_data` field in an EC2 machine, for example if you want to upgrade nixpkgs on the machine definition in `deployment.nixos` then you should ensure `user_data` is also changed. This ensures that if the machine is ever re-created (or when a new environment is created) the correct initial nixos configuration is used.
+
+When `user_data` is modified, terraform will see there is a difference and ask to re-create the machine, this is often undesirable and you can work around it as follows:
+
+* add something like the following to the bottom of `main.tf` where the correct `user_data` is used:
+
+```terraform
+output "user_data" {
+  value = "${data.template_file.nixops_user_data.rendered}"
+}
+```
+
+* run `terraform refresh -var-file=myvars.tf`
+* go to the AWS console -> EC2 -> instances and find the instance(s) with the user data you want to change
+* stop the machine
+* change the user data (Instance Settings -> View/Change User Data)
+* start the machine
+* run `terraform apply -var-file=myvars.tf`
+
+If terraform still thinks it needs to make a change to `user_data` it's probably because there is a missing or extra newline in the user data. You can fiddle with this by putting the user data in a file and adjust and run `cat userdata | shasum` until you get the same sha that terraform is expecting.
+
+Finally you should delete the `output` you created in `main.tf` as it creates noise in the output.

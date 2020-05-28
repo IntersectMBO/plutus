@@ -22,7 +22,7 @@ import           Control.Monad.Freer.Writer
 import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
-import           Data.Foldable                   (traverse_)
+import           Data.Foldable                   (fold, traverse_)
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
 import           Data.Time.Units                 (Second, toMicroseconds)
@@ -57,7 +57,7 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processIndexEffects stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> WalletEffects.transactionConfirmed)
 
 main :: (MonadIO m) => ChainIndexConfig -> BaseUrl -> m ()
 main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do
@@ -95,7 +95,7 @@ syncState = do
         maybe (logInfo "Obtaining folllower ID" >> NodeFollower.newFollower >>= \i -> assign indexFollowerID (Just i) >> return i) pure
     logDebug $ "Updating chain index with follower ID " <> tshow followerID
     newBlocks <- NodeFollower.getBlocks followerID
-    logInfo $ "Received " <> tshow (length newBlocks) <> " blocks"
+    logInfo $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
     let notifications = BlockValidated <$> newBlocks
     traverse_ ChainIndex.chainIndexNotify notifications
 
@@ -116,7 +116,7 @@ updateThread updateInterval mv nodeClientEnv = do
     forever $ do
         logInfoN "Asking the node for new blocks"
         newBlocks <- liftIO $ runClientM (NodeClient.getBlocks followerID) nodeClientEnv >>= either (error . show) pure
-        logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks"
+        logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
         logDebugN $ tshow newBlocks
         let notifications = BlockValidated <$> newBlocks
         traverse_ (processIndexEffects mv . ChainIndex.chainIndexNotify) notifications

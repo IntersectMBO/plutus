@@ -449,7 +449,7 @@ differently.  This allows us to encode a wide variety of data types,
 including non-regular and mutually recursive data types:
 see~\citep[3.1]{unravelling-recursion} for more information.
 
-Note that we have an \textit{isomporhism} of types here rather than
+Note that we have an \textit{isomorphism} of types here rather than
 equality: fixpoint types are
 \textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
@@ -499,7 +499,7 @@ carry their name and a type. The rules for context validity explain
 how valid contexts can be constructed: the empty context is valid, and
 given a valid context $\Gamma$, it can be extended with a fresh
 variable and kind or a fresh variable and a valid type in
-$\Gamma$. Note that we do not need a separate judgement for valid
+$\Gamma$. Note that we do not need a separate judgment for valid
 kinds. They are so simple that any kind that can be constructed
 according to the grammar is a valid kind.
 
@@ -856,7 +856,7 @@ that the machine was incorrectly implemented or that it was attempting
 to evaluate an invalid program which should have been detected during
 parsing or typechecking.
 
-For efficiency reasons the behaviour of the machine defined in
+For efficiency reasons the behavior of the machine defined in
 Figure~\ref{fig:typed-ck-machine} differs in two respects from the semantics
 defined in Figure~\ref{fig:term-reduction}:
 \begin{itemize}
@@ -986,7 +986,7 @@ integer.
   )
 \end{verbatim}
 
-\noindent We have used the built-in \verb|subtractInteger|
+\noindent We have used the built-in \verb|lessThanInteger|
 function, which returns a boolean value encoded as shown in
 Figure~\ref{fig:type-abbreviations}, of type
 $\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
@@ -1050,7 +1050,7 @@ functions, enabling accurate (dynamic) monitoring of execution costs.
 \noindent The grammar is essentially that of typed Plutus Core with all types
 and type-related operations discarded.  However, we require two new
 items: \texttt{delay} and \texttt{force}.  These are needed because
-type-level abstraction (\texttt{abs}) and application (\texttt{\{\}})
+type-level abstraction (\texttt{abs}) and instantiation (\texttt{\{\}})
 have a computational effect.  The body of a type abstraction will not
 be executed until the type is instantiated; thus we cannot just
 replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
@@ -1170,7 +1170,7 @@ In Section~\ref{sec:typed-ck-machine} we described the CK machine, an
 abstract machine for executing Plutus Core programs.  As we pointed
 out, the CK machine is inefficient because it performs application by
 substitution: if one is evaluating $(\lambda x:t.e)e^{\prime}$ then
-the whole of $e^{\prime}$ has to be subsitituted for every occurrence
+the whole of $e^{\prime}$ has to be substituted for every occurrence
 of $x$ in $e$, which can be expensive in terms of both time and space.
 This section presents a version of the \textit{CEK machine} of
 ~\citep{Felleisen-CK-CEK}: this uses environments to store bindings of
@@ -1179,7 +1179,7 @@ makes evaluation considerably more efficient, to the extent that the
 CEK machine can be used in practical situations.
 
 \subsection{Structure of the CEK machine}
-The CEK machine avoids the inefficiency of repeated subsitution by
+The CEK machine avoids the inefficiency of repeated substitution by
 extending the state of the machine with
 \textit{environments} mapping variable names to \textit{closures} consisting of
 pairs $(V,\rho)$ where $V$ is a value and $\rho$ is another

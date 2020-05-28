@@ -81,6 +81,10 @@ exports.markerSeverity_ = function (name) {
   return monaco.MarkerSeverity[name];
 }
 
+exports.registerHoverProvider_ = function (monaco, languageId, provider) {
+  monaco.languages.registerHoverProvider(languageId, provider);
+}
+
 exports.registerCompletionItemProvider_ = function (monaco, languageId, provider) {
   monaco.languages.registerCompletionItemProvider(languageId, provider);
 }
@@ -105,3 +109,13 @@ exports.layout_ = function (editor) {
   editor.layout();
 }
 
+exports.enableVimBindings_ = function (editor) {
+  var vimMode = global.initVimMode(editor);
+  return (() => vimMode.dispose());
+}
+
+exports.enableEmacsBindings_ = function (editor) {
+  var emacsMode = new global.EmacsExtension(editor);
+  emacsMode.start();
+  return (() => emacsMode.dispose());
+}

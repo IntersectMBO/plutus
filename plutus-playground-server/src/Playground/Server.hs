@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -50,8 +51,7 @@ evaluateSimulation evaluation = do
 
 checkHealth :: Handler ()
 checkHealth = do
-    res <- compileSourceCode vesting
-    case res of
+    compileSourceCode vesting >>= \case
         Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
 

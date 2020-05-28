@@ -13,18 +13,9 @@ module Language.PlutusCore.Universe.Default
     ( DefaultUni (..)
     ) where
 
-import           Language.PlutusCore.Pretty.Utils
 import           Language.PlutusCore.Universe.Core
 
 import qualified Data.ByteString.Lazy              as BSL
-import           Data.Text.Prettyprint.Doc
-
--- | We want to pretty-print constants of built-in types in a particular way.
--- Ideally, that should mean that either we have a particular class for constants pretty-printing
--- or we use a newtype to wrap the types in, so that they can be assigned a fancy 'Pretty' instance.
--- But for now we just hardcode an instance for 'ByteString'.
-instance Pretty BSL.ByteString where
-    pretty = prettyBytes
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),

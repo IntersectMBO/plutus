@@ -3,6 +3,10 @@
 
 const monaco = require('src/Marlowe/Monaco.ts');
 
+exports.hoverProvider_ = function (hoverProvider) {
+    return new monaco.MarloweHoverProvider(hoverProvider);
+}
+
 exports.completionItemProvider_ = function (suggestionsProvider) {
     let uncurriedSuggestions = (stripParens, contract, range) => suggestionsProvider(stripParens)(contract)(range);
     return new monaco.MarloweCompletionItemProvider(uncurriedSuggestions);
@@ -34,6 +38,7 @@ exports.daylightTheme_ = {
         { token: '', foreground: red, background: 'fffffe' },
         { token: "number", foreground: purple },
         { token: "string", foreground: orange },
+        { token: "ratio", foreground: darkGreen },
         { token: "comma", foreground: darkGreen },
         { token: "lparen", foreground: darkGreen },
         { token: "rparen", foreground: darkGreen },

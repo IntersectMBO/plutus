@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -43,7 +44,8 @@ type WatchAddress = AddressSymbol .== ((Address, Tx), AddressSet)
 newtype AddressSet =
     AddressSet  { unAddressSet :: Set Address }
         deriving stock (Eq, Ord, Generic, Show)
-        deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+        deriving newtype (Semigroup, Monoid)
+        deriving anyclass (ToJSON, FromJSON)
         deriving Pretty via (PrettyFoldable Set Address)
 
 -- | Wait for the next transaction that changes an address.

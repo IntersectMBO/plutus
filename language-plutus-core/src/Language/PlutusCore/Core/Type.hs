@@ -56,13 +56,13 @@ data Kind ann
 
 -- | A 'Type' assigned to expressions.
 data Type tyname uni ann
-    = TyVar ann (tyname ann)
+    = TyVar ann tyname
     | TyFun ann (Type tyname uni ann) (Type tyname uni ann)
     | TyIFix ann (Type tyname uni ann) (Type tyname uni ann)
       -- ^ Fix-point type, for constructing self-recursive types
-    | TyForall ann (tyname ann) (Kind ann) (Type tyname uni ann)
+    | TyForall ann tyname (Kind ann) (Type tyname uni ann)
     | TyBuiltin ann (Some (TypeIn uni)) -- ^ Builtin type
-    | TyLam ann (tyname ann) (Kind ann) (Type tyname uni ann)
+    | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
@@ -112,9 +112,9 @@ data Builtin ann
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 data Term tyname name uni ann
-    = Var ann (name ann) -- ^ a named variable
-    | TyAbs ann (tyname ann) (Kind ann) (Term tyname name uni ann)
-    | LamAbs ann (name ann) (Type tyname uni ann) (Term tyname name uni ann)
+    = Var ann name -- ^ a named variable
+    | TyAbs ann tyname (Kind ann) (Term tyname name uni ann)
+    | LamAbs ann name (Type tyname uni ann) (Term tyname name uni ann)
     | Apply ann (Term tyname name uni ann) (Term tyname name uni ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
     | Builtin ann (Builtin ann)
@@ -145,9 +145,9 @@ deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 -- | All kinds of uniques an entity contains.
 type family HasUniques a :: Constraint
 type instance HasUniques (Kind ann) = ()
-type instance HasUniques (Type tyname uni ann) = HasUnique (tyname ann) TypeUnique
+type instance HasUniques (Type tyname uni ann) = HasUnique tyname TypeUnique
 type instance HasUniques (Term tyname name uni ann)
-    = (HasUnique (tyname ann) TypeUnique, HasUnique (name ann) TermUnique)
+    = (HasUnique tyname TypeUnique, HasUnique name TermUnique)
 type instance HasUniques (Program tyname name uni ann) = HasUniques
     (Term tyname name uni ann)
 

@@ -9,18 +9,14 @@ packages:
 - plutus-use-cases
 - playground-common
 - marlowe
-- marlowe-hspec
 - marlowe-playground-server
 - metatheory
 - plutus-ledger
 - plutus-playground-server
-- plutus-playground-lib
 - plutus-tutorial
 - plutus-book
 - plutus-contract
-- plutus-contract-tasty
 - plutus-scb
-- plutus-emulator
 - deployment-server
 - iots-export
 - marlowe-symbolic
@@ -76,6 +72,87 @@ extra-deps:
 - git: https://github.com/michaelpj/slack-web.git
   commit: 6ff88895c5da593e7bd09a46d7002441817aa6f8
   # nix-sha256: 1115jngzx2hbvznhnrnm4qs9vn6hsjklxwiwa5i11npr2kxd5rm2
+## Node protocols
+- canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
+- cborg-0.2.2.0@sha256:eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c,4779
+- statistics-linreg-0.3@sha256:95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f,2544
+# Making the repository compatible with GHC-8.8.X required a couple of
+# source code changes, so I forked the original repository until it will
+# be properly updated to GHC-8.8.X
+- git: https://github.com/raduom/ouroboros-network
+  commit: af744374a05d6a5eb76713b399595131e2a24c38
+  # nix-sha256: 1fljr384bkyg0lj46bkgdplp9dzwkb9dz1r6j863niyvm3q50h66
+  subdirs:
+    - typed-protocols
+    - typed-protocols-examples
+    - ouroboros-network
+    - ouroboros-network-framework
+    - io-sim
+    - io-sim-classes
+    - network-mux
+    - Win32-network
+- git: https://github.com/input-output-hk/cardano-prelude
+  commit: bd7eb69d27bfaee46d435bc1d2720520b1446426
+  # nix-sha256: 1cmxh1gk7lvgs6bfr8v6k2lpjxmk0qam58clvdvxkybrlbh186ps
+  subdirs:
+    - .
+    - test
+- git: https://github.com/input-output-hk/cardano-base
+  commit: 5035c9ed95e9d47f050314a7d96b1b2043288f61
+  # nix-sha256: 103z0009sz586f2mvnmwl2hp9n94qy0n72ik521xhq7zmfwyv3m7
+  subdirs:
+    - binary
+    - binary/test
+    - cardano-crypto-class
+    - slotting
+# Making the repository compatible with GHC-8.8.X required a couple of
+# source code changes, so I forked the original repository until it will
+# be properly updated to GHC-8.8.X
+- git: https://github.com/raduom/cardano-ledger-specs
+  commit: 2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3
+  # nix-sha256: 0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447
+  subdirs:
+    - byron/chain/executable-spec
+    - byron/ledger/executable-spec
+    - semantics/executable-spec
+    - shelley/chain-and-ledger/dependencies/non-integer
+    - shelley/chain-and-ledger/executable-spec
+    - shelley/chain-and-ledger/executable-spec/test
+# Making the repository compatible with GHC-8.8.X required a couple of
+# source code changes, so I forked the original repository until it will
+# be properly updated to GHC-8.8.X
+- git: https://github.com/raduom/iohk-monitoring-framework
+  commit: b5c035ad4e226d634242ad5979fa677921181435
+  # nix-sha256: 19v32drfb7wy1yqpbxlqvgii0i7s2j89s05lqskx6855yn0calq4
+  subdirs:
+    - contra-tracer
+
+allow-newer: true
+
+flags:
+  cardano-prelude:
+    development: true
+  cardano-prelude-test:
+    development: true
+  cardano-binary:
+    development: true
+  cardano-binary-test:
+    development: true
+  cardano-crypto-class:
+    development: true
+  small-steps:
+    development: true
+  byron-spec-ledger:
+    development: true
+  shelley-spec-ledger:
+    development: true
+  byron-spec-chain:
+    development: true
+  shelley-spec-ledger-test:
+    development: true
+
+## / Node protocols
+
 extra-package-dbs: []
 
 ghc-options:

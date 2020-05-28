@@ -62,7 +62,7 @@ executable tutorial-doctests
       language-plutus-core -any,
       plutus-tx -any,
       plutus-ledger -any,
-      plutus-emulator -any,
+      plutus-contract -any,
       prettyprinter -any,
       containers -any
 

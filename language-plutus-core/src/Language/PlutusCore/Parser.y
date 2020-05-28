@@ -69,6 +69,7 @@ import Control.Monad.State
     integer       { TkKeyword $$ KwInteger }
     bool          { TkKeyword $$ KwBool }
     bytestring    { TkKeyword $$ KwByteString }
+    char          { TkKeyword $$ KwChar }
     string        { TkKeyword $$ KwString }
     unit          { TkKeyword $$ KwUnit }
     type          { TkKeyword $$ KwType }
@@ -87,11 +88,12 @@ import Control.Monad.State
 
     unitLit       { $$@TkUnit{} }
     boolLit       { $$@TkBool{} }
+    charLit       { $$@TkChar{}}
     integerLit    { $$@TkInt{} }
     naturalLit    { $$@TkNat{} }
     byteStringLit { $$@TkBS{} }
     stringLit     { $$@TkString{} }
-    var           { $$@TkName{} }
+    name          { $$@TkName{} }
     builtinid     { $$@TkBuiltinId{} }
 
 %%
@@ -111,18 +113,23 @@ Program : openParen program Version Term closeParen { Program $2 $3 $4 }
 
 Version : naturalLit dot naturalLit dot naturalLit { Version (tkLoc $1) (tkNat $1) (tkNat $3) (tkNat $5) }
 
-Name : var { Name (tkLoc $1) (tkName $1) (tkIdentifier $1) }
+Name   : name { Name (tkName $1) (tkIdentifier $1) }
 
-TyName : Name { TyName $1 }
+Var    : name { Var (tkLoc $1) (Name (tkName $1) (tkIdentifier $1)) }
+
+TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
+
+TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
 
 Constant : unitLit       { someValue (tkUnit $1) }
          | boolLit       { someValue (tkBool $1) }
+         | charLit       { someValue (tkChar $1) }
          | integerLit    { someValue (tkInt $1) }
          | naturalLit    { someValue (toInteger (tkNat $1)) }
          | byteStringLit { someValue (tkBytestring $1) }
          | stringLit     { someValue (tkString (fixStr $1)) } 
 
-Term : Name                                       { Var (nameAttribute $1) $1 }
+Term : Var                                        { $1 }
      | openParen abs TyName Kind Term closeParen  { TyAbs $2 $3 $4 $5 }
      | openBrace Term some(Type) closeBrace       { tyInst $1 $2 (NE.reverse $3) }
      | openParen lam Name Type Term closeParen    { LamAbs $2 $3 $4 $5 }
@@ -136,11 +143,12 @@ Term : Name                                       { Var (nameAttribute $1) $1 }
 
 BuiltinType : integer    { mkTyBuiltin @Integer }
             | bool       { mkTyBuiltin @Bool }
+            | char       { mkTyBuiltin @Char }
             | bytestring { mkTyBuiltin @BSL.ByteString }
             | string     { mkTyBuiltin @String }
             | unit       { mkTyBuiltin @() }
 		  
-Type : TyName { TyVar (nameAttribute (unTyName $1)) $1 }
+Type : TyVar { $1 }
      | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }

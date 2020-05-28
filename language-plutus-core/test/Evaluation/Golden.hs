@@ -33,11 +33,11 @@ evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
-    evenn <- freshName () "even"
-    oddd  <- freshName () "odd"
+    evenn <- freshName "even"
+    oddd  <- freshName "odd"
 
     let eoFunc b recc = do
-          n <- freshName () "n"
+          n <- freshName "n"
           pure $
               LamAbs () n nat $
               Apply () (Apply () (TyInst () (Unwrap () (Var () n)) bool) b) $ Var () recc
@@ -56,11 +56,11 @@ evenAndOddList = runQuote $ do
         nat  = _recursiveType natData
         listNat = TyApp () list nat
 
-    evenn <- freshName () "even"
-    oddd  <- freshName () "odd"
+    evenn <- freshName "even"
+    oddd  <- freshName "odd"
 
     let eoFunc recc = do
-          l <- freshName () "l"
+          l <- freshName "l"
           pure $
               LamAbs () l listNat $
               Apply () (
@@ -69,8 +69,8 @@ evenAndOddList = runQuote $ do
               recc
 
     evenF <- FunctionDef () evenn (FunctionType () listNat listNat) <$> do
-        h <- freshName () "head"
-        t <- freshName () "tail"
+        h <- freshName "head"
+        t <- freshName "tail"
         eoFunc $
             LamAbs () h nat $
             LamAbs () t listNat $
@@ -78,8 +78,8 @@ evenAndOddList = runQuote $ do
             Apply () (Var () oddd) (Var () t)
 
     oddF <- FunctionDef () oddd (FunctionType () listNat listNat) <$> do
-        h <- freshName () "head"
-        t <- freshName () "tail"
+        h <- freshName "head"
+        t <- freshName "tail"
         eoFunc $
             LamAbs () h nat $
             LamAbs () t listNat $
@@ -97,15 +97,15 @@ smallNatList = metaListToList nat nats where
 
 polyError :: Term TyName Name uni ()
 polyError = runQuote $ do
-    a <- freshTyName () "a"
+    a <- freshTyName "a"
     pure $ TyAbs () a (Type ()) $ Error () (TyVar () a)
 
 -- | For checking that evaluating a term to a non-constant results in all remaining variables
 -- being instantiated.
 closure :: uni `Includes` Integer => Term TyName Name uni ()
 closure = runQuote $ do
-    i <- freshName () "i"
-    j <- freshName () "j"
+    i <- freshName "i"
+    j <- freshName "j"
     let integer = mkTyBuiltin @Integer ()
     pure
         . Apply () (LamAbs () i integer . LamAbs () j integer $ Var () i)

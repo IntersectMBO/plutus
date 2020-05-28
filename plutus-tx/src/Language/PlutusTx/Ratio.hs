@@ -36,10 +36,11 @@ import qualified Language.PlutusTx.Ord      as P
 
 import qualified Language.PlutusTx.Builtins as Builtins
 
+import           GHC.Generics               (Generic)
 import qualified GHC.Real                   as Ratio
 import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), (*))
 
-data Ratio a = a :% a deriving Eq
+data Ratio a = a :% a deriving (Eq,Generic)
 
 {-# ANN module "HLint: ignore" #-}
 

@@ -1,28 +1,39 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DerivingStrategies   #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Serialise instances for Plutus Core types. Make sure to read the Note [Stable encoding of PLC]
--- before touching anything in this file.
-module Language.PlutusCore.CBOR () where
+-- | Serialise instances for Plutus Core types. Make sure to read the
+-- Note [Stable encoding of PLC] before touching anything in this
+-- file.  Also see the Notes [Serialising unit annotations] and
+-- [Serialising Scripts] before using anything in this file.
+
+module Language.PlutusCore.CBOR ( encode
+                                , decode
+                                , OmitUnitAnnotations (..)
+                                , serialiseOmittingUnits
+                                , deserialiseRestoringUnits
+                                , deserialiseRestoringUnitsOrFail
+                                , DeserialiseFailure (..)
+                                ) where
+-- Codec.CBOR.DeserialiseFailure is re-exported from this module for use with deserialiseRestoringUnitsOrFail
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.DeBruijn
-import           Language.PlutusCore.Error
 import           Language.PlutusCore.Lexer.Type
 import           Language.PlutusCore.MkPlc      (TyVarDecl (..), VarDecl (..))
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
+
 import           Codec.CBOR.Decoding
 import           Codec.CBOR.Encoding
 import           Codec.Serialise
+import qualified Data.ByteString.Lazy           as BSL
 import           Data.Functor.Foldable          hiding (fold)
 import           Data.Proxy
 
@@ -50,14 +61,15 @@ for testing.
 
 
 {- [Note: Encoding/decoding constructor tags]
-   Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
-   tags representing constructors.  These are just aliases for
-   `encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
-   sizes and will only use one byte for the tags we have here.  NB: Don't
-   use encodeTag or decodeTag; those are for use with a fixed set of CBOR
-   tags with predefined meanings which we shouldn't interfere with.
-   See http://hackage.haskell.org/package/serialise.
+Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
+tags representing constructors.  These are just aliases for
+`encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
+sizes and will only use one byte for the tags we have here.  NB: Don't
+use encodeTag or decodeTag; those are for use with a fixed set of CBOR
+tags with predefined meanings which we shouldn't interfere with.
+See http://hackage.haskell.org/package/serialise.
 -}
+
 encodeConstructorTag :: Word -> Encoding
 encodeConstructorTag = encodeWord
 
@@ -135,12 +147,12 @@ instance Serialise Unique where
     encode (Unique i) = encodeInt i
     decode = Unique <$> decodeInt
 
-instance Serialise ann => Serialise (Name ann) where
+instance Serialise Name where
     -- TODO: should we encode the name or not?
-    encode (Name ann txt u) = encode ann <> encode txt <> encode u
-    decode = Name <$> decode <*> decode <*> decode
+    encode (Name txt u) = encode txt <> encode u
+    decode = Name <$> decode <*> decode
 
-instance Serialise ann => Serialise (TyName ann) where
+instance Serialise TyName where
     encode (TyName n) = encode n
     decode = TyName <$> decode
 
@@ -158,7 +170,7 @@ instance Serialise ann => Serialise (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-instance (Closed uni, Serialise ann, Serialise (tyname ann)) => Serialise (Type tyname uni ann) where
+instance (Closed uni, Serialise ann, Serialise tyname) => Serialise (Type tyname uni ann) where
     encode = cata a where
         a (TyVarF ann tn)        = encodeConstructorTag 0 <> encode ann <> encode tn
         a (TyFunF ann t t')      = encodeConstructorTag 1 <> encode ann <> t <> t'
@@ -194,8 +206,8 @@ instance Serialise ann => Serialise (Builtin ann) where
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (Term tyname name uni ann) where
     encode = cata a where
         a (VarF ann n)           = encodeConstructorTag 0 <> encode ann <> encode n
@@ -224,21 +236,21 @@ instance ( Closed uni
 
 instance ( Closed uni
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (VarDecl tyname name uni ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 
-instance (Serialise ann, Serialise (tyname ann))  => Serialise (TyVarDecl tyname ann) where
+instance (Serialise ann, Serialise tyname)  => Serialise (TyVarDecl tyname ann) where
     encode (TyVarDecl t tyname kind) = encode t <> encode tyname <> encode kind
     decode = TyVarDecl <$> decode <*> decode <*> decode
 
 instance ( Closed uni
          , uni `Everywhere` Serialise
          , Serialise ann
-         , Serialise (tyname ann)
-         , Serialise (name ann)
+         , Serialise tyname
+         , Serialise name
          ) => Serialise (Program tyname name uni ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
     decode = Program <$> decode <*> decode <*> decode
@@ -252,23 +264,74 @@ instance Serialise Special
 
 deriving newtype instance Serialise Index
 
-instance Serialise ann => Serialise (DeBruijn ann) where
-    encode (DeBruijn ann txt i) = encode ann <> encode txt <> encode i
-    decode = DeBruijn <$> decode <*> decode <*> decode
+instance Serialise DeBruijn where
+    encode (DeBruijn txt i) = encode txt <> encode i
+    decode = DeBruijn <$> decode <*> decode
 
-instance Serialise ann => Serialise (TyDeBruijn ann) where
+instance Serialise TyDeBruijn where
     encode (TyDeBruijn n) = encode n
     decode = TyDeBruijn <$> decode
 
-instance (Serialise ann) => Serialise (ParseError ann)
-instance ( Closed uni
-         , uni `Everywhere` Serialise
-         , Serialise (tyname ann)
-         , Serialise (name ann)
-         , Serialise ann
-         ) => Serialise (NormCheckError tyname name uni ann)
-instance (Serialise ann) => Serialise (UniqueError ann)
-instance Serialise UnknownDynamicBuiltinNameError
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (InternalTypeError uni ann)
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (TypeError uni ann)
-instance (Closed uni, uni `Everywhere` Serialise, Serialise ann) => Serialise (Error uni ann)
+
+{- Note [Serialising unit annotations]
+
+Serialising the unit annotation takes up space: () is converted to the
+CBOR `null` value, which is encoded as the byte 0xF6.  In typical
+examples these account for 30% or more of the bytes in a serialised
+PLC program.  We don't actually need to serialise unit annotations
+since we know where they're going to appear when we're deserialising,
+and we know what the value has to be.  The `InvisibleUnit` type below
+has instances which takes care of this for us: if we have an
+`InvisibleUnit`-annotated program `prog` then `serialise prog` will
+serialise a program omitting the annotations, and `deserialise` (with
+an appropriate type ascription) will give us back an
+`InvisibleUnit`-annotated program.
+
+We usually deal with ()-annotated ASTs, so the annotations have to be
+converted to and from `InvisibleUnit` if we wish to save space.  The
+obvious way to do this is to use `InvisibleUnit <$ ...` and
+`() <$ ...`, but these have the disadvantage that they have to traverse the
+entire AST and visit every annotation, adding an extra cost which may
+be undesirable when deserialising things on-chain.  However,
+`InvisibleUnit` has the same underlying representation as `()`, and
+we can exploit this using Data.Coerce.coerce to convert entire ASTs
+with no run-time overhead.
+-}
+
+newtype InvisibleUnit = InvisibleUnit ()
+
+instance Serialise InvisibleUnit where
+    encode = mempty
+    decode = pure (InvisibleUnit ())
+
+{- Note [Serialising Scripts]
+
+At first sight, all we need to do to serialise a script without unit
+annotations appearing in the CBOR is to coerce from `()` to
+`InvisibleUnit` and then apply `serialise` as normal.  However, this
+isn't sufficient for the ledger code. There are a number of places in
+Ledger.Scripts and elsewhere where hashes of objects (`Tx`, for
+example) are calculated by serialsing the entire object and
+calculating a hash, and these objects can contain Scripts themselves.
+Serialisation is achieved using the Generic instance of `Serialise`,
+which will just use `encode` on everything, including unit
+annotations.  we could overcome this by writing explicit `Serialise`
+instances for everything.  This would be more space-efficient than the
+Generic encoding, but would introduce a lot of extra code.  Instead,
+we provide a wrapper class with an instance which performs the
+coercions for us.  This is used in `Ledger.Scripts.Script` to
+derive a suitable instance of `Serialise` for scripts. -}
+
+newtype OmitUnitAnnotations uni  = OmitUnitAnnotations { restoreUnitAnnotations :: Program TyName Name uni () }
+    deriving Serialise via Program TyName Name uni InvisibleUnit
+
+{-| Convenience functions for serialisation/deserialisation without units -}
+serialiseOmittingUnits :: (Closed uni, uni `Everywhere` Serialise) => Program TyName Name uni () -> BSL.ByteString
+serialiseOmittingUnits = serialise . OmitUnitAnnotations
+
+deserialiseRestoringUnits :: (Closed uni, uni `Everywhere` Serialise) => BSL.ByteString -> Program TyName Name uni ()
+deserialiseRestoringUnits = restoreUnitAnnotations <$> deserialise
+
+deserialiseRestoringUnitsOrFail :: (Closed uni, uni `Everywhere` Serialise) =>
+                        BSL.ByteString -> Either DeserialiseFailure (Program TyName Name uni ())
+deserialiseRestoringUnitsOrFail = second restoreUnitAnnotations <$> deserialiseOrFail

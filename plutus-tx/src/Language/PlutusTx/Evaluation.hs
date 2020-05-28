@@ -28,6 +28,7 @@ import           Language.PlutusCore.Evaluation.Machine.Cek                 hidi
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC (evaluateCek, unsafeEvaluateCek)
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Pretty                                 (PrettyConst)
 
 import qualified Control.Exception
 import           System.IO.Unsafe
@@ -48,7 +49,7 @@ evaluateCek = PLC.evaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
     => Program TyName Name uni () -> EvaluationResultDef uni
 unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . toTerm

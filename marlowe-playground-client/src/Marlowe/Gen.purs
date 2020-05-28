@@ -4,7 +4,7 @@ import Prelude
 import Control.Lazy (class Lazy, defer)
 import Control.Monad.Gen (class MonadGen, chooseInt, resize, suchThat, unfoldable)
 import Control.Monad.Gen as Gen
-import Control.Monad.Reader (class MonadAsk, ask)
+import Control.Monad.Reader (class MonadReader, ask, local)
 import Control.Monad.Rec.Class (class MonadRec)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
@@ -12,8 +12,8 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Case(..), Party(..), ChoiceId(..), Contract(..), Observation(..), Payee(..), Term(..), Token(..), Value(..), ValueId(..), Bound(..))
-import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), Timeout, TokenName, TransactionInput(..), TransactionWarning(..))
+import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
 import Type.Proxy (Proxy(..))
@@ -33,15 +33,25 @@ genRational :: forall m. MonadGen m => MonadRec m => m Rational
 genRational = do
   n <- genBigInteger
   d <- genBigInteger
-  pure $ Rational n d
+  pure
+    -- we need to do this because in tests where we wrap a Rational in a Term or TermWrapper
+    
+    -- when we have two negative values then the column position of the term will different
+    
+    -- to if we have two positive values, even though the rationals themselves are equal
+    
+    $ if d > zero then
+        Rational n d
+      else
+        Rational (-n) (-d)
 
 genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
-genTimeout :: forall m. MonadGen m => MonadRec m => m Timeout
-genTimeout = genSlot
+genTimeout :: forall m. MonadGen m => MonadRec m => m (TermWrapper Slot)
+genTimeout = TermWrapper <$> genSlot <*> pure { row: 0, column: 0 }
 
-genValueId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ValueId
+genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
 
 genAlphaNum :: forall m. MonadGen m => MonadRec m => m Char
@@ -56,12 +66,12 @@ genPubKey = genString
 genTokenName :: forall m. MonadGen m => MonadRec m => m TokenName
 genTokenName = genString
 
-genParty :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Party
+genParty :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Party
 genParty = oneOf $ pk :| [ role ]
   where
-  pk = PK <$> genTerm genPubKey
+  pk = PK <$> genPubKey
 
-  role = Role <$> genTerm genTokenName
+  role = Role <$> genTokenName
 
 genCurrencySymbol :: forall m. MonadGen m => MonadRec m => m CurrencySymbol
 genCurrencySymbol = genString
@@ -72,56 +82,59 @@ genSlotInterval gen = do
   to <- suchThat gen (\v -> v > from)
   pure $ SlotInterval from to
 
-genBound :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Bound
+genBound :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Bound
 genBound = do
   from <- genBigInteger
-  from' <- genTerm $ pure from
-  to <- genTerm $ suchThat genBigInteger (\v -> v > from)
-  pure $ Bound from' to
+  to <- suchThat genBigInteger (\v -> v > from)
+  pure $ Bound from to
 
 genPosition :: forall m. MonadGen m => MonadRec m => m Pos
 genPosition = chooseInt 0 1000
 
-genHole :: forall m a. MonadGen m => MonadRec m => m (Term a)
-genHole = do
-  name <- suchThat genString (\s -> s /= "")
+genHole :: forall m a. MonadGen m => MonadRec m => String -> m (Term a)
+genHole name = do
+  -- name <- suchThat genString (\s -> s /= "")
   proxy <- pure (Proxy :: Proxy a)
   row <- genPosition
   column <- genPosition
   pure $ Hole name proxy { row, column }
 
-genTerm :: forall m a. MonadGen m => MonadRec m => MonadAsk Boolean m => m a -> m (Term a)
-genTerm g = do
+genTerm :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => String -> m a -> m (Term a)
+genTerm name g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure { row: 0, column: 0 }) :| (if withHoles then [ genHole ] else [])
+  oneOf $ (Term <$> g <*> pure { row: 0, column: 0 }) :| (if withHoles then [ genHole name ] else [])
 
-genAccountId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m AccountId
+genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => m a -> m (TermWrapper a)
+genTermWrapper g = do
+  TermWrapper <$> g <*> pure { row: 0, column: 0 }
+
+genAccountId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m AccountId
 genAccountId = do
-  accountNumber <- genTerm genBigInteger
-  accountOwner <- genTerm genParty
+  accountNumber <- genBigInteger
+  accountOwner <- genTerm (mkArgName PartyType) genParty
   pure $ AccountId accountNumber accountOwner
 
-genToken :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Token
+genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
 genToken = do
-  currencySymbol <- genTerm genCurrencySymbol
-  tokenName <- genTerm genTokenName
+  currencySymbol <- genCurrencySymbol
+  tokenName <- genTokenName
   pure $ Token currencySymbol tokenName
 
-genChoiceId :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m ChoiceId
+genChoiceId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ChoiceId
 genChoiceId = do
-  choiceName <- genTerm genString
-  choiceOwner <- genTerm genParty
+  choiceName <- genString
+  choiceOwner <- genTerm (mkArgName PartyType) genParty
   pure $ ChoiceId choiceName choiceOwner
 
-genPayee :: forall m. MonadGen m => MonadRec m => MonadAsk Boolean m => m Payee
-genPayee = oneOf $ (Account <$> genTerm genAccountId) :| [ Party <$> genTerm genParty ]
+genPayee :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Payee
+genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm (mkArgName PartyType) genParty ]
 
-genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadAsk Boolean m => Int -> m Action
+genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadReader Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genTerm genAccountId <*> genTerm genParty <*> genTerm genToken <*> genTerm (genValue' size))
-    :| [ Choice <$> genTerm genChoiceId <*> resize (_ - 1) (unfoldable (genTerm genBound))
-      , Notify <$> genTerm (genObservation' size)
+    $ (Deposit <$> genAccountId <*> genTerm "to_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
+    :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable (genTerm (mkArgName BoundType) genBound))
+      , Notify <$> genTerm (mkArgName ObservationType) (genObservation' size)
       ]
 
 genCase ::
@@ -131,14 +144,14 @@ genCase ::
   Lazy (m Value) =>
   Lazy (m Observation) =>
   Lazy (m Contract) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   Int ->
   m Case
 genCase size = do
   let
     newSize = size - 1
-  action <- genTerm $ genAction newSize
-  contract <- genTerm $ genContract' newSize
+  action <- genTerm (mkArgName ActionType) $ genAction newSize
+  contract <- genTerm (mkArgName ContractType) $ genContract' newSize
   pure (Case action contract)
 
 genCases ::
@@ -148,12 +161,12 @@ genCases ::
   Lazy (m Value) =>
   Lazy (m Observation) =>
   Lazy (m Contract) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   Int ->
   m (Array (Term Case))
-genCases size = resize (_ - 1) (unfoldable (genTerm (genCase size)))
+genCases size = resize (_ - 1) (unfoldable (local (const false) (genTerm "case" (genCase size))))
 
-genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => MonadAsk Boolean m => m Value
+genValue :: forall m. MonadGen m => MonadRec m => Lazy (m Value) => MonadReader Boolean m => m Value
 genValue = genValue' 5
 
 genValue' ::
@@ -161,7 +174,7 @@ genValue' ::
   MonadGen m =>
   MonadRec m =>
   Lazy (m Value) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   Int ->
   m Value
 genValue' size
@@ -170,25 +183,27 @@ genValue' size
       let
         newSize = (size - 1)
 
-        genNewValue = genTerm $ genValue' newSize
+        genNewValue = genTerm (mkArgName ValueType) $ genValue' newSize
+
+        genNewValueIndexed i = genTerm ((mkArgName ValueType) <> show i) $ genValue' newSize
       in
         oneOf $ pure SlotIntervalStart
           :| [ pure SlotIntervalEnd
-            , AvailableMoney <$> genTerm genAccountId <*> genTerm genToken
-            , Constant <$> genTerm genBigInteger
+            , AvailableMoney <$> genAccountId <*> genTerm (mkArgName TokenType) genToken
+            , Constant <$> genBigInteger
             , NegValue <$> genNewValue
-            , AddValue <$> genNewValue <*> genNewValue
-            , SubValue <$> genNewValue <*> genNewValue
-            , Scale <$> genTerm genRational <*> genNewValue
-            , ChoiceValue <$> genTerm genChoiceId <*> genNewValue
-            , UseValue <$> genTerm genValueId
+            , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , Scale <$> genTermWrapper genRational <*> genNewValue
+            , ChoiceValue <$> genChoiceId <*> genNewValue
+            , UseValue <$> genTermWrapper genValueId
             ]
   | otherwise =
     oneOf $ pure SlotIntervalStart
       :| [ pure SlotIntervalEnd
-        , AvailableMoney <$> genTerm genAccountId <*> genTerm genToken
-        , Constant <$> genTerm genBigInteger
-        , UseValue <$> genTerm genValueId
+        , AvailableMoney <$> genAccountId <*> genTerm (mkArgName TokenType) genToken
+        , Constant <$> genBigInteger
+        , UseValue <$> genTermWrapper genValueId
         ]
 
 genObservation ::
@@ -197,7 +212,7 @@ genObservation ::
   MonadRec m =>
   Lazy (m Observation) =>
   Lazy (m Value) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   m Observation
 genObservation = genObservation' 5
 
@@ -207,7 +222,7 @@ genObservation' ::
   MonadRec m =>
   Lazy (m Observation) =>
   Lazy (m Value) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   Int ->
   m Observation
 genObservation' size
@@ -216,26 +231,28 @@ genObservation' size
       let
         newSize = (size - 1)
 
-        genNewValue = genTerm $ genValue' newSize
+        genNewValue i = genTerm ((mkArgName ValueType) <> show i) $ genValue' newSize
 
-        genNewObservation = genTerm $ genObservation' newSize
+        genNewObservationIndexed i = genTerm ((mkArgName ObservationType) <> show i) $ genObservation' newSize
+
+        genNewObservation = genTerm (mkArgName ObservationType) $ genObservation' newSize
       in
         oneOf
-          $ (AndObs <$> genNewObservation <*> genNewObservation)
-          :| [ OrObs <$> genNewObservation <*> genNewObservation
+          $ (AndObs <$> genNewObservationIndexed 1 <*> genNewObservationIndexed 2)
+          :| [ OrObs <$> genNewObservationIndexed 1 <*> genNewObservationIndexed 2
             , NotObs <$> genNewObservation
-            , ChoseSomething <$> genTerm genChoiceId
-            , ValueGE <$> genNewValue <*> genNewValue
-            , ValueGT <$> genNewValue <*> genNewValue
-            , ValueLT <$> genNewValue <*> genNewValue
-            , ValueLE <$> genNewValue <*> genNewValue
-            , ValueEQ <$> genNewValue <*> genNewValue
+            , ChoseSomething <$> genChoiceId
+            , ValueGE <$> genNewValue 1 <*> genNewValue 2
+            , ValueGT <$> genNewValue 1 <*> genNewValue 2
+            , ValueLT <$> genNewValue 1 <*> genNewValue 2
+            , ValueLE <$> genNewValue 1 <*> genNewValue 2
+            , ValueEQ <$> genNewValue 1 <*> genNewValue 2
             ]
   | otherwise = genLeaf
     where
     genLeaf ::
       m Observation
-    genLeaf = ChoseSomething <$> genTerm genChoiceId
+    genLeaf = ChoseSomething <$> genChoiceId
 
 genContract ::
   forall m.
@@ -244,7 +261,7 @@ genContract ::
   Lazy (m Contract) =>
   Lazy (m Observation) =>
   Lazy (m Value) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   m Contract
 genContract = genContract' 3
 
@@ -255,7 +272,7 @@ genContract' ::
   Lazy (m Contract) =>
   Lazy (m Observation) =>
   Lazy (m Value) =>
-  MonadAsk Boolean m =>
+  MonadReader Boolean m =>
   Int ->
   m Contract
 genContract' size
@@ -264,17 +281,19 @@ genContract' size
       let
         newSize = (size - 1)
 
-        genNewValue = genTerm $ genValue' newSize
+        genNewValue = genTerm (mkArgName ValueType) $ genValue' newSize
 
-        genNewObservation = genTerm $ genObservation' newSize
+        genNewObservation = genTerm (mkArgName ObservationType) $ genObservation' newSize
 
-        genNewContract = genTerm $ genContract' newSize
+        genNewContractIndexed i = genTerm ((mkArgName ContractType) <> show i) $ genContract' newSize
+
+        genNewContract = genTerm (mkArgName ContractType) $ genContract' newSize
       in
         oneOf $ pure Close
-          :| [ Pay <$> genTerm genAccountId <*> genTerm genPayee <*> genTerm genToken <*> genNewValue <*> genNewContract
-            , If <$> genNewObservation <*> genNewContract <*> genNewContract
-            , When <$> genCases newSize <*> genTerm genTimeout <*> genNewContract
-            , Let <$> genTerm genValueId <*> genNewValue <*> genNewContract
+          :| [ Pay <$> genAccountId <*> genTerm (mkArgName PayeeType) genPayee <*> genTerm (mkArgName TokenType) genToken <*> genNewValue <*> genNewContract
+            , If <$> genNewObservation <*> genNewContractIndexed 1 <*> genNewContractIndexed 2
+            , When <$> genCases newSize <*> genTimeout <*> genNewContract
+            , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
             ]
   | otherwise = genLeaf
     where

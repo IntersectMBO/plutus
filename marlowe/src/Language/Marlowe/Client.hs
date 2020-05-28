@@ -37,7 +37,8 @@ import           Ledger.Validation
 import qualified Ledger.Value               as Val
 import           Wallet                     (WalletAPIError, createPaymentWithChange, createTxAndSubmit,
                                              throwOtherError)
-import           Wallet.Effects
+import           Wallet.Effects             hiding (Payment)
+import qualified Wallet.Effects             as Wallet
 
 {-| Create a Marlowe contract.
     Uses wallet public key to generate a unique script address.
@@ -60,12 +61,12 @@ createContract params contract = do
         ds = Datum $ PlutusTx.toData marloweData
 
     let payValue = adaValueOf 1
-    (payment, change) <- createPaymentWithChange payValue
+    Wallet.Payment{paymentInputs, paymentChangeOutput} <- createPaymentWithChange payValue
     let o = scriptTxOut P.zero validator ds
         slotRange = interval slot (slot + 10)
-        outputs = o : (pubKeyHashTxOut payValue creator) : maybeToList change
+        outputs = o : (pubKeyHashTxOut payValue creator) : maybeToList paymentChangeOutput
 
-    tx <- createTxAndSubmit slotRange payment outputs [ds]
+    tx <- createTxAndSubmit slotRange paymentInputs outputs [ds]
     return (marloweData, tx)
 
 
@@ -201,14 +202,14 @@ applyInputs tx params marloweData@MarloweData{..} inputs = do
         Error txError -> throwOtherError (Text.pack $ show txError)
 
 
-    (payment, change) <- if totalIncome `Val.gt` P.zero
+    Wallet.Payment{paymentInputs, paymentChangeOutput} <- if totalIncome `Val.gt` P.zero
         then createPaymentWithChange totalIncome
-        else return (Set.empty, Nothing)
+        else return Wallet.emptyPayment
 
     tx <- createTxAndSubmit
         slotRange
-        (Set.insert scriptIn payment)
-        (deducedTxOutputs ++ maybeToList change)
+        (Set.insert scriptIn paymentInputs)
+        (deducedTxOutputs ++ maybeToList paymentChangeOutput)
         dataValues
 
     return (marloweData, tx)

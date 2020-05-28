@@ -1,10 +1,10 @@
 module Halogen.Classes where
 
 import Prelude
-import Data.Lens (to, (^.))
+import Data.Lens (Getter', to)
 import Halogen (ClassName(..))
-import Halogen.HTML (HTML, span, text)
-import Types (FrontendState, View(..), _showBottomPanel, _view)
+import Halogen.HTML (HTML, IProp, span, text)
+import Halogen.HTML.Properties (classes)
 
 foreign import closeDrawerIcon :: String
 
@@ -100,8 +100,8 @@ textSecondaryColor = ClassName "text-secondary-color"
 bold :: ClassName
 bold = ClassName "bold"
 
-activeTextPrimary :: ClassName
-activeTextPrimary = ClassName "active-text-primary"
+underline :: ClassName
+underline = ClassName "underline"
 
 mAlignCenter :: ClassName
 mAlignCenter = ClassName "m-align-center"
@@ -118,11 +118,11 @@ flexFour = ClassName "flex-four"
 flexTen :: ClassName
 flexTen = ClassName "flex-ten"
 
-isActiveTab :: FrontendState -> View -> Array ClassName
-isActiveTab state activeView = if state ^. _view <<< (to (eq activeView)) then [ active ] else []
+activeClass :: forall a. (a -> Boolean) -> Getter' a (Array ClassName)
+activeClass p = to \x -> if p x then [ active ] else []
 
-isActiveDemo :: FrontendState -> Array ClassName
-isActiveDemo state = if true then [ ClassName "active-text" ] else []
+activeClasses :: forall r i a. (a -> Boolean) -> Getter' a (IProp ( class :: String | r ) i)
+activeClasses p = activeClass p <<< to classes
 
 rTable :: ClassName
 rTable = ClassName "Rtable"
@@ -145,23 +145,14 @@ header = ClassName "header"
 rTableEmptyRow :: ClassName
 rTableEmptyRow = ClassName "RTable-empty-row"
 
+rTableDataRow :: ClassName
+rTableDataRow = ClassName "RTable-data-row"
+
 stateLabel :: ClassName
 stateLabel = ClassName "state-label"
 
 pointer :: ClassName
 pointer = ClassName "pointer"
-
-analysisPanel :: FrontendState -> Array ClassName
-analysisPanel state = if state ^. _showBottomPanel then [ ClassName "analysis-panel" ] else [ ClassName "analysis-panel", ClassName "collapse" ]
-
-simulationBottomPanel :: FrontendState -> Array ClassName
-simulationBottomPanel state = if state ^. _showBottomPanel then [ ClassName "simulation-bottom-panel" ] else [ ClassName "simulation-bottom-panel", ClassName "collapse" ]
-
-codeEditor :: FrontendState -> Array ClassName
-codeEditor state = if state ^. _showBottomPanel then [ ClassName "code-editor" ] else [ ClassName "code-editor", ClassName "expanded" ]
-
-haskellEditor :: FrontendState -> Array ClassName
-haskellEditor state = if state ^. _showBottomPanel then [ ClassName "code-panel", ClassName "haskell-editor" ] else [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
 
 expanded :: Boolean -> ClassName
 expanded true = ClassName "expanded"
@@ -173,25 +164,23 @@ disabled true = ClassName "disabled"
 
 disabled false = ClassName ""
 
-footerPanelBg :: FrontendState -> View -> Array ClassName
-footerPanelBg state HaskellEditor =
-  if state ^. _showBottomPanel then
-    [ ClassName "footer-panel-bg", ClassName "expanded", ClassName "footer-panel-haskell" ]
-  else
-    [ ClassName "footer-panel-bg", ClassName "footer-panel-haskell" ]
-
-footerPanelBg state _ =
-  if state ^. _showBottomPanel then
-    [ ClassName "footer-panel-bg", ClassName "expanded" ]
-  else
-    [ ClassName "footer-panel-bg" ]
-
--- FIXME: get correct piece of state
-githubDisplay :: FrontendState -> Array ClassName
-githubDisplay state = if state ^. _showBottomPanel then [ ClassName "hover" ] else []
-
-minimizeIcon :: FrontendState -> Array ClassName
-minimizeIcon state = if state ^. _showBottomPanel then [ ClassName "minimize-icon", ClassName "expanded" ] else [ ClassName "minimize-icon" ]
-
 spanText :: forall p i. String -> HTML p i
 spanText s = span [] [ text s ]
+
+sidebarComposer :: ClassName
+sidebarComposer = ClassName "sidebar-composer"
+
+codeEditor :: Boolean -> Array ClassName
+codeEditor true = [ ClassName "code-editor" ]
+
+codeEditor false = [ ClassName "code-editor", ClassName "expanded" ]
+
+haskellEditor :: Boolean -> Array ClassName
+haskellEditor true = [ ClassName "code-panel", ClassName "haskell-editor" ]
+
+haskellEditor false = [ ClassName "code-panel", ClassName "haskell-editor", ClassName "expanded" ]
+
+minimizeIcon :: Boolean -> Array ClassName
+minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
+
+minimizeIcon false = [ ClassName "minimize-icon" ]

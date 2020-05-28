@@ -146,6 +146,10 @@ executable plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution
   autogen-modules:
         MAlonzo.Code.Main
         MAlonzo.Code.Agda.Builtin.Bool
@@ -275,7 +279,10 @@ executable plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
-
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution
   build-depends:       base ^>=4.13.0.0,
                        bytestring -any,
                        text -any,
@@ -423,6 +430,10 @@ test-suite test-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution
   autogen-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
@@ -552,6 +563,10 @@ test-suite test-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Utils
         MAlonzo.RTE
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution
   build-depends: base,
                  process,
                  bytestring -any,
@@ -712,6 +727,10 @@ test-suite test2-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution
   autogen-modules:
         MAlonzo.Code.Agda.Builtin.Bool
         MAlonzo.Code.Agda.Builtin.Char
@@ -841,4 +860,8 @@ test-suite test2-plc-agda
         MAlonzo.Code.Type.RenamingSubstitution
         MAlonzo.Code.Utils
         MAlonzo.RTE
+        MAlonzo.Code.Scoped.Erasure
+        MAlonzo.Code.Untyped
+        MAlonzo.Code.Untyped.Reduction
+        MAlonzo.Code.Untyped.RenamingSubstitution          
   build-tool-depends: language-plutus-core:plc

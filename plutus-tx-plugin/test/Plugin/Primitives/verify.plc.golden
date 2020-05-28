@@ -9,43 +9,40 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl
-          verifySignature
-          (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
-        )
+    (termbind
+      (strict)
+      (vardecl
+        verifySignature
+        (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
+      )
+      (lam
+        arg
+        (con bytestring)
         (lam
           arg
           (con bytestring)
           (lam
             arg
             (con bytestring)
-            (lam
-              arg
-              (con bytestring)
-              [
-                (lam
-                  b
-                  (con bool)
-                  [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                )
-                [ [ [ (builtin verifySignature) arg ] arg ] arg ]
-              ]
-            )
+            [
+              (lam
+                b
+                (con bool)
+                [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+              )
+              [ [ [ (builtin verifySignature) arg ] arg ] arg ]
+            ]
           )
         )
       )
+    )
+    (lam
+      ds
+      (con bytestring)
       (lam
         ds
         (con bytestring)
-        (lam
-          ds
-          (con bytestring)
-          (lam ds (con bytestring) [ [ [ verifySignature ds ] ds ] ds ])
-        )
+        (lam ds (con bytestring) [ [ [ verifySignature ds ] ds ] ds ])
       )
     )
   )

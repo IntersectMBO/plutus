@@ -24,45 +24,46 @@ module Plutus.SCB.Command
     , saveBalancedTxResult
     , saveContractState
     , saveBlock
+    -- * Commands related to updating the contract state
+    , sendContractEvent
     ) where
 
-import           Eventful          (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
+import           Eventful                   (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
-import           Plutus.SCB.Events (ChainEvent (NodeEvent, UserEvent), NodeEvent (BlockAdded),
-                                    UserEvent (ContractStateTransition, InstallContract))
-import qualified Plutus.SCB.Events as Events
-import           Plutus.SCB.Query  (nullProjection)
-import           Plutus.SCB.Types  (ActiveContractState, Contract)
+import           Plutus.SCB.Events          (ChainEvent (ContractEvent, NodeEvent, UserEvent), ContractInstanceState,
+                                             NodeEvent (BlockAdded),
+                                             UserEvent (ContractStateTransition, InstallContract))
+import qualified Plutus.SCB.Events          as Events
+import           Plutus.SCB.Query           (nullProjection)
 
-installCommand :: Aggregate () ChainEvent Contract
-installCommand =
-    Aggregate
-        { aggregateProjection = nullProjection
-        , aggregateCommandHandler =
-              \() contract -> [UserEvent $ InstallContract contract]
-        }
+import qualified Plutus.SCB.Events.Contract as Events.Contract
 
-saveBalancedTx :: Aggregate () ChainEvent Ledger.Tx
-saveBalancedTx = Aggregate {aggregateProjection, aggregateCommandHandler}
-  where
-    aggregateProjection = nullProjection
-    aggregateCommandHandler _ txn = [Events.WalletEvent $ Events.BalancedTx txn]
+-- | An aggregate that just sends a list of events with no state
+sendEvents ::
+  forall a t.
+  (a -> [ChainEvent t])
+  -> Aggregate () (ChainEvent t) a
+sendEvents f =
+  Aggregate
+    { aggregateProjection = nullProjection
+    , aggregateCommandHandler =
+        \() a -> f a
+    }
 
-saveBalancedTxResult :: Aggregate () ChainEvent Ledger.Tx
-saveBalancedTxResult = Aggregate {aggregateProjection, aggregateCommandHandler}
-  where
-    aggregateProjection = nullProjection
-    aggregateCommandHandler _ tx = [Events.NodeEvent $ Events.SubmittedTx tx]
+installCommand :: Aggregate () (ChainEvent t) t
+installCommand = sendEvents (return . UserEvent . InstallContract)
 
-saveContractState :: Aggregate () ChainEvent ActiveContractState
-saveContractState =
-    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
-  where
-    aggregateCommandHandler _ state =
-        [UserEvent $ ContractStateTransition state]
+saveBalancedTx :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
+saveBalancedTx = sendEvents (return . Events.WalletEvent . Events.BalancedTx)
 
-saveBlock :: Aggregate () ChainEvent [Ledger.Tx]
-saveBlock =
-    Aggregate {aggregateProjection = nullProjection, aggregateCommandHandler}
-  where
-    aggregateCommandHandler _ state = [NodeEvent $ BlockAdded state]
+saveBalancedTxResult :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
+saveBalancedTxResult = sendEvents (return . Events.NodeEvent . Events.SubmittedTx)
+
+saveContractState :: forall t. Aggregate () (ChainEvent t) (ContractInstanceState t)
+saveContractState = sendEvents (return . UserEvent . ContractStateTransition)
+
+saveBlock :: forall t. Aggregate () (ChainEvent t) [Ledger.Tx]
+saveBlock = sendEvents (return . NodeEvent . BlockAdded)
+
+sendContractEvent :: forall t. Aggregate () (ChainEvent t) (Events.Contract.ContractEvent t)
+sendContractEvent = sendEvents (return . ContractEvent)

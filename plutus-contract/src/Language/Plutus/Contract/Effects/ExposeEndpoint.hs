@@ -28,14 +28,12 @@ import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), In
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving newtype (ToJSON, FromJSON)
-    deriving anyclass (IotsType)
+    deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving Pretty via (Tagged "ExposeEndpoint:" String)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving newtype (ToJSON, FromJSON)
-    deriving anyclass (IotsType)
+    deriving anyclass (ToJSON, FromJSON, IotsType)
 
 deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
 
@@ -47,8 +45,9 @@ type HasEndpoint l a s =
   )
 
 newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDescription }
-  deriving (Eq, Ord, Show)
-  deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+  deriving (Eq, Ord, Show, Generic)
+  deriving newtype (Semigroup, Monoid)
+  deriving anyclass (ToJSON, FromJSON)
   deriving Pretty via (PrettyFoldable Set EndpointDescription)
 
 type Endpoint l a = l .== (EndpointValue a, ActiveEndpoints)

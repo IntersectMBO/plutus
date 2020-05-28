@@ -37,6 +37,7 @@ in lib.fix (jobsets: ciJobsets // {
       ++ (allJobs ["linux" "papers"] jobsets)
       ++ (allJobs ["linux" "plutus-playground"] jobsets)
       ++ (allJobs ["linux" "marlowe-playground"] jobsets)
+      ++ (allJobs ["linux" "plutus-scb"] jobsets)
       # Developer scripts so they're definitely cached
       ++ (allJobs ["linux" "dev" "scripts"] jobsets)
       ++ (allJobs ["darwin" "dev" "scripts"] jobsets);

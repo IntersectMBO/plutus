@@ -2,40 +2,34 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype
+        (tyvardecl MyEnum (type))
+        
+        MyEnum_match
+        (vardecl Enum MyEnum) (vardecl Enum MyEnum)
+      )
+    )
+    (datatypebind
       (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl error (all a (type) (fun Unit a)))
-        (abs e (type) (lam thunk Unit (error e)))
-      )
-      (let
-        (nonrec)
-        (datatypebind
-          (datatype
-            (tyvardecl MyEnum (type))
-            
-            MyEnum_match
-            (vardecl Enum MyEnum) (vardecl Enum MyEnum)
-          )
-        )
-        (lam
-          ds
-          MyEnum
+    (termbind
+      (strict)
+      (vardecl error (all a (type) (fun Unit a)))
+      (abs e (type) (lam thunk Unit (error e)))
+    )
+    (lam
+      ds
+      MyEnum
+      [
+        [
           [
-            [
-              [
-                { [ MyEnum_match ds ] (fun Unit (con integer)) }
-                (lam thunk Unit (con 1))
-              ]
-              (lam thunk Unit [ { error (con integer) } Unit ])
-            ]
-            Unit
+            { [ MyEnum_match ds ] (fun Unit (con integer)) }
+            (lam thunk Unit (con 1))
           ]
-        )
-      )
+          (lam thunk Unit [ { error (con integer) } Unit ])
+        ]
+        Unit
+      ]
     )
   )
 )

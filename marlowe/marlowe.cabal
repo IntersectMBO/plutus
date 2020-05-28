@@ -31,15 +31,20 @@ flag defer-plugin-errors
 library
   hs-source-dirs: src
   build-depends:
+    aeson -any,
     base -any,
     bytestring,
     containers -any,
+    deriving-aeson -any,
     mtl,
+    newtype-generics,
     template-haskell -any,
     plutus-tx -any,
-    plutus-emulator -any,
+    plutus-contract -any,
     plutus-ledger,
     text,
+    vector,
+    sbv >= 8.4,
     wl-pprint -any,
     freer-simple -any
   default-language: Haskell2010
@@ -53,6 +58,7 @@ library
     Language.Marlowe.Client
     Language.Marlowe.Util
     Language.Marlowe.Pretty
+    Language.Marlowe.Analysis.FSSemantics
   other-modules:
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
@@ -76,8 +82,15 @@ test-suite marlowe-test
       -- Spec.Common
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
+        OldAnalysis.FSMap
+        OldAnalysis.FSSemantics
+        OldAnalysis.FSSet
+        OldAnalysis.IntegerArray
+        OldAnalysis.MkSymb
+        OldAnalysis.Numbering
       -- Spec.Actus
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
@@ -87,14 +100,17 @@ test-suite marlowe-test
         freer-simple -any,
         tasty -any,
         tasty-hunit -any,
+        tasty-quickcheck,
         tasty-hedgehog >=0.2.0.0,
         text -any,
         serialise,
         cborg,
         plutus-ledger -any,
-        plutus-emulator -any,
+        plutus-contract -any,
         marlowe,
+        sbv >= 8.4,
         plutus-tx -any,
+        QuickCheck,
         template-haskell -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances

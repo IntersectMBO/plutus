@@ -6,10 +6,12 @@ import           Control.Concurrent                    (forkOS, killThread, thre
 import           Control.Concurrent.MVar               (MVar, newEmptyMVar, putMVar, readMVar)
 import           Control.Exception                     (try)
 import           Data.Aeson                            (encode)
+import qualified Data.Aeson                            as JSON
 import           Data.Bifunctor                        (first)
-import           Data.ByteString.UTF8                  as BSU
+import           Data.ByteString.Lazy.UTF8             as BSU
 import           Data.Proxy                            (Proxy (Proxy))
-import           Language.Marlowe                      (Slot (Slot), TransactionInput, TransactionWarning)
+import           Language.Marlowe                      (Contract (Close), Slot (Slot), State, TransactionInput,
+                                                        TransactionWarning)
 import           Language.Marlowe.Analysis.FSSemantics (warningsTraceWithState)
 import           Language.Marlowe.Pretty
 import           Marlowe.Symbolic.Types.API            (API)
@@ -63,22 +65,31 @@ handler :: Request -> Context -> IO (Either Response Response)
 handler Request {Req.uuid = u, callbackUrl = cu, contract = c, state = st} context =
   do system "killallz3"
      semaphore <- newEmptyMVar
-     mainThread <-
-       forkOS (do evRes <- warningsTraceWithState (read c) (Just $ read st)
-                  forkOS (do threadDelay 1000000 -- Timeout to send HTTP request (1 sec)
-                             putMVar semaphore
-                               (makeResponse u (Left "Response HTTP request timed out")))
-                  let resp = makeResponse u (first show evRes)
-                  sendRequest cu resp
-                  putMVar semaphore resp)
-     timerThread <-
-       forkOS (do threadDelay 110000000 -- Timeout in microseconds (1 min 50 sec)
-                  putMVar semaphore (makeResponse u $ Left "Symbolic evaluation timed out"))
-     x <- readMVar semaphore
-     killThread mainThread
-     killThread timerThread
-     system "killallz3"
-     return $ Right x
+     let contract :: Maybe Contract
+         contract = JSON.decode (BSU.fromString c)
+     case contract of
+        Nothing -> return $ Left (makeResponse u (Left "Can't parse JSON as a contract"))
+        Just contract -> do
+            let contract = maybe Close id (JSON.decode (BSU.fromString c))
+            let
+                state :: Maybe State
+                state = JSON.decode (BSU.fromString st)
+            mainThread <-
+              forkOS (do evRes <- warningsTraceWithState contract state
+                         forkOS (do threadDelay 1000000 -- Timeout to send HTTP request (1 sec)
+                                    putMVar semaphore
+                                      (makeResponse u (Left "Response HTTP request timed out")))
+                         let resp = makeResponse u (first show evRes)
+                         sendRequest cu resp
+                         putMVar semaphore resp)
+            timerThread <-
+              forkOS (do threadDelay 110000000 -- Timeout in microseconds (1 min 50 sec)
+                         putMVar semaphore (makeResponse u $ Left "Symbolic evaluation timed out"))
+            x <- readMVar semaphore
+            killThread mainThread
+            killThread timerThread
+            system "killallz3"
+            return $ Right x
 
 -- we export the main function so that we can use it in a project that does not require template haskell
 generateLambdaDispatcher

@@ -151,7 +151,7 @@ compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "C
         body' <- compileExpr body >>= maybeDelay mustDelay
         -- need to consume the args
         argTypes <- mapM compileTypeNorm instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName () $ "default_arg" <> (T.pack $ show i))
+        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
         pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.

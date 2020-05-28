@@ -164,18 +164,18 @@ withVarEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendVarEnv :: Name ExMemory -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
+extendVarEnv :: Name -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
 extendVarEnv argName arg argVarEnv =
     insertByName argName $ Closure argVarEnv arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name ExMemory -> CekM uni (Closure uni)
+lookupVarName :: Name -> CekM uni (Closure uni)
 lookupVarName varName = do
     varEnv <- getVarEnv
     case lookupName varName varEnv of
         Nothing   -> throwingWithCause _MachineError
             OpenTermEvaluatedMachineError
-            (Just . Var () $ void varName)
+            (Just . Var () $ varName)
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -199,6 +199,37 @@ dischargeVarEnv varEnv =
         Closure varEnv' term' <- lookupName name varEnv
         Just $ dischargeVarEnv varEnv' term'
 
+{- Note [Dropping environments of arguments]
+The CEK machine sometimes keeps in the environment those variables that are no longer required.
+This is a fundamental limitation of the CEK machine as it lacks garbage collection.
+There are alternative machines that implement some form of environment cleaning (CESK, for example).
+But if we're going to expore this space, it's better to jump straight to something close to actual
+hardware than to deal with inherently inefficient abstract machines.
+
+But if we could optimize the current evaluator at small development/maintenance cost, that would be
+useful. One such opportunity is to drop the environment of a constant as a constant can't reference
+any variables. So we do that in this line:
+
+    computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
+
+We can't drop the environment of a built-in function, because it can be polymorphic and thus can
+receive arbitrary terms as arguments.
+
+A 'TyAbs'- or 'LamAbs'-headed term may also reference free variables.
+
+In the 'Var' case we drop the current environment, look up the variable and use the environment
+stored in the looked up closure as per the normal control flow of the CEK machine.
+
+Note that if we had polymorphic built-in types, we couldn't drop the environment of a constant as,
+say, a `list nat` can contain arbitrary terms of type `nat` and thus can reference variables from
+the environment. Polymorphic built-in types complicate evaluation in general as unlifting, say,
+a `list integer` constant may require evaluating terms *inside* the constant (particularly, if that
+constant was constructed by a built-in function). Similar complications associated with looking into
+constants of polymorphic built-in types arise for other procedures (pretty-printing, type checking,
+substitution, anything).
+-}
+
+-- See Note [Dropping environments of arguments].
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
@@ -223,7 +254,7 @@ computeCek con t@(Unwrap _ term) = do
     computeCek (FrameUnwrap : con) term
 computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
 computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
-computeCek con constant@Constant{} = returnCek con constant
+computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
 computeCek con bi@Builtin{}        = returnCek con bi
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
@@ -327,7 +358,7 @@ withScopedArgIn
 withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
 withScopedArgIn funVarEnv argVarEnv arg            k = do
     let cost = memoryUsage ()
-    argName <- freshName cost "arg"
+    argName <- freshName "arg"
     withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
 
 -- | Apply a function to an argument and proceed.
@@ -412,7 +443,7 @@ evaluateCek means params = fst . runCekCounting means params
 -- | Evaluate a term using the CEK machine. May throw a 'CekMachineException'.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , Typeable uni, uni `Everywhere` Pretty
+       , Typeable uni, uni `Everywhere` PrettyConst
        )
     => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
 unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params

@@ -19,8 +19,11 @@ const plugins =
       ]
 ;
 
+// source map adds many Mb to the output!
+const devtool = isWebpackDevServer ? 'eval-source-map' : false;
+
 module.exports = {
-    devtool: 'eval-source-map',
+    devtool,
 
     devServer: {
         contentBase: path.join(__dirname, "dist"),
@@ -56,7 +59,7 @@ module.exports = {
                                 'src/**/*.purs',
                                 'generated/**/*.purs',
                                 '.spago/*/*/src/**/*.purs',
-                                '../web-common/src/**/*.purs'
+                                '../web-common/**/*.purs'
                             ],
                             psc: null,
                             bundle: !(isWebpackDevServer || isWatch),

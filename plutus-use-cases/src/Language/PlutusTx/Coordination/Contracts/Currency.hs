@@ -1,21 +1,29 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
+    , CurrencySchema
     , curPolicy
     -- * Actions etc
     , forgeContract
     , forgedValue
     , currencySymbol
+    -- * Simple monetary policy currency
+    , SimpleMPS(..)
+    , forgeCurrency
     ) where
 
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
@@ -26,7 +34,7 @@ import           Language.Plutus.Contract                        as Contract
 import qualified Language.PlutusTx                               as PlutusTx
 import qualified Language.PlutusTx.AssocMap                      as AssocMap
 import           Ledger                                          (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..),
-                                                                  scriptCurrencySymbol)
+                                                                  pubKeyHash, scriptCurrencySymbol)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts
@@ -35,8 +43,13 @@ import qualified Ledger.Validation                               as V
 import           Ledger.Value                                    (TokenName, Value)
 import qualified Ledger.Value                                    as Value
 
+import           Data.Aeson                                      (FromJSON, ToJSON)
 import qualified Data.Map                                        as Map
+import           GHC.Generics                                    (Generic)
+import           IOTS                                            (IotsType)
 import           Prelude                                         (Semigroup (..))
+import qualified Prelude
+import           Schema                                          (ToSchema)
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
 
@@ -135,3 +148,25 @@ forgeContract pk amounts = do
                     <> Constraints.mustForgeValue (forgedValue theCurrency)
     _ <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
     pure theCurrency
+
+-- | Monetary policy for a currency that has a fixed amount of tokens issued
+--   in one transaction
+data SimpleMPS =
+    SimpleMPS
+        { smTokenName :: TokenName
+        , smAmount    :: Integer
+        }
+        deriving stock (Prelude.Eq, Prelude.Show, Generic)
+        deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
+
+type CurrencySchema =
+    BlockchainActions
+        .\/ Endpoint "create-currency" SimpleMPS
+
+-- | Create the currency specified by a 'SimpleMPS'
+forgeCurrency
+    :: AsContractError e => Contract CurrencySchema e Currency
+forgeCurrency = do
+    SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
+    ownPK <- pubKeyHash <$> ownPubKey
+    forgeContract ownPK [(smTokenName, smAmount)]

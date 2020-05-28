@@ -25,6 +25,7 @@ settings setup =
   , theme: daylightTheme
   , monarchTokensProvider: Just monarchTokensProvider_
   , tokensProvider: Nothing
+  , hoverProvider: Nothing
   , completionItemProvider: Nothing
   , codeActionProvider: Nothing
   , documentFormattingEditProvider: Nothing

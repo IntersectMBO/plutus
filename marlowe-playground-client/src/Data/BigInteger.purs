@@ -2,13 +2,16 @@
 -- | some Class instances that BigInt doesn't have
 module Data.BigInteger (BigInteger, fromInt, fromString, quot, rem) where
 
-import Data.BigInt (BigInt, toString)
+import Data.BigInt (BigInt, toString, toNumber)
 import Data.BigInt as BigInt
 import Data.Integral (class Integral)
 import Data.Maybe (Maybe)
+import Data.Functor ((<$>))
 import Data.Newtype (class Newtype, over, over2, unwrap, wrap)
 import Data.Num (class Num, abs, negate, signum)
 import Data.Real (class Real, toRational)
+import Foreign (F)
+import Foreign.Class (class Encode, class Decode, decode, encode)
 import Prelude (class CommutativeRing, class Eq, class EuclideanRing, class Ord, class Ring, class Semiring, class Show, show, add, sub, div, mul, mod, degree, (<<<), (>>>), (<$>))
 import Text.Pretty (class Args, class Pretty, text)
 
@@ -20,6 +23,12 @@ derive instance newtypeBigInteger :: Newtype BigInteger _
 derive newtype instance eqBigInteger :: Eq BigInteger
 
 derive newtype instance ordBigInteger :: Ord BigInteger
+
+instance encodeJsonBigInteger :: Encode BigInteger where
+  encode (BigInteger a) = encode (toNumber a)
+
+instance decodeJsonBigInteger :: Decode BigInteger where
+  decode a = fromInt <$> decode a
 
 instance showBigInteger :: Show BigInteger where
   show = toString <<< unwrap
