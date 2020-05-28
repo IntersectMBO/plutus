@@ -36,13 +36,13 @@ arrowPM a b =
     infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
 
 -- | Pretty-print a binding at the type level.
-typeBinderDoc
+typeBinderDocM
     :: ( MonadReader env m, HasPrettyConfigReadable env configName
        , PrettyReadableBy configName tyname
        )
     => ((tyname -> Kind a -> Doc ann) -> AnyToDoc (PrettyConfigReadable configName) ann -> Doc ann)
     -> m (Doc ann)
-typeBinderDoc k = do
+typeBinderDocM k = do
     showKinds <- view $ prettyConfig . pcrShowKinds
     withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         let prettyBind name kind = case showKinds of
@@ -64,11 +64,11 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
         TyIFix _ pat arg          ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl -> "ifix" <+> prettyEl pat <+> prettyEl arg
         TyForall _ name kind body ->
-            typeBinderDoc $ \prettyBinding prettyBody ->
+            typeBinderDocM $ \prettyBinding prettyBody ->
                 "all" <+> prettyBinding name kind <> "." <+> prettyBody body
         TyBuiltin _ builtin       -> unitDocM $ pretty builtin
         TyLam _ name kind body    ->
-            typeBinderDoc $ \prettyBinding prettyBody ->
+            typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
 
 instance
@@ -82,7 +82,7 @@ instance
         Apply _ fun arg        -> fun `applicationPM` arg
         Var _ name             -> prettyM name
         TyAbs _ name kind body ->
-            typeBinderDoc $ \prettyBinding prettyBody ->
+            typeBinderDocM $ \prettyBinding prettyBody ->
                 "/\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
         TyInst _ fun ty        ->
             compoundDocM juxtFixity $ \prettyIn ->

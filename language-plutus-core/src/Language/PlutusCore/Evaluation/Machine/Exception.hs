@@ -3,6 +3,7 @@
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -132,16 +133,16 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst) =>
-            PrettyBy PrettyConfigPlc (ConstAppError uni) where
+instance (PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True) =>
+        PrettyBy config (ConstAppError uni) where
     prettyBy config (ExcessArgumentsConstAppError args) = fold
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty err) =>
-            PrettyBy PrettyConfigPlc (MachineError uni err) where
+instance (PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True, Pretty err) =>
+            PrettyBy config (MachineError uni err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -155,8 +156,10 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty err) =>
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty internal, Pretty user) =>
-            PrettyBy PrettyConfigPlc (EvaluationError uni internal user) where
+instance
+        ( PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True
+        , Pretty internal, Pretty user
+        ) => PrettyBy config (EvaluationError uni internal user) where
     prettyBy config (InternalEvaluationError err) = fold
         [ "Internal error:", hardline
         , prettyBy config err
