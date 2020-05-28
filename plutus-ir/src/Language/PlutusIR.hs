@@ -32,17 +32,18 @@ module Language.PlutusIR (
 
 import           PlutusPrelude
 
-import           Language.PlutusCore        (Kind, Name, TyName, Type (..), typeSubtypes)
-import qualified Language.PlutusCore        as PLC
-import           Language.PlutusCore.CBOR   ()
-import           Language.PlutusCore.MkPlc  (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
-import qualified Language.PlutusCore.Pretty as PLC
+import           Language.PlutusCore              (Kind, Name, TyName, Type (..), typeSubtypes)
+import qualified Language.PlutusCore              as PLC
+import           Language.PlutusCore.CBOR         ()
+import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
+import qualified Language.PlutusCore.Pretty       as PLC
 
-import           Control.Lens               hiding (Strict)
+import           Control.Lens                     hiding (Strict)
 
-import           Codec.Serialise            (Serialise)
+import           Codec.Serialise                  (Serialise)
 
-import qualified Data.Text                  as T
+import qualified Data.Text                        as T
+import           Data.Text.Prettyprint.Doc.Custom
 
 -- Datatypes
 

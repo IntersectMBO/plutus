@@ -119,8 +119,8 @@ import           Data.Word                          (Word8)
 import           Debug.Trace
 import           GHC.Generics
 import           GHC.Natural                        (Natural)
-import           Text.PrettyBy.Internal
 import           Text.PrettyBy.Default
+import           Text.PrettyBy.Internal
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
 import qualified Data.Text.Encoding                 as TE
