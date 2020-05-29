@@ -17,13 +17,12 @@
 
 module Text.PrettyBy.Internal
     ( PrettyBy (..)
+    , HasPrettyDefaults
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
-    , PrettyAny (..)
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
-    , HasPrettyDefaults
     , AttachDefaultPrettyConfig (..)
     , DefaultPrettyBy (..)
     , NonDefaultPrettyBy (..)
@@ -33,6 +32,7 @@ module Text.PrettyBy.Internal
     , HasPrettyDefaultsStuckError
     , NonStuckHasPrettyDefaults
     , DispatchPrettyDefaultBy (..)
+    , PrettyAny (..)
     ) where
 
 import           Text.Pretty
@@ -70,13 +70,12 @@ import           GHC.TypeLits
 -- The library provides instances for common types like 'Integer' or 'Bool', so you can't define
 -- your own @PrettyBy SomeConfig Integer@ instance. And for the same reason you should not define
 -- instances like @PrettyBy SomeAnotherConfig a@ for universally quantified @a@, because such an
--- instance would overlap with the existing ones. This is the reason why the library does not
--- provide this kind of config: TODO: rephrase
+-- instance would overlap with the existing ones. Take for example
 --
 -- >>> data ViaShow = ViaShow
 -- >>> instance Show a => PrettyBy ViaShow a where prettyBy ViaShow = pretty . show
 --
--- With such an instance @prettyBy ViaShow (1 :: Int)@ throws an error about overlapping instances:
+-- with such an instance @prettyBy ViaShow (1 :: Int)@ throws an error about overlapping instances:
 --
 -- > • Overlapping instances for PrettyBy ViaShow Int
 -- >     arising from a use of ‘prettyBy’
@@ -90,7 +89,6 @@ import           GHC.TypeLits
 -- The 'PrettyBy' instance for common types is defined in a way that allows to override default
 -- pretty-printing behaviour, read the docs of 'HasPrettyDefaults' for details.
 class PrettyBy config a where
-
     -- | Pretty-print a value of type @a@ the way a @config@ specifies it.
     -- The default implementation of 'prettyBy' is in terms of 'pretty'.
     prettyBy :: config -> a -> Doc ann
@@ -104,79 +102,9 @@ class PrettyBy config a where
     default prettyListBy :: config -> [a] -> Doc ann
     prettyListBy = defaultPrettyFunctorBy
 
--- Interop with 'Pretty'.
-
--- | A newtype wrapper around @a@ whose point is to provide a @PrettyBy config@ instance
--- for anything that has a 'Pretty' instance.
-newtype IgnorePrettyConfig a = IgnorePrettyConfig
-    { unIgnorePrettyConfig :: a
-    } deriving newtype (Pretty)
-
--- |
--- >>> data C = C
--- >>> data D = D
--- >>> instance Pretty D where pretty D = "D"
--- >>> prettyBy C $ IgnorePrettyConfig D
--- D
-instance Pretty a => PrettyBy config (IgnorePrettyConfig a)
-
--- | A config together with some value. The point is to provide a 'Pretty' instance
--- for anything that has a @PrettyBy config@ instance.
-data AttachPrettyConfig config a = AttachPrettyConfig !config !a
-
--- |
--- >>> data C = C
--- >>> data D = D
--- >>> instance PrettyBy C D where prettyBy C D = "D"
--- >>> pretty $ AttachPrettyConfig C D
--- D
-instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
-    pretty (AttachPrettyConfig config x) = prettyBy config x
-
-withAttachPrettyConfig
-    :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
-withAttachPrettyConfig config k = k $ AttachPrettyConfig config
-
--- TODO: Fix the docs.
--- -- | This class is used in order to provide default implementations of 'PrettyM' for
--- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
--- -- we can define a single 'DefaultPrettyM' instance and then derive @PrettyM Config a@ for each
--- -- @a@ provided the @a@ implements the @PrettyM Subconfig1@, @PrettyM Subconfig2@, etc instances.
--- --
--- -- Example:
--- --
--- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
--- -- >
--- -- > instance (PrettyM Subconfig1 a, PrettyM Subconfig2 a) => DefaultPrettyM Config a where
--- -- >     defaultPrettyM (Subconfig1 subconfig1) = prettyBy subconfig1
--- -- >     defaultPrettyM (Subconfig2 subconfig2) = prettyBy subconfig2
--- --
--- -- Now having in scope  @PrettyM Subconfig1 A@ and @PrettyM Subconfig2 A@
--- -- and the same instances for @B@ we can write
--- --
--- -- > instance PrettyM Config A
--- -- > instance PrettyM Config B
--- --
--- -- and the instances will be derived for us.
-newtype PrettyAny a = PrettyAny
-    { unPrettyAny :: a
-    }
-
--- | Default configurable pretty-printing for a 'Functor' in terms of 'Pretty'
--- (attaches the config to each value in the functor).
-defaultPrettyFunctorBy
-    :: (Functor f, Pretty (f (AttachPrettyConfig config a)))
-    => config -> f a -> Doc ann
-defaultPrettyFunctorBy config a =
-    pretty $ AttachPrettyConfig config <$> a
-
--- | Default configurable pretty-printing for a 'Bifunctor' in terms of 'Pretty'
--- (attaches the config to each value in the bifunctor).
-defaultPrettyBifunctorBy
-    :: (Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b)))
-    => config -> f a b -> Doc ann
-defaultPrettyBifunctorBy config a =
-    withAttachPrettyConfig config $ \attach -> pretty $ bimap attach attach a
+-- #########################################
+-- ## The 'HasPrettyDefaults' type family ##
+-- #########################################
 
 -- | Determines whether a pretty-printing config allows default pretty-printing for types that
 -- support it. I.e. it's possible to create a new config and get access to pretty-printing for
@@ -243,6 +171,57 @@ type family HasPrettyDefaults config :: Bool
 -- | @prettyBy ()@ works like @pretty@ for types supporting default pretty-printing.
 type instance HasPrettyDefaults () = 'True
 
+-- ###########################
+-- ## Interop with 'Pretty' ##
+-- ###########################
+
+-- | A newtype wrapper around @a@ whose point is to provide a @PrettyBy config@ instance
+-- for anything that has a 'Pretty' instance.
+newtype IgnorePrettyConfig a = IgnorePrettyConfig
+    { unIgnorePrettyConfig :: a
+    } deriving newtype (Pretty)
+
+-- |
+-- >>> data C = C
+-- >>> data D = D
+-- >>> instance Pretty D where pretty D = "D"
+-- >>> prettyBy C $ IgnorePrettyConfig D
+-- D
+instance Pretty a => PrettyBy config (IgnorePrettyConfig a)
+
+-- | A config together with some value. The point is to provide a 'Pretty' instance
+-- for anything that has a @PrettyBy config@ instance.
+data AttachPrettyConfig config a = AttachPrettyConfig !config !a
+
+-- |
+-- >>> data C = C
+-- >>> data D = D
+-- >>> instance PrettyBy C D where prettyBy C D = "D"
+-- >>> pretty $ AttachPrettyConfig C D
+-- D
+instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
+    pretty (AttachPrettyConfig config x) = prettyBy config x
+
+withAttachPrettyConfig
+    :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
+withAttachPrettyConfig config k = k $ AttachPrettyConfig config
+
+-- | Default configurable pretty-printing for a 'Functor' in terms of 'Pretty'
+-- (attaches the config to each value in the functor).
+defaultPrettyFunctorBy
+    :: (Functor f, Pretty (f (AttachPrettyConfig config a)))
+    => config -> f a -> Doc ann
+defaultPrettyFunctorBy config a =
+    pretty $ AttachPrettyConfig config <$> a
+
+-- | Default configurable pretty-printing for a 'Bifunctor' in terms of 'Pretty'
+-- (attaches the config to each value in the bifunctor).
+defaultPrettyBifunctorBy
+    :: (Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b)))
+    => config -> f a b -> Doc ann
+defaultPrettyBifunctorBy config a =
+    withAttachPrettyConfig config $ \attach -> pretty $ bimap attach attach a
+
 -- ###################################################
 -- ## The 'DefaultPrettyBy' class and its instances ##
 -- ###################################################
@@ -254,27 +233,42 @@ data AttachDefaultPrettyConfig config a = AttachDefaultPrettyConfig !config !a
 instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a) where
     pretty (AttachDefaultPrettyConfig config x) = defaultPrettyBy config x
 
+-- | A class for pretty-printing values is some default manner.
+-- The default implementation of 'defaultPrettyBy' is just 'pretty', which is suitable for
+-- monomorphic types. For polymorphic types you need to attach the config to each element of
+-- the value (via 'withAttachPrettyConfig') and call 'pretty' over the result. I.e. the spine of
+-- a polymorphic container is pretty-printed in a default manner and the actual values
+-- inside are pretty-printed according to the config. For example it's possible to define
+-- a new data type that doesn't have any default pretty-printing behavior associated with it,
+-- wrap it with 'Just' ('Maybe' does have a default pretty-printing behavior: 'Nothing' is
+-- printed as an empty string and @Just x@ is printed the same way as @x@) and call
+-- 'defaultPrettyBy' over the result:
+--
+-- >>> data D = D
+-- >>> instance PrettyBy () D where prettyBy () D = "D"
+-- >>> defaultPrettyBy () (Just D)
+-- D
+--
+-- I.e. 'DefaultPrettyBy' and 'PrettyBy' are mutually recursive in a sense: 'PrettyBy' delegates
+-- to 'DefaultPrettyBy' when given a value of a type supporting default pretty-printing and
+-- 'DefaultPrettyBy' delegates back to 'PrettyBy' for elements of a polymorphic container.
+--
+-- TODO: extend the defaults
 class DefaultPrettyBy config a where
+    -- | Pretty-print a value of type @a@ in some default manner.
+    -- The default implementation is 'pretty'.
     defaultPrettyBy :: config -> a -> Doc ann
     default defaultPrettyBy :: Pretty a => config -> a -> Doc ann
     defaultPrettyBy _ = pretty
 
+    -- | 'defaultPrettyListBy' to 'prettyListBy' is what 'defaultPrettyBy' to 'prettyBy'.
+    -- The default implementation is \"pretty-print the spine of a list the way 'pretty' does that
+    -- and pretty-print the elements using 'defaultPrettyBy'\".
     defaultPrettyListBy :: config -> [a] -> Doc ann
     default defaultPrettyListBy :: config -> [a] -> Doc ann
     defaultPrettyListBy config = pretty . map (AttachDefaultPrettyConfig config)
 
-instance PrettyBy config Strict.Text => DefaultPrettyBy config Char where
-    defaultPrettyListBy config = prettyBy config . Strict.pack
-
-instance PrettyBy config a => DefaultPrettyBy config (Maybe a) where
-    defaultPrettyBy = defaultPrettyFunctorBy
-    defaultPrettyListBy config = prettyListBy config . catMaybes
-
-instance PrettyBy config a => DefaultPrettyBy config [a] where
-    defaultPrettyBy = prettyListBy
-
-instance PrettyBy config a => DefaultPrettyBy config (NonEmpty a) where
-    defaultPrettyBy config (x :| xs) = prettyListBy config (x : xs)
+-- Monomorphic instances.
 
 instance DefaultPrettyBy config Void
 instance DefaultPrettyBy config ()
@@ -296,6 +290,8 @@ instance DefaultPrettyBy config Double
 instance DefaultPrettyBy config Strict.Text
 instance DefaultPrettyBy config Lazy.Text
 
+-- Straightforward polymorphic instances.
+
 instance PrettyBy config a => DefaultPrettyBy config (Identity a) where
     defaultPrettyBy = defaultPrettyFunctorBy
 
@@ -311,22 +307,36 @@ instance PrettyBy config a => DefaultPrettyBy config (Const a b) where
     defaultPrettyBy config a =
        withAttachPrettyConfig config $ \attach -> pretty $ first attach a
 
+-- Peculiar instances.
+
+instance PrettyBy config Strict.Text => DefaultPrettyBy config Char where
+    defaultPrettyListBy config = prettyBy config . Strict.pack
+
+instance PrettyBy config a => DefaultPrettyBy config (Maybe a) where
+    defaultPrettyBy = defaultPrettyFunctorBy
+    defaultPrettyListBy config = prettyListBy config . catMaybes
+
+instance PrettyBy config a => DefaultPrettyBy config [a] where
+    defaultPrettyBy = prettyListBy
+
+instance PrettyBy config a => DefaultPrettyBy config (NonEmpty a) where
+    defaultPrettyBy config (x :| xs) = prettyListBy config (x : xs)
+
 -- ###########################################################
 -- ## The 'NonDefaultPrettyBy' class and its none instances ##
 -- ###########################################################
 
 -- | A class for overriding default pretty-printing behavior for types having it.
 class NonDefaultPrettyBy config a where
-
     -- | Pretty-print a value of a type supporting default pretty-printing in a possibly
     -- non-default way. The "possibly" is due to 'nonDefaultPrettyBy' having a default
-    -- implementation in terms of 'defaultPrettyBy'. See docs for 'HasPrettyDefaults' for details.
+    -- implementation as 'defaultPrettyBy'. See docs for 'HasPrettyDefaults' for details.
     nonDefaultPrettyBy :: config -> a -> Doc ann
     default nonDefaultPrettyBy :: DefaultPrettyBy config a => config -> a -> Doc ann
     nonDefaultPrettyBy = defaultPrettyBy
 
     -- | 'nonDefaultPrettyListBy' to 'prettyListBy' is what 'nonDefaultPrettyBy' to 'prettyBy'.
-    -- Analogously, the default implementation is in terms 'defaultPrettyListBy'.
+    -- Analogously, the default implementation is 'defaultPrettyListBy'.
     nonDefaultPrettyListBy :: config -> [a] -> Doc ann
     default nonDefaultPrettyListBy :: DefaultPrettyBy config a => config -> [a] -> Doc ann
     nonDefaultPrettyListBy = defaultPrettyListBy
@@ -590,6 +600,35 @@ deriving via PrettyCommon Char
 -- abc
 deriving via PrettyCommon (Maybe a)
     instance PrettyDefaultBy config (Maybe a) => PrettyBy config (Maybe a)
+
+-- #############################
+-- ## The 'PrettyAny' newtype ##
+-- #############################
+
+-- TODO: Fix the docs.
+-- -- | This class is used in order to provide default implementations of 'PrettyM' for
+-- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
+-- -- we can define a single 'DefaultPrettyM' instance and then derive @PrettyM Config a@ for each
+-- -- @a@ provided the @a@ implements the @PrettyM Subconfig1@, @PrettyM Subconfig2@, etc instances.
+-- --
+-- -- Example:
+-- --
+-- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
+-- -- >
+-- -- > instance (PrettyM Subconfig1 a, PrettyM Subconfig2 a) => DefaultPrettyM Config a where
+-- -- >     defaultPrettyM (Subconfig1 subconfig1) = prettyBy subconfig1
+-- -- >     defaultPrettyM (Subconfig2 subconfig2) = prettyBy subconfig2
+-- --
+-- -- Now having in scope  @PrettyM Subconfig1 A@ and @PrettyM Subconfig2 A@
+-- -- and the same instances for @B@ we can write
+-- --
+-- -- > instance PrettyM Config A
+-- -- > instance PrettyM Config B
+-- --
+-- -- and the instances will be derived for us.
+newtype PrettyAny a = PrettyAny
+    { unPrettyAny :: a
+    }
 
 -- $setup
 --
