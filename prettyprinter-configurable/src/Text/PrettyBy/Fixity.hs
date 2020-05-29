@@ -85,8 +85,8 @@ sequenceDocM
     -> m (Doc ann)
 sequenceDocM dir fixity k = compoundDocM fixity $ \prettyIn -> k (prettyIn dir fixity)
 
--- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'Backward'
--- direction, the other is in the 'Forward' direction) specialized to the supplied 'Fixity'
+-- | Instantiate a supplied continuation with two pretty-printers (one is going in the 'ToTheLeft'
+-- direction, the other is in the 'ToTheRight' direction) specialized to the supplied 'Fixity'
 -- and apply 'enclose', specialized to the same 'Fixity', to the result.
 -- The idea is that to the outside an expression has the same inner fixity as
 -- it has the outer fixity to inner subexpressions.
@@ -104,27 +104,3 @@ juxtPrettyM
     => a -> b -> m (Doc ann)
 juxtPrettyM fun arg =
     infixDocM juxtFixity $ \prettyL prettyR -> prettyL fun <+> prettyR arg
-
-
-
-
--- encloseInBot :: Doc ann -> Doc ann
--- encloseInBot = encloseIn Forward botFixity
-
--- -- | Adjust a 'PrettyConfigReadable' by setting new 'Fixity' and 'Direction' and call 'prettyBy'.
--- prettyInBy
---     :: PrettyReadableBy configName a
---     => PrettyConfigReadable configName -> Direction -> Fixity -> a -> Doc ann
--- prettyInBy config dir app = prettyBy $ setRenderContext (RenderContext dir app) config
-
--- prettyInContextM
---     :: (MonadPrettyContext config env m, PrettyBy config a)
---     => Direction -> Fixity -> a -> m (Doc ann)
--- prettyInContextM dir fixity =
---     locally (prettyConfig . renderContext) (\_ -> RenderContext dir fixity) . prettyM
-
--- -- | Pretty-print in 'botFixity'.
--- prettyInBotM
---     :: (MonadPrettyContext config env m, PrettyBy config a)
---     => a -> m (Doc ann)
--- prettyInBotM = prettyInContextM Forward botFixity

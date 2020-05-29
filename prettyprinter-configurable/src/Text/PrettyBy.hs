@@ -2,7 +2,7 @@ module Text.PrettyBy
     ( PrettyBy (..)
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
-    , UniversallyPretty (..)
+    , PrettyAny (..)
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy

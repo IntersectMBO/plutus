@@ -1,14 +1,12 @@
-{-# LANGUAGE PatternSynonyms #-}
-
 module Text.Fixity
     ( Precedence
     , Associativity (..)
+    , FixityOver (..)
     , Fixity
-    , pattern Fixity
     , Direction (..)
+    , RenderContextOver (..)
     , RenderContext
-    , pattern RenderContext
-    , Internal.encloseIn
+    , encloseIn
     , botFixity
     , juxtFixity
     , unitFixity
@@ -17,14 +15,13 @@ module Text.Fixity
     , topRenderContext
     ) where
 
-import           Text.Fixity.Internal (Associativity (..), Direction (..), pattern Fixity, pattern RenderContext)
-import qualified Text.Fixity.Internal as Internal
+import           Text.Fixity.Internal
 
 type Precedence = Double
 
-type Fixity = Internal.Fixity Precedence
+type Fixity = FixityOver Precedence
 
-type RenderContext = Internal.RenderContext Precedence
+type RenderContext = RenderContextOver Precedence
 
 -- | A fixity with the lowest precedence.
 -- When used as a part of an outer context, never causes addition of parens.

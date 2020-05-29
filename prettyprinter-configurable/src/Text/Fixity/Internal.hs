@@ -1,8 +1,8 @@
 module Text.Fixity.Internal
     ( Associativity (..)
-    , Fixity (..)
+    , FixityOver (..)
     , Direction (..)
-    , RenderContext (..)
+    , RenderContextOver (..)
     , encloseIn
     ) where
 
@@ -16,7 +16,7 @@ data Associativity
     deriving (Show, Eq)
 
 -- | Fixity of an operator.
-data Fixity prec = Fixity
+data FixityOver prec = Fixity
     { _fixityAssociativity :: !Associativity
     , _fixityPrecedence    :: !prec
     } deriving (Show, Eq)
@@ -27,9 +27,9 @@ data Direction
     deriving (Show, Eq)
 
 -- | A context that an expression is being rendered in.
-data RenderContext prec = RenderContext
+data RenderContextOver prec = RenderContext
     { _renderContextDirection :: !Direction
-    , _renderContextFixity    :: !(Fixity prec)
+    , _renderContextFixity    :: !(FixityOver prec)
     } deriving (Show, Eq)
 
 -- two precedencies
@@ -42,8 +42,8 @@ data RenderContext prec = RenderContext
 encloseIn
     :: Ord prec
     => (a -> a)
-    -> RenderContext prec  -- ^ An outer context.
-    -> Fixity prec         -- ^ An inner fixity.
+    -> RenderContextOver prec  -- ^ An outer context.
+    -> FixityOver prec         -- ^ An inner fixity.
     -> a
     -> a
 encloseIn parens (RenderContext dir (Fixity assocOut precOut)) (Fixity assocInn precInn) =
