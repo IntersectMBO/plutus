@@ -24,8 +24,8 @@ data ViaPretty
     = ViaPretty
     deriving stock (Show)
 
-instance Pretty a => PrettyBy ViaPretty (UniversallyPretty a) where
-    prettyBy ViaPretty (UniversallyPretty x) =
+instance Pretty a => PrettyBy ViaPretty (PrettyAny a) where
+    prettyBy ViaPretty (PrettyAny x) =
         "Proudly printed via Pretty:" <+> pretty x
 
 data D
@@ -34,7 +34,7 @@ data D
     deriving stock (Show)
     deriving anyclass (Pretty)
 
-deriving via UniversallyPretty D instance PrettyBy ViaPretty D
+deriving via PrettyAny D instance PrettyBy ViaPretty D
 
 makeTestCase :: (PrettyBy config a, Show config, Show a) => config -> a -> String -> TestTree
 makeTestCase config x res = testCase header $ show (prettyBy config x) @?= res where
@@ -67,11 +67,11 @@ data ConfigSum
     | ConfigSum2 Config2
     deriving stock (Show)
 
-instance (PrettyBy Config1 a, PrettyBy Config2 a) => PrettyBy ConfigSum (UniversallyPretty a) where
-    prettyBy (ConfigSum1 Config1) = prettyBy Config1 . unUniversallyPretty
-    prettyBy (ConfigSum2 Config2) = prettyBy Config2 . unUniversallyPretty
+instance (PrettyBy Config1 a, PrettyBy Config2 a) => PrettyBy ConfigSum (PrettyAny a) where
+    prettyBy (ConfigSum1 Config1) = prettyBy Config1 . unPrettyAny
+    prettyBy (ConfigSum2 Config2) = prettyBy Config2 . unPrettyAny
 
-deriving via UniversallyPretty D instance PrettyBy ConfigSum D
+deriving via PrettyAny D instance PrettyBy ConfigSum D
 
 test_universalConfigSum :: TestTree
 test_universalConfigSum = testGroup "ConfigSum"

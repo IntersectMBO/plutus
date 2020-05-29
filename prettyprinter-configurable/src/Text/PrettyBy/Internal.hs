@@ -57,11 +57,21 @@ import           GHC.TypeLits
 
 -- | A class for pretty-printing values in a configurable manner.
 --
+-- Here's a basic example:
+--
+-- >>> data Case = UpperCase | LowerCase
+-- >>> data D = D
+-- >>> instance PrettyBy Case D where prettyBy UpperCase D = "D"; prettyBy LowerCase D = "d"
+-- >>> prettyBy UpperCase D
+-- D
+-- >>> prettyBy LowerCase D
+-- d
+--
 -- The library provides instances for common types like 'Integer' or 'Bool', so you can't define
 -- your own @PrettyBy SomeConfig Integer@ instance. And for the same reason you should not define
 -- instances like @PrettyBy SomeAnotherConfig a@ for universally quantified @a@, because such an
 -- instance would overlap with the existing ones. This is the reason why the library does not
--- provide this kind of config:
+-- provide this kind of config: TODO: rephrase
 --
 -- >>> data ViaShow = ViaShow
 -- >>> instance Show a => PrettyBy ViaShow a where prettyBy ViaShow = pretty . show
@@ -74,8 +84,11 @@ import           GHC.TypeLits
 -- >     instance PrettyDefaultBy config Int => PrettyBy config Int
 -- >     instance [safe] Show a => PrettyBy ViaShow a
 --
--- It is however possible to override default pretty-printing behaviour,
--- read the docs of 'HasPrettyDefaults' for details.
+-- There's a @newtype@ provided specifically for the purpose of defining a 'PrettyBy' instance for
+-- any 'a': 'PrettyAny'. Read its docs for details on when you might want to use it.
+--
+-- The 'PrettyBy' instance for common types is defined in a way that allows to override default
+-- pretty-printing behaviour, read the docs of 'HasPrettyDefaults' for details.
 class PrettyBy config a where
 
     -- | Pretty-print a value of type @a@ the way a @config@ specifies it.
@@ -190,14 +203,14 @@ defaultPrettyBifunctorBy config a =
 -- >>> type instance HasPrettyDefaults NonDef = 'False
 --
 -- then you have no defaults available and an attempt to pretty-print a value of a type supporting
--- default pretty-printing results in a type error:
+-- default pretty-printing
 --
--- >>> prettyBy NonDef True
--- <interactive>:893:2-21: error:
---     • No instance for (NonDefaultPrettyBy NonDef Bool)
---         arising from a use of ‘prettyBy’
---     • In the expression: prettyBy NonDef True
---       In an equation for ‘it’: it = prettyBy NonDef True
+-- > prettyBy NonDef True
+--
+-- results in a type error:
+--
+-- > • No instance for (NonDefaultPrettyBy NonDef Bool)
+-- >      arising from a use of ‘prettyBy’
 --
 -- As the error suggests you need to provide a 'NonDefaultPrettyBy' instance explicitly:
 --
@@ -577,3 +590,13 @@ deriving via PrettyCommon Char
 -- abc
 deriving via PrettyCommon (Maybe a)
     instance PrettyDefaultBy config (Maybe a) => PrettyBy config (Maybe a)
+
+-- $setup
+--
+-- (Definitions for the doctests)
+--
+-- >>> :set -XDataKinds
+-- >>> :set -XFlexibleInstances
+-- >>> :set -XMultiParamTypeClasses
+-- >>> :set -XOverloadedStrings
+-- >>> :set -XTypeFamilies

@@ -7,9 +7,15 @@ license-file:        LICENSE
 author:              David Luposchainsky, effectfully
 maintainer:          plutus@iohk.io
 category:            User Interfaces, Text
-build-type:          Simple
+build-type:          Custom
 extra-source-files:  README.md
 cabal-version:       >=1.10
+
+custom-setup
+    setup-depends:
+        base,
+        Cabal,
+        cabal-doctest
 
 library
     hs-source-dirs: src
@@ -52,6 +58,7 @@ test-suite prettyprinter-configurable-test
         text,
         megaparsec,
         parser-combinators,
+        doctest,
         QuickCheck,
         quickcheck-text,
         tasty,
