@@ -180,9 +180,15 @@ instance Arbitrary WaitingForSlot where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: ContractRequest -> Maybe (Gen ContractResponse)
-genResponse (AwaitSlotRequest (WaitingForSlot (Just slot)))        = Just $ pure $ AwaitSlotResponse slot
+genResponse (AwaitSlotRequest (WaitingForSlot (Just slot))) =
+    Just $ pure $ AwaitSlotResponse slot
 genResponse (AwaitTxConfirmedRequest txIds) =
-    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $ listToMaybe $ Set.toList $ unTxIdSet txIds
-genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)
-genResponse (OwnPubkeyRequest WaitingForPubKey)               = Just $ OwnPubkeyResponse <$> arbitrary
-genResponse _                              = Nothing
+    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $
+    listToMaybe $ Set.toList $ unTxIdSet txIds
+genResponse (UserEndpointRequest _) =
+    Just $
+    UserEndpointResponse <$> (EndpointDescription <$> arbitrary) <*>
+    (EndpointValue <$> arbitrary)
+genResponse (OwnPubkeyRequest WaitingForPubKey) =
+    Just $ OwnPubkeyResponse <$> arbitrary
+genResponse _ = Nothing

@@ -8,48 +8,54 @@ module Playground.Interpreter.Util
     ( stage
     ) where
 
-import           Control.Lens                    (view)
-import           Control.Monad.Except            (throwError)
-import           Data.Aeson                      (FromJSON, eitherDecode)
-import qualified Data.Aeson                      as JSON
-import           Data.Bifunctor                  (first)
-import           Data.ByteString.Lazy            (ByteString)
-import qualified Data.ByteString.Lazy.Char8      as BSL
-import           Data.Foldable                   (traverse_)
-import           Data.Map                        (Map)
-import qualified Data.Map                        as Map
-import           Data.Row                        (Forall)
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import qualified Data.Text.Encoding              as Text
-import           Data.Text.Prettyprint.Doc       (Pretty)
-import           Language.Plutus.Contract        (Contract, ContractRow, HasBlockchainActions)
-import           Language.Plutus.Contract.Schema (Event, Input, Output)
-import           Language.Plutus.Contract.Test   (renderTraceContext)
-import           Language.Plutus.Contract.Trace  (ContractTrace, ContractTraceState, TraceError (ContractError),
-                                                  addBlocks, addBlocksUntil, addEvent, handleBlockchainEvents,
-                                                  notifyInterestingAddresses, notifySlot, payToWallet,
-                                                  runTraceWithDistribution)
-import           Ledger                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash, txOutTxOut)
-import           Ledger.AddressMap               (fundsAt)
-import           Ledger.Value                    (Value)
-import qualified Ledger.Value                    as Value
-import           Playground.Types                (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
-                                                  EndpointName, EvaluationResult (EvaluationResult), Expression,
-                                                  FunctionSchema (FunctionSchema),
-                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError),
-                                                  SimulatorWallet (SimulatorWallet), amount, argumentValues, arguments,
-                                                  blocks, caller, decodingError, emulatorLog, emulatorTrace,
-                                                  endpointName, expected, fundsDistribution, input, recipient,
-                                                  resultBlockchain, resultRollup, sender, simulatorWalletBalance,
-                                                  simulatorWalletWallet, slot, walletKeys)
-import           Wallet.Emulator                 (MonadEmulator)
-import           Wallet.Emulator.Chain           (ChainState (ChainState), _chainNewestFirst, _index, _txPool)
-import           Wallet.Emulator.NodeClient      (NodeClientState, clientIndex)
-import           Wallet.Emulator.Types           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
-                                                  Wallet)
-import           Wallet.Emulator.Wallet          (walletAddress, walletPubKey)
-import           Wallet.Rollup                   (doAnnotateBlockchain)
+import           Control.Lens                                    (view)
+import           Control.Monad.Except                            (throwError)
+import           Data.Aeson                                      (FromJSON, eitherDecode)
+import qualified Data.Aeson                                      as JSON
+import           Data.Bifunctor                                  (first)
+import           Data.ByteString.Lazy                            (ByteString)
+import qualified Data.ByteString.Lazy.Char8                      as BSL
+import           Data.Foldable                                   (traverse_)
+import           Data.Map                                        (Map)
+import qualified Data.Map                                        as Map
+import           Data.Row                                        (Forall)
+import           Data.Text                                       (Text)
+import qualified Data.Text                                       as Text
+import qualified Data.Text.Encoding                              as Text
+import           Data.Text.Prettyprint.Doc                       (Pretty)
+import           Language.Plutus.Contract                        (Contract, ContractRow, HasBlockchainActions)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, getEndpointDescription)
+import           Language.Plutus.Contract.Schema                 (Event, Input, Output)
+import           Language.Plutus.Contract.Test                   (renderTraceContext)
+import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceState,
+                                                                  TraceError (ContractError), addBlocks, addBlocksUntil,
+                                                                  addEvent, handleBlockchainEvents,
+                                                                  notifyInterestingAddresses, notifySlot, payToWallet,
+                                                                  runTraceWithDistribution)
+import           Ledger                                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash,
+                                                                  txOutTxOut)
+import           Ledger.AddressMap                               (fundsAt)
+import           Ledger.Value                                    (Value)
+import qualified Ledger.Value                                    as Value
+import           Playground.Types                                (ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
+                                                                  EvaluationResult (EvaluationResult), Expression,
+                                                                  FunctionSchema (FunctionSchema),
+                                                                  PlaygroundError (JsonDecodingError, OtherError, RollupError),
+                                                                  SimulatorWallet (SimulatorWallet), amount,
+                                                                  argumentValues, arguments, blocks, caller,
+                                                                  decodingError, emulatorLog, emulatorTrace,
+                                                                  endpointDescription, expected, fundsDistribution,
+                                                                  input, recipient, resultBlockchain, resultRollup,
+                                                                  sender, simulatorWalletBalance, simulatorWalletWallet,
+                                                                  slot, walletKeys)
+import           Wallet.Emulator                                 (MonadEmulator)
+import           Wallet.Emulator.Chain                           (ChainState (ChainState), _chainNewestFirst, _index,
+                                                                  _txPool)
+import           Wallet.Emulator.NodeClient                      (NodeClientState, clientIndex)
+import           Wallet.Emulator.Types                           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
+                                                                  Wallet)
+import           Wallet.Emulator.Wallet                          (walletAddress, walletPubKey)
+import           Wallet.Rollup                                   (doAnnotateBlockchain)
 
 -- | Unfortunately any uncaught errors in the interpreter kill the
 -- thread that is running it rather than returning the error. This
@@ -191,7 +197,7 @@ expressionToTrace AddBlocksUntil {slot} = addBlocksUntil slot
 expressionToTrace PayToWallet {sender, recipient, amount} =
     payToWallet sender recipient amount
 expressionToTrace CallEndpoint { caller
-                               , argumentValues = FunctionSchema { endpointName
+                               , argumentValues = FunctionSchema { endpointDescription
                                                                  , arguments
                                                                  }
                                } =
@@ -207,9 +213,10 @@ expressionToTrace CallEndpoint { caller
                         Text.pack (show errs)
                     Right [argument] -> do
                         event :: Event s <-
-                            decodePayload endpointName $
+                            decodePayload endpointDescription $
                                 JSON.object
-                                    [ ("tag", JSON.toJSON endpointName)
+                                    [ ( "tag"
+                                      , JSON.String (Text.pack (getEndpointDescription endpointDescription)))
                                     , ("value", JSON.object [("unEndpointValue", argument)])
                                     ]
                         addEvent caller event
@@ -221,15 +228,15 @@ expressionToTrace CallEndpoint { caller
 
 decodePayload ::
        (MonadEmulator (TraceError Text) m, FromJSON r)
-    => EndpointName
+    => EndpointDescription
     -> JSON.Value
     -> ContractTrace s Text m a r
-decodePayload endpointName value =
+decodePayload endpointDescription value =
     case JSON.fromJSON value of
         JSON.Error err ->
             throwError . ContractError $
             "Error '" <> Text.pack err <> "' while decoding JSON arguments: " <>
             Text.pack (show value) <>
             "  for endpoint: " <>
-            Text.pack (show endpointName)
+            Text.pack (show endpointDescription)
         JSON.Success result -> pure result

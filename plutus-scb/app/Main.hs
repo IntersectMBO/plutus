@@ -9,45 +9,48 @@ module Main
     ( main
     ) where
 
-import qualified Cardano.ChainIndex.Server        as ChainIndex
-import qualified Cardano.Node.Server              as NodeServer
-import qualified Cardano.SigningProcess.Server    as SigningProcess
-import qualified Cardano.Wallet.Server            as WalletServer
-import           Control.Concurrent.Async         (Async, async, waitAny)
-import           Control.Lens.Indexed             (itraverse_)
-import           Control.Monad                    (void)
-import           Control.Monad.Freer.Extra.Log    (logInfo)
-import           Control.Monad.IO.Class           (liftIO)
-import           Control.Monad.Logger             (LogLevel (LevelDebug, LevelInfo), filterLogger, runStdoutLoggingT)
-import qualified Data.Aeson                       as JSON
-import qualified Data.ByteString.Lazy.Char8       as BS8
-import           Data.Foldable                    (traverse_)
-import qualified Data.Map                         as Map
-import           Data.Set                         (Set)
-import qualified Data.Set                         as Set
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
-import           Data.Text.Prettyprint.Doc        (Doc, indent, parens, pretty, vsep, (<+>))
-import           Data.UUID                        (UUID)
-import           Data.Yaml                        (decodeFileThrow)
-import           Git                              (gitRev)
-import           Options.Applicative              (CommandFields, Mod, Parser, argument, auto, command,
-                                                   customExecParser, disambiguate, eitherReader, flag, fullDesc, help,
-                                                   helper, idm, info, infoOption, long, metavar, option, optional,
-                                                   prefs, progDesc, short, showHelpOnEmpty, showHelpOnError, str,
-                                                   strArgument, strOption, subparser, value)
-import           Plutus.SCB.App                   (App, runApp)
-import qualified Plutus.SCB.App                   as App
-import qualified Plutus.SCB.Core                  as Core
-import qualified Plutus.SCB.Core.ContractInstance as Instance
-import           Plutus.SCB.Events.Contract       (ContractInstanceId (..), ContractInstanceState)
-import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), chainIndexConfig,
-                                                   nodeServerConfig, signingProcessConfig, walletServerConfig)
-import           Plutus.SCB.Utils                 (logErrorS, render)
-import qualified Plutus.SCB.Webserver.Server      as SCBServer
+import qualified Cardano.ChainIndex.Server                       as ChainIndex
+import qualified Cardano.Node.Server                             as NodeServer
+import qualified Cardano.SigningProcess.Server                   as SigningProcess
+import qualified Cardano.Wallet.Server                           as WalletServer
+import           Control.Concurrent.Async                        (Async, async, waitAny)
+import           Control.Lens.Indexed                            (itraverse_)
+import           Control.Monad                                   (void)
+import           Control.Monad.Freer.Extra.Log                   (logInfo)
+import           Control.Monad.IO.Class                          (liftIO)
+import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), filterLogger,
+                                                                  runStdoutLoggingT)
+import qualified Data.Aeson                                      as JSON
+import qualified Data.ByteString.Lazy.Char8                      as BS8
+import           Data.Foldable                                   (traverse_)
+import qualified Data.Map                                        as Map
+import           Data.Set                                        (Set)
+import qualified Data.Set                                        as Set
+import qualified Data.Text                                       as Text
+import           Data.Text.Prettyprint.Doc                       (Doc, indent, parens, pretty, vsep, (<+>))
+import           Data.UUID                                       (UUID)
+import           Data.Yaml                                       (decodeFileThrow)
+import           Git                                             (gitRev)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
+import           Options.Applicative                             (CommandFields, Mod, Parser, argument, auto, command,
+                                                                  customExecParser, disambiguate, eitherReader, flag,
+                                                                  fullDesc, help, helper, idm, info, infoOption, long,
+                                                                  metavar, option, optional, prefs, progDesc, short,
+                                                                  showHelpOnEmpty, showHelpOnError, str, strArgument,
+                                                                  strOption, subparser, value)
+import           Plutus.SCB.App                                  (App, runApp)
+import qualified Plutus.SCB.App                                  as App
+import qualified Plutus.SCB.Core                                 as Core
+import qualified Plutus.SCB.Core.ContractInstance                as Instance
+import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
+import           Plutus.SCB.Types                                (Config (Config), ContractExe (..), chainIndexConfig,
+                                                                  nodeServerConfig, signingProcessConfig,
+                                                                  walletServerConfig)
+import           Plutus.SCB.Utils                                (logErrorS, render)
+import qualified Plutus.SCB.Webserver.Server                     as SCBServer
 import qualified PSGenerator
-import           System.Exit                      (ExitCode (ExitFailure), exitSuccess, exitWith)
-import qualified System.Remote.Monitoring         as EKG
+import           System.Exit                                     (ExitCode (ExitFailure), exitSuccess, exitWith)
+import qualified System.Remote.Monitoring                        as EKG
 
 data Command
     = Migrate
@@ -59,7 +62,7 @@ data Command
     | InstallContract FilePath
     | ActivateContract FilePath
     | ContractStatus UUID
-    | UpdateContract UUID Text JSON.Value
+    | UpdateContract UUID EndpointDescription JSON.Value
     | ReportContractHistory UUID
     | ReportInstalledContracts
     | ReportActiveContracts
@@ -312,7 +315,7 @@ runCliCommand _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
 runCliCommand _ _ (UpdateContract uuid endpoint payload) =
-    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (Text.unpack endpoint) payload
+    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) endpoint payload
 runCliCommand _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)

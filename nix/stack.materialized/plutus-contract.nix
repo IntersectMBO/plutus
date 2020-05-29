@@ -79,6 +79,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."mtl" or (buildDepError "mtl"))
           (hsPkgs."semigroupoids" or (buildDepError "semigroupoids"))
           (hsPkgs."profunctors" or (buildDepError "profunctors"))
+          (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
           (hsPkgs."transformers" or (buildDepError "transformers"))
           (hsPkgs."warp" or (buildDepError "warp"))
           (hsPkgs."newtype-generics" or (buildDepError "newtype-generics"))

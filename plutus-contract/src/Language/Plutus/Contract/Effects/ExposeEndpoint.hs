@@ -17,17 +17,20 @@ import           Data.Proxy
 import           Data.Row
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
+import           Data.String                      (IsString)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           GHC.TypeLits                     (Symbol, symbolVal)
 
+import qualified Language.Haskell.TH.Syntax       as TH
 import           Language.Plutus.Contract.IOTS
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
-    deriving stock (Eq, Ord, Generic, Show)
+    deriving stock (Eq, Ord, Generic, Show, TH.Lift)
+    deriving newtype (IsString)
     deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving Pretty via (Tagged "ExposeEndpoint:" String)
 

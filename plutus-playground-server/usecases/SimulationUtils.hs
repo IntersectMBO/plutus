@@ -2,22 +2,26 @@
 
 module SimulationUtils where
 
-import           Ledger.Scripts        (ValidatorHash (ValidatorHash))
-import           Ledger.Value          (CurrencySymbol (CurrencySymbol), TokenName, Value)
-import qualified Ledger.Value          as Value
-import           Playground.Types      (ContractCall (CallEndpoint), EndpointName, FunctionSchema (FunctionSchema),
-                                        KnownCurrency (KnownCurrency), SimulatorAction,
-                                        SimulatorWallet (SimulatorWallet), argumentValues, arguments, caller,
-                                        endpointName, hash, knownTokens, simulatorWalletBalance, simulatorWalletWallet)
-import           Schema                (ToArgument, toArgument)
-import           Wallet.Emulator.Types (Wallet)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
+import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
+import           Ledger.Value                                    (CurrencySymbol (CurrencySymbol), TokenName, Value)
+import qualified Ledger.Value                                    as Value
+import           Playground.Types                                (ContractCall (CallEndpoint),
+                                                                  FunctionSchema (FunctionSchema),
+                                                                  KnownCurrency (KnownCurrency), SimulatorAction,
+                                                                  SimulatorWallet (SimulatorWallet), argumentValues,
+                                                                  arguments, caller, endpointDescription, hash,
+                                                                  knownTokens, simulatorWalletBalance,
+                                                                  simulatorWalletWallet)
+import           Schema                                          (ToArgument, toArgument)
+import           Wallet.Emulator.Types                           (Wallet)
 
-callEndpoint :: ToArgument a => Wallet -> EndpointName -> a -> SimulatorAction
-callEndpoint caller endpointName param =
+callEndpoint :: ToArgument a => Wallet -> EndpointDescription -> a -> SimulatorAction
+callEndpoint caller endpointDescription param =
     CallEndpoint
         { caller
         , argumentValues =
-              FunctionSchema {endpointName, arguments = [toArgument param]}
+              FunctionSchema {endpointDescription, arguments = [toArgument param]}
         }
 
 initialBalance :: [KnownCurrency] -> Integer -> Value

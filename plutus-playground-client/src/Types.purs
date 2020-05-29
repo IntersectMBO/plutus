@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
 import Chain.Types (ChainFocus)
@@ -93,9 +92,9 @@ traverseFunctionSchema ::
   Applicative m =>
   (a -> m b) ->
   FunctionSchema a -> m (FunctionSchema b)
-traverseFunctionSchema f (FunctionSchema { endpointName, arguments: oldArguments }) = rewrap <$> traverse f oldArguments
+traverseFunctionSchema f (FunctionSchema { endpointDescription, arguments: oldArguments }) = rewrap <$> traverse f oldArguments
   where
-  rewrap newArguments = FunctionSchema { endpointName, arguments: newArguments }
+  rewrap newArguments = FunctionSchema { endpointDescription, arguments: newArguments }
 
 traverseSimulatorAction ::
   forall m b a.

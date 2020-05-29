@@ -14,15 +14,16 @@ module Playground.THSpec
     ( tests
     ) where
 
-import           Control.Monad.Freer (Eff, Member)
-import           Data.Text           (Text)
-import           Ledger.Value        (Value)
-import           Playground.TH       (mkFunctions, mkSingleFunction)
-import           Playground.Types    (EndpointName (EndpointName), FunctionSchema (FunctionSchema))
-import           Schema              (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
-import           Test.Tasty          (TestTree, testGroup)
-import           Test.Tasty.HUnit    (assertEqual, testCase)
-import           Wallet.Effects      (WalletEffect)
+import           Control.Monad.Freer                             (Eff, Member)
+import           Data.Text                                       (Text)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Ledger.Value                                    (Value)
+import           Playground.TH                                   (mkFunctions, mkSingleFunction)
+import           Playground.Types                                (FunctionSchema (FunctionSchema))
+import           Schema                                          (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
+import           Test.Tasty                                      (TestTree, testGroup)
+import           Test.Tasty.HUnit                                (assertEqual, testCase)
+import           Wallet.Effects                                  (WalletEffect)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.
@@ -53,26 +54,26 @@ tests =
               assertEqual
                   "f0"
                   f0Schema
-                  (FunctionSchema (EndpointName "f0") [] :: FunctionSchema FormSchema)
+                  (FunctionSchema (EndpointDescription "f0") [] :: FunctionSchema FormSchema)
               assertEqual
                   "f1"
                   f1Schema
-                  (FunctionSchema (EndpointName "f1") [] :: FunctionSchema FormSchema)
+                  (FunctionSchema (EndpointDescription "f1") [] :: FunctionSchema FormSchema)
               assertEqual
                   "f2"
                   f2Schema
-                  (FunctionSchema (EndpointName "f2") [FormSchemaString] :: FunctionSchema FormSchema)
+                  (FunctionSchema (EndpointDescription "f2") [FormSchemaString] :: FunctionSchema FormSchema)
               assertEqual
                   "f3"
                   f3Schema
                   (FunctionSchema
-                       (EndpointName "f3")
+                       (EndpointDescription "f3")
                        [FormSchemaString, FormSchemaValue] :: FunctionSchema FormSchema)
               assertEqual
                   "f4"
                   f4Schema
                   (FunctionSchema
-                       (EndpointName "f4")
+                       (EndpointDescription "f4")
                        [ FormSchemaString
                        , FormSchemaString
                        , FormSchemaTuple FormSchemaInt FormSchemaInt

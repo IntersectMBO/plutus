@@ -18,7 +18,8 @@ import Foreign.Generic (encodeJSON)
 import Foreign.Object as FO
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import Playground.Types (ContractCall(..), EndpointName(..), FunctionSchema(..), KnownCurrency(..))
+import Playground.Types (ContractCall(..), FunctionSchema(..), KnownCurrency(..))
+import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription(EndpointDescription))
 import Prelude
 import Schema (FormSchema(..), FormArgumentF(..))
 import Test.Unit (TestSuite, Test, suite, test)
@@ -120,7 +121,7 @@ makeTestAction arguments =
       Wallet { getWallet: 1 }
     , argumentValues:
       FunctionSchema
-        { endpointName: EndpointName "test"
+        { endpointDescription: EndpointDescription { getEndpointDescription: "test" }
         , arguments
         }
     }

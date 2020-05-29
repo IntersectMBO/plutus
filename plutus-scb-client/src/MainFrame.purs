@@ -84,7 +84,8 @@ handleAction LoadFullReport = do
     Success fullReport ->
       traverse_
         ( \instanceId -> do
-            let uuid = view (_contractInstanceId <<< _JsonUUID <<< to UUID.toString) instanceId
+            let
+              uuid = view (_contractInstanceId <<< _JsonUUID <<< to UUID.toString) instanceId
             contractSchema <- runAjax $ getContractByContractinstanceidSchema uuid
             assign (_contractSignatures <<< at instanceId) (Just contractSchema)
         )
@@ -98,6 +99,7 @@ handleAction (ChainAction newFocus) = do
   animate
     (_chainState <<< _chainFocusAppearing)
     (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)
+
 handleAction (InvokeContractEndpoint subaction) = do
   liftEffect $ log $ "TRIGGER: " <> show subaction
 
