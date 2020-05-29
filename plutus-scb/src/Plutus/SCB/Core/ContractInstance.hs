@@ -486,12 +486,12 @@ callContractEndpoint ::
 callContractEndpoint inst endpointDescription endpointValue = do
     logInfo . render $ "calling endpoint" <+> pretty endpointDescription <+> "on instance" <+> pretty inst
     state <- Query.contractStates <$> runGlobalQuery (Query.userEndpointRequests @t)
-    (it, ActiveEndpoints activeEndpointNames) <-
+    (it, ActiveEndpoints activeEndpointDescriptions) <-
         maybe
             (throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested any user input"))
             pure
             (Map.lookup inst state)
-    unless (endpointDescription `Set.member` activeEndpointNames) $
+    unless (endpointDescription `Set.member` activeEndpointDescriptions) $
         throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested endpoint " <> tshow endpointDescription)
 
     sendContractInboxMessage @t inst it
