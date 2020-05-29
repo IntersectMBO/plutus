@@ -30,7 +30,8 @@ import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData(..))
 import Playground.Schema (actionArgumentForm)
-import Playground.Types (_EndpointName, _FunctionSchema)
+import Playground.Types (_FunctionSchema)
+import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Plutus.SCB.Events (ChainEvent(..))
 import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
 import Plutus.SCB.Events.Node (NodeEvent(..))
@@ -121,7 +122,7 @@ foo signatures =
                 formArguments = toArgument initialValue <$> view (_FunctionSchema <<< _arguments) sig
               in
                 card_
-                  [ cardHeader_ [ h2_ [ text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) sig ] ]
+                  [ cardHeader_ [ h2_ [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) sig ] ]
                   , cardBody_ [ actionArgumentForm index formArguments ]
                   ]
           )

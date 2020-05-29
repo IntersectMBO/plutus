@@ -7,41 +7,45 @@ module Playground.UsecasesSpec
     ( tests
     ) where
 
-import           Control.Monad                (unless)
-import           Control.Monad.Except         (runExceptT)
-import           Crowdfunding                 (Contribution (Contribution), contribValue)
-import           Data.Aeson                   (ToJSON)
-import qualified Data.Aeson                   as JSON
-import qualified Data.Aeson.Text              as JSON
-import           Data.Foldable                (traverse_)
-import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import qualified Data.Text                    as Text
-import qualified Data.Text.IO                 as Text
-import qualified Data.Text.Lazy               as TL
-import           Data.Time.Units              (Minute)
-import           Game                         (GuessParams (GuessParams), LockParams (LockParams), amount, guessWord,
-                                               secretWord)
-import           Language.Haskell.Interpreter (InterpreterError, InterpreterResult (InterpreterResult, result),
-                                               SourceCode (SourceCode))
-import           Ledger.Ada                   (adaValueOf, lovelaceValueOf)
-import           Ledger.Scripts               (ValidatorHash (ValidatorHash))
-import           Ledger.Value                 (TokenName (TokenName), Value)
-import qualified Playground.Interpreter       as PI
-import           Playground.Types             (CompilationResult (CompilationResult),
-                                               ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
-                                               EndpointName (EndpointName), Evaluation (Evaluation),
-                                               EvaluationResult (EvaluationResult), Expression,
-                                               FunctionSchema (FunctionSchema), KnownCurrency (KnownCurrency),
-                                               PlaygroundError, SimulatorWallet (SimulatorWallet), adaCurrency,
-                                               argumentValues, arguments, caller, emulatorLog, endpointName,
-                                               fundsDistribution, program, resultBlockchain, simulatorWalletBalance,
-                                               simulatorWalletWallet, sourceCode, walletKeys, wallets)
-import           Playground.Usecases          (crowdFunding, errorHandling, game, vesting)
-import           Schema                       (FormSchema (FormSchemaUnit, FormSchemaValue))
-import           Test.Tasty                   (TestTree, testGroup)
-import           Test.Tasty.HUnit             (Assertion, assertEqual, assertFailure, testCase)
-import           Wallet.Emulator.Types        (Wallet (Wallet))
-import           Wallet.Rollup.Render         (showBlockchain)
+import           Control.Monad                                   (unless)
+import           Control.Monad.Except                            (runExceptT)
+import           Crowdfunding                                    (Contribution (Contribution), contribValue)
+import           Data.Aeson                                      (ToJSON)
+import qualified Data.Aeson                                      as JSON
+import qualified Data.Aeson.Text                                 as JSON
+import           Data.Foldable                                   (traverse_)
+import           Data.List.NonEmpty                              (NonEmpty ((:|)))
+import qualified Data.Text                                       as Text
+import qualified Data.Text.IO                                    as Text
+import qualified Data.Text.Lazy                                  as TL
+import           Data.Time.Units                                 (Minute)
+import           Game                                            (GuessParams (GuessParams), LockParams (LockParams),
+                                                                  amount, guessWord, secretWord)
+import           Language.Haskell.Interpreter                    (InterpreterError,
+                                                                  InterpreterResult (InterpreterResult, result),
+                                                                  SourceCode (SourceCode))
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Ledger.Ada                                      (adaValueOf, lovelaceValueOf)
+import           Ledger.Scripts                                  (ValidatorHash (ValidatorHash))
+import           Ledger.Value                                    (TokenName (TokenName), Value)
+import qualified Playground.Interpreter                          as PI
+import           Playground.Types                                (CompilationResult (CompilationResult), ContractCall (AddBlocks, AddBlocksUntil, CallEndpoint, PayToWallet),
+                                                                  Evaluation (Evaluation),
+                                                                  EvaluationResult (EvaluationResult), Expression,
+                                                                  FunctionSchema (FunctionSchema),
+                                                                  KnownCurrency (KnownCurrency), PlaygroundError,
+                                                                  SimulatorWallet (SimulatorWallet), adaCurrency,
+                                                                  argumentValues, arguments, caller, emulatorLog,
+                                                                  endpointDescription, fundsDistribution, program,
+                                                                  resultBlockchain, simulatorWalletBalance,
+                                                                  simulatorWalletWallet, sourceCode, walletKeys,
+                                                                  wallets)
+import           Playground.Usecases                             (crowdFunding, errorHandling, game, vesting)
+import           Schema                                          (FormSchema (FormSchemaUnit, FormSchemaValue))
+import           Test.Tasty                                      (TestTree, testGroup)
+import           Test.Tasty.HUnit                                (Assertion, assertEqual, assertFailure, testCase)
+import           Wallet.Emulator.Types                           (Wallet (Wallet))
+import           Wallet.Rollup.Render                            (showBlockchain)
 
 tests :: TestTree
 tests =
@@ -83,11 +87,11 @@ vestingTest =
               assertEqual
                   ""
                   [ FunctionSchema
-                        { endpointName = EndpointName "retrieve funds"
+                        { endpointDescription = EndpointDescription "retrieve funds"
                         , arguments = [FormSchemaValue]
                         }
                   , FunctionSchema
-                        { endpointName = EndpointName "vest funds"
+                        { endpointDescription = EndpointDescription "vest funds"
                         , arguments = [FormSchemaUnit]
                         }
                   ]
@@ -344,10 +348,10 @@ compilationChecks source =
 toJSONString :: ToJSON a => a -> JSON.Value
 toJSONString = JSON.String . TL.toStrict . JSON.encodeToLazyText
 
-callEndpoint :: ToJSON a => EndpointName -> Wallet -> a -> Expression
-callEndpoint endpointName caller param =
+callEndpoint :: ToJSON a => EndpointDescription -> Wallet -> a -> Expression
+callEndpoint endpointDescription caller param =
     CallEndpoint
         { caller
         , argumentValues =
-              FunctionSchema {endpointName, arguments = [toJSONString param]}
+              FunctionSchema {endpointDescription, arguments = [toJSONString param]}
         }

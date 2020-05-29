@@ -38,7 +38,7 @@ import           Data.Text.Prettyprint.Doc                         (Pretty, pret
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..), TxIdSet (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints (..), EndpointDescription (..),
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints (..), EndpointDescription,
                                                                     EndpointValue (..))
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet (..))
@@ -480,20 +480,19 @@ callContractEndpoint ::
     , JSON.ToJSON a
     )
     => ContractInstanceId
-    -> String
+    -> EndpointDescription
     -> a
     -> Eff effs [ChainEvent t]
-callContractEndpoint inst endpointName endpointValue = do
-    logInfo . render $ "calling endpoint" <+> pretty endpointName <+> "on instance" <+> pretty inst
+callContractEndpoint inst endpointDescription endpointValue = do
+    logInfo . render $ "calling endpoint" <+> pretty endpointDescription <+> "on instance" <+> pretty inst
     state <- Query.contractStates <$> runGlobalQuery (Query.userEndpointRequests @t)
     (it, ActiveEndpoints activeEndpointNames) <-
         maybe
             (throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested any user input"))
             pure
             (Map.lookup inst state)
-    unless (EndpointDescription endpointName `Set.member` activeEndpointNames) $
-        throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested endpoint " <> Text.pack endpointName)
+    unless (endpointDescription `Set.member` activeEndpointNames) $
+        throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested endpoint " <> tshow endpointDescription)
 
     sendContractInboxMessage @t inst it
-        $ UserEndpointResponse (Text.pack endpointName) (EndpointValue $ JSON.toJSON endpointValue)
-
+        $ UserEndpointResponse endpointDescription (EndpointValue $ JSON.toJSON endpointValue)

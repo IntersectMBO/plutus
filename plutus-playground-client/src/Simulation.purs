@@ -28,9 +28,9 @@ import Language.Haskell.Interpreter as PI
 import Ledger.Slot (Slot)
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.Lenses (_endpointName)
+import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Schema (actionArgumentForm)
-import Playground.Types (ContractCall(..), EvaluationResult, FunctionSchema, PlaygroundError(..), Simulation(..), _CallEndpoint, _EndpointName, _FunctionSchema)
+import Playground.Types (ContractCall(..), EvaluationResult, FunctionSchema, PlaygroundError(..), Simulation(..), _CallEndpoint, _FunctionSchema)
 import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema (FormArgumentF, FormSchema)
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), SimulatorAction, Signatures)
@@ -201,7 +201,7 @@ actionPaneBody index (CallEndpoint { caller, argumentValues }) =
     [ h3_
         [ walletIdPane caller
         , text ": "
-        , text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) argumentValues
+        , text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) argumentValues
         ]
     , actionArgumentForm index $ view (_FunctionSchema <<< _arguments) argumentValues
     ]

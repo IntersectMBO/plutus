@@ -5,6 +5,7 @@ import Data.Function ((<<<))
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.Symbol (SProxy(..))
+import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, _EndpointDescription)
 import Ledger.Value (CurrencySymbol, TokenName, _CurrencySymbol, _TokenName)
 
 _currencySymbol :: Lens' CurrencySymbol String
@@ -19,5 +20,8 @@ _amount = prop (SProxy :: SProxy "amount")
 _recipient :: forall r a. Lens' { recipient :: a | r } a
 _recipient = prop (SProxy :: SProxy "recipient")
 
-_endpointName :: forall r a. Lens' { endpointName :: a | r } a
-_endpointName = prop (SProxy :: SProxy "endpointName")
+_endpointDescription :: forall r a. Lens' { endpointDescription :: a | r } a
+_endpointDescription = prop (SProxy :: SProxy "endpointDescription")
+
+_getEndpointDescription :: Lens' EndpointDescription String
+_getEndpointDescription = _EndpointDescription <<< prop (SProxy :: SProxy "getEndpointDescription")
