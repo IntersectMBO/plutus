@@ -48,7 +48,6 @@ let
             # See https://github.com/input-output-hk/plutus/issues/1213
             marlowe.doHaddock = false;
             plutus-use-cases.doHaddock = false;
-            plutus-scb.doHaddock = false;
             plutus-ledger.doHaddock = false;
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
             plutus-tx-plugin.doHaddock = false;
