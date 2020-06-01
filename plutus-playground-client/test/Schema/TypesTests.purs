@@ -25,8 +25,7 @@ import Schema (FormSchema(..), FormArgumentF(..))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.Assert (equal)
 import TestUtils (equalGenericShow)
-import Types
-import Schema.Types
+import Schema.Types (FormArgument, formArgumentToJson, mkInitialValue, toArgument)
 import Validation (ValidationError(..), validate, withPath)
 import Wallet.Emulator.Wallet (Wallet(..))
 
@@ -114,7 +113,7 @@ toArgumentTests = do
         (toArgument initialValue FormSchemaValue)
         (Fix (FormValueF initialValue))
 
-makeTestAction :: Array FormArgument -> SimulatorAction
+makeTestAction :: Array FormArgument -> ContractCall FormArgument
 makeTestAction arguments =
   CallEndpoint
     { caller:
@@ -126,7 +125,7 @@ makeTestAction arguments =
         }
     }
 
-isValid :: SimulatorAction -> Aff Unit
+isValid :: ContractCall FormArgument -> Aff Unit
 isValid = validate >>> equal []
 
 formArgumentToJsonTests :: TestSuite

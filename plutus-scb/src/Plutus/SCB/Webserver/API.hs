@@ -12,4 +12,4 @@ import           Servant.API                ((:<|>), (:>), Capture, Get, JSON)
 type API t
      = "healthcheck" :> Get '[ JSON] ()
        :<|> "full-report" :> Get '[ JSON] (FullReport t)
-       :<|> "contract" :>  Capture "contract-instance-id" Text :> "schema" :>Get '[ JSON] (ContractSignatureResponse t)
+       :<|> "contract" :>  Capture "contract-instance-id" Text :> "schema" :> Get '[ JSON] (ContractSignatureResponse t)

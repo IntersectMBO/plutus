@@ -5,13 +5,9 @@ module Data.Array.Extra
   ) where
 
 import Prelude
-
-import Data.Array (snoc, foldl)
 import Data.Array as Array
-import Data.Foldable (class Foldable, intercalate)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex)
 import Data.Maybe (Maybe, fromMaybe)
-import Data.Monoid (class Monoid)
 import Data.Tuple (fst, snd)
 import Data.Tuple.Nested (type (/\), (/\))
 

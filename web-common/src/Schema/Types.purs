@@ -68,7 +68,7 @@ instance showFieldEvent :: Show FieldEvent where
   show = genericShow
 
 data ActionEvent
-  = AddAction SimulatorAction
+  = AddAction (ContractCall FormArgument)
   | AddWaitAction Int
   | RemoveAction Int
   | SetWaitTime Int Int
@@ -80,9 +80,6 @@ derive instance genericActionEvent :: Generic ActionEvent _
 
 instance showActionEvent :: Show ActionEvent where
   show = genericShow
-
-type SimulatorAction
-  = ContractCall FormArgument
 
 type Expression
   = ContractCall RawJson
@@ -190,12 +187,12 @@ mkInitialValue currencies initialBalance = Value { getValue: value }
           )
           currencies
 
-handleActionForm ::
+handleFormEvent ::
   Value ->
   FormEvent ->
   FormArgument ->
   FormArgument
-handleActionForm initialValue event = cata (Fix <<< algebra event)
+handleFormEvent initialValue event = cata (Fix <<< algebra event)
   where
   algebra (SetField (SetIntField n)) (FormIntF _) = FormIntF n
 
@@ -207,19 +204,19 @@ handleActionForm initialValue event = cata (Fix <<< algebra event)
 
   algebra (SetField (SetRadioField s)) (FormRadioF options _) = FormRadioF options (Just s)
 
-  algebra (SetField (SetValueField valueEvent)) (FormValueF value) = FormValueF $ handleActionValueEvent valueEvent value
+  algebra (SetField (SetValueField valueEvent)) (FormValueF value) = FormValueF $ handleValueEvent valueEvent value
 
   algebra (SetField (SetSlotRangeField newInterval)) arg@(FormSlotRangeF _) = FormSlotRangeF newInterval
 
-  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF (handleActionForm initialValue subEvent field1) field2
+  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF (handleFormEvent initialValue subEvent field1) field2
 
-  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleActionForm initialValue subEvent field2)
+  algebra (SetSubField 1 subEvent) (FormTupleF field1 field2) = FormTupleF field1 (handleFormEvent initialValue subEvent field2)
 
-  algebra (SetSubField 0 subEvent) (FormMaybeF schema field) = FormMaybeF schema $ over _Just (handleActionForm initialValue subEvent) field
+  algebra (SetSubField 0 subEvent) (FormMaybeF schema field) = FormMaybeF schema $ over _Just (handleFormEvent initialValue subEvent) field
 
-  algebra (SetSubField n subEvent) (FormArrayF schema fields) = FormArrayF schema $ over (ix n) (handleActionForm initialValue subEvent) fields
+  algebra (SetSubField n subEvent) (FormArrayF schema fields) = FormArrayF schema $ over (ix n) (handleFormEvent initialValue subEvent) fields
 
-  algebra (SetSubField n subEvent) s@(FormObjectF fields) = FormObjectF $ over (ix n <<< _Newtype <<< _2) (handleActionForm initialValue subEvent) fields
+  algebra (SetSubField n subEvent) s@(FormObjectF fields) = FormObjectF $ over (ix n <<< _Newtype <<< _2) (handleFormEvent initialValue subEvent) fields
 
   -- As the code stands, this is the only guarantee we get that every
   -- value in the array will conform to the schema: the fact that we
@@ -234,20 +231,20 @@ handleActionForm initialValue event = cata (Fix <<< algebra event)
 
   algebra _ arg = arg
 
-handleActionValueEvent :: ValueEvent -> Value -> Value
-handleActionValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
+handleActionEvent :: ActionEvent -> Array (ContractCall FormArgument) -> Array (ContractCall FormArgument)
+handleActionEvent (AddAction action) = flip Array.snoc action
 
-handleActionActionEvent :: ActionEvent -> Array SimulatorAction -> Array SimulatorAction
-handleActionActionEvent (AddAction action) = flip Array.snoc action
+handleActionEvent (AddWaitAction blocks) = flip Array.snoc (AddBlocks { blocks })
 
-handleActionActionEvent (AddWaitAction blocks) = flip Array.snoc (AddBlocks { blocks })
+handleActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
 
-handleActionActionEvent (RemoveAction index) = fromMaybe <*> Array.deleteAt index
+handleActionEvent (SetWaitTime index blocks) = set (ix index) (AddBlocks { blocks })
 
-handleActionActionEvent (SetWaitTime index blocks) = set (ix index) (AddBlocks { blocks })
+handleActionEvent (SetPayToWalletValue index valueEvent) = over (ix index <<< _PayToWallet <<< _amount) (handleValueEvent valueEvent)
 
-handleActionActionEvent (SetPayToWalletValue index valueEvent) = over (ix index <<< _PayToWallet <<< _amount) (handleActionValueEvent valueEvent)
+handleActionEvent (SetPayToWalletRecipient index recipient) = set (ix index <<< _PayToWallet <<< _recipient) recipient
 
-handleActionActionEvent (SetPayToWalletRecipient index recipient) = set (ix index <<< _PayToWallet <<< _recipient) recipient
+handleActionEvent (SetWaitUntilTime index slot) = set (ix index) (AddBlocksUntil { slot })
 
-handleActionActionEvent (SetWaitUntilTime index slot) = set (ix index) (AddBlocksUntil { slot })
+handleValueEvent :: ValueEvent -> Value -> Value
+handleValueEvent (SetBalance currencySymbol tokenName amount) = set (_value <<< ix currencySymbol <<< ix tokenName) amount
