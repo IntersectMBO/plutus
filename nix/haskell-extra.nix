@@ -14,21 +14,21 @@
     version = "3.0.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1gxy12h649x4mizsh6hafa1b5fnljdg8dssknsmrwrp7rpgv1lpm";
+    plan-sha256 = "0cxh9aya4c5xr4lycg9jywivb9jw9xb38a726q87azvm6gw66jqn";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "06qmj3fhh0cn6hwacgvav0s35416szrjjdrvm8bzdmxi81hl75xc";
+    plan-sha256 = "0dz1pcgp8likq19nqwjlzjqnzaj1avxxmmvn2bxkxqxcykjzlr3i";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0cas1vdw7kmm60j1zch9p4gbkmyl7pzzjbrpgp7r4bhay0ck7vb2";
+    plan-sha256 = "1wykhyf0wsif4mql3wh9f2a0fvfkzp39ih2xbld1k74lnzvafvhm";
   };
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
@@ -39,7 +39,7 @@
           sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
         };
         # Invalidate and update if you change the version
-        stack-sha256 = "0ivcggb31sl5a405gifb1d8yl1p4mam9b1hzmrgsjn04c8d67w09";
+        stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
         inherit checkMaterialization;
         pkg-def-extras = [
           # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
