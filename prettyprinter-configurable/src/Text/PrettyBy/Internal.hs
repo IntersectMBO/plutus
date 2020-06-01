@@ -57,7 +57,7 @@ import           GHC.TypeLits
 
 -- | A class for pretty-printing values in a configurable manner.
 --
--- Here's a basic example:
+-- A basic example:
 --
 -- >>> data Case = UpperCase | LowerCase
 -- >>> data D = D
@@ -202,6 +202,7 @@ data AttachPrettyConfig config a = AttachPrettyConfig !config !a
 instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
     pretty (AttachPrettyConfig config x) = prettyBy config x
 
+-- | Pass @AttachPrettyConfig config@ to the continuation.
 withAttachPrettyConfig
     :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
 withAttachPrettyConfig config k = k $ AttachPrettyConfig config
@@ -234,15 +235,6 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
     pretty (AttachDefaultPrettyConfig config x) = defaultPrettyBy config x
 
 -- | A class for pretty-printing values is some default manner.
--- The default implementation of 'defaultPrettyBy' is just 'pretty', which is suitable for
--- monomorphic types. For polymorphic types you need to attach the config to each element of
--- the value (via 'withAttachPrettyConfig') and call 'pretty' over the result. I.e. the spine of
--- a polymorphic container is pretty-printed in a default manner and the actual values
--- inside are pretty-printed according to the config. For example it's possible to define
--- a new data type that doesn't have any default pretty-printing behavior associated with it,
--- wrap it with 'Just' ('Maybe' does have a default pretty-printing behavior: 'Nothing' is
--- printed as an empty string and @Just x@ is printed the same way as @x@) and call
--- 'defaultPrettyBy' over the result:
 --
 -- >>> data D = D
 -- >>> instance PrettyBy () D where prettyBy () D = "D"
@@ -250,10 +242,35 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 -- D
 --
 -- I.e. 'DefaultPrettyBy' and 'PrettyBy' are mutually recursive in a sense: 'PrettyBy' delegates
--- to 'DefaultPrettyBy' when given a value of a type supporting default pretty-printing and
--- 'DefaultPrettyBy' delegates back to 'PrettyBy' for elements of a polymorphic container.
+-- to 'DefaultPrettyBy' (provided the config supports defaults) when given a value of a type
+-- supporting default pretty-printing and 'DefaultPrettyBy' delegates back to 'PrettyBy' for
+-- elements of a polymorphic container.
 --
--- TODO: extend the defaults
+-- It is possible to extend the set of types supporting default pretty-printing. If you have a
+-- @newtype@ wrapping a type that already supports default pretty-printing, then "registering"
+-- that @newtype@ amounts to making a standalone newtype-deriving declaration:
+--
+-- >>> newtype AlsoInt = AlsoInt Int
+-- >>> deriving newtype instance PrettyDefaultBy config Int => PrettyBy config AlsoInt
+-- >>> prettyBy () (AlsoInt 42)
+-- 42
+--
+-- Note that you have to use standalone deriving as
+--
+-- > newtype AlsoInt = AlsoInt Int deriving newtype (PrettyBy config)
+--
+-- doesn't please GHC.
+--
+-- Its' also good practice to preserve coherence between 'Pretty' and 'PrettyBy', so I'd also add
+-- @deriving (Pretty)@ to the definition of @AlsoInt@, even though it's not necessary.
+
+--
+-- >>> data D = D
+-- >>> instance Pretty D where pretty D = "D"
+-- >>> instance DefaultPrettyBy config D
+-- >>> deriving via PrettyCommon D instance PrettyDefaultBy config D => PrettyBy config D
+-- >>> prettyBy () D
+-- D
 class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
     -- The default implementation is 'pretty'.
@@ -635,7 +652,12 @@ newtype PrettyAny a = PrettyAny
 -- (Definitions for the doctests)
 --
 -- >>> :set -XDataKinds
+-- >>> :set -XDerivingVia
+-- >>> :set -XFlexibleContexts
 -- >>> :set -XFlexibleInstances
+-- >>> :set -XGeneralizedNewtypeDeriving
 -- >>> :set -XMultiParamTypeClasses
 -- >>> :set -XOverloadedStrings
+-- >>> :set -XStandaloneDeriving
 -- >>> :set -XTypeFamilies
+-- >>> :set -XUndecidableInstances
