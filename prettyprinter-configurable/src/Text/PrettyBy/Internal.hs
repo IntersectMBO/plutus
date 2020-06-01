@@ -16,10 +16,12 @@
 {-# LANGUAGE UndecidableInstances       #-}
 
 -- | Internal module defining the core machinery of configurable pretty-printing.
+--
 -- We introduce an internal module, because most users won't need stuff like 'DefaultPrettyBy', so
 -- it doesn't make much sense to export that from the top-level module. But 'DefaultPrettyBy' can
 -- still can be useful occasionally and there are some docs explaining details of the implementation
 -- (see e.g. 'DispatchPrettyDefaultBy'), hence it's exported from here.
+--
 -- Versioning is not affected by the fact that the module is called \"Internal\", i.e. we track
 -- changes using the usual PVP.
 
@@ -59,9 +61,9 @@ import           Data.Word
 import           GHC.Natural
 import           GHC.TypeLits
 
--- **********
--- ** Core **
--- **********
+-- ##########################
+-- ## The 'PrettyBy' class ##
+-- ##########################
 
 -- | A class for pretty-printing values in a configurable manner.
 --
@@ -116,7 +118,7 @@ class PrettyBy config a where
 
 -- | Determines whether a pretty-printing config allows default pretty-printing for types that
 -- support it. I.e. it's possible to create a new config and get access to pretty-printing for
--- all types supporting default pretty-printing just by providing the right type instance. E.g.
+-- all types supporting default pretty-printing just by providing the right type instance. Example:
 --
 -- >>> data DefCfg = DefCfg
 -- >>> type instance HasPrettyDefaults DefCfg = 'True
@@ -125,7 +127,7 @@ class PrettyBy config a where
 --
 -- The set of types supporting default pretty-printing is determined by the @prettyprinter@
 -- library: whatever __there__ has a 'Pretty' instance also supports default pretty-printing
--- in this library and the behavior of @pretty x@ and @prettyBy <config_with_defaults> x@ must
+-- in this library and the behavior of @pretty x@ and @prettyBy config_with_defaults x@ must
 -- be identical when @x@ is one of such types.
 --
 -- It is possible to override default pretty-printing. For this you need to specify that
@@ -133,7 +135,7 @@ class PrettyBy config a where
 -- instance for each of the types supporting default pretty-printing that you want to pretty-print
 -- values of. Note that once 'HasPrettyDefaults' is specified to be @'False@,
 -- __all defaults are lost__ for your config, so you can't override default pretty-printing for one
--- type and keep the defaults for all others. I.e. if you have
+-- type and keep the defaults for all the others. I.e. if you have
 --
 -- >>> data NonDefCfg = NonDefCfg
 -- >>> type instance HasPrettyDefaults NonDefCfg = 'False
@@ -168,7 +170,7 @@ class PrettyBy config a where
 -- that at the moment.
 --
 -- Note that you can always override default behavior by wrapping a type in @newtype@ and
--- providing a @PrettyBy <config_name>@ instance for that @newtype@.
+-- providing a @PrettyBy config_name@ instance for that @newtype@.
 --
 -- Also note that if you want to extend the set of types supporting default pretty-printing
 -- it's not enough to provide a 'Pretty' instance for your type (such logic is hardly expressible

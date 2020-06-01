@@ -76,11 +76,11 @@ instance HasPrettyConfigName PrettyConfigPlcStrategy where
 instance HasPrettyConfigName PrettyConfigPlc where
     toPrettyConfigName = toPrettyConfigName . _pcpStrategy
 
-instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlcStrategy (UniversallyPretty a) where
-    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unUniversallyPretty
-    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unUniversallyPretty
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlcStrategy (PrettyAny a) where
+    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unPrettyAny
+    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unPrettyAny
 
-instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (UniversallyPretty a) where
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (PrettyAny a) where
     prettyBy = prettyBy . _pcpStrategy
 
 -- | The 'PrettyConfigPlcOptions' used by default:

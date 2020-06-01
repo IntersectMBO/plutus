@@ -83,7 +83,7 @@ module PlutusPrelude
     , PrettyBy (..)
     , HasPrettyDefaults
     , PrettyDefaultBy
-    , UniversallyPretty (..)
+    , PrettyAny (..)
     , docString
     , docText
     , prettyString
@@ -145,7 +145,7 @@ instance (Pretty a, Pretty b) => Pretty (Either a b) where
 
 instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Either a b) where
     defaultPrettyBy = defaultPrettyBifunctorBy
-deriving via DefaultlyPretty (Either a b)
+deriving via PrettyCommon (Either a b)
     instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
 
 -- | Render a 'Doc' as 'String'.
