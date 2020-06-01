@@ -15,6 +15,14 @@
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
+-- | Internal module defining the core machinery of configurable pretty-printing.
+-- We introduce an internal module, because most users won't need stuff like 'DefaultPrettyBy', so
+-- it doesn't make much sense to export that from the top-level module. But 'DefaultPrettyBy' can
+-- still can be useful occasionally and there are some docs explaining details of the implementation
+-- (see e.g. 'DispatchPrettyDefaultBy'), hence it's exported from here.
+-- Versioning is not affected by the fact that the module is called \"Internal\", i.e. we track
+-- changes using the usual PVP.
+
 module Text.PrettyBy.Internal
     ( PrettyBy (..)
     , HasPrettyDefaults
@@ -84,7 +92,7 @@ import           GHC.TypeLits
 -- >     instance [safe] Show a => PrettyBy ViaShow a
 --
 -- There's a @newtype@ provided specifically for the purpose of defining a 'PrettyBy' instance for
--- any 'a': 'PrettyAny'. Read its docs for details on when you might want to use it.
+-- any @a@: 'PrettyAny'. Read its docs for details on when you might want to use it.
 --
 -- The 'PrettyBy' instance for common types is defined in a way that allows to override default
 -- pretty-printing behaviour, read the docs of 'HasPrettyDefaults' for details.
@@ -110,9 +118,9 @@ class PrettyBy config a where
 -- support it. I.e. it's possible to create a new config and get access to pretty-printing for
 -- all types supporting default pretty-printing just by providing the right type instance. E.g.
 --
--- >>> data Def = Def
--- >>> type instance HasPrettyDefaults Def = 'True
--- >>> prettyBy Def (['a', 'b', 'c'], (1 :: Int), Just True)
+-- >>> data DefCfg = DefCfg
+-- >>> type instance HasPrettyDefaults DefCfg = 'True
+-- >>> prettyBy DefCfg (['a', 'b', 'c'], (1 :: Int), Just True)
 -- (abc, 1, True)
 --
 -- The set of types supporting default pretty-printing is determined by the @prettyprinter@
@@ -127,13 +135,13 @@ class PrettyBy config a where
 -- __all defaults are lost__ for your config, so you can't override default pretty-printing for one
 -- type and keep the defaults for all others. I.e. if you have
 --
--- >>> data NonDef = NonDef
--- >>> type instance HasPrettyDefaults NonDef = 'False
+-- >>> data NonDefCfg = NonDefCfg
+-- >>> type instance HasPrettyDefaults NonDefCfg = 'False
 --
 -- then you have no defaults available and an attempt to pretty-print a value of a type supporting
 -- default pretty-printing
 --
--- > prettyBy NonDef True
+-- > prettyBy NonDefCfg True
 --
 -- results in a type error:
 --
@@ -142,19 +150,19 @@ class PrettyBy config a where
 --
 -- As the error suggests you need to provide a 'NonDefaultPrettyBy' instance explicitly:
 --
--- >>> instance NonDefaultPrettyBy NonDef Bool where nonDefaultPrettyBy _ b = if b then "t" else "f"
--- >>> prettyBy NonDef True
+-- >>> instance NonDefaultPrettyBy NonDefCfg Bool where nonDefaultPrettyBy _ b = if b then "t" else "f"
+-- >>> prettyBy NonDefCfg True
 -- t
 --
 -- It is also possible not to provide any implementation for 'nonDefaultPrettyBy', in which case
 -- it defaults to being the default pretty-printing for the given type. This can be useful to
 -- recover default pretty-printing for types pretty-printing of which you don't want to override:
 --
--- >>> instance NonDefaultPrettyBy NonDef Int
--- >>> prettyBy NonDef (123 :: Int)
--- 123
+-- >>> instance NonDefaultPrettyBy NonDefCfg Int
+-- >>> prettyBy NonDefCfg (42 :: Int)
+-- 42
 --
--- We could give the user more fine-grained control of what defaults to override instead of
+-- We could give the user more fine-grained control over what defaults to override instead of
 -- requiring to explicitly provide all the instances whenever there's a need to override any
 -- default behavior, but that would complicate the library even more, so we opted for not doing
 -- that at the moment.
@@ -164,7 +172,7 @@ class PrettyBy config a where
 --
 -- Also note that if you want to extend the set of types supporting default pretty-printing
 -- it's not enough to provide a 'Pretty' instance for your type (such logic is hardly expressible
--- in present day Haskell). Read docs of 'DefaultPrettyBy' for how to extend the set of types
+-- in present day Haskell). Read the docs of 'DefaultPrettyBy' for how to extend the set of types
 -- supporting default pretty-printing.
 type family HasPrettyDefaults config :: Bool
 
@@ -182,10 +190,10 @@ newtype IgnorePrettyConfig a = IgnorePrettyConfig
     } deriving newtype (Pretty)
 
 -- |
--- >>> data C = C
+-- >>> data Cfg = Cfg
 -- >>> data D = D
 -- >>> instance Pretty D where pretty D = "D"
--- >>> prettyBy C $ IgnorePrettyConfig D
+-- >>> prettyBy Cfg $ IgnorePrettyConfig D
 -- D
 instance Pretty a => PrettyBy config (IgnorePrettyConfig a)
 
@@ -194,10 +202,10 @@ instance Pretty a => PrettyBy config (IgnorePrettyConfig a)
 data AttachPrettyConfig config a = AttachPrettyConfig !config !a
 
 -- |
--- >>> data C = C
+-- >>> data Cfg = Cfg
 -- >>> data D = D
--- >>> instance PrettyBy C D where prettyBy C D = "D"
--- >>> pretty $ AttachPrettyConfig C D
+-- >>> instance PrettyBy Cfg D where prettyBy Cfg D = "D"
+-- >>> pretty $ AttachPrettyConfig Cfg D
 -- D
 instance PrettyBy config a => Pretty (AttachPrettyConfig config a) where
     pretty (AttachPrettyConfig config x) = prettyBy config x
@@ -234,14 +242,14 @@ data AttachDefaultPrettyConfig config a = AttachDefaultPrettyConfig !config !a
 instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a) where
     pretty (AttachDefaultPrettyConfig config x) = defaultPrettyBy config x
 
--- | A class for pretty-printing values is some default manner.
+-- | A class for pretty-printing values is some default manner. Basic example:
 --
 -- >>> data D = D
 -- >>> instance PrettyBy () D where prettyBy () D = "D"
 -- >>> defaultPrettyBy () (Just D)
 -- D
 --
--- I.e. 'DefaultPrettyBy' and 'PrettyBy' are mutually recursive in a sense: 'PrettyBy' delegates
+-- 'DefaultPrettyBy' and 'PrettyBy' are mutually recursive in a sense: 'PrettyBy' delegates
 -- to 'DefaultPrettyBy' (provided the config supports defaults) when given a value of a type
 -- supporting default pretty-printing and 'DefaultPrettyBy' delegates back to 'PrettyBy' for
 -- elements of a polymorphic container.
@@ -261,16 +269,68 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 --
 -- doesn't please GHC.
 --
--- Its' also good practice to preserve coherence between 'Pretty' and 'PrettyBy', so I'd also add
+-- It's also good practice to preserve coherence of 'Pretty' and 'PrettyBy', so I'd also add
 -- @deriving (Pretty)@ to the definition of @AlsoInt@, even though it's not necessary.
-
+--
+-- When you want to extend the set of types supporting default pretty-printing with a data type
+-- that is a @data@ rather than a @newtype@, you can directly implement 'DefaultPrettyBy' and
+-- and via-derive 'PrettyBy':
+--
+-- >>> data D = D
+-- >>> instance DefaultPrettyBy config D where defaultPrettyBy _ D = "D"
+-- >>> deriving via PrettyCommon D instance PrettyDefaultBy config D => PrettyBy config D
+-- >>> prettyBy () D
+-- D
+--
+-- But since it's best to preserve coherence of 'Pretty' and 'PrettyBy' for types supporting
+-- default pretty-printing, it's recommended (not mandatory) to define a 'Pretty' instance and
+-- anyclass-derive 'DefaultPrettyBy' in terms of it:
 --
 -- >>> data D = D
 -- >>> instance Pretty D where pretty D = "D"
 -- >>> instance DefaultPrettyBy config D
 -- >>> deriving via PrettyCommon D instance PrettyDefaultBy config D => PrettyBy config D
--- >>> prettyBy () D
--- D
+-- >>> prettyBy () [D, D, D]
+-- [D, D, D]
+--
+-- Note that 'DefaultPrettyBy' is specifically designed to handle __all__ configs in its instances,
+-- i.e. you only specify a data type in a 'DefaultPrettyBy' instance and leave @config@ universally
+-- quantified. This is because default pretty-printing behavior should be the same for all configs
+-- supporting default pretty-printing (it's the default after all). If you want to override the
+-- defaults, read the docs of 'HasPrettyDefaults'.
+--
+-- Since @config@ in a 'DefaultPrettyBy' instance is meant to be universally quantified,
+-- 'defaultPrettyBy' (the main method of 'DefaultPrettyBy') has to ignore the config in the
+-- monomorphic case as it can't use it in any way anyway, i.e. in the monomorphic case
+-- 'defaultPrettyBy' has the exact same info as simple 'pretty', which is another reason to
+-- anyclass-derive 'DefaultPrettyBy' in terms of 'Pretty'.
+--
+-- Going through 'Pretty' can be a bit inconvenient for polymorphic data. If you data type is a
+-- 'Functor', then you can implement 'defaultPrettyBy' as 'defaultPrettyFunctorBy', which attaches
+-- the provided config to each element of the functor and applies 'pretty' to the result:
+--
+-- >>> data Twice a = Twice a a deriving (Functor)
+-- >>> instance Pretty a => Pretty (Twice a) where pretty (Twice x y) = pretty x <+> "&" <+> pretty y
+-- >>> instance PrettyBy config a => DefaultPrettyBy config (Twice a) where defaultPrettyBy = defaultPrettyFunctorBy
+-- >>> deriving via PrettyCommon (Twice a) instance PrettyDefaultBy config (Twice a) => PrettyBy config (Twice a)
+-- >>> prettyBy () (Twice True False)
+-- True & False
+--
+-- If your data type is not a 'Functor', you'll have to attach the config manually, see the source
+-- code of 'defaultPrettyFunctorBy' for how this can be done.
+--
+-- But since preserving coherence of 'Pretty' and 'PrettyBy' is only a good practice and not
+-- mandatory, it's fine not to provide an instance for 'Pretty'. Then a 'DefaultPrettyBy' can be
+-- implemented directly:
+--
+-- >>> data Twice a = Twice a a
+-- >>> instance PrettyBy config a => DefaultPrettyBy config (Twice a) where defaultPrettyBy config (Twice x y) = prettyBy config x <+> "&" <+> prettyBy config y
+-- >>> deriving via PrettyCommon (Twice a) instance PrettyDefaultBy config (Twice a) => PrettyBy config (Twice a)
+-- >>> prettyBy () (Twice True False)
+-- True & False
+--
+-- But make sure that if both a 'Pretty' and a 'DefaultPrettyBy' instances exist, then they're in
+-- sync.
 class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
     -- The default implementation is 'pretty'.
@@ -344,6 +404,7 @@ instance PrettyBy config a => DefaultPrettyBy config (NonEmpty a) where
 -- ###########################################################
 
 -- | A class for overriding default pretty-printing behavior for types having it.
+-- Read the docs of 'HasPrettyDefaults' for how to use the class.
 class NonDefaultPrettyBy config a where
     -- | Pretty-print a value of a type supporting default pretty-printing in a possibly
     -- non-default way. The "possibly" is due to 'nonDefaultPrettyBy' having a default
@@ -440,11 +501,13 @@ type NonStuckHasPrettyDefaults config =
     ThrowOnStuck (HasPrettyDefaultsStuckError config) (HasPrettyDefaults config)
 
 -- See Note [Definition of PrettyDefaultBy].
--- | @PrettyDefaultBy config a@ is what we implement @PrettyBy config a@ in terms of,
--- when @a@ supports default pretty-printing.
--- Thus @PrettyDefaultBy config a@ and @PrettyBy config a@ are interchangeable constraints
--- for such types, but the latter throws an annoying \"this makes type inference for inner
--- bindings fragile\" warning, unlike the former.
+-- | @PrettyDefaultBy config a@ is the same thing as @PrettyBy config a@, when @a@ supports
+-- default pretty-printing. Thus @PrettyDefaultBy config a@ and @PrettyBy config a@ are
+-- interchangeable constraints for such types, but the latter throws an annoying
+-- \"this makes type inference for inner bindings fragile\" warning, unlike the former.
+-- @PrettyDefaultBy config a@ reads as \"@a@ supports default pretty-printing and can be
+-- pretty-printed via @config@ in either default or non-default manner depending on whether
+-- @config@ supports default pretty-printing\".
 type PrettyDefaultBy config = DispatchPrettyDefaultBy (NonStuckHasPrettyDefaults config) config
 
 -- | A newtype wrapper defined for its 'PrettyBy' instance that allows to via-derive a 'PrettyBy'
@@ -622,27 +685,41 @@ deriving via PrettyCommon (Maybe a)
 -- ## The 'PrettyAny' newtype ##
 -- #############################
 
--- TODO: Fix the docs.
--- -- | This class is used in order to provide default implementations of 'PrettyM' for
--- -- particular @config@s. Whenever a @Config@ is a sum type of @Subconfig1@, @Subconfig2@, etc,
--- -- we can define a single 'DefaultPrettyM' instance and then derive @PrettyM Config a@ for each
--- -- @a@ provided the @a@ implements the @PrettyM Subconfig1@, @PrettyM Subconfig2@, etc instances.
--- --
--- -- Example:
--- --
--- -- > data Config = Subconfig1 Subconfig1 | Subconfig2 Subconfig2
--- -- >
--- -- > instance (PrettyM Subconfig1 a, PrettyM Subconfig2 a) => DefaultPrettyM Config a where
--- -- >     defaultPrettyM (Subconfig1 subconfig1) = prettyBy subconfig1
--- -- >     defaultPrettyM (Subconfig2 subconfig2) = prettyBy subconfig2
--- --
--- -- Now having in scope  @PrettyM Subconfig1 A@ and @PrettyM Subconfig2 A@
--- -- and the same instances for @B@ we can write
--- --
--- -- > instance PrettyM Config A
--- -- > instance PrettyM Config B
--- --
--- -- and the instances will be derived for us.
+-- | A @newtype@ wrapper around @a@ provided for the purporse of defining 'PrettyBy' instances
+-- handling any @a@. For example you can wrap values with the @PrettyAny@ constructor directly
+-- like in this last line of
+--
+-- >>> data ViaShow = ViaShow
+-- >>> instance Show a => PrettyBy ViaShow (PrettyAny a) where prettyBy ViaShow = pretty . show . unPrettyAny
+-- >>> prettyBy ViaShow $ PrettyAny True
+-- True
+--
+-- or you can use the type to via-derive instances:
+--
+-- >>> data D = D deriving (Show)
+-- >>> deriving via PrettyAny D instance PrettyBy ViaShow D
+-- >>> prettyBy ViaShow D
+-- D
+--
+-- One important use case is handling sum-type configs. For example having two configs you can
+-- define their sum and derive 'PrettyBy' for the unified config in terms of its components:
+--
+-- >>> data UpperCase = UpperCase
+-- >>> data LowerCase = LowerCase
+-- >>> data Case = CaseUpperCase UpperCase | CaseLowerCase LowerCase
+-- >>> instance (PrettyBy UpperCase a, PrettyBy LowerCase a) => PrettyBy Case (PrettyAny a) where prettyBy (CaseUpperCase upper) = prettyBy upper . unPrettyAny; prettyBy (CaseLowerCase lower) = prettyBy lower . unPrettyAny
+--
+-- Then having a data type implementing both @PrettyBy UpperCase@ and @PrettyBy LowerCase@ you can
+-- derive @PrettyBy Case@ for that data type:
+--
+-- >>> data D = D
+-- >>> instance PrettyBy UpperCase D where prettyBy UpperCase D = "D"
+-- >>> instance PrettyBy LowerCase D where prettyBy LowerCase D = "d"
+-- >>> deriving via PrettyAny D instance PrettyBy Case D
+-- >>> prettyBy UpperCase D
+-- D
+-- >>> prettyBy LowerCase D
+-- d
 newtype PrettyAny a = PrettyAny
     { unPrettyAny :: a
     }
@@ -652,6 +729,7 @@ newtype PrettyAny a = PrettyAny
 -- (Definitions for the doctests)
 --
 -- >>> :set -XDataKinds
+-- >>> :set -XDeriveFunctor
 -- >>> :set -XDerivingVia
 -- >>> :set -XFlexibleContexts
 -- >>> :set -XFlexibleInstances
