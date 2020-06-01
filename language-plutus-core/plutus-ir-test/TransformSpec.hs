@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module TransformSpec where
 
 import           Common
@@ -68,7 +69,7 @@ letFloat = testNested "letFloat"
   ]
 
 instance Semigroup SourcePos where
-  p1 <> p2 = p1
+  p1 <> _ = p1
 
 instance Monoid SourcePos where
   mempty = initialPos ""

@@ -35,7 +35,6 @@
         "statistics-linreg" = (((hackage.statistics-linreg)."0.3").revisions)."95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f";
         "eventful-sql-common" = (((hackage.eventful-sql-common)."0.2.0").revisions).r0;
         language-plutus-core = ./language-plutus-core.nix;
-        plutus-ir = ./plutus-ir.nix;
         plutus-tx = ./plutus-tx.nix;
         plutus-tx-plugin = ./plutus-tx-plugin.nix;
         plutus-use-cases = ./plutus-use-cases.nix;

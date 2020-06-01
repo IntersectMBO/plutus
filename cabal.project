@@ -4,7 +4,6 @@ packages: language-plutus-core
           plutus-tx
           plutus-tx-plugin
           plutus-use-cases
-          plutus-ir
           plutus-playground-server
           plutus-tutorial
           plutus-book

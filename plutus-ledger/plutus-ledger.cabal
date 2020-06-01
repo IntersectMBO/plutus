@@ -82,7 +82,6 @@ library
         bytestring -any,
         cborg -any,
         containers -any,
-        plutus-ir -any,
         cryptonite >=0.25,
         hashable -any,
         hedgehog -any,

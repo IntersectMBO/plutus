@@ -72,7 +72,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."text" or (buildDepError "text"))
           (hsPkgs."mtl" or (buildDepError "mtl"))
           (hsPkgs."containers" or (buildDepError "containers"))
-          (hsPkgs."plutus-ir" or (buildDepError "plutus-ir"))
           (hsPkgs."cborg" or (buildDepError "cborg"))
           (hsPkgs."serialise" or (buildDepError "serialise"))
           (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))

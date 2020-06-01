@@ -41,7 +41,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
   {
     flags = {};
     package = {
-      specVersion = "2.0";
+      specVersion = "2.4";
       identifier = { name = "language-plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -69,6 +69,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
         depends = [
           (hsPkgs."array" or (buildDepError "array"))
           (hsPkgs."aeson" or (buildDepError "aeson"))
+          (hsPkgs."algebraic-graphs" or (buildDepError "algebraic-graphs"))
           (hsPkgs."base" or (buildDepError "base"))
           (hsPkgs."bimap" or (buildDepError "bimap"))
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
@@ -87,14 +88,18 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."hashable" or (buildDepError "hashable"))
           (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
           (hsPkgs."lens" or (buildDepError "lens"))
+          (hsPkgs."megaparsec" or (buildDepError "megaparsec"))
           (hsPkgs."memory" or (buildDepError "memory"))
           (hsPkgs."mmorph" or (buildDepError "mmorph"))
           (hsPkgs."monoidal-containers" or (buildDepError "monoidal-containers"))
           (hsPkgs."mtl" or (buildDepError "mtl"))
+          (hsPkgs."nonempty-containers" or (buildDepError "nonempty-containers"))
+          (hsPkgs."parser-combinators" or (buildDepError "parser-combinators"))
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
           (hsPkgs."recursion-schemes" or (buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (buildDepError "safe-exceptions"))
           (hsPkgs."semigroups" or (buildDepError "semigroups"))
+          (hsPkgs."semigroupoids" or (buildDepError "semigroupoids"))
           (hsPkgs."serialise" or (buildDepError "serialise"))
           (hsPkgs."tasty" or (buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (buildDepError "tasty-golden"))
@@ -103,7 +108,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."th-lift" or (buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (buildDepError "th-utilities"))
-          (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
           (hsPkgs."transformers" or (buildDepError "transformers"))
           ];
         build-tools = [
@@ -112,7 +116,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           ];
         buildable = true;
         modules = [
-          "Data/Aeson/THReader"
           "Language/PlutusCore/Pretty/ConfigName"
           "Language/PlutusCore/Core/Type"
           "Language/PlutusCore/Core/Plated"
@@ -138,7 +141,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/PlutusCore/Eq"
           "Language/PlutusCore/Mark"
           "Language/PlutusCore/Pretty/Classic"
-          "Language/PlutusCore/Pretty/ConfigName"
           "Language/PlutusCore/Pretty/Default"
           "Language/PlutusCore/Pretty/Plc"
           "Language/PlutusCore/Pretty/PrettyConst"
@@ -159,6 +161,16 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/PlutusCore/Generators/Internal/TypeEvalCheck"
           "Language/PlutusCore/Generators/Internal/TypedBuiltinGen"
           "Language/PlutusCore/Generators/Internal/Utils"
+          "Language/PlutusIR/Analysis/Dependencies"
+          "Language/PlutusIR/Analysis/Usages"
+          "Language/PlutusIR/Compiler/Error"
+          "Language/PlutusIR/Compiler/Let"
+          "Language/PlutusIR/Compiler/Datatype"
+          "Language/PlutusIR/Compiler/Provenance"
+          "Language/PlutusIR/Compiler/Recursion"
+          "Language/PlutusIR/Compiler/Types"
+          "Language/PlutusIR/Compiler/Lower"
+          "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Data/Text/Prettyprint/Doc/Custom"
           "Language/PlutusCore"
@@ -212,6 +224,20 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/PlutusCore/Generators/Test"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
+          "Language/PlutusIR"
+          "Language/PlutusIR/Compiler"
+          "Language/PlutusIR/Compiler/Names"
+          "Language/PlutusIR/Compiler/Definitions"
+          "Language/PlutusIR/Generators/AST"
+          "Language/PlutusIR/Parser"
+          "Language/PlutusIR/MkPir"
+          "Language/PlutusIR/Value"
+          "Language/PlutusIR/Optimizer/DeadCode"
+          "Language/PlutusIR/Transform/Substitute"
+          "Language/PlutusIR/Transform/ThunkRecursions"
+          "Language/PlutusIR/Transform/Rename"
+          "Language/PlutusIR/Transform/NonStrict"
+          "Language/PlutusIR/Transform/LetFloat"
           "PlutusPrelude"
           "Common"
           "Data/ByteString/Lazy/Hash"
@@ -225,6 +251,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "examples"
           "generators"
           "common"
+          "plutus-ir"
           ];
         };
       exes = {
@@ -298,6 +325,26 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             "TypeSynthesis/Spec"
             ];
           hsSourceDirs = [ "test" ];
+          mainPath = [ "Spec.hs" ];
+          };
+        "plutus-ir-test" = {
+          depends = [
+            (hsPkgs."base" or (buildDepError "base"))
+            (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
+            (hsPkgs."filepath" or (buildDepError "filepath"))
+            (hsPkgs."text" or (buildDepError "text"))
+            (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))
+            (hsPkgs."mtl" or (buildDepError "mtl"))
+            (hsPkgs."mmorph" or (buildDepError "mmorph"))
+            (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
+            (hsPkgs."serialise" or (buildDepError "serialise"))
+            (hsPkgs."tasty" or (buildDepError "tasty"))
+            (hsPkgs."tasty-hedgehog" or (buildDepError "tasty-hedgehog"))
+            (hsPkgs."megaparsec" or (buildDepError "megaparsec"))
+            ];
+          buildable = true;
+          modules = [ "OptimizerSpec" "TransformSpec" "ParserSpec" "TestLib" ];
+          hsSourceDirs = [ "plutus-ir-test" ];
           mainPath = [ "Spec.hs" ];
           };
         };
