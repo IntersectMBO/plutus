@@ -181,8 +181,8 @@ allServersParser =
         (pure
              (ForkCommands
                   [ MockNode
-                  , MockWallet
                   , ChainIndex
+                  , MockWallet
                   , SigningProcess
                   , SCBWebserver
                   ]))
