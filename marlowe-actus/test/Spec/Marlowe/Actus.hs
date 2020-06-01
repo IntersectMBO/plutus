@@ -165,7 +165,7 @@ pamSimple = do
 
 pamLpGeneration :: IO ()
 pamLpGeneration = do
-    let pamLp = genLpContract contractTerms 1 $ genLpContract contractTerms 2 Close
+    let pamLp = foldl (flip $ genLpContract contractTerms) Close [1 .. 5]
     --print $ pretty pamLp
     analysisResult <- warningsTrace pamLp
     --print analysisResult
