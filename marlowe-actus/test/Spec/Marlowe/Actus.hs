@@ -13,9 +13,11 @@ import           Language.Marlowe.ACTUS.BusinessEvents
 import           Language.Marlowe.ACTUS.ActusValidator
 import           Language.Marlowe.ACTUS.Schedule
 import           Language.Marlowe.ACTUS.ProjectedCashFlows
+import           Language.Marlowe.Analysis.FSSemantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
+import           Data.Either
 import           Data.String (IsString (fromString))
 import           Ledger.Value
 import           Ledger.Ada                 (adaSymbol, adaToken)
@@ -163,7 +165,11 @@ pamSimple = do
 
 pamLpGeneration :: IO ()
 pamLpGeneration = do
-    let pamLp = genLpContract contractTerms 1 Close
-    -- print $ pretty pamLp
+    let pamLp = genLpContract contractTerms 1 $ genLpContract contractTerms 2 Close
+    --print $ pretty pamLp
+    analysisResult <- warningsTrace pamLp
+    --print analysisResult
     assertBool "Contract Generated" $ pamLp /= Close
+    assertBool "Static analysis" $ isRight analysisResult
+
 

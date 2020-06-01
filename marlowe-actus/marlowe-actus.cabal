@@ -116,6 +116,7 @@ test-suite marlowe-actus-test
         plutus-ledger -any,
         plutus-emulator -any,
         marlowe,
+        marlowe-symbolic,
         marlowe-actus,
         plutus-tx -any,
         template-haskell -any
