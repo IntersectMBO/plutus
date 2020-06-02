@@ -66,7 +66,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
 import Types (_simulationActions, ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
-import Validation (_argumentValues, _arguments)
+import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
@@ -196,7 +196,7 @@ toEvent (SetChainFocus (Just (FocusTx _))) = Just $ (defaultEvent "BlockchainFoc
 toEvent (SetChainFocus Nothing) = Nothing
 
 toActionEvent :: SimulationAction -> Maybe Event
-toActionEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+toActionEvent (PopulateAction _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
 toActionEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 
@@ -380,14 +380,13 @@ handleSimulationAction ::
   Array (ContractCall FormArgument)
 handleSimulationAction _ (ModifyActions actionEvent) = Schema.handleActionEvent actionEvent
 
-handleSimulationAction initialValue (PopulateAction n l event) = do
+handleSimulationAction initialValue (PopulateAction n event) = do
   over
     ( ix n
         <<< _CallEndpoint
         <<< _argumentValues
         <<< _FunctionSchema
-        <<< _arguments
-        <<< ix l
+        <<< _argument
     )
     $ Schema.handleFormEvent initialValue event
 

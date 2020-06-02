@@ -113,13 +113,13 @@ instance simulatorActionValidation :: Validation (ContractCall (Fix FormArgument
   validate (AddBlocks _) = []
   validate (AddBlocksUntil _) = []
   validate (PayToWallet _) = []
-  validate (CallEndpoint call) = Array.concat $ Array.mapWithIndex (\i v -> addPath (show i) <$> validate v) args
+  validate (CallEndpoint call) = validate arg
     where
-    args :: Array (Fix FormArgumentF)
-    args = view (_argumentValues <<< _FunctionSchema <<< _arguments) call
+    arg :: Fix FormArgumentF
+    arg = view (_argumentValues <<< _FunctionSchema <<< _argument) call
 
-_arguments :: forall r a. Lens' { arguments :: a | r } a
-_arguments = prop (SProxy :: SProxy "arguments")
+_argument :: forall r a. Lens' { argument :: a | r } a
+_argument = prop (SProxy :: SProxy "argument")
 
 _argumentValues :: forall r a. Lens' { argumentValues :: a | r } a
 _argumentValues = prop (SProxy :: SProxy "argumentValues")

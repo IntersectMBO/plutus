@@ -1,6 +1,5 @@
 module View (render) where
 
-import Playground.Lenses
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (badge, badgePrimary, cardBody_, cardHeader_, card_, col10_, col12_, col2_, col5_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
@@ -42,7 +41,7 @@ import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport(..)
 import Prelude (class Eq, class Show, otherwise, show, ($), (+), (<$>), (<<<), (<>), (==))
 import Schema.Types (Signatures, SimulationAction, FormArgument, mkInitialValue, toArgument)
 import Types (HAction(..), State(State), WebData, _contractInstanceId, _csContract, _csCurrentState, _hooks)
-import Validation (_arguments)
+import Validation (_argument)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
 
@@ -118,12 +117,12 @@ foo signatures =
       ( mapWithIndex
           ( \index sig ->
               let
-                formArguments :: Array FormArgument
-                formArguments = toArgument initialValue <$> view (_FunctionSchema <<< _arguments) sig
+                formArgument :: FormArgument
+                formArgument = toArgument initialValue $ view (_FunctionSchema <<< _argument) sig
               in
                 card_
                   [ cardHeader_ [ h2_ [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) sig ] ]
-                  , cardBody_ [ actionArgumentForm index formArguments ]
+                  , cardBody_ [ actionArgumentForm index formArgument ]
                   ]
           )
           signatures

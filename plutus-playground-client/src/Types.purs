@@ -34,7 +34,7 @@ import Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
 import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema(..), KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
 import Schema (FormSchema)
-import Schema.Types (FormArgument, SimulationAction,  Expression, formArgumentToJson)
+import Schema.Types (FormArgument, SimulationAction, Expression, formArgumentToJson)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -92,9 +92,9 @@ traverseFunctionSchema ::
   Applicative m =>
   (a -> m b) ->
   FunctionSchema a -> m (FunctionSchema b)
-traverseFunctionSchema f (FunctionSchema { endpointDescription, arguments: oldArguments }) = rewrap <$> traverse f oldArguments
+traverseFunctionSchema f (FunctionSchema { endpointDescription, argument: oldArgument }) = rewrap <$> f oldArgument
   where
-  rewrap newArguments = FunctionSchema { endpointDescription, arguments: newArguments }
+  rewrap newArgument = FunctionSchema { endpointDescription, argument: newArgument }
 
 traverseContractCall ::
   forall m b a.

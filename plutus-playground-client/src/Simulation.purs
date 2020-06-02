@@ -34,7 +34,7 @@ import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError(..)
 import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
 import Schema (FormArgumentF)
 import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), Signatures)
-import Validation (_arguments, validate)
+import Validation (_argument, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
@@ -203,7 +203,7 @@ actionPaneBody index (CallEndpoint { caller, argumentValues }) =
         , text ": "
         , text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) argumentValues
         ]
-    , actionArgumentForm index $ view (_FunctionSchema <<< _arguments) argumentValues
+    , actionArgumentForm index (view (_FunctionSchema <<< _argument) argumentValues)
     ]
 
 actionPaneBody index (PayToWallet { sender, recipient, amount }) =

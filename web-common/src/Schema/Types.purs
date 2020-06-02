@@ -35,7 +35,7 @@ import Wallet.Emulator.Wallet (Wallet)
 
 data SimulationAction
   = ModifyActions ActionEvent
-  | PopulateAction Int Int FormEvent
+  | PopulateAction Int FormEvent
 
 derive instance genericSimulationAction :: Generic SimulationAction _
 

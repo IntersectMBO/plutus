@@ -10,7 +10,7 @@ import           Playground.Types                                (ContractCall (
                                                                   FunctionSchema (FunctionSchema),
                                                                   KnownCurrency (KnownCurrency), SimulatorAction,
                                                                   SimulatorWallet (SimulatorWallet), argumentValues,
-                                                                  arguments, caller, endpointDescription, hash,
+                                                                  argument, caller, endpointDescription, hash,
                                                                   knownTokens, simulatorWalletBalance,
                                                                   simulatorWalletWallet)
 import           Schema                                          (ToArgument, toArgument)
@@ -21,7 +21,7 @@ callEndpoint caller endpointDescription param =
     CallEndpoint
         { caller
         , argumentValues =
-              FunctionSchema {endpointDescription, arguments = [toArgument param]}
+              FunctionSchema {endpointDescription, argument = toArgument param}
         }
 
 initialBalance :: [KnownCurrency] -> Integer -> Value
