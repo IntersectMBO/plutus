@@ -54,8 +54,13 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
       url = "";
       synopsis = "";
       description = "";
-      buildType = "Simple";
+      buildType = "Custom";
       isLocal = true;
+      setup-depends = [
+        (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (buildToolDepError "base")))
+        (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (buildToolDepError "Cabal")))
+        (hsPkgs.buildPackages.cabal-doctest or (pkgs.buildPackages.cabal-doctest or (buildToolDepError "cabal-doctest")))
+        ];
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" ];
       dataDir = "";
@@ -96,6 +101,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."text" or (buildDepError "text"))
             (hsPkgs."megaparsec" or (buildDepError "megaparsec"))
             (hsPkgs."parser-combinators" or (buildDepError "parser-combinators"))
+            (hsPkgs."doctest" or (buildDepError "doctest"))
             (hsPkgs."QuickCheck" or (buildDepError "QuickCheck"))
             (hsPkgs."quickcheck-text" or (buildDepError "quickcheck-text"))
             (hsPkgs."tasty" or (buildDepError "tasty"))
