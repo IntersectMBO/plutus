@@ -35,7 +35,7 @@ import           Playground.Types                                (CompilationRes
                                                                   FunctionSchema (FunctionSchema),
                                                                   KnownCurrency (KnownCurrency), PlaygroundError,
                                                                   SimulatorWallet (SimulatorWallet), adaCurrency,
-                                                                  argumentValues, arguments, caller, emulatorLog,
+                                                                  argumentValues, argument, caller, emulatorLog,
                                                                   endpointDescription, fundsDistribution, program,
                                                                   resultBlockchain, simulatorWalletBalance,
                                                                   simulatorWalletWallet, sourceCode, walletKeys,
@@ -88,11 +88,11 @@ vestingTest =
                   ""
                   [ FunctionSchema
                         { endpointDescription = EndpointDescription "retrieve funds"
-                        , arguments = [FormSchemaValue]
+                        , argument = FormSchemaValue
                         }
                   , FunctionSchema
                         { endpointDescription = EndpointDescription "vest funds"
-                        , arguments = [FormSchemaUnit]
+                        , argument = FormSchemaUnit
                         }
                   ]
                   result
@@ -353,5 +353,5 @@ callEndpoint endpointDescription caller param =
     CallEndpoint
         { caller
         , argumentValues =
-              FunctionSchema {endpointDescription, arguments = [toJSONString param]}
+              FunctionSchema {endpointDescription, argument = toJSONString param}
         }

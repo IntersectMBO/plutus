@@ -41,52 +41,43 @@ validateTests :: TestSuite
 validateTests = do
   test "No validation errors" do
     isValid $ AddBlocks { blocks: 1 }
-    isValid $ makeTestAction [ Fix $ FormIntF (Just 5) ]
-    isValid $ makeTestAction [ Fix $ FormStringF (Just "TEST") ]
-    isValid $ makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF (Just 6)) ]
-    isValid $ makeTestAction [ Fix $ FormArrayF FormSchemaInt [] ]
-    isValid $ makeTestAction [ Fix $ FormObjectF [] ]
+    isValid $ makeTestAction $ Fix $ FormIntF (Just 5)
+    isValid $ makeTestAction $ Fix $ FormStringF (Just "TEST")
+    isValid $ makeTestAction $ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF (Just 6))
+    isValid $ makeTestAction $ Fix $ FormArrayF FormSchemaInt []
+    isValid $ makeTestAction $ Fix $ FormObjectF []
   --
   test "Validation errors" do
-    equal [ withPath [ "0" ] Unsupported ] $ validate (makeTestAction [ Fix $ FormUnsupportedF "Test case." ])
-    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormIntF Nothing ])
-    equal [ withPath [ "0" ] Required ] $ validate (makeTestAction [ Fix $ FormStringF Nothing ])
+    equal [ withPath [] Unsupported ] $ validate (makeTestAction $ Fix $ FormUnsupportedF "Test case.")
+    equal [ withPath [] Required ] $ validate (makeTestAction $ Fix $ FormIntF Nothing)
+    equal [ withPath [] Required ] $ validate (makeTestAction $ Fix $ FormStringF Nothing)
     equal
-      [ withPath [ "0", "_1" ] Required
-      , withPath [ "0", "_2" ] Unsupported
+      [ withPath [ "_1" ] Required
+      , withPath [ "_2" ] Unsupported
       ]
-      (validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormUnsupportedF "Test.") ]))
-    equal [ withPath [ "0", "_1" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormIntF (Just 5)) ])
-    equal [ withPath [ "0", "_2" ] Required ] $ validate (makeTestAction [ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF Nothing) ])
-    equal [ withPath [ "0", "2" ] Required ]
+      (validate (makeTestAction $ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormUnsupportedF "Test.")))
+    equal [ withPath [ "_1" ] Required ] $ validate (makeTestAction $ Fix $ FormTupleF (Fix $ FormIntF Nothing) (Fix $ FormIntF (Just 5)))
+    equal [ withPath [ "_2" ] Required ] $ validate (makeTestAction $ Fix $ FormTupleF (Fix $ FormIntF (Just 5)) (Fix $ FormIntF Nothing))
+    equal [ withPath [ "2" ] Required ]
       $ validate
           ( makeTestAction
-              [ Fix
-                  $ FormArrayF FormSchemaInt
-                      [ Fix $ FormIntF (Just 5)
-                      , Fix $ FormIntF (Just 6)
-                      , Fix $ FormIntF Nothing
-                      , Fix $ FormIntF (Just 7)
-                      ]
-              ]
+              $ Fix
+              $ FormArrayF FormSchemaInt
+                  [ Fix $ FormIntF (Just 5)
+                  , Fix $ FormIntF (Just 6)
+                  , Fix $ FormIntF Nothing
+                  , Fix $ FormIntF (Just 7)
+                  ]
           )
     equal
-      [ withPath [ "0", "name" ] Required
-      , withPath [ "1", "test" ] Required
-      ]
+      [ withPath [ "name" ] Required ]
       ( validate
           ( makeTestAction
-              [ Fix
-                  $ FormObjectF
-                      [ JsonTuple $ Tuple "name" (Fix $ FormStringF Nothing)
-                      , JsonTuple $ Tuple "test" (Fix $ FormIntF (Just 5))
-                      ]
-              , Fix
-                  $ FormObjectF
-                      [ JsonTuple $ Tuple "name" (Fix $ FormStringF (Just "burt"))
-                      , JsonTuple $ Tuple "test" (Fix $ FormIntF Nothing)
-                      ]
-              ]
+              $ Fix
+              $ FormObjectF
+                  [ JsonTuple $ Tuple "name" (Fix $ FormStringF Nothing)
+                  , JsonTuple $ Tuple "test" (Fix $ FormIntF (Just 5))
+                  ]
           )
       )
 
@@ -113,15 +104,15 @@ toArgumentTests = do
         (toArgument initialValue FormSchemaValue)
         (Fix (FormValueF initialValue))
 
-makeTestAction :: Array FormArgument -> ContractCall FormArgument
-makeTestAction arguments =
+makeTestAction :: FormArgument -> ContractCall FormArgument
+makeTestAction argument =
   CallEndpoint
     { caller:
       Wallet { getWallet: 1 }
     , argumentValues:
       FunctionSchema
         { endpointDescription: EndpointDescription { getEndpointDescription: "test" }
-        , arguments
+        , argument
         }
     }
 

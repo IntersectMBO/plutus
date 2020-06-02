@@ -31,7 +31,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint
                                                                   EndpointDescription (EndpointDescription),
                                                                   EndpointValue)
 import           Language.Plutus.Contract.Schema                 ()
-import           Playground.Types                                (FunctionSchema (FunctionSchema), arguments,
+import           Playground.Types                                (FunctionSchema (FunctionSchema), argument,
                                                                   endpointDescription)
 import           Schema                                          (FormSchema, ToSchema, toSchema)
 
@@ -44,7 +44,7 @@ instance EndpointToSchema Empty where
 instance (ToSchema params, KnownSymbol label, EndpointToSchema (R bs)) =>
          EndpointToSchema (R (label :-> (EndpointValue params, ActiveEndpoints) : bs)) where
     endpointsToSchemas =
-        FunctionSchema {endpointDescription, arguments} : endpointsToSchemas @(R bs)
+        FunctionSchema {endpointDescription, argument} : endpointsToSchemas @(R bs)
       where
         endpointDescription = EndpointDescription . show $ Label @label
-        arguments = [toSchema @params]
+        argument = toSchema @params

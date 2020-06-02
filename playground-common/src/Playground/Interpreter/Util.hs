@@ -42,7 +42,7 @@ import           Playground.Types                                (ContractCall (
                                                                   FunctionSchema (FunctionSchema),
                                                                   PlaygroundError (JsonDecodingError, OtherError, RollupError),
                                                                   SimulatorWallet (SimulatorWallet), amount,
-                                                                  argumentValues, arguments, blocks, caller,
+                                                                  argumentValues, argument, blocks, caller,
                                                                   decodingError, emulatorLog, emulatorTrace,
                                                                   endpointDescription, expected, fundsDistribution,
                                                                   input, recipient, resultBlockchain, resultRollup,
@@ -198,20 +198,20 @@ expressionToTrace PayToWallet {sender, recipient, amount} =
     payToWallet sender recipient amount
 expressionToTrace CallEndpoint { caller
                                , argumentValues = FunctionSchema { endpointDescription
-                                                                 , arguments
+                                                                 , argument = rawArgument
                                                                  }
                                } =
     let fromString (JSON.String string) =
             Just $ BSL.fromStrict $ Text.encodeUtf8 string
         fromString _ = Nothing
-     in case traverse fromString arguments of
-            Just strings ->
-                case traverse JSON.eitherDecode strings of
+     in case fromString rawArgument of
+            Just string ->
+                case JSON.eitherDecode string of
                     Left errs ->
                         throwError . ContractError $
                         "Error extracting JSON from arguments. Expected an array of JSON strings. " <>
                         Text.pack (show errs)
-                    Right [argument] -> do
+                    Right argument -> do
                         event :: Event s <-
                             decodePayload endpointDescription $
                                 JSON.object
@@ -220,11 +220,7 @@ expressionToTrace CallEndpoint { caller
                                     , ("value", JSON.object [("unEndpointValue", argument)])
                                     ]
                         addEvent caller event
-                    Right _ ->
-                        throwError . ContractError $
-                        "All contract endpoints take a single input argument. If you need more, use a tuple or record.\nExpected a singleton list, but got: " <>
-                        Text.pack (show arguments)
-            Nothing -> throwError . ContractError $ "Expected a [String], but got: " <> Text.pack (show arguments)
+            Nothing -> throwError . ContractError $ "Expected a String, but got: " <> Text.pack (show rawArgument)
 
 decodePayload ::
        (MonadEmulator (TraceError Text) m, FromJSON r)

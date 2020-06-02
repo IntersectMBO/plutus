@@ -15,7 +15,7 @@ import Data.Lens (Lens', over, set, view)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String as String
 import Halogen (ClassName(..))
-import Halogen.HTML (HTML, button, code_, div, div_, hr_, input, label, small, text)
+import Halogen.HTML (HTML, button, code_, div, div_, input, label, small, text)
 import Halogen.HTML.Elements.Keyed as Keyed
 import Halogen.HTML.Events (onChecked, onClick, onValueInput)
 import Halogen.HTML.Properties as HP
@@ -28,16 +28,10 @@ import Schema (FormArgumentF(..))
 import Validation (ValidationError, WithPath, joinPath, showPathValue, validate)
 import ValueEditor (valueForm)
 
-actionArgumentForm :: forall p. Int -> Array FormArgument -> HTML p SimulationAction
-actionArgumentForm index arguments =
+actionArgumentForm :: forall p. Int -> FormArgument -> HTML p SimulationAction
+actionArgumentForm index argument =
   div [ class_ wasValidated ]
-    ( Array.intercalate
-        [ hr_ ]
-        ( Array.mapWithIndex
-            (\i argument -> [ PopulateAction index i <$> actionArgumentField [ show i ] false argument ])
-            arguments
-        )
-    )
+    [ PopulateAction index <$> actionArgumentField [ show index ] false argument ]
 
 actionArgumentField ::
   forall p.
