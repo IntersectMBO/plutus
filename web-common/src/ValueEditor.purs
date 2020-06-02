@@ -1,7 +1,6 @@
 module ValueEditor where
 
-import Prelude hiding (div,min)
-
+import Prelude hiding (div, min)
 import Bootstrap (col, colFormLabel, col_, formControl, formGroup, formRow_)
 import Data.Array (mapWithIndex)
 import Data.Array as Array

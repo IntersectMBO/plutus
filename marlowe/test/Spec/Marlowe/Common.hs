@@ -10,7 +10,7 @@ import           Language.Marlowe
 import           Language.PlutusTx.Ratio ((%))
 import qualified Language.PlutusTx.Ratio as P
 import           Ledger                  (pubKeyHash)
-import qualified Ledger                  as Ledger
+import qualified Ledger
 import           Ledger.Value            (CurrencySymbol (..), TokenName (..))
 import           Test.QuickCheck
 import           Wallet                  (PubKey (..))
@@ -158,7 +158,7 @@ valueGen ::  Gen (Value Observation)
 valueGen = sized valueGenSized
 
 
-shrinkValue :: (Value Observation) -> [(Value Observation)]
+shrinkValue :: Value Observation -> [Value Observation]
 shrinkValue value = case value of
     Constant x -> [Constant y | y <- shrinkSimpleInteger x]
     SlotIntervalStart -> [Constant 0]
@@ -299,6 +299,8 @@ contractRelGenSized s bn
                        When <$> vectorOf numCases (caseRelGenSized ns bn)
                             <*> (return $ Slot newTimeout)
                             <*> contractRelGenSized ns newTimeout
+                  , Assert <$> observationGenSized (s `quot` 3)
+                           <*> contractRelGenSized (s `quot` 2) bn
                   ]
   | otherwise = return Close
 
@@ -334,11 +336,14 @@ shrinkContract cont = case cont of
         Close:cont:([When nl (Slot tim) cont | nl <- shrinkList shrinkCase l]
               ++ [When l (Slot tim) x | x <- shrinkContract cont]
               ++ [When l (Slot y) cont | y <- shrinkSimpleInteger tim])
+    Assert obs cont ->
+        Close:cont:([Assert x cont | x <- shrinkObservation obs]
+              ++ [Assert obs y | y <- shrinkContract cont])
 
 
 pangramContract :: Contract
 pangramContract = let
-    alicePk = PK $ (pubKeyHash $ walletPubKey (Wallet 1))
+    alicePk = PK $ pubKeyHash $ walletPubKey $ Wallet 1
     aliceAcc = AccountId 0 alicePk
     bobRole = Role "Bob"
     constant = Constant 100

@@ -23,6 +23,7 @@ all = do
     test "of SubValue with 0 constant" $ subValueSimplifiesWithZero
     test "in If construct" $ ifSimplifies
     test "in Notify construct" $ notifySimplifies
+    test "in Assert construct" $ assertSimplifies
     test "in AndObs" $ andObsSimplifies
     test "of AndObs with True constant" $ andObsSimplifiesWithTrue
     test "in OrObs" $ orObsSimplifies
@@ -64,6 +65,9 @@ payContract subExpression = "When [Case (Deposit (AccountId 0 (Role \"role\") ) 
 
 notifyContract :: String -> String
 notifyContract subExpression = "When [Case (Notify " <> subExpression <> ") Close] 10 Close"
+
+assertContract :: String -> String
+assertContract subExpression = "Assert " <> subExpression <> " Close"
 
 ifContract :: String -> String
 ifContract subExpression = "If " <> subExpression <> " Close Close"
@@ -177,6 +181,15 @@ notifySimplifies =
     simplification = "(ValueLT SlotIntervalEnd (Constant 34))"
   in
     testObservationSimplificationWarning notifyContract simplifiableExpression simplification
+
+assertSimplifies :: Test
+assertSimplifies =
+  let
+    simplifiableExpression = "(AndObs (ValueGT (Constant 14) SlotIntervalEnd) (AndObs (ValueEQ (AddValue (NegValue (Constant 2)) (Constant 5)) (Constant 3)) (OrObs FalseObs TrueObs)))"
+
+    simplification = "(ValueGT (Constant 14) SlotIntervalEnd)"
+  in
+    testObservationSimplificationWarning assertContract simplifiableExpression simplification
 
 ifSimplifies :: Test
 ifSimplifies =
