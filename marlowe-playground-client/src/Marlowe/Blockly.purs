@@ -166,6 +166,7 @@ data ContractType
   | PayContractType
   | IfContractType
   | LetContractType
+  | AssertContractType
   | CloseContractType
 
 derive instance genericContractType :: Generic ContractType _
@@ -585,6 +586,23 @@ toDefinition (ContractType LetContractType) =
           ]
         , colour: "0"
         , previousStatement: Just (show BaseContractType)
+        }
+        defaultBlockDefinition
+
+toDefinition (ContractType AssertContractType) =
+  BlockDefinition
+    $ merge
+        { type: show AssertContractType
+        , message0: "Assert %1 check that %2 continue as %3 %4"
+        , args0:
+          [ DummyCentre
+          , Value { name: "observation", check: "observation", align: Right }
+          , DummyLeft
+          , Statement { name: "contract", check: (show BaseContractType), align: Right }
+          ]
+        , colour: "0"
+        , previousStatement: Just (show BaseContractType)
+        , inputsInline: Just false
         }
         defaultBlockDefinition
 
@@ -1095,6 +1113,10 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
     value <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Let valueId value contract)
+  blockDefinition AssertContractType g block = do
+    observation <- statementToTerm g block "observation" Parser.observation
+    contract <- statementToTerm g block "contract" Parser.contract
+    pure $ mkDefaultTerm (Assert observation contract)
 
 instance hasBlockDefinitionObservation :: HasBlockDefinition ObservationType (Term Observation) where
   blockDefinition AndObservationType g block = do
@@ -1381,6 +1403,11 @@ instance toBlocklyContract :: ToBlockly Contract where
     connectToPrevious block input
     setField block "value_id" valueId
     inputToBlockly newBlock workspace block "value" value
+    inputToBlockly newBlock workspace block "contract" contract
+  toBlockly newBlock workspace input (Assert observation contract) = do
+    block <- newBlock workspace (show AssertContractType)
+    connectToPrevious block input
+    inputToBlockly newBlock workspace block "observation" observation
     inputToBlockly newBlock workspace block "contract" contract
 
 instance toBlocklyObservation :: ToBlockly Observation where

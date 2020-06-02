@@ -19,7 +19,7 @@ import Data.Unit (Unit, unit)
 import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
-import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<*), (<*>), (<<<))
+import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<$), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
@@ -37,6 +37,7 @@ type HelperFunctions a
     , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
     , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
     , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
+    , mkAssert :: Term Observation -> Term Contract -> Contract
     , mkCase :: Term Action -> Term Contract -> Case
     , mkBound :: BigInteger -> BigInteger -> Bound
     , mkDeposit :: AccountId -> Term Party -> Term Token -> Term Value -> Action
@@ -86,6 +87,7 @@ helperFunctions =
   , mkPay: Pay
   , mkWhen: When
   , mkIf: If
+  , mkAssert: Assert
   , mkLet: Let
   , mkCase: Case
   , mkBound: Bound
@@ -431,6 +433,7 @@ recContract =
     <|> (If <$> (string "If" **> observation') <**> contract' <**> contract')
     <|> (When <$> (string "When" **> (array (maybeParens (parseTerm case')))) <**> timeout <**> contract')
     <|> (Let <$> (string "Let" **> termWrapper valueId) <**> value' <**> contract')
+    <|> (Assert <$> (string "Assert" **> observation') <**> contract')
     <|> (fail "not a valid Contract")
   where
   contract' = parseTerm $ atomContract <|> fix \p -> parens recContract
@@ -642,6 +645,7 @@ transactionWarning = do
               <|> (TransactionNonPositivePay <$> (string "TransactionNonPositivePay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger)
               <|> (TransactionPartialPay <$> (string "TransactionPartialPay" **> accountIdValue) <**> (parens payeeValue) <**> parseToValue (parens token) <**> maybeParens bigInteger <**> maybeParens bigInteger)
               <|> (TransactionShadowing <$> (string "TransactionShadowing" **> valueIdValue) <**> (maybeParens bigInteger) <**> (maybeParens bigInteger))
+              <|> (TransactionAssertionFailed <$ (string "TransactionAssertionFailed"))
           skipSpaces
           pure tWaS
       )

@@ -302,6 +302,12 @@ lintContract env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
 
+lintContract env (Term (Assert obs cont) _) = do
+  sa <- lintObservation env obs
+  lintContract env cont
+  markSimplification constToObs SimplifiableObservation obs sa
+  pure unit
+
 lintObservation :: LintEnv -> Term Observation -> CMS.State State (TemporarySimplification Boolean Observation)
 lintObservation env t@(Term (AndObs a b) pos) = do
   sa <- lintObservation env a

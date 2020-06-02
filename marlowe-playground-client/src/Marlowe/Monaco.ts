@@ -117,7 +117,7 @@ const marloweLexer = moo.compile({
   hole: /\?[a-zA-Z0-9_-]+/,
   CONSTRUCTORS: {
     match: /[A-Z][A-Za-z]+/, type: moo.keywords({
-      CONTRACT: ['Close', 'Pay', 'If', 'When', 'Let'],
+      CONTRACT: ['Close', 'Pay', 'If', 'When', 'Let', 'Assert'],
       OBSERVATION: [
         'AndObs',
         'OrObs',
