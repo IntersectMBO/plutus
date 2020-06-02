@@ -32,9 +32,9 @@ import Ledger.Slot (Slot)
 import Ledger.Tx (Tx)
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData, _Success)
-import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema(..), KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
+import Playground.Types (CompilationResult, ContractCall(..), ContractDemo, Evaluation(..), EvaluationResult, FunctionSchema, KnownCurrency, PlaygroundError, Simulation(..), SimulatorWallet, _SimulatorWallet)
 import Schema (FormSchema)
-import Schema.Types (FormArgument, SimulationAction, Expression, formArgumentToJson)
+import Schema.Types (Expression, FormArgument, SimulationAction, formArgumentToJson, traverseFunctionSchema)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen as Gen
@@ -86,16 +86,6 @@ _argumentSchema :: forall r a. Lens' { argumentSchema :: a | r } a
 _argumentSchema = prop (SProxy :: SProxy "argumentSchema")
 
 ------------------------------------------------------------
--- | These only exist because of the orphan instance restriction.
-traverseFunctionSchema ::
-  forall m a b.
-  Applicative m =>
-  (a -> m b) ->
-  FunctionSchema a -> m (FunctionSchema b)
-traverseFunctionSchema f (FunctionSchema { endpointDescription, argument: oldArgument }) = rewrap <$> f oldArgument
-  where
-  rewrap newArgument = FunctionSchema { endpointDescription, argument: newArgument }
-
 traverseContractCall ::
   forall m b a.
   Applicative m =>
