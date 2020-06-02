@@ -66,29 +66,16 @@ module PlutusPrelude
     , reoption
     , (?)
     , ensure
-    -- * Reexports from "Data.Text.Prettyprint.Doc"
-    , (<+>)
-    , parens
-    , brackets
-    , hardline
-    , squotes
-    , list
-    , Doc
-    , strToBs
-    , bsToStr
-    , indent
     -- * Pretty-printing
+    , Doc
     , ShowPretty (..)
     , Pretty (..)
     , PrettyBy (..)
     , HasPrettyDefaults
     , PrettyDefaultBy
     , PrettyAny (..)
-    , docString
-    , docText
-    , prettyString
-    , prettyText
-    , renderDef
+    , Render (..)
+    , display
     -- * GHCi
     , printPretty
     -- * Text
@@ -121,9 +108,7 @@ import           GHC.Generics
 import           GHC.Natural                        (Natural)
 import           Text.PrettyBy.Default
 import           Text.PrettyBy.Internal
-import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.Text                          as T
-import qualified Data.Text.Encoding                 as TE
 
 import           Data.Functor.Compose
 
@@ -137,7 +122,7 @@ newtype ShowPretty a = ShowPretty
     } deriving (Eq)
 
 instance Pretty a => Show (ShowPretty a) where
-    show = prettyDef . unShowPretty
+    show = display . unShowPretty
 
 instance (Pretty a, Pretty b) => Pretty (Either a b) where
     pretty (Left  x) = parens ("Left"  <+> pretty x)
@@ -147,22 +132,6 @@ instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Eithe
     defaultPrettyBy = defaultPrettyBifunctorBy
 deriving via PrettyCommon (Either a b)
     instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
-
--- | Render a 'Doc' as 'String'.
-docString :: Doc a -> String
-docString = renderDef
-
--- | Render a 'Doc' as 'Text'.
-docText :: Doc a -> T.Text
-docText = renderDef
-
--- | Pretty-print a value as 'String'.
-prettyString :: Pretty a => a -> String
-prettyString = renderDef . pretty
-
--- | Pretty-print a value as strict 'Text'.
-prettyText :: Pretty a => a -> T.Text
-prettyText = renderDef . pretty
 
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
 (<<$>>) f = getCompose . fmap f . Compose
@@ -201,12 +170,6 @@ instance Functor f => Functor (PairT b f) where
 -- | @ensure p x@ is equal to @pure x@ whenever @p x@ holds and is 'empty' otherwise.
 ensure :: Alternative f => (a -> Bool) -> a -> f a
 ensure p x = p x ? x
-
-strToBs :: String -> BSL.ByteString
-strToBs = BSL.fromStrict . TE.encodeUtf8 . T.pack
-
-bsToStr :: BSL.ByteString -> String
-bsToStr = T.unpack . TE.decodeUtf8 . BSL.toStrict
 
 -- For GHCi to use this properly it needs to be in a registered package, hence
 -- why we're naming such a trivial thing.

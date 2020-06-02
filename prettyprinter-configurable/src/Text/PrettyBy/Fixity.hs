@@ -23,6 +23,7 @@ import           Control.Monad.Reader
 import           Data.String
 import           Lens.Micro
 
+-- | A constraint for \"'RenderContext' is a part of @config@\".
 class HasRenderContext config where
     renderContext :: Lens' config RenderContext
 

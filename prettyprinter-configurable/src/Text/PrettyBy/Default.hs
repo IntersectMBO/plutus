@@ -3,15 +3,13 @@
 
 module Text.PrettyBy.Default
     ( layoutDef
-    , RenderDef (..)
-    , prettyDef
-    , prettyDefBy
-    , prettyDefM
+    , Render (..)
+    , display
+    , displayBy
     ) where
 
 import           Text.Pretty
 import           Text.PrettyBy.Internal
-import           Text.PrettyBy.Monad
 
 import qualified Data.Text                               as Strict
 import qualified Data.Text.Lazy                          as Lazy
@@ -21,28 +19,22 @@ import           Data.Text.Prettyprint.Doc.Render.Text   (renderLazy, renderStri
 layoutDef :: Doc ann -> SimpleDocStream ann
 layoutDef = layoutSmart defaultLayoutOptions
 
-class RenderDef str where
-    renderDef :: Doc ann -> str
+class Render str where
+    render :: Doc ann -> str
 
-instance a ~ Char => RenderDef [a] where
-    renderDef = renderString . layoutDef
+instance a ~ Char => Render [a] where
+    render = renderString . layoutDef
 
-instance RenderDef Strict.Text where
-    renderDef = renderStrict . layoutDef
+instance Render Strict.Text where
+    render = renderStrict . layoutDef
 
-instance RenderDef Lazy.Text where
-    renderDef = renderLazy . layoutDef
+instance Render Lazy.Text where
+    render = renderLazy . layoutDef
 
 -- | Pretty-print a value as a string type.
-prettyDef :: forall str a. (Pretty a, RenderDef str) => a -> str
-prettyDef = renderDef . pretty
+display :: forall str a. (Pretty a, Render str) => a -> str
+display = render . pretty
 
 -- | Render a value as 'String'.
-prettyDefBy :: forall str a config. (PrettyBy config a, RenderDef str) => config -> a -> str
-prettyDefBy config = renderDef . prettyBy config
-
--- | Render a value as 'String'.
-prettyDefM
-    :: forall str a m env config. (MonadPretty config env m, PrettyBy config a, RenderDef str)
-    => a -> m str
-prettyDefM = fmap renderDef . prettyM
+displayBy :: forall str a config. (PrettyBy config a, Render str) => config -> a -> str
+displayBy config = render . prettyBy config

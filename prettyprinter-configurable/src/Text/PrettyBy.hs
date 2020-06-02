@@ -9,6 +9,10 @@ module Text.PrettyBy
     , NonDefaultPrettyBy (..)
     , HasPrettyDefaults
     , PrettyDefaultBy
+    , Render (..)
+    , display
+    , displayBy
     ) where
 
+import           Text.PrettyBy.Default
 import           Text.PrettyBy.Internal

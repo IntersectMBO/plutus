@@ -37,14 +37,14 @@ goldenPir op = goldenPirM (return . op)
 
 goldenPirM :: Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
-    where parseOrError = either (return . T.pack . show) (fmap prettyText . op)
+    where parseOrError = either (return . T.pack . show) (fmap display . op)
                          . parse parser name
 
 ppThrow :: PrettyBy PrettyConfigPlc a => ExceptT SomeException IO a -> IO T.Text
-ppThrow = fmap docText . rethrow . fmap prettyPlcClassicDebug
+ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
-ppCatch value = docText <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
+ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
 goldenPlcFromPir :: GetProgram a PLC.DefaultUni => Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do

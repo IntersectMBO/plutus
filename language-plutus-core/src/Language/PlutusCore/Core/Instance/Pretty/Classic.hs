@@ -22,6 +22,7 @@ import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Universe
 
 import           Data.Functor.Foldable
+import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Custom
 
 instance PrettyBy (PrettyConfigClassic configName) (Kind a) where

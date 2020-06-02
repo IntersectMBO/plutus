@@ -2,10 +2,6 @@
 
 module Language.PlutusCore.Pretty.Utils
     ( prettyBytes
-    , docString
-    , docText
-    , prettyString
-    , prettyText
     ) where
 
 import           PlutusPrelude

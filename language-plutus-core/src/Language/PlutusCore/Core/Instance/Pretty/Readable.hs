@@ -20,7 +20,7 @@ import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Reader
-import           Data.Text.Prettyprint.Doc.Symbols.Ascii
+import           Data.Text.Prettyprint.Doc
 
 applicationPM
     :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)

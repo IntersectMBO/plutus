@@ -60,8 +60,8 @@ genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
-    let isKeyword n = n `elem` fmap prettyText allKeywords
-        isBuiltin n = n `elem` fmap prettyText allBuiltinNames
+    let isKeyword n = n `elem` fmap display allKeywords
+        isBuiltin n = n `elem` fmap display allBuiltinNames
         isReserved t = isKeyword t || isBuiltin t
         genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do

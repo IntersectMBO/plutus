@@ -56,7 +56,7 @@ goldenVsDoc name ref = goldenVsDocM name ref . pure
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestTree
-goldenVsDocM name ref val = goldenVsTextM name ref $ renderDef <$> val
+goldenVsDocM name ref val = goldenVsTextM name ref $ render <$> val
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsText :: TestName -> Text -> TestNested
@@ -74,4 +74,4 @@ nestedGoldenVsDoc name = nestedGoldenVsDocM name . pure
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDocM :: TestName -> IO (Doc ann) -> TestNested
-nestedGoldenVsDocM name val = nestedGoldenVsTextM name $ renderDef <$> val
+nestedGoldenVsDocM name val = nestedGoldenVsTextM name $ render <$> val

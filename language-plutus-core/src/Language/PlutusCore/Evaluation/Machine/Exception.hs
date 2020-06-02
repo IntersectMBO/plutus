@@ -42,6 +42,7 @@ import           Control.Lens
 import           Control.Monad.Except
 import           Data.String                           (IsString)
 import           Data.Text                             (Text)
+import           Data.Text.Prettyprint.Doc
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
@@ -179,8 +180,8 @@ instance (PrettyBy config (Term TyName Name uni ()), PrettyBy config err) =>
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, PrettyPlc err) =>
             Show (ErrorWithCause uni err) where
-    show = docString . prettyPlcReadableDebug
+    show = render . prettyPlcReadableDebug
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,
-          Typeable uni, PrettyPlc err, Typeable err) =>
-            Exception (ErrorWithCause uni err)
+instance ( GShow uni, Closed uni, uni `Everywhere` PrettyConst
+         , Typeable uni, PrettyPlc err, Typeable err
+         ) => Exception (ErrorWithCause uni err)
