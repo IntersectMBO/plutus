@@ -26,18 +26,19 @@ import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer     as Lexer
 
 data Expr
-    = Var Text
-    | Not Expr
-    | Or Expr Expr
-    | And Expr Expr
-    | Eq Expr Expr
-    | Neg Expr
-    | Add Expr Expr
-    | Mul Expr Expr
-    | Fac Expr
-    | IfThenElse Expr Expr Expr
+    = Var Text                   -- ^ A variable.
+    | Not Expr                   -- ^ Boolean NOT.
+    | Or Expr Expr               -- ^ Boolean OR.
+    | And Expr Expr              -- ^ Boolean AND.
+    | Eq Expr Expr               -- ^ Integer equality.
+    | Neg Expr                   -- ^ Integer negation (unary minus).
+    | Add Expr Expr              -- ^ Addition.
+    | Mul Expr Expr              -- ^ Multiplication.
+    | Fac Expr                   -- ^ Factorial.
+    | IfThenElse Expr Expr Expr  -- ^ @if_then_else_@
     deriving (Show)
 
+-- Prefix and right-associative, so that @~(~b)@ is pretty-printed as @~~b@.
 notFixity :: Fixity
 notFixity = Fixity RightAssociative 9
 
@@ -50,6 +51,8 @@ andFixity = Fixity RightAssociative 3
 eqFixity :: Fixity
 eqFixity = Fixity NonAssociative 4
 
+-- Prefix and left-associative, so that @- (- x)@ is pretty-printed as @- (- x)@.
+-- Has the same associativity as @+@, so that @(- x) + y@ is pretty-printed as @- x + y@.
 negFixity :: Fixity
 negFixity = Fixity LeftAssociative 6
 
@@ -59,6 +62,7 @@ addFixity = Fixity LeftAssociative 6
 mulFixity :: Fixity
 mulFixity = Fixity LeftAssociative 7
 
+-- Postfix and left-associative, so that @(x!)!@ is pretty-printed as @x!!@.
 facFixity :: Fixity
 facFixity = Fixity LeftAssociative 9
 
@@ -99,6 +103,10 @@ instance PrettyBy RenderContext Expr where
                     , "then" <+> prettyR e1
                     , "else" <+> prettyR e2
                     ]
+
+-- #############################################
+-- ## A quick parser for tests to be readable ##
+-- #############################################
 
 whitespace :: (MonadParsec e s m, Token s ~ Char) => m ()
 whitespace = Lexer.space space1 empty empty
@@ -165,6 +173,10 @@ parseExpr = first errorBundlePretty . runParser (between whitespace eof exprP) "
 
 instance IsString Expr where
     fromString = either error id . parseExpr . fromString
+
+-- ###########
+-- ## Tests ##
+-- ###########
 
 makeTestCase :: Expr -> String -> TestTree
 makeTestCase expr res = testCase res $ show (prettyBy botRenderContext expr) @?= res

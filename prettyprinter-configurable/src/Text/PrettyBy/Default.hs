@@ -1,6 +1,8 @@
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE TypeFamilies   #-}
 
+-- | Default rendering to string types.
+
 module Text.PrettyBy.Default
     ( layoutDef
     , Render (..)
@@ -16,10 +18,13 @@ import qualified Data.Text.Lazy                          as Lazy
 import           Data.Text.Prettyprint.Doc.Render.String (renderString)
 import           Data.Text.Prettyprint.Doc.Render.Text   (renderLazy, renderStrict)
 
+-- | A default layout for default rendering.
 layoutDef :: Doc ann -> SimpleDocStream ann
 layoutDef = layoutSmart defaultLayoutOptions
 
+-- | A class for rendering 'Doc's as string types.
 class Render str where
+    -- | Render a 'Doc' as a string type.
     render :: Doc ann -> str
 
 instance a ~ Char => Render [a] where
@@ -31,10 +36,10 @@ instance Render Strict.Text where
 instance Render Lazy.Text where
     render = renderLazy . layoutDef
 
--- | Pretty-print a value as a string type.
+-- | Pretty-print and render a value as a string type.
 display :: forall str a. (Pretty a, Render str) => a -> str
 display = render . pretty
 
--- | Render a value as 'String'.
+-- | Pretty-print and render a value as a string type in a configurable way.
 displayBy :: forall str a config. (PrettyBy config a, Render str) => config -> a -> str
 displayBy config = render . prettyBy config

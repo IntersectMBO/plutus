@@ -164,6 +164,8 @@ class PrettyBy config a where
 -- >>> prettyBy NonDefCfg (42 :: Int)
 -- 42
 --
+-- Look into @test/NonDefault.hs@ for an extended example.
+--
 -- We could give the user more fine-grained control over what defaults to override instead of
 -- requiring to explicitly provide all the instances whenever there's a need to override any
 -- default behavior, but that would complicate the library even more, so we opted for not doing

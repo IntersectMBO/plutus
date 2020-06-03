@@ -1,3 +1,6 @@
+-- | Precedence-general precedence-aware pretty-printing machinery. Source code has comments on the
+-- approach used and how it compares to some other known approaches.
+
 module Text.Fixity.Internal
     ( Associativity (..)
     , FixityOver (..)
