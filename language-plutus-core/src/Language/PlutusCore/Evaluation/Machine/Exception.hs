@@ -55,6 +55,7 @@ data ConstAppError uni
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
+    | TooFewArgumentsConstAppError
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
     deriving (Show, Eq)
@@ -137,6 +138,8 @@ instance PrettyBy config (Term TyName Name uni ()) => PrettyBy config (ConstAppE
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
+    prettyBy _       TooFewArgumentsConstAppError =
+        "A constant applied to too few arguments"
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
 instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>

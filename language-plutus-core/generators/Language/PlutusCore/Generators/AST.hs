@@ -112,7 +112,9 @@ genTerm = simpleRecursive nonRecursive recursive where
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-    nonRecursive = undefined -- FIXME [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, errorGen] -- FIXME, Builtin () <$> genBuiltin]
+-- Tricky.  How do we get the instantion/arity right for builtins?
+
 
 genProgram :: AstGen (Program TyName Name DefaultUni ())
 genProgram = Program () <$> genVersion <*> genTerm

@@ -196,9 +196,9 @@ genIfIntegers = do
    Originally they checked that builtins could be partially applied,
    but now they check that a builtin wrapped in lambdas can be
    partially applied, which isn't really what we want.  (Also,
-   subtraction might be a better example because addition could be
-   getting the arguments the worng way round somewhere, and it wouldn't
-   show up because addition is commutative.)
+   subtraction might be a better example because we could be getting
+   the arguments the wrong way round somewhere, and it wouldn't show
+   up because addition is commutative.)
 -}
            
 genApplyAdd1 :: Generatable uni => TermGen uni Integer
@@ -210,7 +210,7 @@ genApplyAdd1 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, int])    -- [{ApplyFun int int} [addInteger i] j]
-                [ Apply () (builtinNameToTerm scheme name) i
+                [ Apply () (embedBuiltinNameInTerm scheme name) i
                 , j
                 ]
     return . TermOf term $ iv + jv
@@ -224,7 +224,7 @@ genApplyAdd2 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, TyFun () int int]) -- [[[{ApplyFun int (fun int int)} addInteger] i] j] 
-                [ builtinNameToTerm scheme name
+                [ embedBuiltinNameInTerm scheme name
                 , i
                 , j
                 ]

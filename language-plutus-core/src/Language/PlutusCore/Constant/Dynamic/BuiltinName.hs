@@ -7,11 +7,9 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
     ( dynamicCharToStringName
     , dynamicCharToStringMeaning
     , dynamicCharToStringDefinition
-    , dynamicCharToString
     , dynamicAppendName
     , dynamicAppendMeaning
     , dynamicAppendDefinition
-    , dynamicAppend
     , dynamicTraceName
     , dynamicTraceMeaningMock
     , dynamicTraceDefinitionMock
@@ -20,7 +18,6 @@ module Language.PlutusCore.Constant.Dynamic.BuiltinName
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Data.Proxy
@@ -43,9 +40,6 @@ dynamicCharToStringDefinition
 dynamicCharToStringDefinition =
     DynamicBuiltinNameDefinition dynamicCharToStringName dynamicCharToStringMeaning
 
-dynamicCharToString :: Term tyname name uni ()
-dynamicCharToString = dynamicBuiltinNameAsTerm dynamicCharToStringName
-
 dynamicAppendName :: DynamicBuiltinName
 dynamicAppendName = DynamicBuiltinName "append"
 
@@ -63,9 +57,6 @@ dynamicAppendDefinition
     => DynamicBuiltinNameDefinition uni
 dynamicAppendDefinition =
     DynamicBuiltinNameDefinition dynamicAppendName dynamicAppendMeaning
-
-dynamicAppend :: Term tyname name uni ()
-dynamicAppend = dynamicBuiltinNameAsTerm dynamicAppendName
 
 dynamicTraceName :: DynamicBuiltinName
 dynamicTraceName = DynamicBuiltinName "trace"

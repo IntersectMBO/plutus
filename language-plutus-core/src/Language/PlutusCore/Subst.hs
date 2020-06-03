@@ -125,9 +125,8 @@ termSubstFreeNamesA f = go Set.empty where
     go bvs (TyAbs ann name kind body)     = TyAbs ann name kind <$> go bvs body
     go bvs (LamAbs ann name ty body)      = LamAbs ann name ty <$> go (insert (name ^. unique) bvs) body
     go bvs (Apply ann fun arg)            = Apply ann <$> go bvs fun <*> go bvs arg
-    go bvs (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn tys <$> traverse (go bvs) args
-                                                                        -- ^^^^ FIXME: ?????? Also sequenceA (map (go bvs) args)
-    go bvs (TyInst ann term ty)       = go bvs term <&> \term' -> TyInst ann term' ty
+    go bvs (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn tys <$> traverse (go bvs) args -- FIXME: is this correct?
+    go bvs (TyInst ann term ty)           = go bvs term <&> \term' -> TyInst ann term' ty
     go bvs (Unwrap ann term)              = Unwrap ann <$> go bvs term
     go bvs (IWrap ann pat arg term)       = IWrap ann pat arg <$> go bvs term
     go _   term@Constant{}                = pure term

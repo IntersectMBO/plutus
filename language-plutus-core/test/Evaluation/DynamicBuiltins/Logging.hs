@@ -38,9 +38,6 @@ dynamicIntegerToStringMeaning
 dynamicIntegerToStringMeaning = DynamicBuiltinNameMeaning sch show (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
 
-dynamicIntegerToString :: Term tyname name uni ()
-dynamicIntegerToString = dynamicBuiltinNameAsTerm dynamicIntegerToStringName
-
 handleDynamicIntegerToString
     :: (GShow uni, GEq uni, uni `Includes` Integer, uni `Includes` String)
     => OnChainHandler "integerToString" f uni r r
@@ -59,9 +56,8 @@ evaluateHandlersCek = evaluateHandlersBy typecheckEvaluateCek
 test_logInt :: TestTree
 test_logInt = testCase "logInt" $ do
     let term
-            = Apply () dynamicLog
-            . Apply () dynamicIntegerToString
-            $ mkConstant @Integer @DefaultUni () 1
+            = Apply() dynamicLog
+              $ ApplyBuiltin () (DynBuiltinName dynamicIntegerToStringName) [] [mkConstant @Integer @DefaultUni () 1]
 
     let eval1 = evaluateHandlersCek (handleDynamicIntegerToString . handleDynamicLog)
     let eval2 = evaluateHandlersCek (handleDynamicLog . handleDynamicIntegerToString)
@@ -84,8 +80,7 @@ test_logInts = testCase "logInts" $ do
                     [   LamAbs () u unit
                       . LamAbs () x integer
                       . Apply () dynamicLog
-                      . Apply () dynamicIntegerToString
-                      $ Var () x
+                      $ ApplyBuiltin () (DynBuiltinName dynamicIntegerToStringName) [] [Var () x]
                     , unitval
                     , mkIterApp () Plc.enumFromTo
                         [ mkConstant @Integer () 1

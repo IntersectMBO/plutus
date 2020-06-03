@@ -51,8 +51,8 @@ instance
         a (ConstantF _ b)               = parens' ("con" </> pretty b)  -- NB: actually calls prettyConst
         a (ApplyBuiltinF _ bn tys args) =
             case tys of
-              [] -> parens' ("builtin" </> pretty bn </> vsep' args)  -- (builtin bn e1 ... eN)
-              _  -> parens' ("builtin"                                     -- ({builtin bn t1 ... tM} e1 ... eN)
+              [] -> parens' ("builtin" </> pretty bn </> vsep' args)  -- (builtin bn e1 ... eN)  -- FIXME? N=0 -> "(builtin bn )"
+              _  -> parens' ("builtin"                                -- ({builtin bn t1 ... tM} e1 ... eN)
                              </> braces'(
                                      pretty bn
                                  </> vsep' (map (prettyBy config) tys)

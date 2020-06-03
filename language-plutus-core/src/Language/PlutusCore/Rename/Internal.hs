@@ -58,19 +58,20 @@ renameTypeM ty@TyBuiltin{}              = pure ty
 renameTermM
     :: (HasUniques (Term tyname name uni ann), MonadQuote m)
     => Term tyname name uni ann -> ScopedRenameT m (Term tyname name uni ann)
-renameTermM (LamAbs ann name ty body)  =
+renameTermM (LamAbs ann name ty body)      =
     withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTypeM ty <*> renameTermM body
-renameTermM (TyAbs ann name kind body) =
+renameTermM (TyAbs ann name kind body)     =
     withFreshenedName name $ \nameFr -> TyAbs ann nameFr kind <$> renameTermM body
-renameTermM (IWrap ann pat arg term)   =
+renameTermM (IWrap ann pat arg term)       =
     IWrap ann <$> renameTypeM pat <*> renameTypeM arg <*> renameTermM term
-renameTermM (Apply ann fun arg)        = Apply ann <$> renameTermM fun <*> renameTermM arg
-renameTermM (Unwrap ann term)          = Unwrap ann <$> renameTermM term
-renameTermM (Error ann ty)             = Error ann <$> renameTypeM ty
-renameTermM (TyInst ann term ty)       = TyInst ann <$> renameTermM term <*> renameTypeM ty
-renameTermM (Var ann name)             = Var ann <$> renameNameM name
-renameTermM (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn <$> mapM renameTypeM tys <*> mapM renameTermM args  -- FIXME: CHECK
-renameTermM con@Constant{}             = pure con
+renameTermM (Apply ann fun arg)            = Apply ann <$> renameTermM fun <*> renameTermM arg
+renameTermM (Unwrap ann term)              = Unwrap ann <$> renameTermM term
+renameTermM (Error ann ty)                 = Error ann <$> renameTypeM ty
+renameTermM (TyInst ann term ty)           = TyInst ann <$> renameTermM term <*> renameTypeM ty
+renameTermM (Var ann name)                 = Var ann <$> renameNameM name
+renameTermM (ApplyBuiltin ann bn tys args) =
+    ApplyBuiltin ann bn <$> mapM renameTypeM tys <*> mapM renameTermM args
+renameTermM con@Constant{}                 = pure con
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM

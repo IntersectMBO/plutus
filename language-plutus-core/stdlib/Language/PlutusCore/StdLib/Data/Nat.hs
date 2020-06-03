@@ -140,4 +140,4 @@ natToInteger =
         addOne = lamAbs () n int
                  $ applyBuiltin () (StaticBuiltinName AddInteger) [] [var () n, intOne]
     return $
-        mkIterApp () (tyInst () foldNat int) [ addOne, intZero ]  -- FIXME: CHECK
+        mkIterApp () (tyInst () foldNat int) [ addOne, intZero ]

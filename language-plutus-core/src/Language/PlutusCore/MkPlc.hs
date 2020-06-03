@@ -44,6 +44,7 @@ module Language.PlutusCore.MkPlc
     ) where
 
 import           Prelude                               hiding (error)
+import qualified Prelude                               (error)
 
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Core
@@ -69,9 +70,9 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
 
 
 dynamicBuiltinNameAsTerm :: TermLike term tyname name uni => DynamicBuiltinName -> term ()
-dynamicBuiltinNameAsTerm = undefined "dynamicBuiltinNameAsTerm"
+dynamicBuiltinNameAsTerm = Prelude.error "dynamicBuiltinNameAsTerm: UNIMPLEMENTED"
 
--- | Lift a 'BuiltinName' to 'Term'.
+-- | Lift a 'StaticBuiltinName' to 'Term'.
 mkStaticBuiltinApp :: TermLike term tyname name uni
                       => StaticBuiltinName -> [Type tyname uni ()] -> [term ()] -> term ()
 mkStaticBuiltinApp sbn tys args = applyBuiltin () (StaticBuiltinName sbn) tys args

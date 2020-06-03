@@ -12,8 +12,8 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , DenotationContextMember(..)
     , DenotationContext(..)
     , denoteVariable
-    , builtinNameToTerm
     , denoteTypedBuiltinName
+    , embedBuiltinNameInTerm
     , insertVariable
     , insertTypedBuiltinName
     , typedBuiltinNames
@@ -90,6 +90,7 @@ denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy
    Maybe, failing if the type scheme is of the wrong form.  This can
    probably be done a lot more cleanly.
 -}
+
 type TypeComponents uni = ([TyVarDecl TyName ()], [VarDecl TyName Name uni ()])
 
 splitTypeScheme :: TypeScheme uni args res -> Quote (Maybe (TypeComponents uni))
@@ -98,10 +99,10 @@ splitTypeScheme = split1 []
           mkVd ty = do
             u <- freshUnique
             let argname = Name (append (pack "arg") (pack . show . unUnique $ u)) u
-            -- FIXME: this is making the unique explicit in the
-            -- variable name, since otherwise `plc example` gives you
-            -- examples where builtins take lots of arguments with the
-            -- same name.
+            -- This makes the unique explicit in the variable name.
+            -- If you don't do this then `plc example` outputs
+            -- examples where builtins are applied to multiple
+            -- arguments with the same name.
             pure $ VarDecl () argname ty
 
           split1 :: [TyVarDecl TyName ()] -> TypeScheme uni args res -> Quote (Maybe (TypeComponents uni))
@@ -130,17 +131,13 @@ splitTypeScheme = split1 []
    then applies the name to the relevant types and variables. This
    isn't ideal, but it does what's required for testing.
 
-   Problem: when we call splitTypeScheme it generates uniques, but
-   every time we call it it starts again at 0.  This can cause
-   problems if we have nested applications of builtins (I think this
-   happens in the `IfIntegers` example, causing `plc example -a` to
-   fail occasionally).  [Although looking at it again, maybe that's
-   not what's causing the problem.]
-
-   Do we have to make lots more stuff run in the Quote monad to fix this?
+   FIXME: when we call splitTypeScheme it generates uniques, but
+   every time we call it it starts again at 0.  Can this cause problems?
+   To avoid this we'd presumably to run a lot more stuff in the Quote monad.
 -}
-builtinNameToTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
-builtinNameToTerm scheme name =
+
+embedBuiltinNameInTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
+embedBuiltinNameInTerm scheme name =
     case runQuote $ splitTypeScheme scheme of
       Nothing -> Prelude.error "Malformed type scheme in denoteTypedBuiltinName"  -- FIXME: proper error.
       Just (tvds, vds) ->
@@ -152,7 +149,7 @@ builtinNameToTerm scheme name =
 denoteTypedBuiltinName
     :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni StaticBuiltinName res
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (builtinNameToTerm scheme) meta scheme
+    Denotation name (embedBuiltinNameInTerm scheme) meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation

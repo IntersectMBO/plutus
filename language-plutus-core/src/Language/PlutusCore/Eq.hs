@@ -179,3 +179,4 @@ eqNameM name1 name2 = do
 -- | Check equality of things having an 'Eq' instance.
 eqM :: Eq a => a -> a -> EqRename ren
 eqM x1 x2 = guard $ x1 == x2
+

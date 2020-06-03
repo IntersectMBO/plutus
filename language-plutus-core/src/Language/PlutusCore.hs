@@ -62,7 +62,6 @@ module Language.PlutusCore
     -- * Views
     , IterApp (..)
     , TermIterApp
-    , PrimIterApp
     -- * Formatting
     , format
     , formatDoc
