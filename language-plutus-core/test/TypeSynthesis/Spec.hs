@@ -77,7 +77,7 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckBuiltinName :: BuiltinName -> TestTree
+test_typecheckBuiltinName :: StaticBuiltinName -> TestTree
 test_typecheckBuiltinName name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")

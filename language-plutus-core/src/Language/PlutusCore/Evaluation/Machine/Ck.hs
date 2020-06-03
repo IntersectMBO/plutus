@@ -27,7 +27,6 @@ import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty                                 (PrettyConst)
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 infix 4 |>, <|
 
@@ -123,73 +122,58 @@ _     |> var@Var{}                        =
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Value TyName Name uni () -> CkM uni (Term TyName Name uni ())
 []                             <| term    = pure term
-FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
+FrameTyInstArg _      : stack <| fun     =
+    case fun of
+      TyAbs _ _ _ body -> stack |> body
+      _                -> throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
 FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun      : stack <| arg     = applyEvaluate stack fun arg
+FrameApplyFun fun      : stack <| arg     =
+    case fun of
+      LamAbs _ name _ body -> stack |> substituteDb name arg body
+      _ -> throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (Apply () fun arg)
 FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
-FrameUnwrap            : stack <| wrapped = case wrapped of
-    IWrap _ _ _ term -> stack <| term
-    term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
-FrameApplyBuiltin bn tys values terms : stack <| value = case terms of
-                                                           [] -> applyBuiltin stack bn tys (value:values)
-                                                           arg:args -> FrameApplyBuiltin bn tys (value:values) args : stack |> arg
+FrameUnwrap            : stack <| wrapped =
+    case wrapped of
+      IWrap _ _ _ term -> stack <| term
+      term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
+FrameApplyBuiltin bn tys values terms : stack <| value =
+    let values' = value:values
+    in case terms of
+         []       -> applyBuiltin stack bn tys $ reverse values'
+         arg:args -> FrameApplyBuiltin bn tys values' args : stack |> arg
 
-applyBuiltin :: Context uni
-             -> BuiltinName
-             -> [Type TyName uni ()]
-             -> [Value TyName Name uni ()]
-             -> CkM uni (Term TyName Name uni ())
-applyBuiltin = undefined
-
--- | Instantiate a term with a type and proceed.
--- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
--- apply the term to the type via 'TyInst'.
-instantiateEvaluate
+applyBuiltin
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni
-    -> Type TyName uni ()
-    -> Term TyName Name uni ()
+    =>  Context uni
+    -> BuiltinName
+    -> [Type TyName uni ()]
+    -> [Value TyName Name uni ()]
     -> CkM uni (Term TyName Name uni ())
-instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
-instantiateEvaluate stack ty fun
-    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
-    | otherwise                      =
-          throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
+applyBuiltin stack bn tys args =
+    do
+      let term = Just (ApplyBuiltin () bn (fmap void tys) (fmap void args))
+      result <- case bn of
+                  StaticBuiltinName name -> do
+                          params <- builtinCostParams
+                          void <$> applyBuiltinName params name (withMemory <$> args)
+                  DynBuiltinName{} -> do
+                          throwingWithCause _MachineError
+                                             (OtherMachineError NoDynamicBuiltinNamesMachineError)
+                                             term
+      case result of
+         ConstAppSuccess res -> stack |> res
+         ConstAppStuck       -> throwingWithCause _ConstAppError TooFewArgumentsConstAppError term
 
--- | Apply a function to an argument and proceed.
--- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
--- as an iterated application of a 'BuiltinName' to a list of 'Value's.
--- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni
-    -> Value TyName Name uni ()
-    -> Value TyName Name uni ()
-    -> CkM uni (Term TyName Name uni ())
-applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
-applyEvaluate stack fun                    arg =
-    let term = Apply () fun arg in
-        case termAsPrimIterApp term of
-            Nothing ->
-                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
-            Just (IterApp DynBuiltinName{} _) ->
-                throwingWithCause _MachineError
-                    (OtherMachineError NoDynamicBuiltinNamesMachineError)
-                    (Just term)
-            Just (IterApp (StaticBuiltinName name) spine) -> do
-                constAppResult <- applyEvaluateCkStaticBuiltinName name spine
-                case constAppResult of
-                    ConstAppSuccess res -> stack |> res
-                    ConstAppStuck       -> stack <| term
 
+-- Used in testing - see ApplyBuiltinName.hs (FIXME: comment)
 applyEvaluateCkStaticBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => StaticBuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
 applyEvaluateCkStaticBuiltinName name args = do
     params <- builtinCostParams
     void <$> applyBuiltinName params name (withMemory <$> args)
+
+
 
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 -- This differs from the spec version: we do not have the following rule:

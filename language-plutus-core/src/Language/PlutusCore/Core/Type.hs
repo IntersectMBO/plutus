@@ -99,7 +99,7 @@ newtype DynamicBuiltinName = DynamicBuiltinName
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift, Hashable)
 
--- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
+-- | Either a 'StaticBuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
 -- FIXME: We used to have StagedBuiltinName, which was the same except without annotations.
 -- There are a number of places where these these have been replaced with BuiltinName
 -- with a fake annotation ().

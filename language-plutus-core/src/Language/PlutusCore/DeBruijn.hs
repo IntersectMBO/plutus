@@ -224,8 +224,8 @@ deBruijnTermM = \case
     Unwrap ann t -> Unwrap ann <$> deBruijnTermM t
     IWrap ann pat arg t -> IWrap ann <$> deBruijnTyM pat <*> deBruijnTyM arg <*> deBruijnTermM t
     Error ann ty -> Error ann <$> deBruijnTyM ty
-    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann bn <$> mapM deBruijnTyM tys <*> mapM deBruijnTermM args -- FIXME: CHECK
-    -- boring non-recursive cases
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann bn <$> mapM deBruijnTyM tys <*> mapM deBruijnTermM args
+    -- boring non-recursive case
     Constant ann con -> pure $ Constant ann con
 
 -- | Convert a 'Type' with 'TyDeBruijn's into a 'Type' with 'TyName's.
@@ -287,6 +287,6 @@ unDeBruijnTermM = \case
     Unwrap ann t -> Unwrap ann <$> unDeBruijnTermM t
     IWrap ann pat arg t -> IWrap ann <$> unDeBruijnTyM pat <*> unDeBruijnTyM arg <*> unDeBruijnTermM t
     Error ann ty -> Error ann <$> unDeBruijnTyM ty
-    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann bn <$> mapM unDeBruijnTyM tys <*> mapM unDeBruijnTermM args  -- FIXME: CHECK
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann bn <$> mapM unDeBruijnTyM tys <*> mapM unDeBruijnTermM args
     -- boring non-recursive cases
     Constant ann con -> pure $ Constant ann con

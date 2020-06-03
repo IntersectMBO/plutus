@@ -318,52 +318,91 @@ inferTypeOfBuiltinM _ (StaticBuiltinName name) = normalizeType $ typeOfBuiltinNa
 -- TODO: inline this definition once we have only dynamic built-in names.
 inferTypeOfBuiltinM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann name
 
--- FIXME: in the PLC spec, do we have to check that A_i :: K_i?
 
-doTyArgs
+-- | Peel the type parameters off the front of the type of a builtin,
+-- building a mapping from type parameters to the types they're being
+-- instantiated at (these are included in the ApplyBuiltin
+-- constructor).  When we get to the end, carry on and look at the
+-- term arguments of the application.
+checkBuiltinTypeArgs
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => [(TyName, Normalized (Type TyName uni ()))]
+    -> BuiltinName
+    -> Type TyName uni ()
+    -> [Type TyName uni ann]
+    -> [Value TyName Name uni ann]
+    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+checkBuiltinTypeArgs mapping bn (TyForall () tyname kind ty') (tyarg:tyargs) args = do
+  checkKindM  (typeAnn tyarg) tyarg (void kind)
+  tyarg' <- normalizeType (void tyarg)
+  checkBuiltinTypeArgs ((tyname,tyarg'):mapping) bn ty' tyargs args
+checkBuiltinTypeArgs _       bn (TyForall _ _tyname _kind _ty') [] _ = Prelude.error $ "Underinstantiated: " ++ show bn
+checkBuiltinTypeArgs mapping bn ty' [] args = checkBuiltinTermArgs mapping bn ty' args
+checkBuiltinTypeArgs _       bn _  (_:_) _ = Prelude.error $ "Overinstantiated: " ++ show bn -- We've got a forall type but nowhere to instantiate it
+-- FIXME: proper errors
+
+
+-- PROBLEM.  Suppose we have a builtin application (bn tys args). Can
+-- we tell if it's underapplied?  Suppose the Type of bn is int -> int
+-- -> int.  Ho do we know whether it takes two arguments or one (or
+-- even zero)?  It could take two integers and return another, or take
+-- one integer and return a function.  The type scheme for the builtin
+-- contains this information, but I don't think we have access to it
+-- here.  The problem is that different type schemes can translate to
+-- the same Type, losing information on the way.  We can solve this
+-- for the time being by checking that the type we're left with at the
+-- end isn't functional, which may not work for polymorphic builtins,
+-- eg  o : forall a b c: (b->c) -> (a->b) -> (a->c).
+-- Things would be a lot easier if (a) we had the type schema for the
+-- builtin at this point or (b) builtin names carried their arities
+-- about with them.
+
+-- | Given a mapping from type variables to types, we work our way
+-- along the list of term arguments in an ApplyBuiltin, checking that
+-- the types of the arguments match the types given in the signature
+-- after instatiation according to the mapping.  If we get to the end
+-- without any problems, use the mapping to instantiate the return
+-- type in the builtin's signature and return the instantiated type as
+-- the type of the application.
+checkBuiltinTermArgs
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => [(TyName, Normalized (Type TyName uni ()))]
+    -> BuiltinName
+    -> Type TyName uni ()
+    -> [Value TyName Name uni ann]
+    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+checkBuiltinTermArgs mapping bn ty [] = do  -- no more arguments left, so substitute the type instantiations into the return type
+    let f ty1 (name, newty) = do -- perform all of the substitutions in the mapping
+          ty2 <- substNormalizeTypeM newty name ty1
+          return $ unNormalized ty2
+          -- ^ annoying: we have to normalise during subsitution, but then we need a non-normalised type to perform subsequent subsitutions on.
+    ty' <- foldM f (void ty) mapping
+    tyr <- normalizeTypeM ty'
+    _ <- case ty of
+           TyFun{} -> Prelude.error $ "Builtin underapplied: " ++ show bn ++ " [" ++ show ty ++ "]"
+           _       -> pure ()
+    -- Given the type t1 -> t2 -> ... -> tn -> r, we've removed one t_i for every argument, so what's left is the return type.
+    -- We assume that no builtin returns a function, which could be wrong for some polymorphic builtins.
+    -- FIXME: ^ this is a crude test for underapplication and should be replaced.  Also, add proper errors.
+    return tyr
+checkBuiltinTermArgs mapping bn (TyFun _ t1 t2) (arg:args) =  do
+    let f ty1 (name, newty) = do
+          ty2 <- substNormalizeTypeM newty name ty1
+          return $ unNormalized ty2
+    t1' <- foldM f (void t1)  mapping
+    t1'norm <- normalizeTypeM t1'
+    checkTypeM (termAnn arg) arg t1'norm
+    checkBuiltinTermArgs mapping bn t2 args
+checkBuiltinTermArgs bn _ _ (_:_) = Prelude.error $ "Builtin overapplied: " ++ show bn
+
+checkBuiltinAppl
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinName
     -> Type TyName uni ()
     -> [Type TyName uni ann]
     -> [Value TyName Name uni ann]
-    -> [(TyName, Normalized (Type TyName uni ()))]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-
-doTyArgs bn (TyForall () tyname kind ty') (tyarg:tyargs) args mapping = do
-  checkKindM  (typeAnn tyarg) tyarg (void kind)
-  tyarg' <- normalizeType (void tyarg)
-  doTyArgs bn ty' tyargs args ((tyname,tyarg'):mapping)
-doTyArgs bn (TyForall _ _tyname _kind _ty') [] _ _ = Prelude.error $ "Underinstantiated: " ++ show bn
-doTyArgs bn ty' [] args mapping = doArgs bn ty' args mapping
-doTyArgs bn _  (_:_) _ _ = Prelude.error $ "Overinstantiated: " ++ show bn -- We've got a forall type but nowhere to instantiate it
-
-
-doArgs
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName
-    -> Type TyName uni ()
-    -> [Value TyName Name uni ann]
-    -> [(TyName, Normalized (Type TyName uni ()))]
-    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-doArgs _ ty [] mapping = do  -- no more arguments left, so substitute the type instantiations into the return type
-    let f ty1 (name, newty) = do
-          ty2 <- substNormalizeTypeM newty name ty1
-          return $ unNormalized ty2
-    ty' <- foldM f (void ty)  mapping  -- FIXME: still normalized after substitution?  Yes.
-    tyr <- normalizeTypeM ty'
-    return tyr
-doArgs bn (TyFun _ t1 t2) (arg:args) mapping =  do
-    let f ty1 (name, newty) = do
-          ty2 <- substNormalizeTypeM newty name ty1
-          return $ unNormalized ty2
-    t1' <- foldM f (void t1)  mapping  -- FIXME: still normalized after substitution?  Yes.
-    t1'norm <- normalizeTypeM t1'
-    checkTypeM (termAnn arg) arg t1'norm
-    doArgs bn t2 args mapping
-doArgs bn _ (_:_) _  = Prelude.error $ "Builtin overapplied: " ++ show bn
--- Can we tell if it's underapplied?  Suppose we have bn: int -> int -> int
--- Does it take one argument or two?
-
+checkBuiltinAppl bn ty tys args = checkBuiltinTypeArgs [] bn ty tys args
 
 
 -- See the [Global uniqueness] and [Type rules] notes.
@@ -380,25 +419,15 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
     pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
 
 
-
--- [infer| G !- bi : vTy]
--- ------------------------------
--- [infer| G !- builtin bi : vTy]
---inferTypeM (Builtin _ bi)           =
---    inferTypeOfBuiltinM bi
-
 -- bn : [a_1 :: K_1, ..., a_n:: K_m](B_1, ..., B_n)C
 -- G !- M_i : D_i
 -- D_i == [A_1,...,A_m/a_1,...,a_m]B_i
 ----------------------------------------------------------------
 -- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
-
 inferTypeM (ApplyBuiltin ann bn tyargs args) = do
-  ty <- inferTypeOfBuiltinM ann bn
-  rty <- doTyArgs bn (unNormalized ty) tyargs args []
+  ty <- inferTypeOfBuiltinM ann bn  -- May have foralls at the start
+  rty <- checkBuiltinAppl bn (unNormalized ty) tyargs args
   return rty
---  FIXME: DO THIS PROPERLY
-
 
 
 -- [infer| G !- v : ty]    ty ~>? vTy

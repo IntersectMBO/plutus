@@ -115,8 +115,11 @@ eqTermM (Constant _ con1) (Constant _ con2) =
     eqM con1 con2
 eqTermM (ApplyBuiltin _ bn1 tys1 args1) (ApplyBuiltin _ bn2 tys2 args2) = do
     eqM bn1 bn2
-    zipWithM_ eqTypeM tys1 tys2  -- FIXME: check
+    guard $ length tys1 == length tys2
+    zipWithM_ eqTypeM tys1 tys2
+    guard $ length args1 == length args2
     zipWithM_ eqTermM args1 args2
+    -- FIXME: is there a better way to do this?
 eqTermM LamAbs       {} _ = empty
 eqTermM TyAbs        {} _ = empty
 eqTermM IWrap        {} _ = empty

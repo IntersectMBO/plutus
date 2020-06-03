@@ -45,6 +45,11 @@ main = do
     evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
 
+compareLists :: (a -> a -> Bool) -> [a] -> [a] -> Bool  -- FIXME: is there a suitable library function for this?
+compareLists _  [] []          = True
+compareLists cmp (x:xs) (y:ys) = cmp x y && compareLists cmp xs ys
+compareLists _  _  _           = False
+
 compareName :: Name -> Name -> Bool
 compareName = (==) `on` nameString
 
@@ -59,7 +64,9 @@ compareTerm (TyAbs _ n k t) (TyAbs _ n' k' t')     = compareTyName n n' && k == 
 compareTerm (LamAbs _ n ty t) (LamAbs _ n' ty' t') = compareName n n' && compareType ty ty' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
 compareTerm (Constant _ x) (Constant _ y)          = x == y
-compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
+compareTerm (ApplyBuiltin _ bi tys args) (ApplyBuiltin _ bi' tys' args') = bi == bi'
+                                                                           && compareLists compareType tys tys'
+                                                                           && compareLists compareTerm args args'
 compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compareType ty ty'
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
@@ -283,7 +290,7 @@ testRebindCapturedVariable =
 
 tests :: TestTree
 tests = testCase "example programs" $ fold
-    [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
+    [ fmt "(program 0.1.0 (builtin addInteger x y))" @?= Right "(program 0.1.0\n  (builtin addInteger x y)\n)"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0\n  doesn't\n)"
     , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     , testRebindShadowedVariable @?= True

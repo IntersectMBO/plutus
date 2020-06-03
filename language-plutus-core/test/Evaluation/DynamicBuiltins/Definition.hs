@@ -45,9 +45,6 @@ dynamicFactorialDefinition
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
-dynamicFactorial :: Term tyname name uni ()
-dynamicFactorial = dynamicBuiltinNameAsTerm dynamicFactorialName
-
 -- | Check that the dynamic factorial defined above computes to the same thing as
 -- a factorial defined in PLC itself.
 test_dynamicFactorial :: TestTree
@@ -55,7 +52,7 @@ test_dynamicFactorial =
     testCase "dynamicFactorial" $ do
         let env = insertDynamicBuiltinNameDefinition dynamicFactorialDefinition mempty
             ten = mkConstant @Integer @DefaultUni () 10
-            lhs = typecheckEvaluateCek env $ Apply () dynamicFactorial ten
+            lhs = typecheckEvaluateCek env $ ApplyBuiltin () (DynBuiltinName dynamicFactorialName) [] [ten]
             rhs = typecheckEvaluateCek mempty $ Apply () factorial ten
         assertBool "type checks" $ isRight lhs
         lhs @?= rhs
@@ -74,9 +71,6 @@ dynamicConstDefinition :: DynamicBuiltinNameDefinition uni
 dynamicConstDefinition =
     DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
 
-dynamicConst :: Term tyname name uni ()
-dynamicConst = dynamicBuiltinNameAsTerm dynamicConstName
-
 -- | Check that the dynamic const defined above computes to the same thing as
 -- a const defined in PLC itself.
 test_dynamicConst :: TestTree
@@ -87,10 +81,9 @@ test_dynamicConst =
         let tC = makeKnown c
             tB = makeKnown b
             char = toTypeAst @DefaultUni @Char Proxy
-            runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
-            lhs = typecheckReadKnownCek env $ runConst dynamicConst
-            rhs = typecheckReadKnownCek mempty $ runConst Plc.const
+            lhs = typecheckReadKnownCek env $ ApplyBuiltin () (DynBuiltinName dynamicConstName) [char, bool] [tC, tB]
+            rhs = typecheckReadKnownCek mempty $ mkIterApp () (mkIterInst ()  Plc.const [char, bool]) [tC, tB]
         lhs === Right (Right c)
         lhs === rhs
 
@@ -107,9 +100,6 @@ dynamicIdDefinition :: DynamicBuiltinNameDefinition uni
 dynamicIdDefinition =
     DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
 
-dynamicId :: Term tyname name uni ()
-dynamicId = dynamicBuiltinNameAsTerm dynamicIdName
-
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
 -- See https://github.com/input-output-hk/plutus/issues/1882
 test_dynamicId :: TestTree
@@ -120,18 +110,21 @@ test_dynamicId =
             one = mkConstant @Integer @DefaultUni () 1
             integer = mkTyBuiltin @Integer ()
             -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
-            term =
-                mkIterApp () (TyInst () dynamicId (TyFun () integer integer))
-                    [ Apply () constIntegerInteger one
-                    , zer
-                    ] where
-                          constIntegerInteger = runQuote $ do
-                              i <- freshName "i"
-                              j <- freshName "j"
-                              return
-                                  . LamAbs () i integer
-                                  . LamAbs () j integer
-                                  $ Var () i
+            term = Apply () (ApplyBuiltin ()
+                                 (DynBuiltinName dynamicIdName)
+                                 [TyFun () integer integer]
+                                 [Apply () constIntegerInteger one]
+                            )
+                            zer
+                where
+                  constIntegerInteger =
+                      runQuote $ do
+                             i <- freshName "i"
+                             j <- freshName "j"
+                             return
+                               . LamAbs () i integer
+                               . LamAbs () j integer
+                               $ Var () i
         typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
 
 test_definition :: TestTree

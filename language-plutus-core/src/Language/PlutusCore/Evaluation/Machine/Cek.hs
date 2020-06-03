@@ -79,7 +79,6 @@ import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
-
 import           Debug.Trace
 
 {- Note [Scoping]
@@ -150,8 +149,8 @@ data Frame uni
       (VarEnv uni)
       BuiltinName
       [Type TyName uni ExMemory]
-      [Closure uni]                     -- Computed arguments as closures
-      [Term TyName Name uni ExMemory]   -- Remaining arguments
+      [Closure uni]                     -- Closures for the arguments we've computed so far.
+      [Term TyName Name uni ExMemory]   -- Remaining arguments.
     deriving (Show)
 
 type Context uni = [Frame uni]
@@ -189,13 +188,13 @@ lookupVarName varName = do
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
-lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning uni)
-lookupDynamicBuiltinName dynName = do
+lookupDynamicBuiltinName :: Term TyName Name uni () -> DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning uni)
+lookupDynamicBuiltinName term dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-            term = ApplyBuiltin () (DynBuiltinName dynName) [] [] -- FIXME
+                          err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+        -- 'term' is just here for the error message. Will inlcuding it have any effect on efficiency?
         Just mean -> pure mean
 
 -- See Note [Scoping].
@@ -266,11 +265,12 @@ computeCek ctx tyAbs@TyAbs{}       = returnCek ctx tyAbs
 computeCek ctx lamAbs@LamAbs{}     = returnCek ctx lamAbs
 computeCek ctx constant@Constant{} = returnCek ctx constant
 computeCek ctx t@(ApplyBuiltin ann bn tys []) = do
-    spendBudget BIWrap t (ExBudget 1 1) -- FIXME:  BIWrap
+    spendBudget (BBuiltin bn) t (ExBudget 1 1)
+    -- FIXME: we're re-using BBuiltin for the argument-collecting process here and below.  Should we have a new constructor for this?
     varEnv <- getVarEnv
     applyBuiltin varEnv ann ctx bn tys []
 computeCek ctx t@(ApplyBuiltin _ bn tys (arg:args)) = do
-  spendBudget BIWrap t (ExBudget 1 1) -- FIXME:  BIWrap
+  spendBudget (BBuiltin bn) t (ExBudget 1 1)
   varEnv <- getVarEnv
   withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args : ctx) arg
 computeCek _   err@Error{} =
@@ -290,15 +290,22 @@ computeCek ctx t@(Var _ varName)   = do
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> WithMemory Value uni -> CekM uni (Plain Term uni)
--- Instantiate all the free variable of the resulting term in case there are any.
+-- Instantiate all the free variables of the resulting term in case there are any.
 returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
-returnCek (FrameTyInstArg ty : ctx) fun = instantiateEvaluate ctx ty fun
+returnCek (FrameTyInstArg ty : ctx) fun =
+    case fun of
+      TyAbs _ _ _ body -> computeCek ctx body  -- NB: we're just ignoring the type here
+      _                ->  throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
 returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
     funVarEnv <- getVarEnv
     withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : ctx) arg
-returnCek (FrameApplyFun funVarEnv fun : ctx) arg = do
-    argVarEnv <- getVarEnv
-    applyEvaluate funVarEnv argVarEnv ctx fun arg
+returnCek (FrameApplyFun funVarEnv fun : ctx) arg =
+    case fun of
+      LamAbs _ name _ body -> do
+               argVarEnv <- getVarEnv
+               withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek ctx body
+      _ ->  throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (Apply () (void fun) (void arg))
+      -- FIXME: ^ error message looks like eg (1 2) instead of [(con 1) (con 2)]
 returnCek (FrameIWrap ann pat arg : ctx) val =
     returnCek ctx $ IWrap ann pat arg val
 returnCek (FrameUnwrap : ctx) dat = case dat of
@@ -306,72 +313,11 @@ returnCek (FrameUnwrap : ctx) dat = case dat of
     term             ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just (void term)
 returnCek (FrameApplyBuiltin env bn tys closures terms : ctx) value = do
-    varEnv <- getVarEnv  -- closure for just-computed argument
-    let cl = Closure varEnv value  -- closure for just-computed argument
+    varEnv <- getVarEnv
+    let closures' = Closure varEnv value : closures -- Save the closure for the argument we've just computed.
     case terms of
-      []       -> applyBuiltin env () ctx bn tys (reverse $ cl:closures) -- We've accumulated the argument closures in reverse
-      arg:args -> withVarEnv env $ computeCek (FrameApplyBuiltin env bn tys (cl:closures) args : ctx) arg
-
-applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-                 => VarEnv uni
-                 -> ann
-                 -> Context uni
-                 -> BuiltinName
-                 -> [Type TyName uni ExMemory]
-                 -> [Closure uni]
-                 -> CekM uni (Term TyName Name uni ())
-applyBuiltin venv ann ctx bn tys args =
-    let fixArg (Closure env val) = val
-        fixedArgs = Prelude.map fixArg args
-    in
-    do
-      -- More careful for dynamic names?
-      params <- builtinCostParams  -- FIXME: What are we doing with this?
-      funEnv <- getVarEnv
-      result <- applyStagedBuiltinName bn fixedArgs
-      withVarEnv funEnv $
-           case result of
-             ConstAppSuccess res -> computeCek ctx res
-             ConstAppStuck       -> error $ "returnCek ctx term: ConstAppStuck on " ++ show bn  ++ " (wrong number of arguments?)"
-  -- check equality of number of params and args here and fail if
-  -- different, otherwise zip together (costly?) and pass to foldArgs
-
-
--- Reverse the args?
--- foldArgs [] bn funEnv []                                      = applyBuiltinName undefined
--- foldArgs [] bn _ _                                            = error "Too many arguments to builtin"
--- foldArgs (param:params) bn funEnv (Closure varEnv arg : args) = withScopedArgIn funEnv varEnv
--- foldArgs _ _ _ []                                             = error "Too few arguments to builtin"
-
--- We have to fold withScopedArgIn over the values
--- Do we have a test case for the environment problem?
-
-{- When we get to applyBuiltin, we have
-      (a) A builtin name with arity (m,n) (number of type args, number of term args)
-      (b) A chain of FrameApplyBuiltins of length n at the start of the context (we hope)
-      (c) A list of values, also of length n
-   We should ignore the type arguments (only required for typechecking) and
-   wrap withScopedArgIn along the frames and the arguments, invoking the actual
-   builtin when we get to the end.
--}
--- ######################################################################################################
-
--- | Instantiate a term with a type and proceed.
--- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
--- apply the term to the type via 'TyInst'.
-
--- ** FIXME: (a) How can we instantiate a polymorphic builtin?
--- (b)  If a builtin returns a polymorphic object, are we allowed to instantiate it?
---      What if we bind that object to a variable?  That should be OK if it's OK for abstractions.
-instantiateEvaluate
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> Type TyName uni ExMemory -> WithMemory Term uni -> CekM uni (Plain Term uni)
-instantiateEvaluate ctx _ (TyAbs _ _ _ body) = computeCek ctx body
-instantiateEvaluate ctx ty fun
-    | isJust $ termAsPrimIterApp fun = returnCek ctx $ TyInst (memoryUsage () <> memoryUsage fun <> memoryUsage ty) fun ty
-    | otherwise                      =
-        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
+      []       -> applyBuiltin env () ctx bn tys (reverse closures') -- We've accumulated the argument closures in reverse
+      arg:args -> withVarEnv env $ computeCek (FrameApplyBuiltin env bn tys closures' args : ctx) arg
 
 {- Note [Saved mapping example]
 Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
@@ -389,6 +335,7 @@ When evaluating
 
     id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
 
+    [[(builtin {id (fun (con integer) (con integer))} (lam i (con integer) (lam j (con integer) i))) 1] 0]
 We encounter the following state:
 
     { i :-> ({}, 1) }
@@ -403,13 +350,15 @@ and transition it into
     ] <| id {integer -> integer} arg
 
 i.e. if the argument is not a constant, then we create a new variable, save the old environment in
-the closure of that variable and apply the function to the variable. This allows to restore the old
-environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
+the closure of that variable and apply the function to the variable. This allows us to restore the old
+environment @{ i :-> ({}, 1) }@ later when we start evaluating @arg 0@, which expands to
 
     (\(j : integer) -> i)) 0
 
 which evaluates to @1@ in the old environment.
 -}
+
+-- UPDATE THE NOTE: see 1882 and 1930
 
 -- See Note [Saved mapping example].
 -- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
@@ -432,48 +381,55 @@ withScopedArgIn funVarEnv argVarEnv arg            k = do
     argName <- freshName "arg"
     withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
 
--- | Apply a function to an argument and proceed.
--- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
--- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
--- as an iterated application of a 'BuiltinName' to a list of 'Value's.
--- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => VarEnv uni
-    -> VarEnv uni
-    -> Context uni
-    -> WithMemory Value uni
-    -> WithMemory Value uni
-    -> CekM uni (Plain Term uni)
-applyEvaluate funVarEnv argVarEnv ctx (LamAbs _ name _ body) arg =
-    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek ctx body
-applyEvaluate funVarEnv argVarEnv ctx fun arg = error "applyEvaluate on non-lambda"
-{-
-     withScopedArgIn funVarEnv argVarEnv arg $ \arg' ->
-        let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg') fun arg'
-        in case termAsPrimIterApp term of
-            Nothing                       ->
-                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
-            Just (IterApp headName spine) -> do
-                constAppResult <- applyStagedBuiltinName headName spine
-                case constAppResult of
-                    ConstAppSuccess res -> computeCek ctx res
-                    ConstAppStuck       -> returnCek ctx term
--}
 
--- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => BuiltinName
-    -> [WithMemory Value uni]
-    -> CekM uni (ConstAppResult uni ExMemory)
-applyStagedBuiltinName n@(DynBuiltinName name) args = do
-    DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-    applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticBuiltinName name) args = do
-    params <- builtinCostParams
-    applyBuiltinName params name args
+-- If it's a standard builtin, all arguments should be (built-in)
+-- values and this function will do nothing.  Can we use traverse or
+-- something for this? We're simultaneously mapping across the args
+-- and folding along the environment
+getScopedArgs  -- We could perhaps fold this into `compute`: more efficient, but more complex?
+               -- Let's leave it like this until we're sure it's correct.
+    :: [Closure uni]           -- original arguments
+    -> [WithMemory Value uni]  -- adjusted arguments
+    -> VarEnv uni              -- enviroment containing bindings for new variables
+    -> CekM uni ([WithMemory Value uni], VarEnv uni)
+getScopedArgs [] newArgs env = pure (reverse newArgs, env)
+getScopedArgs (Closure argVarEnv arg : args) newArgs env =
+    case arg of
+      Constant{} -> getScopedArgs args (arg : newArgs) env
+      _ -> do
+        argName <- freshName "arg"
+        let cost = memoryUsage ()
+            newArg = Var cost argName
+            newEnv = extendVarEnv argName arg argVarEnv env
+        getScopedArgs args (newArg : newArgs) newEnv
+
+applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+                 => VarEnv uni
+                 -> ann
+                 -> Context uni
+                 -> BuiltinName
+                 -> [Type TyName uni ExMemory]
+                 -> [Closure uni]
+                 -> CekM uni (Term TyName Name uni ())
+applyBuiltin funEnv ann ctx bn tys args =
+    -- If there are too many/few types this should be caught by the typechecker.
+    let term = ApplyBuiltin () bn (fmap void tys) (fmap (void . _closureValue) args) -- For error messages
+    in do
+      -- Do we have to be more careful for dynamic names?
+      (args', env') <- getScopedArgs args [] funEnv
+      -- We could call getScopedArgs only in the case where tys is nonempty, relying on our assumption
+      -- that non-polymorphic builtins only take builtin constants as arguments.
+      params <- builtinCostParams
+      result <- case bn of
+                  n@(DynBuiltinName name) -> do
+                      DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName term name
+                      applyTypeSchemed n sch x exX args'
+                  StaticBuiltinName name ->
+                      applyBuiltinName params name args'
+      case result of
+             ConstAppSuccess res -> withVarEnv env' $ computeCek ctx res
+             ConstAppStuck       -> throwingWithCause _ConstAppError TooFewArgumentsConstAppError $ Just term
+                                 -- Overapplication is handled in applyTypeSchemed
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

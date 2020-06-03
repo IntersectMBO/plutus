@@ -83,7 +83,8 @@ applyTypeSchemed name = go where
             [] -> pure . ConstAppSuccess $ withMemory $ makeKnown y    -- Computed the result.
             _  -> throwingWithCause _ConstAppError        -- Too many arguments.
                     (ExcessArgumentsConstAppError $ void <$> args)
-                    Nothing
+                    (Just $ ApplyBuiltin () name [] [])
+                  -- FIXME?: ^ this should really contain the type and term arguments, but we don't have them here.
     go (TypeSchemeAllType _ schK)  f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)    f exF args = case args of

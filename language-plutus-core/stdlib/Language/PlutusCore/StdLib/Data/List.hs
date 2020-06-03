@@ -249,11 +249,11 @@ enumFromTo = runQuote $ do
 --
 -- > foldList {integer} {integer} addInteger 0
 sum :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
-sum = runQuote $ do  -- FIXME: CHECK
+sum = runQuote $ do
         m <- freshName "m"
         n <- freshName "n"
         let int = mkTyBuiltin @Integer ()
-            add = lamAbs () m int   -- are these the right way round?
+            add = lamAbs () m int
                   . lamAbs () n int
                   $ applyBuiltin () (StaticBuiltinName AddInteger) [] [var () m, var () n]
             foldList' = mkIterInst () foldList [int, int]
@@ -267,11 +267,11 @@ sum = runQuote $ do  -- FIXME: CHECK
 -- > foldList {integer} {integer} multiplyInteger 1
 product :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
 product =
-    runQuote $ do  -- FIXME: CHECK
+    runQuote $ do
         m <- freshName "m"
         n <- freshName "n"
         let int = mkTyBuiltin @Integer ()
-            mul = lamAbs () m int   -- are these the right way round?
+            mul = lamAbs () m int
                   . lamAbs () n int
                   $ applyBuiltin () (StaticBuiltinName MultiplyInteger) [] [var () m, var () n]
             foldList' = mkIterInst () foldList [int, int]
