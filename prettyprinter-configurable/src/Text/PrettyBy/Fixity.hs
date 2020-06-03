@@ -32,6 +32,17 @@ instance HasRenderContext RenderContext where
 
 type MonadPrettyContext config env m = (MonadPretty config env m, HasRenderContext config)
 
+-- | A @newtype@ wrapper around @a@ introduced for its 'HasPrettyConfig' instance.
+newtype Sole a = Sole
+    { unSole :: a
+    }
+
+-- | It's not possible to have @HasPrettyConfig config config@, because that would mean that every
+-- environment is a pretty-printing config on its own, which doesn't make sense. We could have an
+-- OVERLAPPABLE instance, but I'd rather not.
+instance HasPrettyConfig (Sole config) config where
+    prettyConfig f (Sole x) = Sole <$> f x
+
 newtype InContextM config a = InContextM
     { unInContextM :: Reader (Sole config) a
     } deriving newtype (Functor, Applicative, Monad, MonadReader (Sole config))

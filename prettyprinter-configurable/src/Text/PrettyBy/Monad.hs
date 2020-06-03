@@ -8,7 +8,6 @@
 module Text.PrettyBy.Monad
     ( HasPrettyConfig (..)
     , MonadPretty
-    , Sole (..)
     , prettyM
     , displayM
     ) where
@@ -31,14 +30,6 @@ class HasPrettyConfig env config | env -> config where
 -- when @env@ is left implicit, see https://gitlab.haskell.org/ghc/ghc/issues/3490
 -- | A constraint for \"@m@ is a monad that allows to pretty-print values in it by a @config@\".
 type MonadPretty config env m = (MonadReader env m, HasPrettyConfig env config)
-
--- | A @newtype@ wrapper around @a@ introduced for its 'HasPrettyConfig' instance.
-newtype Sole a = Sole
-    { unSole :: a
-    }
-
-instance HasPrettyConfig (Sole config) config where
-    prettyConfig f (Sole x) = Sole <$> f x
 
 prettyM :: (MonadPretty config env m, PrettyBy config a) => a -> m (Doc ann)
 prettyM x = flip prettyBy x <$> view prettyConfig
