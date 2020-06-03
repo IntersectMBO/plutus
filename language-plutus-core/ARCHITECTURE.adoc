@@ -11,3 +11,5 @@ This includes:
 - Evaluator
 - Support for some standard constructs e.g. the encodings of recursive types
 - A number of example programs
+
+It also includes the Plutus IR intermediary language as well.

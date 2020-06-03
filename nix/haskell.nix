@@ -81,7 +81,6 @@ let
             #plc-agda.package.ghcOptions = "-Werror";
             plutus-book.package.ghcOptions = "-Werror";
             plutus-contract.package.ghcOptions = "-Werror";
-            plutus-ir.package.ghcOptions = "-Werror";
             plutus-ledger.package.ghcOptions = "-Werror";
             plutus-playground-server.package.ghcOptions = "-Werror";
             plutus-scb.package.ghcOptions = "-Werror";

@@ -268,7 +268,6 @@ in rec {
                 ps.plutus-tx
                 ps.plutus-tx-plugin
                 ps.plutus-use-cases
-                ps.plutus-ir
                 ps.plutus-contract
               ]);
         in  [

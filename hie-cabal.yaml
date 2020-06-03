@@ -6,10 +6,14 @@ cradle:
     component: "lib:language-plutus-core"
   - path: ./language-plutus-core/src
     component: "lib:language-plutus-core"
+  - path: ./language-plutus-core/plutus-ir
+    component: "lib:language-plutus-core"
   - path: ./language-plutus-core/common
     component: "lib:language-plutus-core"
   - path: ./language-plutus-core/test
     component: "language-plutus-core:language-plutus-core-test"
+  - path: ./language-plutus-core/plutus-ir-test
+    component: "language-plutus-core:plutus-ir-test"
   - path: ./language-plutus-core/bench
     component: "language-plutus-core:language-plutus-core-bench"
   - path: ./language-plutus-core/weigh
@@ -22,10 +26,6 @@ cradle:
     component: "lib:plutus-tx-compiler"
   - path: ./plutus-tx/test
     component: "plutus-tx:plutus-tx-test"
-  - path: ./plutus-ir/src
-    component: "lib:plutus-ir"
-  - path: ./plutus-ir/test
-    component: "plutus-ir:plutus-ir-test"
   - path: ./plutus-playground-lib/src
     component: "lib:plutus-playground-lib"
   - path: ./plutus-playground-lib/test

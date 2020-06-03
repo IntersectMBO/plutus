@@ -2,7 +2,6 @@ resolver: lts-15.6
 
 packages:
 - language-plutus-core
-- plutus-ir
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases

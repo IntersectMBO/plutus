@@ -70,7 +70,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."bytestring" or (buildDepError "bytestring"))
           (hsPkgs."cborg" or (buildDepError "cborg"))
           (hsPkgs."containers" or (buildDepError "containers"))
-          (hsPkgs."plutus-ir" or (buildDepError "plutus-ir"))
           (hsPkgs."cryptonite" or (buildDepError "cryptonite"))
           (hsPkgs."hashable" or (buildDepError "hashable"))
           (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
