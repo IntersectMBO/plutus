@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes        #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DefaultSignatures          #-}
@@ -34,9 +35,9 @@ module Text.PrettyBy.Internal
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
-    , TypeOf
-    , KindOfHead
-    , DispatchDefaultPrettyBy (..)
+    , MonoKindOfHead
+    , DispatchDefaultFor (..)
+    , DefaultFor (..)
     , AttachDefaultPrettyConfig (..)
     , DefaultPrettyBy (..)
     , NonDefaultPrettyBy (..)
@@ -58,12 +59,12 @@ import           Data.Functor.Identity
 import           Data.Int
 import           Data.List.NonEmpty    (NonEmpty (..))
 import           Data.Maybe
-import qualified Data.Text             as Strict
-import qualified Data.Text.Lazy        as Lazy
 import           Data.Void
 import           Data.Word
 import           GHC.Natural
 import           GHC.TypeLits
+import qualified Data.Text             as Strict
+import qualified Data.Text.Lazy        as Lazy
 
 -- ##########################
 -- ## The 'PrettyBy' class ##
@@ -106,8 +107,8 @@ class PrettyBy config a where
     -- | Pretty-print a value of type @a@ the way a @config@ specifies it.
     -- The default implementation of 'prettyBy' is in terms of 'pretty'.
     prettyBy :: config -> a -> Doc ann
-    default prettyBy :: Pretty a => config -> a -> Doc ann
-    prettyBy _ = pretty
+    default prettyBy :: DefaultFor "prettyBy" config a => config -> a -> Doc ann
+    prettyBy = defaultFor @"prettyBy"
 
     -- | 'prettyListBy' is used to define the default 'PrettyBy' instance for @[a]@ and @NonEmpty a@.
     -- In normal circumstances only the 'prettyBy' function is used.
@@ -195,7 +196,7 @@ type instance HasPrettyDefaults () = 'True
 -- for anything that has a 'Pretty' instance.
 newtype IgnorePrettyConfig a = IgnorePrettyConfig
     { unIgnorePrettyConfig :: a
-    } deriving newtype (Pretty)
+    }
 
 -- |
 -- >>> data Cfg = Cfg
@@ -203,7 +204,8 @@ newtype IgnorePrettyConfig a = IgnorePrettyConfig
 -- >>> instance Pretty D where pretty D = "D"
 -- >>> prettyBy Cfg $ IgnorePrettyConfig D
 -- D
-instance Pretty a => PrettyBy config (IgnorePrettyConfig a)
+instance Pretty a => PrettyBy config (IgnorePrettyConfig a) where
+    prettyBy _ = pretty . unIgnorePrettyConfig
 
 -- | A config together with some value. The point is to provide a 'Pretty' instance
 -- for anything that has a @PrettyBy config@ instance.
@@ -239,37 +241,73 @@ defaultPrettyBifunctorBy
 defaultPrettyBifunctorBy config a =
     withAttachPrettyConfig config $ \attach -> pretty $ bimap attach attach a
 
--- #######################################################################
--- ## Dispatching between default implementations for 'defaultPrettyBy' ##
--- #######################################################################
+-- ##################################################################################
+-- ## Dispatching between default implementations for 'prettyBy'/'defaultPrettyBy' ##
+-- ##################################################################################
 
--- | Return the type of a type-level thing.
-type family TypeOf (x :: a) :: * where
-    TypeOf (x :: a) = a
+-- | Return the longest sequence of @*@ in the kind (right-to-left) of the head of an application.
+-- (but no longer than @* -> * -> *@, because we can't support longer ones in 'DispatchDefaultFor').
+type family MonoKindOfHead (target :: Symbol) (a :: *) :: * where
+    MonoKindOfHead target ((f :: * -> * -> * -> *) a b c) = TypeError
+        (     'Text "Automatic derivation of ‘"':<>: 'Text target ':<>: 'Text "’"
+        ':$$: 'Text "is not possible for data types that receive three and more arguments of kind ‘*’"
+        )
+    MonoKindOfHead _      ((f :: k -> * -> * -> *) a b c) = * -> * -> *
+    MonoKindOfHead _      ((f :: * -> * -> *)      a b  ) = * -> * -> *
+    MonoKindOfHead _      ((f :: k -> * -> *)      a b  ) = * -> *
+    MonoKindOfHead _      ((f :: * -> *)           a    ) = * -> *
+    MonoKindOfHead _      ((f :: k -> *)           a    ) = *
+    MonoKindOfHead _      a                               = *
 
--- | Return the kind of the head of an application.
-type family KindOfHead (a :: *) :: * where
-    KindOfHead (f a b) = TypeOf f
-    KindOfHead (f a)   = TypeOf f
-    KindOfHead a       = TypeOf a
+-- TODO: complete the docs.
+-- | This allows us to have different default implementations for 'prettyBy' and 'defaultPrettyBy'
+-- depending on whether @a@ is a monomorphic type or is a thing of kind @k -> *@ applied to a type
+-- variable (we then assume that this thing <...>
+--
+-- >>> newtype N = N Int deriving newtype (Pretty)
+-- >>> instance PrettyBy () N
+-- >>> prettyBy () (N 42)
+-- 42
+--
+-- >>> newtype N a = N a deriving (Functor) deriving newtype (Pretty)
+-- >>> instance PrettyBy () a => PrettyBy () (N a)
+-- >>> prettyBy () (N (42 :: Int))
+-- 42
+--
+-- >>> newtype N a = N Int deriving (Functor) deriving newtype (Pretty)
+-- >>> instance PrettyBy () (N b)
+-- >>> prettyBy () (N 42)
+-- 42
+--
+-- >>> newtype N (b :: Bool) = N Int deriving newtype (Pretty)
+-- >>> instance PrettyBy () (N b)
+-- >>> prettyBy () (N 42)
+-- 42
+class MonoKindOfHead target a ~ k => DispatchDefaultFor target k config a where
+    dispatchDefaultFor :: config -> a -> Doc ann
 
--- TODO: mention @data D (b :: Bool) = D@.
-class KindOfHead a ~ k => DispatchDefaultPrettyBy k config a where
-    dispatchDefaultPrettyBy :: config -> a -> Doc ann
+instance (MonoKindOfHead target a ~ *, Pretty a) => DispatchDefaultFor target * config a where
+    dispatchDefaultFor _ = pretty
 
-instance (KindOfHead a ~ *, Pretty a) => DispatchDefaultPrettyBy * config a where
-    dispatchDefaultPrettyBy _ = pretty
-
--- Note that we don't need to specify @k ~ *@, because it follows from @Functor f@ anyway.
-instance ( KindOfHead fa ~ (k -> *), fa ~ f a
+instance ( MonoKindOfHead target fa ~ (k -> *), fa ~ f a
          , Functor f, Pretty (f (AttachPrettyConfig config a))
-         ) => DispatchDefaultPrettyBy (k -> *) config fa where
-    dispatchDefaultPrettyBy = defaultPrettyFunctorBy
+         ) => DispatchDefaultFor target (k -> *) config fa where
+    dispatchDefaultFor = defaultPrettyFunctorBy
 
-instance ( KindOfHead fab ~ (k1 -> k2 -> *), fab ~ f a b
+instance ( MonoKindOfHead target fab ~ (k1 -> k2 -> *), fab ~ f a b
          , Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b))
-         ) => DispatchDefaultPrettyBy (k1 -> k2 -> *) config fab where
-    dispatchDefaultPrettyBy = defaultPrettyBifunctorBy
+         ) => DispatchDefaultFor target (k1 -> k2 -> *) config fab where
+    dispatchDefaultFor = defaultPrettyBifunctorBy
+
+-- | Introducing a class just for the nice name of the method and in case the defaulting machinery
+-- somehow blows up in the user's face.
+class DispatchDefaultFor target (MonoKindOfHead target a) config a =>
+            DefaultFor target config a where
+    defaultFor :: config -> a -> Doc ann
+
+instance DispatchDefaultFor target (MonoKindOfHead target a) config a =>
+            DefaultFor target config a where
+    defaultFor = dispatchDefaultFor @target
 
 -- ###################################################
 -- ## The 'DefaultPrettyBy' class and its instances ##
@@ -310,7 +348,7 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 -- doesn't please GHC.
 --
 -- It's also good practice to preserve coherence of 'Pretty' and 'PrettyBy', so I'd also add
--- @deriving (Pretty)@ to the definition of @AlsoInt@, even though it's not necessary.
+-- @deriving newtype (Pretty)@ to the definition of @AlsoInt@, even though it's not necessary.
 --
 -- When you want to extend the set of types supporting default pretty-printing with a data type
 -- that is a @data@ rather than a @newtype@, you can directly implement 'DefaultPrettyBy' and
@@ -375,8 +413,8 @@ class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
     -- The default implementation is 'pretty'.
     defaultPrettyBy :: config -> a -> Doc ann
-    default defaultPrettyBy :: DispatchDefaultPrettyBy (KindOfHead a) config a => config -> a -> Doc ann
-    defaultPrettyBy = dispatchDefaultPrettyBy
+    default defaultPrettyBy :: DefaultFor "defaultPrettyBy" config a => config -> a -> Doc ann
+    defaultPrettyBy = defaultFor @"defaultPrettyBy"
 
     -- | 'defaultPrettyListBy' to 'prettyListBy' is what 'defaultPrettyBy' to 'prettyBy'.
     -- The default implementation is \"pretty-print the spine of a list the way 'pretty' does that
