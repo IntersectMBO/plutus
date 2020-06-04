@@ -34,11 +34,11 @@ Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → EnvC⋆ Φ Ψ × Φ ⊢Nf⋆ J
 
 
 Clos : ∀{Φ} → Ctx Φ → Set
-EnvC : ∀{Φ Ψ} → Ctx Φ → Ctx Ψ → Set
-Clos Γ =
+data EnvC : ∀{Φ Ψ} → EnvC⋆ Φ Ψ → Ctx Φ → Ctx Ψ → Set where
+Clos {Φ} Γ =
   Σ Ctx⋆ λ Ψ → Σ (Ctx Ψ) λ Δ
-  → EnvC Δ Γ × Σ (Ψ ⊢Nf⋆ *) λ A → Σ (Δ ⊢ A) Value
-EnvC Γ Δ = {!!}
+  → Σ (EnvC⋆ Ψ Φ) λ ρ⋆ → EnvC ρ⋆ Δ Γ × Σ (Ψ ⊢Nf⋆ *) λ A → Σ (Δ ⊢ A) Value
+
 
 data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H : Φ' ⊢Nf⋆ *) → Set
   where

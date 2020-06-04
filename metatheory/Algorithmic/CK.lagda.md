@@ -44,7 +44,6 @@ data Stack : ∀{Φ Φ'}(Γ : Ctx Φ)(T : Φ ⊢Nf⋆ *)(Γ' : Ctx Φ')(H : Φ' 
     → Stack Γ T Γ' H1
     → Frame Γ' H1 Γ'' H2 → Stack Γ T Γ'' H2
 
-
 data State {Φ}(Γ : Ctx Φ)(T : Φ ⊢Nf⋆ *) : ∀{Φ'}(Γ' : Ctx Φ')(H : Φ' ⊢Nf⋆ *)
   → Set where
   _▻_ : ∀{Φ' Γ'}{H : Φ' ⊢Nf⋆ *} → Stack Γ T Γ' H → Γ' ⊢ H → State Γ T Γ' H
