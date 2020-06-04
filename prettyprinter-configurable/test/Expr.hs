@@ -66,16 +66,24 @@ mulFixity = Fixity LeftAssociative 7
 facFixity :: Fixity
 facFixity = Fixity LeftAssociative 9
 
+-- Prefix and with a negative precedence (not because required, but just to show that you can do
+-- have it if you want).
 ifThenElseFixity :: Fixity
 ifThenElseFixity = Fixity RightAssociative (-5)
 
 instance PrettyBy RenderContext Expr where
     prettyBy = inContextM $ \case
-        Var v -> unitDocM $ pretty v
+
+        Var v ->
+            -- Variables have 'unitFixity', i.e. parens are only added if a variable is
+            -- pretty-printed in 'topRenderContext', otherwise parens are not needed.
+            unitDocM $ pretty v
         Not e ->
+            -- @e@ pretty-printed is to the right of @~@, hence the 'ToTheRight'.
             sequenceDocM ToTheRight notFixity $ \prettyEl ->
                 "~" <> prettyEl e
         Or e1 e2 ->
+            -- This one and the other infix operators are pretty-printed in the same way.
             infixDocM orFixity $ \prettyL prettyR ->
                 prettyL e1 <+> "||" <+> prettyR e2
         And e1 e2 ->
@@ -85,6 +93,7 @@ instance PrettyBy RenderContext Expr where
             infixDocM eqFixity $ \prettyL prettyR ->
                 prettyL e1 <+> "==" <+> prettyR e2
         Neg e ->
+            -- @e@ is pretty-printed to the right of @-@, hence the 'ToTheRight'.
             sequenceDocM ToTheRight negFixity $ \prettyEl ->
                 "-" <+> prettyEl e
         Add e1 e2 ->
@@ -94,13 +103,22 @@ instance PrettyBy RenderContext Expr where
             infixDocM mulFixity $ \prettyL prettyR ->
                 prettyL e1 <+> "*" <+> prettyR e2
         Fac e ->
+            -- @e@ is pretty-printed to the left of @!@, hence the 'ToTheLeft'.
             sequenceDocM ToTheLeft facFixity $ \prettyEl ->
                 prettyEl e <> "!"
         IfThenElse c e1 e2 ->
+            -- @if_then_else_@ is a prefix operator, but we pretty-print it as if it was infix.
             infixDocM ifThenElseFixity $ \prettyL prettyR ->
+                -- This is for nice output when the lines are long. We don't test it,
+                -- so it could be just 'hsep'.
                 group . hang 4 $ vsep
-                    [ "if"   <+> prettyL c
+                    [ -- @if_then_else_@ is right-associative, so since we use @prettyL@ here,
+                      -- an @if_then_else_@ between @if@ and @then@ is pretty-printed in parens.
+                      "if"   <+> prettyL c
+                      -- since we use @prettyR@ here, an @if_then_else_@ between @then@ and @else@
+                      -- is pretty-printed without parens.
                     , "then" <+> prettyR e1
+                      -- Ditto.
                     , "else" <+> prettyR e2
                     ]
 
