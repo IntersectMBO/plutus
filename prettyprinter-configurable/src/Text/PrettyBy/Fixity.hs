@@ -131,7 +131,7 @@ infixDocM fixity k =
     compoundDocM fixity $ \prettyIn ->
         k (prettyIn ToTheLeft fixity) (prettyIn ToTheRight fixity)
 
--- | Pretty-print the arguments with a space between them. The fixity of the context in which the
+-- | Pretty-print two things with a space between them. The fixity of the context in which the
 -- arguments get pretty-printed is set to 'juxtFixity'.
 juxtPrettyM
     :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)

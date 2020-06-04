@@ -339,6 +339,9 @@ class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
     -- The default implementation is 'pretty'.
     defaultPrettyBy :: config -> a -> Doc ann
+    -- TODO: Hmm... we could easily dispatch on the spine of @a@ here
+    -- (using a type family and a type class as usual) and have all of
+    -- 'pretty', 'defaultPrettyFunctorBy' and 'defaultPrettyBifunctorBy' as defaults.
     default defaultPrettyBy :: Pretty a => config -> a -> Doc ann
     defaultPrettyBy _ = pretty
 

@@ -4,6 +4,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 
+-- | Demonstrating how to override default pretty-printing behavior.
+
 module NonDefault
     ( test_nonDefault
     ) where

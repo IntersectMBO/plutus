@@ -10,6 +10,8 @@
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+-- | Demonstrating how 'PrettyAny' can be used with @-XDerivingVia@.
+
 module Universal
     ( test_universal
     ) where

@@ -1,9 +1,10 @@
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Language.PlutusCore.Pretty.Readable
     ( module Export
@@ -15,6 +16,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Pretty.ConfigName
 
 import           Control.Lens
+import           Text.Pretty
 import           Text.PrettyBy.Fixity                  as Export
 
 data ShowKinds
@@ -62,3 +64,10 @@ botPrettyConfigReadable configName = PrettyConfigReadable configName botRenderCo
 -- | A 'PrettyConfigReadable' with the fixity specified to 'topFixity'.
 topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 topPrettyConfigReadable configName = PrettyConfigReadable configName topRenderContext
+
+-- | Pretty-print two things with a @->@ between them.
+arrowPrettyM
+    :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)
+    => a -> b -> m (Doc ann)
+arrowPrettyM a b =
+    infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b

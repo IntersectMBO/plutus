@@ -8,6 +8,10 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeApplications          #-}
 
+-- | Testing that @PrettyBy config@ and @Pretty@ instances are in sync for types that have
+-- peculiar default pretty-printing behavior (@Char@, @Maybe@, @[]@) and for types with regular
+-- pretty-printing behavior (@Integer@, @(,)@, @Text@).
+
 module Default
     ( test_default
     ) where

@@ -22,19 +22,6 @@ import           Language.PlutusCore.Universe
 import           Control.Monad.Reader
 import           Data.Text.Prettyprint.Doc
 
-applicationPM
-    :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)
-    => a -> b -> m (Doc ann)
-applicationPM fun arg =
-    infixDocM juxtFixity $ \prettyL prettyR -> prettyL fun <+> prettyR arg
-
--- | Pretty-print a @->@ between two things.
-arrowPM
-    :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)
-    => a -> b -> m (Doc ann)
-arrowPM a b =
-    infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
-
 -- | Pretty-print a binding at the type level.
 typeBinderDocM
     :: ( MonadReader env m, HasPrettyConfigReadable env configName
@@ -53,16 +40,17 @@ typeBinderDocM k = do
 instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
     prettyBy = inContextM $ \case
         Type{}          -> "*"
-        KindArrow _ k l -> k `arrowPM` l
+        KindArrow _ k l -> k `arrowPrettyM` l
 
 instance (PrettyReadableBy configName tyname, GShow uni) =>
         PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
-        TyApp _ fun arg           -> fun `applicationPM` arg
+        TyApp _ fun arg           -> fun `juxtPrettyM` arg
         TyVar _ name              -> prettyM name
-        TyFun _ tyIn tyOut        -> tyIn `arrowPM` tyOut
+        TyFun _ tyIn tyOut        -> tyIn `arrowPrettyM` tyOut
         TyIFix _ pat arg          ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl -> "ifix" <+> prettyEl pat <+> prettyEl arg
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "ifix" <+> prettyEl pat <+> prettyEl arg
         TyForall _ name kind body ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "all" <+> prettyBinding name kind <> "." <+> prettyBody body
@@ -79,7 +67,7 @@ instance
     prettyBy = inContextM $ \case
         Constant _ con         -> unitDocM $ pretty con
         Builtin _ bi           -> unitDocM $ pretty bi
-        Apply _ fun arg        -> fun `applicationPM` arg
+        Apply _ fun arg        -> fun `juxtPrettyM` arg
         Var _ name             -> prettyM name
         TyAbs _ name kind body ->
             typeBinderDocM $ \prettyBinding prettyBody ->

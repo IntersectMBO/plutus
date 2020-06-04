@@ -128,8 +128,12 @@ instance (Pretty a, Pretty b) => Pretty (Either a b) where
     pretty (Left  x) = parens ("Left"  <+> pretty x)
     pretty (Right y) = parens ("Right" <+> pretty y)
 
+-- | Default pretty-printing for the __spine__ of 'Either' (elements are pretty-printed the way
+-- @PrettyBy config@ constraints specify it).
 instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Either a b) where
     defaultPrettyBy = defaultPrettyBifunctorBy
+
+-- | An instance extending the set of types supporting default pretty-printing with 'Either'.
 deriving via PrettyCommon (Either a b)
     instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
 

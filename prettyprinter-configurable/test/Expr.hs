@@ -4,6 +4,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
 
+-- | Testing precedence-aware pretty-printing.
+
 module Expr
     ( test_expr
     ) where
