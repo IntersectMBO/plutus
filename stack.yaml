@@ -1,6 +1,7 @@
 resolver: lts-15.6
 
 packages:
+- prettyprinter-configurable
 - language-plutus-core
 - plutus-ir
 - plutus-tx
@@ -19,7 +20,6 @@ packages:
 - deployment-server
 - iots-export
 - marlowe-symbolic
-- prettyprinter-configurable
 
 extra-deps:
 # Other missing packages

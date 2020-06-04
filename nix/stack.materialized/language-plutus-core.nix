@@ -92,7 +92,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           (hsPkgs."monoidal-containers" or (buildDepError "monoidal-containers"))
           (hsPkgs."mtl" or (buildDepError "mtl"))
           (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
-          (hsPkgs."prettyprinter-configurable" or (buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (buildDepError "safe-exceptions"))
           (hsPkgs."semigroups" or (buildDepError "semigroups"))
@@ -161,6 +160,7 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/PlutusCore/Generators/Internal/TypedBuiltinGen"
           "Language/PlutusCore/Generators/Internal/Utils"
           "Data/Functor/Foldable/Monadic"
+          "Data/Text/Prettyprint/Doc/Custom"
           "Language/PlutusCore"
           "Language/PlutusCore/Quote"
           "Language/PlutusCore/MkPlc"
@@ -217,7 +217,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Data/ByteString/Lazy/Hash"
           "PlcTestUtils"
           "Crypto"
-          "Data/Text/Prettyprint/Doc/Custom"
           ];
         hsSourceDirs = [
           "src"
