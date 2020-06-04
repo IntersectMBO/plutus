@@ -117,8 +117,6 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
             (hsPkgs."prettyprinter-configurable" or (buildDepError "prettyprinter-configurable"))
             (hsPkgs."base" or (buildDepError "base"))
             (hsPkgs."doctest" or (buildDepError "doctest"))
-            (hsPkgs."tasty" or (buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
             ];
           buildable = true;
           hsSourceDirs = [ "doctest" ];
