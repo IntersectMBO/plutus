@@ -19,6 +19,7 @@ packages:
 - deployment-server
 - iots-export
 - marlowe-symbolic
+- prettyprinter-configurable
 
 extra-deps:
 # Other missing packages
