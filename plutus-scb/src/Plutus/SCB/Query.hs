@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -236,7 +237,7 @@ contractStates ::
     IteratedContractState a
     -> Map ContractInstanceId (ContractIteration, a)
 contractStates IteratedContractState{icsContractIterations=ContractIterationState its, icsContractState} =
-    Map.mapMaybeWithKey (\k (Max i) -> fmap (\v -> (i, v)) (Map.lookup k icsContractState)) its
+    Map.mapMaybeWithKey (\k (Max i) -> fmap (i,) (Map.lookup k icsContractState)) its
 
 -- | Given a way to extract 'a's from a 'ContractRequest', make an a projection of each contract instance's
 --   'a' in the instance's latest iteration.
@@ -278,7 +279,7 @@ userEndpointRequests = iteratedContractStateProjection (preview (C._OutboxMessag
 
 -- | Contract instances' requests for "own" public keys
 ownPubKeyRequests :: forall t key position. Projection (IteratedContractState ()) (StreamEvent key position (ChainEvent t))
-ownPubKeyRequests = iteratedContractStateProjection (fmap (const ()) . preview (C._OutboxMessage . C._OwnPubkeyRequest))
+ownPubKeyRequests = iteratedContractStateProjection (void . preview (C._OutboxMessage . C._OwnPubkeyRequest))
 
 -- | Requests for subsets of the UTXO set
 utxoAtRequests :: forall t key position. Projection (IteratedContractState AddressSet) (StreamEvent key position (ChainEvent t))

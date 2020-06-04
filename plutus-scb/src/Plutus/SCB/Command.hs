@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 -- | Commands, in CQRS parlance, are inbound message which will
 -- will be processed into events to put in the event store.
 --
