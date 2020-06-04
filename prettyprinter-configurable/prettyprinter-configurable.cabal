@@ -3,7 +3,9 @@ version:             0.1.0.0
 -- synopsis:
 -- description:
 -- homepage:            https://github.com/githubuser/prettyprinter-configurable#readme
-license-file:        LICENSE
+license-files:
+  LICENSE
+  NOTICE
 author:              David Luposchainsky, effectfully
 maintainer:          plutus@iohk.io
 category:            User Interfaces, Text
