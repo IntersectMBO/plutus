@@ -70,6 +70,9 @@ let
             # plc-agda is compiled from the Haskell source files generated from the Agda
             plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
 
+            # Relies on cabal-doctest, just turn it off in the Nix build
+            prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
+
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
             iots-export.package.ghcOptions = "-Werror";
