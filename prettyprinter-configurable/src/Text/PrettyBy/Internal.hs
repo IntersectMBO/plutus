@@ -727,6 +727,8 @@ deriving via PrettyCommon (Maybe a)
 -- D
 -- >>> prettyBy LowerCase D
 -- d
+--
+-- Look into @test/Universal.hs@ for an extended example.
 newtype PrettyAny a = PrettyAny
     { unPrettyAny :: a
     }
