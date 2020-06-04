@@ -11,11 +11,11 @@ module NonDefault
     ) where
 
 import           Text.Pretty
-import           Text.PrettyBy
+import           Text.PrettyBy.Internal
 
-import           Data.Char        (intToDigit)
-import           Data.Text        (Text)
-import           Numeric          (showIntAtBase)
+import           Data.Char              (intToDigit)
+import           Data.Text              (Text)
+import           Numeric                (showIntAtBase)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

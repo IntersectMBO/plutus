@@ -4,8 +4,6 @@ module Text.PrettyBy
     , AttachPrettyConfig (..)
     , PrettyAny (..)
     , withAttachPrettyConfig
-    , defaultPrettyFunctorBy
-    , defaultPrettyBifunctorBy
     , NonDefaultPrettyBy (..)
     , HasPrettyDefaults
     , PrettyDefaultBy

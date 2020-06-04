@@ -7,6 +7,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
@@ -33,6 +34,9 @@ module Text.PrettyBy.Internal
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
+    , TypeOf
+    , KindOfHead
+    , DispatchDefaultPrettyBy (..)
     , AttachDefaultPrettyConfig (..)
     , DefaultPrettyBy (..)
     , NonDefaultPrettyBy (..)
@@ -235,6 +239,38 @@ defaultPrettyBifunctorBy
 defaultPrettyBifunctorBy config a =
     withAttachPrettyConfig config $ \attach -> pretty $ bimap attach attach a
 
+-- #######################################################################
+-- ## Dispatching between default implementations for 'defaultPrettyBy' ##
+-- #######################################################################
+
+-- | Return the type of a type-level thing.
+type family TypeOf (x :: a) :: * where
+    TypeOf (x :: a) = a
+
+-- | Return the kind of the head of an application.
+type family KindOfHead (a :: *) :: * where
+    KindOfHead (f a b) = TypeOf f
+    KindOfHead (f a)   = TypeOf f
+    KindOfHead a       = TypeOf a
+
+-- TODO: mention @data D (b :: Bool) = D@.
+class KindOfHead a ~ k => DispatchDefaultPrettyBy k config a where
+    dispatchDefaultPrettyBy :: config -> a -> Doc ann
+
+instance (KindOfHead a ~ *, Pretty a) => DispatchDefaultPrettyBy * config a where
+    dispatchDefaultPrettyBy _ = pretty
+
+-- Note that we don't need to specify @k ~ *@, because it follows from @Functor f@ anyway.
+instance ( KindOfHead fa ~ (k -> *), fa ~ f a
+         , Functor f, Pretty (f (AttachPrettyConfig config a))
+         ) => DispatchDefaultPrettyBy (k -> *) config fa where
+    dispatchDefaultPrettyBy = defaultPrettyFunctorBy
+
+instance ( KindOfHead fab ~ (k1 -> k2 -> *), fab ~ f a b
+         , Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b))
+         ) => DispatchDefaultPrettyBy (k1 -> k2 -> *) config fab where
+    dispatchDefaultPrettyBy = defaultPrettyBifunctorBy
+
 -- ###################################################
 -- ## The 'DefaultPrettyBy' class and its instances ##
 -- ###################################################
@@ -339,11 +375,8 @@ class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
     -- The default implementation is 'pretty'.
     defaultPrettyBy :: config -> a -> Doc ann
-    -- TODO: Hmm... we could easily dispatch on the spine of @a@ here
-    -- (using a type family and a type class as usual) and have all of
-    -- 'pretty', 'defaultPrettyFunctorBy' and 'defaultPrettyBifunctorBy' as defaults.
-    default defaultPrettyBy :: Pretty a => config -> a -> Doc ann
-    defaultPrettyBy _ = pretty
+    default defaultPrettyBy :: DispatchDefaultPrettyBy (KindOfHead a) config a => config -> a -> Doc ann
+    defaultPrettyBy = dispatchDefaultPrettyBy
 
     -- | 'defaultPrettyListBy' to 'prettyListBy' is what 'defaultPrettyBy' to 'prettyBy'.
     -- The default implementation is \"pretty-print the spine of a list the way 'pretty' does that
@@ -376,20 +409,18 @@ instance DefaultPrettyBy config Lazy.Text
 
 -- Straightforward polymorphic instances.
 
-instance PrettyBy config a => DefaultPrettyBy config (Identity a) where
-    defaultPrettyBy = defaultPrettyFunctorBy
+instance PrettyBy config a => DefaultPrettyBy config (Identity a)
 
-instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (a, b) where
-    defaultPrettyBy = defaultPrettyBifunctorBy
+instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (a, b)
 
+-- We don't have @Trifunctor@ in base, unfortunately, hence writings things out manually. Could we
+-- do that via generics? I feel like that would amount to implementing n-ary 'Functor' anyway.
 instance (PrettyBy config a, PrettyBy config b, PrettyBy config c) =>
             DefaultPrettyBy config (a, b, c) where
     defaultPrettyBy config (x, y, z) =
         withAttachPrettyConfig config $ \attach -> pretty (attach x, attach y, attach z)
 
-instance PrettyBy config a => DefaultPrettyBy config (Const a b) where
-    defaultPrettyBy config a =
-       withAttachPrettyConfig config $ \attach -> pretty $ first attach a
+instance PrettyBy config a => DefaultPrettyBy config (Const a (b :: *))
 
 -- Peculiar instances.
 
@@ -397,7 +428,6 @@ instance PrettyBy config Strict.Text => DefaultPrettyBy config Char where
     defaultPrettyListBy config = prettyBy config . Strict.pack
 
 instance PrettyBy config a => DefaultPrettyBy config (Maybe a) where
-    defaultPrettyBy = defaultPrettyFunctorBy
     defaultPrettyListBy config = prettyListBy config . catMaybes
 
 instance PrettyBy config a => DefaultPrettyBy config [a] where
