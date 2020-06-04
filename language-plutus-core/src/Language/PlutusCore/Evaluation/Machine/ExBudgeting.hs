@@ -80,6 +80,9 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , CostModel(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
+    , ModelMinSize(..)
+    , ModelSplitConstMulti(..)
+    , ModelExpMultiSizes(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -238,9 +241,34 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
+data ModelMinSize = ModelMinSize
+    { modelMinSizeIntercept :: Double
+    , modelMinSizeSlope     :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
+
+data ModelExpMultiSizes = ModelExpMultiSizes
+    { modelExpMultiSizesIntercept :: Double
+    , modelExpMultiSizesSlopeX    :: Double
+    , modelExpMultiSizesSlopeY    :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelExpMultiSizes", CamelToSnake)] ModelExpMultiSizes
+
+data ModelSplitConstMulti = ModelSplitConstMulti
+    { modelSplitConstMultiIntercept :: Double
+    , modelSplitConstMultiSlope     :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelSplitConstMulti", CamelToSnake)] ModelSplitConstMulti
+
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
+    | ModelTwoArgumentsMinSize ModelMinSize
+    | ModelTwoArgumentsExpMultiSizes ModelExpMultiSizes
+    | ModelTwoArgumentsSplitConstMulti ModelSplitConstMulti
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
@@ -258,6 +286,15 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
+runTwoArgumentModel
+    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (fromInteger (min size1 size2)) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsExpMultiSizes (ModelExpMultiSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (((fromInteger size1) ** 2) * slopeX) * (((fromInteger size2) ** 2) * slopeY) + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsSplitConstMulti (ModelSplitConstMulti intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost Integer

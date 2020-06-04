@@ -394,4 +394,5 @@ benchmark language-plutus-core-create-cost-model
         aeson-pretty -any,
         extra -any,
         data-default -any,
+        cassava -any,
         exceptions -any

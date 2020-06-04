@@ -3,12 +3,14 @@
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Main where
 
 import           Foreign.R
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
-import           Data.Aeson
+import           Data.Aeson hiding ((.:))
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Default
@@ -19,6 +21,10 @@ import           Data.Vector
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.R
+import GHC.Generics
+import Data.Csv
+
+import Debug.Trace
 
 {- See Note [Creation of the Cost Model]
 -}
@@ -26,34 +32,33 @@ import           Language.R
 main :: IO ()
 main = do
   model <- withEmbeddedR defaultConfig $ runRegion $ do
-      -- TODO git rev-parse --show-toplevel
-      benchData <- [r|
+      models <- [r|
         library(jsonlite)
-        source("budgeting-bench/benchData.R")
-        benchData("budgeting-bench/csvs/benching.csv")
-        |]
-      paramAddInteger <- addInteger benchData
-      paramSubtractInteger <- subtractInteger benchData
-      paramMultiplyInteger <- multiplyInteger benchData
-      paramDivideInteger <- divideInteger benchData
-      paramQuotientInteger <- quotientInteger benchData
-      paramRemainderInteger <- remainderInteger benchData
-      paramModInteger <- modInteger benchData
-      paramLessThanInteger <- lessThanInteger benchData
-      paramLessThanEqInteger <- lessThanEqInteger benchData
-      paramGreaterThanInteger <- greaterThanInteger benchData
-      paramGreaterThanEqInteger <- greaterThanEqInteger benchData
-      paramEqInteger <- eqInteger benchData
-      paramConcatenate <- concatenate benchData
-      paramTakeByteString <- takeByteString benchData
-      paramDropByteString <- dropByteString benchData
-      paramSHA2 <- sHA2 benchData
-      paramSHA3 <- sHA3 benchData
-      paramVerifySignature <- verifySignature benchData
-      paramEqByteString <- eqByteString benchData
-      paramLtByteString <- ltByteString benchData
-      paramGtByteString <- gtByteString benchData
-      paramIfThenElse <- ifThenElse benchData
+        source("budgeting-bench/models.R")
+        modelFun("budgeting-bench/csvs/benching.csv")
+      |]
+      paramAddInteger <- addInteger models
+      paramSubtractInteger <- subtractInteger models
+      paramMultiplyInteger <- multiplyInteger models
+      paramDivideInteger <- divideInteger models
+      paramQuotientInteger <- quotientInteger models
+      paramRemainderInteger <- remainderInteger models
+      paramModInteger <- modInteger models
+      paramLessThanInteger <- lessThanInteger models
+      paramLessThanEqInteger <- lessThanEqInteger models
+      paramGreaterThanInteger <- greaterThanInteger models
+      paramGreaterThanEqInteger <- greaterThanEqInteger models
+      paramEqInteger <- eqInteger models
+      paramConcatenate <- concatenate models
+      paramTakeByteString <- takeByteString models
+      paramDropByteString <- dropByteString models
+      paramSHA2 <- sHA2 models
+      paramSHA3 <- sHA3 models
+      paramVerifySignature <- verifySignature models
+      paramEqByteString <- eqByteString models
+      paramLtByteString <- ltByteString models
+      paramGtByteString <- gtByteString models
+      paramIfThenElse <- ifThenElse models
 
       pure $ CostModel {..}
   BSL.writeFile "language-plutus-core/src/costModel.json" $ encodePretty' (defConfig { confCompare = \_ _-> EQ }) model
@@ -63,66 +68,118 @@ filterDF by df =
   [r| df_hs %>% filter(BuiltinName %in% c(by_hs))|]
 
 data LinearModelRaw = LinearModelRaw
-  { linearModelRawTerm      :: String
+  { linearModelIndex        :: Integer
+  , linearModelRawTerm      :: String
   , linearModelRawEstimate  :: Double
   , linearModelRawStdError  :: Double
   , linearModelRawStatistic :: Double
   , linearModelRawPValue    :: Double
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Generic)
 
-instance FromJSON LinearModelRaw where
-    parseJSON = withObject "LinearModelRaw" $ \v -> LinearModelRaw
-        <$> v .: "term"
+instance FromNamedRecord LinearModelRaw where
+  parseNamedRecord v =
+      LinearModelRaw
+        <$> v .: ""
+        <*> v .: "term"
         <*> v .: "estimate"
         <*> v .: "std.error"
         <*> v .: "statistic"
         <*> v .: "p.value"
 
+instance FromRecord LinearModelRaw
+
 findInRaw :: String -> Vector LinearModelRaw -> Either String LinearModelRaw
 findInRaw s v = maybeToEither ("Couldn't find the term " <> s) $
   Data.Vector.find (\e -> linearModelRawTerm e == s) v
 
-linearAdditiveModel :: MonadR m => (SomeSEXP (Region m)) -> m (ModelAddedSizes)
-linearAdditiveModel df = do
-  j <- [r| jsonlite::toJSON(tidy(lm(Mean ~ I(x_mem + y_mem), df_hs))) |]
+unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (Double, Double)
+unsafeReadModelFromR formula rmodel = do
+  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+          paste(out, collapse="\n") |]
   let m = do
-        model <- eitherDecodeStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
+        model <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
-        slope <- linearModelRawEstimate <$> findInRaw "I(x_mem + y_mem)" model
-        pure $ ModelAddedSizes intercept slope
+        slope <- linearModelRawEstimate <$> findInRaw formula model
+        pure $ (intercept, slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
 
+unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (Double, Double, Double)
+unsafeReadModelFromR2 formula1 formula2 rmodel = do
+  j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
+          paste(out, collapse="\n") |]
+  let m = do
+        model <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
+        intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
+        slope1 <- linearModelRawEstimate <$> findInRaw formula1 model
+        slope2 <- linearModelRawEstimate <$> findInRaw formula2 model
+        pure $ (intercept, slope1, slope2)
+  case m of
+    Left err -> throwM (TypeError err)
+    Right x  -> pure x
+
+readModelAddedSizes :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelAddedSizes
+readModelAddedSizes models name = (pure . uncurry ModelAddedSizes) =<< unsafeReadModelFromR "I(x_mem + y_mem)" =<< ([r| models_hs[[name_hs]]|])
+
+readModelMinSize :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelMinSize
+readModelMinSize models name = (pure . uncurry ModelMinSize) =<< unsafeReadModelFromR "I(pmin(x_mem, y_mem))" =<< ([r| models_hs[[name_hs]]|])
+
+uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
+uncurry3 f ~(a,b,c) = f a b c
+
+readModelExpMultiSizes :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelExpMultiSizes
+readModelExpMultiSizes models name = (pure . uncurry3 ModelExpMultiSizes) =<< unsafeReadModelFromR2 "x_mem" "y_mem" =<< ([r| models_hs[[name_hs]]|])
+
+readModelSplitConstMulti :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelSplitConstMulti
+readModelSplitConstMulti models name = (pure . uncurry ModelSplitConstMulti) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, x_mem * y_mem, 0)" =<< ([r| models_hs[[name_hs]]|])
 
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-addInteger df = do
-  addInt <- filterDF "AddInteger" df
-  cpuModel <- linearAdditiveModel addInt
+addInteger models = do
+  cpuModel <- readModelAddedSizes models "addIntegerModel"
   pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) def
 
 subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-subtractInteger _ = pure def
+subtractInteger models = do
+  cpuModel <- readModelAddedSizes models "subtractIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) def
+
 multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-multiplyInteger _ = pure def
+multiplyInteger models = do
+  cpuModel <- readModelExpMultiSizes models "multiplyIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsExpMultiSizes cpuModel) def
+
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-divideInteger _ = pure def
+divideInteger models = do
+  cpuModel <- readModelSplitConstMulti models "divideIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) def
+
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-quotientInteger _ = pure def
+quotientInteger = divideInteger
 remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-remainderInteger _ = pure def
+remainderInteger = divideInteger
 modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-modInteger _ = pure def
+modInteger = divideInteger
+
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-lessThanInteger _ = pure def
-lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-lessThanEqInteger _ = pure def
+lessThanInteger models = do
+  cpuModel <- readModelMinSize models "lessThanIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanInteger _ = pure def
+greaterThanInteger = lessThanInteger
+
+lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+lessThanEqInteger models = do
+  cpuModel <- readModelMinSize models "lessThanEqIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
 greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-greaterThanEqInteger _ = pure def
+greaterThanEqInteger = lessThanEqInteger
+
 eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-eqInteger _ = pure def
+eqInteger models = do
+  cpuModel <- readModelMinSize models "eqIntegerModel"
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
+
 concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 concatenate _ = pure def
 takeByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

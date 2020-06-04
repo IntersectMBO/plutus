@@ -2,7 +2,7 @@
 , ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 2
 | mem: 2
 })
-| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 0
+| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 1
 | mem: 1
 })
 | BTyInst causes ({ cpu: 12
@@ -27,9 +27,9 @@
 | mem: 4
 })
 | BAST causes ({ cpu: 0
-| mem: 541
+| mem: 118
 })})
-| budget: ({ cpu: 116
-| mem: 658
+| budget: ({ cpu: 117
+| mem: 235
 })
 }))

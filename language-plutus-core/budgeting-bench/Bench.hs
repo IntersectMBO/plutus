@@ -73,13 +73,13 @@ benchVerifySignature =
         bs = (expToBenchingBytestring seedA . fromInteger) <$> expsToBenchBS
 
 expsToBenchBS :: [Integer]
-expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..5])
+expsToBenchBS = ((\(a :: Integer) -> 2^a) <$> [1..15])
 
 byteStringsToBench :: Seed -> [(BSL.ByteString, ExMemory)]
 byteStringsToBench seed = (expToBenchingBytestring seed . fromInteger) <$> expsToBenchBS
 
 expsToBench :: [Integer]
-expsToBench = ((\(a :: Integer) -> 2^a) <$> [1..9]) <> ((\(a :: Integer) -> 10^a) <$> [3..8])
+expsToBench = ((\(a :: Integer) -> 2^a) <$> [1..16]) -- <> ((\(a :: Integer) -> 10^a) <$> [3..8])
 
 seedA :: Seed
 seedA = (Seed 42 43)
@@ -111,7 +111,7 @@ benchTwoInt builtinName =
 -- See also Note [Creation of the Cost Model]
 main :: IO ()
 main = do
-    defaultMainWith (defaultConfig { C.csvFile = Just $ "language-plutus-core/budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
+    defaultMainWith (defaultConfig { C.csvFile = Just $ "budgeting-bench/csvs/benching.csv" }) $ (benchTwoInt <$> twoIntNames) <> (benchTwoByteStrings <$> [LtByteString, GtByteString, Concatenate]) <> (benchBytestringOperations <$> [DropByteString, TakeByteString]) <> (benchHashOperations <$> [SHA2, SHA3]) <> (benchSameTwoByteStrings <$> [EqByteString]) <> [benchVerifySignature]
     pure ()
     where
         twoIntNames = [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, LessThanInteger, LessThanEqInteger, GreaterThanEqInteger, GreaterThanEqInteger, EqInteger]
