@@ -1,30 +1,30 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Main where
 
-import           Foreign.R
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
-import           Data.Aeson hiding ((.:))
+import           Data.Aeson                                         hiding ((.:))
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy                               as BSL
+import           Data.Csv
 import           Data.Default
 import           Data.Either.Extra
 import           Data.Text                                          as T
 import qualified Data.Text.Encoding                                 as T
 import           Data.Vector
+import           Foreign.R
+import           GHC.Generics
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.R
-import GHC.Generics
-import Data.Csv
 
-import Debug.Trace
+import           Debug.Trace
 
 {- See Note [Creation of the Cost Model]
 -}

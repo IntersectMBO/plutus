@@ -35,7 +35,7 @@ import           Playground.Types                                (CompilationRes
                                                                   FunctionSchema (FunctionSchema),
                                                                   KnownCurrency (KnownCurrency), PlaygroundError,
                                                                   SimulatorWallet (SimulatorWallet), adaCurrency,
-                                                                  argumentValues, argument, caller, emulatorLog,
+                                                                  argument, argumentValues, caller, emulatorLog,
                                                                   endpointDescription, fundsDistribution, program,
                                                                   resultBlockchain, simulatorWalletBalance,
                                                                   simulatorWalletWallet, sourceCode, walletKeys,

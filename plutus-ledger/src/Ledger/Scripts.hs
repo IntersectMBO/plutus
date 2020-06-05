@@ -77,7 +77,7 @@ import qualified Language.PlutusCore                  as PLC
 import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic as PLC
 import qualified Language.PlutusCore.Pretty           as PLC
-import           Language.PlutusTx                    (CompiledCode, IsData (..), getPlc, makeLift, compile)
+import           Language.PlutusTx                    (CompiledCode, IsData (..), compile, getPlc, makeLift)
 import           Language.PlutusTx.Builtins           as Builtins
 import           Language.PlutusTx.Evaluation         (ErrorWithCause (..), EvaluationError (..), evaluateCekTrace)
 import           Language.PlutusTx.Lift               (liftCode)

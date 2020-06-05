@@ -25,4 +25,4 @@ The code in budgeting-bench runs a benchmark for each `Builtin` (as defined in `
 
 #### create-cost-model
 
-From that csv, a model is being calibrated and generated. Depending on the `Builtin`, we choose a model (by hand) and calibrate it with the benchmark data from the csv. To check which `Builtin` uses which model, consult with `CreateModel.hs`.
+From that csv, a model is being calibrated and generated. Depending on the `Builtin`, we choose a model (by hand) and calibrate it with the benchmark data from the csv. To check which `Builtin` uses which model, consult with `models.R`. The models are created in R and invoked via `inline-r`, because of the superior modeling capacities in R. The prediction part of the model is reimplemented in Haskell.

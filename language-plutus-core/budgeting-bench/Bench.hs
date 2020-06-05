@@ -5,22 +5,23 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
+-- See Note [Creation of the Cost Model]
 module Main (main) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Evaluation.Machine.Cek
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import qualified Data.ByteString.Lazy                                       as BSL
 import           Hedgehog
 import           Hedgehog.Internal.Gen
 import           Hedgehog.Internal.Tree
 import           Hedgehog.Range
+import           Language.PlutusCore
+import           Language.PlutusCore.Evaluation.Machine.Cek
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.MkPlc
 
 import           Criterion.Main
 import qualified Criterion.Types                                            as C
-import Data.Functor
+import           Data.Functor
 
 runTermBench :: String -> Plain Term DefaultUni -> Benchmark
 runTermBench name term = env

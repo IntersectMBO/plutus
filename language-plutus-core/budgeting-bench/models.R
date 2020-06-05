@@ -3,6 +3,8 @@ library(stringr)
 library(MASS)
 library(broom)
 
+# See Note [Creation of the Cost Model]
+
 benchData <- function(path) {
 
   dat <- read.csv(

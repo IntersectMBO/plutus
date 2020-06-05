@@ -163,7 +163,7 @@ data ContractDemo =
 data FunctionSchema a =
     FunctionSchema
         { endpointDescription :: EndpointDescription
-        , argument           :: a
+        , argument            :: a
         -- ^ All contract endpoints take a single argument. (Multiple arguments must be wrapped up into a container.)
         }
     deriving ( Eq

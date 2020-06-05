@@ -382,6 +382,7 @@
             (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
             (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
             (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
             ];
           buildable = true;
