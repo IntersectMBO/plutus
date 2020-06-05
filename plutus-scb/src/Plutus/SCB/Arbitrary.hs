@@ -27,7 +27,6 @@ import           Ledger.Interval                                   (Extended, In
 import           Ledger.Slot                                       (Slot)
 import           Ledger.Tx                                         (TxIn, TxInType, TxOutRef, TxOutType)
 import           Ledger.TxId                                       (TxId)
-import           Ledger.Typed.Scripts                              (wrapValidator)
 import           LedgerBytes                                       (LedgerBytes)
 import qualified LedgerBytes
 import           Plutus.SCB.Events.Contract
@@ -41,8 +40,7 @@ instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
 
 instance Arbitrary Ledger.MonetaryPolicy where
-    arbitrary = genericArbitrary
-    shrink = genericShrink
+    arbitrary = pure Ledger.acceptingMonetaryPolicy
 
 instance Arbitrary WalletAPIError where
     arbitrary = genericArbitrary
@@ -115,18 +113,12 @@ instance Arbitrary Ledger.DatumHash where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance Arbitrary Ledger.Script where
-    arbitrary = pure $ Ledger.unValidatorScript $ Ledger.mkValidatorScript $$(PlutusTx.compile [|| validator ||])
-      where
-        validator = wrapValidator ((\_ _ _ -> True) :: Integer -> Integer -> Ledger.PendingTx -> Bool)
-
 instance Arbitrary Ledger.Redeemer where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
 instance Arbitrary Ledger.Validator where
-    arbitrary = genericArbitrary
-    shrink = genericShrink
+    arbitrary = pure Ledger.acceptingValidator
 
 instance Arbitrary Ledger.TokenName where
     arbitrary = genericArbitrary
@@ -180,9 +172,15 @@ instance Arbitrary WaitingForSlot where
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
 genResponse :: ContractRequest -> Maybe (Gen ContractResponse)
-genResponse (AwaitSlotRequest (WaitingForSlot (Just slot)))        = Just $ pure $ AwaitSlotResponse slot
+genResponse (AwaitSlotRequest (WaitingForSlot (Just slot))) =
+    Just $ pure $ AwaitSlotResponse slot
 genResponse (AwaitTxConfirmedRequest txIds) =
-    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $ listToMaybe $ Set.toList $ unTxIdSet txIds
-genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)
-genResponse (OwnPubkeyRequest WaitingForPubKey)               = Just $ OwnPubkeyResponse <$> arbitrary
-genResponse _                              = Nothing
+    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $
+    listToMaybe $ Set.toList $ unTxIdSet txIds
+genResponse (UserEndpointRequest _) =
+    Just $
+    UserEndpointResponse <$> (EndpointDescription <$> arbitrary) <*>
+    (EndpointValue <$> arbitrary)
+genResponse (OwnPubkeyRequest WaitingForPubKey) =
+    Just $ OwnPubkeyResponse <$> arbitrary
+genResponse _ = Nothing

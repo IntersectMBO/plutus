@@ -1,3 +1,0 @@
-=== `plutus-contract-tasty`
-
-Implements the `Language.Plutus.Contract.Test.TracePredicate` type. Trace predicates are expectations about the mockchain after running a contract trace. They can be turned into unit tests (with `tasty-hunit`) and produce useful debug output about the trace and the state of the contract.

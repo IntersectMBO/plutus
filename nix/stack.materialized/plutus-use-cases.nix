@@ -42,9 +42,8 @@
           (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-          (hsPkgs."plutus-playground-lib" or (errorHandler.buildDepError "plutus-playground-lib"))
+          (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -99,8 +98,6 @@
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
-            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
-            (hsPkgs."plutus-contract-tasty" or (errorHandler.buildDepError "plutus-contract-tasty"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -149,7 +146,7 @@
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [ "Scott" "Recursion" "IFix" "Opt" ];

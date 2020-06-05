@@ -2,6 +2,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl Bool (type))
         
@@ -9,34 +12,25 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-      )
-      (let
-        (nonrec)
-        (termbind
-          (strict)
-          (vardecl andExternal (fun Bool (fun Bool Bool)))
-          (lam
-            a
-            Bool
-            (lam
-              b
-              Bool
-              [
-                [
-                  [ { [ Bool_match a ] (fun Unit Bool) } (lam thunk Unit b) ]
-                  (lam thunk Unit False)
-                ]
-                Unit
-              ]
-            )
-          )
+    (termbind
+      (strict)
+      (vardecl andExternal (fun Bool (fun Bool Bool)))
+      (lam
+        a
+        Bool
+        (lam
+          b
+          Bool
+          [
+            [
+              [ { [ Bool_match a ] (fun Unit Bool) } (lam thunk Unit b) ]
+              (lam thunk Unit False)
+            ]
+            Unit
+          ]
         )
-        [ [ andExternal True ] False ]
       )
     )
+    [ [ andExternal True ] False ]
   )
 )

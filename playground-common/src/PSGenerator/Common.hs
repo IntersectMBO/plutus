@@ -6,29 +6,35 @@
 
 module PSGenerator.Common where
 
-import           Control.Applicative                       (empty, (<|>))
-import           Control.Monad.Reader                      (MonadReader)
-import           Data.Proxy                                (Proxy (Proxy))
-import           Language.PureScript.Bridge                (BridgePart, Language (Haskell), PSType, SumType,
-                                                            TypeInfo (TypeInfo), doCheck, equal, functor, genericShow,
-                                                            haskType, isTuple, mkSumType, order, psTypeParameters,
-                                                            typeModule, typeName, (^==))
-import           Language.PureScript.Bridge.Builder        (BridgeData)
-import           Language.PureScript.Bridge.PSTypes        (psArray, psInt, psString)
-import           Language.PureScript.Bridge.TypeParameters (A)
-import           Ledger                                    (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
-                                                            PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn, TxInType,
-                                                            TxOut, TxOutRef, TxOutTx, TxOutType, UtxoIndex, Validator)
-import           Ledger.Ada                                (Ada)
-import           Ledger.Index                              (ValidationError)
-import           Ledger.Interval                           (Extended, Interval, LowerBound, UpperBound)
-import           Ledger.Scripts                            (ScriptError)
-import           Ledger.Slot                               (Slot)
-import           Ledger.Value                              (CurrencySymbol, TokenName, Value)
-import           Wallet.API                                (WalletAPIError)
-import qualified Wallet.Emulator.Wallet                    as EM
-import           Wallet.Rollup.Types                       (AnnotatedTx, BeneficialOwner, DereferencedInput, SequenceId,
-                                                            TxKey)
+import           Auth                                            (AuthRole, AuthStatus)
+import           Control.Applicative                             (empty, (<|>))
+import           Control.Monad.Reader                            (MonadReader)
+import           Data.Proxy                                      (Proxy (Proxy))
+import           Gist                                            (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
+import           Language.PureScript.Bridge                      (BridgePart, Language (Haskell), PSType, SumType,
+                                                                  TypeInfo (TypeInfo), doCheck, equal, equal1, functor,
+                                                                  genericShow, haskType, isTuple, mkSumType, order,
+                                                                  psTypeParameters, typeModule, typeName, (^==))
+import           Language.PureScript.Bridge.Builder              (BridgeData)
+import           Language.PureScript.Bridge.PSTypes              (psArray, psInt, psString)
+import           Language.PureScript.Bridge.TypeParameters       (A)
+import           Ledger                                          (Address, Datum, DatumHash, MonetaryPolicy, PubKey,
+                                                                  PubKeyHash, Redeemer, Signature, Tx, TxId, TxIn,
+                                                                  TxInType, TxOut, TxOutRef, TxOutTx, TxOutType,
+                                                                  UtxoIndex, Validator)
+import           Ledger.Ada                                      (Ada)
+import           Ledger.Index                                    (ValidationError)
+import           Ledger.Interval                                 (Extended, Interval, LowerBound, UpperBound)
+import           Ledger.Scripts                                  (ScriptError)
+import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (CurrencySymbol, TokenName, Value)
+import           Playground.Types                                (ContractCall, FunctionSchema, KnownCurrency)
+import           Schema                                          (FormArgumentF, FormSchema)
+import           Wallet.API                                      (WalletAPIError)
+import qualified Wallet.Emulator.Wallet                          as EM
+import           Wallet.Rollup.Types                             (AnnotatedTx, BeneficialOwner, DereferencedInput,
+                                                                  SequenceId, TxKey)
 
 psJson :: PSType
 psJson = TypeInfo "" "Data.RawJson" "RawJson" []
@@ -260,4 +266,26 @@ walletTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @SequenceId)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
+    ]
+
+------------------------------------------------------------
+playgroundTypes :: [SumType 'Haskell]
+playgroundTypes =
+    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
+    , (functor <*> (genericShow <*> (equal <*> mkSumType)))
+          (Proxy @(FunctionSchema A))
+    , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
+          (Proxy @(FormArgumentF A))
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointDescription)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
+    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
+    ] <>
+    [ (order <*> mkSumType) (Proxy @GistId)
+    , mkSumType (Proxy @Gist)
+    , mkSumType (Proxy @GistFile)
+    , mkSumType (Proxy @NewGist)
+    , mkSumType (Proxy @NewGistFile)
+    , mkSumType (Proxy @Owner)
+    , mkSumType (Proxy @AuthStatus)
+    , mkSumType (Proxy @AuthRole)
     ]

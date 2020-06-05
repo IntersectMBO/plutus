@@ -17,25 +17,26 @@ import           Data.Proxy
 import           Data.Row
 import           Data.Set                         (Set)
 import qualified Data.Set                         as Set
+import           Data.String                      (IsString)
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           GHC.TypeLits                     (Symbol, symbolVal)
 
+import qualified Language.Haskell.TH.Syntax       as TH
 import           Language.Plutus.Contract.IOTS
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
-    deriving stock (Eq, Ord, Generic, Show)
-    deriving newtype (ToJSON, FromJSON)
-    deriving anyclass (IotsType)
+    deriving stock (Eq, Ord, Generic, Show, TH.Lift)
+    deriving newtype (IsString)
+    deriving anyclass (ToJSON, FromJSON, IotsType)
     deriving Pretty via (Tagged "ExposeEndpoint:" String)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
-    deriving newtype (ToJSON, FromJSON)
-    deriving anyclass (IotsType)
+    deriving anyclass (ToJSON, FromJSON, IotsType)
 
 deriving via (Tagged "EndpointValue:" (PrettyShow a)) instance (Show a => Pretty (EndpointValue a))
 
@@ -48,7 +49,8 @@ type HasEndpoint l a s =
 
 newtype ActiveEndpoints = ActiveEndpoints { unActiveEndpoints :: Set EndpointDescription }
   deriving (Eq, Ord, Show, Generic)
-  deriving newtype (Semigroup, Monoid, ToJSON, FromJSON)
+  deriving newtype (Semigroup, Monoid)
+  deriving anyclass (ToJSON, FromJSON)
   deriving Pretty via (PrettyFoldable Set EndpointDescription)
 
 type Endpoint l a = l .== (EndpointValue a, ActiveEndpoints)

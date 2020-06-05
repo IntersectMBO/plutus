@@ -67,7 +67,6 @@ let
             # See https://github.com/input-output-hk/plutus/issues/1213
             marlowe.doHaddock = false;
             plutus-use-cases.doHaddock = false;
-            plutus-scb.doHaddock = false;
             plutus-ledger.doHaddock = false;
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
             plutus-tx-plugin.doHaddock = false;
@@ -101,11 +100,7 @@ let
             #plc-agda.package.ghcOptions = "-Werror";
             plutus-book.package.ghcOptions = "-Werror";
             plutus-contract.package.ghcOptions = "-Werror";
-            plutus-contract-tasty.package.ghcOptions = "-Werror";
-            plutus-emulator.package.ghcOptions = "-Werror";
-            plutus-ir.package.ghcOptions = "-Werror";
             plutus-ledger.package.ghcOptions = "-Werror";
-            plutus-playground-lib.package.ghcOptions = "-Werror";
             plutus-playground-server.package.ghcOptions = "-Werror";
             plutus-scb.package.ghcOptions = "-Werror";
             plutus-tx.package.ghcOptions = "-Werror";

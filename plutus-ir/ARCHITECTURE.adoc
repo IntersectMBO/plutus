@@ -1,5 +1,0 @@
-=== `plutus-ir`
-
-Plutus IR is a higher-level language that sits between Plutus Tx and Plutus
-Core in the compilation pipeline. This package implements the compiler, which
-compiles Plutus IR into Plutus Core.

@@ -14,9 +14,11 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Ledger.Value (Value)
-import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _EndpointName, _FunctionSchema)
+import Playground.Lenses (_endpointDescription, _getEndpointDescription)
+import Playground.Types (ContractCall(..), FunctionSchema, SimulatorWallet(..), _FunctionSchema)
 import Prelude (const, show, ($), (<$>), (<<<), (<>))
 import Schema (FormSchema)
+import Schema.Types (ActionEvent(..), SimulationAction(..), Signatures, toArgument)
 import ValueEditor (valueForm)
 import Wallet.Emulator.Wallet (Wallet)
 
@@ -62,11 +64,8 @@ walletPane signatures initialValue walletIndex simulatorWallet@( SimulatorWallet
                     , valueForm (ModifyWallets <<< ModifyBalance walletIndex) balance
                     , br_
                     , h4_ [ text "Available functions" ]
-                    , div_
-                        (actionButton initialValue simulatorWallet <$> signatures)
-                    , div_
-                        [ addPayToWalletButton initialValue simulatorWallet
-                        ]
+                    , ChangeSimulation <$> div_ (actionButton initialValue simulatorWallet <$> signatures)
+                    , ChangeSimulation <$> div_ [ addPayToWalletButton initialValue simulatorWallet ]
                     ]
                 ]
             ]
@@ -95,7 +94,7 @@ actionButton ::
   Value ->
   SimulatorWallet ->
   FunctionSchema FormSchema ->
-  HTML p HAction
+  HTML p SimulationAction
 actionButton initialValue simulatorWallet functionSchema =
   button
     [ classes [ btn, btnSecondary, btnSmall, actionButtonClass ]
@@ -105,7 +104,7 @@ actionButton initialValue simulatorWallet functionSchema =
             , caller: view _simulatorWalletWallet simulatorWallet
             }
     ]
-    [ text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) functionSchema
+    [ text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) functionSchema
     , span
         [ class_ pullRight ]
         [ icon Plus ]
@@ -115,7 +114,7 @@ addPayToWalletButton ::
   forall p.
   Value ->
   SimulatorWallet ->
-  HTML p HAction
+  HTML p SimulationAction
 addPayToWalletButton initialValue simulatorWallet =
   button
     [ classes [ btn, btnSecondary, btnSmall, actionButtonClass, ClassName "add-pay-to-wallet-button" ]

@@ -1,5 +1,0 @@
-steps:
-  - label: Check Hydra evaluation of release.nix
-    command: 'nix-build -A iohkNix.hydraEvalErrors -o hydraEvalErrors && ./hydraEvalErrors/bin/hydra-eval-errors.py'
-    agents:
-      system: x86_64-linux

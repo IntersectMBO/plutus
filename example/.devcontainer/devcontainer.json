@@ -1,0 +1,24 @@
+{
+    "name": "Example Plutus Project",
+    "image": "uwyoiohk/plutus-development:8.8.3-vscode",
+    "workspaceFolder": "/plutus",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/plutus,type=bind,consistency=cached",
+
+    // Uncomment the following lines to persist the ./dist-newstyle and /nix directories of the
+    // container inside of Docker-managed volumes.
+    // "mounts": [
+    //     "source=plutus-dist,target=/plutus/dist-newstyle,type=volume",
+    //     "source=plutus-nix,target=/nix,type=volume",
+    // ],
+
+    // Use 'settings' to set *default* container specific settings.json values on container create. 
+    // You can edit these settings after create using File > Preferences > Settings > Remote.
+    "settings": {
+        "terminal.integrated.shell.linux": "/root/.nix-profile/bin/zsh"
+    },
+    
+    // IDs of extensions inside container.
+    "extensions": [
+        "alanz.vscode-hie-server"
+    ],
+}

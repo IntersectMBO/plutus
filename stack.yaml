@@ -2,7 +2,6 @@ resolver: lts-15.6
 
 packages:
 - language-plutus-core
-- plutus-ir
 - plutus-tx
 - plutus-tx-plugin
 - plutus-use-cases
@@ -12,13 +11,10 @@ packages:
 - metatheory
 - plutus-ledger
 - plutus-playground-server
-- plutus-playground-lib
 - plutus-tutorial
 - plutus-book
 - plutus-contract
-- plutus-contract-tasty
 - plutus-scb
-- plutus-emulator
 - deployment-server
 - iots-export
 - marlowe-symbolic

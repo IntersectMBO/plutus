@@ -36,11 +36,10 @@ type HasAwaitSlot s =
 
 newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Maybe Slot }
   deriving stock (Eq, Ord, Show, Generic)
-  deriving newtype (ToJSON, FromJSON)
   deriving Semigroup via Maybe (Min Slot)
   deriving Monoid via Maybe (Min Slot)
   deriving Pretty via (Tagged "WaitingForSlot:" (Maybe Slot))
-  deriving anyclass (IotsType)
+  deriving anyclass (ToJSON, FromJSON, IotsType)
 
 type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 

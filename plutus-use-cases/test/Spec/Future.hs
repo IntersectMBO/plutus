@@ -72,7 +72,7 @@ tests =
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 66000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 66200)
 
     ]
 

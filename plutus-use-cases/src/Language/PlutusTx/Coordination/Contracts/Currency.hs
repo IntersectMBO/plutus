@@ -15,6 +15,7 @@
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
+    , CurrencySchema
     , curPolicy
     -- * Actions etc
     , forgeContract

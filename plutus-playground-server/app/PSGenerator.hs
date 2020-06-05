@@ -14,7 +14,6 @@ module PSGenerator
     ( generate
     ) where
 
-import           Auth                                       (AuthRole, AuthStatus)
 import qualified Auth
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (itraverse, set, (&))
@@ -39,23 +38,21 @@ import qualified ErrorHandling
 import qualified ErrorHandlingSimulations
 import qualified Game
 import qualified GameSimulations
-import           Gist                                       (Gist, GistFile, GistId, NewGist, NewGistFile, Owner)
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                             equal, equal1, functor, genericShow, mkSumType, order,
-                                                             writePSTypesWith)
+                                                             equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
-                                                             ContractDemo (ContractDemo), EndpointName,
-                                                             Evaluation (Evaluation), EvaluationResult, FunctionSchema,
-                                                             KnownCurrency, PlaygroundError, Simulation (Simulation),
-                                                             SimulatorAction, SimulatorWallet, contractDemoContext,
+                                                             ContractDemo (ContractDemo), Evaluation (Evaluation),
+                                                             EvaluationResult, FunctionSchema, KnownCurrency,
+                                                             PlaygroundError, Simulation (Simulation), SimulatorAction,
+                                                             SimulatorWallet, contractDemoContext,
                                                              contractDemoEditorContents, contractDemoName,
                                                              contractDemoSimulations, functionSchema, iotsSpec,
                                                              knownCurrencies, program, simulationActions,
@@ -63,7 +60,7 @@ import           Playground.Types                           (CompilationResult (
 import           Playground.Usecases                        (crowdFunding, errorHandling, game, starter, vesting)
 import qualified Playground.Usecases                        as Usecases
 import qualified PSGenerator.Common
-import           Schema                                     (FormArgumentF, FormSchema, formArgumentToJson)
+import           Schema                                     (FormSchema, formArgumentToJson)
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
                                                              defaultSettings, languageBridge,
@@ -84,7 +81,8 @@ import           Wallet.Rollup.Types                        (AnnotatedTx, Benefi
 
 myBridge :: BridgePart
 myBridge =
-    PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
+    PSGenerator.Common.aesonBridge <|>
+    PSGenerator.Common.containersBridge <|>
     PSGenerator.Common.languageBridge <|>
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
@@ -102,21 +100,15 @@ instance HasBridge MyBridge where
 myTypes :: [SumType 'Haskell]
 myTypes =
     PSGenerator.Common.ledgerTypes <>
-    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @FormSchema)
-    , (functor <*> (genericShow <*> (equal <*> mkSumType)))
-          (Proxy @(FunctionSchema A))
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @CompilationResult)
+    PSGenerator.Common.playgroundTypes <>
+    [ (genericShow <*> (equal <*> mkSumType)) (Proxy @CompilationResult)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Warning)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointName)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SourceCode)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @EM.Wallet)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @Simulation)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @ContractDemo)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @SimulatorWallet)
     , (genericShow <*> mkSumType) (Proxy @CompilationError)
-    , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
-          (Proxy @(FormArgumentF A))
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
@@ -133,15 +125,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @DereferencedInput)
     , (order <*> (genericShow <*> mkSumType)) (Proxy @BeneficialOwner)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
-    , mkSumType (Proxy @AuthStatus)
-    , mkSumType (Proxy @AuthRole)
-    , (order <*> mkSumType) (Proxy @GistId)
-    , mkSumType (Proxy @Gist)
-    , mkSumType (Proxy @GistFile)
-    , mkSumType (Proxy @NewGist)
-    , mkSumType (Proxy @NewGistFile)
-    , mkSumType (Proxy @Owner)
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
     ]

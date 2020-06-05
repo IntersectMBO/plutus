@@ -34,7 +34,6 @@
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
@@ -42,20 +41,29 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."profunctors" or (errorHandler.buildDepError "profunctors"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
+          (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."transformers-base" or (errorHandler.buildDepError "transformers-base"))
           (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
           (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+          (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
+          (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           ];
         buildable = true;
         modules = [
@@ -83,7 +91,26 @@
           "Language/Plutus/Contract/Util"
           "Language/Plutus/Contract/Wallet"
           "Language/Plutus/Contract/Typed/Tx"
-          ];
+          "Wallet/Emulator"
+          "Wallet/Emulator/Types"
+          "Wallet/Emulator/Generators"
+          "Wallet/Emulator/Chain"
+          "Wallet/Emulator/ChainIndex"
+          "Wallet/Emulator/Error"
+          "Wallet/Emulator/NodeClient"
+          "Wallet/Emulator/MultiAgent"
+          "Wallet/Emulator/SigningProcess"
+          "Wallet/Emulator/Wallet"
+          "Wallet/Rollup"
+          "Wallet/Rollup/Types"
+          "Wallet/Rollup/Render"
+          "Wallet"
+          "Wallet/API"
+          "Wallet/Effects"
+          "Wallet/Graph"
+          "Control/Monad/Freer/Extras"
+          "Control/Monad/Freer/Log"
+          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "Language/Plutus/Contract/Test";
         hsSourceDirs = [ "src" ];
         };
       tests = {
@@ -110,23 +137,31 @@
         "plutus-contract-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."extensible-effects" or (errorHandler.buildDepError "extensible-effects"))
-            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            ];
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
-          modules = [ "Spec/Rows" "Spec/State" ];
+          modules = [
+            "Spec/Contract"
+            "Spec/Emulator"
+            "Spec/Rows"
+            "Spec/State"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

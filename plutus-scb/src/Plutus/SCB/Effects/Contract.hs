@@ -11,6 +11,7 @@ module Plutus.SCB.Effects.Contract(
     ContractCommand(..)
     , ContractEffect(..)
     , invokeContract
+    , exportSchema
     -- * Input fed to contracts
     , EventPayload(..)
     , encodePayload
@@ -22,15 +23,18 @@ module Plutus.SCB.Effects.Contract(
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error  (Error, throwError)
-import           Control.Monad.Freer.TH     (makeEffect)
-import qualified Data.Aeson                 as JSON
-import qualified Data.HashMap.Lazy          as HashMap
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-
-import           Plutus.SCB.Events.Contract (ContractRequest (..), ContractResponse (..), PartiallyDecodedResponse (..))
-import           Plutus.SCB.Types           (SCBError (OtherError))
+import           Control.Monad.Freer.Error                       (Error, throwError)
+import           Control.Monad.Freer.TH                          (makeEffect)
+import qualified Data.Aeson                                      as JSON
+import qualified Data.HashMap.Lazy                               as HashMap
+import           Data.Text                                       (Text)
+import qualified Data.Text                                       as Text
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, getEndpointDescription)
+import           Playground.Types                                (FunctionSchema)
+import           Plutus.SCB.Events.Contract                      (ContractRequest (..), ContractResponse (..),
+                                                                  PartiallyDecodedResponse (..))
+import           Plutus.SCB.Types                                (SCBError (ContractCommandError, OtherError))
+import           Schema                                          (FormSchema)
 
 -- | Commands to update a contract. 't' identifies the contract.
 data ContractCommand t
@@ -39,7 +43,8 @@ data ContractCommand t
     deriving (Show, Eq)
 
 data ContractEffect t r where
-    InvokeContract :: ContractCommand t -> ContractEffect  t PartiallyDecodedResponse
+    InvokeContract :: ContractCommand t -> ContractEffect t (Either Text PartiallyDecodedResponse)
+    ExportSchema :: t -> ContractEffect t [FunctionSchema FormSchema]
 makeEffect ''ContractEffect
 
 -- TODO: Make a JSON value out of the response
@@ -47,19 +52,24 @@ makeEffect ''ContractEffect
 -- contract.
 
 -- | An event sent to the contract
-data EventPayload = EventPayload { endpointName :: Text, endpointValue :: JSON.Value }
+data EventPayload = EventPayload { endpointDescription :: EndpointDescription, endpointValue :: JSON.Value }
 
 encodePayload :: EventPayload -> (Text, JSON.Value)
-encodePayload EventPayload{endpointName, endpointValue} =
+encodePayload EventPayload {endpointDescription, endpointValue} =
     ( "event"
-    , JSON.object [("tag", JSON.String endpointName), ("value", endpointValue)])
+    , JSON.object
+          [ ( "tag"
+            , JSON.String
+                  (Text.pack (getEndpointDescription endpointDescription)))
+          , ("value", endpointValue)
+          ])
 
 -- | Given a contract definition 't' and the contract's previous state
 --   in form of a 'PartiallyDecodedResponse', apply the next input
 --   event ('EventPayload') to the contract and return a
 --   'PartiallyDecodedResponse' containing the new state and new hooks.
 invokeContractUpdate_ ::
-       (Member (ContractEffect t) effs)
+       (Member (ContractEffect t) effs, Member (Error SCBError) effs)
     => t
     -- ^ The contract
     -> PartiallyDecodedResponse
@@ -67,10 +77,14 @@ invokeContractUpdate_ ::
     -> EventPayload -- TODO: Change JSON.Value in 'UpdateContract' to Payload and move some of invokeContractUpdate_ into there?
     -- ^ The actual update
     -> Eff effs PartiallyDecodedResponse
-invokeContractUpdate_ contract PartiallyDecodedResponse{newState=oldState} payload =
-    invokeContract
-        $ UpdateContract contract
-        $ JSON.object [("oldState", oldState), encodePayload payload]
+invokeContractUpdate_ contract PartiallyDecodedResponse {newState = oldState} payload = do
+    response <-
+        invokeContract $
+        UpdateContract contract $
+        JSON.object [("oldState", oldState), encodePayload payload]
+    case response of
+        Right value -> pure value
+        Left err    -> throwError $ ContractCommandError 1 err
 
 -- | Examine the 'hooks' JSON object and extract from it the
 --   list of 'ContractRequest' values issued by the contract
@@ -111,6 +125,6 @@ contractMessageToPayload = \case
     AwaitTxConfirmedResponse txid -> EventPayload "tx-confirmation" (JSON.toJSON txid)
     OwnPubkeyResponse pk -> EventPayload "own-pubkey" (JSON.toJSON pk)
     UtxoAtResponse u -> EventPayload "utxo-at" (JSON.toJSON u)
-    NextTxAtResponse tx -> EventPayload "address" (JSON.toJSON tx)
+    NextTxAtResponse address tx -> EventPayload "address" (JSON.toJSON (address, tx))
     WriteTxResponse r -> EventPayload "tx" (JSON.toJSON r)
     UserEndpointResponse n r -> EventPayload n (JSON.toJSON r)

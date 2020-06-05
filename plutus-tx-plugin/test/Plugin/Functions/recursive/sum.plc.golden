@@ -1,23 +1,25 @@
 (program
   (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam
-        arg
-        (con integer)
-        (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+    (rec)
+    (datatypebind
+      (datatype
+        (tyvardecl List (fun (type) (type)))
+        (tyvardecl a (type))
+        Nil_match
+        (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
       )
     )
     (let
-      (rec)
-      (datatypebind
-        (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
-          Nil_match
-          (vardecl Nil [List a]) (vardecl Cons (fun a (fun [List a] [List a])))
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
+        )
+        (lam
+          arg
+          (con integer)
+          (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
         )
       )
       (let

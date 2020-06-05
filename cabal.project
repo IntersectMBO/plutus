@@ -1,13 +1,10 @@
 packages: language-plutus-core
           marlowe
-          plutus-emulator
           plutus-ledger
           plutus-tx
           plutus-tx-plugin
           plutus-use-cases
-          plutus-ir
           plutus-playground-server
-          plutus-playground-lib
           plutus-tutorial
           plutus-book
           plutus-scb
@@ -15,7 +12,6 @@ packages: language-plutus-core
           marlowe-playground-server
           marlowe-symbolic
           plutus-contract
-          plutus-contract-tasty
           deployment-server
           iots-export
           metatheory

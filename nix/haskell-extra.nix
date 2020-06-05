@@ -10,7 +10,7 @@ pkgs.haskell-nix.tools {
     version = "3.2.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0zwcc2a812f7nkdz0shgrdcs01l2i3a3d93rrfw2f8mzklqr2kqa";
+    plan-sha256 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
   };
   stylish-haskell = {
     version = "0.10.0.0";

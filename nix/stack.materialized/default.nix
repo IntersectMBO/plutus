@@ -35,7 +35,6 @@
         "statistics-linreg" = (((hackage.statistics-linreg)."0.3").revisions)."95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f";
         "eventful-sql-common" = (((hackage.eventful-sql-common)."0.2.0").revisions).r0;
         language-plutus-core = ./language-plutus-core.nix;
-        plutus-ir = ./plutus-ir.nix;
         plutus-tx = ./plutus-tx.nix;
         plutus-tx-plugin = ./plutus-tx-plugin.nix;
         plutus-use-cases = ./plutus-use-cases.nix;
@@ -45,13 +44,10 @@
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
-        plutus-playground-lib = ./plutus-playground-lib.nix;
         plutus-tutorial = ./plutus-tutorial.nix;
         plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;
-        plutus-contract-tasty = ./plutus-contract-tasty.nix;
         plutus-scb = ./plutus-scb.nix;
-        plutus-emulator = ./plutus-emulator.nix;
         deployment-server = ./deployment-server.nix;
         iots-export = ./iots-export.nix;
         marlowe-symbolic = ./marlowe-symbolic.nix;
