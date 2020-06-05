@@ -29,6 +29,7 @@ import           Wallet.Emulator.NodeClient (BlockValidated (..))
 import           Ledger.Address             (Address)
 import           Ledger.AddressMap          (AddressMap)
 import qualified Ledger.AddressMap          as AM
+import           Ledger.Blockchain          (Blockchain)
 import           Ledger.Tx                  (txId)
 import           Ledger.TxId                (TxId)
 
@@ -50,6 +51,7 @@ data ChainIndexState =
     ChainIndexState
         { _idxWatchedAddresses      :: AddressMap
         , _idxConfirmedTransactions :: Set TxId
+        , _idxConfirmedBlocks       :: Blockchain
         }
         deriving stock (Eq, Show, Generic)
         deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ChainIndexState)
@@ -66,6 +68,7 @@ handleChainIndexControl = interpret $ \case
         tell [ReceiveBlockNotification] >> (modify $ \s ->
             s & idxWatchedAddresses %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am txns)
             & idxConfirmedTransactions <>~ foldMap (Set.singleton . txId) txns
+            & idxConfirmedBlocks <>~ pure txns
             )
 
 handleChainIndex
@@ -75,4 +78,5 @@ handleChainIndex = interpret $ \case
     StartWatching addr -> tell [AddressStartWatching addr] >> (modify $ \s ->
         s & idxWatchedAddresses %~ AM.addAddress addr)
     WatchedAddresses -> gets _idxWatchedAddresses
+    ConfirmedBlocks -> gets _idxConfirmedBlocks
     TransactionConfirmed txid -> Set.member txid <$> gets _idxConfirmedTransactions

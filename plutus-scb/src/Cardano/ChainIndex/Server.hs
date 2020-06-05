@@ -35,6 +35,7 @@ import           Servant.Client                  (BaseUrl (baseUrlPort), ClientE
 
 import           Ledger.Address                  (Address)
 import           Ledger.AddressMap               (AddressMap)
+import           Ledger.Tx                       (Tx)
 import           Plutus.SCB.Utils                (tshow)
 
 import           Cardano.ChainIndex.API
@@ -58,7 +59,7 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processIndexEffects stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> WalletEffects.transactionConfirmed)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed)
 
 main :: (MonadIO m) => ChainIndexConfig -> BaseUrl -> m ()
 main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do
@@ -81,6 +82,9 @@ startWatching addr = WalletEffects.startWatching addr >> pure NoContent
 
 watchedAddresses :: (Member ChainIndexEffect effs) => Eff effs AddressMap
 watchedAddresses = WalletEffects.watchedAddresses
+
+confirmedBlocks :: (Member ChainIndexEffect effs) => Eff effs [[Tx]]
+confirmedBlocks = WalletEffects.confirmedBlocks
 
 -- | Update the chain index by asking the node for new blocks since the last
 --   time.

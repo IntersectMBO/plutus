@@ -27,6 +27,7 @@ module Wallet.Effects(
     , ChainIndexEffect(..)
     , startWatching
     , watchedAddresses
+    , confirmedBlocks
     , transactionConfirmed
     ) where
 
@@ -76,6 +77,7 @@ makeEffect ''SigningProcessEffect
 data ChainIndexEffect r where
     StartWatching :: Address -> ChainIndexEffect ()
     WatchedAddresses :: ChainIndexEffect AddressMap
+    ConfirmedBlocks :: ChainIndexEffect [[Tx]]
     -- TODO: In the future we should have degrees of confirmation
     TransactionConfirmed :: TxId -> ChainIndexEffect Bool
 makeEffect ''ChainIndexEffect

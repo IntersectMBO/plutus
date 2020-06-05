@@ -1,9 +1,10 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE MonoLocalBinds    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Plutus.SCB.CoreSpec
     ( tests
@@ -28,6 +29,7 @@ import qualified Language.PlutusTx.Coordination.Contracts.Currency as Contracts.
 import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
 import           Ledger                                            (pubKeyAddress)
 import           Ledger.Ada                                        (lovelaceValueOf)
+import           Ledger.Blockchain                                 (Blockchain)
 import           Plutus.SCB.Command                                ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                       (ContractEffect)
@@ -38,8 +40,9 @@ import           Plutus.SCB.Events                                 (ChainEvent, 
 import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), defaultWallet,
                                                                     runScenario, sync, syncAll, txCounts, txValidated,
                                                                     valueAt)
-import           Plutus.SCB.Query                                  (chainOverviewProjection, txHistoryProjection)
-import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain)
+import           Plutus.SCB.Query                                  (txHistoryProjection)
+import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain,
+                                                                    mkChainOverview)
 import           Plutus.SCB.Utils                                  (tshow)
 import           Test.QuickCheck.Instances.UUID                    ()
 import           Test.Tasty                                        (TestTree, testGroup)
@@ -47,7 +50,7 @@ import           Test.Tasty.HUnit                                  (HasCallStack
 import           Wallet.API                                        (ChainIndexEffect, NodeClientEffect,
                                                                     SigningProcessEffect, WalletAPIError, WalletEffect,
                                                                     ownPubKey)
-import           Wallet.Effects                                    (WalletEffects)
+import           Wallet.Effects                                    (ChainIndexEffect, WalletEffects, confirmedBlocks)
 import qualified Wallet.Emulator.Chain                             as Chain
 import           Wallet.Emulator.ChainIndex                        (ChainIndexControlEffect)
 import           Wallet.Emulator.NodeClient                        (NodeControlEffect)
@@ -101,6 +104,7 @@ executionTests =
         "Executing contracts."
         [ guessingGameTest ]
 
+guessingGameTest :: TestTree
 guessingGameTest =
     testCase "Guessing Game" $
           runScenario $ do
@@ -167,7 +171,11 @@ guessingGameTest =
                 "The wallet should now have its money back."
                 (lovelaceValueOf openingBalance)
                 balance2
-              chainOverview <- agentAction defaultWallet $ runGlobalQuery (chainOverviewProjection @TestContracts)
+              blocks :: Blockchain <- confirmedBlocks
+              assertBool
+                  "We have some confirmed blocks in this test."
+                  (length (mconcat blocks) > 0)
+              let chainOverview = mkChainOverview blocks
               annotatedBlockchain <-
                       doAnnotateBlockchain
                           (chainOverviewBlockchain chainOverview)
