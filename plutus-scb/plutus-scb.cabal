@@ -56,6 +56,8 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.Protocol.ChainEffect
+        Cardano.Protocol.FollowerEffect
         Cardano.Protocol.Socket.Type
         Cardano.Protocol.Socket.Server
         Cardano.Protocol.Socket.Client
@@ -120,6 +122,7 @@ library
         cardano-slotting -any,
         containers -any,
         contra-tracer -any,
+        cryptonite -any,
         cborg -any,
         directory -any,
         errors -any,
@@ -132,6 +135,7 @@ library
         http-client -any,
         io-sim-classes -any,
         lens -any,
+        memory -any,
         monad-logger -any,
         mtl -any,
         network -any,

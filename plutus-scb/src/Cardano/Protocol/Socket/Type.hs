@@ -1,4 +1,3 @@
-
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -6,18 +5,20 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS -Wno-orphans #-} -- TODO: remove this
+{-# OPTIONS -Wno-orphans           #-}
 module Cardano.Protocol.Socket.Type where
 
 import           Codec.Serialise.Class                              (Serialise)
+import           Crypto.Hash                                        (SHA256, hash)
 import           Data.Aeson                                         (FromJSON, ToJSON)
+import qualified Data.ByteArray                                     as BA
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Text.Prettyprint.Doc                          (Pretty)
 
 import           Cardano.Prelude                                    (NoUnexpectedThunks)
 import           GHC.Generics
-import           Network.Socket                                     as Socket
 
 import           Codec.Serialise                                    (DeserialiseFailure)
 import qualified Codec.Serialise                                    as CBOR
@@ -29,30 +30,29 @@ import qualified Ouroboros.Network.Protocol.ChainSync.Type          as ChainSync
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Codec as TxSubmission
 import qualified Ouroboros.Network.Protocol.LocalTxSubmission.Type  as TxSubmission
 
--- import           Cardano.Protocol.Node
-import           Ledger                                             (Block, Tx (..), TxId (..), txId)
-import qualified Ledger.Index                                       as Index
+import           Ledger                                             (Block, Tx (..), TxId (..))
 import           LedgerBytes                                        (LedgerBytes (..))
-import           Wallet.Emulator.Chain
 
--- CBOR Serialisation
-deriving newtype instance CBOR.Serialise Index.UtxoIndex
-deriving instance Generic ChainState
-deriving instance Serialise ChainState
-
+-- | Tip of the block chain type (used by node protocols).
 type Tip = Block
 
--- Block header
+-- | The node protocols require a block header type.
 newtype BlockId = BlockId { getBlockId :: BSL.ByteString }
   deriving (Eq, Ord, Generic)
   deriving anyclass (ToJSON, FromJSON)
   deriving newtype (Serialise, NoUnexpectedThunks)
   deriving (Pretty, Show) via LedgerBytes
 
+-- | A hash of the block's contents.
 blockId :: Block -> BlockId
-blockId = BlockId . foldl BSL.append BSL.empty . map (getTxId . txId)
+blockId = BlockId
+        . BSL.fromStrict
+        . BA.convert
+        . hash @_ @SHA256
+        . BSL.toStrict
+        . CBOR.serialise
 
--- Making Tx work with the node protocols
+-- | Explains why our (plutus) data structures are hashable.
 type instance HeaderHash Tx = TxId
 type instance HeaderHash Block = BlockId
 deriving instance StandardHash Tx
@@ -60,13 +60,16 @@ deriving instance StandardHash Tx
 deriving instance StandardHash Block
 deriving newtype instance NoUnexpectedThunks TxId
 
-
+-- | Limits for the protocols we use.
 maximumMiniProtocolLimits :: MiniProtocolLimits
 maximumMiniProtocolLimits =
     MiniProtocolLimits {
         maximumIngressQueue = maxBound
     }
 
+-- | Packs up an application from the mini protocols we use.
+-- This is used to build both a client and server application,
+-- depending on the mini protocols passed as arguments.
 nodeApplication
   :: RunMiniProtocol appType bytes m a b
   -> RunMiniProtocol appType bytes m a b
@@ -85,9 +88,9 @@ nodeApplication chainSync txSubmission =
       }
     ]
 
-type Offset = Int
+type Offset = Integer
 
--- Codec specialisations for the mock node protocol
+-- | Boilerplate codecs used for protocol serialisation.
 codecChainSync :: Codec (ChainSync.ChainSync Block Block)
                         DeserialiseFailure
                         IO BSL.ByteString
@@ -104,13 +107,3 @@ codecTxSubmission =
     TxSubmission.codecLocalTxSubmission
       CBOR.encode CBOR.decode
       CBOR.encode CBOR.decode
-
-mkLocalSocketAddrInfo :: FilePath -> Socket.AddrInfo
-mkLocalSocketAddrInfo path =
-    Socket.AddrInfo
-      []
-      Socket.AF_UNIX
-      Socket.Stream
-      Socket.defaultProtocol
-      (Socket.SockAddrUnix path)
-      Nothing

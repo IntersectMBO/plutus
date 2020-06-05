@@ -8,6 +8,7 @@ module Cardano.Protocol.Socket.Server where
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
+import           Data.Time.Units
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
@@ -28,62 +29,71 @@ import qualified Ouroboros.Network.Point                             as OP (Bloc
 import           Ouroboros.Network.Protocol.Handshake.Type
 import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Protocol.Handshake.Version
-import           Ouroboros.Network.Socket
 import           Ouroboros.Network.Snocket
+import           Ouroboros.Network.Socket
 
+import           Cardano.Node.Types                                  (AppState (..), chainState)
 import           Cardano.Protocol.Socket.Type
 
 import           Ledger                                              (Block, Slot (..), Tx (..))
 import           Wallet.Emulator.Chain
 
--- mv ChainState AppState
-startServerNode :: FilePath -> ChainState -> IO Void
-startServerNode sockAddr initialState = withIOManager $ \iocp -> do
+{-| This function starts a blockchain simulator as seen through a
+    Cardano node.
+
+    It received the path to the communication socket, and the server
+    application state, then waits for requests using the `ChainSync`
+    and `LocalTxSubmission` protocols.
+
+    This follows the general pattern found in:
+      ouroboros-network/demo/chain-sync.hs
+-}
+startServerNode :: FilePath -> MVar AppState -> IO Void
+startServerNode sockPath stateMV = withIOManager $ \iocp -> do
     networkState <- newNetworkMutableState
     _ <- async $ cleanNetworkMutableState networkState
-    stateMV <- newMVar initialState
     withServerNode
       (localSnocket iocp "")
       nullNetworkServerTracers
       networkState
       (AcceptedConnectionsLimit maxBound maxBound 0)
-      (localAddressFromPath sockAddr)
+      (localAddressFromPath sockPath)
       unversionedHandshakeCodec
       cborTermVersionDataCodec
       (\(DictVersion _) -> acceptableVersion)
       (simpleSingletonVersions UnversionedProtocol
                                (NodeToNodeVersionData $ NetworkMagic 0)
                                (DictVersion nodeToNodeCodecCBORTerm)
-                               (\_peerid -> SomeResponderApplication (app stateMV)))
+                               (\_peerid -> SomeResponderApplication app))
       nullErrorPolicies
-      $ \_ serverAsync ->
-        wait serverAsync
+      $ \_ serverAsync -> wait serverAsync
+
     where
-      app :: MVar ChainState
-          -> OuroborosApplication 'ResponderApp
+      {- Application that communicates using 2 multiplexed protocols
+         (ChainSync and TxSubmission, with BlockFetch coming soon). -}
+      app :: OuroborosApplication 'ResponderApp
                                   LBS.ByteString
                                   IO Void ()
-      app stateMV = nodeApplication (chainSync stateMV) (txSubmission stateMV)
+      app = nodeApplication chainSync txSubmission
 
-      chainSync :: MVar ChainState
-                -> RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
-      chainSync stateMV =
+      chainSync :: RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
+      chainSync =
           ResponderProtocolOnly $
           MuxPeer
             (contramap show stdoutTracer)
             codecChainSync
             (ChainSync.chainSyncServerPeer (chainSyncServer stateMV))
 
-      txSubmission :: MVar ChainState
-                   -> RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
-      txSubmission stateMV =
+      txSubmission :: RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
+      txSubmission =
           ResponderProtocolOnly $
           MuxPeer
             (contramap show stdoutTracer)
             codecTxSubmission
             (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer stateMV))
 
-txSubmissionServer :: MVar ChainState
+-- | The client updates the application state when the protocol state changes.
+txSubmissionServer :: MVar AppState
                    -> TxSubmission.LocalTxSubmissionServer Tx String IO ()
 txSubmissionServer state = idleState
     where
@@ -92,13 +102,13 @@ txSubmissionServer state = idleState
         TxSubmission.LocalTxSubmissionServer {
           TxSubmission.recvMsgSubmitTx =
             \tx -> do
-                st <- takeMVar state
-                putMVar state (over txPool (tx :) st)
+                modifyMVar_ state (pure . over (chainState . txPool) (tx :))
                 return (Nothing, idleState)
         , TxSubmission.recvMsgDone     = ()
         }
 
-chainSyncServer :: MVar ChainState
+-- | The server updates the application state when the protocol state changes.
+chainSyncServer :: MVar AppState
                 -> ChainSync.ChainSyncServer Block Tip IO ()
 chainSyncServer state =
     ChainSync.ChainSyncServer (idleState 0)
@@ -109,11 +119,13 @@ chainSyncServer state =
         ChainSync.ServerStIdle {
           ChainSync.recvMsgRequestNext = nextState offset
         , ChainSync.recvMsgFindIntersect = \pts -> do
-                st <- readMVar state
+                st <- view chainState <$> readMVar state
                 return $ intersectState st pts
         , ChainSync.recvMsgDoneClient = return ()
         }
 
+      {- If there is any available data, send it right away, otherwise wait until
+         some new block is pushed. -}
       nextState :: Offset
                 -> IO (Either (ChainSync.ServerStNext Block Tip IO ())
                               (IO (ChainSync.ServerStNext Block Tip IO ())))
@@ -125,22 +137,25 @@ chainSyncServer state =
                                 return $ rollForward st' offset
                  else Left  $ rollForward st offset
 
-      rollForward :: ChainState -> Int -> ChainSync.ServerStNext Block Tip IO ()
+      -- Send the new block to the client.
+      rollForward :: AppState -> Integer -> ChainSync.ServerStNext Block Tip IO ()
       rollForward st offset =
         ChainSync.SendMsgRollForward
-          (reverse (st ^. chainNewestFirst) !! offset)
-          (head    (st ^. chainNewestFirst))
+          (reverse (st ^. (chainState . chainNewestFirst)) !! (fromIntegral offset))
+          (head    (st ^. (chainState . chainNewestFirst)))
           (ChainSync.ChainSyncServer (idleState (offset + 1)))
 
-      lowerThanSlot :: Int -> ChainState -> Bool
+      -- Predicate that selects the slots that have not been seen at the given offset.
+      lowerThanSlot :: Integer -> AppState -> Bool
       lowerThanSlot offset st =
-        length (st ^. chainNewestFirst) <= offset
+        length (st ^. chainState . chainNewestFirst) <= (fromIntegral offset)
 
+      {- Intersect client provided state with the server state and find the
+         best slot to start streaming from. -}
       intersectState :: ChainState
                      -> [Point Block]
                      -> ChainSync.ServerStIntersect Block Tip IO ()
       intersectState st clientPts =
-        -- TODO: Can use slot numbers to make it more efficient
         let pt = listToMaybe $ intersect
                    (getChainPoints st)
                    clientPts
@@ -156,13 +171,15 @@ chainSyncServer state =
                  (head $ view chainNewestFirst st)
                  (ChainSync.ChainSyncServer $ idleState $ pointOffset pt')
 
+-- | Given a `Point` find its offset into the chain.
 pointOffset :: Point Block
-            -> Int
+            -> Integer
 pointOffset pt =
   case pointSlot pt of
     Origin        -> 0
     At (SlotNo s) -> fromIntegral s
 
+-- | Currently selects all points from the blockchain.
 getChainPoints :: ChainState -> [Point Block]
 getChainPoints st =
   zipWith mkPoint
@@ -174,11 +191,14 @@ getChainPoints st =
       Point (At (OP.Block (SlotNo $ fromIntegral s)
                           (blockId block)))
 
+{- | Wait until a predicate validates the shared data. Used to select
+     the server state if there are new blocks available. -}
 whileT :: (a -> Bool) -> MVar a -> IO a
 whileT p ma = do
     a <- readMVar ma
     if p a
     then do
-      threadDelay 500000
+      let delay = 500 :: Millisecond
+      threadDelay (fromIntegral $ toMicroseconds delay)
       whileT p ma
     else return a
