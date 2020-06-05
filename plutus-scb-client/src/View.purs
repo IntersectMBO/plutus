@@ -239,9 +239,6 @@ showUserEvent ( ContractStateTransition
   )
 ) = text $ "Update " <> show csContract
 
-showNodeEvent :: forall p i. NodeEvent -> HTML p i
-showNodeEvent (BlockAdded []) = text $ "Empty block(s) added"
-
 showNodeEvent event = text $ show event
 
 showContractEvent :: forall p i a. Show a => ContractEvent a -> HTML p i
