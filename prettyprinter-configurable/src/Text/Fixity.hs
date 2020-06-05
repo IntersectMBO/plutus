@@ -1,3 +1,5 @@
+-- | Machinery for deciding whether an expression needs to be wrapped in parentheses or not.
+
 module Text.Fixity
     ( Precedence
     , Associativity (..)

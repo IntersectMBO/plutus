@@ -35,7 +35,7 @@ module Text.PrettyBy.Internal
     , withAttachPrettyConfig
     , defaultPrettyFunctorBy
     , defaultPrettyBifunctorBy
-    , MonoKindOfHead
+    , StarsOfHead
     , DispatchDefaultFor (..)
     , DefaultFor (..)
     , AttachDefaultPrettyConfig (..)
@@ -105,14 +105,62 @@ import qualified Data.Text.Lazy        as Lazy
 -- pretty-printing behaviour, read the docs of 'HasPrettyDefaults' for details.
 class PrettyBy config a where
     -- | Pretty-print a value of type @a@ the way a @config@ specifies it.
-    -- The default implementation of 'prettyBy' is in terms of 'pretty'.
+    -- The default implementation of 'prettyBy' is in terms of 'pretty', 'defaultPrettyFunctorBy'
+    -- or 'defaultPrettyBifunctorBy' depending on the kind of the data type that you're providing
+    -- an instance for. For example, the default implementation of 'prettyBy' for a monomorphic type
+    -- is going to be "ignore the config and call 'pretty' over the value":
+    --
+    -- >>> newtype N = N Int deriving newtype (Pretty)
+    -- >>> instance PrettyBy () N
+    -- >>> prettyBy () (N 42)
+    -- 42
+    --
+    -- The default implementation of 'prettyBy' for a 'Functor' is going to be in terms of
+    -- 'defaultPrettyFunctorBy':
+    --
+    -- >>> newtype N a = N a deriving (Functor) deriving newtype (Pretty)
+    -- >>> instance PrettyBy () a => PrettyBy () (N a)
+    -- >>> prettyBy () (N (42 :: Int))
+    -- 42
+    --
+    -- It's fine for the data type to have a phantom parameter as long as the data type is still a
+    -- 'Functor' (i.e. the parameter has to be of kind @*@). Then 'defaultPrettyFunctorBy' is used
+    -- again:
+    --
+    -- >>> newtype N a = N Int deriving (Functor) deriving newtype (Pretty)
+    -- >>> instance PrettyBy () (N b)
+    -- >>> prettyBy () (N 42)
+    -- 42
+    --
+    -- If the data type has a single parameter of any other kind, then it's not a functor and so
+    -- like in the monomorphic case 'pretty' is used:
+    --
+    -- >>> newtype N (b :: Bool) = N Int deriving newtype (Pretty)
+    -- >>> instance PrettyBy () (N b)
+    -- >>> prettyBy () (N 42)
+    -- 42
+    --
+    -- Same applies to a data type with two parameters: if both the parameters are of kind @*@,
+    -- then the data type is assumed to be a 'Bifunctor' and hence 'defaultPrettyBifunctorBy' is
+    -- used. If the right parameter is of kind @*@ and the left parameter is of any other kind,
+    -- then we fallback to assuming the data type is a 'Functor' and defining 'prettyBy' as
+    -- 'defaultPrettyFunctorBy'. If both the parameters are not of kind @*@, we fallback to
+    -- implementing 'prettyBy' in terms of 'pretty' like in the monomorphic case.
+    --
+    -- Note that in all those cases a 'Pretty' instance for the data type has to already exist,
+    -- so that we can derive a 'PrettyBy' one in terms of it. If it doesn't exist or if your data
+    -- type is not supported (for example, if it has three or more parameters of kind @*@), then
+    -- you'll need to provide the implementation manually.
     prettyBy :: config -> a -> Doc ann
     default prettyBy :: DefaultFor "prettyBy" config a => config -> a -> Doc ann
     prettyBy = defaultFor @"prettyBy"
 
+    -- Defaulting to 'prettyList' would require the user to either provide a 'Pretty' instance for
+    -- each data type implementing 'PrettyBy' or to supply the sensible default implementation as
+    -- 'defaultPrettyFunctorBy' manually and both the options are silly.
     -- | 'prettyListBy' is used to define the default 'PrettyBy' instance for @[a]@ and @NonEmpty a@.
     -- In normal circumstances only the 'prettyBy' function is used.
-    -- The default implementation of 'prettyListBy' is in terms of 'prettyList'.
+    -- The default implementation of 'prettyListBy' is in terms of 'defaultPrettyFunctorBy'.
     prettyListBy :: config -> [a] -> Doc ann
     default prettyListBy :: config -> [a] -> Doc ann
     prettyListBy = defaultPrettyFunctorBy
@@ -225,8 +273,10 @@ withAttachPrettyConfig
     :: config -> ((forall a. a -> AttachPrettyConfig config a) -> r) -> r
 withAttachPrettyConfig config k = k $ AttachPrettyConfig config
 
--- | Default configurable pretty-printing for a 'Functor' in terms of 'Pretty'
--- (attaches the config to each value in the functor).
+-- | Default configurable pretty-printing for a 'Functor' in terms of 'Pretty'.
+-- Attaches the config to each value in the functor and calls 'pretty' over the result,
+-- i.e. the spine of the functor is pretty-printed the way the 'Pretty' class specifies it,
+-- while the elements are printed by 'prettyBy'.
 defaultPrettyFunctorBy
     :: (Functor f, Pretty (f (AttachPrettyConfig config a)))
     => config -> f a -> Doc ann
@@ -234,7 +284,9 @@ defaultPrettyFunctorBy config a =
     pretty $ AttachPrettyConfig config <$> a
 
 -- | Default configurable pretty-printing for a 'Bifunctor' in terms of 'Pretty'
--- (attaches the config to each value in the bifunctor).
+-- Attaches the config to each value in the bifunctor and calls 'pretty' over the result,
+-- i.e. the spine of the bifunctor is pretty-printed the way the 'Pretty' class specifies it,
+-- while the elements are printed by 'prettyBy'.
 defaultPrettyBifunctorBy
     :: (Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b)))
     => config -> f a b -> Doc ann
@@ -247,65 +299,44 @@ defaultPrettyBifunctorBy config a =
 
 -- | Return the longest sequence of @*@ in the kind (right-to-left) of the head of an application.
 -- (but no longer than @* -> * -> *@, because we can't support longer ones in 'DispatchDefaultFor').
-type family MonoKindOfHead (target :: Symbol) (a :: *) :: * where
-    MonoKindOfHead target ((f :: * -> * -> * -> *) a b c) = TypeError
+type family StarsOfHead (target :: Symbol) (a :: *) :: * where
+    StarsOfHead target ((f :: * -> * -> * -> *) a b c) = TypeError
         (     'Text "Automatic derivation of ‘"':<>: 'Text target ':<>: 'Text "’"
         ':$$: 'Text "is not possible for data types that receive three and more arguments of kind ‘*’"
         )
-    MonoKindOfHead _      ((f :: k -> * -> * -> *) a b c) = * -> * -> *
-    MonoKindOfHead _      ((f :: * -> * -> *)      a b  ) = * -> * -> *
-    MonoKindOfHead _      ((f :: k -> * -> *)      a b  ) = * -> *
-    MonoKindOfHead _      ((f :: * -> *)           a    ) = * -> *
-    MonoKindOfHead _      ((f :: k -> *)           a    ) = *
-    MonoKindOfHead _      a                               = *
+    StarsOfHead _      ((f :: k -> * -> * -> *) a b c) = * -> * -> *
+    StarsOfHead _      ((f :: * -> * -> *)      a b  ) = * -> * -> *
+    StarsOfHead _      ((f :: k -> * -> *)      a b  ) = * -> *
+    StarsOfHead _      ((f :: * -> *)           a    ) = * -> *
+    StarsOfHead _      ((f :: k -> *)           a    ) = *
+    StarsOfHead _      a                               = *
 
--- TODO: complete the docs.
 -- | This allows us to have different default implementations for 'prettyBy' and 'defaultPrettyBy'
--- depending on whether @a@ is a monomorphic type or is a thing of kind @k -> *@ applied to a type
--- variable (we then assume that this thing <...>
---
--- >>> newtype N = N Int deriving newtype (Pretty)
--- >>> instance PrettyBy () N
--- >>> prettyBy () (N 42)
--- 42
---
--- >>> newtype N a = N a deriving (Functor) deriving newtype (Pretty)
--- >>> instance PrettyBy () a => PrettyBy () (N a)
--- >>> prettyBy () (N (42 :: Int))
--- 42
---
--- >>> newtype N a = N Int deriving (Functor) deriving newtype (Pretty)
--- >>> instance PrettyBy () (N b)
--- >>> prettyBy () (N 42)
--- 42
---
--- >>> newtype N (b :: Bool) = N Int deriving newtype (Pretty)
--- >>> instance PrettyBy () (N b)
--- >>> prettyBy () (N 42)
--- 42
-class MonoKindOfHead target a ~ k => DispatchDefaultFor target k config a where
+-- depending on whether @a@ is a monomorphic type or a 'Functor' or a 'Bifunctor'. Read the docs of
+-- 'prettyBy' for details.
+class StarsOfHead target a ~ k => DispatchDefaultFor target k config a where
     dispatchDefaultFor :: config -> a -> Doc ann
 
-instance (MonoKindOfHead target a ~ *, Pretty a) => DispatchDefaultFor target * config a where
+instance (StarsOfHead target a ~ *, Pretty a) => DispatchDefaultFor target * config a where
     dispatchDefaultFor _ = pretty
 
-instance ( MonoKindOfHead target fa ~ (k -> *), fa ~ f a
+instance ( StarsOfHead target fa ~ (k -> *), fa ~ f a
          , Functor f, Pretty (f (AttachPrettyConfig config a))
          ) => DispatchDefaultFor target (k -> *) config fa where
     dispatchDefaultFor = defaultPrettyFunctorBy
 
-instance ( MonoKindOfHead target fab ~ (k1 -> k2 -> *), fab ~ f a b
+instance ( StarsOfHead target fab ~ (k1 -> k2 -> *), fab ~ f a b
          , Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b))
          ) => DispatchDefaultFor target (k1 -> k2 -> *) config fab where
     dispatchDefaultFor = defaultPrettyBifunctorBy
 
 -- | Introducing a class just for the nice name of the method and in case the defaulting machinery
 -- somehow blows up in the user's face.
-class DispatchDefaultFor target (MonoKindOfHead target a) config a =>
+class DispatchDefaultFor target (StarsOfHead target a) config a =>
             DefaultFor target config a where
     defaultFor :: config -> a -> Doc ann
 
-instance DispatchDefaultFor target (MonoKindOfHead target a) config a =>
+instance DispatchDefaultFor target (StarsOfHead target a) config a =>
             DefaultFor target config a where
     defaultFor = dispatchDefaultFor @target
 
@@ -383,21 +414,17 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 -- 'defaultPrettyBy' has the exact same info as simple 'pretty', which is another reason to
 -- anyclass-derive 'DefaultPrettyBy' in terms of 'Pretty'.
 --
--- Going through 'Pretty' can be a bit inconvenient for polymorphic data. If you data type is a
--- 'Functor', then you can implement 'defaultPrettyBy' as 'defaultPrettyFunctorBy', which attaches
--- the provided config to each element of the functor and applies 'pretty' to the result:
+-- Like in the case of 'prettyBy', the default implementation of 'defaultPrettyBy' for a 'Functor'
+-- is 'defaultPrettyFunctorBy' (and for a 'Bifunctor' -- 'defaultPrettyBifunctorBy'):
 --
 -- >>> data Twice a = Twice a a deriving (Functor)
 -- >>> instance Pretty a => Pretty (Twice a) where pretty (Twice x y) = pretty x <+> "&" <+> pretty y
--- >>> instance PrettyBy config a => DefaultPrettyBy config (Twice a) where defaultPrettyBy = defaultPrettyFunctorBy
+-- >>> instance PrettyBy config a => DefaultPrettyBy config (Twice a)
 -- >>> deriving via PrettyCommon (Twice a) instance PrettyDefaultBy config (Twice a) => PrettyBy config (Twice a)
 -- >>> prettyBy () (Twice True False)
 -- True & False
 --
--- If your data type is not a 'Functor', you'll have to attach the config manually, see the source
--- code of 'defaultPrettyFunctorBy' for how this can be done.
---
--- But since preserving coherence of 'Pretty' and 'PrettyBy' is only a good practice and not
+-- Since preserving coherence of 'Pretty' and 'PrettyBy' is only a good practice and not
 -- mandatory, it's fine not to provide an instance for 'Pretty'. Then a 'DefaultPrettyBy' can be
 -- implemented directly:
 --
@@ -411,7 +438,7 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 -- sync.
 class DefaultPrettyBy config a where
     -- | Pretty-print a value of type @a@ in some default manner.
-    -- The default implementation is 'pretty'.
+    -- The default implementation works equally to the one of 'prettyBy'.
     defaultPrettyBy :: config -> a -> Doc ann
     default defaultPrettyBy :: DefaultFor "defaultPrettyBy" config a => config -> a -> Doc ann
     defaultPrettyBy = defaultFor @"defaultPrettyBy"
@@ -448,17 +475,15 @@ instance DefaultPrettyBy config Lazy.Text
 -- Straightforward polymorphic instances.
 
 instance PrettyBy config a => DefaultPrettyBy config (Identity a)
-
+instance PrettyBy config a => DefaultPrettyBy config (Const a (b :: *))
 instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (a, b)
 
--- We don't have @Trifunctor@ in base, unfortunately, hence writings things out manually. Could we
+-- We don't have @Trifunctor@ in base, unfortunately, hence writing things out manually. Could we
 -- do that via generics? I feel like that would amount to implementing n-ary 'Functor' anyway.
 instance (PrettyBy config a, PrettyBy config b, PrettyBy config c) =>
             DefaultPrettyBy config (a, b, c) where
     defaultPrettyBy config (x, y, z) =
         withAttachPrettyConfig config $ \attach -> pretty (attach x, attach y, attach z)
-
-instance PrettyBy config a => DefaultPrettyBy config (Const a (b :: *))
 
 -- Peculiar instances.
 
@@ -547,12 +572,14 @@ See https://kcsongor.github.io/report-stuck-families for how detection of a stuc
 application is implemented.
 -}
 
+-- | Throw @err@ when @b@ is stuck.
 type family ThrowOnStuck err (b :: Bool) :: Bool where
     ThrowOnStuck _   'True  = 'True
     ThrowOnStuck _   'False = 'False
     ThrowOnStuck err _      = err
 
 -- We have to use a type family here rather than a type alias, because otherwise it evaluates too early.
+-- | The error thrown when @HasPrettyDefaults config@ is stuck.
 type family HasPrettyDefaultsStuckError config :: Bool where
     HasPrettyDefaultsStuckError config = TypeError
         (     'Text "No ’HasPrettyDefaults’ is specified for " ':<>: 'ShowType config

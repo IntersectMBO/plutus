@@ -1,3 +1,5 @@
+-- | Utils used internally.
+
 module Text.PrettyBy.Internal.Utils
     ( view
     ) where
