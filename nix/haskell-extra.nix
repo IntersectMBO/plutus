@@ -14,21 +14,21 @@
     version = "3.0.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0cxh9aya4c5xr4lycg9jywivb9jw9xb38a726q87azvm6gw66jqn";
+    plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0dz1pcgp8likq19nqwjlzjqnzaj1avxxmmvn2bxkxqxcykjzlr3i";
+    plan-sha256 = "0vdv4jjabblfn41nxpjgsyvy3yrgd4k2p0s39hhbifllga2ngzds";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1wykhyf0wsif4mql3wh9f2a0fvfkzp39ih2xbld1k74lnzvafvhm";
+    plan-sha256 = "0vmf2wzc2b9h4cxxj0mwpza9dy23n7dxadj6x7xaf8p9pmcmmmd5";
   };
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {

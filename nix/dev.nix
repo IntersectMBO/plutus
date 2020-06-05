@@ -14,6 +14,8 @@ pkgs.recurseIntoAttrs (rec {
   haskellNixRoots = pkgs.haskell-nix.haskellNixRoots;
 
   scripts = pkgs.recurseIntoAttrs {
+    updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+
     fixStylishHaskell = pkgs.writeShellScript "fix-stylish-haskell" ''
       ${pkgs.git}/bin/git diff > pre-stylish.diff
       ${pkgs.fd}/bin/fd \
