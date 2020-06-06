@@ -4,51 +4,37 @@
 module Algorithmic.CEK where
 
 open import Data.Bool using (Bool;true;false)
-open import Data.Product using (Σ;_×_)
+open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality
 
 open import Type
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic
-open import Algorithmic.Reduction -- for values
+open import Type.Reduction using (Value⋆)
 
-{-
-Clos⋆ : Ctx⋆ → Kind → Set
-EnvC⋆ : Ctx⋆ → Ctx⋆ → Set
-
-EnvC⋆ Φ Ψ = ∀{J} → Φ ∋⋆ J → Clos⋆ Ψ J 
-Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → EnvC⋆ Φ Ψ × Φ ⊢Nf⋆ J
-==
-Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → (∀{J} → Φ ∋⋆ J → Clos⋆ Ψ J) × Φ ⊢Nf⋆ J
--- ^ termination checker understandably not keen
--}
+-- a CK machine for types
 
 Clos⋆ : Ctx⋆ → Kind → Set
 
 data EnvC⋆ : Ctx⋆ → Ctx⋆ → Set where
   [] : ∀{Φ} → EnvC⋆ ∅ Φ
-  _∷_ : ∀{Φ Ψ J} → EnvC⋆ Φ Ψ → Clos⋆ Ψ J → EnvC⋆ (Φ ,⋆ J) Ψ
+  _,⋆_ : ∀{Φ Ψ J} → EnvC⋆ Φ Ψ → Clos⋆ Ψ J → EnvC⋆ (Φ ,⋆ J) Ψ
   
-Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → EnvC⋆ Φ Ψ × Φ ⊢Nf⋆ J
+Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → Φ ⊢⋆ J × EnvC⋆ Φ Ψ
 
+postulate discharge : ∀{Ψ J} → Clos⋆ Ψ J → (Ψ ⊢⋆ J)
 
-Clos : ∀{Φ} → Ctx Φ → Set
-data EnvC : ∀{Φ Ψ} → EnvC⋆ Φ Ψ → Ctx Φ → Ctx Ψ → Set where
-Clos {Φ} Γ =
-  Σ Ctx⋆ λ Ψ → Σ (Ctx Ψ) λ Δ
-  → Σ (EnvC⋆ Ψ Φ) λ ρ⋆ → EnvC ρ⋆ Δ Γ × Σ (Ψ ⊢Nf⋆ *) λ A → Σ (Δ ⊢ A) Value
+data Frame (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
 
+data Stack (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
+  ε   : ∀{Φ}{Γ}{T : Φ ⊢Nf⋆ *} → Stack Γ T Γ T
+  _,_ : ∀{Φ Φ' Φ''}{Γ Γ' Γ''}{T : Φ ⊢Nf⋆ *}{H1 : Φ' ⊢Nf⋆ *}{H2 : Φ'' ⊢Nf⋆ *}
+    → Stack Γ T Γ' H1
+    → Frame Γ' H1 Γ'' H2 → Stack Γ T Γ'' H2
+data State (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
+  _▻_ : ∀{Φ'}{H : Kind} → Stack Φ K Φ H → Φ' ⊢⋆ H → State Φ K Φ' H
+  _◅_ : ∀{Φ'}{H : Kind} → Stack Φ K Φ' H → {A : Φ' ⊢⋆ H} → Value⋆ A
+    → State Φ K Φ' H 
+  □  : {A : Φ ⊢⋆ K} →  Value⋆ A → State Φ K Φ K
+  ◆   : ∀ {Φ'}(J : Kind) →  State Φ K Φ' J
 
-data Frame : ∀{Φ Φ'} → Ctx Φ → (T : Φ ⊢Nf⋆ *) → Ctx Φ' → (H : Φ' ⊢Nf⋆ *) → Set
-  where
-  -·_     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *} → Γ ⊢ A → Frame Γ B Γ (A ⇒ B)
-  _·-     : ∀{Φ}{Γ}{A B : Φ ⊢Nf⋆ *}{t : Γ ⊢ A ⇒ B} → Value t → Frame Γ B Γ A
-  -·⋆    : ∀{Φ K Γ}{B : Φ ,⋆ K ⊢Nf⋆ *}(A : Φ ⊢Nf⋆ K)
-    → Frame Γ (B [ A ]Nf) Γ (Π B)
-  wrap-   : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
-    → Frame Γ (ne (μ1 · pat · arg))
-            Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-  unwrap- : ∀{Φ Γ K}{pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : Φ ⊢Nf⋆ K}
-    → Frame Γ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-            Γ (ne (μ1 · pat · arg))
+step : ∀{Φ Φ' K H} → State Φ K Φ' H → Σ Ctx⋆ λ Φ'' → Σ Kind λ H' → State Φ K Φ'' H 
+step = {!!}

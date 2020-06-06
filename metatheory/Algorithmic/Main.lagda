@@ -18,7 +18,7 @@ open import Builtin.Signature
 open import Function
 open import Agda.Builtin.Nat
 open import Data.Nat
-open import Data.Vec
+open import Data.Vec hiding (length)
 open import Agda.Builtin.Int
 open import Data.Integer
 open import Data.Product renaming (_,_ to _,,_)
