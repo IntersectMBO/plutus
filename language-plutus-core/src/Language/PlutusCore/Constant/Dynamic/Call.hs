@@ -14,7 +14,9 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Generators.Internal.Denotation
 import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Data.Proxy
@@ -35,5 +37,5 @@ dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
-dynamicCall :: DynamicBuiltinName -> Term tyname name uni ()
-dynamicCall = dynamicBuiltinNameAsTerm
+dynamicCall :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
+dynamicCall = embedDynamicBuiltinNameInTerm

@@ -1,3 +1,9 @@
+{- Apply the ifThenElse builtin to the result of verifySignature.
+   This is vastly overcomplicated for this purpose (in particular, we
+   have a built-in unit type but here we're using Scott units),
+   but it's testing the typechecker.
+-}
+
 (program 0.1.0
   (lam txhash (con bytestring)
     (lam pubkey (con bytestring)
@@ -5,30 +11,33 @@
         [
           {
             (abs a (type)
-              (lam b (all a (type) (fun a (fun a a)))
-                (lam t (fun (all a (type) (fun a a)) a)
-                  (lam f (fun (all a (type) (fun a a)) a)
-                    [
-                      [ { b (fun (all a (type) (fun a a)) a) } t f ]
-                      (abs a (type) (lam x a x))
-                    ]
+              (lam b (all a (type)
+	              (fun (fun (all a (type) (fun a a)) a)
+			   (fun (fun (all a (type) (fun a a)) a)
+			        (fun (all a (type) (fun a a)) a))))
+	              -- forall a . (unit -> a) -> (unit -> a) -> (unit -> a) 
+                (lam t (fun (all a (type) (fun a a)) a)       --  unit -> a
+                  (lam f (fun (all a (type) (fun a a)) a)     --  unit -> a
+                    [ [ { b a } t f ] (abs a (type) (lam x a x)) ]
+		    -- instantiate and apply the result to the unit value
                   )
                 )
               )
             )
-            (all a (type) (fun a a))
+            (all a (type) (fun a a))  --- instantiate (the return type of) b at the unit type
           }
-          (abs a (type)
-		     (builtin {ifThenElse a} 
-			  (builtin verifySignature signed txhash pubkey)
-	              )  -- FIXME: partial application
-	      )
-          (lam u (all a (type) (fun a a))
-            (abs a (type) (lam x a x))
-          )
-          (lam u (all a (type) (fun a a))
-            (error (all a (type) (fun a a)))
-          )
+
+	  (abs a (type)  -- Abstract the arguments of ifThenElse so we can pass it to the above function
+	    (lam t (fun (all a (type) (fun a a)) a)    --  unit -> a
+	      (lam f (fun (all a (type) (fun a a)) a)  --  unit -> a
+	        (builtin {ifThenElse (fun (all a (type) (fun a a)) a) } (builtin verifySignature signed txhash pubkey) t f)
+              )
+	    )
+	  )
+	  
+          (lam u (all a (type) (fun a a)) (abs a (type) (lam x a x)))       --  \u:unit . unitVal
+	  
+          (lam u (all a (type) (fun a a)) (error (all a (type) (fun a a)))) --  \u:unit . (error @ unit)
         ]
       )
     )

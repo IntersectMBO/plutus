@@ -1,10 +1,24 @@
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TypeApplications #-}
+
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
     , embedDynamicBuiltinNameInTerm
     )
-where 
+where
 
+import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
+import           Data.Proxy
+import           Data.Text                          (append, pack)
+import           GHC.TypeLits
 
 
 {- The code below takes a type scheme of the form

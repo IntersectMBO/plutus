@@ -194,7 +194,7 @@ lookupDynamicBuiltinName term dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
                           err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-        -- 'term' is just here for the error message. Will inlcuding it have any effect on efficiency?
+        -- 'term' is just here for the error message. Will including it have any effect on efficiency?
         Just mean -> pure mean
 
 -- See Note [Scoping].
@@ -233,15 +233,17 @@ computeCek ctx t@(Unwrap _ term) = do
 computeCek ctx tyAbs@TyAbs{}       = returnCek ctx tyAbs
 computeCek ctx lamAbs@LamAbs{}     = returnCek ctx lamAbs
 computeCek ctx constant@Constant{} = returnCek ctx constant
-computeCek ctx t@(ApplyBuiltin ann bn tys []) = do
-    spendBudget (BBuiltin bn) t (ExBudget 1 1)
-    -- FIXME: we're re-using BBuiltin for the argument-collecting process here and below.  Should we have a new constructor for this?
-    varEnv <- getVarEnv
-    applyBuiltin varEnv ann ctx bn tys []
-computeCek ctx t@(ApplyBuiltin _ bn tys (arg:args)) = do
-  spendBudget (BBuiltin bn) t (ExBudget 1 1)
-  varEnv <- getVarEnv
-  withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args : ctx) arg
+computeCek ctx t@(ApplyBuiltin ann bn tys args) =
+    case args of
+        [] -> do
+            spendBudget (BBuiltin bn) t (ExBudget 1 1)
+            -- FIXME: we're re-using BBuiltin for the argument-collecting process here and below.  Should we have a new constructor for this?
+            varEnv <- getVarEnv
+            applyBuiltin varEnv ann ctx bn tys []
+        arg:args' -> do
+            spendBudget (BBuiltin bn) t (ExBudget 1 1)
+            varEnv <- getVarEnv
+            withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args' : ctx) arg
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
 computeCek ctx t@(Var _ varName)   = do
@@ -357,20 +359,20 @@ withScopedArgIn funVarEnv argVarEnv arg            k = do
 -- and folding along the environment
 getScopedArgs  -- We could perhaps fold this into `compute`: more efficient, but more complex?
                -- Let's leave it like this until we're sure it's correct.
-    :: [Closure uni]           -- original arguments
-    -> [WithMemory Value uni]  -- adjusted arguments
-    -> VarEnv uni              -- enviroment containing bindings for new variables
-    -> CekM uni ([WithMemory Value uni], VarEnv uni)
-getScopedArgs [] newArgs env = pure (reverse newArgs, env)
-getScopedArgs (Closure argVarEnv arg : args) newArgs env =
-    case arg of
-      Constant{} -> getScopedArgs args (arg : newArgs) env
-      _ -> do
-        argName <- freshName "arg"
-        let cost = memoryUsage ()
-            newArg = Var cost argName
-            newEnv = extendVarEnv argName arg argVarEnv env
-        getScopedArgs args (newArg : newArgs) newEnv
+    :: VarEnv uni              -- enviroment containing bindings for new variables
+    -> [Closure uni]           -- original arguments
+    -> CekM uni (VarEnv uni, [WithMemory Value uni])
+getScopedArgs env0 args0 = getScopedArgs' args0 env0 [] where
+    getScopedArgs' [] env newArgs = pure (env, reverse newArgs)
+    getScopedArgs' (Closure argVarEnv arg : args) env newArgs =
+        case arg of
+          Constant{} -> getScopedArgs' args env (arg : newArgs)
+          _ -> do
+            argName <- freshName "arg"
+            let cost = memoryUsage ()
+                newArg = Var cost argName
+                newEnv = extendVarEnv argName arg argVarEnv env
+            getScopedArgs' args newEnv (newArg : newArgs)
 
 applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
                  => VarEnv uni
@@ -385,7 +387,7 @@ applyBuiltin funEnv ann ctx bn tys args =
     let term = ApplyBuiltin () bn (fmap void tys) (fmap (void . _closureValue) args) -- For error messages
     in do
       -- Do we have to be more careful for dynamic names?
-      (args', env') <- getScopedArgs args [] funEnv
+      (env', args') <- getScopedArgs funEnv args
       -- We could call getScopedArgs only in the case where tys is nonempty, relying on our assumption
       -- that non-polymorphic builtins only take builtin constants as arguments.
       params <- builtinCostParams

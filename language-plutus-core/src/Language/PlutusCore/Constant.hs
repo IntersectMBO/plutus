@@ -5,6 +5,7 @@ module Language.PlutusCore.Constant
     ) where
 
 import           Language.PlutusCore.Constant.Apply    as Export
+import           Language.PlutusCore.Constant.Embed    as Export
 import           Language.PlutusCore.Constant.Function as Export
 import           Language.PlutusCore.Constant.Name     as Export
 import           Language.PlutusCore.Constant.Typed    as Export

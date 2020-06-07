@@ -210,7 +210,7 @@ genApplyAdd1 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, int])    -- [{ApplyFun int int} [addInteger i] j]
-                [ Apply () (embedBuiltinNameInTerm scheme name) i
+                [ Apply () (embedStaticBuiltinNameInTerm scheme name) i
                 , j
                 ]
     return . TermOf term $ iv + jv
@@ -224,7 +224,7 @@ genApplyAdd2 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, TyFun () int int]) -- [[[{ApplyFun int (fun int int)} addInteger] i] j] 
-                [ embedBuiltinNameInTerm scheme name
+                [ embedStaticBuiltinNameInTerm scheme name
                 , i
                 , j
                 ]
