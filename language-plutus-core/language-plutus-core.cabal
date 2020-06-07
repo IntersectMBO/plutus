@@ -132,8 +132,8 @@ library
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
         Language.PlutusCore.Constant.Dynamic.Emit
-        Language.PlutusCore.Constant.Dynamic.OnChain
         Language.PlutusCore.Constant.Dynamic.OffChain
+        Language.PlutusCore.Constant.Embed
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
@@ -247,7 +247,6 @@ test-suite language-plutus-core-test
         Evaluation.ApplyBuiltinName
         Evaluation.DynamicBuiltins.Common
         Evaluation.DynamicBuiltins.Definition
-        Evaluation.DynamicBuiltins.Logging
         Evaluation.DynamicBuiltins.MakeRead
         Evaluation.DynamicBuiltins
         Evaluation.Golden

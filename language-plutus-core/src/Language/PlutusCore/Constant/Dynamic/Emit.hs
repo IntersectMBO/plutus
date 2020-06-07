@@ -1,7 +1,11 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
+-- ^ FIXME: maybe remove
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
@@ -24,6 +28,7 @@ import           Language.PlutusCore.Universe
 
 import           Control.Exception                                  (evaluate)
 import           Data.IORef
+import           Data.Proxy
 import           System.IO.Unsafe                                   (unsafePerformIO)
 
 -- This does not stream elements lazily. There is a version that allows to stream elements lazily,
@@ -57,8 +62,12 @@ feedEmitHandler means term (EmitHandler handler) = handler means term
 withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
+-- FIXME: How important is this?  I've had to fix `emit` at Char ->
+-- (), and that makes the `collectChars` test pass. Do we need it for
+-- anything else?
+
 withEmitTerm
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` (), uni `Includes` Char)
     => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
     -> EmitHandler uni r1
     -> IO ([a], r2)
@@ -66,12 +75,13 @@ withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
-            dynEmitTerm = dynamicCall dynEmitName
+            dynEmitScheme = Proxy @ Char `TypeSchemeArrow` TypeSchemeResult (Proxy @ ())
+            dynEmitTerm = dynamicCall dynEmitScheme dynEmitName -- The problem is to get the right scheme here
             dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` (), uni `Includes` Char)
     => AnEvaluator Term uni m b
     -> DynamicBuiltinNameMeanings uni
     -> (Term TyName Name uni () -> Term TyName Name uni ())

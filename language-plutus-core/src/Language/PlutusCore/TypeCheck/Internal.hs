@@ -304,8 +304,7 @@ unfoldFixOf pat arg k = do
             , vArg
             ]
 
--- | Infer the type of a 'Builtin'.
--- FIXME: Annoyingly we have to supply an annotation here for the error if the name isn't found
+-- | Infer the type of a 'Builtin'. The annotation argument is required for the error if the name isn't found
 inferTypeOfBuiltinM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann -> BuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))

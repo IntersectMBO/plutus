@@ -110,10 +110,13 @@ genTerm = simpleRecursive nonRecursive recursive where
     applyGen = Apply () <$> genTerm <*> genTerm
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
+    applyBuiltinGen = ApplyBuiltin ()
+                      <$> genBuiltinName
+                      <*> Gen.list (Range.linear 0 2) genType
+                      <*> Gen.list (Range.linear 0 3) genTerm
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, errorGen] -- FIXME, Builtin () <$> genBuiltin]
--- Tricky.  How do we get the instantion/arity right for builtins?
+    nonRecursive = [varGen, Constant () <$> genConstant, errorGen, applyBuiltinGen]
 
 
 genProgram :: AstGen (Program TyName Name DefaultUni ())
