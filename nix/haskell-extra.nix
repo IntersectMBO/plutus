@@ -24,14 +24,14 @@ pkgs.haskell-nix.tools {
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "0kww3762jlxblrcpvkfih746g2s9g9b4c8jwraw096b6hpxw56cv";
   };
-#  This fails due to missing unfoldings
-#  ghcide = {
-#    version = "0.2.0";
-#    compiler-nix-name = "ghc883";
-#    index-state = "2020-06-02T00:00:00Z";
-#  };
+  # This fails for packages that use plutus due to missing unfoldings
+  ghcide = {
+    version = "0.2.0";
+    compiler-nix-name = "ghc883";
+    index-state = "2020-06-02T00:00:00Z";
+  };
 } // {
-  ghcide = (pkgs.haskell-nix.cabalProject {
+  ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
     compiler-nix-name = "ghc883";
@@ -51,14 +51,6 @@ pkgs.haskell-nix.tools {
                              ];
       packages.hie-bios.src = sources.hie-bios;
     })];
-    pkg-def-extras = [
-           (hackage: {
-        packages = {
-          "alex" = (((hackage.alex)."3.2.5").revisions).default;
-          "happy" = (((hackage.happy)."1.19.12").revisions).default;
-        };
-      })
-    ];
   }).ghcide.components.exes.ghcide;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {

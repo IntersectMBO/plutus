@@ -1,8 +1,10 @@
 { packageSet ? import ./default.nix { rev = "in-nix-shell"; inherit sourcesOverride checkMaterialization useCabalProject; }
 , sourcesOverride ? {}
 , checkMaterialization ? false
-, useCaseShell ? false
-, useCabalProject ? useCaseShell
+, useCaseShell ? false  # Set to true for working on plutus scripts.
+                        # This will include prebuilt dependencies of plutus-use-cases and
+                        # a version of ghcide that works with plutus modules.
+, useCabalProject ? useCaseShell  # Chooses between `cabalProject` or `stackProject`
 }:
 with packageSet; haskell.packages.shellFor ({
   nativeBuildInputs = [
@@ -26,7 +28,9 @@ with packageSet; haskell.packages.shellFor ({
     dev.packages.cabal
     dev.packages.hlint
     dev.packages.stylish-haskell
-    dev.packages.ghcide
+    (if useCaseShell
+      then dev.packages.ghcide-use-cases
+      else dev.packages.ghcide)
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
@@ -34,5 +38,4 @@ with packageSet; haskell.packages.shellFor ({
   ];
 } // pkgs.lib.optionalAttrs useCaseShell {
   packages = ps: with ps; [ plutus-use-cases ];
-#  additional = ps: with ps; [ plutus-use-cases ];
 })

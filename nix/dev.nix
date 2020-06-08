@@ -2,7 +2,7 @@
 pkgs.recurseIntoAttrs (rec {
   # Packages which are useful during development, but we don't depend upon directly to build our stuff
   packages = pkgs.recurseIntoAttrs {
-    inherit (haskell.extraPackages) cabal stylish-haskell hlint ghcide;
+    inherit (haskell.extraPackages) cabal stylish-haskell hlint ghcide ghcide-use-cases;
     purty = haskell.extraPackages.purty.components.exes.purty;
     purs = easyPS.purs;
     spago = easyPS.spago;
