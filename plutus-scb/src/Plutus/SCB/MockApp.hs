@@ -29,6 +29,7 @@ module Plutus.SCB.MockApp
     , txCounts
     , txValidated
     , txMemPool
+    , blockchain
     ) where
 
 import qualified Cardano.Node.Types              as NodeServer
@@ -46,7 +47,7 @@ import           Data.Foldable                   (traverse_)
 import           Data.Map                        (Map)
 import qualified Data.Map                        as Map
 import           Data.Text.Prettyprint.Doc
-import           Ledger                          (Address)
+import           Ledger                          (Address, Blockchain)
 import qualified Ledger
 import qualified Ledger.AddressMap               as AM
 import           Plutus.SCB.Command              ()
@@ -199,13 +200,16 @@ data TxCounts =
 
 txCounts :: Member (State TestState) effs => Eff effs TxCounts
 txCounts = do
-    chain <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
+    chain <- blockchain
     pool <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.txPool)
     return
         $ TxCounts
             { _txValidated = lengthOf folded chain
             , _txMemPool   = length pool
             }
+
+blockchain :: Member (State TestState) effs => Eff effs Blockchain
+blockchain = use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
 
 -- | The value at an address, in the UTXO set of the emulated node.
 --   Note that the agents may have a different view of this (use 'syncAll'

@@ -39,7 +39,7 @@ import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEff
 import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId)
 import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), defaultWallet,
                                                                     runScenario, sync, syncAll, txCounts, txValidated,
-                                                                    valueAt)
+                                                                    valueAt, blockchain)
 import           Plutus.SCB.Query                                  (txHistoryProjection)
 import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain,
                                                                     mkChainOverview)
@@ -171,7 +171,7 @@ guessingGameTest =
                 "The wallet should now have its money back."
                 (lovelaceValueOf openingBalance)
                 balance2
-              blocks :: Blockchain <- confirmedBlocks
+              blocks :: Blockchain <- blockchain
               assertBool
                   "We have some confirmed blocks in this test."
                   (length (mconcat blocks) > 0)
