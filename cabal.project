@@ -1,4 +1,4 @@
-# Bump this if you need newer packages
+-- Bump this if you need newer packages
 index-state: 2020-02-20T00:00:00Z
 
 packages: language-plutus-core
