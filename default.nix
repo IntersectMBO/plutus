@@ -67,6 +67,19 @@ in rec {
   latex = pkgs.callPackage ./nix/latex.nix {};
 
   haskell = rec {
+    # The Hackage index-state from cabal.project
+    index-state =
+      let
+        # Borrowed from haskell.nix
+        parseIndexState = rawCabalProject:
+            let
+              indexState = pkgs.lib.lists.concatLists (
+                pkgs.lib.lists.filter (l: l != null)
+                  (builtins.map (l: builtins.match "^index-state: *(.*)" l)
+                    (pkgs.lib.splitString "\n" rawCabalProject)));
+            in pkgs.lib.lists.head (indexState ++ [ null ]);
+      in parseIndexState (builtins.readFile ./cabal.project);
+
     # All the packages defined by our project, including dependencies
     packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Just the packages in the project
@@ -77,7 +90,7 @@ in rec {
     # All the packages defined by our project, built for musl
     muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # Extra Haskell packages which we use but aren't part of the main project definition.
-    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit (localLib) index-state; inherit checkMaterialization; };
+    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit index-state checkMaterialization; };
   };
 
   tests = import ./nix/tests/default.nix {
