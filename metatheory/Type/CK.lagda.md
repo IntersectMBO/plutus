@@ -25,7 +25,7 @@ data State (K : Kind) : (H : Kind) → Set where
   _◅_ : {H : Kind} → Stack K H → {A : ∅ ⊢⋆ H} → Value⋆ A
     → State K H 
   □  : {A : ∅ ⊢⋆ K} →  Value⋆ A → State K K
-  ◆   : ∀ (J : Kind) →  State K J
+  -- ◆   : ∀ (J : Kind) →  State K J -- impossible in the typed language
 
 step : ∀{K H} → State K H → Σ Kind λ H' → State K H'
 step (stack ▻ Π A) = _ , stack ◅ V-Π {N = A}
@@ -41,5 +41,21 @@ step ((stack , (N- N ·-)) ◅ W) = _ , stack ◅ N- (N-· N W)
 step ((stack , (-⇒ B)) ◅ V) = _ , (stack , V ⇒-) ▻ B
 step ((stack , (V ⇒-)) ◅ W) = _ , stack ◅ (V V-⇒ W)
 step {K} (□ V) = K , □ V
-step (◆ J) = J , ◆ J
+
+--closing/unwinding things
+
+closeFrame : ∀{K H} → Frame K H → ∅ ⊢⋆ H → ∅ ⊢⋆ K
+closeFrame (-· B)          A = A · B
+closeFrame (_·- {A = A} V) B = A · B
+closeFrame (-⇒ B)          A = A ⇒ B
+closeFrame (_⇒- {A = A} V) B = A ⇒ B
+
+closeStack : ∀{K H} → Stack K H → ∅ ⊢⋆ H → ∅ ⊢⋆ K
+closeStack ε           A = A
+closeStack (stack , f) A = closeStack stack (closeFrame f A)
+
+closeState : ∀{K H} → State K H → ∅ ⊢⋆ K
+closeState (stack ▻ A)           = closeStack stack A
+closeState (_◅_ stack {A = A} V) = closeStack stack A
+closeState (□ {A = A} V)         = A
 ```
