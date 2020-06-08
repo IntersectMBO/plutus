@@ -69,6 +69,9 @@ let
             # plc-agda is compiled from the Haskell source files generated from the Agda
             plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
 
+            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model.build-tools =
+              lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
             iots-export.package.ghcOptions = "-Werror";

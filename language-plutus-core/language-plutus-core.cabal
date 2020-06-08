@@ -197,6 +197,8 @@ library
         filepath -any,
         hashable,
         hedgehog >=1.0,
+        integer-gmp -any,
+        ghc-prim -any,
         lens -any,
         megaparsec -any,
         memory -any,
@@ -213,12 +215,13 @@ library
         serialise -any,
         tasty -any,
         tasty-golden -any,
-        template-haskell -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
         th-utilities -any,
         template-haskell -any,
+        data-default -any,
+        data-default-class -any,
         transformers -any
 
 executable language-plutus-core-generate-evaluation-test
@@ -350,7 +353,9 @@ benchmark language-plutus-core-budgeting-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
     hs-source-dirs: budgeting-bench
-    ghc-options: -rtsopts
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
         bytestring -any,
@@ -361,4 +366,33 @@ benchmark language-plutus-core-budgeting-bench
         deepseq -any,
         lens -any,
         directory -any,
-        integer-gmp -any
+        integer-gmp -any,
+        hedgehog -any
+
+benchmark language-plutus-core-create-cost-model
+    type: exitcode-stdio-1.0
+    main-is: CreateModel.hs
+    hs-source-dirs: create-cost-model
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        bytestring -any,
+        containers -any,
+        language-plutus-core -any,
+        serialise -any,
+        deepseq -any,
+        lens -any,
+        directory -any,
+        inline-r -any,
+        hedgehog -any,
+        vector -any,
+        aeson -any,
+        text -any,
+        deriving-aeson >= 0.2.3,
+        aeson-pretty -any,
+        extra -any,
+        data-default -any,
+        cassava -any,
+        exceptions -any

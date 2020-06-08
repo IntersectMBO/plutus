@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MagicHash             #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -32,6 +33,9 @@ import           Data.Proxy
 import qualified Data.Text                    as T
 import           Foreign.Storable
 import           GHC.Generics
+import           GHC.Integer
+import           GHC.Integer.Logarithms
+import           GHC.Prim
 
 {- Note [Memory Usage for Plutus]
 
@@ -119,10 +123,10 @@ instance ExMemoryUsage () where
   memoryUsage _ = 0 -- TODO or 1?
 
 instance ExMemoryUsage Integer where
-  memoryUsage _ = 2 -- TODO
+  memoryUsage i = ExMemory (if i == 0 then 0 else smallInteger (integerLog2# (abs i) `quotInt#` (integerToInt 60))) -- assume 60bit size
 
 instance ExMemoryUsage BSL.ByteString where
-  memoryUsage bsl = ExMemory $ toInteger $ BSL.length bsl
+  memoryUsage bsl = ExMemory $ (toInteger $ BSL.length bsl) `div` 8
 
 instance ExMemoryUsage T.Text where
   memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
@@ -137,7 +141,7 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
 
 instance ExMemoryUsage String where
-  memoryUsage string = ExMemory $ toInteger $ sum $ fmap sizeOf string
+  memoryUsage string = ExMemory $ (toInteger $ sum $ fmap sizeOf string) `div` 8
 
 withMemory :: ExMemoryUsage (f a) => Functor f => f a -> f ExMemory
 withMemory x = fmap (const (memoryUsage x)) x

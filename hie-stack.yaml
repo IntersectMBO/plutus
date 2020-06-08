@@ -1,63 +1,181 @@
 cradle:
-  stack:
+  multi:
   - path: ./language-plutus-core/generators
-    component: "language-plutus-core:lib"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:lib"
   - path: ./language-plutus-core/prelude
-    component: "language-plutus-core:lib"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:lib"
   - path: ./language-plutus-core/src
-    component: "language-plutus-core:lib"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:lib"
   - path: ./language-plutus-core/plutus-ir
     component: "language-plutus-core:lib"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:lib"
   - path: ./language-plutus-core/common
-    component: "language-plutus-core:lib"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:lib"
   - path: ./language-plutus-core/exe
-    component: "language-plutus-core:exe:plc"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:exe:plc"
   - path: ./language-plutus-core/test
-    component: "language-plutus-core:language-plutus-core-test"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:language-plutus-core-test"
   - path: ./language-plutus-core/plutus-ir-test
     component: "language-plutus-core:plutus-ir-test"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:language-plutus-core-test"
   - path: ./language-plutus-core/bench
-    component: "language-plutus-core:language-plutus-core-bench"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:language-plutus-core-bench"
   - path: ./language-plutus-core/weigh
-    component: "language-plutus-core:language-plutus-core-weigh"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:language-plutus-core-weigh"
   - path: ./language-plutus-core/budgeting-bench
-    component: "language-plutus-core:language-plutus-core-budgeting-bench"
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:language-plutus-core-budgeting-bench"
+  - path: ./plutus-emulator/src
+    config:
+      cradle:
+        stack:
+          component: "plutus-emulator:lib"
+  - path: ./plutus-emulator/test
+    config:
+      cradle:
+        stack:
+          component: "plutus-emulator:plutus-emulator-test"
   - path: ./plutus-tx/src
-    component: "plutus-tx:lib"
+    config:
+      cradle:
+        stack:
+          component: "plutus-tx:lib"
   - path: ./plutus-tx/compiler
-    component: "plutus-tx-compiler:lib"
+    config:
+      cradle:
+        stack:
+          component: "plutus-tx-compiler:lib"
   - path: ./plutus-tx/test
-    component: "plutus-tx:plutus-tx-test"
+    config:
+      cradle:
+        stack:
+          component: "plutus-tx:plutus-tx-test"
+  - path: ./plutus-ir/src
+    config:
+      cradle:
+        stack:
+          component: "plutus-ir:lib"
+  - path: ./plutus-ir/test
+    config:
+      cradle:
+        stack:
+          component: "plutus-ir:plutus-ir-test"
   - path: ./plutus-playground-lib/src
-    component: "plutus-playground-lib:lib"
+    config:
+      cradle:
+        stack:
+          component: "plutus-playground-lib:lib"
   - path: ./plutus-playground-lib/test
-    component: "plutus-playground-lib:plutus-playground-lib-test"
+    config:
+      cradle:
+        stack:
+          component: "plutus-playground-lib:plutus-playground-lib-test"
   - path: ./playground-common/src
-    component: "playground-common:lib"
+    config:
+      cradle:
+        stack:
+          component: "playground-common:lib"
   - path: ./playground-common/test
-    component: "playground-common:playground-common-test"
+    config:
+      cradle:
+        stack:
+          component: "playground-common:playground-common-test"
   - path: ./marlowe-playground-server/src
-    component: "marlowe-playground-server:lib"
+    config:
+      cradle:
+        stack:
+          component: "marlowe-playground-server:lib"
   - path: ./marlowe-playground-server/test
-    component: "marlowe-playground-server:marlowe-playground-server-test"
+    config:
+      cradle:
+        stack:
+          component: "marlowe-playground-server:marlowe-playground-server-test"
   - path: ./marlowe-symbolic/src
-    component: "marlowe-symbolic:lib"
+    config:
+      cradle:
+        stack:
+          component: "marlowe-symbolic:lib"
+  - path: ./marlowe-symbolic/test
+    config:
+      cradle:
+        stack:
+          component: "marlowe-symbolic:marlowe-symbolic-test"
   - path: ./plutus-contract/src
-    component: "plutus-contract:lib"
+    config:
+      cradle:
+        stack:
+          component: "plutus-contract:lib"
   - path: ./plutus-contract/test
-    component: "plutus-contract:plutus-contract-test"
+    config:
+      cradle:
+        stack:
+          component: "plutus-contract:plutus-contract-test"
   - path: ./deployment-server/src
-    component: "deployment-server:lib"
+    config:
+      cradle:
+        stack:
+          component: "deployment-server:lib"
   - path: ./deployment-server/test
-    component: "deployment-server:deployment-server-test"
+    config:
+      cradle:
+        stack:
+          component: "deployment-server:deployment-server-test"
   - path: ./iots-export/src
-    component: "iots-export:lib"
+    config:
+      cradle:
+        stack:
+          component: "iots-export:lib"
   - path: ./iots-export/test
-    component: "iots-export:iots-export-test"
+    config:
+      cradle:
+        stack:
+          component: "iots-export:iots-export-test"
   - path: ./metatheory/src
-    component: "metatheory:lib"
+    config:
+      cradle:
+        stack:
+          component: "metatheory:lib"
   - path: ./metatheory/test
-    component: "metatheory:metatheory-test"
+    config:
+      cradle:
+        stack:
+          component: "metatheory:metatheory-test"
+  - path: ./language-plutus-core/create-cost-model
+    config:
+      cradle:
+        none:
 
   # These use the plutus plugin - HIE doesn't support plugins yet
 
