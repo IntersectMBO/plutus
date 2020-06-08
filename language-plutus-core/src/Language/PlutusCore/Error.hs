@@ -17,8 +17,7 @@ module Language.PlutusCore.Error
     , AsNormCheckError (..)
     , UniqueError (..)
     , AsUniqueError (..)
-    , UnknownDynamicBuiltinNameError (..)
-    , AsUnknownDynamicBuiltinNameError (..)
+    , BuiltinError (..)
     , InternalTypeError (..)
     , AsInternalTypeError (..)
     , TypeError (..)
@@ -81,12 +80,24 @@ deriving instance
     ) => Eq (NormCheckError tyname name uni ann)
 makeClassyPrisms ''NormCheckError
 
--- | This error is returned whenever scope resolution of a 'DynamicBuiltinName' fails.
-newtype UnknownDynamicBuiltinNameError
-    = UnknownDynamicBuiltinNameErrorE DynamicBuiltinName
-    deriving (Show, Eq, Generic)
-    deriving newtype (NFData)
-makeClassyPrisms ''UnknownDynamicBuiltinNameError
+-- TODO: split into type/other errors
+data BuiltinError ann =
+    UnknownDynamicBuiltinName ann DynamicBuiltinName
+    | BuiltinUnderInstantiated  ann BuiltinName
+    | BuiltinOverInstantiated   ann BuiltinName
+    | BuiltinUnderApplied       ann BuiltinName
+    | BuiltinOverApplied        ann BuiltinName
+    | BadTypeScheme             ann BuiltinName
+    deriving (Show, Eq, Generic, NFData)
+makeClassyPrisms ''BuiltinError
+
+annOf :: BuiltinError ann -> ann
+annOf (UnknownDynamicBuiltinName ann _) = ann
+annOf (BuiltinUnderInstantiated  ann _) = ann
+annOf (BuiltinOverInstantiated   ann _) = ann
+annOf (BuiltinUnderApplied       ann _) = ann
+annOf (BuiltinOverApplied        ann _) = ann
+annOf (BadTypeScheme             ann _) = ann
 
 -- | An internal error occurred during type checking.
 data InternalTypeError uni ann
@@ -100,10 +111,10 @@ data TypeError uni ann
         (Term TyName Name uni ())
         (Type TyName uni ())
         (Normalized (Type TyName uni ()))
-    | UnknownDynamicBuiltinName ann UnknownDynamicBuiltinNameError
     | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
+    | BuiltinTypeErrorE (BuiltinError ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
@@ -112,6 +123,7 @@ data Error uni ann
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError uni ann)
     | NormCheckErrorE (NormCheckError TyName Name uni ann)
+    | BuiltinErrorE (BuiltinError ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''Error
 
@@ -160,9 +172,15 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance Pretty UnknownDynamicBuiltinNameError where
-    pretty (UnknownDynamicBuiltinNameErrorE dbn) =
-        "Scope resolution failed on a dynamic built-in name:" <+> pretty dbn
+instance Pretty ann => Pretty (BuiltinError ann) where
+    pretty (UnknownDynamicBuiltinName _ann dbn) = "Unknown dynamic built-in name: " <+> pretty dbn
+    pretty (BuiltinUnderInstantiated  _ann bn)  = "Built-in function underinstantiated: " <+> pretty bn
+    pretty (BuiltinOverInstantiated   _ann bn)  = "Built-in function overinstantiated: " <+> pretty bn
+    pretty (BuiltinUnderApplied       _ann bn)  = "Built-in function underapplied: " <+> pretty bn
+    pretty (BuiltinOverApplied        _ann bn)  = "Built-in function overapplied: " <+> pretty bn
+    pretty (BadTypeScheme             _ann bn)  = "Malformed type scheme for: " <+> pretty bn
+-- FIXME: do this properly; maybe also add more info, like the number of args expected and found
+
 
 instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
     prettyBy config (OpenTypeOfBuiltin ty bi)        =
@@ -194,9 +212,9 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
     prettyBy config (InternalTypeErrorE ann err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty ann
-    prettyBy _      (UnknownDynamicBuiltinName ann err) =
-        "Unknown dynamic built-in name at" <+> pretty ann <>
-        ":" <+> pretty err
+    prettyBy _ (BuiltinTypeErrorE err) =
+        pretty err <> hardline <>
+        "Error location:" <+> pretty (annOf err)
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni ann) where
@@ -204,3 +222,4 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
+    prettyBy _      (BuiltinErrorE e)         = pretty e
