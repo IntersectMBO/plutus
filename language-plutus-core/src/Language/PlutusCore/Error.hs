@@ -91,6 +91,7 @@ data BuiltinError ann =
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''BuiltinError
 
+-- FIXME: do something else
 annOf :: BuiltinError ann -> ann
 annOf (UnknownDynamicBuiltinName ann _) = ann
 annOf (BuiltinUnderInstantiated  ann _) = ann
