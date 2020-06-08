@@ -29,7 +29,7 @@ module Plutus.SCB.MockApp
     , txCounts
     , txValidated
     , txMemPool
-    , blockchain
+    , blockchainNewestFirst
     ) where
 
 import qualified Cardano.Node.Types              as NodeServer
@@ -200,7 +200,7 @@ data TxCounts =
 
 txCounts :: Member (State TestState) effs => Eff effs TxCounts
 txCounts = do
-    chain <- blockchain
+    chain <- blockchainNewestFirst
     pool <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.txPool)
     return
         $ TxCounts
@@ -208,8 +208,8 @@ txCounts = do
             , _txMemPool   = length pool
             }
 
-blockchain :: Member (State TestState) effs => Eff effs Blockchain
-blockchain = use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
+blockchainNewestFirst :: Member (State TestState) effs => Eff effs Blockchain
+blockchainNewestFirst = use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
 
 -- | The value at an address, in the UTXO set of the emulated node.
 --   Note that the agents may have a different view of this (use 'syncAll'
