@@ -10,11 +10,9 @@ where
 
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Universe
 
 import           Data.Proxy
 import           Data.Text                          (append, pack)

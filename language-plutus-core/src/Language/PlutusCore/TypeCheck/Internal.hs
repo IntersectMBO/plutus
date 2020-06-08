@@ -148,7 +148,7 @@ lookupDynamicBuiltinNameM ann name = do
     DynamicBuiltinNameTypes dbnts <- asks $ _tccDynamicBuiltinNameTypes . _tceTypeCheckConfig
     case Map.lookup name dbnts of
         Nothing ->
-            throwError $ UnknownDynamicBuiltinName ann (UnknownDynamicBuiltinNameErrorE name)
+            throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
         Just ty -> liftDupable ty
 
 -- | Look up a type variable in the current context.
@@ -326,19 +326,20 @@ inferTypeOfBuiltinM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann n
 checkBuiltinTypeArgs
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => [(TyName, Normalized (Type TyName uni ()))]
+    -> ann
     -> BuiltinName
     -> Type TyName uni ()
     -> [Type TyName uni ann]
     -> [Value TyName Name uni ann]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinTypeArgs mapping bn (TyForall () tyname kind ty') (tyarg:tyargs) args = do
+checkBuiltinTypeArgs mapping ann bn (TyForall () tyname kind ty') (tyarg:tyargs) args = do
   checkKindM  (typeAnn tyarg) tyarg (void kind)
   tyarg' <- normalizeType (void tyarg)
-  checkBuiltinTypeArgs ((tyname,tyarg'):mapping) bn ty' tyargs args
-checkBuiltinTypeArgs _       bn (TyForall _ _tyname _kind _ty') [] _ = Prelude.error $ "Underinstantiated: " ++ show bn
-checkBuiltinTypeArgs mapping bn ty' [] args = checkBuiltinTermArgs mapping bn ty' args
-checkBuiltinTypeArgs _       bn _  (_:_) _ = Prelude.error $ "Overinstantiated: " ++ show bn -- We've got a forall type but nowhere to instantiate it
--- FIXME: proper errors
+  checkBuiltinTypeArgs ((tyname,tyarg'):mapping) ann bn ty' tyargs args
+checkBuiltinTypeArgs _       ann bn (TyForall _ _tyname _kind _ty') [] _ = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
+checkBuiltinTypeArgs mapping ann bn ty' [] args = checkBuiltinTermArgs mapping ann bn ty' args
+checkBuiltinTypeArgs _       ann bn _  (_:_) _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated ann bn)
+-- We've got a forall type but nowhere to instantiate it
 
 
 -- PROBLEM.  Suppose we have a builtin application (bn tys args). Can
@@ -366,11 +367,12 @@ checkBuiltinTypeArgs _       bn _  (_:_) _ = Prelude.error $ "Overinstantiated: 
 checkBuiltinTermArgs
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => [(TyName, Normalized (Type TyName uni ()))]
+    -> ann
     -> BuiltinName
     -> Type TyName uni ()
     -> [Value TyName Name uni ann]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinTermArgs mapping bn ty [] = do  -- no more arguments left, so substitute the type instantiations into the return type
+checkBuiltinTermArgs mapping ann bn ty [] = do  -- no more arguments left, so substitute the type instantiations into the return type
     let f ty1 (name, newty) = do -- perform all of the substitutions in the mapping
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
@@ -378,30 +380,31 @@ checkBuiltinTermArgs mapping bn ty [] = do  -- no more arguments left, so substi
     ty' <- foldM f (void ty) mapping
     tyr <- normalizeTypeM ty'
     _ <- case ty of
-           TyFun{} -> Prelude.error $ "Builtin underapplied: " ++ show bn ++ " [" ++ show ty ++ "]"
+           TyFun{} -> throwError $ BuiltinTypeErrorE (BuiltinUnderApplied ann bn)
            _       -> pure ()
     -- Given the type t1 -> t2 -> ... -> tn -> r, we've removed one t_i for every argument, so what's left is the return type.
     -- We assume that no builtin returns a function, which could be wrong for some polymorphic builtins.
-    -- FIXME: ^ this is a crude test for underapplication and should be replaced.  Also, add proper errors.
+    -- FIXME: ^ this is a crude test for underapplication and should be replaced.
     return tyr
-checkBuiltinTermArgs mapping bn (TyFun _ t1 t2) (arg:args) =  do
+checkBuiltinTermArgs mapping ann bn (TyFun _ t1 t2) (arg:args) =  do
     let f ty1 (name, newty) = do
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
     t1' <- foldM f (void t1)  mapping
     t1'norm <- normalizeTypeM t1'
     checkTypeM (termAnn arg) arg t1'norm
-    checkBuiltinTermArgs mapping bn t2 args
-checkBuiltinTermArgs bn _ _ (_:_) = Prelude.error $ "Builtin overapplied: " ++ show bn
+    checkBuiltinTermArgs mapping ann bn t2 args
+checkBuiltinTermArgs _ ann bn _ (_:_) = throwError $ BuiltinTypeErrorE (BuiltinOverApplied ann bn)
 
 checkBuiltinAppl
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName
+    => ann
+    -> BuiltinName
     -> Type TyName uni ()
     -> [Type TyName uni ann]
     -> [Value TyName Name uni ann]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinAppl bn ty tys args = checkBuiltinTypeArgs [] bn ty tys args
+checkBuiltinAppl ann bn ty tys args = checkBuiltinTypeArgs [] ann bn ty tys args
 
 
 -- See the [Global uniqueness] and [Type rules] notes.
@@ -425,7 +428,7 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
 inferTypeM (ApplyBuiltin ann bn tyargs args) = do
   ty <- inferTypeOfBuiltinM ann bn  -- May have foralls at the start
-  rty <- checkBuiltinAppl bn (unNormalized ty) tyargs args
+  rty <- checkBuiltinAppl ann bn (unNormalized ty) tyargs args
   return rty
 
 

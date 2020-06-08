@@ -15,7 +15,6 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators.Internal.Denotation
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 

@@ -92,10 +92,10 @@ data CekUserError
     deriving (Show, Eq)
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException uni = MachineException uni UnknownDynamicBuiltinNameError
+type CekMachineException uni = MachineException uni (BuiltinError ())
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni = EvaluationException uni UnknownDynamicBuiltinNameError CekUserError
+type CekEvaluationException uni = EvaluationException uni (BuiltinError ()) CekUserError
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -193,7 +193,7 @@ lookupDynamicBuiltinName term dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
-                          err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+                          err = OtherMachineError (UnknownDynamicBuiltinName () dynName)
         -- 'term' is just here for the error message. Will including it have any effect on efficiency?
         Just mean -> pure mean
 
