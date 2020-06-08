@@ -59,3 +59,4 @@ closeState (stack ▻ A)           = closeStack stack A
 closeState (_◅_ stack {A = A} V) = closeStack stack A
 closeState (□ {A = A} V)         = A
 ```
+
