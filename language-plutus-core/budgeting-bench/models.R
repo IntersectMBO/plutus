@@ -54,14 +54,14 @@ modelFun <- function(path) {
 
   multiplyIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
-    lm(Mean ~ x_mem^2 * y_mem^2, filtered)
+    lm(Mean ~ x_mem^2 + y_mem^2, filtered)
   }
 
   # Used for DivideInteger, QuotientInteger, RemainderInteger, ModInteger
   divideIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
     # This one does seem to underestimate the cost by a factor of two
-    lm(Mean ~ ifelse(x_mem > y_mem, x_mem * y_mem, 0) , filtered)
+    lm(Mean ~ ifelse(x_mem > y_mem, x_mem + y_mem, 0) , filtered)
   }
 
   # Used for LessThanInteger, GreaterThanInteger

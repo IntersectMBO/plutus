@@ -9,7 +9,6 @@ module Main where
 
 import           Control.Exception                                  (TypeError (..))
 import           Control.Monad.Catch
-import           Data.Aeson                                         hiding ((.:))
 import           Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy                               as BSL
 import           Data.Csv
@@ -23,8 +22,6 @@ import           GHC.Generics
 import           H.Prelude                                          (MonadR, Region, r)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.R
-
-import           Debug.Trace
 
 {- See Note [Creation of the Cost Model]
 -}
@@ -128,11 +125,11 @@ readModelMinSize models name = (pure . uncurry ModelMinSize) =<< unsafeReadModel
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f ~(a,b,c) = f a b c
 
-readModelExpMultiSizes :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelExpMultiSizes
-readModelExpMultiSizes models name = (pure . uncurry3 ModelExpMultiSizes) =<< unsafeReadModelFromR2 "x_mem" "y_mem" =<< ([r| models_hs[[name_hs]]|])
+readModelExpSizes :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelExpSizes
+readModelExpSizes models name = (pure . uncurry3 ModelExpSizes) =<< unsafeReadModelFromR2 "x_mem" "y_mem" =<< ([r| models_hs[[name_hs]]|])
 
-readModelSplitConstMulti :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelSplitConstMulti
-readModelSplitConstMulti models name = (pure . uncurry ModelSplitConstMulti) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, x_mem * y_mem, 0)" =<< ([r| models_hs[[name_hs]]|])
+readModelSplitConst :: MonadR m => (SomeSEXP (Region m)) -> String -> m ModelSplitConst
+readModelSplitConst models name = (pure . uncurry ModelSplitConst) =<< unsafeReadModelFromR "ifelse(x_mem > y_mem, x_mem + y_mem, 0)" =<< ([r| models_hs[[name_hs]]|])
 
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger models = do
@@ -146,12 +143,12 @@ subtractInteger models = do
 
 multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 multiplyInteger models = do
-  cpuModel <- readModelExpMultiSizes models "multiplyIntegerModel"
+  cpuModel <- readModelExpSizes models "multiplyIntegerModel"
   pure $ CostingFun (ModelTwoArgumentsExpMultiSizes cpuModel) def
 
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger models = do
-  cpuModel <- readModelSplitConstMulti models "divideIntegerModel"
+  cpuModel <- readModelSplitConst models "divideIntegerModel"
   pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) def
 
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

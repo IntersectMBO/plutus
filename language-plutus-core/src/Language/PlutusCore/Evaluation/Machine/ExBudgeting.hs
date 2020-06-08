@@ -81,8 +81,8 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelMinSize(..)
-    , ModelSplitConstMulti(..)
-    , ModelExpMultiSizes(..)
+    , ModelSplitConst(..)
+    , ModelExpSizes(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -178,6 +178,7 @@ estimateStaticStagedCost
     :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
+-- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
 data CostModel =
     CostModel
     { paramAddInteger           :: CostingFun ModelTwoArguments
@@ -234,6 +235,7 @@ runOneArgumentModel :: ModelOneArgument -> ExMemory -> Integer
 runOneArgumentModel (ModelOneArgumentConstantCost i) _ = i
 runOneArgumentModel (ModelOneArgumentAddedSizes (ModelAddedSizes intercept slope)) (ExMemory s) = ceiling $ (fromInteger s) * slope + intercept
 
+-- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
     { modelAddedSizesIntercept :: Double
     , modelAddedSizesSlope     :: Double
@@ -241,6 +243,7 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
+-- | s * min(x, y) + I
 data ModelMinSize = ModelMinSize
     { modelMinSizeIntercept :: Double
     , modelMinSizeSlope     :: Double
@@ -248,27 +251,29 @@ data ModelMinSize = ModelMinSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
-data ModelExpMultiSizes = ModelExpMultiSizes
-    { modelExpMultiSizesIntercept :: Double
-    , modelExpMultiSizesSlopeX    :: Double
-    , modelExpMultiSizesSlopeY    :: Double
+-- | sX * x^2 + xY * y^2 + I
+data ModelExpSizes = ModelExpSizes
+    { modelExpSizesIntercept :: Double
+    , modelExpSizesSlopeX    :: Double
+    , modelExpSizesSlopeY    :: Double
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "modelExpMultiSizes", CamelToSnake)] ModelExpMultiSizes
+        '[FieldLabelModifier (StripPrefix "ModelExpSizes", CamelToSnake)] ModelExpSizes
 
-data ModelSplitConstMulti = ModelSplitConstMulti
-    { modelSplitConstMultiIntercept :: Double
-    , modelSplitConstMultiSlope     :: Double
+-- | (if (x > y) then s * (x + y) else 0) + I
+data ModelSplitConst = ModelSplitConst
+    { modelSplitConstIntercept :: Double
+    , modelSplitConstSlope     :: Double
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "modelSplitConstMulti", CamelToSnake)] ModelSplitConstMulti
+        '[FieldLabelModifier (StripPrefix "ModelSplitConst", CamelToSnake)] ModelSplitConst
 
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
     | ModelTwoArgumentsMinSize ModelMinSize
-    | ModelTwoArgumentsExpMultiSizes ModelExpMultiSizes
-    | ModelTwoArgumentsSplitConstMulti ModelSplitConstMulti
+    | ModelTwoArgumentsExpMultiSizes ModelExpSizes
+    | ModelTwoArgumentsSplitConstMulti ModelSplitConst
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
@@ -290,10 +295,10 @@ runTwoArgumentModel
     (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (min size1 size2)) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsExpMultiSizes (ModelExpMultiSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsExpMultiSizes (ModelExpSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (((fromInteger size1) ** 2) * slopeX) * (((fromInteger size2) ** 2) * slopeY) + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsSplitConstMulti (ModelSplitConstMulti intercept slope)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
 
 data ModelThreeArguments =

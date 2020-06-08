@@ -85,9 +85,9 @@
         },
         "cpu": {
             "arguments": {
-                "slope_x": 1.14819540255904e-7,
-                "slope_y": 1.14738567305548e-7,
-                "intercept": 9.32541245037609e-6
+                "model_exp_sizes_intercept": -3.74225655423081e-5,
+                "model_exp_sizes_slope_y": 2.63531321333189e-7,
+                "model_exp_sizes_slope_x": 2.63612294283545e-7
             },
             "type": "exp_multi_sizes"
         }
@@ -112,8 +112,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1.27276835182334e-9,
-                "intercept": 4.47101234984592e-5
+                "model_split_const_intercept": -5.16391281909432e-6,
+                "model_split_const_slope": 3.2101736280908e-7
             },
             "type": "split_const_multi"
         }
@@ -171,8 +171,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1.27276835182334e-9,
-                "intercept": 4.47101234984592e-5
+                "model_split_const_intercept": -5.16391281909432e-6,
+                "model_split_const_slope": 3.2101736280908e-7
             },
             "type": "split_const_multi"
         }
@@ -194,8 +194,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1.27276835182334e-9,
-                "intercept": 4.47101234984592e-5
+                "model_split_const_intercept": -5.16391281909432e-6,
+                "model_split_const_slope": 3.2101736280908e-7
             },
             "type": "split_const_multi"
         }
@@ -240,8 +240,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 1.27276835182334e-9,
-                "intercept": 4.47101234984592e-5
+                "model_split_const_intercept": -5.16391281909432e-6,
+                "model_split_const_slope": 3.2101736280908e-7
             },
             "type": "split_const_multi"
         }
