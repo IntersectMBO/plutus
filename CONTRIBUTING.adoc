@@ -53,24 +53,6 @@ You can find the files in link:./nix/stack.materialized[`nix/stack.materialized`
 All you need to do is delete this directory, and then rebuild something. 
 You will see a command on stderr that will tell you how to generate the replacement files.
 
-[[update-freeze]]
-=== How to update `cabal.project.freeze`
-
-The `cabal.project.freeze` file ensures that Cabal users will get the same versions as
-are picked by Stack. The way we ensure this is by running `cabal v2-freeze` in a Nix environment
-based on the package set generated from the Stack configuration. This ensures that Cabal chooses versions
-that match those in the Stackage resolver.
-
-IMPORTANT: This file needs to be regenerated if you change any dependencies in cabal files
-or change the Stackage resolver. To regenerate the file, run `nix-shell --run "cabal v2-freeze"` in the root.
-
-[NOTE]
-====
-The `nix-shell` invocation will *build* all the dependencies of the project, so if you
-have just made a substantial change (e.g. changing the snapshot), then you may want to
-push your change to a PR so Hydra will build it before doing this step.
-====
-
 === How to update one of our pinned dependencies
 
 ==== Haskell pins
