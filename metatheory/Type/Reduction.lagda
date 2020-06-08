@@ -26,7 +26,8 @@ open import Relation.Binary.PropositionalEquality
 data Neutral⋆ : ∀ {Γ K} → Γ ⊢⋆ K → Set
 data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
 
-  V-Π : ∀ {Φ K} {N : Φ ,⋆ K ⊢⋆ *}
+  V-Π : ∀ {Φ K}
+    → (N : Φ ,⋆ K ⊢⋆ *)
       ----------------------------
     → Value⋆ (Π N)
 
@@ -36,7 +37,8 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
       -----------------------------------
     → Value⋆ (S ⇒ T)
 
-  V-ƛ : ∀ {Φ K J} {N : Φ ,⋆ K ⊢⋆ J}
+  V-ƛ : ∀ {Φ K J}
+    → (N : Φ ,⋆ K ⊢⋆ J)
       -----------------------------
     → Value⋆ (ƛ N)
 
@@ -46,7 +48,7 @@ data Value⋆   : ∀ {Γ K} → Γ ⊢⋆ K → Set where
     → Value⋆ N
 
   V-con : ∀{Φ}
-    → {tcn : TyCon}
+    → (tcn : TyCon)
       ------------------
     → Value⋆ {Γ = Φ} (con tcn)
 
@@ -126,20 +128,20 @@ data Progress⋆ {Γ K} (M : Γ ⊢⋆ K) : Set where
 progress⋆ : ∀ {K} → (M : ∅ ⊢⋆ K) → Progress⋆ M
 progress⋆ (` ())
 progress⋆ μ1      = done (N- N-μ1)
-progress⋆ (Π M)   = done V-Π
+progress⋆ (Π M)   = done (V-Π M)
 progress⋆ (M ⇒ N) with progress⋆ M
 progress⋆ (M ⇒ N) | step p = step (ξ-⇒₁ p)
 progress⋆ (M ⇒ N) | done VM with progress⋆ N
 progress⋆ (M ⇒ N) | done VM | step q  = step (ξ-⇒₂ VM q)
 progress⋆ (M ⇒ N) | done VM | done VN = done (VM V-⇒ VN)
-progress⋆ (ƛ M)   = done V-ƛ
+progress⋆ (ƛ M)   = done (V-ƛ M)
 progress⋆ (M · N)  with progress⋆ M
 ...                    | step p = step (ξ-·₁ p)
 ...                    | done vM with progress⋆ N
 ...                               | step p = step (ξ-·₂ vM p)
-progress⋆ (.(ƛ _) · N) | done V-ƛ | done vN = step (β-ƛ vN)
+progress⋆ (.(ƛ _) · N) | done (V-ƛ M) | done vN = step (β-ƛ vN)
 progress⋆ (M · N) | done (N- M') | done vN = done (N- (N-· M' vN))
-progress⋆ (con tcn) = done V-con
+progress⋆ (con tcn) = done (V-con tcn)
 \end{code}
 
 \begin{code}

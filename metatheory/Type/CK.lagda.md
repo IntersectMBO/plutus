@@ -28,19 +28,19 @@ data State (K : Kind) : (H : Kind) → Set where
   -- ◆   : ∀ (J : Kind) →  State K J -- impossible in the typed language
 
 step : ∀{K H} → State K H → Σ Kind λ H' → State K H'
-step (stack ▻ Π A) = _ , stack ◅ V-Π {N = A}
-step (stack ▻ (A ⇒ B)) = _ , (stack , -⇒ B) ▻ A
-step (stack ▻ ƛ A) = _ , stack ◅ V-ƛ {N = A}
-step (stack ▻ (A · B)) = _ , (stack , -· B) ▻ A
-step (stack ▻ μ1) = _ , stack ◅ N- N-μ1
-step (stack ▻ con c) = _ , stack ◅ V-con {tcn = c}
-step (ε ◅ V) = _ , □ V
-step ((stack , (-· B)) ◅ V) = _ , (stack , V ·-) ▻ B
-step (_◅_ (stack , (V-ƛ {N = A} ·-)) {A = B}  W) = _ , stack ▻ (A [ B ])
-step ((stack , (N- N ·-)) ◅ W) = _ , stack ◅ N- (N-· N W)
-step ((stack , (-⇒ B)) ◅ V) = _ , (stack , V ⇒-) ▻ B
-step ((stack , (V ⇒-)) ◅ W) = _ , stack ◅ (V V-⇒ W)
-step {K} (□ V) = K , □ V
+step (s ▻ Π A)                               = _ , s ◅ V-Π A
+step (s ▻ (A ⇒ B))                           = _ , (s , -⇒ B) ▻ A
+step (s ▻ ƛ A)                               = _ , s ◅ V-ƛ A
+step (s ▻ (A · B))                           = _ , (s , -· B) ▻ A
+step (s ▻ μ1)                                = _ , s ◅ N- N-μ1
+step (s ▻ con c)                             = _ , s ◅ V-con c
+step (ε ◅ V)                                 = _ , □ V
+step ((s , (-· B)) ◅ V)                      = _ , (s , V ·-) ▻ B
+step (_◅_ (s , (V-ƛ A ·-)) {A = B}  W)       = _ , s ▻ (A [ B ])
+step ((s , (N- N ·-)) ◅ W)                   = _ , s ◅ N- (N-· N W)
+step ((s , (-⇒ B)) ◅ V)                      = _ , (s , V ⇒-) ▻ B
+step ((s , (V ⇒-)) ◅ W)                      = _ , s ◅ (V V-⇒ W)
+step (□ V)                                   = _ , □ V
 
 --closing/unwinding things
 
@@ -52,11 +52,10 @@ closeFrame (_⇒- {A = A} V) B = A ⇒ B
 
 closeStack : ∀{K H} → Stack K H → ∅ ⊢⋆ H → ∅ ⊢⋆ K
 closeStack ε           A = A
-closeStack (stack , f) A = closeStack stack (closeFrame f A)
+closeStack (s , f) A = closeStack s (closeFrame f A)
 
 closeState : ∀{K H} → State K H → ∅ ⊢⋆ K
-closeState (stack ▻ A)           = closeStack stack A
-closeState (_◅_ stack {A = A} V) = closeStack stack A
+closeState (s ▻ A)           = closeStack s A
+closeState (_◅_ s {A = A} V) = closeStack s A
 closeState (□ {A = A} V)         = A
 ```
-
