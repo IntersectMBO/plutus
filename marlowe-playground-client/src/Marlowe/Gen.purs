@@ -294,6 +294,7 @@ genContract' size
             , If <$> genNewObservation <*> genNewContractIndexed 1 <*> genNewContractIndexed 2
             , When <$> genCases newSize <*> genTimeout <*> genNewContract
             , Let <$> genTermWrapper genValueId <*> genNewValue <*> genNewContract
+            , Assert <$> genNewObservation <*> genNewContract
             ]
   | otherwise = genLeaf
     where

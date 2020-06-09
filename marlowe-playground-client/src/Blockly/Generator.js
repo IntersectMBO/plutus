@@ -70,6 +70,7 @@ exports.blockToCode_ = function (left, right, block, generator) {
     try {
         return right(generator.blockToCode(block));
     } catch (err) {
+        console.log(block);
         console.log(err.message);
         return left(err.message);
     }

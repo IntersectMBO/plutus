@@ -31,7 +31,6 @@ import           Data.String
 import qualified Codec.CBOR.Write                      as Write
 import qualified Codec.Serialise                       as Serialise
 import qualified Hedgehog
-import           Language.Marlowe
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (adaValueOf)
@@ -83,9 +82,9 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -155,9 +154,9 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -192,9 +191,9 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -234,7 +233,7 @@ validatorSize :: IO ()
 validatorSize = do
     let validator = validatorScript defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool "Validator is too large" (vsize < 616000)
+    assertBool "Validator is too large" (vsize < 700000)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished
@@ -318,7 +317,7 @@ scaleMulTest = property $ do
 
 
 valueSerialization :: Property
-valueSerialization = property $ do
+valueSerialization = property $
     forAll valueGen $ \a ->
         let decoded :: Maybe (Value Observation)
             decoded = decode $ encode a

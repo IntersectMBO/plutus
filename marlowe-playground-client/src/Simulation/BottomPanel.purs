@@ -302,6 +302,13 @@ panelContents state CurrentStateView =
         ]
     ]
 
+  displayWarning' TransactionAssertionFailed =
+    [ div [ classes [ rTableCell, first ] ] []
+    , div [ class_ (ClassName "RTable-2-cells") ] [ text "TransactionAssertionFailed" ]
+    , div [ class_ (ClassName "RTable-4-cells") ]
+        [ text $ "An assertion in the contract did not hold." ]
+    ]
+
 panelContents state StaticAnalysisView =
   section
     [ classes [ ClassName "panel-sub-header", aHorizontal, Classes.panelContents ]
@@ -620,6 +627,11 @@ displayWarning (TransactionShadowing valId oldVal newVal) =
   , text " and now it is being assigned the value "
   , b_ [ text (show newVal) ]
   , text "."
+  ]
+
+displayWarning TransactionAssertionFailed =
+  [ b_ [ text "TransactionAssertionFailed" ]
+  , text " - An assertion in the contract did not hold."
   ]
 
 txInputToLines :: forall p a. Maybe TransactionInput -> Array (HTML p a)

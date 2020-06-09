@@ -14,7 +14,7 @@ const lexer = moo.compile({
         hole: /\?[a-zA-Z0-9_-]+/,
         CONSTRUCTORS: {
             match: /[A-Z][A-Za-z]+/, type: moo.keywords({
-                CONTRACT: ['Close', 'Pay', 'If', 'When', 'Let'],
+                CONTRACT: ['Close', 'Pay', 'If', 'When', 'Let', 'Assert'],
                 OBSERVATION: [
                     'AndObs',
                     'OrObs',
@@ -99,6 +99,7 @@ topContract
     | "If" someWS observation someWS contract someWS contract {% ([{line, col},,observation,,contract1,,contract2]) => opts.mkTerm(opts.mkIf(observation)(contract1)(contract2))({row: line, column: col}) %}
     | "When" someWS lsquare cases:* rsquare someWS timeout someWS contract {% ([{line, col},,,cases,,,timeout,,contract]) => opts.mkTerm(opts.mkWhen(cases)(timeout)(contract))({row: line, column: col}) %}
     | "Let" someWS valueId someWS value someWS contract {% ([{line, col},,valueId,,value,,contract]) => opts.mkTerm(opts.mkLet(valueId)(value)(contract))({row: line, column: col}) %}
+    | "Assert" someWS observation someWS contract {% ([{line, col},,observation,,contract]) => opts.mkTerm(opts.mkAssert(observation)(contract))({row: line, column: col}) %}
 
 cases
    -> hole {% ([hole]) => hole %}
