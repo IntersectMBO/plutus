@@ -5,7 +5,8 @@ module Algorithmic.CEK where
 
 open import Data.Bool using (Bool;true;false)
 open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
-open import Function using (_∘_)
+open import Function using (_∘_;id)
+open import Relation.Binary.PropositionalEquality using (refl;cong;sym;trans)
 
 open import Type
 open import Type.BetaNormal
@@ -52,16 +53,41 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   □     : Clos T → State T
   ◆     : ∅ ⊢Nf⋆ * → State T
 
-{-
 discharge : ∀{Γ A}{M : Γ ⊢ A} → Value M → Env Γ → Σ (∅ ⊢ A) Value
-discharge V ρ = {!!}
--}
+
+env2ren : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
+env2ren (ρ ∷ (_ ,, M ,, V ,, ρ')) Z     =
+ conv⊢ refl (sym (substNf-id _)) (proj₁ (discharge V ρ'))
+env2ren (ρ ∷ C)                   (S x) = env2ren ρ x
+
+dischargeBody : ∀{Γ A B} → Γ , A ⊢ B → Env Γ → ∅ , A ⊢ B
+dischargeBody M ρ = conv⊢
+  (cong (∅ ,_) (substNf-id _))
+  (substNf-id _)
+  (subst (ne ∘ `) (exts (ne ∘ `) (env2ren ρ)) M)
+
+dischargeBody⋆ : ∀{Γ K A} → Γ ,⋆ K ⊢ A → Env Γ → ∅ ,⋆ K ⊢ A
+dischargeBody⋆ {A = A} M ρ = conv⊢
+  refl
+  (trans
+    (substNf-cong
+      {f = extsNf (ne ∘ `)}
+      {g = ne ∘ `}
+      (λ{ Z → refl; (S α) → refl})
+      A)
+    (substNf-id A))
+  (subst (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2ren ρ)) M)
+
+discharge (V-ƛ M)    ρ = _ ,, V-ƛ (dischargeBody M ρ)
+discharge (V-Λ M)    ρ = _ ,, V-Λ (dischargeBody⋆ M ρ)
+discharge (V-wrap V) ρ = _ ,, V-wrap (proj₂ (discharge V ρ))
+discharge (V-con c)  ρ = _ ,, V-con c
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V
-step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ {N = M}
+step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ M
 step (s ; ρ ▻ (L · M))  = (s , -· M ρ) ; ρ ▻ L
-step (s ; ρ ▻ Λ M)      = s ; ρ ◅ V-Λ {N = M}
+step (s ; ρ ▻ Λ M)      = s ; ρ ◅ V-Λ M
 step (s ; ρ ▻ (M ·⋆ A)) = (s , -·⋆ A) ; ρ ▻ M
 step (s ; ρ ▻ wrap1 pat arg M) = (s , wrap-) ; ρ ▻ M
 step (s ; ρ ▻ unwrap1 M) = (s , unwrap-) ; ρ ▻ M
@@ -70,9 +96,9 @@ step (s ; ρ ▻ builtin bn σ ts) = ◆ (substNf σ (proj₂ (proj₂ (SIG bn)
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
 step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M
-step ((s , ((_ ,, ƛ M ,, V-ƛ ,, ρ') ·-)) ; ρ ◅ V) =
+step ((s , ((_ ,, ƛ M ,, V-ƛ .M ,, ρ') ·-)) ; ρ ◅ V) =
   s ; ρ' ∷ (_ ,, _ ,, V ,, ρ) ▻ M
-step ((s , -·⋆ A) ; ρ ◅ V-Λ {N = M}) = s ; ρ ▻ (M [ A ]⋆) 
+step ((s , -·⋆ A) ; ρ ◅ V-Λ M) = s ; ρ ▻ (M [ A ]⋆) 
 step ((s , wrap-) ; ρ ◅ V) = s ; ρ ◅ V-wrap V
 step ((s , unwrap-) ; ρ ◅ V-wrap V) = s ; ρ ◅ V
 
