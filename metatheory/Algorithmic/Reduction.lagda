@@ -142,21 +142,6 @@ BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
 BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
 \end{code}
 
-# recontructing the telescope after a reduction step
-
-\begin{code}
-reconstTel : ∀{Φ Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : Tel Γ Δ σ Bs)
-    → ∀{C}(t' : Γ ⊢ substNf σ C)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
-    → Tel Γ Δ σ As
-reconstTel [] Ds σ telB t' refl telD = t' ∷ telD
-reconstTel (B ∷ Bs) Ds σ (X ∷ telB) t' refl tel' =
-  X ∷ reconstTel Bs Ds σ telB t' refl tel'
-\end{code}
-
 ## Intrinsically Type Preserving Reduction
 
 \begin{code}
