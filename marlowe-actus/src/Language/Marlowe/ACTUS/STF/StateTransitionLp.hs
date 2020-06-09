@@ -6,13 +6,14 @@ import Language.Marlowe
 import Language.Marlowe.ACTUS.BusinessEvents
 import Language.Marlowe.ACTUS.STF.StateTransitionSpec
 import Language.Marlowe.ACTUS.ContractTerms
-import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.MarloweCompat
 import Language.Marlowe.ACTUS.Ops
 import Data.Maybe
 import Data.Time
+
+import qualified Data.List as L
 
 import Language.Marlowe.ACTUS.Utility.DateShift
 
@@ -45,9 +46,10 @@ stateTransitionLp terms@ContractTerms{..} t continue =
         -- dates:
         t0                 = _SD
         time               = SlotIntervalStart
-        fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
-        tfp_minus = marloweDate $ calculationDay $ sup fpSchedule t0
-        tfp_plus = marloweDate $ calculationDay $ inf fpSchedule t0
+        windows xs = L.transpose (take 2 (L.tails xs))
+        fpSchedule         = windows $ marloweDate . calculationDay <$> (fromMaybe [shift scfg t0] $ schedule FP terms)
+        tfp_minus          = foldl (\cont v -> Cond (AndObs (ValueGT (head v) time) (ValueGT time (head $ tail v))) (head v) cont) (marloweDate _SD) fpSchedule
+        tfp_plus           = foldl (\cont v -> Cond (AndObs (ValueGT (head v) time) (ValueGT time (head $ tail v))) (head $ tail v) cont) (marloweDate _SD) fpSchedule
 
         y_sd_t             = _y _DCC (useval "sd" t) time undefined
         y_tfpminus_t       = _y _DCC tfp_minus time undefined

@@ -37,7 +37,7 @@ dispatchEvent t defaultValue handler =
         cond cont ev =
             Cond (ValueEQ (eventId ev) eventIdInput) (handler ev) cont
     in
-        L.foldl cond defaultValue [AD, IED, MD]
+        L.foldl cond defaultValue [AD, IED, MD, FP, IP]
 
 dispatchStateTransition :: Integer -> Contract -> EventHandlerSTF -> Contract
 dispatchStateTransition t continue handler =

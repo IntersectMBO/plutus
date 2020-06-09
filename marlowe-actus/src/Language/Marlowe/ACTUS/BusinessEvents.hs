@@ -49,7 +49,7 @@ projectEvent eventType = case eventType of
     _   -> undefined
 
 eventEnumTable :: [(EventType, Integer)]
-eventEnumTable = [(AD, 0), (IED, 1), (MD, 2)] --can't use Enums in Plutus???
+eventEnumTable = [(AD, 0), (IED, 1), (MD, 2), (FP, 3), (IP, 4)] --can't use Enums in Plutus???
 
 eventTypeIdToEventType :: Integer -> EventType
 eventTypeIdToEventType = fromJust . flip lookup (map swap eventEnumTable)
