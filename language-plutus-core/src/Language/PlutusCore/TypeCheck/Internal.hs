@@ -348,7 +348,8 @@ inferTypeComponentsOfBuiltinM ann (DynBuiltinName name)    = lookupDynamicBuilti
 -- A mapping from type variables to types, recording type instantiations in an ApplyBuiltin term
 type TypeMapping uni = [(TyName, Normalized (Type TyName uni ()))]
 
--- | Given a TypeMapping M and a type T, substitute the types in M for the type variables in T
+-- | Given a TypeMapping M and a type T, instantiate the type
+-- variables in T according to the assignemnts in M.
 substMapping
     :: TypeMapping uni
     -> Type TyName uni ()
@@ -357,10 +358,11 @@ substMapping mapping ty = do
     let f ty1 (name, newty) = do
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
-          -- ^ annoying: we have to normalise during subsitution, but then we need a non-normalised type to perform subsequent subsitutions on.
+          -- ^ annoying: we have to normalise during subsitution, but
+          -- then we need a non-normalised type to perform subsequent
+          -- subsitutions on.
     ty' <- foldM f (void ty) mapping
     normalizeTypeM ty'
-
 
 -- | Work along the type parameters of a builtin application, building
 -- a mapping from type parameters to the types they're being
@@ -379,8 +381,7 @@ checkBuiltinTypeArgs = check []
         check ((tyname,tyarg'):mapping) ann bn tynames tyargs
       check mapping _ _ [] [] = pure mapping
       check _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
-      check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated ann bn)
-
+      check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated  ann bn)
 
 -- | Given a mapping from type variables to types, we work our way
 -- along the list of term arguments in an ApplyBuiltin, checking that
@@ -399,9 +400,12 @@ checkBuiltinTermArgs mapping ann bn (ty:tys) (arg:args) =  do
     checkTypeM (termAnn arg) arg ty'
     checkBuiltinTermArgs mapping ann bn tys args
 checkBuiltinTermArgs _ _ _ [] [] = pure ()
-checkBuiltinTermArgs _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverApplied ann bn)
 checkBuiltinTermArgs _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderApplied ann bn)
+checkBuiltinTermArgs _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverApplied  ann bn)
 
+-- | Check an entire ApplyBuiltin term: make sure that it has the right number of
+-- type and term arguments and that the term argments have the right type.  Return
+-- the return type, correctly instantiated.
 checkBuiltinAppl
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann
