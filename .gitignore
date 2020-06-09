@@ -26,6 +26,7 @@ auto
 .ghc.environment*
 tags
 dist-newstyle
+dist-hie
 dist
 cabal-dev
 .cabal-sandbox/

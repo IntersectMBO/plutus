@@ -1,0 +1,4 @@
+packages: .
+
+package plutus-use-cases
+  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip
