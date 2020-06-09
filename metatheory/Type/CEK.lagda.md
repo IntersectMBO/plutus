@@ -9,9 +9,8 @@ open import Function
 
 open import Type
 open import Type.Reduction hiding (step)
--- a CEK machine for types
 
--- ultimately we only run the machine at the top level
+-- a CEK machine for types
 
 Closure : Kind → Set
 
@@ -21,15 +20,16 @@ data Env : Ctx⋆ → Set where
 
 Closure J = Σ Ctx⋆ λ Φ → Σ (Φ ⊢⋆ J) λ A → Value⋆ A × Env Φ
 
-lookupVar : ∀{Φ K} → Φ ∋⋆ K → Env Φ → Closure K
-lookupVar Z     (ρ ∷ c) = c
-lookupVar (S α) (ρ ∷ c) = lookupVar α ρ
+lookup : ∀{Φ K} → Φ ∋⋆ K → Env Φ → Closure K
+lookup Z     (ρ ∷ c) = c
+lookup (S α) (ρ ∷ c) = lookup α ρ
 
 data Frame : (K : Kind)(H : Kind) → Set where
   -·     : ∀{K J Φ} → Φ ⊢⋆ K → Env Φ → Frame J (K ⇒ J)
   _·-     : ∀{K J} → Closure (K ⇒ J) → Frame J K
   -⇒     : ∀{Φ} → Φ ⊢⋆ * → Env Φ → Frame * *
   _⇒-     : Closure * → Frame * *
+  
 data Stack (K : Kind) : (H : Kind) → Set where
   ε   : Stack K K
   _,_ : ∀{H1 H2} → Stack K H1 → Frame H1 H2 → Stack K H2
@@ -65,7 +65,7 @@ dischargeN (N-· N V) ρ =
   _ ,, N-· (proj₂ (dischargeN N ρ)) (proj₂ (discharge V ρ))
 
 step : ∀{K} → State K → State K
-step (s ; ρ ▻ ` α) = let Φ ,, A ,, V ,, ρ' = lookupVar α ρ in s ; ρ' ◅ V
+step (s ; ρ ▻ ` α) = let Φ ,, A ,, V ,, ρ' = lookup α ρ in s ; ρ' ◅ V
 step (s ; ρ ▻ Π A) = s ; ρ ◅ V-Π A
 step (s ; ρ ▻ (A ⇒ B)) = (s , -⇒ B ρ) ; ρ ▻ A
 step (s ; ρ ▻ ƛ A) = s ; ρ ◅ V-ƛ A

@@ -4,8 +4,8 @@
 module Algorithmic.CEK where
 
 open import Data.Bool using (Bool;true;false)
-open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality
+open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
+open import Function using (_∘_)
 
 open import Type
 open import Type.BetaNormal
@@ -13,19 +13,24 @@ open import Type.BetaNBE hiding (Env)
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Algorithmic.Reduction hiding (step)
+open import Algorithmic.RenamingSubstitution
+open import Builtin.Signature
+  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 
-Clos : ∀{Φ} → Φ ⊢Nf⋆ * → Set
---Clos⋆ : Kind → Set
+Clos : ∅ ⊢Nf⋆ * → Set
 
-data Env : ∀{Φ} → Ctx Φ → Set where
+data Env : Ctx ∅ → Set where
   []   : Env ∅
---  _,⋆_ : ∀{Φ J}{Γ : Ctx Φ} → Env Γ → Clos⋆ J → Env (Γ ,⋆ J)
-  _,_ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ} → Env Γ → Clos A → Env (Γ , A)
+  _∷_ : ∀{Γ A} → Env Γ → Clos A → Env (Γ , A)
 
-Clos  A = Σ Ctx⋆ λ Φ → Σ (Φ ⊢Nf⋆ *) λ A → Σ (Ctx Φ) λ Γ → Γ ⊢ A × Env Γ
+Clos A = Σ (Ctx ∅) λ Γ → Σ (Γ ⊢ A) λ M → Value M × Env Γ
+
+lookup : ∀{Γ A} → Γ ∋ A → Env Γ → Clos A
+lookup Z     (ρ ∷ c) = c
+lookup (S x) (ρ ∷ c) = lookup x ρ
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
-  -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
+  -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *} → Clos (A ⇒ B) → Frame B A
 
   -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
@@ -42,14 +47,31 @@ data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
   ε   : Stack T T
   _,_ : ∀{H1 H2} → Stack T H1 → Frame H1 H2 → Stack T H2
 
-postulate subE : ∀{Φ}{Γ : Ctx Φ} → Φ ⊢Nf⋆ * → Env Γ → ∅ ⊢Nf⋆ *
-
 data State (T : ∅ ⊢Nf⋆ *) : Set where
-  _;_▻_ : ∀{Φ}{Γ : Ctx Φ}{H}(ρ : Env Γ) → Stack T (subE H ρ) → Γ ⊢ H → State T
-  _;_◅_ : ∀{Φ}{Γ : Ctx Φ}{H}(ρ : Env Γ) → Stack T (subE H ρ) → {M : Γ ⊢ H} → Value M → State T
-  □  : Clos T → State T
-  ◆  : ∀{Φ} → Φ ⊢Nf⋆ * → State T
-{-
-step : ∀{Φ Φ' K H} → State Φ K Φ' H → Σ Ctx⋆ λ Φ'' → Σ Kind λ H' → State Φ K Φ'' H 
-step = {!!}
--}
+  _;_▻_ : ∀{Γ}{H : ∅ ⊢Nf⋆ *} → Stack T H → Env Γ → Γ ⊢ H → State T
+  _;_◅_ : ∀{Γ}{H : ∅ ⊢Nf⋆ *} → Stack T H → Env Γ → {M : Γ ⊢ H} → Value M → State T
+  □     : Clos T → State T
+  ◆     : ∅ ⊢Nf⋆ * → State T
+
+step : ∀{T} → State T → State T
+step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V
+step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ {N = M}
+step (s ; ρ ▻ (L · M))  = (s , -· M ρ) ; ρ ▻ L
+step (s ; ρ ▻ Λ M)      = s ; ρ ◅ V-Λ {N = M}
+step (s ; ρ ▻ (M ·⋆ A)) = (s , -·⋆ A) ; ρ ▻ M
+step (s ; ρ ▻ wrap1 pat arg M) = (s , wrap-) ; ρ ▻ M
+step (s ; ρ ▻ unwrap1 M) = (s , unwrap-) ; ρ ▻ M
+step (s ; ρ ▻ con c) = s ; ρ ◅ V-con c
+step (s ; ρ ▻ builtin bn σ ts) = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step (s ; ρ ▻ error A) = ◆ A
+step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
+step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M
+step ((s , ((_ ,, ƛ M ,, V-ƛ ,, ρ') ·-)) ; ρ ◅ V) =
+  s ; ρ' ∷ (_ ,, _ ,, V ,, ρ) ▻ M
+step ((s , -·⋆ A) ; ρ ◅ V-Λ {N = M}) = s ; ρ ▻ (M [ A ]⋆) 
+step ((s , wrap-) ; ρ ◅ V) = s ; ρ ◅ V-wrap V
+step ((s , unwrap-) ; ρ ◅ V-wrap V) = s ; ρ ◅ V
+
+step (□ C)       = □ C
+step (◆ A)       = ◆ A
+
