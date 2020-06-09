@@ -142,7 +142,8 @@ withTyVar name = local . over tceTyVarKinds . insertByName name
 withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni ann a -> TypeCheckM uni ann a
 withVar name = local . over tceVarTypes . insertByName name . pure
 
--- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes' environment.
+-- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes'
+-- environment and return its type components.
 lookupDynamicBuiltinNameM
     :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 lookupDynamicBuiltinNameM ann name = do
@@ -152,13 +153,25 @@ lookupDynamicBuiltinNameM ann name = do
             throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
         Just ty -> liftDupable ty
 
-lookupDynamicBuiltinSchemaM
-    :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-lookupDynamicBuiltinSchemaM ann name = do
+lookupDynamicBuiltinTypeComponentsM
+    :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (TypeComponents uni)
+lookupDynamicBuiltinTypeComponentsM ann name = do
   DynamicBuiltinNameMeanings dbnms <- asks $ _tccDynamicBuiltinNameMeanings . _tceTypeCheckConfig
   case Map.lookup name dbnms of
     Nothing -> throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
-    Just _  -> pure $ undefined
+    Just (DynamicBuiltinNameMeaning sch _ _) ->
+        case splitTypeScheme sch of
+          Nothing   -> throwError $ BuiltinTypeErrorE (BadTypeScheme ann (DynBuiltinName name))
+          Just cpts -> pure cpts
+getStaticBuiltinTypeComponentsM
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => ann
+    -> StaticBuiltinName
+    -> TypeCheckM uni ann (TypeComponents uni)
+getStaticBuiltinTypeComponentsM ann name =
+    case withTypedBuiltinName name typeComponentsOfTypedBuiltinName of
+      Nothing   -> throwError $ BuiltinTypeErrorE (BadTypeScheme ann (StaticBuiltinName name))
+      Just cpts -> pure cpts
 
 -- | Look up a type variable in the current context.
 lookupTyVarM :: ann -> TyName -> TypeCheckM uni ann (Kind ())
@@ -313,108 +326,101 @@ unfoldFixOf pat arg k = do
             , vArg
             ]
 
--- | Infer the type of a 'Builtin'. The annotation argument is required for the error if the name isn't found
-inferTypeOfBuiltinM
+-- ###########################################
+-- ## Dealing with applications of builtins ##
+-- ###########################################
+
+-- | Infer the type components of a 'Builtin'. The annotation argument
+-- is required for the error if the name isn't found
+inferTypeComponentsOfBuiltinM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => ann -> BuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+    => ann -> BuiltinName -> TypeCheckM uni ann (TypeComponents uni)
 -- We have a weird corner case here: the type of a 'BuiltinName' can contain 'TypedBuiltinDyn', i.e.
 -- a static built-in name is allowed to depend on a dynamic built-in type which are not required
 -- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinM _ (StaticBuiltinName name) = normalizeType $ typeOfBuiltinName name
+inferTypeComponentsOfBuiltinM ann (StaticBuiltinName name) = getStaticBuiltinTypeComponentsM ann name
 -- TODO: inline this definition once we have only dynamic built-in names.
-inferTypeOfBuiltinM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann name
+inferTypeComponentsOfBuiltinM ann (DynBuiltinName name)    = lookupDynamicBuiltinTypeComponentsM ann name
 
 
--- | Peel the type parameters off the front of the type of a builtin,
--- building a mapping from type parameters to the types they're being
--- instantiated at (these are included in the ApplyBuiltin
--- constructor).  When we get to the end, carry on and look at the
--- term arguments of the application.
-checkBuiltinTypeArgs
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => [(TyName, Normalized (Type TyName uni ()))]
-    -> ann
-    -> BuiltinName
+-- A mapping from type variables to types, recording type instantiations in an ApplyBuiltin term
+type TypeMapping uni = [(TyName, Normalized (Type TyName uni ()))]
+
+-- | Given a TypeMapping M and a type T, substitute the types in M for the type variables in T
+substMapping
+    :: TypeMapping uni
     -> Type TyName uni ()
-    -> [Type TyName uni ann]
-    -> [Value TyName Name uni ann]
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinTypeArgs mapping ann bn (TyForall () tyname kind ty') (tyarg:tyargs) args = do
-  checkKindM  (typeAnn tyarg) tyarg (void kind)
-  tyarg' <- normalizeType (void tyarg)
-  checkBuiltinTypeArgs ((tyname,tyarg'):mapping) ann bn ty' tyargs args
-checkBuiltinTypeArgs _       ann bn (TyForall _ _tyname _kind _ty') [] _ = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
-checkBuiltinTypeArgs mapping ann bn ty' [] args = checkBuiltinTermArgs mapping ann bn ty' args
-checkBuiltinTypeArgs _       ann bn _  (_:_) _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated ann bn)
--- We've got a forall type but nowhere to instantiate it
-
-
--- PROBLEM.  Suppose we have a builtin application (bn tys args). Can
--- we tell if it's underapplied?  Suppose the Type of bn is int -> int
--- -> int.  Ho do we know whether it takes two arguments or one (or
--- even zero)?  It could take two integers and return another, or take
--- one integer and return a function.  The type scheme for the builtin
--- contains this information, but I don't think we have access to it
--- here.  The problem is that different type schemes can translate to
--- the same Type, losing information on the way.  We can solve this
--- for the time being by checking that the type we're left with at the
--- end isn't functional, which may not work for polymorphic builtins,
--- eg  o : forall a b c: (b->c) -> (a->b) -> (a->c).
--- Things would be a lot easier if (a) we had the type schema for the
--- builtin at this point or (b) builtin names carried their arities
--- about with them.
-
--- | Given a mapping from type variables to types, we work our way
--- along the list of term arguments in an ApplyBuiltin, checking that
--- the types of the arguments match the types given in the signature
--- after instatiation according to the mapping.  If we get to the end
--- without any problems, use the mapping to instantiate the return
--- type in the builtin's signature and return the instantiated type as
--- the type of the application.
-checkBuiltinTermArgs
-    :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => [(TyName, Normalized (Type TyName uni ()))]
-    -> ann
-    -> BuiltinName
-    -> Type TyName uni ()
-    -> [Value TyName Name uni ann]
-    -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinTermArgs mapping ann bn ty [] = do  -- no more arguments left, so substitute the type instantiations into the return type
-    let f ty1 (name, newty) = do -- perform all of the substitutions in the mapping
+substMapping mapping ty = do
+    let f ty1 (name, newty) = do
           ty2 <- substNormalizeTypeM newty name ty1
           return $ unNormalized ty2
           -- ^ annoying: we have to normalise during subsitution, but then we need a non-normalised type to perform subsequent subsitutions on.
     ty' <- foldM f (void ty) mapping
-    tyr <- normalizeTypeM ty'
-    _ <- case ty of
-           TyFun{} -> throwError $ BuiltinTypeErrorE (BuiltinUnderApplied ann bn)
-           _       -> pure ()
-    -- Given the type t1 -> t2 -> ... -> tn -> r, we've removed one t_i for every argument, so what's left is the return type.
-    -- We assume that no builtin returns a function, which could be wrong for some polymorphic builtins.
-    -- FIXME: ^ this is a crude test for underapplication and should be replaced.
-    return tyr
-checkBuiltinTermArgs mapping ann bn (TyFun _ t1 t2) (arg:args) =  do
-    let f ty1 (name, newty) = do
-          ty2 <- substNormalizeTypeM newty name ty1
-          return $ unNormalized ty2
-    t1' <- foldM f (void t1)  mapping
-    t1'norm <- normalizeTypeM t1'
-    checkTypeM (termAnn arg) arg t1'norm
-    checkBuiltinTermArgs mapping ann bn t2 args
-checkBuiltinTermArgs _ ann bn _ (_:_) = throwError $ BuiltinTypeErrorE (BuiltinOverApplied ann bn)
+    normalizeTypeM ty'
+
+
+-- | Work along the type parameters of a builtin application, building
+-- a mapping from type parameters to the types they're being
+-- instantiated at.
+checkBuiltinTypeArgs
+    :: ann
+    -> BuiltinName
+    -> [TyName]                -- type parameters
+    -> [Type TyName uni ann]   -- type instantations
+    -> TypeCheckM uni ann (TypeMapping uni)
+checkBuiltinTypeArgs = check []
+    where
+      check mapping ann bn (tyname:tynames) (tyarg:tyargs) = do
+        checkKindM  (typeAnn tyarg) tyarg (Type ()) --- FIXME: do we want the kinds from the schema???
+        tyarg' <- normalizeType (void tyarg)
+        check ((tyname,tyarg'):mapping) ann bn tynames tyargs
+      check mapping _ _ [] [] = pure mapping
+      check _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
+      check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated ann bn)
+
+
+-- | Given a mapping from type variables to types, we work our way
+-- along the list of term arguments in an ApplyBuiltin, checking that
+-- the types of the arguments match the types given in the signature
+-- after instatiation according to the mapping.
+checkBuiltinTermArgs
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => TypeMapping uni
+    -> ann
+    -> BuiltinName
+    -> [Type TyName uni ()]         -- expected argument types
+    -> [Value TyName Name uni ann]  -- actual arguments
+    -> TypeCheckM uni ann ()
+checkBuiltinTermArgs mapping ann bn (ty:tys) (arg:args) =  do
+    ty' <- substMapping mapping ty  -- normalised
+    checkTypeM (termAnn arg) arg ty'
+    checkBuiltinTermArgs mapping ann bn tys args
+checkBuiltinTermArgs _ _ _ [] [] = pure ()
+checkBuiltinTermArgs _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverApplied ann bn)
+checkBuiltinTermArgs _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderApplied ann bn)
 
 checkBuiltinAppl
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann
     -> BuiltinName
-    -> Type TyName uni ()
-    -> [Type TyName uni ann]
-    -> [Value TyName Name uni ann]
+    -> [TyName]                    -- Type parameters of builtin
+    -> [Type TyName uni ann]       -- Actual type instantations
+    -> [Type TyName uni ()]        -- Types of arguments
+    -> [Value TyName Name uni ann] -- Actual arguments
+    -> Type TyName uni ()          -- Expected return type
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-checkBuiltinAppl ann bn ty tys args = checkBuiltinTypeArgs [] ann bn ty tys args
+checkBuiltinAppl ann bn typeVars typeArgs argTypes args rtype = do
+  mapping <- checkBuiltinTypeArgs ann bn typeVars typeArgs
+  checkBuiltinTermArgs mapping ann bn argTypes args
+  substMapping mapping rtype
 
+
+-- ####################
+-- ## Type inference ##
+-- ####################
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
@@ -436,9 +442,9 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 ----------------------------------------------------------------
 -- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
 inferTypeM (ApplyBuiltin ann bn tyargs args) = do
-  ty <- inferTypeOfBuiltinM ann bn  -- May have foralls at the start
-  rty <- checkBuiltinAppl ann bn (unNormalized ty) tyargs args
-  return rty
+  TypeComponents typeVars argTypes rtype <- inferTypeComponentsOfBuiltinM ann bn
+  rtype' <- checkBuiltinAppl ann bn typeVars tyargs argTypes args rtype
+  pure rtype'
 
 
 -- [infer| G !- v : ty]    ty ~>? vTy
