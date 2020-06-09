@@ -41,7 +41,6 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
-          (hsPkgs."plutus-ir" or (errorHandler.buildDepError "plutus-ir"))
           (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))

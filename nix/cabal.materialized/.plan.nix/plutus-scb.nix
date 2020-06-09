@@ -34,10 +34,11 @@
       "library" = {
         depends = [
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
           (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+          (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+          (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
           (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
@@ -60,7 +61,6 @@
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."persistent" or (errorHandler.buildDepError "persistent"))
           (hsPkgs."persistent-sqlite" or (errorHandler.buildDepError "persistent-sqlite"))
-          (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
@@ -110,6 +110,7 @@
           "Control/Monad/Freer/Extra/State"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
+          "Plutus/SCB/MockApp"
           "Plutus/SCB/Arbitrary"
           "Plutus/SCB/Command"
           "Plutus/SCB/ContractCLI"
@@ -117,7 +118,9 @@
           "Plutus/SCB/Core/ContractInstance"
           "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
+          "Plutus/SCB/Effects/ContractTest"
           "Plutus/SCB/Effects/EventLog"
+          "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
           "Plutus/SCB/Webserver/Types"
           "Plutus/SCB/Webserver/API"
@@ -153,9 +156,10 @@
             (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
-            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
+            (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."unliftio-core" or (errorHandler.buildDepError "unliftio-core"))
@@ -168,14 +172,24 @@
           hsSourceDirs = [ "app" ];
           mainPath = [ "Main.hs" ];
           };
-        "plutus-contract" = {
+        "plutus-game" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             ];
           buildable = true;
-          hsSourceDirs = [ "contract" ];
+          hsSourceDirs = [ "game-contract" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-currency" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
+            (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "currency-contract" ];
           mainPath = [ "Main.hs" ];
           };
         };
@@ -197,7 +211,6 @@
             (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
             (hsPkgs."plutus-use-cases" or (errorHandler.buildDepError "plutus-use-cases"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
             (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
@@ -209,13 +222,7 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             ];
           buildable = true;
-          modules = [
-            "Plutus/SCB/CoreSpec"
-            "Plutus/SCB/RelationSpec"
-            "Plutus/SCB/TestApp"
-            "Plutus/SCB/Effects/ContractTest"
-            "Plutus/SCB/Effects/MultiAgent"
-            ];
+          modules = [ "Plutus/SCB/CoreSpec" "Plutus/SCB/RelationSpec" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

@@ -51,15 +51,20 @@
           (hsPkgs."http-client-tls" or (errorHandler.buildDepError "http-client-tls"))
           (hsPkgs."http-types" or (errorHandler.buildDepError "http-types"))
           (hsPkgs."http-conduit" or (errorHandler.buildDepError "http-conduit"))
+          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
           (hsPkgs."jwt" or (errorHandler.buildDepError "jwt"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
           (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."prometheus" or (errorHandler.buildDepError "prometheus"))
-          (hsPkgs."plutus-emulator" or (errorHandler.buildDepError "plutus-emulator"))
+          (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
           (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+          (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
           (hsPkgs."purescript-bridge" or (errorHandler.buildDepError "purescript-bridge"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
@@ -92,6 +97,13 @@
           "Git"
           "Language/Haskell/Interpreter"
           "PSGenerator/Common"
+          "Playground/API"
+          "Playground/Contract"
+          "Playground/Interpreter/Util"
+          "Playground/Schema"
+          "Playground/TH"
+          "Playground/Types"
+          "Schema"
           "Servant/Extra"
           "Servant/Prometheus"
           "System/IO/Extras"
@@ -108,7 +120,11 @@
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."wl-pprint-text" or (errorHandler.buildDepError "wl-pprint-text"))
             ];
@@ -117,6 +133,9 @@
             "Paths_playground_common"
             "Auth/TypesSpec"
             "Language/Haskell/InterpreterSpec"
+            "Playground/THSpec"
+            "Playground/TypesSpec"
+            "SchemaSpec"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
