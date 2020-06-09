@@ -42,11 +42,11 @@ data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   _,_ : {T : ∅ ⊢Nf⋆ *}{H1 : ∅ ⊢Nf⋆ *}{H2 : ∅ ⊢Nf⋆ *}
     → Stack T H1 → Frame H1 H2 → Stack T H2
 
-data State (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
-  _▻_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → ∅ ⊢ H → State T H
-  _◅_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → {t : ∅ ⊢ H} → Value t → State T H
-  □  : {t : ∅ ⊢ T} →  Value t → State T T
-  ◆   : (A : ∅ ⊢Nf⋆ *)  →  State T A
+data State (T : ∅ ⊢Nf⋆ *) : Set where
+  _▻_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → ∅ ⊢ H → State T
+  _◅_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → {t : ∅ ⊢ H} → Value t → State T
+  □  : {t : ∅ ⊢ T} →  Value t → State T
+  ◆   : (A : ∅ ⊢Nf⋆ *)  →  State T
 
 -- Plugging a term of suitable type into a frame yields a term again
 
@@ -65,7 +65,7 @@ closeStack (s , f) t = closeStack s (closeFrame f t)
 
 -- a state can be closed to yield a term again
 
-closeState : ∀{T H} → State T H → ∅ ⊢ T
+closeState : ∀{T} → State T → ∅ ⊢ T
 closeState (s ▻ t)           = closeStack s t
 closeState (_◅_ s {t = t} v) = closeStack s t
 closeState (□ {t = t} v)     = t
@@ -82,40 +82,39 @@ open import Data.Empty
 -- this could also be presented as a relation and then there would be
 -- more function rather like progress
 
-step : ∀{A H} → State A H → Σ (∅ ⊢Nf⋆ *) (State A)
-step (s ▻ ƛ L)                          = _ ,, s ◅ V-ƛ {N = L}
-step (s ▻ (L · M))                      = _ ,, (s , -· M) ▻ L
-step (s ▻ Λ L)                          = _ ,, s ◅ V-Λ {N = L}
-step (s ▻ (_·⋆_ L A))                   = _ ,, (s , -·⋆ A) ▻ L
-step (s ▻ wrap1 pat arg L)              = _ ,, (s , wrap-) ▻ L
-step (s ▻ unwrap1 L)                    = _ ,, (s , unwrap-) ▻ L
-step (s ▻ con cn)                       = _ ,, s ◅ V-con cn
-step (s ▻ builtin bn σ tel)             =
-  _ ,, ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
-step (s ▻ error A)                      = _ ,, ◆ A
-step (ε ◅ V)                            = _ ,, □ V
-step ((s , (-· M)) ◅ V)                 = _ ,, ((s , V ·-) ▻ M)
-step (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = _ ,, s ▻ (t [ u ])
-step ((s , (-·⋆ A)) ◅ V-Λ {N = t})      = _ ,, s ▻ (t [ A ]⋆)
-step ((s , wrap-) ◅ V)                  = _ ,, s ◅ (V-wrap V)
-step ((s , unwrap-) ◅ V-wrap V)         = _ ,, s ◅ V
-step (□ V)                              = _ ,, □ V
-step (◆ A)                              = _ ,, ◆ A
+step : ∀{A} → State A → State A
+step (s ▻ ƛ L)                          = s ◅ V-ƛ {N = L}
+step (s ▻ (L · M))                      = (s , -· M) ▻ L
+step (s ▻ Λ L)                          = s ◅ V-Λ {N = L}
+step (s ▻ (_·⋆_ L A))                   = (s , -·⋆ A) ▻ L
+step (s ▻ wrap1 pat arg L)              = (s , wrap-) ▻ L
+step (s ▻ unwrap1 L)                    = (s , unwrap-) ▻ L
+step (s ▻ con cn)                       = s ◅ V-con cn
+step (s ▻ builtin bn σ tel)             = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step (s ▻ error A)                      = ◆ A
+step (ε ◅ V)                            = □ V
+step ((s , (-· M)) ◅ V)                 = ((s , V ·-) ▻ M)
+step (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = s ▻ (t [ u ])
+step ((s , (-·⋆ A)) ◅ V-Λ {N = t})      = s ▻ (t [ A ]⋆)
+step ((s , wrap-) ◅ V)                  = s ◅ (V-wrap V)
+step ((s , unwrap-) ◅ V-wrap V)         = s ◅ V
+step (□ V)                              = □ V
+step (◆ A)                              = ◆ A
 ```
 
 ```
 open import Data.Nat
 open import Data.Maybe
 
-stepper : ℕ → ∀{T H}
-  → State T H
-  → Σ (∅ ⊢Nf⋆ *) λ H → Maybe (State T H)
-stepper zero {H = H} st = H ,, nothing 
+stepper : ℕ → ∀{T}
+  → State T
+  → Maybe (State T)
+stepper zero st = nothing 
 stepper (suc n) st with step st
-stepper (suc n) st | _ ,, (s ▻ M) = stepper n (s ▻ M)
-stepper (suc n) st | _ ,, (s ◅ V) = stepper n (s ◅ V)
-stepper (suc n) st | _ ,, (□ V)   = _ ,, just (□ V)
-stepper (suc n) st | _ ,, ◆ A     = _ ,, just (◆ A)
+stepper (suc n) st | (s ▻ M) = stepper n (s ▻ M)
+stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
+stepper (suc n) st | (□ V)   = just (□ V)
+stepper (suc n) st | ◆ A     = just (◆ A)
 ```
 
 This is the property I would like to have, but it cannot be proved directly like this:

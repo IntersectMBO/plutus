@@ -55,9 +55,7 @@ dischargeN : ∀{Φ K}{A : Φ ⊢⋆ K} → Neutral⋆ A → Env Φ → Σ (∅ 
 
 discharge (V-Π A)   ρ = _ ,, V-Π (dischargeBody A ρ)
 discharge (A V-⇒ B) ρ =
-  let _ ,, V = discharge A ρ
-      _ ,, W = discharge B ρ
-  in  _ ,, V V-⇒ W
+  _ ,, proj₂ (discharge A ρ) V-⇒ proj₂ (discharge B ρ)
 discharge (V-ƛ A)   ρ = _ ,, V-ƛ (dischargeBody A ρ)
 discharge (N- N)    ρ = _ ,, N- (proj₂ (dischargeN N ρ))
 discharge (V-con c) ρ = _ ,, V-con c

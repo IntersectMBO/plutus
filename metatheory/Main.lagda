@@ -164,10 +164,10 @@ evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "
 evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
-... | _ ,, M.just (□ {t = t'''} V)  =
+... | M.just (□ {t = t'''} V)  =
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
-... | _ ,, M.just _  = inj₂ "this shouldn't happen"
-... | _ ,, M.nothing = inj₂ "out of fuel"
+... | M.just _  = inj₂ "this shouldn't happen"
+... | M.nothing = inj₂ "out of fuel"
 evalPLC U plc | just nt | just t | just t' with U.run (eraseTm t') 10000000
 evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
   inj₁ (U.ugly t'')

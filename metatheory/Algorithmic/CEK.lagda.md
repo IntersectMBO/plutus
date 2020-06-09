@@ -8,33 +8,48 @@ open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality
 
 open import Type
-open import Type.Reduction using (Value⋆)
+open import Type.BetaNormal
+open import Type.BetaNBE hiding (Env)
+open import Type.BetaNBE.RenamingSubstitution
+open import Algorithmic
+open import Algorithmic.Reduction hiding (step)
 
--- a CK machine for types
+Clos : ∀{Φ} → Φ ⊢Nf⋆ * → Set
+--Clos⋆ : Kind → Set
 
-Clos⋆ : Ctx⋆ → Kind → Set
+data Env : ∀{Φ} → Ctx Φ → Set where
+  []   : Env ∅
+--  _,⋆_ : ∀{Φ J}{Γ : Ctx Φ} → Env Γ → Clos⋆ J → Env (Γ ,⋆ J)
+  _,_ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ} → Env Γ → Clos A → Env (Γ , A)
 
-data EnvC⋆ : Ctx⋆ → Ctx⋆ → Set where
-  [] : ∀{Φ} → EnvC⋆ ∅ Φ
-  _,⋆_ : ∀{Φ Ψ J} → EnvC⋆ Φ Ψ → Clos⋆ Ψ J → EnvC⋆ (Φ ,⋆ J) Ψ
-  
-Clos⋆ Ψ J = Σ Ctx⋆ λ Φ → Φ ⊢⋆ J × EnvC⋆ Φ Ψ
+Clos  A = Σ Ctx⋆ λ Φ → Σ (Φ ⊢Nf⋆ *) λ A → Σ (Ctx Φ) λ Γ → Γ ⊢ A × Env Γ
 
-postulate discharge : ∀{Ψ J} → Clos⋆ Ψ J → (Ψ ⊢⋆ J)
+data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
+  -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
+  _·-     : {A B : ∅ ⊢Nf⋆ *} → Clos (A ⇒ B) → Frame B A
 
-data Frame (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
+  -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K)
+    → Frame (B [ A ]Nf) (Π B)
 
-data Stack (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
-  ε   : ∀{Φ}{Γ}{T : Φ ⊢Nf⋆ *} → Stack Γ T Γ T
-  _,_ : ∀{Φ Φ' Φ''}{Γ Γ' Γ''}{T : Φ ⊢Nf⋆ *}{H1 : Φ' ⊢Nf⋆ *}{H2 : Φ'' ⊢Nf⋆ *}
-    → Stack Γ T Γ' H1
-    → Frame Γ' H1 Γ'' H2 → Stack Γ T Γ'' H2
-data State (Φ : Ctx⋆)(K : Kind) : (Φ' : Ctx⋆)(H : Kind) → Set where
-  _▻_ : ∀{Φ'}{H : Kind} → Stack Φ K Φ H → Φ' ⊢⋆ H → State Φ K Φ' H
-  _◅_ : ∀{Φ'}{H : Kind} → Stack Φ K Φ' H → {A : Φ' ⊢⋆ H} → Value⋆ A
-    → State Φ K Φ' H 
-  □  : {A : Φ ⊢⋆ K} →  Value⋆ A → State Φ K Φ K
-  ◆   : ∀ {Φ'}(J : Kind) →  State Φ K Φ' J
+  wrap-   : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
+    → Frame (ne (μ1 · pat · arg))
+            (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+  unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
+    → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+            (ne (μ1 · pat · arg))
 
+data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
+  ε   : Stack T T
+  _,_ : ∀{H1 H2} → Stack T H1 → Frame H1 H2 → Stack T H2
+
+postulate subE : ∀{Φ}{Γ : Ctx Φ} → Φ ⊢Nf⋆ * → Env Γ → ∅ ⊢Nf⋆ *
+
+data State (T : ∅ ⊢Nf⋆ *) : Set where
+  _;_▻_ : ∀{Φ}{Γ : Ctx Φ}{H}(ρ : Env Γ) → Stack T (subE H ρ) → Γ ⊢ H → State T
+  _;_◅_ : ∀{Φ}{Γ : Ctx Φ}{H}(ρ : Env Γ) → Stack T (subE H ρ) → {M : Γ ⊢ H} → Value M → State T
+  □  : Clos T → State T
+  ◆  : ∀{Φ} → Φ ⊢Nf⋆ * → State T
+{-
 step : ∀{Φ Φ' K H} → State Φ K Φ' H → Σ Ctx⋆ λ Φ'' → Σ Kind λ H' → State Φ K Φ'' H 
 step = {!!}
+-}
