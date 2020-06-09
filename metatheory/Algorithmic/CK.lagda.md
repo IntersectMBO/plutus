@@ -7,6 +7,12 @@ module Algorithmic.CK where
 ```
 open import Function
 open import Data.Bool using (Bool;true;false)
+open import Data.List using (List;[];_∷_)
+open import Relation.Binary.PropositionalEquality using (inspect;sym;_≡_;refl)
+  renaming ([_] to [[_]];subst to substEq)
+open import Data.Unit using (tt)
+open import Data.Product renaming (_,_ to _,,_)
+open import Data.Empty
 
 open import Type
 open import Type.BetaNormal
@@ -37,6 +43,16 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
             (ne (μ1 · pat · arg))
 
+  builtin- : ∀(b : Builtin){Γ}
+    → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
+
+    -- As, ts, vsk
+
+    → (A : (proj₁ (SIG b) ⊢Nf⋆ *))
+    → (As' : List (proj₁ (SIG b) ⊢Nf⋆ *))
+    → Tel Γ (proj₁ (SIG b)) σ As'
+    → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
+
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
   _,_ : {T : ∅ ⊢Nf⋆ *}{H1 : ∅ ⊢Nf⋆ *}{H2 : ∅ ⊢Nf⋆ *}
@@ -56,6 +72,7 @@ closeFrame (_·- {t = t} v) u = t · u
 closeFrame (-·⋆ A)         t = _·⋆_ t A
 closeFrame wrap-           t = wrap1 _ _ t
 closeFrame unwrap-         t = unwrap1 t
+closeFrame (builtin- b σ A As' ts) t = {!!}
 
 -- Plugging a term into a stack yields a term again
 
@@ -71,16 +88,19 @@ closeState (_◅_ s {t = t} v) = closeStack s t
 closeState (□ {t = t} v)     = t
 closeState (◆ A)             = error _
 
-
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Empty
-
 -- this function, apart from making a step, also determines the
 -- contexts and provides a proof.  These things could be done
 -- seperately.
 
 -- this could also be presented as a relation and then there would be
 -- more function rather like progress
+
+vtel-lem : ∀{Φ}{Γ Δ}{As As' : List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (p : As' ≡ As)
+  → (ts : Tel Γ Δ σ As')
+  → VTel Γ Δ σ As' ts
+  → VTel Γ Δ σ As (substEq (Tel Γ Δ σ) p ts)
+vtel-lem σ refl ts vs = vs
 
 step : ∀{A} → State A → State A
 step (s ▻ ƛ L)                    = s ◅ V-ƛ L
@@ -90,7 +110,12 @@ step (s ▻ (_·⋆_ L A))             = (s , -·⋆ A) ▻ L
 step (s ▻ wrap1 pat arg L)        = (s , wrap-) ▻ L
 step (s ▻ unwrap1 L)              = (s , unwrap-) ▻ L
 step (s ▻ con cn)                 = s ◅ V-con cn
-step (s ▻ builtin bn σ tel)       = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step (s ▻ builtin bn σ tel)
+  with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) bn
+step (s ▻ builtin bn σ []) | [] | [[ p ]] = 
+  s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (vtel-lem σ (sym p) [] tt)
+step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
+  (s , builtin- bn σ A As ts) ▻ t
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
 step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
@@ -98,11 +123,10 @@ step (_◅_ (s , (V-ƛ t ·-)) {u} V) = s ▻ (t [ u ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
+step ((s , builtin- b σ A As ts) ◅ V) = {!!}
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
-```
 
-```
 open import Data.Nat
 open import Data.Maybe
 

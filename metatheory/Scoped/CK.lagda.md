@@ -36,8 +36,13 @@ data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
   wrap- :  ∀{n} → ScopedTy n → ScopedTy n → {i : Weirdℕ n} → Frame i i
   unwrap- : ∀{n}{i : Weirdℕ n} → Frame i i
 
-  builtin- : ∀{o' o'' n}{i : Weirdℕ n}(b : Builtin) → Vec (ScopedTy n) (arity⋆ b)
-    → {tel : Tel i o'} → VTel o' i tel → Tel i o'' →  arity b ≡ suc o' + o'' → Frame i i
+  builtin- : ∀{o' o'' n}{i : Weirdℕ n}(b : Builtin)
+    → Vec (ScopedTy n) (arity⋆ b)
+    → {tel : Tel i o'}
+    → VTel o' i tel
+    → Tel i o''
+    → arity b ≡ suc o' + o''
+    → Frame i i
 
 data Stack : ∀{n n'}(i : Weirdℕ n)(i' : Weirdℕ n') → Set where
   ε   : ∀{n}{i : Weirdℕ n} → Stack i i
@@ -54,10 +59,12 @@ data State{n}(i : Weirdℕ n) : ∀{n'}(i' : Weirdℕ n') → Set where
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
 
--- this function, apart from making a step, also determines the contexts and provides a proof.
--- These things could be done seperately.
+-- this function, apart from making a step, also determines the
+-- contexts and provides a proof.  These things could be done
+-- seperately.
 
--- this could also be presented as a relation and then there would be more function rather like progress
+-- this could also be presented as a relation and then there would be
+-- more function rather like progress
 
 open import Data.Nat
 
@@ -91,19 +98,19 @@ step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As ts)       |
 -- (case for builtin with at least one arg)
 step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As (t ∷ ts)) | suc n | [[ eq ]] =
   _ ,, _ ,, p ,, ((s , builtin- bn As tt ts eq) ▻ t )
-  
+
 -- term telescope is not full
 step {i' = i'} p (s ▻ builtin bn (inj₂ (refl ,, ≤‴-step r)) As ts) = _ ,, _ ,, p ,, (s ◅ V-builtin bn As r ts)
 
-step {i' = i'} p (s ▻ error A)           = _ ,, i' ,, p ,, ◆
-step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
-step p (s ▻ unwrap L)         = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
-step p (ε ◅ V)                = _ ,, _ ,, p ,, □ V
+step {i' = i'} p (s ▻ error A) = _ ,, i' ,, p ,, ◆
+step p (s ▻ wrap pat arg L) = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
+step p (s ▻ unwrap L) = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
+step p (ε ◅ V) = _ ,, _ ,, p ,, □ V
 step p ((s , (-· M)) ◅ V) = _ ,, _ ,, p ,, ((s , (V ·-)) ▻ M)
-step p (_◅_ (s , (V-ƛ A L ·-)) {M} W)         = _ ,, _ ,, p ,, s ▻ (L [ M ])
-step {i' = i'} p ((s , (V-Λ V ·-)) ◅ W)           = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (V-con tcn ·-)) ◅ W)         = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (V-wrap A B V ·-)) ◅ W)      = _ ,, i' ,, p ,, ◆
+step p (_◅_ (s , (V-ƛ A L ·-)) {M} W) = _ ,, _ ,, p ,, s ▻ (L [ M ])
+step {i' = i'} p ((s , (V-Λ V ·-)) ◅ W) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p ((s , (V-con tcn ·-)) ◅ W) = _ ,, i' ,, p ,, ◆
+step {i' = i'} p ((s , (V-wrap A B V ·-)) ◅ W) = _ ,, i' ,, p ,, ◆
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-ƛ A' L) = _ ,, i' ,, p ,, ◆
 step p ((s , (-·⋆ A)) ◅ V-Λ  t)  = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
 step {i' = i'} p ((s , (-·⋆ A)) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
