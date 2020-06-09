@@ -62,10 +62,9 @@ feedEmitHandler means term (EmitHandler handler) = handler means term
 withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
--- FIXME: How important is this?  I've had to fix `emit` at Char ->
--- (), and that makes the `collectChars` test pass. Do we need it for
--- anything else?
-
+-- FIXME: (FAO @effectfully).  I've had to fix `emit` at Char -> (),
+-- and that makes the `collectChars` test in `MakeRead.hs` pass. Do we
+-- need it for anything else?
 withEmitTerm
     :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` (), uni `Includes` Char)
     => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
@@ -76,7 +75,7 @@ withEmitTerm cont (EmitHandler handler) =
         counter <- nextGlobalUnique
         let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
             dynEmitScheme = Proxy @ Char `TypeSchemeArrow` TypeSchemeResult (Proxy @ ())
-            dynEmitTerm = dynamicCall dynEmitScheme dynEmitName -- The problem is to get the right scheme here
+            dynEmitTerm = dynamicCall dynEmitScheme dynEmitName
             dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 

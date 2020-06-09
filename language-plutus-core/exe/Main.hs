@@ -266,7 +266,7 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
     types <- PLC.runQuoteT $ getStringBuiltinTypes ()
-    let cfg = PLC.TypeCheckConfig types
+    let cfg = PLC.TypeCheckConfig types getStringBuiltinMeanings
     case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
       Left (e :: PlcParserError) -> do
             T.putStrLn $ PLC.prettyPlcDefText e

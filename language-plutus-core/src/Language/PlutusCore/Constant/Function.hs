@@ -8,6 +8,8 @@ module Language.PlutusCore.Constant.Function
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedBuiltinName
+    , TypeComponents (..)
+    , splitTypeScheme
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -51,3 +53,47 @@ insertDynamicBuiltinNameDefinition
 -- | Return the 'Type' of a 'TypedBuiltinName'.
 typeOfTypedBuiltinName :: TypedBuiltinName uni as r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
+
+
+
+{- | A type to represent types of built-in functions in a convenient
+   form. We need this because the mapping from TypeSchemes to Types
+   isn't injective: eg, a function taking one int argument and returning
+   a function of type int -> int has the same type as a function taking
+   two integers and returning an int (ie int -> int -> int).
+-}
+data TypeComponents uni = TypeComponents { typeVars   :: [TyName]
+                                         , argTypes   :: [Type TyName uni ()]
+                                         , resultType :: Type TyName uni ()}
+
+{- | splitTypeScheme takes a type scheme of the form
+
+      forall a1 ... forall aK . ty1 -> ... -> tyN -> resultTy
+
+   (possibly K and/or N are 0) and converts it into
+
+      TypeComoponents [a1,...,aK] [ty1,...,tyK] resultTy
+
+   It actually returns a Maybe, failing if the type scheme is of the
+   wrong form (for instance, with a `forall` in the middle).  This can
+   probably be done a lot more cleanly.
+-}
+splitTypeScheme :: TypeScheme uni args res -> Maybe (TypeComponents uni)
+splitTypeScheme = split1 []
+    where split1 :: [TyName] -> TypeScheme uni args res -> Maybe (TypeComponents uni)
+          split1 tynames (TypeSchemeResult r)           = Just $ TypeComponents (reverse tynames) [] (toTypeAst r) -- Only type variables, no types
+          split1 tynames (TypeSchemeArrow tyA schB)     = split2 tynames [toTypeAst tyA] schB  -- At the end of the type variables, look for types
+          split1 tynames (TypeSchemeAllType proxy schK) = -- Found a type variable
+              case proxy of
+                (_ :: Proxy '(text, uniq)) ->
+                    let text   = Text.pack $ symbolVal @text Proxy
+                        uniq   = fromIntegral $ natVal @uniq Proxy
+                        tyname = TyName $ Name text $ Unique uniq
+                    in split1 (tyname : tynames) (schK Proxy)
+
+          split2 :: [TyName] -> [Type TyName uni ()] -> TypeScheme uni args res -> Maybe (TypeComponents uni)
+          split2 tynames argtys (TypeSchemeResult r)       = Just $ TypeComponents (reverse tynames) (reverse argtys) (toTypeAst r)  -- Nothing left
+          split2 tynames argtys (TypeSchemeArrow tyA schB) = split2 tynames (toTypeAst tyA : argtys) schB  -- Found a type
+          split2 _ _ (TypeSchemeAllType _ _ )              = Nothing  -- Found a type variable after a type
+
+
