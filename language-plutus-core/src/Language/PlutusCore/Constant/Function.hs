@@ -8,7 +8,8 @@ module Language.PlutusCore.Constant.Function
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedBuiltinName
-    , TypeComponents (..)
+    , typeComponentsOfTypedBuiltinName
+    , TypeComponents(..)
     , splitTypeScheme
     ) where
 
@@ -54,7 +55,9 @@ insertDynamicBuiltinNameDefinition
 typeOfTypedBuiltinName :: TypedBuiltinName uni as r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
 
-
+-- | Return the 'Type' of a 'TypedBuiltinName'.
+typeComponentsOfTypedBuiltinName :: TypedBuiltinName uni as r -> Maybe (TypeComponents uni)
+typeComponentsOfTypedBuiltinName (TypedBuiltinName _ scheme) = splitTypeScheme scheme
 
 {- | A type to represent types of built-in functions in a convenient
    form. We need this because the mapping from TypeSchemes to Types
@@ -62,9 +65,9 @@ typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
    a function of type int -> int has the same type as a function taking
    two integers and returning an int (ie int -> int -> int).
 -}
-data TypeComponents uni = TypeComponents { typeVars   :: [TyName]
-                                         , argTypes   :: [Type TyName uni ()]
-                                         , resultType :: Type TyName uni ()}
+data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
+                                         , tcArgTypes   :: [Type TyName uni ()]
+                                         , tcResultType :: Type TyName uni ()}
 
 {- | splitTypeScheme takes a type scheme of the form
 
