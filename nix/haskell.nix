@@ -14,7 +14,7 @@
 
 let
   makeProject = args: if useCabalProject
-    then haskell-nix.cabalProject (args // {
+    then haskell-nix.cabalProject' (args // {
       index-state = "2020-05-10T00:00:00Z";
       ghc = buildPackages.haskell-nix.compiler.ghc883;
 
@@ -29,7 +29,7 @@ let
         packages.eventful-sql-common.package.ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances";
       }];
     })
-    else haskell-nix.stackProject args;
+    else haskell-nix.stackProject' args;
   project = makeProject {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
