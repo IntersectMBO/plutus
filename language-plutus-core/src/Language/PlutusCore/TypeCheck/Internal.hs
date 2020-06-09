@@ -373,15 +373,14 @@ checkBuiltinTypeArgs
     -> [TyName]                -- type parameters
     -> [Type TyName uni ann]   -- type instantations
     -> TypeCheckM uni ann (TypeMapping uni)
-checkBuiltinTypeArgs = check []
-    where
-      check mapping ann bn (tyname:tynames) (tyarg:tyargs) = do
-        checkKindM  (typeAnn tyarg) tyarg (Type ()) --- FIXME: do we want the kinds from the schema???
-        tyarg' <- normalizeType (void tyarg)
-        check ((tyname,tyarg'):mapping) ann bn tynames tyargs
-      check mapping _ _ [] [] = pure mapping
-      check _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
-      check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated  ann bn)
+checkBuiltinTypeArgs = check [] where
+    check mapping ann bn (tyname:tynames) (tyarg:tyargs) = do
+       checkKindM  (typeAnn tyarg) tyarg (Type ()) --- FIXME: do we want the kinds from the schema???
+       tyarg' <- normalizeType (void tyarg)
+       check ((tyname,tyarg'):mapping) ann bn tynames tyargs
+    check mapping _ _ [] [] = pure mapping
+    check _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
+    check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated  ann bn)
 
 -- | Given a mapping from type variables to types, we work our way
 -- along the list of term arguments in an ApplyBuiltin, checking that
