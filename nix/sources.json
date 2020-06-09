@@ -12,6 +12,18 @@
         "url": "https://github.com/agda/agda-stdlib/archive/v1.2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "docker-nixpkgs": {
+        "branch": "master",
+        "description": "docker images from nixpkgs [maintainer=@zimbatm]",
+        "homepage": "https://hub.docker.com/u/nixpkgs",
+        "owner": "nix-community",
+        "repo": "docker-nixpkgs",
+        "rev": "53440b208ed438d762a81825a60bab182e7550cc",
+        "sha256": "1qrcijbl21h16qxnpsgfbx3kzvpd5zwvzz48dp4lsra6h80q33ma",
+        "type": "tarball",
+        "url": "https://github.com/nix-community/docker-nixpkgs/archive/53440b208ed438d762a81825a60bab182e7550cc.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "easy-purescript-nix": {
         "branch": "master",
         "builtin": false,

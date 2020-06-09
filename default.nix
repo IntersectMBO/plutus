@@ -300,6 +300,39 @@ in rec {
         Cmd = ["bash"];
       };
     };
+
+    # WIP to make a VS Code devcontainer that can be used for working on plutus code
+    #   docker load < $(nix-build --system x86_64-linux -A docker.devcontainer)
+    # In VS Code install:
+    #   https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+    # Open the plutus-use-cases folder VS Code (it contains a .devcontainer configuration).
+    devcontainer =
+      let shell = haskell.packages.shellFor ({
+          packages = ps: with ps; [ plutus-use-cases ];
+        });
+      in pkgs.dockerTools.buildImage {
+        name = "plutus-devcontainer";
+        tag = "latest";
+        fromImage = (import sources.docker-nixpkgs).devcontainer;
+        contents = [
+          shell.ghc
+          dev.packages.ghcide-use-cases
+          dev.packages.cabal
+          pkgs.binutils-unwrapped
+        ];
+        extraCommands = "mkdir -m 0777 tmp";
+        config = {
+          Env = [
+          "ENV=/nix/var/nix/profiles/default/etc/profile.d/nix.sh"
+          "GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
+          "LD_LIBRARY_PATH=/nix/var/nix/profiles/default/lib"
+          "PAGER=less"
+          "PATH=/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          "SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
+          "NIX_GHC_LIBDIR=${shell.ghc}/${shell.configFiles.libDir}"
+          ];
+        };
+      };
   };
 
   agdaPackages = rec {
