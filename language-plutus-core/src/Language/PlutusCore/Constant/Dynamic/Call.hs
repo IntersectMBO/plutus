@@ -36,5 +36,7 @@ dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
+-- FIXME: embedDynamicBuiltinNameInTerm wraps a dynamic name in a sequence of Abs and Lam
+-- constructors.  Maybe we should do something more efficient here.
 dynamicCall :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
 dynamicCall = embedDynamicBuiltinNameInTerm

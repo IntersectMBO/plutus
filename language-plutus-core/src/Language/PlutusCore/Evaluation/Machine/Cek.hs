@@ -265,14 +265,16 @@ computeCek ctx tyAbs@TyAbs{}       = returnCek ctx tyAbs
 computeCek ctx lamAbs@LamAbs{}     = returnCek ctx lamAbs
 computeCek ctx constant@Constant{} = returnCek ctx constant
 computeCek ctx t@(ApplyBuiltin ann bn tys args) =
+    -- FIXME (FAO @reactormonk): I've just re-used BApply for costing
+    -- the use of FrameApplyBuiltin.  Maybe we should add a new
+    -- constructor to `ExBudgetCategory` for that.
     case args of
         [] -> do
-            spendBudget (BBuiltin bn) t (ExBudget 1 1)
-            -- FIXME: we're re-using BBuiltin for the argument-collecting process here and below.  Should we have a new constructor for this?
+            spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv
             applyBuiltin varEnv ann ctx bn tys []
         arg:args' -> do
-            spendBudget (BBuiltin bn) t (ExBudget 1 1)
+            spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv
             withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args' : ctx) arg
 computeCek _   err@Error{} =

@@ -34,7 +34,7 @@ import           Control.Monad.Except
 
 -- | The default 'TypeCheckConfig'.
 defConfig :: TypeCheckConfig uni
-defConfig = TypeCheckConfig mempty
+defConfig = TypeCheckConfig mempty mempty
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.

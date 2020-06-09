@@ -104,7 +104,8 @@ type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni (
 
 -- | Configuration of the type checker.
 data TypeCheckConfig uni = TypeCheckConfig
-    { _tccDynamicBuiltinNameTypes :: DynamicBuiltinNameTypes uni
+    { _tccDynamicBuiltinNameTypes    :: DynamicBuiltinNameTypes uni
+    , _tccDynamicBuiltinNameMeanings :: DynamicBuiltinNameMeanings uni
     }
 
 -- | The environment that the type checker runs in.
@@ -150,6 +151,14 @@ lookupDynamicBuiltinNameM ann name = do
         Nothing ->
             throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
         Just ty -> liftDupable ty
+
+lookupDynamicBuiltinSchemaM
+    :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+lookupDynamicBuiltinSchemaM ann name = do
+  DynamicBuiltinNameMeanings dbnms <- asks $ _tccDynamicBuiltinNameMeanings . _tceTypeCheckConfig
+  case Map.lookup name dbnms of
+    Nothing -> throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
+    Just _  -> pure $ undefined
 
 -- | Look up a type variable in the current context.
 lookupTyVarM :: ann -> TyName -> TypeCheckM uni ann (Kind ())
