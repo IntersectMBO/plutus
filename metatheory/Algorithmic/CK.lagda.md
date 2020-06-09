@@ -83,23 +83,23 @@ open import Data.Empty
 -- more function rather like progress
 
 step : ∀{A} → State A → State A
-step (s ▻ ƛ L)                          = s ◅ V-ƛ {N = L}
-step (s ▻ (L · M))                      = (s , -· M) ▻ L
-step (s ▻ Λ L)                          = s ◅ V-Λ {N = L}
-step (s ▻ (_·⋆_ L A))                   = (s , -·⋆ A) ▻ L
-step (s ▻ wrap1 pat arg L)              = (s , wrap-) ▻ L
-step (s ▻ unwrap1 L)                    = (s , unwrap-) ▻ L
-step (s ▻ con cn)                       = s ◅ V-con cn
-step (s ▻ builtin bn σ tel)             = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
-step (s ▻ error A)                      = ◆ A
-step (ε ◅ V)                            = □ V
-step ((s , (-· M)) ◅ V)                 = ((s , V ·-) ▻ M)
-step (_◅_ (s , (V-ƛ {N = t} ·-)) {u} V) = s ▻ (t [ u ])
-step ((s , (-·⋆ A)) ◅ V-Λ {N = t})      = s ▻ (t [ A ]⋆)
-step ((s , wrap-) ◅ V)                  = s ◅ (V-wrap V)
-step ((s , unwrap-) ◅ V-wrap V)         = s ◅ V
-step (□ V)                              = □ V
-step (◆ A)                              = ◆ A
+step (s ▻ ƛ L)                    = s ◅ V-ƛ L
+step (s ▻ (L · M))                = (s , -· M) ▻ L
+step (s ▻ Λ L)                    = s ◅ V-Λ L
+step (s ▻ (_·⋆_ L A))             = (s , -·⋆ A) ▻ L
+step (s ▻ wrap1 pat arg L)        = (s , wrap-) ▻ L
+step (s ▻ unwrap1 L)              = (s , unwrap-) ▻ L
+step (s ▻ con cn)                 = s ◅ V-con cn
+step (s ▻ builtin bn σ tel)       = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step (s ▻ error A)                = ◆ A
+step (ε ◅ V)                      = □ V
+step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
+step (_◅_ (s , (V-ƛ t ·-)) {u} V) = s ▻ (t [ u ])
+step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
+step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
+step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
+step (□ V)                        = □ V
+step (◆ A)                        = ◆ A
 ```
 
 ```

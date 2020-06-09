@@ -14,8 +14,7 @@ open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
 open import Algorithmic.Reduction hiding (step)
 open import Algorithmic.RenamingSubstitution
-open import Builtin.Signature
-  Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
+open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 
 Clos : ∅ ⊢Nf⋆ * → Set
 
@@ -52,6 +51,11 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   _;_◅_ : ∀{Γ}{H : ∅ ⊢Nf⋆ *} → Stack T H → Env Γ → {M : Γ ⊢ H} → Value M → State T
   □     : Clos T → State T
   ◆     : ∅ ⊢Nf⋆ * → State T
+
+{-
+discharge : ∀{Γ A}{M : Γ ⊢ A} → Value M → Env Γ → Σ (∅ ⊢ A) Value
+discharge V ρ = {!!}
+-}
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V

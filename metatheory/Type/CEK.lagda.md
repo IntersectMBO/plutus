@@ -9,6 +9,7 @@ open import Function
 
 open import Type
 open import Type.Reduction hiding (step)
+open import Type.RenamingSubstitution
 
 -- a CEK machine for types
 
@@ -39,8 +40,6 @@ data State (K : Kind) : Set where
   _;_◅_ : {H : Kind} → Stack K H → ∀{Φ} → Env Φ → {A : Φ ⊢⋆ H} → Value⋆ A
     → State K
   □  : Closure K → State K
-
-open import Type.RenamingSubstitution
 
 discharge : ∀{Φ K}{A : Φ ⊢⋆ K} → Value⋆ A → Env Φ → Σ (∅ ⊢⋆ K) Value⋆
 
