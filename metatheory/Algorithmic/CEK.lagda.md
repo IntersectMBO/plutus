@@ -6,16 +6,21 @@ module Algorithmic.CEK where
 open import Data.Bool using (Bool;true;false)
 open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Function using (_∘_;id)
-open import Relation.Binary.PropositionalEquality using (refl;cong;sym;trans)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;inspect) renaming ([_] to [[_]];subst to substEq)
+import Data.List as L
+open import Data.List.Properties
 
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNBE hiding (Env)
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
-open import Algorithmic.Reduction hiding (step)
 open import Algorithmic.RenamingSubstitution
+open import Algorithmic.Reduction hiding (step)
+open import Builtin
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
+open import Builtin.Constant.Type
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 
 Clos : ∅ ⊢Nf⋆ * → Set
 
@@ -42,6 +47,17 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   unwrap- : ∀{K}{pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{arg : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
             (ne (μ1 · pat · arg))
+
+  builtin- : (b : Builtin)
+    → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
+    → (As : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
+    → (ts : Tel ∅ (proj₁ (SIG b)) σ As)
+    → VTel ∅ (proj₁ (SIG b)) σ As ts
+    → (A : (proj₁ (SIG b) ⊢Nf⋆ *))
+    → (As' : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
+    → proj₁ (proj₂ (SIG b)) ≡ As L.++ A L.∷ As'
+    → Tel ∅ (proj₁ (SIG b)) σ As'
+    → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
 
 data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
   ε   : Stack T T
@@ -83,6 +99,49 @@ discharge (V-Λ M)    ρ = _ ,, V-Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) ρ = _ ,, V-wrap (proj₂ (discharge V ρ))
 discharge (V-con c)  ρ = _ ,, V-con c
 
+-- telescope rangling
+vtel-lem : ∀{Φ}{Γ Δ}{As As' : L.List (Δ ⊢Nf⋆ *)} (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+  → (p : As' ≡ As)
+  → (ts : Tel Γ Δ σ As')
+  → VTel Γ Δ σ As' ts
+  → VTel Γ Δ σ As (substEq (Tel Γ Δ σ) p ts)
+vtel-lem σ refl ts vs = vs
+
+-- recontructing the telescope after an element has been evaluated
+
+reconstTel : ∀{Φ Γ Δ As} Bs Ds
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (telB : Tel Γ Δ σ Bs)
+    → ∀{C}(t' : Γ ⊢ substNf σ C)
+    → (p : Bs L.++ (C L.∷ Ds) ≡ As)
+    → (tel' : Tel Γ Δ σ Ds)
+    → Tel Γ Δ σ As
+reconstTel L.[] Ds σ telB t' refl telD = t' ∷ telD
+reconstTel (B L.∷ Bs) Ds σ (X ∷ telB) t' refl tel' =
+  X ∷ reconstTel Bs Ds σ telB t' refl tel'
+
+extendVTel : ∀{Φ Γ Δ As} Bs
+    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
+    → (ts : Tel Γ Δ σ Bs)
+    → VTel Γ Δ σ Bs ts 
+    → ∀{C}(t' : Γ ⊢ substNf σ C)
+    → Value t'
+    → (p : Bs L.++ (C L.∷ L.[]) ≡ As)
+    → VTel Γ Δ σ As (reconstTel Bs L.[] σ ts t' p [])
+
+extendVTel L.[] σ [] _ t' vt' refl = vt' ,, _
+extendVTel (B L.∷ Bs) σ (t ∷ ts) (v ,, vs) t' v' refl =
+  v ,, extendVTel Bs σ ts vs t' v' refl
+
+dischargeTel : ∀{Γ Δ As}
+    → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
+    → (ts : Tel Γ Δ σ As)
+    → Env Γ
+    → Tel ∅ Δ σ As
+    
+dischargeTel σ [] ρ = []
+dischargeTel {As = A L.∷ As} σ (t ∷ ts) ρ = conv⊢ refl (substNf-id (substNf σ A)) (subst (ne ∘ `) (env2ren ρ) t) Tel.∷ dischargeTel σ ts ρ 
+
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V
 step (s ; ρ ▻ ƛ M)      = s ; ρ ◅ V-ƛ M
@@ -92,7 +151,11 @@ step (s ; ρ ▻ (M ·⋆ A)) = (s , -·⋆ A) ; ρ ▻ M
 step (s ; ρ ▻ wrap1 pat arg M) = (s , wrap-) ; ρ ▻ M
 step (s ; ρ ▻ unwrap1 M) = (s , unwrap-) ; ρ ▻ M
 step (s ; ρ ▻ con c) = s ; ρ ◅ V-con c
-step (s ; ρ ▻ builtin bn σ ts) = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
+step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ proj₂ ∘ SIG) bn
+... | L.[]     | [[ p ]] =
+  s ; ρ ▻ BUILTIN bn σ (substEq (Tel _ _ σ) (sym p) []) (vtel-lem σ (sym p) [] _)
+step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
+  (s , builtin- bn σ L.[] [] _ A As p (dischargeTel σ ts ρ)) ; ρ ▻ t
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
 step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M
@@ -101,7 +164,22 @@ step ((s , ((_ ,, ƛ M ,, V-ƛ .M ,, ρ') ·-)) ; ρ ◅ V) =
 step ((s , -·⋆ A) ; ρ ◅ V-Λ M) = s ; ρ ▻ (M [ A ]⋆) 
 step ((s , wrap-) ; ρ ◅ V) = s ; ρ ◅ V-wrap V
 step ((s , unwrap-) ; ρ ◅ V-wrap V) = s ; ρ ◅ V
-
+step ((s , builtin- b σ As ts vs A .L.[] p []) ; ρ ◅ V) = s ; [] ▻
+  BUILTIN b
+          σ
+          (reconstTel As L.[] σ ts (proj₁ (discharge V ρ)) (sym p) [])
+          (extendVTel As σ ts vs (proj₁ (discharge V ρ)) (proj₂ (discharge V ρ)) (sym p))
+step ((s , builtin- b σ As ts vs A (A' L.∷ As') p (t' ∷ ts')) ; ρ ◅ V) =
+  (s , builtin-
+        b
+        σ
+        (As L.++ L.[ A ])
+        (reconstTel As L.[] σ ts (proj₁ (discharge V ρ)) refl [])
+        (extendVTel As σ ts vs (proj₁ (discharge V ρ)) (proj₂ (discharge V ρ)) refl)
+        A'
+        As'
+        (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As')))) ts')
+  ; [] ▻ t'
 step (□ C)       = □ C
 step (◆ A)       = ◆ A
 
