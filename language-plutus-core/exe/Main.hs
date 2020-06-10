@@ -258,9 +258,6 @@ getProg inp fmt =
 
 ---------------- Typechecking ----------------
 
---instance PLC.AsTypeError (GHC.IO.Exception.IOException) PLC.DefaultUni () where
---    _TypeError e = undefined
-
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
