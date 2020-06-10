@@ -75,6 +75,14 @@ VTel-extend {tel = t' ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v
 vtel-lem : ∀{m n n'}{i : Weirdℕ m}(p : n' ≡ n)(ts : Tel i n') → VTel n' i ts → VTel n i (subst (Tel i) p ts)
 vtel-lem refl ts vs = vs
 
+NoVar : ∀{n} → Weirdℕ n → Set
+NoVar Z     = ⊤
+NoVar (S i) = ⊥
+NoVar (T i) = NoVar i
+
+noVar : ∀{n}{i : Weirdℕ n} → NoVar i → WeirdFin i → ⊥
+noVar p (T x) = noVar p x
+
 step : ∀{n n'}{i : Weirdℕ n}{i' : Weirdℕ n'}
   → NoVar i' → State i i' → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × State i i'
 step p (s ▻ ` x)              = ⊥-elim (noVar p x)

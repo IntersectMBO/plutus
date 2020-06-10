@@ -325,44 +325,32 @@ progressTelCons (done v)  (step q)  = step (there v q)
 progressTelCons (done v)  (error p) = error (there v p)
 progressTelCons (error p) q         = error (here p)
 
-open import Data.Empty
+progress : (t : ScopedTm Z) → Progress t
+progressTel : ∀{m}(tel : Tel Z m) → TelProgress tel
+progressTel []       = done tt
+progressTel (t ∷ ts) = progressTelCons (progress t) (progressTel ts)
 
-NoVar : ∀{n} → Weirdℕ n → Set
-NoVar Z     = ⊤
-NoVar (S i) = ⊥
-NoVar (T i) = NoVar i
-
-noVar : ∀{n}{i : Weirdℕ n} → NoVar i → WeirdFin i → ⊥
-noVar p (T x) = noVar p x
-
-progress : ∀{n}{i : Weirdℕ n} → NoVar i → (t : ScopedTm i) → Progress t
-progressTel : ∀{m n}{i : Weirdℕ n} → NoVar i → (tel : Tel i m)
-  → TelProgress tel
-progressTel p []       = done tt
-progressTel p (t ∷ ts) = progressTelCons (progress p t) (progressTel p ts)
-
-progress p (` x)             = ⊥-elim (noVar p x)
-progress p (Λ K t)           = done (V-Λ t) 
-progress p (t ·⋆ A)          = progress·⋆ (progress p t) A
-progress p (ƛ A t)           = done (V-ƛ A t)
-progress p (t · u)           = progress· (progress p t) (progress p u)
-progress p (con c)           = done (V-con c)
-progress p (error A)         = error (E-error A)
+progress (Λ K t)           = done (V-Λ t) 
+progress (t ·⋆ A)          = progress·⋆ (progress t) A
+progress (ƛ A t)           = done (V-ƛ A t)
+progress (t · u)           = progress· (progress t) (progress u)
+progress (con c)           = done (V-con c)
+progress (error A)         = error (E-error A)
 -- type telescope is full
-progress p (builtin b (inl (≤‴-refl , refl)) As []) = step tick-builtin
+progress (builtin b (inl (≤‴-refl , refl)) As []) = step tick-builtin
 -- type telescope is not full yet
-progress p (builtin b (inl (≤‴-step q , refl)) As []) = done (V-builtin⋆ b q As)
+progress (builtin b (inl (≤‴-step q , refl)) As []) = done (V-builtin⋆ b q As)
 -- term telescope is full
-progress p (builtin b (inr (refl , ≤‴-refl)) As ts) =
-  progress-builtin b As ts (progressTel p ts)
+progress (builtin b (inr (refl , ≤‴-refl)) As ts) =
+  progress-builtin b As ts (progressTel ts)
 -- term telescope is not full yet
-progress p (builtin b (inr (refl , ≤‴-step snd)) As ts) = done (V-builtin b As snd ts)
+progress (builtin b (inr (refl , ≤‴-step snd)) As ts) = done (V-builtin b As snd ts)
 
-progress p (wrap A B t) with progress p t
-progress p (wrap A B t)          | step  q           = step (ξ-wrap q)
-progress p (wrap A B t)          | done  q           = done (V-wrap A B q)
-progress p (wrap A B .(error C)) | error (E-error C) = step E-wrap
-progress p (unwrap t)        = progress-unwrap (progress p t)
+progress (wrap A B t) with progress t
+progress (wrap A B t)          | step  q           = step (ξ-wrap q)
+progress (wrap A B t)          | done  q           = done (V-wrap A B q)
+progress (wrap A B .(error C)) | error (E-error C) = step E-wrap
+progress (unwrap t)        = progress-unwrap (progress t)
 \end{code}
 
 \begin{code}
@@ -378,7 +366,7 @@ run : (t : ScopedTm Z) → ℕ → Steps t
 runProg : ℕ → {t : ScopedTm Z} → Progress t → Steps t
 
 run t 0       = t , (refl , inl nothing) -- out of fuel
-run t (suc n) = runProg n (progress tt t)
+run t (suc n) = runProg n (progress t)
 
 runProg n (step {t' = t'} p)  = run—→ p (run t' n)
 runProg n (done V)  = _ , refl , inl (just V)
