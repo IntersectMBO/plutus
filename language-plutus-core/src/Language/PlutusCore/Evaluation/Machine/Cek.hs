@@ -20,8 +20,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{-# OPTIONS_GHC -Wno-unused-matches -Wno-unused-top-binds -Wno-unused-imports #-}  -- FIXME: remove
-
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
     , EvaluationResultDef
@@ -68,7 +66,6 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 import           Control.Lens.Operators
 import           Control.Lens.Setter
@@ -79,7 +76,6 @@ import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
-import           Debug.Trace
 
 {- Note [Scoping]
 The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
@@ -233,7 +229,7 @@ computeCek ctx t@(Unwrap _ term) = do
 computeCek ctx tyAbs@TyAbs{}       = returnCek ctx tyAbs
 computeCek ctx lamAbs@LamAbs{}     = returnCek ctx lamAbs
 computeCek ctx constant@Constant{} = returnCek ctx constant
-computeCek ctx t@(ApplyBuiltin ann bn tys args) =
+computeCek ctx t@(ApplyBuiltin _ bn tys args) =
     -- FIXME (FAO @reactormonk): I've just re-used BApply for costing
     -- the use of FrameApplyBuiltin.  Maybe we should add a new
     -- constructor to `ExBudgetCategory` for that.
@@ -241,7 +237,7 @@ computeCek ctx t@(ApplyBuiltin ann bn tys args) =
         [] -> do
             spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv
-            applyBuiltin varEnv ann ctx bn tys []
+            applyBuiltin varEnv ctx bn tys []
         arg:args' -> do
             spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv
@@ -265,7 +261,7 @@ returnCek
     => Context uni -> WithMemory Value uni -> CekM uni (Plain Term uni)
 -- Instantiate all the free variables of the resulting term in case there are any.
 returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
-returnCek (FrameTyInstArg ty : ctx) fun =
+returnCek (FrameTyInstArg _ : ctx) fun =
     case fun of
       TyAbs _ _ _ body -> computeCek ctx body  -- NB: we're just ignoring the type here
       _                ->  throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
@@ -289,7 +285,7 @@ returnCek (FrameApplyBuiltin env bn tys closures terms : ctx) value = do
     varEnv <- getVarEnv
     let closures' = Closure varEnv value : closures -- Save the closure for the argument we've just computed.
     case terms of
-      []       -> applyBuiltin env () ctx bn tys (reverse closures') -- We've accumulated the argument closures in reverse
+      []       -> applyBuiltin env ctx bn tys (reverse closures') -- We've accumulated the argument closures in reverse
       arg:args -> withVarEnv env $ computeCek (FrameApplyBuiltin env bn tys closures' args : ctx) arg
 
 {- Note [Saved mapping example]
@@ -342,7 +338,7 @@ which evaluates to @1@ in the old environment.
 -- extended with a mapping from the created variable to the closure (i.e. original argument +
 -- its environment). The "otherwise" is only supposed to happen when handling an argument to a
 -- polymorphic built-in function.
-withScopedArgIn
+{- withScopedArgIn
     :: VarEnv uni                            -- ^ The caller's envorinment.
     -> VarEnv uni                            -- ^ The argument's environment.
     -> WithMemory Value uni                  -- ^ The argument.
@@ -353,12 +349,13 @@ withScopedArgIn funVarEnv argVarEnv arg            k = do
     let cost = memoryUsage ()
     argName <- freshName "arg"
     withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
-
+-}
 
 -- If it's a standard builtin, all arguments should be (built-in)
--- values and this function will do nothing.  Can we use traverse or
--- something for this? We're simultaneously mapping across the args
--- and folding along the environment
+-- values and this function will do nothing.
+-- FIXME: Can we use traverse or something for this? We're
+-- simultaneously mapping across the args and folding along the
+-- environment
 getScopedArgs  -- We could perhaps fold this into `compute`: more efficient, but more complex?
                -- Let's leave it like this until we're sure it's correct.
     :: VarEnv uni              -- enviroment containing bindings for new variables
@@ -378,17 +375,15 @@ getScopedArgs env0 args0 = getScopedArgs' args0 env0 [] where
 
 applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
                  => VarEnv uni
-                 -> ann
                  -> Context uni
                  -> BuiltinName
                  -> [Type TyName uni ExMemory]
                  -> [Closure uni]
                  -> CekM uni (Term TyName Name uni ())
-applyBuiltin funEnv ann ctx bn tys args =
+applyBuiltin funEnv ctx bn tys args =
     -- If there are too many/few types this should be caught by the typechecker.
     let term = ApplyBuiltin () bn (fmap void tys) (fmap (void . _closureValue) args) -- For error messages
     in do
-      -- Do we have to be more careful for dynamic names?
       (env', args') <- getScopedArgs funEnv args
       -- We could call getScopedArgs only in the case where tys is nonempty, relying on our assumption
       -- that non-polymorphic builtins only take builtin constants as arguments.
@@ -399,10 +394,7 @@ applyBuiltin funEnv ann ctx bn tys args =
                       applyTypeSchemed n sch x exX args'
                   StaticBuiltinName name ->
                       applyBuiltinName params name args'
-      case result of
-             ConstAppSuccess res -> withVarEnv env' $ computeCek ctx res
-             ConstAppStuck       -> throwingWithCause _ConstAppError TooFewArgumentsConstAppError $ Just term
-                                 -- Overapplication is handled in applyTypeSchemed
+      withVarEnv env' $ computeCek ctx result
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

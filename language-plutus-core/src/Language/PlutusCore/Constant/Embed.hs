@@ -4,6 +4,7 @@
 
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
+    , embedTypedBuiltinNameInTerm
     , embedDynamicBuiltinNameInTerm
     )
 where
@@ -48,6 +49,10 @@ embedBuiltinNameInTerm scheme name =
 
 embedStaticBuiltinNameInTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
 embedStaticBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . StaticBuiltinName
+
+embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
+embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedStaticBuiltinNameInTerm sch sbn
+
 
 embedDynamicBuiltinNameInTerm :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
 embedDynamicBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . DynBuiltinName

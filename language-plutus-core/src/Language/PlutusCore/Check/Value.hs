@@ -1,4 +1,6 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module Language.PlutusCore.Check.Value
     ( isTermValue
     ) where
@@ -12,8 +14,16 @@ isTermValue :: Term tyname name uni ann -> Bool
 isTermValue = isRight . termValue
 
 termValue :: Term tyname name uni ann -> Either (NormCheckError tyname name uni ann) ()
-termValue (IWrap _ _ _ term) = termValue term
-termValue LamAbs {}          = pure ()
-termValue TyAbs {}           = pure ()
-termValue Constant {}        = pure ()
-termValue t                  = Left $ BadTerm (termAnn t) t "term value"
+termValue =
+    let err t = Left $ BadTerm (termAnn t) t "term value"
+    in \case
+     IWrap _ _ _ term -> termValue term
+     Constant {}        -> pure ()
+     TyAbs {}           -> pure ()
+     LamAbs {}          -> pure ()
+     t@Var{}            -> err t
+     t@Apply{}          -> err t
+     t@TyInst{}         -> err t
+     t@Unwrap{}         -> err t
+     t@ApplyBuiltin{}   -> err t
+     t@Error{}          -> err t

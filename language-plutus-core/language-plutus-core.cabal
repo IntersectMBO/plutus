@@ -288,6 +288,7 @@ executable plc
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
+        mtl -any,
         serialise -any,
         text -any,
         lens -any,

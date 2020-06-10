@@ -23,6 +23,7 @@ import qualified Language.PlutusCore.Generators                             as P
 import qualified Language.PlutusCore.Generators.Interesting                 as PLC
 import qualified Language.PlutusCore.Generators.Test                        as PLC
 import qualified Language.PlutusCore.Pretty                                 as PLC
+import qualified Language.PlutusCore.Quote                                  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Bool                       as PLC
 import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
@@ -256,25 +257,26 @@ getProg inp fmt =
                return (fakeAlexPosn <$ plc)  -- Adjust the return type to ParsedProgram
                    where fakeAlexPosn = PLC.AlexPn 0 0 0
 
+
 ---------------- Typechecking ----------------
 
-instance PLC.AsTypeError (GHC.IO.Exception.IOException) PLC.DefaultUni () where
-    _TypeError = error "EXCEPTION"
--- FIXME: Just to get runTypecheck to typecheck
+--instance PLC.AsTypeError (GHC.IO.Exception.IOException) PLC.DefaultUni () where
+--    _TypeError e = undefined
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
-    types <- PLC.runQuoteT $ getStringBuiltinTypes ()
-    let cfg = PLC.TypeCheckConfig types getStringBuiltinMeanings
-    case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
+    let tyOrErr = PLC.runQuoteT $ do
+            types <- getStringBuiltinTypes ()
+            let cfg = PLC.TypeCheckConfig types getStringBuiltinMeanings
+            PLC.typecheckPipeline cfg prog
+    case tyOrErr of
       Left (e :: PlcParserError) -> do
             T.putStrLn $ PLC.prettyPlcDefText e
             exitFailure
       Right ty -> do
             T.putStrLn $ PLC.prettyPlcDefText ty
             exitSuccess
-
 
 ---------------- Evaluation ----------------
 

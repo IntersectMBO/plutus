@@ -124,7 +124,6 @@ data Error uni ann
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError uni ann)
     | NormCheckErrorE (NormCheckError TyName Name uni ann)
-    | BuiltinErrorE (BuiltinError ann)
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''Error
 
@@ -223,4 +222,3 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
-    prettyBy _      (BuiltinErrorE e)         = pretty e

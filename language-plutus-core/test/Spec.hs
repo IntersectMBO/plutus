@@ -45,10 +45,10 @@ main = do
     evalFiles <- findByExtension [".plc"] "test/Evaluation/Golden"
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles)
 
-compareLists :: (a -> a -> Bool) -> [a] -> [a] -> Bool  -- FIXME: is there a suitable library function for this?
-compareLists _  [] []          = True
-compareLists cmp (x:xs) (y:ys) = cmp x y && compareLists cmp xs ys
-compareLists _  _  _           = False
+compareLists :: (a -> a -> Bool) -> [a] -> [a] -> Bool
+compareLists _  [] []         = True
+compareLists eq (x:xs) (y:ys) = eq x y && compareLists eq xs ys
+compareLists _  _  _          = False
 
 compareName :: Name -> Name -> Bool
 compareName = (==) `on` nameString
