@@ -1,6 +1,4 @@
 let
-  # The Hackage index-state we use for things
-  index-state = "2020-02-20T00:00:00Z";
 
   unfreePredicate = pkg:
       let unfreePkgs = [ "kindlegen" ]; in
@@ -10,4 +8,4 @@ let
 
   comp = f: g: (v: f(g v));
 
-in { inherit index-state unfreePredicate comp; }
+in { inherit unfreePredicate comp; }

@@ -24,6 +24,7 @@
         "th-utilities" = (((hackage.th-utilities)."0.2.4.0").revisions).default;
         "servant-options" = (((hackage.servant-options)."0.1.0.0").revisions).default;
         "sbv" = (((hackage.sbv)."8.6").revisions).default;
+        "inline-r" = (((hackage.inline-r)."0.10.3").revisions).default;
         "time-out" = (((hackage.time-out)."0.2").revisions)."b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2";
         "time-interval" = (((hackage.time-interval)."0.1.1").revisions)."7bfd3601853d1af7caa18248ec10b01701d035ac274a93bb4670fea52a14d4e8";
         "time-units" = (((hackage.time-units)."1.0.0").revisions)."27cf54091c4a0ca73d504fc11d5c31ab4041d17404fe3499945e2055697746c1";
@@ -35,7 +36,6 @@
         "statistics-linreg" = (((hackage.statistics-linreg)."0.3").revisions)."95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f";
         "eventful-sql-common" = (((hackage.eventful-sql-common)."0.2.0").revisions).r0;
         language-plutus-core = ./language-plutus-core.nix;
-        plutus-ir = ./plutus-ir.nix;
         plutus-tx = ./plutus-tx.nix;
         plutus-tx-plugin = ./plutus-tx-plugin.nix;
         plutus-use-cases = ./plutus-use-cases.nix;

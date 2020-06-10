@@ -96,6 +96,7 @@ library
         mtl -any,
         semigroupoids -any,
         profunctors -any,
+        template-haskell -any,
         transformers -any,
         warp -any,
         newtype-generics -any,

@@ -17,19 +17,22 @@ module Playground.TH
     , mkKnownCurrencies
     ) where
 
-import           Data.Row                 (type (.\\))
-import           Data.Text                (pack)
-import           IOTS                     (HList (HCons, HNil), Tagged (Tagged))
+import           Data.Row                                        (type (.\\))
+import           IOTS                                            (HList (HCons, HNil), Tagged (Tagged))
 import qualified IOTS
-import           Language.Haskell.TH      (Body (NormalB), Clause (Clause), Dec (FunD, SigD, TySynD, ValD),
-                                           Exp (ListE, LitE, VarE), Info (TyConI, VarI), Lit (StringL), Name,
-                                           Pat (VarP), Q, Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
-                                           appTypeE, conE, litT, lookupValueName, mkName, nameBase, normalB, reify,
-                                           sigD, strTyLit, valD, varE, varP)
-import           Language.Plutus.Contract (BlockchainActions)
-import           Playground.Schema        (endpointsToSchemas)
-import           Playground.Types         (EndpointName (EndpointName), FunctionSchema (FunctionSchema), adaCurrency)
-import           Schema                   (FormSchema, toSchema)
+import           Language.Haskell.TH                             (Body (NormalB), Clause (Clause),
+                                                                  Dec (FunD, SigD, TySynD, ValD),
+                                                                  Exp (ListE, LitE, VarE), Info (TyConI, VarI),
+                                                                  Lit (StringL), Name, Pat (VarP), Q,
+                                                                  Type (AppT, ArrowT, ConT, ForallT, ListT, TupleT, VarT),
+                                                                  appTypeE, conE, litT, lookupValueName, mkName,
+                                                                  nameBase, normalB, reify, sigD, strTyLit, valD, varE,
+                                                                  varP)
+import           Language.Plutus.Contract                        (BlockchainActions)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Playground.Schema                               (endpointsToSchemas)
+import           Playground.Types                                (FunctionSchema (FunctionSchema), adaCurrency)
+import           Schema                                          (FormSchema, toSchema)
 
 mkFunctions :: [Name] -> Q [Dec]
 mkFunctions names = do
@@ -122,13 +125,13 @@ mkSingleFunction name = do
 mkFunction' :: Name -> Q Dec
 mkFunction' name = do
     let newName = mkName $ nameBase name ++ "Schema"
-        fn = EndpointName . pack $ nameBase name
+        fn = EndpointDescription $ nameBase name
     expression <- mkFunctionExp name fn
     pure $ FunD newName [Clause [] (NormalB expression) []]
 
 {-# ANN mkFunctionExp ("HLint: ignore" :: String) #-}
 
-mkFunctionExp :: Name -> EndpointName -> Q Exp
+mkFunctionExp :: Name -> EndpointDescription -> Q Exp
 mkFunctionExp name fn = do
     r <- reify name
     case r of
@@ -139,7 +142,7 @@ mkFunctionExp name fn = do
 
 {-# ANN toSchemas ("HLint: ignore Redundant bracket" :: String) #-}
 
-toSchemas :: EndpointName -> [Type] -> Q Exp
+toSchemas :: EndpointDescription -> [Type] -> Q Exp
 toSchemas fn ts = do
     es <- foldr (\t e -> [|toSchema @($(pure t)) : $e|]) [|[]|] ts
     [|FunctionSchema fn $(pure es)|]

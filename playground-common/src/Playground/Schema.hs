@@ -27,12 +27,12 @@ module Playground.Schema
 import           Data.Kind                                       (Type)
 import           Data.Row                                        (Empty, KnownSymbol, Label (Label))
 import           Data.Row.Internal                               (LT ((:->)), Row (R))
-import qualified Data.Text                                       as Text
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoints, EndpointValue)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoints,
+                                                                  EndpointDescription (EndpointDescription),
+                                                                  EndpointValue)
 import           Language.Plutus.Contract.Schema                 ()
-import           Playground.Types                                (EndpointName (EndpointName),
-                                                                  FunctionSchema (FunctionSchema), arguments,
-                                                                  endpointName)
+import           Playground.Types                                (FunctionSchema (FunctionSchema), argument,
+                                                                  endpointDescription)
 import           Schema                                          (FormSchema, ToSchema, toSchema)
 
 class EndpointToSchema (s :: Row Type) where
@@ -44,7 +44,7 @@ instance EndpointToSchema Empty where
 instance (ToSchema params, KnownSymbol label, EndpointToSchema (R bs)) =>
          EndpointToSchema (R (label :-> (EndpointValue params, ActiveEndpoints) : bs)) where
     endpointsToSchemas =
-        FunctionSchema {endpointName, arguments} : endpointsToSchemas @(R bs)
+        FunctionSchema {endpointDescription, argument} : endpointsToSchemas @(R bs)
       where
-        endpointName = EndpointName . Text.pack . show $ Label @label
-        arguments = [toSchema @params]
+        endpointDescription = EndpointDescription . show $ Label @label
+        argument = toSchema @params

@@ -23,16 +23,18 @@ module Plutus.SCB.Effects.Contract(
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error  (Error, throwError)
-import           Control.Monad.Freer.TH     (makeEffect)
-import qualified Data.Aeson                 as JSON
-import qualified Data.HashMap.Lazy          as HashMap
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import           Playground.Types           (FunctionSchema)
-import           Plutus.SCB.Events.Contract (ContractRequest (..), ContractResponse (..), PartiallyDecodedResponse (..))
-import           Plutus.SCB.Types           (SCBError (ContractCommandError, OtherError))
-import           Schema                     (FormSchema)
+import           Control.Monad.Freer.Error                       (Error, throwError)
+import           Control.Monad.Freer.TH                          (makeEffect)
+import qualified Data.Aeson                                      as JSON
+import qualified Data.HashMap.Lazy                               as HashMap
+import           Data.Text                                       (Text)
+import qualified Data.Text                                       as Text
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, getEndpointDescription)
+import           Playground.Types                                (FunctionSchema)
+import           Plutus.SCB.Events.Contract                      (ContractRequest (..), ContractResponse (..),
+                                                                  PartiallyDecodedResponse (..))
+import           Plutus.SCB.Types                                (SCBError (ContractCommandError, OtherError))
+import           Schema                                          (FormSchema)
 
 -- | Commands to update a contract. 't' identifies the contract.
 data ContractCommand t
@@ -50,12 +52,17 @@ makeEffect ''ContractEffect
 -- contract.
 
 -- | An event sent to the contract
-data EventPayload = EventPayload { endpointName :: Text, endpointValue :: JSON.Value }
+data EventPayload = EventPayload { endpointDescription :: EndpointDescription, endpointValue :: JSON.Value }
 
 encodePayload :: EventPayload -> (Text, JSON.Value)
-encodePayload EventPayload{endpointName, endpointValue} =
+encodePayload EventPayload {endpointDescription, endpointValue} =
     ( "event"
-    , JSON.object [("tag", JSON.String endpointName), ("value", endpointValue)])
+    , JSON.object
+          [ ( "tag"
+            , JSON.String
+                  (Text.pack (getEndpointDescription endpointDescription)))
+          , ("value", endpointValue)
+          ])
 
 -- | Given a contract definition 't' and the contract's previous state
 --   in form of a 'PartiallyDecodedResponse', apply the next input

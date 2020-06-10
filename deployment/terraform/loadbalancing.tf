@@ -116,6 +116,8 @@ resource "aws_alb_target_group" "playground" {
   vpc_id   = "${aws_vpc.plutus.id}"
   health_check = {
     path = "/api/health"
+    # The playground health check is currently a bit slow since it compiles some contracts
+    timeout = 20
   }
   stickiness = {
     type = "lb_cookie"

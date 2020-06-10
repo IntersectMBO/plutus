@@ -9,7 +9,7 @@ module Main (main) where
 
 import           Common
 import           PlcTestUtils
-import           PlutusPrelude              hiding (hoist)
+import           PlutusPrelude
 import           TestLib
 
 import           OptimizerSpec
@@ -38,7 +38,7 @@ import           Data.Functor.Identity
 import           Text.Megaparsec.Pos
 
 main :: IO ()
-main = defaultMain $ runTestNestedIn ["test"] tests
+main = defaultMain $ runTestNestedIn ["plutus-ir-test"] tests
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Typeable uni, Pretty a, Typeable a, Ord a

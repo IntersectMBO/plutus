@@ -150,6 +150,19 @@ let additions =
               , version =
                   "purs-0.13"
               }
+      , matryoshka =
+          { dependencies =
+              [ "prelude"
+              , "fixed-points"
+              , "free"
+              , "transformers"
+              , "profunctor"
+              ]
+          , repo =
+              "https://github.com/slamdata/purescript-matryoshka.git"
+          , version =
+              "v0.4.0"
+          }
       , numerics =
           { dependencies =
               [ "prelude", "integers", "rationals", "uint", "bigints" ]

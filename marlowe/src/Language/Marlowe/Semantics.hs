@@ -247,6 +247,7 @@ data Contract = Close
               | If Observation Contract Contract
               | When [Case Contract] Timeout Contract
               | Let ValueId (Value Observation) Contract
+              | Assert Observation Contract
   deriving stock (Show,Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
@@ -310,9 +311,10 @@ data ReduceEffect = ReduceWithPayment Payment
 data ReduceWarning = ReduceNoWarning
                    | ReduceNonPositivePay AccountId Payee Token Integer
                    | ReducePartialPay AccountId Payee Token Integer Integer
-                                     -- ^ src    ^ dest                           ^ paid ^ expected
+--                                      ^ src    ^ dest       ^ paid ^ expected
                    | ReduceShadowing ValueId Integer Integer
-                                    -- oldVal ^  newVal ^
+--                                     oldVal ^  newVal ^
+                   | ReduceAssertionFailed
   deriving stock (Show)
 
 
@@ -352,9 +354,10 @@ data ApplyAllResult = ApplyAllSuccess [TransactionWarning] [Payment] State Contr
 data TransactionWarning = TransactionNonPositiveDeposit Party AccountId Token Integer
                         | TransactionNonPositivePay AccountId Payee Token Integer
                         | TransactionPartialPay AccountId Payee Token Integer Integer
-                                                -- ^ src    ^ dest    ^ paid ^ expected
+--                                                 ^ src    ^ dest     ^ paid   ^ expected
                         | TransactionShadowing ValueId Integer Integer
-                                                -- oldVal ^  newVal ^
+--                                                 oldVal ^  newVal ^
+                        | TransactionAssertionFailed
   deriving stock (Show, Generic, P.Eq)
   deriving anyclass (Pretty)
 
@@ -451,7 +454,7 @@ fixInterval interval state =
 {-|
   Evaluates @Value@ given current @State@ and @Environment@
 -}
-evalValue :: Environment -> State -> (Value Observation) -> Integer
+evalValue :: Environment -> State -> Value Observation -> Integer
 evalValue env state value = let
     eval = evalValue env state
     in case value of
@@ -468,7 +471,10 @@ evalValue env state value = let
             (q, r) = multiplied `quotRem` denom
             -- abs (rem (num/denom)) - 1/2
             abs a = if a >= 0 then a else negate a
-            signum x = if x > 0 then 1 else if x == 0 then 0 else -1
+            signum x
+              | x > 0 = 1
+              | x == 0 = 0
+              | otherwise = -1
             sign :: Integer
             sign = signum (2 * abs r - abs denom)
             m = if r < 0 then q - 1 else q + 1
@@ -601,6 +607,11 @@ reduceContractStep env state contract = case contract of
               Nothing     -> ReduceNoWarning
         in Reduced warn ReduceNoPayment newState cont
 
+    Assert obs cont -> let
+        warning = if evalObservation env state obs
+                  then ReduceNoWarning
+                  else ReduceAssertionFailed
+        in Reduced warning ReduceNoPayment state cont
 
 -- | Reduce a contract until it cannot be reduced more
 reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
@@ -665,6 +676,8 @@ convertReduceWarnings = foldr (\warn acc -> case warn of
         TransactionPartialPay accId payee tok paid expected : acc
     ReduceShadowing valId oldVal newVal ->
         TransactionShadowing valId oldVal newVal : acc
+    ReduceAssertionFailed ->
+        TransactionAssertionFailed : acc
     ) []
 
 
@@ -756,6 +769,7 @@ contractLifespanUpperBound contract = case contract of
         contractsLifespans = fmap (\(Case _ cont) -> contractLifespanUpperBound cont) cases
         in maximum (getSlot timeout : contractLifespanUpperBound subContract : contractsLifespans)
     Let _ _ cont -> contractLifespanUpperBound cont
+    Assert _ cont -> contractLifespanUpperBound cont
 
 
 totalBalance :: Accounts -> Money
@@ -930,8 +944,8 @@ instance ToJSON Party where
         ]
 
 
-instance FromJSON AccountId where parseJSON v = genericParseJSON customOptions v
-instance ToJSON AccountId where toJSON v = genericToJSON customOptions v
+instance FromJSON AccountId where parseJSON = genericParseJSON customOptions
+instance ToJSON AccountId where toJSON = genericToJSON customOptions
 
 
 instance FromJSON ChoiceId where
@@ -970,32 +984,32 @@ instance ToJSON ValueId where
     toJSON (ValueId x) = JSON.String (decodeUtf8 (toStrict x))
 
 
-instance FromJSON (Value Observation) where parseJSON v = genericParseJSON customOptions v
-instance ToJSON (Value Observation) where toJSON v = genericToJSON customOptions v
+instance FromJSON (Value Observation) where parseJSON = genericParseJSON customOptions
+instance ToJSON (Value Observation) where toJSON = genericToJSON customOptions
 
 
-instance FromJSON Observation where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Observation where toJSON v = genericToJSON customOptions v
+instance FromJSON Observation where parseJSON = genericParseJSON customOptions
+instance ToJSON Observation where toJSON = genericToJSON customOptions
 
 
-instance FromJSON Bound where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Bound where toJSON v = genericToJSON customOptions v
+instance FromJSON Bound where parseJSON = genericParseJSON customOptions
+instance ToJSON Bound where toJSON = genericToJSON customOptions
 
 
-instance FromJSON Action where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Action where toJSON v = genericToJSON customOptions v
+instance FromJSON Action where parseJSON = genericParseJSON customOptions
+instance ToJSON Action where toJSON = genericToJSON customOptions
 
 
-instance FromJSON Payee where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Payee where toJSON v = genericToJSON customOptions v
+instance FromJSON Payee where parseJSON = genericParseJSON customOptions
+instance ToJSON Payee where toJSON = genericToJSON customOptions
 
 
-instance FromJSON a => FromJSON (Case a) where parseJSON v = genericParseJSON customOptions v
-instance ToJSON a => ToJSON (Case a) where toJSON v = genericToJSON customOptions v
+instance FromJSON a => FromJSON (Case a) where parseJSON = genericParseJSON customOptions
+instance ToJSON a => ToJSON (Case a) where toJSON = genericToJSON customOptions
 
 
-instance FromJSON Contract where parseJSON v = genericParseJSON customOptions v
-instance ToJSON Contract where toJSON v = genericToJSON customOptions v
+instance FromJSON Contract where parseJSON = genericParseJSON customOptions
+instance ToJSON Contract where toJSON = genericToJSON customOptions
 
 
 instance Eq Party where
@@ -1119,6 +1133,7 @@ instance Eq Contract where
            in all checkCase cases
     Let valId1 val1 cont1 == Let valId2 val2 cont2 =
         valId1 == valId2 && val1 == val2 && cont1 == cont2
+    Assert obs1 cont1 == Assert obs2 cont2 = obs1 == obs2 && cont1 == cont2
     _ == _ = False
 
 

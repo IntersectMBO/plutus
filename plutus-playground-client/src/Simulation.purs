@@ -28,13 +28,13 @@ import Language.Haskell.Interpreter as PI
 import Ledger.Slot (Slot)
 import Ledger.Value (Value)
 import Network.RemoteData (RemoteData(Loading, NotAsked, Failure, Success))
-import Playground.Lenses (_endpointName)
+import Playground.Lenses (_endpointDescription, _getEndpointDescription)
 import Playground.Schema (actionArgumentForm)
-import Playground.Types (ContractCall(..), EvaluationResult, FunctionSchema, PlaygroundError(..), Simulation(..), _CallEndpoint, _EndpointName, _FunctionSchema)
+import Playground.Types (ContractCall(..), EvaluationResult, PlaygroundError(..), Simulation(..), _CallEndpoint, _FunctionSchema)
 import Prelude (const, map, pure, show, (#), ($), (+), (/=), (<$>), (<<<), (<>), (==), (>))
-import Schema (FormArgumentF, FormSchema)
-import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), SimulatorAction, Signatures)
-import Validation (_arguments, validate)
+import Schema (FormArgumentF)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), Signatures)
+import Validation (_argument, validate)
 import ValueEditor (valueForm)
 import Wallet (walletIdPane, walletsPane)
 import Wallet.Emulator.Wallet (Wallet)
@@ -130,7 +130,7 @@ addSimulationControl =
     ]
     [ icon Plus ]
 
-actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array SimulatorAction -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
+actionsPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Array (ContractCall FormArgument) -> WebData (JsonEither PlaygroundError EvaluationResult) -> HTML p HAction
 actionsPane isValidWallet actionDrag actions evaluationResult =
   div_
     [ h2_ [ text "Actions" ]
@@ -152,7 +152,7 @@ actionsPane isValidWallet actionDrag actions evaluationResult =
     , div_ [ small_ [ text "Run this set of actions against a simulated blockchain." ] ]
     ]
 
-actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> SimulatorAction -> Tuple String (HTML p HAction)
+actionPane :: forall p. (Wallet -> Boolean) -> Maybe Int -> Int -> ContractCall FormArgument -> Tuple String (HTML p HAction)
 actionPane isValidWallet actionDrag index action =
   Tuple (show index)
     $ responsiveThird
@@ -201,9 +201,9 @@ actionPaneBody index (CallEndpoint { caller, argumentValues }) =
     [ h3_
         [ walletIdPane caller
         , text ": "
-        , text $ view (_FunctionSchema <<< _endpointName <<< _EndpointName) argumentValues
+        , text $ view (_FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) argumentValues
         ]
-    , actionArgumentForm index $ view (_FunctionSchema <<< _arguments) argumentValues
+    , actionArgumentForm (PopulateAction index) $ view (_FunctionSchema <<< _argument) argumentValues
     ]
 
 actionPaneBody index (PayToWallet { sender, recipient, amount }) =
@@ -318,7 +318,7 @@ addWaitActionPane index =
             ]
         ]
 
-evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array SimulatorAction -> HTML p HAction
+evaluateActionsPane :: forall p. WebData (JsonEither PlaygroundError EvaluationResult) -> Array (ContractCall FormArgument) -> HTML p HAction
 evaluateActionsPane evaluationResult actions =
   col_
     [ button

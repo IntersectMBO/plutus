@@ -16,27 +16,25 @@
 
 module Playground.Types where
 
-import           Control.Lens                 (makeLenses)
-import           Control.Newtype.Generics     (Newtype)
-import           Data.Aeson                   (FromJSON, ToJSON)
-import qualified Data.Aeson                   as JSON
-import           Data.Functor.Foldable        (Fix)
-import           Data.List.NonEmpty           (NonEmpty ((:|)))
-import           Data.String                  (IsString)
-import           Data.Text                    (Text)
-import           GHC.Generics                 (Generic)
-import           Language.Haskell.Interpreter (CompilationError, SourceCode)
-import qualified Language.Haskell.Interpreter as HI
-import qualified Language.Haskell.TH.Syntax   as TH
-import           Ledger                       (PubKeyHash, Tx, fromSymbol, pubKeyHash)
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Scripts               (ValidatorHash)
-import           Ledger.Slot                  (Slot)
-import           Ledger.Value                 (TokenName)
-import qualified Ledger.Value                 as V
-import           Schema                       (FormArgumentF, FormSchema, ToArgument, ToSchema)
-import           Wallet.Emulator.Types        (EmulatorEvent, Wallet, walletPubKey)
-import           Wallet.Rollup.Types          (AnnotatedTx)
+import           Control.Lens                                    (makeLenses)
+import           Data.Aeson                                      (FromJSON, ToJSON)
+import qualified Data.Aeson                                      as JSON
+import           Data.Functor.Foldable                           (Fix)
+import           Data.List.NonEmpty                              (NonEmpty ((:|)))
+import           Data.Text                                       (Text)
+import           GHC.Generics                                    (Generic)
+import           Language.Haskell.Interpreter                    (CompilationError, SourceCode)
+import qualified Language.Haskell.Interpreter                    as HI
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
+import           Ledger                                          (PubKeyHash, Tx, fromSymbol, pubKeyHash)
+import qualified Ledger.Ada                                      as Ada
+import           Ledger.Scripts                                  (ValidatorHash)
+import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (TokenName)
+import qualified Ledger.Value                                    as V
+import           Schema                                          (FormArgumentF, FormSchema, ToArgument, ToSchema)
+import           Wallet.Emulator.Types                           (EmulatorEvent, Wallet, walletPubKey)
+import           Wallet.Rollup.Types                             (AnnotatedTx)
 
 data KnownCurrency =
     KnownCurrency
@@ -55,13 +53,6 @@ adaCurrency =
         }
 
 --------------------------------------------------------------------------------
-newtype EndpointName =
-    EndpointName Text
-    deriving (Eq, Show, Generic, TH.Lift)
-    deriving newtype (ToJSON, FromJSON, IsString)
-
-instance Newtype EndpointName
-
 data PayToWalletParams =
     PayToWalletParams
         { payTo :: Wallet
@@ -171,8 +162,9 @@ data ContractDemo =
 
 data FunctionSchema a =
     FunctionSchema
-        { endpointName :: EndpointName
-        , arguments    :: [a]
+        { endpointDescription :: EndpointDescription
+        , argument            :: a
+        -- ^ All contract endpoints take a single argument. (Multiple arguments must be wrapped up into a container.)
         }
     deriving ( Eq
              , Show

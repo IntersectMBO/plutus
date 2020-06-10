@@ -10,9 +10,10 @@ module Cardano.ChainIndex.Server(
     , ChainIndexConfig(..)
     , syncState
     ) where
+import           Cardano.Node.Types              (FollowerID)
 import           Control.Concurrent              (forkIO, threadDelay)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
-import           Control.Monad                   (forever, void)
+import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             hiding (run)
 import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Extra.State (assign, use)
@@ -111,16 +112,34 @@ updateThread ::
     -> m ()
 updateThread updateInterval mv nodeClientEnv = do
     logInfoN "Obtaining follower ID"
-    followerID <- liftIO $ runClientM NodeClient.newFollower nodeClientEnv >>= either (error . show) pure
+    followerID <-
+        liftIO $
+        runClientM NodeClient.newFollower nodeClientEnv >>=
+        either (error . show) pure
     logInfoN $ "Follower ID: " <> tshow followerID
     forever $ do
-        logInfoN "Asking the node for new blocks"
-        newBlocks <- liftIO $ runClientM (NodeClient.getBlocks followerID) nodeClientEnv >>= either (error . show) pure
-        logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
-        logDebugN $ tshow newBlocks
-        let notifications = BlockValidated <$> newBlocks
-        traverse_ (processIndexEffects mv . ChainIndex.chainIndexNotify) notifications
+        watching <- processIndexEffects mv WalletEffects.watchedAddresses
+        unless (watching == mempty) (fetchNewBlocks followerID nodeClientEnv mv)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds updateInterval
+
+fetchNewBlocks ::
+       (MonadLogger m, MonadIO m)
+    => FollowerID
+    -> ClientEnv
+    -> MVar AppState
+    -> m ()
+fetchNewBlocks followerID nodeClientEnv mv = do
+    logInfoN "Asking the node for new blocks"
+    newBlocks <-
+        liftIO $
+        runClientM (NodeClient.getBlocks followerID) nodeClientEnv >>=
+        either (error . show) pure
+    logInfoN $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
+    logDebugN $ tshow newBlocks
+    let notifications = BlockValidated <$> newBlocks
+    traverse_
+        (processIndexEffects mv . ChainIndex.chainIndexNotify)
+        notifications
 
 type ChainIndexEffects m
      = '[ ChainIndexControlEffect

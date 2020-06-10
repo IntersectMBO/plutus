@@ -53,18 +53,20 @@ import Halogen as H
 import Halogen.HTML (HTML)
 import Halogen.Query (HalogenM)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult, SourceCode(..), _InterpreterResult)
+import Ledger.Value (Value)
 import MonadApp (class MonadApp, editorGetContents, editorHandleAction, editorSetAnnotations, editorSetContents, getGistByGistId, getOauthStatus, patchGistByGistId, postContract, postEvaluation, postGist, preventDefault, resizeBalancesChart, runHalogenApp, saveBuffer, setDataTransferData, setDropEffect)
 import Network.RemoteData (RemoteData(..), _Success, isSuccess)
 import Playground.Gists (mkNewGist, playgroundGistFile, simulationGistFile)
 import Playground.Server (SPParams_(..))
-import Playground.Types (ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(SimulatorWallet), _CallEndpoint, _FunctionSchema)
-import Schema.Types (ActionEvent(..), SimulationAction(..), handleActionActionEvent, handleActionForm, handleActionValueEvent, mkInitialValue)
+import Playground.Types (ContractCall, ContractDemo(..), KnownCurrency, Simulation(..), SimulatorWallet(..), _CallEndpoint, _FunctionSchema)
+import Schema.Types (ActionEvent(..), FormArgument, SimulationAction(..), mkInitialValue)
+import Schema.Types as Schema
 import Servant.PureScript.Ajax (errorToString)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import StaticData (mkContractDemos)
 import StaticData as StaticData
-import Types (ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationActions, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
-import Validation (_argumentValues, _arguments)
+import Types (_simulationActions, ChildSlots, DragAndDropEventType(..), HAction(..), Query, State(..), View(..), WalletEvent(..), WebData, _actionDrag, _authStatus, _blockchainVisualisationState, _compilationResult, _contractDemos, _createGistResult, _currentView, _evaluationResult, _functionSchema, _gistUrl, _knownCurrencies, _result, _resultRollup, _simulationWallets, _simulations, _simulatorWalletBalance, _simulatorWalletWallet, _successfulCompilationResult, _walletId, getKnownCurrencies, toEvaluation)
+import Validation (_argumentValues, _argument)
 import ValueEditor (ValueEvent(..))
 import View as View
 import Wallet.Emulator.Wallet (Wallet(Wallet))
@@ -194,7 +196,7 @@ toEvent (SetChainFocus (Just (FocusTx _))) = Just $ (defaultEvent "BlockchainFoc
 toEvent (SetChainFocus Nothing) = Nothing
 
 toActionEvent :: SimulationAction -> Maybe Event
-toActionEvent (PopulateAction _ _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
+toActionEvent (PopulateAction _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
 
 toActionEvent (ModifyActions (AddAction _)) = Just $ (defaultEvent "AddAction") { category = Just "Action" }
 
@@ -259,8 +261,6 @@ handleAction (ChangeView view) = do
   assign _currentView view
   when (view == Transactions) resizeBalancesChart
 
-handleAction (ChangeSimulation (ModifyActions actionEvent)) = modifying (_simulations <<< _current <<< _simulationActions) (handleActionActionEvent actionEvent)
-
 handleAction EvaluateActions =
   void
     $ runMaybeT
@@ -316,22 +316,11 @@ handleAction (ModifyWallets action) = do
   knownCurrencies <- getKnownCurrencies
   modifying (_simulations <<< _current <<< _simulationWallets) (handleActionWalletEvent (mkSimulatorWallet knownCurrencies) action)
 
-handleAction (ChangeSimulation (PopulateAction n l event)) = do
+handleAction (ChangeSimulation subaction) = do
   knownCurrencies <- getKnownCurrencies
   let
     initialValue = mkInitialValue knownCurrencies 0
-  modifying
-    ( _simulations
-        <<< _current
-        <<< _simulationActions
-        <<< ix n
-        <<< _CallEndpoint
-        <<< _argumentValues
-        <<< _FunctionSchema
-        <<< _arguments
-        <<< ix l
-    )
-    (handleActionForm initialValue event)
+  modifying (_simulations <<< _current <<< _simulationActions) (handleSimulationAction initialValue subaction)
 
 handleAction (SetChainFocus newFocus) = do
   mAnnotatedBlockchain <-
@@ -383,6 +372,23 @@ handleAction CompileProgram = do
                 Nothing -> Cursor.empty
         )
       pure unit
+
+handleSimulationAction ::
+  Value ->
+  SimulationAction ->
+  Array (ContractCall FormArgument) ->
+  Array (ContractCall FormArgument)
+handleSimulationAction _ (ModifyActions actionEvent) = Schema.handleActionEvent actionEvent
+
+handleSimulationAction initialValue (PopulateAction n event) = do
+  over
+    ( ix n
+        <<< _CallEndpoint
+        <<< _argumentValues
+        <<< _FunctionSchema
+        <<< _argument
+    )
+    $ Schema.handleFormEvent initialValue event
 
 _details :: forall a. Traversal' (WebData (JsonEither InterpreterError (InterpreterResult a))) a
 _details = _Success <<< _Newtype <<< _Right <<< _InterpreterResult <<< _result
@@ -453,7 +459,7 @@ handleActionWalletEvent _ (RemoveWallet index) wallets = fromMaybe wallets $ Arr
 handleActionWalletEvent _ (ModifyBalance walletIndex action) wallets =
   over
     (ix walletIndex <<< _simulatorWalletBalance)
-    (handleActionValueEvent action)
+    (Schema.handleValueEvent action)
     wallets
 
 replaceViewOnSuccess :: forall m e a. MonadState State m => RemoteData e a -> View -> View -> m Unit

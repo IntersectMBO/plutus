@@ -12,14 +12,10 @@ import           Control.Monad.Reader         as Reader
 
 import qualified Language.PlutusCore.DeBruijn as PLC
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.Universe as PLC
-import           Language.PlutusIR
 import           Language.PlutusIR.Parser     as Parser
 
 import           System.FilePath              (joinPath, (</>))
-
-import           Text.Megaparsec.Error        as Megaparsec
 
 import qualified Data.Text                    as T
 import qualified Data.Text.IO                 as T

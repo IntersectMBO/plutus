@@ -21,7 +21,7 @@ import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Proxy                                        (Proxy (Proxy))
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed, TxIdSet)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints, EndpointDescription, EndpointValue)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints, EndpointValue)
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
@@ -103,7 +103,6 @@ myTypes =
     -- Contract request / response types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoints)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressSet)
-    , (equal <*> (genericShow <*> mkSumType)) (Proxy @EndpointDescription)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnPubKeyRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)

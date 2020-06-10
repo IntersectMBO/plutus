@@ -3,7 +3,6 @@ module JsonEncodingTests
   ) where
 
 import Prelude
-
 import Plutus.SCB.Effects.ContractTest (TestContracts)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (FullReport, ContractSignatureResponse)
