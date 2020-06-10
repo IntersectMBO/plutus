@@ -80,15 +80,19 @@ in rec {
             in pkgs.lib.lists.head (indexState ++ [ null ]);
       in parseIndexState (builtins.readFile ./cabal.project);
 
+    project = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # All the packages defined by our project, including dependencies
-    packages = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
+    packages = project.hsPkgs;
     # Just the packages in the project
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
       // { inherit (packages) plc-agda; };
+
+    muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
     # All the packages defined by our project, built for musl
-    muslPackages = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
+    muslPackages = muslProject.hsPkgs;
+
     # Extra Haskell packages which we use but aren't part of the main project definition.
     extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit index-state checkMaterialization; };
   };

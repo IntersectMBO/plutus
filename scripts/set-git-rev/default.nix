@@ -29,11 +29,13 @@ let
       done
     '') drvOutOutputs);
 
-  setGitRev = pkgs.runCommand "set-git-rev" {
+  flags =
+    # I don't understand why we need this now. Adding it to buildInputs doesn't work...
+    optional stdenv.isLinux "-L${pkgs.numactl}/lib" ++
     # https://github.com/NixOS/nixpkgs/issues/46814
-    flags = optionalString stdenv.isDarwin "-liconv";
-  } ''
-    ${ghcWithPackages (ps: [ps.text ps.file-embed])}/bin/ghc $flags -o $out ${./set-git-rev.hs}
+    optional stdenv.isDarwin "-liconv";
+  setGitRev = pkgs.runCommand "set-git-rev" {} ''
+    ${ghcWithPackages (ps: [ps.text ps.file-embed])}/bin/ghc ${concatStringsSep " " flags} -o $out ${./set-git-rev.hs}
   '';
 in
   overrideGitRev
