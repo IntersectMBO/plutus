@@ -27,18 +27,17 @@ import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                                      (Generic)
-import           Language.Plutus.Contract                          (BlockchainActions)
 
 import           Plutus.SCB.Effects.Contract                       (ContractCommand (..), ContractEffect (..))
-import           Plutus.SCB.Events.Contract                        (ContractSCBRequest, PartiallyDecodedResponse,
-                                                                    WrappedContractSCBRequest (..))
+import           Plutus.SCB.Events.Contract                        (ContractHandlersResponse (..), ContractSCBRequest,
+                                                                    PartiallyDecodedResponse)
 import qualified Plutus.SCB.Events.Contract                        as C
 import           Plutus.SCB.Types                                  (SCBError (..))
 import           Plutus.SCB.Utils                                  (render, tshow)
 
 import           Control.Monad.Freer.Extra.Log                     (Log, logDebug)
-import           Language.Plutus.Contract                          (Contract, ContractError)
 
+import           Language.Plutus.Contract                          (BlockchainActions, Contract, ContractError)
 import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
 import           Language.Plutus.Contract.State                    (ContractRequest, ContractResponse (..))
 import qualified Language.Plutus.Contract.State                    as ContractState
@@ -61,10 +60,10 @@ handleContractTest ::
     => Eff (ContractEffect TestContracts ': effs)
     ~> Eff effs
 handleContractTest = interpret $ \case
-    InvokeContract (InitContract c) -> case c of
+    InvokeContract (InitContract c) -> fmap ContractHandlersResponse <$> case c of
         Game     -> doContractInit game
         Currency -> doContractInit currency
-    InvokeContract (UpdateContract c p) -> case c of
+    InvokeContract (UpdateContract c p) -> fmap ContractHandlersResponse <$> case c of
         Game     -> doContractUpdate game p
         Currency -> doContractUpdate currency p
     ExportSchema t -> case t of
@@ -84,7 +83,7 @@ doContractInit ::
     -> Eff effs (PartiallyDecodedResponse ContractSCBRequest)
 doContractInit contract = either throwError pure $ do
     value <- first OtherError $ ContractState.initialiseContract contract
-    fromString $ fmap (fmap unWrappedContractSCBRequest) $ JSON.eitherDecode $ (JSON.encode value)
+    fromString $ fmap (fmap unContractHandlersResponse) $ JSON.eitherDecode $ JSON.encode value
 
 doContractUpdate ::
     forall schema effs.
@@ -132,7 +131,7 @@ encodeRequest ::
     )
     => Handlers schema
     -> ContractSCBRequest
-encodeRequest = either error unWrappedContractSCBRequest . JSON.eitherDecode . JSON.encode
+encodeRequest = either error unContractHandlersResponse . JSON.eitherDecode . JSON.encode
 
 fromString :: Either String a -> Either SCBError a
 fromString = first (ContractCommandError 0 . Text.pack)

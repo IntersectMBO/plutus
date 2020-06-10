@@ -149,7 +149,8 @@ instance Pretty i => Pretty (Response i) where
         ]
 
 newtype Requests o = Requests { unRequests :: [Request o] }
-    deriving newtype (Eq, Ord, Show, Semigroup, Monoid, ToJSON, FromJSON)
+    deriving newtype (Eq, Ord, Show, Semigroup, Monoid)
+    deriving anyclass (ToJSON, FromJSON)
     deriving stock (Generic, Functor, Foldable, Traversable)
 
 instance Pretty o => Pretty (Requests o) where
@@ -157,7 +158,8 @@ instance Pretty o => Pretty (Requests o) where
         indent 2 $ vsep ("Requests:" : (pretty <$> unRequests))
 
 newtype Responses i = Responses { unResponses :: Map (IterationID, RequestID) i }
-    deriving newtype (Eq, Ord, Show, Semigroup, Monoid, ToJSON, FromJSON)
+    deriving newtype (Eq, Ord, Show, Semigroup, Monoid)
+    deriving anyclass (ToJSON, FromJSON)
     deriving stock (Generic, Functor, Foldable, Traversable)
 
 instance Pretty i => Pretty (Responses i) where

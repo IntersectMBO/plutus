@@ -65,7 +65,8 @@ makeClassyPrisms ''CheckpointError
 
 newtype CheckpointStore = CheckpointStore { unCheckpointStore :: Map CheckpointKey Value }
     deriving stock (Eq, Show, Generic)
-    deriving newtype (ToJSON, FromJSON, Semigroup, Monoid)
+    deriving anyclass (ToJSON, FromJSON)
+    deriving newtype (Semigroup, Monoid)
 
 instance Pretty CheckpointStore where
     pretty (CheckpointStore mp) =

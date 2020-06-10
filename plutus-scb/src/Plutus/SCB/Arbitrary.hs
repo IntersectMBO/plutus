@@ -16,7 +16,9 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoi
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest (..))
 import qualified Language.PlutusTx                                 as PlutusTx
 import qualified Language.PlutusTx.AssocMap                        as AssocMap
+import           Ledger                                            (ValidatorHash (ValidatorHash))
 import qualified Ledger
+import           Ledger.Address                                    (Address (..))
 import           Ledger.Crypto                                     (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                                   (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                                       (Slot)
@@ -136,8 +138,17 @@ instance Arbitrary ContractSCBRequest where
             [ AwaitSlotRequest <$> arbitrary
             , AwaitTxConfirmedRequest <$> arbitrary
             , UserEndpointRequest <$> arbitrary
-            , pure (OwnPubkeyRequest WaitingForPubKey)
+            , UtxoAtRequest <$> arbitrary
+            , NextTxAtRequest <$> arbitrary
+            , pure $ OwnPubkeyRequest WaitingForPubKey
+            -- TODO This would need an Arbitrary Tx instance: WriteTxRequest <$> arbitrary
             ]
+
+instance Arbitrary Address where
+    arbitrary = oneof [PubKeyAddress <$> arbitrary, ScriptAddress <$> arbitrary]
+
+instance Arbitrary ValidatorHash where
+    arbitrary = ValidatorHash <$> arbitrary
 
 instance Arbitrary EndpointDescription where
     arbitrary = EndpointDescription <$> arbitrary

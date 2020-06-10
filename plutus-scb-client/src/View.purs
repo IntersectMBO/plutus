@@ -1,7 +1,7 @@
 module View (render) where
 
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col2_, col5_, col6_, container_, nbsp, row_)
+import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col2_, col4_, col5_, col6_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus)
 import Chain.Types as Chain
@@ -16,14 +16,14 @@ import Data.Lens.Extra (toArrayOf)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.RawJson as RawJson
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h2_, h3_, pre_, span, span_, text)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h2_, h3_, span, span_, table_, tbody_, td_, text, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
+import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
 import Ledger.Crypto (PubKeyHash)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
@@ -34,7 +34,7 @@ import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
 import Plutus.SCB.Events (ChainEvent(..))
-import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
+import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..), ContractSCBRequest)
 import Plutus.SCB.Events.Node (NodeEvent)
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
@@ -124,23 +124,47 @@ contractStatusPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   ContractInstanceState t -> HTML p HAction
 contractStatusPane contractSignatures contractInstance =
-  row_
-    [ col2_ [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ] ]
-    , col5_ [ pre_ [ text $ RawJson.pretty $ view (_csCurrentState <<< _hooks) contractInstance ] ]
-    , col5_
-        $ case Map.lookup contractInstanceId contractSignatures of
-            Just (Success endpointForms) ->
-              mapWithIndex
-                (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
-                endpointForms
-            Just (Failure err) -> [ ajaxErrorPane err ]
-            Just Loading -> [ icon Spinner ]
-            Just NotAsked -> []
-            Nothing -> []
+  div_
+    [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ]
+    , row_
+        [ col8_
+            [ div_ [ contractRequestView $ view (_csCurrentState <<< _hooks) contractInstance ]
+            ]
+        , col4_
+            $ case Map.lookup contractInstanceId contractSignatures of
+                Just (Success endpointForms) ->
+                  mapWithIndex
+                    (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
+                    endpointForms
+                Just (Failure err) -> [ ajaxErrorPane err ]
+                Just Loading -> [ icon Spinner ]
+                Just NotAsked -> []
+                Nothing -> []
+        ]
     ]
   where
   contractInstanceId :: ContractInstanceId
   contractInstanceId = view _csContract contractInstance
+
+contractRequestView :: forall p i. Array (Request ContractSCBRequest) -> HTML p i
+contractRequestView requests =
+  table_
+    [ thead_
+        [ tr_
+            [ th_ [ text "Iteration" ]
+            , th_ [ text "Request ID" ]
+            , th_ [ text "Request" ]
+            ]
+        ]
+    , tbody_ (requestRow <$> requests)
+    ]
+  where
+  requestRow (Request { itID: IterationID itID, rqID: RequestID rqID, rqRequest }) =
+    tr_
+      [ td_ [ text $ show itID ]
+      , td_ [ text $ show rqID ]
+      , td_ [ text $ show rqRequest ]
+      ]
 
 actionCard :: forall p. ContractInstanceId -> (FormEvent -> HAction) -> EndpointForm -> HTML p HAction
 actionCard contractInstanceId wrapper endpointForm =

@@ -1,6 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
@@ -72,7 +71,8 @@ import           Plutus.SCB.Events                                 (ChainEvent (
 import           Plutus.SCB.Events.Contract                        (ContractEvent (..), ContractInstanceId (..),
                                                                     ContractInstanceState (..), ContractResponse (..),
                                                                     ContractSCBRequest (..), IterationID,
-                                                                    PartiallyDecodedResponse (..))
+                                                                    PartiallyDecodedResponse (..),
+                                                                    unContractHandlersResponse)
 import qualified Plutus.SCB.Events.Contract                        as Events.Contract
 import qualified Plutus.SCB.Query                                  as Query
 import           Plutus.SCB.Types                                  (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
@@ -219,7 +219,8 @@ activateContract contract = do
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
     logInfo . render $ "Initializing contract instance with ID" <+> pretty activeContractInstanceId
     let initialIteration = succ mempty -- FIXME get max it. from initial response
-    response <- Contract.invokeContract @t $ InitContract contractDef
+    response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
+    logInfo . render $ "Response was: " <+> pretty response
     sendContractStateMessages @t contract activeContractInstanceId initialIteration response
     logInfo . render $ "Activated contract instance:" <+> pretty activeContractInstanceId
     pure activeContractInstanceId
@@ -232,7 +233,7 @@ extract p = maybe empty pure . preview p
 newtype RequestHandler effs req resp = RequestHandler { unRequestHandler :: req -> Eff (NonDet ': effs) resp }
     deriving stock (Functor)
     deriving (Profunctor) via (Kleisli (Eff (NonDet ': effs)))
-    deriving (Semigroup, Monoid) via ((Ap ((->) req) (Alt (Eff (NonDet ': effs)) resp)))
+    deriving (Semigroup, Monoid) via (Ap ((->) req) (Alt (Eff (NonDet ': effs)) resp))
 
 respondtoRequests ::
     forall t effs.

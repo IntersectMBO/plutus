@@ -11,7 +11,7 @@ module Plutus.SCB.Events.Contract(
   , ContractInstanceId(..)
   , IterationID
   , ContractSCBRequest(..)
-  , WrappedContractSCBRequest(..)
+  , ContractHandlersResponse(..)
   , ContractResponse(..)
   , PartiallyDecodedResponse(..)
   , ContractInstanceState(..)
@@ -125,11 +125,11 @@ data ContractSCBRequest =
 
 -- | 'ContractSCBRequest' with a 'FromJSON' instance that is compatible with
 --   the 'ToJSON' instance of 'Language.Plutus.Contract.Schema.Handlers'.
-newtype WrappedContractSCBRequest = WrappedContractSCBRequest { unWrappedContractSCBRequest :: ContractSCBRequest }
+newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlersResponse :: ContractSCBRequest }
 
-instance FromJSON WrappedContractSCBRequest where
-    parseJSON (JSON.Object v) = WrappedContractSCBRequest <$> do
-        (tag :: String) <- v .: "tag"
+instance FromJSON ContractHandlersResponse where
+    parseJSON = JSON.withObject "ContractHandlersResponse" $ \v -> ContractHandlersResponse <$> do
+        tag <- v .: "tag"
         case tag of
             "slot"            -> AwaitSlotRequest <$> v .: "value"
             "tx-confirmation" -> AwaitTxConfirmedRequest <$> v .: "value"
@@ -138,7 +138,6 @@ instance FromJSON WrappedContractSCBRequest where
             "address"         -> NextTxAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
             _                 -> pure . UserEndpointRequest . ActiveEndpoint . EndpointDescription $ tag
-    parseJSON v = fail $ "WrappedContractSCBRequest: expected object, got " ++ show v
 
 instance Pretty ContractSCBRequest where
     pretty = \case
