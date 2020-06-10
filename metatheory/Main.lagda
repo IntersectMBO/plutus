@@ -155,12 +155,12 @@ evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing  =
   inj₂ "out of fuel"
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e        =
   inj₂ "computed to error"
-evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ t')
-evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 (ε ▻ t')
+evalPLC CK plc | just nt | just t | just t' | just (□ {t = t''}  V) =
    inj₁ (prettyPrintTm (extricateScope t''))
-evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+evalPLC CK plc | just nt | just t | just t' | just _ =
   inj₂ ("this shouldn't happen")
-evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
+evalPLC CK plc | just nt | just t | just t' | nothing = inj₂ "out of fuel"
 evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
