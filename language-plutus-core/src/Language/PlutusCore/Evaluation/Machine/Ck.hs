@@ -160,15 +160,12 @@ applyBuiltin stack bn tys args =
                           throwingWithCause _MachineError
                                              (OtherMachineError NoDynamicBuiltinNamesMachineError)
                                              term
-      case result of
-         ConstAppSuccess res -> stack |> res
-         ConstAppStuck       -> throwingWithCause _ConstAppError TooFewArgumentsConstAppError term
+      stack |> (void result)
 
-
--- Used in testing - see ApplyBuiltinName.hs (FIXME: comment)
+-- Used for testing - see ApplyBuiltinName.hs
 applyEvaluateCkStaticBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => StaticBuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
+    => StaticBuiltinName -> [Value TyName Name uni ()] -> CkM uni (Term TyName Name uni ())
 applyEvaluateCkStaticBuiltinName name args = do
     params <- builtinCostParams
     void <$> applyBuiltinName params name (withMemory <$> args)

@@ -13,6 +13,7 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST
 import           Language.PlutusCore.MkPlc
 
+
 import           Control.Monad.Except
 import           Data.Either
 import           Hedgehog                           hiding (Var)
@@ -111,8 +112,9 @@ values = runQuote $ do
         , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
         , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
         , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni () 1) @?= True
--- FIXME       , testCase "builtin" $ VR.isTermValue (builtinNameAsTerm AddInteger) @?= False
+        , testCase "builtin" $ VR.isTermValue (ApplyBuiltin () (StaticBuiltinName AddInteger) [] [val, val]) @?= False
       ]
+
 
 normalTypes :: TestTree
 normalTypes = runQuote $ do
@@ -149,6 +151,7 @@ normalTypesCheck = runQuote $ do
     let integer = mkTyBuiltin @Integer ()
         aV = TyVar () aN
         xV = Var () xN
+        val = mkConstant @Integer () 2
         normal = integer
         nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
     pure $ testGroup "normalized types check" [
@@ -168,7 +171,7 @@ normalTypesCheck = runQuote $ do
         , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
 
         , testCase "constant" $ isRight (checkNormal (mkConstant @Integer () 2)) @? "Normalization"
--- FIXME        , testCase "builtin" $ isRight (checkNormal (builtinNameAsTerm AddInteger)) @? "Normalization"
+        , testCase "builtin" $ isRight (checkNormal (ApplyBuiltin () (StaticBuiltinName AddInteger) [] [val, val])) @? "Normalization"
       ]
         where
             checkNormal :: Term TyName Name DefaultUni () -> Either (Normal.NormCheckError TyName Name DefaultUni ()) ()

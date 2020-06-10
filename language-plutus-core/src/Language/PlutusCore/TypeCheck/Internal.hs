@@ -375,7 +375,7 @@ checkBuiltinTypeArgs
     -> TypeCheckM uni ann (TypeMapping uni)
 checkBuiltinTypeArgs = check [] where
     check mapping ann bn (tyname:tynames) (tyarg:tyargs) = do
-       checkKindM  (typeAnn tyarg) tyarg (Type ()) --- FIXME: do we want the kinds from the schema???
+       checkKindM  (typeAnn tyarg) tyarg (Type ()) -- NB: All of the type variables in TypeSchemes have kind *
        tyarg' <- normalizeType (void tyarg)
        check ((tyname,tyarg'):mapping) ann bn tynames tyargs
     check mapping _ _ [] [] = pure mapping

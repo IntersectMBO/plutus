@@ -10,7 +10,7 @@
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)
-    , genOverapplication
+    , genBuiltinApplication
     , factorial
     , genFactorial
     , naiveFib
@@ -48,12 +48,12 @@ import qualified Hedgehog.Range                           as Range
 -- | The type of terms-and-their-values generators.
 type TermGen uni a = Gen (TermOf uni a)
 
--- | Generates application of a builtin that returns a function, immediately saturated afterwards.
+-- | Generates application of a builtin
 --
--- > ifThenElse {integer -> integer -> integer} (lessThanInteger i j) addInteger subtractInteger i j
+-- > ifThenElse {integer} (lessThanInteger i j) (addInteger i j) (subtractInteger i j)
 -- >     == if i < j then i + j else i - j
-genOverapplication :: Generatable uni => TermGen uni Integer  -- FIXME: Doesn't make sense any more???
-genOverapplication = do
+genBuiltinApplication :: Generatable uni => TermGen uni Integer
+genBuiltinApplication = do
     let typedInteger = AsKnownType
         integer = toTypeAst typedInteger
     TermOf ti i <- genTypedBuiltinDef typedInteger
@@ -192,43 +192,43 @@ genIfIntegers = do
                 [b, instConst i, instConst j]
     return $ TermOf term value
 
-{- FIXME: ApplyAdd1 and AppyAdd2 no longer do what they're supposed to.
-   Originally they checked that builtins could be partially applied,
-   but now they check that a builtin wrapped in lambdas can be
-   partially applied, which isn't really what we want.  (Also,
-   subtraction might be a better example because we could be getting
-   the arguments the wrong way round somewhere, and it wouldn't show
-   up because addition is commutative.)
--}
-           
-genApplyAdd1 :: Generatable uni => TermGen uni Integer
-genApplyAdd1 = do
+-- Generate two integers and check that the SubtractInteger builtin gives the same result as in Haskell
+genApplySubtract1 :: Generatable uni => TermGen uni Integer
+genApplySubtract1 = do
+    let typedInt = AsKnownType
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
+    let term = ApplyBuiltin () (StaticBuiltinName SubtractInteger) [] [i, j]
+    return . TermOf term $ iv - jv
+
+-- Test partial application of (\x y -> SubtractInteger x y) to one argument 
+genApplySubtract2 :: Generatable uni => TermGen uni Integer
+genApplySubtract2 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
-        TypedBuiltinName name scheme = typedAddInteger
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [int, int])    -- [{ApplyFun int int} [addInteger i] j]
-                [ Apply () (embedStaticBuiltinNameInTerm scheme name) i
+            mkIterApp () (mkIterInst () applyFun [int, int])
+                [ Apply () (embedTypedBuiltinNameInTerm typedSubtractInteger) i
                 , j
                 ]
-    return . TermOf term $ iv + jv
+    return . TermOf term $ iv - jv
 
-genApplyAdd2 :: Generatable uni => TermGen uni Integer
-genApplyAdd2 = do
+-- Test partial application of (\x y -> SubtractInteger x y) to two arguments
+genApplySubtract3 :: Generatable uni => TermGen uni Integer
+genApplySubtract3 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
-        TypedBuiltinName name scheme = typedAddInteger
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let term =
-            mkIterApp () (mkIterInst () applyFun [int, TyFun () int int]) -- [[[{ApplyFun int (fun int int)} addInteger] i] j] 
-                [ embedStaticBuiltinNameInTerm scheme name
+            mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
+                [ embedTypedBuiltinNameInTerm typedSubtractInteger
                 , i
                 , j
                 ]
-    return . TermOf term $ iv + jv
+    return . TermOf term $ iv - jv
 
 
 -- | Check that division by zero results in 'Error'.
@@ -257,14 +257,15 @@ genDivideByZeroDrop = do
 fromInterestingTermGens
     :: Generatable uni => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
-    [ f "overapplication"  genOverapplication
-    , f "factorial"        genFactorial
-    , f "fibonacci"        genNaiveFib
-    , f "NatRoundTrip"     genNatRoundtrip
-    , f "ListSum"          genListSum
-    , f "IfIntegers"       genIfIntegers
-    , f "ApplyAdd1"        genApplyAdd1
-    , f "ApplyAdd2"        genApplyAdd2
-    , f "DivideByZero"     genDivideByZero
-    , f "DivideByZeroDrop" genDivideByZeroDrop
+    [ f "builtinApplication"  genBuiltinApplication
+    , f "factorial"           genFactorial
+    , f "fibonacci"           genNaiveFib
+    , f "NatRoundTrip"        genNatRoundtrip
+    , f "ListSum"             genListSum
+    , f "IfIntegers"          genIfIntegers
+    , f "ApplySubtract1"      genApplySubtract1
+    , f "ApplySubtract2"      genApplySubtract2
+    , f "ApplySubtract3"      genApplySubtract3
+    , f "DivideByZero"        genDivideByZero
+    , f "DivideByZeroDrop"    genDivideByZeroDrop
     ]

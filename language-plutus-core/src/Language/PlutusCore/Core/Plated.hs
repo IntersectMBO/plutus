@@ -101,7 +101,7 @@ termSubtypes f = \case
     TyInst ann t ty -> TyInst ann t <$> f ty
     IWrap ann ty1 ty2 t -> IWrap ann <$> f ty1 <*> f ty2 <*> pure t
     Error ann ty -> Error ann <$> f ty
-    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> traverse f tys <*> pure args  -- FIXME:  check that this is right
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> traverse f tys <*> pure args
     t@TyAbs {} -> pure t
     a@Apply {} -> pure a
     u@Unwrap {} -> pure u
@@ -122,7 +122,7 @@ termSubterms f = \case
     TyAbs ann n k t -> TyAbs ann n k <$> f t
     Apply ann t1 t2 -> Apply ann <$> f t1 <*> f t2
     Unwrap ann t -> Unwrap ann <$> f t
-    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> pure tys <*> traverse f args  -- FIXME: check that this is right
+    ApplyBuiltin ann bn tys args -> ApplyBuiltin ann <$> pure bn <*> pure tys <*> traverse f args
     e@Error {} -> pure e
     v@Var {} -> pure v
     c@Constant {} -> pure c
