@@ -1,7 +1,7 @@
-# CEK machine
+# CEK machine that discharges builtin args
 
 ```
-module Algorithmic.CEK where
+module Algorithmic.CEKD where
 
 open import Data.Bool using (Bool;true;false)
 open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
