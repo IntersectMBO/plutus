@@ -4,7 +4,7 @@ module TestLib where
 
 import           Common
 import           PlcTestUtils
-import           PlutusPrelude                hiding ((</>))
+import           PlutusPrelude
 
 import           Control.Exception
 import           Control.Monad.Except
