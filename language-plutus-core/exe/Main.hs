@@ -12,7 +12,6 @@ import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import           Data.Bifunctor                                             (second)
 import           Data.Foldable                                              (traverse_)
-import qualified GHC.IO.Exception
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
 import           Language.PlutusCore.Constant.Dynamic                       as PLC
@@ -23,7 +22,6 @@ import qualified Language.PlutusCore.Generators                             as P
 import qualified Language.PlutusCore.Generators.Interesting                 as PLC
 import qualified Language.PlutusCore.Generators.Test                        as PLC
 import qualified Language.PlutusCore.Pretty                                 as PLC
-import qualified Language.PlutusCore.Quote                                  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Bool                       as PLC
 import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as PLC
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
@@ -267,7 +265,7 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
     let tyOrErr = PLC.runQuoteT $ do
-            types <- getStringBuiltinTypes ()
+            types <- getStringBuiltinTypes $ PLC.AlexPn 0 0 0
             let cfg = PLC.TypeCheckConfig types getStringBuiltinMeanings
             PLC.typecheckPipeline cfg prog
     case tyOrErr of
