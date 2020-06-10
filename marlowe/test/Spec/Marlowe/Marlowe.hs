@@ -5,13 +5,15 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts
     )
 where
 
 import           Control.Exception                     (SomeException, catch)
 import           Data.Maybe                            (isJust)
-import           Language.Marlowe
+import           Language.Marlowe                      (ada, applyInputs, createContract, defaultMarloweParams, deposit,
+                                                        makeProgress, marloweParams, notify, rolePayoutScript,
+                                                        validatorScript)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Semantics
 import           Ledger                                (pubKeyHash)
@@ -31,6 +33,9 @@ import           Data.String
 import qualified Codec.CBOR.Write                      as Write
 import qualified Codec.Serialise                       as Serialise
 import qualified Hedgehog
+import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
+                                                        OptionVal ((:=)), as, interpret, languageExtensions,
+                                                        runInterpreter, set, setImports)
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (adaValueOf)
@@ -346,6 +351,20 @@ stateSerialization = do
                 Nothing  -> assertFailure "Nope"
         Nothing -> assertFailure "Nope"
 
+prop_showWorksForContracts :: Property
+prop_showWorksForContracts = forAllShrink contractGen shrinkContract showWorksForContract
+
+showWorksForContract :: Contract -> Property
+showWorksForContract contract = unsafePerformIO $ do
+  res <- runInterpreter $ setImports ["Language.Marlowe"]
+                        >> set [ languageExtensions := [ OverloadedStrings ] ]
+                        >> interpretContractString (show contract)
+  return (case res of
+            Right x  -> x === contract
+            Left err -> counterexample (show err) False)
+
+interpretContractString :: MonadInterpreter m => String -> m Contract
+interpretContractString contractStr = interpret contractStr (as :: Contract)
 
 noFalsePositivesForContract :: Contract -> Property
 noFalsePositivesForContract cont =
@@ -401,3 +420,5 @@ sameAsOldImplementation cont =
 runManuallySameAsOldImplementation :: Property
 runManuallySameAsOldImplementation =
   forAllShrink contractGen shrinkContract sameAsOldImplementation
+
+
