@@ -35,7 +35,6 @@ import           Servant.Client                  (BaseUrl (baseUrlPort), ClientE
 
 import           Ledger.Address                  (Address)
 import           Ledger.AddressMap               (AddressMap)
-import           Ledger.Tx                       (Tx)
 import           Plutus.SCB.Utils                (tshow)
 
 import           Cardano.ChainIndex.API

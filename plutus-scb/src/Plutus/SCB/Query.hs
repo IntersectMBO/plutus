@@ -44,7 +44,7 @@ module Plutus.SCB.Query
     , inboxMessages
     ) where
 
-import           Control.Lens
+import           Control.Lens                                      (contramap, preview)
 import           Control.Monad                                     (void)
 import           Data.Map.Strict                                   (Map)
 import qualified Data.Map.Strict                                   as Map
