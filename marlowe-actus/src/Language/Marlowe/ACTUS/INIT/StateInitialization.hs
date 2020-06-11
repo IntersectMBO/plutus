@@ -1,16 +1,21 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.INIT.StateInitialization where
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.ContractState
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.INIT.StateInitializationSpec
-import           Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import           Language.Marlowe.ACTUS.Utility.ScheduleGenerator
-import           Language.Marlowe.ACTUS.Schedule
-import           Data.Maybe
-import           Data.Time
-import           Language.Marlowe.ACTUS.Utility.DateShift
+import Language.Marlowe.ACTUS.ContractTerms
+    ( ContractTerms(..), ContractType(LAM, PAM), ScheduleConfig )
+import Language.Marlowe.ACTUS.ContractState ( ContractState )
+import Language.Marlowe.ACTUS.BusinessEvents ( EventType(IP, FP) )
+import Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+    ( _INIT_PAM )
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule ( schedule )
+import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+    ( sup, inf )
+import Language.Marlowe.ACTUS.Schedule
+    ( ShiftedDay(calculationDay) )
+import Data.Maybe ( fromMaybe )
+import Data.Time ( Day )
+import Language.Marlowe.ACTUS.Utility.DateShift ( applyBDCWithCfg )
+
 
 shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg

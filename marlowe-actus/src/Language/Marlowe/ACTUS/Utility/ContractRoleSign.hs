@@ -1,6 +1,6 @@
 module Language.Marlowe.ACTUS.Utility.ContractRoleSign where
 
-import Language.Marlowe.ACTUS.ContractTerms
+import Language.Marlowe.ACTUS.ContractTerms ( ContractRole(..) )
 
 -- R
 contractRoleSign :: ContractRole -> Double

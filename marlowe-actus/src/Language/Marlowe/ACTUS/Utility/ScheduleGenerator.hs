@@ -10,12 +10,27 @@ module Language.Marlowe.ACTUS.Utility.ScheduleGenerator
   )
 where
 
-import           Data.Time.Calendar
-import qualified Data.List                     as L
+import Data.Time.Calendar
+    ( Day,
+      addGregorianMonthsClip,
+      addGregorianYearsClip,
+      fromGregorian,
+      gregorianMonthLength,
+      toGregorian,
+      addDays )
+import qualified Data.List as L ( elem, notElem, init, last )
+import Language.Marlowe.ACTUS.ContractTerms
+    ( ScheduleConfig(..),
+      Cycle(..),
+      Stub(ShortStub),
+      Period(..),
+      EOMC(EOMC_EOM) )
+import Language.Marlowe.ACTUS.Schedule
+    ( ShiftedSchedule,
+      ShiftedDay(calculationDay, paymentDay),
+      Schedule )
+import Language.Marlowe.ACTUS.Utility.DateShift ( applyBDC )
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Schedule
-import           Language.Marlowe.ACTUS.Utility.DateShift
 
 sup :: [ShiftedDay] -> Day -> ShiftedDay
 sup set threshold =

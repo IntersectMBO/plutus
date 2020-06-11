@@ -1,9 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Language.Marlowe.ACTUS.BusinessEvents where
-import           Data.Time
-import           Data.Maybe
-import           Data.Tuple
+import Data.Time ( Day )
+import Data.Maybe ( fromJust )
+import Data.Tuple ( swap )
+
 
 data EventType =
     AD | IED | PR | PI | PRF | PY | FP | PRD | TD | IP | IPCI | IPCB | RR | PP | CE | MD | RRF | SC | STD | DV | XD | MR

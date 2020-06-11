@@ -2,12 +2,25 @@
 
 module Language.Marlowe.ACTUS.POF.Payoff where
 
-import           Data.Time
-import           Language.Marlowe.ACTUS.ContractState
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.POF.PayoffSpec
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Ops
+import Data.Time ( Day )
+import Language.Marlowe.ACTUS.ContractState
+    ( ContractStatePoly(..),
+      ContractState )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( ScheduledEvent(..) )
+import Language.Marlowe.ACTUS.POF.PayoffSpec
+    ( _POF_IED_PAM,
+      _POF_MD_PAM,
+      _POF_PP_PAM,
+      _POF_PY_PAM,
+      _POF_FP_PAM,
+      _POF_PRD_PAM,
+      _POF_TD_PAM,
+      _POF_IP_PAM )
+import Language.Marlowe.ACTUS.ContractTerms
+    ( ContractTerms(..), ContractType(LAM, PAM) )
+import Language.Marlowe.ACTUS.Ops ( YearFractionOps(_y) )
+
 
 
 payoff :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> Double

@@ -2,19 +2,27 @@
 
 module Language.Marlowe.ACTUS.ActusValidator where
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Schedule
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import           Language.Marlowe.ACTUS.INIT.StateInitialization
-import           Language.Marlowe.ACTUS.POF.Payoff
-import           Language.Marlowe.ACTUS.STF.StateTransition
+import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
+import Language.Marlowe.ACTUS.Schedule
+    ( CashFlow(cashCalculationDay, cashEvent, cashPaymentDay, amount),
+      ShiftedSchedule,
+      ShiftedDay(paymentDay) )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( ScheduledEvent(CE_EVENT, AD_EVENT, PP_EVENT, pp_payoff,
+                     o_rf_CURS, creditDate),
+      EventType,
+      mapEventType )
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule ( schedule )
+import Language.Marlowe.ACTUS.INIT.StateInitialization
+    ( inititializeState )
+import Language.Marlowe.ACTUS.POF.Payoff ( payoff )
+import Language.Marlowe.ACTUS.STF.StateTransition
+    ( stateTransition )
+import Data.Time ( Day )
+import Data.Maybe ( fromMaybe )
+import Control.Arrow ( (>>>) )
+import qualified Data.List as L ( foldl, elem )
 
-import           Data.Time
-import           Data.Maybe
-import           Control.Arrow
-
-import qualified Data.List                     as L
 
 genShiftedSchedule :: EventType -> ContractTerms -> Maybe ShiftedSchedule
 genShiftedSchedule = schedule

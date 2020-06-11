@@ -8,15 +8,26 @@ module Language.Marlowe.ACTUS.ControlLp
     )
 where
 
-import           Language.Marlowe.ACTUS.STF.StateTransitionLp
-import           Language.Marlowe.ACTUS.POF.PayoffLp
-import           Language.Marlowe.ACTUS.Control
-import           Language.Marlowe.ACTUS.Ops
-import           Language.Marlowe.ACTUS.Schedule
-import           Language.Marlowe.ACTUS.ProjectedCashFlows
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Data.String                    ( IsString(fromString) )
-import           Language.Marlowe
+import Language.Marlowe.ACTUS.STF.StateTransitionLp
+    ( stateTransitionLp )
+import Language.Marlowe.ACTUS.POF.PayoffLp ( payoffLp )
+import Language.Marlowe.ACTUS.Control ( invoice, inquiry )
+import Language.Marlowe.ACTUS.Ops ( dayToSlotNumber )
+import Language.Marlowe.ACTUS.Schedule
+    ( CashFlow(CashFlow, currency, amount, cashEvent,
+               cashCalculationDay, cashPaymentDay, cashCounterParty, cashParty,
+               cashContractId, tick) )
+import Language.Marlowe.ACTUS.ProjectedCashFlows
+    ( genProjectedCashflows )
+import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
+import Data.String ( IsString(fromString) )
+import Language.Marlowe
+    ( Contract(Close, If, Let),
+      Observation(ValueEQ),
+      Value(Constant, UseValue),
+      ValueId(..),
+      Slot(Slot) )
+
 
 expectedPayoffAt :: Integer -> ValueId
 expectedPayoffAt t = ValueId $ fromString $ "expected-payoff_" ++ show t

@@ -11,20 +11,39 @@ module Language.Marlowe.ACTUS.Control
     )
 where
 
-import           Data.Time
-
-import           Ledger.Value
-import           Data.String                    ( IsString(fromString) )
-
-import qualified Language.PlutusTx.AssocMap    as Map
-import           Data.Maybe
-import qualified Data.List                     as L
-
-import           Language.Marlowe
-import           Language.Marlowe.ACTUS.Schedule
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.ActusValidator
+import Data.Time ( fromGregorian )
+import Ledger.Value ( TokenName(TokenName) )
+import Data.String ( IsString(fromString) )
+import qualified Language.PlutusTx.AssocMap as Map
+    ( insert, keys, empty, lookup )
+import Data.Maybe ( fromJust, fromMaybe, isJust )
+import qualified Data.List as L ( init, last )
+import Language.Marlowe
+    ( marloweFixedPoint,
+      ada,
+      AccountId(AccountId),
+      Action(Choice, Deposit),
+      Bound(Bound),
+      Case(Case),
+      ChoiceId(ChoiceId),
+      Contract(Close, Pay, When, Let),
+      LogicalTime,
+      LoopState(LoopState, originalContract, logicalTime, stateHistory),
+      Observation,
+      Party(Role),
+      Payee(Party),
+      State(..),
+      TransactionOutput(..),
+      Value(UseValue, ChoiceValue, Constant),
+      ValueId(ValueId),
+      Slot )
+import Language.Marlowe.ACTUS.Schedule ( CashFlow(..) )
+import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( ScheduledEvent(..),
+      EventType(..),
+      eventTypeIdToEventType )
+import Language.Marlowe.ACTUS.ActusValidator ( validateCashFlow )
 
 type TimePostfix = String -- sequence number of event
 type Amount = (Language.Marlowe.Value Language.Marlowe.Observation)

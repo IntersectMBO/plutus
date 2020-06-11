@@ -3,10 +3,16 @@
 module Language.Marlowe.ACTUS.INIT.StateInitializationSpec where
 
 import Language.Marlowe.ACTUS.ContractState
+    ( ContractStatePoly(ContractStatePoly, prnxt, ipcb, tmd, nt, ipnr,
+                        ipac, fac, feac, nsc, isc, prf, sd) )
 import Language.Marlowe.ACTUS.Utility.ContractRoleSign
-import Language.Marlowe.ACTUS.Utility.YearFraction
+    ( contractRoleSign )
+import Language.Marlowe.ACTUS.Utility.YearFraction ( yearFraction )
 import Language.Marlowe.ACTUS.ContractTerms
-import Data.Maybe
+    ( SCEF(SE_I0M, SE_0N0, SE_0NM, SE_IN0, SE_INM, SE_I00),
+      FEB(FEB_N) )
+import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing )
+
 
 r = contractRoleSign
 y = yearFraction

@@ -5,9 +5,14 @@
 module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
 
 import Language.Marlowe.ACTUS.ContractTerms
+    ( SCEF(SE_0NM, SE_I00, SE_0N0, SE_00M), FEB(FEB_N) )
 import Language.Marlowe.ACTUS.ContractState
-import Data.Maybe
+    ( ContractStatePoly(ContractStatePoly, ipcb, prnxt, sd, prf, isc,
+                        nsc, fac, feac, ipac, ipnr, nt, tmd) )
+import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing )
 import Language.Marlowe.ACTUS.Ops
+    ( RoleSignOps(_r), DateOps(_lt), ActusOps(_zero, _min, _max) )
+
 
 _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {
     ipac = ipac + y_sd_t * ipnr * nt,

@@ -1,11 +1,12 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Utility.Annuity where
 
-import Data.Time
-import qualified Data.List as List
+import Data.Time ( Day )
+import qualified Data.List as List ( filter, length )
 
-import Language.Marlowe.ACTUS.ContractTerms
-import Language.Marlowe.ACTUS.Utility.YearFraction
+import Language.Marlowe.ACTUS.ContractTerms ( DCC )
+import Language.Marlowe.ACTUS.Utility.YearFraction ( yearFraction )
+
 
 calculateAnnuity ::
   DCC -> [Day] -> Day -> Day -> Day -> Double -> Double -> Double -> Double

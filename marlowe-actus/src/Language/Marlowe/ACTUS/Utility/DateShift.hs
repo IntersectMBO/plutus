@@ -6,10 +6,11 @@ module Language.Marlowe.ACTUS.Utility.DateShift
   )
 where
 
-import           Data.Time
+import Data.Time ( Day, toGregorian, addDays )
+import Language.Marlowe.ACTUS.ContractTerms
+    ( ScheduleConfig(..), Calendar, BDC(..) )
+import Language.Marlowe.ACTUS.Schedule ( ShiftedDay(..) )
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Schedule
 
 {- Business Day Convention -}
 

@@ -2,8 +2,10 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.POF.PayoffSpec where
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Ops
+import Language.Marlowe.ACTUS.ContractTerms
+    ( FEB(FEB_N, FEB_A), PYTP(PYTP_O, PYTP_A, PYTP_N, PYTP_I) )
+import Language.Marlowe.ACTUS.Ops
+    ( RoleSignOps(_r), ActusOps(_zero, _max) )
 
 _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED =
     -o_rf_CURS * _r _CNTRL * (_NT + _PDIED)

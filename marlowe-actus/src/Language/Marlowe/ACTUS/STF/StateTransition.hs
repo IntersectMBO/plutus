@@ -2,16 +2,41 @@
 
 module Language.Marlowe.ACTUS.STF.StateTransition where
 
-import Data.Time
+import Data.Time ( Day )
 import Language.Marlowe.ACTUS.ContractState
+    ( ContractStatePoly(ContractStatePoly, ipcb, prnxt, sd, prf, isc,
+                        nsc, fac, feac, ipac, ipnr, nt, tmd),
+      ContractState )
 import Language.Marlowe.ACTUS.BusinessEvents
+    ( ScheduledEvent(CE_EVENT, AD_EVENT, IED_EVENT, MD_EVENT, PP_EVENT,
+                     PY_EVENT, FP_EVENT, PRD_EVENT, TD_EVENT, IP_EVENT, IPCI_EVENT,
+                     RR_EVENT, RRF_EVENT, SC_EVENT, pp_payoff, o_rf_RRMO, o_rf_SCMO,
+                     o_rf_CURS, creditDate),
+      EventType(FP) )
 import Language.Marlowe.ACTUS.STF.StateTransitionSpec
+    ( _STF_AD_PAM,
+      _STF_IED_PAM,
+      _STF_MD_PAM,
+      _STF_PP_PAM,
+      _STF_PY_PAM,
+      _STF_FP_PAM,
+      _STF_PRD_PAM,
+      _STF_IP_PAM,
+      _STF_IPCI_PAM,
+      _STF_RR_PAM,
+      _STF_RRF_PAM,
+      _STF_SC_PAM,
+      _STF_CE_PAM )
 import Language.Marlowe.ACTUS.ContractTerms
+    ( ContractTerms(..), ContractType(LAM, PAM), ScheduleConfig )
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator
+    ( sup, inf )
 import Language.Marlowe.ACTUS.Schedule
-import Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import Language.Marlowe.ACTUS.Ops
-import Data.Maybe
+    ( ShiftedDay(calculationDay) )
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule ( schedule )
+import Language.Marlowe.ACTUS.Ops ( YearFractionOps(_y) )
+import Data.Maybe ( fromJust, fromMaybe )
+
 
 import Language.Marlowe.ACTUS.Utility.DateShift
 

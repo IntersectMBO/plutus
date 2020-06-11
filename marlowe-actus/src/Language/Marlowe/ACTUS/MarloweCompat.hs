@@ -2,11 +2,19 @@
 
 module Language.Marlowe.ACTUS.MarloweCompat where
 
-import           Language.Marlowe
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.ContractState
-import           Data.String                    ( IsString(fromString) )
-import qualified Data.List                     as L
+import Language.Marlowe
+    ( marloweFixedPoint,
+      Contract(Let),
+      Observation(ValueEQ),
+      Value(Cond, UseValue, Constant),
+      ValueId(ValueId) )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( EventType(IP, AD, IED, MD, FP), eventTypeToEventTypeId )
+import Language.Marlowe.ACTUS.ContractState
+    ( ContractStatePoly(..) )
+import Data.String ( IsString(fromString) )
+import qualified Data.List as L ( foldl )
+
       
 
 type EventHandler = EventType -> Value Observation

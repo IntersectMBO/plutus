@@ -3,12 +3,24 @@
 
 module Language.Marlowe.ACTUS.POF.PayoffLp where
 
-import           Language.Marlowe
-import           Language.Marlowe.ACTUS.Ops
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.POF.PayoffSpec
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.MarloweCompat
+import Language.Marlowe ( Observation, Value(SlotIntervalStart) )
+import Language.Marlowe.ACTUS.Ops ( YearFractionOps(_y) )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( EventType(IP, IED, MD, PP, PY, FP, PRD, TD) )
+import Language.Marlowe.ACTUS.POF.PayoffSpec
+    ( _POF_IED_PAM,
+      _POF_MD_PAM,
+      _POF_PP_PAM,
+      _POF_PY_PAM,
+      _POF_FP_PAM,
+      _POF_PRD_PAM,
+      _POF_TD_PAM,
+      _POF_IP_PAM )
+import Language.Marlowe.ACTUS.ContractTerms
+    ( ContractTerms(..), ContractType(LAM, PAM) )
+import Language.Marlowe.ACTUS.MarloweCompat
+    ( useval, constnt, enum, dispatchEvent )
+
 
 payoffLp :: ContractTerms -> Integer -> (Value Observation)
 payoffLp ContractTerms{..} t = 

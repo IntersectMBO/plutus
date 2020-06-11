@@ -1,9 +1,16 @@
 module Language.Marlowe.ACTUS.Utility.YearFraction where
 
-import           Data.Time
---import           Debug.Trace
+import Data.Time
+    ( Day,
+      fromGregorian,
+      gregorianMonthLength,
+      toGregorian,
+      isLeapYear,
+      diffDays )
+import Language.Marlowe.ACTUS.ContractTerms
+    ( DCC(DCC_E30_360, DCC_A_AISDA, DCC_A_360, DCC_A_365,
+          DCC_E30_360ISDA) )
 
-import           Language.Marlowe.ACTUS.ContractTerms
 
 yearFraction :: DCC -> Day -> Day -> Day -> Double
 yearFraction DCC_A_AISDA startDay endDay _

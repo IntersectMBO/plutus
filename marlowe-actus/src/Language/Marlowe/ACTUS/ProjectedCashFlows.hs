@@ -2,16 +2,22 @@
 
 module Language.Marlowe.ACTUS.ProjectedCashFlows where
 
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe.ACTUS.Schedule
-import           Language.Marlowe.ACTUS.BusinessEvents
-import           Language.Marlowe.ACTUS.SCHED.ContractSchedule
-import           Language.Marlowe.ACTUS.INIT.StateInitialization
-import           Language.Marlowe.ACTUS.POF.Payoff
-import           Language.Marlowe.ACTUS.STF.StateTransition
-import qualified Data.List                     as L
-import           Data.Maybe
-import           Data.Time
+import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
+import Language.Marlowe.ACTUS.Schedule
+    ( CashFlow(..),
+      ShiftedDay(ShiftedDay, paymentDay, calculationDay) )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( EventType(AD, IED, MD), projectEvent )
+import Language.Marlowe.ACTUS.SCHED.ContractSchedule ( schedule )
+import Language.Marlowe.ACTUS.INIT.StateInitialization
+    ( inititializeState )
+import Language.Marlowe.ACTUS.POF.Payoff ( payoff )
+import Language.Marlowe.ACTUS.STF.StateTransition
+    ( stateTransition )
+import qualified Data.List as L ( zip, scanl, tail )
+import Data.Maybe ( fromMaybe )
+import Data.Time ( fromGregorian )
+
 
 
 genProjectedCashflows :: ContractTerms -> [CashFlow]

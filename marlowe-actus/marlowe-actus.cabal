@@ -1,4 +1,4 @@
-cabal-version: 2.0
+cabal-version: 2.2
 name: marlowe-actus
 version: 0.1.0.0
 license: Apache-2.0

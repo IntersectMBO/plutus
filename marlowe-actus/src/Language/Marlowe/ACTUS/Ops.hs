@@ -3,12 +3,18 @@
 
 module Language.Marlowe.ACTUS.Ops where
 
-import           Language.Marlowe.ACTUS.Utility.ContractRoleSign
-import           Language.Marlowe.ACTUS.Utility.YearFraction
-import           Language.Marlowe.ACTUS.ContractTerms
-import           Language.Marlowe
-import           Data.Time
-import           Data.Time.Clock.System
+import Language.Marlowe.ACTUS.Utility.ContractRoleSign
+    ( contractRoleSign )
+import Language.Marlowe.ACTUS.Utility.YearFraction ( yearFraction )
+import Language.Marlowe.ACTUS.ContractTerms ( ContractRole, DCC )
+import Language.Marlowe
+    ( marloweFixedPoint,
+      Observation(ValueLT, ValueGT),
+      Value(Cond, Constant) )
+import Data.Time ( UTCTime(UTCTime), Day )
+import Data.Time.Clock.System
+    ( utcToSystemTime, SystemTime(MkSystemTime) )
+
 
 class ActusOps a where
     _min :: a -> a -> a

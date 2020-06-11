@@ -1,7 +1,7 @@
 module Language.Marlowe.ACTUS.ContractTerms where
 
-import           Data.Time
-import           Language.Marlowe.ACTUS.ContractState
+import Data.Time ( Day )
+import Language.Marlowe.ACTUS.ContractState ( ContractStatus )
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
 
