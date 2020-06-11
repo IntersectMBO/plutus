@@ -47,10 +47,11 @@ import           Control.Newtype.Generics   (Newtype)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
-import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.ByteString.Lazy       (fromStrict, toStrict, unpack)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
+import           GHC.Show                   (showSpace)
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
 import qualified Language.PlutusTx          as PlutusTx
@@ -63,8 +64,9 @@ import           Ledger                     (Address (..), PubKeyHash (..), Slot
 import           Ledger.Interval            (Extended (..), Interval (..), LowerBound (..), UpperBound (..))
 import           Ledger.Scripts             (Datum (..))
 import           Ledger.Validation
-import           Ledger.Value               (CurrencySymbol, TokenName)
+import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
+import           Numeric                    (showHex)
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
@@ -99,8 +101,14 @@ import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, 
 -- * Aliaces
 
 data Party = PK PubKeyHash | Role TokenName
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
+
+instance Show Party where
+  showsPrec p (PK pk) = showParen (p P.>= 11) $ showString "PK \""
+                                              . showsPrec 11 pk
+                                              . showString "\""
+  showsPrec _ (Role role) = showsPrec 11 $ unTokenName role
 
 type NumAccount = Integer
 type Timeout = Slot
@@ -139,9 +147,16 @@ data ChoiceId = ChoiceId ByteString Party
     a pair of a currency symbol and token name.
 -}
 data Token = Token CurrencySymbol TokenName
-  deriving stock (Show,Generic,P.Eq,P.Ord)
+  deriving stock (Generic,P.Eq,P.Ord)
   deriving anyclass (Pretty)
 
+instance Show Token where
+  showsPrec p (Token cs tn) =
+     showParen (p P.>= 11)
+     $ showString "Token "
+     . showsPrec 11 (concat . map (flip showHex "") . unpack $ unCurrencySymbol cs)
+     . showSpace
+     . showsPrec 11 (unTokenName tn)
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
