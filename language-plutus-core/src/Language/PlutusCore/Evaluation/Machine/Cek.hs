@@ -88,10 +88,10 @@ data CekUserError
     deriving (Show, Eq)
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException uni = MachineException uni (BuiltinError ())
+type CekMachineException uni = MachineException uni BuiltinError
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni = EvaluationException uni (BuiltinError ()) CekUserError
+type CekEvaluationException uni = EvaluationException uni BuiltinError CekUserError
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -142,11 +142,13 @@ data Frame uni
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
     | FrameApplyBuiltin                                                          -- ^ @(builtin bn A V* _ M*)
-      (VarEnv uni)
+      (VarEnv uni)  -- Initial environment, used for evaluating every argument
+      (VarEnv uni)  -- Environment extended with bindings for non-ground arguments: see Note [Saved mapping example]
       BuiltinName
-      [Type TyName uni ExMemory]
-      [Closure uni]                     -- Closures for the arguments we've computed so far.
-      [Term TyName Name uni ExMemory]   -- Remaining arguments.
+      [Type  TyName uni ExMemory]      -- The types the builtin is to be instantiated at.  We don't really need these.
+      [Value TyName Name uni ExMemory] -- Arguments we've computed so far.
+      [Term  TyName Name uni ExMemory] -- Remaining arguments.
+      -- See Note [Built-in application] below for an explanation of FrameAppplyBuiltin.
     deriving (Show)
 
 type Context uni = [Frame uni]
@@ -170,8 +172,8 @@ withVarEnv venv = local (set cekEnvVarEnv venv)
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
 extendVarEnv :: Name -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
-extendVarEnv argName arg argVarEnv =
-    insertByName argName $ Closure argVarEnv arg
+extendVarEnv argName arg argVarEnv env =
+    insertByName argName (Closure argVarEnv arg) env
 
 -- | Look up a variable name in the environment.
 lookupVarName :: Name -> CekM uni (Closure uni)
@@ -189,7 +191,7 @@ lookupDynamicBuiltinName term dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
-                          err = OtherMachineError (UnknownDynamicBuiltinName () dynName)
+                          err = OtherMachineError $ UnknownDynamicBuiltinName dynName
         -- 'term' is just here for the error message. Will including it have any effect on efficiency?
         Just mean -> pure mean
 
@@ -272,7 +274,7 @@ computeCek ctx t@(ApplyBuiltin _ bn tys args) =
         arg:args' -> do
             spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv
-            withVarEnv varEnv $ computeCek (FrameApplyBuiltin varEnv bn tys [] args' : ctx) arg
+            computeCek (FrameApplyBuiltin varEnv varEnv bn tys [] args' : ctx) arg
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
 computeCek ctx t@(Var _ varName)   = do
@@ -295,7 +297,7 @@ returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
 returnCek (FrameTyInstArg _ : ctx) fun =
     case fun of
       TyAbs _ _ _ body -> computeCek ctx body  -- NB: we're just ignoring the type here
-      _                ->  throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
+      _                ->  throwingWithCause _MachineError NonTyAbsInstantiationMachineError $ Just (void fun)
 returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
     funVarEnv <- getVarEnv
     withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : ctx) arg
@@ -304,7 +306,7 @@ returnCek (FrameApplyFun funVarEnv fun : ctx) arg =
       LamAbs _ name _ body -> do
                argVarEnv <- getVarEnv
                withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek ctx body
-      _ ->  throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (Apply () (void fun) (void arg))
+      _ ->  throwingWithCause _MachineError NonLambdaApplicationMachineError $ Just (Apply () (void fun) (void arg))
       -- FIXME: ^ error message looks like eg (1 2) instead of [(con 1) (con 2)]
 returnCek (FrameIWrap ann pat arg : ctx) val =
     returnCek ctx $ IWrap ann pat arg val
@@ -312,12 +314,23 @@ returnCek (FrameUnwrap : ctx) dat = case dat of
     IWrap _ _ _ term -> returnCek ctx term
     term             ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just (void term)
-returnCek (FrameApplyBuiltin env bn tys closures terms : ctx) value = do
-    varEnv <- getVarEnv
-    let closures' = Closure varEnv value : closures -- Save the closure for the argument we've just computed.
-    case terms of
-      []       -> applyBuiltin env ctx bn tys (reverse closures') -- We've accumulated the argument closures in reverse
-      arg:args -> withVarEnv env $ computeCek (FrameApplyBuiltin env bn tys closures' args : ctx) arg
+returnCek (FrameApplyBuiltin initialEnv finalEnv bn tys values terms : ctx) value = do
+    -- See Note [Built-in application] for an explanation of what's going on here.
+    case value of
+      Constant{} -> do
+          let values' = value:values
+          case terms of
+            []       -> applyBuiltin finalEnv ctx bn tys (reverse values') -- We've accumulated the argument closures in reverse
+            arg:args -> withVarEnv initialEnv $ computeCek (FrameApplyBuiltin initialEnv finalEnv bn tys values' args : ctx) arg
+      _ -> do
+        argEnv  <- getVarEnv
+        argName <- freshName "arg"
+        let cost = memoryUsage ()
+            values' = Var cost argName : values
+            newFinalEnv = extendVarEnv argName value argEnv finalEnv
+        case terms of
+          []       -> applyBuiltin newFinalEnv ctx bn tys (reverse values') -- We've accumulated the argument closures in reverse
+          arg:args -> withVarEnv initialEnv $ computeCek (FrameApplyBuiltin initialEnv newFinalEnv bn tys values' args : ctx) arg
 
 {- Note [Saved mapping example]
 Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
@@ -358,74 +371,79 @@ environment @{ i :-> ({}, 1) }@ later when we start evaluating @arg 0@, which ex
 which evaluates to @1@ in the old environment.
 -}
 
--- UPDATE THE NOTE: see 1882 and 1930
+
+{- Note [Built-in application]
 
 -- See Note [Saved mapping example].
 -- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
--- | If an argument to a built-in function is a constant, then feed it directly to the continuation
--- that handles the argument and invoke the continuation in the caller's environment.
--- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
--- the created variable to the continuation and invoke the continuation in the caller's environment
--- extended with a mapping from the created variable to the closure (i.e. original argument +
--- its environment). The "otherwise" is only supposed to happen when handling an argument to a
--- polymorphic built-in function.
-{- withScopedArgIn
-    :: VarEnv uni                            -- ^ The caller's envorinment.
-    -> VarEnv uni                            -- ^ The argument's environment.
-    -> WithMemory Value uni                  -- ^ The argument.
-    -> (WithMemory Value uni -> CekM uni a)  -- ^ A continuation handling the argument.
-    -> CekM uni a
-withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
-withScopedArgIn funVarEnv argVarEnv arg            k = do
-    let cost = memoryUsage ()
-    argName <- freshName "arg"
-    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
--}
+-- See also https://github.com/input-output-hk/plutus/pull/1930
 
--- If it's a standard builtin, all arguments should be (built-in)
--- values and this function will do nothing.
--- FIXME: Can we use traverse or something for this? We're
--- simultaneously mapping across the args and folding along the
--- environment
-getScopedArgs  -- We could perhaps fold this into `compute`: more efficient, but more complex?
-               -- Let's leave it like this until we're sure it's correct.
-    :: VarEnv uni              -- enviroment containing bindings for new variables
-    -> [Closure uni]           -- original arguments
-    -> CekM uni (VarEnv uni, [WithMemory Value uni])
-getScopedArgs env0 args0 = getScopedArgs' args0 env0 [] where
-    getScopedArgs' [] env newArgs = pure (env, reverse newArgs)
-    getScopedArgs' (Closure argVarEnv arg : args) env newArgs =
-        case arg of
-          Constant{} -> getScopedArgs' args env (arg : newArgs)
-          _ -> do
-            argName <- freshName "arg"
-            let cost = memoryUsage ()
-                newArg = Var cost argName
-                newEnv = extendVarEnv argName arg argVarEnv env
-            getScopedArgs' args newEnv (newArg : newArgs)
+   Suppose we are evaluating an application of a built-in function B
+   to a sequence of terms M_1, ..., M_n.  To a first approximation, we
+   first evaluate each M_i to a value V_i and then call B on V_1, ...,
+   V_n.  We do this using FrameApplyBuiltin frames.  These contain a
+   list of the values V_1, ..., V_k which have alrady been evaluated
+   and a list of yet-to-be-evaluated term arguments.  When we finally run
+   out of term arguments, the function is called with the evaluated
+   arguments.
+
+   As pointed out in Note [Saved mapping example], we can't pass
+   arbitrary values to built-ins.  To deal with this, the
+   FrameApplyBuiltin frame also contains two environments: initialEnv,
+   which is the environment in effect when evaluation of B M_1 ... M_n
+   begin and finalEnv, which is to be used to carry on with the
+   computation when the builtin has been evaluated.  As we process the
+   arguments, we evaluate (in initialEnv) each one to a value V and
+   check whether that is a constant or not.  If V is a constant, we
+   save it directly in the list of arguments which will eventually be
+   fed to the builtin.  If V isn't a constant, we generate a fresh
+   variable v and extend finalEnv with a binding of v to a closure (V,
+   env) (where env is the current environment) and save v in the list of
+   arguments.
+
+   Thus when we finally come to evaluate B, each argument will either be
+   a constant or a variable, and finalEnv will be initialEnv extended
+   with bindings for the variables.  We apply B to these arguments to
+   obtain a result (possibly containing some of the input variables),
+   and continue execution in finalEnv, which contains the values
+   associated with all of the new variables.
+
+   Currently each argument is evaluated in initialEnv.  However, we might
+   be able to get away with using finalEnv instead, since every variable
+   in finalEnv\initialEnv is fresh and thus should not appear in any of the
+   input terms.
+
+   Note also that because builtin applications have to be saturated
+   with respect to both terms and types, a builtin cannot be
+   instantiated (partially or fully) separately from application: all
+   type parameters are supplied precisely at the point where the
+   builtin is invoked.  Thus (in contrast to the situation with
+   abstractions) instantiation of builtins cannot have any
+   computational effect.  FrameApplyBuiltin frames contain the type
+   parameters, but these are only used when generating a term for
+   error messages.  We could possibly dispense with them altogether.
+
+-}
 
 applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
                  => VarEnv uni
                  -> Context uni
                  -> BuiltinName
                  -> [Type TyName uni ExMemory]
-                 -> [Closure uni]
+                 -> [Value TyName Name uni ExMemory]
                  -> CekM uni (Term TyName Name uni ())
-applyBuiltin funEnv ctx bn tys args =
+applyBuiltin finalEnv ctx bn tys args =
     -- If there are too many/few types this should be caught by the typechecker.
-    let term = ApplyBuiltin () bn (fmap void tys) (fmap (void . _closureValue) args) -- For error messages
+    let term = ApplyBuiltin () bn (fmap void tys) (fmap void args) -- For error messages
     in do
-      (env', args') <- getScopedArgs funEnv args
-      -- We could call getScopedArgs only in the case where tys is nonempty, relying on our assumption
-      -- that non-polymorphic builtins only take builtin constants as arguments.
       params <- builtinCostParams
       result <- case bn of
                   n@(DynBuiltinName name) -> do
                       DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName term name
-                      applyTypeSchemed n sch x exX args'
+                      applyTypeSchemed n sch x exX args
                   StaticBuiltinName name ->
-                      applyBuiltinName params name args'
-      withVarEnv env' $ computeCek ctx result
+                      applyBuiltinName params name args
+      withVarEnv finalEnv $ computeCek ctx result
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

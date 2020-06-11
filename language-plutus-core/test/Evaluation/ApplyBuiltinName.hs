@@ -16,11 +16,13 @@ import           Language.PlutusCore.Pretty
 import qualified Data.ByteString.Lazy                      as BSL
 import qualified Data.ByteString.Lazy.Hash                 as Hash
 import           Data.Coerce
-import           Data.Foldable
-import           Data.List
 import           Hedgehog                                  hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
+
+-- FIXME: add some tests for under/overapplication?  We used to have
+-- ConstAppStuck and the tests here checked for that with
+-- underapplication, but now we have exceptions instead.
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -43,8 +45,6 @@ prop_applyBuiltinName tbn op allTbs = property $ do
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
         app =  applyEvaluateCkStaticBuiltinName name
-    -- traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine   -- init = list minus tail, inits = all prefixes of list
-               -- !!! FIXME ^^^
     app spine === Right (makeKnown y)
 
 test_typedAddInteger :: TestTree

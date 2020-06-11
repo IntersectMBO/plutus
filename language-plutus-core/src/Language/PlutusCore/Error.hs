@@ -81,24 +81,15 @@ deriving instance
 makeClassyPrisms ''NormCheckError
 
 -- TODO: split into type/other errors
-data BuiltinError ann =
-    UnknownDynamicBuiltinName ann DynamicBuiltinName
-    | BuiltinUnderInstantiated  ann BuiltinName
-    | BuiltinOverInstantiated   ann BuiltinName
-    | BuiltinUnderApplied       ann BuiltinName
-    | BuiltinOverApplied        ann BuiltinName
-    | BadTypeScheme             ann BuiltinName
+data BuiltinError =
+    UnknownDynamicBuiltinName  DynamicBuiltinName
+    | BuiltinUnderInstantiated BuiltinName
+    | BuiltinOverInstantiated  BuiltinName
+    | BuiltinUnderApplied      BuiltinName
+    | BuiltinOverApplied       BuiltinName
+    | BadTypeScheme            BuiltinName
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''BuiltinError
-
--- FIXME: do something else
-annOf :: BuiltinError ann -> ann
-annOf (UnknownDynamicBuiltinName ann _) = ann
-annOf (BuiltinUnderInstantiated  ann _) = ann
-annOf (BuiltinOverInstantiated   ann _) = ann
-annOf (BuiltinUnderApplied       ann _) = ann
-annOf (BuiltinOverApplied        ann _) = ann
-annOf (BadTypeScheme             ann _) = ann
 
 -- | An internal error occurred during type checking.
 data InternalTypeError uni ann
@@ -115,7 +106,7 @@ data TypeError uni ann
     | InternalTypeErrorE ann (InternalTypeError uni ann)
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
-    | BuiltinTypeErrorE (BuiltinError ann)
+    | BuiltinTypeErrorE ann BuiltinError
     deriving (Show, Eq, Generic, NFData)
 makeClassyPrisms ''TypeError
 
@@ -172,14 +163,14 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance Pretty ann => Pretty (BuiltinError ann) where
-    pretty (UnknownDynamicBuiltinName _ann dbn) = "Unknown dynamic built-in name: " <+> pretty dbn
-    pretty (BuiltinUnderInstantiated  _ann bn)  = "Built-in function underinstantiated: " <+> pretty bn
-    pretty (BuiltinOverInstantiated   _ann bn)  = "Built-in function overinstantiated: " <+> pretty bn
-    pretty (BuiltinUnderApplied       _ann bn)  = "Built-in function underapplied: " <+> pretty bn
-    pretty (BuiltinOverApplied        _ann bn)  = "Built-in function overapplied: " <+> pretty bn
-    pretty (BadTypeScheme             _ann bn)  = "Malformed type scheme for: " <+> pretty bn
--- FIXME: do this properly; maybe also add more info, like the number of args expected and found
+instance Pretty BuiltinError  where
+    pretty (UnknownDynamicBuiltinName dbn) = "Unknown dynamic built-in name: " <+> pretty dbn
+    pretty (BuiltinUnderInstantiated  bn)  = "Built-in function underinstantiated: " <+> pretty bn
+    pretty (BuiltinOverInstantiated   bn)  = "Built-in function overinstantiated: " <+> pretty bn
+    pretty (BuiltinUnderApplied       bn)  = "Built-in function underapplied: " <+> pretty bn
+    pretty (BuiltinOverApplied        bn)  = "Built-in function overapplied: " <+> pretty bn
+    pretty (BadTypeScheme             bn)  = "Malformed type scheme for: " <+> pretty bn
+-- FIXME: maybe add more info, like the number of args expected and found
 
 
 instance GShow uni => PrettyBy PrettyConfigPlc (InternalTypeError uni ann) where
@@ -212,9 +203,9 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann) =>
     prettyBy config (InternalTypeErrorE ann err)        =
         prettyBy config err <> hardline <>
         "Error location:" <+> pretty ann
-    prettyBy _ (BuiltinTypeErrorE err) =
+    prettyBy _ (BuiltinTypeErrorE ann err) =
         pretty err <> hardline <>
-        "Error location:" <+> pretty (annOf err)
+        "Error location:" <+> pretty ann
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni ann) where

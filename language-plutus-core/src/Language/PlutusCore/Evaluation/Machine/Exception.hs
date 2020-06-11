@@ -62,12 +62,12 @@ data ConstAppError uni
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError uni err
-    = NonPrimitiveInstantiationMachineError
-      -- ^ An attempt to reduce a not immediately reducible type instantiation.
+    = NonTyAbsInstantiationMachineError
+      -- ^ An attempt to instantiate a term that isn't a TyAbs
     | NonWrapUnwrappedMachineError
       -- ^ An attempt to unwrap a not wrapped term.
-    | NonPrimitiveApplicationMachineError
-      -- ^ An attempt to reduce a not immediately reducible application.
+    | NonLambdaApplicationMachineError
+      -- ^ An attempt to Apply a term that isn't a Lambda
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError (ConstAppError uni)
@@ -144,17 +144,17 @@ instance PrettyBy config (Term TyName Name uni ()) => PrettyBy config (ConstAppE
 
 instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
             PrettyBy config (MachineError uni err) where
-    prettyBy _      NonPrimitiveInstantiationMachineError =
-        "Cannot reduce a not immediately reducible type instantiation."
-    prettyBy _      NonWrapUnwrappedMachineError          =
+    prettyBy _      NonTyAbsInstantiationMachineError    =
+        "Attempted to instantiate a non-abstraction."
+    prettyBy _      NonWrapUnwrappedMachineError         =
         "Cannot unwrap a not wrapped term."
-    prettyBy _      NonPrimitiveApplicationMachineError   =
-        "Cannot reduce a not immediately reducible application."
-    prettyBy _      OpenTermEvaluatedMachineError         =
+    prettyBy _      NonLambdaApplicationMachineError     =
+        "Attempted to apply a non-lambda."
+    prettyBy _      OpenTermEvaluatedMachineError        =
         "Cannot evaluate an open term."
-    prettyBy config (ConstAppMachineError constAppError)  =
+    prettyBy config (ConstAppMachineError constAppError) =
         prettyBy config constAppError
-    prettyBy _      (OtherMachineError err)               =
+    prettyBy _      (OtherMachineError err)              =
         pretty err
 
 instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name uni ())) =>
