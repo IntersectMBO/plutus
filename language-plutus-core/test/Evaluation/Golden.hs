@@ -114,10 +114,10 @@ closure = runQuote $ do
 goldenVsPretty :: PrettyPlc a => String -> ExceptT BSL.ByteString IO a -> TestTree
 goldenVsPretty name value =
     goldenVsString name ("test/Evaluation/Golden/" ++ name ++ ".plc.golden") $
-        either id (BSL.fromStrict . encodeUtf8 . docText . prettyPlcClassicDebug) <$> runExceptT value
+        either id (BSL.fromStrict . encodeUtf8 . render . prettyPlcClassicDebug) <$> runExceptT value
 
 goldenVsEvaluated :: String -> Term TyName Name DefaultUni () -> TestTree
-goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel 
+goldenVsEvaluated name = goldenVsPretty name . pure . unsafeEvaluateCek mempty defaultCostModel
 
 -- TODO: ideally, we want to test this for all the machines.
 test_golden :: TestTree

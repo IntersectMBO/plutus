@@ -69,6 +69,8 @@ let
             # plc-agda is compiled from the Haskell source files generated from the Agda
             plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
 
+            # Relies on cabal-doctest, just turn it off in the Nix build
+            prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
             language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model.build-tools =
               lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
 
