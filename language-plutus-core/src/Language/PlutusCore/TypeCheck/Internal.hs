@@ -150,7 +150,7 @@ lookupDynamicBuiltinNameM ann name = do
     DynamicBuiltinNameTypes dbnts <- asks $ _tccDynamicBuiltinNameTypes . _tceTypeCheckConfig
     case Map.lookup name dbnts of
         Nothing ->
-            throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
+            throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
         Just ty -> liftDupable ty
 
 lookupDynamicBuiltinTypeComponentsM
@@ -158,10 +158,10 @@ lookupDynamicBuiltinTypeComponentsM
 lookupDynamicBuiltinTypeComponentsM ann name = do
   DynamicBuiltinNameMeanings dbnms <- asks $ _tccDynamicBuiltinNameMeanings . _tceTypeCheckConfig
   case Map.lookup name dbnms of
-    Nothing -> throwError $ BuiltinTypeErrorE (UnknownDynamicBuiltinName ann name)
+    Nothing -> throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
     Just (DynamicBuiltinNameMeaning sch _ _) ->
         case splitTypeScheme sch of
-          Nothing   -> throwError $ BuiltinTypeErrorE (BadTypeScheme ann (DynBuiltinName name))
+          Nothing   -> throwError $ BuiltinTypeErrorE ann (BadTypeScheme (DynBuiltinName name))
           Just cpts -> pure cpts
 getStaticBuiltinTypeComponentsM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
@@ -170,7 +170,7 @@ getStaticBuiltinTypeComponentsM
     -> TypeCheckM uni ann (TypeComponents uni)
 getStaticBuiltinTypeComponentsM ann name =
     case withTypedBuiltinName name typeComponentsOfTypedBuiltinName of
-      Nothing   -> throwError $ BuiltinTypeErrorE (BadTypeScheme ann (StaticBuiltinName name))
+      Nothing   -> throwError $ BuiltinTypeErrorE ann (BadTypeScheme (StaticBuiltinName name))
       Just cpts -> pure cpts
 
 -- | Look up a type variable in the current context.
@@ -379,8 +379,8 @@ checkBuiltinTypeArgs = check [] where
        tyarg' <- normalizeType (void tyarg)
        check ((tyname,tyarg'):mapping) ann bn tynames tyargs
     check mapping _ _ [] [] = pure mapping
-    check _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderInstantiated ann bn)
-    check _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverInstantiated  ann bn)
+    check _ ann bn _ [] = throwError $ BuiltinTypeErrorE ann (BuiltinUnderInstantiated bn)
+    check _ ann bn [] _ = throwError $ BuiltinTypeErrorE ann (BuiltinOverInstantiated  bn)
 
 -- | Given a mapping from type variables to types, we work our way
 -- along the list of term arguments in an ApplyBuiltin, checking that
@@ -399,8 +399,8 @@ checkBuiltinTermArgs mapping ann bn (ty:tys) (arg:args) =  do
     checkTypeM (termAnn arg) arg ty'
     checkBuiltinTermArgs mapping ann bn tys args
 checkBuiltinTermArgs _ _ _ [] [] = pure ()
-checkBuiltinTermArgs _ ann bn _ [] = throwError $ BuiltinTypeErrorE (BuiltinUnderApplied ann bn)
-checkBuiltinTermArgs _ ann bn [] _ = throwError $ BuiltinTypeErrorE (BuiltinOverApplied  ann bn)
+checkBuiltinTermArgs _ ann bn _ [] = throwError $ BuiltinTypeErrorE ann (BuiltinUnderApplied bn)
+checkBuiltinTermArgs _ ann bn [] _ = throwError $ BuiltinTypeErrorE ann (BuiltinOverApplied  bn)
 
 -- | Check an entire ApplyBuiltin term: make sure that it has the right number of
 -- type and term arguments and that the term argments have the right type.  Return

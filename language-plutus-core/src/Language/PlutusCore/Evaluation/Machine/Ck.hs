@@ -125,12 +125,12 @@ _     |> var@Var{}                        =
 FrameTyInstArg _      : stack <| fun     =
     case fun of
       TyAbs _ _ _ body -> stack |> body
-      _                -> throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
+      _                -> throwingWithCause _MachineError NonTyAbsInstantiationMachineError $ Just fun
 FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun      : stack <| arg     =
     case fun of
       LamAbs _ name _ body -> stack |> substituteDb name arg body
-      _ -> throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (Apply () fun arg)
+      _ -> throwingWithCause _MachineError NonLambdaApplicationMachineError $ Just (Apply () fun arg)
 FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
 FrameUnwrap            : stack <| wrapped =
     case wrapped of

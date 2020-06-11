@@ -6,7 +6,6 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
-{-# OPTIONS_GHC -fno-warn-unused-top-binds -fno-warn-redundant-constraints #-}
 module Language.PlutusCore.Generators.Interesting
     ( TermGen
     , TermOf(..)

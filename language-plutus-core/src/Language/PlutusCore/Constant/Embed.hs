@@ -38,7 +38,7 @@ embedBuiltinNameInTerm scheme name =
         mkTyVarDecl :: TyName -> TyVarDecl TyName ()
         mkTyVarDecl tyname = TyVarDecl () tyname (Type ())
     in case splitTypeScheme scheme of
-      Nothing -> undefined -- Prelude.error "Malformed type scheme in denoteTypedBuiltinName"  -- FIXME: proper error.
+      Nothing -> Prelude.error $ "Malformed type scheme for " ++ show name ++ " in embedBuiltinNameInTerm"  -- FIXME: proper error?
       Just (TypeComponents tynames types _) ->
           runQuote $ do
             varDecls <- mapM mkVarDecl types  -- For each argument type, generate a VarDecl for a variable of that type
