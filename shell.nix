@@ -26,6 +26,7 @@ with packageSet; haskell.packages.shellFor {
     #dev.packages.cabal-install
     dev.packages.hlint
     dev.packages.stylish-haskell
+    dev.packages.haskell-language-server
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
