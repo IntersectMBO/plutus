@@ -62,26 +62,26 @@ data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
 
 data State (T : ∅ ⊢Nf⋆ *) : Set where
   _;_▻_ : ∀{Γ}{H : ∅ ⊢Nf⋆ *} → Stack T H → Env Γ → Γ ⊢ H → State T
-  _;_◅_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → Env ∅ → Value H → State T
+  _◅_ : {H : ∅ ⊢Nf⋆ *} → Stack T H → Value H → State T
   □     : Value T → State T
   ◆     : ∅ ⊢Nf⋆ * → State T
 
 step : ∀{T} → State T → State T
-step (s ; ρ ▻ ` x)             = s ; [] ◅ lookup x ρ
-step (s ; ρ ▻ ƛ L)             = s ; [] ◅ V-ƛ L ρ
+step (s ; ρ ▻ ` x)             = s ◅ lookup x ρ
+step (s ; ρ ▻ ƛ L)             = s ◅ V-ƛ L ρ
 step (s ; ρ ▻ (L · M))         = (s , -· M ρ) ; ρ ▻ L
-step (s ; ρ ▻ Λ L)             = s ; [] ◅ V-Λ L ρ
+step (s ; ρ ▻ Λ L)             = s ◅ V-Λ L ρ
 step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L 
 step (s ; ρ ▻ wrap1 pat arg L) = ◆ (ne ((μ1 · pat) · arg))
 step (s ; ρ ▻ unwrap1 {pat = pat}{arg} L) = ◆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
-step (s ; ρ ▻ con c) = s ; [] ◅ V-con c
+step (s ; ρ ▻ con c) = s ◅ V-con c
 step (s ; ρ ▻ builtin bn σ ts) = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
 step (s ; ρ ▻ error A) = ◆ A
-step (ε             ; [] ◅ V) = □ V
-step ((s , -· M ρ') ; [] ◅ V) = (s , V ·-) ; ρ' ▻ M
-step ((s , (V-ƛ M ρ ·-)) ; [] ◅ V) = s ; ρ ∷ V ▻ M
-step ((s , -·⋆ A) ; [] ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
-step ((s , wrap- {pat = pat}{arg = arg})   ; [] ◅ V) =
+step (ε             ◅ V) = □ V
+step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
+step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
+step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
+step ((s , wrap- {pat = pat}{arg = arg}) ◅ V) =
   ◆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
 step (□ V) = □ V
 step (◆ A) = ◆ A
