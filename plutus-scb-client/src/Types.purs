@@ -1,9 +1,12 @@
 module Types where
 
 import Prelude
+
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
+import Control.Monad.Gen as Gen
 import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
 import Data.Lens (Lens', Getter', to)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -11,6 +14,7 @@ import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
@@ -22,6 +26,7 @@ import Plutus.SCB.Webserver.Types (FullReport, _FullReport)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
+import Test.QuickCheck (class Arbitrary)
 import Wallet.Rollup.Types (AnnotatedTx)
 
 data Query a
@@ -31,6 +36,7 @@ type WebData
 
 data HAction
   = Init
+  | ChangeView View
   | LoadFullReport
   | ChainAction (Maybe ChainFocus)
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
@@ -38,7 +44,8 @@ data HAction
 
 newtype State
   = State
-  { fullReport :: WebData (FullReport ContractExe)
+  { currentView :: View
+  , fullReport :: WebData (FullReport ContractExe)
   , chainState :: Chain.State
   , contractSignatures :: Map ContractInstanceId (WebData (Array EndpointForm))
   }
@@ -51,6 +58,9 @@ type EndpointForm
 derive instance newtypeState :: Newtype State _
 
 derive instance genericState :: Generic State _
+
+_currentView :: Lens' State View
+_currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
 _fullReport :: Lens' State (WebData (FullReport ContractExe))
 _fullReport = _Newtype <<< prop (SProxy :: SProxy "fullReport")
@@ -81,3 +91,19 @@ _contractInstanceId = _Newtype <<< prop (SProxy :: SProxy "unContractInstanceId"
 
 _contractInstanceIdString :: Getter' ContractInstanceId String
 _contractInstanceIdString = _contractInstanceId <<< _JsonUUID <<< to UUID.toString
+
+------------------------------------------------------------
+data View
+  = ActiveContracts
+  | Blockchain
+  | EventLog
+
+derive instance eqView :: Eq View
+
+derive instance genericView :: Generic View _
+
+instance arbitraryView :: Arbitrary View where
+  arbitrary = Gen.elements (ActiveContracts :| [ Blockchain, EventLog ])
+
+instance showView :: Show View where
+  show = genericShow
