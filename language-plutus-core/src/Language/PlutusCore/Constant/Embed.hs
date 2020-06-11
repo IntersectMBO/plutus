@@ -18,7 +18,6 @@ import           Language.PlutusCore.Quote
 
 import           Data.Text                             (append, pack)
 
-
 {- | Since built-in names don't make sense on their own, we produce a
    term which wraps the name in a sequence of abstractions and lambdas
    and then applies the name to the relevant types and variables. This
