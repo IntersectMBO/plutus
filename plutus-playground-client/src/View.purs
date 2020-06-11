@@ -2,18 +2,15 @@ module View (render) where
 
 import Types
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container, container_, empty, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row, row_)
-import Bootstrap as Bootstrap
+import Bootstrap (alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container_, empty, justifyContentBetween, noGutters, row, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array (find) as Array
 import Data.Either (Either(..))
 import Data.Json.JsonEither (JsonEither(..), _JsonEither)
 import Data.Lens (_Right, view)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.String as String
 import Data.Tuple (Tuple(Tuple))
 import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
@@ -24,9 +21,10 @@ import Halogen.HTML.Extra (mapComponent)
 import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Icons (Icon(..), icon)
 import Language.Haskell.Interpreter (_SourceCode)
+import NavTabs (mainTabBar, viewContainer)
 import Network.RemoteData (RemoteData(..), _Success)
 import Playground.Types (ContractDemo(..))
-import Prelude (const, show, ($), (<$>), (<<<), (<>), (==))
+import Prelude (const, ($), (<$>), (<<<))
 import Schema.Types (mkInitialValue)
 import Simulation (actionsErrorPane, simulationPane)
 import StaticData (_contractDemoEditorContents)
@@ -44,7 +42,7 @@ render state@(State { currentView, blockchainVisualisationState, contractDemos, 
         [ container_
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
-                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
+                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
                 , div
                     [ classes [ colXs12, colSm5 ] ]
                     [ GistAction <$> gistControls (unwrap state) ]
@@ -150,13 +148,6 @@ bannerMessage =
         [ text "CHANGELOG" ]
     ]
 
-viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
-viewContainer currentView targetView =
-  if currentView == targetView then
-    div [ classes [ container ] ]
-  else
-    div [ classes [ container, hidden ] ]
-
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   div_
@@ -187,46 +178,18 @@ documentationLinksPane =
       ]
       [ text name ]
 
-mainTabBar :: forall p. View -> HTML p HAction
-mainTabBar activeView =
-  div_
-    [ navTabs_ (mkTab <$> tabs)
-    , div [ class_ $ ClassName "tab-help" ]
-        [ helpText ]
-    ]
-  where
-  tabs =
-    [ { link: Editor
-      , title: "Editor"
-      , help: "Edit and compile your contract."
-      }
-    , { link: Simulations
-      , title: "Simulation"
-      , help: "Set up simulations to test your contract's behavior."
-      }
-    , { link: Transactions
-      , title: "Transactions"
-      , help: "See how your contract behaves on a simulated blockchain."
-      }
-    ]
-
-  mkTab :: forall r. { link :: View, title :: String | r } -> HTML p HAction
-  mkTab { link, title } =
-    navItem_
-      [ a
-          [ id_ $ "tab-" <> String.toLower (show link)
-          , classes $ [ navLink ] <> activeClass
-          , onClick $ const $ Just $ ChangeView link
-          ]
-          [ text title ]
-      ]
-    where
-    activeClass =
-      if link == activeView then
-        [ active ]
-      else
-        []
-
-  helpText = case Array.find (\({ link }) -> link == activeView) tabs of
-    Nothing -> Bootstrap.empty
-    Just { help } -> text help
+tabs :: Array { help :: String, link :: View, title :: String }
+tabs =
+  [ { link: Editor
+    , title: "Editor"
+    , help: "Edit and compile your contract."
+    }
+  , { link: Simulations
+    , title: "Simulation"
+    , help: "Set up simulations to test your contract's behavior."
+    }
+  , { link: Transactions
+    , title: "Transactions"
+    , help: "See how your contract behaves on a simulated blockchain."
+    }
+  ]
