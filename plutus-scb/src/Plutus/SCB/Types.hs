@@ -14,6 +14,7 @@ import qualified Cardano.SigningProcess.Server      as SigningProcess
 import qualified Cardano.Wallet.Server              as WalletServer
 import           Control.Lens.TH                    (makePrisms)
 import           Data.Aeson                         (FromJSON, ToJSON)
+import qualified Data.Map                           as Map
 import           Data.Map.Strict                    (Map)
 import           Data.Text                          (Text)
 import           Data.Text.Prettyprint.Doc          (Pretty, pretty, (<+>))
@@ -21,7 +22,10 @@ import           Data.UUID                          (UUID)
 import qualified Data.UUID                          as UUID
 import           GHC.Generics                       (Generic)
 import           Language.Plutus.Contract.Resumable (ResumableError)
-import           Ledger                             (Blockchain, Tx, TxId, UtxoIndex)
+import           Ledger                             (Blockchain, Tx, TxId, UtxoIndex, txId)
+import           Ledger.Blockchain                  (Block)
+import           Ledger.Index                       (UtxoIndex (UtxoIndex))
+import qualified Ledger.Index                       as UtxoIndex
 import           Plutus.SCB.Events                  (ContractInstanceId)
 import           Servant.Client                     (BaseUrl, ClientError)
 import           Wallet.API                         (WalletAPIError)
@@ -100,5 +104,29 @@ data ChainOverview =
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
+
+mkChainOverview :: Blockchain -> ChainOverview
+mkChainOverview = foldl reducer emptyChainOverview
+  where
+    reducer :: ChainOverview -> Block -> ChainOverview
+    reducer ChainOverview { chainOverviewBlockchain = oldBlockchain
+                          , chainOverviewUnspentTxsById = oldTxById
+                          , chainOverviewUtxoIndex = oldUtxoIndex
+                          } txs =
+        let unprunedTxById =
+                foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
+            newTxById = id unprunedTxById -- TODO Prune spent keys.
+            newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
+         in ChainOverview
+                { chainOverviewBlockchain = txs : oldBlockchain
+                , chainOverviewUnspentTxsById = newTxById
+                , chainOverviewUtxoIndex = newUtxoIndex
+                }
+    emptyChainOverview =
+        ChainOverview
+            { chainOverviewBlockchain = []
+            , chainOverviewUnspentTxsById = Map.empty
+            , chainOverviewUtxoIndex = UtxoIndex Map.empty
+            }
 
 makePrisms ''SCBError

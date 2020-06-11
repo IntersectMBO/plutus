@@ -21,11 +21,11 @@ module Plutus.SCB.Core.ContractInstance(
     , callContractEndpoint
     ) where
 
-import           Control.Lens
+import           Control.Lens                                      (itraverse_, view)
 import           Control.Monad                                     (unless, void)
-import           Control.Monad.Freer
+import           Control.Monad.Freer                               (Eff, Member)
 import           Control.Monad.Freer.Error                         (Error, runError, throwError)
-import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Extra.Log                     (Log, logDebug, logInfo)
 import qualified Data.Aeson                                        as JSON
 import           Data.Foldable                                     (fold, traverse_)
 import qualified Data.Map                                          as Map

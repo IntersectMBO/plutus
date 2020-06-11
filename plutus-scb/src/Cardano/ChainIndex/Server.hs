@@ -10,6 +10,7 @@ module Cardano.ChainIndex.Server(
     , ChainIndexConfig(..)
     , syncState
     ) where
+
 import           Cardano.Node.Types              (FollowerID)
 import           Control.Concurrent              (forkIO, threadDelay)
 import           Control.Concurrent.MVar         (MVar, newMVar, putMVar, takeMVar)
@@ -27,6 +28,7 @@ import           Data.Foldable                   (fold, traverse_)
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
 import           Data.Time.Units                 (Second, toMicroseconds)
+import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import           Network.Wai.Handler.Warp        (run)
 import           Servant                         ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer,
@@ -58,7 +60,7 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processIndexEffects stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> WalletEffects.transactionConfirmed)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed)
 
 main :: (MonadIO m) => ChainIndexConfig -> BaseUrl -> m ()
 main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do
@@ -81,6 +83,9 @@ startWatching addr = WalletEffects.startWatching addr >> pure NoContent
 
 watchedAddresses :: (Member ChainIndexEffect effs) => Eff effs AddressMap
 watchedAddresses = WalletEffects.watchedAddresses
+
+confirmedBlocks :: (Member ChainIndexEffect effs) => Eff effs [Block]
+confirmedBlocks = WalletEffects.confirmedBlocks
 
 -- | Update the chain index by asking the node for new blocks since the last
 --   time.
