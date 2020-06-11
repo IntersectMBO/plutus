@@ -111,14 +111,15 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
             (ne (μ1 · pat · arg))
 
-  builtin- : (b : Builtin)
+  builtin- : ∀{Γ}(b : Builtin)
     → (σ : ∀ {K} → proj₁ (SIG b) ∋⋆ K → ∅ ⊢Nf⋆ K)
     → (As : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
     → (cs : CTel (proj₁ (SIG b)) σ As)
     → (A : (proj₁ (SIG b) ⊢Nf⋆ *))
     → (As' : L.List (proj₁ (SIG b) ⊢Nf⋆ *))
     → proj₁ (proj₂ (SIG b)) ≡ As L.++ A L.∷ As'
-    → Tel ∅ (proj₁ (SIG b)) σ As'
+    → Tel Γ (proj₁ (SIG b)) σ As'
+    → Env Γ
     → Frame (substNf σ (proj₂ (proj₂ (SIG b)))) (substNf σ A)
 
 
@@ -187,7 +188,6 @@ extendCTel : ∀{Δ As} Bs
 extendCTel L.[] σ cs c refl = c ,, _
 extendCTel (B L.∷ Bs) σ (c ,, cs) c' refl = c ,, extendCTel Bs σ cs c' refl
 
-
 dischargeTel : ∀{Γ Δ As}
     → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
     → (ts : Tel Γ Δ σ As)
@@ -196,7 +196,6 @@ dischargeTel : ∀{Γ Δ As}
     
 dischargeTel σ [] ρ = []
 dischargeTel {As = A L.∷ As} σ (t ∷ ts) ρ = conv⊢ refl (substNf-id (substNf σ A)) (subst (ne ∘ `) (env2ren ρ) t) Tel.∷ dischargeTel σ ts ρ 
-
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x)      = let Γ ,, M ,, V ,, ρ' = lookup x ρ in s ; ρ' ◅ V
@@ -211,7 +210,7 @@ step (s ; ρ ▻ builtin bn σ ts) with proj₁ (proj₂ (SIG bn)) | inspect (p
 ... | L.[]     | [[ p ]] =
   let _ ,, M ,, ρ' = BUILTIN bn σ (substEq (CTel (proj₁ (SIG bn)) σ ) (sym p) _)  in  s ; ρ' ▻ M
 step (s ; ρ ▻ builtin bn σ (t ∷ ts)) | A L.∷ As | [[ p ]] =
-  (s , builtin- bn σ L.[] _ A As p (dischargeTel σ ts ρ)) ; ρ ▻ t
+  (s , builtin- bn σ L.[] _ A As p ts ρ) ; ρ ▻ t
 step (s ; ρ ▻ error A) = ◆ A
 step (ε ; ρ ◅ V) = □ (_ ,, _ ,, V ,, ρ)
 step ((s , -· M ρ') ; ρ ◅ V) = (s , ((_ ,, _ ,, V ,, ρ) ·-)) ; ρ' ▻ M
@@ -220,9 +219,9 @@ step ((s , ((_ ,, ƛ M ,, V-ƛ .M ,, ρ') ·-)) ; ρ ◅ V) =
 step ((s , -·⋆ A) ; ρ ◅ V-Λ M) = s ; ρ ▻ (M [ A ]⋆) 
 step ((s , wrap-) ; ρ ◅ V) = s ; ρ ◅ V-wrap V
 step ((s , unwrap-) ; ρ ◅ V-wrap V) = s ; ρ ◅ V
-step ((s , builtin- b σ As cs A .L.[] p []) ; ρ ◅ V) = 
+step ((s , builtin- b σ As cs A .L.[] p [] ρ') ; ρ ◅ V) = 
   let _ ,, M ,, ρ' = BUILTIN b σ (extendCTel As σ cs (_ ,, _ ,, V ,, ρ) (sym p)) in s ; ρ' ▻ M
-step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts')) ; ρ ◅ V) =
+step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts') ρ') ; ρ ◅ V) =
    (s , builtin-
         b
         σ
@@ -230,8 +229,11 @@ step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts')) ; ρ ◅ V) =
         (extendCTel As σ cs (_ ,, _ ,, V ,, ρ) refl)
         A'
         As'
-        (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As')))) ts')
-  ; [] ▻ t' 
+        (trans p (sym (++-assoc As L.[ A ] (A' L.∷ As'))))
+        ts'
+        ρ')
+        
+  ; ρ' ▻ t' 
 step (□ C)       = □ C
 step (◆ A)       = ◆ A
 
