@@ -30,6 +30,12 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
     → Env Γ
     → Value (Π B)
 
+  V-wrap : ∀{K}
+   → {pat : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
+   → {arg : ∅ ⊢Nf⋆ K}
+   → Value (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+   → Value (ne (μ1 · pat · arg))
+
   V-con : {tcn : TyCon}
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
@@ -72,16 +78,16 @@ step (s ; ρ ▻ ƛ L)             = s ◅ V-ƛ L ρ
 step (s ; ρ ▻ (L · M))         = (s , -· M ρ) ; ρ ▻ L
 step (s ; ρ ▻ Λ L)             = s ◅ V-Λ L ρ
 step (s ; ρ ▻ (L ·⋆ A))        = (s , -·⋆ A) ; ρ ▻ L 
-step (s ; ρ ▻ wrap1 pat arg L) = ◆ (ne ((μ1 · pat) · arg))
-step (s ; ρ ▻ unwrap1 {pat = pat}{arg} L) = ◆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+step (s ; ρ ▻ wrap1 pat arg L) = (s , wrap-) ; ρ ▻ L
+step (s ; ρ ▻ unwrap1 {pat = pat}{arg} L) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c) = s ◅ V-con c
 step (s ; ρ ▻ builtin bn σ ts) = ◆ (substNf σ (proj₂ (proj₂ (SIG bn))))
 step (s ; ρ ▻ error A) = ◆ A
-step (ε             ◅ V) = □ V
+step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
 step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
 step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
-step ((s , wrap- {pat = pat}{arg = arg}) ◅ V) =
-  ◆ (nf (embNf pat · (μ1 · embNf pat) · embNf arg))
+step ((s , wrap- {pat = pat}{arg = arg}) ◅ V) = s ◅ V-wrap V
+step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
 step (□ V) = □ V
 step (◆ A) = ◆ A
