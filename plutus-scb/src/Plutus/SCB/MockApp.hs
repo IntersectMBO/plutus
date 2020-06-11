@@ -200,7 +200,7 @@ data TxCounts =
 
 txCounts :: Member (State TestState) effs => Eff effs TxCounts
 txCounts = do
-    chain <- blockchainNewestFirst
+    chain <- use blockchainNewestFirst
     pool <- use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.txPool)
     return
         $ TxCounts
@@ -208,8 +208,8 @@ txCounts = do
             , _txMemPool   = length pool
             }
 
-blockchainNewestFirst :: Member (State TestState) effs => Eff effs Blockchain
-blockchainNewestFirst = use (nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst)
+blockchainNewestFirst :: Lens' TestState Blockchain
+blockchainNewestFirst = nodeState . NodeServer.chainState . Wallet.Emulator.Chain.chainNewestFirst
 
 -- | The value at an address, in the UTXO set of the emulated node.
 --   Note that the agents may have a different view of this (use 'syncAll'

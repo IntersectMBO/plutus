@@ -16,6 +16,7 @@ import           Control.Monad                                 (unless, void)
 import           Control.Monad.Freer                           (Eff, Member, Members)
 import           Control.Monad.Freer.Error                     (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                 (Log)
+import           Control.Monad.Freer.Extra.State               (use)
 import qualified Control.Monad.Freer.Log                       as EmulatorLog
 import           Control.Monad.Freer.State                     (State)
 import           Data.Foldable                                 (fold)
@@ -25,7 +26,6 @@ import qualified Data.Text                                     as Text
 import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
 import           Ledger                                        (pubKeyAddress)
 import           Ledger.Ada                                    (lovelaceValueOf)
-import           Ledger.Blockchain                             (Blockchain)
 import           Plutus.SCB.Command                            ()
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                   (ContractEffect)
@@ -157,7 +157,7 @@ guessingGameTest =
                 "The wallet should now have its money back."
                 (lovelaceValueOf openingBalance)
                 balance2
-              blocks :: Blockchain <- blockchainNewestFirst
+              blocks <- use blockchainNewestFirst
               assertBool
                   "We have some confirmed blocks in this test."
                   (length (mconcat blocks) > 0)
