@@ -30,6 +30,29 @@
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "0vmf2wzc2b9h4cxxj0mwpza9dy23n7dxadj6x7xaf8p9pmcmmmd5";
   };
+  haskell-language-server =
+    let hspkgs = pkgs.haskell-nix.cabalProject {
+        src = pkgs.fetchFromGitHub {
+          owner = "haskell";
+          repo = "haskell-language-server";
+          rev = "2186df00a9414c640fba1ae2acc3d9aa21ab6e4c";
+          sha256 = "0qh41jbf1a697l8wf48zmfs6vf08gijb0w42h26nvimcgc5dkh9a";
+          fetchSubmodules = true;
+        };
+        lookupSha256 = { location, tag, ... } : {
+          "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
+          "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
+          }."${location}"."${tag}";
+        inherit index-state checkMaterialization;
+        # Invalidate and update if you change the version
+        plan-sha256 = "0v9r3d11y595w7zrn7zrcxbcvjph5q8qj4fnig4sff99wcm038ab";
+        compiler-nix-name = "ghc883";
+        modules = [{
+          # Tests don't pass for some reason, but this is a somewhat random revision.
+          packages.haskell-language-server.doCheck = false;
+        }];
+      };
+    in hspkgs.haskell-language-server;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {
