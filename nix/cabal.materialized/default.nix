@@ -237,6 +237,7 @@
         "servant-subscriber".revision = (((hackage."servant-subscriber")."0.7.0.0").revisions).default;
         "servant-subscriber".flags.websockets_0_11 = true;
         "tree-diff".revision = (((hackage."tree-diff")."0.1").revisions).default;
+        "ordered-containers".revision = (((hackage."ordered-containers")."0.2.2").revisions).default;
         "parsec".revision = (((hackage."parsec")."3.1.14.0").revisions).default;
         "crackNum".revision = (((hackage."crackNum")."2.3").revisions).default;
         "th-reify-many".revision = (((hackage."th-reify-many")."0.1.9").revisions).default;
@@ -273,6 +274,7 @@
         "blaze-builder".revision = (((hackage."blaze-builder")."0.4.1.0").revisions).default;
         "base-compat".revision = (((hackage."base-compat")."0.11.1").revisions).default;
         "js-jquery".revision = (((hackage."js-jquery")."3.3.1").revisions).default;
+        "singletons".revision = (((hackage."singletons")."2.6").revisions).default;
         "terminal-size".revision = (((hackage."terminal-size")."0.3.2.1").revisions).default;
         "silently".revision = (((hackage."silently")."1.2.5.1").revisions).default;
         "math-functions".revision = (((hackage."math-functions")."0.3.3.0").revisions).default;
@@ -348,6 +350,8 @@
         "streaming-commons".revision = (((hackage."streaming-commons")."0.2.1.2").revisions).default;
         "streaming-commons".flags.use-bytestring-builder = false;
         "canonical-json".revision = (((hackage."canonical-json")."0.6.0.0").revisions).default;
+        "inline-c".revision = (((hackage."inline-c")."0.9.1.0").revisions).default;
+        "inline-c".flags.gsl-example = false;
         "base-unicode-symbols".revision = (((hackage."base-unicode-symbols")."0.2.4.2").revisions).default;
         "base-unicode-symbols".flags.base-4-8 = true;
         "base-unicode-symbols".flags.old-base = false;
@@ -389,6 +393,7 @@
         "zlib-bindings".revision = (((hackage."zlib-bindings")."0.1.1.5").revisions).default;
         "charset".revision = (((hackage."charset")."0.3.7.1").revisions).default;
         "raw-strings-qq".revision = (((hackage."raw-strings-qq")."1.1").revisions).default;
+        "th-desugar".revision = (((hackage."th-desugar")."1.10").revisions).default;
         "http-client-tls".revision = (((hackage."http-client-tls")."0.3.5.3").revisions).default;
         "contravariant".revision = (((hackage."contravariant")."1.5.2").revisions).default;
         "contravariant".flags.semigroups = true;
@@ -524,6 +529,7 @@
         "resource-pool".flags.developer = false;
         "asn1-types".revision = (((hackage."asn1-types")."0.3.4").revisions).default;
         "servant-client-core".revision = (((hackage."servant-client-core")."0.16").revisions).default;
+        "hint".revision = (((hackage."hint")."0.9.0.3").revisions).default;
         "monad-loops".revision = (((hackage."monad-loops")."0.4.3").revisions).default;
         "monad-loops".flags.base4 = true;
         "Unique".revision = (((hackage."Unique")."0.4.7.7").revisions).default;
@@ -534,6 +540,7 @@
         "cborg".flags.optimize-gmp = true;
         "unix-compat".revision = (((hackage."unix-compat")."0.5.2").revisions).default;
         "unix-compat".flags.old-time = false;
+        "quickcheck-text".revision = (((hackage."quickcheck-text")."0.1.2.1").revisions).default;
         "monad-control".revision = (((hackage."monad-control")."1.0.2.3").revisions).default;
         "process".revision = (((hackage."process")."1.6.8.0").revisions).default;
         "tls".revision = (((hackage."tls")."1.5.4").revisions).default;
@@ -551,6 +558,7 @@
         "libyaml".flags.system-libyaml = false;
         "libyaml".flags.no-unicode = false;
         "resourcet".revision = (((hackage."resourcet")."1.2.4").revisions).default;
+        "inline-r".revision = (((hackage."inline-r")."0.10.3").revisions).default;
         "pretty".revision = (((hackage."pretty")."1.1.3.6").revisions).default;
         "generic-lens-core".revision = (((hackage."generic-lens-core")."2.0.0.0").revisions).default;
         "cabal-doctest".revision = (((hackage."cabal-doctest")."1.0.8").revisions).default;
@@ -672,6 +680,7 @@
         ouroboros-network = ./.plan.nix/ouroboros-network.nix;
         cardano-crypto = ./.plan.nix/cardano-crypto.nix;
         plutus-tx = ./.plan.nix/plutus-tx.nix;
+        prettyprinter-configurable = ./.plan.nix/prettyprinter-configurable.nix;
         unlit = ./.plan.nix/unlit.nix;
         cardano-prelude-test = ./.plan.nix/cardano-prelude-test.nix;
         byron-spec-ledger = ./.plan.nix/byron-spec-ledger.nix;
@@ -758,6 +767,7 @@
               };
             };
           "plutus-tx" = { flags = {}; };
+          "prettyprinter-configurable" = { flags = {}; };
           "unlit" = { flags = {}; };
           "cardano-prelude-test" = {
             flags = { "development" = lib.mkOverride 900 true; };

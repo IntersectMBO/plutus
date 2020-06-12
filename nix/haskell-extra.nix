@@ -10,25 +10,26 @@ pkgs.haskell-nix.tools {
     version = "3.2.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
+    plan-sha256 = "034rggaixxhji42sb473w4kzwxr856kw393q3sjc4nsz76xpkkfl";
   };
   stylish-haskell = {
     version = "0.10.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "101k8qxw0x07mxky2dn6zskczgs9hz8cy1n308p3f8xrv632c9ma";
+    plan-sha256 = "114npk6hjgcfa95fz8r28w6lxak4rslfvh9caiwmwrkgd8v3nmaz";
   };
   hlint = {
     version = "2.2.11";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0kww3762jlxblrcpvkfih746g2s9g9b4c8jwraw096b6hpxw56cv";
+    plan-sha256 = "1mppmhhfqsnwigg3apj43ylc6zc7zqyvnsimwbnxwicvir2xzdqm";
   };
   # This fails for packages that use plutus due to missing unfoldings
   ghcide = {
     version = "0.2.0";
     compiler-nix-name = "ghc883";
     index-state = "2020-06-02T00:00:00Z";
+    plan-sha256 = "04l2ihni8ccbnb99apsainmfww6swavxg8vw4h4cg966lcwayndh";
   };
 } // {
   ghcide-use-cases = (pkgs.haskell-nix.cabalProject {

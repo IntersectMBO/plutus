@@ -71,6 +71,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."hint" or (errorHandler.buildDepError "hint"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
