@@ -93,8 +93,9 @@ BUILTIN sha2-256 σ ctel = {!!}
 BUILTIN sha3-256 σ ctel = {!!}
 BUILTIN verifySignature σ ctel = {!!}
 BUILTIN equalsByteString σ ctel = {!!}
-BUILTIN ifThenElse σ ctel = {!!}
 -}
+BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool true) ,, _) ,, (_ ,, t ,, _ ,, ρ) ,, _ ,, tt) = _ ,, t ,, ρ
+BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool false) ,, _) ,, _ ,, (_ ,, u ,, _ ,, ρ) ,, tt) = _ ,, u ,, ρ
 BUILTIN _ _ _ = _ ,, error _ ,, []
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
