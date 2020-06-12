@@ -29,8 +29,8 @@ import           Ledger.Validation            as V
 import           Language.Plutus.Contract     as Contract
 import qualified Ledger.Constraints           as Constraints
 
-mkValidator :: PubKeyHash -> () -> () -> PendingTx -> Bool
-mkValidator pk' _ _ p = V.txSignedBy p pk'
+mkValidator :: PubKeyHash -> () -> () -> ValidatorCtx -> Bool
+mkValidator pk' _ _ p = V.txSignedBy (valCtxTxInfo p) pk'
 
 data PubKeyContract
 

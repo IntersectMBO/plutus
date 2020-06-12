@@ -266,30 +266,32 @@ sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
 validationData1 :: Context
-validationData1 = Context $ PlutusTx.toData $ mockPendingTx
+validationData1 = Context $ PlutusTx.toData $ mockCtx
 
 validationData2 :: Context
-validationData2 = Context $ PlutusTx.toData $ mockPendingTx { pendingTxSignatories = [pubKeyHash pk1, pubKeyHash pk2] }
+validationData2 = Context $ PlutusTx.toData $ mockCtx { valCtxTxInfo = (valCtxTxInfo mockCtx) { txInfoSignatories = [pubKeyHash pk1, pubKeyHash pk2] } }
 
-mockPendingTx :: PendingTx
-mockPendingTx = PendingTx
-    { pendingTxInputs = []
-    , pendingTxOutputs = []
-    , pendingTxFee = PlutusTx.zero
-    , pendingTxForge = PlutusTx.zero
-    , pendingTxItem = PendingTxIn
-        { pendingTxInRef = TxOutRef
-            { txOutRefId = TxId P.emptyByteString
-            , txOutRefIdx = 0
-            }
-        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DatumHash "")
-        , pendingTxInValue = PlutusTx.zero
-        }
-    , pendingTxValidRange = defaultSlotRange
-    , pendingTxForgeScripts = []
-    , pendingTxSignatories = []
-    , pendingTxId = TxId P.emptyByteString
-    , pendingTxData = []
+mockCtx :: ValidatorCtx
+mockCtx = ValidatorCtx
+    { valCtxTxInfo = TxInfo
+      { txInfoInputs = []
+      , txInfoOutputs = []
+      , txInfoFee = PlutusTx.zero
+      , txInfoForge = PlutusTx.zero
+      , txInfoValidRange = defaultSlotRange
+      , txInfoForgeScripts = []
+      , txInfoSignatories = []
+      , txInfoId = TxId P.emptyByteString
+      , txInfoData = []
+      }
+    , valCtxInput = TxInInfo
+      { txInInfoOutRef = TxOutRef
+          { txOutRefId = TxId P.emptyByteString
+          , txOutRefIdx = 0
+          }
+      , txInInfoWitness = (ValidatorHash "", RedeemerHash "", DatumHash "")
+      , txInInfoValue = PlutusTx.zero
+      }
     }
 
 -- Script hashes

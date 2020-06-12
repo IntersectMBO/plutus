@@ -30,7 +30,7 @@ import qualified Data.ByteString.Lazy.Char8  as C
 import Language.Plutus.Contract
 import qualified Language.PlutusTx           as PlutusTx
 import           Language.PlutusTx.Prelude   hiding (pure, (<$>))
-import           Ledger                      (Address, PendingTx,
+import           Ledger                      (Address, ValidatorCtx,
                                               Validator, Value, scriptAddress)
 import qualified Ledger.Constraints as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
@@ -73,8 +73,8 @@ hashString = HashedString . sha2_256 . C.pack
 clearString :: String -> ClearString
 clearString = ClearString . C.pack
 
--- | The validation function (Datum -> Redeemer -> PendingTx -> Bool)
-validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+-- | The validation function (Datum -> Redeemer -> ValidatorCtx -> Bool)
+validateGuess :: HashedString -> ClearString -> ValidatorCtx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.
