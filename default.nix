@@ -13,7 +13,7 @@
 # Overrides for niv
 , sourcesOverride ? {}
 # Nixpkgs override
-, pkgs ? import ./nix/default.nix { inherit system crossSystem config sourcesOverride; }
+, pkgs ? import ./nix/default.nix { inherit system crossSystem config sourcesOverride enableLibraryProfiling; }
 
 # An explicit git rev to use, passed when we are in Hydra
 , rev ? null
@@ -21,6 +21,7 @@
 # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
 , useCabalProject ? false
+, enableLibraryProfiling ? true
 }:
 
 
@@ -302,7 +303,7 @@ in rec {
     };
 
     # WIP to make a VS Code devcontainer that can be used for working on plutus code
-    #   docker load < $(nix-build --system x86_64-linux -A docker.devcontainer)
+    #   docker load < $(nix-build --system x86_64-linux -A docker.devcontainer --arg enableLibraryProfiling false)
     # In VS Code install:
     #   https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
     # Open the plutus-use-cases folder VS Code (it contains a .devcontainer configuration).

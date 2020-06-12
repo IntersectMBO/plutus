@@ -3,6 +3,7 @@
 , config ? {}
 , overlays ? []
 , sourcesOverride ? {}
+, enableLibraryProfiling ? true
 }:
 let
   sources = import ./sources.nix { inherit pkgs; }
@@ -43,7 +44,7 @@ let
         haskell-nix = prev.haskell-nix // {
           compiler = prev.haskell-nix.compiler // {
             ghc883 = prev.haskell-nix.compiler.ghc883.override {
-              enableLibraryProfiling = false;
+              inherit enableLibraryProfiling;
             };
           };
         };
