@@ -2,8 +2,10 @@
 -- This module also defines custom pretty-printing functions for PLC types as a convenience.
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Pretty.Plc
@@ -56,6 +58,8 @@ data PrettyConfigPlc = PrettyConfigPlc
     , _pcpStrategy :: PrettyConfigPlcStrategy
     }
 
+type instance HasPrettyDefaults PrettyConfigPlc = 'True
+
 -- | The "pretty-printable PLC entity" constraint.
 type PrettyPlc = PrettyBy PrettyConfigPlc
 
@@ -72,12 +76,12 @@ instance HasPrettyConfigName PrettyConfigPlcStrategy where
 instance HasPrettyConfigName PrettyConfigPlc where
     toPrettyConfigName = toPrettyConfigName . _pcpStrategy
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlcStrategy a where
-    defaultPrettyBy (PrettyConfigPlcClassic configClassic)   = prettyBy configClassic
-    defaultPrettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlcStrategy (PrettyAny a) where
+    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unPrettyAny
+    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unPrettyAny
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
-    defaultPrettyBy = defaultPrettyBy . _pcpStrategy
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (PrettyAny a) where
+    prettyBy = prettyBy . _pcpStrategy
 
 -- | The 'PrettyConfigPlcOptions' used by default:
 -- print errors in full.

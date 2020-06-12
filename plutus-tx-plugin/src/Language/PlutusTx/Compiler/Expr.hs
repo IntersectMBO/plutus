@@ -8,8 +8,6 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module Language.PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import           PlutusPrelude                          (bsToStr)
-
 import           Language.PlutusTx.Compiler.Binders
 import           Language.PlutusTx.Compiler.Builtins
 import           Language.PlutusTx.Compiler.Error
@@ -38,11 +36,11 @@ import qualified Language.PlutusCore.Constant           as PLC
 
 import           Control.Monad.Reader
 
-import qualified Data.ByteString.Lazy                   as BSL
 import           Data.List                              (elemIndex)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Set                               as Set
 import qualified Data.Text                              as T
+import qualified Data.Text.Encoding                     as TE
 import           Data.Traversable
 
 {- Note [System FC and System FW]
@@ -100,7 +98,7 @@ compileLiteral = \case
         -- Note that we do *not* convert this into a PLC string, but rather a list of characters,
         -- since that is what other Haskell code will expect.
         let
-            str = bsToStr (BSL.fromStrict bs)
+            str = T.unpack $ TE.decodeUtf8 bs
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in compileExpr listExpr

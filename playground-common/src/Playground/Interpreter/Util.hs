@@ -41,13 +41,13 @@ import           Playground.Types                                (ContractCall (
                                                                   EvaluationResult (EvaluationResult), Expression,
                                                                   FunctionSchema (FunctionSchema),
                                                                   PlaygroundError (JsonDecodingError, OtherError, RollupError),
-                                                                  SimulatorWallet (SimulatorWallet), amount,
-                                                                  argumentValues, argument, blocks, caller,
-                                                                  decodingError, emulatorLog, emulatorTrace,
-                                                                  endpointDescription, expected, fundsDistribution,
-                                                                  input, recipient, resultBlockchain, resultRollup,
-                                                                  sender, simulatorWalletBalance, simulatorWalletWallet,
-                                                                  slot, walletKeys)
+                                                                  SimulatorWallet (SimulatorWallet), amount, argument,
+                                                                  argumentValues, blocks, caller, decodingError,
+                                                                  emulatorLog, emulatorTrace, endpointDescription,
+                                                                  expected, fundsDistribution, input, recipient,
+                                                                  resultBlockchain, resultRollup, sender,
+                                                                  simulatorWalletBalance, simulatorWalletWallet, slot,
+                                                                  walletKeys)
 import           Wallet.Emulator                                 (MonadEmulator)
 import           Wallet.Emulator.Chain                           (ChainState (ChainState), _chainNewestFirst, _index,
                                                                   _txPool)

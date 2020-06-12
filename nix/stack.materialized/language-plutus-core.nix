@@ -56,6 +56,8 @@
           (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
+          (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
@@ -65,6 +67,7 @@
           (hsPkgs."nonempty-containers" or (errorHandler.buildDepError "nonempty-containers"))
           (hsPkgs."parser-combinators" or (errorHandler.buildDepError "parser-combinators"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
@@ -72,11 +75,13 @@
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
-          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
           (hsPkgs."th-utilities" or (errorHandler.buildDepError "th-utilities"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+          (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
         build-tools = [
@@ -141,7 +146,6 @@
           "Language/PlutusIR/Compiler/Lower"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
-          "Data/Text/Prettyprint/Doc/Custom"
           "Language/PlutusCore"
           "Language/PlutusCore/Quote"
           "Language/PlutusCore/MkPlc"
@@ -212,6 +216,7 @@
           "Data/ByteString/Lazy/Hash"
           "PlcTestUtils"
           "Crypto"
+          "Data/Text/Prettyprint/Doc/Custom"
           ];
         hsSourceDirs = [
           "src"
@@ -354,9 +359,35 @@
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             ];
           buildable = true;
           hsSourceDirs = [ "budgeting-bench" ];
+          };
+        "language-plutus-core-create-cost-model" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "create-cost-model" ];
           };
         };
       };

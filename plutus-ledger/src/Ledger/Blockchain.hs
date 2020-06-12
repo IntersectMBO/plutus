@@ -19,9 +19,9 @@ module Ledger.Blockchain (
     ) where
 
 import           Control.Monad  (join)
+import           Data.List      (find)
 import           Data.Map       (Map)
 import qualified Data.Map       as Map
-import           Data.Maybe     (listToMaybe)
 
 import           Ledger.Crypto
 import           Ledger.Scripts
@@ -37,7 +37,7 @@ type Blockchain = [Block]
 
 -- | Lookup a transaction in a 'Blockchain' by its id.
 transaction :: Blockchain -> TxId -> Maybe Tx
-transaction bc tid = listToMaybe $ filter p  $ join bc where
+transaction bc tid = find p $ join bc where
     p tx = tid == txId tx
 
 -- | Determine the unspent output that an input refers to

@@ -29,6 +29,7 @@ let
   zlib = pkgs.zlib.static;
   ncurses = pkgs.ncurses.override { enableStatic = true; };
   libffi = pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; });
+  numactl = pkgs.numactl.overrideAttrs (_: { configureFlags = "--enable-static"; });
 
   killallz3 = pkgs.writeScriptBin "killallz3" ''
     kill -9 $(ps aux | grep z3 | grep -v grep | awk '{print $2}')
@@ -47,7 +48,8 @@ in
                      -optl=-L${lib.getLib zlib}/lib \
                      -optl=-L${lib.getLib gmp6}/lib \
                      -optl=-L${lib.getLib openssl}/lib \
-                     -optl=-L${lib.getLib libffi}/lib
+                     -optl=-L${lib.getLib libffi}/lib \
+                     -optl=-L${lib.getLib numactl}/lib
       '';
     installPhase = ''
       zip -j marlowe-symbolic.zip $out/bin/bootstrap ${z3}/bin/z3 ${killallz3}/bin/killallz3

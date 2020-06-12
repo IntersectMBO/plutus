@@ -33,6 +33,7 @@ import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
+import           Ledger.Blockchain                               (Blockchain)
 import           Network.Wai.Handler.Warp                        (run)
 import           Plutus.SCB.App                                  (App, runApp)
 import           Plutus.SCB.Arbitrary                            ()
@@ -48,13 +49,14 @@ import           Plutus.SCB.Types                                (ChainOverview 
                                                                   SCBError (ContractInstanceNotFound, InvalidUUIDError),
                                                                   baseUrl, chainOverviewBlockchain,
                                                                   chainOverviewUnspentTxsById, chainOverviewUtxoIndex,
-                                                                  scbWebserverConfig)
+                                                                  mkChainOverview, scbWebserverConfig)
 import           Plutus.SCB.Utils                                (tshow)
 import           Plutus.SCB.Webserver.API                        (API)
 import           Plutus.SCB.Webserver.Types
 import           Servant                                         ((:<|>) ((:<|>)), (:>), Application, Handler (Handler),
                                                                   err400, err500, errBody, hoistServer, serve)
 import           Servant.Client                                  (BaseUrl (baseUrlPort))
+import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
 import           Wallet.Emulator.Wallet                          (Wallet)
 import qualified Wallet.Rollup                                   as Rollup
 import           Wallet.Rollup.Types                             (AnnotatedTx)
@@ -72,16 +74,20 @@ healthcheck :: Monad m => m ()
 healthcheck = pure ()
 
 fullReport ::
-       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs)
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member ChainIndexEffect effs
+       )
     => Eff effs (FullReport t)
 fullReport = do
     latestContractStatuses <-
         Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
     events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
-    ChainOverview { chainOverviewBlockchain
+    blocks :: Blockchain <- confirmedBlocks
+    let ChainOverview { chainOverviewBlockchain
                   , chainOverviewUnspentTxsById
                   , chainOverviewUtxoIndex
-                  } <- runGlobalQuery (Query.chainOverviewProjection @t)
+                  } = mkChainOverview blocks
     let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
     annotatedBlockchain :: [[AnnotatedTx]] <-
         Rollup.doAnnotateBlockchain chainOverviewBlockchain
@@ -149,6 +155,7 @@ handler ::
        forall effs.
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
+       , Member ChainIndexEffect effs
        , Member Log effs
        , Member (Error SCBError) effs
        )
