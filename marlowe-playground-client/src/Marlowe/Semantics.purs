@@ -93,6 +93,7 @@ derive instance eqToken :: Eq Token
 derive instance ordToken :: Ord Token
 
 instance showToken :: Show Token where
+  show (Token "" "") = "Ada"
   show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
