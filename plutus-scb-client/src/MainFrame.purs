@@ -5,7 +5,6 @@ module MainFrame
   ) where
 
 import Prelude
-
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (AnnotatedBlockchain(..), _chainFocusAppearing)
@@ -93,8 +92,7 @@ handleAction ::
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
-handleAction (ChangeView view) =
-  assign _currentView view
+handleAction (ChangeView view) = assign _currentView view
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
