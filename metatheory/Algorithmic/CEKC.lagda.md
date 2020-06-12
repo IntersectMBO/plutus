@@ -18,6 +18,7 @@ open import Type.BetaNormal
 open import Type.BetaNBE hiding (Env)
 open import Type.BetaNBE.RenamingSubstitution
 open import Algorithmic
+open import Algorithmic.Reduction using (VERIFYSIG)
 open import Algorithmic.RenamingSubstitution
 open import Builtin
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
@@ -85,18 +86,15 @@ BUILTIN lessThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ 
 BUILTIN greaterThanInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i Builtin.Constant.Type.>? i') (con (bool true)) (con (bool false)) ,, []
 BUILTIN greaterThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≥? i') (con (bool true)) (con (bool false)) ,, []
 BUILTIN equalsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≟ i') (con (bool true)) (con (bool false)) ,, []
-{-
-BUILTIN concatenate σ ctel = {!!}
-BUILTIN takeByteString σ ctel = {!!}
-BUILTIN dropByteString σ ctel = {!!}
-BUILTIN sha2-256 σ ctel = {!!}
-BUILTIN sha3-256 σ ctel = {!!}
-BUILTIN verifySignature σ ctel = {!!}
-BUILTIN equalsByteString σ ctel = {!!}
--}
+BUILTIN concatenate σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, (_ ,, _ ,, V-con (bytestring b') ,, _) ,, tt) = _ ,, con (bytestring (append b b')) ,, []
+BUILTIN takeByteString σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, con (bytestring (take i b)) ,, []
+BUILTIN dropByteString σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, con (bytestring (drop i b)) ,, []
+BUILTIN sha2-256 σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, (con (bytestring (SHA2-256 b))) ,, []
+BUILTIN sha3-256 σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, tt) = _ ,, (con (bytestring (SHA3-256 b))) ,, []
+BUILTIN verifySignature σ ((_ ,, _ ,, V-con (bytestring k) ,, _) ,, (_ ,, _ ,, V-con (bytestring d) ,, _) ,, (_ ,, _ ,, V-con (bytestring c) ,, _) ,, tt) = _ ,, VERIFYSIG (verifySig k d c) ,, []
+BUILTIN equalsByteString σ ((_ ,, _ ,, V-con (bytestring b) ,, _) ,, (_ ,, _ ,, V-con (bytestring b') ,, _) ,, tt) = _ ,, con (bool (equals b b')) ,, []
 BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool true) ,, _) ,, (_ ,, t ,, _ ,, ρ) ,, _ ,, tt) = _ ,, t ,, ρ
 BUILTIN ifThenElse σ ((_ ,, _ ,, V-con (bool false) ,, _) ,, _ ,, (_ ,, u ,, _ ,, ρ) ,, tt) = _ ,, u ,, ρ
-BUILTIN _ _ _ = _ ,, error _ ,, []
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
