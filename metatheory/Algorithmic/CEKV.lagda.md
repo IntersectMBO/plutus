@@ -11,6 +11,8 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]];subst t
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Sum
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Data.Bool using (true;false)
 
 open import Type
 open import Type.BetaNormal
@@ -22,6 +24,7 @@ open import Builtin
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Utils using (decIf;Maybe;just;nothing)
 
 data Env : Ctx ∅ → Set
 
@@ -67,14 +70,66 @@ extendVTel : ∀{Δ As} Bs
 extendVTel L.[] σ vs v refl = v ,, _
 extendVTel (B L.∷ Bs) σ (v ,, vs) v' refl = v ,, extendVTel Bs σ vs v' refl
 
-
 BUILTIN : (bn : Builtin)
     → let Δ ,, As ,, C = SIG bn in
       (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)
     → (vtel : VTel Δ σ As)
       -----------------------------
     → Value (substNf σ C) ⊎ ∅ ⊢Nf⋆ *
-BUILTIN b σ vtel = inj₂ (substNf σ (proj₂ (proj₂ (SIG b))))
+BUILTIN addInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  inj₁ (V-con (integer (i + i')))
+BUILTIN subtractInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  inj₁ (V-con (integer (i - i')))
+BUILTIN multiplyInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  inj₁ (V-con (integer (i ** i')))
+BUILTIN divideInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (div i i'))))
+BUILTIN quotientInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (quot i i'))))
+BUILTIN remainderInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (rem i i'))))
+BUILTIN modInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i' ≟ ℤ.pos 0) (inj₂ (con integer)) (inj₁ (V-con (integer (mod i i'))))
+BUILTIN lessThanInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN
+  lessThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN greaterThanInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i Builtin.Constant.Type.>? i')
+        (inj₁ (V-con (bool true)))
+        (inj₁ (V-con (bool false)))
+BUILTIN
+  greaterThanEqualsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i ≥? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN equalsInteger σ (V-con (integer i) ,, V-con (integer i') ,, tt) =
+  decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
+BUILTIN concatenate σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) =
+  inj₁ (V-con (bytestring (append b b')))
+BUILTIN takeByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
+  inj₁ (V-con (bytestring (take i b)))
+BUILTIN dropByteString σ (V-con (integer i) ,, V-con (bytestring b) ,, tt) =
+  inj₁ (V-con (bytestring (drop i b)))
+BUILTIN sha2-256 σ (V-con (bytestring b) ,, tt) =
+  inj₁ (V-con (bytestring (SHA2-256 b)))
+BUILTIN sha3-256 σ (V-con (bytestring b) ,, tt) =
+  inj₁ (V-con (bytestring (SHA3-256 b)))
+BUILTIN
+  verifySignature
+  σ
+  (V-con (bytestring k)
+   ,,
+   V-con (bytestring d)
+   ,,
+   V-con (bytestring c)
+   ,,
+   tt) with (verifySig k d c)
+... | just b = inj₁ (V-con (bool b))
+... | nothing = inj₂ (con bool)
+
+BUILTIN equalsByteString σ (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = inj₁ (V-con (bool (equals b b')))
+BUILTIN ifThenElse σ (V-con (bool false) ,, VT ,, VF ,, tt) = inj₁ VF
+BUILTIN ifThenElse σ (V-con (bool true)  ,, VT ,, VF ,, tt) = inj₁ VT
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
