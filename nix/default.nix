@@ -8,7 +8,11 @@ let
   sources = import ./sources.nix { inherit pkgs; }
     // sourcesOverride;
   iohkNix = import sources.iohk-nix {};
-  haskellNix = import sources."haskell.nix" {};
+  haskellNix = import sources."haskell.nix" {
+    # Dev tools should be compiled with the same compiler as
+    # plutus increase sharing and keep closure sizes down
+    defaultCompilerNixName = "ghc883";
+  };
   # Use our own nixpkgs
   nixpkgs = sources.nixpkgs;
 
@@ -34,6 +38,16 @@ let
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
+      # Disable profiling libraries in ghc883 to keep the devcontainer size down
+      (final: prev: {
+        haskell-nix = prev.haskell-nix // {
+          compiler = prev.haskell-nix.compiler // {
+            ghc883 = prev.haskell-nix.compiler.ghc883.override {
+              enableLibraryProfiling = false;
+            };
+          };
+        };
+      })
     ];
 
   pkgs = import nixpkgs {

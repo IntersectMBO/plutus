@@ -16,7 +16,6 @@ let
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
       index-state = "2020-05-10T00:00:00Z";
-      ghc = buildPackages.haskell-nix.compiler.ghc883;
 
       modules = args.modules ++ [{
         # plan-to-nix does not expose `test: False` settings in cabal.project file
