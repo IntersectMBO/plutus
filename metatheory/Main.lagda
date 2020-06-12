@@ -167,6 +167,7 @@ evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
 ... | M.just (□ {t = t'''} V)  =
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
+... | M.just (◆ _)  = inj₂ "the machine errored"
 ... | M.just _  = inj₂ "this shouldn't happen"
 ... | M.nothing = inj₂ "out of fuel"
 evalPLC TCEK plc | just nt | just t | just t' with inferType _ t'
@@ -175,7 +176,7 @@ evalPLC TCEK plc | just nt | just t | just t' with inferType _ t'
 ... | M.just (□ (_ ,, _ ,, V ,, ρ))  =
   inj₁ (prettyPrintTm (extricateScope (extricate (proj₁ (discharge V ρ)))))
 ... | M.just (◆ _)  = inj₂ "the machine errored"
-... | M.just (_)  = inj₂ "did not terminate in allowed steps"
+... | M.just _  = inj₂ "did not terminate in allowed steps"
 ... | M.nothing = inj₂ "out of fuel"
 evalPLC U plc | just nt | just t | just t' with U.run (eraseTm t') 10000000
 evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =

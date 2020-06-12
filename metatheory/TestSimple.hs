@@ -80,6 +80,10 @@ main = do
   runSucceedingTests "evaluate" (Just "CK") succeedingEvalTests
   putStrLn "running fail CK"
   runFailingTests "evaluate" (Just "CK") failingEvalTests
+  putStrLn "running succ CK"
+  runSucceedingTests "evaluate" (Just "TCK") succeedingEvalTests
+  putStrLn "running fail CK"
+  runFailingTests "evaluate" (Just "TCK") failingEvalTests
   putStrLn "running succ U..."
   runSucceedingTests "evaluate" (Just "U") succeedingEvalTests
   putStrLn "running succ TC"
