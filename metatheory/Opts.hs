@@ -23,7 +23,7 @@ stdInput = flag' StdInput
 input :: Parser Input
 input = fileInput <|> stdInput
 
-data EvalMode = U | L | TCK | CK | TCEK deriving (Show, Read)
+data EvalMode = U | L | TCK | CK | TCEKC | TCEKV deriving (Show, Read)
 
 data EvalOptions = EvalOpts Input EvalMode
 
@@ -34,7 +34,7 @@ evalMode = option auto
   <> metavar "MODE"
   <> value CK
   <> showDefault
-  <> help "Evaluation mode (U , L, TCK, CK, or TCEK)" )
+  <> help "Evaluation mode (U , L, TCK, CK, TCEKC, or TCEKV)" )
 
 evalOpts :: Parser EvalOptions
 evalOpts = EvalOpts <$> input <*> evalMode
@@ -57,13 +57,3 @@ execP = execParser (info (commands <**> helper)
                     (fullDesc
                      <> progDesc "Plutus Core tool"
                      <> header "plc-agda - a Plutus Core implementation written in Agda"))
-
-greet :: Command -> IO ()
-greet = undefined
-{-
-greet (EvalOpts (FileInput h) CK) = T.putStr h >> T.putStrLn (T.pack "CK")
-greet (EvalOpts StdInput CK)      =
-  T.putStrLn (T.pack "stdin") >> T.putStrLn (T.pack "CK")
--}
-main :: IO ()
-main = greet =<< execP

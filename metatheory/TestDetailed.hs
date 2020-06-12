@@ -72,11 +72,11 @@ compareResult'' eq test = do
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   plcAgdaOutput2 <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp","--mode","TCEK"]  M.main)
+    (withArgs ["evaluate","--file","tmp","--mode","TCEKC"]  M.main)
     (\ e -> case e of
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ "TCK: '" ++ plcAgdaOutput1 ++ "' " ++ "TCEK: '" ++ plcAgdaOutput2 ++ "'"
+  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ "TCK: '" ++ plcAgdaOutput1 ++ "' " ++ "TCEKC: '" ++ plcAgdaOutput2 ++ "'"
 
 compareResult''' :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
 compareResult''' eq test = do
@@ -94,6 +94,23 @@ compareResult''' eq test = do
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ "CK: '" ++ plcAgdaOutput1 ++ "' " ++ "TCK: '" ++ plcAgdaOutput2 ++ "'"
+
+compareResult'''' :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
+compareResult'''' eq test = do
+  example <- readProcess "plc" ["example","-s",test] []
+  writeFile "tmp" example
+  putStrLn $ "test: " ++ test
+  plcAgdaOutput1 <- catchOutput $ catch
+    (withArgs ["evaluate","--file","tmp","--mode","TCEKC"]  M.main)
+    (\ e -> case e of
+        ExitFailure _ -> exitFailure
+        ExitSuccess   -> return ())
+  plcAgdaOutput2 <- catchOutput $ catch
+    (withArgs ["evaluate","--file","tmp","--mode","TCEKV"]  M.main)
+    (\ e -> case e of
+        ExitFailure _ -> exitFailure
+        ExitSuccess   -> return ())
+  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ "TCEKC: '" ++ plcAgdaOutput1 ++ "' " ++ "TCEKV: '" ++ plcAgdaOutput2 ++ "'"
 
 
 
@@ -165,6 +182,15 @@ mkTest''' eq test = TestInstance
         , setOption = \_ _ -> Right (mkTest''' eq test)
         }
 
+mkTest'''' :: (C.ByteString -> C.ByteString -> Bool) -> String -> TestInstance
+mkTest'''' eq test = TestInstance
+        { run = compareResult'''' eq test
+        , name = test
+        , tags = []
+        , options = []
+        , setOption = \_ _ -> Right (mkTest'''' eq test)
+        }
+
 tests :: IO [Test]
 tests = do --return [ Test succeeds ] -- , Test fails ]
   return $ map Test
@@ -175,6 +201,8 @@ tests = do --return [ Test succeeds ] -- , Test fails ]
     map (mkTest'' M.alphaTm) evalTestNames
      ++
     map (mkTest''' M.alphaTm) (tail evalTestNames) -- skip succInt test
+     ++
+    map (mkTest'''' M.alphaTm) evalTestNames
      ++
      map (mkTest M.alphaTy "typecheck") tcTestNames)
   where
