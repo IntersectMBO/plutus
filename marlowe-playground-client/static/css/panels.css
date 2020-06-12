@@ -425,3 +425,21 @@ button.minus-btn:hover {
   border: none;
   background-color: var(--bg-dark);
 }
+
+.analysis-result-title {
+  margin: 1rem 0 0.5rem 0;
+}
+
+.indented-enum {
+  padding-left: 1.5rem;
+}
+
+.indented-enum-initial {
+  list-style-type: initial;
+  padding-left: 1.5rem;
+}
+
+.indented-loweralpha-enum {
+  list-style-type: lower-alpha;
+  padding-left: 1.5rem;
+}

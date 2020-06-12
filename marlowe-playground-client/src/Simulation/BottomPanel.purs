@@ -19,7 +19,7 @@ import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3_, img, li, li_, ol, ol_, pre, section, span_, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
@@ -428,15 +428,19 @@ analysisResultPane state =
           ]
       Success (R.Valid) ->
         explanation
-          [ h3_ [ text "Analysis Result: Pass" ]
+          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Pass" ]
           , text "Static analysis could not find any execution that results in any warning."
           ]
       Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
         explanation
-          [ h3_ [ text "Analysis Result: Warnings Found" ]
+          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Warnings Found" ]
           , text "Static analysis found the following counterexample:"
-          , ul_
+          , ul [ classes [ ClassName "indented-enum-initial" ] ]
               [ li_
+                  [ spanText "Warnings issued: "
+                  , displayWarningList transactionWarning
+                  ]
+              , li_
                   [ spanText "Initial slot: "
                   , b_ [ spanText (show initialSlot) ]
                   ]
@@ -444,17 +448,13 @@ analysisResultPane state =
                   [ spanText "Offending transaction list: "
                   , displayTransactionList transactionList
                   ]
-              , li_
-                  [ spanText "Warnings issued: "
-                  , displayWarningList transactionWarning
-                  ]
               ]
           ]
       Success (R.Error str) ->
         explanation
-          [ h3_ [ text "Error during analysis" ]
+          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
           , text "Analysis failed for the following reason:"
-          , ul_
+          , ul [ classes [ ClassName "indented-enum-initial" ] ]
               [ li_
                   [ b_ [ spanText str ]
                   ]
@@ -462,9 +462,9 @@ analysisResultPane state =
           ]
       Failure failure ->
         explanation
-          [ h3_ [ text "Error during analysis" ]
+          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
           , text "Analysis failed for the following reason:"
-          , ul_
+          , ul [ classes [ ClassName "indented-enum-initial" ] ]
               [ li_
                   [ b_ [ spanText failure ]
                   ]
@@ -475,7 +475,7 @@ analysisResultPane state =
 displayTransactionList :: forall p. String -> HTML p Action
 displayTransactionList transactionList = case runParser transactionInputList transactionList of
   Right pTL ->
-    ol_
+    ol [ classes [ ClassName "indented-enum" ] ]
       ( do
           ( TransactionInput
               { interval: SlotInterval (Slot from) (Slot to)
@@ -505,7 +505,7 @@ displayTransactionList transactionList = case runParser transactionInputList tra
 
 displayInputList :: forall p. List Input -> HTML p Action
 displayInputList inputList =
-  ol_
+  ol [ classes [ ClassName "indented-loweralpha-enum" ] ]
     ( do
         input <- (toUnfoldable inputList)
         pure (li_ (displayInput input))
@@ -545,7 +545,7 @@ displayInput (INotify) =
 displayWarningList :: forall p. String -> HTML p Action
 displayWarningList transactionWarnings = case runParser transactionWarningList transactionWarnings of
   Right pWL ->
-    ol_
+    ol [ classes [ ClassName "indented-enum" ] ]
       ( do
           warning <- ((toUnfoldable pWL) :: Array TransactionWarning)
           pure (li_ (displayWarning warning))

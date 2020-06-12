@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Monad.Gen as Gen
