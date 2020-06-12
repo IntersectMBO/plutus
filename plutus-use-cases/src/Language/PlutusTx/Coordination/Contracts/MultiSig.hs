@@ -50,7 +50,7 @@ data MultiSig =
 PlutusTx.makeLift ''MultiSig
 
 contract :: AsContractError e => Contract MultiSigSchema e ()
-contract = (lock <|> unlock) >> contract
+contract = (lock `select` unlock) >> contract
 
 {-# INLINABLE validate #-}
 validate :: MultiSig -> () -> () -> PendingTx -> Bool

@@ -1,11 +1,12 @@
+{-# LANGUAGE ExplicitForAll   #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 module Spec.Rollup where
 
 
 import           Data.ByteString.Lazy                                  (ByteString)
 import qualified Data.ByteString.Lazy                                  as LBS
 import qualified Data.Map                                              as Map
-import qualified Data.Text                                             as T
 import           Data.Text.Encoding                                    (encodeUtf8)
 
 import           Language.Plutus.Contract
@@ -34,17 +35,17 @@ tests = testGroup "showBlockchain"
      , goldenVsString
           "renders a guess scenario sensibly"
           "test/Spec/renderGuess.txt"
-          (render game guessTrace)
+          (render @_ @ContractError game guessTrace)
      , goldenVsString
           "renders a vesting scenario sensibly"
           "test/Spec/renderVesting.txt"
-          (render (vestingContract Spec.Vesting.vesting) Spec.Vesting.retrieveFundsTrace)
+          (render @_ @VestingError (vestingContract Spec.Vesting.vesting) Spec.Vesting.retrieveFundsTrace)
      ]
 
 render
-    :: ( ContractRow s )
-    => Contract s T.Text a
-    -> ContractTrace s T.Text (EmulatorAction (TraceError T.Text)) a ()
+    :: forall s e a. ( Show e )
+    => Contract s e a
+    -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> IO ByteString
 render con trace = do
     let (result, EmulatorState{ _chainState = cs, _walletClientStates = wallets}) = runTrace con trace

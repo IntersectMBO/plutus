@@ -4,11 +4,12 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures         #-}
+{-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
@@ -23,6 +24,8 @@ module Language.Plutus.Contract.Trace
     , ctsWalletStates
     , ctsContract
     , eventsByWallet
+    , handlersByWallet
+    , checkpointStoreByWallet
     , ContractTraceResult(..)
     , ctrEmulatorState
     , ctrTraceState
@@ -39,7 +42,8 @@ module Language.Plutus.Contract.Trace
     , addBlocks
     , addBlocksUntil
     , addEvent
-    , addEventAll
+    , addNamedEvent
+    , addResponse
     , notifyInterestingAddresses
     , notifySlot
     , payToWallet
@@ -59,8 +63,8 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
-                                                                    (%=))
+import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, non, use,
+                                                                    view, (%=))
 import           Control.Monad.Except
 import qualified Control.Monad.Freer                               as Eff
 import qualified Control.Monad.Freer.Error                         as Eff
@@ -70,32 +74,40 @@ import           Data.Bifunctor                                    (Bifunctor (.
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (fromMaybe)
-import           Data.Row                                          (AllUniqueLabels, Forall, HasType)
+import           Data.Maybe                                        (fromMaybe, mapMaybe)
+import           Data.Row                                          (AllUniqueLabels, HasType, KnownSymbol, Label (..),
+                                                                    trial')
+import qualified Data.Row.Internal                                 as V
+import qualified Data.Row.Variants                                 as V
 import           Data.Sequence                                     (Seq, (|>))
 import qualified Data.Set                                          as Set
+import           Data.Text                                         (Text)
+import qualified Data.Text                                         as Text
+import           Data.Text.Extras                                  (tshow)
 import           Numeric.Natural                                   (Natural)
 
-import           Language.Plutus.Contract                          (Contract (..), HasTxConfirmation, HasUtxoAt,
-                                                                    HasWatchAddress, HasWriteTx,
-                                                                    waitingForBlockchainActions, withContractError)
+import           Language.Plutus.Contract                          (Contract (..), HasAwaitSlot, HasTxConfirmation,
+                                                                    HasUtxoAt, HasWatchAddress, HasWriteTx, mapError,
+                                                                    waitingForBlockchainActions)
+import           Language.Plutus.Contract.Checkpoint               (CheckpointStore)
 import qualified Language.Plutus.Contract.Resumable                as State
-import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
+import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
+import qualified Language.Plutus.Contract.Types                    as Contract.Types
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
-import           Language.Plutus.Contract.Effects.AwaitSlot        (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
 import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint   as Endpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey, OwnPubKeyRequest (..))
+import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
 import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx          (TxSymbol, WriteTxResponse)
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
-import           Language.Plutus.Contract.Resumable                (ResumableError, ResumableResult (..))
+import           Language.Plutus.Contract.Resumable                (Request (..), Requests (..), Response (..))
+import           Language.Plutus.Contract.Types                    (ResumableResult (..))
 
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
@@ -127,8 +139,9 @@ defaultMaxIterations = MaxIterations 20
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.
 data TraceError e =
     TraceAssertionError EM.AssertionError
-    | ContractError e
+    | TContractError e
     | HandleBlockchainEventsMaxIterationsExceeded MaxIterations
+    | HookError Text
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
@@ -137,47 +150,35 @@ type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
 data WalletState s e a =
     WalletState
-        { walletContractState :: Either (ResumableError e) (ResumableResult (Event s) (Handlers s) a)
-        , walletEvents        :: Seq (Event s)
+        { walletContractState   :: Either e (ResumableResult (Event s) (Handlers s) a)
+        , walletEvents          :: Seq (Response (Event s))
+        , walletHandlersHistory :: Seq [State.Request (Handlers s)]
         }
 
-walletHandlers
-    :: ( Forall (Output s) Monoid
-    , Forall (Output s) Semigroup
-    , AllUniqueLabels (Output s)
-    )
-    => WalletState s (TraceError e) a -> Handlers s
-walletHandlers = either mempty wcsHandlers . walletContractState
+walletHandlers :: WalletState s (TraceError e) a -> [State.Request (Handlers s)]
+walletHandlers = either mempty (State.unRequests . wcsRequests) . walletContractState
 
-emptyWalletState
-    :: ( Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       , AllUniqueLabels (Output s)
-       )
-    => Contract s e a
-    -> WalletState s e a
+emptyWalletState :: Contract s e a -> WalletState s e a
 emptyWalletState (Contract c) =
     WalletState
-        { walletContractState = State.runResumable [] c
+        { walletContractState = Contract.Types.runResumable [] mempty c
         , walletEvents = mempty
+        , walletHandlersHistory = mempty
         }
 
-addEventWalletState
-    :: ( AllUniqueLabels (Output s)
-       , Forall (Output s) Semigroup
-       , Forall (Output s) Monoid
-       )
-    => Contract s e a
-    -> Event s
+addEventWalletState ::
+    Contract s e a
+    -> Response (Event s)
     -> WalletState s e a
     -> WalletState s e a
-addEventWalletState (Contract c) event s@WalletState{walletContractState, walletEvents} =
+addEventWalletState (Contract c) event s@WalletState{walletContractState, walletEvents, walletHandlersHistory} =
     case walletContractState of
         Left _ -> s
-        Right ResumableResult{wcsRecord} ->
-            let state' = State.insertAndUpdate c wcsRecord event
+        Right ResumableResult{wcsResponses,wcsRequests=Requests{unRequests},wcsCheckpointStore} ->
+            let state' = Contract.Types.insertAndUpdate c wcsCheckpointStore wcsResponses event
                 events' = walletEvents |> event
-            in s { walletContractState = state', walletEvents = events' }
+                history' = walletHandlersHistory |> unRequests
+            in s { walletContractState = state', walletEvents = events', walletHandlersHistory = history'}
 
 data ContractTraceState s e a =
     ContractTraceState
@@ -189,34 +190,82 @@ data ContractTraceState s e a =
         -- ^ Current state of the contract
         }
 
-eventsByWallet :: ContractTraceState s e a -> Map Wallet [Event s]
+eventsByWallet :: ContractTraceState s e a -> Map Wallet [Response (Event s)]
 eventsByWallet = fmap (toList . walletEvents) . _ctsWalletStates
+
+handlersByWallet :: ContractTraceState s e a -> Map Wallet [[State.Request (Handlers s)]]
+handlersByWallet = fmap (toList . walletHandlersHistory) . _ctsWalletStates
+
+checkpointStoreByWallet :: ContractTraceState s e a -> Map Wallet CheckpointStore
+checkpointStoreByWallet = fmap (either (const mempty) wcsCheckpointStore . walletContractState) . _ctsWalletStates
 
 makeLenses ''ContractTraceState
 
-initState
-    :: ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => [Wallet]
+initState ::
+    [Wallet]
     -> Contract s e a
     -> ContractTraceState s e a
 initState wllts con = ContractTraceState wallets con where
-    wallets = Map.fromList $ fmap (,emptyWalletState con) wllts
+    wallets = Map.fromList $ fmap (\a -> (a,emptyWalletState con)) wllts
 
 -- | Add an event to the wallet's trace
-addEvent
-    :: forall s e m a.
-       ( MonadState (ContractTraceState s e a) m
-       , AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
+addEvent ::
+    forall l s e m a.
+    ( MonadEmulator (TraceError e) m
+    , KnownSymbol l
+    )
     => Wallet
     -> Event s
+    -> ContractTrace s e m a ()
+addEvent wallet event = do
+    let filterReq Request{rqID, itID, rqRequest=Handlers v} = do
+            _ <- trial' v (Label @l)
+            Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
+    hks <- mapMaybe filterReq <$> getHooks wallet >>= \case
+            [] -> throwError $ HookError $ "No hooks found for " <> tshow (Label @l)
+            [x] -> pure x
+            _ -> throwError $ HookError $ "More than one hook found for " <> tshow (Label @l)
+    addResponse wallet hks
+
+-- | A variant of 'addEvent' that takes the name of the endpoint as a value
+--   instead of a type argument. This is useful for the playground where we
+--   don't have the type-level symbol of user-defined endpoint calls.
+--   Unfortunately this requires the 'V.Forall (Output s) V.Unconstrained1'
+--   constraint. Luckily 'V.Forall (Output s) V.Unconstrained1' holds for all
+--   schemas, so it doesn't restrict the callers of 'addNamedEvent'. But we
+--   have to propagate it up to the top level :(
+addNamedEvent ::
+    forall s e m a.
+    ( MonadEmulator (TraceError e) m
+    --   TODO: remove (using 'constraints' package)
+    , V.Forall (Output s) V.Unconstrained1
+    )
+    => String -- endpoint name
+    -> Wallet
+    -> Event s
+    -> ContractTrace s e m a ()
+addNamedEvent endpointName wallet event = do
+    let filterReq Request{rqID, itID, rqRequest=Handlers v} = do
+            guard $
+                (V.eraseWithLabels @V.Unconstrained1 (const ()) v)
+                    == (endpointName, ())
+            Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
+    hks <- mapMaybe filterReq <$> getHooks wallet >>= \case
+            [] -> throwError $ HookError $ "No hooks found for " <> Text.pack endpointName
+            [x] -> pure x
+            _ -> throwError $ HookError $ "More than one hook found for " <> Text.pack endpointName
+    addResponse wallet hks
+
+
+-- | Add a 'Response' to the wallet's trace
+addResponse
+    :: forall s e m a.
+       ( MonadState (ContractTraceState s e a) m
+       )
+    => Wallet
+    -> Response (Event s)
     -> m ()
-addEvent w e = do
+addResponse w e = do
     con <- use ctsContract
     let go st =
             let theState = fromMaybe (emptyWalletState con) st
@@ -227,12 +276,9 @@ addEvent w e = do
 getHooks
     :: forall s e m a.
        ( Monad m
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       , AllUniqueLabels (Output s)
        )
     => Wallet
-    -> ContractTrace s e m a (Handlers s)
+    -> ContractTrace s e m a [Request (Handlers s)]
 getHooks w =
     foldMap walletHandlers . Map.lookup w <$> use ctsWalletStates
 
@@ -256,29 +302,13 @@ setSigningProcess
 setSigningProcess wallet signingProcess =
     void $ lift $ runWalletControl wallet (EM.setSigningProcess signingProcess)
 
--- | Add an event to every wallet's trace
-addEventAll
-    :: forall s e m a.
-       ( Monad m
-       , AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => Event s
-    -> ContractTrace s e m a ()
-addEventAll e = traverse_ (flip addEvent e) allWallets
-
 -- | Run a trace in the emulator and return the
 --   final events for each wallet.
 execTrace
     :: forall s e a.
-       ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => Contract s e a
+    Contract s e a
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
-    -> Map Wallet [Event s]
+    -> Map Wallet [Response (Event s)]
 execTrace con action =
     let (e, _) = runTrace con action
     in
@@ -286,23 +316,16 @@ execTrace con action =
 
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
-runTrace
-    :: ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => Contract s e a
+runTrace ::
+    Contract s e a
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTrace = runTraceWithDistribution defaultDist
 
 -- | Run a contract and return the result for the given wallet, if it exists
-evalTrace
-    :: forall s e a. ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => Contract s e a
+evalTrace ::
+    forall s e a.
+    Contract s e a
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> Wallet
     -> Either String a
@@ -314,17 +337,13 @@ evalTrace contract trace wllt = do
 
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
-runTraceWithDistribution
-    :: ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       )
-    => InitialDistribution
+runTraceWithDistribution ::
+    InitialDistribution
     -> Contract s e a
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTraceWithDistribution dist con action =
-  let con' = withContractError ContractError con in
+  let con' = mapError TContractError con in
   withInitialDistribution dist (runStateT action (initState (Map.keys dist) con'))
 
 -- | Run an 'EmulatorAction' on a blockchain with the given initial distribution
@@ -371,7 +390,17 @@ callEndpoint
     => Wallet
     -> ep
     -> ContractTrace s e m a ()
-callEndpoint w = addEvent w . Endpoint.event @l @_ @s
+callEndpoint wallet ep = do
+    -- check if the endpoint is active and throw an error if it isn't
+    hks <- getHooks wallet
+    unless (any (Endpoint.isActive @l) $ fmap rqRequest hks) $
+        throwError $ HookError $ "Endpoint " <> tshow (Label @l) <> " not active on " <> tshow wallet
+
+    let handleEvent e
+            | Endpoint.isActive @l e = Just (Endpoint.event @l ep)
+            | otherwise = Nothing
+
+    respondToRequest wallet handleEvent
 
 -- | Balance, sign and submit the unbalanced transaction in the context
 --   of the wallet
@@ -380,9 +409,6 @@ submitUnbalancedTx
        ( MonadEmulator (TraceError e) m
        , HasType TxSymbol WriteTxResponse (Input s)
        , AllUniqueLabels (Input s)
-       , AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
        )
     => Wallet
     -> UnbalancedTx
@@ -390,8 +416,29 @@ submitUnbalancedTx
 submitUnbalancedTx wallet tx = do
     (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx tx) `Eff.catchError` \e -> pure $ Left e))
     let event = WriteTx.event $ view (from WriteTx.writeTxResponse) $ fmap txId res
-    addEvent wallet event
-    pure txns
+    addEvent @TxSymbol wallet event
+    pure  txns
+
+-- | Inspect the open requests of a wallet's contract instance,
+--   and maybe respond to them.
+respondToRequest ::
+    forall s e m a.
+    ( MonadEmulator (TraceError e) m
+    )
+    => Wallet
+    -- ^ The wallet
+    -> (Handlers s -> Maybe (Event s))
+    -- ^ How to respond to the requests. If this returns 'Just' for more than
+    --   one request then only the first response will be submitted to the
+    --   contract
+    -> ContractTrace s e m a ()
+respondToRequest wallet f = do
+    hks <- getHooks wallet
+    let -- pick the first request that matches the predicate f
+        relevantRequest = msum (fmap (traverse f) hks)
+        handleReq Request{rqID,itID,rqRequest} =
+           addResponse wallet Response{rspItID=itID, rspRqID=rqID, rspResponse=rqRequest}
+    traverse_ handleReq relevantRequest
 
 addInterestingTxEvents
     :: forall s e m a.
@@ -401,14 +448,9 @@ addInterestingTxEvents
     => Map Address (Event s)
     -> Wallet
     -> ContractTrace s e m a ()
-addInterestingTxEvents mp wallet = do
-    hks <- getHooks wallet
-    let relevantAddresses = WatchAddress.addresses hks
-        relevantTransactions =
-            fmap snd
-            $ Map.toList
-            $ Map.filterWithKey (\addr _ -> addr `Set.member` relevantAddresses) mp
-    traverse_ (addEvent wallet) relevantTransactions
+addInterestingTxEvents mp wallet =
+    let handleEvent = WatchAddress.watchedAddress >=> flip Map.lookup mp
+    in respondToRequest wallet handleEvent
 
 addTxConfirmedEvent
     :: forall s e m a.
@@ -418,11 +460,11 @@ addTxConfirmedEvent
     => TxId
     -> Wallet
     -> ContractTrace s e m a ()
-addTxConfirmedEvent txid wallet = do
-    hks <- getHooks wallet
-    let relevantTxIds = AwaitTxConfirmed.txIds hks
-    when (txid `Set.member` relevantTxIds)
-        (addEvent wallet (AwaitTxConfirmed.event txid))
+addTxConfirmedEvent txid wallet =
+    let handleEvent e = case AwaitTxConfirmed.txId e of
+            Just txid' | txid' == txid -> Just (AwaitTxConfirmed.event txid)
+            _                          -> Nothing
+    in respondToRequest wallet handleEvent
 
 -- | Respond to all 'WatchAddress' requests from contracts that are waiting
 --   for a change to an address touched by this transaction
@@ -446,15 +488,12 @@ addTxEvents tx = do
 unbalancedTransactions
     :: forall s e m a.
        ( Monad m
-       , HasType TxSymbol WriteTx.PendingTransactions (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       , AllUniqueLabels (Output s)
+       , HasType TxSymbol UnbalancedTx (Output s)
        )
     => Wallet
     -> ContractTrace s e m a [UnbalancedTx]
-unbalancedTransactions =
-    fmap WriteTx.transactions . getHooks
+unbalancedTransactions wllt =
+    mapMaybe (WriteTx.pendingTransaction . rqRequest) <$> getHooks wllt
 
 -- | Get the address that the contract has requested the unspent outputs for.
 utxoQueryAddresses
@@ -464,8 +503,8 @@ utxoQueryAddresses
        )
     => Wallet
     -> ContractTrace s e m a (Set.Set Address)
-utxoQueryAddresses =
-    fmap UtxoAt.addresses . getHooks
+utxoQueryAddresses wllt =
+    Set.fromList . mapMaybe (UtxoAt.utxoAtRequest . rqRequest) <$> getHooks wllt
 
 -- | Get the addresses that are of interest to the wallet's contract instance
 interestingAddresses
@@ -474,25 +513,24 @@ interestingAddresses
        )
     => Wallet
     -> ContractTrace s e m a [Address]
-interestingAddresses =
-    fmap (Set.toList . WatchAddress.addresses) . getHooks
+interestingAddresses wllt =
+    mapMaybe (WatchAddress.watchedAddress . rqRequest) <$> getHooks wllt
 
 -- | Add a 'SlotChange' event to the wallet's event trace, informing the
 --   contract of the current slot
 notifySlot
     :: forall s e m a.
        ( MonadEmulator (TraceError e) m
-       , HasType SlotSymbol Slot (Input s)
-       , AllUniqueLabels (Input s)
-       , AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
+       , HasAwaitSlot s
        )
     => Wallet
     -> ContractTrace s e m a ()
-notifySlot w = do
-    st <- lift $ gets (view (EM.walletClientStates . at w))
-    addEvent w $ AwaitSlot.event (maybe 0 (view EM.clientSlot) st)
+notifySlot wallet = do
+    currentSlot <- lift $ gets (view (EM.walletClientStates . at wallet . non EM.emptyNodeClientState . EM.clientSlot))
+    let handleEvent e = case AwaitSlot.nextSlot e of
+            Just slot | slot <= currentSlot -> Just (AwaitSlot.event currentSlot)
+            _                               -> Nothing
+    respondToRequest wallet handleEvent
 
 -- | Add a number of empty blocks to the blockchain.
 addBlocks
@@ -543,7 +581,7 @@ handleBlockchainEventsTimeout (MaxIterations i) wallet = go 0 where
     go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded (MaxIterations i)))
          | otherwise = do
             hks <- getHooks wallet
-            if waitingForBlockchainActions hks
+            if any (waitingForBlockchainActions . rqRequest) hks
                 then do
                     submitPendingTransactions wallet
                     handleUtxoQueries wallet
@@ -574,11 +612,13 @@ handleUtxoQueries
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleUtxoQueries wllt = do
-    addresses <- utxoQueryAddresses wllt
-    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletClientState wllt . EM.clientIndex)))
-    let events = fmap snd $ Map.toList $ Map.mapWithKey UtxoAtAddress utxoSet
-    traverse_ (addEvent wllt . UtxoAt.event) events
+handleUtxoQueries wallet = do
+    addresses <- utxoQueryAddresses wallet
+    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletClientState wallet . EM.clientIndex)))
+    let handleEvent e = case UtxoAt.utxoAtRequest e of
+            Just addr -> fmap (UtxoAt.event . UtxoAtAddress addr) (Map.lookup addr utxoSet)
+            _         -> Nothing
+    respondToRequest wallet handleEvent
 
 handleOwnPubKeyQueries
     :: ( MonadEmulator (TraceError e) m
@@ -586,11 +626,11 @@ handleOwnPubKeyQueries
        )
     => Wallet
     -> ContractTrace s e m a ()
-handleOwnPubKeyQueries wallet = do
-    hooks <- getHooks wallet
-    case OwnPubKey.request hooks of
-        WaitingForPubKey    -> addEvent wallet (OwnPubKey.event (EM.walletPubKey wallet))
-        NotWaitingForPubKey -> pure ()
+handleOwnPubKeyQueries wallet =
+    let handleEvent e = case OwnPubKey.request e of
+            Just _ -> pure (OwnPubKey.event (EM.walletPubKey wallet))
+            _      -> Nothing
+    in respondToRequest wallet handleEvent
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses

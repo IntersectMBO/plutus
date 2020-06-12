@@ -18,9 +18,10 @@ import Data.NonEmpty ((:|))
 import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
+import Language.Plutus.Contract.Resumable (Request(..))
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse, ContractSCBRequest)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (FullReport, _FullReport)
 import Schema (FormSchema)
@@ -80,10 +81,10 @@ _latestContractStatuses = _FullReport <<< prop (SProxy :: SProxy "latestContract
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
 
-_csCurrentState :: forall t. Lens' (ContractInstanceState t) PartiallyDecodedResponse
+_csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractSCBRequest)
 _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
-_hooks :: Lens' PartiallyDecodedResponse RawJson
+_hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 
 _contractInstanceId :: Lens' ContractInstanceId JsonUUID

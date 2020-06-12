@@ -155,7 +155,7 @@ campaignAddress = Scripts.validatorHash . contributionScript
 
 -- | The crowdfunding contract for the 'Campaign'.
 crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
-crowdfunding c = contribute c <|> scheduleCollection c
+crowdfunding c = contribute c `select` scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
 theCampaign :: Campaign

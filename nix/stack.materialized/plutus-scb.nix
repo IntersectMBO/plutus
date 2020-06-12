@@ -200,6 +200,7 @@
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
             (hsPkgs."eventful-memory" or (errorHandler.buildDepError "eventful-memory"))
@@ -222,7 +223,11 @@
             (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             ];
           buildable = true;
-          modules = [ "Plutus/SCB/CoreSpec" "Plutus/SCB/RelationSpec" ];
+          modules = [
+            "Plutus/SCB/CoreSpec"
+            "Plutus/SCB/RelationSpec"
+            "Plutus/SCB/Events/ContractSpec"
+            ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

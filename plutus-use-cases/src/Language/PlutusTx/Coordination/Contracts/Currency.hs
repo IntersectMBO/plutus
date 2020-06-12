@@ -16,6 +16,8 @@
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
     , CurrencySchema
+    , CurrencyError(..)
+    , AsCurrencyError(..)
     , curPolicy
     -- * Actions etc
     , forgeContract
@@ -26,6 +28,8 @@ module Language.PlutusTx.Coordination.Contracts.Currency(
     , forgeCurrency
     ) where
 
+import           Control.Lens
+import           Language.PlutusTx.Coordination.Contracts.PubKey (AsPubKeyError (..), PubKeyError)
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
 import           Language.PlutusTx.Prelude                       hiding (Monoid (..), Semigroup (..))
 
@@ -126,6 +130,19 @@ forgedValue cur = currencyValue (currencySymbol cur) cur
 currencySymbol :: Currency -> CurrencySymbol
 currencySymbol = scriptCurrencySymbol . curPolicy
 
+data CurrencyError =
+    CurPubKeyError PubKeyError
+    | CurContractError ContractError
+    deriving (Prelude.Eq, Show)
+
+makeClassyPrisms ''CurrencyError
+
+instance AsContractError CurrencyError where
+    _ContractError = _CurContractError
+
+instance AsPubKeyError CurrencyError where
+    _PubKeyError = _CurPubKeyError
+
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
 --   If @k == 0@ then no value is forged.
@@ -133,11 +150,12 @@ forgeContract
     :: forall s e.
     ( HasWatchAddress s
     , HasWriteTx s
-    , AsContractError e)
+    , AsCurrencyError e
+    )
     => PubKeyHash
     -> [(TokenName, Integer)]
     -> Contract s e Currency
-forgeContract pk amounts = do
+forgeContract pk amounts = mapError (review _CurrencyError) $ do
     (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
     let theCurrency = mkCurrency txOutRef amounts
         curVali     = curPolicy theCurrency
@@ -165,7 +183,7 @@ type CurrencySchema =
 
 -- | Create the currency specified by a 'SimpleMPS'
 forgeCurrency
-    :: AsContractError e => Contract CurrencySchema e Currency
+    :: Contract CurrencySchema CurrencyError Currency
 forgeCurrency = do
     SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
     ownPK <- pubKeyHash <$> ownPubKey

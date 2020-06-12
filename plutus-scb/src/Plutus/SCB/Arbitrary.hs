@@ -9,16 +9,16 @@ module Plutus.SCB.Arbitrary where
 
 import           Data.Aeson                                        (Value)
 import qualified Data.Aeson                                        as Aeson
-import           Data.Maybe                                        (listToMaybe)
-import qualified Data.Set                                          as Set
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..), TxIdSet (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints (..), EndpointDescription (..),
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
                                                                     EndpointValue (..))
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest (..))
 import qualified Language.PlutusTx                                 as PlutusTx
 import qualified Language.PlutusTx.AssocMap                        as AssocMap
+import           Ledger                                            (ValidatorHash (ValidatorHash))
 import qualified Ledger
+import           Ledger.Address                                    (Address (..))
 import           Ledger.Crypto                                     (PubKey, PubKeyHash, Signature)
 import           Ledger.Interval                                   (Extended, Interval, LowerBound, UpperBound)
 import           Ledger.Slot                                       (Slot)
@@ -132,21 +132,29 @@ instance Arbitrary Ledger.Value where
 instance (Arbitrary k, Arbitrary v) => Arbitrary (AssocMap.Map k v) where
     arbitrary = AssocMap.fromList <$> arbitrary
 
-instance Arbitrary ContractRequest where
+instance Arbitrary ContractSCBRequest where
     arbitrary =
         oneof
             [ AwaitSlotRequest <$> arbitrary
             , AwaitTxConfirmedRequest <$> arbitrary
             , UserEndpointRequest <$> arbitrary
-            , pure (OwnPubkeyRequest WaitingForPubKey)
-            , pure (OwnPubkeyRequest NotWaitingForPubKey)
+            , UtxoAtRequest <$> arbitrary
+            , NextTxAtRequest <$> arbitrary
+            , pure $ OwnPubkeyRequest WaitingForPubKey
+            -- TODO This would need an Arbitrary Tx instance: WriteTxRequest <$> arbitrary
             ]
 
-instance Arbitrary TxIdSet where
-    arbitrary = TxIdSet . Set.fromList <$> arbitrary
+instance Arbitrary Address where
+    arbitrary = oneof [PubKeyAddress <$> arbitrary, ScriptAddress <$> arbitrary]
 
-instance Arbitrary ActiveEndpoints where
-    arbitrary = ActiveEndpoints . Set.fromList . fmap EndpointDescription <$> arbitrary
+instance Arbitrary ValidatorHash where
+    arbitrary = ValidatorHash <$> arbitrary
+
+instance Arbitrary EndpointDescription where
+    arbitrary = EndpointDescription <$> arbitrary
+
+instance Arbitrary ActiveEndpoint where
+    arbitrary = ActiveEndpoint . EndpointDescription <$> arbitrary
 
 instance Arbitrary WaitingForSlot where
     arbitrary = WaitingForSlot <$> arbitrary
@@ -168,16 +176,9 @@ instance Arbitrary WaitingForSlot where
 -- | Generate responses for mock requests. This function returns a
 -- 'Maybe' because we can't (yet) create a generator for every request
 -- type.
-genResponse :: ContractRequest -> Maybe (Gen ContractResponse)
-genResponse (AwaitSlotRequest (WaitingForSlot (Just slot))) =
-    Just $ pure $ AwaitSlotResponse slot
-genResponse (AwaitTxConfirmedRequest txIds) =
-    fmap (pure . AwaitTxConfirmedResponse . TxConfirmed) $
-    listToMaybe $ Set.toList $ unTxIdSet txIds
-genResponse (UserEndpointRequest _) =
-    Just $
-    UserEndpointResponse <$> (EndpointDescription <$> arbitrary) <*>
-    (EndpointValue <$> arbitrary)
-genResponse (OwnPubkeyRequest WaitingForPubKey) =
-    Just $ OwnPubkeyResponse <$> arbitrary
-genResponse _ = Nothing
+genResponse :: ContractSCBRequest -> Maybe (Gen ContractResponse)
+genResponse (AwaitSlotRequest (WaitingForSlot slot))        = Just . pure . AwaitSlotResponse $ slot
+genResponse (AwaitTxConfirmedRequest txId) = Just . pure . AwaitTxConfirmedResponse . TxConfirmed $ txId
+genResponse (UserEndpointRequest _)        = Just $ UserEndpointResponse <$> arbitrary <*> (EndpointValue <$> arbitrary)
+genResponse (OwnPubkeyRequest WaitingForPubKey)               = Just $ OwnPubkeyResponse <$> arbitrary
+genResponse _                              = Nothing
