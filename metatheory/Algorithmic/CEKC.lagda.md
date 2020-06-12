@@ -237,3 +237,15 @@ step ((s , builtin- b σ As cs A (A' L.∷ As') p (t' ∷ ts') ρ') ; ρ ◅ V)
 step (□ C)       = □ C
 step (◆ A)       = ◆ A
 
+open import Data.Nat
+open import Data.Maybe
+
+stepper : ℕ → ∀{T}
+  → State T
+  → Maybe (State T)
+stepper zero st = nothing 
+stepper (suc n) st with step st
+stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
+stepper (suc n) st | (s ; ρ ◅ V) = stepper n (s ; ρ ◅ V)
+stepper (suc n) st | (□ V)   = just (□ V)
+stepper (suc n) st | ◆ A     = just (◆ A)
