@@ -9,7 +9,8 @@ open import Function using (_∘_;id)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;inspect) renaming ([_] to [[_]];subst to substEq)
 import Data.List as L
 open import Data.List.Properties
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Data.Unit using (⊤;tt)
 
 
 open import Type
@@ -22,6 +23,7 @@ open import Builtin
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
+open import Utils using (decIf)
 
 -- this could still be imported from Alg/Reduction
 -- but BUILTIN is going to have to change
@@ -60,8 +62,6 @@ lookup : ∀{Γ A} → Γ ∋ A → Env Γ → Clos A
 lookup Z     (ρ ∷ c) = c
 lookup (S x) (ρ ∷ c) = lookup x ρ
 
-open import Data.Unit
-
 CTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : L.List (Δ ⊢Nf⋆ *)) → Set
 CTel Δ σ L.[]       = ⊤
 CTel Δ σ (A L.∷ As) = Clos (substNf σ A) × CTel Δ σ As
@@ -74,18 +74,18 @@ BUILTIN : (bn : Builtin)
     → Σ (Ctx ∅) λ Γ → Γ ⊢ substNf σ C × Env Γ
     
 BUILTIN addInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i + i')) ,, []
+BUILTIN subtractInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i - i')) ,, []
+BUILTIN multiplyInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, con (integer (i ** i')) ,, []
+BUILTIN divideInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i' ≟ ℤ.pos 0) (error _) (con (integer (div i i'))) ,, []
+BUILTIN quotientInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i' ≟ ℤ.pos 0) (error _) (con (integer (quot i i'))) ,, []
+BUILTIN remainderInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i' ≟ ℤ.pos 0) (error _) (con (integer (rem i i'))) ,, []
+BUILTIN modInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i' ≟ ℤ.pos 0) (error _) (con (integer (mod i i'))) ,, []
+BUILTIN lessThanInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i <? i') (con (bool true)) (con (bool false)) ,, []
+BUILTIN lessThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≤? i') (con (bool true)) (con (bool false)) ,, []
+BUILTIN greaterThanInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i Builtin.Constant.Type.>? i') (con (bool true)) (con (bool false)) ,, []
+BUILTIN greaterThanEqualsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≥? i') (con (bool true)) (con (bool false)) ,, []
+BUILTIN equalsInteger σ ((_ ,, _ ,, V-con (integer i) ,, _) ,, (_ ,, _ ,, V-con (integer i') ,, _) ,, tt) = _ ,, decIf (i ≟ i') (con (bool true)) (con (bool false)) ,, []
 {-
-BUILTIN subtractInteger σ ctel = {!!}
-BUILTIN multiplyInteger σ ctel = {!!}
-BUILTIN divideInteger σ ctel = {!!}
-BUILTIN quotientInteger σ ctel = {!!}
-BUILTIN remainderInteger σ ctel = {!!}
-BUILTIN modInteger σ ctel = {!!}
-BUILTIN lessThanInteger σ ctel = {!!}
-BUILTIN lessThanEqualsInteger σ ctel = {!!}
-BUILTIN greaterThanInteger σ ctel = {!!}
-BUILTIN greaterThanEqualsInteger σ ctel = {!!}
-BUILTIN equalsInteger σ ctel = {!!}
 BUILTIN concatenate σ ctel = {!!}
 BUILTIN takeByteString σ ctel = {!!}
 BUILTIN dropByteString σ ctel = {!!}
