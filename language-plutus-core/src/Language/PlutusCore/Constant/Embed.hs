@@ -36,7 +36,7 @@ embedBuiltinNameInTerm scheme name =
           pure $ VarDecl () argname ty
         mkTyVarDecl :: TyName -> TyVarDecl TyName ()
         mkTyVarDecl tyname = TyVarDecl () tyname (Type ())
-    in case splitTypeScheme scheme of
+    in case typeComponentsOfTypeScheme scheme of
       Nothing -> Prelude.error $ "Malformed type scheme for " ++ show name ++ " in embedBuiltinNameInTerm"
       -- FIXME: we should really have a proper error here, but that involves running a *lot* of stuff in a monad
       Just (TypeComponents tynames types _) ->

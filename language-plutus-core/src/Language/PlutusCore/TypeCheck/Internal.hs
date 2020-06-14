@@ -159,8 +159,8 @@ lookupDynamicBuiltinTypeComponentsM ann name = do
   DynamicBuiltinNameMeanings dbnms <- asks $ _tccDynamicBuiltinNameMeanings . _tceTypeCheckConfig
   case Map.lookup name dbnms of
     Nothing -> throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
-    Just (DynamicBuiltinNameMeaning sch _ _) ->
-        case splitTypeScheme sch of
+    Just dbn ->
+        case typeComponentsOfDynamicBuiltinNameMeaning dbn of
           Nothing   -> throwError $ BuiltinTypeErrorE ann (BadTypeScheme (DynBuiltinName name))
           Just cpts -> pure cpts
 getStaticBuiltinTypeComponentsM

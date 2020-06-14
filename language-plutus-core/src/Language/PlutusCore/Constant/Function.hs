@@ -8,9 +8,10 @@ module Language.PlutusCore.Constant.Function
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedBuiltinName
+    , typeComponentsOfTypeScheme
     , typeComponentsOfTypedBuiltinName
+    , typeComponentsOfDynamicBuiltinNameMeaning
     , TypeComponents(..)
-    , splitTypeScheme
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -55,21 +56,25 @@ insertDynamicBuiltinNameDefinition
 typeOfTypedBuiltinName :: TypedBuiltinName uni as r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
 
--- | Return the 'Type' of a 'TypedBuiltinName'.
-typeComponentsOfTypedBuiltinName :: TypedBuiltinName uni as r -> Maybe (TypeComponents uni)
-typeComponentsOfTypedBuiltinName (TypedBuiltinName _ scheme) = splitTypeScheme scheme
-
 {- | A type to represent types of built-in functions in a convenient
-   form. We need this because the mapping from TypeSchemes to Types
-   isn't injective: eg, a function taking one int argument and returning
-   a function of type int -> int has the same type as a function taking
-   two integers and returning an int (ie int -> int -> int).
+   form.  We can't use the Type because that's ambiguous: eg, a
+   function taking one int argument and returning a function of type
+   int -> int has the same Type as a function taking two integers and
+   returning an int (ie int -> int -> int).  TypeSchemes for builtins
+   contain the information we require, but are a bit too general,
+   allowing one to represent types that builtins aren't allowed to
+   have (builtins have to have rank-one types with all quantifiers at
+   the start, but TypeSchemes can represent higher-rank types).  The
+   TypeComponents type represents exactly the types we need for
+   typechecking builtins, which simplifies typechecking.  The
+   componentsOfTypeScheme function attempts to convert a TypeScheme to
+   a TypeComponents object.
 -}
 data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
                                          , tcArgTypes   :: [Type TyName uni ()]
                                          , tcResultType :: Type TyName uni ()}
 
-{- | splitTypeScheme takes a type scheme of the form
+{- | componentsOfTypeScheme takes a type scheme of the form
 
       forall a1 ... forall aK . ty1 -> ... -> tyN -> resultTy
 
@@ -81,8 +86,8 @@ data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
    wrong form (for instance, with a `forall` in the middle).  This can
    probably be done a lot more cleanly.
 -}
-splitTypeScheme :: TypeScheme uni args res -> Maybe (TypeComponents uni)
-splitTypeScheme = split1 []
+typeComponentsOfTypeScheme :: TypeScheme uni args res -> Maybe (TypeComponents uni)
+typeComponentsOfTypeScheme = split1 []
     where split1 :: [TyName] -> TypeScheme uni args res -> Maybe (TypeComponents uni)
           split1 tynames (TypeSchemeResult r)           = Just $ TypeComponents (reverse tynames) [] (toTypeAst r) -- Only type variables, no types
           split1 tynames (TypeSchemeArrow tyA schB)     = split2 tynames [toTypeAst tyA] schB  -- At the end of the type variables, look for types
@@ -99,4 +104,12 @@ splitTypeScheme = split1 []
           split2 tynames argtys (TypeSchemeArrow tyA schB) = split2 tynames (toTypeAst tyA : argtys) schB  -- Found a type
           split2 _ _ (TypeSchemeAllType _ _ )              = Nothing  -- Found a type variable after a type
 
+
+-- | Return the 'TypeComponents' of a 'TypedBuiltinName'.
+typeComponentsOfTypedBuiltinName :: TypedBuiltinName uni as r -> Maybe (TypeComponents uni)
+typeComponentsOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeComponentsOfTypeScheme scheme
+
+-- | Return the 'TypeComponents' of a 'DynamicBuiltinNameMeaning'.
+typeComponentsOfDynamicBuiltinNameMeaning :: DynamicBuiltinNameMeaning uni -> Maybe (TypeComponents uni)
+typeComponentsOfDynamicBuiltinNameMeaning (DynamicBuiltinNameMeaning scheme _ _) = typeComponentsOfTypeScheme scheme
 

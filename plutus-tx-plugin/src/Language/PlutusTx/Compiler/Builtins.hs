@@ -391,7 +391,7 @@ errorTy = do
 
 -- TODO: bind the converter to a name too. Need an appropriate GHC.Name for
 -- it, since that's what our definitions are hung off. Also the type wouldn't
--- be a simple conversion of the Haskell type, because it takes a Scott boolean.
+-- be a simple conversion of the Haskell type, because it takes a PLC boolean.
 -- FIXME:  comment needs to be updated
 -- | Convert a PLC Boolean into a Haskell Boolean.
 plcBoolToHaskellBool :: Compiling uni m => m (PIRTerm uni)
@@ -410,6 +410,7 @@ plcBoolToHaskellBool = do
 
 
 -- | Eta-expand a function with the given argument types.
+-- See also Embed.embedTypedBuiltinNameInTerm, which can deduce the types from the typedBuiltinName
 etaExpand :: Compiling uni m => [PIRType uni] -> PLC.BuiltinName -> m (PIRTerm uni)
 etaExpand argTys bn = do
     args <- for argTys $ \argTy -> do
@@ -432,8 +433,8 @@ wrapRel argTy arity bn = do
         PIR.Apply () converter (PIR.ApplyBuiltin () bn [] (fmap (PIR.mkVar ()) args))
 
 {-
-  eqInteger 2 -> lam x . lam y . (convertor (builtin eqInteger [] [x, y]))
-              -> lam x . lam y . | (lam b plcBoolTy . (ifThenElse [haskellBoolTy] [b,True, False])) (builtin eqInteger [] [x,y]) |
+  eqInteger :   lam x . lam y . (convertor (builtin eqInteger [] [x, y]))
+             -> lam x . lam y . (lam b plcBoolTy . (ifThenElse [haskellBoolTy] [b, True, False])) <applied to> (builtin eqInteger [] [x, y]) 
 -}
 
 -- | Convert a PLC Unit into a Haskell Unit.
