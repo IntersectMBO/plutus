@@ -7,7 +7,6 @@ module Language.PlutusCore.Constant.Embed
     , embedStaticBuiltinNameInTerm2
     , embedTypedBuiltinNameInTerm
     , embedTypedBuiltinNameInTerm2
-    , embedTypedBuiltinNameInTerm
     , embedDynamicBuiltinNameInTerm
     )
 where
