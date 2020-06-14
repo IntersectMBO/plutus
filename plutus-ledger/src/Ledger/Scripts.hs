@@ -191,7 +191,8 @@ typecheckScript (unScript -> p) =
             -- We should be normalized, so we can use the on-chain config
             -- See Note [Normalized types in Scripts]
             -- FIXME
-            let config = PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types }
+            let meanings = PLC.getStringBuiltinMeanings
+                config = PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types, PLC._tccDynamicBuiltinNameMeanings = meanings }
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
