@@ -7,6 +7,7 @@ module Language.PlutusCore.Constant.Embed
     , embedStaticBuiltinNameInTerm2
     , embedTypedBuiltinNameInTerm
     , embedTypedBuiltinNameInTerm2
+    , embedTypedBuiltinNameInTerm
     , embedDynamicBuiltinNameInTerm
     )
 where
@@ -66,6 +67,4 @@ embedStaticBuiltinNameInTerm2 sch sbn convertor = embedBuiltinNameInTerm sch (St
 
 embedTypedBuiltinNameInTerm2 :: TypedBuiltinName uni args r -> Term TyName Name uni () -> Term TyName Name uni ()
 embedTypedBuiltinNameInTerm2 (TypedBuiltinName sbn sch) convertor = embedStaticBuiltinNameInTerm2 sch sbn convertor
-
-
 
