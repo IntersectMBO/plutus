@@ -193,7 +193,7 @@ data Term tyname name uni a =
                         | LamAbs a name (Type tyname uni a) (Term tyname name uni a)
                         | Apply a (Term tyname name uni a) (Term tyname name uni a)
                         | Constant a (PLC.Some (PLC.ValueOf uni))
-                        | Builtin a (PLC.Builtin a)
+                        | ApplyBuiltin a PLC.BuiltinName [Type tyname uni a] [Term tyname name uni a]
                         | TyInst a (Term tyname name uni a) (Type tyname uni a)
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni a)
@@ -208,16 +208,16 @@ instance ( PLC.Closed uni
          ) => Serialise (Term tyname name uni a)
 
 instance TermLike (Term tyname name uni) tyname name uni where
-    var      = Var
-    tyAbs    = TyAbs
-    lamAbs   = LamAbs
-    apply    = Apply
-    constant = Constant
-    builtin  = Builtin
-    tyInst   = TyInst
-    unwrap   = Unwrap
-    iWrap    = IWrap
-    error    = Error
+    var           = Var
+    tyAbs         = TyAbs
+    lamAbs        = LamAbs
+    apply         = Apply
+    constant      = Constant
+    applyBuiltin  = ApplyBuiltin
+    tyInst        = TyInst
+    unwrap        = Unwrap
+    iWrap         = IWrap
+    error         = Error
     termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
@@ -229,13 +229,13 @@ termSubterms f = \case
     TyAbs x tn k t -> TyAbs x tn k <$> f t
     LamAbs x n ty t -> LamAbs x n ty <$> f t
     Apply x t1 t2 -> Apply x <$> f t1 <*> f t2
+    ApplyBuiltin x bn tys ts -> ApplyBuiltin x bn tys <$> traverse f ts
     TyInst x t ty -> TyInst x <$> f t <*> pure ty
     IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
     Unwrap x t -> Unwrap x <$> f t
     e@Error {} -> pure e
     v@Var {} -> pure v
     c@Constant {} -> pure c
-    b@Builtin {} -> pure b
 
 {-# INLINE termSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Term', including those within 'Binding's.
@@ -244,6 +244,7 @@ termSubtypes f = \case
     Let x r bs t -> Let x r <$> (traverse . bindingSubtypes) f bs <*> pure t
     LamAbs x n ty t -> LamAbs x n <$> f ty <*> pure t
     TyInst x t ty -> TyInst x t <$> f ty
+    ApplyBuiltin x bn tys ts -> ApplyBuiltin x bn <$> traverse f tys <*> pure ts
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
     Error x ty -> Error x <$> f ty
     t@TyAbs {} -> pure t
@@ -251,7 +252,7 @@ termSubtypes f = \case
     u@Unwrap {} -> pure u
     v@Var {} -> pure v
     c@Constant {} -> pure c
-    b@Builtin {} -> pure b
+
 
 {-# INLINE termBindings #-}
 -- | Get all the direct child 'Binding's of the given 'Term'.
@@ -322,7 +323,16 @@ instance ( PLC.PrettyClassicBy configName tyname
         LamAbs _ n ty t -> parens' ("lam" </> vsep' [prettyBy config n, prettyBy config ty, prettyBy config t])
         Apply _ t1 t2 -> brackets' (vsep' [prettyBy config t1, prettyBy config t2])
         Constant _ c -> parens' ("con" </> pretty c)
-        Builtin _ bi -> parens' ("builtin" </> pretty bi)
+        ApplyBuiltin _ bn tys ts ->
+            case tys of
+              [] -> parens' ("builtin" </> pretty bn </> vsep' (map (prettyBy config) ts))  -- (builtin bn e1 ... eN)
+              _  -> parens' ("builtin"                                                      -- ({builtin bn t1 ... tM} e1 ... eN)
+                             </> braces'(
+                                     pretty bn
+                                 </> vsep' (map (prettyBy config) tys)
+                                 )
+                             </> vsep' (map (prettyBy config) ts)
+                            )
         TyInst _ t ty -> braces' (vsep' [prettyBy config t, prettyBy config ty])
         Error _ ty -> parens' ("error" </> prettyBy config ty)
         IWrap _ ty1 ty2 t -> parens' ("iwrap" </> vsep' [ prettyBy config ty1, prettyBy config ty2, prettyBy config t ])
@@ -368,3 +378,5 @@ instance ( PLC.PrettyClassic tyname
          , PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
          ) => Pretty (Program tyname name uni a) where
     pretty = PLC.prettyClassicDef
+
+

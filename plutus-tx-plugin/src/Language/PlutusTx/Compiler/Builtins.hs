@@ -160,12 +160,6 @@ This forces us to either:
 We do the latter.
 -}
 
-mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name uni ()
-mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
-
-mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name uni ()
-mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
-
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]
 builtinNames = [
@@ -236,46 +230,49 @@ defineBuiltinType name ty deps = do
     PIR.recordAlias @LexName @uni @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: (Compiling uni m, PLC.DefaultUni PLC.<: uni) => m ()
+defineBuiltinTerms :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni) => m ()
 defineBuiltinTerms = do
-    bs <- GHC.getName <$> getThing ''Builtins.ByteString
-    int <- GHC.getName <$> getThing ''Integer
+    bs   <- GHC.getName <$> getThing ''Builtins.ByteString
+    int  <- GHC.getName <$> getThing ''Integer
     bool <- GHC.getName <$> getThing ''Bool
     unit <- GHC.getName <$> getThing ''()
-    str <- GHC.getName <$> getThing ''Builtins.String
+    str  <- GHC.getName <$> getThing ''Builtins.String
     char <- GHC.getName <$> getThing ''Char
 
-    intTy <- lookupBuiltinType ''Integer
-    bsTy <- lookupBuiltinType ''Builtins.ByteString
-    strTy <- lookupBuiltinType ''Builtins.String
+    intTy  <- lookupBuiltinType ''Integer
+    bsTy   <- lookupBuiltinType ''Builtins.ByteString
+    strTy  <- lookupBuiltinType ''Builtins.String
     charTy <- lookupBuiltinType ''Char
 
     -- See Note [Builtin terms and values] for the eta expansion below
 
     -- Bytestring builtins
     do
-        term <- etaExpand [bsTy, bsTy] $ mkBuiltin PLC.Concatenate
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedConcatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.TakeByteString
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedTakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.DropByteString
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedDropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int, bs]
     do
-        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA2
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedSHA2
         defineBuiltinTerm 'Builtins.sha2_256 term [bs]
     do
-        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA3
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedSHA3
         defineBuiltinTerm 'Builtins.sha3_256 term [bs]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.EqByteString
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedEqByteString (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.LtByteString
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedLtByteString (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.GtByteString
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedGtByteString (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
@@ -284,39 +281,44 @@ defineBuiltinTerms = do
 
     -- Integer builtins
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.AddInteger
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedAddInteger
         defineBuiltinTerm 'Builtins.addInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.SubtractInteger
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm  PLC.typedSubtractInteger
         defineBuiltinTerm 'Builtins.subtractInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.MultiplyInteger
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedMultiplyInteger
         defineBuiltinTerm 'Builtins.multiplyInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.DivideInteger
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedDivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.RemainderInteger
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm PLC.typedRemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanInteger
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedGreaterThanInteger (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.greaterThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanEqInteger
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedGreaterThanEqInteger (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.greaterThanEqInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanInteger
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedLessThanInteger (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.lessThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanEqInteger
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedLessThanEqInteger (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.lessThanEqInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.EqInteger
+        convertor <- plcBoolToHaskellBool
+        let term = plcToPir $ PLC.embedTypedBuiltinNameInTerm2 PLC.typedEqInteger (pirToPlc convertor)
         defineBuiltinTerm 'Builtins.equalsInteger term [int, bool]
 
     -- Blockchain builtins
     do
-        term <- wrapRel bsTy 3 $ mkBuiltin PLC.VerifySignature
+        term <- wrapRel bsTy 3 $ PLC.StaticBuiltinName PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
 
     -- Error
@@ -327,16 +329,16 @@ defineBuiltinTerms = do
 
     -- Strings and chars
     do
-        term <- etaExpand [strTy, strTy] $ mkDynBuiltin PLC.dynamicAppendName
+        term <- etaExpand [strTy, strTy] $ PLC.DynBuiltinName PLC.dynamicAppendName
         defineBuiltinTerm 'Builtins.appendString term [str]
     do
         let term = PIR.mkConstant () ("" :: String)
         defineBuiltinTerm 'Builtins.emptyString term [str]
     do
-        term <- etaExpand [charTy] $ mkDynBuiltin PLC.dynamicCharToStringName
+        term <- etaExpand [charTy] $ PLC.DynBuiltinName PLC.dynamicCharToStringName
         defineBuiltinTerm 'Builtins.charToString term [char, str]
     do
-        term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
+        term <- wrapUnitFun strTy $ PLC.DynBuiltinName PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes
@@ -398,62 +400,105 @@ errorTy = do
 -- TODO: bind the converter to a name too. Need an appropriate GHC.Name for
 -- it, since that's what our definitions are hung off. Also the type wouldn't
 -- be a simple conversion of the Haskell type, because it takes a Scott boolean.
--- | Convert a Scott-encoded Boolean into a Haskell Boolean.
-scottBoolToHaskellBool :: Compiling uni m => m (PIRTerm uni)
-scottBoolToHaskellBool = do
-    let scottBoolTy = Bool.bool
+-- FIXME:  comment needs to be updated
+-- | Convert a PLC Boolean into a Haskell Boolean.
+plcBoolToHaskellBool :: Compiling uni m => m (PIRTerm uni)
+plcBoolToHaskellBool = do
+    let plcBoolTy = Bool.bool
     haskellBoolTy <- compileType GHC.boolTy
 
     arg <- liftQuote $ freshName "b"
-    let instantiatedMatch = PIR.TyInst () (PIR.builtinNameAsTerm PLC.IfThenElse) haskellBoolTy
+    let instantiatedMatch = PIR.ApplyBuiltin () (PLC.StaticBuiltinName PLC.IfThenElse) [haskellBoolTy]
 
     haskellTrue <- compileDataConRef GHC.trueDataCon
     haskellFalse <- compileDataConRef GHC.falseDataCon
     pure $
-        PIR.LamAbs () arg scottBoolTy $
-        PIR.mkIterApp () instantiatedMatch [ (PIR.Var () arg), haskellTrue, haskellFalse ]
+        PIR.LamAbs () arg plcBoolTy $
+        instantiatedMatch [(PIR.Var () arg), haskellTrue, haskellFalse]
 
 -- | Eta-expand a function with the given argument types.
-etaExpand :: Compiling uni m => [PIRType uni] -> PIRTerm uni -> m (PIRTerm uni)
-etaExpand argTys term = do
+etaExpand :: Compiling uni m => [PIRType uni] -> PLC.BuiltinName -> m (PIRTerm uni)
+etaExpand argTys bn = do
     args <- for argTys $ \argTy -> do
         name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
-    pure $ PIR.mkIterLamAbs args $ (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
+    pure $ PIR.mkIterLamAbs args (PIR.ApplyBuiltin () bn [] (fmap (PIR.mkVar ()) args))
 
--- | Wrap an relation of arity @n@ that produces a Scott boolean.
-wrapRel :: Compiling uni m => PIRType uni -> Int -> PIRTerm uni -> m (PIRTerm uni)
-wrapRel argTy arity term = do
+-- | Wrap an relation of arity @n@ that produces a PLC boolean.
+wrapRel :: Compiling uni m => PIRType uni -> Int -> PLC.BuiltinName -> m (PIRTerm uni)
+wrapRel argTy arity bn = do
     args <- replicateM arity $ do
         name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
-    converter <- scottBoolToHaskellBool
+    converter <- plcBoolToHaskellBool
 
     pure $
         PIR.mkIterLamAbs args $
-        PIR.Apply () converter (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
+        PIR.Apply () converter (PIR.ApplyBuiltin () bn [] (fmap (PIR.mkVar ()) args))
 
--- | Convert a Scott-encoded Unit into a Haskell Unit.
-scottUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
-scottUnitToHaskellUnit = do
-    let scottUnitTy = Unit.unit
+{-
+  eqInteger 2 -> lam x . lam y . (convertor (builtin eqInteger [] [x, y]))
+              -> lam x . lam y . | (lam b plcBoolTy . (ifThenElse [haskellBoolTy] [b,True, False])) (builtin eqInteger [] [x,y]) |
+-}
+           
+plcBoolToHaskellBool2 :: Compiling uni m => PIRTerm uni -> m (PIRTerm uni)
+plcBoolToHaskellBool2 term = do
+--    let plcBoolTy = Bool.bool
+    haskellBoolTy <- compileType GHC.boolTy
+    haskellTrue <- compileDataConRef GHC.trueDataCon
+    haskellFalse <- compileDataConRef GHC.falseDataCon
+
+    pure $ PIR.ApplyBuiltin () (PLC.StaticBuiltinName PLC.IfThenElse) [haskellBoolTy] [term, haskellTrue, haskellFalse]
+
+-- | Convert a PLC Unit into a Haskell Unit.
+plcUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
+plcUnitToHaskellUnit = do
+    let plcUnitTy = Unit.unit
 
     arg <- liftQuote $ freshName "b"
 
     haskellUnitVal <- compileDataConRef GHC.unitDataCon
-    pure $ PIR.LamAbs () arg scottUnitTy haskellUnitVal
+    pure $ PIR.LamAbs () arg plcUnitTy haskellUnitVal
 
--- | Wrap an function with the given argument type that produces a Scott unit.
-wrapUnitFun :: Compiling uni m => PIRType uni -> PIRTerm uni -> m (PIRTerm uni)
-wrapUnitFun argTy term = do
+-- | Wrap an function with the given argument type that produces a PLC unit.
+wrapUnitFun :: Compiling uni m => PIRType uni -> PLC.BuiltinName -> m (PIRTerm uni)
+wrapUnitFun argTy bn = do
     arg <- do
         name <- safeFreshName "arg"
         pure $ PIR.VarDecl () name argTy
 
-    converter <- scottUnitToHaskellUnit
+    converter <- plcUnitToHaskellUnit
 
     pure $
         PIR.mkIterLamAbs [arg] $
-        PIR.Apply () converter (PIR.Apply () term (PIR.mkVar () arg))
+        PIR.Apply () converter (PIR.ApplyBuiltin () bn [] [PIR.mkVar () arg])
+
+plcToPir :: PLC.Term tyname name uni a -> PIR.Term tyname name uni a
+plcToPir = \case
+    PLC.TyAbs x tn k t           -> PIR.TyAbs x tn k (plcToPir t)
+    PLC.LamAbs x n ty t          -> PIR.LamAbs x n ty $ plcToPir t
+    PLC.Apply x t1 t2            -> PIR.Apply x (plcToPir t1) (plcToPir t2)
+    PLC.ApplyBuiltin x bn tys ts -> PIR.ApplyBuiltin x bn tys (map plcToPir ts)
+    PLC.TyInst x t ty            -> PIR.TyInst x (plcToPir t) ty
+    PLC.IWrap x ty1 ty2 t        -> PIR.IWrap x ty1 ty2 (plcToPir t)
+    PLC.Unwrap x t               -> PIR.Unwrap x (plcToPir t)
+    PLC.Error x ty               -> PIR.Error x ty
+    PLC.Var x v                  -> PIR.Var x v
+    PLC.Constant x c             -> PIR.Constant x c
+
+
+pirToPlc :: PIR.Term tyname name uni a -> PLC.Term tyname name uni a
+pirToPlc = \case
+    PIR.TyAbs x tn k t           -> PLC.TyAbs x tn k (pirToPlc t)
+    PIR.LamAbs x n ty t          -> PLC.LamAbs x n ty $ pirToPlc t
+    PIR.Apply x t1 t2            -> PLC.Apply x (pirToPlc t1) (pirToPlc t2)
+    PIR.ApplyBuiltin x bn tys ts -> PLC.ApplyBuiltin x bn tys (map pirToPlc ts)
+    PIR.TyInst x t ty            -> PLC.TyInst x (pirToPlc t) ty
+    PIR.IWrap x ty1 ty2 t        -> PLC.IWrap x ty1 ty2 (pirToPlc t)
+    PIR.Unwrap x t               -> PLC.Unwrap x (pirToPlc t)
+    PIR.Error x ty               -> PLC.Error x ty
+    PIR.Var x v                  -> PLC.Var x v
+    PIR.Constant x c             -> PLC.Constant x c
+    _ -> error "NO !!!!!!"

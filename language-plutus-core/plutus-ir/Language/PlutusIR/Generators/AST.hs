@@ -15,8 +15,9 @@ module Language.PlutusIR.Generators.AST
 
 import           Language.PlutusIR
 
-import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genBuiltinName, genConstant, genKind,
-                                                               genVersion, runAstGen, simpleRecursive)
+import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltinName, genConstant, genKind, genVersion,
+                                                               runAstGen, simpleRecursive)
+    -- FIXME - genBuiltinName, genBuiltin
 import qualified Language.PlutusCore.Generators.AST as PLC
 import qualified Language.PlutusCore.Universe       as PLC
 
@@ -77,12 +78,13 @@ genTerm = simpleRecursive nonRecursive recursive where
     instGen = TyInst () <$> genTerm <*> genType
     lamGen = LamAbs () <$> genName <*> genType <*> genTerm
     applyGen = Apply () <$> genTerm <*> genTerm
+    applyBuiltinGen = ApplyBuiltin () <$> genBuiltinName <*> Gen.list (Range.linear 0 2) genType <*> Gen.list (Range.linear 0 3) genTerm
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
     letGen = Let () <$> genRecursivity <*> Gen.nonEmpty (Range.linear 1 10) genBinding <*> genTerm
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, applyBuiltinGen, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni ())
 genProgram = Program () <$> genTerm

@@ -24,10 +24,10 @@ import           Control.Applicative                hiding (many, some)
 import           Control.Monad.State                hiding (fail)
 
 import qualified Language.PlutusCore                as PLC
+import qualified Language.PlutusCore.Lexer.Type     as PLC
 import qualified Language.PlutusCore.MkPlc          as PLC
 import           Language.PlutusIR                  as PIR
 import qualified Language.PlutusIR.MkPir            as PIR
-import           PlutusPrelude                      (prettyText)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 
@@ -120,7 +120,6 @@ inBraces = between lbrace rbrace
 
 reservedWords :: [T.Text]
 reservedWords =
-    map prettyText PLC.allBuiltinNames ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -159,11 +158,6 @@ reservedWord w = lexeme $ try $ do
     notFollowedBy (satisfy isIdentifierChar)
     return p
 
-builtinName :: Parser PLC.BuiltinName
-builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
-    where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
-          parseBuiltinName builtin = try $ string (prettyText builtin) >> pure builtin
-
 name :: Parser Name
 name = lexeme $ try $ do
     void $ lookAhead letterChar
@@ -172,14 +166,20 @@ name = lexeme $ try $ do
         then customFailure $ UnexpectedKeyword $ show str
         else Name str <$> intern str
 
+builtinName :: Parser PLC.BuiltinName
+builtinName = lexeme $ try $ do
+    void $ lookAhead letterChar
+    str <- takeWhileP (Just "built-in name") isIdentifierChar
+    case PLC.toStaticBuiltinName str of
+      Just sbn -> pure $ PLC.StaticBuiltinName sbn
+      Nothing  -> pure $ PLC.DynBuiltinName (PLC.DynamicBuiltinName str)
+
+
 var :: Parser Name
 var = name
 
 tyVar :: Parser TyName
 tyVar = TyName <$> name
-
-builtinVar :: Parser (PLC.Builtin SourcePos)
-builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer
@@ -293,8 +293,9 @@ conTerm _tm = PIR.constant <$> reservedWord "con" <*> constant
 iwrapTerm :: Parametric
 iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
-builtinTerm :: Parametric
-builtinTerm _term = PIR.builtin <$> reservedWord "builtin" <*> builtinVar
+applyBuiltinTerm :: Parametric
+applyBuiltinTerm tm = (try $ PIR.applyBuiltin <$> reservedWord "builtin" <*> builtinName <*> pure [] <*> many tm)
+--                       <|>   PIR.applyBuiltin <$> reservedWord "builtin" <*> inBraces (builtinName <*> many typ) <*> many tm
 
 unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
@@ -313,7 +314,7 @@ tyInstTerm tm = PIR.mkIterInst <$> getSourcePos <*> tm <*> some typ
 
 term' :: Parametric
 term' other = (var >>= (\n -> getSourcePos >>= \p -> return $ PIR.var p n))
-    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> builtinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
+    <|> (inParens $ absTerm self <|> lamTerm self <|> conTerm self <|> iwrapTerm self <|> applyBuiltinTerm self <|> unwrapTerm self <|> errorTerm self <|> other)
     <|> inBraces (tyInstTerm self)
     <|> inBrackets (appTerm self)
     where self = term' other

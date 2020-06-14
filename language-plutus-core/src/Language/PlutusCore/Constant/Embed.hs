@@ -4,7 +4,9 @@
 
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
+    , embedStaticBuiltinNameInTerm2
     , embedTypedBuiltinNameInTerm
+    , embedTypedBuiltinNameInTerm2
     , embedDynamicBuiltinNameInTerm
     )
 where
@@ -23,36 +25,47 @@ import           Data.Text                             (append, pack)
    and then applies the name to the relevant types and variables. This
    isn't ideal, but it does what's required for testing.
 -}
-embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
-embedBuiltinNameInTerm scheme name =
+embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Maybe (Term TyName Name uni ()) -> Term TyName Name uni ()
+embedBuiltinNameInTerm scheme name convertor =
     let mkVarDecl :: Type TyName uni () -> Quote (VarDecl TyName Name uni ())
         mkVarDecl ty = do
           u <- freshUnique
           let argname = Name (append (pack "arg") (pack . show . unUnique $ u)) u
-          -- This makes the unique explicit in the variable name.
-          -- If you don't do this then `plc example` outputs
-          -- examples where builtins are applied to multiple
-          -- arguments with the same name.
+          -- This makes the unique explicit in the variable name.  If
+          -- you don't do this then `plc example` outputs examples
+          -- where builtins are applied to multiple arguments with the
+          -- same name.
           pure $ VarDecl () argname ty
         mkTyVarDecl :: TyName -> TyVarDecl TyName ()
         mkTyVarDecl tyname = TyVarDecl () tyname (Type ())
     in case splitTypeScheme scheme of
-      Nothing -> Prelude.error $ "Malformed type scheme for " ++ show name ++ " in embedBuiltinNameInTerm"  -- FIXME: proper error?
+      Nothing -> Prelude.error $ "Malformed type scheme for " ++ show name ++ " in embedBuiltinNameInTerm"
+      -- FIXME: we should really have a proper error here, but that involves running a *lot* of stuff in a monad
       Just (TypeComponents tynames types _) ->
           runQuote $ do
             varDecls <- mapM mkVarDecl types  -- For each argument type, generate a VarDecl for a variable of that type
             let termArgs = map (Var () . varDeclName) varDecls
                 tyArgs = map (TyVar ()) tynames
                 tyVarDecls = map mkTyVarDecl tynames
-            pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
+            case convertor of
+              Nothing -> pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
+              Just f -> pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (Apply () f (ApplyBuiltin () name tyArgs termArgs)))
 
 embedStaticBuiltinNameInTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
-embedStaticBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . StaticBuiltinName
+embedStaticBuiltinNameInTerm sch sbn = embedBuiltinNameInTerm sch (StaticBuiltinName sbn) Nothing
 
 embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
 embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedStaticBuiltinNameInTerm sch sbn
 
 
 embedDynamicBuiltinNameInTerm :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
-embedDynamicBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . DynBuiltinName
+embedDynamicBuiltinNameInTerm sch dbn = embedBuiltinNameInTerm sch (DynBuiltinName dbn) Nothing
+
+embedStaticBuiltinNameInTerm2 :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni () -> Term TyName Name uni ()
+embedStaticBuiltinNameInTerm2 sch sbn convertor = embedBuiltinNameInTerm sch (StaticBuiltinName sbn) (Just convertor)
+
+embedTypedBuiltinNameInTerm2 :: TypedBuiltinName uni args r -> Term TyName Name uni () -> Term TyName Name uni ()
+embedTypedBuiltinNameInTerm2 (TypedBuiltinName sbn sch) convertor = embedStaticBuiltinNameInTerm2 sch sbn convertor
+
+
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Language.PlutusCore.Lexer.Type
@@ -10,17 +11,19 @@ module Language.PlutusCore.Lexer.Type
     , newIdentifier
     , emptyIdentifierState
     , identifierStateFrom
+    , toStaticBuiltinName
     ) where
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.State
-import qualified Data.ByteString.Lazy       as BSL
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
+import qualified Data.ByteString.Lazy          as BSL
+import qualified Data.Map                      as M
+import qualified Data.Text                     as T
 
 -- | A keyword in Plutus Core.
 data Keyword
@@ -141,3 +144,32 @@ newIdentifier str = do
             let nextU' = Unique $ unUnique nextU + 1
             put (M.insert str nextU ss, nextU')
             pure nextU
+
+
+toStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
+toStaticBuiltinName = \case
+    "addInteger"               -> Just AddInteger
+    "subtractInteger"          -> Just SubtractInteger
+    "multiplyInteger"          -> Just MultiplyInteger
+    "divideInteger"            -> Just DivideInteger
+    "quotientInteger"          -> Just QuotientInteger
+    "modInteger"               -> Just ModInteger
+    "remainderInteger"         -> Just RemainderInteger
+    "lessThanInteger"          -> Just LessThanInteger
+    "lessThanEqualsInteger"    -> Just LessThanEqInteger
+    "greaterThanInteger"       -> Just GreaterThanInteger
+    "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
+    "equalsInteger"            -> Just EqInteger
+    "concatenate"              -> Just Concatenate
+    "takeByteString"           -> Just TakeByteString
+    "dropByteString"           -> Just DropByteString
+    "equalsByteString"         -> Just EqByteString
+    "lessThanByteString"       -> Just LtByteString
+    "greaterThanByteString"    -> Just GtByteString
+    "sha2_256"                 -> Just SHA2
+    "sha3_256"                 -> Just SHA3
+    "verifySignature"          -> Just VerifySignature
+    "ifThenElse"               -> Just IfThenElse
+    _                          -> Nothing
+
+

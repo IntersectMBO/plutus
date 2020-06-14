@@ -137,8 +137,8 @@ renameTermM = \case
         Apply x <$> renameTermM fun <*> renameTermM arg
     Constant x con ->
         pure $ Constant x con
-    Builtin x bi ->
-        pure $ Builtin x bi
+    ApplyBuiltin x bn tys ts ->
+        ApplyBuiltin x bn <$> mapM PLC.renameTypeM tys <*> mapM renameTermM ts
     TyInst x term ty ->
         TyInst x <$> renameTermM term <*> PLC.renameTypeM ty
     Error x ty ->

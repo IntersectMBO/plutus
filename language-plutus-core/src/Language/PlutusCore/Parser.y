@@ -172,36 +172,10 @@ Kind : parens(type) { Type $1 }
 fixStr :: Token ann -> Token ann
 fixStr (TkString ann s) = TkString ann (read s)   
 fixStr t = t
-  
-getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
-getStaticBuiltinName = \case
-    "addInteger"               -> Just AddInteger
-    "subtractInteger"          -> Just SubtractInteger
-    "multiplyInteger"          -> Just MultiplyInteger
-    "divideInteger"            -> Just DivideInteger
-    "quotientInteger"          -> Just QuotientInteger
-    "modInteger"               -> Just ModInteger
-    "remainderInteger"         -> Just RemainderInteger
-    "lessThanInteger"          -> Just LessThanInteger
-    "lessThanEqualsInteger"    -> Just LessThanEqInteger
-    "greaterThanInteger"       -> Just GreaterThanInteger
-    "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
-    "equalsInteger"            -> Just EqInteger
-    "concatenate"              -> Just Concatenate
-    "takeByteString"           -> Just TakeByteString
-    "dropByteString"           -> Just DropByteString
-    "equalsByteString"         -> Just EqByteString
-    "lessThanByteString"       -> Just LtByteString
-    "greaterThanByteString"    -> Just GtByteString
-    "sha2_256"                 -> Just SHA2
-    "sha3_256"                 -> Just SHA3
-    "verifySignature"          -> Just VerifySignature
-    "ifThenElse"               -> Just IfThenElse
-    _                          -> Nothing
 
 mkBuiltinName :: T.Text -> BuiltinName
 mkBuiltinName ident = 
-   case getStaticBuiltinName ident of 
+   case toStaticBuiltinName ident of 
       Just b  -> StaticBuiltinName b
       Nothing -> DynBuiltinName (DynamicBuiltinName ident)
 
