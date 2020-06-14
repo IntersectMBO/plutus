@@ -4,9 +4,7 @@
 
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
-    , embedStaticBuiltinNameInTerm2
     , embedTypedBuiltinNameInTerm
-    , embedTypedBuiltinNameInTerm2
     , embedDynamicBuiltinNameInTerm
     )
 where
@@ -25,8 +23,8 @@ import           Data.Text                             (append, pack)
    and then applies the name to the relevant types and variables. This
    isn't ideal, but it does what's required for testing.
 -}
-embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Maybe (Term TyName Name uni ()) -> Term TyName Name uni ()
-embedBuiltinNameInTerm scheme name convertor =
+embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
+embedBuiltinNameInTerm scheme name =
     let mkVarDecl :: Type TyName uni () -> Quote (VarDecl TyName Name uni ())
         mkVarDecl ty = do
           u <- freshUnique
@@ -47,23 +45,15 @@ embedBuiltinNameInTerm scheme name convertor =
             let termArgs = map (Var () . varDeclName) varDecls
                 tyArgs = map (TyVar ()) tynames
                 tyVarDecls = map mkTyVarDecl tynames
-            case convertor of
-              Nothing -> pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
-              Just f -> pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (Apply () f (ApplyBuiltin () name tyArgs termArgs)))
+            pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
 
 embedStaticBuiltinNameInTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
-embedStaticBuiltinNameInTerm sch sbn = embedBuiltinNameInTerm sch (StaticBuiltinName sbn) Nothing
+embedStaticBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . StaticBuiltinName
 
 embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
 embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedStaticBuiltinNameInTerm sch sbn
 
 
 embedDynamicBuiltinNameInTerm :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
-embedDynamicBuiltinNameInTerm sch dbn = embedBuiltinNameInTerm sch (DynBuiltinName dbn) Nothing
-
-embedStaticBuiltinNameInTerm2 :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni () -> Term TyName Name uni ()
-embedStaticBuiltinNameInTerm2 sch sbn convertor = embedBuiltinNameInTerm sch (StaticBuiltinName sbn) (Just convertor)
-
-embedTypedBuiltinNameInTerm2 :: TypedBuiltinName uni args r -> Term TyName Name uni () -> Term TyName Name uni ()
-embedTypedBuiltinNameInTerm2 (TypedBuiltinName sbn sch) convertor = embedStaticBuiltinNameInTerm2 sch sbn convertor
+embedDynamicBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . DynBuiltinName
 
