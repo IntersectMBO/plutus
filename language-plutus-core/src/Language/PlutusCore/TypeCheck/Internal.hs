@@ -149,8 +149,7 @@ lookupDynamicBuiltinNameM
 lookupDynamicBuiltinNameM ann name = do
     DynamicBuiltinNameTypes dbnts <- asks $ _tccDynamicBuiltinNameTypes . _tceTypeCheckConfig
     case Map.lookup name dbnts of
-        Nothing ->
-            throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
+        Nothing -> throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
         Just ty -> liftDupable ty
 
 lookupDynamicBuiltinTypeComponentsM
@@ -163,6 +162,7 @@ lookupDynamicBuiltinTypeComponentsM ann name = do
         case typeComponentsOfDynamicBuiltinNameMeaning dbn of
           Nothing   -> throwError $ BuiltinTypeErrorE ann (BadTypeScheme (DynBuiltinName name))
           Just cpts -> pure cpts
+
 getStaticBuiltinTypeComponentsM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann
