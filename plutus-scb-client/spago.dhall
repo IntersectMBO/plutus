@@ -7,6 +7,8 @@ You can edit this file as you like.
   [ "prelude"
   , "aff"
   , "console"
+  , "coroutines"
+  , "aff-coroutines"
   , "debug"
   , "effect"
   , "halogen"
@@ -22,6 +24,7 @@ You can edit this file as you like.
   , "undefinable"
   , "uuid"
   , "newtype"
+  , "web-socket"
   ]
 , packages = ./packages.dhall
 , sources =

@@ -5,6 +5,7 @@ import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff, forkAff, launchAff_)
+import Control.Coroutine.Extra (mapConsumer)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
@@ -19,12 +20,10 @@ import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
-import Types (HQuery(..))
-import Web.HTML as W
-import Web.HTML.Location as WL
-import Web.HTML.Window as WW
-import Web.Socket.WebSocket as WS
-import Websockets (wsConsumer, wsProducer, wsSender)
+import WebSocket (WebSocketResponseMessage)
+import Types (HQuery(..), Message(..))
+import WebSocket.Support (wsConsumer, wsProducer, wsSender, mkSocket)
+import WebSocket.Support as WS
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -40,25 +39,19 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 main ::
   Effect Unit
 main = do
-  window <- W.window
-  location <- WW.location window
-  protocol <- WL.protocol location
-  hostname <- WL.hostname location
-  port <- WL.port location
-  let
-    wsProtocol = case protocol of
-      "https:" -> "wss"
-      _ -> "ws"
-
-    wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
-  socket <- WS.create wsPath []
+  socket <- mkSocket "/api/ws"
   let
     mainFrame = mkMainFrame ajaxSettings
   runHalogenAff do
     body <- awaitBody
     driver <- runUI mainFrame unit body
-    driver.subscribe $ wsSender socket driver.query
-    void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer driver.query)
+    let
+      handleWebSocket :: WS.Output WebSocketResponseMessage -> Aff Unit
+      handleWebSocket msg = void $ driver.query $ ReceiveWebSocketMessage msg unit
+    driver.subscribe
+      $ mapConsumer (case _ of (WebSocketMessage msg) -> WS.SendMessage msg)
+      $ wsSender handleWebSocket socket
+    void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer handleWebSocket)
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
           when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)
