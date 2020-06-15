@@ -132,6 +132,8 @@ executable plc-agda
         MAlonzo.RTE
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC	
+        MAlonzo.Code.Algorithmic.CEKV	
         MAlonzo.Code.Check
         MAlonzo.Code.Scoped.CK
         MAlonzo.Code.Scoped.Extrication
@@ -265,6 +267,8 @@ executable plc-agda
         MAlonzo.RTE
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC
+        MAlonzo.Code.Algorithmic.CEKV
         MAlonzo.Code.Check
         MAlonzo.Code.Scoped.CK
         MAlonzo.Code.Scoped.Extrication
@@ -416,6 +420,8 @@ test-suite test-plc-agda
         MAlonzo.RTE
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC
+        MAlonzo.Code.Algorithmic.CEKV
         MAlonzo.Code.Check
         MAlonzo.Code.Scoped.CK
         MAlonzo.Code.Scoped.Extrication
@@ -456,6 +462,8 @@ test-suite test-plc-agda
         MAlonzo.Code.Algebra.Structures
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC
+        MAlonzo.Code.Algorithmic.CEKV
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
         MAlonzo.Code.Builtin
@@ -713,6 +721,8 @@ test-suite test2-plc-agda
         MAlonzo.RTE
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC
+        MAlonzo.Code.Algorithmic.CEKV
         MAlonzo.Code.Check
         MAlonzo.Code.Scoped.CK
         MAlonzo.Code.Scoped.Extrication
@@ -753,6 +763,8 @@ test-suite test2-plc-agda
         MAlonzo.Code.Algebra.Structures
         MAlonzo.Code.Algorithmic
         MAlonzo.Code.Algorithmic.CK
+        MAlonzo.Code.Algorithmic.CEKC
+        MAlonzo.Code.Algorithmic.CEKV
         MAlonzo.Code.Algorithmic.Reduction
         MAlonzo.Code.Algorithmic.RenamingSubstitution
         MAlonzo.Code.Builtin

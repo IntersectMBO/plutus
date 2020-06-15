@@ -1,8 +1,9 @@
 -- | A dynamic built-in name that allows to call arbitrary 'IO' actions over
 -- PLC values of a built-in types (including dynamic built-in types).
 
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Language.PlutusCore.Constant.Dynamic.Call
     ( dynamicCallTypeScheme
@@ -36,7 +37,8 @@ dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
--- FIXME: embedDynamicBuiltinNameInTerm wraps a dynamic name in a sequence of Abs and Lam
--- constructors.  Maybe we should do something more efficient here if it's important.
-dynamicCall :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
-dynamicCall = embedDynamicBuiltinNameInTerm
+dynamicCall
+    :: forall a uni proxy.
+       (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    => proxy a -> DynamicBuiltinName -> Term TyName Name uni ()
+dynamicCall _ = embedDynamicBuiltinNameInTerm $ dynamicCallTypeScheme @uni @a

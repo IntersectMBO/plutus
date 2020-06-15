@@ -33,19 +33,19 @@ typecheck term = do
 -- | Assert a 'Type' is well-kinded.
 assertWellKinded :: HasCallStack => Type TyName DefaultUni () -> Assertion
 assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
-    Left  err -> assertFailure $ "Kind error: " ++ prettyPlcCondensedErrorClassicString err
+    Left  err -> assertFailure $ "Kind error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a 'Term' is well-typed.
 assertWellTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
 assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
-    Left  err -> assertFailure $ "Type error: " ++ prettyPlcCondensedErrorClassicString err
+    Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
 assertIllTyped :: HasCallStack => Term TyName Name DefaultUni () -> Assertion
 assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
-    Right () -> assertFailure $ "Well-typed: " ++ prettyPlcCondensedErrorClassicString term
+    Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left  _  -> return ()
 
 test_typecheckAvailable :: TestTree

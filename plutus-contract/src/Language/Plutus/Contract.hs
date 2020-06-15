@@ -12,9 +12,8 @@ module Language.Plutus.Contract(
     , selectEither
     , select
     , (>>)
-    , (<|>)
-    , checkpoint
-    , withContractError
+    , mapError
+    , throwError
     -- * Dealing with time
     , HasAwaitSlot
     , AwaitSlot
@@ -60,6 +59,10 @@ module Language.Plutus.Contract(
     , HasTxConfirmation
     , TxConfirmation
     , awaitTxConfirmed
+    -- * Checkpoints
+    , checkpoint
+    , AsCheckpointError(..)
+    , CheckpointError(..)
     -- * Row-related things
     , HasType
     , ContractRow
@@ -68,7 +71,7 @@ module Language.Plutus.Contract(
     , waitingForBlockchainActions
     ) where
 
-import           Control.Applicative                               (Alternative (..))
+import           Data.Maybe                                        (isJust)
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
@@ -78,13 +81,15 @@ import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
-import           Language.Plutus.Contract.Util                     (both, selectEither)
+import           Language.Plutus.Contract.Util                     (both)
 
-import           Language.Plutus.Contract.Request                  (AsContractError (..), Contract (..),
-                                                                    ContractError (..), ContractRow, checkpoint, select,
-                                                                    withContractError)
+import           Language.Plutus.Contract.Request                  (ContractRow)
 import           Language.Plutus.Contract.Schema                   (Handlers)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
+import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
+                                                                    CheckpointError (..), Contract (..),
+                                                                    ContractError (..), checkpoint, mapError, select,
+                                                                    selectEither, throwError)
 
 import           Prelude                                           hiding (until)
 import           Wallet.API                                        (WalletAPIError)
@@ -115,6 +120,6 @@ waitingForBlockchainActions
   => Handlers s
   -> Bool
 waitingForBlockchainActions handlers =
-  UtxoAt.addresses handlers /= mempty
-  || transactions handlers /= mempty
-  || OwnPubKey.request handlers /= mempty
+  isJust (UtxoAt.utxoAtRequest handlers)
+  || isJust (pendingTransaction handlers)
+  || isJust (OwnPubKey.request handlers)

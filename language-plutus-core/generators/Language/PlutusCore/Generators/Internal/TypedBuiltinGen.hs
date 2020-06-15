@@ -33,6 +33,7 @@ import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
+import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
 import qualified Hedgehog.Gen                                      as Gen
 import qualified Hedgehog.Internal.Gen                             as Gen
@@ -81,7 +82,7 @@ updateTypedBuiltinGen genX genTb akt@AsKnownType
 genTypedBuiltinFail :: (GShow uni, Monad m) => TypedBuiltinGenT uni m
 genTypedBuiltinFail tb = fail $ fold
     [ "A generator for the following built-in is not implemented: "
-    , prettyString tb
+    , display tb
     ]
 
 -- | A default built-ins generator.

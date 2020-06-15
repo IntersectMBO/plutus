@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 module ParserSpec (parsing) where
 
 import           PlutusPrelude
@@ -24,7 +25,7 @@ import           Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni SourcePos }
 instance Show PrettyProg where
-    show = prettyString . prog
+    show = display . prog
 
 whitespace :: MonadGen m => m String
 whitespace = flip replicate ' ' <$> Gen.integral (Range.linear 1 4)
@@ -61,22 +62,22 @@ aroundSeparators splice (a:b:l)
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do
-    original <- prettyString <$> runAstGen genProgram
+    original <- display <$> runAstGen genProgram
     scrambled <- aroundSeparators splice original
     return (original, scrambled)
 
 propRoundTrip :: Property
 propRoundTrip = property $ do
-    code <- prettyText <$> forAllWith prettyString (runAstGen genProgram)
-    let backward = fmap (prettyText . prog)
+    code <- display <$> forAllWith display (runAstGen genProgram)
+    let backward = fmap (display . prog)
         forward = fmap PrettyProg . parse program "test"
     tripping code forward backward
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
-    let parse1 = prettyString <$> (parse program "test" $ T.pack original)
-        parse2 = prettyString <$> (parse program "test" $ T.pack scrambled)
+    let parse1 = display @String <$> (parse program "test" $ T.pack original)
+        parse2 = display <$> (parse program "test" $ T.pack scrambled)
     parse1 === parse2
 
 parsing :: TestNested

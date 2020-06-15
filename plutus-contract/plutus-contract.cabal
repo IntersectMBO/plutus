@@ -36,6 +36,7 @@ library
     import: lang
     exposed-modules:
         Data.Row.Extras
+        Data.Text.Extras
         Language.Plutus.Contract
         Language.Plutus.Contract.App
         Language.Plutus.Contract.Effects.AwaitSlot
@@ -46,16 +47,18 @@ library
         Language.Plutus.Contract.Effects.WatchAddress
         Language.Plutus.Contract.Effects.WriteTx
         Language.Plutus.Contract.Request
+        Language.Plutus.Contract.Checkpoint
         Language.Plutus.Contract.Constraints
+        Language.Plutus.Contract.State
         Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Trace
-        Language.Plutus.Contract.Record
         Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
         Language.Plutus.Contract.StateMachine
         Language.Plutus.Contract.StateMachine.OnChain
         Language.Plutus.Contract.Tx
+        Language.Plutus.Contract.Types
         Language.Plutus.Contract.Util
         Language.Plutus.Contract.Wallet
         Language.Plutus.Contract.Typed.Tx

@@ -5,18 +5,14 @@ module Language.PlutusCore.Pretty
       Doc
     , Pretty (..)
     , PrettyBy (..)
-    , PrettyConfigIgnore (..)
-    , PrettyConfigAttach (..)
-    , docString
-    , docText
-    , prettyString
-    , prettyText
-    , prettyStringBy
-    , prettyTextBy
+    , IgnorePrettyConfig (..)
+    , AttachPrettyConfig (..)
+    , Render (..)
+    , display
+    , displayBy
     -- * Defaults
     , prettyPlcDef
-    , prettyPlcDefString
-    , prettyPlcDefText
+    , displayPlcDef
     -- * Global configuration
     , CondensedErrors (..)
     , PrettyConfigPlcOptions (..)
@@ -34,7 +30,7 @@ module Language.PlutusCore.Pretty
     , prettyPlcReadableDef
     , prettyPlcReadableDebug
     , prettyPlcCondensedErrorBy
-    , prettyPlcCondensedErrorClassicString
+    , displayPlcCondensedErrorClassic
     -- * Names
     , PrettyConfigName (..)
     , HasPrettyConfigName (..)
@@ -47,7 +43,6 @@ module Language.PlutusCore.Pretty
     , prettyClassicDef
     , prettyClassicDebug
     -- * Readable view
-    , RenderContext (..)
     , ShowKinds (..)
     , PrettyConfigReadable (..)
     , PrettyReadableBy
@@ -59,8 +54,6 @@ module Language.PlutusCore.Pretty
     , PrettyConst (..)
     ) where
 
-import           PlutusPrelude
-
 import           Language.PlutusCore.Pretty.Classic
 import           Language.PlutusCore.Pretty.ConfigName
 import           Language.PlutusCore.Pretty.Default
@@ -68,3 +61,6 @@ import           Language.PlutusCore.Pretty.Plc
 import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Pretty.Readable
 import           Language.PlutusCore.Pretty.Utils
+
+import           Text.Pretty
+import           Text.PrettyBy

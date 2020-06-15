@@ -28,6 +28,7 @@ import qualified Language.PlutusCore.Lexer.Type     as PLC
 import qualified Language.PlutusCore.MkPlc          as PLC
 import           Language.PlutusIR                  as PIR
 import qualified Language.PlutusIR.MkPir            as PIR
+
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 

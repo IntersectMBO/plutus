@@ -94,6 +94,7 @@ test-suite marlowe-test
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        hint -any,
         lens -any,
         memory -any,
         bytestring -any,

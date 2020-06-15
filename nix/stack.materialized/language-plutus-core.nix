@@ -67,6 +67,7 @@
           (hsPkgs."nonempty-containers" or (errorHandler.buildDepError "nonempty-containers"))
           (hsPkgs."parser-combinators" or (errorHandler.buildDepError "parser-combinators"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
           (hsPkgs."recursion-schemes" or (errorHandler.buildDepError "recursion-schemes"))
           (hsPkgs."safe-exceptions" or (errorHandler.buildDepError "safe-exceptions"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
@@ -145,7 +146,6 @@
           "Language/PlutusIR/Compiler/Lower"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
-          "Data/Text/Prettyprint/Doc/Custom"
           "Language/PlutusCore"
           "Language/PlutusCore/Quote"
           "Language/PlutusCore/MkPlc"
@@ -216,6 +216,7 @@
           "Data/ByteString/Lazy/Hash"
           "PlcTestUtils"
           "Crypto"
+          "Data/Text/Prettyprint/Doc/Custom"
           ];
         hsSourceDirs = [
           "src"

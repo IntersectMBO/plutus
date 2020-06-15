@@ -40,13 +40,13 @@ instance GShow uni => GEq (AsKnownType uni) where
         -- UNDEFINED BEHAVIOR.
         -- We can probably require each 'KnownType' to be 'Typeable' and avoid checking for equality
         -- string representations here, but this complicates the library.
-        guard $ prettyString a == prettyString b
+        guard $ display @String a == display b
         Just $ unsafeCoerce Refl
 
 instance GShow uni => GCompare (AsKnownType uni) where
     a `gcompare` b
         | Just Refl <- a `geq` b = GEQ
-        | otherwise              = liftOrdering $ prettyString a `compare` prettyString b
+        | otherwise              = liftOrdering $ display @String a `compare` display b
 
 -- | Turn any @proxy a@ into an @AsKnownType a@ provided @a@ is a 'KnownType'.
 proxyAsKnownType :: KnownType uni a => proxy a -> AsKnownType uni a

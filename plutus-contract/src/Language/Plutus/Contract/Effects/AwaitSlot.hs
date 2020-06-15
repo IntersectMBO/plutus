@@ -14,7 +14,6 @@ module Language.Plutus.Contract.Effects.AwaitSlot where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
 import           Data.Row
-import           Data.Semigroup                   (Min (..))
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
 import           IOTS                             (IotsType)
@@ -22,7 +21,8 @@ import           Prelude                          hiding (until)
 
 import           Language.Plutus.Contract.Request as Req
 import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Util    (foldMaybe, selectEither)
+import           Language.Plutus.Contract.Types   (AsContractError, Contract, selectEither)
+import           Language.Plutus.Contract.Util    (foldMaybe)
 
 import           Ledger.Slot                      (Slot)
 
@@ -34,11 +34,9 @@ type HasAwaitSlot s =
   , ContractRow s
   )
 
-newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Maybe Slot }
+newtype WaitingForSlot = WaitingForSlot { unWaitingForSlot :: Slot }
   deriving stock (Eq, Ord, Show, Generic)
-  deriving Semigroup via Maybe (Min Slot)
-  deriving Monoid via Maybe (Min Slot)
-  deriving Pretty via (Tagged "WaitingForSlot:" (Maybe Slot))
+  deriving Pretty via (Tagged "WaitingForSlot:" Slot)
   deriving anyclass (ToJSON, FromJSON, IotsType)
 
 type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
@@ -47,11 +45,13 @@ type AwaitSlot = SlotSymbol .== (Slot, WaitingForSlot)
 --   current slot.
 awaitSlot
     :: forall s e.
-       (HasAwaitSlot s)
+       ( HasAwaitSlot s
+       , AsContractError e
+       )
     => Slot
     -> Contract s e Slot
 awaitSlot sl =
-  let s = WaitingForSlot $ Just sl
+  let s = WaitingForSlot sl
       check :: Slot -> Maybe Slot
       check sl' = if sl' >= sl then Just sl' else Nothing
   in
@@ -70,13 +70,14 @@ nextSlot
     ( HasType SlotSymbol WaitingForSlot (Output s))
     => Handlers s
     -> Maybe Slot
-nextSlot (Handlers r) = unWaitingForSlot (r .! #slot)
-
+nextSlot (Handlers r) = unWaitingForSlot <$> trial' r (Label @SlotSymbol)
 
 -- | Run a contract until the given slot has been reached.
 until
   :: forall s e a.
-     (HasAwaitSlot s)
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
   => Contract s e a
   -> Slot
   -> Contract s e (Maybe a)
@@ -86,7 +87,9 @@ until c sl =
 -- | Run a contract when the given slot has been reached.
 when
   :: forall s e a.
-     (HasAwaitSlot s)
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
   => Slot
   -> Contract s e a
   -> Contract s e a
@@ -96,7 +99,9 @@ when s c = awaitSlot @s s >> c
 --   @timeout = flip until@
 timeout
   :: forall s e a.
-     (HasAwaitSlot s)
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
   => Slot
   -> Contract s e a
   -> Contract s e (Maybe a)
@@ -106,7 +111,9 @@ timeout = flip (until @s)
 --   the second slot is reached.
 between
   :: forall s e a.
-     (HasAwaitSlot s)
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
   => Slot
   -> Slot
   -> Contract s e a
@@ -117,7 +124,9 @@ between a b = timeout @s b . when @s a
 --   return the last result.
 collectUntil
   :: forall s e a b.
-     (HasAwaitSlot s)
+     ( HasAwaitSlot s
+     , AsContractError e
+     )
   => (a -> b -> b)
   -> b
   -> Contract s e a

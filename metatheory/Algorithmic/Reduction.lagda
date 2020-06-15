@@ -43,14 +43,15 @@ open import Data.String using (String)
 \begin{code}
 data Value :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 
-  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}{N : Γ , A ⊢ B}
+  V-ƛ : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}
+    → (M : Γ , A ⊢ B)
       ---------------------------
-    → Value (ƛ N)
+    → Value (ƛ M)
 
   V-Λ : ∀ {Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}
-    → {N : Γ ,⋆ K ⊢ B}
+    → (M : Γ ,⋆ K ⊢ B)
       ----------------
-    → Value (Λ N)
+    → Value (Λ M)
 
   V-wrap : ∀{Φ Γ K}
    → {pat : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
@@ -76,7 +77,6 @@ VTel : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : 
 data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- an actual error term
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
-
 \end{code}
 
 \begin{code}
@@ -140,21 +140,6 @@ BUILTIN verifySignature _ (_ ∷ _ ∷ _ ∷ []) (V-con (bytestring k) ,, V-con 
 BUILTIN equalsByteString _ (_ ∷ _ ∷ []) (V-con (bytestring b) ,, V-con (bytestring b') ,, tt) = con (bool (equals b b'))
 BUILTIN ifThenElse _ (_ ∷ t ∷ _ ∷ _) (V-con (bool true)  ,, _) = t
 BUILTIN ifThenElse _ (_ ∷ _ ∷ u ∷ _) (V-con (bool false) ,, _) = u
-\end{code}
-
-# recontructing the telescope after a reduction step
-
-\begin{code}
-reconstTel : ∀{Φ Γ Δ As} Bs Ds
-    → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
-    → (telB : Tel Γ Δ σ Bs)
-    → ∀{C}(t' : Γ ⊢ substNf σ C)
-    → (p : Bs ++ (C ∷ Ds) ≡ As)
-    → (tel' : Tel Γ Δ σ Ds)
-    → Tel Γ Δ σ As
-reconstTel [] Ds σ telB t' refl telD = t' ∷ telD
-reconstTel (B ∷ Bs) Ds σ (X ∷ telB) t' refl tel' =
-  X ∷ reconstTel Bs Ds σ telB t' refl tel'
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -318,22 +303,22 @@ progress-·V :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Value t
   → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
-progress-·V v   (step q)        = step (ξ-·₂ v q)
-progress-·V v   (error E-error) = step (E-·₂ v)
-progress-·V V-ƛ (done w)        = step (β-ƛ w)
+progress-·V v       (step q)        = step (ξ-·₂ v q)
+progress-·V v       (error E-error) = step (E-·₂ v)
+progress-·V (V-ƛ t) (done w)        = step (β-ƛ w)
 
 progress-· :  ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → {t : Γ ⊢ A ⇒ B} → Progress t
   → {u : Γ ⊢ A} → Progress u
   → Progress (t · u)
 progress-· (step p)        q = step (ξ-·₁ p)
-progress-· (done V-ƛ)      q = progress-·V V-ƛ q
+progress-· (done (V-ƛ t))  q = progress-·V (V-ƛ t) q
 progress-· (error E-error) q = step E-·₁
 
 progress-·⋆ :  ∀{Φ Γ}{K B}{t : Γ ⊢ Π B} → Progress t → (A : Φ ⊢Nf⋆ K)
   → Progress (t ·⋆ A)
-progress-·⋆ (step p)   A = step (ξ-·⋆ p)
-progress-·⋆ (done V-Λ) A = step β-Λ
+progress-·⋆ (step p)        A = step (ξ-·⋆ p)
+progress-·⋆ (done (V-Λ t))  A = step β-Λ
 progress-·⋆ (error E-error) A = step E-·⋆
 
 progress-unwrap : ∀{Φ Γ K}{pat}{arg : Φ ⊢Nf⋆ K}{t : Γ ⊢ ne ((μ1 · pat) · arg)}
@@ -397,9 +382,9 @@ progress-wrap n (done v)        = done (V-wrap v)
 progress-wrap n (error E-error) = step E-wrap
 
 progress p (` x)                = ⊥-elim (noVar p x)
-progress p (ƛ M)                = done V-ƛ
+progress p (ƛ M)                = done (V-ƛ M)
 progress p (M · N)              = progress-· (progress p M) (progress p N)
-progress p (Λ M)                = done V-Λ
+progress p (Λ M)                = done (V-Λ M)
 progress p (M ·⋆ A)             = progress-·⋆ (progress p M) A
 progress p (wrap1 pat arg term) = progress-wrap p (progress p term)
 progress p (unwrap1 M)          = progress-unwrap (progress p M)
@@ -447,13 +432,11 @@ redT-errT (.(_ ∷ _) ,, here p)    (there w q) = val-red w (_ ,, p)
 redT-errT (.(_ ∷ _) ,, there v p) (there w q) = redT-errT (_ ,, p) q
 
 -- values are unique for a term
-valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A)
-  → (v v' : Value t)
-  → v ≡ v'
-valUniq .(ƛ _) V-ƛ V-ƛ = refl
-valUniq .(Λ _) V-Λ V-Λ = refl
+valUniq : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}(t : Γ ⊢ A) → (v v' : Value t) → v ≡ v'
+valUniq .(ƛ _)         (V-ƛ _)    (V-ƛ _)     = refl
+valUniq .(Λ _)         (V-Λ _)    (V-Λ _)     = refl
 valUniq .(wrap1 _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (valUniq _ v v')
-valUniq .(con cn) (V-con cn) (V-con .cn) = refl
+valUniq .(con cn)      (V-con cn) (V-con .cn) = refl
 
 -- telescopes of values are unique for that telescope
 vTelUniq : ∀ {Φ} Γ Δ → (σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)(As : List (Δ ⊢Nf⋆ *))

@@ -22,7 +22,9 @@ import           Data.Row.Internal                (Unconstrained1)
 import qualified Data.Text.IO                     as Text
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Schema  (Input, Output)
-import           Language.Plutus.Contract.Servant (Request (..), Response (..), contractApp, initialResponse, runUpdate)
+import           Language.Plutus.Contract.Servant (contractApp)
+import           Language.Plutus.Contract.State   (ContractRequest (..), ContractResponse (..), initialiseContract,
+                                                   insertAndUpdateContract)
 import           Language.Plutus.Contract.Trace   (ContractTrace, EmulatorAction, TraceError, execTrace)
 import qualified Network.Wai.Handler.Warp         as Warp
 import           System.Environment               (getArgs)
@@ -36,8 +38,6 @@ import           Language.Plutus.Contract.IOTS    (IotsRow, IotsType, rowSchema)
 type AppSchema s =
     ( AllUniqueLabels (Input s)
     , AllUniqueLabels (Output s)
-    , Forall (Output s) Monoid
-    , Forall (Output s) Semigroup
     , Forall (Output s) ToJSON
     , Forall (Input (s .\\ BlockchainActions)) IotsType
     , AllUniqueLabels (Input (s .\\ BlockchainActions))
@@ -86,10 +86,7 @@ printTracesAndExit mp = do
 --   for each intermediate state to stdout.
 printTrace
     :: forall s e.
-       ( AllUniqueLabels (Output s)
-       , Forall (Output s) Monoid
-       , Forall (Output s) Semigroup
-       , Forall (Input s) ToJSON
+       ( Forall (Input s) ToJSON
        , Show e
        )
     => Contract s e ()
@@ -100,9 +97,9 @@ printTrace con wllt ctr = do
     let events = Map.findWithDefault [] wllt $ execTrace con ctr
         go previous evt = do
             let st = newState previous
-                newRequest = Request { oldState = st, event = evt }
+                newRequest = ContractRequest { oldState = st, event = evt }
             BSL.putStrLn (Aeson.encode newRequest)
-            either (error . show) pure (runUpdate con newRequest)
+            either (error . show) pure (insertAndUpdateContract con newRequest)
 
-    initial <- either (error . show) pure (initialResponse @s con)
+    initial <- either (error . show) pure (initialiseContract @s con)
     foldM_ go initial events

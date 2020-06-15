@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -19,7 +20,6 @@ module Plutus.SCB.Query
     , eventCount
     , latestContractStatus
     , utxoAt
-    , chainOverviewProjection
     , blockCount
     , pureProjection
     -- * Queries related to the installed and active contracts
@@ -33,52 +33,31 @@ module Plutus.SCB.Query
     , ContractIterationState(..)
     , contractIteration
     , IteratedContractState(..)
-    , iteratedContractStateProjection
-    , awaitSlotRequests
-    , awaitTxConfirmedRequests
-    , userEndpointRequests
-    , ownPubKeyRequests
-    , utxoAtRequests
-    , nextTxAtRequests
-    , writeTxRequests
     , inboxMessages
     ) where
 
 import           Control.Lens
-import           Data.Map.Strict                                   (Map)
-import qualified Data.Map.Strict                                   as Map
-import           Data.Monoid                                       (Sum)
-import           Data.Semigroup                                    (Last (..), Max (..))
-import           Data.Sequence                                     (Seq)
-import qualified Data.Sequence                                     as Seq
-import           Data.Set                                          (Set)
-import qualified Data.Set                                          as Set
-import           Data.Text.Prettyprint.Doc                         (Pretty, pretty)
-import           Eventful                                          (Projection (Projection), StreamEvent (StreamEvent),
-                                                                    StreamProjection, VersionedStreamEvent,
-                                                                    projectionEventHandler, projectionMapMaybe,
-                                                                    projectionSeed, streamProjectionState)
-import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxIdSet)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoints)
-import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (UtxoAtAddress), address, utxo)
-import           Language.Plutus.Contract.Effects.WatchAddress     (AddressSet)
-import           Language.Plutus.Contract.Effects.WriteTx          (PendingTransactions)
-import           Ledger                                            (Address, Tx, TxId, TxOutTx (TxOutTx), txId,
-                                                                    txOutAddress, txOutRefId, txOutTxOut, txOutTxTx)
-import           Ledger.Index                                      (UtxoIndex (UtxoIndex))
-import qualified Ledger.Index                                      as UtxoIndex
-import           Plutus.SCB.Events                                 (ChainEvent (..),
-                                                                    NodeEvent (BlockAdded, SubmittedTx),
-                                                                    UserEvent (ContractStateTransition, InstallContract))
-import           Plutus.SCB.Events.Contract                        (ContractEvent (..), ContractInstanceId,
-                                                                    ContractInstanceState (..), ContractIteration,
-                                                                    ContractMailbox (..), ContractResponse (..),
-                                                                    MailboxMessage (..))
-import qualified Plutus.SCB.Events.Contract                        as C
-import           Plutus.SCB.Types                                  (ChainOverview (ChainOverview),
-                                                                    chainOverviewBlockchain,
-                                                                    chainOverviewUnspentTxsById, chainOverviewUtxoIndex)
+import           Data.Map.Strict                         (Map)
+import qualified Data.Map.Strict                         as Map
+import           Data.Monoid                             (Sum)
+import           Data.Semigroup                          (Last (..), Max (..))
+import           Data.Set                                (Set)
+import qualified Data.Set                                as Set
+import           Data.Text.Prettyprint.Doc               (Pretty, pretty)
+import           Eventful                                (Projection (Projection), StreamEvent (StreamEvent),
+                                                          StreamProjection, VersionedStreamEvent,
+                                                          projectionEventHandler, projectionMapMaybe, projectionSeed,
+                                                          streamProjectionState)
+import           Language.Plutus.Contract.Effects.UtxoAt (UtxoAtAddress (UtxoAtAddress), address, utxo)
+import           Language.Plutus.Contract.Resumable      (Response)
+import           Ledger                                  (Address, Tx, TxId, TxOutTx (TxOutTx), txOutAddress,
+                                                          txOutRefId, txOutTxOut, txOutTxTx)
+import           Ledger.Index                            (UtxoIndex (UtxoIndex))
+import           Plutus.SCB.Events                       (ChainEvent (..), NodeEvent (SubmittedTx),
+                                                          UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Events.Contract              (ContractEvent (..), ContractInstanceId,
+                                                          ContractInstanceState (..), ContractResponse (..),
+                                                          IterationID)
 
 -- | The empty projection. Particularly useful for commands that have no 'state'.
 nullProjection :: Projection () event
@@ -146,33 +125,6 @@ utxoAt (txById, UtxoIndex utxoIndex) address =
                 utxoIndex
      in UtxoAtAddress {address, utxo}
 
-emptyChainOverview :: ChainOverview
-emptyChainOverview =
-    ChainOverview
-        { chainOverviewBlockchain = []
-        , chainOverviewUnspentTxsById = Map.empty
-        , chainOverviewUtxoIndex = UtxoIndex Map.empty
-        }
-
-chainOverviewProjection :: forall t key position.
-    Projection ChainOverview (StreamEvent key position (ChainEvent t))
-chainOverviewProjection =
-    Projection {projectionSeed = emptyChainOverview, projectionEventHandler}
-  where
-    projectionEventHandler ChainOverview { chainOverviewBlockchain = oldBlockchain
-                                         , chainOverviewUnspentTxsById = oldTxById
-                                         , chainOverviewUtxoIndex = oldUtxoIndex
-                                         } (StreamEvent _ _ (NodeEvent (BlockAdded txs))) =
-        let unprunedTxById =
-                foldl (\m tx -> Map.insert (txId tx) tx m) oldTxById txs
-            newTxById = id unprunedTxById -- TODO Prune spent keys.
-            newUtxoIndex = UtxoIndex.insertBlock txs oldUtxoIndex
-         in ChainOverview
-                { chainOverviewBlockchain = txs : oldBlockchain
-                , chainOverviewUnspentTxsById = newTxById
-                , chainOverviewUtxoIndex = newUtxoIndex
-                }
-    projectionEventHandler m _ = m
 
 blockCount :: forall t key position. Projection (Sum Integer) (StreamEvent key position (ChainEvent t))
 blockCount = contramap (const 1) monoidProjection
@@ -194,7 +146,7 @@ contractState =
 --   events from older iterations.
 newtype ContractIterationState =
     ContractIterationState
-        { unContractIterationState :: Map ContractInstanceId (Max ContractIteration)
+        { unContractIterationState :: Map ContractInstanceId (Max IterationID)
         }
 
 instance Semigroup ContractIterationState where
@@ -234,67 +186,9 @@ data IteratedContractState a =
 --   iteration
 contractStates ::
     IteratedContractState a
-    -> Map ContractInstanceId (ContractIteration, a)
+    -> Map ContractInstanceId (IterationID, a)
 contractStates IteratedContractState{icsContractIterations=ContractIterationState its, icsContractState} =
-    Map.mapMaybeWithKey (\k (Max i) -> fmap (\v -> (i, v)) (Map.lookup k icsContractState)) its
-
--- | Given a way to extract 'a's from a 'ContractRequest', make an a projection of each contract instance's
---   'a' in the instance's latest iteration.
-iteratedContractStateProjection ::
-    forall t a key position.
-    Semigroup a
-    => (MailboxMessage -> Maybe a)
-    -> Projection (IteratedContractState a) (StreamEvent key position (ChainEvent t))
-iteratedContractStateProjection f =
-    let projectionEventHandler s@IteratedContractState{icsContractIterations, icsContractState} = \case
-            (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent e))) ->
-                IteratedContractState
-                    { icsContractIterations = updateContractIterationState e icsContractIterations
-                    , icsContractState = Map.delete (csContract e) icsContractState
-                    }
-            (StreamEvent _ _ (ContractEvent (ContractMailboxEvent ContractMailbox{cmInstance,cmIteration} payload)))
-                | Just a <- f payload, Just (Max cmIteration) == Map.lookup cmInstance (unContractIterationState icsContractIterations) ->
-                    IteratedContractState
-                        { icsContractIterations
-                        , icsContractState = Map.insertWith (<>) cmInstance a icsContractState
-                        }
-            _ -> s
-    in Projection
-        { projectionSeed = IteratedContractState mempty mempty
-        , projectionEventHandler
-        }
-
--- | The next slot that the contract instances want to be notified of
-awaitSlotRequests :: forall t key position. Projection (IteratedContractState WaitingForSlot) (StreamEvent key position (ChainEvent t))
-awaitSlotRequests = iteratedContractStateProjection (preview (C._OutboxMessage . C._AwaitSlotRequest))
-
--- | IDs of transactions that contract instances want to see confirmed.
-awaitTxConfirmedRequests :: forall t key position. Projection (IteratedContractState TxIdSet) (StreamEvent key position (ChainEvent t))
-awaitTxConfirmedRequests = iteratedContractStateProjection (preview (C._OutboxMessage .  C._AwaitTxConfirmedRequest))
-
--- | Open endpoints by contract instance
-userEndpointRequests :: forall t key position. Projection (IteratedContractState ActiveEndpoints) (StreamEvent key position (ChainEvent t))
-userEndpointRequests = iteratedContractStateProjection (preview (C._OutboxMessage . C._UserEndpointRequest))
-
--- | Contract instances' requests for "own" public keys
-ownPubKeyRequests :: forall t key position. Projection (IteratedContractState ()) (StreamEvent key position (ChainEvent t))
-ownPubKeyRequests = iteratedContractStateProjection (fmap (const ()) . preview (C._OutboxMessage . C._OwnPubkeyRequest))
-
--- | Requests for subsets of the UTXO set
-utxoAtRequests :: forall t key position. Projection (IteratedContractState AddressSet) (StreamEvent key position (ChainEvent t))
-utxoAtRequests = iteratedContractStateProjection (preview (C._OutboxMessage . C._UtxoAtRequest))
-
--- | Requests to learn about the next transaction at an address
-nextTxAtRequests :: forall t key position. Projection (IteratedContractState AddressSet) (StreamEvent key position (ChainEvent t))
-nextTxAtRequests = iteratedContractStateProjection (preview (C._OutboxMessage . C._NextTxAtRequest))
-
--- | Requests to balance, sign and submit unbalanced transactions
-writeTxRequests :: forall t key position. Projection (IteratedContractState PendingTransactions) (StreamEvent key position (ChainEvent t))
-writeTxRequests = iteratedContractStateProjection (preview (C._OutboxMessage . C._WriteTxRequest))
-
--- | Responses sent to the contract
-inboxMessages :: forall t key position. Projection (IteratedContractState (Seq ContractResponse)) (StreamEvent key position (ChainEvent t))
-inboxMessages = iteratedContractStateProjection (fmap Seq.singleton . preview C._InboxMessage)
+    Map.mapMaybeWithKey (\k (Max i) -> fmap (i,) (Map.lookup k icsContractState)) its
 
 -- Queries about active contracts
 
@@ -343,3 +237,18 @@ installedContractsProjection = projectionMapMaybe contractPaths setProjection
     contractPaths (StreamEvent _ _ (UserEvent (InstallContract contract))) =
         Just contract
     contractPaths _ = Nothing
+
+-- | Responses sent to the contract
+inboxMessages ::
+    forall t key position.
+    Projection (Map ContractInstanceId (Last (Response ContractResponse))) (StreamEvent key position (ChainEvent t))
+inboxMessages =
+    let projectionEventHandler oldMap = \case
+            (StreamEvent _ _ (ContractEvent (ContractInboxMessage i s))) ->
+                Map.unionWith (<>) oldMap (Map.singleton i (Last s))
+            _ -> oldMap
+
+    in Projection
+        { projectionSeed = Map.empty
+        , projectionEventHandler
+        }
