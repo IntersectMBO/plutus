@@ -105,7 +105,7 @@ propCBORnoUnits = property $ do
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
-    let reprint = BSL.fromStrict . encodeUtf8 . prettyPlcDefText . unTextualProgram
+    let reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef . unTextualProgram
     Hedgehog.tripping prog reprint (fmap (TextualProgram . void) . parse)
 
 propRename :: Property
@@ -164,7 +164,7 @@ asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
-errorgen = BSL.fromStrict . encodeUtf8 . prettyPlcDefText
+errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
 asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
@@ -174,7 +174,7 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 evalFile :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) T.Text
 evalFile contents =
-    second prettyPlcDefText $
+    second displayPlcDef $
         unsafeEvaluateCek mempty defaultCostModel . toTerm . void <$> runQuoteT (parseScoped contents)
 
 testsEval :: [FilePath] -> TestTree

@@ -1,21 +1,19 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Control.Bind (map, void)
+import Control.Bind (void)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (catMaybes, intercalate)
+import Data.Array (catMaybes)
 import Data.Either (Either(..))
 import Data.Function (flip, identity)
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
-import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Num (negate)
 import Data.String as String
-import Data.Tuple (Tuple(Tuple))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
@@ -42,7 +40,7 @@ import Marlowe.Blockly as MB
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, bind, const, discard, eq, mempty, pure, show, unit, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, eq, mempty, pure, show, unit, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
@@ -81,27 +79,6 @@ mkMainFrame settings =
         , finalize: Nothing
         }
     }
-
--- | Patch so that result can be read by Read in Haskell
-showAccountsTupleForHaskell ::
-  forall k k2 v.
-  Show k =>
-  Show k2 =>
-  Show v =>
-  Tuple (Tuple k k2) v -> String
-showAccountsTupleForHaskell (Tuple (Tuple k k2) v) = "((" <> show k <> "," <> show k2 <> ")," <> show v <> ")"
-
--- | Patch so that result can be read by Read in Haskell
-showTupleForHaskell :: forall k v. Show k => Show v => Tuple k v -> String
-showTupleForHaskell (Tuple k v) = "(" <> show k <> "," <> show v <> ")"
-
--- | Patch so that result can be read by Read in Haskell
-showAccountsMapForHaskell :: forall k k2 v. Show k => Show k2 => Show v => Map (Tuple k k2) v -> String
-showAccountsMapForHaskell m = "fromList [" <> intercalate "," (map showAccountsTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
-
--- | Patch so that result can be read by Read in Haskell
-showMapForHaskell :: forall k v. Show k => Show v => Map k v -> String
-showMapForHaskell m = "fromList [" <> intercalate "," (map showTupleForHaskell (Map.toUnfoldable m :: Array _)) <> "]"
 
 handleQuery ::
   forall m a.

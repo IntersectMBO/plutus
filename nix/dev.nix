@@ -6,6 +6,7 @@ pkgs.recurseIntoAttrs (rec {
     #cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
     stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
     hlint = haskell.extraPackages.hlint.components.exes.hlint;
+    haskell-language-server = haskell.extraPackages.haskell-language-server.components.exes.haskell-language-server;
     purty = haskell.extraPackages.purty.components.exes.purty;
     purs = easyPS.purs;
     spago = easyPS.spago;
@@ -14,6 +15,8 @@ pkgs.recurseIntoAttrs (rec {
   haskellNixRoots = pkgs.haskell-nix.haskellNixRoots;
 
   scripts = pkgs.recurseIntoAttrs {
+    updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
+
     fixStylishHaskell = pkgs.writeShellScript "fix-stylish-haskell" ''
       ${pkgs.git}/bin/git diff > pre-stylish.diff
       ${pkgs.fd}/bin/fd \

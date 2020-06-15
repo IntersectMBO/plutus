@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
@@ -17,6 +16,7 @@ import           Control.Monad.IO.Class    (MonadIO (..))
 import           Data.Proxy                (Proxy (Proxy))
 import           Ledger                    (Address, TxId)
 import           Ledger.AddressMap         (AddressMap)
+import           Ledger.Blockchain         (Block)
 import           Servant                   ((:<|>) (..), NoContent)
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 
@@ -25,11 +25,12 @@ import           Wallet.Effects            (ChainIndexEffect (..))
 healthCheck :: ClientM NoContent
 startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
+confirmedBlocks :: ClientM [Block]
 transactionConfirmed :: TxId -> ClientM Bool
-(healthCheck, startWatching, watchedAddresses, transactionConfirmed) =
-  (healthCheck_, startWatching_, watchedAddresses_, txConfirmed_)
+(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed) =
+  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> txConfirmed_  =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  =
         client (Proxy @API)
 
 handleChainIndexClient ::
@@ -48,4 +49,5 @@ handleChainIndexClient clientEnv =
       interpret $ \case
         StartWatching a -> void (runClient (startWatching a))
         WatchedAddresses -> runClient watchedAddresses
+        ConfirmedBlocks -> runClient confirmedBlocks
         TransactionConfirmed txid -> runClient (transactionConfirmed txid)

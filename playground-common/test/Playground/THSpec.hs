@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
@@ -14,21 +14,16 @@ module Playground.THSpec
     ( tests
     ) where
 
-import Control.Monad.Freer (Eff, Member)
-import Data.Text (Text)
-import Language.Plutus.Contract.Effects.ExposeEndpoint
-    ( EndpointDescription(EndpointDescription)
-    )
-import Ledger.Value (Value)
-import Playground.TH (mkFunctions, mkSingleFunction)
-import Playground.Types (FunctionSchema(FunctionSchema))
-import Schema
-    ( FormSchema(FormSchemaArray, FormSchemaInt, FormSchemaString,
-           FormSchemaTuple, FormSchemaValue)
-    )
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertEqual, testCase)
-import Wallet.Effects (WalletEffect)
+import           Control.Monad.Freer                             (Eff, Member)
+import           Data.Text                                       (Text)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
+import           Ledger.Value                                    (Value)
+import           Playground.TH                                   (mkFunctions, mkSingleFunction)
+import           Playground.Types                                (FunctionSchema (FunctionSchema))
+import           Schema                                          (FormSchema (FormSchemaArray, FormSchemaInt, FormSchemaString, FormSchemaTuple, FormSchemaValue))
+import           Test.Tasty                                      (TestTree, testGroup)
+import           Test.Tasty.HUnit                                (assertEqual, testCase)
+import           Wallet.Effects                                  (WalletEffect)
 
 -- f1..fn are functions that we should be able to generate schemas
 -- for, using `mkFunction`. The schemas will be called f1Schema etc.

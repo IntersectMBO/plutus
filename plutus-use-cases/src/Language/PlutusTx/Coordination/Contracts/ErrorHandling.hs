@@ -67,13 +67,15 @@ throwAndCatch =
 catchContractError :: (AsMyError e, HasAwaitSlot s) => Contract s e ()
 catchContractError =
     catching _MyContractError
-        (void $ awaitSlot 10)
+        (void $ mapError (review _MyContractError) $ awaitSlot 10)
         (\_ -> throwing_ _Error2)
 
 contract
-    :: ( AsMyError e )
+    :: ( AsMyError e
+       , AsContractError e
+       )
     => Contract Schema e ()
 contract =
     (endpoint @"throwError" >> throw)
-    <|> (endpoint @"catchError" >> throwAndCatch)
-    <|> (endpoint @"catchContractError" >> catchContractError)
+    `select` (endpoint @"catchError" >> throwAndCatch)
+    `select` (endpoint @"catchContractError" >> catchContractError)

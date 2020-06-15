@@ -11,7 +11,7 @@
 }:
 
 let
-  pkgSet = haskell-nix.stackProject {
+  project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
       filter = pkgs.nix-gitignore.gitignoreFilter (pkgs.nix-gitignore.gitignoreCompileIgnore [../.gitignore] root) root;
@@ -61,13 +61,18 @@ let
             # which are actually set up right (we have a build-tool-depends on the executable we need)
             # I'm slightly surprised this works, hooray for laziness!
             plc-agda.components.tests.test-plc-agda.preCheck = ''
-              PATH=${lib.makeBinPath pkgSet.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
+              PATH=${lib.makeBinPath project.hsPkgs.plc-agda.components.tests.test-plc-agda.executableToolDepends }:$PATH
             '';
             # FIXME: Somehow this is broken even with setting the path up as above
             plc-agda.components.tests.test2-plc-agda.doCheck = false;
 
             # plc-agda is compiled from the Haskell source files generated from the Agda
             plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+
+            # Relies on cabal-doctest, just turn it off in the Nix build
+            prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
+            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model.build-tools =
+              lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
 
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
@@ -94,4 +99,4 @@ let
   };
 
 in
-  pkgSet
+  project

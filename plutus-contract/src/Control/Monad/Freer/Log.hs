@@ -16,16 +16,20 @@ module Control.Monad.Freer.Log(
     , logWarn
     , logInfo
     , writeToLog
+    , ignoreLog
+    , traceLog
     ) where
 
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Writer            (Writer (..), tell)
-import           Data.Aeson                            (FromJSON, ToJSON)
-import           Data.Foldable                         (traverse_)
-import           Data.Text                             (Text)
+import           Control.Monad.Freer.Writer              (Writer (..), tell)
+import           Data.Aeson                              (FromJSON, ToJSON)
+import           Data.Foldable                           (traverse_)
+import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc
-import qualified Data.Text.Prettyprint.Doc.Render.Text as Render
-import           GHC.Generics                          (Generic)
+import qualified Data.Text.Prettyprint.Doc.Render.String as Render
+import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
+import qualified Debug.Trace                             as Trace
+import           GHC.Generics                            (Generic)
 
 type Log = Writer [LogMessage]
 
@@ -66,3 +70,13 @@ writeToLog ::
     ~> Eff effs
 writeToLog = interpret $ \case
     Tell es -> traverse_ (logInfo . Render.renderStrict . layoutPretty defaultLayoutOptions . pretty) es
+
+-- | Ignore all log messages.
+ignoreLog :: Eff (Log ': effs) ~> Eff effs
+ignoreLog = interpret $ \case
+    Tell _ -> pure ()
+
+-- | Write the log to stdout using 'Debug.Trace.trace'
+traceLog :: Eff (Log ': effs) ~> Eff effs
+traceLog = interpret $ \case
+    Tell msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())

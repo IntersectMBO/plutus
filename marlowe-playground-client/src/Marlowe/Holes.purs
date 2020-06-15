@@ -174,6 +174,7 @@ getMarloweConstructors ContractType =
     , (Tuple "If" [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
     , (Tuple "When" [ ArrayArg "case", DefaultNumber zero, DataArg ContractType ])
     , (Tuple "Let" [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
+    , (Tuple "Assert" [ DataArg ObservationType, DataArg ContractType ])
     ]
 
 getMarloweConstructors BoundType = Map.singleton "Bound" [ DefaultNumber zero, DefaultNumber zero ]
@@ -521,6 +522,7 @@ derive instance eqToken :: Eq Token
 derive instance ordToken :: Ord Token
 
 instance showToken :: Show Token where
+  show (Token "" "") = "Ada"
   show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
@@ -787,6 +789,7 @@ data Contract
   | If (Term Observation) (Term Contract) (Term Contract)
   | When (Array (Term Case)) (TermWrapper Slot) (Term Contract)
   | Let (TermWrapper ValueId) (Term Value) (Term Contract)
+  | Assert (Term Observation) (Term Contract)
 
 derive instance genericContract :: Generic Contract _
 
@@ -808,6 +811,7 @@ instance contractFromTerm :: FromTerm Contract S.Contract where
   fromTerm (If a b c) = S.If <$> fromTerm a <*> fromTerm b <*> fromTerm c
   fromTerm (When as (TermWrapper b _) c) = S.When <$> (traverse fromTerm as) <*> pure b <*> fromTerm c
   fromTerm (Let a b c) = S.Let <$> fromTerm a <*> fromTerm b <*> fromTerm c
+  fromTerm (Assert a b) = S.Assert <$> fromTerm a <*> fromTerm b
 
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
@@ -818,6 +822,7 @@ instance contractHasParties :: HasParties Contract where
   getParties (If a b c) s = getParties a s <> getParties b s <> getParties c s
   getParties (When a _ b) s = getParties a s <> getParties b s
   getParties (Let _ a b) s = getParties a s <> getParties b s
+  getParties (Assert a b) s = getParties a s <> getParties b s
 
 newtype ValueId
   = ValueId String

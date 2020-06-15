@@ -13,17 +13,17 @@
 module Language.Plutus.Contract.Effects.WriteTx where
 
 import           Control.Lens
-import           Control.Monad.Error.Lens                          (throwing)
 import           Data.Aeson                                        (FromJSON, ToJSON)
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
 import           Data.Void                                         (Void)
 import           GHC.Generics                                      (Generic)
 
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (HasTxConfirmation, awaitTxConfirmed)
 import           Language.Plutus.Contract.Request                  as Req
 import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Types                    (AsContractError, Contract, throwError,
+                                                                    _ConstraintResolutionError, _WalletError)
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import           Ledger.AddressMap                                 (UtxoMap)
@@ -32,7 +32,6 @@ import           Ledger.Constraints.OffChain                       (ScriptLookup
 import qualified Ledger.Constraints.OffChain                       as Constraints
 import           Ledger.Typed.Scripts                              (ScriptInstance, ScriptType (..))
 
-import           IOTS                                              (IotsType)
 import           Ledger.TxId                                       (TxId)
 import           Wallet.API                                        (WalletAPIError)
 
@@ -56,33 +55,26 @@ writeTxResponse = iso f g where
 
 type HasWriteTx s =
     ( HasType TxSymbol WriteTxResponse (Input s)
-    , HasType TxSymbol PendingTransactions (Output s)
+    , HasType TxSymbol UnbalancedTx (Output s)
     , ContractRow s)
 
-type WriteTx = TxSymbol .== (WriteTxResponse, PendingTransactions)
-
-newtype PendingTransactions =
-  PendingTransactions { unPendingTransactions :: [UnbalancedTx] }
-    deriving stock (Eq, Generic, Show)
-    deriving newtype (Semigroup, Monoid)
-    deriving Pretty via (PrettyFoldable [] UnbalancedTx)
-    deriving anyclass (IotsType, ToJSON, FromJSON)
+type WriteTx = TxSymbol .== (WriteTxResponse, UnbalancedTx)
 
 -- | Send an unbalanced transaction to be balanced and signed. Returns the ID
 --    of the final transaction when the transaction was submitted. Throws an
 --    error if balancing or signing failed.
-submitUnbalancedTx :: forall s e. (HasWriteTx s, Req.AsContractError e) => UnbalancedTx -> Contract s e TxId
+submitUnbalancedTx :: forall s e. (AsContractError e, HasWriteTx s) => UnbalancedTx -> Contract s e TxId
 -- See Note [Injecting errors into the user's error type]
 submitUnbalancedTx t =
-  let req = request @TxSymbol @_ @_ @s (PendingTransactions [t]) in
-  req >>= either (throwing Req._WalletError) pure . view writeTxResponse
+  let req = request @TxSymbol @_ @_ @s t in
+  req >>= either (throwError . review _WalletError) pure . view writeTxResponse
 
 -- | Build a transaction that satisfies the constraints, then submit it to the
 --   network. The constraints do not refer to any typed script inputs or
 --   outputs.
 submitTx :: forall s e.
   ( HasWriteTx s
-  , Req.AsContractError e
+  , AsContractError e
   )
   => TxConstraints Void Void
   -> Contract s e TxId
@@ -94,9 +86,9 @@ submitTx = submitTxConstraintsWith @Void mempty
 submitTxConstraints
   :: forall a s e.
   ( HasWriteTx s
-  , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
   , PlutusTx.IsData (DatumType a)
+  , AsContractError e
   )
   => ScriptInstance a
   -> TxConstraints (RedeemerType a) (DatumType a)
@@ -108,9 +100,9 @@ submitTxConstraints inst = submitTxConstraintsWith (Constraints.scriptInstanceLo
 submitTxConstraintsSpending
   :: forall a s e.
   ( HasWriteTx s
-  , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
   , PlutusTx.IsData (DatumType a)
+  , AsContractError e
   )
   => ScriptInstance a
   -> UtxoMap
@@ -125,14 +117,15 @@ submitTxConstraintsSpending inst utxo =
 submitTxConstraintsWith
   :: forall a s e.
   ( HasWriteTx s
-  , Req.AsContractError e
   , PlutusTx.IsData (RedeemerType a)
-  , PlutusTx.IsData (DatumType a) )
+  , PlutusTx.IsData (DatumType a)
+  , AsContractError e
+  )
   => ScriptLookups a
   -> TxConstraints (RedeemerType a) (DatumType a)
   -> Contract s e TxId
 submitTxConstraintsWith sl constraints = do
-  tx <- either (throwing _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
+  tx <- either (throwError . review _ConstraintResolutionError) pure (Constraints.mkTx sl constraints)
   submitUnbalancedTx tx
 
 -- | A version of 'submitTx' that waits until the transaction has been
@@ -141,7 +134,7 @@ submitTxConfirmed
   :: forall s e.
   ( HasWriteTx s
   , HasTxConfirmation s
-  , Req.AsContractError e
+  , AsContractError e
   )
   => UnbalancedTx
   -> Contract s e ()
@@ -153,8 +146,8 @@ event
   -> Event s
 event r = Event (IsJust #tx r)
 
-transactions
-  :: forall s. ( HasType TxSymbol PendingTransactions (Output s) )
+pendingTransaction
+  :: forall s. ( HasType TxSymbol UnbalancedTx (Output s) )
    => Handlers s
-   -> [UnbalancedTx]
-transactions (Handlers r) = unPendingTransactions $ r .! #tx
+   -> Maybe UnbalancedTx
+pendingTransaction (Handlers r) = trial' r (Label @TxSymbol)

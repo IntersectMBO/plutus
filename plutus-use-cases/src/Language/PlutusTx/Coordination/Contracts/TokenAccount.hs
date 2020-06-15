@@ -28,6 +28,8 @@ module Language.PlutusTx.Coordination.Contracts.TokenAccount(
   , tokenAccountContract
   -- * Etc.
   , TokenAccount
+  , TokenAccountError(..)
+  , AsTokenAccountError(..)
   , validatorHash
   , scriptInstance
   ) where
@@ -80,14 +82,27 @@ type HasTokenAccountSchema s =
     , HasEndpoint "new-account" (TokenName, PubKeyHash) s
     )
 
+data TokenAccountError =
+    TAContractError ContractError
+    | TACurrencyError Currency.CurrencyError
+    deriving Show
+
+makeClassyPrisms ''TokenAccountError
+
+instance AsContractError TokenAccountError where
+    _ContractError = _TAContractError
+
+instance Currency.AsCurrencyError TokenAccountError where
+    _CurrencyError = _TACurrencyError
+
 -- | 'transfer', 'redeem', 'pay' and 'newAccount' with endpoints.
 tokenAccountContract
     :: forall s e.
        ( HasTokenAccountSchema s
-       , AsContractError e
+       , AsTokenAccountError e
        )
     => Contract s e ()
-tokenAccountContract = redeem_ <|> pay_ <|> newAccount_ where
+tokenAccountContract = mapError (review _TokenAccountError) (redeem_ `select` pay_ `select` newAccount_) where
     redeem_ = do
         (accountOwner, destination) <- endpoint @"redeem" @(Account, PubKeyHash) @s
         void $ redeem destination accountOwner
@@ -135,22 +150,23 @@ payTx vl = Constraints.mustPayToTheScript () vl
 
 -- | Pay some money to the given token account
 pay
-    :: ( AsContractError e
-       , HasWriteTx s )
+    :: ( HasWriteTx s
+       , AsTokenAccountError e
+       )
     => Scripts.ScriptInstance TokenAccount
     -> Value
     -> Contract s e TxId
-pay inst = submitTxConstraints inst . payTx
+pay inst = mapError (review _TAContractError) . submitTxConstraints inst . payTx
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
 redeemTx
     :: ( HasUtxoAt s
-       , AsContractError e
+       , AsTokenAccountError e
        )
     => Account
     -> PubKeyHash
     -> Contract s e UnbalancedTx
-redeemTx account pk = do
+redeemTx account pk = mapError (review _TAContractError) $ do
     let inst = scriptInstance account
     utxos <- utxoAt (address account)
     let tx = TypedTx.collectFromScript utxos ()
@@ -164,24 +180,26 @@ redeemTx account pk = do
 
 -- | Empty the account by spending all outputs belonging to the 'Account'.
 redeem
-  :: ( AsContractError e
-     , HasWriteTx s
+  :: ( HasWriteTx s
      , HasUtxoAt s
+     , AsTokenAccountError e
      )
   => PubKeyHash
   -- ^ Where the token should go after the transaction
   -> Account
   -- ^ The token account
   -> Contract s e TxId
-redeem pk account = redeemTx account pk >>= submitUnbalancedTx
+redeem pk account = mapError (review _TokenAccountError) $ redeemTx account pk >>= submitUnbalancedTx
 
 -- | @balance account@ returns the value of all unspent outputs that can be
 --   unlocked with @accountToken account@
 balance
-    :: ( HasUtxoAt s )
+    :: ( HasUtxoAt s
+       , AsTokenAccountError e
+       )
     => Account
     -> Contract s e Value
-balance account = do
+balance account = mapError (review _TAContractError) $ do
     utxos <- utxoAt (address account)
     let inner =
             foldMap (view Ledger.outValue . Ledger.txOutTxOut)
@@ -192,14 +210,14 @@ balance account = do
 newAccount
     :: ( HasWatchAddress s
        , HasWriteTx s
-       , AsContractError e
+       , AsTokenAccountError e
        )
     => TokenName
     -- ^ Name of the token
     -> PubKeyHash
     -- ^ Public key of the token's initial owner
     -> Contract s e Account
-newAccount tokenName pk = do
+newAccount tokenName pk = mapError (review _TokenAccountError) $ do
     cur <- Currency.forgeContract pk [(tokenName, 1)]
     let sym = Currency.currencySymbol cur
     pure $ Account (sym, tokenName)

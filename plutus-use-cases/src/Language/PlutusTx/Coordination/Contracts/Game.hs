@@ -142,7 +142,7 @@ guess = do
     void (submitTxConstraintsSpending gameInstance unspentOutputs tx)
 
 game :: AsContractError e => Contract GameSchema e ()
-game = lock <|> guess
+game = lock `select` guess
 
 lockTrace
     :: ( MonadEmulator (TraceError e) m )

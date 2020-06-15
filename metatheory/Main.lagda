@@ -134,8 +134,9 @@ postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
 
-{-# COMPILE GHC prettyPrintTm = prettyText . unconv (-1) (-1) #-}
-{-# COMPILE GHC prettyPrintTy = prettyText . unconvT (-1) #-}
+{-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
+{-# COMPILE GHC prettyPrintTm = display @T.Text . unconv (-1) (-1) #-}
+{-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT (-1) #-}
 
 data EvalMode : Set where
   U L TCK CK TCEK : EvalMode

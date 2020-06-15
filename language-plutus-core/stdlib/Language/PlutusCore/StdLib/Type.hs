@@ -506,7 +506,7 @@ instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat
         [ "Wrong number of elements\n"
         , "expected: ", show expected, " , actual: ", show actual, "\n"
-        , "while constructing a ", prettyPlcDefString tyName
+        , "while constructing a ", displayPlcDef tyName
         ]
 
 instance Exception IndicesLengthsMismatchException

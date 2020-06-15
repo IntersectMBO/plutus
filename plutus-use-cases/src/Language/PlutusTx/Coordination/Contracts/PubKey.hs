@@ -13,12 +13,12 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptInstance) where
+module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptInstance, PubKeyError(..), AsPubKeyError(..)) where
 
-import           Control.Monad.Error.Lens (throwing)
+import           Control.Lens
+import           Control.Monad.Error.Lens
 
 import qualified Data.Map   as Map
-import qualified Data.Text  as T
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
@@ -45,17 +45,29 @@ scriptInstance pk =
         $$(PlutusTx.compile [|| wrap ||]) where
         wrap = Scripts.wrapValidator @() @()
 
+data PubKeyError =
+    ScriptOutputMissing PubKeyHash
+    | MultipleScriptOutputs PubKeyHash
+    | PKContractError ContractError
+    deriving (Eq, Show)
+
+makeClassyPrisms ''PubKeyError
+
+instance AsContractError PubKeyError where
+    _ContractError = _PKContractError
+
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract
     :: forall s e.
     ( HasWatchAddress s
     , HasWriteTx s
-    , AsContractError e)
+    , AsPubKeyError e
+    )
     => PubKeyHash
     -> Value
     -> Contract s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
-pubKeyContract pk vl = do
+pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
     let inst = scriptInstance pk
         address = Scripts.scriptAddress inst
         tx = Constraints.mustPayToTheScript () vl
@@ -67,14 +79,6 @@ pubKeyContract pk vl = do
                 $ Map.filter ((==) address . txOutAddress)
                 $ unspentOutputsTx ledgerTx
     case output of
-        [] -> throwing _OtherError $
-            "Transaction did not contain script output"
-            <> "for public key '"
-            <> T.pack (show pk)
-            <> "'"
+        [] -> throwing _ScriptOutputMissing pk
         [(outRef, outTxOut)] -> pure (outRef, TxOutTx{txOutTxTx = ledgerTx, txOutTxOut = outTxOut}, inst)
-        _ -> throwing _OtherError $
-            "Transaction contained multiple script outputs"
-            <> "for public key '"
-            <> T.pack (show pk)
-            <> "'"
+        _ -> throwing _MultipleScriptOutputs pk

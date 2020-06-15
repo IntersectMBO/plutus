@@ -14,14 +14,14 @@ import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts                                  (unitRedeemer)
 import           Ledger.Typed.Scripts                            as Scripts
 
-import           Language.PlutusTx.Coordination.Contracts.PubKey (pubKeyContract)
+import           Language.PlutusTx.Coordination.Contracts.PubKey (PubKeyError, pubKeyContract)
 
 import           Test.Tasty
 
 w1 :: Wallet
 w1 = Wallet 1
 
-theContract :: Contract BlockchainActions ContractError ()
+theContract :: Contract BlockchainActions PubKeyError ()
 theContract = do
   (txOutRef, txOutTx, pkInst) <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
   let lookups = ScriptLookups

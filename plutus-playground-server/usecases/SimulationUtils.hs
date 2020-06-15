@@ -9,8 +9,8 @@ import qualified Ledger.Value                                    as Value
 import           Playground.Types                                (ContractCall (CallEndpoint),
                                                                   FunctionSchema (FunctionSchema),
                                                                   KnownCurrency (KnownCurrency), SimulatorAction,
-                                                                  SimulatorWallet (SimulatorWallet), argumentValues,
-                                                                  argument, caller, endpointDescription, hash,
+                                                                  SimulatorWallet (SimulatorWallet), argument,
+                                                                  argumentValues, caller, endpointDescription, hash,
                                                                   knownTokens, simulatorWalletBalance,
                                                                   simulatorWalletWallet)
 import           Schema                                          (ToArgument, toArgument)

@@ -73,7 +73,7 @@ type Schema =
         .\/ Endpoint "redeem" Integer
 
 contract :: AsContractError e => Contract Schema e ()
-contract = publish <|> redeem
+contract = publish `select` redeem
 
 -- | The "publish" contract endpoint.
 publish :: AsContractError e => Contract Schema e ()

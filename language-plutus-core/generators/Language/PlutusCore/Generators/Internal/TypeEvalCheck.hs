@@ -39,6 +39,7 @@ import           Language.PlutusCore.Universe
 import           Control.Lens.TH
 import           Control.Monad.Except
 import           Data.String
+import           Data.Text.Prettyprint.Doc
 
 {- Note [Type-eval checking]
 We generate terms along with values they are supposed to evaluate to. Before evaluating a term,
@@ -116,6 +117,6 @@ unsafeTypeEvalCheck termOfTbv = do
         Left err         -> error $ concat
             [ prettyPlcErrorString err
             , "\nin\n"
-            , docString . prettyPlcClassicDebug $ _termOfTerm termOfTbv
+            , render . prettyPlcClassicDebug $ _termOfTerm termOfTbv
             ]
         Right termOfTecr -> _termCheckResultValue <$> termOfTecr

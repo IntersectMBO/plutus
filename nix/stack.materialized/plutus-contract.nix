@@ -1,43 +1,12 @@
-let
-  buildDepError = pkg:
-    builtins.throw ''
-      The Haskell package set does not contain the package: ${pkg} (build dependency).
-      
-      If you are using Stackage, make sure that you are using a snapshot that contains the package. Otherwise you may need to update the Hackage snapshot you are using, usually by updating haskell.nix.
-      '';
-  sysDepError = pkg:
-    builtins.throw ''
-      The Nixpkgs package set does not contain the package: ${pkg} (system dependency).
-      
-      You may need to augment the system package mapping in haskell.nix so that it can be found.
-      '';
-  pkgConfDepError = pkg:
-    builtins.throw ''
-      The pkg-conf packages does not contain the package: ${pkg} (pkg-conf dependency).
-      
-      You may need to augment the pkg-conf package mapping in haskell.nix so that it can be found.
-      '';
-  exeDepError = pkg:
-    builtins.throw ''
-      The local executable components do not include the component: ${pkg} (executable dependency).
-      '';
-  legacyExeDepError = pkg:
-    builtins.throw ''
-      The Haskell package set does not contain the package: ${pkg} (executable dependency).
-      
-      If you are using Stackage, make sure that you are using a snapshot that contains the package. Otherwise you may need to update the Hackage snapshot you are using, usually by updating haskell.nix.
-      '';
-  buildToolDepError = pkg:
-    builtins.throw ''
-      Neither the Haskell package set or the Nixpkgs package set contain the package: ${pkg} (build tool dependency).
-      
-      If this is a system dependency:
-      You may need to augment the system package mapping in haskell.nix so that it can be found.
-      
-      If this is a Haskell dependency:
-      If you are using Stackage, make sure that you are using a snapshot that contains the package. Otherwise you may need to update the Hackage snapshot you are using, usually by updating haskell.nix.
-      '';
-in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
+{ system
+  , compiler
+  , flags
+  , pkgs
+  , hsPkgs
+  , pkgconfPkgs
+  , errorHandler
+  , config
+  , ... }:
   {
     flags = {};
     package = {
@@ -64,41 +33,42 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
     components = {
       "library" = {
         depends = [
-          (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-          (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
-          (hsPkgs."iots-export" or (buildDepError "iots-export"))
-          (hsPkgs."aeson" or (buildDepError "aeson"))
-          (hsPkgs."base" or (buildDepError "base"))
-          (hsPkgs."containers" or (buildDepError "containers"))
-          (hsPkgs."lens" or (buildDepError "lens"))
-          (hsPkgs."text" or (buildDepError "text"))
-          (hsPkgs."hashable" or (buildDepError "hashable"))
-          (hsPkgs."bytestring" or (buildDepError "bytestring"))
-          (hsPkgs."servant" or (buildDepError "servant"))
-          (hsPkgs."servant-server" or (buildDepError "servant-server"))
-          (hsPkgs."mtl" or (buildDepError "mtl"))
-          (hsPkgs."semigroupoids" or (buildDepError "semigroupoids"))
-          (hsPkgs."profunctors" or (buildDepError "profunctors"))
-          (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
-          (hsPkgs."transformers" or (buildDepError "transformers"))
-          (hsPkgs."warp" or (buildDepError "warp"))
-          (hsPkgs."newtype-generics" or (buildDepError "newtype-generics"))
-          (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
-          (hsPkgs."transformers-base" or (buildDepError "transformers-base"))
-          (hsPkgs."monad-control" or (buildDepError "monad-control"))
-          (hsPkgs."mmorph" or (buildDepError "mmorph"))
-          (hsPkgs."row-types" or (buildDepError "row-types"))
-          (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
-          (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
-          (hsPkgs."semigroups" or (buildDepError "semigroups"))
-          (hsPkgs."cryptonite" or (buildDepError "cryptonite"))
+          (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+          (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+          (hsPkgs."iots-export" or (errorHandler.buildDepError "iots-export"))
+          (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+          (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
+          (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
+          (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
+          (hsPkgs."profunctors" or (errorHandler.buildDepError "profunctors"))
+          (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."newtype-generics" or (errorHandler.buildDepError "newtype-generics"))
+          (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."transformers-base" or (errorHandler.buildDepError "transformers-base"))
+          (hsPkgs."monad-control" or (errorHandler.buildDepError "monad-control"))
+          (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+          (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
+          (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+          (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+          (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
+          (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
-          (hsPkgs."tasty" or (buildDepError "tasty"))
-          (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
+          (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           ];
         buildable = true;
         modules = [
           "Data/Row/Extras"
+          "Data/Text/Extras"
           "Language/Plutus/Contract"
           "Language/Plutus/Contract/App"
           "Language/Plutus/Contract/Effects/AwaitSlot"
@@ -109,16 +79,18 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           "Language/Plutus/Contract/Effects/WatchAddress"
           "Language/Plutus/Contract/Effects/WriteTx"
           "Language/Plutus/Contract/Request"
+          "Language/Plutus/Contract/Checkpoint"
           "Language/Plutus/Contract/Constraints"
+          "Language/Plutus/Contract/State"
           "Language/Plutus/Contract/Schema"
           "Language/Plutus/Contract/Trace"
-          "Language/Plutus/Contract/Record"
           "Language/Plutus/Contract/IOTS"
           "Language/Plutus/Contract/Servant"
           "Language/Plutus/Contract/Resumable"
           "Language/Plutus/Contract/StateMachine"
           "Language/Plutus/Contract/StateMachine/OnChain"
           "Language/Plutus/Contract/Tx"
+          "Language/Plutus/Contract/Types"
           "Language/Plutus/Contract/Util"
           "Language/Plutus/Contract/Wallet"
           "Language/Plutus/Contract/Typed/Tx"
@@ -147,18 +119,18 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
       tests = {
         "contract-doctests" = {
           depends = [
-            (hsPkgs."base" or (buildDepError "base"))
-            (hsPkgs."template-haskell" or (buildDepError "template-haskell"))
-            (hsPkgs."bytestring" or (buildDepError "bytestring"))
-            (hsPkgs."language-plutus-core" or (buildDepError "language-plutus-core"))
-            (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
-            (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-            (hsPkgs."prettyprinter" or (buildDepError "prettyprinter"))
-            (hsPkgs."containers" or (buildDepError "containers"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (buildToolDepError "unlit")))
-            (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (buildToolDepError "doctest")))
+            (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
+            (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
             ];
           buildable = true;
           modules = [ "ContractAPI" ];
@@ -167,25 +139,25 @@ in { system, compiler, flags, pkgs, hsPkgs, pkgconfPkgs, ... }:
           };
         "plutus-contract-test" = {
           depends = [
-            (hsPkgs."base" or (buildDepError "base"))
-            (hsPkgs."bytestring" or (buildDepError "bytestring"))
-            (hsPkgs."containers" or (buildDepError "containers"))
-            (hsPkgs."hedgehog" or (buildDepError "hedgehog"))
-            (hsPkgs."tasty" or (buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (buildDepError "tasty-hunit"))
-            (hsPkgs."tasty-hedgehog" or (buildDepError "tasty-hedgehog"))
-            (hsPkgs."text" or (buildDepError "text"))
-            (hsPkgs."mtl" or (buildDepError "mtl"))
-            (hsPkgs."aeson" or (buildDepError "aeson"))
-            (hsPkgs."lens" or (buildDepError "lens"))
-            (hsPkgs."transformers" or (buildDepError "transformers"))
-            (hsPkgs."extensible-effects" or (buildDepError "extensible-effects"))
-            (hsPkgs."plutus-contract" or (buildDepError "plutus-contract"))
-            (hsPkgs."plutus-ledger" or (buildDepError "plutus-ledger"))
-            (hsPkgs."plutus-tx" or (buildDepError "plutus-tx"))
-            (hsPkgs."freer-simple" or (buildDepError "freer-simple"))
-            (hsPkgs."aeson" or (buildDepError "aeson"))
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (buildDepError "plutus-tx-plugin"));
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."extensible-effects" or (errorHandler.buildDepError "extensible-effects"))
+            (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
+            (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
             "Spec/Contract"

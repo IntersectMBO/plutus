@@ -31,7 +31,7 @@ import           Data.Text.Prettyprint.Doc                       (Doc, indent, p
 import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
 import           Options.Applicative                             (CommandFields, Mod, Parser, argument, auto, command,
                                                                   customExecParser, disambiguate, eitherReader, flag,
                                                                   fullDesc, help, helper, idm, info, infoOption, long,
@@ -315,7 +315,7 @@ runCliCommand _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
 runCliCommand _ _ (UpdateContract uuid endpoint payload) =
-    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) endpoint payload
+    void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
 runCliCommand _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)

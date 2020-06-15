@@ -21,10 +21,10 @@ import Data.Num (class Num)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
-import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign (F, readString, Foreign)
-import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
+import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Generic (genericEncode, genericDecode)
+import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
 
 type PubKey
@@ -93,6 +93,7 @@ derive instance eqToken :: Eq Token
 derive instance ordToken :: Ord Token
 
 instance showToken :: Show Token where
+  show (Token "" "") = "Ada"
   show tok = genericShow tok
 
 instance prettyToken :: Pretty Token where
@@ -514,6 +515,7 @@ data Contract
   | If Observation Contract Contract
   | When (Array Case) Timeout Contract
   | Let ValueId Value Contract
+  | Assert Observation Contract
 
 derive instance genericContract :: Generic Contract _
 
@@ -675,6 +677,7 @@ data ReduceWarning
   | ReducePartialPay AccountId Payee Token BigInteger BigInteger
   -------------------------- v oldVal  v newVal
   | ReduceShadowing ValueId BigInteger BigInteger
+  | ReduceAssertionFailed
 
 derive instance genericReduceWarning :: Generic ReduceWarning _
 
@@ -750,10 +753,11 @@ data TransactionWarning
   = TransactionNonPositiveDeposit Party AccountId Token BigInteger
   | TransactionNonPositivePay AccountId Payee Token BigInteger
   | TransactionPartialPay AccountId Payee Token BigInteger BigInteger
-  -- ^ src    ^ dest ^ paid ^ expected
+  --                                               ^ src    ^ dest ^ paid ^ expected
   | TransactionShadowing ValueId BigInteger BigInteger
+  --                           oldVal ^  newVal ^
+  | TransactionAssertionFailed
 
--- oldVal ^  newVal ^
 derive instance genericTransactionWarning :: Generic TransactionWarning _
 
 derive instance eqTransactionWarning :: Eq TransactionWarning
@@ -1036,6 +1040,15 @@ reduceContractStep env state contract = case contract of
         Nothing -> ReduceNoWarning
     in
       Reduced warn ReduceNoPayment newState nextContract
+  Assert obs cont ->
+    let
+      warning =
+        if evalObservation env state obs then
+          ReduceNoWarning
+        else
+          ReduceAssertionFailed
+    in
+      Reduced warning ReduceNoPayment state cont
 
 -- | Reduce a contract until it cannot be reduced more
 reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
@@ -1106,6 +1119,7 @@ convertReduceWarnings (first : rest) =
       ReduceNonPositivePay accId payee tok amount -> (TransactionNonPositivePay accId payee tok amount) : Nil
       ReducePartialPay accId payee tok paid expected -> (TransactionPartialPay accId payee tok paid expected) : Nil
       ReduceShadowing valId oldVal newVal -> (TransactionShadowing valId oldVal newVal) : Nil
+      ReduceAssertionFailed -> TransactionAssertionFailed : Nil
   )
     <> convertReduceWarnings rest
 
@@ -1201,6 +1215,7 @@ instance hasMaxTimeContract :: HasMaxTime Contract where
   maxTime (If _ contractTrue contractFalse) = maxOf [ maxTime contractTrue, maxTime contractFalse ]
   maxTime (When cases timeout contract) = maxOf [ maxTime cases, timeout, maxTime contract ]
   maxTime (Let _ _ contract) = maxTime contract
+  maxTime (Assert _ contract) = maxTime contract
 
 instance hasMaxTimeCase :: HasMaxTime Case where
   maxTime (Case _ contract) = maxTime contract

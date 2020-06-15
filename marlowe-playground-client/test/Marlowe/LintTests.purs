@@ -23,10 +23,14 @@ all = do
     test "of SubValue with 0 constant" $ subValueSimplifiesWithZero
     test "in If construct" $ ifSimplifies
     test "in Notify construct" $ notifySimplifies
+    test "in Assert construct" $ assertSimplifies
     test "in AndObs" $ andObsSimplifies
     test "of AndObs with True constant" $ andObsSimplifiesWithTrue
     test "in OrObs" $ orObsSimplifies
     test "of OrObs with False constant" $ orObsSimplifiesWithFalse
+    test "of non-reduced Scale" $ nonReducedScaleSimplified
+    test "of Scale with constant" $ scaleConstantSimplified
+    test "of Scale with constant expression" $ scaleConstantExpressionSimplified
   suite "Marlowe.Linter reports bad pratices" do
     test "Let shadowing" $ letShadowing
     test "Non-increasing timeouts" $ nonIncreasingTimeouts
@@ -64,6 +68,9 @@ payContract subExpression = "When [Case (Deposit (AccountId 0 (Role \"role\") ) 
 
 notifyContract :: String -> String
 notifyContract subExpression = "When [Case (Notify " <> subExpression <> ") Close] 10 Close"
+
+assertContract :: String -> String
+assertContract subExpression = "Assert " <> subExpression <> " Close"
 
 ifContract :: String -> String
 ifContract subExpression = "If " <> subExpression <> " Close Close"
@@ -178,6 +185,15 @@ notifySimplifies =
   in
     testObservationSimplificationWarning notifyContract simplifiableExpression simplification
 
+assertSimplifies :: Test
+assertSimplifies =
+  let
+    simplifiableExpression = "(AndObs (ValueGT (Constant 14) SlotIntervalEnd) (AndObs (ValueEQ (AddValue (NegValue (Constant 2)) (Constant 5)) (Constant 3)) (OrObs FalseObs TrueObs)))"
+
+    simplification = "(ValueGT (Constant 14) SlotIntervalEnd)"
+  in
+    testObservationSimplificationWarning assertContract simplifiableExpression simplification
+
 ifSimplifies :: Test
 ifSimplifies =
   let
@@ -222,6 +238,33 @@ orObsSimplifiesWithFalse =
     simplification = "(ValueGE SlotIntervalEnd (Constant 3))"
   in
     testObservationSimplificationWarning ifContract simplifiableExpression simplification
+
+nonReducedScaleSimplified :: Test
+nonReducedScaleSimplified =
+  let
+    simplifiableExpression = "(Scale (362%194) SlotIntervalStart)"
+
+    simplification = "(Scale (181%97) SlotIntervalStart)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
+
+scaleConstantSimplified :: Test
+scaleConstantSimplified =
+  let
+    simplifiableExpression = "(Scale (7%3) (Constant 21))"
+
+    simplification = "(Constant 49)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
+
+scaleConstantExpressionSimplified :: Test
+scaleConstantExpressionSimplified =
+  let
+    simplifiableExpression = "(Scale (1%3) (AddValue (Constant 9) (Constant 12)))"
+
+    simplification = "(Constant 7)"
+  in
+    testValueSimplificationWarning letContract simplifiableExpression simplification
 
 letShadowing :: Test
 letShadowing = testWarningSimple "Let \"value\" (Constant 1) (Let \"value\" (Constant 1) Close)" "Let is redefining a ValueId that already exists"

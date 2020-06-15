@@ -50,14 +50,10 @@ evaluateSimulation evaluation = do
     pure $ Interpreter.result <$> result
 
 checkHealth :: Handler ()
-checkHealth = do
+checkHealth =
     compileSourceCode vesting >>= \case
-        Left e  -> throwError $ err400 {errBody = BSL.pack . show $ e}
+        Left e -> throwError $ err400 {errBody = BSL.pack . show $ e}
         Right _ -> pure ()
-
-{-# ANN mkHandlers
-          ("HLint: ignore Avoid restricted function" :: String)
-        #-}
 
 mkHandlers :: MonadLogger m => m (Server API)
 mkHandlers = do

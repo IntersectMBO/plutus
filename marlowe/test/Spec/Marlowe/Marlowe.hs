@@ -5,13 +5,15 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts
     )
 where
 
 import           Control.Exception                     (SomeException, catch)
 import           Data.Maybe                            (isJust)
-import           Language.Marlowe
+import           Language.Marlowe                      (ada, applyInputs, createContract, defaultMarloweParams, deposit,
+                                                        makeProgress, marloweParams, notify, rolePayoutScript,
+                                                        validatorScript)
 import           Language.Marlowe.Analysis.FSSemantics
 import           Language.Marlowe.Semantics
 import           Ledger                                (pubKeyHash)
@@ -31,7 +33,9 @@ import           Data.String
 import qualified Codec.CBOR.Write                      as Write
 import qualified Codec.Serialise                       as Serialise
 import qualified Hedgehog
-import           Language.Marlowe
+import           Language.Haskell.Interpreter          (Extension (OverloadedStrings), MonadInterpreter,
+                                                        OptionVal ((:=)), as, interpret, languageExtensions,
+                                                        runInterpreter, set, setImports)
 import qualified Language.PlutusTx.Prelude             as P
 import           Ledger                                hiding (Value)
 import           Ledger.Ada                            (adaValueOf)
@@ -83,9 +87,9 @@ zeroCouponBondTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -155,9 +159,9 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -192,9 +196,9 @@ makeProgressTest = checkMarloweTrace (MarloweScenario {
     mlInitialBalances = Map.fromList
         [ (walletPubKey alice, adaValueOf 1000), (walletPubKey bob, adaValueOf 1000) ] }) $ do
     -- Init a contract
-    let alicePk = PK $ (pubKeyHash $ walletPubKey alice)
+    let alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        bobPk = PK $ (pubKeyHash $ walletPubKey bob)
+        bobPk = PK $ pubKeyHash $ walletPubKey bob
         update = updateAll [alice, bob]
     update
 
@@ -234,7 +238,7 @@ validatorSize :: IO ()
 validatorSize = do
     let validator = validatorScript defaultMarloweParams
     let vsize = BS.length $ Write.toStrictByteString (Serialise.encode validator)
-    assertBool "Validator is too large" (vsize < 616000)
+    assertBool "Validator is too large" (vsize < 700000)
 
 
 -- | Run a trace with the given scenario and check that the emulator finished
@@ -318,7 +322,7 @@ scaleMulTest = property $ do
 
 
 valueSerialization :: Property
-valueSerialization = property $ do
+valueSerialization = property $
     forAll valueGen $ \a ->
         let decoded :: Maybe (Value Observation)
             decoded = decode $ encode a
@@ -347,6 +351,20 @@ stateSerialization = do
                 Nothing  -> assertFailure "Nope"
         Nothing -> assertFailure "Nope"
 
+prop_showWorksForContracts :: Property
+prop_showWorksForContracts = forAllShrink contractGen shrinkContract showWorksForContract
+
+showWorksForContract :: Contract -> Property
+showWorksForContract contract = unsafePerformIO $ do
+  res <- runInterpreter $ setImports ["Language.Marlowe"]
+                        >> set [ languageExtensions := [ OverloadedStrings ] ]
+                        >> interpretContractString (show contract)
+  return (case res of
+            Right x  -> x === contract
+            Left err -> counterexample (show err) False)
+
+interpretContractString :: MonadInterpreter m => String -> m Contract
+interpretContractString contractStr = interpret contractStr (as :: Contract)
 
 noFalsePositivesForContract :: Contract -> Property
 noFalsePositivesForContract cont =
@@ -402,3 +420,5 @@ sameAsOldImplementation cont =
 runManuallySameAsOldImplementation :: Property
 runManuallySameAsOldImplementation =
   forAllShrink contractGen shrinkContract sameAsOldImplementation
+
+

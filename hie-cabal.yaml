@@ -20,91 +20,50 @@ cradle:
     component: "language-plutus-core:language-plutus-core-weigh"
   - path: ./language-plutus-core/budgeting-bench
     component: "language-plutus-core:language-plutus-core-budgeting-bench"
+
   - path: ./plutus-tx/src
     component: "lib:plutus-tx"
-  - path: ./plutus-tx/compiler
-    component: "lib:plutus-tx-compiler"
-  - path: ./plutus-tx/test
-    component: "plutus-tx:plutus-tx-test"
-  - path: ./plutus-playground-lib/src
-    component: "lib:plutus-playground-lib"
-  - path: ./plutus-playground-lib/test
-    component: "plutus-playground-lib:plutus-playground-lib-test"
+  - path: ./plutus-tx-plugin/src
+    component: "lib:plutus-tx-plugin"
+  - path: ./plutus-tx-plugin/test
+    component: "plutus-tx-plugin:plutus-tx-test"
+
   - path: ./playground-common/src
     component: "lib:playground-common"
   - path: ./playground-common/test
     component: "playground-common:playground-common-test"
+
   - path: ./marlowe-playground-server/src
     component: "lib:marlowe-playground-server"
   - path: ./marlowe-playground-server/test
     component: "marlowe-playground-server:marlowe-playground-server-test"
+
   - path: ./marlowe-symbolic/src
     component: "lib:marlowe-symbolic"
+
+  - path: ./plutus-ledger/src
+    component: "lib:plutus-ledger"
+  - path: ./plutus-ledger/test
+    component: "plutus-ledger:plutus-ledger-test"
+
   - path: ./plutus-contract/src
     component: "lib:plutus-contract"
   - path: ./plutus-contract/test
     component: "plutus-contract:plutus-contract-test"
+
   - path: ./deployment-server/src
     component: "lib:deployment-server"
   - path: ./deployment-server/test
     component: "deployment-server:deployment-server-test"
+
   - path: ./iots-export/src
     component: "lib:iots-export"
   - path: ./iots-export/test
     component: "iots-export:iots-export-test"
+
   - path: ./metatheory/src
     component: "lib:metatheory"
   - path: ./metatheory/test
     component: "metatheory:metatheory-test"
-  # These use the plutus plugin - HIE doesn't support plugins yet
 
-  # - path: ./marlowe/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:marlowe"
-  # - path: ./marlowe/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "marlowe:marlowe-test"
-  # - path: ./plutus-book/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-book"
-  # - path: ./plutus-book/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-book:plutus-book-test"
-  # - path: ./plutus-playground-server/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-playground-server"
-  # - path: ./plutus-playground-server/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-playground-server:plutus-playground-server-test"
-  # - path: ./plutus-tutorial/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-tutorial"
-  # - path: ./plutus-tutorial/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-tutorial:plutus-tutorial-test"
-  # - path: ./plutus-use-cases/src
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "lib:plutus-use-cases"
-  # - path: ./plutus-use-cases/test
-  #   config:
-  #     cradle:
-  #       cabal:
-  #         component: "plutus-use-cases:plutus-use-cases-test"
+# Add more as needed, I'm too lazy
