@@ -26,7 +26,7 @@ traceBuiltins = getStringBuiltinTypes ()
 main :: IO ()
 main =
     defaultMain [ env largeTypeFiles $ \ ~(f, g, h) ->
-                    let mkBench = bench "pretty" . nf (fmap prettyPlcDefText) . parse
+                    let mkBench = bench "pretty" . nf (fmap (show . prettyPlcDef)) . parse
                     in
 
                     bgroup "prettyprint" $ mkBench <$> [f, g, h]
