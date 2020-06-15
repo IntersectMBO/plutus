@@ -13,6 +13,7 @@ open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
+open import Data.Maybe
 
 open import Type
 open import Type.BetaNormal
@@ -24,7 +25,7 @@ open import Builtin
 open import Builtin.Signature Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Utils using (decIf;Maybe;just;nothing)
+open import Utils using (decIf;just;nothing)
 
 data Env : Ctx ∅ → Set
 
@@ -56,6 +57,35 @@ data Env where
 lookup : ∀{Γ A} → Γ ∋ A → Env Γ → Value A
 lookup Z     (ρ ∷ v) = v
 lookup (S x) (ρ ∷ v) = lookup x ρ
+
+discharge : ∀{A} → Value A → ∅ ⊢ A
+
+env2ren : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
+env2ren (ρ ∷ V) Z     = conv⊢ refl (sym (substNf-id _)) (discharge V)
+env2ren (ρ ∷ C)                   (S x) = env2ren ρ x
+
+dischargeBody : ∀{Γ A B} → Γ , A ⊢ B → Env Γ → ∅ , A ⊢ B
+dischargeBody M ρ = conv⊢
+  (cong (∅ ,_) (substNf-id _))
+  (substNf-id _)
+  (subst (ne ∘ `) (exts (ne ∘ `) (env2ren ρ)) M)
+
+dischargeBody⋆ : ∀{Γ K A} → Γ ,⋆ K ⊢ A → Env Γ → ∅ ,⋆ K ⊢ A
+dischargeBody⋆ {A = A} M ρ = conv⊢
+  refl
+  (trans
+    (substNf-cong
+      {f = extsNf (ne ∘ `)}
+      {g = ne ∘ `}
+      (λ{ Z → refl; (S α) → refl})
+      A)
+    (substNf-id A))
+  (subst (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2ren ρ)) M)
+
+discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
+discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
+discharge (V-wrap V) = wrap1 _ _ (discharge V)
+discharge (V-con c)  = con c
 
 VTel : ∀ Δ → (σ : ∀ {K} → Δ ∋⋆ K → ∅ ⊢Nf⋆ K)(As : L.List (Δ ⊢Nf⋆ *)) → Set
 VTel Δ σ L.[]       = ⊤
@@ -207,3 +237,15 @@ step ((s , builtin- b σ As vs A (A' L.∷ As') p (t' ∷ ts') ρ) ◅ V) =
    ; ρ ▻ t'
 step (□ V) = □ V
 step (◆ A) = ◆ A
+
+open import Data.Nat
+
+stepper : ℕ → ∀{T}
+  → State T
+  → Maybe (State T)
+stepper zero st = nothing 
+stepper (suc n) st with step st
+stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
+stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
+stepper (suc n) st | (□ V)   = just (□ V)
+stepper (suc n) st | ◆ A     = just (◆ A)
