@@ -4,8 +4,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.MultiSig(tests) where
 
-import           Data.Text                                         (Text)
-
+import           Language.Plutus.Contract                          (ContractError)
 import           Language.Plutus.Contract.Test
 import qualified Language.PlutusTx                                 as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
@@ -21,7 +20,7 @@ import           Test.Tasty
 
 tests :: TestTree
 tests = testGroup "multisig"
-    [ checkPredicate @MultiSigSchema @Text "2 out of 5"
+    [ checkPredicate @MultiSigSchema @ContractError "2 out of 5"
         MS.contract
         (assertFailedTransaction (\_ err -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
         (callEndpoint @"lock" w1 (multiSig, Ada.lovelaceValueOf 10)
@@ -31,7 +30,7 @@ tests = testGroup "multisig"
         >> handleBlockchainEvents w1
         )
 
-    , checkPredicate @MultiSigSchema @Text "3 out of 5"
+    , checkPredicate @MultiSigSchema @ContractError "3 out of 5"
         MS.contract
         assertNoFailedTransactions
         (callEndpoint @"lock" w1 (multiSig, Ada.lovelaceValueOf 10)

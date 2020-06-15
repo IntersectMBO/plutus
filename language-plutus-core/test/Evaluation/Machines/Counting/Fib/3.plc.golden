@@ -1,4 +1,4 @@
-((Right (2))
+( (Right (2))
 , ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 4
 | mem: 4
 })
@@ -32,4 +32,4 @@
 | budget: ({ cpu: 191
 | mem: 309
 })
-}))
+}) )

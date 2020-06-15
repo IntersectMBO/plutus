@@ -18,16 +18,17 @@ module Language.PlutusTx.Coordination.Contracts.Vesting (
     VestingParams(..),
     VestingSchema,
     VestingTranche(..),
+    VestingError(..),
+    AsVestingError(..),
     totalAmount,
     vestingContract,
     validate,
     vestingScript
     ) where
 
+import Control.Lens
 import           Control.Monad        (void, when)
-import           Control.Monad.Except (throwError)
 import qualified Data.Map as Map
-import qualified Data.Text as T
 import           Prelude (Semigroup(..))
 
 import           GHC.Generics                 (Generic)
@@ -46,6 +47,7 @@ import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
 import           Ledger.Validation            (PendingTx, PendingTx' (..))
+import qualified Prelude as Haskell 
 
 {- |
     A simple vesting scheme. Money is locked by a contract and may only be
@@ -155,8 +157,18 @@ scriptInstance vesting = Scripts.validator @Vesting
 contractAddress :: VestingParams -> Ledger.Address
 contractAddress = Scripts.scriptAddress . scriptInstance
 
-vestingContract :: VestingParams -> Contract VestingSchema T.Text ()
-vestingContract vesting = vest <|> retrieve
+data VestingError =
+    VContractError ContractError
+    | InsufficientFundsError Value Value Value
+    deriving (Haskell.Eq, Show)
+
+makeClassyPrisms ''VestingError
+
+instance AsContractError VestingError where
+    _ContractError = _VContractError
+
+vestingContract :: AsVestingError e => VestingParams -> Contract VestingSchema e ()
+vestingContract vesting = mapError (review _VestingError) (vest `select` retrieve)
   where
     vest = endpoint @"vest funds" >> vestFundsC vesting
     retrieve = do
@@ -171,10 +183,11 @@ payIntoContract value = mustPayToTheScript () value
 
 vestFundsC
     :: ( HasWriteTx s
+       , AsVestingError e
        )
     => VestingParams
-    -> Contract s T.Text ()
-vestFundsC vesting = do
+    -> Contract s e ()
+vestFundsC vesting = mapError (review _VestingError) $ do
     let tx = payIntoContract (totalAmount vesting)
     void $ submitTxConstraints (scriptInstance vesting) tx
 
@@ -184,11 +197,12 @@ retrieveFundsC
     :: ( HasAwaitSlot s
        , HasUtxoAt s
        , HasWriteTx s
+       , AsVestingError e
        )
     => VestingParams
     -> Value
-    -> Contract s T.Text Liveness
-retrieveFundsC vesting payment = do
+    -> Contract s e Liveness
+retrieveFundsC vesting payment = mapError (review _VestingError) $ do
     let inst = scriptInstance vesting
         addr = Scripts.scriptAddress inst
     nextSlot <- awaitSlot 0
@@ -201,15 +215,7 @@ retrieveFundsC vesting payment = do
 
     when (remainingValue `Value.lt` mustRemainLocked)
         $ throwError
-        $ T.unwords
-            [ "Cannot take out"
-            , T.pack (show payment) `T.append` "."
-            , "The maximum is"
-            , T.pack (show maxPayment) `T.append` "."
-            , "At least"
-            , T.pack (show mustRemainLocked)
-            , "must remain locked by the script."
-            ]
+        $ InsufficientFundsError payment maxPayment mustRemainLocked
 
     let liveness = if remainingValue `Value.gt` mempty then Alive else Dead
         remainingOutputs = case liveness of

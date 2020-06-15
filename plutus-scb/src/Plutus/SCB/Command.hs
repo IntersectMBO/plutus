@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 -- | Commands, in CQRS parlance, are inbound message which will
 -- will be processed into events to put in the event store.
 --
@@ -23,15 +21,13 @@ module Plutus.SCB.Command
     , saveBalancedTx
     , saveBalancedTxResult
     , saveContractState
-    , saveBlock
     -- * Commands related to updating the contract state
     , sendContractEvent
     ) where
 
 import           Eventful                   (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
-import           Plutus.SCB.Events          (ChainEvent (ContractEvent, NodeEvent, UserEvent), ContractInstanceState,
-                                             NodeEvent (BlockAdded),
+import           Plutus.SCB.Events          (ChainEvent (ContractEvent, UserEvent), ContractInstanceState,
                                              UserEvent (ContractStateTransition, InstallContract))
 import qualified Plutus.SCB.Events          as Events
 import           Plutus.SCB.Query           (nullProjection)
@@ -61,9 +57,6 @@ saveBalancedTxResult = sendEvents (return . Events.NodeEvent . Events.SubmittedT
 
 saveContractState :: forall t. Aggregate () (ChainEvent t) (ContractInstanceState t)
 saveContractState = sendEvents (return . UserEvent . ContractStateTransition)
-
-saveBlock :: forall t. Aggregate () (ChainEvent t) [Ledger.Tx]
-saveBlock = sendEvents (return . NodeEvent . BlockAdded)
 
 sendContractEvent :: forall t. Aggregate () (ChainEvent t) (Events.Contract.ContractEvent t)
 sendContractEvent = sendEvents (return . ContractEvent)

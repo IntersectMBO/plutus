@@ -23,7 +23,7 @@ main :: IO ()
 main = do
     TermOf term result <- generateTerm
     traverse_ Text.putStrLn
-        [ oneline . prettyPlcDefText $ Program () (Version () 0 1 0) term
+        [ oneline . displayPlcDef $ Program () (Version () 0 1 0) term
         , ""
-        , oneline . prettyPlcDefText $ result
+        , oneline . displayPlcDef $ result
         ]

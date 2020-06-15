@@ -27,7 +27,7 @@ import qualified Language.PlutusCore                as PLC
 import qualified Language.PlutusCore.MkPlc          as PLC
 import           Language.PlutusIR                  as PIR
 import qualified Language.PlutusIR.MkPir            as PIR
-import           PlutusPrelude                      (prettyText)
+import           PlutusPrelude                      (display)
 import           Text.Megaparsec                    hiding (ParseError, State, parse)
 import qualified Text.Megaparsec                    as Parsec
 
@@ -120,7 +120,7 @@ inBraces = between lbrace rbrace
 
 reservedWords :: [T.Text]
 reservedWords =
-    map prettyText PLC.allBuiltinNames ++
+    map display PLC.allBuiltinNames ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -162,7 +162,7 @@ reservedWord w = lexeme $ try $ do
 builtinName :: Parser PLC.BuiltinName
 builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
     where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
-          parseBuiltinName builtin = try $ string (prettyText builtin) >> pure builtin
+          parseBuiltinName builtin = try $ string (display builtin) >> pure builtin
 
 name :: Parser Name
 name = lexeme $ try $ do

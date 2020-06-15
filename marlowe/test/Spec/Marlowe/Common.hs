@@ -7,7 +7,6 @@ module Spec.Marlowe.Common where
 import           Data.Map.Strict         (Map)
 
 import           Language.Marlowe
-import           Language.PlutusTx.Ratio ((%))
 import qualified Language.PlutusTx.Ratio as P
 import           Ledger                  (pubKeyHash)
 import qualified Ledger

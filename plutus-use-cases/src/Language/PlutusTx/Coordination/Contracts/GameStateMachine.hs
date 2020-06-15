@@ -31,7 +31,6 @@ module Language.PlutusTx.Coordination.Contracts.GameStateMachine(
     , token
     ) where
 
-import           Control.Lens                          (makeClassyPrisms)
 import           Control.Monad                         (void)
 import qualified Language.PlutusTx                     as PlutusTx
 import           Language.PlutusTx.Prelude             hiding (Applicative (..), check)
@@ -43,7 +42,7 @@ import qualified Ledger.Value                          as V
 
 import qualified Data.ByteString.Lazy.Char8            as C
 
-import           Language.Plutus.Contract.StateMachine (AsSMContractError, State (..), Void)
+import           Language.Plutus.Contract.StateMachine (State (..), Void)
 import qualified Language.Plutus.Contract.StateMachine as SM
 
 import           Language.Plutus.Contract
@@ -90,12 +89,12 @@ type GameStateMachineSchema =
 
 data GameError =
     GameContractError ContractError
-    | GameStateMachineError (SM.SMContractError GameState GameInput)
-    deriving (Show)
+    | GameSMError (SM.SMContractError GameState GameInput)
+    deriving stock (Show)
 
 -- | Top-level contract, exposing both endpoints.
 contract :: Contract GameStateMachineSchema GameError ()
-contract = (lock <|> guess) >> contract
+contract = (lock `select` guess) >> contract
 
 -- | The token that represents the right to make a guess
 newtype GameToken = GameToken { unGameToken :: Value }
@@ -184,41 +183,29 @@ client :: SM.StateMachineClient GameState GameInput
 client = SM.mkStateMachineClient machineInstance
 
 -- | The @"guess"@ endpoint.
-guess ::
-    ( AsContractError e
-    , AsSMContractError e GameState GameInput
-    )
-    => Contract GameStateMachineSchema e ()
+guess :: Contract GameStateMachineSchema GameError ()
 guess = do
-    GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} <- endpoint @"guess"
+    GuessArgs{guessArgsOldSecret,guessArgsNewSecret, guessArgsValueTakenOut} <- mapError GameContractError $ endpoint @"guess"
 
     let guessedSecret = ClearString (C.pack guessArgsOldSecret)
         newSecret     = HashedString (sha2_256 (C.pack guessArgsNewSecret))
 
-    void (SM.runStep client (Guess guessedSecret newSecret guessArgsValueTakenOut))
+    void
+        $ mapError GameSMError
+        $ SM.runStep client
+            (Guess guessedSecret newSecret guessArgsValueTakenOut)
 
-lock ::
-    ( AsContractError e
-    , AsSMContractError e GameState GameInput
-    )
-    => Contract GameStateMachineSchema e ()
+lock :: Contract GameStateMachineSchema GameError ()
 lock = do
-    LockArgs{lockArgsSecret, lockArgsValue} <- endpoint @"lock"
+    LockArgs{lockArgsSecret, lockArgsValue} <- mapError GameContractError $ endpoint @"lock"
     let secret = HashedString (sha2_256 (C.pack lockArgsSecret))
         sym = Scripts.monetaryPolicyHash scriptInstance
-    _ <- SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
-    void (SM.runStep client ForgeToken)
+    _ <- mapError GameSMError $ SM.runInitialise client (Initialised sym "guess" secret) lockArgsValue
+    void $ mapError GameSMError $ SM.runStep client ForgeToken
 
 PlutusTx.makeIsData ''GameState
 PlutusTx.makeLift ''GameState
 PlutusTx.makeIsData ''GameInput
 PlutusTx.makeLift ''GameInput
-makeClassyPrisms ''GameError
 PlutusTx.makeLift ''GameToken
 PlutusTx.makeIsData ''GameToken
-
-instance AsContractError GameError where
-    _ContractError = _GameContractError
-
-instance AsSMContractError GameError GameState GameInput where
-    _SMContractError = _GameStateMachineError

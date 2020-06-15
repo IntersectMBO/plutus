@@ -94,7 +94,7 @@ iterAppValueToTermOf (IterAppValue term _ y) = TermOf term y
 -- without any additional symbols inbetween.
 revealUnique :: Name -> Name
 revealUnique (Name name uniq) =
-    Name (name <> prettyText (unUnique uniq)) uniq
+    Name (name <> display (unUnique uniq)) uniq
 
 -- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.

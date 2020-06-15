@@ -61,20 +61,22 @@ serializationTest =
 
       contract =
         Assert TrueObs
-          (When
-             [ Case (Deposit aliceAcc alicePk ada valueExpr)
-                 ( Let (ValueId "x") valueExpr
-                     (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
-                 )
-             , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
-                 ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId const `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
-                     (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
-                     Close
-                 )
-             , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
-             ]
-             (Slot (fromIntegral 100))
-             Close)
+          ( When
+              [ Case (Deposit aliceAcc alicePk ada valueExpr)
+                  ( Let (ValueId "x") valueExpr
+                      (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
+                  )
+              , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
+                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId const `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
+                      (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
+                      Close
+                  )
+              , Case (Notify (AndObs (SlotIntervalStart `ValueLT` SlotIntervalEnd) TrueObs)) Close
+              ]
+              (Slot (fromIntegral 100))
+              Close
+          )
+
       state =
         State
           { accounts: Map.singleton (Tuple aliceAcc token) (fromIntegral 12)

@@ -221,12 +221,14 @@ test-suite plutus-scb-test
     other-modules:
         Plutus.SCB.CoreSpec
         Plutus.SCB.RelationSpec
+        Plutus.SCB.Events.ContractSpec
 
     build-depends:
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
         base >=4.9 && <5,
+        bytestring -any,
         containers -any,
         eventful-core -any,
         eventful-memory -any,

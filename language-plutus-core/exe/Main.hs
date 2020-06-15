@@ -214,7 +214,7 @@ parsePlcFile inp = do
     let bsContents = (BSL.fromStrict . encodeUtf8 . T.pack) contents
     case PLC.runQuoteT $ runExceptT (PLC.parseScoped bsContents) of
         Left (errCheck :: PlcParserError) -> do
-            T.putStrLn $ PLC.prettyPlcDefText errCheck
+            T.putStrLn $ PLC.displayPlcDef errCheck
             exitFailure
         Right (Left (errEval :: PlcParserError)) -> do
             print errEval
@@ -258,10 +258,10 @@ runTypecheck (TypecheckOptions inp fmt) = do
     let cfg = PLC.defConfig
     case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
       Left (e :: PlcParserError) -> do
-            T.putStrLn $ PLC.prettyPlcDefText e
+            T.putStrLn $ PLC.displayPlcDef e
             exitFailure
       Right ty -> do
-            T.putStrLn $ PLC.prettyPlcDefText ty
+            T.putStrLn $ PLC.displayPlcDef ty
             exitSuccess
 
 
@@ -275,7 +275,7 @@ runEval (EvalOptions inp mode fmt) = do
                  CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
   case evalFn . void . PLC.toTerm $ prog of
     PLC.EvaluationSuccess v -> do
-      T.putStrLn $ PLC.prettyPlcDefText v
+      T.putStrLn $ PLC.displayPlcDef v
       exitSuccess
     PLC.EvaluationFailure -> exitFailure
 
@@ -339,7 +339,7 @@ toTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni () -> TermExample
 toTermExample term = TermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     ty = case PLC.runQuote . runExceptT $ PLC.typecheckPipeline PLC.defConfig program of
-        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.prettyPlcDefString err
+        Left (err :: PLC.Error PLC.DefaultUni ()) -> error $ PLC.displayPlcDef err
         Right vTy                                 -> PLC.unNormalized vTy
 
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())]
@@ -372,12 +372,12 @@ getAvailableExamples = do
 runExample :: ExampleOptions -> IO ()
 runExample (ExampleOptions ExampleAvailable)     = do
     examples <- getAvailableExamples
-    traverse_ (T.putStrLn . PLC.docText . uncurry prettySignature) examples
+    traverse_ (T.putStrLn . PLC.render . uncurry prettySignature) examples
 runExample (ExampleOptions (ExampleSingle name)) = do
     examples <- getAvailableExamples
     T.putStrLn $ case lookup name examples of
         Nothing -> "Unknown name: " <> name
-        Just ex -> PLC.docText $ prettyExample ex
+        Just ex -> PLC.render $ prettyExample ex
 
 
 ---------------- Driver ----------------
@@ -392,5 +392,3 @@ main = do
         Print dos      -> runPrint dos
         PlcToCbor opts -> runPlcToCbor opts
         CborToPlc opts -> runCborToPlc opts
-
-

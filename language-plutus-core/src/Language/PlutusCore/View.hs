@@ -17,6 +17,8 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core
 
+import           Data.Text.Prettyprint.Doc
+
 -- | A function (called "head") applied to a list of arguments (called "spine").
 data IterApp head arg = IterApp
     { _iterAppHead  :: head

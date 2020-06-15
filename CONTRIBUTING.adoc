@@ -21,10 +21,6 @@ This has all the dependencies, *including* local ones, provided.
 This shouldn’t be necessary unless you need to use an old-style
 `cabal` command that only works in a single package context.
 
-=== How to setup HIE
-
-Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
-
 [WARNING]
 ====
 You can also use `cabal` and `stack` outside a Nix environment to build
@@ -40,18 +36,22 @@ this can at least potentially cause problems or cause you to be missing
 bug workarounds.
 ====
 
+=== How to setup HIE
+
+Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
+
+
 [[update-generated]]
 === How to update the generated Haskell package set
 
 The Nix code that builds all the Haskell packages and their dependencies is generated automatically.
 However, to avoid doing too much work all the time, we have checked the generated output in.
 
-IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver. 
+IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files or change the Stackage resolver.
 But the CI will tell you if you've failed to do so.
 
-You can find the files in link:./nix/stack.materialized[`nix/stack.materialized`]. 
-All you need to do is delete this directory, and then rebuild something. 
-You will see a command on stderr that will tell you how to generate the replacement files.
+You can regenerate the files by running
+`$(nix-build default.nix -A dev.scripts.updateMaterialized)`.
 
 === How to update one of our pinned dependencies
 
@@ -63,7 +63,7 @@ and `extra-dep` (Stack) mechanisms.
 These can be managed normally, but ensure that:
 
 * The specifications remain in sync between `cabal.project` and `stack.yaml`.
-* You update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
+* You update the xref:update-generated[package set].
 * If it is an `extra-dep`, you update the `nix-sha256` comment in `stack.yaml`. For the moment you have to do this by hand, using the
 following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`.
 
@@ -83,11 +83,10 @@ order:
 . Add the cabal file for the new package.
 . Add the package to link:stack.yaml[`stack.yaml`].
 . Add the package to link:cabal.project[`cabal.project`].
-. Update the xref:update-generated[package set sha] and the xref:update-freeze[freeze file].
+. Update the xref:update-generated[package set ].
 . Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
-. If the package is from a newer hackage, use `nix-shell -p niv --run "niv update haskell.nix"`
-to update the hackage index.
+. If the package is from a newer hackage than is in our `index-state`, update the `index-state` field in `cabal.project`. You may also need to update `haskell.nix`: `nix-shell -p niv --run "niv update haskell.nix"`.
 
 === Code style
 
@@ -125,7 +124,7 @@ We use `stylish-haskell` for Haskell code formatting. It is checked by the CI, s
 if you don’t apply it them your PR will not go green. To avoid annoyance,
 set up your editor to run it automatically.
 
-NOTE: You can run `stylish-haskell` over your tree and apply changes
+You can run `stylish-haskell` over your tree and apply changes
 by running `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)`.
 
 ==== Compiler warnings
@@ -184,6 +183,7 @@ changes). Github does not make it easy to signal this state otherwise,
 and people may not be notified if you just push commits.
 
 .Pre-submit checklist:
+* `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files.
 * `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)` to fix any formatting issues.
 * `cabal v2-build all` to check that everything builds.
 
@@ -201,10 +201,9 @@ just as confused as the reviewer.
 
 == Continuous integration
 
-We have three CI systems at the moment:
+We have one CI systems at the moment:
 - Hydra
-- Hercules
-- Buildkite
+- Hercules (disabled, but will be back)
 
 The CI will report statuses on your PRs with links to the logs in case of
 failure. Pull requests cannot be merged without the CI going green.
@@ -214,9 +213,6 @@ failure. Pull requests cannot be merged without the CI going green.
 the merge commit that is created when the PR is merged, it is possible
 that merging a green PR can result in the CI being broken on master.
 This shouldn’t happen frequently, but be aware that it’s possible.
-* You can check on the status of your PR on Hydra _before_ it has finished
-by going to the https://hydra.iohk.io/project/Cardano[Hydra project page] and searching
-for `plutus-pr-<PR number>`.
 
 === Hydra
 
@@ -234,11 +230,6 @@ Hercules is a new CI builder for Nix-based projects. It has some advantages over
 everything is built on both.
 
 Hercules builds jobs based on `ci.nix`.
-
-=== Buildkite
-
-Buildkite handles any remaining ad-hoc things. At the moment it just runs a script that checks whether the
-Hydra build had an evaluation error, and fails if that happened.
 
 == Continuous deployment
 

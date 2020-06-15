@@ -3,6 +3,7 @@
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
+{-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -41,6 +42,7 @@ import           Control.Lens
 import           Control.Monad.Except
 import           Data.String                           (IsString)
 import           Data.Text                             (Text)
+import           Data.Text.Prettyprint.Doc
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
@@ -132,14 +134,15 @@ instance Pretty UnliftingError where
         , pretty err
         ]
 
-instance PrettyBy config (Term TyName Name uni ()) => PrettyBy config (ConstAppError uni) where
+instance (PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True) =>
+        PrettyBy config (ConstAppError uni) where
     prettyBy config (ExcessArgumentsConstAppError args) = fold
         [ "A constant applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
-instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
+instance (PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True, Pretty err) =>
             PrettyBy config (MachineError uni err) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
@@ -154,8 +157,10 @@ instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
     prettyBy _      (OtherMachineError err)               =
         pretty err
 
-instance (Pretty internal, Pretty user, PrettyBy config (Term TyName Name uni ())) =>
-            PrettyBy config (EvaluationError uni internal user) where
+instance
+        ( PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True
+        , Pretty internal, Pretty user
+        ) => PrettyBy config (EvaluationError uni internal user) where
     prettyBy config (InternalEvaluationError err) = fold
         [ "Internal error:", hardline
         , prettyBy config err
@@ -175,8 +180,8 @@ instance (PrettyBy config (Term TyName Name uni ()), PrettyBy config err) =>
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, PrettyPlc err) =>
             Show (ErrorWithCause uni err) where
-    show = docString . prettyPlcReadableDebug
+    show = render . prettyPlcReadableDebug
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,
-          Typeable uni, PrettyPlc err, Typeable err) =>
-            Exception (ErrorWithCause uni err)
+instance ( GShow uni, Closed uni, uni `Everywhere` PrettyConst
+         , Typeable uni, PrettyPlc err, Typeable err
+         ) => Exception (ErrorWithCause uni err)

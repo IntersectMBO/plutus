@@ -24,15 +24,15 @@ module Plutus.SCB.Effects.MultiAgent(
     , handleMultiAgent
     ) where
 
-import           Control.Lens
-import           Control.Monad.Freer
-import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Extra.Log
-import           Control.Monad.Freer.Extras
+import           Control.Lens                    (Lens', Prism', anon, at, below, makeLenses, (&))
+import           Control.Monad.Freer             (Eff, Members, type (~>), interpret, subsume)
+import           Control.Monad.Freer.Error       (Error)
+import           Control.Monad.Freer.Extra.Log   (Log)
+import           Control.Monad.Freer.Extras      (handleZoomedState, handleZoomedWriter, raiseEnd11, raiseEnd6)
 import qualified Control.Monad.Freer.Log         as Log
 import           Control.Monad.Freer.State       (State)
-import           Control.Monad.Freer.TH
-import           Control.Monad.Freer.Writer
+import           Control.Monad.Freer.TH          (makeEffect)
+import           Control.Monad.Freer.Writer      (Writer)
 import           Data.Map                        (Map)
 import           Eventful.Store.Memory           (EventMap, emptyEventMap)
 

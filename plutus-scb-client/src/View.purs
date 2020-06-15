@@ -1,7 +1,7 @@
 module View (render) where
 
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col2_, col5_, col8_, container_, nbsp, row_)
+import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col2_, col4_, col5_, col6_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus)
 import Chain.Types as Chain
@@ -16,32 +16,33 @@ import Data.Lens.Extra (toArrayOf)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.RawJson as RawJson
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h2_, h3_, pre_, span, span_, text)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h2_, h3_, span, span_, table_, tbody_, td_, text, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
+import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
 import Ledger.Crypto (PubKeyHash)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
+import NavTabs (mainTabBar, viewContainer)
 import Network.RemoteData (RemoteData(..))
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
 import Plutus.SCB.Events (ChainEvent(..))
-import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
-import Plutus.SCB.Events.Node (NodeEvent(..))
+import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..), ContractSCBRequest)
+import Plutus.SCB.Events.Node (NodeEvent)
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
 import Plutus.SCB.Types (ContractExe(..))
 import Plutus.SCB.Webserver.Types (FullReport(..))
 import Prelude (class Show, const, show, ($), (<$>), (<<<), (<>))
 import Schema.Types (FormEvent)
-import Types (HAction(..), State(State), WebData, EndpointForm, _contractInstanceId, _csContract, _csCurrentState, _hooks)
+import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _contractInstanceId, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
@@ -50,32 +51,58 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { chainState, fullReport, contractSignatures }) =
+render (State { currentView, chainState, fullReport, contractSignatures }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ div_
             $ case fullReport of
-                Success report -> [ fullReportPane chainState contractSignatures report ]
+                Success report -> [ fullReportPane currentView chainState contractSignatures report ]
                 Failure error -> [ ajaxErrorPane error ]
                 Loading -> [ icon Spinner ]
                 NotAsked -> [ icon Spinner ]
         ]
     ]
 
+tabs :: Array { help :: String, link :: View, title :: String }
+tabs =
+  [ { link: ActiveContracts
+    , title: "Active Contracts"
+    , help: "See currently-active contracts."
+    }
+  , { link: Blockchain
+    , title: "Blockchain"
+    , help: "See the current state of the chain."
+    }
+  , { link: EventLog
+    , title: "Event Log"
+    , help: "View the history of system events."
+    }
+  ]
+
 fullReportPane ::
   forall p.
+  View ->
   Chain.State ->
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   FullReport ContractExe ->
   HTML p HAction
-fullReportPane chainState contractSignatures fullReport@(FullReport { events, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
-  row_
-    [ col12_ [ contractStatusesPane latestContractStatuses contractSignatures ]
-    , col12_ [ ChainAction <<< Just <$> annotatedBlockchainPane chainState walletMap annotatedBlockchain ]
-    , col12_ [ eventsPane events ]
-    , col8_ [ transactionPane transactionMap ]
-    , col8_ [ utxoIndexPane utxoIndex ]
+fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
+  div_
+    [ mainTabBar ChangeView tabs currentView
+    , row_
+        [ viewContainer currentView ActiveContracts
+            [ contractStatusesPane latestContractStatuses contractSignatures ]
+        , viewContainer currentView Blockchain
+            [ ChainAction <<< Just <$> annotatedBlockchainPane chainState walletMap annotatedBlockchain ]
+        , viewContainer currentView EventLog
+            [ row_
+                [ col12_ [ eventsPane events ]
+                , col6_ [ transactionPane transactionMap ]
+                , col6_ [ utxoIndexPane utxoIndex ]
+                ]
+            ]
+        ]
     ]
 
 contractStatusesPane ::
@@ -97,23 +124,47 @@ contractStatusPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   ContractInstanceState t -> HTML p HAction
 contractStatusPane contractSignatures contractInstance =
-  row_
-    [ col2_ [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ] ]
-    , col5_ [ pre_ [ text $ RawJson.pretty $ view (_csCurrentState <<< _hooks) contractInstance ] ]
-    , col5_
-        $ case Map.lookup contractInstanceId contractSignatures of
-            Just (Success endpointForms) ->
-              mapWithIndex
-                (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
-                endpointForms
-            Just (Failure err) -> [ ajaxErrorPane err ]
-            Just Loading -> [ icon Spinner ]
-            Just NotAsked -> []
-            Nothing -> []
+  div_
+    [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ]
+    , row_
+        [ col8_
+            [ div_ [ contractRequestView $ view (_csCurrentState <<< _hooks) contractInstance ]
+            ]
+        , col4_
+            $ case Map.lookup contractInstanceId contractSignatures of
+                Just (Success endpointForms) ->
+                  mapWithIndex
+                    (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
+                    endpointForms
+                Just (Failure err) -> [ ajaxErrorPane err ]
+                Just Loading -> [ icon Spinner ]
+                Just NotAsked -> []
+                Nothing -> []
+        ]
     ]
   where
   contractInstanceId :: ContractInstanceId
   contractInstanceId = view _csContract contractInstance
+
+contractRequestView :: forall p i. Array (Request ContractSCBRequest) -> HTML p i
+contractRequestView requests =
+  table_
+    [ thead_
+        [ tr_
+            [ th_ [ text "Iteration" ]
+            , th_ [ text "Request ID" ]
+            , th_ [ text "Request" ]
+            ]
+        ]
+    , tbody_ (requestRow <$> requests)
+    ]
+  where
+  requestRow (Request { itID: IterationID itID, rqID: RequestID rqID, rqRequest }) =
+    tr_
+      [ td_ [ text $ show itID ]
+      , td_ [ text $ show rqID ]
+      , td_ [ text $ show rqRequest ]
+      ]
 
 actionCard :: forall p. ContractInstanceId -> (FormEvent -> HAction) -> EndpointForm -> HTML p HAction
 actionCard contractInstanceId wrapper endpointForm =
@@ -240,8 +291,6 @@ showUserEvent ( ContractStateTransition
 ) = text $ "Update " <> show csContract
 
 showNodeEvent :: forall p i. NodeEvent -> HTML p i
-showNodeEvent (BlockAdded []) = text $ "Empty block(s) added"
-
 showNodeEvent event = text $ show event
 
 showContractEvent :: forall p i a. Show a => ContractEvent a -> HTML p i

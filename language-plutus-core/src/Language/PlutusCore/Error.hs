@@ -40,6 +40,7 @@ import           Control.Lens                       hiding (use)
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import qualified Data.Text                          as T
+import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 
 {- Note [Annotations and equality]
