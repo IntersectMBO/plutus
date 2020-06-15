@@ -5,20 +5,21 @@ import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, c
 import Bootstrap as Bootstrap
 import Data.Array (mapWithIndex, null)
 import Data.Foldable.Extra (interleave)
-import Data.Lens (view)
+import Data.Lens (_1, filtered, toArrayOf, traversed, view)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Tuple.Nested (type (/\), (/\))
 import Halogen.HTML (HTML, br_, button, div_, h2_, h3_, table, tbody_, td_, text, th, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, colSpan)
 import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
+import Network.RemoteData (_Success)
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ContractReport(..))
 import Schema.Types (FormEvent)
 import Types (EndpointForm, HAction(..), WebData, _contractInstanceIdString, _contractPath, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
@@ -60,25 +61,27 @@ installedContractPane installedContract =
 
 contractStatusesPane ::
   forall p t.
-  Map ContractInstanceId (WebData (Array EndpointForm)) ->
-  ContractReport t ->
+  Map ContractInstanceId (WebData (ContractInstanceState t /\ Array EndpointForm)) ->
   HTML p HAction
-contractStatusesPane contractSignatures (ContractReport { crActiveContractStates }) =
+contractStatusesPane contractSignatures =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ if null crActiveContractStates then
+        [ if null contractStates then
             text "You do not have any active contracts."
           else
-            div_ (contractStatusPane contractSignatures <$> crActiveContractStates)
+            div_ (contractStatusPane contractSignatures <$> contractStates)
         ]
     ]
+  where
+  contractStates :: Array (ContractInstanceState t)
+  contractStates = toArrayOf (traversed <<< _Success <<< _1) contractSignatures
 
 contractStatusPane ::
   forall p t.
-  Map ContractInstanceId (WebData (Array EndpointForm)) ->
+  Map ContractInstanceId (WebData (ContractInstanceState t /\ Array EndpointForm)) ->
   ContractInstanceState t -> HTML p HAction
 contractStatusPane contractSignatures contractInstance =
   div_
@@ -87,7 +90,7 @@ contractStatusPane contractSignatures contractInstance =
         ( case Map.lookup contractInstanceId contractSignatures of
             Just remoteData ->
               webDataPane
-                ( \endpointForms ->
+                ( \(_ /\ endpointForms) ->
                     row_
                       ( mapWithIndex
                           (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
@@ -129,6 +132,9 @@ contractRequestView contractInstance =
       , td_ [ text $ show rqID ]
       , td_ [ pretty rqRequest ]
       ]
+
+hasActiveRequests :: forall t. ContractInstanceState t -> Boolean
+hasActiveRequests contractInstance = not $ null $ view (_csCurrentState <<< _hooks) contractInstance
 
 actionCard :: forall p. ContractInstanceId -> (FormEvent -> HAction) -> EndpointForm -> HTML p HAction
 actionCard contractInstanceId wrapper endpointForm =

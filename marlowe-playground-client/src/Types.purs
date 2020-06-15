@@ -20,21 +20,22 @@ import HaskellEditor.Types as HE
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Servant.PureScript.Ajax (AjaxError)
-import Simulation.Types as ST
 import Simulation.Types as Simulation
 import Wallet as Wallet
+import WebSocket.Support as WS
+import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebsocketMessage String a
+  = ReceiveWebSocketMessage (WS.Output WebSocketResponseMessage) a
 
 data Message
-  = WebsocketMessage String
+  = WebSocketMessage WebSocketRequestMessage
 
 data HAction
   -- Haskell Editor
   = HaskellAction HE.Action
-  | SimulationAction ST.Action
+  | SimulationAction Simulation.Action
   | ShowBottomPanel Boolean
   -- haskell actions
   | ChangeView View

@@ -5,15 +5,16 @@ import Chain.Types as Chain
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
 import Data.Map (Map)
+import Data.Tuple.Nested (type (/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
 import Halogen.HTML.Properties (class_)
 import NavTabs (mainTabBar, viewContainer)
-import Plutus.SCB.Events.Contract (ContractInstanceId)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (FullReport(..))
 import Prelude (($), (<$>), (<<<))
-import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _crAvailableContracts, _csrDefinition, _utxoIndex)
+import Types (EndpointForm, HAction(..), State(..), View(..), WebData, _crAvailableContracts, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
 import View.Events (eventsPane, utxoIndexPane)
@@ -23,7 +24,7 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, fullReport, contractSignatures }) =
+render (State { currentView, chainState, fullReport, contractSignatures, webSocketMessage }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -61,14 +62,14 @@ fullReportPane ::
   forall p.
   View ->
   Chain.State ->
-  Map ContractInstanceId (WebData (Array EndpointForm)) ->
+  Map ContractInstanceId (WebData (ContractInstanceState ContractExe /\ Array EndpointForm)) ->
   FullReport ContractExe ->
   HTML p HAction
 fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, contractReport, chainReport }) =
   row_
     [ viewContainer currentView ActiveContracts
         [ row_
-            [ col12_ [ contractStatusesPane contractSignatures contractReport ]
+            [ col12_ [ contractStatusesPane contractSignatures ]
             , col12_
                 [ installedContractsPane
                     ( toArrayOf

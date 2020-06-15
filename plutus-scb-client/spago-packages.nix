@@ -17,6 +17,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "aff-coroutines" = pkgs.stdenv.mkDerivation {
+        name = "aff-coroutines";
+        version = "v7.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript-contrib/purescript-aff-coroutines.git";
+          rev = "f2f410f3cc9030487ddadf9ffdaab75ba508bde9";
+          sha256 = "1cbly4m2na5kf3halj68rjy5khydb71gzz0ry323z5h1i0fna2g9";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "affjax" = pkgs.stdenv.mkDerivation {
         name = "affjax";
         version = "v10.0.0";
@@ -1176,6 +1188,18 @@ let
           url = "https://github.com/purescript-web/purescript-web-html.git";
           rev = "0aa27db6d393fc53454f549566f9058147cc008a";
           sha256 = "1gz2wkph49rkwd7cm6j0mx9sv6a3nzxcidv50mrxydhl3h8153gy";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "web-socket" = pkgs.stdenv.mkDerivation {
+        name = "web-socket";
+        version = "v2.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript-web/purescript-web-socket.git";
+          rev = "00f4ab583efb6fc60e0517d782d2ba2a89d8ec66";
+          sha256 = "0kp4rmrqmsjmih7nw7dl75d36pny3ikafnhnfchpc834ap9451zh";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";

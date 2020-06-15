@@ -1,6 +1,7 @@
 module MonadApp where
 
 import Prelude
+import Types (HAction, Output(..), State, WebData, _contractInstanceIdString)
 import Animation (class MonadAnimate, animate)
 import Clipboard (class MonadClipboard, copy)
 import Control.Monad.Except (ExceptT, runExceptT)
@@ -13,17 +14,17 @@ import Data.RawJson (RawJson)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Effect.Console as Console
-import Halogen (HalogenM, liftEffect)
+import Halogen (HalogenM, liftEffect, raise)
 import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_getEndpointDescription)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver (SPParams_, getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
-import Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport)
+import Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport, StreamToServer)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import Types (HAction, State, WebData, _contractInstanceIdString)
+import WebSocket.Support as WS
 
 class
   Monad m <= MonadApp m where
@@ -31,10 +32,11 @@ class
   getContractSignature :: ContractInstanceId -> m (WebData (ContractSignatureResponse ContractExe))
   invokeEndpoint :: RawJson -> ContractInstanceId -> EndpointDescription -> m (WebData (ContractInstanceState ContractExe))
   activateContract :: ContractExe -> m Unit
+  sendWebSocketMessage :: StreamToServer ContractExe -> m Unit
   log :: String -> m Unit
 
 newtype HalogenApp m a
-  = HalogenApp (HalogenM State HAction () Void m a)
+  = HalogenApp (HalogenM State HAction () Output m a)
 
 derive instance newtypeHalogenApp :: Newtype (HalogenApp m a) _
 
@@ -65,7 +67,7 @@ instance monadClipboardHalogenApp :: MonadEffect m => MonadClipboard (HalogenApp
   copy = liftEffect <<< copy
 
 ------------------------------------------------------------
-runHalogenApp :: forall m a. HalogenApp m a -> HalogenM State HAction () Void m a
+runHalogenApp :: forall m a. HalogenApp m a -> HalogenM State HAction () Output m a
 runHalogenApp = unwrap
 
 instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) => MonadApp (HalogenApp m) where
@@ -78,6 +80,7 @@ instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) 
           (view _contractInstanceIdString contractInstanceId)
           (view _getEndpointDescription endpointDescription)
   activateContract contract = void $ runAjax $ postApiContractActivate contract
+  sendWebSocketMessage msg = HalogenApp $ raise $ SendWebSocketMessage $ WS.SendMessage msg
   log str = liftEffect $ Console.log str
 
 runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)

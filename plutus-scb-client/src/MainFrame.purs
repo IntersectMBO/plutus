@@ -1,11 +1,14 @@
 module MainFrame
   ( initialMainFrame
+  , handleQuery
   , handleAction
   , initialState
   ) where
 
-import Control.Monad.Except (ExceptT, runExceptT)
-import Prelude
+import Plutus.SCB.Webserver (SPParams_(..))
+import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport, StreamToClient(..), StreamToServer(..))
+import Prelude hiding (div)
+import Types (EndpointForm, HAction(..), Output, Query(..), State(..), View(..), _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _fullReport, _webSocketMessage)
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
@@ -15,17 +18,19 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter)
+import Data.Either (Either(..))
 import Data.Foldable (traverse_)
-import Data.Lens (assign, findOf, modifying, to, traversed, use, view)
+import Data.Lens (_1, _2, assign, findOf, modifying, to, traversed, view)
 import Data.Lens.At (at)
-import Data.Lens.Extra (peruse, toSetOf, toArrayOf)
+import Data.Lens.Extra (peruse, toSetOf)
 import Data.Lens.Index (ix)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (for_, sequence)
+import Data.Traversable (for_)
+import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
@@ -35,24 +40,21 @@ import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, activateContract, getContractSignature, getFullReport, invokeEndpoint, runHalogenApp)
+import MonadApp (class MonadApp, activateContract, getContractSignature, getFullReport, invokeEndpoint, log, runHalogenApp, sendWebSocketMessage)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceState(..))
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver (SPParams_(..))
-import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport)
 import Prim.TypeError (class Warn, Text)
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
-import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport)
 import Validation (_argument)
 import View as View
+import WebSocket.Support as WS
 
 initialValue :: Value
 initialValue = adaToValue $ Lovelace { getLovelace: 0 }
@@ -64,6 +66,7 @@ initialState =
     , fullReport: NotAsked
     , chainState: Chain.initialState
     , contractSignatures: Map.empty
+    , webSocketMessage: NotAsked
     }
 
 ------------------------------------------------------------
@@ -74,7 +77,7 @@ initialMainFrame ::
   forall m.
   MonadAff m =>
   MonadClipboard m =>
-  Component HTML Query HAction Void m
+  Component HTML Query HAction Output m
 initialMainFrame =
   hoist (flip runReaderT ajaxSettings)
     $ H.mkComponent
@@ -83,12 +86,37 @@ initialMainFrame =
         , eval:
           H.mkEval
             { handleAction: runHalogenApp <<< handleAction
-            , handleQuery: const $ pure Nothing
+            , handleQuery: runHalogenApp <<< handleQuery
             , initialize: Just Init
             , receive: const Nothing
             , finalize: Nothing
             }
         }
+
+handleQuery ::
+  forall m a.
+  Warn (Text "Handle WebSocket errors.") =>
+  Warn (Text "Handle WebSocket disconnections.") =>
+  MonadState State m =>
+  MonadApp m =>
+  Query a -> m (Maybe a)
+handleQuery (ReceiveWebSocketMessage (WS.ReceiveMessage msg) next) = do
+  case msg of
+    Right (NewChainReport report) -> assign (_fullReport <<< _Success <<< _chainReport) report
+    Right (NewContractReport report) -> do
+      assign (_fullReport <<< _Success <<< _contractReport) report
+      traverse_ updateFormsForContractInstance
+        (view _contractStates report)
+    Right (NewChainEvents events) -> assign (_fullReport <<< _Success <<< _events) events
+    Right (Echo _) -> pure unit
+    Right (ErrorResponse _) -> pure unit
+    Left err -> pure unit
+  assign _webSocketMessage $ RemoteData.fromEither msg
+  pure $ Just next
+
+handleQuery (ReceiveWebSocketMessage WS.WebSocketClosed next) = do
+  log "Closed"
+  pure $ Just next
 
 handleAction ::
   forall m.
@@ -99,7 +127,9 @@ handleAction ::
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
-handleAction (ChangeView view) = assign _currentView view
+handleAction (ChangeView view) = do
+  sendWebSocketMessage $ Ping $ show view
+  assign _currentView view
 
 handleAction (ActivateContract contract) = activateContract contract
 
@@ -109,13 +139,8 @@ handleAction LoadFullReport = do
   assign _fullReport fullReportResult
   for_ fullReportResult
     ( \fullReport ->
-        traverse_
-          ( \contractInstance@(ContractInstanceState { csContract, csCurrentState }) -> do
-              contractSchema <- getContractSignature csContract
-              assign (_contractSignatures <<< at csContract)
-                (Just $ createEndpointForms contractInstance <$> contractSchema)
-          )
-          (toArrayOf (_contractReport <<< _contractStates <<< traversed) fullReport)
+        traverse_ updateFormsForContractInstance
+          (view (_contractReport <<< _contractStates) fullReport)
     )
 
 handleAction (ChainAction subaction) = do
@@ -137,6 +162,7 @@ handleAction (ChangeContractEndpointCall contractInstanceId endpointIndex subact
     ( _contractSignatures
         <<< ix contractInstanceId
         <<< _Success
+        <<< _2
         <<< ix endpointIndex
         <<< _argument
     )
@@ -151,16 +177,29 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
     encodedForm = RawJson <<< encodeJSON <$> formArgumentToJson (view _argument endpointForm)
   for_ encodedForm
     $ \argument -> do
-        instanceStateResult <-
-          invokeEndpoint argument contractInstanceId endpointDescription
-        fullReportResult <- use _fullReport
-        let
-          newForms :: WebData (Maybe (Array EndpointForm))
-          newForms = createNewEndpointFormsM fullReportResult instanceStateResult
-        assign (_contractSignatures <<< at contractInstanceId) (sequence newForms)
-        case instanceStateResult of
-          Success _ -> handleAction LoadFullReport
-          _ -> pure unit
+        assign (_contractSignatures <<< at contractInstanceId) (Just Loading)
+        invokeEndpoint argument contractInstanceId endpointDescription
+
+updateFormsForContractInstance ::
+  forall m.
+  MonadApp m =>
+  MonadState State m =>
+  ContractInstanceState ContractExe -> m Unit
+updateFormsForContractInstance newContractInstance = do
+  let
+    csContractId = view _csContract newContractInstance
+  oldContractInstance :: Maybe (ContractInstanceState ContractExe) <-
+    peruse
+      ( _contractSignatures
+          <<< ix csContractId
+          <<< _Success
+          <<< _1
+      )
+  when (oldContractInstance /= Just newContractInstance)
+    $ do
+        contractSchema <- getContractSignature $ view _csContract newContractInstance
+        assign (_contractSignatures <<< at csContractId)
+          (Just (Tuple newContractInstance <$> (createEndpointForms newContractInstance <$> contractSchema)))
 
 createNewEndpointFormsM ::
   forall m.
@@ -205,9 +244,6 @@ createEndpointForms contractState = signatureToForms
     { argument: toArgument initialValue $ view (_FunctionSchema <<< _argument) schema
     , schema
     }
-
-runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)
-runAjax action = RemoteData.fromEither <$> runExceptT action
 
 getMatchingSignature ::
   forall t.
