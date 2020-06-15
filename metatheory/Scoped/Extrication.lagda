@@ -110,7 +110,7 @@ lemma⋆ verifySignature = refl
 lemma⋆ equalsByteString = refl
 lemma⋆ ifThenElse = refl
 
-lemma : ∀ b → length (proj₁ (proj₂ (SIG b))) ≡ arity b
+lemma : ∀ b → Data.List.length (proj₁ (proj₂ (SIG b))) ≡ arity b
 lemma addInteger = refl
 lemma subtractInteger = refl
 lemma multiplyInteger = refl
@@ -137,7 +137,7 @@ lemma ifThenElse = refl
 
 extricateTel : ∀ {Φ Γ Δ}(σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J)(As : List (Δ ⊢Nf⋆ *))
   → A.Tel Γ Δ σ As
-  → Vec (ScopedTm (len Γ)) (length As)
+  → Vec (ScopedTm (len Γ)) (Data.List.length As)
 
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
 
