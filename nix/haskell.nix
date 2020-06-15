@@ -71,8 +71,13 @@ let
 
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
-            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model.build-tools =
-              lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+
+            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
+              # Need a suitably wrapped R
+              build-tools = lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+              # Seems to be broken on darwin for some reason
+              platforms = lib.platforms.linux;
+            };
 
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
