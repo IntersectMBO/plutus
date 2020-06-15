@@ -1,1 +1,1 @@
-\(i : integer) -> addInteger  i 1
+\(i : integer) -> addInteger i 1

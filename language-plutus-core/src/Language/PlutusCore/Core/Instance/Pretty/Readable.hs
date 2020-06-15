@@ -88,7 +88,7 @@ instance
         ApplyBuiltin _ bn tys args ->
             withPrettyAt ToTheRight botFixity $ \prettyBot ->
                 sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                    pretty bn <+> hsep (map (braces . prettyBot) tys) <+> hsep (map prettyEl args)
+                    hsep $ pretty bn : map (braces . prettyBot) tys ++ map prettyEl args
         Var _ name -> prettyM name
         TyAbs _ name kind body ->
             typeBinderDocM $ \prettyBinding prettyBody ->
