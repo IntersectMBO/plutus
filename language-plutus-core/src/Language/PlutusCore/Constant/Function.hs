@@ -63,18 +63,18 @@ typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
    returning an int (ie int -> int -> int).  TypeSchemes for builtins
    contain the information we require, but are a bit too general,
    allowing one to represent types that builtins aren't allowed to
-   have (builtins have to have rank-one types with all quantifiers at
-   the start, but TypeSchemes can represent higher-rank types).  The
-   TypeComponents type represents exactly the types we need for
-   typechecking builtins, which simplifies typechecking.  The
-   componentsOfTypeScheme function attempts to convert a TypeScheme to
-   a TypeComponents object.
+   have (builtins have to have types with all quantifiers at the
+   start, but TypeSchemes can represent types with quantifiers in the
+   middle).  The TypeComponents type represents exactly the types we
+   need for typechecking builtins, which simplifies typechecking.  The
+   typeComponentsOfTypeScheme function attempts to convert a
+   TypeScheme to a TypeComponents object.
 -}
 data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
                                          , tcArgTypes   :: [Type TyName uni ()]
                                          , tcResultType :: Type TyName uni ()}
 
-{- | componentsOfTypeScheme takes a type scheme of the form
+{- | typeComponentsOfTypeScheme takes a type scheme of the form
 
       forall a1 ... forall aK . ty1 -> ... -> tyN -> resultTy
 
