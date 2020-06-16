@@ -14,10 +14,9 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
-import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
-import Language.Plutus.Contract.Resumable (Request(..))
+import Language.Plutus.Contract.Resumable (Request)
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse, ContractSCBRequest)
@@ -85,6 +84,9 @@ _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
+
+_contractPath :: Lens' ContractExe String
+_contractPath = _Newtype <<< prop (SProxy :: SProxy "contractPath")
 
 _contractInstanceId :: Lens' ContractInstanceId JsonUUID
 _contractInstanceId = _Newtype <<< prop (SProxy :: SProxy "unContractInstanceId")

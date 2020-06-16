@@ -79,9 +79,12 @@ fullReport ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member ChainIndexEffect effs
+       , Ord t
        )
     => Eff effs (FullReport t)
 fullReport = do
+    installedContracts <-
+         runGlobalQuery (Query.installedContractsProjection @t)
     latestContractStatuses <-
         Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
     events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
@@ -95,7 +98,8 @@ fullReport = do
         Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         FullReport
-            { latestContractStatuses
+            { installedContracts
+            , latestContractStatuses
             , events
             , transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex

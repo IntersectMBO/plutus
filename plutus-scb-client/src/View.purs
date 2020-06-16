@@ -1,11 +1,12 @@
 module View (render) where
 
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col2_, col4_, col5_, col6_, col8_, container_, nbsp, row_)
+import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col4_, col6_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (AnnotatedBlockchain(..), ChainFocus)
 import Chain.Types as Chain
 import Chain.View (chainView)
+import Data.Array (null)
 import Data.Array as Array
 import Data.Foldable.Extra (countConsecutive)
 import Data.FunctorWithIndex (mapWithIndex)
@@ -19,7 +20,7 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h2_, h3_, span, span_, table_, tbody_, td_, text, th_, thead_, tr_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h1, h2_, h3_, li_, span, span_, table_, tbody_, td_, text, th_, thead_, tr_, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
@@ -42,7 +43,7 @@ import Plutus.SCB.Types (ContractExe(..))
 import Plutus.SCB.Webserver.Types (FullReport(..))
 import Prelude (class Show, const, show, ($), (<$>), (<<<), (<>))
 import Schema.Types (FormEvent)
-import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _contractInstanceId, _csContract, _csCurrentState, _hooks)
+import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
 import Wallet.Emulator.Wallet (Wallet)
 import Wallet.Rollup.Types (AnnotatedTx)
@@ -67,8 +68,8 @@ render (State { currentView, chainState, fullReport, contractSignatures }) =
 tabs :: Array { help :: String, link :: View, title :: String }
 tabs =
   [ { link: ActiveContracts
-    , title: "Active Contracts"
-    , help: "See currently-active contracts."
+    , title: "Contracts"
+    , help: "See available and active contracts."
     }
   , { link: Blockchain
     , title: "Blockchain"
@@ -87,12 +88,14 @@ fullReportPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   FullReport ContractExe ->
   HTML p HAction
-fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
+fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, installedContracts, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
   div_
     [ mainTabBar ChangeView tabs currentView
     , row_
         [ viewContainer currentView ActiveContracts
-            [ contractStatusesPane latestContractStatuses contractSignatures ]
+            [ contractStatusesPane latestContractStatuses contractSignatures
+            , installedContractsPane installedContracts
+            ]
         , viewContainer currentView Blockchain
             [ ChainAction <<< Just <$> annotatedBlockchainPane chainState walletMap annotatedBlockchain ]
         , viewContainer currentView EventLog
@@ -105,6 +108,29 @@ fullReportPane currentView chainState contractSignatures fullReport@(FullReport 
         ]
     ]
 
+installedContractsPane ::
+  forall p.
+  Array ContractExe ->
+  HTML p HAction
+installedContractsPane installedContracts =
+  card_
+    [ cardHeader_
+        [ h2_ [ text "Installed Contracts" ]
+        ]
+    , cardBody_
+        [ if null installedContracts then
+            text "You do not have any contracts installed."
+          else
+            ul_ (installedContractPane <$> installedContracts)
+        ]
+    ]
+
+installedContractPane ::
+  forall p.
+  ContractExe ->
+  HTML p HAction
+installedContractPane installedContract = li_ [ text $ view _contractPath installedContract ]
+
 contractStatusesPane ::
   forall p t.
   Array (ContractInstanceState t) ->
@@ -116,7 +142,11 @@ contractStatusesPane latestContractStatuses contractSignatures =
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ div_ (contractStatusPane contractSignatures <$> latestContractStatuses) ]
+        [ if null latestContractStatuses then
+            text "You do not have any active contracts."
+          else
+            div_ (contractStatusPane contractSignatures <$> latestContractStatuses)
+        ]
     ]
 
 contractStatusPane ::

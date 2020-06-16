@@ -6,6 +6,7 @@ module Plutus.SCB.Webserver.Types where
 
 import           Data.Aeson             (FromJSON, ToJSON)
 import           Data.Map               (Map)
+import           Data.Set               (Set)
 import           GHC.Generics           (Generic)
 import           Ledger                 (PubKeyHash, Tx, TxId)
 import           Ledger.Index           (UtxoIndex)
@@ -17,7 +18,8 @@ import           Wallet.Rollup.Types    (AnnotatedTx)
 
 data FullReport t =
     FullReport
-        { latestContractStatuses :: [ContractInstanceState t]
+        { installedContracts     :: Set t
+        , latestContractStatuses :: [ContractInstanceState t]
         , events                 :: [ChainEvent t]
         , transactionMap         :: Map TxId Tx
         , utxoIndex              :: UtxoIndex
