@@ -372,12 +372,12 @@ test-suite language-plutus-core-prop-test
         tasty-hunit -any,
         testing-feat -any,
         text -any
+-- this stuff is from Wen's fork, commeting out for now - James
+--    if flag(eventlog)
+--        ghc-options: -eventlog
 
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
+--    if (flag(development) && impl(ghc <8.4))
+--        ghc-options: -Werror
 
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
