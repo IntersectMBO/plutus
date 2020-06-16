@@ -117,6 +117,7 @@ tests = testGroup "crowdfunding"
             >> Trace.notifySlot w2
             >> Trace.notifySlot w3
             >> traverse_ Trace.handleBlockchainEvents [w2, w3]
+            >> Trace.addBlocks 1
 
     , Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let

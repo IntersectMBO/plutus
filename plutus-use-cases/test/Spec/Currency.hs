@@ -16,12 +16,12 @@ tests = testGroup "currency"
     [ checkPredicate "can create a new currency"
         theContract
         (assertDone w1 (const True) "currency contract not done")
-        (handleBlockchainEvents (Wallet 1))
+        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
 
     , checkPredicate "script size is reasonable"
         theContract
         (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
-        (handleBlockchainEvents (Wallet 1))
+        (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1))
 
     ]
 

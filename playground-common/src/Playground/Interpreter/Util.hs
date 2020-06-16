@@ -181,8 +181,6 @@ triggerEvents ::
     -> ContractTrace s e m a ()
 triggerEvents w = do
     handleBlockchainEvents w
-    notifyInterestingAddresses w
-    notifySlot w
 
 toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
 toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))

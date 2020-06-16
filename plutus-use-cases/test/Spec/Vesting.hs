@@ -36,7 +36,9 @@ tests =
         con
         (walletFundsChange wallet2 (Numeric.negate $ totalAmount vesting))
         ( callEndpoint @"vest funds" wallet2 ()
-        >> handleBlockchainEvents wallet2)
+        >> handleBlockchainEvents wallet2
+        >> addBlocks 1
+        )
 
     , checkPredicate "retrieve some funds"
         con
@@ -67,8 +69,9 @@ tests =
         >> addBlocks 20
         >> callEndpoint @"retrieve funds" wallet1 (totalAmount vesting)
         >> notifySlot wallet1
+        >> handleBlockchainEvents wallet1
         >> addBlocks 1
-        >> handleBlockchainEvents wallet1)
+        )
 
     , Lib.goldenPir "test/Spec/vesting.pir" $$(PlutusTx.compile [|| validate ||])
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (vestingScript vesting) 33000)
@@ -94,6 +97,7 @@ retrieveFundsTrace = do
     callEndpoint @"retrieve funds" wallet1 (Ada.lovelaceValueOf 10)
     addBlocks 1
     handleBlockchainEvents wallet1
+    addBlocks 1
 
 expectedError :: TraceError VestingError
 expectedError =

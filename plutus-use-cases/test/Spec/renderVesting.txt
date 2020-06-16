@@ -174,7 +174,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  60
 
-==== Slot #13, Tx #0 ====
+==== Slot #12, Tx #0 ====
 TxId:       68c627774eff2be9492b6c6c36c59d6f814c17eec131249188b86e58685e416f
 Fee:        -
 Forge:      -

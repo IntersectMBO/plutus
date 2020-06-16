@@ -60,7 +60,7 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processIndexEffects stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
 main :: (MonadIO m) => ChainIndexConfig -> BaseUrl -> m ()
 main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do

@@ -38,8 +38,11 @@ tests =
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> gameTokenVal))
         ( successTrace
         >> payToWallet w2 w1 gameTokenVal
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
         >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
         >> handleBlockchainEvents w1
+        >> addBlocks 1
         )
 
     , checkPredicate @GameStateMachineSchema "run a failed trace"
@@ -49,9 +52,14 @@ tests =
         /\ walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
         ( callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
         >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
+        >> addBlocks 1
         >> payToWallet w1 w2 gameTokenVal
+        >> addBlocks 1
         >> callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
-        >> handleBlockchainEvents w2)
+        >> handleBlockchainEvents w2
+        >> addBlocks 1)
 
 
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
@@ -77,10 +85,14 @@ successTrace :: MonadEmulator (TraceError e) m => ContractTrace GameStateMachine
 successTrace = do
     callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
     handleBlockchainEvents w1
+    addBlocks 1
     handleBlockchainEvents w1
+    addBlocks 1
     payToWallet w1 w2 gameTokenVal
+    addBlocks 1
     callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
     handleBlockchainEvents w2
+    addBlocks 1
 
 gameTokenVal :: Value
 gameTokenVal =

@@ -38,7 +38,7 @@ import           Language.Plutus.Contract                        as Contract
 import qualified Language.PlutusTx                               as PlutusTx
 import qualified Language.PlutusTx.AssocMap                      as AssocMap
 import           Ledger                                          (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..),
-                                                                  pubKeyHash, scriptCurrencySymbol)
+                                                                  pubKeyHash, scriptCurrencySymbol, txId)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts
@@ -164,7 +164,8 @@ forgeContract pk amounts = mapError (review _CurrencyError) $ do
                         <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
     let forgeTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
                     <> Constraints.mustForgeValue (forgedValue theCurrency)
-    _ <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
+    tx <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
+    _ <- awaitTxConfirmed (txId tx)
     pure theCurrency
 
 -- | Monetary policy for a currency that has a fixed amount of tokens issued

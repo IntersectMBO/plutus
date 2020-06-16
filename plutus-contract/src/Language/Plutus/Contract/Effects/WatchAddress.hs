@@ -12,15 +12,26 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
-module Language.Plutus.Contract.Effects.WatchAddress where
+module Language.Plutus.Contract.Effects.WatchAddress(
+    AddressSymbol,
+    HasWatchAddress,
+    WatchAddress,
+    addressChangeRequest,
+    nextTransactionsAt,
+    fundsAtAddressGt,
+    fundsAtAddressGeq,
+    events,
+    watchAddressRequest,
+    watchedAddress,
+    AddressChangeRequest(..),
+    AddressChangeResponse(..),
+    event
+    ) where
 
-import           Data.Aeson                                 (FromJSON, ToJSON)
 import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
 import           Data.Row
-import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                               (Generic)
-import           Ledger                                     (Address, Slot, Value, txId)
+import           Ledger                                     (Address, Slot, Value)
 import           Ledger.AddressMap                          (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
@@ -32,6 +43,7 @@ import           Language.Plutus.Contract.Request           (ContractRow, reques
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Types             (AsContractError, Contract)
 import           Language.Plutus.Contract.Util              (loopM)
+import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
 
 type AddressSymbol = "address"
 
@@ -41,42 +53,6 @@ type HasWatchAddress s =
     , ContractRow s)
 
 type WatchAddress = AddressSymbol .== (AddressChangeResponse, AddressChangeRequest)
-
--- | Information about transactions that spend or produce an output at
---   an address in a slot.
-data AddressChangeResponse =
-    AddressChangeResponse
-        { acrAddress :: Address -- ^ The address
-        , acrSlot    :: Slot -- ^ The slot
-        , acrTxns    :: [Tx] -- ^ Transactions that were validated in the slot and spent or produced at least one output at the address.
-        }
-        deriving stock (Eq, Generic, Show)
-        deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty AddressChangeResponse where
-    pretty AddressChangeResponse{acrAddress, acrTxns, acrSlot} =
-        hang 2 $ vsep
-            [ "Address:" <+> pretty acrAddress
-            , "Slot:" <+> pretty acrSlot
-            , "Tx IDs:" <+> pretty (txId <$> acrTxns)
-            ]
-
--- | Request for information about transactions that spend or produce
---   outputs at a specific address in a slot.
-data AddressChangeRequest =
-    AddressChangeRequest
-        { acreqSlot    :: Slot -- ^ The slot
-        , acreqAddress :: Address -- ^ The address
-        }
-        deriving stock (Eq, Generic, Show, Ord)
-        deriving anyclass (ToJSON, FromJSON)
-
-instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlot, acreqAddress} =
-        hang 2 $ vsep
-            [ "Slot:" <+> pretty acreqSlot
-            , "Address:" <+> pretty acreqAddress
-            ]
 
 {-| Get the transactions that modified an address in a specific slot.
 -}
@@ -181,9 +157,25 @@ events sl utxo tx =
         (Event . IsJust (Label @AddressSymbol) . mkEvent)
         (AM.addressesTouched utxo tx)
 
+watchAddressRequest
+    :: forall s.
+    ( HasType AddressSymbol AddressChangeRequest (Output s))
+    => Handlers s
+    -> Maybe AddressChangeRequest
+watchAddressRequest (Handlers r) = trial' r (Label @AddressSymbol)
+
 watchedAddress
     :: forall s.
     ( HasType AddressSymbol AddressChangeRequest (Output s))
     => Handlers s
     -> Maybe Address
-watchedAddress (Handlers r) = acreqAddress <$> (trial' r (Label @AddressSymbol))
+watchedAddress = fmap acreqAddress . watchAddressRequest
+
+event
+    :: forall s.
+       ( HasType AddressSymbol AddressChangeResponse (Input s)
+       , AllUniqueLabels (Input s)
+       )
+    => AddressChangeResponse
+    -> Event s
+event = Event . IsJust (Label @AddressSymbol)

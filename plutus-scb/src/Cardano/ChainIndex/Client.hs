@@ -20,17 +20,18 @@ import           Ledger.Blockchain         (Block)
 import           Servant                   ((:<|>) (..), NoContent)
 import           Servant.Client            (ClientEnv, ClientError, ClientM, client, runClientM)
 
-import           Wallet.Effects            (ChainIndexEffect (..))
+import           Wallet.Effects            (AddressChangeRequest, AddressChangeResponse, ChainIndexEffect (..))
 
 healthCheck :: ClientM NoContent
 startWatching :: Address -> ClientM NoContent
 watchedAddresses :: ClientM AddressMap
 confirmedBlocks :: ClientM [Block]
 transactionConfirmed :: TxId -> ClientM Bool
-(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed) =
-  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_)
+nextTx :: AddressChangeRequest -> ClientM AddressChangeResponse
+(healthCheck, startWatching, watchedAddresses, confirmedBlocks, transactionConfirmed, nextTx) =
+  (healthCheck_, startWatching_, watchedAddresses_, confirmedBlocks_, txConfirmed_, nextTx_)
   where
-    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  =
+    healthCheck_ :<|> startWatching_ :<|> watchedAddresses_ :<|> confirmedBlocks_ :<|> txConfirmed_  :<|> nextTx_ =
         client (Proxy @API)
 
 handleChainIndexClient ::
@@ -51,3 +52,4 @@ handleChainIndexClient clientEnv =
         WatchedAddresses -> runClient watchedAddresses
         ConfirmedBlocks -> runClient confirmedBlocks
         TransactionConfirmed txid -> runClient (transactionConfirmed txid)
+        NextTx req -> runClient (nextTx req)

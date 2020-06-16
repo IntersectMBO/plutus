@@ -263,6 +263,7 @@ makeContribution
 makeContribution w v =
     Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
+        >> Trace.addBlocks 1
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
@@ -273,6 +274,6 @@ successfulCampaign =
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
         >> makeContribution (Trace.Wallet 3) (Ada.lovelaceValueOf 10)
         >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
-        >> Trace.addBlocks 18
-        >> Trace.notifySlot (Trace.Wallet 1)
+        >> Trace.addBlocksUntil 20
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)
+        >> Trace.addBlocks 1
