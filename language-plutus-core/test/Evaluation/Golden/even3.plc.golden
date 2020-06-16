@@ -1,1 +1,1 @@
-(abs a_0 (type) (lam x_1 a_0 (lam y_2 a_0 y_2)))
+(con False)

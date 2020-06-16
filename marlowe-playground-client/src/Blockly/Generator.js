@@ -10,6 +10,10 @@ exports.nextBlock_ = function (just, nothing, block) {
     }
 }
 
+exports.getType_ = function (block) {
+    return block.type;
+}
+
 exports.getFieldValue_ = function (left, right, block, key) {
     var result = block.getFieldValue(key);
     if (result) {
@@ -19,7 +23,14 @@ exports.getFieldValue_ = function (left, right, block, key) {
          */
         return right(result.toString());
     } else {
-        return left("couldn't find field: " + key);
+        // we used to return an error if the field returned null/undefined however
+        // this happens if the value is empty. We need to sometimes use empty values
+        // and they represent an empty string so now we just return an empty string
+        // This is slightly dangerous as it can lead to a bug if you use this function
+        // with a key that doesn't exist, instead of getting a run time error you
+        // will just get an empty string and may not notice.
+        // return left("couldn't find field: " + key);
+        return right("");
     }
 }
 
@@ -55,10 +66,11 @@ exports.insertGeneratorFunction_ = function (genRef, key, f) {
     };
 }
 
-exports.workspaceToCode_ = function (left, right, blocklyState, generator) {
+exports.blockToCode_ = function (left, right, block, generator) {
     try {
-        return right(generator.workspaceToCode(blocklyState.workspace));
-    } catch(err) {
+        return right(generator.blockToCode(block));
+    } catch (err) {
+        console.log(block);
         console.log(err.message);
         return left(err.message);
     }
@@ -74,19 +86,19 @@ exports.connectToPrevious_ = function (blockRef, input) {
     };
 }
 
-exports.previousConnection_ = function(blockRef) {
-    return function() {
+exports.previousConnection_ = function (blockRef) {
+    return function () {
         return blockRef.value.previousConnection;
     }
 }
 
-exports.nextConnection_ = function(blockRef) {
-    return function() {
+exports.nextConnection_ = function (blockRef) {
+    return function () {
         return blockRef.value.nextConnection;
     }
 }
 
-exports.connect_ = function(from, to) {
+exports.connect_ = function (from, to) {
     return function () {
         from.connect(to);
     }
@@ -138,12 +150,15 @@ exports.unsafeThrowError_ = function (s) {
 
 exports.getBlockInputConnectedTo_ = function (left, right, input) {
     try {
-        var mBlock = input.connection.targetConnection.getSourceBlock();
+        var mTargetConnection = input.connection.targetConnection;
+        if (mTargetConnection == null) {
+            return left("no target connection found");
+        }
+        var mBlock = mTargetConnection.getSourceBlock();
         if (mBlock == null) {
             return left("no block found");
-        } else {
-            return right(mBlock);
         }
+        return right(mBlock);
     } catch (err) {
         return left(err.message);
     }

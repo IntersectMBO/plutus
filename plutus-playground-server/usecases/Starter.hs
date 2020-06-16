@@ -1,12 +1,15 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Starter where
 -- TRIM TO HERE
@@ -15,74 +18,82 @@ module Starter where
 --
 -- What you should change to something more suitable for
 -- your use case:
---   * The DataScript type
---   * The Redeemer type
+--   * The MyDatum type
+--   * The MyMyRedeemerValue type
 --
 -- And add function implementations (and rename them to
 -- something suitable) for the endpoints:
 --   * publish
 --   * redeem
 
+import           Control.Monad              (void)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, DataScript (DataScript), PendingTx,
-                                             RedeemerScript (RedeemerScript), ValidatorScript, mkValidatorScript,
+import           Ledger                     (Address, PendingTx,
                                              scriptAddress)
-import           Ledger.Typed.Scripts       (wrapValidator)
 import           Ledger.Value               (Value)
 import           Playground.Contract
-import           Wallet                     (MonadWallet, WalletAPI, WalletDiagnostics, collectFromScript,
-                                             defaultSlotRange, payToScript_, startWatching)
+import           Language.Plutus.Contract
+import qualified Ledger.Constraints as Constraints
+import qualified Ledger.Typed.Scripts as Scripts
 
 -- | These are the data script and redeemer types. We are using an integer
 --   value for both, but you should define your own types.
-newtype DataValue = DataValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''DataValue
+newtype MyDatum = MyDatum Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyDatum
 
-newtype RedeemerValue = RedeemerValue Integer deriving newtype PlutusTx.IsData
-PlutusTx.makeLift ''RedeemerValue
+newtype MyRedeemer = MyRedeemer Integer deriving newtype PlutusTx.IsData
+PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
 --   its on-chain representation).
-validateSpend :: DataValue -> RedeemerValue -> PendingTx -> Bool
-validateSpend _dataValue _redeemerValue _ = error () -- Please provide an implementation.
-
--- | This function lifts the validator previously defined to
---   the on-chain representation.
-contractValidator :: ValidatorScript
-contractValidator =
-    mkValidatorScript $$(PlutusTx.compile [|| wrap validateSpend ||])
-    where wrap = wrapValidator @DataValue @RedeemerValue
-
--- | Helper function used to build the DataScript.
-mkDataScript :: Integer -> DataScript
-mkDataScript =
-    DataScript . PlutusTx.toData . DataValue
-
--- | Helper function used to build the RedeemerScript.
-mkRedeemerScript :: Integer -> RedeemerScript
-mkRedeemerScript =
-    RedeemerScript . PlutusTx.toData . RedeemerValue
+validateSpend :: MyDatum -> MyRedeemer -> PendingTx -> Bool
+validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
 -- | The address of the contract (the hash of its validator script).
 contractAddress :: Address
-contractAddress = Ledger.scriptAddress contractValidator
+contractAddress = Ledger.scriptAddress (Scripts.validatorScript starterInstance)
+
+data Starter
+instance Scripts.ScriptType Starter where
+    type instance RedeemerType Starter = MyRedeemer
+    type instance DatumType Starter = MyDatum
+
+-- | The script instance is the compiled validator (ready to go onto the chain)
+starterInstance :: Scripts.ScriptInstance Starter
+starterInstance = Scripts.validator @Starter
+    $$(PlutusTx.compile [|| validateSpend ||])
+    $$(PlutusTx.compile [|| wrap ||]) where
+        wrap = Scripts.wrapValidator @MyDatum @MyRedeemer
+
+-- | The schema of the contract, with two endpoints.
+type Schema =
+    BlockchainActions
+        .\/ Endpoint "publish" (Integer, Value)
+        .\/ Endpoint "redeem" Integer
+
+contract :: AsContractError e => Contract Schema e ()
+contract = publish `select` redeem
 
 -- | The "publish" contract endpoint.
-publish :: MonadWallet m => Integer -> Value -> m ()
-publish dataValue lockedFunds  =
-    payToScript_ defaultSlotRange contractAddress lockedFunds (mkDataScript dataValue)
+publish :: AsContractError e => Contract Schema e ()
+publish = do
+    (i, lockedFunds) <- endpoint @"publish"
+    let tx = Constraints.mustPayToTheScript (MyDatum i) lockedFunds
+    void $ submitTxConstraints starterInstance tx
 
 -- | The "redeem" contract endpoint.
-redeem :: (WalletAPI m, WalletDiagnostics m) => Integer -> m ()
-redeem redeemerValue = do
-    let redeemer = mkRedeemerScript redeemerValue
-    collectFromScript defaultSlotRange contractValidator redeemer
+redeem :: AsContractError e => Contract Schema e ()
+redeem = do
+    myRedeemerValue <- endpoint @"redeem"
+    unspentOutputs <- utxoAt contractAddress
+    let redeemer = MyRedeemer myRedeemerValue
+        tx       = collectFromScript unspentOutputs redeemer
+    void $ submitTxConstraintsSpending starterInstance unspentOutputs tx
 
--- | The "start" contract endpoint, telling the wallet to start watching
---   the address of the script.
-start :: MonadWallet m => m ()
-start =
-    startWatching contractAddress
+endpoints :: AsContractError e => Contract Schema e ()
+endpoints = contract
 
-$(mkFunctions ['publish, 'redeem, 'start])
+mkSchemaDefinitions ''Schema
+
+$(mkKnownCurrencies [])

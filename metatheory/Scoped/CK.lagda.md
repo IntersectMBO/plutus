@@ -6,114 +6,146 @@ module Scoped.CK where
 
 ```
 open import Function
-
+open import Data.Bool using (Bool;true;false)
+open import Data.String
+open import Data.Sum
+open import Data.Product
+open import Relation.Binary.PropositionalEquality using (refl;inspect;subst;sym;_≡_;trans;cong) renaming ([_] to [[_]])
+open import Data.Unit
+open import Data.Nat using (_+_;suc)
+open import Data.Nat.Properties
 open import Type
 open import Type.BetaNormal
 open import Scoped
-open import Scoped.Reduction hiding (step)
+open import Scoped.Reduction hiding (step;trans)
 open import Builtin
 open import Scoped.RenamingSubstitution
-open import Data.String
 open import Relation.Nullary
+open import Utils
 ```
 
 ```
-open import Data.List hiding ([_])
+open import Data.Vec hiding ([_])
 
-data Frame : ∀{n n'} → Weirdℕ n → Weirdℕ n' → Set where
-  -·_ : ∀{n}{i : Weirdℕ n} → ScopedTm i → Frame i i
-  _·- : ∀{n}{i : Weirdℕ n}{t : ScopedTm i } → Value t → Frame i i
+data Frame : Set where
+  -·_ : ScopedTm Z → Frame
+  _·- : {t : ScopedTm Z} → Value t → Frame
 
-  Λ-  : ∀{n} → String → Kind → {i : Weirdℕ n} → Frame i (T i)
-  -·⋆_ :  ∀ {n}{i : Weirdℕ n}(A : ScopedTy n) → Frame i i
+  -·⋆_ :  (A : ScopedTy 0) → Frame
 
-  wrap- :  ∀{n} → ScopedTy n → ScopedTy n → {i : Weirdℕ n} → Frame i i
-  unwrap- : ∀{n}{i : Weirdℕ n} → Frame i i
+  wrap- :  ScopedTy 0 → ScopedTy 0 → Frame
+  unwrap- : Frame
 
-  builtin- : ∀{n}{i : Weirdℕ n} → Builtin → List (ScopedTy n)
-    → {tel : Tel i} → VTel i tel → Tel i →  Frame i i
+  builtin- : ∀{o' o''}(b : Builtin)
+    → Vec (ScopedTy 0) (arity⋆ b)
+    → {tel : Tel Z o'}
+    → VTel o' Z tel
+    → Tel Z o''
+    → arity b ≡ suc o' + o''
+    → Frame
 
-data Stack : ∀{n n'}(i : Weirdℕ n)(i' : Weirdℕ n') → Set where
-  ε   : ∀{n}{i : Weirdℕ n} → Stack i i
-  _,_ : ∀{n n' n''}{i : Weirdℕ n}{i' : Weirdℕ n'}{i'' : Weirdℕ n''}
-    → Stack i i' → Frame i' i'' → Stack i i''
+data Stack : Set where
+  ε   : Stack
+  _,_ : Stack → Frame → Stack
 
-data State{n}(i : Weirdℕ n) : ∀{n'}(i' : Weirdℕ n') → Set where
-  _▻_ : ∀{n'}{i' : Weirdℕ n'} → Stack i i' → ScopedTm i' → State i i'
-  _◅_ : ∀{n'}{i' : Weirdℕ n'} → Stack i i' → {t : ScopedTm i'} →  Value t
-    → State i i'
-  □   : {t : ScopedTm i} →  Value t → State i i
-  ◆   : ∀{n'}{i' : Weirdℕ n'} → State i i'
+data State : Set where
+  _▻_ : Stack → ScopedTm Z → State
+  _◅_ : Stack → {t : ScopedTm Z} → Value t → State
+  □   : {t : ScopedTm Z} →  Value t → State
+  ◆   : State
 
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
 
--- this function, apart from making a step, also determines the contexts and provides a proof.
--- These things could be done seperately.
+-- this function, apart from making a step, also determines the
+-- contexts and provides a proof.  These things could be done
+-- seperately.
 
--- this could also be presented as a relation and then there would be more function rather like progress
+-- this could also be presented as a relation and then there would be
+-- more function rather like progress
 
 open import Data.Nat
 
-VTel-extend : ∀{n}{i : Weirdℕ n} → {tel : Tel i} → VTel i tel → {t : ScopedTm i} → Value t → VTel i (tel Data.List.++ Data.List.[ t ])
-VTel-extend {tel = []} vs {t} v = v ,, _
-VTel-extend {tel = x ∷ tel} (v' ,, vs) {t} v = v' ,, VTel-extend vs v
+VTel-extend : ∀{o}{tel : Tel Z o} → VTel o Z tel → {t : ScopedTm Z} → Value t → VTel (suc o) Z (tel :< t)
+VTel-extend {tel = []}       vs         v = v ,, _
+VTel-extend {tel = t' ∷ tel} (v' ,, vs) v = v' ,, VTel-extend vs v
 
-step : ∀{n n'}{i : Weirdℕ n}{i' : Weirdℕ n'}
-  → NoVar i' → State i i' → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × State i i'
-step p (s ▻ ` x)              = ⊥-elim (noVar p x)
-step p (s ▻ Λ x K L)          = _ ,, _ ,, p ,, (s , Λ- x K) ▻ L
-step p (s ▻ (L ·⋆ A))         = _ ,, _ ,, p ,, (s , (-·⋆ A)) ▻ L
-step p (s ▻ ƛ x A L)          = _ ,, _ ,, p ,, s ◅ V-ƛ x A L
-step p (s ▻ (L · M))          = _ ,, _ ,, p ,, (s , (-· M)) ▻ L
-step p (s ▻ con cn)           = _ ,, _ ,, p ,, s ◅ V-con cn
+vtel-lem : ∀{n n'}(p : n' ≡ n)(ts : Tel Z n') → VTel n' Z ts → VTel n Z (subst (Tel Z) p ts)
+vtel-lem refl ts vs = vs
+
+step : State → State
+step (s ▻ Λ K L)    = s ◅ V-Λ {K = K} L
+step (s ▻ (L ·⋆ A)) = (s , (-·⋆ A)) ▻ L
+step (s ▻ ƛ A L)    = s ◅ V-ƛ A L
+step (s ▻ (L · M))  = (s , (-· M)) ▻ L
+step (s ▻ con cn)   = s ◅ V-con cn
   -- ^ why is i inferrable?
-step {i' = i'} p (s ▻ error A)           = _ ,, i' ,, p ,, ◆
-step p (s ▻ builtin bn As []) with arity bn Data.Nat.≟ 0
-... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN bn As [] _)
-... | no  q = _ ,, _ ,, p ,, (s ◅ V-builtin bn As [])
-step p (s ▻ builtin bn As (t ∷ tel)) =
-  _ ,, _ ,, p ,, (s , builtin- bn As {[]} _ tel) ▻ t
-step p (s ▻ wrap pat arg L)   = _ ,, _ ,, p ,, (s , wrap- pat arg) ▻ L
-step p (s ▻ unwrap L)         = _ ,, _ ,, p ,, (s , unwrap-) ▻ L
-step p (ε ◅ V)                = _ ,, _ ,, p ,, □ V
-step p ((s , (-· M)) ◅ V) = _ ,, _ ,, p ,, ((s , (V ·-)) ▻ M)
-step p (_◅_ (s , (V-ƛ x A L ·-)) {M} W)         = _ ,, _ ,, p ,, s ▻ (L [ M ])
-step {i' = i'} p ((s , (V-Λ x V ·-)) ◅ W)           = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (V-con tcn ·-)) ◅ W)         = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (V-wrap A B V ·-)) ◅ W)      = _ ,, i' ,, p ,, ◆
-step {i' = i'} p (_◅_ (s , (V-builtin b As tel ·-)) {t} W) =
-  _ ,, i' ,, p ,, (s ▻ builtin b As (tel Data.List.++ Data.List.[ t ]) )
-step p ((s , Λ- x K) ◅ V) = _ ,, _ ,, p ,, (s ◅ V-Λ x {K = K} V)
-step {i' = i'} p ((s , (-·⋆ A)) ◅ V-ƛ x A' L) = _ ,, i' ,, p ,, ◆
-step p ((s , (-·⋆ A)) ◅ V-Λ x {t = t} V)  = _ ,, _ ,, p ,, s ▻ (t [ A ]⋆)
-step {i' = i'} p ((s , (-·⋆ A)) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (-·⋆ A)) ◅ V-wrap A' B V) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , (-·⋆ A)) ◅ V-builtin b As ts) = _ ,, i' ,, p ,, ◆
-step p ((s , wrap- A B) ◅ V) = _ ,, _ ,, p ,, (s ◅ V-wrap A B V)
-step {i' = i'} p ((s , unwrap-) ◅ V-ƛ x A t) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , unwrap-) ◅ V-Λ x V) = _ ,, i' ,, p ,, ◆
-step {i' = i'} p ((s , unwrap-) ◅ V-con tcn) = _ ,, i' ,, p ,, ◆
-step p ((s , unwrap-) ◅ V-wrap A B V) = _ ,, _ ,, p ,, (s ◅ V)
-step {i' = i'} p ((s , unwrap-) ◅ V-builtin b As ts) = _ ,, i' ,, p ,, ◆
-step p (□ V)                  = _ ,, _ ,, p ,, □ V
-step {i' = i'} p ◆              = _ ,, i' ,, p ,, ◆
-step p (_◅_ (s , builtin- b As {tel} vtel []) {t} V) with arity b Data.Nat.≟ Data.List.length tel + 1
-... | yes q = _ ,, _ ,, p ,, (s ▻ BUILTIN b As (tel Data.List.++ Data.List.[ t ]) (VTel-extend vtel V))
-... | no q = _ ,, _ ,, p ,, (s ◅ V-builtin b As (tel Data.List.++ Data.List.[ t ]))
- -- check for length here and return V-builtin if not?
 
-step p (_◅_ (s , builtin- b As {tel} vtel (t' ∷ tel')) {t} V) =
-  _ ,, _ ,, p ,, (s , builtin- b As {tel Data.List.++ Data.List.[ t ]} (VTel-extend vtel V) tel') ▻ t'
+-- type telescope is full
+step (s ▻ builtin bn (inj₁ (≤‴-refl ,, refl)) As ts) = s ▻ builtin bn (inj₂ (refl ,, z≤‴n)) As ts
+-- type telescope is not full yet
+step (s ▻ builtin bn (inj₁ (≤‴-step q ,, r)) As ts) = s ◅ V-builtin⋆ bn q As
+
+
+-- term telescope is full
+step (s ▻ builtin bn (inj₂ (q ,, ≤‴-refl)) As ts) with arity bn | inspect arity bn
+-- (annoying special case for builtin with no args)
+step (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As ts)       | zero  | [[ eq ]] =
+  s ▻ BUILTIN bn As (subst (Tel _) (sym eq) []) (vtel-lem (sym eq) [] tt)
+-- (case for builtin with at least one arg)
+step (s ▻ builtin bn (inj₂ (refl ,, ≤‴-refl)) As (t ∷ ts)) | suc n | [[ eq ]] =
+  (s , builtin- bn As tt ts eq) ▻ t
+
+-- term telescope is not full
+step (s ▻ builtin bn (inj₂ (refl ,, ≤‴-step r)) As ts) = s ◅ V-builtin bn As r ts
+
+step (s ▻ error A) = ◆
+step (s ▻ wrap pat arg L) = (s , wrap- pat arg) ▻ L
+step (s ▻ unwrap L) = (s , unwrap-) ▻ L
+step (ε ◅ V) = □ V
+step ((s , (-· M)) ◅ V) = (s , (V ·-)) ▻ M
+step (_◅_ (s , (V-ƛ A L ·-)) {M} W) = s ▻ (L [ M ])
+step ((s , (V-Λ V ·-)) ◅ W) = ◆
+step ((s , (V-con tcn ·-)) ◅ W) = ◆
+step ((s , (V-wrap A B V ·-)) ◅ W) = ◆
+step ((s , (-·⋆ A)) ◅ V-ƛ A' L) = ◆
+step ((s , (-·⋆ A)) ◅ V-Λ  t)  = s ▻ (t [ A ]⋆)
+step ((s , (-·⋆ A)) ◅ V-con tcn) = ◆
+step ((s , (-·⋆ A)) ◅ V-wrap A' B V) = ◆
+step ((s , (-·⋆ A)) ◅ V-builtin b As q ts) = ◆
+step ((s , wrap- A B) ◅ V) = s ◅ V-wrap A B V
+
+-- β-unwrap
+step ((s , unwrap-) ◅ V-wrap A B V) = s ◅ V
+-- error conditions
+step ((s , unwrap-) ◅ V-builtin b q As ts) = ◆
+step ((s , unwrap-) ◅ V-builtin⋆ b q As) = ◆
+step ((s , unwrap-) ◅ V-ƛ A t) = ◆
+step ((s , unwrap-) ◅ V-Λ V) = ◆
+step ((s , unwrap-) ◅ V-con tcn) = ◆
+step ((s , (V-builtin⋆ b q As ·-)) ◅ V) = ◆
+
+step (□ V) = □ V
+step ◆     = ◆
+
+-- some builtin related cases
+-- processing of args done
+step (_◅_ (s , builtin- b As {ts} vs [] q) {t} V) = s ▻ BUILTIN b As (subst (Tel _) (trans (+-comm 0 _) (sym q)) (ts :< t)) (vtel-lem (trans (+-comm 0 _) (sym q)) (ts :< t) (VTel-extend vs V))
+-- more args to process
+step (_◅_ (s , builtin- b As {ts} vs (t' ∷ ts') q) {t} V) =
+  (s , builtin- b As { ts :< t } (VTel-extend vs V) ts' (trans q (cong suc (+-suc _ _)))) ▻ t'
+
+step (_◅_ (s , (V-builtin b As q ts ·-)) {t} V) = s ▻ builtin b (inj₂ (refl ,, q)) As (ts :< t)
+step ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = s ▻ builtin b (inj₁ (q ,, refl)) (As :< A) []
 ```
 
 ```
 open import Utils
-stepper : ℕ → ∀{n n'}{i : Weirdℕ n}{i' : Weirdℕ n'} → NoVar i' → State i i' → Σ ℕ λ n' → Σ (Weirdℕ n') λ i' → NoVar i' × Maybe (State i i')
-stepper zero {i' = i'} p st = _ ,, i' ,, p ,, nothing 
-stepper (suc n) p st with step p st
-stepper (suc n) p st | Φ ,, i ,, q ,, (s ▻ M) = stepper n q (s ▻ M)
-stepper (suc n) p st | Φ ,, i ,, q ,, (s ◅ V) = stepper n q (s ◅ V)
-stepper (suc n) p st | Φ ,, i ,, q ,, (□ V)   = Φ ,, i ,, q ,, just (□ V)
-stepper (suc n) p st | Φ ,, i ,, q ,, ◆       = Φ ,, i ,, q ,, just ◆
+stepper : ℕ → State → Maybe State
+stepper zero st = nothing 
+stepper (suc n) st with step st
+stepper (suc n) st | s ▻ M = stepper n (s ▻ M)
+stepper (suc n) st | s ◅ V = stepper n (s ◅ V)
+stepper (suc n) st | □ V   = just (□ V)
+stepper (suc n) st | ◆     = just ◆
 ```

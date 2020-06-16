@@ -112,20 +112,59 @@ colXs6 = ClassName "col-xs-6"
 colXs12 :: ClassName
 colXs12 = ClassName "col-xs-12"
 
+colSm4 :: ClassName
+colSm4 = ClassName "col-sm-4"
+
 colSm5 :: ClassName
 colSm5 = ClassName "col-sm-5"
 
 colSm6 :: ClassName
 colSm6 = ClassName "col-sm-6"
 
+colSm7 :: ClassName
+colSm7 = ClassName "col-sm-7"
+
+colSm8 :: ClassName
+colSm8 = ClassName "col-sm-8"
+
 colSm12 :: ClassName
 colSm12 = ClassName "col-sm-12"
+
+colMd3 :: ClassName
+colMd3 = ClassName "col-md-3"
 
 colMd4 :: ClassName
 colMd4 = ClassName "col-md-4"
 
+colMd5 :: ClassName
+colMd5 = ClassName "col-md-5"
+
 colMd6 :: ClassName
 colMd6 = ClassName "col-md-6"
+
+colMd7 :: ClassName
+colMd7 = ClassName "col-md-7"
+
+colMd8 :: ClassName
+colMd8 = ClassName "col-md-8"
+
+colMd12 :: ClassName
+colMd12 = ClassName "col-md-12"
+
+colLg2 :: ClassName
+colLg2 = ClassName "col-lg-2"
+
+colLg4 :: ClassName
+colLg4 = ClassName "col-lg-4"
+
+colLg5 :: ClassName
+colLg5 = ClassName "col-lg-5"
+
+colLg7 :: ClassName
+colLg7 = ClassName "col-lg-7"
+
+colLg8 :: ClassName
+colLg8 = ClassName "col-lg-8"
 
 colAuto :: ClassName
 colAuto = ClassName "col-auto"
@@ -138,6 +177,9 @@ offset3 = ClassName "offset-3"
 
 offset6 :: ClassName
 offset6 = ClassName "offset-6"
+
+offset7 :: ClassName
+offset7 = ClassName "offset-7"
 
 justifyContentBetween :: ClassName
 justifyContentBetween = ClassName "justify-content-between"
@@ -361,6 +403,9 @@ formCheck = ClassName "form-check"
 formCheck_ :: forall p i. Array (HTML p i) -> HTML p i
 formCheck_ = div [ class_ formCheck ]
 
+formCheckInline :: ClassName
+formCheckInline = ClassName "form-check-inline"
+
 formCheckInput :: ClassName
 formCheckInput = ClassName "form-check-input"
 
@@ -369,9 +414,6 @@ formCheckLabel = ClassName "form-check-label"
 
 formText :: ClassName
 formText = ClassName "form-text"
-
-textMuted :: ClassName
-textMuted = ClassName "text-muted"
 
 inputGroup :: ClassName
 inputGroup = ClassName "input-group"
@@ -393,6 +435,9 @@ inputGroupAppend_ = div [ class_ inputGroupAppend ]
 
 inputGroupText :: ClassName
 inputGroupText = ClassName "input-group-text"
+
+customSelect :: ClassName
+customSelect = ClassName "custom-select"
 
 validFeedback :: ClassName
 validFeedback = ClassName "valid-feedback"
@@ -443,6 +488,15 @@ textTruncate = ClassName "text-truncate"
 
 textCenter :: ClassName
 textCenter = ClassName "text-center"
+
+textLeft :: ClassName
+textLeft = ClassName "text-left"
+
+textRight :: ClassName
+textRight = ClassName "text-right"
+
+textMuted :: ClassName
+textMuted = ClassName "text-muted"
 
 -- | Because of the clash with the HTML tag, it's recommended to use this class name qualified.
 -- eq. `table [ classes [ Bootstrap.table, tableStriped ] ] [ ... ] `

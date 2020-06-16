@@ -23,7 +23,7 @@
       in pkgs.runCommand "documentation-site" {} ''
         mkdir -p $out
         cp -aR ${adjustedTutorial} $out/tutorial
-        cp -aR ${plutus.docs.public-combined-haddock}/share/doc $out/haddock
+        cp -aR ${plutus.docs.combined-haddock}/share/doc $out/haddock
       '';
   in
   {
@@ -75,7 +75,7 @@
     SystemCallArchitectures = "native";
     CapabilityBoundingSet = "~CAP_SYS_ADMIN";
     # nginx needs to bind to 80 and write to /var/spool/nginx
-    AmbientCapabilities = "CAP_NET_BIND_SERVICE";
+    AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
     ReadWritePaths = "/var/spool/nginx";
   };
 

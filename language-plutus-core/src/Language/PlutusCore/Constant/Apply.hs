@@ -3,112 +3,47 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Apply
-    ( ConstAppError (..)
-    , ConstAppResult (..)
-    , ConstAppResultDef
-    , EvaluateConstApp
-    , EvaluateConstAppDef
+    ( ConstAppResult (..)
     , nonZeroArg
-    , makeConstAppResult
-    , runEvaluateConstApp
+    , integerToInt64
     , applyTypeSchemed
     , applyBuiltinName
-    , runApplyBuiltinName
     ) where
 
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type                 (BuiltinName (..))
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
-import           PlutusPrelude
+import           Language.PlutusCore.Universe
 
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Inner
+import           Control.Monad.Except
 import           Crypto
-import qualified Data.ByteString.Lazy                           as BSL
-import qualified Data.ByteString.Lazy.Hash                      as Hash
+import qualified Data.ByteString.Lazy                               as BSL
+import qualified Data.ByteString.Lazy.Hash                          as Hash
+import           Data.Coerce
+import           Data.Int
 import           Data.Proxy
-import           Data.Text                                      (Text)
 
--- | The type of constant applications errors.
-data ConstAppError
-    = ExcessArgumentsConstAppError [Value TyName Name ()]
-      -- ^ A constant is applied to more arguments than needed in order to reduce.
-      -- Note that this error occurs even if an expression is well-typed, because
-      -- constant application is supposed to be computed as soon as there are enough arguments.
-    | NonConstantConstAppError (Value TyName Name ())
-    | UnreadableBuiltinConstAppError (Value TyName Name ()) Text
-      -- ^ Could not construct denotation for a built-in.
-    deriving (Show, Eq)
-
--- | The type of constant applications results.
-data ConstAppResult a
-    = ConstAppSuccess a
+-- | The result of evaluation of a builtin applied to some arguments.
+data ConstAppResult uni ann
+    = ConstAppSuccess (Term TyName Name uni ann)
       -- ^ Successfully computed a value.
-    | ConstAppFailure
-      -- ^ Not enough gas.
     | ConstAppStuck
       -- ^ Not enough arguments.
-    | ConstAppError ConstAppError
-      -- ^ An internal error occurred during evaluation.
-    deriving (Show, Eq, Functor, Foldable, Traversable)
-
-instance Applicative ConstAppResult where
-    pure = ConstAppSuccess
-
-    ConstAppSuccess f <*> a = fmap f a
-    ConstAppFailure   <*> _ = ConstAppFailure
-    ConstAppStuck     <*> _ = ConstAppStuck
-    ConstAppError err <*> _ = ConstAppError err
-
-instance Monad ConstAppResult where
-    ConstAppSuccess x >>= f = f x
-    ConstAppFailure   >>= _ = ConstAppFailure
-    ConstAppStuck     >>= _ = ConstAppStuck
-    ConstAppError err >>= _ = ConstAppError err
-
-type ConstAppResultDef = ConstAppResult (Term TyName Name ())
-
-instance PrettyBy config (Term TyName Name ()) => PrettyBy config ConstAppError where
-    prettyBy config (ExcessArgumentsConstAppError args)      = fold
-        [ "A constant applied to too many arguments:", "\n"
-        , "Excess ones are: ", prettyBy config args
-        ]
-    prettyBy config (NonConstantConstAppError arg)      = fold
-        [ "An argument to a builtin type is not a constant:", "\n"
-        , prettyBy config arg
-        ]
-    prettyBy config (UnreadableBuiltinConstAppError arg err) = fold
-        [ "Could not construct denotation for a built-in:", "\n"
-        , prettyBy config arg, "\n"
-        , "The error was: "
-        , pretty err
-        ]
-
-instance ( PrettyBy config (Value TyName Name ())
-         , PrettyBy config a
-         ) => PrettyBy config (ConstAppResult a) where
-    prettyBy config (ConstAppSuccess res) = prettyBy config res
-    prettyBy _      ConstAppFailure       = "Constant application failure"
-    prettyBy _      ConstAppStuck         = "Stuck constant applcation"
-    prettyBy config (ConstAppError err)   = prettyBy config err
-
--- | Constant application computation runs in a monad @m@, requires an evaluator and
--- returns a 'ConstAppResult'.
-type EvaluateConstApp m = EvaluateT (InnerT ConstAppResult) m
-
--- | Default constant application computation that in case of 'ConstAppSuccess' returns
--- a 'Value'.
-type EvaluateConstAppDef m = EvaluateConstApp m (Value TyName Name ())
+    deriving (Show, Eq, Functor)
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -117,109 +52,116 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
--- | Evaluate a constant application computation using the given evaluator.
-runEvaluateConstApp :: Evaluator Term m -> EvaluateConstApp m a -> m (ConstAppResult a)
-runEvaluateConstApp eval = unInnerT . runEvaluateT eval
-
--- | Lift the result of a constant application to a constant application computation.
-liftConstAppResult :: Monad m => ConstAppResult a -> EvaluateConstApp m a
--- Could it be @yield . yield@?
-liftConstAppResult = EvaluateT . lift . yield
-
--- | Same as 'makeBuiltin', but returns a 'ConstAppResult'.
-makeConstAppResult :: KnownType a => a -> ConstAppResultDef
-makeConstAppResult = pure . makeKnown
-
--- | Convert a PLC constant (unwrapped from 'Value') into the corresponding Haskell value.
--- Checks that the constant is of a given built-in type.
-extractBuiltin :: (Monad m, KnownType a) => Value TyName Name () -> EvaluateConstApp m a
-extractBuiltin value =
-    thoist (InnerT . fmap nat . runReflectT) $ readKnownM value where
-        nat :: EvaluationResult (Either Text a) -> ConstAppResult a
-        nat EvaluationFailure              = ConstAppFailure
-        nat (EvaluationSuccess (Left err)) = ConstAppError $ UnreadableBuiltinConstAppError value err
-        nat (EvaluationSuccess (Right x )) = ConstAppSuccess x
+integerToInt64 :: Integer -> Int64
+integerToInt64 = fromIntegral
 
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: Monad m => TypeScheme a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
-applyTypeSchemed = go where
+    :: forall e m args uni res.
+       ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => StagedBuiltinName
+    -> TypeScheme uni args res
+    -> FoldArgs args res
+    -> FoldArgsEx args
+    -> [Value TyName Name uni ExMemory]
+    -> m (ConstAppResult uni ExMemory)
+applyTypeSchemed name = go where
     go
-        :: Monad m
-        => TypeScheme a r
-        -> a
-        -> [Value TyName Name ()]
-        -> EvaluateConstAppDef m
-    go (TypeSchemeResult _)        y args =
-        liftConstAppResult $ case args of
-            [] -> makeConstAppResult y                               -- Computed the result.
-            _  -> ConstAppError $ ExcessArgumentsConstAppError args  -- Too many arguments.
-    go (TypeSchemeAllType _ schK)  f args =
-        go (schK Proxy) f args
-    go (TypeSchemeArrow _ schB)    f args = case args of
-        []          -> liftConstAppResult ConstAppStuck   -- Not enough arguments to compute.
+        :: forall args'.
+           TypeScheme uni args' res
+        -> FoldArgs args' res
+        -> FoldArgsEx args'
+        -> [Value TyName Name uni ExMemory]
+        -> m (ConstAppResult uni ExMemory)
+    go (TypeSchemeResult _)        y _ args =
+        -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
+        case args of
+            -- TODO is `withMemory` a good idea here?
+            [] -> pure . ConstAppSuccess $ withMemory $ makeKnown y    -- Computed the result.
+            _  -> throwingWithCause _ConstAppError        -- Too many arguments.
+                    (ExcessArgumentsConstAppError $ void <$> args)
+                    Nothing
+    go (TypeSchemeAllType _ schK)  f exF args =
+        go (schK Proxy) f exF args
+    go (TypeSchemeArrow _ schB)    f exF args = case args of
+        []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            x <- extractBuiltin arg
+            x <- readKnown $ void arg
+            let budget = exF $ termAnn arg
             -- Apply the function to the coerced argument and proceed recursively.
-            go schB (f x) args'
+            case schB of
+                (TypeSchemeResult _) -> do
+                    spendBudget (BBuiltin name) arg budget
+                    go schB (f x) budget args'
+                _ -> go schB (f x) budget args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
-    :: Monad m => TypedBuiltinName a r -> a -> [Value TyName Name ()] -> EvaluateConstAppDef m
-applyTypedBuiltinName (TypedBuiltinName _ schema) = applyTypeSchemed schema
+    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => TypedBuiltinName uni args res
+    -> FoldArgs args res
+    -> FoldArgsEx args
+    -> [Value TyName Name uni ExMemory]
+    -> m (ConstAppResult uni ExMemory)
+applyTypedBuiltinName (TypedBuiltinName name schema) =
+    applyTypeSchemed (StaticStagedBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
-    :: Monad m => BuiltinName -> [Value TyName Name ()] -> EvaluateConstAppDef m
-applyBuiltinName AddInteger           =
-    applyTypedBuiltinName typedAddInteger           (+)
-applyBuiltinName SubtractInteger      =
-    applyTypedBuiltinName typedSubtractInteger      (-)
-applyBuiltinName MultiplyInteger      =
-    applyTypedBuiltinName typedMultiplyInteger      (*)
-applyBuiltinName DivideInteger        =
-    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div)
-applyBuiltinName QuotientInteger      =
-    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
-applyBuiltinName RemainderInteger     =
-    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
-applyBuiltinName ModInteger           =
-    applyTypedBuiltinName typedModInteger           (nonZeroArg mod)
-applyBuiltinName LessThanInteger      =
-    applyTypedBuiltinName typedLessThanInteger      (<)
-applyBuiltinName LessThanEqInteger    =
-    applyTypedBuiltinName typedLessThanEqInteger    (<=)
-applyBuiltinName GreaterThanInteger   =
-    applyTypedBuiltinName typedGreaterThanInteger   (>)
-applyBuiltinName GreaterThanEqInteger =
-    applyTypedBuiltinName typedGreaterThanEqInteger (>=)
-applyBuiltinName EqInteger            =
-    applyTypedBuiltinName typedEqInteger            (==)
-applyBuiltinName Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (<>)
-applyBuiltinName TakeByteString       =
-    applyTypedBuiltinName typedTakeByteString       (BSL.take . fromIntegral)
-applyBuiltinName DropByteString       =
-    applyTypedBuiltinName typedDropByteString       (BSL.drop . fromIntegral)
-applyBuiltinName SHA2                 =
-    applyTypedBuiltinName typedSHA2                 Hash.sha2
-applyBuiltinName SHA3                 =
-    applyTypedBuiltinName typedSHA3                 Hash.sha3
-applyBuiltinName VerifySignature      =
-    applyTypedBuiltinName typedVerifySignature      verifySignature
-applyBuiltinName EqByteString         =
-    applyTypedBuiltinName typedEqByteString         (==)
-applyBuiltinName LtByteString         =
-    applyTypedBuiltinName typedLtByteString         (<)
-applyBuiltinName GtByteString         =
-    applyTypedBuiltinName typedGtByteString         (>)
-
--- | Apply a 'BuiltinName' to a list of 'Value's and evaluate the resulting computation usign the
--- given evaluator.
-runApplyBuiltinName
-    :: Monad m => Evaluator Term m -> BuiltinName -> [Value TyName Name ()] -> m ConstAppResultDef
-runApplyBuiltinName eval name = runEvaluateConstApp eval . applyBuiltinName name
+    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
+    , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+    , GShow uni, GEq uni, DefaultUni <: uni
+    )
+    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
+applyBuiltinName params AddInteger           =
+    applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
+applyBuiltinName params SubtractInteger      =
+    applyTypedBuiltinName typedSubtractInteger      (-) (runCostingFunTwoArguments $ paramSubtractInteger params)
+applyBuiltinName params MultiplyInteger      =
+    applyTypedBuiltinName typedMultiplyInteger      (*) (runCostingFunTwoArguments $ paramMultiplyInteger params)
+applyBuiltinName params DivideInteger        =
+    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div) (runCostingFunTwoArguments $ paramDivideInteger params)
+applyBuiltinName params QuotientInteger      =
+    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot) (runCostingFunTwoArguments $ paramQuotientInteger params)
+applyBuiltinName params RemainderInteger     =
+    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem) (runCostingFunTwoArguments $ paramRemainderInteger params)
+applyBuiltinName params ModInteger           =
+    applyTypedBuiltinName typedModInteger           (nonZeroArg mod) (runCostingFunTwoArguments $ paramModInteger params)
+applyBuiltinName params LessThanInteger      =
+    applyTypedBuiltinName typedLessThanInteger      (<) (runCostingFunTwoArguments $ paramLessThanInteger params)
+applyBuiltinName params LessThanEqInteger    =
+    applyTypedBuiltinName typedLessThanEqInteger    (<=) (runCostingFunTwoArguments $ paramLessThanEqInteger params)
+applyBuiltinName params GreaterThanInteger   =
+    applyTypedBuiltinName typedGreaterThanInteger   (>) (runCostingFunTwoArguments $ paramGreaterThanInteger params)
+applyBuiltinName params GreaterThanEqInteger =
+    applyTypedBuiltinName typedGreaterThanEqInteger (>=) (runCostingFunTwoArguments $ paramGreaterThanEqInteger params)
+applyBuiltinName params EqInteger            =
+    applyTypedBuiltinName typedEqInteger            (==) (runCostingFunTwoArguments $ paramEqInteger params)
+applyBuiltinName params Concatenate          =
+    applyTypedBuiltinName typedConcatenate          (<>) (runCostingFunTwoArguments $ paramConcatenate params)
+applyBuiltinName params TakeByteString       =
+    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (runCostingFunTwoArguments $ paramTakeByteString params)
+applyBuiltinName params DropByteString       =
+    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64) (runCostingFunTwoArguments $ paramDropByteString params)
+applyBuiltinName params SHA2                 =
+    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2) (runCostingFunOneArgument $ paramSHA2 params)
+applyBuiltinName params SHA3                 =
+    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3) (runCostingFunOneArgument $ paramSHA3 params)
+applyBuiltinName params VerifySignature      =
+    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult) (runCostingFunThreeArguments $ paramVerifySignature params)
+applyBuiltinName params EqByteString         =
+    applyTypedBuiltinName typedEqByteString         (==) (runCostingFunTwoArguments $ paramEqByteString params)
+applyBuiltinName params LtByteString         =
+    applyTypedBuiltinName typedLtByteString         (<) (runCostingFunTwoArguments $ paramLtByteString params)
+applyBuiltinName params GtByteString         =
+    applyTypedBuiltinName typedGtByteString         (>) (runCostingFunTwoArguments $ paramGtByteString params)
+applyBuiltinName params IfThenElse           =
+    applyTypedBuiltinName typedIfThenElse           (\b x y -> if b then x else y) (runCostingFunThreeArguments $ paramIfThenElse params)

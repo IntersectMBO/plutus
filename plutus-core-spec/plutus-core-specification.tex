@@ -1,6 +1,8 @@
 % Plutus Core Specification
-\title{Formal Specification of\\the Plutus Core Language (version 2.0) }
-\date{5th November 2019}
+\title{Formal Specification of\\the Plutus Core Language (version 2.0)}
+\date{27th May 2020}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
 
 \documentclass[a4paper]{article}
 
@@ -75,7 +77,7 @@
 \newcommand{\keyword}[1]{\texttt{#1}}
 \newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
 
-
+\newcommand\discharge[1]{\widehat{#1}}
 
 %%% Term Grammar
 
@@ -90,10 +92,18 @@
 \newcommand{\wrap}{\iwrap}
 %% ^ Temporary fix to avoid substituting all occurences of new keyword
 \newcommand{\unwrap}[1]{\construct{\keyword{unwrap} ~ #1}}
-\newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
+\newcommand{\builtin}[3]{\construct{\keyword{builtin} ~ \texttt{\{} \mathit{#1} ~ #2 \texttt{\}} ~ #3}}
 \newcommand{\error}[1]{\construct{\keyword{error} ~ #1}}
 
+%% Extra untyped terms
+\newcommand{\lamU}[2]{\construct{\keyword{lam} ~ #1 ~ #2        }}
+\newcommand{\appU}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\errorU}{\construct{\keyword{error}}}
+\newcommand{\builtinU}[2]{\construct{\keyword{builtin} ~ \mathit{#1} ~ #2}}
+\newcommand{\delay}[1]{\construct{\keyword{delay} ~ #1}}
+\newcommand{\force}[1]{\construct{\keyword{force} ~ #1}}
 
+\newcommand{\erase}[1]{\llbracket#1\rrbracket}
 
 %%%  Type Grammar
 
@@ -104,7 +114,6 @@
 \newcommand{\allT}[3]{\construct{\keyword{all} ~ #1 ~ #2 ~ #3}}
 \newcommand{\conIntegerType}[1]{\keyword{integer}}
 \newcommand{\conBytestringType}[1]{\keyword{bytestring}}
-\newcommand{\builtinT}[2]{\construct{\keyword{builtin} ~ #1 ~ #2}}
 \newcommand{\conT}[1]{\construct{\keyword{con} ~ #1}}
 \newcommand{\lamT}[3]{\construct{\keyword{lam} ~ #1 ~ #2 ~ #3}}
 \newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
@@ -139,7 +148,6 @@
 \newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
 \newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
 \newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
-\newcommand{\multistepIndexed}[3]{#1 ~ \rightarrow^{#2} ~ #3}
 \newcommand{\normalform}[1]{\lfloor #1 \rfloor}
 \newcommand{\subst}[3]{[#1/#2]#3}
 \newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
@@ -163,16 +171,28 @@
 
 %%% CK Machine Normalization
 
-\newcommand{\cksteps}[2]{#1 ~\mapsto~ #2}
-\newcommand{\ckforward}[2]{#1 \triangleright #2}
-\newcommand{\ckbackward}[2]{#1 \triangleleft #2}
 \newcommand{\ckerror}{\blacklozenge}
+\newcommand{\compute}{\triangleright}
+\newcommand{\return}{\triangleleft}
+
+\newcommand{\bcompute}{\color{blue}\compute}  
+\newcommand{\breturn}{\color{blue}\return}  
+\newcommand{\bmapsto}{\color{blue}\mapsto}
+% This is to get blue symbols after an '&' inside an alignat
+% environment.  It seems to mess up the spacing if you do anything
+% else.
+
+
 
 \newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
 \newcommand{\inWrapRightFrame}[2]{\iwrap{#1}{#2}{\_}}
 \newcommand{\inUnwrapFrame}{\unwrap{\_}}
 \newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
 \newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
+
+% Extra frames for untyped term normalisation
+\newcommand{\inForceFrame}{\force{\_}}
+\newcommand{\inBuiltinU}[4]{\builtinU{#1}{#2 #3 #4}}
 
 % These are for use inside listings and $...$.  If you just use
 % \textit in listings it uses the italic tt font and the spacing
@@ -223,7 +243,7 @@ systems. More precisely, Plutus Core is the System $F_\omega$ of
 Girard and Reynolds (see \citep{Girard-thesis},
 \citep{Reynolds-type-structure}, \citep[\S30]{Pierce:TAPL}) with a
 number of extensions (isorecursive types, higher kinds, and a library
-of basic types and functions).  Plutus Core is meant to be a
+of built-in basic types and functions).  Plutus Core is meant to be a
 compilation target, and this is reflected in the design of the
 language: while writing large Plutus Core programs by hand is
 difficult, the language is relatively straightforward to formalise
@@ -244,10 +264,11 @@ combinator and Church/Scott encoded booleans) for such purposes.
 in~\citep{Plutus-exe-repo}.
 
 \paragraph{Formalisation.} The Agda formalisation of Plutus Core mentioned earlier
-can be found in~\citep{Plutus-metatheory-repo}, 
+can be found in~\citep{Plutus-metatheory-repo},
 and the techniques used are described in ~\citep{System-F-in-Agda}.
 
 \subsection{Blockchain issues}
+\label{sec:blockchain-issues}
 Plutus Core code (and code intended for execution on a blockchain in
 general) can be executed in two different environments:
 \textit{off-chain} and \textit{on-chain}.  As the name suggests,
@@ -269,11 +290,22 @@ costs.  If at any point during execution the amount of gas consumed
 exceeds the amount than has been paid for then the program is
 immediately terminated and the fee is forfeited.
 
-Resource limitations preclude complicated on-chain code analysis
-and verification.  We perform type checking prior to execution of
-Plutus Core Code, but no other validation.  Type checking itself takes
-time and requires memory, so there is also a gas charge for on-chain
-type checking.
+Plutus Core is a typed language which is intended as a compiler
+target.  The fact that it is typed helps to increase the robustness of
+compilers from higher-level languages, since compiler output can be
+typechecked at the end of compilation, and any type errors will
+indicate errors in the compilation process.
+
+However, resource limitations preclude complicated on-chain code
+analysis and verification, and since programs are transmitted across a
+network for execution on the chain it is also important that programs
+are as small as possible.  Types take up a lot of space, so we also
+define an \textit{untyped} variant of Plutus core for deployment to
+and execution on the chain (see Section~\ref{sec:untyped-plc}).
+Untyped Plutus Core is obtained from typed Plutus Core by a simple
+erasure process, and this makes it easy to analyse and typecheck
+a typed program off chain and check that after type erasure it
+is identical to an untyped on-chain program.
 
 Plutus Core is intended to be used for validation of on-chain
 transactions on the Cardano blockchain~\citep{Cardano}.  The details
@@ -283,10 +315,12 @@ contract infrastructure (including examples of the kind of validation
 code which is compiled into Plutus Core) see the
 book~\citep{Plutus-book}.
 
+
+
 \section{Syntax}
 
 The grammar of Plutus Core is given in
-Figures~\ref{fig:lexical_grammar} and
+Figures~\ref{fig:lexical-grammar} and
 \ref{fig:grammar}. This grammar describes the abstract
 syntax trees of Plutus Core in a convenient notation which can also be
 used as concrete syntax for purposes such as experimentation and
@@ -309,11 +343,11 @@ permit the use of multi-argument application and instantiation as
 syntactic sugar for iterated application.
 For instance,
 \[
-  [M_0 ~ M_1 ~ M_2 ~ M_3]
+  [M_1 ~ M_2 ~ M_3 ~ M_4]
   \]
 \noindent is short for
 \[
-  [[[M_0 ~ M_1] ~ M_2] ~ M_3]
+  [[[M_1 ~ M_2] ~ M_3] ~ M_4]
 \]
 All subsequent definitions assume iterated application and instantiation
 has been expanded out, and use only the binary form. Implementations
@@ -322,7 +356,7 @@ may use the multi-argument forms.
 
 \subfile{figures/LexicalGrammar}
 
-\subfile{figures/Grammar}
+\subfile{figures/TypedGrammar}
 
 \newcommand\fixtype[1]{\mu\,\alpha.#1}  % Just for talking about the fix operator in the notes.
 
@@ -330,34 +364,33 @@ may use the multi-argument forms.
 \paragraph{Terms.}
 \begin{itemize}
 \item $\con{cn}$ represents a constant belonging to some built-in
-  type: for example \texttt{(con 4)} is an integer with the value 127.
+  type: for example \texttt{(con 28)} is an integer with the value 28.
   See Section~\ref{sec:builtins} for more on this.
-\item $\abs{\alpha}{K}{V}$ represents a polymorphic value abstracted
-  over a type; this would often be donated by $\Lambda\alpha{::}K.V$.
-  Note that we require the body of the abstraction to be a
-  \textit{value}, not a term: see the note on the value restriction below.
+\item $\abs{\alpha}{K}{M}$ represents a polymorphic value abstracted
+  over a type; this would often be denoted by $\Lambda\alpha{::}K.M$.
 \item $\inst{M}{A}$ represents a polymorphic term instantiated at a particular type.
 \item $\iwrap{A}{B}{M}$ and $\unwrap{M}$: see the note on recursive types below.
 \item $\lam{x}{A}{M}$ is standard lambda-abstraction, $\lambda{}x{:}{A}.{M}$.
 \item $\app{M}{N}$ is standard function application.
-\item $\builtin{bn}{A^*}{M^*}$ is application of a built-in function: see Section~\ref{sec:builtins} for more information.
+\item $\builtin{bn}{A_1 \ldots A_k}{M_1 \ldots M_n}$ denotes application of a built-in function
+to the terms $M_1, \ldots, M_n$.
+Built-in functions are allowed to be polymorphic, and
+$\texttt{\{}\mathit{bn} ~ A_1 \ldots A_k\texttt{\}}$ indicates that the
+function denoted by $\mathit{bn}$ is instantiated with the given
+types.  For brevity we allow the syntax
+$\construct{\keyword{builtin} ~ \mathit{bn} ~ M_1 \ldots M_n}$ for
+application of non-polymorhpic built-in functions.
+Section~\ref{sec:builtins} for more information on the currently
+available built-in functions.
 \item $\error{A}$ causes an error, terminating computation.
 \end{itemize}
 
-%% Re the value restriction:  Phil says
-% Value restriction: This guarantees that one can erase a type
-% abstraction to its body (otherwise, one needs to erase a type
-% abstraction to a value abstraction). It also corresponds to the value
-% restriction in Standard ML, which ensures polymorphism works with
-% effects. For instance, if we wanted to translate Plutus into a monad
-% to make non-termination and reading the environment explicit, that is
-% easy with the value restriction; otherwise, it is (so far as I know)
-% not known how to do it. The restriction appears in my paper Theorems
-% for Free for Free with Ahmed, Jamner, and Siek in ICFP 2017.
-
-
-
-\paragraph{Values.} Values are terms which cannot undergo any further reduction.
+\paragraph{Values.} Figure~\ref{fig:values} shows a class of terms of a particular
+syntactic form which we call \textit{values}.  In
+Section~\ref{sec:reduction} below we define reduction rules for Plutus
+Core terms, and it can be shown (formally, in
+Agda (\cite{Plutus-metatheory-repo})) that values are precisely those
+terms which cannot undergo any further reduction.
 
 \paragraph{Types.} Plutus Core contains a copy of the simply typed lambda calculus
   at the type level, together with a few extensions.
@@ -371,29 +404,36 @@ may use the multi-argument forms.
 is the type of integers.  See Section~\ref{sec:builtins} for more information.
 \end{itemize}
 
-\paragraph{Type Values.} All types can be reduced to a type value (or
-  \textit{normalised type}) which cannot undergo any further
-  reduction: see Section~\ref{sec:reduction}.  The type normalisation
-  process always terminates: the proof is similar to the proof of the
-  fact that reduction of terms in the simply typed lambda calculus
-  always terminates \citep[\S12]{Pierce:TAPL}.  The type-level
-  structure of Plutus Core is slightly more complicated than the
-  simply typed lambda calculus, but the extra forms (\texttt{ifix},
-  \texttt{all}, built-in base types) don't provide any new
-  opportunities for type reduction and thus have little effect on the
-  proof.
 
-\paragraph{Kinds.} In Plutus Core we have a copy of the 
+\paragraph{Type Values.} Section~\ref{sec:reduction} also gives
+reduction rules for types.  All types can be reduced to a type value
+(or \textit{normalised type}) which cannot undergo any further
+reduction, and it can be shown that the type values are precisely
+those whose structure is given in Figure~\ref{fig:type-values} (again,
+these statements have been formalised and proved in
+Agda~\citep{Agda}).  The type normalisation process always terminates:
+the proof is similar to the proof of the fact that reduction of terms
+in the simply typed lambda calculus always
+terminates \citep[\S12]{Pierce:TAPL}; this is important because type
+normalisation has to be performed during type checking to check that
+two types are equal. The type-level structure of Plutus Core is
+slightly more complicated than the simply typed lambda calculus, but
+the extra forms (\texttt{ifix}, \texttt{all}, built-in base types)
+don't provide any new opportunities for type reduction and thus have
+little effect on the proof.
+
+\paragraph{Kinds.} In Plutus Core we have a copy of the
 simply typed lambda calculus at the type level. The types of the
 simply typed lambda calculus are lifted to the level of
 \textit{kinds} in Plutus Core, allowing the type system to talk about
-operations which themselves occur at the level of types.
-The basic kind (usually written as $\star$) is denoted by \texttt{(type)}.
+operations which themselves occur at the level of types.  The basic
+kind (often written as $\star$ in the literature) is denoted
+by \texttt{(type)}.
 
 \paragraph{Signatures.}  A signature
-$$[\alpha_1::K_1, \ldots, \alpha_m::K_m](t_1, \ldots, t_n)u$$ represents
+$$[\alpha_1::K_1, \ldots, \alpha_k::K_k](t_1, \ldots, t_n)u$$ represents
 the type
-$$\forall \alpha_1::K_1\,.\, \ldots \,.\, \forall \alpha_m::K_m\,.\, t_1
+$$\forall \alpha_1::K_1\,.\, \ldots \,.\, \forall \alpha_m::K_k\,.\, t_1
 \rightarrow \ldots \rightarrow t_n \rightarrow u.$$
 Both $m$ and $n$
 may be zero, in which case the corresponding list is empty.
@@ -401,53 +441,7 @@ Signatures are not used in the concrete syntax of Plutus Core, but we
 do use them later in this document, in typing rules and in the
 description of built-in values and functions.
 
-\paragraph{Programs and Versions.} A complete Plutus Core program 
-consists of a standard version number (1.0.2, for example) indicating
-the Plutus Core version and a \textit{closed} term (i.e., a term with no
-free variables) forming the body of the program.  The version number
-is used by the Plutus Core evaluator and other tools to check that
-they are dealing with code conforming to the correct version of the
-Plutus Core language.
-
-\subsection{More detailed remarks}
-\subsubsection{Type Normalisation}
- Type checking requires normalisation to be performed, for example to
- check that two types are equal.  This process can be expensive, so we
- require that code supplied for on-chain execution comes with all type
- annotations pre-normalised.  This can be done during off-chain type
- checking.  Another issue here is that normalisation can cause the
- size of a type to increase (in the worst case, exponentially), and
- requiring normalisation to be performed before a program is submitted
- to the chain reduces on-chain gas costs.
-
-%% \subsubsection{Sizes and built-in types and functions}
-%% \label{sec:size-note}
-%% Details of built-in types and functions are given
-%% in Section~\ref{sec:builtins}, but a remark on sizes may be helpful at this
-%% point.  Plutus Core currently provides two types of built-in data with
-%% variable sizes: integers and bytestrings (blocks of binary data used
-%% for cryptographic purposes).  There is no fixed upper bound on the
-%% size of values of these types, but -- as mentioned in the introduction -- it
-%% could be problematic if users were allowed to create values of arbitrary size 
-%% at runtime. To avoid this, sizes are tracked in the type system so that 
-%% appropriate charges can be made. 
-
-%% For integers, this works as follows (the system for 
-%% bytestrings is similar).  Integers are signed values:
-%% there is no fixed upper bound, but values are represented as sequences
-%% of a specified number of 8-bit bytes.  For example, \texttt{1~!~100}
-%% is the integer 100 stored as a single byte.  Literal constants must
-%% fit into the specified size: \texttt{1~!~200} gives a compile-time
-%% error. If a value overflows at runtime then an error occurs and
-%% execution is terminated.  Integers are manipulated using built-in
-%% functions (see Figure~\ref{fig:builtins}) whose types
-%% include the size. This prevents users from writing programs which
-%% generate arbitrarily large values during execution; it also allows us
-%% to charge according to the actual amount of computation performed,
-%% which will increase as the size of the integers involved increases.
-
-
-\subsubsection{Recursive types}
+\paragraph{Recursive types.}
 \label{sec:ifix-note}
 \noindent
 The operator \texttt{ifix} allows one to define recursive types in
@@ -463,7 +457,7 @@ differently.  This allows us to encode a wide variety of data types,
 including non-regular and mutually recursive data types:
 see~\citep[3.1]{unravelling-recursion} for more information.
 
-Note that we have an \textit{isomporhism} of types here rather than
+Note that we have an \textit{isomorphism} of types here rather than
 equality: fixpoint types are
 \textit{isorecursive}~\citep[20.2]{Pierce:TAPL} with explicit maps
 
@@ -491,38 +485,31 @@ write \textit{terms}, but makes it much easier to reason about
 \textit{types}, and in particular simplifies the typechecking process
 considerably.
 
+\paragraph{Programs and Versions.} A complete Plutus Core program
+consists of a standard version number (1.0.2, for example) indicating
+the Plutus Core version and a \textit{closed} term (i.e., a term with no
+free variables) forming the body of the program.  The version number
+is used by the Plutus Core evaluator and other tools to check that
+they are dealing with code conforming to the correct version of the
+Plutus Core language.
 
-\subsubsection{The value restriction}
-In $\abs{\alpha}{K}{V}$ we require the body $V$ to be a value. We will
-refer to this restriction as the \textit{value restriction} because it
-can be regarded as a generalisation of the value restriction in
-Standard ML \citep[22.7]{Pierce:TAPL}. Experience has shown that
-allowing general terms as bodies of type abstractions can cause a
-number of difficulties.  For example, Standard ML's value restriction
-is required to avoid a number of problems when (implicit) type
-abstractions include non-values; other issues are explored
-in~\citep[2.4]{Ahmed:2017}
-and~\citep[7.4.1]{Pitts:typed-operational-reasoning}. Plutus Core's
-restriction to values avoids these problems and is not very onerous in
-practice.
-  
-\section{Type Correctness}
+\section{Type correctness}
 
 We define for Plutus Core a number of typing judgments which explain
 ways that a program can be well-formed. First, in Figure
-\ref{fig:contexts}, we define the grammar of contexts as
-contexts appear here for the first time. Contexts are sequences of
-variables. In System F there are two different sorts of variables:
+\ref{fig:contexts}, we define the grammar of \textit{contexts},
+which are sequences of variables accompanied by kind and type
+information. In System F there are two different sorts of variables:
 term variables and type variables. For succinctness of presentation we
 keep information about both sorts of variables in the same
 context. Type variables carry their name and a kind and term variables
 carry their name and a type. The rules for context validity explain
-how valid contexts can be constructed, the empty context is valid,
-given valid context $\Gamma$, it can be extended with a fresh variable
-and kind or a fresh variable and a valid type in $\Gamma$. Note we do
-not need a separate judgement for valid kinds. They are so simple that
-any kind that can be constructed according to the grammar is a valid
-kind.
+how valid contexts can be constructed: the empty context is valid, and
+given a valid context $\Gamma$, it can be extended with a fresh
+variable and kind or a fresh variable and a valid type in
+$\Gamma$. Note that we do not need a separate judgment for valid
+kinds. They are so simple that any kind that can be constructed
+according to the grammar is a valid kind.
 
 %We also consider variable judgements in Figure
 %\ref{fig:contexts}. Technically this judgement is defined
@@ -597,7 +584,7 @@ kind.
 %
 %     \begin{prooftree}
 %        \AxiomC{\(\ctxni{\Gamma}{\termJ{x}{A}}\)}
-%        \AxiomC{\(x \not= y\)}        
+%        \AxiomC{\(x \not= y\)}
 %        \BinaryInfC{\(\ctxni{\Gamma, \termJ{y}{B}}{\termJ{x}{A}}\)}
 %    \end{prooftree}
 
@@ -607,14 +594,15 @@ kind.
     \label{fig:contexts}
 \end{figure}
 
-\newpage 
+\newpage
 \noindent Figure \ref{fig:kind_synthesis} defines what
 it means for a type to synthesise a kind. Plutus Core is a
 higher-kinded version of System F, so we have a number of standard
-System F rules (tyvar,tyall,tyfun) together with some extensions with
-extensions to higher kinds (tylam,tyapp) and to indexed
-recursive types (tyfix). We also introduce builtin types (tycon) to
-support integers and bytestrings.
+System F rules (\textsf{tyvar},\textsf{tyall},\textsf{tyfun}) together
+with some extensions with extensions to higher kinds
+(\textsf{tylam},\textsf{tyapp}) and to indexed recursive types
+(\textsf{tyfix}). We also introduce built-in types (\textsf{tycon}) to support
+integers and bytestrings.
 
 %% ---------------- Kind synthesis ---------------- %%
 
@@ -624,46 +612,46 @@ support integers and bytestrings.
 
     \begin{prooftree}
         \AxiomC{\(({\typeJ{\alpha}{K}}) \in \Gamma\)}
-        \RightLabel{tyvar}
+        \RightLabel{\textsf{tyvar}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\alpha}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{tyall}
+        \RightLabel{\textsf{tyall}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\allT{\alpha}{K}{A}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{\funK{K}{\typeK{}}}{\funK{K}{\typeK{}}}}}\)}
-        \RightLabel{tyfix}
+        \RightLabel{\textsf{tyfix}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\fixT{A}{B}}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{\typeK{}}}\)}
-        \RightLabel{tyfun}
+        \RightLabel{\textsf{tyfun}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\funT{A}{B }}{\typeK{}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{J}}{\istypeJ{A}{K}}\)}
-        \RightLabel{tylam}
+        \RightLabel{\textsf{tylam}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\lamT{\alpha}{J}{A}}{\funK{J}{K}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\funK{J}{K}}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{J}}\)}
-        \RightLabel{tyapp}
+        \RightLabel{\textsf{tyapp}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istypeJ{\appT{A}{B}}{K}}\)}
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type_constants}}
-        \RightLabel{tycon}
+        \AxiomC{$tcn$ is a type constant in in Figure \ref{fig:type-constants}}
+        \RightLabel{\textsf{tycon}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{\conT{tcn}}{\typeK{}}}\)}
     \end{prooftree}
 
@@ -673,34 +661,37 @@ support integers and bytestrings.
 \end{figure}
 
 
-\noindent In Figure \ref{fig:type_synthesis}, we define the type
+\noindent In Figure \ref{fig:type-synthesis}, we define the type
 synthesis judgment, which explains how a term synthesises a type. We
-have rules analogous to STLC (var,lam,app), extensions to System F
-(abs,inst). Higher-kinding introduces computation in types so we need
-the rule conv. Iso-recursive types introduce terms for wrapping and
-unwrapping recursive values (wrap,unwrap), and to support constants
-and builtins we have con, builtin and error.
+have rules analogous to STLC (\textsf{var},\textsf{lam},\textsf{app}),
+extensions to System F (\textsf{abs},\textsf{inst}). Iso-recursive
+types introduce terms for wrapping and unwrapping recursive values
+(\textsf{wrap},\textsf{unwrap}), and to support constants and builtins
+we have \textsf{con}, \textsf{builtin} and \textsf{error}.
+Higher-kinding introduces computation in types so we need the rule
+\textsf{conv}. 
 
 %% ---------------- Type synthesis ---------------- %%
 
 \begin{figure}[H]
-    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context $\Gamma$, term $M$ has type $A$}
+    \judgmentdef{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}{In valid context
+    $\Gamma$, term $M$ has type $A$}
 
     \begin{prooftree}
         \AxiomC{\(({\termJ{x}{A}}) \in \Gamma\)}
-        \RightLabel{var}
+        \RightLabel{\textsf{var}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{x}{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{$cn$ has constant signature $\constsig{tcn}$ in Figure \ref{fig:constants}}
-        \RightLabel{con}
+        \RightLabel{\textsf{con}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{cn}{\conT{tcn}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma, \typeJ{\alpha}{K}}{\istermJ{M}{B}}\)}
-        \RightLabel{abs}
+        \RightLabel{\textsf{abs}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\abs{\alpha}{K}{M}}{\allT{\alpha}{K}{B}}}\)}
     \end{prooftree}
 
@@ -708,7 +699,7 @@ and builtins we have con, builtin and error.
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{L}{C}}\)}
         \AxiomC{\(\typeEquiv{C}{\allT{\alpha}{K}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{K}}\)}
-        \RightLabel{inst}
+        \RightLabel{\textsf{inst}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\inst{L}{A}}{\subst{A}{\alpha}{B}}}\)}
     \end{prooftree}
 
@@ -719,7 +710,7 @@ and builtins we have con, builtin and error.
 		\UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\UnaryInfC{\(\typeEquiv{C}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}\)}
 		\alwaysSingleLine
-    	\RightLabel{wrap}
+    	\RightLabel{\textsf{wrap}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\wrap{A}{B}{M}}{\fixT{A}{B}}}\)}
     \end{prooftree}
 
@@ -727,14 +718,14 @@ and builtins we have con, builtin and error.
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{C}}\)}
 		\AxiomC{\(\typeEquiv{C}{\fixT{A}{B}}\)}
 		\AxiomC{\(\hypJ{\Gamma}{\istypeJ{B}{K}}\)}
-		\RightLabel{unwrap}
+		\RightLabel{\textsf{unwrap}}
         \TrinaryInfC{\(\hypJ{\Gamma}{\istermJ{\unwrap{M}}{\appT{\appT{A}{\lamT{\beta}{K}{\fixT{A}{\beta}}}}{B}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
         \AxiomC{\(\hypJ{\Gamma, \termJ{y}{A}}{\istermJ{M}{B}}\)}
-        \RightLabel{lam}
+        \RightLabel{\textsf{lam}}
         \BinaryInfC{\(\hypJ{\Gamma}{\istermJ{\lam{y}{A}{M}}{\funT{A}{B}}}\)}
     \end{prooftree}
 
@@ -743,35 +734,36 @@ and builtins we have con, builtin and error.
         \AxiomC{\(\typeEquiv{C}{\funT{A}{B}}\)}
         \AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
         \AxiomC{\(\typeEquiv{A}{A'}\)}
-        \RightLabel{app}
+        \RightLabel{\textsf{app}}
         \QuaternaryInfC{\(\hypJ{\Gamma}{\istermJ{\app{L}{M}}{B}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \alwaysNoLine
-        \AxiomC{$bn$ has signature $\sig{\alpha_0 :: K_0, ..., \alpha_m :: K_m}{B_0, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \AxiomC{$\mathit{bn}$ has signature $\sig{\alpha_1 :: K_1, ..., \alpha_k :: K_k}{B_1, ..., B_n}{C}$ in Figure \ref{fig:builtins}}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istypeJ{A_i}{K_i}}\)}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{M_i}{D_i}}\)}
-        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{B_i}}\)}
+        \UnaryInfC{\(\typeEquiv{D_i}{\subst{A_1, ..., A_k}{\alpha_1, ..., \alpha_k}{B_i}}\)}
         \alwaysSingleLine
-        \RightLabel{builtin}
-        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_0 ... A_m}{M_0 ... M_n}}{\subst{A_0, ..., A_m}{\alpha_0, ..., \alpha_m}{C}}}\)}
+        \RightLabel{\textsf{builtin}}
+        \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\builtin{bn}{A_1 ... A_k}{M_1 ... M_n}}{\subst{A_1, ..., A_k}{\alpha_1, ..., \alpha_k}{C}}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\hypJ{\Gamma}{\istypeJ{A}{\typeK{}}}\)}
-        \RightLabel{error}
+        \RightLabel{\textsf{error}}
         \UnaryInfC{\(\hypJ{\Gamma}{\istermJ{\error{A}}{A}}\)}
     \end{prooftree}
-    
+
     \begin{prooftree}
     	\AxiomC{\(\hypJ{\Gamma}{\istermJ{M}{A}}\)}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{conv}
+		\RightLabel{\textsf{conv}}
 		\BinaryInfC{\(\hypJ{\Gamma}{\istermJ{M}{A'}}\)}
     \end{prooftree}
 
     \captionof{figure}{Type Synthesis}
-    \label{fig:type_synthesis}
+    \label{fig:type-synthesis}
 
 \end{figure}
 
@@ -781,33 +773,21 @@ rather than in inference rule form, in Figure
 semantics. This table also specifies what conditions trigger an error.
 
 
-\section{Reduction and Execution}
+\section{Reduction and execution}
 \label{sec:reduction}
 
 In this section we define a standard eager,
 small-step contextual semantics~\citep[5.3]{Harper:PFPL} (or
 \textit{reduction semantics}~\citep[\S2]{Felleisen-Hieb}) for Plutus
 Core in terms of the reduction relation for types
-(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction}) 
+(\(\typeStep{A}{A'}\)) (Figure~\ref{fig:type-reduction})
 and terms (\(\step{M}{M'}\)) (Figure~\ref{fig:term-reduction}), which
-incorporates both $\beta$ reduction and contextual congruence. We make
+incorporates both $\beta$-reduction and contextual congruence. We make
 use of the transitive closure of these stepping relations via the
 usual Kleene star notation.
-% It seems that Harper talks about "contextual semactics" in the 
+% It seems that Harper talks about "contextual semactics" in the
 % first edition of his book, but changed it to "contextual dymanics"
 % in the second.  It doesn't seem to be a standard term elsewhere though.
-
-In the context of a blockchain system, it can be useful to also have a
-step indexed version of stepping, indicated by a superscript count of
-steps (\(\multistepIndexed{M}{n}{M'}\)). In order to prevent
-transaction validation from looping indefinitely, or from simply
-taking an inordinate amount of time, which would be a serious
-flaw in the blockchain system, we can use step indexing to put an
-upper bound on the number of computational steps that a program can
-have. In this setting, we would pick some upper bound $\mathit{max}$
-and then perform steps of terms $M$ by computing which $M'$ is such
-that \(\multistepIndexed{M}{\mathit{max}}{M'}\).
-
 
 
 \subsection{Type reduction}
@@ -818,12 +798,13 @@ given type into an equivalent type, and so have no effect on the term
 level.  In conjunction with the fact that type reduction always
 terminates, this allows us to perform normalisation (i.e., reduction
 to a form which cannot undergo any further reduction) statically,
-before execution begins.  Figure~\ref{fig:type-reduction} contains the
-rules for type reduction, and Figure~\ref{fig:type-equivalence}
-contains rules for type equivalence.  Here and elsewhere we use syntax
-of the form $[X/x]Y$ to denote (capture-avoiding) substitution of
-some entity (a type, term, or value) $X$ for all occurrences of a name
-$x$ within some other entity $Y$.
+independently of term reduction.  Figure~\ref{fig:type-reduction}
+contains the rules for type reduction, and
+Figure~\ref{fig:type-equivalence} contains rules for type equivalence.
+Here and elsewhere we use syntax of the form $[X/x]Y$ to denote
+(capture-avoiding) substitution of some entity (a type, term, or
+value) $X$ for all occurrences of a name $x$ within some other entity
+$Y$.
 
 \subfile{figures/TypeReduction}
 
@@ -837,44 +818,47 @@ standard operational semantics.
 
 \subfile{figures/TermReduction}
 
+\noindent Note that there is no term $M^{\prime}$ such that
+$\step{\error{B}}{M^{\prime}}$, so at most one of the final two rules
+applies.
+
 \subsection{An abstract machine for evaluating Plutus Core programs}
+\label{sec:typed-ck-machine}
 This section contains a description of an abstract machine for
 executing Plutus Core.  This is based on the CK machine of Felleisen
-and Friedman~\citep{Felleisen-CK-CEK}. 
+and Friedman~\citep{Felleisen-CK-CEK}.
 
 This machine is intended as a reference implementation which is
-amenable to formalisation, ideally so that it can be proved to
-implement the operational semantics described above.  The CK machine
-is inefficient because it implements application as $\beta$-reduction,
-so that when evaluating $(\lambda x.M)V$, $V$ must be substituted
-bodily for $x$ wherever it occurs in $M$.  This process can require
-considerable amounts of time and space.  More efficient machines are
-available (for example the CEK machine from~\citep{Felleisen-CK-CEK},
-which uses environments binding actual arguments to variables), and in
-practice we would use something based on such a machine; however, the
-CK machine will still provide a useful bridge for formalisation
-purposes.
+amenable to formalisation.  For example, it can be proved to implement
+the operational semantics described in Section~\ref{sec:reduction}.
+The CK machine is inefficient because it implements application as
+$\beta$-reduction, so that when evaluating $(\lambda x.M)V$, $V$ must
+be substituted bodily for $x$ wherever it occurs in $M$.  This process
+can require considerable amounts of time and space.  More efficient
+machines are available, and we describe one of these, the CEK machine,
+in Appendix~\ref{appendix:typed-cek-machine}; however, the CK machine still
+provides a useful bridge for formalisation purposes.
 
-\subfile{figures/CkMachine}
+\subfile{figures/TypedCkMachine}
 
 \noindent The machine alternates between two main phases: the
 \textit{compute} phase ($\triangleright$), where it recurses down
 the AST looking for values, saving surrounding contexts as frames (or
-\textit{reduction contexts}) on a stack as it goes; and the 
+\textit{reduction contexts}) on a stack as it goes; and the
 \textit{return} phase ($\triangleleft$), where it has obtained a value and
 pops a frame off the stack to tell it how to proceed next.  In
 addition there is an error state $\blacklozenge$ which halts execution
 with an error, and a stop state $\square$ which halts execution and
 returns a value to the outside world.
 
-To evaluate a program $\texttt{(program } v\ M \texttt{)}$, we first
+To evaluate a program $\texttt{(program}\ v\ M \texttt{)}$, we first
 check that the version number $v$ is valid, then start the machine in
 the state $\cdot \triangleright M$.  It can be proved that the
-transitions in Figure~\ref{fig:ck-machine} always preserve
+transitions in Figure~\ref{fig:typed-ck-machine} always preserve
 validity of states, so that the machine can never enter a state such as
   $\cdot \triangleleft M$
 or
-$s, \texttt{(unwrap \_)} \triangleleft \texttt{(lam }x\ A \ M\texttt{)}$
+$s, \texttt{(unwrap \_)} \triangleleft \texttt{(lam}\ x\ A \ M\texttt{)}$
 which isn't covered by the rules.  If such a
 situation were to occur in an implementation then it would indicate
 that the machine was incorrectly implemented or that it was attempting
@@ -882,7 +866,7 @@ to evaluate an invalid program which should have been detected during
 parsing or typechecking.
 
 For efficiency reasons the behaviour of the machine defined in
-Figure~\ref{fig:ck-machine} differs in two respects from the semantics
+Figure~\ref{fig:typed-ck-machine} differs in two respects from the semantics
 defined in Figure~\ref{fig:term-reduction}:
 \begin{itemize}
 \item The CK machine does not perform type instantiation since this
@@ -894,7 +878,7 @@ defined in Figure~\ref{fig:term-reduction}:
   this is to ensure that the program has a well-defined type.
 \end{itemize}
 \noindent It can be proved that when the CK machine as defined in
-Figure~\ref{fig:ck-machine} evaluates a program $P$, the machine
+Figure~\ref{fig:typed-ck-machine} evaluates a program $P$, the machine
 terminates in the $\blacklozenge$ state if and only if $P$ terminates
 with an \texttt{error} value according to the rules of
 Figure~\ref{fig:term-reduction}, and that the machine terminates with
@@ -905,37 +889,39 @@ modulo erasure of type annotations.
 
 \section{Built in types, functions, and values}
 \label{sec:builtins}
-Plutus Core comes with a pre-defined set of built-in types and
+Plutus Core comes with a predefined set of built-in types and
 functions which will be useful for blockchain applications.  The set
 of built-ins is fixed, although in future we may provide a framework
 to allow customisation for specialised blockchains.
 
 As mentioned earlier, there are two basic types: \texttt{integer} and
 \texttt{bytestring}.  These types are given in
-Figure~\ref{fig:type_constants}: for example \texttt{(con
+Figure~\ref{fig:type-constants}: for example \texttt{(con
   integer)} is the type of signed integers.
 We provide standard arithmetic and comparison operations for integers
 and a number of list-like functions for bytestrings. The details are
 given in Figure~\ref{fig:builtins}, using a number of
-abbreviations given in Figure~\ref{fig:type_abbreviations}.  
+abbreviations given in Figure~\ref{fig:type-abbreviations}.
 
 
 Note the following:
 \begin{itemize}
 \item The built-in functions in Figure~\ref{fig:builtins}
-are all monomorphic, and hence the type arguments are all empty: []. 
+are all monomorphic, and hence the type arguments are all empty: [].
 It is possible that we may add some polymorphic built-in functions
 at some time in the future.
 \item Some of the entries in Figure~\ref{fig:builtins}
   contain \textit{success conditions}.  If a success condition is
-  violated then the program terminates immediately and returns
-  the value \texttt{(error)}.
+  violated then the function immediately returns $\errorU$
+
+\item Every built-in function returns either a value or the term \texttt{(error)}.
+
 \item We provide two versions of the division and remainder operations
   for integers.  These differ in their treatment of negative
   arguments.
 
   \begin{itemize}
-  
+
   \item \texttt{divideInteger} and \texttt{modInteger} implement the
     standard mathematical integer division operations (at least when
     the divisor is positive): \texttt{divideInteger} rounds
@@ -968,12 +954,12 @@ at some time in the future.
 %    41  5 |  8   1  |   8   1  |  8   1
 %   -41  5 | -9   4  |  -8  -1  | -9   4
 %    41 -5 | -9  -4  |  -8   1  | -8   1
-%   -41 -5 |  8  -1  |   8  -1  |  9   4 
+%   -41 -5 |  8  -1  |   8  -1  |  9   4
 %
 
   \item We use fixed Scott encodings for certain types and values,
     specifically for the \textit{unit} and \textit{boolean} types: see
-    Figure~\ref{fig:type_abbreviations} (\textit{one} is the unique
+    Figure~\ref{fig:type-abbreviations} (\textit{one} is the unique
     non-\verb|error| inhabitant of the \textit{unit} type).  Compilers
     targeting Plutus Core must be aware of these encodings and use
     them appropriately.  Note that these encodings are not purely
@@ -1004,7 +990,7 @@ The following program subtracts 11 from 55, returning 44.
 integer.
 \begin{verbatim}
   (lam n (con integer)
-    [ 
+    [
       { [(builtin lessThanInteger) n (con 0)] (con integer) }
         [(builtin subtractInteger) (con 0) n]
         n
@@ -1012,9 +998,9 @@ integer.
   )
 \end{verbatim}
 
-\noindent We have used the built-in \verb|subtractInteger|
+\noindent We have used the built-in \verb|lessThanInteger|
 function, which returns a boolean value encoded as shown in
-Figure~\ref{fig:type_abbreviations}, of type
+Figure~\ref{fig:type-abbreviations}, of type
 $\forall \alpha::\ast. \alpha \rightarrow \alpha \rightarrow \alpha$.
 Boolean values are functions taking two arguments: \textit{true}
 returns the first, and \textit{false} returns the second.  We have to
@@ -1057,40 +1043,333 @@ recursion using an \verb|ifix|-based analogue of the $Z$ combinator).
 % factorial| gives you something 399 lines long, thanks
 % to \verb|ifix|.
 
+\section{Untyped Plutus Core}
+\label{sec:untyped-plc}
+For code transmission and on-chain execution it is important to have
+small programs.  In this section we define an untyped version of
+Plutus Core together with a type erasure function converting typed
+Plutus Core terms to untyped ones.
+
+As mentioned in Section~\ref{sec:blockchain-issues}, it is important to
+limit the consumption of computational resources in on-chain code.  A
+future version of this document will include a cost model which will
+provide fine-grained costs for individual operations and built-in
+functions, enabling accurate (dynamic) monitoring of execution costs.
+
+\subfile{figures/UntypedGrammar}
+
+\bigskip
+\noindent The grammar is essentially that of typed Plutus Core with all types
+and type-related operations discarded.  However, we require two new
+items: \texttt{delay} and \texttt{force}.  These are needed because
+type-level abstraction (\texttt{abs}) and instantiation (\texttt{\{\}})
+have a computational effect.  The body of a type abstraction will not
+be executed until the type is instantiated; thus we cannot just
+replace $\abs{\alpha}{K}{M}$ with $M$, since the latter is evaluated
+immediately.  As we will see below, \texttt{delay} and \texttt{force}
+are used to preserve the effects of type abstraction and
+instantiation (a more standard strategy of abstracting over the unit value was
+rejected because it is less space-efficient).%
+%% \footnote{A more standard, and semantically equivalent,
+%% way to implement \texttt{delay} and \texttt{force} would be to use
+%% $\lamU{u}{e}$ instead of $\delay{e}$ and $\appU{e}{\lamU{x}{x}}$
+%% instead of $\force{e}$.  This has the
+%% advantage of not requiring any new additions to the language, but is
+%% less space-efficient.  Compared with erasing \texttt{abs}
+%% and \texttt{\{\}} completely (which is semantically unsound), using
+%% \texttt{delay} and \texttt{force} increasese script size by about 10\%, but
+%% abstacting over the unit value increases sizes by about 20\%.  Small
+%% script sizes are important, so we opted for the former.}
+
+As with typed Plutus Core, we can show that values (terms which can
+not be reduced) have a particular syntactic form: see
+Figure~\ref{fig:untyped-values}.
+
+\subsection{Type erasure}
+Figure~\ref{fig:type-erasure} defines a type erasure operation which
+converts a typed Plutus Core term $M$ into an untyped one $\erase{M}$
+(objects from the typed grammar on the left of $=$, untyped on the
+right).  We extend this to sequences of terms in the obvious way:
+given $M^* = M_1 \ldots M_n$ we define $\erase{M^*}
+= \erase{M_1} \ldots \erase{M_n}$.  Note that typed values erase to
+untyped values.  Note also that it follows
+from \cite{Wells-96-typability} that, given an untyped term $M$, it is
+undecidable whether there is a typed term $\widetilde{M}$ with $\erase{\widetilde{M}} = M$.
+
+For a typed program $P$ we use $\erase{P}$ to denote the untyped
+program with the same version whose body is the erasure of the body of
+$P$.
+
+\subfile{figures/TypeErasure}
+
+
+%% The next section is a rather vague attempt to try to explain what's
+%% going on with untyped builtins in the absence of a proper
+%% specification.  When we do have a specification this can be
+%% removed, and we should talk about untyped Plutus Core rather than
+%% type-erased Plutus Core (captions of CK machine figure etc.)
+
+\subsubsection{Note. Built-in functions in untyped Plutus Core}
+\label{sec:untyped-ck-builtins}
+We assume that untyped Plutus Core contains a set of built-in functions
+corresponding to those in Figure~\ref{fig:builtins}, and that these
+behave consistently with respect to type erasure in the sense that
+$$
+\erase{\builtin{bn}{A_1 \ldots A_k\}{V_1 \ldots V_n}}} =
+\builtinU{bn}{\erase{V_1} \ldots \erase{V_n}}
+$$
+for all typed values $V_1, \ldots, V_n$ (typed evaluation on the left,
+untyped on the right).\footnote{We also assume that evaluation of
+built-in functions always terminates, in both the typed and untyped
+languages.}  In Section~\ref{sec:untyped-term-reduction} below we
+define semantics for type-erased programs, and if the aforementioned
+consistency condition is satisfied then it can be shown that the
+erasure operation preserves semantics in an appropriate sense: if $P$
+is a well-typed Plutus Core program then
+\begin{itemize}
+\item Evaluation of $P$ terminates if and only if that of $\erase{P}$ does.
+\item The evaluation of $P$ returns \texttt{(error $A$)} for some type $A$
+if and only if the evaluation of $\erase{P}$ returns \texttt{(error)}.
+\item $P$ evaluates to the value $V$ if and only if $\erase{P}$ evaluates to the value
+$\erase{V}$.
+\end{itemize}
+This allows
+us to give semantics to those untyped programs which are obtained by
+erasing types from well-typed typed programs.  A future version of
+this document will contain a detailed specification of built-in types
+and functions which will allow us to give precise semantics
+for \textit{all} untyped terms and programs.
+
+\subsection{Term Reduction}
+\label{sec:untyped-term-reduction}
+Figure~\ref{fig:untyped-term-reduction} defines a reduction semantics
+for type-erased Plutus Core, analogously to
+Figure~\ref{fig:term-reduction}.
+
+\subfile{figures/UntypedTermReduction}
+
+\subsection{An abstract machine for evaluating erased Plutus Core programs}
+\label{sec:untyped-ck-machine}
+Figure~\ref{fig:untyped-ck-machine} describes a modified version of
+the CK machine (Figure~\ref{fig:typed-ck-machine}) which evaluates
+type-erased Plutus Core programs, implementing the semantics of
+Figure~\ref{fig:untyped-term-reduction}. As in the typed case, the CK
+machine is not very efficient; a more efficient CEK machine is
+described in Appendix~\ref{appendix:untyped-cek-machine}.
+
+\subfile{figures/UntypedCkMachine}
+
+
+%% ------------------------------- Appendices --------------------------------- %%
+
 \begin{appendices}
-\section{Unrestricted Algorithmic Type System}
+\section{Algorithmic type system}
 
 For implementation purposes it is useful to have a variant of the type
 system that is more algorithmic in its presentation. We give this
 here, showing the figures that have been changed (relative to the
 declarative version above), and highlighting the specific parts of
 each rule that is different, where possible
-(Figures~\ref{fig:contexts_algorithmic_unrestricted}
-and~\ref{fig:type_synthesis_algorithmic_unrestricted}) .
+(Figures~\ref{fig:contexts-algorithmic-unrestricted}
+and~\ref{fig:type-synthesis-algorithmic-unrestricted}) .
 
-\subfile{figures/TypeSynthesis-Algorithmic-Unrestricted.tex}
+\subfile{figures/TypeSynthesis-Algorithmic.tex}
 
-\newpage
 
-\section{Restricted Algorithmic Type System}
+\section{A CEK machine for typed Plutus Core}
+\label{appendix:typed-cek-machine}
+In Section~\ref{sec:typed-ck-machine} we described the CK machine, an
+abstract machine for executing Plutus Core programs.  As we pointed
+out, the CK machine is inefficient because it performs application by
+substitution: if one is evaluating $(\lambda x:t.e)e^{\prime}$ then
+the whole of $e^{\prime}$ has to be substituted for every occurrence
+of $x$ in $e$, which can be expensive in terms of both time and space.
+This section presents a version of the \textit{CEK machine} of
+~\citep{Felleisen-CK-CEK}: this uses environments to store bindings of
+values to variables, where they can be looked up when required. This
+makes evaluation considerably more efficient, to the extent that the
+CEK machine can be used in practical situations.
 
-For blockchain purposes, it is useful to not only have an algorithmic
-system, but to require that no un-normalised types are present in
-programs, so as to reduce the amount of computation necessary to
-typecheck a program. It's also useful to have a way of bounding the
-amount of computation that can be done in type checking, for security
-purposes. To that end, we present a restricted grammar and type
-reduction, and a type system that reflects these.
-Figures~\ref{fig:grammar_algorithmic_restricted}--\ref{fig:type_synthesis_algorithmic_restricted}
-are additions with respect to the unrestricted version, and show only
-the new or changed figures and their respective highlighted
-differences.
+\subsection{Structure of the CEK machine}
+The CEK machine avoids the inefficiency of repeated substitution by
+extending the state of the machine with
+\textit{environments} mapping variable names to \textit{closures} consisting of
+pairs $(V,\rho)$ where $V$ is a value and $\rho$ is another
+environment containing bindings for free variables occurring in $V$.
+The result of looking up a variable $x$ in an environment $\rho$ is
+denoted by $\rho[x]$: if $x$ is has multiple bindings in $\rho$ then
+the most recent one is returned.\footnote{In the implementation, names
+are supplied with unique integer IDs which make them unambiguous; the
+environments in fact map these IDs to closures.} If $x$ does not occur
+in $\rho$ then an \texttt{error} is returned; however, it can be shown
+that if the machine is started with a closed term $M$ as input then
+variable lookups will never fail.  When the machine is evaluating
+$[(\lambda x.M)\, N]$ in an environment $\rho$ it first evaluates $N$
+in $\rho$ to produce a value $V$, then extends $\rho$ with the mapping
+$x \mapsto (V,\rho)$ to obtain a new environment $\rho^{\prime}$, then
+proceeds to evaluate $M$ in the environment $\rho^\prime$: when any
+occurrences of $x$ are encountered, the machine retrieves the value
+$V$ from the environment and proceeds with evaluation as normal.  It
+is necessary to use closures because values may now contain variable
+names, and we have to know what the variables were bound to at the
+time when the value was created.
 
-\subfile{figures/Grammar-Algorithmic-Restricted.tex}
+\subsubsection{Discharging closures}
+Given a closure $(V,\rho)$ we denote by $\discharge{(V,\rho)}$ the
+result of \textit{discharging} the closure, ie, recursively replacing
+all of the variables occurring in $V$ by their bindings in
+$\rho$. Note that variables are bound to closures which may themselves
+need to be discharged: hence the use of the word ``recursively''. It
+can be shown that when any closure produced by the CEK machine is
+discharged it yields a value.
 
-\subfile{figures/Reduction-Algorithmic-Restricted.tex}
+\subsection{Definition of the CEK machine}
+The CEK machine is described in Figure~\ref{fig:cek-machine}.  It is
+  is very similar to the CK machine of Figure~\ref{fig:typed-ck-machine},
+  except that
+\begin{itemize}
+\item Every rule now involves environments
+\item A new rule has been added to deal with the evaluation of variables
+\item The rule involving lambda application has changed to replace substitution with
+the use of an extended environment
+\item When the machine terminates without error it now
+returns a closure $(V,\rho)$ rather than a value.  The invoker
+of the machine may wish to discharge this closure to obtain a value.
+\end{itemize}
+\noindent The major changes are highlighted in \blue{blue}. To evaluate a program
+\texttt{(program $v$ $M$)} we check the version number $v$ and then evaluate the body $M$
+with an empty stack and environment: $\cdot;[] \compute M$.
 
-\subfile{figures/TypeSynthesis-Algorithmic-Restricted.tex}
+\subfile{figures/TypedCekMachine.tex}
+
+\subsubsection{Note. Built-in functions in the CEK machine}
+\label{sec:typed-cek-builtins}
+In the CK machine the arguments of built-in functions are always
+closed values, but in the CEK machine arguments are closures.  We
+assume that the mechanism for evaluating built-in functions in the CEK
+machine can accept closures as arguments, and that
+\begin{itemize}
+\item Evaluation of built-in functions always terminates, returning either a value or \texttt{(error)}
+(this is true for all of the current built-in functions).
+
+
+\item For closures $C_1, \ldots, C_n$, evaluation of
+  $\builtin{bn}{A_1 \ldots A_k}{C_1 \ldots C_n}$ fails in the CEK
+machine (returning $\error{A}$ for some type $A$) if and only
+if evaluation of $\builtin{bn}{A_1 \\ \ldots  %% Extends way into the margin without this
+A_k}{\discharge{C_1} \ldots \discharge{C_n}}$ fails (returning $\errorU$) according to
+Figure~\ref{fig:builtins}.
+
+\item For closures $C_1, \ldots, C_n$,
+  $\builtin{bn}{A_1 \ldots A_k}{C_1 \ldots C_n}$
+evaluates to a value $V$ in the CEK machine if and only if 
+  $\builtin{bn}{A_1 \ldots A_k}{\discharge{C_1} \ldots \discharge{C_n}}$
+evaluates to the same value $V$ according to Figure~\ref{fig:builtins}.% <- No space before footnote marker.
+\footnote{One way to ensure that these conditions hold would be to discharge all of the
+closures and then use the same mechanism as in the CK machine, but this would
+reintroduce the very inefficiencies which the CEK machine is designed to avoid.}
+
+\end{itemize}
+A future version of this document will contain a
+specification of built-in function evaluation which will cover this
+issue in detail.
+
+% [NOTE] We'll need to assume (or deduce from the specification of
+% builtins) that builtins always return terms that are well-typed and
+% which don't contain any out-of-scope variables (We'll need these
+% conditions for the CK machine as well).  This doesn't matter at the
+% moment because our fixed set of builtins always return values of
+% built-in types or `error` (which annoyingly isn't a value), but when
+% we have extensible builtins (including polymorphic ones) things will
+% be trickier.
+
+
+\subsubsection{Comparison of the CK and CEK machines}
+If the CK and CEK machines are run with the same program as input then
+we can prove the following facts (assuming that the condition in
+Section~\ref{sec:typed-cek-builtins} holds):
+\begin{itemize}
+\item The CEK machine terminates if and only if the CK machine terminates.
+\item The CEK machine terminates in the error state $\blacklozenge$ if
+and only if the CK machine terminates in the state $\blacklozenge$.
+\item The CEK machine returns a closure $C$ if and only if the CK machine returns a
+value $V$ with $\discharge{C} = V$.
+\end{itemize}
+
+\section{A CEK machine for type-erased Plutus Core}
+\label{appendix:untyped-cek-machine}
+As in the typed situation, the CK machine for type-erased Plutus Core
+(Figure~\ref{fig:untyped-ck-machine}) can be replaced with a more
+efficient CEK machine.  This is obtained by applying modifications
+similar to those which we used to obtain the CEK machine for typed
+Plutus Core from the CK machine for typed Plutus Core.  We will refer
+to this machine as the \textit{untyped CEK machine}, but we emphasise
+that the version presented here is only to be used to evaluate terms
+which are obtained by erasing types from well-typed Plutus Core terms.
+A later version of this document will contain a specification for
+evaluation of built-in functions which will allow us to evaluate
+arbitrary untyped Plutus Core terms.
+
+\subsection{Structure of the untyped CEK machine}
+The untyped CEK machine uses closures and environments similar to
+those used in the typed CEK machine
+(Appendix~\ref{appendix:typed-cek-machine}), except that environments now
+bind variables to terms in untyped Plutus Core.  Again,
+$\discharge{(V,\rho)}$ denotes the value obtained by discharging a
+closure $(V,\rho)$.
+
+\subfile{figures/UntypedCekMachine.tex}
+
+\subsubsection{Note. Built-in functions in the untyped CEK machine}
+\label{sec:untyped-cek-builtins}
+As in Sections~\ref{sec:untyped-ck-builtins}
+and~\ref{sec:typed-cek-builtins} we have to say something about how
+evaluation of built-in functions is performed in the untyped CEK
+machine. We assume that the mechanism for evaluating built-in
+functions in the untyped CEK machine can accept closures as arguments,
+and that built-in evaluation commutes with type erasure and discharge
+of environments in an appropriate sense; more precisely, we require
+that the following conditions hold.
+
+\medskip
+\noindent Suppose that
+\begin{itemize}
+\item $A_1, \ldots, A_k$ are Plutus Core types.
+\item $V_1, \ldots, V_n$ are well-typed typed Plutus Core values.
+\item $C_1, \ldots, C_n$ are closures in the untyped
+CEK machine such that $\discharge{C_i} = \erase{V_i} $ for
+$1 \le i \le n$.
+\end{itemize}
+
+\noindent Then we require that
+\begin{itemize}
+\item Evaluation of built-in functions always terminates, returning either a value or \texttt{(error)}.
+
+\item In the untyped CEK machine, evaluation of 
+  $\builtinU{bn}{C_1 \ldots C_n}$
+fails (returning $\errorU$) if and only if evaluation of 
+  $\builtin{bn}{A_1 \ldots A_k}{V_1 \ldots V_n}$
+fails according to Figure~\ref{fig:builtins}.
+
+\item In the untyped CEK machine,
+  $\builtinU{bn}{C_1 \ldots C_n}$
+evaluates to the untyped value $V$ if and only if
+  $\builtin{bn}{A_1 \ldots A_k}{V_1 \ldots V_n}$
+evaluates to a typed term $W$ (according to Figure~\ref{fig:builtins}) with $\erase{W} = V$.
+\end{itemize}
+
+\subsubsection{Comparison of the typed CK machine and the untyped CEK machine}
+Suppose that the conditions of Section~\ref{sec:untyped-cek-builtins}
+hold, and that $P$ is a typed Plutus Core program.  Then if $P$ is
+evaluated using the typed CK machine and $\erase{P}$ is evaluated
+using the untyped CEK machine we can prove the following:
+\begin{itemize}
+\item The typed CK machine terminates if and only if the untyped CEK machine terminates.
+\item The typed CK machine halts in the error state $\blacklozenge$ if and only if
+the untyped CEK machine halts in the $\blacklozenge$ state.
+\item The typed CK machine returns a value $V$ if and only if the untyped CEK machine returns a
+closure $C$ with $\discharge{C} = \erase{V}$.
+\end{itemize}
 
 \end{appendices}
 

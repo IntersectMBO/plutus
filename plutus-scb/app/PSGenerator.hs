@@ -1,0 +1,164 @@
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+
+module PSGenerator
+    ( generate
+    ) where
+
+import           Control.Applicative                               ((<|>))
+import           Control.Lens                                      (set, (&))
+import           Control.Monad                                     (void)
+import qualified Data.Aeson.Encode.Pretty                          as JSON
+import qualified Data.ByteString.Lazy                              as BSL
+import           Data.Proxy                                        (Proxy (Proxy))
+import           Language.Plutus.Contract.Checkpoint               (CheckpointKey, CheckpointStore)
+import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed)
+import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint, EndpointValue)
+import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
+import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
+import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
+import           Language.Plutus.Contract.Resumable                (Request, RequestID, Response, Responses)
+import           Language.Plutus.Contract.State                    (ContractRequest, State)
+import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
+                                                                    buildBridge, equal, genericShow, mkSumType, order,
+                                                                    writePSTypesWith)
+import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptions (ForeignOptions), genForeign,
+                                                                    unwrapSingleConstructors)
+import           Language.PureScript.Bridge.TypeParameters         (A)
+import           Ledger.Constraints.OffChain                       (UnbalancedTx)
+import           Plutus.SCB.Core                                   (activateContract, installContract)
+import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
+import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest)
+import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
+                                                                    ContractInstanceState, ContractResponse,
+                                                                    IterationID, PartiallyDecodedResponse)
+import           Plutus.SCB.Events.Node                            (NodeEvent)
+import           Plutus.SCB.Events.User                            (UserEvent)
+import           Plutus.SCB.Events.Wallet                          (WalletEvent)
+import           Plutus.SCB.MockApp                                (defaultWallet, syncAll)
+import qualified Plutus.SCB.MockApp                                as MockApp
+import           Plutus.SCB.Types                                  (ContractExe)
+import qualified Plutus.SCB.Webserver.API                          as API
+import qualified Plutus.SCB.Webserver.Server                       as Webserver
+import           Plutus.SCB.Webserver.Types                        (ContractSignatureResponse, FullReport)
+import qualified PSGenerator.Common
+import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
+                                                                    defaultSettings, languageBridge,
+                                                                    writeAPIModuleWithSettings, _generateSubscriberAPI)
+import           System.FilePath                                   ((</>))
+import qualified Wallet.Emulator.Chain                             as Chain
+
+myBridge :: BridgePart
+myBridge =
+    PSGenerator.Common.aesonBridge <|>
+    PSGenerator.Common.containersBridge <|>
+    PSGenerator.Common.languageBridge <|>
+    PSGenerator.Common.ledgerBridge <|>
+    PSGenerator.Common.servantBridge <|>
+    PSGenerator.Common.miscBridge <|>
+    defaultBridge
+
+data MyBridge
+
+myBridgeProxy :: Proxy MyBridge
+myBridgeProxy = Proxy
+
+instance HasBridge MyBridge where
+    languageBridge _ = buildBridge myBridge
+
+myTypes :: [SumType 'Haskell]
+myTypes =
+    PSGenerator.Common.ledgerTypes <>
+    PSGenerator.Common.playgroundTypes <>
+    PSGenerator.Common.walletTypes <>
+    [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
+    , (equal <*> (genericShow <*> mkSumType))
+          (Proxy @(ContractSignatureResponse A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(PartiallyDecodedResponse A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractRequest A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractSCBRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractEvent A))
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @IterationID)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UnbalancedTx)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @NodeEvent)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(UserEvent A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WalletEvent)
+
+    -- Contract request / response types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @ActiveEndpoint)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(EndpointValue A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnPubKeyRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxConfirmed)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @UtxoAtAddress)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WriteTxResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @WaitingForSlot)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(State A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @CheckpointStore)
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @CheckpointKey)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Response A))
+    , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
+    ]
+
+mySettings :: Settings
+mySettings =
+    (defaultSettings & set apiModuleName "Plutus.SCB.Webserver")
+        {_generateSubscriberAPI = False}
+
+------------------------------------------------------------
+writeTestData :: FilePath -> IO ()
+writeTestData outputDir = do
+    (fullReport, currencySchema) <-
+        MockApp.runScenario $ do
+            result <-
+                agentAction defaultWallet $ do
+                    installContract @TestContracts Currency
+                    installContract @TestContracts Game
+                    currencyInstance <- activateContract Currency
+                    void $ activateContract Game
+                    report :: FullReport TestContracts <- Webserver.fullReport
+                    schema :: ContractSignatureResponse TestContracts <-
+                        Webserver.contractSchema currencyInstance
+                    pure (report, schema)
+            syncAll
+            void Chain.processBlock
+            pure result
+    BSL.writeFile
+        (outputDir </> "full_report_response.json")
+        (JSON.encodePretty fullReport)
+    BSL.writeFile
+        (outputDir </> "contract_schema_response.json")
+        (JSON.encodePretty currencySchema)
+
+------------------------------------------------------------
+generate :: FilePath -> IO ()
+generate outputDir = do
+    writeAPIModuleWithSettings
+        mySettings
+        outputDir
+        myBridgeProxy
+        (Proxy @(API.API ContractExe))
+    writePSTypesWith
+        (genForeign (ForeignOptions {unwrapSingleConstructors = True}))
+        outputDir
+        (buildBridge myBridge)
+        myTypes
+    writeTestData outputDir
+    putStrLn $ "Done: " <> outputDir

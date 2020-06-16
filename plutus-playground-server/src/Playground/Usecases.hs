@@ -3,9 +3,11 @@
 
 module Playground.Usecases where
 
-import           Data.FileEmbed     (embedFile, makeRelativeToProject)
-import qualified Data.Text          as T
-import qualified Data.Text.Encoding as T
+import           Data.ByteString              (ByteString)
+import           Data.FileEmbed               (embedFile, makeRelativeToProject)
+import qualified Data.Text                    as T
+import qualified Data.Text.Encoding           as T
+import           Language.Haskell.Interpreter (SourceCode (SourceCode))
 
 marker :: T.Text
 marker = "TRIM TO HERE"
@@ -13,17 +15,22 @@ marker = "TRIM TO HERE"
 strip :: T.Text -> T.Text
 strip text = snd $ T.breakOnEnd marker text
 
-vesting :: T.Text
-vesting = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Vesting.hs" >>= embedFile)
+process :: ByteString -> SourceCode
+process = SourceCode . strip . T.decodeUtf8
 
-game :: T.Text
-game = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Game.hs" >>= embedFile)
+vesting :: SourceCode
+vesting = process $(makeRelativeToProject "usecases/Vesting.hs" >>= embedFile)
 
-messages :: T.Text
-messages = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Messages.hs" >>= embedFile)
+game :: SourceCode
+game = process $(makeRelativeToProject "usecases/Game.hs" >>= embedFile)
 
-crowdfunding :: T.Text
-crowdfunding = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/CrowdFunding.hs" >>= embedFile)
+errorHandling :: SourceCode
+errorHandling =
+    process $(makeRelativeToProject "usecases/ErrorHandling.hs" >>= embedFile)
 
-starter :: T.Text
-starter = strip $ T.decodeUtf8 $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)
+crowdFunding :: SourceCode
+crowdFunding =
+    process $(makeRelativeToProject "usecases/Crowdfunding.hs" >>= embedFile)
+
+starter :: SourceCode
+starter = process $(makeRelativeToProject "usecases/Starter.hs" >>= embedFile)

@@ -13,9 +13,9 @@ description:
     Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
 build-type: Simple
 data-files:
-    usecases/CrowdFunding.hs
+    usecases/Crowdfunding.hs
+    usecases/ErrorHandling.hs
     usecases/Game.hs
-    usecases/Messages.hs
     usecases/Vesting.hs
     usecases/Starter.hs
     test/gists1.json
@@ -23,12 +23,6 @@ data-files:
 source-repository head
     type: git
     location: https://github.com/iohk/plutus
-
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
 
 flag defer-plugin-errors
     description:
@@ -41,11 +35,25 @@ library
         Playground.Server
         Playground.Interpreter
         Playground.Usecases
-    hs-source-dirs: src
+        Crowdfunding
+        CrowdfundingSimulations
+        ErrorHandling
+        ErrorHandlingSimulations
+        Game
+        GameSimulations
+        SimulationUtils
+        Starter
+        StarterSimulations
+        Vesting
+        VestingSimulations
+    hs-source-dirs:   src
+                    , usecases
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists -Wredundant-constraints
+                 -Wno-missing-import-lists -Wredundant-constraints
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         aeson -any,
         base >=4.7 && <5,
@@ -67,14 +75,16 @@ library
         mtl -any,
         newtype-generics -any,
         playground-common -any,
-        plutus-emulator -any,
-        plutus-playground-lib -any,
-        plutus-wallet-api -any,
+        plutus-contract -any,
+        plutus-ledger -any,
         plutus-tx -any,
         process -any,
         regex-compat -any,
+        recursion-schemes -any,
+        plutus-contract -any,
+        row-types -any,
         serialise -any,
-        servant <0.16,
+        servant >= 0.16,
         servant-client -any,
         servant-client-core -any,
         servant-purescript -any,
@@ -86,14 +96,23 @@ library
         time-units -any,
         transformers -any
 
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
+
 library plutus-playground-usecases
     hs-source-dirs: usecases
     other-modules:
-        CrowdFunding
+        Crowdfunding
+        CrowdfundingSimulations
+        ErrorHandling
+        ErrorHandlingSimulations
         Game
-        Messages
-        Vesting
+        GameSimulations
+        SimulationUtils
         Starter
+        StarterSimulations
+        Vesting
+        VestingSimulations
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
@@ -105,20 +124,24 @@ library plutus-playground-usecases
     build-depends:
         aeson -any,
         base >=4.7 && <5,
+        lens -any,
         bytestring -any,
         containers -any,
-        hspec -any,
         insert-ordered-containers -any,
         iots-export -any,
         mtl -any,
         playground-common -any,
-        plutus-emulator -any,
-        plutus-playground-lib -any,
+        plutus-contract -any,
         plutus-tx -any,
-        plutus-wallet-api -any,
+        plutus-ledger -any,
+        recursion-schemes -any,
+        row-types -any,
         text -any,
         time-units -any,
         transformers -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -126,30 +149,46 @@ library plutus-playground-usecases
 executable plutus-playground-server
     main-is: Main.hs
     hs-source-dirs: app
+                  , usecases
     other-modules:
         Webserver
         Types
         PSGenerator
+        Crowdfunding
+        CrowdfundingSimulations
+        ErrorHandling
+        ErrorHandlingSimulations
+        Game
+        GameSimulations
+        SimulationUtils
+        Starter
+        StarterSimulations
+        Vesting
+        VestingSimulations
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists -Wredundant-constraints
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
         adjunctions -any,
         aeson -any,
+        aeson-pretty -any,
         base >=4.7 && <5,
         bytestring -any,
         containers -any,
+        exceptions -any,
         data-default-class -any,
         filepath -any,
         http-types -any,
+        iots-export -any,
         playground-common -any,
         lens -any,
         monad-logger -any,
         mtl -any,
         optparse-applicative -any,
         plutus-tx -any,
-        plutus-playground-lib -any,
         plutus-playground-server -any,
         plutus-playground-usecases -any,
         prometheus >=2,
@@ -159,27 +198,34 @@ executable plutus-playground-server
         servant-purescript -any,
         servant-server -any,
         text -any,
+        time-units -any,
         transformers -any,
         wai -any,
         wai-cors -any,
         wai-extra -any,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
+        plutus-contract -any,
+        plutus-ledger -any,
+        recursion-schemes -any,
+        row-types -any,
         warp -any,
         yaml -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
 test-suite plutus-playground-server-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
     other-modules:
-        Playground.UsecasesSpec
-        Paths_plutus_playground_server
         GistSpec
+        Paths_plutus_playground_server
+        Playground.InterpreterSpec
+        Playground.UsecasesSpec
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wmissing-import-lists -Wredundant-constraints
+                 -Wno-missing-import-lists -Wredundant-constraints
                  -fprint-potential-instances
     build-depends:
         aeson -any,
@@ -192,10 +238,17 @@ test-suite plutus-playground-server-test
         playground-common -any,
         iots-export -any,
         mtl -any,
-        plutus-playground-lib -any,
         plutus-playground-server -any,
-        plutus-emulator -any,
+        plutus-tx -any,
+        plutus-ledger -any,
+        plutus-playground-usecases -any,
+        plutus-contract -any,
+        tasty -any,
+        tasty-hunit -any,
         text -any,
         time-units -any,
         transformers -any,
-        plutus-wallet-api -any
+        plutus-ledger -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any

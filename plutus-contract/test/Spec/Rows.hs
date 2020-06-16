@@ -7,7 +7,6 @@ module Spec.Rows(tests) where
 import qualified Data.Aeson                                      as Aeson
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                as HUnit
-import           Test.Tasty.Providers                            (TestTree)
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint

@@ -1,0 +1,96 @@
+(program
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl
+        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (lam
+        arg
+        (con integer)
+        (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        arg
+        (con integer)
+        (lam
+          arg
+          (con integer)
+          [
+            (lam
+              b
+              (con bool)
+              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+            )
+            [ [ (builtin equalsInteger) arg ] arg ]
+          ]
+        )
+      )
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (let
+      (rec)
+      (termbind
+        (strict)
+        (vardecl even (fun (con integer) Bool))
+        (lam
+          n
+          (con integer)
+          [
+            [
+              [
+                {
+                  [ Bool_match [ [ equalsInteger n ] (con 0) ] ] (fun Unit Bool)
+                }
+                (lam thunk Unit True)
+              ]
+              (lam
+                thunk
+                Unit
+                (let
+                  (nonrec)
+                  (termbind
+                    (nonstrict)
+                    (vardecl n (con integer))
+                    [ [ subtractInteger n ] (con 1) ]
+                  )
+                  [
+                    [
+                      [
+                        {
+                          [ Bool_match [ [ equalsInteger n ] (con 0) ] ]
+                          (fun Unit Bool)
+                        }
+                        (lam thunk Unit False)
+                      ]
+                      (lam thunk Unit [ even [ [ subtractInteger n ] (con 1) ] ]
+                      )
+                    ]
+                    Unit
+                  ]
+                )
+              )
+            ]
+            Unit
+          ]
+        )
+      )
+      even
+    )
+  )
+)

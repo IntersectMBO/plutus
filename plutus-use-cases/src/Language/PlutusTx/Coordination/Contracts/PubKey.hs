@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -11,29 +13,48 @@
 --   contract. This is useful if you need something that behaves like
 --   a pay-to-pubkey output, but is not (easily) identified by wallets
 --   as one.
-module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract) where
+module Language.PlutusTx.Coordination.Contracts.PubKey(pubKeyContract, scriptInstance, PubKeyError(..), AsPubKeyError(..)) where
 
-import           Control.Monad.Error.Lens (throwing)
+import           Control.Lens
+import           Control.Monad.Error.Lens
 
 import qualified Data.Map   as Map
-import qualified Data.Text  as T
 
 import qualified Language.PlutusTx            as PlutusTx
 import           Ledger                       as Ledger hiding (initialise, to)
+import           Ledger.Typed.Scripts (ScriptInstance)
 import qualified Ledger.Typed.Scripts         as Scripts
 import           Ledger.Validation            as V
 
 import           Language.Plutus.Contract     as Contract
+import qualified Ledger.Constraints           as Constraints
 
-mkValidator :: PubKey -> () -> () -> PendingTx -> Bool
+mkValidator :: PubKeyHash -> () -> () -> PendingTx -> Bool
 mkValidator pk' _ _ p = V.txSignedBy p pk'
 
-pkValidator :: PubKey -> ValidatorScript
-pkValidator pk = mkValidatorScript $
-    $$(PlutusTx.compile [|| validatorParam ||])
-        `PlutusTx.applyCode`
-            PlutusTx.liftCode pk
-    where validatorParam k = Scripts.wrapValidator (mkValidator k)
+data PubKeyContract
+
+instance Scripts.ScriptType PubKeyContract where
+    type instance RedeemerType PubKeyContract = ()
+    type instance DatumType PubKeyContract = ()
+
+scriptInstance :: PubKeyHash -> Scripts.ScriptInstance PubKeyContract
+scriptInstance pk =
+    Scripts.validator @PubKeyContract
+        ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode pk)
+        $$(PlutusTx.compile [|| wrap ||]) where
+        wrap = Scripts.wrapValidator @() @()
+
+data PubKeyError =
+    ScriptOutputMissing PubKeyHash
+    | MultipleScriptOutputs PubKeyHash
+    | PKContractError ContractError
+    deriving (Eq, Show)
+
+makeClassyPrisms ''PubKeyError
+
+instance AsContractError PubKeyError where
+    _ContractError = _PKContractError
 
 -- | Lock some funds in a 'PayToPubKey' contract, returning the output's address
 --   and a 'TxIn' transaction input that can spend it.
@@ -41,29 +62,23 @@ pubKeyContract
     :: forall s e.
     ( HasWatchAddress s
     , HasWriteTx s
-    , AsContractError e)
-    => PubKey
+    , AsPubKeyError e
+    )
+    => PubKeyHash
     -> Value
-    -> Contract s e TxIn
-pubKeyContract pk vl = do
-    let address = Ledger.scriptAddress (pkValidator pk)
-        tx = Contract.payToScript vl address (DataScript $ PlutusTx.toData ())
-    tid <- writeTxSuccess tx
+    -> Contract s e (TxOutRef, TxOutTx, ScriptInstance PubKeyContract)
+pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
+    let inst = scriptInstance pk
+        address = Scripts.scriptAddress inst
+        tx = Constraints.mustPayToTheScript () vl
+
+    tid <- submitTxConstraints inst tx
 
     ledgerTx <- awaitTransactionConfirmed address tid
-    let output = Map.keys
+    let output = Map.toList
                 $ Map.filter ((==) address . txOutAddress)
                 $ unspentOutputsTx ledgerTx
-    ref <- case output of
-        [] -> throwing _OtherError $
-            "Transaction did not contain script output"
-            <> "for public key '"
-            <> T.pack (show pk)
-            <> "'"
-        [o] -> pure $ scriptTxIn o (pkValidator pk) (RedeemerScript $ PlutusTx.toData ()) (DataScript $ PlutusTx.toData ())
-        _ -> throwing _OtherError $
-            "Transaction contained multiple script outputs"
-            <> "for public key '"
-            <> T.pack (show pk)
-            <> "'"
-    pure ref
+    case output of
+        [] -> throwing _ScriptOutputMissing pk
+        [(outRef, outTxOut)] -> pure (outRef, TxOutTx{txOutTxTx = ledgerTx, txOutTxOut = outTxOut}, inst)
+        _ -> throwing _MultipleScriptOutputs pk

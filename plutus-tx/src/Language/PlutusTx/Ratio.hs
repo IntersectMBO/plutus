@@ -1,6 +1,8 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -34,10 +36,11 @@ import qualified Language.PlutusTx.Ord      as P
 
 import qualified Language.PlutusTx.Builtins as Builtins
 
+import           GHC.Generics               (Generic)
 import qualified GHC.Real                   as Ratio
-import           Prelude                    (Bool (True), Integer)
+import           Prelude                    (Bool (True), Eq, Integer, Integral, Ord (..), (*))
 
-data Ratio a = a :% a
+data Ratio a = a :% a deriving (Eq,Generic)
 
 {-# ANN module "HLint: ignore" #-}
 
@@ -62,6 +65,10 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 -}
 
 type Rational = Ratio Integer
+
+instance  (Integral a)  => Ord (Ratio a)  where
+    (x:%y) <= (x':%y')  =  x * y' <= x' * y
+    (x:%y) <  (x':%y')  =  x * y' <  x' * y
 
 instance P.Eq a => P.Eq (Ratio a) where
     {-# INLINABLE (==) #-}

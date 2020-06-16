@@ -6,17 +6,19 @@
 
 The Plutus Platform enables you to:
 
-* Work with Plutus Core, the smart contract language embedded in the Cardano
-ledger.
-* Write Haskell programs that create and use embedded Plutus Core programs.
-* Write smart contract executables which can be distributed for use with a
-Cardano wallet backend.
+* Work with Plutus Core, the smart contract language embedded in the Cardano ledger.
+* Write Haskell programs that create and use embedded Plutus Core programs using Plutus Tx.
+* Write smart contract executables which can be distributed for use with the Plutus
+Smart Contract Backend.
 
 You are free to copy, modify, and distribute the Plutus Platform with
 under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
 and link:./NOTICE[NOTICE] files for details.
 
 == How to use the project
+
+This section contains brief information about how to use this project. For development
+work see <<how-to-develop>> for more information.
 
 [[prerequisites]]
 === Prerequisites
@@ -32,7 +34,7 @@ so we recommend installing it regardless.
 ====
 Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
 ====
-** See the section on xref:nix[Nix] for further advice on using Nix.
+** See <<nix>> for further advice on using Nix.
 * https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
 * https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
 
@@ -46,10 +48,10 @@ for more details.
 [[building-with-nix]]
 ==== How to build Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix localPackages.language-plutus-core`
+Run `nix build -f default.nix haskell.projectPackages.language-plutus-core`
 from the root to build the Plutus Core library.
 
-See the section on xref:nix-build-attributes[Nix build attributes] to find out
+See <<nix-build-attributes>> to find out
 what other attributes you can build.
 
 ==== How to build Haskell packages with `cabal`
@@ -81,13 +83,15 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 ==== Specifications and design
 
-- https://hydra.iohk.io/job/Cardano/plutus/docs.plutus-core-spec.x86_64-linux/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
-- https://hydra.iohk.io/job/Cardano/plutus/docs.extended-utxo-spec.x86_64-linux/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-report/latest/download-by-type/doc-pdf/plutus[Plutus Technical Report] (draft)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.plutus-core-spec/latest/download-by-type/doc-pdf/plutus-core-specification[Plutus Core Specification]
+- https://hydra.iohk.io/job/Cardano/plutus/linux.docs.extended-utxo-spec/latest/download-by-type/doc-pdf/extended-utxo-specification[Extended UTXO Model]
 
 ==== Academic papers
 
-- https://hydra.iohk.io/job/Cardano/plutus/papers.unraveling-recursion.x86_64-linux/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
-- https://hydra.iohk.io/job/Cardano/plutus/papers.system-f-in-agda.x86_64-linux/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
 
 == Where to go next
 
@@ -98,9 +102,18 @@ for using the Plutus Platform to write smart contracts.
 
 To build a full HTML version of the tutorial that you can view locally, build the `docs.plutus-tutorial` xref:building-with-nix[using Nix].
 
+=== How to learn about the terminology we use
+
+There is a comprehensive glossary in link:GLOSSARY{outfilesuffix}[GLOSSARY].
+
 === Where to find the changelog
 
 The changelog is stored in link:./CHANGELOG.md[CHANGELOG].
+
+=== How to submit an issue
+
+We track our issues on the
+https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
 
 === How to communicate with us
 
@@ -110,11 +123,12 @@ forum]. Tag your post with the `plutus` tag so we’ll see it.
 Use the Github issue tracker for bugs and feature requests, but keep
 other discussions to the forum.
 
-=== How to contribute to the project
+[[how-to-develop]]
+=== How to develop and contribute to the project
 
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail;
+See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more
+detail including development environments;
 and link:ARCHITECTURE{outfilesuffix}[ARCHITECTURE], which describes the structure of the repository.
-
 
 [[nix]]
 == Nix
@@ -134,15 +148,15 @@ To set up the cache:
 . On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
 +
 ----
-substituters        = https://hydra.iohk.io https://cache.nixos.org/
-trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
+trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 ----
 . On NixOS, set the following NixOS options:
 +
 ----
 nix = {
-  binaryCaches          = [ "https://hydra.iohk.io" ];
-  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
+  binaryCaches          = [ "https://hydra.iohk.io" "https://iohk.cachix.org" ];
+  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" "iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo=" ];
 };
 ----
 
@@ -161,14 +175,6 @@ sandbox = true
 extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
 ----
 
-=== How to get a development environment
-
-While developing the libraries, you probably will not want to use Nix to
-build all the libraries. If you want to use `cabal v2-build` to build
-the local projects only, then:
-. Run `nix-shell`.
-. Run `cabal v2-build` as normal.
-
 
 [[nix-build-attributes]]
 === Which attributes to use to build different artifacts
@@ -178,12 +184,12 @@ artifacts you can build from this repository. These can be built
 using `nix build`. For example:
 
 ----
-nix build -f default.nix localPackages.language-plutus-core
+nix build -f default.nix haskell.projectPackages.language-plutus-core
 ----
 
 .Example attributes
-* Local packages: defined inside `localPackages`
-** e.g. `localPackages.language-plutus-core`
+* Project packages: defined inside `haskell.projectPackages`
+** e.g. `haskell.projectPackages.language-plutus-core`
 * Documents: defined inside `docs`
 ** e.g. `docs.plutus-core-spec`
 * Development scripts: defined inside `dev`

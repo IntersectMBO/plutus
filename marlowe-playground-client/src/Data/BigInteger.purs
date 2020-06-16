@@ -1,45 +1,58 @@
 -- | We need to wrap BigInt in a newtype so that we can create
 -- | some Class instances that BigInt doesn't have
-module Data.BigInteger (BigInteger, fromInt, fromString) where
+module Data.BigInteger (BigInteger, fromInt, fromString, quot, rem) where
 
-import Data.BigInt (BigInt, toString)
+import Data.BigInt (BigInt, toString, toNumber)
 import Data.BigInt as BigInt
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Eq (genericEq)
-import Data.Generic.Rep.Ord (genericCompare)
 import Data.Integral (class Integral)
 import Data.Maybe (Maybe)
+import Data.Functor ((<$>))
 import Data.Newtype (class Newtype, over, over2, unwrap, wrap)
 import Data.Num (class Num, abs, negate, signum)
 import Data.Real (class Real, toRational)
-import Marlowe.Pretty (class Pretty)
+import Foreign (F)
+import Foreign.Class (class Encode, class Decode, decode, encode)
 import Prelude (class CommutativeRing, class Eq, class EuclideanRing, class Ord, class Ring, class Semiring, class Show, show, add, sub, div, mul, mod, degree, (<<<), (>>>), (<$>))
-import Text.PrettyPrint.Leijen (text)
+import Text.Pretty (class Args, class Pretty, text)
 
 newtype BigInteger
   = BigInteger BigInt
 
 derive instance newtypeBigInteger :: Newtype BigInteger _
 
-derive instance genericBigInteger :: Generic BigInteger _
+derive newtype instance eqBigInteger :: Eq BigInteger
 
-instance eqBigInteger :: Eq BigInteger where
-  eq = genericEq
+derive newtype instance ordBigInteger :: Ord BigInteger
 
-instance ordBigInteger :: Ord BigInteger where
-  compare v = genericCompare v
+instance encodeJsonBigInteger :: Encode BigInteger where
+  encode (BigInteger a) = encode (toNumber a)
+
+instance decodeJsonBigInteger :: Decode BigInteger where
+  decode a = fromInt <$> decode a
 
 instance showBigInteger :: Show BigInteger where
   show = toString <<< unwrap
 
 instance prettyBigInteger :: Pretty BigInteger where
-  prettyFragment = text <<< show
+  pretty = text <<< show
+
+instance hasArgsBigInteger :: Args BigInteger where
+  hasArgs _ = false
+  hasNestedArgs _ = false
 
 fromInt :: Int -> BigInteger
 fromInt = BigInteger <<< BigInt.fromInt
 
 fromString :: String -> Maybe BigInteger
 fromString s = BigInteger <$> BigInt.fromString s
+
+-- | Truncating integer division
+quot :: BigInteger -> BigInteger -> BigInteger
+quot = over2 BigInteger BigInt.quot
+
+-- | The remainder after truncating integer division
+rem :: BigInteger -> BigInteger -> BigInteger
+rem = over2 BigInteger BigInt.rem
 
 instance semiringBigInteger :: Semiring BigInteger where
   add = over2 BigInteger add

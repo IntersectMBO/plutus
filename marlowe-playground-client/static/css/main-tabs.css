@@ -1,0 +1,113 @@
+#panel-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 110px;
+  background: var(--bg-dark);
+}
+
+#panel-nav div.tab-link {
+  width: 100%;
+  height: 110px;
+  color: var(--secondary-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#panel-nav div.active {
+  background: var(--bg-light);
+}
+
+#main-panel {
+  background: var(--bg-light);
+  padding: 0rem 2rem;
+  width: 100vh;
+}
+
+#main-panel div.panel-content {
+  display: none;
+}
+
+#main-panel div.active {
+  display: block;
+}
+
+.tab-icon {
+  width: 100%;
+  height: 110px;
+  text-align: center;
+}
+
+.tab-icon div {
+  padding-top: 60%;
+}
+
+.tab-icon~div {
+  margin-top: -1rem;
+  padding-bottom: 1rem;
+  font-weight: bold;
+}
+
+.simulation-tab .tab-icon {
+  background: url(../images/simulation-icon-grey.svg) 29px center no-repeat;
+  background-size: 50px;
+}
+
+.simulation-tab.active .tab-icon {
+  background: url(../images/simulation-icon.svg) 30px center no-repeat;
+  background-size: 50px;
+}
+
+.haskell-tab .tab-icon {
+  background: url(../images/haskell-icon-grey.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.haskell-tab.active .tab-icon {
+  background: url(../images/haskell-icon.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.blockly-tab .tab-icon {
+  background: url(../images/blockly-icon-grey.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.blockly-tab.active .tab-icon {
+  background: url(../images/blockly-icon.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.nav-bottom-links {
+  margin-top: auto;
+}
+
+.nav-bottom-links *+* {
+  margin-top: 1rem;
+}
+
+.nav-bottom-links p:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.open-link-icon {
+  padding: 0.5rem 1rem;
+  position: relative;
+  cursor: pointer;
+  position: relative;
+  background: var(--gradient-bg);
+  color: var(--white);
+  border-radius: var(--border-radius);
+  border: none;
+  z-index: 1;
+}
+
+.open-link-icon:after {
+  content: '';
+  position: absolute;
+  right: 0.5rem;
+  background: url('../images/open-link-icon-white.svg') no-repeat center center;
+  height: 18px;
+  width: 18px;
+  background-size: 42px;
+}

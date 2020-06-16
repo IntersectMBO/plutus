@@ -11,11 +11,11 @@ module Language.PlutusCore.Examples.Data.TreeForest
     , forestCons
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Type
 
@@ -73,10 +73,6 @@ using this representation:
     Forest = AsForest TreeForest
 -}
 
-{- Note [Renaming]
-We do renaming in this module, because we normalize things and this requires renaming.
--}
-
 infixr 5 ~~>
 
 class HasArrow a where
@@ -85,34 +81,34 @@ class HasArrow a where
 instance a ~ () => HasArrow (Kind a) where
     (~~>) = KindArrow ()
 
-instance a ~ () => HasArrow (Type tyname a) where
+instance a ~ () => HasArrow (Type tyname uni a) where
     (~~>) = TyFun ()
 
 star :: Kind ()
 star = Type ()
 
-treeTag :: Type TyName ()
+treeTag :: Type TyName uni ()
 treeTag = runQuote $ do
-    t <- freshTyName () "t"
-    f <- freshTyName () "f"
+    t <- freshTyName "t"
+    f <- freshTyName "f"
     return
         . TyLam () t star
         . TyLam () f star
         $ TyVar () t
 
-forestTag :: Type TyName ()
+forestTag :: Type TyName uni ()
 forestTag = runQuote $ do
-    t <- freshTyName () "t"
-    f <- freshTyName () "f"
+    t <- freshTyName "t"
+    f <- freshTyName "f"
     return
         . TyLam () t star
         . TyLam () f star
         $ TyVar () f
 
-asTree :: Type TyName ()
+asTree :: Type TyName uni ()
 asTree = runQuote $ do
-    d <- freshTyName () "d"
-    a <- freshTyName () "a"
+    d <- freshTyName "d"
+    a <- freshTyName "a"
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
@@ -121,10 +117,10 @@ asTree = runQuote $ do
             , treeTag
             ]
 
-asForest :: Type TyName ()
+asForest :: Type TyName uni ()
 asForest = runQuote $ do
-    d <- freshTyName () "d"
-    a <- freshTyName () "a"
+    d <- freshTyName "d"
+    a <- freshTyName "a"
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
@@ -133,12 +129,12 @@ asForest = runQuote $ do
             , forestTag
             ]
 
-treeForestData :: RecursiveType ()
+treeForestData :: RecursiveType uni ()
 treeForestData = runQuote $ do
-    treeForest <- freshTyName () "treeForest"
-    a          <- freshTyName () "a"
-    r          <- freshTyName () "r"
-    tag        <- freshTyName () "tag"
+    treeForest <- freshTyName "treeForest"
+    a          <- freshTyName "a"
+    r          <- freshTyName "r"
+    tag        <- freshTyName "tag"
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
@@ -154,35 +150,34 @@ treeForestData = runQuote $ do
         [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
         body
 
-treeData :: RecursiveType ()
+treeData :: RecursiveType uni ()
 treeData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         tree = TyApp () asTree treeForest
     return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
-forestData :: RecursiveType ()
+forestData :: RecursiveType uni ()
 forestData = runQuote $ do
     let RecursiveType treeForest wrapTreeForest = treeForestData
         forest = TyApp () asForest treeForest
     return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) -> \(x : a) (fr : forest a) ->
 -- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
-treeNode :: Term TyName Name ()
-treeNode = runQuote $ normalizeTypesFullIn =<< do
+treeNode :: Term TyName Name uni ()
+treeNode = runQuote $ normalizeTypesIn =<< do
     let RecursiveType _      wrapTree = treeData
         RecursiveType forest _        = forestData
-    a  <- freshTyName () "a"
-    r  <- freshTyName () "r"
-    x  <- freshName () "x"
-    fr <- freshName () "fr"
-    f  <- freshName () "f"
+    a  <- freshTyName "a"
+    r  <- freshTyName "r"
+    x  <- freshName "x"
+    fr <- freshName "fr"
+    f  <- freshName "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () x vA
@@ -195,23 +190,22 @@ treeNode = runQuote $ normalizeTypesFullIn =<< do
             , Var () fr
             ]
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) ->
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
-forestNil :: Term TyName Name ()
-forestNil = runQuote $ normalizeTypesFullIn =<< do
+forestNil :: Term TyName Name uni ()
+forestNil = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
-    a <- freshTyName () "a"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    a <- freshTyName "a"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeFull $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized treeA   <- normalizeType $ TyApp () tree   vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . wrapForest [vA]
@@ -220,25 +214,24 @@ forestNil = runQuote $ normalizeTypesFullIn =<< do
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
         $ Var () z
 
--- See Note [Renaming].
 -- |
 --
 -- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
 -- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
-forestCons :: Term TyName Name ()
-forestCons = runQuote $ normalizeTypesFullIn =<< do
+forestCons :: Term TyName Name uni ()
+forestCons = runQuote $ normalizeTypesIn =<< do
     let RecursiveType tree   _          = treeData
         RecursiveType forest wrapForest = forestData
-    a  <- freshTyName () "a"
-    tr <- freshName () "tr"
-    fr <- freshName () "fr"
-    r  <- freshTyName () "r"
-    z  <- freshName () "z"
-    f  <- freshName () "f"
+    a  <- freshTyName "a"
+    tr <- freshName "tr"
+    fr <- freshName "fr"
+    r  <- freshTyName "r"
+    z  <- freshName "z"
+    f  <- freshName "f"
     let vA = TyVar () a
         vR = TyVar () r
-    Normalized treeA   <- normalizeTypeFull $ TyApp () tree   vA
-    Normalized forestA <- normalizeTypeFull $ TyApp () forest vA
+    Normalized treeA   <- normalizeType $ TyApp () tree   vA
+    Normalized forestA <- normalizeType $ TyApp () forest vA
     return
         . TyAbs () a (Type ())
         . LamAbs () tr treeA

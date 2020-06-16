@@ -14,7 +14,7 @@ import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.NonEmpty (NonEmpty(NonEmpty))
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
-import Test.QuickCheck (class Arbitrary, arbitrary, withHelp, (<?>))
+import Test.QuickCheck (class Arbitrary, arbitrary, withHelp, (<?>), (===))
 import Test.QuickCheck.Gen (Gen, arrayOf, elements)
 import Test.Unit (TestSuite, suite, test)
 import Test.Unit.Assert (equal)
@@ -105,7 +105,7 @@ snocTests =
     quickCheck do
       x <- arbitrary :: Gen String
       cursor <- arbitrary
-      pure $ Just x == Cursor.current (Cursor.snoc cursor x)
+      pure $ Just x === Cursor.current (Cursor.snoc cursor x)
 
 mapWithIndexTests :: TestSuite
 mapWithIndexTests =
@@ -115,7 +115,7 @@ mapWithIndexTests =
       (Cursor.mapWithIndex (+) (Cursor.fromArray [ 1, 3, 5, 7, 11 ]))
     quickCheck \cursor ->
       Cursor.toArray (Cursor.mapWithIndex (+) cursor)
-        == Array.mapWithIndex (+) (Cursor.toArray cursor)
+        === Array.mapWithIndex (+) (Cursor.toArray cursor)
 
 deleteAtTests :: TestSuite
 deleteAtTests =
@@ -128,7 +128,7 @@ deleteAtTests =
           deleted = Cursor.deleteAt index cursor
         pure
           $ Cursor.toArray (Cursor.deleteAt index cursor)
-          == fromMaybe
+          === fromMaybe
               (Cursor.toArray cursor)
               (Array.deleteAt index (Cursor.toArray cursor))
     test "deleteAt preserves the cursor position." do

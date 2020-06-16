@@ -1,6 +1,8 @@
 -- | @unit@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.StdLib.Data.Unit
     ( unit
@@ -8,41 +10,25 @@ module Language.PlutusCore.StdLib.Data.Unit
     , sequ
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 -- | '()' as a PLC type.
---
--- > all (A :: *). A -> A
-unit :: Type TyName ()
-unit = runQuote $ do
-    a <- freshTyName () "a"
-    return
-        . TyForall () a (Type ())
-        . TyFun () (TyVar () a)
-        $ TyVar () a
+unit :: uni `Includes` () => Type TyName uni ()
+unit = mkTyBuiltin @() ()
 
 -- | '()' as a PLC term.
---
--- > /\(A :: *) -> \(x : A) -> x
-unitval :: TermLike term TyName Name => term ()
-unitval = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
-    return
-        . tyAbs () a (Type ())
-        . lamAbs () x (TyVar () a)
-        $ var () x
+unitval :: (TermLike term TyName Name uni, uni `Includes` ()) => term ()
+unitval = mkConstant () ()
 
 -- | 'seq' specified to '()' as a PLC term.
---
--- > \(x y : unit) -> unitval
-sequ :: TermLike term TyName Name => term ()
+sequ :: (TermLike term TyName Name uni, uni `Includes` ()) => term ()
 sequ = runQuote $ do
-    x <- freshName () "x"
-    y <- freshName () "y"
+    x <- freshName "x"
+    y <- freshName "y"
     return
         . lamAbs () x unit
         . lamAbs () y unit

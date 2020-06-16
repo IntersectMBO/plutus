@@ -9,15 +9,14 @@ module Main
 
 import           Control.Monad.IO.Class   (MonadIO, liftIO)
 import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
-import           Data.Monoid              ((<>))
 import qualified Data.Text                as Text
 import           Data.Yaml                (decodeFileThrow)
 import           Git                      (gitRev)
 import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
 import           Options.Applicative      (CommandFields, Mod, Parser, argument, auto, command, customExecParser,
                                            disambiguate, fullDesc, help, helper, idm, info, infoOption, long, metavar,
-                                           option, prefs, short, showDefault, showHelpOnEmpty, str, strOption,
-                                           subparser, value)
+                                           option, prefs, progDesc, short, showDefault, showHelpOnEmpty,
+                                           showHelpOnError, str, strOption, subparser, value)
 import qualified PSGenerator
 import qualified Webserver
 
@@ -57,7 +56,7 @@ commandParser = subparser $ webserverCommandParser <> psGeneratorCommandParser
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
     command "psgenerator" $
-    flip info fullDesc $ do
+    flip info (fullDesc <> progDesc "Generate the frontend's PureScript files.") $ do
         _outputDir <-
             argument
                 str
@@ -98,7 +97,7 @@ main :: IO ()
 main = do
     options <-
         customExecParser
-            (prefs $ disambiguate <> showHelpOnEmpty)
+            (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     runStderrLoggingT $ do
         logInfoN $ "Running: " <> Text.pack (show options)

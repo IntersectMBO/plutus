@@ -2,66 +2,65 @@
 -- See the @plutus/language-plutus-core/docs/Constant application.md@
 -- article for how this emerged.
 
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DefaultSignatures         #-}
-{-# LANGUAGE DerivingVia               #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE KindSignatures            #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
     , TypedBuiltinName (..)
+    , FoldArgs
+    , FoldArgsEx
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
-    , Evaluator
-    , EvaluateT (..)
-    , ReflectT (..)
-    , KnownType (..)
-    , KnownTypeValue (..)
+    , unliftConstant
     , OpaqueTerm (..)
-    , thoist
-    , runEvaluateT
-    , withEvaluator
-    , runReflectT
-    , mapReflectT
-    , mapDeepReflectT
-    , makeReflectT
-    , makeRightReflectT
-    , readKnownM
+    , KnownType (..)
     ) where
 
-import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Lexer.Type
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Data.Unit
-import           Language.PlutusCore.Type
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.MkPlc
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty                         (PrettyConst)
+import           Language.PlutusCore.Universe
+
 import           Control.Monad.Except
-import           Control.Monad.Morph                         as Morph
-import           Control.Monad.Reader
-import           Control.Monad.Trans.Inner
-import           Data.Map                                    (Map)
+import qualified Data.ByteString.Lazy                               as BSL
+import qualified Data.Kind                                          as GHC (Type)
+import           Data.Map                                           (Map)
 import           Data.Proxy
-import           Data.Text                                   (Text)
-import           Control.Monad.Trans.Compose                 (ComposeT (..))
+import           Data.String
+import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
 
-
-
 -- | Type schemes of primitive operations.
--- @a@ is the Haskell denotation of a PLC type represented as a 'TypeScheme'.
--- @r@ is the resulting type in @a@, e.g. the resulting type in
--- @ByteString -> Size -> Integer@ is @Integer@.
-data TypeScheme a r where
-    TypeSchemeResult :: KnownType a => Proxy a -> TypeScheme a a
-    TypeSchemeArrow  :: KnownType a => Proxy a -> TypeScheme b r -> TypeScheme (a -> b) r
+-- @as@ is a list of types of arguments, @r@ is the resulting type.
+-- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme uni [Char, Bool] Integer@.
+data TypeScheme uni (args :: [GHC.Type]) res where
+    TypeSchemeResult
+        :: KnownType uni res => Proxy res -> TypeScheme uni '[] res
+    TypeSchemeArrow
+        :: KnownType uni arg
+        => Proxy arg -> TypeScheme uni args res -> TypeScheme uni (arg ': args) res
     TypeSchemeAllType
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -72,7 +71,7 @@ data TypeScheme a r where
         => Proxy '(text, uniq)
            -- We use a funny trick here: instead of binding
            --
-           -- > TypedBuiltin (OpaqueTerm text uniq)
+           -- > TypedBuiltin (OpaqueTerm uni text uniq)
            --
            -- directly we introduce an additional and "redundant" type variable. The reason why we
            -- do that is because this way we can also bind such a variable later when constructing
@@ -85,15 +84,26 @@ data TypeScheme a r where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ OpaqueTerm text uniq => Proxy ot -> TypeScheme a r)
-        -> TypeScheme a r
-
-    -- The @r@ is rather ad hoc and needed only for tests.
-    -- We could use type families to compute it instead of storing as an index.
-    -- That's a TODO perhaps.
+        -> (forall ot. ot ~ OpaqueTerm uni text uniq => Proxy ot -> TypeScheme uni args res)
+        -> TypeScheme uni args res
 
 -- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName a r = TypedBuiltinName BuiltinName (TypeScheme a r)
+data TypedBuiltinName uni args res = TypedBuiltinName BuiltinName (TypeScheme uni args res)
+
+-- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
+--
+-- >>> :set -XDataKinds
+-- >>> :kind! FoldArgs [Char, Bool] Integer
+-- FoldArgs [Char, Bool] Integer :: *
+-- = Char -> Bool -> Integer
+type family FoldArgs args r where
+    FoldArgs '[]           res = res
+    FoldArgs (arg ': args) res = arg -> FoldArgs args res
+
+-- | Calculates the parameters of the costing function for a builtin.
+type family FoldArgsEx args where
+    FoldArgsEx '[]           = ExBudget
+    FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
 
 {- Note [DynamicBuiltinNameMeaning]
 We represent the meaning of a 'DynamicBuiltinName' as a 'TypeScheme' and a Haskell denotation.
@@ -110,226 +120,52 @@ final pipeline one has to supply a 'DynamicBuiltinNameMeaning' for each of the '
 -- See Note [DynamicBuiltinNameMeaning].
 -- | The meaning of a dynamic built-in name consists of its 'Type' represented as a 'TypeScheme'
 -- and its Haskell denotation.
-data DynamicBuiltinNameMeaning =
-    forall a r. DynamicBuiltinNameMeaning (TypeScheme a r) a
+data DynamicBuiltinNameMeaning uni =
+    forall args res. DynamicBuiltinNameMeaning
+        (TypeScheme uni args res)
+        (FoldArgs args res)
+        (FoldArgsEx args)
 
 -- | The definition of a dynamic built-in consists of its name and meaning.
-data DynamicBuiltinNameDefinition =
-    DynamicBuiltinNameDefinition DynamicBuiltinName DynamicBuiltinNameMeaning
+data DynamicBuiltinNameDefinition uni =
+    DynamicBuiltinNameDefinition DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
 
 -- | Mapping from 'DynamicBuiltinName's to their 'DynamicBuiltinNameMeaning's.
-newtype DynamicBuiltinNameMeanings = DynamicBuiltinNameMeanings
-    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName DynamicBuiltinNameMeaning
+newtype DynamicBuiltinNameMeanings uni = DynamicBuiltinNameMeanings
+    { unDynamicBuiltinNameMeanings :: Map DynamicBuiltinName (DynamicBuiltinNameMeaning uni)
     } deriving (Semigroup, Monoid)
 
--- | A thing that evaluates @f@ in monad @m@ and allows to extend the set of
--- dynamic built-in names.
-type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResultDef
+{- Note [Motivation for polymorphic built-in functions]
+We need to support polymorphism for built-in functions for these reasons:
 
--- | A computation that runs in @t m@ and has access to an 'Evaluator' that runs in @m@.
--- The idea is that a computation that requires access to an evaluator may introduce new effects
--- even though the underlying evaluator does not have them.
---
--- For example reading of values (see 'readKnownM') runs in 'EvaluateT'
--- (because it needs access to an evaluator) and adds the 'ReflectT' effect on top of that
--- (see the docs of 'ReflectT' for what effects it consists of).
---
--- 'EvaluateT' is a monad transformer transfomer. I.e. it turns one monad transformer
--- into another one.
-newtype EvaluateT t m a = EvaluateT
-    { unEvaluateT :: ReaderT (Evaluator Term m) (t m) a
-    } deriving
-        ( Functor, Applicative, Monad, Alternative, MonadPlus
-        , MonadReader (Evaluator Term m)
-        , MonadError e
-        )
+1. @ifThenElse@ for 'Bool' (being a built-in type rather than a Scott-encoded one) has to be
+   polymorphic as its type signature is
 
--- | Run an 'EvaluateT' computation using the given 'Evaluator'.
-runEvaluateT :: Evaluator Term m -> EvaluateT t m a -> t m a
-runEvaluateT eval (EvaluateT a) = runReaderT a eval
+       ifThenElse : all a. Bool -> a -> a -> a
 
--- | Wrap a computation binding an 'Evaluator' as a 'EvaluateT'.
-withEvaluator :: (Evaluator Term m -> t m a) -> EvaluateT t m a
-withEvaluator = EvaluateT . ReaderT
+   Previously we had 'Bool' as a Scott-encoded type, but this required plenty of supporting machinery,
+   because unlifting (aka Scott-decoding) a PLC 'Bool' into a Haskell 'Bool' is quite a non-trivial
+   thing, see https://github.com/input-output-hk/plutus/blob/e222466e6d46bbca9f76243bb496b3c88ed02ca1/language-plutus-core/src/Language/PlutusCore/Constant/Typed.hs#L165-L252
 
--- | 'thoist' for monad transformer transformers is what 'hoist' for monad transformers.
-thoist :: Monad (t m) => (forall b. t m b -> s m b) -> EvaluateT t m a -> EvaluateT s m a
-thoist f (EvaluateT a) = EvaluateT $ Morph.hoist f a
+   Now that we got rid of all this complexity we have to pay for that by supporting polymorphic
+   built-in functions (but we added that support long ago anyway, 'cause it was easy to do).
 
-{- Note [Semantics of dynamic built-in types]
-We only allow dynamic built-in types that
-
-1. can be represented using static types in PLC. For example Haskell's 'Char' can be represented as
-@integer@ in PLC. This restriction makes the dynamic built-in types machinery somewhat similar to
-type aliases in Haskell (defined via the @type@ keyword). The reason for this restriction is that
-storing values of arbitrary types of a host language in the AST of a target language is commonly far
-from being trivial, hence we do not support this right now, but we plan to figure out a way to allow
-such extensions to the AST
-2. are of kind @*@. Dynamic built-in types that are not of kind @*@ can be encoded via recursive
-instances. For example:
-
-    instance KnownType a => KnownType [a] where
-        ...
-
-The meaning of a free type variable is 'OpaqueTerm'.
-
-This is due to the fact that we use Haskell classes to assign semantics to dynamic built-in types and
-since it's anyway impossible to assign a meaning to an open PLC type, because you'd have to somehow
-interpret free variables, we're only interested in closed PLC types and those can be handled by
-recursive instances as shown above.
-
-Since type classes are globally coherent by design, we also have global coherence for dynamic built-in
-types for free. Any dynamic built-in type means the same thing regardless of the blockchain it's
-added to. It may prove to be restrictive, but it's a good property to start with, because less things
-can silently stab you in the back.
-
-An @KnownType a@ instance provides
-
-1. a way to encode @a@ as a PLC type ('toTypeAst')
-2. a function that encodes values of type @dyn@ as PLC terms ('makeKnown')
-3. a function that decodes PLC terms back to Haskell values ('readKnown')
-
-The last two are ought to constitute an isomorphism.
+2. we may want to add efficient polymorphic built-in types like @IntMap@ or @Vector@ and most functions
+   defined over them are polymorphic as well
 -}
 
-{- Note [Converting PLC values to Haskell values]
-The first thought that comes to mind when you asked to convert a PLC value to the corresponding Haskell
-value is "just match on the AST". This works nicely for simple things like 'Char's which we encode as
-@integer@s, see the @KnownType Char@ instance.
+{- Note [Implemetation of polymorphic built-in functions]
+Encoding polymorphism in an AST in an intrinsically typed manner is not a pleasant thing to do in Haskell.
+It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
+But we'd rather avoid such heavy techniques.
 
-But how to convert something more complicated like lists? A PLC list gets passed as argument to
-a built-in after it gets evaluated to WHNF. We can't just match on the AST here, because after
-the initial lambda it can be anything there: function applications, other built-ins, recursive data,
-anything. "Well, just normalize it" -- not so fast: for one, we did not have a term normalization
-procedure at the moment this note was written, for two, it's not something that can be easily done,
-because you have to carefully handle uniques (we generate new terms during evaluation) and perform
-type substitutions, because types must be preserved.
+Fortunately, there is a simple trick: we have parametricity in Haskell, so a function that is
+polymorphic in its argument can't inspect that argument in any way and so we never actually need to
+convert such an argument from PLC to Haskell just to convert it back later without ever inspecting
+the value. Instead we can keep the argument intact and apply the Haskell function directly to
+the PLC AST representing some value.
 
-Besides, matching on the AST becomes really complicated: you have to ensure that a term does have
-an expected semantics by looking at the term's syntax. Huge pattern matches followed by multiple
-checks that variables have equal names in right places and have distinct names otherwise. Making a
-mistake is absolutely trivial here. Of course, one could just omit checks and hope it'll work alright,
-but eventually it'll break and debugging won't be fun at all.
-
-So instead of dealing with syntax of terms, we deal with their semantics. Namely, we evaluate terms
-using some evaluator (normally, the CEK machine). For the temporary lack of ability to put values of
-arbitrary Haskell types into the Plutus Core AST, we have some ad hoc strategies for converting PLC
-values to Haskell values (ground, product, sum and recursive types are all handled distinctly,
-see the "Language.PlutusCore.Constant.Dynamic.Instances" module).
--}
-
-{- Note [Evaluators]
-A dynamic built-in name can be applied to something that contains uninstantiated variables. There are
-several possible ways to handle that:
-
-1. each evaluator is required to perform substitutions to instantiate all variables in arguments to
-built-ins. The drawback is that this can be inefficient in cases when there are many applications of
-built-ins and arguments are of non-primitive types. Besides, substitution is tricky and is trivial to
-screw up
-2. we can break encapsulation and pass environments to the built-ins application machinery, so that it
-knows how to instantiate variables. This would work for the strict CEK machine, but the lazy
-CEK machine also has a heap and there can be other evaluators that have their internal state that
-can't just be thrown away and it's impossible for the built-ins application machinery to handle states
-of all possible evaluators beforehand
-3. or we can just require to pass the current evaluator with its encapsulated state to functions that
-evaluate built-in applications. The type of evaluators is this then:
-
-    type Evaluator f m = DynamicBuiltinNameMeanings -> f TyName Name () -> m EvaluationResult
-
-so @Evaluator Term m@ receives a map with meanings of dynamic built-in names which extends the map the
-evaluator already has (this is needed, because we may add new dynamic built-in names during conversion
-of PLC values to Haskell values), a 'Term' to evaluate and returns an @m EvaluationResult@.
-Thus, whenever we want to resume evaluation during computation of a dynamic built-in application,
-we just call the received evaluator
-
-(3) seems best, so it's what is implemented.
--}
-
--- | The monad in which we convert PLC terms to Haskell values.
--- Conversion can fail with
---
--- 1. 'EvaluationFailure' if evaluation fails with @error@.
--- 2. A textual error if a PLC term can't be converted to a Haskell value of a specified type.
-newtype ReflectT m a = ReflectT
-    { unReflectT :: ExceptT Text (InnerT EvaluationResult m) a
-    } deriving
-        ( Functor, Applicative, Monad
-        , MonadError Text
-        )
-      deriving MonadTrans via ComposeT (ExceptT Text) (InnerT EvaluationResult)
-
--- Uses the 'Alternative' instance of 'EvaluationResult'.
-instance Monad m => Alternative (ReflectT m) where
-    empty = ReflectT . lift $ yield empty
-    ReflectT (ExceptT (InnerT m)) <|> ReflectT (ExceptT (InnerT n)) =
-        ReflectT . ExceptT . InnerT $ (<|>) <$> m <*> n
-
--- | Run a 'ReflectT' computation.
-runReflectT :: ReflectT m a -> m (EvaluationResult (Either Text a))
-runReflectT = unInnerT . runExceptT . unReflectT
-
--- | Map over the underlying representation of 'ReflectT'.
-mapReflectT
-    :: (ExceptT Text (InnerT EvaluationResult m) a -> ExceptT Text (InnerT EvaluationResult n) b)
-    -> ReflectT m a
-    -> ReflectT n b
-mapReflectT f (ReflectT a) = ReflectT (f a)
-
--- | Map over the fully unwrapped underlying representation of a 'ReflectT' computation.
-mapDeepReflectT
-    :: (m (EvaluationResult (Either Text a)) -> n (EvaluationResult (Either Text b)))
-    -> ReflectT m a
-    -> ReflectT n b
-mapDeepReflectT = mapReflectT . mapExceptT . mapInnerT
-
--- | Fully wrap a computation into 'ReflectT'.
-makeReflectT :: m (EvaluationResult (Either Text a)) -> ReflectT m a
-makeReflectT = ReflectT . ExceptT . InnerT
-
--- | Wrap a non-throwing computation into 'ReflectT'.
-makeRightReflectT :: Monad m => m (EvaluationResult a) -> ReflectT m a
-makeRightReflectT = ReflectT . lift . InnerT
-
--- See Note [Semantics of dynamic built-in types].
--- See Note [Converting PLC values to Haskell values].
--- | Haskell types known to exist on the PLC side.
-class KnownType a where
-    -- | The type representing @a@ used on the PLC side.
-    toTypeAst :: proxy a -> Type TyName ()
-
-    -- | Convert a Haskell value to the corresponding PLC value.
-    makeKnown :: a -> Term TyName Name ()
-
-    -- See Note [Evaluators].
-    -- | Convert a PLC value to the corresponding Haskell value using an explicit evaluator.
-    readKnown :: Monad m => Evaluator Term m -> Term TyName Name () -> ReflectT m a
-
-    -- | Pretty-print a value of a 'KnownType' in a PLC-specific way
-    -- (see e.g. the @ByteString@ instance).
-    prettyKnown :: a -> Doc ann
-    default prettyKnown :: Pretty a => a -> Doc ann
-    prettyKnown = pretty
-
--- | Convert a PLC value to the corresponding Haskell value using the evaluator
--- from the current context.
-readKnownM
-    :: (Monad m, KnownType a)
-    => Term TyName Name () -> EvaluateT ReflectT m a
-readKnownM term = withEvaluator $ \eval -> readKnown eval term
-
--- | A value that is supposed to be of a 'KnownType'. Needed in order to give a 'Pretty' instance
--- for any 'KnownType' via 'prettyKnown', which allows e.g. to pretty-print a list of 'KnownType'
--- values using the standard 'pretty' pretty-printer for the shape of the list and our specific
--- 'prettyKnown' pretty-printer for the elements of the list.
-newtype KnownTypeValue a = KnownTypeValue
-    { unKnownTypeValue :: a
-    }
-
-instance KnownType a => Pretty (KnownTypeValue a) where
-    pretty = prettyKnown . unKnownTypeValue
-
-{- Note [The reverse example]
-Having a dynamic built-in with the following signature:
+E.g. Having a built-in function with the following signature:
 
     reverse : all a. list a -> list a
 
@@ -349,38 +185,125 @@ proceeds as follows:
     ~ makeKnown [OpaqueTerm false, OpaqueTerm true]
     ~ cons false (cons true nil)
 
-Note how we use 'OpaqueTerm' in order to wrap a PLC term as a Haskell value using 'readKnown' and
-then unwrap the term back using 'makeKnown' without ever inspecting the term.
+Note how we use the 'OpaqueTerm' wrapper in order to unlift a PLC term as an opaque Haskell value
+using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
+
+The implementation is rather straightforward, but there is one catch, namely that it takes some care
+to adapt the CEK machine to handle polymorphic built-in functions,
+see https://github.com/input-output-hk/plutus/issues/1882
 -}
 
--- See Note [The reverse example] for an example.
+-- See Note [Motivation for polymorphic built-in functions]
+-- See Note [Implemetation of polymorphic built-in functions]
 -- | The denotation of a term whose type is a bound variable.
 -- I.e. the denotation of such a term is the term itself.
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
 -- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
 -- and back and instead can keep it intact.
-newtype OpaqueTerm (text :: Symbol) (unique :: Nat) = OpaqueTerm
-    { unOpaqueTerm :: Term TyName Name ()
+newtype OpaqueTerm uni (text :: Symbol) (unique :: Nat) = OpaqueTerm
+    { unOpaqueTerm :: Term TyName Name uni ()
     }
 
-instance Pretty (OpaqueTerm text unique) where
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst) =>
+            Pretty (OpaqueTerm uni text unique) where
     pretty = pretty . unOpaqueTerm
 
--- Encode '()' from Haskell as @all r. r -> r@ from PLC.
--- This is a very special instance, because it's used to define functions that are needed for
--- other instances, so we keep it here.
-instance KnownType () where
-    toTypeAst _ = unit
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+class (GShow uni, GEq uni, uni `Includes` a) => KnownBuiltinType uni a
+instance (GShow uni, GEq uni, uni `Includes` a) => KnownBuiltinType uni a
 
-    -- We need this matching, because otherwise Haskell expressions are thrown away rather than being
-    -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the '()' just
-    -- for side effects that the evaluation may cause.
-    makeKnown () = unitval
+-- | Extract the 'Constant' from a 'Term'
+-- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
+unliftConstant
+    :: forall a m uni err.
+       (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownBuiltinType uni a)
+    => Term TyName Name uni () -> m a
+unliftConstant term = case term of
+    Constant () (Some (ValueOf uniAct x)) -> do
+        let uniExp = knownUni @uni @a
+        case uniAct `geq` uniExp of
+            Just Refl -> pure x
+            Nothing   -> do
+                let err = fromString $ concat
+                        [ "Type mismatch: "
+                        , "expected: " ++ gshow uniExp
+                        , "; actual: " ++ gshow uniAct
+                        ]
+                throwingWithCause _UnliftingError err $ Just term
+    _ -> throwingWithCause _UnliftingError "Not a constant" $ Just term
 
-    readKnown eval term = do
-        let int = TyBuiltin () TyInteger
-            asInt = Constant () . BuiltinInt ()
-        res <- makeRightReflectT . eval mempty . Apply () (TyInst () term int) $ asInt 1
-        case res of
-            Constant () (BuiltinInt () 1) -> pure ()
-            _                             -> throwError "Not a builtin ()"
+{- Note [KnownType's defaults]
+We use @default@ for providing instances for built-in types instead of @DerivingVia@,
+because the latter breaks on
+
+    1. proxy a
+    2. m a
+
+It's possible to circumvent this, by using
+
+    1. Proxy a
+    2. forall r. (a -> m r) -> m r
+
+instead, but then we need to recover the original handy definitions and
+make the API and the code bloated (instances are more verbose with @DerivingVia@).
+-}
+
+-- See Note [KnownType's defaults]
+-- | Haskell types known to exist on the PLC side.
+class KnownType uni a where
+    -- | The type representing @a@ used on the PLC side.
+    toTypeAst :: proxy a -> Type TyName uni ()
+    default toTypeAst :: KnownBuiltinType uni a => proxy a -> Type TyName uni ()
+    toTypeAst _ = mkTyBuiltin @a ()
+
+    -- | Convert a Haskell value to the corresponding PLC term.
+    -- The inverse of 'readKnown'.
+    makeKnown :: a -> Term TyName Name uni ()
+    default makeKnown :: KnownBuiltinType uni a => a -> Term TyName Name uni ()
+    -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
+    -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
+    -- just for side effects that the evaluation may cause.
+    makeKnown x = mkConstant () $! x
+
+    -- | Convert a PLC term to the corresponding Haskell value.
+    -- The inverse of 'makeKnown'.
+    readKnown
+        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err)
+        => Term TyName Name uni () -> m a
+    default readKnown
+        :: (MonadError (ErrorWithCause uni err) m, AsUnliftingError err, KnownBuiltinType uni a)
+        => Term TyName Name uni () -> m a
+    readKnown = unliftConstant
+
+instance KnownType uni a => KnownType uni (EvaluationResult a) where
+    toTypeAst _ = toTypeAst $ Proxy @a
+
+    -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
+    makeKnown EvaluationFailure     = Error () $ toTypeAst (Proxy @a)
+    makeKnown (EvaluationSuccess x) = makeKnown x
+
+    -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
+    -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
+    -- the programmer would be given an explicit 'EvaluationResult' value to handle, which means
+    -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
+    -- I.e. it would essentially allow to catch errors and handle them in a programmable way.
+    -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
+    readKnown _ = throwingWithCause _UnliftingError "Error catching is not supported" Nothing
+
+instance (KnownSymbol text, KnownNat uniq, uni ~ uni') =>
+            KnownType uni (OpaqueTerm uni' text uniq) where
+    toTypeAst _ =
+        TyVar () . TyName $
+            Name (Text.pack $ symbolVal @text Proxy)
+                 (Unique . fromIntegral $ natVal @uniq Proxy)
+
+    makeKnown = unOpaqueTerm
+
+    readKnown = pure . OpaqueTerm
+
+instance KnownBuiltinType uni Integer        => KnownType uni Integer
+instance KnownBuiltinType uni BSL.ByteString => KnownType uni BSL.ByteString
+instance KnownBuiltinType uni String         => KnownType uni String
+instance KnownBuiltinType uni Char           => KnownType uni Char
+instance KnownBuiltinType uni ()             => KnownType uni ()
+instance KnownBuiltinType uni Bool           => KnownType uni Bool

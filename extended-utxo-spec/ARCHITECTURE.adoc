@@ -1,0 +1,5 @@
+=== `extended-utxo-spec`
+
+This folder contains the Extended UTXO model specification.
+
+NOTE: This is more of a design document, really, it's not aiming for full precision.

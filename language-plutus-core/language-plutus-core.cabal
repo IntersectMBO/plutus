@@ -1,4 +1,4 @@
-cabal-version: 2.0
+cabal-version: 2.4
 name: language-plutus-core
 version: 0.1.0.0
 license: Apache-2.0
@@ -14,37 +14,52 @@ description:
 category: Language, Plutus
 build-type: Simple
 extra-doc-files: README.md
+extra-source-files:
+    src/costModel.json
+    language-plutus-core/src/costModel.json
 
 source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
 
-flag eventlog
-    description:
-        Pass `-eventlog` flag to GHC
-    default: False
-    manual: True
-
-flag development
-    description:
-        Enable `-Werror`
-    default: False
-    manual: True
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable DerivingStrategies DerivingVia
+    other-extensions: DeriveAnyClass FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -Wnoncanonical-monoid-instances
 
 library
+    import: lang
     exposed-modules:
         Language.PlutusCore
         Language.PlutusCore.Quote
         Language.PlutusCore.MkPlc
-        Language.PlutusCore.Evaluation.CkMachine
-        Language.PlutusCore.Evaluation.MachineException
+        Language.PlutusCore.Evaluation.Machine.Ck
+        Language.PlutusCore.Evaluation.Machine.Cek
+        Language.PlutusCore.Evaluation.Machine.ExBudgeting
+        Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+        Language.PlutusCore.Evaluation.Machine.Exception
+        Language.PlutusCore.Evaluation.Machine.ExMemory
+        Language.PlutusCore.Evaluation.Evaluator
         Language.PlutusCore.Evaluation.Result
         Language.PlutusCore.Check.Value
         Language.PlutusCore.Check.Normal
         Language.PlutusCore.CBOR
         Language.PlutusCore.Constant
         Language.PlutusCore.Constant.Dynamic
+        Language.PlutusCore.Universe
         Language.PlutusCore.Rename.Internal
+        Language.PlutusCore.Rename.Monad
         Language.PlutusCore.Rename
         Language.PlutusCore.Normalize
         Language.PlutusCore.Normalize.Internal
@@ -52,6 +67,7 @@ library
         Language.PlutusCore.View
         Language.PlutusCore.Subst
         Language.PlutusCore.Name
+        Language.PlutusCore.Core
         Language.PlutusCore.DeBruijn
         Language.PlutusCore.Check.Uniques
         Language.PlutusCore.FsTree
@@ -63,6 +79,7 @@ library
         Language.PlutusCore.StdLib.Data.Nat
         Language.PlutusCore.StdLib.Data.Sum
         Language.PlutusCore.StdLib.Data.Unit
+        Language.PlutusCore.StdLib.Data.ScottUnit
         Language.PlutusCore.StdLib.Everything
         Language.PlutusCore.StdLib.Meta
         Language.PlutusCore.StdLib.Meta.Data.Tuple
@@ -75,31 +92,64 @@ library
         Language.PlutusCore.Generators.Test
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
+
+        Language.PlutusIR
+        Language.PlutusIR.Compiler
+        Language.PlutusIR.Compiler.Names
+        Language.PlutusIR.Compiler.Definitions
+        Language.PlutusIR.Generators.AST
+        Language.PlutusIR.Parser
+        Language.PlutusIR.MkPir
+        Language.PlutusIR.Value
+        Language.PlutusIR.Optimizer.DeadCode
+        Language.PlutusIR.Transform.Substitute
+        Language.PlutusIR.Transform.ThunkRecursions
+        Language.PlutusIR.Transform.Rename
+        Language.PlutusIR.Transform.NonStrict
+        Language.PlutusIR.Transform.LetFloat
+
         PlutusPrelude
-        Control.Monad.Trans.Inner
         Common
         Data.ByteString.Lazy.Hash
         PlcTestUtils
         Crypto
+        Data.Text.Prettyprint.Doc.Custom
     build-tool-depends: alex:alex -any, happy:happy >=1.17.1
-    hs-source-dirs: src prelude stdlib examples generators common
+    hs-source-dirs: src prelude stdlib examples generators common plutus-ir
     other-modules:
-        Language.PlutusCore.Type
-        Language.PlutusCore.Lexer.Type
+        Language.PlutusCore.Pretty.ConfigName
+        Language.PlutusCore.Core.Type
+        Language.PlutusCore.Core.Plated
+        Language.PlutusCore.Core.Instance.Eq
+        Language.PlutusCore.Core.Instance.Pretty.Classic
+        Language.PlutusCore.Core.Instance.Pretty.Common
+        Language.PlutusCore.Core.Instance.Pretty.Default
+        Language.PlutusCore.Core.Instance.Pretty.Plc
+        Language.PlutusCore.Core.Instance.Pretty.Readable
+        Language.PlutusCore.Core.Instance.Pretty
+        Language.PlutusCore.Core.Instance.Recursive
+        Language.PlutusCore.Core.Instance
         Language.PlutusCore.Constant.Apply
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
         Language.PlutusCore.Constant.Dynamic.Emit
-        Language.PlutusCore.Constant.Dynamic.Instances
         Language.PlutusCore.Constant.Dynamic.OnChain
         Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
-        Language.PlutusCore.Constant.Make
         Language.PlutusCore.Constant.Name
         Language.PlutusCore.Constant.Typed
+        Language.PlutusCore.Lexer.Type
+        Language.PlutusCore.Eq
+        Language.PlutusCore.Mark
         Language.PlutusCore.Pretty.Classic
+        Language.PlutusCore.Pretty.ConfigName
+        Language.PlutusCore.Pretty.Default
         Language.PlutusCore.Pretty.Plc
+        Language.PlutusCore.Pretty.PrettyConst
         Language.PlutusCore.Pretty.Readable
+        Language.PlutusCore.Pretty.Utils
+        Language.PlutusCore.Universe.Core
+        Language.PlutusCore.Universe.Default
         Language.PlutusCore.Error
         Language.PlutusCore.Size
         Language.PlutusCore.TypeCheck.Internal
@@ -113,125 +163,190 @@ library
         Language.PlutusCore.Generators.Internal.TypeEvalCheck
         Language.PlutusCore.Generators.Internal.TypedBuiltinGen
         Language.PlutusCore.Generators.Internal.Utils
+
+        Language.PlutusIR.Analysis.Dependencies
+        Language.PlutusIR.Analysis.Usages
+        Language.PlutusIR.Compiler.Error
+        Language.PlutusIR.Compiler.Let
+        Language.PlutusIR.Compiler.Datatype
+        Language.PlutusIR.Compiler.Provenance
+        Language.PlutusIR.Compiler.Recursion
+        Language.PlutusIR.Compiler.Types
+        Language.PlutusIR.Compiler.Lower
+
+        Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
-        Data.Text.Prettyprint.Doc.Custom
-    default-language: Haskell2010
-    default-extensions: ScopedTypeVariables FlexibleContexts
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
-    other-extensions: DeriveAnyClass FlexibleInstances
-                      MultiParamTypeClasses TypeFamilies OverloadedStrings
-                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
-                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
-                      ExistentialQuantification
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wnoncanonical-monoid-instances
     build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cryptonite -any,
-        containers -any,
-        bimap -any,
         array -any,
-        mtl -any,
-        transformers -any,
-        deepseq -any,
-        recursion-schemes -any,
-        text -any,
-        prettyprinter >=1.1.0.1,
-        lens -any,
+        aeson -any,
+        algebraic-graphs >= 0.3,
+        base >=4.9 && <5,
+        bimap -any,
+        bytestring -any,
+        cardano-crypto,
+        cborg -any,
         composition-prelude >=1.1.0.1,
-        template-haskell -any,
-        th-lift-instances -any,
+        containers -any,
+        cryptonite -any,
+        dependent-map -any,
+        dependent-sum -any,
+        dependent-sum-template -any,
+        deriving-aeson >= 0.2.3,
+        deriving-compat -any,
+        deepseq -any,
+        filepath -any,
+        hashable,
+        hedgehog >=1.0,
+        integer-gmp -any,
+        ghc-prim -any,
+        lens -any,
+        megaparsec -any,
         memory -any,
         mmorph -any,
-        cborg -any,
-        serialise -any,
+        monoidal-containers,
+        mtl -any,
+        nonempty-containers -any,
+        parser-combinators >= 0.4.0,
+        prettyprinter >=1.1.0.1,
+        prettyprinter-configurable -any,
+        recursion-schemes -any,
         safe-exceptions -any,
-        dependent-sum -any,
-        dependent-map -any,
-        hedgehog <1.0,
-        filepath -any,
+        semigroups -any,
+        semigroupoids -any,
+        serialise -any,
         tasty -any,
         tasty-golden -any,
-        cryptonite,
-        cardano-crypto
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
+        text -any,
+        th-lift -any,
+        th-lift-instances -any,
+        th-utilities -any,
+        template-haskell -any,
+        data-default -any,
+        data-default-class -any,
+        transformers -any
 
 executable language-plutus-core-generate-evaluation-test
+    import: lang
     main-is: Main.hs
     hs-source-dirs: generate-evaluation-test
-    default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
     build-depends:
         base -any,
+        cborg -any,
+        hedgehog -any,
         language-plutus-core -any,
-        text -any,
-        hedgehog -any
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
+        serialise -any,
+        text -any
 
 test-suite language-plutus-core-test
+    import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: test
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
-        Evaluation.CkMachine
-        Evaluation.Constant.All
-        Evaluation.Constant.Apply
-        Evaluation.Constant.Success
-        Evaluation.Constant.SuccessFailure
+        Evaluation.ApplyBuiltinName
+        Evaluation.DynamicBuiltins.Common
+        Evaluation.DynamicBuiltins.Definition
+        Evaluation.DynamicBuiltins.Logging
+        Evaluation.DynamicBuiltins.MakeRead
+        Evaluation.DynamicBuiltins
+        Evaluation.Golden
+        Evaluation.Machines
+        Evaluation.Spec
         Normalization.Check
         Normalization.Type
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
     default-language: Haskell2010
-    default-extensions: FlexibleContexts
-    other-extensions: OverloadedStrings
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
     build-depends:
         base -any,
-        language-plutus-core -any,
-        tasty -any,
+        bytestring -any,
+        containers -any,
+        filepath -any,
         hedgehog -any,
-        tasty-hunit -any,
+        language-plutus-core -any,
+        lens -any,
+        mmorph -any,
+        mtl -any,
+        prettyprinter -any,
+        serialise -any,
+        tasty -any,
+        tasty-golden -any,
         tasty-hedgehog -any,
+        tasty-hunit -any,
+        text -any,
+        transformers -any,
+        tuple -any
+
+test-suite plutus-ir-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: plutus-ir-test
+    other-modules:
+        OptimizerSpec
+        TransformSpec
+        ParserSpec
+        TestLib
+    build-depends:
+        base >=4.9 && <5,
+        hedgehog -any,
+        filepath -any,
+        text -any,
+        language-plutus-core -any,
+        mtl -any,
+        mmorph -any,
+        prettyprinter -any,
+        serialise -any,
+        tasty -any,
+        tasty-hedgehog -any,
+        text -any,
+        megaparsec -any
+
+benchmark language-plutus-core-bench
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Bench.hs
+    hs-source-dirs: bench
+    ghc-options: -rtsopts
+    build-depends:
+        base -any,
+        bytestring -any,
+        containers -any,
+        criterion -any,
+        language-plutus-core -any,
+        serialise -any
+
+benchmark language-plutus-core-weigh
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Bench.hs
+    hs-source-dirs: weigh
+    ghc-options: -rtsopts
+    build-depends:
+        base -any,
+        bytestring -any,
+        containers -any,
+        language-plutus-core -any,
+        serialise -any,
+        weigh -any
+
+executable plc
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: exe
+    build-depends:
+        base <5,
+        language-plutus-core -any,
         transformers -any,
         bytestring -any,
         serialise -any,
-        filepath -any,
-        tasty-golden -any,
         text -any,
+        lens -any,
         prettyprinter -any,
-        containers -any,
-        mtl -any,
-        mmorph -any
-
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if (flag(development) && impl(ghc <8.4))
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
+        optparse-applicative -any
 
 test-suite language-plutus-core-prop-test
     type: exitcode-stdio-1.0
@@ -267,27 +382,51 @@ test-suite language-plutus-core-prop-test
     if impl(ghc >=8.4)
         ghc-options: -Wmissing-export-lists
 
-benchmark language-plutus-core-bench
+benchmark language-plutus-core-budgeting-bench
+    import: lang
     type: exitcode-stdio-1.0
     main-is: Bench.hs
-    hs-source-dirs: bench
+    hs-source-dirs: budgeting-bench
     default-language: Haskell2010
-    ghc-options: -Wall -Wincomplete-uni-patterns
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
-                 -rtsopts
     build-depends:
         base -any,
-        language-plutus-core -any,
-        criterion -any,
         bytestring -any,
+        containers -any,
+        criterion -any,
+        language-plutus-core -any,
         serialise -any,
-        containers
+        deepseq -any,
+        lens -any,
+        directory -any,
+        integer-gmp -any,
+        hedgehog -any
 
-    if flag(eventlog)
-        ghc-options: -eventlog
-
-    if flag(development)
-        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
+benchmark language-plutus-core-create-cost-model
+    type: exitcode-stdio-1.0
+    main-is: CreateModel.hs
+    hs-source-dirs: create-cost-model
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        bytestring -any,
+        containers -any,
+        language-plutus-core -any,
+        serialise -any,
+        deepseq -any,
+        lens -any,
+        directory -any,
+        inline-r -any,
+        hedgehog -any,
+        vector -any,
+        aeson -any,
+        text -any,
+        deriving-aeson >= 0.2.3,
+        aeson-pretty -any,
+        extra -any,
+        data-default -any,
+        cassava -any,
+        exceptions -any

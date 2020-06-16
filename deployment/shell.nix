@@ -1,7 +1,6 @@
 let
   # not in CI so takes forever to build
-  #pkgs = (import ../lib.nix {}).pkgs;
-  pkgs = import (import ../nix/sources.nix).deployment-nixpkgs {};
+  pkgs = (import ../lib.nix {}).pkgs;
 in
 
 pkgs.stdenv.mkDerivation rec {

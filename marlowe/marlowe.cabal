@@ -31,15 +31,22 @@ flag defer-plugin-errors
 library
   hs-source-dirs: src
   build-depends:
+    aeson -any,
     base -any,
     bytestring,
     containers -any,
+    deriving-aeson -any,
     mtl,
+    newtype-generics,
     template-haskell -any,
     plutus-tx -any,
-    plutus-wallet-api,
+    plutus-contract -any,
+    plutus-ledger,
     text,
-    wl-pprint -any
+    vector,
+    sbv >= 8.4,
+    wl-pprint -any,
+    freer-simple -any
   default-language: Haskell2010
   default-extensions: ExplicitForAll ScopedTypeVariables
                       DeriveGeneric StandaloneDeriving DeriveLift
@@ -51,12 +58,16 @@ library
     Language.Marlowe.Client
     Language.Marlowe.Util
     Language.Marlowe.Pretty
+    Language.Marlowe.Analysis.FSSemantics
   other-modules:
   ghc-options:
     -Wall -Wnoncanonical-monad-instances
     -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wredundant-constraints -Widentities
     -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
 
   if flag(defer-plugin-errors)
     ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -71,23 +82,36 @@ test-suite marlowe-test
       -- Spec.Common
         Spec.Marlowe.Common
         Spec.Marlowe.Marlowe
+        OldAnalysis.FSMap
+        OldAnalysis.FSSemantics
+        OldAnalysis.FSSet
+        OldAnalysis.IntegerArray
+        OldAnalysis.MkSymb
+        OldAnalysis.Numbering
       -- Spec.Actus
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,
+        hint -any,
+        lens -any,
         memory -any,
         bytestring -any,
+        freer-simple -any,
         tasty -any,
         tasty-hunit -any,
+        tasty-quickcheck,
         tasty-hedgehog >=0.2.0.0,
         text -any,
         serialise,
         cborg,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
+        plutus-ledger -any,
+        plutus-contract -any,
         marlowe,
+        sbv >= 8.4,
         plutus-tx -any,
+        QuickCheck,
         template-haskell -any
   ghc-options:
     -Wall -Wnoncanonical-monad-instances

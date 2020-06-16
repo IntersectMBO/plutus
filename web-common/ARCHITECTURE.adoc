@@ -1,0 +1,4 @@
+=== `web-common`
+
+This contains some Purescript client code that is shared between the Plutus and
+Marlowe Playgrounds.

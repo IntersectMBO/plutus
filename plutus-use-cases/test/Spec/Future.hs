@@ -1,224 +1,171 @@
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
-module Spec.Future(tests) where
+module Spec.Future(tests, theFuture, accounts) where
 
-import           Control.Monad                                   (void)
-import           Data.Either                                     (isRight)
-import           Data.Foldable                                   (traverse_)
-import qualified Data.Map                                        as Map
-import           Hedgehog                                        (Property, forAll, property)
-import qualified Hedgehog
 import           Test.Tasty
-import           Test.Tasty.Hedgehog                             (testProperty)
 import qualified Test.Tasty.HUnit                                as HUnit
 
 import qualified Spec.Lib                                        as Lib
+import           Spec.TokenAccount                               (assertAccountBalance)
 
-import qualified Language.PlutusTx.Numeric                       as P
 import qualified Ledger
-import           Ledger.Ada                                      (Ada)
 import qualified Ledger.Ada                                      as Ada
-import           Ledger.Validation                               (OracleValue (..))
-import           Prelude                                         hiding (init)
-import           Wallet.API                                      (PubKey (..))
-import           Wallet.Emulator
-import qualified Wallet.Emulator.Generators                      as Gen
-import qualified Wallet.Generators                               as Gen
+import           Ledger.Crypto                                   (PrivateKey, PubKey (..))
+import           Ledger.Oracle                                   (Observation (..), SignedMessage)
+import qualified Ledger.Oracle                                   as Oracle
+import           Ledger.Slot                                     (Slot)
+import           Ledger.Value                                    (Value, scale)
 
-import qualified Language.PlutusTx as PlutusTx
-
-import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureData (..))
+import           Language.Plutus.Contract.Test
+import qualified Language.PlutusTx                               as PlutusTx
+import           Language.PlutusTx.Coordination.Contracts.Future (Future (..), FutureAccounts (..), FutureError,
+                                                                  FutureSchema, FutureSetup (..), Role (..))
 import qualified Language.PlutusTx.Coordination.Contracts.Future as F
-
--- | Wallet 1. Holder of the "long" position in the contract.
-wallet1 :: Wallet
-wallet1 = Wallet 1
-
--- | Wallet 2. Holder of the "short" position in the contract.
-wallet2 :: Wallet
-wallet2 = Wallet 2
+import           Language.PlutusTx.Lattice
 
 tests :: TestTree
-tests = testGroup "futures" [
-    testProperty "commit initial margin" initialiseFuture,
-    testProperty "close the position" settle,
-    testProperty "close early if margin payment was missed" settleEarly,
-    testProperty "increase the margin" increaseMargin,
-    Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.mkValidator ||]),
-    HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validatorScript contract) 30000)
+tests =
+    testGroup "futures"
+    [ checkPredicate @FutureSchema "can initialise and obtain tokens"
+        (F.futureContract theFuture)
+        (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short accounts)
+        /\ walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long accounts))
+        ( initContract >> joinFuture )
+
+    , checkPredicate @FutureSchema "can increase margin"
+        (F.futureContract theFuture)
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2410)))
+        ( initContract
+        >> joinFuture
+        >> addBlocks 20
+        >> increaseMargin
+        >> addBlocks 75
+        >> payOut)
+
+    , checkPredicate @FutureSchema "can settle early"
+        (F.futureContract theFuture)
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 0))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 4246)))
+        ( initContract
+        >> joinFuture
+        >> addBlocks 20
+        >> settleEarly)
+
+     , checkPredicate @FutureSchema "can pay out"
+        (F.futureContract theFuture)
+        (assertAccountBalance (ftoShort accounts) (== (Ada.lovelaceValueOf 1936))
+        /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
+        ( initContract
+        >> joinFuture
+        >> addBlocks 93
+        >> payOut)
+
+    , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
+
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (F.validator theFuture accounts) 66200)
+
     ]
 
-init :: Wallet -> Trace MockWallet Ledger.TxOutRef
-init w = outp <$> walletAction w (F.initialise (walletPubKey wallet1) (walletPubKey wallet2) contract) where
-    outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
+setup :: FutureSetup
+setup =
+    FutureSetup
+        { shortPK = walletPubKey (Wallet 1)
+        , longPK = walletPubKey (Wallet 2)
+        , contractStart = 15
+        }
 
-adjustMargin :: Wallet -> [Ledger.TxOutRef] -> FutureData -> Ada -> Trace MockWallet Ledger.TxOutRef
-adjustMargin w refs fd vl =
-    outp <$> walletAction w (F.adjustMargin refs contract fd vl) where
-        outp = snd . head . filter (Ledger.isPayToScriptOut . fst) . Ledger.txOutRefs . head . snd
+w1 :: Wallet
+w1 = Wallet 1
 
--- | Initialise the futures contract with contributions from wallets 1 and 2,
---   and update all wallets. Running `initBoth` will increase the slot number
---   by 2.
-initBoth :: Trace MockWallet [Ledger.TxOutRef]
-initBoth = do
-    updateAll
-    ins <- traverse init [wallet1, wallet2]
-    updateAll
-    return ins
+w2 :: Wallet
+w2 = Wallet 2
 
+-- | A futures contract over 187 units with a forward price of 1233 Lovelace,
+--   due at slot #100.
+theFuture :: Future
+theFuture = Future {
+    ftDeliveryDate  = Ledger.Slot 100,
+    ftUnits         = units,
+    ftUnitPrice     = forwardPrice,
+    ftInitialMargin = Ada.lovelaceValueOf 800,
+    ftPriceOracle   = snd oracleKeys,
+    ftMarginPenalty = penalty
+    }
 
-initialiseFuture :: Property
-initialiseFuture = checkTrace $ do
-    void initBoth
-    traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, startingBalance P.- Ada.toValue initMargin),
-        (wallet2, startingBalance P.- Ada.toValue initMargin)]
+-- | After this trace, the initial margin of wallet 1, and the two tokens,
+--   are locked by the contract.
+initContract :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+initContract = do
+    callEndpoint @"initialise-future" (Wallet 1) (setup, Short)
+    handleBlockchainEvents (Wallet 1)
 
-settle :: Property
-settle = checkTrace $ do
-    ins <- initBoth
+-- | Calls the "join-future" endpoint for wallet 2 and processes
+--   all resulting transactions.
+joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+joinFuture = do
+    callEndpoint @"join-future" (Wallet 2) (accounts, setup)
+    handleBlockchainEvents (Wallet 2)
+    notifySlot w1
+    handleUtxoQueries (Wallet 1)
+    handleBlockchainEvents (Wallet 1)
+    handleBlockchainEvents (Wallet 2)
+
+-- | Calls the "settle-future" endpoint for wallet 2 and processes
+--   all resulting transactions.
+payOut :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+payOut = do
     let
-        im = initMargin
-        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
-        spotPrice = 1124
-        delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
-
-    -- advance the clock to slot 10
-    void $ addBlocks 8
-    void $ walletAction wallet2 (F.settle ins contract cur ov)
-    updateAll
-    traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, startingBalance P.+ Ada.toValue delta),
-        (wallet2, startingBalance P.- Ada.toValue delta)]
-
-settleEarly :: Property
-settleEarly = checkTrace $ do
-    ins <- initBoth
-    let
-        im = initMargin
-        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
-
-        -- In this example, the price moves up (in favour of the long position)
-        -- Wallet 2 fails to make the required margin payment, so wallet 1
-        -- can the entire margin of wallet 2, including the penalty fee.
-        -- This illustrates how the participants are incentivised to keep
-        -- up with the variation margin.
-        (_, upper) = marginRange
-        spotPrice = upper + 1
-        ov  = OracleValue oracle (Ledger.Slot 8) spotPrice
-
-    -- advance the clock to slot 8
-    void $ addBlocks 6
-    void $ walletAction wallet1 (F.settleEarly ins contract cur ov)
-    updateAll
-    traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, startingBalance P.+ Ada.toValue initMargin),
-        (wallet2, startingBalance P.- Ada.toValue initMargin)]
-
-increaseMargin :: Property
-increaseMargin = checkTrace $ do
-    ins <- initBoth
-    let
-        im = initMargin
-        cur = FutureData (walletPubKey wallet1) (walletPubKey wallet2) im im
-        increase = fromIntegral units * 5
-
-    -- advance the clock to slot 8
-    void $ addBlocks 6
-
-    -- Commit an additional `units * 5` amount of funds
-    ins' <- adjustMargin wallet2 ins cur increase
-    updateAll
-    traverse_ (uncurry assertOwnFundsEq) [
-        (wallet2, startingBalance P.- Ada.toValue (initMargin + increase))]
-    -- advance the clock to slot 10
-    void $ addBlocks 2
-
-    -- Now the contract has ended successfully and wallet 2 gets some of its
-    -- margin back.
-    let
-        im' = initMargin + increase
-        cur' = cur { futureDataMarginShort = im' }
-
-        (_, upper) = marginRange
-        -- Note that this price would have caused the contract to end
-        -- prematurely if it hadn't been for the increase (compare with
-        -- settleEarly above)
-        spotPrice = upper + 1
-
-        delta = fromIntegral units * (spotPrice - forwardPrice)
-        ov  = OracleValue oracle (Ledger.Slot 10) spotPrice
-
-    void $ walletAction wallet2 (F.settle [ins'] contract cur' ov)
-    updateAll
-
-    -- NOTE: At this point, (initMargin - penalty) < delta < im'
-    --       Meaning that it is still more profitable for wallet 2
-    --       to see the contract through (via `settle`) than to
-    --       simply ignore it and hence lose its entire margin im'.
-    traverse_ (uncurry assertOwnFundsEq) [
-        (wallet1, startingBalance P.+ Ada.toValue delta),
-        (wallet2, startingBalance P.- Ada.toValue delta)]
-
--- | A futures contract over 187 units with a forward price of 1233, due at
---   10 blocks.
-contract :: Future
-contract = Future {
-    futureDeliveryDate  = Ledger.Slot 10,
-    futureUnits         = units,
-    futureUnitPrice     = forwardPrice,
-    futureInitialMargin = im,
-    futurePriceOracle   = oracle,
-    futureMarginPenalty = penalty
-    } where
-        im = penalty + (Ada.lovelaceOf units * forwardPrice `div` 20) -- 5%
+        spotPrice = Ada.lovelaceValueOf 1124
+        ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
+    callEndpoint @"settle-future" (Wallet 2) ov
+    handleUtxoQueries (Wallet 2)
+    handleBlockchainEvents (Wallet 2)
+    addBlocks 2
+    handleBlockchainEvents (Wallet 2)
 
 -- | Margin penalty
-penalty :: Ada
-penalty = 1000
+penalty :: Value
+penalty = Ada.lovelaceValueOf 1000
 
 -- | The forward price agreed at the beginning of the contract.
-forwardPrice :: Ada
-forwardPrice = 1123
-
--- | Range within which the underlying asset's price can move before the first
---   margin payment is necessary.
---   If the price approaches the lower range, then the buyer (long position,
---   Wallet 1) has to increase their margin, and vice versa.
-marginRange :: (Ada, Ada)
-marginRange = (forwardPrice - delta, forwardPrice + delta) where
-    delta = forwardPrice `div` 20
+forwardPrice :: Value
+forwardPrice = Ada.lovelaceValueOf 1123
 
 -- | How many units of the underlying asset are covered by the contract.
 units :: Integer
 units = 187
 
-oracle :: PubKey
-oracle = walletPubKey (Wallet 3)
+oracleKeys :: (PrivateKey, PubKey)
+oracleKeys =
+    let wllt = Wallet 10 in
+        (walletPrivKey wllt, walletPubKey wllt)
 
-initMargin :: Ada
-initMargin = futureInitialMargin contract
+accounts :: FutureAccounts
+accounts =
+    either error id $ evalTrace @FutureSchema @FutureError F.setupTokens (handleBlockchainEvents w1) w1
 
--- | Funds available to wallets at the beginning.
-startingBalance :: Ledger.Value
-startingBalance = Ada.adaValueOf 1000000
+increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+increaseMargin = do
+    callEndpoint @"increase-margin" (Wallet 2) (Ada.lovelaceValueOf 100, Long)
+    handleBlockchainEvents (Wallet 2)
 
--- | Run a trace with the given scenario and check that the emulator finished
---   successfully with an empty transaction pool.
-checkTrace :: Trace MockWallet () -> Property
-checkTrace t = property $ do
+settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
+settleEarly = do
     let
-        ib = Map.fromList [(walletPubKey wallet1, startingBalance), (walletPubKey wallet2, startingBalance)]
-        model = Gen.generatorModel { Gen.gmInitialBalance = ib }
-    (result, st) <- forAll $ Gen.runTraceOn model t
-    Hedgehog.assert (isRight result)
-    Hedgehog.assert ([] == _txPool st)
+        spotPrice = Ada.lovelaceValueOf 11240
+        ov = mkSignedMessage (Ledger.Slot 25) spotPrice
+    callEndpoint @"settle-early" (Wallet 2) ov
+    handleBlockchainEvents (Wallet 2)
 
--- | Validate all pending transactions and notify all wallets
-updateAll :: Trace MockWallet ()
-updateAll =
-    processPending >>= void . walletsNotifyBlock [wallet1, wallet2]
+mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
+mkSignedMessage sl vl = Oracle.signObservation sl vl (fst oracleKeys)

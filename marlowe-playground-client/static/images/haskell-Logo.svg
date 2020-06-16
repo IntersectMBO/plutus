@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="38" height="26.824" viewBox="0 0 38 26.824">
+    <defs>
+        <style>
+            .prefix__cls-2{fill:#666}
+        </style>
+    </defs>
+    <g id="prefix__Haskell-Logo" style="opacity:.495">
+        <g id="prefix__Group_1014" data-name="Group 1014">
+            <path id="prefix__Path_567" d="M0 26.824l8.941-13.412L0 0h6.706l8.941 13.412-8.941 13.412" class="prefix__cls-2" data-name="Path 567"/>
+            <path id="prefix__Path_568" d="M126.314 69.471L123.333 65h10.431v4.471" class="prefix__cls-2" data-name="Path 568" transform="translate(-95.765 -50.471)"/>
+            <path id="prefix__Path_569" d="M106.314 39.471L103.333 35h14.9v4.471" class="prefix__cls-2" data-name="Path 569" transform="translate(-80.235 -27.176)"/>
+        </g>
+        <g id="prefix__Group_1015" data-name="Group 1015" transform="translate(8.941)">
+            <path id="prefix__Path_570" d="M40 26.824l8.941-13.412L40 0h6.706l17.882 26.824h-6.706l-5.588-8.382-5.588 8.382" data-name="Path 570" transform="translate(-40)" style="fill:#999"/>
+        </g>
+    </g>
+</svg>

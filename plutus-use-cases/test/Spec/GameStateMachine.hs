@@ -1,49 +1,65 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE MonoLocalBinds    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 module Spec.GameStateMachine(tests) where
 
-import           Control.Monad                                             (void)
-import qualified Data.Map                                                  as Map
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                          as HUnit
 
 import qualified Spec.Lib                                                  as Lib
 
-import qualified Language.PlutusTx as PlutusTx
+import qualified Language.PlutusTx                                         as PlutusTx
 
+import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Coordination.Contracts.GameStateMachine as G
+import           Language.PlutusTx.Lattice
 import qualified Ledger.Ada                                                as Ada
-import           Ledger.Value                                              (Value)
 import qualified Ledger.Typed.Scripts                                      as Scripts
-import qualified Wallet.API                                                as W
+import           Ledger.Value                                              (Value)
 import qualified Wallet.Emulator                                           as EM
 
 tests :: TestTree
 tests =
-    let initialState = EM.emulatorStateInitialDist
-                        (Map.fromList [ ( EM.walletPubKey w1, initialVal)
-                                      , ( EM.walletPubKey w2, initialVal)
-                                      , ( EM.walletPubKey w3, initialVal) ])
-        checkResult (result, st) step =
-            case result of
-                Left err  -> do
-                    _ <- step (show $ EM.emLog st)
-                    _ <- step (show err)
-                    HUnit.assertFailure "own funds not equal"
-                Right _ ->
-                    Lib.reasonable (Scripts.validatorScript G.scriptInstance) 35000
-    in
-        testGroup "state machine tests" [
-            HUnit.testCaseSteps "run a successful game trace"
-                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameSuccess)),
-            HUnit.testCaseSteps "run a 2nd successful game trace"
-                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameSuccess2)),
-            HUnit.testCaseSteps "run a failed trace"
-                (checkResult (EM.runEmulator @EM.AssertionError initialState runGameFailure)),
-            Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
-        ]
+    testGroup "state machine tests"
+    [ checkPredicate @GameStateMachineSchema "run a successful game trace"
+        G.contract
+        (walletFundsChange w2 (Ada.lovelaceValueOf 3 <> gameTokenVal)
+        /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 5 ==)
+        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
+        successTrace
+
+    , checkPredicate @GameStateMachineSchema "run a 2nd successful game trace"
+        G.contract
+        (walletFundsChange w2 (Ada.lovelaceValueOf 3)
+        /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 1 ==)
+        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-4) <> gameTokenVal))
+        ( successTrace
+        >> payToWallet w2 w1 gameTokenVal
+        >> callEndpoint @"guess" w1 GuessArgs{guessArgsOldSecret="new secret", guessArgsNewSecret="hello", guessArgsValueTakenOut=Ada.lovelaceValueOf 4}
+        >> handleBlockchainEvents w1
+        )
+
+    , checkPredicate @GameStateMachineSchema "run a failed trace"
+        G.contract
+        (walletFundsChange w2 gameTokenVal
+        /\ fundsAtAddress (Scripts.scriptAddress G.scriptInstance) (Ada.lovelaceValueOf 8 ==)
+        /\ walletFundsChange w1 (Ada.lovelaceValueOf (-8)))
+        ( callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
+        >> handleBlockchainEvents w1
+        >> payToWallet w1 w2 gameTokenVal
+        >> callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hola", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
+        >> handleBlockchainEvents w2)
+
+
+    , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
+
+    , HUnit.testCase "script size is reasonable"
+        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 51000)
+
+    ]
 
 initialVal :: Value
 initialVal = Ada.adaValueOf 10
@@ -57,52 +73,16 @@ w2 = EM.Wallet 2
 w3 :: EM.Wallet
 w3 = EM.Wallet 3
 
-processAndNotify :: EM.Trace m ()
-processAndNotify = void (EM.addBlocksAndNotify [w1, w2, w3] 1)
+successTrace :: MonadEmulator (TraceError e) m => ContractTrace GameStateMachineSchema e m a ()
+successTrace = do
+    callEndpoint @"lock" w1 LockArgs{lockArgsSecret="hello", lockArgsValue= Ada.lovelaceValueOf 8}
+    handleBlockchainEvents w1
+    handleBlockchainEvents w1
+    payToWallet w1 w2 gameTokenVal
+    callEndpoint @"guess" w2 GuessArgs{guessArgsOldSecret="hello", guessArgsNewSecret="new secret", guessArgsValueTakenOut=Ada.lovelaceValueOf 3}
+    handleBlockchainEvents w2
 
--- Wallet 1 locks some funds using the secret "hello". Then wallet 1
--- transfers the token to wallet 2, and wallet 2 makes a correct guess
--- and locks the remaining funds using the secret "new secret".
-runGameSuccess :: (EM.MonadEmulator e m) => m ()
-runGameSuccess = void $ EM.processEmulated $ do
-        processAndNotify
-        _   <- EM.runWalletAction w1 G.startGame
-        _   <- EM.runWalletAction w2 G.startGame
-        processAndNotify
-        _ <- EM.runWalletAction w1 (G.lock "hello" (Ada.adaValueOf 8))
-        processAndNotify
-        processAndNotify
-        _ <- EM.runWalletAction w1 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w2))
-        processAndNotify
-        _ <- EM.runWalletAction w2 (guess "hello" "new secret" (Ada.adaValueOf 3) (Ada.adaValueOf 5))
-        processAndNotify
-        EM.assertOwnFundsEq w2 (initialVal <> Ada.adaValueOf 3 <> G.gameTokenVal)
-
--- Runs 'runGameSuccess', then wallet 2 transfers the token to wallet 1, which takes
--- out another couple of Ada.
-runGameSuccess2 :: (EM.MonadEmulator e m) => m ()
-runGameSuccess2 = do
-    runGameSuccess
-
-    void $ EM.processEmulated $ do
-        _ <- EM.runWalletAction w2 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w1))
-        processAndNotify
-        _ <- EM.runWalletAction w1 (guess "new secret" "hello" (Ada.adaValueOf 2) (Ada.adaValueOf 3))
-        processAndNotify
-        EM.assertOwnFundsEq w1 (Ada.adaValueOf 4 <> G.gameTokenVal)
-
--- Wallet 2 makes a wrong guess and fails to take out the funds
-runGameFailure :: (EM.MonadEmulator e m) => m ()
-runGameFailure = void $ EM.processEmulated $ do
-        processAndNotify
-        _   <- EM.runWalletAction w1 G.startGame
-        _   <- EM.runWalletAction w2 G.startGame
-        processAndNotify
-        _ <- EM.runWalletAction w1 (G.lock "hello" (Ada.adaValueOf 8))
-        processAndNotify
-        processAndNotify
-        _ <- EM.runWalletAction w1 (W.payToPublicKey_ W.defaultSlotRange G.gameTokenVal (EM.walletPubKey w2))
-        processAndNotify
-        _ <- EM.runWalletAction w2 (guess "hola" "new secret" (Ada.adaValueOf 3) (Ada.adaValueOf 5))
-        processAndNotify
-        EM.assertOwnFundsEq w2 (initialVal <> G.gameTokenVal)
+gameTokenVal :: Value
+gameTokenVal =
+    let sym = Scripts.monetaryPolicyHash G.scriptInstance
+    in G.token sym "guess"

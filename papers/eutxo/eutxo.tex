@@ -1,0 +1,280 @@
+\documentclass[runningheads]{llncs}
+
+% 4th Workshop on Trusted Smart Contracts: https://fc20.ifca.ai/wtsc/cfp.html
+%
+%   Abstract Registration (preferably)	December 9, 2019
+%   Paper Submission Deadline	December 12, 2019
+%   Early Author Notification	January 4, 2020
+%   Late Abstract Registration	January 5, 2020
+%   Late Submission Deadline	January 7, 2020
+%   Late Author Notification	January 20, 2020
+%
+% LNCS: 15 pages including references and appendices
+
+\usepackage{url}
+
+\usepackage{graphicx}
+
+% If you use the hyperref package, please uncomment the following line
+% to display URLs in blue roman font according to Springer's eBook style:
+%% kwxm: I did as it said, but then had to add \usepackage{url}, which
+%% wasn't there before (but \url worked anyway).
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{verbatim}
+\usepackage{alltt}
+\usepackage{etoolbox}
+\usepackage{paralist}
+
+\usepackage{float}
+
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+%\usepackage{amsthm}
+\usepackage{proof}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\usepackage{todonotes}
+%\usepackage[disable]{todonotes}
+\newcommand{\todochak}[1]{\todo[inline,color=purple!40,author=chak]{#1}}
+\newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
+\newcommand{\todokwxm}[1]{\todo[inline,color=blue!20,author=kwxm]{#1}}
+\newcommand{\todojm}[1]{\todo[inline,color=purple!40,author=Jann]{#1}}
+\newcommand{\todor}[1]{\todo[inline,color=orange!40,author=Orestis]{#1}}
+\newcommand{\todojc}[1]{\todo[inline,color=gray!40,author=James]{#1}}
+
+%% ... plus other authors.
+
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum]{hyperref}
+%% ^ To make the links a bit less garish.  Delete this to return to normal.
+
+\newcommand\site[1]{\footnote{\url{#1}}}
+%% ^ footnote URLs
+
+%% A figure with rules above and below.
+\newcommand\rfskip{7pt}
+\newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
+
+\renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
+\renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
+\newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
+\newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
+
+
+%% Various text macros
+\newcommand{\true}{\textsf{true}}
+\newcommand{\false}{\textsf{false}}
+
+\newcommand{\hash}[1]{\ensuremath{#1^{\#}}}
+
+\newcommand{\List}[1]{\ensuremath{\s{List}[#1]}}
+\newcommand{\Set}[1]{\ensuremath{\s{Set}[#1]}}
+\newcommand{\Map}[2]{\ensuremath{\s{Map}[#1,#2]}}
+\newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
+\newcommand{\extended}[1]{#1^\updownarrow}
+
+\newcommand{\script}{\ensuremath{\s{Script}}}
+\newcommand{\scriptAddr}{\msf{scriptAddr}}
+\newcommand{\ctx}{\ensuremath{\s{Context}}}
+\newcommand{\toCtx}{\msf{toContext}}
+
+\newcommand{\toData}{\msf{toData}}
+\newcommand{\fromData}{\msf{fromData}}
+
+% Macros for eutxo things.
+\newcommand{\TxId}{\ensuremath{\s{TxId}}}
+\newcommand{\txId}{\msf{txId}}
+\newcommand{\txrefid}{\mi{id}}
+\newcommand{\Address}{\ensuremath{\s{Address}}}
+\newcommand{\DataHash}{\ensuremath{\s{DataHash}}}
+\newcommand{\idx}{\mi{index}}
+\newcommand{\inputs}{\mi{inputs}}
+\newcommand{\outputs}{\mi{outputs}}
+\newcommand{\forge}{\mi{forge}}
+\newcommand{\fee}{\mi{fee}}
+\newcommand{\addr}{\mi{addr}}
+\newcommand{\val}{\mi{value}}  %% \value is already defined
+
+\newcommand{\validator}{\mi{validator}}
+\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\datum}{\mi{datum}}
+\newcommand{\datumHsh}{\mi{datumHash}}
+\newcommand{\datumWits}{\mi{datumWitnesses}}
+\newcommand{\hashData}{\msf{dataHash}}
+\newcommand{\validityInterval}{\mi{validityInterval}}
+\newcommand{\Data}{\ensuremath{\s{Data}}}
+
+\newcommand{\outputref}{\mi{outputRef}}
+\newcommand{\txin}{\mi{in}}
+\newcommand{\id}{\mi{id}}
+\newcommand{\lookupTx}{\msf{lookupTx}}
+\newcommand{\currentTick}{\msf{currentTick}}
+\newcommand{\getSpent}{\msf{getSpentOutput}}
+
+\newcommand{\tick}{\ensuremath{\s{Tick}}}
+\newcommand{\spent}{\msf{spentOutputs}}
+\newcommand{\unspent}{\msf{unspentOutputs}}
+\newcommand{\txunspent}{\msf{unspentTxOutputs}}
+\newcommand{\eutxotx}{\msf{Tx}}
+
+\newcommand{\qty}{\ensuremath{\s{Quantity}}}
+\newcommand{\token}{\ensuremath{\s{Token}}}
+\newcommand{\currency}{\ensuremath{\s{CurrencyId}}}
+\newcommand{\nativeCur}{\ensuremath{\mathrm{nativeC}}}
+\newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
+\newcommand{\injectNative}{\ensuremath{\mathrm{inject}}}
+
+\newcommand{\qtymap}{\ensuremath{\s{Quantities}}}
+
+\newcommand\B{\ensuremath{\mathbb{B}}}
+\newcommand\N{\ensuremath{\mathbb{N}}}
+\newcommand\Z{\ensuremath{\mathbb{Z}}}
+\renewcommand\H{\ensuremath{\mathbb{H}}}
+%% \H is usually the Hungarian double acute accent
+\newcommand{\emptyBs}{\ensuremath{\emptyset}}
+
+\newcommand{\emptymap}{\ensuremath{\{\}}}
+
+% multisig
+\newcommand{\msc}{\mathrm{msc}}
+\newcommand{\sig}{\mathit{sig}}
+\newcommand{\sigs}{\mathit{sigs}}
+\newcommand{\auth}{\mathrm{auth}}
+\newcommand{\Holding}{\msf{Holding}}
+\newcommand{\Collecting}[2]{\msf{Collecting}(#1, #2)}
+\newcommand{\Propose}[1]{\msf{Propose}(#1)}
+\newcommand{\Add}[1]{\msf{Add}(#1)}
+\newcommand{\Cancel}{\msf{Cancel}}
+\newcommand{\Pay}{\msf{Pay}}
+
+% Agda code commit hash
+\newcommand\AgdaCommit{a1574e6}
+
+% For anonymisation
+\newtoggle{anonymous}
+\togglefalse{anonymous}
+\iftoggle{anonymous}{
+\newcommand{\Cardano}{CHAIN}
+\newcommand{\Plutus}{LANG}
+\newcommand{\GitUser}{anonymous-agda}
+}{
+\newcommand{\Cardano}{Cardano}
+\newcommand{\Plutus}{Plutus Core}
+\newcommand{\GitUser}{omelkonian}
+}
+\newcommand{\anonymize}[1]{\iftoggle{anonymous}{}{#1}}
+
+% Names, for consistency
+\newcommand{\UTXO}{UTXO}
+\newcommand{\EUTXO}{E\UTXO{}}
+\newcommand{\ExUTXO}{Extended \UTXO{}}
+\newcommand{\CEM}{CEM}
+
+% ------
+
+\newcommand\isFinal{\msf{isFinal}}
+\newcommand\step{\msf{step}}
+\newcommand\satisfies{\msf{satisfies}}
+\newcommand\checkOutputs{\msf{checkOutputs}}
+
+\newcommand\mkValidator[1]{\msf{validator}_#1}
+\newcommand\Sim[2]{\ensuremath{
+#1 \sim #2
+}}
+\newcommand\CStep[3]{\ensuremath{
+#1 \xrightarrow{\hspace{5pt} #2 \hspace{5pt}} (#1' , #3)
+}}
+\newcommand\LStep[2]{\ensuremath{
+#1 \xrightarrow{\hspace{5pt} #2 \hspace{5pt}} #1'
+}}
+\newcommand\txeq{tx^\equiv}
+
+%% ------------- Start of document ------------- %%
+
+\sloppy
+\begin{document}
+
+\title{The \ExUTXO{} Model}
+
+% \author{Anonymous\inst{1} \and
+% Anonymous\inst{2,3}}
+
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+\iftoggle{anonymous}{
+\author{Anonymous}
+\authorrunning{Anonymous et al.}
+}{
+% author order: alphabetical
+\author{
+  Manuel M.T. Chakravarty\inst{1}
+  \and
+  James Chapman\inst{1}
+  \and
+  Kenneth MacKenzie\inst{1}
+  \and
+  Orestis Melkonian\inst{1,2}
+  \and
+  Michael Peyton Jones\inst{1}
+  \and
+  Philip Wadler\inst{2}
+}
+
+\authorrunning{Chakravarty et al.}
+
+\institute{
+  IOHK,
+  \email{\{manuel.chakravarty, james.chapman, kenneth.mackenzie, orestis.melkonian, michael.peyton-jones\}@iohk.io}
+  \and
+  University of Edinburgh, \email{orestis.melkonian@ed.ac.uk}, \email{wadler@inf.ed.ac.uk}
+}
+}
+
+\maketitle
+
+\begin{abstract}
+  Bitcoin and Ethereum, hosting the two currently most valuable and
+  popular cryptocurrencies, use two rather different ledger models,
+  known as the \emph{\UTXO{} model} and the \emph{account model},
+  respectively. At the same time, these two public blockchains differ
+  strongly in the expressiveness of the smart contracts that they
+  support. This is no coincidence. Ethereum chose the account model
+  explicitly to facilitate more expressive smart contracts. On the
+  other hand, Bitcoin chose \UTXO{} also for good reasons, including
+  that its semantic model stays simple in a complex concurrent and
+  distributed computing environment. This raises the question of
+  whether it is possible to have expressive smart contracts, while
+  keeping the semantic simplicity of the \UTXO{} model.
+
+  In this paper, we answer this question affirmatively. We present
+  \emph{\ExUTXO{}} (\emph{\EUTXO{}}), an extension to Bitcoin's \UTXO{} model
+  that supports a substantially more
+  expressive form of \emph{validation scripts}, including scripts that
+  implement general state machines and enforce invariants across
+  entire transaction chains.
+
+  To demonstrate the power of this model, we also introduce a form of state
+  machines suitable for execution on a ledger, based on Mealy machines
+  and called Constraint Emitting Machines (\CEM{}).  We formalise \CEM{}s,
+  show how to compile them to \EUTXO{}, and show a \emph{weak bisimulation}
+  between the two systems. All of our work is formalised using the Agda
+  proof assistant.
+\end{abstract}
+
+\keywords{blockchain \and \UTXO{} \and functional programming \and state machines.}
+
+\input{intro.tex}
+\input{informal-eutxo.tex}
+\input{formal-model.tex}
+\input{formal-verification.tex}
+\input{related-work.tex}
+
+\bibliographystyle{splncs04}
+\bibliography{eutxo}
+
+\end{document}

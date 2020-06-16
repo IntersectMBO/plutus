@@ -1,10 +1,8 @@
 Test outputs:
   
 Events by wallet:
-  Events for W1:
-    • {schedule collection:
-       ()}
+  
 Contract result by wallet:
-  Wallet: W1
-    Error:
-      OtherError (ContractError "something went wrong")
+    
+Checkpoint state by wallet
+    

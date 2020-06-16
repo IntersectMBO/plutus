@@ -2,6 +2,7 @@
 -- This module also defines custom pretty-printing functions for PLC types as a convenience.
 
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -15,6 +16,7 @@ module Language.PlutusCore.Pretty.Plc
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
     , PrettyPlc
+    , DefaultPrettyPlcStrategy
     , defPrettyConfigPlcOptions
     , defPrettyConfigPlcClassic
     , debugPrettyConfigPlcClassic
@@ -28,12 +30,11 @@ module Language.PlutusCore.Pretty.Plc
     , prettyPlcCondensedErrorBy
     ) where
 
-import           Data.Text.Prettyprint.Doc
-import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty.Classic
-import           Language.PlutusCore.Pretty.Readable
-import           Language.PlutusCore.Type
 import           PlutusPrelude
+
+import           Language.PlutusCore.Pretty.Classic
+import           Language.PlutusCore.Pretty.ConfigName
+import           Language.PlutusCore.Pretty.Readable
 
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors
@@ -57,6 +58,8 @@ data PrettyConfigPlc = PrettyConfigPlc
     , _pcpStrategy :: PrettyConfigPlcStrategy
     }
 
+type instance HasPrettyDefaults PrettyConfigPlc = 'True
+
 -- | The "pretty-printable PLC entity" constraint.
 type PrettyPlc = PrettyBy PrettyConfigPlc
 
@@ -73,24 +76,12 @@ instance HasPrettyConfigName PrettyConfigPlcStrategy where
 instance HasPrettyConfigName PrettyConfigPlc where
     toPrettyConfigName = toPrettyConfigName . _pcpStrategy
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlcStrategy a where
-    defaultPrettyBy (PrettyConfigPlcClassic configClassic)   = prettyBy configClassic
-    defaultPrettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlcStrategy (PrettyAny a) where
+    prettyBy (PrettyConfigPlcClassic  configClassic ) = prettyBy configClassic  . unPrettyAny
+    prettyBy (PrettyConfigPlcReadable configReadable) = prettyBy configReadable . unPrettyAny
 
-instance DefaultPrettyPlcStrategy a => DefaultPrettyBy PrettyConfigPlc a where
-    defaultPrettyBy = defaultPrettyBy . _pcpStrategy
-
-instance PrettyBy PrettyConfigPlc (Kind ann)
-instance PrettyBy PrettyConfigPlc (Builtin ann)
-instance DefaultPrettyPlcStrategy (Type tyname ann) =>
-    PrettyBy PrettyConfigPlc (Type tyname ann)
-instance DefaultPrettyPlcStrategy (Term tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Term tyname name ann)
-instance DefaultPrettyPlcStrategy (Program tyname name ann) =>
-    PrettyBy PrettyConfigPlc (Program tyname name ann)
-
-instance PrettyBy PrettyConfigPlc BuiltinName where
-    prettyBy _ = pretty
+instance DefaultPrettyPlcStrategy a => PrettyBy PrettyConfigPlc (PrettyAny a) where
+    prettyBy = prettyBy . _pcpStrategy
 
 -- | The 'PrettyConfigPlcOptions' used by default:
 -- print errors in full.

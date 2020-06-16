@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
@@ -14,14 +15,16 @@ module Language.PlutusCore.Constant.Dynamic.Emit
 import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Evaluator
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Universe
 
-import           Control.Exception                         (evaluate)
+import           Control.Exception                                  (evaluate)
 import           Data.IORef
-import           System.IO.Unsafe                          (unsafePerformIO)
+import           System.IO.Unsafe                                   (unsafePerformIO)
 
 -- This does not stream elements lazily. There is a version that allows to stream elements lazily,
 -- but we do not have it here because it's way too convoluted.
@@ -40,33 +43,38 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
-newtype EmitHandler r = EmitHandler
-    { unEmitHandler :: DynamicBuiltinNameMeanings -> Term TyName Name () -> IO r
+newtype EmitHandler uni r = EmitHandler
+    { unEmitHandler :: DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
     }
 
-feedEmitHandler :: Term TyName Name () -> EmitHandler r -> IO r
-feedEmitHandler term (EmitHandler handler) = handler mempty term
+feedEmitHandler
+    :: DynamicBuiltinNameMeanings uni
+    -> Term TyName Name uni ()
+    -> EmitHandler uni r
+    -> IO r
+feedEmitHandler means term (EmitHandler handler) = handler means term
 
-withEmitHandler :: Evaluator Term m -> (EmitHandler (m EvaluationResultDef) -> IO r2) -> IO r2
+withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: KnownType a
-    => (Term TyName Name () -> EmitHandler r1 -> IO r2)
-    -> EmitHandler r1
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
+    -> EmitHandler uni r1
     -> IO ([a], r2)
 withEmitTerm cont (EmitHandler handler) =
     withEmit $ \emit -> do
         counter <- nextGlobalUnique
-        let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
+        let dynEmitName = DynamicBuiltinName $ "emit" <> display counter
             dynEmitTerm = dynamicCall dynEmitName
-            dynEmitDef  = dynamicCallAssign dynEmitName emit
+            dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: KnownType a
-    => Evaluator Term m
-    -> (Term TyName Name () -> Term TyName Name ())
-    -> IO ([a], m EvaluationResultDef)
-withEmitEvaluateBy eval toTerm =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler . toTerm
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    => AnEvaluator Term uni m b
+    -> DynamicBuiltinNameMeanings uni
+    -> (Term TyName Name uni () -> Term TyName Name uni ())
+    -> IO ([a], m b)
+withEmitEvaluateBy eval means inst =
+    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst

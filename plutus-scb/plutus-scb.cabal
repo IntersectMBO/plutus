@@ -1,0 +1,251 @@
+cabal-version: 2.2
+name: plutus-scb
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: jann.mueller@iohk.io
+author: Jann Müller
+homepage: https://github.com/iohk/plutus#readme
+bug-reports: https://github.com/iohk/plutus/issues
+description:
+    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
+build-type: Simple
+
+source-repository head
+    type: git
+    location: https://github.com/iohk/plutus
+
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    if flag(defer-plugin-errors)
+        ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
+
+library
+    import: lang
+    exposed-modules:
+        Cardano.ChainIndex.API
+        Cardano.ChainIndex.Client
+        Cardano.ChainIndex.Server
+        Cardano.ChainIndex.Types
+        Cardano.Node.API
+        Cardano.Node.Client
+        Cardano.Node.Follower
+        Cardano.Node.Mock
+        Cardano.Node.RandomTx
+        Cardano.Node.Server
+        Cardano.Node.Types
+        Cardano.SigningProcess.API
+        Cardano.SigningProcess.Server
+        Cardano.SigningProcess.Client
+        Cardano.Wallet.API
+        Cardano.Wallet.Client
+        Cardano.Wallet.Mock
+        Cardano.Wallet.Server
+        Cardano.Wallet.Types
+        Control.Monad.Freer.Extra.Log
+        Control.Monad.Freer.Extra.State
+        Data.Time.Units.Extra
+        Plutus.SCB.App
+        Plutus.SCB.MockApp
+        Plutus.SCB.Arbitrary
+        Plutus.SCB.Command
+        Plutus.SCB.ContractCLI
+        Plutus.SCB.Core
+        Plutus.SCB.Core.ContractInstance
+        Plutus.SCB.Core.Projections
+        Plutus.SCB.Effects.Contract
+        Plutus.SCB.Effects.ContractTest
+        Plutus.SCB.Effects.EventLog
+        Plutus.SCB.Effects.MultiAgent
+        Plutus.SCB.Effects.UUID
+        Plutus.SCB.Webserver.Types
+        Plutus.SCB.Webserver.API
+        Plutus.SCB.Webserver.Server
+        Plutus.SCB.Events
+        Plutus.SCB.Events.Contract
+        Plutus.SCB.Events.Node
+        Plutus.SCB.Events.User
+        Plutus.SCB.Events.Wallet
+        Plutus.SCB.Query
+        Plutus.SCB.Relation
+        Plutus.SCB.Types
+        Plutus.SCB.Utils
+    other-modules:
+        Servant.Extra
+    hs-source-dirs: src
+    build-depends:
+        plutus-ledger -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
+        plutus-contract -any,
+        playground-common -any,
+        plutus-use-cases -any,
+        iots-export -any
+    build-depends:
+        QuickCheck -any,
+        aeson -any,
+        aeson-pretty -any,
+        base >=4.7 && <5,
+        bytestring -any,
+        containers -any,
+        directory -any,
+        errors -any,
+        eventful-core -any,
+        eventful-memory -any,
+        eventful-sql-common -any,
+        eventful-sqlite -any,
+        freer-simple -any,
+        generic-arbitrary -any,
+        http-client -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        optparse-applicative -any,
+        persistent -any,
+        persistent-sqlite -any,
+        playground-common -any,
+        prettyprinter >=1.1.0.1,
+        process -any,
+        quickcheck-instances -any,
+        random -any,
+        row-types -any,
+        scientific -any,
+        servant -any,
+        servant-client -any,
+        servant-server -any,
+        stm -any,
+        text -any,
+        time-units -any,
+        transformers -any,
+        unliftio-core -any,
+        unordered-containers -any,
+        uuid -any,
+        vector -any,
+        warp -any,
+        yaml -any,
+        freer-simple -any,
+        mwc-random -any,
+        primitive -any,
+        hedgehog -any
+
+executable plutus-scb
+    main-is: Main.hs
+    hs-source-dirs: app
+    other-modules:
+        PSGenerator
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        aeson -any,
+        aeson-pretty -any,
+        async -any,
+        base >=4.9 && <5,
+        bytestring -any,
+        ekg -any,
+        filepath -any,
+        freer-simple -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        optparse-applicative -any,
+        playground-common -any,
+        plutus-scb -any,
+        plutus-ledger -any,
+        plutus-contract -any,
+        plutus-use-cases -any,
+        prettyprinter >=1.1.0.1,
+        purescript-bridge -any,
+        row-types -any,
+        servant-purescript -any,
+        text -any,
+        unliftio-core -any,
+        uuid -any,
+        yaml -any,
+        containers -any
+
+executable plutus-game
+    main-is: Main.hs
+    hs-source-dirs: game-contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any,
+        plutus-use-cases -any
+
+executable plutus-currency
+    main-is: Main.hs
+    hs-source-dirs: currency-contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any,
+        plutus-use-cases -any
+
+test-suite plutus-scb-test
+    default-language: Haskell2010
+    hs-source-dirs: test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    other-modules:
+        Plutus.SCB.CoreSpec
+        Plutus.SCB.RelationSpec
+        Plutus.SCB.Events.ContractSpec
+
+    build-depends:
+        QuickCheck -any,
+        aeson -any,
+        aeson-pretty -any,
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        eventful-core -any,
+        eventful-memory -any,
+        freer-simple -any,
+        lens -any,
+        monad-logger -any,
+        mtl -any,
+        plutus-contract -any,
+        plutus-scb -any,
+        plutus-use-cases -any,
+        plutus-ledger -any,
+        quickcheck-instances -any,
+        servant-client -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-quickcheck -any,
+        text -any,
+        transformers -any,
+        prettyprinter -any,
+        row-types -any

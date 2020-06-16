@@ -1,12 +1,13 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE MonoLocalBinds       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- Prevent unboxing, which the plugin can't deal with
 {-# OPTIONS_GHC -fno-strictness #-}
@@ -17,6 +18,7 @@ module Language.PlutusTx.AssocMap (
     Map
     , singleton
     , empty
+    , null
     , fromList
     , toList
     , keys
@@ -32,9 +34,10 @@ module Language.PlutusTx.AssocMap (
 import           GHC.Generics              (Generic)
 import           Language.PlutusTx.IsData
 import           Language.PlutusTx.Lift    (makeLift)
-import           Language.PlutusTx.Prelude hiding (all, lookup)
+import           Language.PlutusTx.Prelude hiding (all, lookup, null)
 import qualified Language.PlutusTx.Prelude as P
 import           Language.PlutusTx.These
+import qualified Prelude                   as HP
 
 {-# ANN module ("HLint: ignore Use newtype instead of data"::String) #-}
 
@@ -52,6 +55,14 @@ instance Functor (Map k) where
             go ((c, i):xs') = (c, f i) : go xs'
         in Map (go mp)
 
+-- Do not use this 'Read' instance. It is only used by Marlowe Playgrounds
+-- and it will be removed after we have proper serialisation.
+instance (Read k, Read e) => Read (Map k e) where
+  readsPrec p = readParen (p HP.> 10) $ \ r -> do
+    ("fromList",s) <- lex r
+    (xs,t) <- reads s
+    return (fromList xs,t)
+
 -- This is the "better" instance for Maps that various people
 -- have suggested, which merges conflicting entries with
 -- the underlying semigroup for values.
@@ -59,7 +70,7 @@ instance (Eq k, Semigroup v) => Semigroup (Map k v) where
     (<>) = unionWith (<>)
 
 instance (Eq k, Semigroup v) => Monoid (Map k v) where
-    mempty = empty ()
+    mempty = empty
 
 {-# INLINABLE fromList #-}
 fromList :: [(k, v)] -> Map k v
@@ -164,10 +175,14 @@ mapThese f mps = (Map mpl, Map mpr)  where
 singleton :: k -> v -> Map k v
 singleton c i = Map [(c, i)]
 
--- This has to take unit otherwise it falls foul of the value restriction.
 {-# INLINABLE empty #-}
 -- | An empty 'Map'.
-empty :: () -> Map k v
-empty _ = Map ([] :: [(k, v)])
+empty :: Map k v
+empty = Map ([] :: [(k, v)])
+
+{-# INLINABLE null #-}
+-- | Is the map empty?
+null :: Map k v -> Bool
+null = P.null . unMap
 
 makeLift ''Map

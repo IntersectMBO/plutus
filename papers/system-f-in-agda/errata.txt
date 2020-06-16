@@ -1,0 +1,24 @@
+This file documents bugs/fixes/additions made after publication:
+
+26 November 2019:
+
+The rule β-wrap should insist that the body is a value. Otherwise it
+is possible to apply either the ξ-wrap or the β-wrap rule to the same
+term. Fixed.
+
+6 March 2020:
+
+The rule β-Λ should insist the body of the Λ is a value. Otherwise it
+is possible to apply either ξ-Λ inside ξ-·⋆ or β-Λ to the same
+term. Fixed.
+
+Added proof of determinism of the reduction rules to the source of the
+paper to paper source. Not visible in the pdf.
+
+Added proof that progress returns an element of an 'exclusive or' to
+paper source. Not visible in the pdf.
+
+16 April 2020:
+
+Added a proof that untype values do not reduce and that the untyped
+reduction rules are deterministic. Not visible in the pdf.

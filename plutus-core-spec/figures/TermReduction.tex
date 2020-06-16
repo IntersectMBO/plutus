@@ -9,18 +9,19 @@
 \begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Frame} & f  & ::=   & \inInstLeftFrame{A}                     & \textrm{left instantiation}\\
-                       %&   &     & \inInstRightFrame{V}                    & \textrm{right instantiation}\\
-                       %&   &     & \inWrapLeftFrame{\alpha}{M}             & \textrm{left wrap}\\
+        \textrm{Frame} & f  & ::=   & \inInstLeftFrame{A}             & \textrm{left instantiation}\\
+                       %&   &     & \inInstRightFrame{V}              & \textrm{right instantiation}\\
+                       %&   &     & \inWrapLeftFrame{\alpha}{M}       & \textrm{left wrap}\\
                        &   &     & \inWrapRightFrame{A}{B}            & \textrm{right wrap}\\
-                       &   &     & \inUnwrapFrame{}                        & \textrm{unwrap}\\
-                       %&   &     & \inLamLeftFrame{x}{M}                   & \textrm{$\lambda$}\\
-                       &   &     & \inAppLeftFrame{M}                      & \textrm{left app}\\
-                       &   &     & \inAppRightFrame{V}                     & \textrm{right app}\\
-                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}        & \textrm{builtin}\\
+                       &   &     & \inUnwrapFrame{}                   & \textrm{unwrap}\\
+                       %&   &     & \inLamLeftFrame{x}{M}             & \textrm{$\lambda$}\\
+                       &   &     & \inAppLeftFrame{M}                 & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}                & \textrm{right application}\\
+                       &   &     & \inBuiltin{bn}{A^*}{V^*}{\_}{M^*}   & \textrm{builtin application}\\
+
     \end{array}\]
-    \caption{Grammar of Reduction Frames}
-    \label{fig:reduction_frames}
+    \caption{Grammar of reduction frames}
+    \label{fig:reduction-frames}
 \end{subfigure}
 
 
@@ -31,7 +32,7 @@
 
     \begin{prooftree}
         \AxiomC{}
-        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{V}}{A}}{[A/\alpha]V}\)}
+        \UnaryInfC{\(\step{\inst{\abs{\alpha}{K}{M}}{A}}{[A/\alpha]M}\)}
     \end{prooftree}
 
     \begin{prooftree}
@@ -45,8 +46,8 @@
     \end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{$bn$ computes on $\repetition{A}$ and $\repetition{V}$ to $U$ according to Figure \ref{fig:builtins}}
-        \UnaryInfC{\(\step{\builtin{bn}{\repetition{A}}{\repetition{V}}}{U}\)}
+        \AxiomC{$bn$ computes on $\repetition{A}$ and $\repetition{V}$ to $M$ according to Figure \ref{fig:builtins}}
+        \UnaryInfC{\(\step{\builtin{bn}{\repetition{A}}{\repetition{V}}}{M}\)}
     \end{prooftree}
 
     %\begin{prooftree}
@@ -55,22 +56,19 @@
     %\end{prooftree}
 
     \begin{prooftree}
-        \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' = \error{B}\)}
-        \AxiomC{\(\ctxsubst{f}{M} : A\)}
-        \TrinaryInfC{\(\step{\ctxsubst{f}{M}}{\error{A}}\)}
+        \AxiomC{\(\ctxsubst{f}{\error{B}} : A\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{\error{B}}}{\error{A}}\)}
     \end{prooftree}
 
     \begin{prooftree}
         \AxiomC{\(\step{M}{M'}\)}
-        \AxiomC{\(M' \not= \error{B}\)}
-        \BinaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
+        \UnaryInfC{\(\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}\)}
     \end{prooftree}
 
-    \caption{Reduction via Contextual Dynamics}
+    \caption{Reduction via contextual dynamics}
     \label{fig:reduction}
 \end{subfigure}
-\caption{Term Reduction for Plutus Core}
+\caption{Term reduction for Plutus Core}
 \label{fig:term-reduction}
 \end{figure}
 

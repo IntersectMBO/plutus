@@ -28,7 +28,7 @@ import           Data.Maybe                      (fromMaybe)
 import           Data.Proxy                      (Proxy (Proxy))
 import           Data.Text                       (Text)
 import qualified Data.Text                       as Text
-import           Data.Time.Units                 (Microsecond, fromMicroseconds)
+import           Data.Time.Units                 (Second)
 import qualified Data.UUID                       as UUID
 import           Data.UUID.V4                    (nextRandom)
 import qualified Interpreter
@@ -40,7 +40,7 @@ import qualified Marlowe.Symbolic.Types.Request  as MSReq
 import qualified Marlowe.Symbolic.Types.Response as MSRes
 import           Network.HTTP.Types              (hContentType)
 import           Network.WebSockets.Connection   (Connection, PendingConnection, receiveData, sendTextData)
-import           Servant                         (ServantErr, err400, errBody, errHeaders)
+import           Servant                         (ServerError, err400, errBody, errHeaders)
 import           Servant.API                     ((:<|>) ((:<|>)), (:>), JSON, NoContent (NoContent), Post, ReqBody)
 import           Servant.Client                  (ClientEnv, ClientM, client, runClientM)
 import           Servant.Server                  (Handler, Server)
@@ -53,7 +53,7 @@ import           WebSocket                       (Registry, WebSocketRequestMess
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
-    let maxInterpretationTime :: Microsecond = fromMicroseconds (10 * 1000 * 1000)
+    let maxInterpretationTime = 10 :: Second
     r <-
         liftIO
         $ runExceptT
@@ -105,8 +105,8 @@ handleWS registryVar apiKey callbackUrl marloweSymbolicClientEnv pending = liftI
                         Left err -> do
                           putStrLn $ "could not decode websocket message: " <> Text.unpack msg
                           sendTextData connection $ encode $ OtherError "Invalid message sent through websocket"
-                        Right (CheckForWarnings contract) -> do
-                            let req = MSReq.Request (UUID.toString uuid) (Text.unpack callbackUrl) contract
+                        Right (CheckForWarnings contract state) -> do
+                            let req = MSReq.Request (UUID.toString uuid) (Text.unpack callbackUrl) contract state
                             putStrLn $ "send request for user " <> show uuid <> " to " <> Text.unpack callbackUrl
                             res <- runClientM (marloweSymbolicClient (Just "Event") (Just apiKey) req) marloweSymbolicClientEnv
                             case res of

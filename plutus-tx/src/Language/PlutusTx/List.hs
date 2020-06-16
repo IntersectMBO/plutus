@@ -62,8 +62,7 @@ foldl f acc l = case l of
 --   4
 --
 length :: [a] -> Integer
--- eta-expanded to avoid the value restriction
-length as = foldr (\_ acc -> Builtins.addInteger acc 1) 0 as
+length = foldr (\_ acc -> Builtins.addInteger acc 1) 0
 
 {-# INLINABLE all #-}
 -- | PlutusTx version of 'Data.List.all'.

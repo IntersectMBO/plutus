@@ -1,84 +1,45 @@
-let
-  localLib     = import ./lib.nix { };
-  fixedNixpkgs = localLib.nixpkgs;
-  nixpkgs = import fixedNixpkgs { };
-  lib = nixpkgs.lib;
-  linux = ["x86_64-linux"];
-  darwin = ["x86_64-darwin"];
-in
-  { supportedSystems ? linux ++ darwin
-  , scrubJobs ? true
-  , fasterBuild ? false
-  , skipPackages ? []
-  , nixpkgsArgs ? {
-      # we need unfree for kindlegen
-      config = { allowUnfree = false; 
-                 allowUnfreePredicate = localLib.unfreePredicate; 
-                 overlays = [ (import ./nix/overlays/musl.nix) ];
-                 inHydra = true; 
-                 };
-      inherit fasterBuild;
-    }
-  # Passed in by Hydra depending on the configuration, contains the revision and the out path
-  , plutus ? null
-  }:
-
-# The revision passed in by Hydra, if there is one
-let rev = if builtins.isNull plutus then null else plutus.rev;
-
-in with (import (fixedNixpkgs + "/pkgs/top-level/release-lib.nix") {
-  inherit supportedSystems scrubJobs;
-  nixpkgsArgs = nixpkgsArgs // { inherit rev; };
-  packageSet = import ./.;
-});
+{ supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
+# Passed in by Hydra depending on the configuration, contains the revision and the out path
+, plutus ? null
+}:
 
 let
-  packageSet = import ./. { inherit rev; };
+  # The revision passed in by Hydra, if there is one
+  rev = if builtins.isNull plutus then null else plutus.rev;
 
-  # This is a mapping from attribute paths to systems. So it needs to mirror the structure of the
-  # attributes in default.nix exactly
-  systemMapping = {
-    localPackages = 
-      # Due to the magical split test machinery, packages that have a 'testdata' attribute should
-      # have their tests run via the 'testrun' derivation. I don't know how to *also* have a mapping
-      # for the package itself, since it would collide with the attrset containing 'testrun', but 
-      # the tests will depend on the main package so that's okay.
-      lib.mapAttrs (n: p: if p ? testdata then { testrun = supportedSystems; } else supportedSystems)
-         packageSet.localPackages;
-    # Some of the Agda dependencies only build on linux
-    metatheory = lib.mapAttrs (_: _: linux) packageSet.metatheory;  
-    # At least the client is broken on darwin for some yarn reason
-    plutus-playground = lib.mapAttrs (_: _: linux) packageSet.plutus-playground;
-    # At least the client is broken on darwin for some yarn reason
-    marlowe-playground = lib.mapAttrs (_: _: linux) packageSet.marlowe-playground;
-    # The lambda is specifically built for linux only using musl
-    marlowe-symbolic-lambda = linux;
-    # texlive is broken on darwin at our nixpkgs pin
-    docs = lib.mapAttrs (_: _: linux) packageSet.docs;  
-    papers = lib.mapAttrs (_: _: linux) packageSet.papers;  
-    tests = lib.mapAttrs (_: _: supportedSystems) packageSet.tests;  
-    dev.packages = lib.mapAttrs (_: _: supportedSystems) packageSet.dev.packages;  
-    # See note on 'easyPS' in 'default.nix'
-    dev.scripts = lib.mapAttrs (n: _: if n == "updateClientDeps" then linux else supportedSystems) packageSet.dev.scripts; 
-  };
-  
-  testJobsets = mapTestOn systemMapping;
+  # Generic nixpkgs for library usage
+  genericPkgs = import (import ./nix/sources.nix).nixpkgs {};
+  lib = genericPkgs.lib;
 
-  # Recursively collect all jobs (derivations) in a jobset 
-  allJobs = jobset: lib.collect lib.isDerivation jobset;
+  inherit (import ./nix/ci-lib.nix) stripAttrsForHydra filterDerivations;
 
-in lib.fix (jobsets: testJobsets // {
-  required = lib.hydraJob (nixpkgs.releaseTools.aggregate {
+  ci = import ./ci.nix { inherit supportedSystems rev; };
+  # ci.nix is a set of attributes that work fine as jobs (albeit in a slightly different structure, the platform comes
+  # first), but we mainly just need to get rid of some extra attributes.
+  ciJobsets = stripAttrsForHydra (filterDerivations ci);
+  # Recursively collect all jobs (derivations) in a jobset
+  # This uses 'attrByPath' so we can give a default if the attr is missing, which can happen
+  # if you've set 'supportedSystems' to not include all the systems.
+  allJobs = path: jobset: lib.collect lib.isDerivation (lib.attrByPath path {} jobset);
+in lib.fix (jobsets: ciJobsets // {
+  required = lib.hydraJob (genericPkgs.releaseTools.aggregate {
     name = "plutus-required-checks";
-    
-    constituents = (allJobs jobsets.localPackages)
-      ++ (allJobs jobsets.metatheory)
-      ++ (allJobs jobsets.tests)
-      ++ (allJobs jobsets.docs) 
-      ++ (allJobs jobsets.papers) 
-      ++ (allJobs jobsets.plutus-playground)
-      ++ (allJobs jobsets.marlowe-playground)
-      ++ (allJobs jobsets.marlowe-symbolic-lambda)
-      ++ (allJobs jobsets.dev.scripts);
+
+    constituents =
+      # Misc tests
+      (allJobs ["linux" "tests"] jobsets)
+      ++ (allJobs ["darwin" "tests"] jobsets)
+      # Haskell tests
+      ++ (allJobs ["linux" "haskell" ] jobsets)
+      ++ (allJobs ["darwin" "haskell" ] jobsets)
+      # Various things that mostly just need to build on linux
+      ++ (allJobs ["linux" "docs"] jobsets)
+      ++ (allJobs ["linux" "papers"] jobsets)
+      ++ (allJobs ["linux" "plutus-playground"] jobsets)
+      ++ (allJobs ["linux" "marlowe-playground"] jobsets)
+      ++ (allJobs ["linux" "plutus-scb"] jobsets)
+      # Developer scripts so they're definitely cached
+      ++ (allJobs ["linux" "dev" "scripts"] jobsets)
+      ++ (allJobs ["darwin" "dev" "scripts"] jobsets);
   });
 })

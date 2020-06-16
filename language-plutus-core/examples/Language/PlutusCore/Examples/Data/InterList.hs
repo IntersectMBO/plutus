@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.Examples.Data.InterList
     ( interListData
@@ -7,10 +8,11 @@ module Language.PlutusCore.Examples.Data.InterList
     , foldrInterList
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Data.Unit
@@ -38,12 +40,12 @@ We encode the following in this module:
 --
 -- > fix \(interlist :: * -> * -> *) (a :: *) (b :: *) ->
 -- >     all (r :: *). r -> (a -> b -> interlist b a -> r) -> r
-interListData :: RecursiveType ()
+interListData :: RecursiveType uni ()
 interListData = runQuote $ do
-    a         <- freshTyName () "a"
-    b         <- freshTyName () "b"
-    interlist <- freshTyName () "interlist"
-    r         <- freshTyName () "r"
+    a         <- freshTyName "a"
+    b         <- freshTyName "b"
+    interlist <- freshTyName "interlist"
+    r         <- freshTyName "r"
     let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
     makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
         . TyForall () r (Type ())
@@ -51,14 +53,14 @@ interListData = runQuote $ do
         . TyFun () (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ TyVar () r
 
-interNil :: Term TyName Name ()
+interNil :: Term TyName Name uni ()
 interNil = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
-    a <- freshTyName () "a"
-    b <- freshTyName () "b"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    a <- freshTyName "a"
+    b <- freshTyName "b"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
@@ -69,17 +71,17 @@ interNil = runQuote $ do
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
         $ Var () z
 
-interCons :: Term TyName Name ()
+interCons :: Term TyName Name uni ()
 interCons = runQuote $ do
     let RecursiveType interlist wrapInterList = interListData
-    a  <- freshTyName () "a"
-    b  <- freshTyName () "b"
-    x  <- freshName () "x"
-    y  <- freshName () "y"
-    xs <- freshName () "xs"
-    r  <- freshTyName () "r"
-    z  <- freshName () "z"
-    f  <- freshName () "f"
+    a  <- freshTyName "a"
+    b  <- freshTyName "b"
+    x  <- freshName "x"
+    y  <- freshName "y"
+    xs <- freshName "xs"
+    r  <- freshTyName "r"
+    z  <- freshName "z"
+    f  <- freshName "f"
     let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
@@ -97,25 +99,25 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: Term TyName Name ()
+foldrInterList :: uni `Includes` () => Term TyName Name uni ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
-    a0  <- freshTyName () "a0"
-    b0  <- freshTyName () "b0"
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    z   <- freshName () "z"
-    rec <- freshName () "rec"
-    u   <- freshName () "u"
-    a   <- freshTyName () "a"
-    b   <- freshTyName () "b"
-    f'  <- freshName () "f'"
-    xs  <- freshName () "xs"
-    x   <- freshName () "x"
-    y   <- freshName () "y"
-    xs' <- freshName () "xs'"
-    x'  <- freshName () "x'"
-    y'  <- freshName () "y'"
+    a0  <- freshTyName "a0"
+    b0  <- freshTyName "b0"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    z   <- freshName "z"
+    rec <- freshName "rec"
+    u   <- freshName "u"
+    a   <- freshTyName "a"
+    b   <- freshTyName "b"
+    f'  <- freshName "f'"
+    xs  <- freshName "xs"
+    x   <- freshName "x"
+    y   <- freshName "y"
+    xs' <- freshName "xs'"
+    x'  <- freshName "x'"
+    y'  <- freshName "y'"
     let interlistOf a' b' = mkIterTyApp () interlist [TyVar () a', TyVar () b']
         fTy a' b' = mkIterTyFun () [TyVar () a', TyVar () b', TyVar () r] $ TyVar () r
         fixTyArg2

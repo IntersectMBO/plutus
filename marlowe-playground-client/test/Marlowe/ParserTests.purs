@@ -4,17 +4,19 @@ import Prelude
 import Control.Alternative ((<|>))
 import Control.Monad.Reader (runReaderT)
 import Data.Either (Either(..))
-import Marlowe.Gen (genAction, genContract, genObservation, genValue)
+import Data.Maybe (fromMaybe)
+import Data.String (Pattern(..), stripPrefix, stripSuffix, trim)
+import Marlowe.Gen (genAction, genContract, genObservation, genTransactionWarning, genValue)
 import Marlowe.GenWithHoles (GenWithHoles, unGenWithHoles)
 import Marlowe.Holes (Action, Contract, Observation, Value)
-import Marlowe.Parser (action, contract, observation, value)
-import Marlowe.Pretty (pretty)
+import Marlowe.Parser (action, observation, parseContract, transactionWarning, value)
+import Marlowe.Semantics (TransactionWarning)
 import Test.QuickCheck (class Testable, Result, (===))
 import Test.Unit (TestSuite, Test, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import Text.Parsing.Parser (runParser)
-import Text.Parsing.Parser.Basic (parens)
-import Text.PrettyPrint.Leijen (flatten)
+import Text.Parsing.StringParser (runParser)
+import Text.Parsing.StringParser.Basic (parens)
+import Text.Pretty (genericPretty)
 
 all :: TestSuite
 all =
@@ -27,6 +29,8 @@ all =
     test "Pretty Action Parser" $ quickCheckGen prettyActionParser
     test "Contract Parser" $ quickCheckGen contractParser
     test "Pretty Contract Parser" $ quickCheckGen prettyContractParser
+    test "TransactionWarning Parser" $ quickCheckGen transactionWarningParser
+    test "Pretty TransactionWarning Parser" $ quickCheckGen prettyTransactionWarningParser
 
 quickCheckGen :: forall prop. Testable prop => GenWithHoles prop -> Test
 quickCheckGen g = quickCheck $ runReaderT (unGenWithHoles g) false
@@ -38,7 +42,7 @@ valueParser :: GenWithHoles Result
 valueParser = do
   v <- genValue
   let
-    result = runParser (show v) (parens value <|> value)
+    result = runParser (parens (value unit) <|> (value unit)) (show v)
 
     (expected :: Either String Value) = Right v
   pure (show result === show expected)
@@ -47,7 +51,7 @@ prettyValueParser :: GenWithHoles Result
 prettyValueParser = do
   v <- genValue
   let
-    result = runParser (show $ pretty v) (parens value <|> value)
+    result = runParser (parens (value unit) <|> (value unit)) (show $ genericPretty v)
 
     (expected :: Either String Value) = Right v
   pure (show result === show expected)
@@ -56,7 +60,7 @@ observationParser :: GenWithHoles Result
 observationParser = do
   v <- genObservation
   let
-    result = runParser (show v) (parens observation <|> observation)
+    result = runParser (parens observation <|> observation) (show v)
 
     (expected :: Either String Observation) = Right v
   pure (show result === show expected)
@@ -65,7 +69,7 @@ prettyObservationParser :: GenWithHoles Result
 prettyObservationParser = do
   v <- genObservation
   let
-    result = runParser (show $ flatten $ pretty v) (parens observation <|> observation)
+    result = runParser (parens observation <|> observation) (show $ genericPretty v)
 
     (expected :: Either String Observation) = Right v
   pure (show result === show expected)
@@ -74,7 +78,7 @@ actionParser :: GenWithHoles Result
 actionParser = do
   v <- genAction 5
   let
-    result = runParser (show v) (parens action <|> action)
+    result = runParser (parens action <|> action) (show v)
 
     (expected :: Either String Action) = Right v
   pure (show result === show expected)
@@ -83,7 +87,7 @@ prettyActionParser :: GenWithHoles Result
 prettyActionParser = do
   v <- genAction 5
   let
-    result = runParser (show $ flatten $ pretty v) (parens action <|> action)
+    result = runParser (parens action <|> action) (show $ genericPretty v)
 
     (expected :: Either String Action) = Right v
   pure (show result === show expected)
@@ -92,7 +96,9 @@ contractParser :: GenWithHoles Result
 contractParser = do
   v <- genContract
   let
-    result = runParser (show v) (parens contract <|> contract)
+    contractWithNoParens = fromMaybe (show v) (stripPrefix (Pattern "(") (show v) >>= stripSuffix (Pattern ")"))
+
+    result = parseContract contractWithNoParens
 
     (expected :: Either String Contract) = Right v
   pure (show result === show expected)
@@ -101,7 +107,29 @@ prettyContractParser :: GenWithHoles Result
 prettyContractParser = do
   v <- genContract
   let
-    result = runParser (show $ pretty v) (parens contract <|> contract)
+    prettyContract = trim <<< show <<< genericPretty $ v
+
+    contractWithNoParens = fromMaybe prettyContract (stripPrefix (Pattern "(") prettyContract >>= stripSuffix (Pattern ")"))
+
+    result = parseContract contractWithNoParens
 
     (expected :: Either String Contract) = Right v
+  pure (show result === show expected)
+
+transactionWarningParser :: GenWithHoles Result
+transactionWarningParser = do
+  v <- genTransactionWarning
+  let
+    result = runParser transactionWarning (show v)
+
+    (expected :: Either String TransactionWarning) = Right v
+  pure (show result === show expected)
+
+prettyTransactionWarningParser :: GenWithHoles Result
+prettyTransactionWarningParser = do
+  v <- genTransactionWarning
+  let
+    result = runParser transactionWarning (show $ genericPretty v)
+
+    (expected :: Either String TransactionWarning) = Right v
   pure (show result === show expected)

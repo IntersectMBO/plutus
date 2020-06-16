@@ -21,17 +21,20 @@ module Language.PlutusCore.Constant.Dynamic.OnChain
 
 import           Language.PlutusCore.Constant.Dynamic.Call
 import           Language.PlutusCore.Constant.Dynamic.Emit
-import           Language.PlutusCore.Constant.Dynamic.Instances ()
 import           Language.PlutusCore.Constant.Function
-import           Language.PlutusCore.Constant.Make
 import           Language.PlutusCore.Constant.Typed
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Evaluator
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Universe
 
 import           Control.Exception
 import           Data.Coerce
+import qualified Data.Kind                                          as GHC (Type)
 import           Data.Proxy
-import qualified Data.Text                                      as Text
+import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
 {- Note [Interpretation of names]
@@ -61,8 +64,8 @@ to evaluate.
 -}
 
 -- Well that's ugly.
-newtype OnChain (names :: [Symbol]) f (tyname :: * -> *) (name :: * -> *) ann = OnChain
-    { unOnChain :: f tyname name ann
+newtype OnChain (names :: [Symbol]) f tyname name (uni :: GHC.Type -> GHC.Type) ann = OnChain
+    { unOnChain :: f tyname name uni ann
     }
 
 -- Does it make sense to unify this with 'Evaluator' somehow?
@@ -72,19 +75,19 @@ newtype OnChain (names :: [Symbol]) f (tyname :: * -> *) (name :: * -> *) ann = 
 -- an 'OnChainEvaluator' is allowed to return any @r@, not just a @m EvaluationResult@ for some @m@.
 -- This is because an evaluator running on-chain can perform arbitrary effects and return an arbitrary
 -- result containing an 'EvaluationResult' somewhere deep inside @r@.
-type OnChainEvaluator names f r =
-    DynamicBuiltinNameMeanings -> OnChain names f TyName Name () -> r
+type OnChainEvaluator names f uni r =
+    DynamicBuiltinNameMeanings uni -> OnChain names f TyName Name uni () -> r
 
 -- @f@ is shared, hence it does first.
 -- | The type of functions that transform 'OnChainEvaluator's.
-type OnChainTransformer f names r names' r' =
-    OnChainEvaluator names f r -> OnChainEvaluator names' f r'
+type OnChainTransformer f names r names' uni r' =
+    OnChainEvaluator names f uni r -> OnChainEvaluator names' f uni r'
 
 -- | The type of handlers of outermost dynamic built-in names.
-type OnChainHandler name f r s =
-    forall names. OnChainTransformer f names r (name ': names) s
+type OnChainHandler name f uni r s =
+    forall names. OnChainTransformer f names r (name ': names) uni s
 
-mangleOnChain :: OnChain names f tyname name ann -> OnChain names' f tyname name ann
+mangleOnChain :: OnChain names f tyname name uni ann -> OnChain names' f tyname name uni ann
 mangleOnChain = coerce
 
 -- We should connect names with their meanings at the type level: @DynamicBuiltinNameMeaningOf name@.
@@ -93,39 +96,42 @@ mangleOnChain = coerce
 -- | Interpret a 'DynamicBuiltinNameMeaning' as an 'OnChainHandler' that doesn't change
 -- the resulting type of evaluation.
 handleDynamicByMeaning
-    :: forall name f r. KnownSymbol name
-    => DynamicBuiltinNameMeaning -> OnChainHandler name f r r
+    :: forall name f uni r. KnownSymbol name
+    => DynamicBuiltinNameMeaning uni -> OnChainHandler name f uni r r
 handleDynamicByMeaning mean eval env = eval env' . mangleOnChain where
     name    = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
     nameDef = DynamicBuiltinNameDefinition name mean
     env'    = insertDynamicBuiltinNameDefinition nameDef env
 
 handleDynamicEmitter
-    :: forall name f r. KnownSymbol name
-    => OnChainHandler name f r (forall a. KnownType a => IO ([a], r))
+    :: forall name f uni r. (GShow uni, GEq uni, uni `Includes` (), KnownSymbol name)
+    => OnChainHandler name f uni r (forall a. KnownType uni a => IO ([a], r))
 handleDynamicEmitter eval env term = withEmit $ \emit -> do
     let emitName = DynamicBuiltinName . Text.pack $ symbolVal (Proxy :: Proxy name)
-        emitDef  = dynamicCallAssign emitName emit
+        emitDef  = dynamicCallAssign emitName emit (\_ -> ExBudget 1 1) -- TODO
         env' = insertDynamicBuiltinNameDefinition emitDef env
     evaluate . eval env' $ mangleOnChain term
 
-dynamicEmit :: Term tyname name ()
+dynamicEmit :: Term tyname name uni ()
 dynamicEmit = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "emit"
 
 handleDynamicEmit
-    :: OnChainHandler "emit" f r (forall a. KnownType a => IO ([a], r))
+    :: (GShow uni, GEq uni, uni `Includes` ())
+    => OnChainHandler "emit" f uni r (forall a. KnownType uni a => IO ([a], r))
 handleDynamicEmit = handleDynamicEmitter
 
-dynamicLog :: Term tyname name ()
+dynamicLog :: Term tyname name uni ()
 dynamicLog = dynamicBuiltinNameAsTerm $ DynamicBuiltinName "log"
 
-handleDynamicLog :: OnChainHandler "log" f r (IO ([String], r))
+handleDynamicLog
+    :: (GShow uni, GEq uni, uni `IncludesAll` '[(), String])
+    => OnChainHandler "log" f uni r (IO ([String], r))
 handleDynamicLog = handleDynamicEmitter
 
 evaluateHandlersBy
-    :: Evaluator f m
-    -> (Evaluator (OnChain '[] f) m -> OnChainEvaluator names f r)
-    -> OnChain names f TyName Name ()
+    :: AnEvaluator f uni m b
+    -> (AnEvaluator (OnChain '[] f) uni m b -> OnChainEvaluator names f uni r)
+    -> OnChain names f TyName Name uni ()
     -> r
 evaluateHandlersBy eval handlers = handlers (\means -> eval means . unOnChain) mempty
 

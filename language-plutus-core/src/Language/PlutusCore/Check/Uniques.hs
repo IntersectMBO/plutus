@@ -7,9 +7,9 @@ module Language.PlutusCore.Check.Uniques
     ) where
 
 import           Language.PlutusCore.Analysis.Definitions
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Type
 
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
@@ -18,23 +18,23 @@ import           Data.Foldable
 
 checkProgram
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Program tyname name ann
+    -> Program tyname name uni ann
     -> m ()
 checkProgram p (Program _ _ t) = checkTerm p t
 
 checkTerm
     :: (Ord ann,
-        HasUnique (name ann) TermUnique,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Term tyname name ann
+    -> Term tyname name uni ann
     -> m ()
 checkTerm p t = do
     (_, errs) <- runTermDefs t
@@ -42,11 +42,11 @@ checkTerm p t = do
 
 checkType
     :: (Ord ann,
-        HasUnique (tyname ann) TypeUnique,
+        HasUnique tyname TypeUnique,
         AsUniqueError e ann,
         MonadError e m)
     => (UniqueError ann -> Bool)
-    -> Type tyname ann
+    -> Type tyname uni ann
     -> m ()
 checkType p t = do
     (_, errs) <- runTypeDefs t

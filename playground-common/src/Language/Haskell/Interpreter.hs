@@ -7,7 +7,17 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-module Language.Haskell.Interpreter (runghc, CompilationError(..), InterpreterError(..), SourceCode(..), avoidUnsafe, Warning(..), InterpreterResult(..)) where
+
+module Language.Haskell.Interpreter
+    ( runghc
+    , CompilationError(..)
+    , InterpreterError(..)
+    , SourceCode(..)
+    , avoidUnsafe
+    , Warning(..)
+    , InterpreterResult(..)
+    , parseErrorText
+    ) where
 
 import           Control.Monad             (unless)
 import           Control.Monad.Catch       (MonadCatch, MonadMask)
@@ -21,7 +31,6 @@ import           Control.Timeout           (timeout)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Bifunctor            (second)
 import           Data.Maybe                (fromMaybe)
-import           Data.Monoid               ((<>))
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import qualified Data.Text.Internal.Search as Text
@@ -49,7 +58,7 @@ data InterpreterError
     deriving anyclass (ToJSON, FromJSON)
 
 newtype SourceCode = SourceCode Text
-   deriving stock (Generic)
+   deriving stock (Show, Eq, Generic)
    deriving newtype (ToJSON, FromJSON)
    deriving anyclass (Newtype)
 

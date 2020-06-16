@@ -6,11 +6,8 @@ import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import qualified Ledger
 
-import           Wallet.Emulator                                   (walletPubKey)
-
 import           Language.PlutusTx.Coordination.Contracts.Currency (Currency)
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Cur
-
 
 import           Test.Tasty
 
@@ -23,7 +20,7 @@ tests = testGroup "currency"
 
     , checkPredicate "script size is reasonable"
         theContract
-        (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unValidatorScript . Cur.curValidator) "script too large")
+        (assertDone w1 ((25000 >=) . Ledger.scriptSize . Ledger.unMonetaryPolicyScript . Cur.curPolicy) "script too large")
         (handleBlockchainEvents (Wallet 1))
 
     ]
@@ -31,7 +28,7 @@ tests = testGroup "currency"
 w1 :: Wallet
 w1 = Wallet 1
 
-theContract :: Contract BlockchainActions ContractError Currency
+theContract :: Contract BlockchainActions Cur.CurrencyError Currency
 theContract =
     let amounts = [("my currency", 1000), ("my token", 1)] in
-    Cur.forgeContract (walletPubKey w1) amounts
+    Cur.forgeContract (Ledger.pubKeyHash $ walletPubKey w1) amounts

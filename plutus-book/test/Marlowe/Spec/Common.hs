@@ -40,7 +40,7 @@ positiveAmount :: Gen Integer
 positiveAmount = integral $ Range.linear 0 100
 
 pubKeyGen :: Gen PubKey
-pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 10)
+pubKeyGen = toPublicKey . (knownPrivateKeys !!) <$> integral (Range.linear 0 9)
 
 commitGen :: Gen Commit
 commitGen = do
@@ -183,7 +183,7 @@ performs actor action = do
 withContract
     :: [Wallet]
     -> Contract
-    -> (Tx -> ValidatorScript -> Trace MockWallet (Tx, State))
+    -> (Tx -> Validator -> Trace MockWallet (Tx, State))
     -> Trace MockWallet ()
 withContract wallets contract f = do
     let validator = marloweValidator (walletPubKey creator)

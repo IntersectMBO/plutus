@@ -1,0 +1,83 @@
+html,
+body {
+  font-family: 'Open Sans', Arial, sans-serif;
+  color: var(--text-color);
+}
+
+/* Modular Scale located here: https://www.modularscale.com/?1,1140,12&em&1.3 */
+
+body {
+  font-size: calc(8px + 0.35vw);
+  /* Responsive base font size */
+  line-height: calc(8px + 1.05vw);
+  /* Responsive Vertical Rhythm */
+}
+
+h1 {
+  font-size: 1.912em;
+  line-height: calc(18px + 1.8vw);
+  /* Responsive Vertical Rhythm */
+}
+
+h2 {
+  font-size: 1.616em;
+  line-height: calc(18px + 1vw);
+  /* Responsive Vertical Rhythm */
+}
+
+h3 {
+  font-size: 1.471em;
+  line-height: calc(18px + 0.7vw);
+  /* Responsive Vertical Rhythm */
+}
+
+h4 {
+  font-size: 1.3em;
+}
+
+h5 {
+  font-size: 1.243em;
+}
+
+h6 {
+  font-size: 1.132em;
+}
+
+h4,
+h5,
+h6 {
+  line-height: calc(18px + .2vw);
+  /* Responsive Vertical Rhythm */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: calc(12px + 1.05vw) 0;
+  /* Responsive margins */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+  /* Responsive margins */
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.underline {
+  text-decoration: underline;
+}

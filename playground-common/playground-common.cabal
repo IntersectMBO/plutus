@@ -22,6 +22,13 @@ library
         Gist
         Git
         Language.Haskell.Interpreter
+        PSGenerator.Common
+        Playground.API
+        Playground.Contract
+        Playground.Interpreter.Util
+        Playground.Schema
+        Playground.TH
+        Playground.Types
         Schema
         Servant.Extra
         Servant.Prometheus
@@ -42,6 +49,7 @@ library
         cookie -any,
         cryptonite -any,
         containers -any,
+        deriving-compat -any,
         directory -any,
         exceptions -any,
         filepath -any,
@@ -51,16 +59,24 @@ library
         http-client-tls -any,
         http-types -any,
         http-conduit -any,
+        iots-export -any,
         jwt -any,
         lens -any,
+        memory -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
         process -any,
         prometheus >=2,
+        plutus-contract -any,
+        plutus-ledger -any,
+        row-types -any,
+        prettyprinter -any,
+        plutus-tx -any,
+        purescript-bridge -any,
         recursion-schemes -any,
         safe-exceptions -any,
-        servant <0.16,
+        servant >= 0.16,
         servant-client -any,
         servant-purescript -any,
         servant-server -any,
@@ -83,6 +99,9 @@ test-suite playground-common-test
     other-modules:
         Paths_playground_common
         Auth.TypesSpec
+        Language.Haskell.InterpreterSpec
+        Playground.THSpec
+        Playground.TypesSpec
         SchemaSpec
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
@@ -97,6 +116,10 @@ test-suite playground-common-test
         cryptonite -any,
         tasty -any,
         tasty-hunit -any,
+        freer-simple -any,
         playground-common -any,
+        plutus-ledger -any,
+        plutus-contract -any,
+        recursion-schemes -any,
         text -any,
         wl-pprint-text -any

@@ -27,7 +27,7 @@ library
     exposed-modules:
         Language.PlutusTx.Coordination.Contracts
         Language.PlutusTx.Coordination.Contracts.TokenAccount
-        Language.PlutusTx.Coordination.Contracts.CrowdFunding
+        Language.PlutusTx.Coordination.Contracts.Crowdfunding
         Language.PlutusTx.Coordination.Contracts.Currency
         Language.PlutusTx.Coordination.Contracts.Escrow
         Language.PlutusTx.Coordination.Contracts.Future
@@ -44,27 +44,31 @@ library
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
+                        DeriveTraversable MultiParamTypeClasses
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
-        plutus-contract -any,
-        iots-export -any
-    build-depends:
         base -any,
         aeson -any,
         bytestring -any,
         containers -any,
+        iots-export -any,
         mtl -any,
+        language-plutus-core -any,
         plutus-tx -any,
-        plutus-wallet-api -any,
-        plutus-emulator -any,
+        plutus-contract -any,
+        playground-common -any,
+        plutus-ledger -any,
         template-haskell -any,
         lens -any,
-        text -any
+        text -any,
+        prettyprinter -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
     if flag(defer-plugin-errors)
         ghc-options: -fplugin-opt Language.PlutusTx.Plugin:defer-errors
@@ -92,12 +96,14 @@ test-suite plutus-use-cases-test
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -rtsopts
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
+        language-plutus-core -any,
         plutus-tx -any,
         plutus-contract -any,
-        plutus-wallet-api -any,
-        plutus-use-cases -any,
-        plutus-emulator -any
+        plutus-ledger -any,
+        plutus-use-cases -any
     build-depends:
         base >=4.9 && <5,
         aeson -any,
@@ -112,6 +118,9 @@ test-suite plutus-use-cases-test
         text -any,
         lens -any,
         mtl -any
+
+    if !(impl(ghcjs) || os(ghcjs))
+        build-depends: plutus-tx-plugin -any
 
 benchmark plutus-use-cases-bench
     type: exitcode-stdio-1.0
@@ -135,8 +144,12 @@ benchmark plutus-use-cases-bench
         memory -any,
         plutus-tx -any,
         plutus-use-cases -any,
-        plutus-wallet-api -any,
-        bytestring -any
+        plutus-ledger -any,
+        bytestring -any,
+        plutus-contract -any
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin -any
 
 executable contract-guessing-game
     default-language: Haskell2010

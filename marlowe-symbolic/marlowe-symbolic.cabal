@@ -14,12 +14,6 @@ library
         Marlowe.Symbolic.Types.Request
         Marlowe.Symbolic.Types.Response
         Marlowe.Symbolic.Types.API
-    other-modules:
-        Language.Marlowe.Analysis.FSSet
-        Language.Marlowe.Analysis.FSSemantics
-        Language.Marlowe.Analysis.IntegerArray
-        Language.Marlowe.Analysis.Numbering
-        Language.Marlowe.Analysis.MkSymb
     hs-source-dirs: src
     default-language: Haskell2010
     build-depends:      aeson >= 1.4.2.0,
@@ -29,8 +23,8 @@ library
                         http-client-tls,
                         marlowe,
                         containers,
-                        sbv >= 8.4,
-                        plutus-wallet-api,
+                        plutus-tx,
+                        plutus-ledger,
                         process,
                         servant,
                         servant-client -any,

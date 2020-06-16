@@ -3387,8 +3387,9 @@ data _—→_ {Φ}{Γ} : {A : Φ ⊢Nf⋆ *} → (Γ ⊢Nf A) → (Γ ⊢Nf A) �
   β-ƛ       : ∀{A B}{L : Γ , A ⊢Nf B}{M : Γ ⊢Nf A}
     → Value M → ƛ L · M —→ L [ M ]Nf
   β-Λ       : ∀{K B}{L : Γ ,⋆ K ⊢Nf B}{A : Φ ⊢Nf⋆ K}
+    → Value L
     → Λ L ·⋆ A —→ L ⋆[ A ]Nf
-  β-wrap    : ∀{A}{L : Γ ⊢Nf A [ μ A ]Nf⋆}
+  β-wrap    : ∀{A}{L : Γ ⊢Nf A [ μ A ]Nf⋆} → Value L
     → unwrap (wrap A L) —→ L
 \end{code}
 
@@ -3515,7 +3516,7 @@ be a \AgdaInductiveConstructor{Λ}-expression and we perform
 
 \begin{code}
 progress p (L ·⋆ A)      with progress p L
-progress p (Λ L ·⋆ A)    | inl (V-Λ V)    = inr (L ⋆[ A ]Nf ,, β-Λ)
+progress p (Λ L ·⋆ A)    | inl (V-Λ V)    = inr (L ⋆[ A ]Nf ,, (β-Λ V))
 progress p (L ·⋆ A)      | inr (L' ,, q)  = inr (L' ·⋆ A ,, ξ-·⋆ q)
 \end{code}
 
@@ -3526,7 +3527,7 @@ completes the proof.
 
 \begin{code}
 progress p (unwrap L)           with progress p L
-progress p (unwrap (wrap A L))  | inl (V-wrap V)  = inr (L ,, β-wrap)
+progress p (unwrap (wrap A L))  | inl (V-wrap V)  = inr (L ,, β-wrap V)
 progress p (unwrap L)           | inr (L' ,, q)   = inr (unwrap L' ,, ξ-unwrap q)
 \end{code}
 
@@ -3963,8 +3964,8 @@ removed, e.g., \AgdaInductiveConstructor{unwrap}
 \AgdaBound{L}:
 
 \begin{code}
-erase—→ (β-Λ  {L = L}{A = A})       = inr (eraseNf-⋆[]Nf L A)
-erase—→ β-wrap                      = inr refl
+erase—→ (β-Λ  {L = L}{A = A} V)     = inr (eraseNf-⋆[]Nf L A)
+erase—→ (β-wrap _)                  = inr refl
 \end{code}
 
 \noindent That concludes the proof: either a typed reduction step
@@ -4262,3 +4263,62 @@ in the course of writing this paper.
 %
 \bibliography{bibliography}
 \end{document}
+
+Some additional proofs added after publication and not shown in the paper
+
+\begin{code}
+open import Relation.Nullary
+
+-- a value can make no progress
+
+val : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t : Γ ⊢Nf σ} → Value t → ¬ (Σ (Γ ⊢Nf σ) (t —→_))
+val (V-ƛ p)    ()
+val (V-Λ p)    (.(Λ _) ,, ξ-Λ q)         = val p (_ ,, q)
+val (V-wrap p) (.(wrap _ _) ,, ξ-wrap q) = val p (_ ,, q)
+
+-- exclusive or
+_xor_ : Set → Set → Set
+A xor B = (A ⊎ B) × ¬ (A × B)
+
+-- progress can be upgraded to an xor using val
+
+progress-xor : {σ : ∅ ⊢Nf⋆ *}(t : ∅ ⊢Nf σ) → Value t xor Σ (∅ ⊢Nf σ) (t —→_)
+progress-xor t = progress  _ t ,, λ{(v ,, p) → val v p}
+
+-- The reduction rules are deterministic
+
+det : ∀{Φ Γ}{σ : Φ ⊢Nf⋆ *}{t t' t'' : Γ ⊢Nf σ}
+  → (p : t —→ t')(q : t —→ t'') → t' ≡ t''
+det (ξ-·₁ p)     (ξ-·₁ q)     = cong (_· _) (det p q)
+det (ξ-·₁ p)     (ξ-·₂ w q)   = ⊥-elim (val w (_ ,, p))
+det (ξ-·₂ v p)   (ξ-·₁ q)     = ⊥-elim (val v (_ ,, q))
+det (ξ-·₂ v p)   (ξ-·₂ w q)   = cong (_ ·_) (det p q)
+det (ξ-·₂ v p)   (β-ƛ w)      = ⊥-elim (val w (_ ,, p))
+det (ξ-·⋆ p)     (ξ-·⋆ q)     = cong (_·⋆ _) (det p q)
+det (β-Λ v)      (ξ-·⋆ q)     = ⊥-elim (val (V-Λ v) (_ ,, q))
+det (ξ-·⋆ p)     (β-Λ v)      = ⊥-elim (val (V-Λ v) (_ ,, p))
+det (ξ-Λ p)      (ξ-Λ q)      = cong Λ (det p q)
+det (β-ƛ v)      (ξ-·₂ w q)   = ⊥-elim (val v (_ ,, q))
+det (β-ƛ v)      (β-ƛ w)      = refl
+det (β-Λ v)      (β-Λ w)      = refl
+det (β-wrap p)   (β-wrap q)   = refl
+det (β-wrap p)   (ξ-unwrap q) = ⊥-elim (val (V-wrap p) (_ ,, q))
+det (ξ-unwrap p) (β-wrap q)   = ⊥-elim (val (V-wrap q) (_ ,, p))
+det (ξ-unwrap p) (ξ-unwrap q) = cong unwrap (det p q)
+det (ξ-wrap p)   (ξ-wrap q)   = cong (wrap _) (det p q)
+
+-- Untyped values cannot make progress
+valU : ∀{n}{t : n ⊢} → UValue t → ¬ (Σ (n ⊢) (t U—→_))
+valU (V-ƛ t) ()
+
+-- The untyped reduction rules are deterministic
+detU : ∀{n}{t t' t'' : n ⊢}
+  → (p : t U—→ t')(q : t U—→ t'') → t' ≡ t''
+detU (ξ-·₁ p)   (ξ-·₁ q)   = cong (_· _) (detU p q)
+detU (ξ-·₁ p)   (ξ-·₂ w q) = ⊥-elim (valU w (_ ,, p))
+detU (ξ-·₂ v p) (ξ-·₁ q)   = ⊥-elim (valU v (_ ,, q))
+detU (ξ-·₂ v p) (ξ-·₂ w q) = cong (_ ·_) (detU p q)
+detU (ξ-·₂ v p) (β-ƛ w)    = ⊥-elim (valU w (_ ,, p))
+detU (β-ƛ v)    (ξ-·₂ w q) = ⊥-elim (valU v (_ ,, q))
+detU (β-ƛ v)    (β-ƛ w)    = refl
+\end{code}

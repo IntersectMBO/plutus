@@ -8,12 +8,13 @@ module Language.PlutusCore.StdLib.Type
     , makeRecursiveType
     ) where
 
+import           PlutusPrelude
+
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
-import           PlutusPrelude
 
 {- Note [Arity of patterns functors]
 The arity of a pattern functor is the number of arguments the pattern functor receives in addition
@@ -369,7 +370,7 @@ to provide the kind of 'interlist', because we can compute it from the kinds of 
 The code constructing the data type itself:
 
     -- Introduce names in scope.
-    [a, b, interlist, r] <- traverse (freshTyName ()) ["a", "b", "interlist", "r"]
+    [a, b, interlist, r] <- traverse freshTyName ["a", "b", "interlist", "r"]
 
     -- Define some aliases.
     let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
@@ -486,10 +487,10 @@ are rather high while the benefits are minor, and thus we go with the semantic p
 
 -- | A recursive type packaged along with a specified 'Wrap' that allows to construct elements
 -- of this type.
-data RecursiveType ann = RecursiveType
-    { _recursiveType :: Type TyName ann
-    , _recursiveWrap :: forall term . TermLike term TyName Name
-                     => [Type TyName ann] -> term ann -> term ann
+data RecursiveType uni ann = RecursiveType
+    { _recursiveType :: Type TyName uni ann
+    , _recursiveWrap :: forall term . TermLike term TyName Name uni
+                     => [Type TyName uni ann] -> term ann -> term ann
     }
 
 -- | This exception is thrown when @_recursiveWrap@ is applied to a spine the length of which
@@ -498,14 +499,14 @@ data RecursiveType ann = RecursiveType
 data IndicesLengthsMismatchException = IndicesLengthsMismatchException
     { _indicesLengthsMismatchExceptionExpected :: Int
     , _indicesLengthsMismatchExceptionActual   :: Int
-    , _indicesLengthsMismatchExceptionTyName   :: TyName ()
+    , _indicesLengthsMismatchExceptionTyName   :: TyName
     } deriving (Typeable)
 
 instance Show IndicesLengthsMismatchException where
     show (IndicesLengthsMismatchException expected actual tyName) = concat
         [ "Wrong number of elements\n"
         , "expected: ", show expected, " , actual: ", show actual, "\n"
-        , "while constructing a ", prettyPlcDefString tyName
+        , "while constructing a ", displayPlcDef tyName
         ]
 
 instance Exception IndicesLengthsMismatchException
@@ -537,9 +538,9 @@ spineKindToRecKind ann spineKind = KindArrow ann spineKind $ Type ann
 --
 -- > getToSpine _ =
 -- >     \[a1 :: k1, a2 :: k2] -> (dat :: k1 -> k2 -> *) -> dat a1 a2
-getToSpine :: ann -> Quote ([TyDecl TyName ann] -> Type TyName ann)
+getToSpine :: ann -> Quote ([TyDecl TyName uni ann] -> Type TyName uni ann)
 getToSpine ann = do
-    dat <- freshTyName ann "dat"
+    dat <- freshTyName "dat"
 
     return $ \args ->
           TyLam ann dat (argKindsToDataKindN ann $ map tyDeclKind args)
@@ -555,7 +556,7 @@ getToSpine ann = do
 --
 -- > getSpine _ [a1 :: k1, a2 :: k2] =
 -- >     \(dat :: k1 -> k2 -> *) -> dat a1 a2
-getSpine :: ann -> [TyDecl TyName ann] -> Quote (Type TyName ann)
+getSpine :: ann -> [TyDecl TyName uni ann] -> Quote (Type TyName uni ann)
 getSpine ann args = ($ args) <$> getToSpine ann
 
 -- See Note [Packing n-ary pattern functors semantically].
@@ -579,17 +580,17 @@ getSpine ann args = ($ args) <$> getToSpine ann
 getWithSpine
     :: ann
     -> [TyVarDecl TyName ann]
-    -> Quote ((Type TyName ann -> Type TyName ann) -> Type TyName ann)
+    -> Quote ((Type TyName uni ann -> Type TyName uni ann) -> Type TyName uni ann)
 getWithSpine ann argVars = do
     spine <- getSpine ann $ map tyDeclVar argVars
     return $ \k -> mkIterTyLam argVars $ k spine
 
 -- See Note [Spiney API].
-type FromDataPieces ann a
+type FromDataPieces uni ann a
     =  ann                     -- ^ An annotation placed everywhere we do not have annotations.
-    -> TyName ann              -- ^ The name of the data type being defined.
+    -> TyName                  -- ^ The name of the data type being defined.
     -> [TyVarDecl TyName ann]  -- ^ A list of @n@ type variables bound in a pattern functor.
-    -> Type TyName ann         -- ^ The body of the n-ary pattern functor.
+    -> Type TyName uni ann     -- ^ The body of the n-ary pattern functor.
     -> Quote a
 
 -- See Note [Packing n-ary pattern functors semantically].
@@ -610,7 +611,7 @@ type FromDataPieces ann a
 -- >         in \(rec :: ((k1 -> k2 -> *) -> *) -> *)
 -- >             (spine :: (k1 -> k2 -> *) -> *) ->
 -- >                 spine (patN (withSpine rec))
-packPatternFunctorBodyN :: FromDataPieces ann (Type TyName ann)
+packPatternFunctorBodyN :: FromDataPieces uni ann (Type TyName uni ann)
 packPatternFunctorBodyN ann dataName argVars patBodyN = do
     let dataKind  = argKindsToDataKindN ann $ map tyVarDeclKind argVars
         spineKind = dataKindToSpineKind ann dataKind
@@ -620,8 +621,8 @@ packPatternFunctorBodyN ann dataName argVars patBodyN = do
 
     withSpine <- getWithSpine ann argVars
 
-    rec   <- freshTyName ann "rec"
-    spine <- freshTyName ann "spine"
+    rec   <- freshTyName "rec"
+    spine <- freshTyName "spine"
 
     return
         . TyLam ann rec recKind
@@ -633,20 +634,20 @@ packPatternFunctorBodyN ann dataName argVars patBodyN = do
         $ TyVar ann rec
 
 -- | Construct a data type out of pieces.
-getPackedType :: FromDataPieces ann (Type TyName ann)
+getPackedType :: FromDataPieces uni ann (Type TyName uni ann)
 getPackedType ann dataName argVars patBodyN = do
     withSpine <- getWithSpine ann argVars
     withSpine . TyIFix ann <$> packPatternFunctorBodyN ann dataName argVars patBodyN
 
 -- | An auxiliary type for returning a polymorphic @wrap@. Haskell's support for impredicative
 -- polymorphism isn't good enough to do without this.
-newtype PolyWrap ann = PolyWrap
-    (forall term. TermLike term TyName Name => [Type TyName ann] -> term ann -> term ann)
+newtype PolyWrap uni ann = PolyWrap
+    (forall term. TermLike term TyName Name uni => [Type TyName uni ann] -> term ann -> term ann)
 
 -- | Make a generic @wrap@ that takes a spine of type arguments and the rest of a term, packs
 -- the spine using the CPS trick and passes the spine and the term to 'IWrap' along with a 1-ary
 -- pattern functor constructed from pieces of a data type passed as arguments to 'getWrap'.
-getPackedWrap :: FromDataPieces ann (PolyWrap ann)
+getPackedWrap :: FromDataPieces uni ann (PolyWrap uni ann)
 getPackedWrap ann dataName argVars patBodyN = do
     pat1 <- packPatternFunctorBodyN ann dataName argVars patBodyN
     toSpine <- getToSpine ann
@@ -656,7 +657,7 @@ getPackedWrap ann dataName argVars patBodyN = do
             argsLen = length args
             in if argVarsLen == argsLen
                 then iWrap ann pat1 . toSpine $ zipWith instVar argVars args
-                else throw . IndicesLengthsMismatchException argVarsLen argsLen $ void dataName
+                else throw . IndicesLengthsMismatchException argVarsLen argsLen $ dataName
 
 {- Note [Special cases]
 The notes above describe how the general case is compiled, however for the 0-ary and 1-ary cases
@@ -707,13 +708,13 @@ index.
 -- | Construct a 'RecursiveType' by passing a 0-ary pattern functor to 'TyIFix' and 'IWrap'
 -- /as an index/.
 makeRecursiveType0
-    :: ann              -- ^ An annotation placed everywhere we do not have annotations.
-    -> TyName ann       -- ^ The name of the data type being defined.
-    -> Type TyName ann  -- ^ The body of the pattern functor.
-    -> Quote (RecursiveType ann)
+    :: ann                  -- ^ An annotation placed everywhere we do not have annotations.
+    -> TyName               -- ^ The name of the data type being defined.
+    -> Type TyName uni ann  -- ^ The body of the pattern functor.
+    -> Quote (RecursiveType uni ann)
 makeRecursiveType0 ann dataName patBody0 = do
-    rec <- freshTyName ann "rec"
-    f   <- freshTyName ann "f"
+    rec <- freshTyName "rec"
+    f   <- freshTyName "f"
     let argKind = KindArrow ann (Type ann) $ Type ann
         recKind = KindArrow ann argKind $ Type ann
         pat1
@@ -730,17 +731,17 @@ makeRecursiveType0 ann dataName patBody0 = do
         recType = TyIFix ann pat1 arg
         wrap args = case args of
             [] -> iWrap ann pat1 arg
-            _  -> throw . IndicesLengthsMismatchException 0 (length args) $ void dataName
+            _  -> throw . IndicesLengthsMismatchException 0 (length args) $ dataName
     return $ RecursiveType recType wrap
 
 -- See Note [Special cases].
 -- | Construct a 'RecursiveType' by passing a 1-ary pattern functor to 'TyIFix' and 'IWrap'.
 makeRecursiveType1
     :: ann                   -- ^ An annotation placed everywhere we do not have annotations.
-    -> TyName ann            -- ^ The name of the data type being defined.
+    -> TyName                -- ^ The name of the data type being defined.
     -> TyVarDecl TyName ann  -- ^ The index type variable.
-    -> Type TyName ann       -- ^ The body of the pattern functor.
-    -> Quote (RecursiveType ann)
+    -> Type TyName uni ann   -- ^ The body of the pattern functor.
+    -> Quote (RecursiveType uni ann)
 makeRecursiveType1 ann dataName argVar patBody1 = do
     let varName = tyVarDeclName argVar
         varKind = tyVarDeclKind argVar
@@ -750,14 +751,14 @@ makeRecursiveType1 ann dataName argVar patBody1 = do
         recType = TyLam ann varName varKind . TyIFix ann pat1 $ TyVar ann varName
         wrap args = case args of
             [arg] -> iWrap ann pat1 arg
-            _     -> throw . IndicesLengthsMismatchException 1 (length args) $ void dataName
+            _     -> throw . IndicesLengthsMismatchException 1 (length args) $ dataName
     return $ RecursiveType recType wrap
 
 -- See all the Notes above.
 -- | Construct a 'RecursiveType' by encoding an n-ary pattern functor as the corresponding 1-ary one
 -- and passing it to 'TyIFix' and 'IWrap'. @n@ type arguments get packaged together as a CPS-encoded
 -- spine.
-makeRecursiveTypeN :: FromDataPieces ann (RecursiveType ann)
+makeRecursiveTypeN :: FromDataPieces uni ann (RecursiveType uni ann)
 makeRecursiveTypeN ann dataName argVars patBodyN = do
     recType <- getPackedType ann dataName argVars patBodyN
     PolyWrap wrap <- getPackedWrap ann dataName argVars patBodyN
@@ -767,7 +768,7 @@ makeRecursiveTypeN ann dataName argVars patBodyN = do
 -- and the body of the pattern functor. The 0- and 1-ary pattern functors are special-cased,
 -- while in the general case the pattern functor and type arguments get encoded into a 1-ary
 -- form first.
-makeRecursiveType :: FromDataPieces ann (RecursiveType ann)
+makeRecursiveType :: FromDataPieces uni ann (RecursiveType uni ann)
 makeRecursiveType ann dataName []       = makeRecursiveType0 ann dataName
 makeRecursiveType ann dataName [argVar] = makeRecursiveType1 ann dataName argVar
 makeRecursiveType ann dataName argVars  = makeRecursiveTypeN ann dataName argVars

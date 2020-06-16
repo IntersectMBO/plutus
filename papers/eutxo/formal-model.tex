@@ -1,0 +1,392 @@
+\section{Formal model}
+\label{sec:formal-model}
+
+\subsection{Basic types and notation}
+\label{sec:basic-notation}
+Figure~\ref{fig:basic-types} defines some basic types and
+notation used in the rest of the paper; we have generally followed the
+notation established by Zahnentferner in~\cite{Zahnentferner18-UTxO}.
+
+\begin{ruledfigure}{!ht}
+  \begin{displaymath}
+    \begin{array}{rll}
+      \B{} && \mbox{the type of booleans}\\
+      \N{} && \mbox {the type of natural numbers}\\
+      \Z{} && \mbox {the type of integers}\\
+      (\phi_1 : T_1, \ldots, \phi_n : T_n) && \mbox{a record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1, \ldots, T_n$}\\
+      t.\phi && \mbox{the value of $\phi$ for $t$, where $t$ has type $T$ and
+                $\phi$ is a field of $T$}\\
+      \Set{T} && \mbox{the type of (finite) sets over $T$}\\
+      \List{T} && \mbox{the type of lists over $T$, with $\_[\_]$ as indexing
+        and $|\_|$ as length}\\
+      h::t && \mbox{the list with head $h$ and tail $t$}\\
+      x \mapsto f(x) && \mbox{an anonymous function}\\
+      \hash{c} && \mbox{a cryptographic collision-resistant hash of $c$}\\
+      \Interval{A} && \mbox{the type of intervals over a totally-ordered set $A$}
+    \end{array}
+  \end{displaymath}
+  \caption{Basic types and notation}
+  \label{fig:basic-types}
+\end{ruledfigure}
+
+\subsubsection{The \Data{} type.}
+\label{sec:data}
+We will make particular use of a primitive type \Data{} which can be
+used to pass information into scripts. This is intended to be any
+relatively standard structured data format, for example JSON or
+CBOR~\cite{cbor}.
+
+The specific choice of type does not matter for this paper, so we have left it
+abstract. The intention is that this should
+be well supported by all the programming languages we are interested in,
+including whatever language is used for scripts, and whatever languages
+are used for off-chain code that interacts with the chain.
+
+We assume that for every (non-function) type $T$ in the scripting
+language we have corresponding \toData{} and \fromData{} functions.
+
+\subsection{\EUTXO{}: Enhanced scripting}
+\label{sec:eutxo}
+Our first change to the standard UTXO model is that as well as the
+validator we allow transaction outputs to carry a piece of data called
+the \emph{datum} (or \emph{datum object}), which is passed in as an
+additional argument during validation.  This allows a contract to
+carry some state (the datum) without changing its ``code'' (the
+validator). We will use this to carry the state of our state machines
+(see Section~\ref{sec:informal-eutxo}).
+
+The second change is that the validator receives some information
+about the transaction that is being validated. This information, which
+we call the \textit{context}, is passed in as an additional
+argument of type \ctx{}. The information supplied in the
+context enables the validator to enforce much stronger conditions than
+is possible with a bare \UTXO{} model --- in particular, it can
+inspect the \emph{outputs} of the current transaction, which is
+essential for ensuring contract continuity (see
+Section~\ref{sec:informal-eutxo}).
+
+The third change is that we provide some access to time by adding a
+\emph{validity interval} to transactions.
+This is an interval of ticks (see Subsection~\ref{para:ticks})
+during which a transaction can be processed (a generalisation of a ``time-to-live'').
+Thus, any scripts which run during validation can assume that the current tick
+is within that interval, but do not know the precise value of the current tick.
+
+Finally, we represent all the arguments to the validator (redeemer, datum,
+\ctx) as values of type \Data{}. Clients are therefore responsible for encoding
+whatever types they would like to use into \Data{} (and decoding them inside the
+validator script).
+
+\subsection{A Formal Description of the \EUTXO{} Model}
+\label{section:eutxo-spec}
+
+In this section we give a formal description of the \EUTXO{} model.  The
+description is given in a straightforward set-theoretic form, which
+\begin{inparaenum}[(1)]
+\item admits an almost direct translation into languages like Haskell for implementation, and
+\item is easily amenable to mechanical formalisation.
+\end{inparaenum}
+We will make use of this in Section~\ref{sec:expressiveness}.
+
+The definitions in this section are essentially the definitions of
+\UTXO{}-based cryptocurrencies with scripts from
+Zahnentferner~\cite{Zahnentferner18-UTxO}, except that we have made the changes
+described above.
+
+Figure~\ref{fig:eutxo-types} lists the types and operations used in the
+the basic \EUTXO{} model. Some of these are defined here, the others must be provided by
+the ledger (``ledger primitives'').
+%%
+\begin{ruledfigure}{!ht}
+  \begin{displaymath}
+  \begin{array}{rll}
+    \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
+    \qty{} && \mbox{an amount of currency}\\
+    \tick && \mbox{a tick}\\
+    \Address && \mbox{an ``address'' in the blockchain}\\
+    \Data && \mbox{a type of structured data}\\
+    \DataHash && \mbox{the hash of a value of type \Data{}}\\
+    \TxId && \mbox{the identifier of a transaction}\\
+    \txId : \eutxotx \rightarrow \TxId && \mbox{a function computing the identifier of a transaction}\\
+    \script && \mbox{the (opaque) type of scripts}\\
+    \scriptAddr : \script \rightarrow \Address && \mbox{the address of a script}\\
+    \hashData : \Data \rightarrow \DataHash && \mbox{the hash of an object of type\Data}\\
+    \llbracket \_ \rrbracket : \script \rightarrow \Data \times \Data \times
+    \Data \rightarrow \B && \mbox{applying a script to its arguments}\\
+    \\
+    \multicolumn{3}{l}{\textsc{Defined types}}\\
+    \s{Output } &=&(\val: \qty,\\
+                & &\ \addr: \Address,\\
+                & &\ \datumHsh: \DataHash)\\
+    \\
+    \s{OutputRef } &=&(\txrefid: \TxId, \idx: \N)\\
+    \\
+    \s{Input } &=&(\outputref: \s{OutputRef},\\
+               & &\ \validator: \script,\\
+               & &\ \datum: \Data,\\
+               & &\ \redeemer: \Data)\\
+     \\
+     \eutxotx\s{ } &=&(\inputs: \Set{\s{Input}},\\
+                   & &\ \outputs: \List{\s{Output}},\\
+                   & &\ \validityInterval: \Interval{\tick})\\
+     \\
+     \s{Ledger } &=&\!\List{\eutxotx}\\
+  \end{array}
+  \end{displaymath}
+  \caption{Primitives and types for the \EUTXO{} model}
+  \label{fig:eutxo-types}
+\end{ruledfigure}
+
+\paragraph{Addresses.}
+We follow Bitcoin in referring to the targets of transaction outputs as
+``addresses''. In this system, they refer only to \emph{script} addresses
+(likely a hash of the script), but in a full system they would likely include
+public-key addresses, and so on.
+
+\paragraph{Ticks.}
+\label{para:ticks}
+A tick is a monotonically increasing unit of progress in the
+ledger system. This corresponds to the ``block number''
+or ``block height'' in most blockchain systems. We assume that there is some
+notion of a ``current tick'' for a given ledger.
+
+\paragraph{Inputs and outputs.} Transactions have a
+\textsf{Set} of inputs but a \textsf{List} of outputs. There
+are two reasons that we do not also have a \textsf{Set} of outputs although they
+are conceptually symmetrical:
+\begin{itemize}
+\item We need a way to uniquely identify a transaction output, so
+  that it can be referred to by a transaction input that spends it. The pair of
+  a transaction id and an output index is sufficient for this, but other schemes
+  are conceivable.
+\item A \textsf{Set} requires a notion of equality. If we use the
+  obvious structural equality on outputs, then if we had two outputs
+  paying $X$ to address $A$, they would be equal. We need to
+  distinguish these --- outputs must have an identity beyond
+  just their address and value.
+\end{itemize}
+
+\paragraph{The location of validators and datum objects.} Validator scripts
+and full datum objects are provided as parts of transaction \emph{inputs},
+even though they are conceptually part of the output being spent. The
+output instead specifies them by providing the corresponding address
+or hash.\footnote{That these match up is enforced by
+  Rules~\ref{rule:validator-scripts-hash} and
+  \ref{rule:datums-hash} in Figure~\ref{fig:eutxo-validity}.}
+
+This strategy reduces memory requirements, since
+the \UTXO{} set must be kept in memory for rapid access while validating
+transactions. Hence it is desirable to keep outputs small --- in
+our system they are constant size.
+Providing the much larger validator script only at the point where it is needed
+is thus a helpful saving. The same considerations apply to datum objects.
+
+An important question is how the person who spends an output \emph{knows} which
+validator and datum to provide in order to match the hashes on the output.
+This can always be accomplished via some off-chain mechanism, but we may
+want to include some on-chain way of accomplishing this.\footnote{\Cardano{} will provide
+a mechanism in this vein.} However, this is not directly relevant to this paper,
+so we have omitted it.
+
+\paragraph{Fees, forge, and additional metadata.}  Transactions will typically
+have additional metadata, such as transaction fees or a ``forge''
+field that allows value to be created or destroyed. These are
+irrelevant to this paper, so have been omitted.\footnote{ Adding such
+  fields might require amending Rule~\ref{rule:value-is-preserved}
+  to ensure value preservation.  }
+
+\paragraph{Ledger structure.} We model a ledger as a simple
+list of transactions: a real blockchain ledger will be more complex
+than this, but the only property that we really require is that
+transactions in the ledger have some kind of address which allows them
+to be uniquely identified and retrieved.
+
+\subsection{The \ctx{} type}
+\label{sec:validation-context}
+Recall from the introduction to Section~\ref{sec:eutxo} that when a
+transaction input is being validated, the validator script is supplied
+with an object of type \ctx{} (encoded as \Data{}) which contains
+information about the current transaction.  The \ctx{} type is defined
+in Figure~\ref{fig:ptx-1-types}, along with some related types.
+
+\begin{ruledfigure}{!ht}
+  \begin{displaymath}
+  \begin{array}{rll}
+    \s{OutputInfo } &=&(\val: \qty,\\
+                    & &\ \i{validatorHash}: \Address,\\
+                    & &\ \datumHsh: \DataHash)\\
+    \\
+    \s{InputInfo } &=&(\outputref: \s{OutputRef},\\
+                   & &\ \i{validatorHash}: \Address,\\
+                   & &\ \i{datum}: \Data,\\
+                   & &\ \i{redeemer}: \Data,\\
+                   & &\ \val: \qty)\\
+     \\
+     \ctx\s{ } &=&(\i{inputInfo}: \Set{\s{InputInfo}},\\
+               & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
+               & &\ \i{validityInterval}: \Interval{\tick},\\
+               & &\ \i{thisInput}: \N)\\
+     \\
+  \end{array}
+  \end{displaymath}
+  \caption{The \ctx{} type for the \EUTXO{} model}
+  \label{fig:ptx-1-types}
+\end{ruledfigure}
+
+\paragraph{The contents of \ctx{}.}
+The \ctx{} type is a summary of the information contained in the $\eutxotx$ type in
+Figure~\ref{fig:eutxo-types}, situated in the context of a validating
+transaction, and made suitable for consumption in a script. That results in the following changes:
+\begin{enumerate}
+\item The \s{InputInfo} type is augmented with information that comes
+  from the output being spent, specifically the value attached to that output.
+\item The \ctx{} type includes an index that indicates the input currently
+  being validated. This allows scripts to identify their own address, for example.
+\item Validators are included as their addresses, rather than as scripts. This
+  allows easy equality comparisons without requiring script languages to be able
+  to represent their own programs.
+\end{enumerate}
+\noindent We assume that there is a function $\toCtx: \eutxotx \times
+  \s{Input} \times \s{Ledger} \rightarrow \ctx$ which summarises a
+transaction in the context of an input and a ledger state.
+%% kwxm: moved this out of the figure because adding the Ledger
+%% parameter pushed everything too far to the right.
+
+\paragraph{Determinism.}
+The information provided by \ctx{} is entirely determined by the
+transaction itself. This means that script execution during validation
+is entirely deterministic, and can be simulated accurately by the user
+\emph{before} submitting a transaction: thus both the outcome of
+script execution and the amount of resources consumed can be
+determined ahead of time. This is helpful for systems that charge for
+script execution, since users can reliably compute how much they will
+need to pay ahead of time.
+
+A common way for systems to violate this property is by providing
+access to some piece of mutable information, such as the current time
+(in our system, the current tick has this role). Scripts can then
+branch on this information, leading to non-deterministic behaviour. We
+sidestep this issue with the validation interval mechanism (see the
+introduction to Section~\ref{sec:eutxo}).
+
+\begin{ruledfigure}{!ht}
+  \begin{displaymath}
+  \begin{array}{lll}
+  \multicolumn{3}{l}{\lookupTx : \s{Ledger} \times \TxId \rightarrow \eutxotx{}}\\
+  \lookupTx(l,id) &=& \textrm{the unique transaction in $l$ whose id is $id$}\\
+  \\
+  \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \Set{\s{OutputRef}}}\\
+  \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
+  \\
+  \multicolumn{3}{l}{\unspent : \s{Ledger} \rightarrow \Set{\s{OutputRef}}}\\
+  \unspent([]) &=& \emptymap \\
+  \unspent(t::l) &=& (\unspent(l) \setminus t.\inputs) \cup \txunspent(t)\\
+  \\
+  \multicolumn{3}{l}{\getSpent : \s{Input} \times \s{Ledger} \rightarrow \s{Output}}\\
+  \getSpent(i,l) &=& \lookupTx(l, i.\outputref.\id).\outputs[i.\outputref.\idx]
+  \end{array}
+  \end{displaymath}
+  \caption{Auxiliary functions for \EUTXO{} validation}
+  \label{fig:validation-functions-1}
+\end{ruledfigure}
+
+
+\subsection{Validity of \EUTXO{} transactions}
+\label{sec:eutxo-validity}
+
+Figure~\ref{fig:eutxo-validity} defines what it means for a
+transaction $t$ to be valid for a valid ledger $l$ during the tick
+\currentTick, using some auxiliary functions from
+Figure~\ref{fig:validation-functions-1}.  Our definition combines
+Definitions 6 and 14 from Zahnentferner~\cite{Zahnentferner18-UTxO},
+differing from the latter in Rule~\ref{rule:all-inputs-validate}. A
+ledger $l$ is \textit{valid} if either $l$ is empty or $l$ is of the
+form $t::l^{\prime}$ with $l^{\prime}$ valid and $t$ valid for
+$l^{\prime}$.
+%%
+\vspace{-2mm}
+%%
+\begin{ruledfigure}{H}
+\begin{enumerate}
+
+\item
+  \label{rule:tick-in-range}
+  \textbf{The current tick is within the validity interval}
+  \begin{displaymath}
+    \currentTick \in t.\validityInterval
+  \end{displaymath}
+
+\item
+  \label{rule:all-outputs-are-non-negative}
+  \textbf{All outputs have non-negative values}
+  \begin{displaymath}
+    \textrm{For all } o \in t.\outputs,\ o.\val \geq 0
+  \end{displaymath}
+
+\item
+  \label{rule:all-inputs-refer-to-unspent-outputs}
+  \textbf{All inputs refer to unspent outputs}
+  \begin{displaymath}
+    \{i.\outputref : i \in t.\inputs \} \subseteq \unspent(l).
+  \end{displaymath}
+
+\item
+  \label{rule:value-is-preserved}
+  \textbf{Value is preserved}
+  \begin{displaymath}
+    \textrm{Unless $l$ is empty, } \sum_{i \in t.\inputs} \getSpent(i, l).\val = \sum_{o \in t.\outputs} o.\val
+  \end{displaymath}
+
+\item
+  \label{rule:no-double-spending}
+  \textbf{No output is double spent}
+  \begin{displaymath}
+    \textrm{If } i_1, i_2 \in t.\inputs \textrm{ and }  i_1.\outputref = i_2.\outputref
+    \textrm{ then } i_1 = i_2.
+  \end{displaymath}
+
+\item
+  \label{rule:all-inputs-validate}
+  \textbf{All inputs validate}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \llbracket
+    i.\validator\rrbracket (i.\datum,\, i.\redeemer,\,  \toData(\toCtx(t,i,l))) = \true.
+  \end{displaymath}
+
+\item
+  \label{rule:validator-scripts-hash}
+  \textbf{Validator scripts match output addresses}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
+  \end{displaymath}
+
+\item
+  \label{rule:datums-hash}
+  \textbf{Each datum matches its output hash}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\datum) = \getSpent(i, l).\datumHsh
+  \end{displaymath}
+
+\end{enumerate}
+\caption{Validity of a transaction $t$ in the \EUTXO{} model}
+\label{fig:eutxo-validity}
+\end{ruledfigure}
+%%
+%% kwxm: some dubious fiddling with vertical space to get the validity
+%% figure in the right place and still stay within the page limit
+%%
+\vspace{-8mm}
+\paragraph{Creating value.}
+Most blockchain systems have special rules for creating or destroying value.
+These are usually fairly idiosyncratic, and are not relevant to this paper, so
+we have provided a simple genesis condition in
+Rule~\ref{rule:value-is-preserved} which allows the initial transaction in the ledger
+to create value.
+\vspace{-1mm}
+\paragraph{Lookup failures.}
+The function $\getSpent$ calls $\lookupTx$, which looks up the unique
+transaction in the ledger with a particular id and can of course
+fail. However Rule~\ref{rule:all-inputs-refer-to-unspent-outputs}
+ensures that during validation all of the transaction inputs refer to
+existing unspent outputs, and in these circumstances $\lookupTx$ will
+always succeed for the transactions of interest.

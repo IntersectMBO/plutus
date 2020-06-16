@@ -1,6 +1,8 @@
 -- | @nat@ and related functions.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.StdLib.Data.Nat
     ( natData
@@ -13,11 +15,11 @@ module Language.PlutusCore.StdLib.Data.Nat
 
 import           Prelude                                  hiding (succ)
 
-import           Language.PlutusCore.Constant.Make        (makeIntConstant)
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Function
 import           Language.PlutusCore.StdLib.Type
@@ -25,10 +27,10 @@ import           Language.PlutusCore.StdLib.Type
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
-natData :: RecursiveType ()
+natData :: RecursiveType uni ()
 natData = runQuote $ do
-    nat <- freshTyName () "nat"
-    r   <- freshTyName () "r"
+    nat <- freshTyName "nat"
+    r   <- freshTyName "r"
     makeRecursiveType () nat []
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -38,12 +40,12 @@ natData = runQuote $ do
 -- |  '0' as a PLC term.
 --
 -- > wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> z
-zero :: TermLike term TyName Name => term ()
+zero :: TermLike term TyName Name uni => term ()
 zero = runQuote $ do
     let RecursiveType nat wrapNat = natData
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
         . wrapNat []
         . tyAbs () r (Type ())
@@ -54,13 +56,13 @@ zero = runQuote $ do
 -- |  'succ' as a PLC term.
 --
 -- > \(n : nat) -> wrapNat [] /\(r :: *) -> \(z : r) (f : nat -> r) -> f n
-succ :: TermLike term TyName Name => term ()
+succ :: TermLike term TyName Name uni => term ()
 succ = runQuote $ do
     let RecursiveType nat wrapNat = natData
-    n <- freshName () "n"
-    r <- freshTyName () "r"
-    z <- freshName () "z"
-    f <- freshName () "f"
+    n <- freshName "n"
+    r <- freshTyName "r"
+    z <- freshName "z"
+    f <- freshName "f"
     return
         . lamAbs () n nat
         . wrapNat []
@@ -75,15 +77,15 @@ succ = runQuote $ do
 -- > /\(r :: *) -> \(f : r -> r) (z : r) ->
 -- >     fix {nat} {r} \(rec : nat -> r) (n : nat) ->
 -- >         unwrap n {r} z \(n' : nat) -> f (rec n')
-foldrNat :: TermLike term TyName Name => term ()
+foldrNat :: TermLike term TyName Name uni => term ()
 foldrNat = runQuote $ do
     let nat = _recursiveType natData
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    z   <- freshName () "z"
-    rec <- freshName () "rec"
-    n   <- freshName () "n"
-    n'  <- freshName () "n'"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    z   <- freshName "z"
+    rec <- freshName "rec"
+    n   <- freshName "n"
+    n'  <- freshName "n'"
     return
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))
@@ -102,15 +104,15 @@ foldrNat = runQuote $ do
 -- > /\(r :: *) -> \(f : r -> r) ->
 -- >     fix {r} {nat -> r} \(rec : r -> nat -> r) (z : r) (n : nat) ->
 -- >         unwrap n {r} z (\(n' : nat) -> rec (f z) n')
-foldNat :: TermLike term TyName Name => term ()
+foldNat :: TermLike term TyName Name uni => term ()
 foldNat = runQuote $ do
     let nat = _recursiveType natData
-    r   <- freshTyName () "r"
-    f   <- freshName () "f"
-    rec <- freshName () "rec"
-    z   <- freshName () "z"
-    n   <- freshName () "n"
-    n'  <- freshName () "n'"
+    r   <- freshTyName "r"
+    f   <- freshName "f"
+    rec <- freshName "rec"
+    z   <- freshName "z"
+    n   <- freshName "n"
+    n'  <- freshName "n'"
     return
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))
@@ -128,11 +130,11 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: TermLike term TyName Name => term ()
+natToInteger :: (TermLike term TyName Name uni, uni `Includes` Integer) => term ()
 natToInteger = runQuote $ do
     let addInteger = builtin () $ BuiltinName () AddInteger
     return $
-        mkIterApp () (tyInst () foldNat $ TyBuiltin () TyInteger)
-          [ apply () addInteger (makeIntConstant 1)
-          , makeIntConstant 0
+        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @Integer ())
+          [ apply () addInteger (mkConstant @Integer () 1)
+          , mkConstant @Integer () 0
           ]

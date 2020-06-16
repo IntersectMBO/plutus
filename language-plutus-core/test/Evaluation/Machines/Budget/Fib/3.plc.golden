@@ -1,0 +1,35 @@
+( (Right (2))
+, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 4
+| mem: 4
+})
+| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 2
+| mem: 2
+})
+| BTyInst causes ({ cpu: 18
+| mem: 18
+})
+| BApply causes ({ cpu: 86
+| mem: 86
+})
+| BVar causes ({ cpu: 64
+| mem: 64
+})
+| BIWrap causes ({ cpu: 1
+| mem: 1
+})
+| BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 5
+| mem: 5
+})
+| BBuiltin (StaticStagedBuiltinName IfThenElse) causes ({ cpu: 5
+| mem: 5
+})
+| BUnwrap causes ({ cpu: 6
+| mem: 6
+})
+| BAST causes ({ cpu: 0
+| mem: 118
+})})
+| budget: ({ cpu: 191
+| mem: 309
+})
+}) )

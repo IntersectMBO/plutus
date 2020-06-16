@@ -20,7 +20,7 @@ To define a `KnownCurrency` we need the `ValidatorHash` of the monetary policy s
 
 ```haskell
 
-myContract :: ValidatorScript
+myContract :: Validator
 myContract = (...)
 
 myCurrency :: KnownCurrency

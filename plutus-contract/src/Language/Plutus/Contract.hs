@@ -12,9 +12,8 @@ module Language.Plutus.Contract(
     , selectEither
     , select
     , (>>)
-    , (<|>)
-    , checkpoint
-    , withContractError
+    , mapError
+    , throwError
     -- * Dealing with time
     , HasAwaitSlot
     , AwaitSlot
@@ -28,29 +27,42 @@ module Language.Plutus.Contract(
     , HasEndpoint
     , Endpoint
     , endpoint
-    -- * Transactions
-    , HasWriteTx
-    , WriteTx
-    , WalletAPIError
-    , writeTx
-    , writeTxSuccess
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress
     , nextTransactionAt
     , watchAddressUntil
     , fundsAtAddressGt
+    , fundsAtAddressGeq
     , awaitTransactionConfirmed
     -- * UTXO set
     , HasUtxoAt
     , UtxoAt
     , utxoAt
-    -- * Wallet'S own public key
+    -- * Wallet's own public key
     , HasOwnPubKey
     , OwnPubKey
     , ownPubKey
     -- * Transactions
+    , HasWriteTx
+    , WriteTx
+    , WalletAPIError
+    , submitTx
+    , submitTxConfirmed
+    , submitTxConstraints
+    , submitTxConstraintsSpending
+    , submitTxConstraintsWith
+    , submitUnbalancedTx
+    -- ** Creating transactions
     , module Tx
+    -- ** Tx confirmation
+    , HasTxConfirmation
+    , TxConfirmation
+    , awaitTxConfirmed
+    -- * Checkpoints
+    , checkpoint
+    , AsCheckpointError(..)
+    , CheckpointError(..)
     -- * Row-related things
     , HasType
     , ContractRow
@@ -59,26 +71,28 @@ module Language.Plutus.Contract(
     , waitingForBlockchainActions
     ) where
 
-import           Control.Applicative                             (Alternative (..))
+import           Data.Maybe                                        (isJust)
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
-import           Language.Plutus.Contract.Effects.OwnPubKey      as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
-import           Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
+import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
+import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
+import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx
-import           Language.Plutus.Contract.Util                   (both, selectEither)
+import           Language.Plutus.Contract.Util                     (both)
 
-import           Language.Plutus.Contract.Request                (AsContractError (..), Contract (..),
-                                                                  ContractError (..), ContractRow, checkpoint, select,
-                                                                  withContractError)
-import           Language.Plutus.Contract.Schema                 (Handlers)
+import           Language.Plutus.Contract.Request                  (ContractRow)
+import           Language.Plutus.Contract.Schema                   (Handlers)
+import           Language.Plutus.Contract.Typed.Tx                 as Tx
+import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
+                                                                    CheckpointError (..), Contract (..),
+                                                                    ContractError (..), checkpoint, mapError, select,
+                                                                    selectEither, throwError)
 
-import           Language.Plutus.Contract.Tx                     as Tx
-
-import           Prelude                                         hiding (until)
-import           Wallet.API                                      (WalletAPIError)
+import           Prelude                                           hiding (until)
+import           Wallet.API                                        (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)
@@ -88,6 +102,7 @@ type BlockchainActions =
   .\/ WriteTx
   .\/ UtxoAt
   .\/ OwnPubKey
+  .\/ TxConfirmation
 
 type HasBlockchainActions s =
   ( HasAwaitSlot s
@@ -95,6 +110,7 @@ type HasBlockchainActions s =
   , HasWriteTx s
   , HasUtxoAt s
   , HasOwnPubKey s
+  , HasTxConfirmation s
   )
 
 -- | Check if there are handlers for any of the four blockchain
@@ -104,6 +120,6 @@ waitingForBlockchainActions
   => Handlers s
   -> Bool
 waitingForBlockchainActions handlers =
-  UtxoAt.addresses handlers /= mempty
-  || transactions handlers /= mempty
-  || OwnPubKey.request handlers /= mempty
+  isJust (UtxoAt.utxoAtRequest handlers)
+  || isJust (pendingTransaction handlers)
+  || isJust (OwnPubKey.request handlers)

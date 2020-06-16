@@ -9,31 +9,37 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Main (main) where
 
-import           Prelude                                           hiding (tail)
+import           Prelude                                               hiding (tail)
 
 import           Control.Lens.Indexed
 import           Criterion.Main
-import           Crypto.Hash
-import qualified Data.ByteArray                                    as BA
-import qualified Data.ByteString                                   as BS
-import qualified Data.ByteString.Lazy                              as BSL
-import qualified Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import qualified Language.PlutusTx.Prelude                         as P
+import           Crypto.Hash                                           hiding (Context)
+import qualified Data.ByteArray                                        as BA
+import qualified Data.ByteString                                       as BS
+import qualified Data.ByteString.Lazy                                  as BSL
+import qualified Language.PlutusTx.Coordination.Contracts.Future       as FT
+import qualified Language.PlutusTx.Coordination.Contracts.MultiSig     as MS
+import qualified Language.PlutusTx.Coordination.Contracts.PubKey       as PK
+import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TA
+import qualified Language.PlutusTx.Prelude                             as P
 import           Ledger
-import qualified Ledger.Crypto                                     as Crypto
+import qualified Ledger.Ada                                            as Ada
+import qualified Ledger.Crypto                                         as Crypto
+import qualified Ledger.Typed.Scripts                                  as Scripts
 import           LedgerBytes
 import           Wallet
+import           Wallet.Emulator.Types                                 (Wallet (..), walletPubKey)
 
-import qualified Language.PlutusTx                                 as PlutusTx
-import qualified Language.PlutusTx.Prelude                         as PlutusTx
-import           Language.PlutusTx.Evaluation                      (unsafeEvaluateCek)
+import qualified Language.PlutusTx                                     as PlutusTx
+import           Language.PlutusTx.Evaluation                          (unsafeEvaluateCek)
+import qualified Language.PlutusTx.Prelude                             as PlutusTx
 
-import qualified Recursion                                         as Rec
-import qualified Scott                                             as Scott
-import Opt
+import           Opt
+import qualified Recursion                                             as Rec
+import qualified Scott                                                 as Scott
 
 main :: IO ()
-main = defaultMain [ functions, validators ]
+main = defaultMain [ functions, validators, scriptHashes ]
 
 -- | Execution of some interesting functions.
 functions :: Benchmark
@@ -194,8 +200,8 @@ validators = bgroup "validators" [ trivial, multisig ]
 -- | The trivial validator script that just returns 'True'.
 trivial :: Benchmark
 trivial = bgroup "trivial" [
-        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitData, unitRedeemer),
-        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitData, unitRedeemer)
+        bench "nocheck" $ nf runScriptNoCheck (validationData1, validator, unitDatum, unitRedeemer),
+        bench "typecheck" $ nf runScriptCheck (validationData1, validator, unitDatum, unitRedeemer)
     ]
     where
         validator = mkValidatorScript $$(PlutusTx.compile [|| \(_ :: PlutusTx.Data) (_ :: PlutusTx.Data) (_ :: PlutusTx.Data) -> () ||])
@@ -206,38 +212,38 @@ multisig :: Benchmark
 multisig = bgroup "multisig" [
         bench "1of1" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen1of1
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , unitDatum
+            , unitRedeemer),
         bench "1of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen1of2
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of2
+            , unitDatum
+            , unitRedeemer),
         bench "2of2" $ nf runScriptNoCheck
             (validationData2
-            , MS.msValidator msScen2of2
-            , MS.msDataScript
-            , MS.msRedeemer),
+            , Scripts.validatorScript $ MS.scriptInstance msScen2of2
+            , unitDatum
+            , unitRedeemer),
         bench "typecheck" $ nf runScriptCheck
             (validationData2
-            , MS.msValidator msScen1of1
-            , MS.msDataScript
-            , MS.msRedeemer)
+            , Scripts.validatorScript $ MS.scriptInstance msScen1of1
+            , unitDatum
+            , unitRedeemer)
     ]
     where
-        msScen1of1 = MS.MultiSig { MS.signatories = [pk1], MS.requiredSignatures = 1 }
-        msScen1of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.requiredSignatures = 1 }
-        msScen2of2 = MS.MultiSig { MS.signatories = [pk1, pk2], MS.requiredSignatures = 2 }
+        msScen1of1 = MS.MultiSig { MS.signatories = [pubKeyHash pk1], MS.minNumSignatures = 1 }
+        msScen1of2 = MS.MultiSig { MS.signatories = [pubKeyHash pk1, pubKeyHash pk2], MS.minNumSignatures = 1 }
+        msScen2of2 = MS.MultiSig { MS.signatories = [pubKeyHash pk1, pubKeyHash pk2], MS.minNumSignatures = 2 }
 
 -- Test functions and data
 
 verifySignature :: (PubKey, Digest SHA256, Signature) -> Bool
 verifySignature (PubKey (LedgerBytes k), m, Signature s) = P.verifySignature k (BSL.fromStrict $ BA.convert m) s
 
-runScriptNoCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
+runScriptNoCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptNoCheck (vd, v, d, r) = runScript DontCheck vd v d r
-runScriptCheck :: (ValidationData, ValidatorScript, DataScript, RedeemerScript) -> Either ScriptError [String]
+runScriptCheck :: (Context, Validator, Datum, Redeemer) -> Either ScriptError [String]
 runScriptCheck (vd, v, d, r) = runScript Typecheck vd v d r
 
 privk1 :: PrivateKey
@@ -259,11 +265,11 @@ sig1 = Crypto.sign txHash privk1
 sig2 :: Signature
 sig2 = Crypto.sign txHash privk2
 
-validationData1 :: ValidationData
-validationData1 = ValidationData $ PlutusTx.toData $ mockPendingTx
+validationData1 :: Context
+validationData1 = Context $ PlutusTx.toData $ mockPendingTx
 
-validationData2 :: ValidationData
-validationData2 = ValidationData $ PlutusTx.toData $ mockPendingTx { pendingTxSignatures = [(pk1, sig1), (pk2, sig2)] }
+validationData2 :: Context
+validationData2 = Context $ PlutusTx.toData $ mockPendingTx { pendingTxSignatories = [pubKeyHash pk1, pubKeyHash pk2] }
 
 mockPendingTx :: PendingTx
 mockPendingTx = PendingTx
@@ -271,16 +277,45 @@ mockPendingTx = PendingTx
     , pendingTxOutputs = []
     , pendingTxFee = PlutusTx.zero
     , pendingTxForge = PlutusTx.zero
-    , pendingTxIn = PendingTxIn
-        { pendingTxInRef = PendingTxOutRef
-            { pendingTxOutRefId = TxId P.emptyByteString
-            , pendingTxOutRefIdx = 0
+    , pendingTxItem = PendingTxIn
+        { pendingTxInRef = TxOutRef
+            { txOutRefId = TxId P.emptyByteString
+            , txOutRefIdx = 0
             }
-        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DataScriptHash "")
+        , pendingTxInWitness = (ValidatorHash "", RedeemerHash "", DatumHash "")
         , pendingTxInValue = PlutusTx.zero
         }
     , pendingTxValidRange = defaultSlotRange
-    , pendingTxSignatures = []
+    , pendingTxForgeScripts = []
+    , pendingTxSignatories = []
     , pendingTxId = TxId P.emptyByteString
     , pendingTxData = []
     }
+
+-- Script hashes
+scriptHashes :: Benchmark
+scriptHashes = bgroup "script hashes" [
+    let si = TA.scriptInstance (TA.Account ("fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e", "my token")) in
+    bench "token account" $ nf Scripts.validatorScript si
+    , bench "public key" $ nf (Scripts.validatorScript . PK.scriptInstance) (pubKeyHash $ walletPubKey $ Wallet 2)
+    , bench "future" $ nf (Scripts.validatorScript . FT.scriptInstance theFuture) accounts
+    ]
+
+-- | A futures contract over 187 units with a forward price of 1233 Lovelace,
+--   due at slot #100.
+theFuture :: FT.Future
+theFuture = FT.Future {
+    FT.ftDeliveryDate  = Ledger.Slot 100,
+    FT.ftUnits         = 187,
+    FT.ftUnitPrice     = Ada.lovelaceValueOf 1123,
+    FT.ftInitialMargin = Ada.lovelaceValueOf 800,
+    FT.ftPriceOracle   = walletPubKey (Wallet 10),
+    FT.ftMarginPenalty = Ada.lovelaceValueOf 1000
+    }
+
+accounts :: FT.FutureAccounts
+accounts =
+    let cur = "fd2c8c0705d3ca1e7b1aeaa4da85dfe5ac6dde64da9d241011d84c0ee97aac5e" in
+    FT.mkAccounts
+            (TA.Account (cur, "long"))
+            (TA.Account (cur, "short"))

@@ -13,29 +13,7 @@ work through those in conceptual order.
 Plutus Core is the language that actually goes on the blockchain. Consequently
 this is the absolute core of the codebase, and everything depends on it.
 
-=== `language-plutus-core`
-
-This package implements the Plutus Core language.
-
-This includes:
-
-- AST types
-- Parser
-- Various checkers including a typechecker
-- Prettyprinter
-- Simple evaluator (see `plutus-core-evaluator` for fancier evaluators)
-- Support for some standard constructs e.g. the encodings of recursive types
-- A number of example programs
-
-=== `plutus-core-intepreter`
-
-This package contains the production evaluator that we use, along with an experimental
-lazy evaluator.
-
-=== `plutus-exe`
-
-This package defines a command-line executable that used to typecheck or
-evaluate Plutus Core programs.
+include::language-plutus-core/ARCHITECTURE.adoc[]
 
 == Plutus Tx
 
@@ -44,25 +22,11 @@ Core. This is how users actually write Plutus contracts: they write Haskell
 programs, part of which is compiled into Plutus Core. The rest of the program
 can then use this compiled code when submitting transactions.
 
-=== `plutus-ir`
+include::plutus-ir/ARCHITECTURE.adoc[]
 
-Plutus IR is a higher-level language that sits between Plutus Tx and Plutus
-Core in the compilation pipeline. This package implements the compiler, which
-compiles Plutus IR into Plutus Core.
+include::plutus-tx/ARCHITECTURE.adoc[]
 
-=== `plutus-tx`
-
-This package provides several things:
-
-- The Plutus Tx compiler, which compiles GHC Core into
-Plutus IR.
-- A GHC Core plugin, which is the mechanism by which people use
-the compiler.
-- A couple of special typeclasses which aid with the interface
-between Haskell and Plutus Tx, and Template Haskell support for
-generating instances.
-- It provides a partial replacement Prelude, since many parts of the
-normal Haskell Prelude cannot be used with Plutus Tx.
+include::plutus-tx-plugin/ARCHITECTURE.adoc[]
 
 == Ledger
 
@@ -75,24 +39,7 @@ running on. There are two reasons for this:
 - We want to write tests that simulate the "full" behaviour of contracts, i.e.
   across time, in a multi-agent scenario.
 
-=== `plutus-wallet-api`
-
-This package should probably be split in two!
-
-The `ledger` sublibrary defines our model of an Extended UTXO ledger, including:
-
-- The types that describe transactions, pending transactions, keys, currencies, etc.
-- Functions that implement the ledger validation rules.
-
-The rest of the package defines the "wallet API", which was our attempt at
-defining the interface that contracts would use to the wallet. As it turns out,
-we need to do things somewhat differently, and so `plutus-contract` is the
-future, but the functions in here are still used fairly widely.
-
-=== `plutus-emulator`
-
-This package defines the chain emulator, which is used for tests, and to back
-the simulations in the Plutus Playground.
+include::plutus-ledger/ARCHITECTURE.adoc[]
 
 == Contract modelling
 
@@ -106,26 +53,11 @@ including both the on-chain code and the eventual contract application.
 These packages are geared towards providing the tools to do that, and building
 up examples to ensure that we have adequate functionality.
 
-=== `plutus-contract`
+include::plutus-contract/ARCHITECTURE.adoc[]
 
-This package has a new API for defining "contracts": bundled applications that
-interact with a wallet smart contract backend. This is in many ways the
-"successor" to much of `plutus-wallet-api`, and should eventually
-replace much of it.
+include::plutus-use-cases/ARCHITECTURE.adoc[]
 
-=== `plutus-use-cases`
-
-This package contains worked examples of a number of contracts, along with
-tests using the emulator. This should always be our "most real" project: this is
-where we try and do the things that we think people will really try and do.
-
-It has a few other miscellaneous tests and benchmarks that use the use-cases as
-a source of large/real validators.
-
-=== `iots-export`
-
-This package defines a scheme for exporting interfaces to Typescript using IOTS.
-This is used by `plutus-contract` to expose an interface for Typescript clients.
+include::iots-export/ARCHITECTURE.adoc[]
 
 == Marlowe
 
@@ -137,15 +69,9 @@ other code in the repository.
 . The Marlowe Playground shares code and deployment infrastructure with the
 Plutus Playground.
 
-=== `marlowe`
+include::marlowe/ARCHITECTURE.adoc[]
 
-This package contains an implementation of the Marlowe interpreter as a Plutus
-contract.
-
-=== `marlowe-symbolic`
-
-This package contains a web-service for doing static analysis of Marlowe
-programs using symbolic execution.
+include::marlowe-symbolic/ARCHITECTURE.adoc[]
 
 == Playgrounds
 
@@ -153,63 +79,41 @@ The Plutus/Marlowe Playgrounds are our web-based environment for developing and
 testing basic Plutus and Marlowe contracts. That means they're the main way that
 anyone outside the team has interacted with out product!
 
-=== `playground-common`
+include::playground-common/ARCHITECTURE.adoc[]
 
-This package contains some library code which is shared between the Plutus and
-Marlowe Playgrounds.
+include::plutus-playground-server/ARCHITECTURE.adoc[]
 
-=== `plutus-playground-lib`
+include::marlowe-playground-server/ARCHITECTURE.adoc[]
 
-This package contains some library code for the Plutus Playground.
+include::plutus-playground-client/ARCHITECTURE.adoc[]
 
-=== `plutus-playground-server` and `marlowe-playground-server`
+include::marlowe-playground-client/ARCHITECTURE.adoc[]
 
-These packages contain the servers that back the Plutus/Marlowe Playgrounds by
-compiling user code and evaluating their simulations.
+include::playground-common/ARCHITECTURE.adoc[]
 
-They also define executables that generate Purescript bindings for the types that
-the Purescript code needs.
+include::web-common/ARCHITECTURE.adoc[]
 
-=== `plutus-playground-client` and `marlowe-playground-client`
+include::deployment/ARCHITECTURE.adoc[]
 
-These contain the Plutus/Marlowe Playground client code, written in Purescript.
+include::deployment/ARCHITECTURE.adoc[]
 
-=== `web-common`
+== Smart Contract Backend
 
-This contains some Purescript client code that is shared between the Plutus and
-Marlowe Playgrounds.
+The smart contract backend provides the runtime environment for compiled Plutus contracts. It manages the state of contract instances and brokers messages between them and the nodes, users, and wallets that they interact with.
 
-=== `deployment`
-
-This folder contains the nixops/Terraform code used for deploying the Playgrounds.
-
-=== `deployment-server`
-
-This package contains a small server that handles automatic continuous
-deployment of the alpha Playground whenever PRs are merged.
+include::plutus-scb/ARCHITECTURE.adoc[]
 
 == Documentation
 
-=== `plutus-tutorial` and `marlowe-tutorial`
+include::plutus-tutorial/ARCHITECTURE.adoc[]
 
-These packages contains tutorials for Plutus/Marlowe. The Plutus tutorial is a
-literate Haskell project, the Marlowe one is not (yet).
+include::marlowe/ARCHITECTURE.adoc[]
 
-=== `plutus-book`
+include::plutus-book/ARCHITECTURE.adoc[]
 
-This package contains the Plutus Book. It is a literate Haskell project.
+include::example/ARCHITECTURE.adoc[]
 
-=== `example`
-
-This contains an example project that is designed to help people get started if
-they want to use our libraries locally, rather than in the Playground. This can
-otherwise be quite challenging, since our projects aren't on Hackage yet!
-
-=== `docs`
-
-This folder contains a variety of miscellaneous documents.
-
-NOTE: Many of these are quite out of date, but can be useful for reference.
+include::docs/ARCHITECTURE.adoc[]
 
 == Specification and design
 
@@ -217,32 +121,16 @@ We have done a fair amount of work in specifying and formalizing parts of our
 system. At the moment all of this work also lives in the Plutus repository, and
 we even have some basic testing of the Haskell implementation against the Agda formalization.
 
-=== `metatheory`
+include::metatheory/ARCHITECTURE.adoc[]
 
-This folder contains the Agda formalization of the Plutus Core metatheory,
-including a `plc-agda` executable that is the equivalent of the `plc` executable
-from `plutus-exe`. This is used for some basic tests.
+include::papers/ARCHITECTURE.adoc[]
 
-=== `papers`
+include::plutus-core-spec/ARCHITECTURE.adoc[]
 
-This folder contains our published academic papers.
-
-=== `plutus-core-spec`
-
-This folder contains the Plutus Core specification.
-
-=== `extended-utxo-spec`
-
-This folder contains the Extended UTXO model specification.
-
-NOTE: This is more of a design document, really, it's not aiming for full precision.
+include::extended-utxo-spec/ARCHITECTURE.adoc[]
 
 == Build tooling
 
-=== `nix`
+include::nix/ARCHITECTURE.adoc[]
 
-This contains miscellaneous Nix code.
-
-=== `pkgs`
-
-This contains the generated Nix code representing our Haskell package set.
+include::pkgs/ARCHITECTURE.adoc[]

@@ -1,61 +1,226 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
--- | A futures contract in Plutus. This example illustrates three concepts.
---   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
---   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.PlutusTx.Coordination.Contracts)
---   3. Using the redeemer script to model actions that the participants in the contract may take.
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS -fplugin-opt Language.PlutusTx.Plugin:debug-context #-}
 module Language.PlutusTx.Coordination.Contracts.Future(
-    -- * Data types
-    Future(..),
-    FutureData(..),
-    FutureRedeemer(..),
-    -- * Actions
-    initialise,
-    settle,
-    settleEarly,
-    adjustMargin,
-    -- * Script
-    validatorScript,
-    mkValidator
+    -- $future
+      Future(..)
+    , FutureAccounts(..)
+    , mkAccounts
+    , FutureError(..)
+    , FutureSchema
+    , FutureSetup(..)
+    , Role(..)
+    , futureContract
+    , futureStateMachine
+    , validator
+    , initialiseFuture
+    , initialMargin
+    , futureAddress
+    , tokenFor
+    , initialState
+    , scriptInstance
+    , setupTokens
     ) where
 
-import           Control.Monad                (void)
-import           Control.Monad.Error.Class    (MonadError (..))
-import           Control.Applicative          (Applicative (..))
-import           Data.Maybe                   (maybeToList)
-import qualified Data.Set                     as Set
-import           GHC.Generics                 (Generic)
-import           Language.PlutusTx.Prelude    hiding (Applicative (..))
-import qualified Language.PlutusTx            as PlutusTx
-import           Ledger                       (DataScript (..), Slot(..), PubKey, TxOutRef, RedeemerScript (..), ValidatorScript, scriptTxIn, scriptTxOut)
-import qualified Ledger                       as Ledger
-import qualified Ledger.Interval              as Interval
-import qualified Ledger.Typed.Scripts         as Scripts
-import           Ledger.Validation            (OracleValue (..), PendingTx, PendingTx' (..), PendingTxOut (..))
-import qualified Ledger.Validation            as Validation
-import qualified Ledger.Ada                   as Ada
-import           Ledger.Ada                   (Ada)
-import qualified Wallet                       as W
-import           Wallet                       (WalletAPI (..), WalletAPIError, throwOtherError, createTxAndSubmit, defaultSlotRange, createPaymentWithChange)
+import           Control.Lens                                          (makeClassyPrisms, prism', review)
+import           Control.Monad                                         (void)
+import           Control.Monad.Error.Lens                              (throwing)
+import           GHC.Generics                                          (Generic)
+import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Util                         (loopM)
+import qualified Language.PlutusTx                                     as PlutusTx
+import           Language.PlutusTx.Prelude
+import           Ledger                                                (Address, Datum (..), PubKey, Slot (..),
+                                                                        Validator, ValidatorHash, pubKeyHash)
+import qualified Ledger
+import qualified Ledger.Constraints                                    as Constraints
+import           Ledger.Constraints.TxConstraints                      (TxConstraints)
+import qualified Ledger.Interval                                       as Interval
+import           Ledger.Oracle                                         (Observation (..), SignedMessage (..))
+import qualified Ledger.Oracle                                         as Oracle
+import           Ledger.Scripts                                        (unitDatum)
+import           Ledger.Tokens
+import qualified Ledger.Typed.Scripts                                  as Scripts
+import           Ledger.Value                                          as Value
+
+import           Language.Plutus.Contract.StateMachine                 (AsSMContractError, State (..),
+                                                                        StateMachine (..), Void)
+import qualified Language.Plutus.Contract.StateMachine                 as SM
+import qualified Language.PlutusTx.Coordination.Contracts.Currency     as Currency
+import           Language.PlutusTx.Coordination.Contracts.Escrow       (AsEscrowError (..), EscrowError,
+                                                                        EscrowParams (..), RefundSuccess)
+import qualified Language.PlutusTx.Coordination.Contracts.Escrow       as Escrow
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..))
+import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as TokenAccount
+
+import qualified Prelude                                               as Haskell
+
+-- $future
+-- A futures contract in Plutus. This example illustrates a number of concepts.
+--   1. Maintaining a margin (a kind of deposit) during the duration of the contract to protect against breach of contract (see note [Futures in Plutus])
+--   2. Using oracle values to obtain current pricing information (see note [Oracles] in Language.PlutusTx.Coordination.Contracts)
+--   3. Writing contracts as state machines
+--   4. Using tokens to represent claims on future cash flows
+
+-- | Basic data of a futures contract. `Future` contains all values that do not
+--   change during the lifetime of the contract.
+--
+data Future =
+    Future
+        { ftDeliveryDate  :: Slot
+        , ftUnits         :: Integer
+        , ftUnitPrice     :: Value
+        , ftInitialMargin :: Value
+        , ftPriceOracle   :: PubKey
+        , ftMarginPenalty :: Value
+        -- ^ How much a participant loses if they fail to make the required
+        --   margin payments.
+        } deriving Generic
+
+-- | The two roles involved in the contract.
+data Role = Long | Short
+    deriving (Generic, Show)
+
+instance Eq Role where
+    Long == Long = True
+    Short == Short = True
+    _ == _ = False
+
+-- | The token accounts that represent ownership of the two sides of the future.
+--   When the contract is done, payments will be made to these accounts.
+data FutureAccounts =
+    FutureAccounts
+        { ftoLong         :: Account
+        -- ^ The owner of the "long" account (represented by a token)
+        , ftoLongAccount  :: ValidatorHash
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoLong'. This --   hash can be derived from 'ftoLong', but only in off-chain code. We
+        --   store it here so that we can lift it into on-chain code.
+        , ftoShort        :: Account
+        -- ^ The owner of the "short" account (represented by a token).
+        , ftoShortAccount :: ValidatorHash
+        -- ^ Address of the 'TokenAccount' validator script for 'ftoShort'. The
+        --   comment on 'ftoLongAccount' applies to this as well.
+        } deriving (Haskell.Show, Generic)
+
+-- | The two margins.
+data Margins =
+    Margins
+        { ftsShortMargin :: Value
+        , ftsLongMargin  :: Value
+        } deriving (Haskell.Eq, Show, Generic)
+
+instance Eq Margins where
+    l == r = ftsShortMargin l == ftsShortMargin r && ftsLongMargin l == ftsLongMargin r
+
+-- | The state of the future contract.
+data FutureState =
+    Running Margins
+    -- ^ Ongoing contract, with the current margins.
+    | Finished
+    -- ^ Contract is finished.
+    deriving (Haskell.Eq, Show)
+
+instance Eq FutureState where
+    Running ma == Running ma' = ma == ma'
+    Finished   == Finished    = True
+    _ == _ = False
+
+-- | Actions that can be performed on the future contract.
+data FutureAction =
+    AdjustMargin Role Value
+    -- ^ Change the margin of one of the roles.
+    | Settle (SignedMessage (Observation Value))
+    -- ^ Close the contract at the delivery date by making the agreed payment
+    --   and returning the margin deposits to their owners
+    | SettleEarly (SignedMessage (Observation Value))
+    -- ^ Close the contract early after a margin payment has been missed.
+    --   The value of both margin accounts will be paid to the role that
+    --   *didn't* violate the margin requirement
+    deriving (Show)
+
+data FutureError =
+    TokenSetupFailed Currency.CurrencyError
+    -- ^ Something went wrong during the setup of the two tokens
+    | StateMachineError (SM.SMContractError FutureState FutureAction)
+    | OtherFutureError ContractError
+    | EscrowFailed EscrowError
+    -- ^ The escrow that initialises the future contract failed
+    | EscrowRefunded RefundSuccess
+    -- ^ The other party didn't make their payment in time so the contract never
+    --   started.
+    deriving Show
+
+makeClassyPrisms ''FutureError
+
+instance AsSMContractError FutureError FutureState FutureAction where
+    _SMContractError = _StateMachineError
+
+instance AsContractError FutureError where
+    _ContractError = _OtherFutureError
+
+instance AsCheckpointError FutureError where
+    _CheckpointError = _OtherFutureError . _CheckpointError
+
+type FutureSchema =
+    BlockchainActions
+        .\/ Endpoint "initialise-future" (FutureSetup, Role)
+        .\/ Endpoint "join-future" (FutureAccounts, FutureSetup)
+        .\/ Endpoint "increase-margin" (Value, Role)
+        .\/ Endpoint "settle-early" (SignedMessage (Observation Value))
+        .\/ Endpoint "settle-future" (SignedMessage (Observation Value))
+
+instance AsEscrowError FutureError where
+    _EscrowError = prism' EscrowFailed (\case { EscrowFailed e -> Just e; _ -> Nothing})
+
+futureContract :: Future -> Contract FutureSchema FutureError ()
+futureContract ft = do
+    client <- joinFuture ft `select` initialiseFuture ft
+    void $ loopM (const $ selectEither (increaseMargin client) (settleFuture client `select` settleEarly client)) ()
+
+-- | The data needed to initialise the futures contract.
+data FutureSetup =
+    FutureSetup
+        { shortPK       :: PubKey
+        -- ^ Initial owner of the short token
+        , longPK        :: PubKey
+        -- ^ Initial owner of the long token
+        , contractStart :: Slot
+        -- ^ Start of the futures contract itself. By this time the setup code
+        --   has to be finished, otherwise the contract is void.
+        } deriving (Haskell.Show)
 
 {- note [Futures in Plutus]
 
 A futures contract ("future") is an agreement to change ownership of an
 asset at a certain time (the delivery time) for an agreed price (the forward
-price). The time of the transfer, and the price, are fixed at the beginning of the contract.
+price). The time of the transfer, and the price, are fixed at the beginning of
+the contract.
 
-On the mockchain we only have one type of asset (namely, Ada coin value),
-so we simply exchange the difference in price between the forward price and the
-actual price. This is called a "cash settlement".
+A future can be settled either by actually exchanging the asset for the price
+(physical settlement) or by exchanging the difference between the forward price
+and the spot (current) price.
+
+In Plutus we could do physical settlement for assets that exist on the
+blockchain, that is, for tokens and currencies (everything that's a 'Value'). But
+the contract implemented here is for cash settlement.
 
 The agreement involves two parties, a buyer (long position) and a seller (short
 position). At the delivery time the actual price of the asset (spot price) is
@@ -73,230 +238,377 @@ their margin. If either party fails to make a margin payment then the contract
 will be settled early.
 
 The current value of the underlying asset is determined by an oracle. See note
-[Oracles] in Language.PlutusTx.Coordination.Contracts.
+[Oracles] in Language.PlutusTx.Coordination.Contracts. Also note that we
+wouldn't need oracles if this was a contract with physical settlement,
+
+The contract has three phases: Initialisation, runtime, and settlement. In the
+first phase both parties deposit their initial margins into an escrow contract.
+The second phase is when the contract is "live". In this phase the contract
+is a state machine whose state is the 'MarginnAccounts' with the current margins.
+The transition from the second to the third phase happens either after the
+settlement date, or if the sport price has moved so far that one of the margin
+accounts is underfunded. The runtime and settlement phases are modeled as a state
+machine, with 'FutureState' and 'FutureAction' types.
 
 -}
 
--- | Basic data of a futures contract. `Future` contains all values that do not
---   change during the lifetime of the contract.
---
-data Future = Future {
-    futureDeliveryDate  :: Slot,
-    futureUnits         :: Integer,
-    futureUnitPrice     :: Ada,
-    futureInitialMargin :: Ada,
-    futurePriceOracle   :: PubKey,
-    futureMarginPenalty :: Ada
-    -- ^ How much a participant loses if they fail to make the required margin
-    --   payments.
-    } deriving Generic
 
--- | The current "state" of the futures contract. `FutureData` contains values
---   that may change during the lifetime of the contract. This is the data
---   script.
---
-data FutureData = FutureData {
-    futureDataLong        :: PubKey,
-    -- ^ Holder of the long position (buyer)
-    futureDataShort       :: PubKey,
-    -- ^ Holder of the short position (seller)
-    futureDataMarginLong  :: Ada,
-    -- ^ Current balance of the margin account of the long position
-    futureDataMarginShort :: Ada
-    -- ^ Current balance of the margin account of the short position
-    } deriving Generic
+mkAccounts
+    :: Account
+    -> Account
+    -> FutureAccounts
+mkAccounts long short =
+    FutureAccounts
+        { ftoLong = long
+        , ftoLongAccount = TokenAccount.validatorHash long
+        , ftoShort = short
+        , ftoShortAccount = TokenAccount.validatorHash short
+        }
 
-PlutusTx.makeIsData ''FutureData
+{-# INLINABLE tokenFor #-}
+tokenFor :: Role -> FutureAccounts -> Value
+tokenFor = \case
+    Long -> \case FutureAccounts{ftoLong=Account(sym,tn)} -> token sym tn
+    Short -> \case FutureAccounts{ftoShort=Account(sym,tn)} -> token sym tn
 
--- | Actions that either participant may take. This is the redeemer script.
-data FutureRedeemer =
-      AdjustMargin
-    -- ^ Make a margin payment
-    | Settle (OracleValue Ada)
-    -- ^ Settle the contract
-    deriving Generic
+{-# INLINABLE adjustMargin #-}
+-- | Change the margin account of the role by the given amount.
+adjustMargin :: Role -> Value -> Margins -> Margins
+adjustMargin role value accounts =
+    case role of
+        Long  -> accounts { ftsLongMargin = ftsLongMargin accounts + value }
+        Short -> accounts { ftsShortMargin = ftsShortMargin accounts + value }
 
-PlutusTx.makeIsData ''FutureRedeemer
+{-# INLINABLE totalMargin #-}
+-- | The combined value of both margin accounts.
+totalMargin :: Margins -> Value
+totalMargin Margins{ftsShortMargin, ftsLongMargin} =
+    ftsShortMargin + ftsLongMargin
 
--- | Initialise the futures contract by paying the initial margin.
---
-initialise :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => PubKey
-    -- ^ Identity of the holder of the long position
-    -> PubKey
-    -- ^ Identity of the holder of the short position
+{-# INLINABLE futureStateMachine #-}
+futureStateMachine
+    :: Future
+    -> FutureAccounts
+    -> StateMachine FutureState FutureAction
+futureStateMachine ft fos = SM.mkStateMachine (transition ft fos) isFinal where
+    isFinal Finished = True
+    isFinal _        = False
+
+scriptInstance :: Future -> FutureAccounts -> Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
+scriptInstance future ftos =
+    let val = $$(PlutusTx.compile [|| validatorParam ||])
+            `PlutusTx.applyCode`
+                PlutusTx.liftCode future
+                `PlutusTx.applyCode`
+                    PlutusTx.liftCode ftos
+        validatorParam f g = SM.mkValidator (futureStateMachine f g)
+        wrap = Scripts.wrapValidator @FutureState @FutureAction
+
+    in Scripts.validator @(SM.StateMachine FutureState FutureAction)
+        val
+        $$(PlutusTx.compile [|| wrap ||])
+
+machineClient
+    :: Scripts.ScriptInstance (SM.StateMachine FutureState FutureAction)
     -> Future
-    -> m ()
-initialise long short f = do
-    let
-        im = futureInitialMargin f
-        o  = scriptTxOut (Ada.toValue im) (validatorScript f) ds
-        ds = DataScript $ PlutusTx.toData $ FutureData long short im im
+    -> FutureAccounts
+    -> SM.StateMachineClient FutureState FutureAction
+machineClient inst future ftos =
+    let machine = futureStateMachine future ftos
+    in SM.mkStateMachineClient (SM.StateMachineInstance machine inst)
 
-    (payment, change) <- createPaymentWithChange (Ada.toValue im)
-    void $ createTxAndSubmit defaultSlotRange payment (o : maybeToList change) [ds]
+validator :: Future -> FutureAccounts -> Validator
+validator ft fos = Scripts.validatorScript (scriptInstance ft fos)
 
--- | Close the position by extracting the payment
-settle :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> OracleValue Ada
-    -> m ()
-settle refs ft fd ov = do
-    let
-        delDate = futureDeliveryDate ft
-        forwardPrice = futureUnitPrice ft
-        OracleValue _ _ spotPrice = ov
-        delta = (Ada.lovelaceOf $ futureUnits ft) * (spotPrice - forwardPrice)
-        longOut = Ada.toValue ((futureDataMarginLong fd) + delta)
-        shortOut = Ada.toValue ((futureDataMarginShort fd) - delta)
-        red = RedeemerScript $ PlutusTx.toData $ Settle ov
-        dat = DataScript $ PlutusTx.toData $ fd
-        outs = [
-            Ledger.pubKeyTxOut longOut (futureDataLong fd),
-            Ledger.pubKeyTxOut shortOut (futureDataShort fd)
-            ]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
-        range = W.intervalFrom delDate
-    void $ createTxAndSubmit range (Set.fromList inp) outs []
+{-# INLINABLE verifyOracle #-}
+verifyOracle :: PlutusTx.IsData a => PubKey -> SignedMessage a -> Maybe (a, TxConstraints Void Void)
+verifyOracle pubKey sm =
+    either (const Nothing) pure
+    $ Oracle.verifySignedMessageConstraints pubKey sm
 
--- | Settle the position early if a margin payment has been missed.
-settleEarly :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> OracleValue Ada
-    -> m ()
-settleEarly refs ft fd ov = do
-    let totalVal = Ada.toValue ((futureDataMarginLong fd) + (futureDataMarginShort fd))
-        outs = [Ledger.pubKeyTxOut totalVal (futureDataLong fd)]
-        inp = (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
-        red = RedeemerScript $ PlutusTx.toData $ Settle ov
-        dat = DataScript $ PlutusTx.toData $ fd
-    void $ createTxAndSubmit defaultSlotRange (Set.fromList inp) outs []
+verifyOracleOffChain :: PlutusTx.IsData a => Future -> SignedMessage (Observation a) -> Maybe (Slot, a)
+verifyOracleOffChain Future{ftPriceOracle} sm =
+    case Oracle.verifySignedMessageOffChain ftPriceOracle sm of
+        Left _                               -> Nothing
+        Right Observation{obsValue, obsSlot} -> Just (obsSlot, obsValue)
 
-adjustMargin :: (
-    MonadError WalletAPIError m,
-    WalletAPI m)
-    => [TxOutRef]
-    -> Future
-    -> FutureData
-    -> Ada
-    -> m ()
-adjustMargin refs ft fd vl = do
-    pk <- ownPubKey
-    (payment, change) <- createPaymentWithChange (Ada.toValue vl)
-    fd' <- let fd''
-                | pk == futureDataLong fd = pure $ fd { futureDataMarginLong  = vl + futureDataMarginLong fd  }
-                | pk == futureDataShort fd = pure $ fd { futureDataMarginShort = vl + futureDataMarginShort fd }
-                | otherwise = throwOtherError "Private key is not part of futures contrat"
-            in fd''
-    let
-        red = RedeemerScript $ PlutusTx.toData AdjustMargin
-        dat  = DataScript $ PlutusTx.toData fd
-        dat'  = DataScript $ PlutusTx.toData fd'
-        o = scriptTxOut outVal (validatorScript ft) dat'
-        outVal = Ada.toValue (vl + futureDataMarginLong fd + futureDataMarginShort fd)
-        inp = Set.fromList $ (\r -> scriptTxIn r (validatorScript ft) red dat) <$> refs
-    void $ createTxAndSubmit defaultSlotRange (Set.union payment inp) (o : maybeToList change) [dat']
+{-# INLINABLE transition #-}
+transition :: Future -> FutureAccounts -> State FutureState -> FutureAction -> Maybe (TxConstraints Void Void, State FutureState)
+transition future@Future{ftDeliveryDate, ftPriceOracle} owners State{stateData=s, stateValue=currentValue} i =
+    case (s, i) of
+        (Running accounts, AdjustMargin role topUp) ->
+            Just ( mempty
+                    , State
+                    { stateData = Running (adjustMargin role topUp accounts)
+                    , stateValue = topUp + totalMargin accounts
+                    }
+                    )
+        (Running accounts, Settle ov)
+            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, ftDeliveryDate == oracleDate ->
+                let payment = payouts future accounts spotPrice
+                    constraints =
+                        Constraints.mustValidateIn (Interval.from ftDeliveryDate)
+                        <> oracleConstraints
+                        <> payoutsTx payment owners
+                in Just ( constraints
+                        , State
+                            { stateData = Finished
+                            , stateValue = mempty
+                            }
+                        )
+        (Running accounts, SettleEarly ov)
+            | Just (Observation{obsValue=spotPrice, obsSlot=oracleDate}, oracleConstraints) <- verifyOracle ftPriceOracle ov, Just vRole <- violatingRole future accounts spotPrice, ftDeliveryDate > oracleDate ->
+                let
+                    total = totalMargin accounts
+                    FutureAccounts{ftoLongAccount, ftoShortAccount} = owners
+                    payment = case vRole of
+                                Short -> Constraints.mustPayToOtherScript ftoLongAccount unitDatum total
+                                Long  -> Constraints.mustPayToOtherScript ftoShortAccount unitDatum total
+                    constraints = payment <> oracleConstraints
+                in Just ( constraints
+                        , State
+                            { stateData = Finished
+                            , stateValue = mempty
+                            }
+                        )
+        _ -> Nothing
 
+data Payouts =
+    Payouts
+        { payoutsShort :: Value
+        , payoutsLong  :: Value
+        }
+
+{-# INLINABLE payoutsTx #-}
+payoutsTx
+    :: Payouts
+    -> FutureAccounts
+    -> TxConstraints Void Void
+payoutsTx
+    Payouts{payoutsShort, payoutsLong}
+    FutureAccounts{ftoLongAccount, ftoShortAccount} =
+        Constraints.mustPayToOtherScript ftoLongAccount unitDatum payoutsLong
+        <> Constraints.mustPayToOtherScript ftoShortAccount unitDatum payoutsShort
+
+{-# INLINABLE payouts #-}
+-- | Compute the payouts for each role given the future data,
+--   margin accounts, and current (spot) price
+payouts :: Future -> Margins -> Value -> Payouts
+payouts Future{ftUnits, ftUnitPrice} Margins{ftsShortMargin, ftsLongMargin} spotPrice =
+    let delta = scale ftUnits (spotPrice - ftUnitPrice)
+    in Payouts
+        { payoutsShort = ftsShortMargin - delta
+        , payoutsLong  = ftsLongMargin + delta
+        }
 
 -- | Compute the required margin from the current price of the
 --   underlying asset.
-requiredMargin :: Future -> Ada -> Ada
-requiredMargin Future{futureUnits=units, futureUnitPrice=unitPrice, futureMarginPenalty=pnlty} spotPrice =
+{-# INLINABLE requiredMargin #-}
+requiredMargin :: Future -> Value -> Value
+requiredMargin Future{ftUnits, ftUnitPrice, ftMarginPenalty} spotPrice =
     let
-        delta  = (Ada.lovelaceOf units) * (spotPrice - unitPrice)
+        delta  = scale ftUnits (spotPrice - ftUnitPrice)
     in
-        pnlty + delta
+        ftMarginPenalty + delta
 
-{-# INLINABLE mkValidator #-}
-mkValidator :: Future -> FutureData -> FutureRedeemer -> PendingTx -> Bool
-mkValidator ft@Future{..} FutureData{..} r p@PendingTx{pendingTxOutputs=outs, pendingTxValidRange=range} =
+{-# INLINABLE initialMargin #-}
+initialMargin :: Future -> Value
+initialMargin ft@Future{ftUnitPrice, ftMarginPenalty} =
+    ftMarginPenalty + ftUnitPrice
+
+{-# INLINABLE initialState #-}
+-- | The initial state of the 'Future' contract
+initialState :: Future -> FutureState
+initialState ft =
+    let im = initialMargin ft in
+    Running (Margins{ftsShortMargin=im, ftsLongMargin=im})
+
+futureAddress :: Future -> FutureAccounts -> Address
+futureAddress ft fo = Ledger.scriptAddress (validator ft fo)
+
+{-# INLINABLE violatingRole #-}
+-- | The role that violated its margin requirements
+violatingRole :: Future -> Margins -> Value -> Maybe Role
+violatingRole future margins spotPrice =
     let
+        minMargin = requiredMargin future spotPrice
+        Margins{ftsShortMargin, ftsLongMargin} = margins
+    in
+    if ftsShortMargin `lt` minMargin then Just Short
+    else if ftsLongMargin `lt` minMargin then Just Long
+    else Nothing
 
-        isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
-        isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
+-- | Initialise the contract by
+--   * Generating the tokens for long and short
+--   * Setting up an escrow contract for the initial margins
+--   * Paying the initial margin for the given role
+initialiseFuture
+    :: ( HasEndpoint "initialise-future" (FutureSetup, Role) s
+       , HasBlockchainActions s
+       , AsFutureError e
+       )
+    => Future
+    -> Contract s e (SM.StateMachineClient FutureState FutureAction)
+initialiseFuture future = mapError (review _FutureError) $ do
+    (s, ownRole) <- endpoint @"initialise-future" @(FutureSetup, Role)
+    -- Start by setting up the two tokens for the short and long positions.
+    ftos <- setupTokens
 
-        --  | Check if a `PendingTxOut` is a public key output for the given pub. key and ada value
-        paidOutTo :: Ada -> PubKey -> PendingTxOut -> Bool
-        paidOutTo vl pk txo =
-            let PendingTxOut vl' _ = txo
-                adaVl' = Ada.fromValue vl'
-            in
-            isPubKeyOutput txo pk && vl == adaVl'
+    -- Now we have a 'FutureAccountsValue' with the data of two new and unique
+    -- tokens that we will use for the future contract. Now we use an escrow
+    --  contract to initialise the future contract.
 
-        verifyOracle :: OracleValue a -> (Slot, a)
-        verifyOracle (OracleValue pk h t) =
-            if pk == futurePriceOracle then (h, t) else error ()
+    inst <- checkpoint $ pure (scriptInstance future ftos)
 
-    in case r of
-            -- Settling the contract is allowed if any of three conditions hold:
-            --
-            -- 1. The `deliveryDate` has been reached. In this case both parties get what is left of their margin
-            -- plus/minus the difference between spot and forward price.
-            -- 2. The owner of the long position has failed to make a margin payment. In this case the owner of the short position gets both margins.
-            -- 3. The owner of the short position has failed to make a margin payment. In this case the owner of the long position gets both margins.
-            --
-            -- In case (1) there are two payments (1 to each of the participants). In cases (2) and (3) there is only one payment.
+    let
+        client = machineClient inst future ftos
 
-            Settle ov ->
-                let
-                    spotPrice = snd (verifyOracle ov)
-                    delta  = (Ada.lovelaceOf futureUnits) * (spotPrice - futureUnitPrice)
-                    expShort = futureDataMarginShort - delta
-                    expLong  = futureDataMarginLong + delta
-                    slotvalid = Interval.member futureDeliveryDate range
+        -- The escrow parameters 'esc' ensure that the initial margin is paid
+        -- to the future contract address, and the two tokens are transferred
+        -- to their initial owners.
+        escr = escrowParams client future ftos s
 
-                    canSettle =
-                        case outs of
-                            o1:o2:_ ->
-                                let paymentsValid =
-                                        (paidOutTo expShort futureDataShort o1 && paidOutTo expLong futureDataLong o2)
-                                        || (paidOutTo expShort futureDataShort o2 && paidOutTo expLong futureDataLong o1)
-                                in
-                                    slotvalid && paymentsValid
-                            o1:_ ->
-                                let
-                                    totalMargin = futureDataMarginShort + futureDataMarginLong
-                                    reqMargin   = requiredMargin ft spotPrice
-                                    case2 = futureDataMarginLong < reqMargin
-                                            && paidOutTo totalMargin futureDataShort o1
+        -- For the escrow to go through, both tokens and 2x the initial margin
+        -- have to be deposited at the escrow address before the deadline
+        -- (start of the future contract). Since we are currently in possession
+        -- of both tokens, we pay the two tokens and our own initial margin to
+        -- the escrow.
+        payment =
+            initialMargin future <> tokenFor Long ftos <> tokenFor Short ftos
 
-                                    case3 = futureDataMarginShort < reqMargin
-                                            && paidOutTo totalMargin futureDataLong o1
+        -- By using 'Escrow.payRedeemRefund' we make our payment and wait for
+        -- the other party to make theirs. If they fail to do so within the
+        -- agreed timeframe, our own initial margin is refunded and the future
+        -- contract never starts.
+        escrowPayment = Escrow.payRedeemRefund escr payment
 
-                                in
-                                    case2 || case3
-                            _ -> False
+    -- Run 'escrowPayment', wrapping any errors in 'EscrowFailed'. If the escrow
+    -- contract ended with a refund (ie., 'escrowPayment' returns a 'Left') we
+    -- throw an 'EscrowRefunded' error. If the escrow contract succeeded, the
+    -- future is initialised and ready to go, so we return the 'FutureAccounts'
+    -- with the token information.
+    e <- mapError (review _EscrowFailed) escrowPayment
+    either (throwing _EscrowRefunded) (\_ -> pure client) e
 
-                in
-                    canSettle
+-- | The @"settle-future"@ endpoint. Given an oracle value with the current spot
+--   price, this endpoint creates the final transaction that distributes the
+--   funds locked by the future to the token accounts specified in
+--   the 'FutureAccounts' argument.
+settleFuture
+    :: ( HasEndpoint "settle-future" (SignedMessage (Observation Value)) s
+       , HasBlockchainActions s
+       , AsFutureError e
+       )
+    => SM.StateMachineClient FutureState FutureAction
+    -> Contract s e ()
+settleFuture client = mapError (review _FutureError) $ do
+    ov <- endpoint @"settle-future"
+    void $ SM.runStep client (Settle ov)
 
-            -- For adjusting the margin we simply check that the amount locked in the contract
-            -- is larger than it was before.
-            --
-            AdjustMargin ->
-                let
-                    (ownHash, _, _) = Validation.ownHashes p
-                    vl = Validation.adaLockedBy p ownHash
-                in
-                    vl > (futureDataMarginShort + futureDataMarginLong)
+-- | The @"settle-early"@ endpoint. Given an oracle value with the current spot
+--   price, this endpoint creates the final transaction that distributes the
+--   funds locked by the future to the token account of the role that did not
+--   violate its obligations. Throws a 'MarginRequirementsNotViolated' error if
+--   the spot price is within the margin range.
+settleEarly
+    :: ( HasEndpoint "settle-early" (SignedMessage (Observation Value)) s
+       , HasBlockchainActions s
+       , AsSMContractError e FutureState FutureAction
+       , AsContractError e
+       )
+    => SM.StateMachineClient FutureState FutureAction
+    -> Contract s e ()
+settleEarly client = do
+    ov <- endpoint @"settle-early"
+    void $ SM.runStep client (SettleEarly ov)
 
-validatorScript :: Future -> ValidatorScript
-validatorScript ft = Ledger.mkValidatorScript $
-    $$(PlutusTx.compile [|| validatorParam ||])
-        `PlutusTx.applyCode`
-            PlutusTx.liftCode ft
-    where validatorParam f = Scripts.wrapValidator (mkValidator f)
+-- | The @"increase-margin"@ endpoint. Increses the margin of one of
+--   the roles by an amount.
+increaseMargin
+    :: ( HasEndpoint "increase-margin" (Value, Role) s
+       , HasUtxoAt s
+       , HasWriteTx s
+       , HasOwnPubKey s
+       , HasTxConfirmation s
+       , AsSMContractError e FutureState FutureAction
+       , AsContractError e
+       )
+    => SM.StateMachineClient FutureState FutureAction
+    -> Contract s e ()
+increaseMargin client = do
+    (value, role) <- endpoint @"increase-margin"
+    void $ SM.runStep client (AdjustMargin role value)
+
+-- | The @"join-future"@ endpoint. Join a future contract by paying the initial
+--   margin to the escrow that initialises the contract.
+joinFuture
+    :: ( HasEndpoint "join-future" (FutureAccounts, FutureSetup) s
+       , HasBlockchainActions s
+       , AsFutureError e
+       )
+    => Future
+    -> Contract s e (SM.StateMachineClient FutureState FutureAction)
+joinFuture ft = mapError (review _FutureError) $ do
+    (owners, stp) <- endpoint @"join-future" @(FutureAccounts, FutureSetup)
+    inst <- checkpoint $ pure (scriptInstance ft owners)
+    let client = machineClient inst ft owners
+        escr = escrowParams client ft owners stp
+        payment = Escrow.pay (Escrow.scriptInstance escr) escr (initialMargin ft)
+    void $ mapError EscrowFailed payment
+    pure client
+
+-- | Create two unique tokens that can be used for the short and long positions
+--   and return a 'FutureAccounts' value for them.
+--
+--   Note that after 'setupTokens' is complete, both tokens will be locked by a
+--   public key output belonging to the wallet that ran 'setupTokens'.
+setupTokens
+    :: ( HasWriteTx s
+       , HasWatchAddress s
+       , HasOwnPubKey s
+       , AsFutureError e
+       )
+    => Contract s e FutureAccounts
+setupTokens = mapError (review _FutureError) $ do
+    pk <- ownPubKey
+
+    -- Create the tokens using the currency contract, wrapping any errors in
+    -- 'TokenSetupFailed'
+    cur <- mapError TokenSetupFailed $ Currency.forgeContract (pubKeyHash pk) [("long", 1), ("short", 1)]
+    let sym = Currency.currencySymbol cur
+    pure $ mkAccounts (Account (sym, "long")) (Account (sym, "short"))
+
+-- | The escrow contract that initialises the future. Both parties have to pay
+--   their initial margin to this contract in order to unlock their tokens.
+escrowParams
+    :: SM.StateMachineClient FutureState FutureAction
+    -> Future
+    -> FutureAccounts
+    -> FutureSetup
+    -> EscrowParams Datum
+escrowParams client future ftos FutureSetup{longPK, shortPK, contractStart} =
+    let
+        address = Ledger.validatorHash $ Scripts.validatorScript $ SM.validatorInstance $ SM.scInstance client
+        dataScript  = Ledger.Datum $ PlutusTx.toData $ initialState future
+        targets =
+            [ Escrow.payToScriptTarget address
+                dataScript
+                (scale 2 (initialMargin future))
+            , Escrow.payToPubKeyTarget (pubKeyHash longPK) (tokenFor Long ftos)
+            , Escrow.payToPubKeyTarget (pubKeyHash shortPK) (tokenFor Short ftos)
+            ]
+    in EscrowParams
+        { escrowDeadline = contractStart
+        , escrowTargets = targets
+        }
 
 PlutusTx.makeLift ''Future
-PlutusTx.makeLift ''FutureData
-PlutusTx.makeLift ''FutureRedeemer
+PlutusTx.makeLift ''FutureAccounts
+PlutusTx.makeLift ''Margins
+PlutusTx.makeIsData ''Margins
+PlutusTx.makeLift ''Role
+PlutusTx.makeIsData ''Role
+PlutusTx.makeLift ''FutureState
+PlutusTx.makeIsData ''FutureState
+PlutusTx.makeLift ''FutureAction
+PlutusTx.makeIsData ''FutureAction

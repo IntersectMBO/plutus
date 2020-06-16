@@ -1,13 +1,17 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 module Check.Spec (tests) where
+
+import           PlutusPrelude
 
 import           Language.PlutusCore
 import qualified Language.PlutusCore.Check.Normal   as Normal
 import qualified Language.PlutusCore.Check.Uniques  as Uniques
 import qualified Language.PlutusCore.Check.Value    as VR
-import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST
+import           Language.PlutusCore.MkPlc
 
 import           Control.Monad.Except
 import           Data.Either
@@ -23,14 +27,13 @@ tests = testGroup "checks"
     , multiplyDefined
     , incoherentUse
     , values
-    , valueRestriction
     , normalTypes
     , normalTypesCheck
     ]
 
 data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
 
-checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name a -> m ()
+checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni a -> m ()
 checkTermUniques = Uniques.checkTerm (\case FreeVariable{} -> False; _ -> True)
 
 shadowed :: TestTree
@@ -38,8 +41,8 @@ shadowed =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
-            ty <- freshTyName Ignore "ty"
-            let n = Name Ignore "yo" u
+            ty <- freshTyName "ty"
+            let n = Name "yo" u
             let term =
                     LamAbs (Tag 1) n (TyVar Ignore ty) $
                     LamAbs (Tag 2) n (TyVar Ignore ty) $
@@ -53,8 +56,8 @@ multiplyDefined =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
-            ty <- freshTyName Ignore "ty"
-            let n = Name Ignore "yo" u
+            ty <- freshTyName "ty"
+            let n = Name "yo" u
             let term =
                     Apply Ignore
                     (LamAbs (Tag 1) n (TyVar Ignore ty) (Var Ignore n))
@@ -68,7 +71,7 @@ incoherentUse =
     let
         u = Unique 0
         checked = runExcept $ runQuoteT $ do
-            let n = Name Ignore "yo" u
+            let n = Name "yo" u
             let ty = TyName n
             let term =
                     LamAbs (Tag 1) n (TyVar (Tag 2) ty) $
@@ -79,48 +82,27 @@ incoherentUse =
 
 propRenameCheck :: Property
 propRenameCheck = property $ do
-    prog <- forAll genProgram
-    -- we didn't generate prog in Quote, so mark all the uniques as non-fresh
+    prog <- forAllPretty $ runAstGen genProgram
     renamed <- runQuoteT $ rename prog
-    annotateShow renamed
+    annotateShow $ ShowPretty renamed
     Hedgehog.evalExceptT $ checkUniques renamed
         where
-            checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name a -> m ()
+            checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name uni a -> m ()
             -- the renamer will fix incoherency between *bound* variables, but it ignores free variables, so
             -- we can still get incoherent usage errors, ignore them for now
             checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
-valueRestriction :: TestTree
-valueRestriction = runQuote $ do
-    aN <- freshTyName () "a"
-    bN <- freshTyName () "b"
-    xN <- freshName () "x"
-    let typeAbs v = TyAbs () v (Type ())
-        aV = TyVar () aN
-        xV = Var () xN
-    pure $ testGroup "value restriction" [
-        testCase "absError" $ isLeft (checkVR (typeAbs aN $ Error () aV)) @? "Value restriction"
-      , testCase "nestedAbsError" $ isLeft (checkVR (typeAbs aN . typeAbs bN $ Error () aV)) @? "Value restriction"
-      , testCase "wrapError" $ isLeft (checkVR (typeAbs aN $ IWrap () aV aV $ Error () aV)) @? "Value restriction"
-
-      , testCase "absLam" $ isRight (checkVR (typeAbs aN $ LamAbs () xN aV xV)) @? "Value restriction"
-      , testCase "nestedAbsLam" $ isRight (checkVR (typeAbs aN . typeAbs bN $ LamAbs () xN aV xV)) @? "Value restriction"
-      ]
-        where
-            checkVR :: Term TyName Name () -> Either (VR.ValueRestrictionError TyName ()) ()
-            checkVR = VR.checkTerm
-
 values :: TestTree
 values = runQuote $ do
-    aN <- freshTyName () "a"
+    aN <- freshTyName "a"
     let aV = TyVar () aN
-        val = makeIntConstant 2
+        val = mkConstant @Integer @DefaultUni () 2
         nonVal = Error () aV
     pure $ testGroup "values" [
           testCase "wrapNonValue" $ VR.isTermValue (IWrap () aV aV nonVal) @?= False
         , testCase "wrapValue" $ VR.isTermValue (IWrap () aV aV val) @?= True
 
-        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= False
+        , testCase "absNonValue" $ VR.isTermValue (TyAbs () aN (Type ()) nonVal) @?= True
         , testCase "absValue" $ VR.isTermValue (TyAbs () aN (Type()) val) @?= True
 
         , testCase "error" $ VR.isTermValue (Error () aV) @?= False
@@ -128,20 +110,19 @@ values = runQuote $ do
         , testCase "app" $ VR.isTermValue (Apply () val val) @?= False
         , testCase "unwrap" $ VR.isTermValue (Unwrap () val) @?= False
         , testCase "inst" $ VR.isTermValue (TyInst () val aV) @?= False
-        , testCase "constant" $ VR.isTermValue (makeIntConstant 1) @?= True
+        , testCase "constant" $ VR.isTermValue (mkConstant @Integer @DefaultUni () 1) @?= True
         , testCase "builtin" $ VR.isTermValue (builtinNameAsTerm AddInteger) @?= False
       ]
 
 normalTypes :: TestTree
 normalTypes = runQuote $ do
-    aN <- freshTyName () "a"
-    let integer = TyBuiltin () TyInteger
-        aV = TyVar () aN
-        neutral = integer
+    aN <- freshTyName "a"
+    let integer = mkTyBuiltin @Integer @DefaultUni ()
+        neutral = TyVar () aN
         normal = integer
-        nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
+        nonNormal = TyApp () (TyLam () aN (Type ()) neutral) normal
     pure $ testGroup "normal types" [
-          testCase "var" $ Normal.isNormalType aV @?= True
+          testCase "var" $ Normal.isNormalType neutral @?= True
 
         , testCase "funNormal" $ Normal.isNormalType (TyFun () normal normal) @?= True
         , testCase "funNotNormal" $ Normal.isNormalType (TyFun () normal nonNormal) @?= False
@@ -163,9 +144,9 @@ normalTypes = runQuote $ do
 
 normalTypesCheck :: TestTree
 normalTypesCheck = runQuote $ do
-    aN <- freshTyName () "a"
-    xN <- freshName () "x"
-    let integer = TyBuiltin () TyInteger
+    aN <- freshTyName "a"
+    xN <- freshName "x"
+    let integer = mkTyBuiltin @Integer ()
         aV = TyVar () aN
         xV = Var () xN
         normal = integer
@@ -186,9 +167,9 @@ normalTypesCheck = runQuote $ do
         , testCase "errorNormal" $ isRight (checkNormal (Error () normal)) @? "Normalization"
         , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
 
-        , testCase "constant" $ isRight (checkNormal (makeIntConstant 2)) @? "Normalization"
+        , testCase "constant" $ isRight (checkNormal (mkConstant @Integer () 2)) @? "Normalization"
         , testCase "builtin" $ isRight (checkNormal (builtinNameAsTerm AddInteger)) @? "Normalization"
       ]
         where
-            checkNormal :: Term TyName Name () -> Either (Normal.NormCheckError TyName Name ()) ()
+            checkNormal :: Term TyName Name DefaultUni () -> Either (Normal.NormCheckError TyName Name DefaultUni ()) ()
             checkNormal = Normal.checkTerm

@@ -1,0 +1,42 @@
+\section{Related work}
+\label{sec:related}
+
+Bitcoin Covenants~\cite{moser2016bitcoin} allow Bitcoin transactions
+to restrict how the transferred value can be used in the future,
+including propagating themselves to ongoing outputs. This provides
+contract continuity and allows the implementation of simple state
+machines. Our work is inspired by Covenants, although our addition of
+a datum is novel and simplifies the state passing.
+
+The Bitcoin Modelling Language (BitML)~\cite{bitml} is an idealistic process calculus
+that specifically targets smart contracts running on Bitcoin.
+The semantics of BitML contracts essentially comprise a (labelled) \textit{transition system}, aka a state machine.
+Nonetheless, due to the constrained nature of the plain \UTXO{} model without any extensions,
+the construction is far from straightforward and requires quite a bit of off-chain communication to set everything up.
+Most importantly, the BitML compilation scheme only concerns a restricted form of state machines,
+while ours deals with a more generic form that admits any user-defined type of states and inputs.
+BitML builds upon an abstract model of Bitcoin transactions by the same
+authors~\cite{formal-model-of-bitcoin-transactions};
+one of our main contributions is an extended version of such an abstract model,
+which also accounts for the added functionality apparent in \Cardano{}.
+
+Ethereum and its smart contract language, Solidity~\cite{Solidity}, are powerful
+enough to implement state machines, due to their native support for
+global contract instances and state. However, this approach has some major downsides,
+notably that contract state is global, and must be kept indefinitely by all core nodes.
+In the \EUTXO{} model, contract state is localised to where it is used, and
+it is the responsibility of clients to manage it.
+
+Scilla~\cite{scilla} is a intermediate-level language for writing smart
+contracts as state machines. It compiles to Solidity and is amendable to formal verification.
+Since Scilla supports the asynchronous messaging capabilities of Ethereum,
+Scilla contracts correspond to a richer class of automata, called
+\textit{Communicating State Transition Systems}~\cite{csta}.
+In the future, we plan to formally compare this class of state machines with our own class of \CEM{}s,
+which would also pave the way to a systematic comparison of Ethereum's account-based model against \Cardano{}'s \UTXO{}-based one.
+
+Finally, there has been an attempt to model Bitcoin contracts using \textit{timed automata}~\cite{timed-btc},
+which enables semi-automatic verification using the UPPAAL model checker~\cite{uppaal}.
+While this provides a pragmatic way to verify temporal properties of concrete smart contracts,
+there is no formal claim that this class of automata actually corresponds to the semantics of Bitcoin smart contracts.
+In contrast, our bisimulation proof achieves the bridging of this semantic gap.

@@ -1,9 +1,6 @@
 module Main where
 
-import           Tutorial.PlutusTx         ()
-import           Tutorial.ValidatorScripts ()
-import           Tutorial.WalletAPI        ()
+import           Tutorial.PlutusTx ()
 
 main :: IO ()
 main = pure ()
-

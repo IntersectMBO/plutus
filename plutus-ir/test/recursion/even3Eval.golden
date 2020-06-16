@@ -1,5 +1,0 @@
-(abs
-  out_Bool_83
-  (type)
-  (lam case_True_84 out_Bool_83 (lam case_False_85 out_Bool_83 case_False_85))
-)

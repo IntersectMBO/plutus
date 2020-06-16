@@ -1,89 +1,56 @@
+{-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.MultiSig(tests) where
 
-import           Control.Lens
-import           Control.Monad                                     (void)
-import           Control.Monad.Error.Lens
-import           Data.Either                                       (isLeft, isRight)
-import qualified Data.Map                                          as Map
-import qualified Data.Text                                         as T
-
-import qualified Spec.Lib                                          as Lib
-
-import           Test.Tasty
-import qualified Test.Tasty.HUnit                                  as HUnit
-
-import qualified Language.PlutusTx as PlutusTx
-
+import           Language.Plutus.Contract                          (ContractError)
+import           Language.Plutus.Contract.Test
+import qualified Language.PlutusTx                                 as PlutusTx
 import           Language.PlutusTx.Coordination.Contracts.MultiSig as MS
-import           Ledger                                            (PrivateKey, Tx, txId, signatures, toPublicKey)
+import qualified Ledger
 import qualified Ledger.Ada                                        as Ada
-import qualified Ledger.Crypto                                     as Crypto
-import qualified Wallet.API                                        as WAPI
-import qualified Wallet.Emulator                                   as EM
+import           Ledger.Index                                      (ValidationError (ScriptFailure))
+import           Ledger.Scripts                                    (ScriptError (EvaluationError))
+import           Wallet.Emulator.SigningProcess                    (signWallets)
+
+import           Prelude                                           hiding (not)
+import qualified Spec.Lib                                          as Lib
+import           Test.Tasty
 
 tests :: TestTree
-tests = testGroup "multisig" [
-    HUnit.testCase "three out of five" (nOutOfFiveTest 3),
-    HUnit.testCase "two out of five" (nOutOfFiveTest 2),
-    Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
+tests = testGroup "multisig"
+    [ checkPredicate @MultiSigSchema @ContractError "2 out of 5"
+        MS.contract
+        (assertFailedTransaction (\_ err -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
+        (callEndpoint @"lock" w1 (multiSig, Ada.lovelaceValueOf 10)
+        >> handleBlockchainEvents w1
+        >> callEndpoint @"unlock" w1 (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
+        >> setSigningProcess w1 (signWallets [w1, w2])
+        >> handleBlockchainEvents w1
+        )
+
+    , checkPredicate @MultiSigSchema @ContractError "3 out of 5"
+        MS.contract
+        assertNoFailedTransactions
+        (callEndpoint @"lock" w1 (multiSig, Ada.lovelaceValueOf 10)
+        >> handleBlockchainEvents w1
+        >> callEndpoint @"unlock" w1 (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2, w3])
+        >> setSigningProcess w1 (signWallets [w1, w2, w3])
+        >> handleBlockchainEvents w1
+        )
+
+    , Lib.goldenPir "test/Spec/multisig.pir" $$(PlutusTx.compile [|| MS.validate ||])
     ]
 
-nOutOfFiveTest :: Int -> HUnit.Assertion
-nOutOfFiveTest i = do
-    let initialState = EM.emulatorStateInitialDist (Map.singleton (EM.walletPubKey (EM.Wallet 1)) (Ada.adaValueOf 10))
-        (result, _) = EM.runEmulator @EM.AssertionError initialState (threeOutOfFive i)
-        isOk = if i < 3 then isLeft result else isRight result
-    HUnit.assertBool "transaction failed to validate" isOk
+w1, w2, w3 :: Wallet
+w1 = Wallet 1
+w2 = Wallet 2
+w3 = Wallet 3
 
--- | A mockchain trace that locks funds in a three-out-of-five multisig
---   contract, and attempts to spend them using the given number of signatures.
---   @threeOutOfFive 3@ passes, @threeOutOfFive 2@ results in an
---   'EM.AssertionError'.
-threeOutOfFive :: (EM.MonadEmulator e m) => Int -> m ()
-threeOutOfFive n = do
-
-    let
-        w1 = EM.Wallet 1
-        w2 = EM.Wallet 2
-
-        -- a 'MultiSig' contract that requires three out of five signatures
-        ms = MultiSig
-                { signatories = EM.walletPubKey . EM.Wallet <$> [1..5]
-                , requiredSignatures = 3
-                }
-
-        processAndNotify = void (EM.addBlocksAndNotify [w1, w2] 1)
-
-    -- the first trace produces the transaction that needs to be signed
-    (r, _) <- EM.processEmulated $ do
-            processAndNotify
-            void $ EM.walletAction w2 (initialise ms)
-            processAndNotify
-            void $ EM.walletAction w1 (lock ms $ Ada.adaValueOf 10)
-            processAndNotify
-            EM.runWalletAction w2 (unlockTx ms)
-
-    tx <- either (throwing EM._AssertionError . EM.GenericAssertion . T.pack . show) pure r
-
-    let
-        -- Attach signatures of the first @n@ wallets' private keys to 'tx'.
-        signedTx =
-            let signingKeys = take n (EM.walletPrivKey . EM.Wallet <$> [1..]) in
-            foldr attachSignature tx signingKeys
-
-    -- the second trace submits the signed transaction and asserts
-    -- that it has been validated.
-    EM.processEmulated $ do
-        void $ EM.walletAction w2 (WAPI.submitTxn signedTx)
-        processAndNotify
-        EM.assertIsValidated signedTx
-
--- | Attach a signature to a transaction.
-attachSignature :: PrivateKey -> Tx -> Tx
-attachSignature pk tx' =
-    let sig = Crypto.signTx (txId tx') pk
-    in  tx' & signatures . at (toPublicKey pk) ?~ sig
+-- a 'MultiSig' contract that requires three out of five signatures
+multiSig :: MultiSig
+multiSig = MultiSig
+        { signatories = Ledger.pubKeyHash . walletPubKey . Wallet <$> [1..5]
+        , minNumSignatures = 3
+        }

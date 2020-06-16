@@ -1,6 +1,9 @@
 -- | @boolean@ and related functions.
 
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.StdLib.Data.Bool
     ( bool
@@ -9,65 +12,35 @@ module Language.PlutusCore.StdLib.Data.Bool
     , ifThenElse
     ) where
 
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Universe
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Language.PlutusCore.StdLib.Data.Unit
 
 -- | 'Bool' as a PLC type.
---
--- > all (A :: *). A -> A -> A
-bool :: Type TyName ()
-bool = runQuote $ do
-    a <- freshTyName () "a"
-    return
-        . TyForall () a (Type ())
-        $ mkIterTyFun () [ TyVar () a, TyVar () a ]
-        $ TyVar () a
+bool :: uni `Includes` Bool => Type TyName uni ()
+bool = mkTyBuiltin @Bool ()
 
 -- | 'True' as a PLC term.
---
--- > /\(A :: *) -> \(x y : A) -> x
-true :: TermLike term TyName Name => term ()
-true = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
-    y <- freshName () "y"
-    return
-       . tyAbs () a (Type ())
-       $ mkIterLamAbs [
-          VarDecl () x (TyVar () a),
-          VarDecl () y (TyVar () a)
-          ]
-       $ var () x
+true :: (TermLike term TyName Name uni, uni `Includes` Bool) => term ()
+true = mkConstant () True
 
 -- | 'False' as a PLC term.
---
--- > /\(A :: *) -> \(x y : A) -> y
-false :: TermLike term TyName Name => term ()
-false = runQuote $ do
-    a <- freshTyName () "a"
-    x <- freshName () "x"
-    y <- freshName () "y"
-    return
-       . tyAbs () a (Type ())
-       $ mkIterLamAbs [
-          VarDecl () x (TyVar () a),
-          VarDecl () y (TyVar () a)
-          ]
-       $ var () y
+false :: (TermLike term TyName Name uni, uni `Includes` Bool) => term ()
+false = mkConstant () False
 
 -- | @if_then_else_@ as a PLC term.
 --
--- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> b {() -> A} x y ()
-ifThenElse :: TermLike term TyName Name => term ()
+-- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
+ifThenElse :: (TermLike term TyName Name uni, uni `IncludesAll` '[Bool, ()]) => term ()
 ifThenElse = runQuote $ do
-    a <- freshTyName () "a"
-    b <- freshName () "b"
-    x <- freshName () "x"
-    y <- freshName () "y"
+    a <- freshTyName "a"
+    b <- freshName "b"
+    x <- freshName "x"
+    y <- freshName "y"
     let unitFunA = TyFun () unit (TyVar () a)
     return
        . tyAbs () a (Type ())
@@ -77,5 +50,5 @@ ifThenElse = runQuote $ do
           VarDecl () y unitFunA
           ]
       $ mkIterApp ()
-          (tyInst () (var () b) unitFunA)
-          [var () x, var () y, unitval]
+          (tyInst () (builtinNameAsTerm IfThenElse) unitFunA)
+          [var () b, var () x, var () y, unitval]

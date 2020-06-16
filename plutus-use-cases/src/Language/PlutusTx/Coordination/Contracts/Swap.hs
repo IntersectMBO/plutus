@@ -1,10 +1,11 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE ViewPatterns   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 module Language.PlutusTx.Coordination.Contracts.Swap(
@@ -15,13 +16,15 @@ module Language.PlutusTx.Coordination.Contracts.Swap(
 
 import qualified Language.PlutusTx         as PlutusTx
 import           Language.PlutusTx.Prelude
-import           Ledger                    (Slot, PubKey, ValidatorScript)
+import           Ledger                    (PubKey, PubKeyHash, Slot, Validator)
 import qualified Ledger                    as Ledger
-import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (OracleValue (..), PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), PendingTxOut (..))
-import qualified Ledger.Validation         as Validation
-import qualified Ledger.Ada                as Ada
 import           Ledger.Ada                (Ada)
+import qualified Ledger.Ada                as Ada
+import           Ledger.Oracle             (Observation (..), SignedMessage)
+import qualified Ledger.Oracle             as Oracle
+import qualified Ledger.Typed.Scripts      as Scripts
+import           Ledger.Validation         (PendingTx, PendingTx' (..), PendingTxIn, PendingTxIn' (..), TxOut (..))
+import qualified Ledger.Validation         as Validation
 import           Ledger.Value              (Value)
 
 -- | A swap is an agreement to exchange cashflows at future dates. To keep
@@ -52,20 +55,27 @@ PlutusTx.makeLift ''Swap
 --   In the future we could also put the `swapMargin` value in here to implement
 --   a variable margin.
 data SwapOwners = SwapOwners {
-    swapOwnersFixedLeg :: PubKey,
-    swapOwnersFloating :: PubKey
+    swapOwnersFixedLeg :: PubKeyHash,
+    swapOwnersFloating :: PubKeyHash
     }
 
 PlutusTx.makeIsData ''SwapOwners
 PlutusTx.makeLift ''SwapOwners
 
-type SwapOracle = OracleValue Rational
+type SwapOracleMessage = SignedMessage (Observation Rational)
 
-mkValidator :: Swap -> SwapOwners -> SwapOracle -> PendingTx -> Bool
+mkValidator :: Swap -> SwapOwners -> SwapOracleMessage -> PendingTx -> Bool
 mkValidator Swap{..} SwapOwners{..} redeemer p =
     let
-        extractVerifyAt :: OracleValue Rational -> PubKey -> Rational -> Slot -> Rational
-        extractVerifyAt = error ()
+        extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> Slot -> Rational
+        extractVerifyAt sm pk slt =
+            case Oracle.verifySignedMessageOnChain p pk sm of
+                Left _ -> traceH "checkSignatureAndDecode failed" (error ())
+                Right Observation{obsValue, obsSlot} ->
+                    if obsSlot == slt
+                        then obsValue
+                        else traceH "wrong slot" (error ())
+
         -- | Convert an [[Integer]] to a [[Rational]]
         fromInt :: Integer -> Rational
         fromInt = error ()
@@ -73,12 +83,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         adaValueIn :: Value -> Integer
         adaValueIn v = Ada.getLovelace (Ada.fromValue v)
 
-        isPubKeyOutput :: PendingTxOut -> PubKey -> Bool
+        isPubKeyOutput :: TxOut -> PubKeyHash -> Bool
         isPubKeyOutput o k = maybe False ((==) k) (Validation.pubKeyOutput o)
 
         -- Verify the authenticity of the oracle value and compute
         -- the payments.
-        rt = extractVerifyAt redeemer swapOracle swapFloatingRate swapObservationTime
+        rt = extractVerifyAt redeemer swapOracle swapObservationTime
 
         rtDiff :: Rational
         rtDiff = rt - swapFixedRate
@@ -136,12 +146,12 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
         -- between fixed and floating payment
 
         -- True if the output is the payment of the fixed leg.
-        ol1 :: PendingTxOut -> Bool
-        ol1 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn v <= fixedRemainder
+        ol1 :: TxOut -> Bool
+        ol1 o@(TxOut{txOutValue}) = isPubKeyOutput o swapOwnersFixedLeg && adaValueIn txOutValue <= fixedRemainder
 
         -- True if the output is the payment of the floating leg.
-        ol2 :: PendingTxOut -> Bool
-        ol2 o@(PendingTxOut v _) = isPubKeyOutput o swapOwnersFloating && adaValueIn v <= floatRemainder
+        ol2 :: TxOut -> Bool
+        ol2 o@(TxOut{txOutValue}) = isPubKeyOutput o swapOwnersFloating && adaValueIn txOutValue <= floatRemainder
 
         -- NOTE: I didn't include a check that the slot is greater
         -- than the observation time. This is because the slot is
@@ -155,7 +165,7 @@ mkValidator Swap{..} SwapOwners{..} redeemer p =
 --   See note [Swap Transactions]
 --   See note [Contracts and Validator Scripts] in
 --       Language.Plutus.Coordination.Contracts
-swapValidator :: Swap -> ValidatorScript
+swapValidator :: Swap -> Validator
 swapValidator swp = Ledger.mkValidatorScript $
     $$(PlutusTx.compile [|| validatorParam ||])
         `PlutusTx.applyCode`

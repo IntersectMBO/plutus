@@ -1,0 +1,62 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl nandDirect (fun Bool (fun Bool Bool)))
+      (lam
+        ds
+        Bool
+        (lam
+          ds
+          Bool
+          [
+            [
+              [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
+              (lam
+                thunk
+                Unit
+                [
+                  [
+                    [
+                      { [ Bool_match ds ] (fun Unit Bool) }
+                      (lam thunk Unit False)
+                    ]
+                    (lam thunk Unit True)
+                  ]
+                  Unit
+                ]
+              )
+            ]
+            Unit
+          ]
+        )
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl andDirect (fun Bool (fun Bool Bool)))
+      (lam
+        ds
+        Bool
+        (lam
+          ds
+          Bool
+          [ [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ] ]
+        )
+      )
+    )
+    [ [ andDirect True ] False ]
+  )
+)

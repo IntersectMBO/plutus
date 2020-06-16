@@ -14,19 +14,18 @@
 %   \centering
 \begin{subfigure}[c]{\linewidth}
     \[\begin{array}{lrclr}
-        \textrm{Type Frame} &\tf & ::= %% & \inConTFrame{tcn}                          & \textrm{type constant}\\ This was here for sized types 
-                                       & \inFunTLeftFrame{A}                        & \textrm{left arrow}\\
-                            &    &     & \inFunTRightFrame{S}                       & \textrm{right arrow}\\
-                            &    &     & \inAllTFrame{\alpha}{K}                    & \textrm{all}\\
-                            &	 &     & \inFixTLeftFrame{B}                        & \textrm{left fix}\\
-                            &    &     & \inFixTRightFrame{S}                       & \textrm{right fix}\\
-                            &    &     & \inLamTFrame{\alpha}{K}                    & \textrm{$\lambda$}\\
-                            &    &     & \inAppTLeftFrame{A}                        & \textrm{left app}\\
-                            &    &     & \inAppTRightFrame{S}                       & \textrm{right app}\\
+        \textrm{Type Frame} &\tf & ::= & \inFunTLeftFrame{A}      & \textrm{left arrow}\\
+                            &    &     & \inFunTRightFrame{S}     & \textrm{right arrow}\\
+                            &    &     & \inAllTFrame{\alpha}{K}  & \textrm{all}\\
+                            &	 &     & \inFixTLeftFrame{B}      & \textrm{left fix}\\
+                            &    &     & \inFixTRightFrame{S}     & \textrm{right fix}\\
+                            &    &     & \inLamTFrame{\alpha}{K}  & \textrm{$\lambda$}\\
+                            &    &     & \inAppTLeftFrame{A}      & \textrm{left application}\\
+                            &    &     & \inAppTRightFrame{S}     & \textrm{right application}
     \end{array}\]
 
-    \caption{Grammar of Type Reduction Frames}
-    \label{fig:type_reduction_frames}
+    \caption{Grammar of type reduction frames}
+    \label{fig:type-reduction-frames}
 \end{subfigure}
 
 
@@ -46,11 +45,11 @@
         \UnaryInfC{\(\typeStep{\ctxsubst{\tf}{A}}{\ctxsubst{\tf}{A'}}\)}
     \end{prooftree}
 
-    \caption{Type Reduction via Contextual Dynamics}
-    \label{fig:type_reduction}
+    \caption{Type reduction via contextual dynamics}
+    \label{fig:type-dynamics}
 \end{subfigure}
 
-\caption{Type Reduction for Plutus Core}
+\caption{Type reduction for Plutus Core}
 \label{fig:type-reduction}
 \end{figure}
 
@@ -79,7 +78,7 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEqual{A}{A'}\)}
-		\RightLabel{$\alpha$}
+		\RightLabel{$\mathsf{\alpha}$}
 		\UnaryInfC{\(\typeEquiv{A}{A'}\)}
 	\end{prooftree}
 	
@@ -87,7 +86,7 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{sym}
+		\RightLabel{\textsf{sym}}
 		\UnaryInfC{\(\typeEquiv{A'}{A}\)}
 	\end{prooftree}
 	
@@ -96,7 +95,7 @@
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
 		\AxiomC{\(\typeEquiv{A'}{A''}\)}
-		\RightLabel{trans}
+		\RightLabel{\textsf{trans}}
 		\BinaryInfC{\(\typeEquiv{A}{A''}\)}
 	\end{prooftree}
 	
@@ -104,15 +103,15 @@
 	
 	\begin{prooftree}
 		\AxiomC{\(\typeEquiv{A}{A'}\)}
-		\RightLabel{cong}
+		\RightLabel{\textsf{cong}}
 		\UnaryInfC{\(\typeEquiv{\ctxsubst{tf}{A}}{\ctxsubst{tf}{A'}}\)}
 	\end{prooftree}
 	
 	
-	\caption{Equalities and Equivalences}
-	\label{fig:equalities_and_equivalences}
+	\caption{Equalities and equivalences}
+	\label{fig:equalities-and-equivalences}
 \end{subfigure}
-\caption{Type Equivalence for Plutus Core}
+\caption{Type equivalence for Plutus Core}
 \label{fig:type-equivalence}
 \end{figure}
 

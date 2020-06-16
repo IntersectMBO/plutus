@@ -1,0 +1,6 @@
+=== `plutus-ledger`
+
+This defines our model of an Extended UTXO ledger, including:
+
+- The types that describe transactions, pending transactions, keys, currencies, etc.
+- Functions that implement the ledger validation rules.

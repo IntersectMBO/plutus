@@ -1,42 +1,59 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
+{-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE ViewPatterns       #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 -- | Implements a custom currency with a monetary policy that allows
 --   the forging of a fixed amount of units.
 module Language.PlutusTx.Coordination.Contracts.Currency(
       Currency(..)
-    , curValidator
+    , CurrencySchema
+    , CurrencyError(..)
+    , AsCurrencyError(..)
+    , curPolicy
     -- * Actions etc
     , forgeContract
     , forgedValue
+    , currencySymbol
+    -- * Simple monetary policy currency
+    , SimpleMPS(..)
+    , forgeCurrency
     ) where
 
-import           Control.Lens               ((&), (.~), (%~))
-import qualified Data.Set                   as Set
-
-import           Language.PlutusTx.Prelude
-
-import qualified Ledger.Ada                 as Ada
-import qualified Ledger.AddressMap          as AM
-import qualified Language.PlutusTx          as PlutusTx
-import qualified Language.PlutusTx.AssocMap as AssocMap
-import           Ledger.Scripts             (ValidatorScript, mkValidatorScript)
-import qualified Ledger.Validation          as V
-import qualified Ledger.Value               as Value
-import           Ledger.Scripts
-import qualified Ledger.Typed.Scripts       as Scripts
-import           Ledger                     (CurrencySymbol, TxId, PubKey, TxOutRef(..), scriptCurrencySymbol, txInRef)
-import qualified Ledger                     as Ledger
-import           Ledger.Value               (TokenName, Value)
-
-import           Language.Plutus.Contract     as Contract
-
+import           Control.Lens
+import           Language.PlutusTx.Coordination.Contracts.PubKey (AsPubKeyError (..), PubKeyError)
 import qualified Language.PlutusTx.Coordination.Contracts.PubKey as PK
+import           Language.PlutusTx.Prelude                       hiding (Monoid (..), Semigroup (..))
+
+import           Language.Plutus.Contract                        as Contract
+
+import qualified Language.PlutusTx                               as PlutusTx
+import qualified Language.PlutusTx.AssocMap                      as AssocMap
+import           Ledger                                          (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..),
+                                                                  pubKeyHash, scriptCurrencySymbol)
+import qualified Ledger.Ada                                      as Ada
+import qualified Ledger.Constraints                              as Constraints
+import           Ledger.Scripts
+import qualified Ledger.Typed.Scripts                            as Scripts
+import qualified Ledger.Validation                               as V
+import           Ledger.Value                                    (TokenName, Value)
+import qualified Ledger.Value                                    as Value
+
+import           Data.Aeson                                      (FromJSON, ToJSON)
+import qualified Data.Map                                        as Map
+import           GHC.Generics                                    (Generic)
+import           IOTS                                            (IotsType)
+import           Prelude                                         (Semigroup (..))
+import qualified Prelude
+import           Schema                                          (ToSchema)
 
 {-# ANN module ("HLint: ignore Use uncurry" :: String) #-}
 
@@ -64,8 +81,8 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: Currency -> () -> () -> V.PendingTx -> Bool
-validate c@(Currency (refHash, refIdx) _) _ _ p =
+validate :: Currency -> V.PendingTxMPS -> Bool
+validate c@(Currency (refHash, refIdx) _) p =
     let
         -- see note [Obtaining the currency symbol]
         ownSymbol = V.ownCurrencySymbol p
@@ -87,9 +104,9 @@ validate c@(Currency (refHash, refIdx) _) _ _ p =
 
     in forgeOK && txOutputSpent
 
-curValidator :: Currency -> ValidatorScript
-curValidator cur = mkValidatorScript $
-    $$(PlutusTx.compile [|| \c -> Scripts.wrapValidator (validate c) ||])
+curPolicy :: Currency -> MonetaryPolicy
+curPolicy cur = mkMonetaryPolicyScript $
+    $$(PlutusTx.compile [|| \c -> Scripts.wrapMonetaryPolicy (validate c) ||])
         `PlutusTx.applyCode`
             PlutusTx.liftCode cur
 
@@ -106,14 +123,25 @@ is why we use 'V.ownCurrencySymbol', which obtains the hash from the
 
 -}
 
--- | The 'Value' forged by the 'curValidator' contract
+-- | The 'Value' forged by the 'curPolicy' contract
 forgedValue :: Currency -> Value
-forgedValue cur =
-    let
-        -- see note [Obtaining the currency symbol]
-        a = scriptCurrencySymbol (curValidator cur)
-    in
-        currencyValue a cur
+forgedValue cur = currencyValue (currencySymbol cur) cur
+
+currencySymbol :: Currency -> CurrencySymbol
+currencySymbol = scriptCurrencySymbol . curPolicy
+
+data CurrencyError =
+    CurPubKeyError PubKeyError
+    | CurContractError ContractError
+    deriving (Prelude.Eq, Show)
+
+makeClassyPrisms ''CurrencyError
+
+instance AsContractError CurrencyError where
+    _ContractError = _CurContractError
+
+instance AsPubKeyError CurrencyError where
+    _PubKeyError = _CurPubKeyError
 
 -- | @forge [(n1, c1), ..., (n_k, c_k)]@ creates a new currency with
 --   @k@ token names, forging @c_i@ units of each token @n_i@.
@@ -122,23 +150,41 @@ forgeContract
     :: forall s e.
     ( HasWatchAddress s
     , HasWriteTx s
-    , AsContractError e)
-    => PubKey
+    , AsCurrencyError e
+    )
+    => PubKeyHash
     -> [(TokenName, Integer)]
     -> Contract s e Currency
-forgeContract pk amounts = do
-    refTxIn <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
-    let theCurrency = mkCurrency (txInRef refTxIn) amounts
-        curAddr     = Ledger.scriptAddress curVali
-        forgedVal   = forgedValue theCurrency
-        curRedeemer = RedeemerScript $ PlutusTx.toData ()
-        curVali     = curValidator theCurrency
-
-        -- the transaction that creates the script output
-        scriptTx    = Contract.payToScript (Ada.lovelaceValueOf 1) curAddr (DataScript $ PlutusTx.toData ())
-    scriptTxOuts <- AM.fromTxOutputs <$> (writeTxSuccess scriptTx >>= awaitTransactionConfirmed curAddr)
-    let forgeTx = collectFromScript scriptTxOuts curVali curRedeemer
-                    & inputs %~ Set.insert refTxIn
-                    & forge .~ forgedVal
-    _ <- writeTxSuccess forgeTx
+forgeContract pk amounts = mapError (review _CurrencyError) $ do
+    (txOutRef, txOutTx, pkInst) <- PK.pubKeyContract pk (Ada.lovelaceValueOf 1)
+    let theCurrency = mkCurrency txOutRef amounts
+        curVali     = curPolicy theCurrency
+        lookups     = Constraints.monetaryPolicy curVali
+                        <> Constraints.otherScript (Scripts.validatorScript pkInst)
+                        <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
+    let forgeTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
+                    <> Constraints.mustForgeValue (forgedValue theCurrency)
+    _ <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
     pure theCurrency
+
+-- | Monetary policy for a currency that has a fixed amount of tokens issued
+--   in one transaction
+data SimpleMPS =
+    SimpleMPS
+        { smTokenName :: TokenName
+        , smAmount    :: Integer
+        }
+        deriving stock (Prelude.Eq, Prelude.Show, Generic)
+        deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
+
+type CurrencySchema =
+    BlockchainActions
+        .\/ Endpoint "create-currency" SimpleMPS
+
+-- | Create the currency specified by a 'SimpleMPS'
+forgeCurrency
+    :: Contract CurrencySchema CurrencyError Currency
+forgeCurrency = do
+    SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
+    ownPK <- pubKeyHash <$> ownPubKey
+    forgeContract ownPK [(smTokenName, smAmount)]

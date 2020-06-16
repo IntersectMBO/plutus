@@ -1,0 +1,49 @@
+{
+  "minSlot": {
+    "getSlot": 123
+  },
+  "choices": [
+    [
+      [
+        "choice",
+        {
+          "contents": "deadbeef",
+          "tag": "PK"
+        }
+      ],
+      42
+    ]
+  ],
+  "boundValues": [
+    [
+      "x",
+      1
+    ],
+    [
+      "y",
+      2
+    ]
+  ],
+  "accounts": [
+    [
+      [
+        [
+          0,
+          {
+            "contents": "deadbeef",
+            "tag": "PK"
+          }
+        ],
+        {
+          "token": {
+            "unTokenName": "name"
+          },
+          "currency": {
+            "unCurrencySymbol": "aa"
+          }
+        }
+      ],
+      12
+    ]
+  ]
+}

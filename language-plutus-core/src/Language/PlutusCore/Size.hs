@@ -6,7 +6,7 @@ module Language.PlutusCore.Size
     , serialisedSize
     ) where
 
-import           Language.PlutusCore.Type
+import           Language.PlutusCore.Core
 
 import           Codec.Serialise
 import qualified Data.ByteString.Lazy     as BSL
@@ -19,7 +19,7 @@ kindSize = cata a where
     a (KindArrowF _ k k') = 1 + k + k'
 
 -- | Count the number of AST nodes in a type.
-typeSize :: Type tyname ann -> Integer
+typeSize :: Type tyname uni ann -> Integer
 typeSize = cata a where
     a TyVarF{}             = 1
     a (TyFunF _ ty ty')    = 1 + ty + ty'
@@ -30,7 +30,7 @@ typeSize = cata a where
     a (TyAppF _ ty ty')    = 1 + ty + ty'
 
 -- | Count the number of AST nodes in a term.
-termSize :: Term tyname name ann -> Integer
+termSize :: Term tyname name uni ann -> Integer
 termSize = cata a where
     a VarF{}              = 1
     a (TyAbsF _ _ k t)    = 1 + kindSize k + t
@@ -44,7 +44,7 @@ termSize = cata a where
     a (ErrorF _ ty)       = 1 + typeSize ty
 
 -- | Count the number of AST nodes in a program.
-programSize :: Program tyname name ann -> Integer
+programSize :: Program tyname name uni ann -> Integer
 programSize (Program _ _ t) = termSize t
 
 -- | Compute the size of the serializabled form of a value.

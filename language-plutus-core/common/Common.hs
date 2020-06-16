@@ -13,14 +13,14 @@ module Common
     , nestedGoldenVsDocM
     ) where
 
-import           Language.PlutusCore.Pretty
+import           PlutusPrelude
 
-import           Control.Monad.Reader       (Reader, runReader)
-import qualified Control.Monad.Reader       as Reader
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Text                  (Text)
-import           Data.Text.Encoding         (encodeUtf8)
-import           System.FilePath            ((</>))
+import           Control.Monad.Reader (Reader, runReader)
+import qualified Control.Monad.Reader as Reader
+import qualified Data.ByteString.Lazy as BSL
+import           Data.Text            (Text)
+import           Data.Text.Encoding   (encodeUtf8)
+import           System.FilePath      ((</>))
 import           Test.Tasty
 import           Test.Tasty.Golden
 
@@ -56,7 +56,7 @@ goldenVsDoc name ref = goldenVsDocM name ref . pure
 
 -- | Check the contents of a file against a 'Doc'.
 goldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestTree
-goldenVsDocM name ref val = goldenVsTextM name ref $ docText <$> val
+goldenVsDocM name ref val = goldenVsTextM name ref $ render <$> val
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsText :: TestName -> Text -> TestNested
@@ -74,4 +74,4 @@ nestedGoldenVsDoc name = nestedGoldenVsDocM name . pure
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
 nestedGoldenVsDocM :: TestName -> IO (Doc ann) -> TestNested
-nestedGoldenVsDocM name val = nestedGoldenVsTextM name $ docText <$> val
+nestedGoldenVsDocM name val = nestedGoldenVsTextM name $ render <$> val

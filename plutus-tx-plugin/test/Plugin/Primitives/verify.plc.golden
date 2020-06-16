@@ -1,0 +1,49 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl
+        verifySignature
+        (fun (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool)))
+      )
+      (lam
+        arg
+        (con bytestring)
+        (lam
+          arg
+          (con bytestring)
+          (lam
+            arg
+            (con bytestring)
+            [
+              (lam
+                b
+                (con bool)
+                [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+              )
+              [ [ [ (builtin verifySignature) arg ] arg ] arg ]
+            ]
+          )
+        )
+      )
+    )
+    (lam
+      ds
+      (con bytestring)
+      (lam
+        ds
+        (con bytestring)
+        (lam ds (con bytestring) [ [ [ verifySignature ds ] ds ] ds ])
+      )
+    )
+  )
+)

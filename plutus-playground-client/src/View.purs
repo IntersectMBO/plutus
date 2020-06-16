@@ -1,38 +1,40 @@
 module View (render) where
 
 import Types
-import Action (actionsErrorPane, simulationPane)
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (active, alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colSm5, colSm6, colXs12, container, container_, empty, floatRight, hidden, justifyContentBetween, navItem_, navLink, navTabs_, noGutters, row)
+import Bootstrap (alert, alertPrimary, btn, btnGroup, btnInfo, btnSmall, colLg5, colLg7, colMd4, colMd8, colSm5, colSm6, colXs12, container_, empty, justifyContentBetween, noGutters, row, row_)
 import Chain (evaluationPane)
 import Control.Monad.State (evalState)
-import Data.Array as Array
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (view)
-import Data.Map as Map
+import Data.Json.JsonEither (JsonEither(..), _JsonEither)
+import Data.Lens (_Right, view)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.String as String
 import Data.Tuple (Tuple(Tuple))
-import Data.Tuple.Nested ((/\))
-import Editor (EditorAction(..), editorPane)
+import Editor (compileButton, editorFeedback, editorView)
 import Effect.Aff.Class (class MonadAff)
 import Gists (gistControls)
-import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, strong_, text)
+import Halogen.HTML (ClassName(ClassName), ComponentHTML, HTML, a, button, div, div_, h1, span, strong_, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Extra (mapComponent)
-import Halogen.HTML.Properties (class_, classes, href, id_)
+import Halogen.HTML.Properties (class_, classes, href, id_, target)
 import Icons (Icon(..), icon)
-import Network.RemoteData (RemoteData(..))
-import Prelude (const, show, ($), (<$>), (<>), (==))
+import Language.Haskell.Interpreter (_SourceCode)
+import NavTabs (mainTabBar, viewContainer)
+import Network.RemoteData (RemoteData(..), _Success)
+import Playground.Types (ContractDemo(..))
+import Prelude (const, ($), (<$>), (<<<))
+import Schema.Types (mkInitialValue)
+import Simulation (actionsErrorPane, simulationPane)
+import StaticData (_contractDemoEditorContents)
 import StaticData as StaticData
 
 render ::
   forall m.
   MonadAff m =>
   State -> ComponentHTML HAction ChildSlots m
-render state@(State { currentView, blockchainVisualisationState }) =
+render state@(State { currentView, blockchainVisualisationState, contractDemos, editorPreferences }) =
   div_
     [ bannerMessage
     , div
@@ -40,19 +42,33 @@ render state@(State { currentView, blockchainVisualisationState }) =
         [ container_
             [ mainHeader
             , div [ classes [ row, noGutters, justifyContentBetween ] ]
-                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar currentView ]
+                [ div [ classes [ colXs12, colSm6 ] ] [ mainTabBar ChangeView tabs currentView ]
                 , div
                     [ classes [ colXs12, colSm5 ] ]
                     [ GistAction <$> gistControls (unwrap state) ]
                 ]
             ]
         , viewContainer currentView Editor
-            [ EditorAction <$> demoScriptsPane
-            , mapComponent EditorAction $ editorPane defaultContents _editorSlot StaticData.bufferLocalStorageKey (unwrap <$> view _compilationResult state)
-            , case view _compilationResult state of
-                Failure error -> ajaxErrorPane error
-                _ -> empty
-            ]
+            let
+              compilationResult = unwrap <$> view _compilationResult state
+            in
+              [ row_
+                  [ div
+                      [ classes [ colXs12, colMd4, colLg7 ] ]
+                      [ compileButton CompileProgram compilationResult ]
+                  , div
+                      [ classes [ colXs12, colMd8, colLg5 ] ]
+                      [ documentationLinksPane
+                      , contractDemosPane contractDemos
+                      ]
+                  ]
+              , mapComponent EditorAction $ editorView defaultContents _editorSlot StaticData.bufferLocalStorageKey editorPreferences
+              , compileButton CompileProgram compilationResult
+              , mapComponent EditorAction $ editorFeedback compilationResult
+              , case compilationResult of
+                  Failure error -> ajaxErrorPane error
+                  _ -> empty
+              ]
         , viewContainer currentView Simulations
             $ let
                 knownCurrencies = evalState getKnownCurrencies state
@@ -62,6 +78,17 @@ render state@(State { currentView, blockchainVisualisationState }) =
                 [ simulationPane
                     initialValue
                     (view _actionDrag state)
+                    ( view
+                        ( _compilationResult
+                            <<< _Success
+                            <<< _JsonEither
+                            <<< _Right
+                            <<< _Newtype
+                            <<< _result
+                            <<< _functionSchema
+                        )
+                        state
+                    )
                     (view _simulations state)
                     (view _evaluationResult state)
                 , case (view _evaluationResult state) of
@@ -91,21 +118,23 @@ render state@(State { currentView, blockchainVisualisationState }) =
         ]
     ]
   where
-  defaultContents = Map.lookup "Vesting" StaticData.demoFiles
+  defaultContents :: Maybe String
+  defaultContents = view (_contractDemoEditorContents <<< _SourceCode) <$> StaticData.lookup "Vesting" contractDemos
 
-demoScriptsPane :: forall p. HTML p EditorAction
-demoScriptsPane =
+contractDemosPane :: forall p. Array ContractDemo -> HTML p HAction
+contractDemosPane contractDemos =
   div [ id_ "demos" ]
-    ( Array.cons (strong_ [ text "Demos: " ]) (demoScriptButton <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
-    )
+    [ strong_ [ text "Demos: " ]
+    , span [ classes [ btnGroup ] ] (demoScriptButton <$> contractDemos)
+    ]
 
-demoScriptButton :: forall p. String -> HTML p EditorAction
-demoScriptButton key =
+demoScriptButton :: forall p. ContractDemo -> HTML p HAction
+demoScriptButton (ContractDemo { contractDemoName }) =
   button
     [ classes [ btn, btnInfo, btnSmall ]
-    , onClick $ const $ Just $ LoadScript key
+    , onClick $ const $ Just $ LoadScript contractDemoName
     ]
-    [ text key ]
+    [ text contractDemoName ]
 
 bannerMessage :: forall p i. HTML p i
 bannerMessage =
@@ -119,21 +148,19 @@ bannerMessage =
         [ text "CHANGELOG" ]
     ]
 
-viewContainer :: forall p i. View -> View -> Array (HTML p i) -> HTML p i
-viewContainer currentView targetView =
-  if currentView == targetView then
-    div [ classes [ container ] ]
-  else
-    div [ classes [ container, hidden ] ]
-
 mainHeader :: forall p. HTML p HAction
 mainHeader =
   div_
-    [ div [ classes [ btnGroup, floatRight ] ]
-        (makeLink <$> links)
-    , h1
+    [ h1
         [ class_ $ ClassName "main-title" ]
         [ text "Plutus Playground" ]
+    ]
+
+documentationLinksPane :: forall p i. HTML p i
+documentationLinksPane =
+  div [ id_ "docs" ]
+    [ strong_ [ text "Documentation: " ]
+    , span [ classes [ btnGroup ] ] (makeLink <$> links)
     ]
   where
   links =
@@ -145,33 +172,24 @@ mainHeader =
 
   makeLink (Tuple name link) =
     a
-      [ classes [ btn, btnSmall ]
+      [ classes [ btn, btnInfo, btnSmall ]
       , href link
+      , target "_blank"
       ]
       [ text name ]
 
-mainTabBar :: forall p. View -> HTML p HAction
-mainTabBar activeView = navTabs_ (mkTab <$> tabs)
-  where
-  tabs =
-    [ Editor /\ "Editor"
-    , Simulations /\ "Simulation"
-    , Transactions /\ "Transactions"
-    ]
-
-  mkTab :: Tuple View String -> HTML p HAction
-  mkTab (link /\ title) =
-    navItem_
-      [ a
-          [ id_ $ "tab-" <> String.toLower (show link)
-          , classes $ [ navLink ] <> activeClass
-          , onClick $ const $ Just $ ChangeView link
-          ]
-          [ text title ]
-      ]
-    where
-    activeClass =
-      if link == activeView then
-        [ active ]
-      else
-        []
+tabs :: Array { help :: String, link :: View, title :: String }
+tabs =
+  [ { link: Editor
+    , title: "Editor"
+    , help: "Edit and compile your contract."
+    }
+  , { link: Simulations
+    , title: "Simulation"
+    , help: "Set up simulations to test your contract's behavior."
+    }
+  , { link: Transactions
+    , title: "Transactions"
+    , help: "See how your contract behaves on a simulated blockchain."
+    }
+  ]

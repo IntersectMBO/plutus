@@ -40,6 +40,8 @@ foreign import data Connection :: Type
 -- Functions that mutate values always work on STRefs rather than regular values
 foreign import nextBlock_ :: Fn3 (Block -> Maybe Block) (Maybe Block) Block (Maybe Block)
 
+foreign import getType_ :: Fn1 Block String
+
 foreign import getFieldValue_ :: forall a. Fn4 (String -> Either String a) (a -> Either String a) Block String (Either String String)
 
 foreign import statementToCode_ :: forall a. Fn5 (String -> Either String a) (a -> Either String a) Generator Block String (Either String String)
@@ -50,7 +52,7 @@ foreign import mkGenerator_ :: forall r. Fn3 NewSTRefFunction BlocklyState Strin
 
 foreign import insertGeneratorFunction_ :: forall r. Fn3 (STRef r Generator) String (Block -> String) (ST r Unit)
 
-foreign import workspaceToCode_ :: forall a b. Fn4 (a -> Either a b) (b -> Either a b) BlocklyState Generator (Either String String)
+foreign import blockToCode_ :: forall a b. Fn4 (a -> Either a b) (b -> Either a b) Block Generator (Either String String)
 
 foreign import inputList_ :: Fn1 Block (Array Input)
 
@@ -85,6 +87,9 @@ foreign import getBlockInputConnectedTo_ :: forall a b. Fn3 (a -> Either a b) (b
 nextBlock :: Block -> Maybe Block
 nextBlock = runFn3 nextBlock_ Just Nothing
 
+getType :: Block -> String
+getType = runFn1 getType_
+
 getFieldValue :: Block -> String -> Either String String
 getFieldValue = runFn4 getFieldValue_ Left Right
 
@@ -106,8 +111,8 @@ unsafeFromRight (Right a) = a
 
 unsafeFromRight (Left e) = runFn1 unsafeThrowError_ e
 
-workspaceToCode :: BlocklyState -> Generator -> Either String String
-workspaceToCode = runFn4 workspaceToCode_ Left Right
+blockToCode :: Block -> Generator -> Either String String
+blockToCode = runFn4 blockToCode_ Left Right
 
 inputList :: Block -> Array Input
 inputList = runFn1 inputList_

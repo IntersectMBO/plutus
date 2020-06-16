@@ -17,10 +17,10 @@ module Language.PlutusCore.DeBruijn
     , unDeBruijnProgram
     ) where
 
+import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Type
 
 import           Control.Exception
 import           Control.Lens               hiding (Index, Level, index, ix)
@@ -41,31 +41,31 @@ newtype Index = Index Natural
     deriving newtype (Show, Num, Eq, Ord)
 
 -- | A term name as a de Bruijn index.
-data DeBruijn ann = DeBruijn { dbnAttribute :: ann, dbnString :: T.Text, dbnIndex :: Index }
-    deriving (Show, Functor, Generic)
+data DeBruijn = DeBruijn { dbnString :: T.Text, dbnIndex :: Index }
+    deriving (Show, Generic)
 
 -- | A type name as a de Bruijn index.
-newtype TyDeBruijn ann = TyDeBruijn (DeBruijn ann)
-    deriving (Show, Functor, Generic)
-instance Wrapped (TyDeBruijn ann)
+newtype TyDeBruijn = TyDeBruijn DeBruijn
+    deriving (Show, Generic)
+instance Wrapped TyDeBruijn
 
-instance HasPrettyConfigName config => PrettyBy config (DeBruijn ann) where
-    prettyBy config (DeBruijn _ txt (Index ix))
+instance HasPrettyConfigName config => PrettyBy config DeBruijn where
+    prettyBy config (DeBruijn txt (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
-        where PrettyConfigName showsUnique _ = toPrettyConfigName config
+        where PrettyConfigName showsUnique = toPrettyConfigName config
 
-deriving newtype instance HasPrettyConfigName config => PrettyBy config (TyDeBruijn ann)
+deriving newtype instance HasPrettyConfigName config => PrettyBy config TyDeBruijn
 
 class HasIndex a where
     index :: Lens' a Index
 
-instance HasIndex (DeBruijn ann) where
+instance HasIndex DeBruijn where
     index = lens g s where
         g = dbnIndex
         s n i = n{dbnIndex=i}
 
-instance HasIndex (TyDeBruijn ann) where
+instance HasIndex TyDeBruijn where
     index = _Wrapped' . index
 
 -- Converting from normal names to DeBruijn indices, and vice versa
@@ -104,7 +104,7 @@ levelToIndex (Level current) (Level l) = current - l
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
 declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
-    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. unique . coerced) current ls
+    local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
 
 -- | Declare a name with an index, recording the mapping from the corresponding 'Level' to a fresh unique.
 declareIndex :: (MonadReader Levels m, MonadQuote m, HasIndex name) => name -> m a -> m a
@@ -142,40 +142,40 @@ getUnique ix = do
 
 nameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Name ann -> m (DeBruijn ann)
-nameToDeBruijn (Name ann str u) = DeBruijn ann str <$> getIndex u
+    => Name -> m DeBruijn
+nameToDeBruijn (Name str u) = DeBruijn str <$> getIndex u
 
 tyNameToDeBruijn
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyName ann -> m (TyDeBruijn ann)
+    => TyName -> m TyDeBruijn
 tyNameToDeBruijn (TyName n) = TyDeBruijn <$> nameToDeBruijn n
 
 deBruijnToName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => DeBruijn ann -> m (Name ann)
-deBruijnToName (DeBruijn ann str ix) = Name ann str <$> getUnique ix
+    => DeBruijn -> m Name
+deBruijnToName (DeBruijn str ix) = Name str <$> getUnique ix
 
 deBruijnToTyName
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => TyDeBruijn ann -> m (TyName ann)
+    => TyDeBruijn -> m TyName
 deBruijnToTyName (TyDeBruijn n) = TyName <$> deBruijnToName n
 
 -- | Convert a 'Type' with 'TyName's into a 'Type' with 'TyDeBruijn's.
 deBruijnTy
     :: MonadError FreeVariableError m
-    => Type TyName ann -> m (Type TyDeBruijn ann)
+    => Type TyName uni ann -> m (Type TyDeBruijn uni ann)
 deBruijnTy = flip runReaderT (Levels 0 BM.empty) . deBruijnTyM
 
 -- | Convert a 'Term' with 'TyName's and 'Name's into a 'Term' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnTerm
     :: MonadError FreeVariableError m
-    => Term TyName Name ann -> m (Term TyDeBruijn DeBruijn ann)
+    => Term TyName Name uni ann -> m (Term TyDeBruijn DeBruijn uni ann)
 deBruijnTerm = flip runReaderT (Levels 0 BM.empty) . deBruijnTermM
 
 -- | Convert a 'Program' with 'TyName's and 'Name's into a 'Program' with 'TyDeBruijn's and 'DeBruijn's.
 deBruijnProgram
     :: MonadError FreeVariableError m
-    => Program TyName Name ann -> m (Program TyDeBruijn DeBruijn ann)
+    => Program TyName Name uni ann -> m (Program TyDeBruijn DeBruijn uni ann)
 deBruijnProgram (Program ann ver term) = Program ann ver <$> deBruijnTerm term
 
 {- Note [De Bruijn conversion and recursion schemes]
@@ -185,8 +185,8 @@ These are normally constant in a catamorphic application.
 -}
 deBruijnTyM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Type TyName ann
-    -> m (Type TyDeBruijn ann)
+    => Type TyName uni ann
+    -> m (Type TyDeBruijn uni ann)
 deBruijnTyM = \case
     -- variable case
     TyVar ann n -> TyVar ann <$> tyNameToDeBruijn n
@@ -206,8 +206,8 @@ deBruijnTyM = \case
 
 deBruijnTermM
     :: (MonadReader Levels m, MonadError FreeVariableError m)
-    => Term TyName Name ann
-    -> m (Term TyDeBruijn DeBruijn ann)
+    => Term TyName Name uni ann
+    -> m (Term TyDeBruijn DeBruijn uni ann)
 deBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> nameToDeBruijn n
@@ -231,25 +231,25 @@ deBruijnTermM = \case
 -- | Convert a 'Type' with 'TyDeBruijn's into a 'Type' with 'TyName's.
 unDeBruijnTy
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Type TyDeBruijn ann -> m (Type TyName ann)
+    => Type TyDeBruijn uni ann -> m (Type TyName uni ann)
 unDeBruijnTy = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTyM
 
 -- | Convert a 'Term' with 'TyDeBruijn's and 'DeBruijn's into a 'Term' with 'TyName's and 'Name's.
 unDeBruijnTerm
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Term TyDeBruijn DeBruijn ann -> m (Term TyName Name ann)
+    => Term TyDeBruijn DeBruijn uni ann -> m (Term TyName Name uni ann)
 unDeBruijnTerm = flip runReaderT (Levels 0 BM.empty) . unDeBruijnTermM
 
 -- | Convert a 'Program' with 'TyDeBruijn's and 'DeBruijn's into a 'Program' with 'TyName's and 'Name's.
 unDeBruijnProgram
     :: (MonadQuote m, MonadError FreeVariableError m)
-    => Program TyDeBruijn DeBruijn ann -> m (Program TyName Name ann)
+    => Program TyDeBruijn DeBruijn uni ann -> m (Program TyName Name uni ann)
 unDeBruijnProgram (Program ann ver term) = Program ann ver <$> unDeBruijnTerm term
 
 unDeBruijnTyM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Type TyDeBruijn ann
-    -> m (Type TyName ann)
+    => Type TyDeBruijn uni ann
+    -> m (Type TyName uni ann)
 unDeBruijnTyM = \case
     -- variable case
     TyVar ann n -> TyVar ann <$> deBruijnToTyName n
@@ -269,8 +269,8 @@ unDeBruijnTyM = \case
 
 unDeBruijnTermM
     :: (MonadReader Levels m, MonadQuote m, MonadError FreeVariableError m)
-    => Term TyDeBruijn DeBruijn ann
-    -> m (Term TyName Name ann)
+    => Term TyDeBruijn DeBruijn uni ann
+    -> m (Term TyName Name uni ann)
 unDeBruijnTermM = \case
     -- variable case
     Var ann n -> Var ann <$> deBruijnToName n

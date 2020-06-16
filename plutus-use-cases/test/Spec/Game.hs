@@ -1,19 +1,22 @@
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
-module Spec.Game(tests) where
 
+module Spec.Game
+    ( tests
+    ) where
+
+import           Language.Plutus.Contract                      (ContractError)
 import           Language.Plutus.Contract.Test
-import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoint
 import qualified Language.PlutusTx                             as PlutusTx
-import qualified Language.PlutusTx.Prelude                     as PlutusTx
-import           Language.PlutusTx.Lattice
 import           Language.PlutusTx.Coordination.Contracts.Game
-import qualified Spec.Lib                                      as Lib
+import           Language.PlutusTx.Lattice
+import qualified Language.PlutusTx.Prelude                     as PlutusTx
+import           Ledger.Ada                                    (adaValueOf)
 import           Spec.Lib                                      (timesFeeAdjust)
+import qualified Spec.Lib                                      as Lib
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                              as HUnit
-import           Wallet.Emulator.Types                         (AssertionError)
 
 w1, w2 :: Wallet
 w1 = Wallet 1
@@ -21,32 +24,32 @@ w2 = Wallet 2
 
 tests :: TestTree
 tests = testGroup "game"
-    [ checkPredicate @_ @AssertionError "Expose 'lock' endpoint and watch game address"
+    [ checkPredicate @_ @ContractError "Expose 'lock' and 'guess' endpoints"
         game
-        (endpointAvailable @"lock" w1 /\ interestingAddress w1 gameAddress)
+        (endpointAvailable @"lock" w1 /\ endpointAvailable @"guess" w1)
         $ pure ()
 
-    , checkPredicate @_ @AssertionError "'lock' endpoint submits a transaction"
+    , checkPredicate @_ @ContractError "'lock' endpoint submits a transaction"
         game
         (anyTx w1)
-        $ addEvent w1 (Endpoint.event @"lock" (LockParams "secret" 10))
+        $ callEndpoint @"lock" w1 (LockParams "secret" (adaValueOf 10))
 
-    , checkPredicate @_ @AssertionError "'guess' endpoint is available after locking funds"
+    , checkPredicate @_ @ContractError "'guess' endpoint is available after locking funds"
         game
         (endpointAvailable @"guess" w2)
         lockTrace
 
-    , checkPredicate @_ @AssertionError "guess right (unlock funds)"
+    , checkPredicate @_ @ContractError "guess right (unlock funds)"
         game
         (walletFundsChange w2 (1 `timesFeeAdjust` 10)
             /\ walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         guessTrace
 
-    , checkPredicate @_ @AssertionError "guess wrong"
+    , checkPredicate @_ @ContractError "guess wrong"
         game
         (walletFundsChange w2 PlutusTx.zero
             /\ walletFundsChange w1 (1 `timesFeeAdjust` (-10)))
         guessWrongTrace
     , Lib.goldenPir "test/Spec/game.pir" $$(PlutusTx.compile [|| validateGuess ||])
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 15000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable gameValidator 20000)
     ]

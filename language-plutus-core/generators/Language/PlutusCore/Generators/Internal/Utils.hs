@@ -55,22 +55,22 @@ forAllNoShowT = forAllWithT mempty
 
 -- | Generate a value using the 'Pretty' class for getting its 'String' representation.
 forAllPretty :: (Monad m, Pretty a) => Gen a -> PropertyT m a
-forAllPretty = forAllWith prettyString
+forAllPretty = forAllWith display
 
 -- | Generate a value using the 'Pretty' class for getting its 'String' representation.
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyT :: (Monad m, Pretty a) => GenT m a -> PropertyT m a
-forAllPrettyT = forAllWithT prettyString
+forAllPrettyT = forAllWithT display
 
 -- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
 forAllPrettyPlc :: (Monad m, PrettyPlc a) => Gen a -> PropertyT m a
-forAllPrettyPlc = forAllWith prettyPlcDefString
+forAllPrettyPlc = forAllWith displayPlcDef
 
 -- | Generate a value using the 'PrettyPlc' constraint for getting its 'String' representation.
 -- A supplied generator has access to the 'Monad' the whole property has access to.
 forAllPrettyPlcT :: (Monad m, PrettyPlc a) => GenT m a -> PropertyT m a
-forAllPrettyPlcT = forAllWithT prettyPlcDefString
+forAllPrettyPlcT = forAllWithT displayPlcDef
 
 -- | Pretty-print a PLC error.
 prettyPlcErrorString :: PrettyPlc err => err -> String
-prettyPlcErrorString = docString . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic
+prettyPlcErrorString = render . prettyPlcCondensedErrorBy debugPrettyConfigPlcClassic

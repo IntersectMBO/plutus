@@ -1,0 +1,110 @@
+cabal-version: 2.2
+name: plutus-tx-plugin
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: michael.peyton-jones@iohk.io
+author: Michael Peyton Jones
+synopsis: The Plutus Tx compiler and GHC plugin
+description:
+    The Plutus Tx compiler and GHC plugin.
+category: Language
+build-type: Simple
+extra-doc-files: README.md
+
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable
+    other-extensions: DeriveAnyClass FlexibleContexts FlexibleInstances
+                      MultiParamTypeClasses TypeFamilies OverloadedStrings
+                      MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+                      RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+                      ExistentialQuantification
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -- See Plutus Tx readme
+                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+
+library
+    import: lang
+    hs-source-dirs: src
+    exposed-modules:
+        Language.PlutusTx.Plugin
+    other-modules:
+        Language.PlutusTx.PLCTypes
+        Language.PlutusTx.PIRTypes
+        Language.PlutusTx.Compiler.Error
+        Language.PlutusTx.Compiler.Binders
+        Language.PlutusTx.Compiler.Builtins
+        Language.PlutusTx.Compiler.Laziness
+        Language.PlutusTx.Compiler.Expr
+        Language.PlutusTx.Compiler.Names
+        Language.PlutusTx.Compiler.Kind
+        Language.PlutusTx.Compiler.Primitives
+        Language.PlutusTx.Compiler.Type
+        Language.PlutusTx.Compiler.Types
+        Language.PlutusTx.Compiler.Utils
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        containers -any,
+        extra -any,
+        ghc >=8.8 && <8.9,
+        language-plutus-core -any,
+        lens -any,
+        mtl -any,
+        prettyprinter -any,
+        serialise -any,
+        template-haskell -any,
+        text -any,
+        transformers -any,
+        plutus-tx -any,
+
+test-suite plutus-tx-tests
+    type: exitcode-stdio-1.0
+    hs-source-dirs: test
+    main-is: Spec.hs
+    other-modules:
+        Lift.Spec
+        Plugin.Spec
+        Plugin.Basic.Spec
+        Plugin.Data.Spec
+        Plugin.Errors.Spec
+        Plugin.Functions.Spec
+        Plugin.Laziness.Spec
+        Plugin.Primitives.Spec
+        Plugin.Typeclasses.Spec
+        Plugin.Typeclasses.Lib
+        Plugin.Lib
+        StdLib.Spec
+        TH.Spec
+        TH.TestTH
+    default-language: Haskell2010
+    build-depends:
+        base >=4.9 && <5,
+        integer-gmp -any,
+        language-plutus-core -any,
+        plutus-tx -any,
+        plutus-tx-plugin -any,
+        prettyprinter -any,
+        mtl -any,
+        bytestring -any,
+        serialise -any,
+        template-haskell -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-hedgehog -any,
+        hedgehog -any,
+        lens -any,
+    -- this makes the plugin give better errors
+    ghc-options: -g

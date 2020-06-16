@@ -11,6 +11,7 @@ module Language.PlutusCore.StdLib.Everything
     ) where
 
 import           Language.PlutusCore.FsTree
+import           Language.PlutusCore.Universe
 
 import           Language.PlutusCore.StdLib.Data.Bool
 import           Language.PlutusCore.StdLib.Data.ChurchNat
@@ -24,7 +25,7 @@ import           Language.PlutusCore.StdLib.Meta.Data.Tuple
 import           Language.PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
-stdLib :: PlcFolderContents
+stdLib :: PlcFolderContents DefaultUni
 stdLib =
     FolderContents
       [ treeFolderContents "StdLib"
@@ -46,7 +47,7 @@ stdLib =
                   , plcTypeFile "Self"   $ _recursiveType selfData
                   , plcTermFile "Unroll" unroll
                   , plcTermFile "Fix"    fix
-                  , plcTermFile "Fix2"   $ fixN 2
+                  , plcTermFile "Fix2"   $ fixN 2 fixBy
                   ]
               , treeFolderContents "Integer"
                   [ plcTermFile "SuccInteger" succInteger

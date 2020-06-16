@@ -1,0 +1,157 @@
+@import './normalize.css';
+@import './css_var_colors.css';
+@import './css_var_globals.css';
+@import './typo.css';
+@import './globals.css';
+@import './layout.css';
+@import './header.css';
+@import './panels.css';
+@import './panel-mobile.css';
+@import './main-tabs.css';
+@import './table.css';
+@import './animations.css';
+@import './github-input.css';
+
+.ace_editor {
+    height: 100%;
+    width: 100%;
+}
+
+.haskell-editor .ace_editor {
+    height: 100%;
+}
+
+.haskell-editor.expanded .ace_editor {
+    height: 120%;
+}
+
+.blockly-workspace {
+    height: 80vh;
+    width: 100%;
+}
+
+a:hover {
+    cursor: pointer;
+}
+
+#editor-preferences {
+    padding: 0.5rem;
+}
+
+.choice-a {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.choice-a>button {
+    width: 24px;
+}
+
+.choice-a>.choice-input {
+    width: auto;
+}
+
+.hide {
+    display: none;
+}
+
+.auth-button-container {
+    margin-top: 5px;
+}
+.auth-button {
+    padding: 0.4rem 1.5rem;
+    cursor: pointer;
+    top: 0.5rem;
+    background: var(--gradient-bg);
+    color: var(--white);
+    border-radius: var(--border-radius);
+    border: none;
+    z-index: 1;
+}
+
+.auth-button:after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    background: url('../images/open-link-icon-white.svg') no-repeat center center;
+    height: 18px;
+    width: 18px;
+    background-size: 42px;
+}
+
+.panel-table {
+    height: 8rem;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: var(--bg-dark);
+    color: black;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+    font-size: 1rem;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.tooltip .tooltiptext::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;
+    /* At the bottom of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent var(--bg-dark) transparent;
+}
+
+.upload-btn>.tooltiptext {
+    left: 70%;
+    top: 50px;
+}
+
+.upload-btn>.tooltiptext::after {
+    left: 14%;
+}
+
+.download-btn>.tooltiptext {
+    right: 0px;
+    top: 112%;
+}
+
+.download-btn>.tooltiptext::after {
+    left: 85%;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext {
+    right: -10px;
+    top: 30px;
+    width: 13em;
+}
+
+.code-to-blockly-wrap>.tooltip>.tooltiptext::after {
+    left: 85%;
+}
+
+.choice-error {
+    color: var(--error-color);
+    width: 100%;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.monaco-editor-container {
+    height: 100%;
+}

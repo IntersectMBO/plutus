@@ -14,18 +14,15 @@ data Builtin : Set where
   greaterThanInteger       : Builtin
   greaterThanEqualsInteger : Builtin
   equalsInteger            : Builtin
---  resizeInteger            : Builtin
---  sizeOfInteger            : Builtin
-
-  concatenate      : Builtin
-  takeByteString   : Builtin
-  dropByteString   : Builtin
-  sha2-256         : Builtin
-  sha3-256         : Builtin
-  verifySignature  : Builtin
---  resizeByteString : Builtin
-  equalsByteString : Builtin
+  concatenate              : Builtin
+  takeByteString           : Builtin
+  dropByteString           : Builtin
+  sha2-256                 : Builtin
+  sha3-256                 : Builtin
+  verifySignature          : Builtin
+  equalsByteString         : Builtin
+  ifThenElse               : Builtin
 
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString) #-}
+{-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString | IfThenElse) #-}
 \end{code}

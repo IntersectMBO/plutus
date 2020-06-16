@@ -31,33 +31,33 @@ import Builtin.Constant.Term
 
 import Declarative
 import Declarative.RenamingSubstitution
---import Declarative.Erasure
+import Declarative.Erasure
 
 --import Declarative.Examples
-import Declarative.StdLib.Unit
-import Declarative.StdLib.Bool
+
 import Declarative.StdLib.Function
 import Declarative.StdLib.ChurchNat
 import Declarative.StdLib.Nat
-import Main
+
 
 -- Terms, reduction and evaluation where terms are indexed by normal
 -- types
 
 import Algorithmic
-import Algorithmic.Equality
 import Algorithmic.RenamingSubstitution
 import Algorithmic.Reduction
 import Algorithmic.Evaluation
 --import Algorithmic.Examples
---import Algorithmic.Main
+import Algorithmic.Main
 import Algorithmic.Soundness
 import Algorithmic.Completeness
 import Algorithmic.Erasure
---import Algorithmic.Erasure.RenamingSubstitution
---import Algorithmic.Erasure.Reduction
+import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.Reduction
 import Algorithmic.CK
--- Terms, that carry witnesses of their type's reduction to normal form
+import Algorithmic.CEKD
+import Algorithmic.CEKC
+import Algorithmic.CEKV
 
 --import AlgorithmicRed.Term
 --import AlgorithmicRed.Term.RenamingSubstitution
@@ -69,15 +69,22 @@ import Untyped.RenamingSubstitution
 import Untyped.Reduction
 
 -- Extrinsically typed terms, reduction and evaluation
-
 import Scoped
 import Scoped.RenamingSubstitution
+
 import Scoped.Reduction
+
 import Scoped.Extrication
---import Scoped.Extrication.RenamingSubstitution
+import Scoped.Extrication.RenamingSubstitution
 --import Scoped.Extrication.Reduction
+
 import Scoped.Erasure
 import Scoped.Erasure.RenamingSubstitution
 --import Scoped.Erasure.Reduction
+
 import Scoped.CK
+
+import Check
+import Main
 \end{code}
+

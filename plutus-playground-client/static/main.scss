@@ -1,5 +1,9 @@
 @import '../../web-common/static/main.scss';
-@import 'chain.scss';
+@import '../../web-common/static/chain.scss';
+
+.tab-help {
+    font-style: italic;
+}
 
 table.balance-map {
     overflow: hidden;
@@ -125,7 +129,7 @@ table.balance-map {
         }
 
         .nested {
-            margin-left: 1rem;
+            margin-left: 0.5rem;
         }
 
         hr {

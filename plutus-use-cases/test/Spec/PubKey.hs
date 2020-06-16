@@ -1,26 +1,38 @@
+{-# LANGUAGE TypeApplications #-}
 module Spec.PubKey(tests) where
 
-import           Control.Lens
 import           Control.Monad                                   (void)
-import qualified Data.Set                                        as Set
+import qualified Data.Map                                        as Map
 
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
+import qualified Ledger
 import qualified Ledger.Ada                                      as Ada
-import           Wallet.Emulator                                 (walletPubKey)
+import           Ledger.Constraints                              (ScriptLookups (..))
+import qualified Ledger.Constraints                              as Constraints
+import           Ledger.Scripts                                  (unitRedeemer)
+import           Ledger.Typed.Scripts                            as Scripts
 
-import           Language.PlutusTx.Coordination.Contracts.PubKey (pubKeyContract)
+import           Language.PlutusTx.Coordination.Contracts.PubKey (PubKeyError, pubKeyContract)
 
 import           Test.Tasty
 
 w1 :: Wallet
 w1 = Wallet 1
 
-theContract :: Contract BlockchainActions ContractError ()
+theContract :: Contract BlockchainActions PubKeyError ()
 theContract = do
-  txin <- pubKeyContract (walletPubKey w1) (Ada.lovelaceValueOf 10)
-  void $ writeTx $ mempty & inputs .~ Set.singleton txin
+  (txOutRef, txOutTx, pkInst) <- pubKeyContract (Ledger.pubKeyHash $ walletPubKey w1) (Ada.lovelaceValueOf 10)
+  let lookups = ScriptLookups
+                  { slMPS = Map.empty
+                  , slTxOutputs = Map.singleton txOutRef txOutTx
+                  , slOtherScripts = Map.singleton (Scripts.scriptAddress pkInst) (Scripts.validatorScript pkInst)
+                  , slOtherData = Map.empty
+                  , slScriptInstance = Nothing
+                  , slOwnPubkey = Nothing
+                  }
+  void $ submitTxConstraintsWith @Scripts.Any lookups (Constraints.mustSpendScriptOutput txOutRef unitRedeemer)
 
 tests :: TestTree
 tests = testGroup "pubkey"

@@ -3,18 +3,18 @@ module Language.PlutusTx.Coordination.Contracts() where
 {- Note [Contracts and Validator Scripts]
 
 Central to both examples are the validator scripts in
-`CrowdFunding.contributionScript` and `Swap.swapValidator`. In both cases we
+`Crowdfunding.contributionScript` and `Swap.swapValidator`. In both cases we
 construct a PLC script using the core-to-plutus plugin (with Template Haskell
 and the `plc` marker respectively).
 
 The validator scripts currently have a type
 
-Redeemer -> DataScript -> PendingTx -> a -> ()
+Redeemer -> DataValue -> PendingTx -> a -> ()
 
 Where `a` is a parameter specific to the contract (supplied by the user before
 the contract begins). The actual signature of a validator script looks like
 
-Redeemer -> DataScript -> PendingTx -> ()
+Redeemer -> DataValue -> PendingTx -> ()
 
 So, in the future, the Plutus coordinating code has to translate the `a` value
 to PLC and apply it to the function. This could be done with a type class

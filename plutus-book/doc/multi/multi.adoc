@@ -43,10 +43,10 @@ transaction outputs, and we can use the following functions for this purpose:
 [source,haskell]
 ----
 pubKeyTxIn  :: TxOutRef -> PubKey -> TxIn
-scriptTxIn  :: TxOutRef -> ValidatorScript -> RedeemerScript -> TxIn
+scriptTxIn  :: TxOutRef -> Validator -> RedeemerValue -> TxIn
 
 pubKeyTxOut :: Value -> PubKey -> TxOut
-scriptTxOut :: Value -> ValidatorScript -> DataScript -> TxOut
+scriptTxOut :: Value -> Validator -> DataValue -> TxOut
 ----
 
 Finally, to get our hands on the necessary ``TxOutRef``'s,

@@ -4,14 +4,14 @@ module Chain
   , extractAmount
   ) where
 
-import Array.Extra (collapse)
 import Bootstrap (empty, nbsp)
-import Chain.Types (State)
+import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
+import Control.Monad.Freer.Log (LogMessage(..))
 import Data.Array as Array
-import Data.Generic.Rep.Show (genericShow)
+import Data.Array.Extra (collapse)
 import Data.Int as Int
 import Data.Lens (_2, _Just, preview, toListOf, traversed, view)
 import Data.Lens.At (at)
@@ -26,16 +26,21 @@ import Data.Tuple.Nested ((/\))
 import Effect.Aff.Class (class MonadAff)
 import Halogen (ComponentHTML)
 import Halogen.Chartist (chartist)
-import Halogen.HTML (ClassName(ClassName), HTML, br_, div, div_, h2_, slot, text)
+import Halogen.HTML (ClassName(ClassName), HTML, br_, code_, div, div_, h2_, pre_, slot, text)
 import Halogen.HTML.Properties (class_)
 import Language.PlutusTx.AssocMap as AssocMap
 import Ledger.Slot (Slot(..))
 import Ledger.TxId (TxId(TxId))
 import Ledger.Value (CurrencySymbol, TokenName)
+import Playground.Lenses (_tokenName)
 import Playground.Types (EvaluationResult(EvaluationResult), SimulatorWallet)
 import Prelude (map, show, unit, ($), (<$>), (<<<), (<>))
-import Types (ChildSlots, HAction(HandleBalancesChartMessage), _simulatorWalletBalance, _simulatorWalletWallet, _tokenName, _value, _walletId, _balancesChartSlot)
-import Wallet.Emulator.Types (EmulatorEvent(..), Wallet(..))
+import Types (ChildSlots, HAction(..), _balancesChartSlot, _simulatorWalletBalance, _simulatorWalletWallet, _walletId)
+import Wallet.Emulator.Chain (ChainEvent(..))
+import Wallet.Emulator.ChainIndex (ChainIndexEvent(..))
+import Wallet.Emulator.MultiAgent (EmulatorEvent(..))
+import Wallet.Emulator.NodeClient (NodeClientEvent(..))
+import Wallet.Emulator.Wallet (Wallet(..), WalletEvent(..))
 
 evaluationPane ::
   forall m.
@@ -43,12 +48,13 @@ evaluationPane ::
   State ->
   EvaluationResult ->
   ComponentHTML HAction ChildSlots m
-evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDistribution, resultRollup, walletKeys }) =
+evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ chainView
-        state
-        (AssocMap.toDataMap (AssocMap.Map walletKeys))
-        (wrap resultRollup)
+    [ SetChainFocus <<< Just
+        <$> chainView
+            state
+            (AssocMap.toDataMap (AssocMap.Map walletKeys))
+            (wrap resultRollup)
     , br_
     , div_
         [ h2_ [ text "Logs" ]
@@ -58,6 +64,8 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
               div
                 [ class_ $ ClassName "logs" ]
                 (emulatorEventPane <$> Array.reverse logs)
+        , h2_ [ text "Trace" ]
+        , code_ [ pre_ [ text emulatorTrace ] ]
         ]
     , br_
     , div_
@@ -72,15 +80,23 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, fundsDist
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (TxnSubmit (TxId txId)) =
+emulatorEventPane (ChainIndexEvent _ ReceiveBlockNotification) =
+  div_
+    [ text "Chain index receive block notification" ]
+
+emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
+  div_
+    [ text $ "Submitting transaction: " <> show address ]
+
+emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidate (TxId txId)) =
+emulatorEventPane (ChainEvent (TxnValidate (TxId txId))) =
   div_
     [ text $ "Validating transaction: " <> txId.getTxId ]
 
-emulatorEventPane (TxnValidationFail (TxId txId) error) =
+emulatorEventPane (ChainEvent (TxnValidationFail (TxId txId) error)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Validation failed: " <> txId.getTxId
     , br_
@@ -88,17 +104,13 @@ emulatorEventPane (TxnValidationFail (TxId txId) error) =
     , text $ show error
     ]
 
-emulatorEventPane (SlotAdd (Slot slot)) =
+emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 
-emulatorEventPane (WalletError (Wallet walletId) error) =
+emulatorEventPane (WalletEvent (Wallet walletId) (WalletMsg (LogMessage { logMessageText }))) =
   div [ class_ $ ClassName "error" ]
-    [ text $ "Error from wallet #" <> show walletId.getWallet <> ": " <> genericShow error ]
-
-emulatorEventPane (WalletInfo (Wallet walletId) info) =
-  div_
-    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> info ]
+    [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
 
 ------------------------------------------------------------
 formatWalletId :: SimulatorWallet -> String
@@ -175,7 +187,7 @@ balancesChartOptions =
           , axisClass: "ct-y-axis-title"
           , offset:
             { x: 0
-            , y: (30)
+            , y: 30
             }
           , textAnchor: "middle"
           , flipTitle: true

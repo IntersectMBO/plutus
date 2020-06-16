@@ -10,6 +10,16 @@
 *.bbl
 *.fdb_latexmk
 *.blg
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.ist
+*.out
+*.toc
+*.bcf
+*.run.xml
+*.thm
 auto
 
 # Cabal
@@ -41,11 +51,13 @@ stack.yaml.lock
 # Nix
 result*
 pkgs/.cabal
+pkgs/.cache
 pkgs/.stack
 
 # Editor files
 *~
 *#
+*_flymake.*
 .psc-ide-port
 .dir-locals.el
 
@@ -62,3 +74,10 @@ TAGS
 gh-pages
 .importify/
 marlowe-playground-server/playground.yaml
+.envrc
+*.org
+/plutus-scb.yaml
+*.db
+*.db-shm
+*.db-wal
+hie.yaml

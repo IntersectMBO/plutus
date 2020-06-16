@@ -1,38 +1,43 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Playground.Interpreter where
 
+import           Control.Exception            (IOException, try)
 import           Control.Monad.Catch          (MonadMask)
-import           Control.Monad.Error.Class    (MonadError, throwError)
+import           Control.Monad.Error.Class    (MonadError, liftEither, throwError)
 import           Control.Monad.Except.Extras  (mapError)
 import           Control.Monad.IO.Class       (MonadIO, liftIO)
 import qualified Control.Newtype.Generics     as Newtype
-import           Data.Aeson                   (ToJSON)
 import qualified Data.Aeson                   as JSON
-import           Data.ByteString              (ByteString)
+import           Data.Bifunctor               (first)
 import qualified Data.ByteString.Char8        as BS8
 import qualified Data.ByteString.Lazy.Char8   as BSL
-import           Data.List                    (intercalate)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import qualified Data.Text.IO                 as Text
-import           Data.Time.Units              (TimeUnit)
+import           Data.Time.Units              (Second, TimeUnit)
 import           Language.Haskell.Interpreter (CompilationError (CompilationError, RawError),
                                                InterpreterError (CompilationErrors),
-                                               InterpreterResult (InterpreterResult), SourceCode, Warning (Warning),
-                                               avoidUnsafe, runghc)
-import           Playground.Interpreter.Util  (TraceResult)
-import           Playground.Types             (CompilationResult (CompilationResult), Evaluation (sourceCode),
-                                               Expression (Action, Wait), Fn (Fn),
-                                               PlaygroundError (DecodeJsonTypeError, InterpreterError, OtherError),
-                                               program, simulatorWalletWallet, wallets)
+                                               InterpreterResult (InterpreterResult), SourceCode (SourceCode),
+                                               Warning (Warning), avoidUnsafe, runghc)
+import           Language.Haskell.TH          (Ppr, Q, pprint, runQ)
+import           Language.Haskell.TH.Syntax   (liftString)
+import           Playground.Types             (CompilationResult (CompilationResult),
+                                               Evaluation (program, sourceCode, wallets), EvaluationResult,
+                                               PlaygroundError (InterpreterError, JsonDecodingError, OtherError, decodingError, expected, input))
 import           System.FilePath              ((</>))
 import           System.IO                    (Handle, IOMode (ReadWriteMode), hFlush)
 import           System.IO.Extras             (withFile)
 import           System.IO.Temp               (withSystemTempDirectory)
 import qualified Text.Regex                   as Regex
-import           Wallet.Emulator.Types        (Wallet)
+
+
+maxInterpretationTime :: Second
+maxInterpretationTime = 80
 
 replaceModuleName :: Text -> Text
 replaceModuleName script =
@@ -40,25 +45,12 @@ replaceModuleName script =
         regex = Regex.mkRegex "module .* where"
      in Text.pack $ Regex.subRegex regex scriptString "module Main where"
 
-ensureMkFunctionExists :: Text -> Text
-ensureMkFunctionExists script =
-    let scriptString = Text.unpack script
-        -- I don't really like this regex as it doesn't require properly formed mkFunctions
-        -- however I couldn't find a better regex that worked for all current usecases
-        -- additionally I think this check is strong enough to decide whether to add the
-        -- empty $(mkFunctions [])
-        regex = Regex.mkRegex "^\\$\\(mkFunctions[ \n\t].*"
-        mMatches = Regex.matchRegexAll regex scriptString
-     in case mMatches of
-            Nothing -> script <> "\n$(mkFunctions [])"
-            Just _  -> script
-
 ensureMinimumImports :: (MonadError InterpreterError m) => SourceCode -> m ()
 ensureMinimumImports script =
     let scriptString = Text.unpack . Newtype.unpack $ script
         regex =
             Regex.mkRegex
-                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*mkFunctions.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*mkFunctions.*\\))"
+                "^import[ \t]+Playground.Contract([ ]*$|[ \t]+\\(.*printSchemas.*\\)|[ \t]+\\(.*printSchemas.*\\))"
         mMatches = Regex.matchRegexAll regex scriptString
      in case mMatches of
             Just _ -> pure ()
@@ -67,10 +59,10 @@ ensureMinimumImports script =
                     row = 1
                     column = 1
                     text =
-                        [ "You need to import the `mkFunctions` and `printSchemas` in order to compile successfully, you can do this with either"
+                        [ "You need to import `printSchemas` in order to compile successfully, you can do this with either"
                         , "`import Playground.Contract`"
                         , "or"
-                        , "`import Playground.Contract (mkFunctions, printSchemas)`"
+                        , "`import Playground.Contract (printSchemas)`"
                         ]
                     errors = [CompilationError filename row column text]
                  in throwError $ CompilationErrors errors
@@ -86,11 +78,11 @@ ensureKnownCurrenciesExists script =
 
 mkCompileScript :: Text -> Text
 mkCompileScript script =
-    (ensureKnownCurrenciesExists . ensureMkFunctionExists . replaceModuleName)
-        script <>
+    replaceModuleName script <>
     Text.unlines
         [ ""
         , "$ensureIotsDefinitions"
+        , "$ensureKnownCurrencies"
         , ""
         , "main :: IO ()"
         , "main = printSchemas (schemas, registeredKnownCurrencies, iotsDefinitions)"
@@ -138,7 +130,9 @@ compile timeout source
             case eSchema of
                 Left err ->
                     throwError . CompilationErrors . pure . RawError $
-                    "unable to decode compilation result: " <> Text.pack err <> "\n" <> Text.pack result
+                    "unable to decode compilation result: " <> Text.pack err <>
+                    "\n" <>
+                    Text.pack result
                 Right ([schema], currencies, iots) -> do
                     let warnings' =
                             Warning
@@ -150,7 +144,7 @@ compile timeout source
                     pure . InterpreterResult warnings $
                     CompilationResult schemas currencies iots
 
-runFunction ::
+evaluateSimulation ::
        ( Show t
        , TimeUnit t
        , MonadMask m
@@ -159,8 +153,8 @@ runFunction ::
        )
     => t
     -> Evaluation
-    -> m (InterpreterResult TraceResult)
-runFunction timeout evaluation = do
+    -> m (InterpreterResult EvaluationResult)
+evaluateSimulation timeout evaluation = do
     let source = sourceCode evaluation
     mapError InterpreterError $ avoidUnsafe source
     expr <- mkExpr evaluation
@@ -169,107 +163,76 @@ runFunction timeout evaluation = do
         withFile file ReadWriteMode $ \handle -> do
             (InterpreterResult warnings result) <-
                 mapError InterpreterError . runscript handle file timeout $
-                mkRunScript
-                    (Newtype.unpack source)
-                    (Text.pack . BS8.unpack $ expr)
+                mkRunScript source (Text.pack expr)
             let decodeResult =
-                    JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError TraceResult)
+                    JSON.eitherDecodeStrict . BS8.pack $ result :: Either String (Either PlaygroundError EvaluationResult)
             case decodeResult of
                 Left err ->
-                    throwError . OtherError $
-                    "unable to decode compilation result: " <> err
+                    throwError
+                        JsonDecodingError
+                            { expected = "EvaluationResult"
+                            , decodingError = err
+                            , input = result
+                            }
                 Right eResult ->
                     case eResult of
                         Left err -> throwError err
                         Right result' ->
                             pure $ InterpreterResult warnings result'
 
-mkRunScript :: Text -> Text -> Text
-mkRunScript script expr =
+mkRunScript :: SourceCode -> Text -> Text
+mkRunScript (SourceCode script) expr =
     replaceModuleName script <> "\n\nmain :: IO ()" <> "\nmain = printJson $ " <>
     expr
 
 runghcOpts :: [String]
 runghcOpts =
     [ "-XDataKinds"
-    , "-XDerivingStrategies"
     , "-XDeriveAnyClass"
-    , "-XDeriveFoldable"
-    , "-XDeriveFunctor"
     , "-XDeriveGeneric"
-    , "-XDeriveLift"
-    , "-XDeriveTraversable"
-    , "-XGeneralizedNewtypeDeriving"
-    , "-XTypeApplications"
-    , "-XExplicitForAll"
+    , "-XDerivingStrategies"
+    , "-XExplicitNamespaces"
     , "-XFlexibleContexts"
+    , "-XGeneralizedNewtypeDeriving"
+    , "-XMultiParamTypeClasses"
+    , "-XNamedFieldPuns"
+    , "-XNoImplicitPrelude"
     , "-XOverloadedStrings"
     , "-XRecordWildCards"
-    , "-XStandaloneDeriving"
-    , "-XTemplateHaskell"
     , "-XScopedTypeVariables"
-    , "-XDataKinds"
-    , "-XNoImplicitPrelude"
+    , "-XTemplateHaskell"
+    , "-XTypeApplications"
+    , "-XTypeFamilies"
+    , "-XTypeOperators"
     -- See Plutus Tx readme
     -- runghc is interpreting our code
     , "-fno-ignore-interface-pragmas"
     , "-fobject-code"
-    -- FIXME: stupid GHC bug still
-    --, "-package plutus-tx"
-    --, "-package plutus-wallet-api"
     ]
 
-jsonToString :: ToJSON a => a -> String
-jsonToString = show . JSON.encode
-
-mkExpr :: (MonadError PlaygroundError m) => Evaluation -> m ByteString
+mkExpr :: (MonadError PlaygroundError m, MonadIO m) => Evaluation -> m String
 mkExpr evaluation = do
-    let allWallets = simulatorWalletWallet <$> wallets evaluation
-    exprs <- traverse (walletActionExpr allWallets) (program evaluation)
-    pure . BS8.pack $
-        "runTrace (decode' " <> jsonToString (wallets evaluation) <> ") [" <>
-        intercalate ", " exprs <>
-        "]"
+    let programJson = liftString . BSL.unpack . JSON.encode $ program evaluation
+        simulatorWalletsJson =
+            liftString . BSL.unpack . JSON.encode $ wallets evaluation
+    printQ [|stage endpoints $(programJson) $(simulatorWalletsJson)|]
+
+printQ :: (MonadError PlaygroundError m, MonadIO m, Ppr a) => Q a -> m String
+printQ q = do
+    str <- liftIO . fmap toPlaygroundError . try . runQ . fmap pprint $ q
+    liftEither str
+  where
+    toPlaygroundError :: Either IOException a -> Either PlaygroundError a
+    toPlaygroundError = first (OtherError . show)
 
 {-# ANN getJsonString ("HLint: ignore" :: String) #-}
 
 getJsonString :: (MonadError PlaygroundError m) => JSON.Value -> m String
 getJsonString (JSON.String s) = pure $ Text.unpack s
 getJsonString v =
-    throwError . DecodeJsonTypeError "String" . BSL.unpack . JSON.encode $ v
-
-walletActionExpr ::
-       (MonadError PlaygroundError m) => [Wallet] -> Expression -> m String
-walletActionExpr allWallets (Action (Fn f) wallet args) = do
-    argStrings <- fmap show <$> traverse getJsonString args
-    pure $
-        "(runWalletActionAndProcessPending (" <> show allWallets <> ") (" <>
-        show wallet <>
-        ") <$> (" <>
-        mkApplyExpr (Text.unpack f) argStrings <>
-        "))"
--- We return an empty list to fix types as wallets have already been notified
-walletActionExpr allWallets (Wait blocks) =
-    pure $
-    "return $ addBlocksAndNotify (" <> show allWallets <> ") " <> show blocks <>
-    " >> return []"
-
-{-# ANN mkApplyExpr ("HLint: ignore" :: String) #-}
-
-mkApplyExpr :: String -> [String] -> String
-mkApplyExpr functionName [] = "apply" <+> functionName
-mkApplyExpr functionName [a] = "apply1" <+> functionName <+> a
-mkApplyExpr functionName [a, b] = "apply2" <+> functionName <+> a <+> b
-mkApplyExpr functionName [a, b, c] = "apply3" <+> functionName <+> a <+> b <+> c
-mkApplyExpr functionName [a, b, c, d] =
-    "apply4" <+> functionName <+> a <+> b <+> c <+> d
-mkApplyExpr functionName [a, b, c, d, e] =
-    "apply5" <+> functionName <+> a <+> b <+> c <+> d <+> e
-mkApplyExpr functionName [a, b, c, d, e, f] =
-    "apply6" <+> functionName <+> a <+> b <+> c <+> d <+> e <+> f
-mkApplyExpr functionName [a, b, c, d, e, f, g] =
-    "apply7" <+> functionName <+> a <+> b <+> c <+> d <+> e <+> f <+> g
-mkApplyExpr _ _ = error "cannot apply more than 7 arguments"
-
-(<+>) :: String -> String -> String
-a <+> b = a <> " " <> b
+    throwError
+        JsonDecodingError
+            { expected = "String"
+            , input = BSL.unpack $ JSON.encode v
+            , decodingError = "Expected a String."
+            }

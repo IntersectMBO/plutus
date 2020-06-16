@@ -1,0 +1,31 @@
+(program
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+        
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (lam
+      ds
+      Bool
+      (lam
+        ds
+        Bool
+        [
+          [
+            [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit ds) ]
+            (lam thunk Unit False)
+          ]
+          Unit
+        ]
+      )
+    )
+  )
+)

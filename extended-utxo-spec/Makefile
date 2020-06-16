@@ -25,6 +25,7 @@ ${DOC}.pdf: ${SRC}
 	${BIBTEX} ${DOC}
 	${LATEX}  ${DOC}   # to make sure the (cross)references are correct
 	${LATEX}  ${DOC}
+	${LATEX}  ${DOC}
 
 figs:
 	cd ${FIGS} && ${MAKE}
@@ -41,5 +42,5 @@ clean: clean1
 	rm -f ${DOC}.pdf
 
 v: ${PDF}
-	acroread ${PDF}
+	acroread ${PDF} 2>/dev/null
 
