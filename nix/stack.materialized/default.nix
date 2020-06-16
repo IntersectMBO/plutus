@@ -2,6 +2,16 @@
   extras = hackage:
     {
       packages = {
+        "lazy-search" = (((hackage.lazy-search)."0.1.2.0").revisions).default;
+        "size-based" = (((hackage.size-based)."0.1.2.0").revisions).default;
+        "testing-feat" = (((hackage.testing-feat)."1.1.0.0").revisions).default;
+        "Agda" = (((hackage.Agda)."2.6.0").revisions).default;
+        "data-hash" = (((hackage.data-hash)."0.2.0.1").revisions).default;
+        "EdisonCore" = (((hackage.EdisonCore)."1.3.2.1").revisions).default;
+        "EdisonAPI" = (((hackage.EdisonAPI)."1.3.1").revisions).default;
+        "equivalence" = (((hackage.equivalence)."0.3.4").revisions).default;
+        "STMonadTrans" = (((hackage.STMonadTrans)."0.4.3").revisions).default;
+        "geniplate-mirror" = (((hackage.geniplate-mirror)."0.7.6").revisions).default;
         "aws-lambda-haskell-runtime" = (((hackage.aws-lambda-haskell-runtime)."2.0.4").revisions).default;
         "binary-instances" = (((hackage.binary-instances)."1.0.0.1").revisions).default;
         "composition-prelude" = (((hackage.composition-prelude)."2.0.2.1").revisions).default;

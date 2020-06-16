@@ -31,7 +31,7 @@ extra-deps:
 
 # not sure about this stuff - James
 # Agda and deps 
-- aws-lambda-haskell-runtime-2.0.1
+# aws-lambda-haskell-runtime-2.0.1 - this upsets  dev.scripts.updateMaterialized - James
 - Agda-2.6.0
 - data-hash-0.2.0.1
 - EdisonCore-1.3.2.1
