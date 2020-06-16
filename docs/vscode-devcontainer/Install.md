@@ -33,7 +33,7 @@ Code to open and the extension to be installed.
 
 ### Openning the plutus-uses-cases in a Plutus DevContainer
 
-To download and try out the DevContainer with the plutus-uses-cases:
+To try out the DevContainer with the plutus-uses-cases:
 
 * Press F1 to bring up the Command Palette.
 * Select the `Remote-Containers: Open Folder in Container...` command.
