@@ -88,7 +88,7 @@ instance Pretty AddressChangeRequest where
     transaction to be added to the ledger in or after 'acreqSlot' and
     after 'txid'.
     2. If 'acreqTxId' is 'Nothing' then @b@ is the next transaction if
-    b spends or produces an output at the given address and b is the first
+    @b@ spends or produces an output at the given address and b is the first
     transaction to be added to the ledger in or after 'acreqSlot'.
 
     Some implications of this definition are:
