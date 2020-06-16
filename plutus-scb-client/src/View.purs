@@ -56,13 +56,22 @@ render (State { currentView, chainState, fullReport, contractSignatures }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
-        [ div_
+        [ mainHeader
+        , div_
             $ case fullReport of
                 Success report -> [ fullReportPane currentView chainState contractSignatures report ]
                 Failure error -> [ ajaxErrorPane error ]
                 Loading -> [ icon Spinner ]
                 NotAsked -> [ icon Spinner ]
         ]
+    ]
+
+mainHeader :: forall p. HTML p HAction
+mainHeader =
+  div_
+    [ h1
+        [ class_ $ ClassName "main-title" ]
+        [ text "Plutus Application Platform" ]
     ]
 
 tabs :: Array { help :: String, link :: View, title :: String }
