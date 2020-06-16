@@ -50,7 +50,8 @@ import qualified Plutus.SCB.MockApp                                as MockApp
 import           Plutus.SCB.Types                                  (ContractExe)
 import qualified Plutus.SCB.Webserver.API                          as API
 import qualified Plutus.SCB.Webserver.Server                       as Webserver
-import           Plutus.SCB.Webserver.Types                        (ContractSignatureResponse, FullReport)
+import           Plutus.SCB.Webserver.Types                        (ContractReport, ChainReport, ContractSignatureResponse,
+                                                                    FullReport)
 import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
@@ -86,6 +87,8 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
@@ -137,7 +140,7 @@ writeTestData outputDir = do
                     installContract @TestContracts Game
                     currencyInstance <- activateContract Currency
                     void $ activateContract Game
-                    report :: FullReport TestContracts <- Webserver.fullReport
+                    report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-
                         Webserver.contractSchema currencyInstance
                     pure (report, schema)

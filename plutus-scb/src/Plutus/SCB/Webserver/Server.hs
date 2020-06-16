@@ -11,7 +11,7 @@
 
 module Plutus.SCB.Webserver.Server
     ( main
-    , fullReport
+    , getFullReport
     , contractSchema
     ) where
 
@@ -61,7 +61,6 @@ import           Servant.Client                                  (BaseUrl (baseU
 import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
 import           Wallet.Emulator.Wallet                          (Wallet)
 import qualified Wallet.Rollup                                   as Rollup
-import           Wallet.Rollup.Types                             (AnnotatedTx)
 
 asHandler :: Config -> App a -> Handler a
 asHandler config =
@@ -75,37 +74,46 @@ asHandler config =
 healthcheck :: Monad m => m ()
 healthcheck = pure ()
 
-fullReport ::
+getContractReport ::
+       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs, Ord t)
+    => Eff effs (ContractReport t)
+getContractReport = do
+    installedContracts <- runGlobalQuery (Query.installedContractsProjection @t)
+    latestContractStatuses <-
+        Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
+    pure ContractReport {installedContracts, latestContractStatuses}
+
+getChainReport ::
+       forall t effs. Member ChainIndexEffect effs
+    => Eff effs (ChainReport t)
+getChainReport = do
+    blocks :: Blockchain <- confirmedBlocks
+    let ChainOverview { chainOverviewBlockchain
+                      , chainOverviewUnspentTxsById
+                      , chainOverviewUtxoIndex
+                      } = mkChainOverview blocks
+    let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
+    annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
+    pure
+        ChainReport
+            { transactionMap = chainOverviewUnspentTxsById
+            , utxoIndex = chainOverviewUtxoIndex
+            , annotatedBlockchain
+            , walletMap
+            }
+
+getFullReport ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member ChainIndexEffect effs
        , Ord t
        )
     => Eff effs (FullReport t)
-fullReport = do
-    installedContracts <-
-         runGlobalQuery (Query.installedContractsProjection @t)
-    latestContractStatuses <-
-        Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
+getFullReport = do
     events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
-    blocks :: Blockchain <- confirmedBlocks
-    let ChainOverview { chainOverviewBlockchain
-                  , chainOverviewUnspentTxsById
-                  , chainOverviewUtxoIndex
-                  } = mkChainOverview blocks
-    let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
-    annotatedBlockchain :: [[AnnotatedTx]] <-
-        Rollup.doAnnotateBlockchain chainOverviewBlockchain
-    pure
-        FullReport
-            { installedContracts
-            , latestContractStatuses
-            , events
-            , transactionMap = chainOverviewUnspentTxsById
-            , utxoIndex = chainOverviewUtxoIndex
-            , annotatedBlockchain
-            , walletMap
-            }
+    contractReport <- getContractReport
+    chainReport <- getChainReport
+    pure FullReport {contractReport, chainReport, events}
 
 contractSchema ::
        forall t effs.
@@ -116,7 +124,8 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
+    ContractInstanceState {csContractDefinition} <-
+        getContractInstanceState @t contractId
     ContractSignatureResponse <$> exportSchema csContractDefinition
 
 getContractInstanceState ::
@@ -145,10 +154,12 @@ invokeEndpoint ::
     -> ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-  logInfo $ "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
-  newState :: [ChainEvent t] <- Instance.callContractEndpoint @t contractId endpointDescription payload
-  logInfo $ "Invocation response: " <> tshow newState
-  contractSchema contractId
+    logInfo $
+        "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
+    newState :: [ChainEvent t] <-
+        Instance.callContractEndpoint @t contractId endpointDescription payload
+    logInfo $ "Invocation response: " <> tshow newState
+    contractSchema contractId
 
 parseContractId ::
        (Member (Error SCBError) effs) => Text -> Eff effs ContractInstanceId
@@ -170,7 +181,7 @@ handler ::
              :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
                            :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe))))
 handler =
-    healthcheck :<|> fullReport :<|>
+    healthcheck :<|> getFullReport :<|>
     (\rawInstanceId ->
          (parseContractId rawInstanceId >>= contractSchema) :<|>
          (\rawEndpointDescription payload ->

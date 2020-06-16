@@ -43,7 +43,7 @@ import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainState, _contractInstanceIdString, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
 import Validation (_argument)
 import View as View
 
@@ -107,13 +107,13 @@ handleAction LoadFullReport = do
             contractSchema <- runAjax $ getContractByContractinstanceidSchema uuid
             modifying (_contractSignatures <<< at instanceId) (Just <<< upsertEndpointForm contractSchema)
         )
-        (toArrayOf (_latestContractStatuses <<< traversed <<< _csContract) fullReport)
+        (toArrayOf (_contractReport <<< _latestContractStatuses <<< traversed <<< _csContract) fullReport)
     _ -> pure unit
   pure unit
 
 handleAction (ChainAction newFocus) = do
   mAnnotatedBlockchain <-
-    peruse (_fullReport <<< _Success <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
+    peruse (_fullReport <<< _Success <<< _chainReport <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
   animate
     (_chainState <<< _chainFocusAppearing)
     (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)

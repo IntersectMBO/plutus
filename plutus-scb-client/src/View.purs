@@ -3,7 +3,7 @@ module View (render) where
 import AjaxUtils (ajaxErrorPane)
 import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col4_, col6_, col8_, container_, nbsp, row_)
 import Bootstrap.Extra (preWrap_)
-import Chain.Types (AnnotatedBlockchain(..), ChainFocus)
+import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array (null)
@@ -17,6 +17,7 @@ import Data.Lens.Extra (toArrayOf)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap, wrap)
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
@@ -25,7 +26,6 @@ import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
-import Ledger.Crypto (PubKeyHash)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
@@ -40,13 +40,11 @@ import Plutus.SCB.Events.Node (NodeEvent)
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
 import Plutus.SCB.Types (ContractExe(..))
-import Plutus.SCB.Webserver.Types (FullReport(..))
+import Plutus.SCB.Webserver.Types (ChainReport(..), ContractReport(..), FullReport(..))
 import Prelude (class Show, const, show, ($), (<$>), (<<<), (<>))
 import Schema.Types (FormEvent)
-import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks)
+import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks, _installedContracts, _transactionMap, _utxoIndex)
 import Validation (_argument)
-import Wallet.Emulator.Wallet (Wallet)
-import Wallet.Rollup.Types (AnnotatedTx)
 
 render ::
   forall m slots.
@@ -97,21 +95,21 @@ fullReportPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   FullReport ContractExe ->
   HTML p HAction
-fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, installedContracts, latestContractStatuses, transactionMap, utxoIndex, annotatedBlockchain, walletMap }) =
+fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, contractReport, chainReport }) =
   div_
     [ mainTabBar ChangeView tabs currentView
     , row_
         [ viewContainer currentView ActiveContracts
-            [ contractStatusesPane latestContractStatuses contractSignatures
-            , installedContractsPane installedContracts
+            [ contractStatusesPane contractReport contractSignatures
+            , installedContractsPane (view _installedContracts contractReport)
             ]
         , viewContainer currentView Blockchain
-            [ ChainAction <<< Just <$> annotatedBlockchainPane chainState walletMap annotatedBlockchain ]
+            [ ChainAction <<< Just <$> annotatedBlockchainPane chainState chainReport ]
         , viewContainer currentView EventLog
             [ row_
                 [ col12_ [ eventsPane events ]
-                , col6_ [ transactionPane transactionMap ]
-                , col6_ [ utxoIndexPane utxoIndex ]
+                , col6_ [ transactionPane (view _transactionMap chainReport) ]
+                , col6_ [ utxoIndexPane (view _utxoIndex chainReport) ]
                 ]
             ]
         ]
@@ -142,10 +140,10 @@ installedContractPane installedContract = li_ [ text $ view _contractPath instal
 
 contractStatusesPane ::
   forall p t.
-  Array (ContractInstanceState t) ->
+  ContractReport t ->
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   HTML p HAction
-contractStatusesPane latestContractStatuses contractSignatures =
+contractStatusesPane (ContractReport { latestContractStatuses }) contractSignatures =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
@@ -221,14 +219,14 @@ actionCard contractInstanceId wrapper endpointForm =
         ]
     ]
 
-annotatedBlockchainPane :: forall p. Chain.State -> JsonMap PubKeyHash Wallet -> Array (Array AnnotatedTx) -> HTML p ChainFocus
-annotatedBlockchainPane chainState (JsonMap walletMap) chain =
+annotatedBlockchainPane :: forall t p. Chain.State -> ChainReport t -> HTML p ChainFocus
+annotatedBlockchainPane chainState (ChainReport { walletMap, annotatedBlockchain }) =
   card_
     [ cardHeader_
         [ h2_ [ text "Blockchain" ]
         ]
     , cardBody_
-        [ chainView chainState walletMap $ AnnotatedBlockchain chain
+        [ chainView chainState (unwrap walletMap) (wrap annotatedBlockchain)
         ]
     ]
 
