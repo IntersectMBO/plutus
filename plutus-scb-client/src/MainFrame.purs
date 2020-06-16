@@ -36,7 +36,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (FunctionSchema, _FunctionSchema)
-import Plutus.SCB.Webserver (SPParams_(..), getContractByContractinstanceidSchema, getFullreport, putContractByContractinstanceidEndpointByEndpointname)
+import Plutus.SCB.Webserver (SPParams_(..), getContractByContractinstanceidSchema, getFullreport, postContractActivate, postContractByContractinstanceidEndpointByEndpointname)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..))
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
@@ -94,6 +94,10 @@ handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = assign _currentView view
 
+handleAction (ActivateContract contract) = do
+  result <- runAjax $ postContractActivate contract
+  handleAction LoadFullReport
+
 handleAction LoadFullReport = do
   assign _fullReport Loading
   reportResult <- runAjax getFullreport
@@ -144,7 +148,7 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 
                 endpoint = view _getEndpointDescription endpointDescription
               in
-                putContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
+                postContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
         modifying (_contractSignatures <<< at contractInstanceId) (Just <<< upsertEndpointForm result)
         handleAction LoadFullReport
 

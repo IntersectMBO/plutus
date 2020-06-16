@@ -1,14 +1,15 @@
 module View (render) where
 
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, btn, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col12_, col4_, col6_, col8_, container_, nbsp, row_)
+import Bootstrap (badge, badgePrimary, btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col12_, col2_, col4_, col6_, col8_, container_, nbsp, row_, tableBordered)
+import Bootstrap as Bootstrap
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array (null)
 import Data.Array as Array
-import Data.Foldable.Extra (countConsecutive)
+import Data.Foldable.Extra (countConsecutive, interleave)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Json.JsonMap (JsonMap(..))
 import Data.Json.JsonUUID (_JsonUUID)
@@ -21,9 +22,9 @@ import Data.Newtype (unwrap, wrap)
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, button, code_, div, div_, h1, h2_, h3_, li_, span, span_, table_, tbody_, td_, text, th_, thead_, tr_, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, b_, br_, button, code_, div, div_, h1, h2_, h3_, span, span_, table, tbody_, td_, text, th, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
-import Halogen.HTML.Properties (class_, classes)
+import Halogen.HTML.Properties (class_, classes, colSpan)
 import Icons (Icon(..), icon)
 import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
 import Ledger.Index (UtxoIndex)
@@ -35,7 +36,7 @@ import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
 import Plutus.SCB.Events (ChainEvent(..))
-import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..), ContractSCBRequest)
+import Plutus.SCB.Events.Contract (ContractEvent, ContractInstanceId, ContractInstanceState(..))
 import Plutus.SCB.Events.Node (NodeEvent)
 import Plutus.SCB.Events.User (UserEvent(..))
 import Plutus.SCB.Events.Wallet (WalletEvent)
@@ -55,14 +56,19 @@ render (State { currentView, chainState, fullReport, contractSignatures }) =
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
-        , div_
-            $ case fullReport of
-                Success report -> [ fullReportPane currentView chainState contractSignatures report ]
-                Failure error -> [ ajaxErrorPane error ]
-                Loading -> [ icon Spinner ]
-                NotAsked -> [ icon Spinner ]
+        , mainTabBar ChangeView tabs currentView
+        , div_ (webDataPane (fullReportPane currentView chainState contractSignatures) fullReport)
         ]
     ]
+
+webDataPane :: forall a p i. (a -> HTML p i) -> WebData a -> Array (HTML p i)
+webDataPane successView (Success report) = [ successView report ]
+
+webDataPane _ (Failure error) = [ ajaxErrorPane error ]
+
+webDataPane _ (Loading) = [ icon Spinner ]
+
+webDataPane _ (NotAsked) = [ icon Spinner ]
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =
@@ -96,21 +102,23 @@ fullReportPane ::
   FullReport ContractExe ->
   HTML p HAction
 fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, contractReport, chainReport }) =
-  div_
-    [ mainTabBar ChangeView tabs currentView
-    , row_
-        [ viewContainer currentView ActiveContracts
-            [ contractStatusesPane contractReport contractSignatures
-            , installedContractsPane (view _installedContracts contractReport)
+  row_
+    [ viewContainer currentView ActiveContracts
+        [ row_
+            [ col12_ [ contractStatusesPane contractSignatures contractReport ]
+            , col12_ [ installedContractsPane (view _installedContracts contractReport) ]
             ]
-        , viewContainer currentView Blockchain
-            [ ChainAction <<< Just <$> annotatedBlockchainPane chainState chainReport ]
-        , viewContainer currentView EventLog
-            [ row_
-                [ col12_ [ eventsPane events ]
-                , col6_ [ transactionPane (view _transactionMap chainReport) ]
-                , col6_ [ utxoIndexPane (view _utxoIndex chainReport) ]
-                ]
+        ]
+    , viewContainer currentView Blockchain
+        [ row_
+            [ col12_ [ ChainAction <<< Just <$> annotatedBlockchainPane chainState chainReport ]
+            ]
+        ]
+    , viewContainer currentView EventLog
+        [ row_
+            [ col12_ [ eventsPane events ]
+            , col6_ [ transactionPane (view _transactionMap chainReport) ]
+            , col6_ [ utxoIndexPane (view _utxoIndex chainReport) ]
             ]
         ]
     ]
@@ -128,7 +136,7 @@ installedContractsPane installedContracts =
         [ if null installedContracts then
             text "You do not have any contracts installed."
           else
-            ul_ (installedContractPane <$> installedContracts)
+            div_ (interleave br_ (installedContractPane <$> installedContracts))
         ]
     ]
 
@@ -136,14 +144,24 @@ installedContractPane ::
   forall p.
   ContractExe ->
   HTML p HAction
-installedContractPane installedContract = li_ [ text $ view _contractPath installedContract ]
+installedContractPane installedContract =
+  row_
+    [ col2_
+        [ button
+            [ classes [ btn, btnSmall, btnPrimary, btnBlock ]
+            , onClick (const $ Just $ ActivateContract installedContract)
+            ]
+            [ text "Activate" ]
+        ]
+    , col10_ [ text $ view _contractPath installedContract ]
+    ]
 
 contractStatusesPane ::
   forall p t.
-  ContractReport t ->
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
+  ContractReport t ->
   HTML p HAction
-contractStatusesPane (ContractReport { latestContractStatuses }) contractSignatures =
+contractStatusesPane contractSignatures (ContractReport { latestContractStatuses }) =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
@@ -162,40 +180,44 @@ contractStatusPane ::
   ContractInstanceState t -> HTML p HAction
 contractStatusPane contractSignatures contractInstance =
   div_
-    [ h3_ [ text $ view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance ]
+    [ contractRequestView contractInstance
     , row_
-        [ col8_
-            [ div_ [ contractRequestView $ view (_csCurrentState <<< _hooks) contractInstance ]
-            ]
-        , col4_
-            $ case Map.lookup contractInstanceId contractSignatures of
-                Just (Success endpointForms) ->
-                  mapWithIndex
-                    (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
-                    endpointForms
-                Just (Failure err) -> [ ajaxErrorPane err ]
-                Just Loading -> [ icon Spinner ]
-                Just NotAsked -> []
-                Nothing -> []
-        ]
+        ( case Map.lookup contractInstanceId contractSignatures of
+            Just (Success endpointForms) ->
+              mapWithIndex
+                (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
+                endpointForms
+            Just (Failure err) -> [ ajaxErrorPane err ]
+            Just Loading -> [ icon Spinner ]
+            Just NotAsked -> []
+            Nothing -> []
+        )
     ]
   where
   contractInstanceId :: ContractInstanceId
   contractInstanceId = view _csContract contractInstance
 
-contractRequestView :: forall p i. Array (Request ContractSCBRequest) -> HTML p i
-contractRequestView requests =
-  table_
+contractRequestView :: forall t p i. ContractInstanceState t -> HTML p i
+contractRequestView contractInstance =
+  table [ classes [ Bootstrap.table, tableBordered ] ]
     [ thead_
         [ tr_
+            [ th [ colSpan 3 ]
+                [ h3_ [ text contractTitle ] ]
+            ]
+        , tr_
             [ th_ [ text "Iteration" ]
-            , th_ [ text "Request ID" ]
+            , th_ [ text "Request", nbsp, text "ID" ]
             , th_ [ text "Request" ]
             ]
         ]
     , tbody_ (requestRow <$> requests)
     ]
   where
+  contractTitle = view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance
+
+  requests = view (_csCurrentState <<< _hooks) contractInstance
+
   requestRow (Request { itID: IterationID itID, rqID: RequestID rqID, rqRequest }) =
     tr_
       [ td_ [ text $ show itID ]
@@ -205,7 +227,7 @@ contractRequestView requests =
 
 actionCard :: forall p. ContractInstanceId -> (FormEvent -> HAction) -> EndpointForm -> HTML p HAction
 actionCard contractInstanceId wrapper endpointForm =
-  div_
+  col4_
     [ card_
         [ cardHeader_ [ h2_ [ text $ view (_schema <<< _FunctionSchema <<< _endpointDescription <<< _getEndpointDescription) endpointForm ] ]
         , cardBody_ [ actionArgumentForm wrapper (view _argument endpointForm) ]

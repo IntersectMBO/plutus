@@ -41,6 +41,7 @@ data HAction
   = Init
   | ChangeView View
   | LoadFullReport
+  | ActivateContract ContractExe
   | ChainAction (Maybe ChainFocus)
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
   | InvokeContractEndpoint ContractInstanceId EndpointForm

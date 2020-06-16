@@ -31,6 +31,7 @@ import qualified Data.Map                                        as Map
 import           Data.Proxy                                      (Proxy (Proxy))
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
+import           Data.Text.Prettyprint.Doc                       (Pretty)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -40,9 +41,11 @@ import qualified Network.Wai.Handler.Warp                        as Warp
 import           Plutus.SCB.App                                  (App, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
+import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Effects.Contract                     (ContractEffect, exportSchema)
 import           Plutus.SCB.Effects.EventLog                     (EventLogEffect)
+import           Plutus.SCB.Effects.UUID                         (UUIDEffect)
 import           Plutus.SCB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
                                                                   ContractInstanceState (ContractInstanceState),
                                                                   csContractDefinition)
@@ -128,6 +131,21 @@ contractSchema contractId = do
         getContractInstanceState @t contractId
     ContractSignatureResponse <$> exportSchema csContractDefinition
 
+activateContract ::
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member (Error SCBError) effs
+       , Member (ContractEffect t) effs
+       , Member UUIDEffect effs
+       , Member Log effs
+       , Ord t
+       , Show t
+       , Pretty t
+       )
+    => t
+    -> Eff effs ContractInstanceId
+activateContract = Core.activateContract
+
 getContractInstanceState ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
@@ -173,22 +191,25 @@ handler ::
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
+       , Member UUIDEffect effs
        , Member Log effs
        , Member (Error SCBError) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
-             :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                           :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe))))
+             :<|> ((ContractExe -> Eff effs ContractInstanceId)
+                   :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
+                                 :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe)))))
 handler =
     healthcheck :<|> getFullReport :<|>
-    (\rawInstanceId ->
-         (parseContractId rawInstanceId >>= contractSchema) :<|>
-         (\rawEndpointDescription payload ->
-              parseContractId rawInstanceId >>=
-              invokeEndpoint
-                  (EndpointDescription rawEndpointDescription)
-                  payload))
+    (activateContract :<|>
+     (\rawInstanceId ->
+          (parseContractId rawInstanceId >>= contractSchema) :<|>
+          (\rawEndpointDescription payload ->
+               parseContractId rawInstanceId >>=
+               invokeEndpoint
+                   (EndpointDescription rawEndpointDescription)
+                   payload)))
 
 app :: Config -> Application
 app config = serve api $ hoistServer api (asHandler config) handler
