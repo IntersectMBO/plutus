@@ -144,7 +144,7 @@ Term : Var                                          { $1 }
                                                     { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $3)) []  (toList $4)}
                                                     {- (builtin b e1 ... en) -}
                                                     -- Note that nullary builtins are currently not allowed, hence 'some'
-     | openParen builtin openBrace builtinid many(Type) closeBrace some(Term) closeParen  
+     | openParen builtin openBrace builtinid many(Type) closeBrace some(Term) closeParen
                                                     { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $4)) $5 (toList $7)}
                                                     {- (builtin {b t1 ... tm} e1 ... en) -}
      | openParen unwrap Term closeParen             { Unwrap $2 $3 }
