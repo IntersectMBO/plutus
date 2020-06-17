@@ -267,10 +267,7 @@ computeCek ctx t@(ApplyBuiltin _ bn tys args) =
     -- the use of FrameApplyBuiltin.  Maybe we should add a new
     -- constructor to `ExBudgetCategory` for that.
     case args of
-        [] -> do
-            spendBudget BApply t (ExBudget 1 1)
-            varEnv <- getVarEnv
-            applyBuiltin varEnv ctx bn tys []
+        [] -> throwingWithCause _ConstAppError NullaryConstAppError $ Just (void t)
         arg:args' -> do
             spendBudget BApply t (ExBudget 1 1)
             varEnv <- getVarEnv

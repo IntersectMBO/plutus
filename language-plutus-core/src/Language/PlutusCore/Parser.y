@@ -140,11 +140,12 @@ Term : Var                                          { $1 }
      | openBracket Term some(Term) closeBracket     { app $1 $2 $3 }
      | openParen con Constant closeParen            { Constant $2 $3 }
      | openParen iwrap Type Type Term closeParen    { IWrap $2 $3 $4 $5 }  
-     | openParen builtin builtinid many(Term) closeParen
-                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $3)) []  $4}
-                                                    {- (builtin b e1 ... en) -}      
-     | openParen builtin openBrace builtinid many(Type) closeBrace many(Term) closeParen  
-                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $4)) $5 $7}
+     | openParen builtin builtinid some(Term) closeParen
+                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $3)) []  (toList $4)}
+                                                    {- (builtin b e1 ... en) -}
+                                                    -- Note that nullary builtins are currently not allowed, hence 'some'
+     | openParen builtin openBrace builtinid many(Type) closeBrace some(Term) closeParen  
+                                                    { ApplyBuiltin $2 (mkBuiltinName (tkBuiltinId $4)) $5 (toList $7)}
                                                     {- (builtin {b t1 ... tm} e1 ... en) -}
      | openParen unwrap Term closeParen             { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen          { Error $2 $3 }

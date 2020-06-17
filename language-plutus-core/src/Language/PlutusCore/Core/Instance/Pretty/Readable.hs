@@ -54,9 +54,6 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
         bind = binderDoc  config
 
 -- | Pretty-print an application of a builtin to its type and term -- arguments
-{- FIXME: this is just a crude approximation to what it should really be
-   doing.  Also, it should probably go in Language.PlutusCore.Pretty.Readable,
-   but I'm not entirely sure  what's going on there. -}
 builtinApplicationDoc
     :: (PrettyReadableBy configName ty, PrettyReadableBy configName term)
     => PrettyConfigReadable configName -> Doc ann -> [ty] -> [term] -> Doc ann

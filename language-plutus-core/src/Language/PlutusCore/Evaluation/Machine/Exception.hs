@@ -56,6 +56,8 @@ data ConstAppError uni
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | TooFewArgumentsConstAppError
+    | NullaryConstAppError
+      -- ^ We're not allowing zero-argument builtins for the time being
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
     deriving (Show, Eq)
@@ -141,6 +143,7 @@ instance PrettyBy config (Term TyName Name uni ()) => PrettyBy config (ConstAppE
     prettyBy _       TooFewArgumentsConstAppError =
         "A constant applied to too few arguments"
     prettyBy _      (UnliftingConstAppError err) = pretty err
+    prettyBy _      NullaryConstAppError = "Nullary constants are not permitted"
 
 instance (Pretty err, PrettyBy config (Term TyName Name uni ())) =>
             PrettyBy config (MachineError uni err) where

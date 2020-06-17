@@ -294,8 +294,9 @@ iwrapTerm :: Parametric
 iwrapTerm tm = PIR.iWrap <$> reservedWord "iwrap" <*> typ <*> typ <*> tm
 
 applyBuiltinTerm :: Parametric
-applyBuiltinTerm tm = (try $ PIR.applyBuiltin <$> reservedWord "builtin" <*> builtinName <*> pure [] <*> many tm)
---                       <|>   PIR.applyBuiltin <$> reservedWord "builtin" <*> inBraces (builtinName <*> many typ) <*> many tm
+applyBuiltinTerm tm = (try $ PIR.applyBuiltin <$> reservedWord "builtin" <*> builtinName <*> pure [] <*> some tm)
+                       <|>   PIR.applyBuiltin <$> reservedWord "builtin" <*> (lbrace >> builtinName) <*> many typ <*> (rbrace >> some tm)
+                       -- Note 'some tm': nullary builtin applications are currently disallowed.
 
 unwrapTerm :: Parametric
 unwrapTerm tm = PIR.unwrap <$> reservedWord "unwrap" <*> tm
