@@ -186,13 +186,13 @@ lookupVarName varName = do
         Just clos -> pure clos
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
+-- The 'term' argument is just there for the error message if the name's not found.
 lookupDynamicBuiltinName :: Term TyName Name uni () -> DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning uni)
 lookupDynamicBuiltinName term dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
                           err = OtherMachineError $ UnknownDynamicBuiltinName dynName
-        -- 'term' is just here for the error message. Will including it have any effect on efficiency?
         Just mean -> pure mean
 
 -- See Note [Scoping].
