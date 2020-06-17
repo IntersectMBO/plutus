@@ -108,6 +108,7 @@
           "Cardano/Wallet/Types"
           "Control/Monad/Freer/Extra/Log"
           "Control/Monad/Freer/Extra/State"
+          "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
           "Plutus/SCB/MockApp"
