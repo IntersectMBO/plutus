@@ -50,8 +50,14 @@ data Name = Name
 -- those used for terms.
 newtype TyName = TyName { unTyName :: Name }
     deriving (Show, Generic, Lift)
-    deriving newtype (Eq, Ord, NFData, Hashable)
+    deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
 instance Wrapped TyName
+
+instance HasPrettyConfigName config => PrettyBy config Name where
+    prettyBy config (Name txt (Unique uniq))
+        | showsUnique = pretty txt <> "_" <> pretty uniq
+        | otherwise   = pretty txt
+        where PrettyConfigName showsUnique = toPrettyConfigName config
 
 -- | Apply a function to the string representation of a 'Name'.
 mapNameString :: (T.Text -> T.Text) -> Name -> Name
@@ -157,11 +163,3 @@ lookupNameIndex
     :: (HasUnique name unique1, Coercible unique2 Unique)
     => name -> UniqueMap unique2 a -> Maybe a
 lookupNameIndex = lookupUnique . coerce . view unique
-
-instance HasPrettyConfigName config => PrettyBy config Name where
-    prettyBy config (Name txt (Unique uniq))
-        | showsUnique = pretty txt <> "_" <> pretty uniq
-        | otherwise   = pretty txt
-        where PrettyConfigName showsUnique = toPrettyConfigName config
-
-deriving newtype instance HasPrettyConfigName config => PrettyBy config TyName
