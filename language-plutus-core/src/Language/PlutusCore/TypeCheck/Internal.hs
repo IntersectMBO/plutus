@@ -142,16 +142,6 @@ withTyVar name = local . over tceTyVarKinds . insertByName name
 withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni ann a -> TypeCheckM uni ann a
 withVar name = local . over tceVarTypes . insertByName name . pure
 
--- | Look up a 'DynamicBuiltinName' in the 'DynBuiltinNameTypes'
--- environment and return its type components.
-lookupDynamicBuiltinNameM
-    :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
-lookupDynamicBuiltinNameM ann name = do
-    DynamicBuiltinNameTypes dbnts <- asks $ _tccDynamicBuiltinNameTypes . _tceTypeCheckConfig
-    case Map.lookup name dbnts of
-        Nothing -> throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
-        Just ty -> liftDupable ty
-
 lookupDynamicBuiltinTypeComponentsM
     :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (TypeComponents uni)
 lookupDynamicBuiltinTypeComponentsM ann name = do
@@ -362,7 +352,24 @@ substMapping mapping ty = do
           -- then we need a non-normalised type to perform subsequent
           -- subsitutions on.
     ty' <- foldM f (void ty) mapping
+
+{- Roman: I think a better way would be to normalize ty passed to foldM
+ and then instead of unwrapping the result you'll need to unwrap the
+ argument in f, which is better because the result is going to be
+ Normalized, so no additional normalizeTypeM ty' will be required. -}
+
     normalizeTypeM ty'
+
+{- Roman:
+
+substNormalizeTypeM is defined as
+
+substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
+
+and so calling it iteratively is not efficient. Instead, we should
+provide a primitive for binding a map of, well, mappings in
+Normalize.Internal, expose it and use it here.
+-}
 
 -- | Work along the type parameters of a builtin application, building
 -- a mapping from type parameters to the types they're being
@@ -381,6 +388,19 @@ checkBuiltinTypeArgs = check [] where
     check mapping _ _ [] [] = pure mapping
     check _ ann bn _ [] = throwError $ BuiltinTypeErrorE ann (BuiltinUnderInstantiated bn)
     check _ ann bn [] _ = throwError $ BuiltinTypeErrorE ann (BuiltinOverInstantiated  bn)
+
+{- Roman: We'll never need to do anything with mapping apart from feeding it to
+ substMapping, right? In that case I'd construct the substituter
+ directly just not to introduce an indirection. This way it would be
+ also clearer whether we substitute types left to right or right to
+ left (I don't think it's important from the correctness point of
+ view, but it would make it easier to understand the whole thing). -}
+
+{- Roman: We need a note explaining how global uniqueness is
+ preserved. Did you take any special care for handling global
+ uniqueness? It looks correct to me, because you never wrap anything
+ with Normalized explicitly and functions like normalizeType and
+ substNormalizeTypeM ensure that global uniqueness is preserved. -}
 
 -- | Given a mapping from type variables to types, we work our way
 -- along the list of term arguments in an ApplyBuiltin, checking that
@@ -420,6 +440,10 @@ checkBuiltinAppl ann bn typeVars typeArgs argTypes args rtype = do
   checkBuiltinTermArgs mapping ann bn argTypes args
   substMapping mapping rtype
 
+{- Roman: We could remove the mapping argument by discharging the mapping into
+ argTypes via map (substMapping mapping). Then checkBuiltinTermArgs
+ doesn't need to know anything about mappings and can just directly
+ type check arguments, which makes the code less tightly coupled. -}
 
 -- ####################
 -- ## Type inference ##

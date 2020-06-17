@@ -223,7 +223,7 @@ library
         data-default -any,
         data-default-class -any,
         transformers -any
-        
+
 executable language-plutus-core-generate-evaluation-test
     import: lang
     main-is: Main.hs

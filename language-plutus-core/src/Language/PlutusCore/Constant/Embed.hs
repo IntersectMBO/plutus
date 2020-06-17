@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE GADTs         #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
@@ -10,13 +10,15 @@ module Language.PlutusCore.Constant.Embed
 where
 
 import           Language.PlutusCore.Constant.Function
+import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
+import           Language.PlutusCore.Universe
 
-import           Data.Text                             (append, pack)
+import           Data.Text                             (pack)
 
 {- | Since built-in names don't make sense on their own, we produce a
    term which wraps the name in a sequence of abstractions and lambdas
@@ -25,14 +27,11 @@ import           Data.Text                             (append, pack)
 -}
 embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
 embedBuiltinNameInTerm scheme name =
-    let mkVarDecl :: Type TyName uni () -> Quote (VarDecl TyName Name uni ())
-        mkVarDecl ty = do
+    let mkVarDecl :: (Type TyName uni (), Integer) -> Quote (VarDecl TyName Name uni ())
+        mkVarDecl (ty, idx) = do
           u <- freshUnique
-          let argname = Name (append (pack "arg") (pack . show . unUnique $ u)) u
-          -- This makes the unique explicit in the variable name.  If
-          -- you don't do this then `plc example` outputs examples
-          -- where builtins are applied to multiple arguments with the
-          -- same name.
+          let argname = Name (pack $ "arg" ++ show idx) u
+          -- Append an index to the arument name so we don't get "f arg arg arg"
           pure $ VarDecl () argname ty
         mkTyVarDecl :: TyName -> TyVarDecl TyName ()
         mkTyVarDecl tyname = TyVarDecl () tyname (Type ())
@@ -41,18 +40,19 @@ embedBuiltinNameInTerm scheme name =
       -- FIXME: we should really have a proper error here, but that involves running a *lot* of stuff in a monad
       Just (TypeComponents tynames types _) ->
           runQuote $ do
-            varDecls <- mapM mkVarDecl types  -- For each argument type, generate a VarDecl for a variable of that type
+            varDecls <- mapM mkVarDecl (zip types [1..])
+            -- For each argument type, generate a VarDecl for a variable of that type
             let termArgs = map (Var () . varDeclName) varDecls
                 tyArgs = map (TyVar ()) tynames
                 tyVarDecls = map mkTyVarDecl tynames
             pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
 
-embedStaticBuiltinNameInTerm :: TypeScheme uni args res -> StaticBuiltinName -> Term TyName Name uni ()
-embedStaticBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . StaticBuiltinName
 
 embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
-embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedStaticBuiltinNameInTerm sch sbn
+embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedBuiltinNameInTerm  sch $ StaticBuiltinName sbn
 
+embedStaticBuiltinNameInTerm :: (GShow uni, GEq uni, DefaultUni <: uni) => StaticBuiltinName -> Term TyName Name uni ()
+embedStaticBuiltinNameInTerm sbn = withTypedBuiltinName sbn embedTypedBuiltinNameInTerm
 
 embedDynamicBuiltinNameInTerm :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
 embedDynamicBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . DynBuiltinName

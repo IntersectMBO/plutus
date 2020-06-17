@@ -77,9 +77,9 @@ denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy
 
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName
-    :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni StaticBuiltinName res
+    :: (GShow uni, GEq uni, DefaultUni <: uni) => TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni StaticBuiltinName res
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (embedStaticBuiltinNameInTerm scheme) meta scheme
+    Denotation name embedStaticBuiltinNameInTerm meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
@@ -100,7 +100,7 @@ insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
 insertTypedBuiltinName
-    :: GShow uni
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => TypedBuiltinName uni args res
     -> FoldArgs args res
     -> DenotationContext uni

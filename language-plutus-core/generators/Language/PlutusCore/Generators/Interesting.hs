@@ -49,20 +49,28 @@ type TermGen uni a = Gen (TermOf uni a)
 
 -- | Generates application of a builtin
 --
--- > ifThenElse {integer} (lessThanInteger i j) (addInteger i j) (subtractInteger i j)
--- >     == if i < j then i + j else i - j
+-- > [ (builtin { ifThenElse integer -> integer -> integer}
+--       (lessThanInteger i j)
+--       (embedTypedBuiltinNameInTerm addInteger)
+--       (embedTypedBuiltinNameInTerm subtractInteger)
+--     ) 
+--   i j ]
+-- >  == if i < j then i + j else i - j
 genBuiltinApplication :: Generatable uni => TermGen uni Integer
 genBuiltinApplication = do
     let typedInteger = AsKnownType
-        integer = toTypeAst typedInteger
+        int = toTypeAst typedInteger
+        intIntInt = TyFun () int $ TyFun () int int
     TermOf ti i <- genTypedBuiltinDef typedInteger
     TermOf tj j <- genTypedBuiltinDef typedInteger
-    let term =  mkStaticBuiltinApp IfThenElse [integer]
-                     [ mkStaticBuiltinApp LessThanInteger [] [ti, tj]
-                     , mkStaticBuiltinApp AddInteger [] [ti,tj]
-                     , mkStaticBuiltinApp SubtractInteger [] [ti,tj]
-                     ]
+    let fun = mkStaticBuiltinApp IfThenElse [intIntInt]
+                 [ mkStaticBuiltinApp LessThanInteger [] [ti, tj]
+                 , embedTypedBuiltinNameInTerm typedAddInteger
+                 , embedTypedBuiltinNameInTerm typedSubtractInteger
+                 ]
+        term = mkIterApp () fun [ti, tj]
     return . TermOf term $ if i < j then i + j else i - j
+
 
 -- | @\i -> product [1 :: Integer .. i]@ as a PLC term.
 --
@@ -191,32 +199,9 @@ genIfIntegers = do
                 [b, instConst i, instConst j]
     return $ TermOf term value
 
--- Generate two integers and check that the SubtractInteger builtin gives the same result as in Haskell
-genApplySubtract1 :: Generatable uni => TermGen uni Integer
-genApplySubtract1 = do
-    let typedInt = AsKnownType
-    TermOf i iv <- genTermLoose typedInt
-    TermOf j jv <- genTermLoose typedInt
-    let term = ApplyBuiltin () (StaticBuiltinName SubtractInteger) [] [i, j]
-    return . TermOf term $ iv - jv
-
--- Test partial application of (\x y -> SubtractInteger x y) to one argument 
-genApplySubtract2 :: Generatable uni => TermGen uni Integer
-genApplySubtract2 = do
-    let typedInt = AsKnownType
-        int = toTypeAst typedInt
-    TermOf i iv <- genTermLoose typedInt
-    TermOf j jv <- genTermLoose typedInt
-    let term =
-            mkIterApp () (mkIterInst () applyFun [int, int])
-                [ Apply () (embedTypedBuiltinNameInTerm typedSubtractInteger) i
-                , j
-                ]
-    return . TermOf term $ iv - jv
-
 -- Test partial application of (\x y -> SubtractInteger x y) to two arguments
-genApplySubtract3 :: Generatable uni => TermGen uni Integer
-genApplySubtract3 = do
+genApplySubtract0 :: Generatable uni => TermGen uni Integer
+genApplySubtract0 = do
     let typedInt = AsKnownType
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
@@ -229,6 +214,28 @@ genApplySubtract3 = do
                 ]
     return . TermOf term $ iv - jv
 
+-- Test partial application of (\x y -> SubtractInteger x y) to one argument 
+genApplySubtract1 :: Generatable uni => TermGen uni Integer
+genApplySubtract1 = do
+    let typedInt = AsKnownType
+        int = toTypeAst typedInt
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
+    let term =
+            mkIterApp () (mkIterInst () applyFun [int, int])
+                [ Apply () (embedTypedBuiltinNameInTerm typedSubtractInteger) i
+                , j
+                ]
+    return . TermOf term $ iv - jv
+
+-- Generate two integers and check that the SubtractInteger builtin gives the same result as in Haskell
+genApplySubtract2 :: Generatable uni => TermGen uni Integer
+genApplySubtract2 = do
+    let typedInt = AsKnownType
+    TermOf i iv <- genTermLoose typedInt
+    TermOf j jv <- genTermLoose typedInt
+    let term = ApplyBuiltin () (StaticBuiltinName SubtractInteger) [] [i, j]
+    return . TermOf term $ iv - jv
 
 -- | Check that division by zero results in 'Error'.
 genDivideByZero :: Generatable uni => TermGen uni (EvaluationResult Integer)
@@ -262,9 +269,9 @@ fromInterestingTermGens f =
     , f "NatRoundTrip"        genNatRoundtrip
     , f "ListSum"             genListSum
     , f "IfIntegers"          genIfIntegers
+    , f "ApplySubtract0"      genApplySubtract0
     , f "ApplySubtract1"      genApplySubtract1
     , f "ApplySubtract2"      genApplySubtract2
-    , f "ApplySubtract3"      genApplySubtract3
     , f "DivideByZero"        genDivideByZero
     , f "DivideByZeroDrop"    genDivideByZeroDrop
     ]

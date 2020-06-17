@@ -316,21 +316,17 @@ returnCek (FrameUnwrap : ctx) dat = case dat of
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just (void term)
 returnCek (FrameApplyBuiltin initialEnv finalEnv bn tys values terms : ctx) value = do
     -- See Note [Built-in application] for an explanation of what's going on here.
-    case value of
-      Constant{} -> do
-          let values' = value:values
-          case terms of
-            []       -> applyBuiltin finalEnv ctx bn tys (reverse values') -- We've accumulated the argument closures in reverse
-            arg:args -> withVarEnv initialEnv $ computeCek (FrameApplyBuiltin initialEnv finalEnv bn tys values' args : ctx) arg
-      _ -> do
-        argEnv  <- getVarEnv
-        argName <- freshName "arg"
-        let cost = memoryUsage ()
-            values' = Var cost argName : values
-            newFinalEnv = extendVarEnv argName value argEnv finalEnv
-        case terms of
-          []       -> applyBuiltin newFinalEnv ctx bn tys (reverse values') -- We've accumulated the argument closures in reverse
-          arg:args -> withVarEnv initialEnv $ computeCek (FrameApplyBuiltin initialEnv newFinalEnv bn tys values' args : ctx) arg
+    (values', finalEnv') <-
+            case value of
+              Constant{} -> pure (value:values, finalEnv)
+              _ -> do
+                argEnv  <- getVarEnv
+                argName <- freshName "arg"
+                let cost = memoryUsage ()
+                pure (Var cost argName : values, extendVarEnv argName value argEnv finalEnv)
+    case terms of
+         []       -> applyBuiltin finalEnv' ctx bn tys (reverse values') -- We've accumulated the argument closures in reverse
+         arg:args -> withVarEnv initialEnv $ computeCek (FrameApplyBuiltin initialEnv finalEnv' bn tys values' args : ctx) arg
 
 {- Note [Saved mapping example]
 Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
@@ -433,7 +429,9 @@ applyBuiltin :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywh
                  -> [Value TyName Name uni ExMemory]
                  -> CekM uni (Term TyName Name uni ())
 applyBuiltin finalEnv ctx bn tys args =
-    -- If there are too many/few types this should be caught by the typechecker.
+    -- If there are too many/few types this will be caught by the
+    -- builtin application machinery (and also the typechecker, if we
+    -- run it).
     let term = ApplyBuiltin () bn (fmap void tys) (fmap void args) -- For error messages
     in do
       params <- builtinCostParams

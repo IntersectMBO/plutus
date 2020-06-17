@@ -80,7 +80,7 @@ data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
 
    (possibly K and/or N are 0) and converts it into
 
-      TypeComoponents [a1,...,aK] [ty1,...,tyK] resultTy
+      TypeComponents [a1,...,aK] [ty1,...,tyK] resultTy
 
    It actually returns a Maybe, failing if the type scheme is of the
    wrong form (for instance, with a `forall` in the middle).  This can
