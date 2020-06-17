@@ -20,7 +20,7 @@ import qualified Data.Map                                   as Map
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
 import           GHC.Generics                               (Generic)
-import           Ledger                                     (Address, Slot, TxId, Value, txId)
+import           Ledger                                     (Address, Slot, Value, txId)
 import           Ledger.AddressMap                          (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
@@ -43,64 +43,42 @@ type HasWatchAddress s =
 type WatchAddress = AddressSymbol .== (AddressChangeResponse, AddressChangeRequest)
 
 -- | Information about transactions that spend or produce an output at
---   an address. The transactions are returned in the order they appear
---   in the ledger (oldest first).
+--   an address in a slot.
 data AddressChangeResponse =
     AddressChangeResponse
-        { acrAddress :: Address
-        , acrSlot    :: Slot
-        , acrTx      :: Tx
+        { acrAddress :: Address -- ^ The address
+        , acrSlot    :: Slot -- ^ The slot
+        , acrTxns    :: [Tx] -- ^ Transactions that were validated in the slot and spent or produced at least one output at the address.
         }
         deriving stock (Eq, Generic, Show)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty AddressChangeResponse where
-    pretty AddressChangeResponse{acrAddress, acrTx, acrSlot} =
+    pretty AddressChangeResponse{acrAddress, acrTxns, acrSlot} =
         hang 2 $ vsep
             [ "Address:" <+> pretty acrAddress
             , "Slot:" <+> pretty acrSlot
-            , "TxId:" <+> pretty (txId acrTx)
+            , "Tx IDs:" <+> pretty (txId <$> acrTxns)
             ]
 
+-- | Request for information about transactions that spend or produce
+--   outputs at a specific address in a slot.
 data AddressChangeRequest =
     AddressChangeRequest
-        { acreqSlot    :: Slot
-        , acreqAddress :: Address
-        , acreqTxId    :: Maybe TxId
+        { acreqSlot    :: Slot -- ^ The slot
+        , acreqAddress :: Address -- ^ The address
         }
         deriving stock (Eq, Generic, Show, Ord)
         deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty AddressChangeRequest where
-    pretty AddressChangeRequest{acreqSlot, acreqAddress, acreqTxId} =
+    pretty AddressChangeRequest{acreqSlot, acreqAddress} =
         hang 2 $ vsep
             [ "Slot:" <+> pretty acreqSlot
             , "Address:" <+> pretty acreqAddress
-            , "TxId:" <+> pretty acreqTxId
             ]
 
-{-| Wait for the next transaction that changes an address. The meaning of
-    "next transaction" for an 'AddressChangeRequest' depends on the value
-    of 'acreqTxId'.
-
-    1. If 'acreqTxId' is 'Just txid' then @b@ is the next transaction if
-    @b@ spends or produces an output at the given address and @b@ is the first
-    transaction to be added to the ledger in or after 'acreqSlot' and
-    after 'txid'.
-    2. If 'acreqTxId' is 'Nothing' then @b@ is the next transaction if
-    b spends or produces an output at the given address and b is the first
-    transaction to be added to the ledger in or after 'acreqSlot'.
-
-    Some implications of this definition are:
-
-    * If the transaction 'txid' is never added to the ledger then (1) will
-    never return
-    * If the slot 'acreqSlot' contains more than one transaction at the address
-    then only (1) will ever return transactions other than the first one.
-
-    To get all transactions that modify the address in a slot, it is prudent to
-    call 'addressChangeRequest' repeatedly, using the ID of the last
-    transaction that was returned
+{-| Get the transactions that modified an address in a specific slot.
 -}
 addressChangeRequest ::
     forall s e.
@@ -116,18 +94,24 @@ addressChangeRequest rq =
                 | otherwise = Nothing
     in requestMaybe @AddressSymbol @_ @_ @s rq check
 
--- | Wait for the next transaction that changes an address.
-nextTransactionAt ::
+-- | Call 'addresssChangeRequest' for the address in each slot, until at least one
+--   transaction is returned that modifies the address.
+nextTransactionsAt ::
     forall s e.
     ( HasWatchAddress s
     , AsContractError e
     , HasAwaitSlot s
     )
     => Address
-    -> Contract s e Tx
-nextTransactionAt addr = do
-    sl <- currentSlot
-    acrTx <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqTxId=Nothing, acreqAddress=addr}
+    -> Contract s e [Tx]
+nextTransactionsAt addr = do
+    initial <- currentSlot
+    let go sl = do
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            if null txns
+                then go (succ sl)
+                else pure txns
+    go initial
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
@@ -161,7 +145,7 @@ fundsAtAddressCondition condition addr = loopM go () where
         let presentVal = foldMap (txOutValue . txOutTxOut) cur
         if condition presentVal
             then pure (Right cur)
-            else nextTransactionAt @s addr >> pure (Left ())
+            else nextTransactionsAt @s addr >> pure (Left ())
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
@@ -192,7 +176,7 @@ events
     -> Tx
     -> Map Address (Event s)
 events sl utxo tx =
-    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlot=sl,acrTx=tx}
+    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlot=sl,acrTxns=[tx]}
     in Map.fromSet
         (Event . IsJust (Label @AddressSymbol) . mkEvent)
         (AM.addressesTouched utxo tx)
