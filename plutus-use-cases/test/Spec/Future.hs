@@ -115,10 +115,9 @@ joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSc
 joinFuture = do
     callEndpoint @"join-future" (Wallet 2) (accounts, setup)
     handleBlockchainEvents (Wallet 2)
-    notifySlot w1
-    handleUtxoQueries (Wallet 1)
     handleBlockchainEvents (Wallet 1)
     handleBlockchainEvents (Wallet 2)
+    handleBlockchainEvents (Wallet 1)
 
 -- | Calls the "settle-future" endpoint for wallet 2 and processes
 --   all resulting transactions.

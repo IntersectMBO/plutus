@@ -92,7 +92,6 @@ retrieveFundsTrace = do
     handleBlockchainEvents wallet2
     addBlocks 10
     callEndpoint @"retrieve funds" wallet1 (Ada.lovelaceValueOf 10)
-    notifySlot wallet1
     addBlocks 1
     handleBlockchainEvents wallet1
 

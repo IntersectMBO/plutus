@@ -65,12 +65,12 @@ event
     -> Event s
 event = Event . IsJust #slot
 
-nextSlot
+request
     :: forall s.
     ( HasType SlotSymbol WaitingForSlot (Output s))
     => Handlers s
     -> Maybe Slot
-nextSlot (Handlers r) = unWaitingForSlot <$> trial' r (Label @SlotSymbol)
+request (Handlers r) = unWaitingForSlot <$> trial' r (Label @SlotSymbol)
 
 -- | Run a contract until the given slot has been reached.
 until
@@ -133,3 +133,12 @@ collectUntil
   -> Slot
   -> Contract s e b
 collectUntil f b con s = foldMaybe f b (until @s con s)
+
+-- | The current slot number
+currentSlot
+  :: forall s e.
+  ( HasAwaitSlot s
+  , AsContractError e
+  )
+  => Contract s e Slot
+currentSlot = awaitSlot 0

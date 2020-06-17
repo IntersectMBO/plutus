@@ -44,11 +44,11 @@ import           Language.Plutus.Contract.Constraints
 import qualified Language.PlutusTx                                 as PlutusTx
 
 import qualified Language.Plutus.Contract.Typed.Tx                 as TypedTx
-import           Ledger                                            (Address, PubKeyHash, TxOutTx (..), ValidatorHash)
+import           Ledger                                            (Address, PubKeyHash, Tx, TxOutTx (..),
+                                                                    ValidatorHash)
 import qualified Ledger                                            as Ledger
 import qualified Ledger.Constraints                                as Constraints
 import qualified Ledger.Scripts
-import           Ledger.TxId                                       (TxId)
 import           Ledger.Typed.Scripts                              (ScriptType (..))
 import qualified Ledger.Typed.Scripts                              as Scripts
 import qualified Ledger.Validation                                 as V
@@ -155,7 +155,7 @@ pay
        )
     => Scripts.ScriptInstance TokenAccount
     -> Value
-    -> Contract s e TxId
+    -> Contract s e Tx
 pay inst = mapError (review _TAContractError) . submitTxConstraints inst . payTx
 
 -- | Create a transaction that spends all outputs belonging to the 'Account'.
@@ -188,7 +188,7 @@ redeem
   -- ^ Where the token should go after the transaction
   -> Account
   -- ^ The token account
-  -> Contract s e TxId
+  -> Contract s e Tx
 redeem pk account = mapError (review _TokenAccountError) $ redeemTx account pk >>= submitUnbalancedTx
 
 -- | @balance account@ returns the value of all unspent outputs that can be
@@ -208,8 +208,8 @@ balance account = mapError (review _TAContractError) $ do
 
 -- | Create a new token and return its 'Account' information.
 newAccount
-    :: ( HasWatchAddress s
-       , HasWriteTx s
+    :: ( HasWriteTx s
+       , HasTxConfirmation s
        , AsTokenAccountError e
        )
     => TokenName

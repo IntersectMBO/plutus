@@ -24,7 +24,8 @@ import           Data.Text                                       (Text)
 import qualified Data.Text                                       as Text
 import qualified Data.Text.Encoding                              as Text
 import           Data.Text.Prettyprint.Doc                       (Pretty)
-import           Language.Plutus.Contract                        (Contract, ContractRow, HasBlockchainActions)
+import           Language.Plutus.Contract                        (Contract, ContractRow, HasAwaitSlot,
+                                                                  HasBlockchainActions)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription, getEndpointDescription)
 import           Language.Plutus.Contract.Schema                 (Event, Input, Output)
 import           Language.Plutus.Contract.Test                   (renderTraceContext)
@@ -188,6 +189,7 @@ toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
 
 expressionToTrace ::
        ( ContractRow s
+       , HasAwaitSlot s
        , MonadEmulator (TraceError Text) m
        , Forall (Input s) FromJSON
        , Forall (Output s) Unconstrained1

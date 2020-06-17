@@ -148,8 +148,8 @@ instance AsPubKeyError CurrencyError where
 --   If @k == 0@ then no value is forged.
 forgeContract
     :: forall s e.
-    ( HasWatchAddress s
-    , HasWriteTx s
+    ( HasWriteTx s
+    , HasTxConfirmation s
     , AsCurrencyError e
     )
     => PubKeyHash
