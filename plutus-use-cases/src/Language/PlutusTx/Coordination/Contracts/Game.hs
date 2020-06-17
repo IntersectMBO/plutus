@@ -54,7 +54,7 @@ import qualified Ledger.Constraints as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import Ledger
     ( Address
-    , PendingTx
+    , ValidatorCtx
     , Validator
     , Value
     )
@@ -79,8 +79,8 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
--- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
-validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+-- | The validation function (DataValue -> RedeemerValue -> ValidatorCtx -> Bool)
+validateGuess :: HashedString -> ClearString -> ValidatorCtx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.

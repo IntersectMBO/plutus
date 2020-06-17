@@ -47,7 +47,7 @@ import qualified Ledger.Interval                as Interval
 import qualified Ledger.Tx                      as Tx
 import qualified Ledger.Typed.Scripts           as Scripts
 import           Ledger.Typed.Scripts           (ScriptInstance)
-import           Ledger.Validation              (PendingTx, PendingTx' (..))
+import           Ledger.Validation              (ValidatorCtx (..), TxInfo (..))
 import           Ledger.Value                   (Value, lt, geq)
 import Ledger.Constraints (TxConstraints)
 import qualified Ledger.Constraints as Constraints
@@ -172,7 +172,7 @@ PlutusTx.makeLift ''Action
 --   the target address is also used as a change address for the spending
 --   transaction, and allowing the target to be exceed prevents outsiders from
 --   poisoning the contract by adding arbitrary outputs to the script address.
-meetsTarget :: PendingTx -> EscrowTarget DatumHash -> Bool
+meetsTarget :: TxInfo -> EscrowTarget DatumHash -> Bool
 meetsTarget ptx = \case
     PubKeyTarget pkh vl ->
         valuePaidTo ptx pkh `geq` vl
@@ -184,15 +184,15 @@ meetsTarget ptx = \case
             _ -> False
 
 {-# INLINABLE validate #-}
-validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> PendingTx -> Bool
-validate EscrowParams{escrowDeadline, escrowTargets} contributor action ptx@PendingTx{pendingTxValidRange} =
+validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ValidatorCtx -> Bool
+validate EscrowParams{escrowDeadline, escrowTargets} contributor action ValidatorCtx{valCtxTxInfo} =
     case action of
         Redeem ->
-            traceIfFalseH "escrowDeadline-after" (escrowDeadline `after` pendingTxValidRange)
-            && traceIfFalseH "meetsTarget" (all (meetsTarget ptx) escrowTargets)
+            traceIfFalseH "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange valCtxTxInfo)
+            && traceIfFalseH "meetsTarget" (all (meetsTarget valCtxTxInfo) escrowTargets)
         Refund ->
-            traceIfFalseH "escrowDeadline-before" (escrowDeadline `before` pendingTxValidRange)
-            && traceIfFalseH "txSignedBy" (ptx `txSignedBy` contributor)
+            traceIfFalseH "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange valCtxTxInfo)
+            && traceIfFalseH "txSignedBy" (valCtxTxInfo `txSignedBy` contributor)
 
 scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where
@@ -262,7 +262,7 @@ redeemEp
     )
     => EscrowParams Datum
     -> Contract s e RedeemSuccess
-redeemEp escrow = 
+redeemEp escrow =
     mapError (review _EscrowError) $
     endpoint @"redeem-escrow" >> redeem (scriptInstance escrow) escrow
 

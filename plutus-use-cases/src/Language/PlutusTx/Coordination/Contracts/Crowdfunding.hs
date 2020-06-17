@@ -143,23 +143,23 @@ scriptInstance cmp = Scripts.validator @Crowdfunding
         wrap = Scripts.wrapValidator @PubKeyHash @CampaignAction
 
 {-# INLINABLE validRefund #-}
-validRefund :: Campaign -> PubKeyHash -> PendingTx -> Bool
-validRefund campaign contributor ptx =
+validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
+validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
-    Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
+    Interval.contains (refundRange campaign) (txInfoValidRange txinfo)
     -- Check that the transaction is signed by the contributor
-    && (ptx `V.txSignedBy` contributor)
+    && (txinfo `V.txSignedBy` contributor)
 
 {-# INLINABLE validCollection #-}
-validCollection :: Campaign -> PendingTx -> Bool
-validCollection campaign p =
+validCollection :: Campaign -> TxInfo -> Bool
+validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Interval.contains` pendingTxValidRange p)
+    (collectionRange campaign `Interval.contains` txInfoValidRange txinfo)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
-    && (valueSpent p `Value.geq` campaignTarget campaign)
+    && (valueSpent txinfo `Value.geq` campaignTarget campaign)
     -- Check that the transaction is signed by the campaign owner
-    && (p `V.txSignedBy` campaignOwner campaign)
+    && (txinfo `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
 -- | The validator script is of type 'CrowdfundingValidator', and is
@@ -169,12 +169,12 @@ validCollection campaign p =
 -- and different campaigns have different addresses. The Campaign{..} syntax
 -- means that all fields of the 'Campaign' value are in scope
 -- (for example 'campaignDeadline' in l. 70).
-mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> PendingTx -> Bool
+mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ValidatorCtx -> Bool
 mkValidator c con act p = case act of
     -- the "refund" branch
-    Refund -> validRefund c con p
+    Refund -> validRefund c con (valCtxTxInfo p)
     -- the "collection" branch
-    Collect -> validCollection c p
+    Collect -> validCollection c (valCtxTxInfo p)
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.

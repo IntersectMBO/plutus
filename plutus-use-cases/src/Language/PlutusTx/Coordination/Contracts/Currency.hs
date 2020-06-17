@@ -81,13 +81,13 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: Currency -> V.PendingTxMPS -> Bool
-validate c@(Currency (refHash, refIdx) _) p =
+validate :: Currency -> V.PolicyCtx -> Bool
+validate c@(Currency (refHash, refIdx) _) ctx@V.PolicyCtx{V.policyCtxTxInfo=txinfo} =
     let
         -- see note [Obtaining the currency symbol]
-        ownSymbol = V.ownCurrencySymbol p
+        ownSymbol = V.ownCurrencySymbol ctx
 
-        forged = V.pendingTxForge p
+        forged = V.txInfoForge txinfo
         expected = currencyValue ownSymbol c
 
         -- True if the pending transaction forges the amount of
@@ -99,7 +99,7 @@ validate c@(Currency (refHash, refIdx) _) p =
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
-            let v = V.spendsOutput p refHash refIdx
+            let v = V.spendsOutput txinfo refHash refIdx
             in  traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
     in forgeOK && txOutputSpent
@@ -119,7 +119,7 @@ for example in 'forgedValue'.
 Inside the validator script (on-chain) we can't use 'Ledger.scriptAddress',
 because at that point we don't know the hash of the script yet. That
 is why we use 'V.ownCurrencySymbol', which obtains the hash from the
-'PendingTx' value.
+'PolicyCtx' value.
 
 -}
 
