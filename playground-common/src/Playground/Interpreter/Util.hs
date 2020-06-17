@@ -32,8 +32,7 @@ import           Language.Plutus.Contract.Test                   (renderTraceCon
 import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceState,
                                                                   TraceError (TContractError), addBlocks,
                                                                   addBlocksUntil, addNamedEvent, handleBlockchainEvents,
-                                                                  notifyInterestingAddresses, notifySlot, payToWallet,
-                                                                  runTraceWithDistribution)
+                                                                  payToWallet, runTraceWithDistribution)
 import           Ledger                                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash,
                                                                   txOutTxOut)
 import           Ledger.AddressMap                               (fundsAt)
