@@ -35,7 +35,20 @@ Code to open and the extension to be installed.
 
 To try out the DevContainer with the plutus-uses-cases:
 
-* Press F1 to bring up the Command Palette.
+* Download the hkm/ghcide branch of plutus:
+    git clone https://github.com/input-output-hk/plutus.git
+    cd plutus
+    git checkout hkm/ghcide
+* Add a plutus/plutus-use-cases/hie.yaml file containg:
+  ```
+  cradle:
+    cabal:
+    - path: ./src
+      component: "lib:plutus-use-cases"
+    - path: ./test
+      component: "plutus-use-cases:plutus-use-cases-test"
+  ```
+* In Visual Studion Code press F1 to bring up the Command Palette.
 * Select the `Remote-Containers: Open Folder in Container...` command.
 * Select the plutus-use-cases directory.
 * At this point Visual Studio Code will downlaod and build the DevContainer
