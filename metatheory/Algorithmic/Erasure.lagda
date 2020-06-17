@@ -27,7 +27,7 @@ open import Data.Nat
 open import Data.Nat.Properties
 open import Data.Fin using (Fin;zero;suc)
 open import Data.List using (List;length;[];_∷_)
-open import Data.Vec
+open import Data.Vec hiding (length)
 open import Data.Product renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality
 \end{code}

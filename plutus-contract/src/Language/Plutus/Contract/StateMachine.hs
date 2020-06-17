@@ -91,9 +91,13 @@ data SMContractError s i =
     InvalidTransition s i
     | NonZeroValueAllocatedInFinalState
     | ChooserError Text
+    | SMCContractError ContractError
     deriving (Show)
 
 makeClassyPrisms ''SMContractError
+
+instance AsContractError (SMContractError s i) where
+    _ContractError = _SMCContractError
 
 -- | Client-side definition of a state machine.
 data StateMachineClient s i = StateMachineClient
@@ -133,7 +137,7 @@ getOnChainState ::
     , HasUtxoAt schema)
     => StateMachineClient state i
     -> Contract schema e (OnChainState state i, UtxoMap)
-getOnChainState StateMachineClient{scInstance, scChooser} = do
+getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SMContractError) $ do
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
@@ -144,7 +148,6 @@ getOnChainState StateMachineClient{scInstance, scChooser} = do
 runGuardedStep ::
     forall a e state schema input.
     ( AsSMContractError e state input
-    , AsContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
     , HasUtxoAt schema
@@ -156,7 +159,7 @@ runGuardedStep ::
     -> input                                       -- ^ The input to apply to the state machine
     -> (UnbalancedTx -> state -> state -> Maybe a) -- ^ The guard to check before running the step
     -> Contract schema e (Either a state)
-runGuardedStep smc input guard = do
+runGuardedStep smc input guard = mapError (review _SMContractError) $ do
     let StateMachineInstance{stateMachine} = scInstance smc
     (newConstraints, State{stateData=os}, State{stateData=ns, stateValue=v}, inp, lookups) <- mkStep smc input
     pk <- ownPubKey
@@ -178,7 +181,6 @@ runGuardedStep smc input guard = do
 runStep ::
     forall e state schema input.
     ( AsSMContractError e state input
-    , AsContractError e
     , PlutusTx.IsData state
     , PlutusTx.IsData input
     , HasUtxoAt schema
@@ -197,11 +199,11 @@ runStep smc input =
 -- | Initialise a state machine
 runInitialise ::
     forall e state schema input.
-    ( AsContractError e
-    , PlutusTx.IsData state
+    ( PlutusTx.IsData state
     , PlutusTx.IsData input
     , HasTxConfirmation schema
     , HasWriteTx schema
+    , AsSMContractError e state input
     )
     => StateMachineClient state input
     -- ^ The state machine
@@ -210,7 +212,7 @@ runInitialise ::
     -> Value
     -- ^ The value locked by the contract at the beginning
     -> Contract schema e state
-runInitialise StateMachineClient{scInstance} initialState initialValue = do
+runInitialise StateMachineClient{scInstance} initialState initialValue = mapError (review _SMContractError) $ do
     let StateMachineInstance{validatorInstance} = scInstance
         tx = mustPayToTheScript initialState initialValue
     let lookups = Constraints.scriptInstanceLookups validatorInstance

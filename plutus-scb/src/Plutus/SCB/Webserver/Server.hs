@@ -138,7 +138,7 @@ invokeEndpoint ::
     -> JSON.Value
     -> ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
-invokeEndpoint endpointDescription payload contractId = do
+invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
   logInfo $ "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
   newState :: [ChainEvent t] <- Instance.callContractEndpoint @t contractId endpointDescription payload
   logInfo $ "Invocation response: " <> tshow newState

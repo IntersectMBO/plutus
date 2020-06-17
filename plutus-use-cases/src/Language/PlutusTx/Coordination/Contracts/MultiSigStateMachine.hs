@@ -255,7 +255,7 @@ contract ::
 contract params = go where
     theClient = client params
     go = endpoints >> go
-    endpoints = lock <|> propose <|> cancel <|> addSignature <|> pay
+    endpoints = lock `select` propose `select` cancel `select` addSignature `select` pay
     propose = endpoint @"propose-payment" >>= SM.runStep theClient . ProposePayment
     cancel  = endpoint @"cancel-payment" >> SM.runStep theClient Cancel
     addSignature = endpoint @"add-signature" >> (pubKeyHash <$> ownPubKey) >>= SM.runStep theClient . AddSignature

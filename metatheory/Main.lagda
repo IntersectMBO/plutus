@@ -38,6 +38,8 @@ open import Utils
 open import Untyped
 open import Scoped.CK
 open import Algorithmic.CK
+open import Algorithmic.CEKC
+open import Algorithmic.CEKV
 open import Scoped.Erasure
 
 
@@ -138,7 +140,7 @@ postulate
 {-# COMPILE GHC prettyPrintTy = display @T.Text . unconvT (-1) #-}
 
 data EvalMode : Set where
-  U L TCK CK : EvalMode
+  U L TCK CK TCEKC TCEKV : EvalMode
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -156,19 +158,36 @@ evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing  =
   inj₂ "out of fuel"
 evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e        =
   inj₂ "computed to error"
-evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 _ (ε ▻ t')
-evalPLC CK plc | just nt | just t | just t' | n ,, i ,, _ ,, just (□ {t = t''}  V) =
+evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 (ε ▻ t')
+evalPLC CK plc | just nt | just t | just t' | just (□ {t = t''}  V) =
    inj₁ (prettyPrintTm (extricateScope t''))
-evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  just _ =
+evalPLC CK plc | just nt | just t | just t' | just _ =
   inj₂ ("this shouldn't happen")
-evalPLC CK plc | just nt | just t | just t' | _ ,, _ ,, _ ,,  nothing = inj₂ "out of fuel"
+evalPLC CK plc | just nt | just t | just t' | nothing = inj₂ "out of fuel"
 evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
-... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 _ (ε ▻ t'')
-... | _ ,, _ ,, _ ,, _ ,, M.just (□ {t = t'''} V)  =
+... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
+... | M.just (□ {t = t'''} V)  =
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
-... | _ ,, _ ,, _ ,, _ ,, M.just _  = inj₂ "this shouldn't happen"
-... | _ ,, _ ,, _ ,, _ ,, M.nothing = inj₂ "out of fuel"
+... | M.just (◆ _)  = inj₂ "the machine errored"
+... | M.just _  = inj₂ "this shouldn't happen"
+... | M.nothing = inj₂ "out of fuel"
+evalPLC TCEKC plc | just nt | just t | just t' with inferType _ t'
+... | inj₂ e = inj₂ "typechecking error"
+... | inj₁ (A ,, t'') with Algorithmic.CEKC.stepper 1000000000 (ε ; [] ▻ t'')
+... | M.just (□ (_ ,, _ ,, V ,, ρ))  =
+  inj₁ (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
+... | M.just (◆ _)  = inj₂ "the machine errored"
+... | M.just _  = inj₂ "did not terminate in allowed steps"
+... | M.nothing = inj₂ "out of fuel"
+evalPLC TCEKV plc | just nt | just t | just t' with inferType _ t'
+... | inj₂ e = inj₂ "typechecking error"
+... | inj₁ (A ,, t'') with Algorithmic.CEKV.stepper 1000000000 (ε ; [] ▻ t'')
+... | M.just (□ V)  =
+  inj₁ (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
+... | M.just (◆ _)  = inj₂ "the machine errored"
+... | M.just _  = inj₂ "did not terminate in allowed steps"
+... | M.nothing = inj₂ "out of fuel"
 evalPLC U plc | just nt | just t | just t' with U.run (eraseTm t') 10000000
 evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
   inj₁ (U.ugly t'')
@@ -263,7 +282,7 @@ postulate execP : IO Command
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 {-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 {-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK ) #-}
+{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKC | TCEKV) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (String ⊎ String)

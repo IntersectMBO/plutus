@@ -28,6 +28,7 @@ with packageSet; haskell.packages.shellFor ({
     dev.packages.cabal
     dev.packages.hlint
     dev.packages.stylish-haskell
+    dev.packages.haskell-language-server
     (if useCaseShell
       then dev.packages.ghcide-use-cases
       else dev.packages.ghcide)
