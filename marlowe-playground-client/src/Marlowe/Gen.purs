@@ -194,6 +194,7 @@ genValue' size
             , NegValue <$> genNewValue
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , MulValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , Scale <$> genTermWrapper genRational <*> genNewValue
             , ChoiceValue <$> genChoiceId <*> genNewValue
             , UseValue <$> genTermWrapper genValueId
