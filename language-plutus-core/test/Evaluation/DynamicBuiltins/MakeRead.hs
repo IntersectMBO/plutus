@@ -32,7 +32,7 @@ readMakeHetero :: (KnownType DefaultUni a, KnownType DefaultUni b) => a -> Evalu
 readMakeHetero x =
     case extractEvaluationResult <$> typecheckReadKnownCek mempty (makeKnown @DefaultUni x) of
         Left err          ->
-            error $ "Type error" ++ prettyPlcCondensedErrorClassicString err
+            error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
 

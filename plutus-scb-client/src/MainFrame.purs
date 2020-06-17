@@ -43,7 +43,7 @@ import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), WebData, _annotatedBlockchain, _chainState, _contractInstanceIdString, _contractSignatures, _csContract, _fullReport, _latestContractStatuses)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainState, _contractInstanceIdString, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
 import Validation (_argument)
 import View as View
 
@@ -53,7 +53,8 @@ initialValue = adaToValue $ Lovelace { getLovelace: 0 }
 initialState :: State
 initialState =
   State
-    { fullReport: NotAsked
+    { currentView: ActiveContracts
+    , fullReport: NotAsked
     , chainState: Chain.initialState
     , contractSignatures: Map.empty
     }
@@ -90,6 +91,8 @@ handleAction ::
   MonadEffect m =>
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
+
+handleAction (ChangeView view) = assign _currentView view
 
 handleAction LoadFullReport = do
   assign _fullReport Loading

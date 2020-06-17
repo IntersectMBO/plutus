@@ -17,9 +17,9 @@ module Plutus.SCB.Events
     , _ContractEvent
     ) where
 
-import           Control.Lens.TH
+import           Control.Lens.TH            (makePrisms)
 import           Data.Aeson                 (FromJSON, ToJSON)
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc  (Pretty, pretty, (<+>))
 import           GHC.Generics               (Generic)
 import           Plutus.SCB.Events.Contract as Events.Contract
 import           Plutus.SCB.Events.Node     as Events.Node

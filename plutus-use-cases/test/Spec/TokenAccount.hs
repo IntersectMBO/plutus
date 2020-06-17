@@ -6,20 +6,19 @@ module Spec.TokenAccount(tests, assertAccountBalance) where
 
 import           Test.Tasty
 
-import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
 import           Language.PlutusTx.Lattice
 import qualified Ledger
 import qualified Ledger.Ada                                            as Ada
 import           Ledger.Value                                          (TokenName, Value)
 
-import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..), TokenAccountSchema,
-                                                                        tokenAccountContract)
+import           Language.PlutusTx.Coordination.Contracts.TokenAccount (Account (..), TokenAccountError,
+                                                                        TokenAccountSchema, tokenAccountContract)
 import qualified Language.PlutusTx.Coordination.Contracts.TokenAccount as Accounts
 
 tests :: TestTree
 tests = testGroup "token account"
-    [ checkPredicate @TokenAccountSchema @ContractError "Create a token account"
+    [ checkPredicate @TokenAccountSchema @TokenAccountError "Create a token account"
         tokenAccountContract
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
@@ -27,7 +26,7 @@ tests = testGroup "token account"
         (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1)
 
-    , checkPredicate @TokenAccountSchema @ContractError "Pay into the account"
+    , checkPredicate @TokenAccountSchema @TokenAccountError "Pay into the account"
         tokenAccountContract
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
@@ -39,7 +38,7 @@ tests = testGroup "token account"
         >> handleBlockchainEvents w1
         >> addBlocks 1)
 
-    , checkPredicate @TokenAccountSchema @ContractError "Transfer & redeem all funds"
+    , checkPredicate @TokenAccountSchema @TokenAccountError "Transfer & redeem all funds"
         tokenAccountContract
         (assertNoFailedTransactions
         /\ assertNotDone w1 "contract should not have any errors"
@@ -66,7 +65,7 @@ tokenName = "test token"
 account :: Account
 account =
     let con = Accounts.newAccount tokenName (Ledger.pubKeyHash $ walletPubKey w1) in
-    either error id $ evalTrace @TokenAccountSchema @ContractError con (handleBlockchainEvents w1) w1
+    either error id $ evalTrace @TokenAccountSchema @TokenAccountError con (handleBlockchainEvents w1) w1
 
 theToken :: Value
 theToken = Accounts.accountToken account

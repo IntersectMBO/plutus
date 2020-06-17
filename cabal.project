@@ -18,6 +18,7 @@ packages: language-plutus-core
           deployment-server
           iots-export
           metatheory
+          prettyprinter-configurable
 
 -- We never, ever, want this.
 write-ghc-environment-files: never

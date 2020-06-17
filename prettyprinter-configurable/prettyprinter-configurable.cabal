@@ -1,0 +1,87 @@
+name:                prettyprinter-configurable
+version:             0.1.0.0
+-- synopsis:
+-- description:
+-- homepage:            https://github.com/githubuser/prettyprinter-configurable#readme
+license-files:
+  LICENSE
+  NOTICE
+author:              David Luposchainsky, effectfully
+maintainer:          plutus@iohk.io
+category:            User Interfaces, Text
+build-type:          Custom
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+custom-setup
+    setup-depends:
+        base,
+        Cabal,
+        cabal-doctest
+
+library
+    hs-source-dirs: src
+    exposed-modules:
+        Text.Fixity
+        Text.Fixity.Internal
+        Text.Pretty
+        Text.PrettyBy
+        Text.PrettyBy.Default
+        Text.PrettyBy.Fixity
+        Text.PrettyBy.Internal
+        Text.PrettyBy.Internal.Utils
+        Text.PrettyBy.Monad
+    build-depends:
+        base,
+        prettyprinter,
+        mtl,
+        text,
+        microlens
+    default-language: Haskell2010
+    ghc-options:
+        -O2 -Wall
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities
+
+test-suite prettyprinter-configurable-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test
+    other-modules:
+        Default
+        NonDefault
+        Universal
+        Expr
+    default-language: Haskell2010
+    build-depends:
+        prettyprinter-configurable,
+        base,
+        prettyprinter,
+        text,
+        megaparsec,
+        parser-combinators,
+        QuickCheck,
+        quickcheck-text,
+        tasty,
+        tasty-hunit,
+        tasty-quickcheck
+    ghc-options:
+        -threaded -rtsopts -with-rtsopts=-N
+        -Wall
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities
+
+test-suite prettyprinter-configurable-doctest
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: doctest
+    default-language: Haskell2010
+    build-depends:
+        prettyprinter-configurable,
+        base,
+        doctest
+    ghc-options:
+        -threaded -rtsopts -with-rtsopts=-N
+        -Wall
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities

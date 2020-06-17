@@ -9,7 +9,6 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns -fno-warn-unused-do-bind #-}
 module Spec.Vesting(tests, retrieveFundsTrace, vesting) where
 
-import qualified Data.Text                                        as T
 import           Test.Tasty
 import qualified Test.Tasty.HUnit                                 as HUnit
 
@@ -97,5 +96,13 @@ retrieveFundsTrace = do
     addBlocks 1
     handleBlockchainEvents wallet1
 
-expectedError :: TraceError T.Text
-expectedError = ContractError "Cannot take out Value {getValue = Map {unMap = [(,Map {unMap = [(,30)]})]}}. The maximum is Value {getValue = Map {unMap = [(,Map {unMap = [(,20)]})]}}. At least Value {getValue = Map {unMap = [(,Map {unMap = [(,40)]})]}} must remain locked by the script."
+expectedError :: TraceError VestingError
+expectedError =
+    let payment = Ada.lovelaceValueOf 30
+        maxPayment = Ada.lovelaceValueOf 20
+        mustRemainLocked = Ada.lovelaceValueOf 40
+    in TContractError
+        $ InsufficientFundsError
+            payment
+            maxPayment
+            mustRemainLocked

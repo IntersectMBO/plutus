@@ -4,9 +4,7 @@
 
 module Language.PlutusCore.Constant.Dynamic.Emit
     ( withEmit
-    , EmitHandler (..)
-    , feedEmitHandler
-    , withEmitHandler
+    , EmitHandler
     , withEmitTerm
     , withEmitEvaluateBy
     ) where
@@ -43,42 +41,30 @@ globalUniqueVar = unsafePerformIO $ newIORef 0
 nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
-newtype EmitHandler uni r = EmitHandler
-    { unEmitHandler :: DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
-    }
-
-feedEmitHandler
-    :: DynamicBuiltinNameMeanings uni
-    -> Term TyName Name uni ()
-    -> EmitHandler uni r
-    -> IO r
-feedEmitHandler means term (EmitHandler handler) = handler means term
+type EmitHandler uni r = DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
 
 withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) -> IO r2
-withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
+withEmitHandler eval k = k $ \env -> evaluate . eval env
 
--- FIXME: (FAO @effectfully).  I've had to fix `emit` at Char -> (),
--- and that makes the `collectChars` test in `MakeRead.hs` pass. Do we
--- need it for anything else?
 withEmitTerm
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` (), uni `Includes` Char)
-    => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
+    :: forall a uni r1 r2.
+       (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    => (EmitHandler uni r1 -> Term TyName Name uni () -> IO r2)
     -> EmitHandler uni r1
     -> IO ([a], r2)
-withEmitTerm cont (EmitHandler handler) =
+withEmitTerm cont handler =
     withEmit $ \emit -> do
         counter <- nextGlobalUnique
-        let dynEmitName = DynamicBuiltinName $ "emit" <> prettyText counter
-            dynEmitScheme = Proxy @ Char `TypeSchemeArrow` TypeSchemeResult (Proxy @ ())
-            dynEmitTerm = dynamicCall dynEmitScheme dynEmitName
+        let dynEmitName = DynamicBuiltinName $ "emit" <> display counter
+            dynEmitTerm = dynamicCall (Proxy @a) dynEmitName
             dynEmitDef  = dynamicCallAssign dynEmitName emit (\_ -> ExBudget 1 1) -- TODO
-        cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
+        cont (handler . insertDynamicBuiltinNameDefinition dynEmitDef) dynEmitTerm
 
 withEmitEvaluateBy
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` (), uni `Includes` Char)
+    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
     => AnEvaluator Term uni m b
     -> DynamicBuiltinNameMeanings uni
     -> (Term TyName Name uni () -> Term TyName Name uni ())
     -> IO ([a], m b)
 withEmitEvaluateBy eval means inst =
-    withEmitHandler eval . withEmitTerm $ feedEmitHandler means . inst
+    withEmitHandler eval . withEmitTerm $ \handle -> handle means . inst

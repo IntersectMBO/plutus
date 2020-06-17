@@ -144,7 +144,7 @@ fileType :: FilePath -> IO T.Text
 fileType = fmap (either prettyErr id . printType) . BSL.readFile
     where
         prettyErr :: Error DefaultUni AlexPosn -> T.Text
-        prettyErr = prettyPlcDefText
+        prettyErr = displayPlcDef
 
 -- | Given a file, display
 -- its type or an error message, optionally dumping annotations and debug
@@ -153,7 +153,7 @@ fileTypeCfg :: PrettyConfigPlc -> FilePath -> IO T.Text
 fileTypeCfg cfg = fmap (either prettyErr id . printType) . BSL.readFile
     where
         prettyErr :: Error DefaultUni AlexPosn -> T.Text
-        prettyErr = prettyTextBy cfg
+        prettyErr = displayBy cfg
 
 -- | Print the type of a program contained in a 'ByteString'
 printType
@@ -163,7 +163,7 @@ printType
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
-printType bs = runQuoteT $ prettyPlcDefText <$> do
+printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
     inferTypeOfProgram (TypeCheckConfig mempty mempty) scoped
 
@@ -212,7 +212,7 @@ format
     :: (AsParseError e AlexPosn, MonadError e m)
     => PrettyConfigPlc -> BSL.ByteString -> m T.Text
 -- don't use parseScoped since we don't bother running sanity checks when we format
-format cfg = runQuoteT . fmap (prettyTextBy cfg) . (rename <=< parseProgramDef)
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgramDef)
 
 -- | Take one PLC program and apply it to another.
 applyProgram :: Program tyname name uni () -> Program tyname name uni () -> Program tyname name uni ()

@@ -144,7 +144,7 @@ data ExBudget = ExBudget { _exBudgetCPU :: ExCPU, _exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExBudget)
     deriving anyclass NFData
-instance PrettyBy config ExBudget where
+instance PrettyDefaultBy config Integer => PrettyBy config ExBudget where
     prettyBy config (ExBudget cpu memory) = parens $ fold
         [ "{ cpu: ", prettyBy config cpu, line
         , "| mem: ", prettyBy config memory, line
@@ -157,7 +157,7 @@ data ExBudgetState = ExBudgetState
     }
     deriving stock (Eq, Generic, Show)
     deriving anyclass NFData
-instance PrettyBy config ExBudgetState where
+instance PrettyDefaultBy config Integer => PrettyBy config ExBudgetState where
     prettyBy config (ExBudgetState tally budget) = parens $ fold
         [ "{ tally: ", prettyBy config tally, line
         , "| budget: ", prettyBy config budget, line
@@ -168,7 +168,7 @@ newtype ExTally = ExTally (MonoidalHashMap ExBudgetCategory ExBudget)
     deriving stock (Eq, Generic, Show)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid ExTally)
     deriving anyclass NFData
-instance PrettyBy config ExTally where
+instance PrettyDefaultBy config Integer => PrettyBy config ExTally where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
           ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])

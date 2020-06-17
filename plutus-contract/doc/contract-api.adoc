@@ -47,7 +47,7 @@ For example, `awaitSlot {2c} (HasAwaitSlot s) => Slot -> Contract s e Slot` is a
 
 [source,haskell]
 ----
-c2 :: (HasAwaitSlot s) => Contract s e Slot
+c2 :: (HasAwaitSlot s) => Contract s ContractError Slot
 c2 = awaitSlot 2765 -- <1>
 ----
 <1> `c2` waits until slot 2765 and then returns the current slot. The value returns may be greater than 2765, for example if execution of the contract was suspended for a while.
@@ -66,7 +66,7 @@ The `UtxoAt` effect, available through `utxoAt {2c} HasUtxoAt s => Address -> Co
 
 === Transactions
 
-Contracts write transactions using `submitTx {2c} (HasWriteTx s, AsContractError e) => UnbalancedTx -> Contract s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
+Contracts write transactions using `submitTx {2c} (HasWriteTx s) => UnbalancedTx -> Contract s e TxId`. The transactions submitted that way are unbalanced and unsigned. When executing a `submitTx` instruction, the app platform forwards the transaction to the user's wallet to balance it (by adding appropriate public key inputs or outputs) and compute the gas cost of any scripts involved. The finished transaction is then signed by the signing process, and submitted to the wallet which sends it to the blockchain. `submitTx` returns the final transaction's ID once it has been submitted to the blockchain (or throws an error if the balancing or signing failed). The easiest way to construct a value of `UnbalancedTx` is by using `Ledger.Constraints.mkTx` to turn a list of constraints into an unbalanced transaction. `Language.Plutus.Contract` exports a number of conveniences for working with constraints, for example `submitTxConstraints` (which requires a script instance) and `submitTxConstraintsUtxo` (which requires a script instance and a map containing the unspent outputs at the contract address).
 
 === Endpoints
 
@@ -78,7 +78,7 @@ Let's say we write a contract that expects the user to enter an `Int` using an e
 
 [source,haskell]
 ----
-c3 :: (HasEndpoint "amount" Int s) => Contract s e Int -- <1>
+c3 :: (HasEndpoint "amount" Int s) => Contract s ContractError Int -- <1>
 c3 = endpoint @"amount" -- <2>
 ----
 <1> The `HasEndpoint` constraint describes user-defined endpoints. In this case, the contract exposes an endpoint called "amount" that requires the user to enter an 'Int'.
@@ -119,7 +119,7 @@ After having obtained the inputs and the public key we can proceed to produce th
 mkTx :: AddressMap -> PubKey -> UnbalancedTx
 mkTx = undefined
 
-spend :: (AsContractError e, HasBlockchainActions s) => Contract s e ()
+spend :: (HasBlockchainActions s) => Contract s ContractError ()
 spend = do -- <1>
     (ins, pk) <- collectRec
     void (submitUnbalancedTx (mkTx ins pk))

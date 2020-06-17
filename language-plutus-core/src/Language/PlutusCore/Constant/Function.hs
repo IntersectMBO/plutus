@@ -17,7 +17,6 @@ module Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Quote
 
 import qualified Data.Map                           as Map
 import           Data.Proxy
@@ -27,16 +26,15 @@ import           GHC.TypeLits
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme uni as r -> Type TyName uni ()
-typeSchemeToType = runQuote . go 0 where
-    go :: Int -> TypeScheme uni as r -> Quote (Type TyName uni ())
-    go _ (TypeSchemeResult pR)          = pure $ toTypeAst pR
-    go i (TypeSchemeArrow pA schB)      = TyFun () (toTypeAst pA) <$> go i schB
-    go i (TypeSchemeAllType proxy schK) = case proxy of
-        (_ :: Proxy '(text, uniq)) -> do
-            let text = Text.pack $ symbolVal @text Proxy
-                uniq = fromIntegral $ natVal @uniq Proxy
-                a    = TyName $ Name text $ Unique uniq
-            TyForall () a (Type ()) <$> go i (schK Proxy)
+typeSchemeToType (TypeSchemeResult pR)          = toTypeAst pR
+typeSchemeToType (TypeSchemeArrow pA schB)      =
+    TyFun () (toTypeAst pA) $ typeSchemeToType schB
+typeSchemeToType (TypeSchemeAllType proxy schK) = case proxy of
+    (_ :: Proxy '(text, uniq)) ->
+        let text = Text.pack $ symbolVal @text Proxy
+            uniq = fromIntegral $ natVal @uniq Proxy
+            a    = TyName $ Name text $ Unique uniq
+        in TyForall () a (Type ()) $ typeSchemeToType (schK Proxy)
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.
@@ -112,4 +110,3 @@ typeComponentsOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeComponentsOfT
 -- | Return the 'TypeComponents' of a 'DynamicBuiltinNameMeaning'.
 typeComponentsOfDynamicBuiltinNameMeaning :: DynamicBuiltinNameMeaning uni -> Maybe (TypeComponents uni)
 typeComponentsOfDynamicBuiltinNameMeaning (DynamicBuiltinNameMeaning scheme _ _) = typeComponentsOfTypeScheme scheme
-

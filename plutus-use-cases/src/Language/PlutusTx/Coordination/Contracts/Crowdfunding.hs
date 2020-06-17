@@ -187,8 +187,8 @@ campaignAddress :: Campaign -> Ledger.ValidatorHash
 campaignAddress = Scripts.validatorHash . contributionScript
 
 -- | The crowdfunding contract for the 'Campaign'.
-crowdfunding :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
-crowdfunding c = contribute c <|> scheduleCollection c
+crowdfunding :: Campaign -> Contract CrowdfundingSchema ContractError ()
+crowdfunding c = contribute c `select` scheduleCollection c
 
 -- | A sample campaign with a target of 20 Ada by slot 20
 theCampaign :: Campaign
@@ -203,7 +203,7 @@ theCampaign = Campaign
 --   an endpoint that allows the user to enter their public key and the
 --   contribution. Then waits until the campaign is over, and collects the
 --   refund if the funding target was not met.
-contribute :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+contribute :: Campaign -> Contract CrowdfundingSchema ContractError ()
 contribute cmp = do
     Contribution{contribValue} <- endpoint @"contribute"
     contributor <- ownPubKey
@@ -229,7 +229,7 @@ contribute cmp = do
 -- | The campaign owner's branch of the contract for a given 'Campaign'. It
 --   watches the campaign address for contributions and collects them if
 --   the funding goal was reached in time.
-scheduleCollection :: AsContractError e => Campaign -> Contract CrowdfundingSchema e ()
+scheduleCollection :: Campaign -> Contract CrowdfundingSchema ContractError ()
 scheduleCollection cmp = do
     let inst = scriptInstance cmp
 
@@ -248,26 +248,26 @@ scheduleCollection cmp = do
 -- | Call the "schedule collection" endpoint and instruct the campaign owner's
 --   wallet (wallet 1) to start watching the campaign address.
 startCampaign
-    :: ( MonadEmulator (TraceError e) m  )
-    => ContractTrace CrowdfundingSchema e m () ()
+    :: ( MonadEmulator (TraceError ContractError) m  )
+    => ContractTrace CrowdfundingSchema ContractError m () ()
 startCampaign =
     Trace.callEndpoint @"schedule collection" (Trace.Wallet 1)  ()
         >> Trace.notifyInterestingAddresses (Trace.Wallet 1)
 
 -- | Call the "contribute" endpoint, contributing the amount from the wallet
 makeContribution
-    :: ( MonadEmulator (TraceError e) m )
+    :: ( MonadEmulator (TraceError ContractError) m )
     => Wallet
     -> Value
-    -> ContractTrace CrowdfundingSchema e m () ()
+    -> ContractTrace CrowdfundingSchema ContractError m () ()
 makeContribution w v =
     Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
-    :: ( MonadEmulator (TraceError e) m )
-    => ContractTrace CrowdfundingSchema e m () ()
+    :: ( MonadEmulator (TraceError ContractError) m )
+    => ContractTrace CrowdfundingSchema ContractError m () ()
 successfulCampaign =
     startCampaign
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
