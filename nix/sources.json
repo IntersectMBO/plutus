@@ -38,6 +38,7 @@
     },
     "ghcide": {
         "branch": "wip/object-files",
+        "builtin": false,
         "description": "A library for building Haskell IDE tooling",
         "homepage": "",
         "owner": "hamishmack",
