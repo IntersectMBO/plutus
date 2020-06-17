@@ -139,7 +139,7 @@ vestingTest =
             , sourceCode = vesting
             , program = toJSONString expressions
             }
-    vestFundsEval = mkEvaluation [vestFunds w2]
+    vestFundsEval = mkEvaluation [vestFunds w2, AddBlocks 1]
     vestAndPartialRetrieveEval =
         mkEvaluation
             [vestFunds w2, AddBlocks 20, retrieveFunds w1 5, AddBlocks 1]
@@ -156,11 +156,11 @@ gameTest =
         "game"
         [ compilationChecks game
         , testCase "should keep the funds" $
-          evaluate (mkEvaluation [lock w2 "abcde" twoAda, guess w1 "ade"]) >>=
+          evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "ade", AddBlocks 1]) >>=
           hasFundsDistribution
               [mkSimulatorWallet w1 tenAda, mkSimulatorWallet w2 (adaValueOf 8)]
         , testCase "should unlock the funds" $
-          evaluate (mkEvaluation [lock w2 "abcde" twoAda, guess w1 "abcde"]) >>=
+          evaluate (mkEvaluation [lock w2 "abcde" twoAda, AddBlocks 1, guess w1 "abcde", AddBlocks 1]) >>=
           hasFundsDistribution
               [ mkSimulatorWallet w1 (adaValueOf 12)
               , mkSimulatorWallet w2 (adaValueOf 8)
@@ -265,6 +265,7 @@ crowdfundingTest =
                       , contribute w4 $ lovelaceValueOf 9
                       , AddBlocks 1
                       , AddBlocksUntil 40
+                      , AddBlocks 1
                       ]
             , sourceCode
             }
