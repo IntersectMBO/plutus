@@ -15,6 +15,7 @@ module Plutus.SCB.Webserver.Server
     , contractSchema
     ) where
 
+import           Control.Concurrent.Availability                 (Availability, available)
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
@@ -24,6 +25,7 @@ import           Control.Monad.Logger                            (LogLevel (Leve
 import qualified Data.Aeson                                      as JSON
 import           Data.Bifunctor                                  (first)
 import qualified Data.ByteString.Lazy.Char8                      as LBS
+import           Data.Function                                   ((&))
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import           Data.Proxy                                      (Proxy (Proxy))
@@ -34,7 +36,7 @@ import           Eventful                                        (streamEventEve
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
-import           Network.Wai.Handler.Warp                        (run)
+import qualified Network.Wai.Handler.Warp                        as Warp
 import           Plutus.SCB.App                                  (App, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
@@ -178,8 +180,10 @@ app config = serve api $ hoistServer api (asHandler config) handler
   where
     api = Proxy @("api" :> API ContractExe)
 
-main :: Config -> App ()
-main config = do
+main :: Config -> Availability -> App ()
+main config availability = do
     let port = baseUrlPort $ baseUrl $ scbWebserverConfig config
+    let warpSettings :: Warp.Settings
+        warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
     logInfo $ "Starting SCB backend server on port: " <> tshow port
-    liftIO $ run port $ app config
+    liftIO $ Warp.runSettings warpSettings $ app config

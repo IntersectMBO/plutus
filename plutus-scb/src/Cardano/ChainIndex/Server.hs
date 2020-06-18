@@ -25,12 +25,13 @@ import qualified Control.Monad.Freer.Writer      as Eff
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable                   (fold, traverse_)
+import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
-import           Network.Wai.Handler.Warp        (run)
+import qualified Network.Wai.Handler.Warp        as Warp
 import           Servant                         ((:<|>) ((:<|>)), Application, NoContent (NoContent), hoistServer,
                                                   serve)
 import           Servant.Client                  (BaseUrl (baseUrlPort), ClientEnv, mkClientEnv, runClientM)
@@ -44,11 +45,12 @@ import           Cardano.ChainIndex.Types
 import qualified Cardano.Node.Client             as NodeClient
 import           Cardano.Node.Follower           (NodeFollowerEffect, getSlot)
 import qualified Cardano.Node.Follower           as NodeFollower
+import           Control.Concurrent.Availability (Availability, available)
 import           Wallet.Effects                  (ChainIndexEffect)
 import qualified Wallet.Effects                  as WalletEffects
 import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect, ChainIndexEvent, ChainIndexState)
 import qualified Wallet.Emulator.ChainIndex      as ChainIndex
-import           Wallet.Emulator.NodeClient      (ChainClientNotification (..))
+import           Wallet.Emulator.NodeClient      (ChainClientNotification (BlockValidated, SlotChanged))
 
 -- $chainIndex
 -- The SCB chain index that keeps track of transaction data (UTXO set enriched
@@ -62,10 +64,9 @@ app stateVar =
         (processIndexEffects stateVar)
         (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed)
 
-main :: (MonadIO m) => ChainIndexConfig -> BaseUrl -> m ()
-main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do
+main :: MonadIO m => ChainIndexConfig -> BaseUrl -> Availability -> m ()
+main ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = runStdoutLoggingT $ do
     let port = baseUrlPort ciBaseUrl
-    logInfoN $ "Starting chain index on port: " <> tshow port
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
@@ -73,7 +74,10 @@ main ChainIndexConfig{ciBaseUrl} nodeBaseUrl = runStdoutLoggingT $ do
     mVarState <- liftIO $ newMVar initialAppState
     logInfoN "Starting node client thread"
     void $ liftIO $ forkIO $ runStdoutLoggingT $ updateThread 10 mVarState nodeClientEnv
-    liftIO $ run port $ app mVarState
+    let warpSettings :: Warp.Settings
+        warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
+    logInfoN $ "Starting chain index on port: " <> tshow port
+    liftIO $ Warp.runSettings warpSettings $ app mVarState
 
 healthcheck :: Monad m => m NoContent
 healthcheck = pure NoContent
