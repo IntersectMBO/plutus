@@ -80,9 +80,9 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (ChainIndexEvent _ ReceiveBlockNotification) =
+emulatorEventPane (ChainIndexEvent _ (ReceiveBlockNotification numTransactions)) =
   div_
-    [ text "Chain index receive block notification" ]
+    [ text $ "Chain index receive block notification. " <> show numTransactions <> " transactions." ]
 
 emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
   div_

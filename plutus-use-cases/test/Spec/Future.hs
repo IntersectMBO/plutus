@@ -35,7 +35,12 @@ import           Language.PlutusTx.Lattice
 tests :: TestTree
 tests =
     testGroup "futures"
-    [ checkPredicate @FutureSchema "can initialise and obtain tokens"
+    [ checkPredicate @FutureSchema "setup tokens"
+        (F.setupTokens @FutureSchema @FutureError )
+        ( assertDone w1 (const True) "setupTokens" )
+        ( handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 )
+
+    , checkPredicate @FutureSchema "can initialise and obtain tokens"
         (F.futureContract theFuture)
         (walletFundsChange w1 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Short accounts)
         /\ walletFundsChange w2 (scale (-1) (F.initialMargin theFuture) <> F.tokenFor Long accounts))
@@ -49,7 +54,7 @@ tests =
         >> joinFuture
         >> addBlocks 20
         >> increaseMargin
-        >> addBlocks 75
+        >> addBlocksUntil 100
         >> payOut)
 
     , checkPredicate @FutureSchema "can settle early"
@@ -67,7 +72,7 @@ tests =
         /\ assertAccountBalance (ftoLong accounts) (== (Ada.lovelaceValueOf 2310)))
         ( initContract
         >> joinFuture
-        >> addBlocks 93
+        >> addBlocksUntil 100
         >> payOut)
 
     , Lib.goldenPir "test/Spec/future.pir" $$(PlutusTx.compile [|| F.futureStateMachine ||])
@@ -108,6 +113,12 @@ initContract :: MonadEmulator (TraceError FutureError) m => ContractTrace Future
 initContract = do
     callEndpoint @"initialise-future" (Wallet 1) (setup, Short)
     handleBlockchainEvents (Wallet 1)
+    addBlocks 1
+    handleBlockchainEvents (Wallet 1)
+    addBlocks 1
+    handleBlockchainEvents (Wallet 1)
+    addBlocks 1
+    handleBlockchainEvents (Wallet 1)
 
 -- | Calls the "join-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
@@ -115,9 +126,12 @@ joinFuture :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSc
 joinFuture = do
     callEndpoint @"join-future" (Wallet 2) (accounts, setup)
     handleBlockchainEvents (Wallet 2)
+    addBlocks 1
     handleBlockchainEvents (Wallet 1)
     handleBlockchainEvents (Wallet 2)
+    addBlocks 1
     handleBlockchainEvents (Wallet 1)
+    handleBlockchainEvents (Wallet 2)
 
 -- | Calls the "settle-future" endpoint for wallet 2 and processes
 --   all resulting transactions.
@@ -127,7 +141,6 @@ payOut = do
         spotPrice = Ada.lovelaceValueOf 1124
         ov = mkSignedMessage (ftDeliveryDate theFuture) spotPrice
     callEndpoint @"settle-future" (Wallet 2) ov
-    handleUtxoQueries (Wallet 2)
     handleBlockchainEvents (Wallet 2)
     addBlocks 2
     handleBlockchainEvents (Wallet 2)
@@ -151,11 +164,17 @@ oracleKeys =
 
 accounts :: FutureAccounts
 accounts =
-    either error id $ evalTrace @FutureSchema @FutureError F.setupTokens (handleBlockchainEvents w1) w1
+    either error id
+        $ evalTrace @FutureSchema @FutureError
+            F.setupTokens
+            (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 ) w1
 
 increaseMargin :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
 increaseMargin = do
     callEndpoint @"increase-margin" (Wallet 2) (Ada.lovelaceValueOf 100, Long)
+    addBlocks 1
+    handleBlockchainEvents (Wallet 2)
+    addBlocks 1
     handleBlockchainEvents (Wallet 2)
 
 settleEarly :: MonadEmulator (TraceError FutureError) m => ContractTrace FutureSchema FutureError m a ()
@@ -165,6 +184,7 @@ settleEarly = do
         ov = mkSignedMessage (Ledger.Slot 25) spotPrice
     callEndpoint @"settle-early" (Wallet 2) ov
     handleBlockchainEvents (Wallet 2)
+    addBlocks 1
 
 mkSignedMessage :: Slot -> Value -> SignedMessage (Observation Value)
 mkSignedMessage sl vl = Oracle.signObservation sl vl (fst oracleKeys)

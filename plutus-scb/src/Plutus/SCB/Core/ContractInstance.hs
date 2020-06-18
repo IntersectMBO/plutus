@@ -25,20 +25,15 @@ module Plutus.SCB.Core.ContractInstance(
     , callContractEndpoint
     ) where
 
-import           Control.Applicative                               (Alternative (..))
-import           Control.Arrow                                     (Kleisli (..))
 import           Control.Lens
-import           Control.Monad                                     (foldM, guard, void, when)
+import           Control.Monad                                     (guard, void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                         (Error, runError, throwError)
 import           Control.Monad.Freer.Extra.Log
-import           Control.Monad.Freer.NonDet                        (NonDet)
-import qualified Control.Monad.Freer.NonDet                        as NonDet
 import qualified Data.Aeson                                        as JSON
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (mapMaybe)
-import           Data.Monoid                                       (Alt (..), Ap (..))
 import           Data.Semigroup                                    (Last (..))
 import qualified Data.Set                                          as Set
 import qualified Data.Text                                         as Text
@@ -51,14 +46,17 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoi
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse (..))
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
+import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), extract, tryHandler,
+                                                                    wrapHandler)
 import           Language.Plutus.Contract.Wallet                   (balanceWallet)
 
 import qualified Ledger
 import qualified Ledger.AddressMap                                 as AM
 import           Ledger.Constraints.OffChain                       (UnbalancedTx (..))
 import           Wallet.API                                        (signWithOwnPublicKey)
-import           Wallet.Effects                                    (ChainIndexEffect, SigningProcessEffect,
-                                                                    WalletEffect, ownPubKey, startWatching, submitTxn,
+import           Wallet.Effects                                    (AddressChangeRequest (..), ChainIndexEffect,
+                                                                    SigningProcessEffect, WalletEffect, nextTx,
+                                                                    ownPubKey, startWatching, submitTxn,
                                                                     transactionConfirmed, walletSlot, watchedAddresses)
 
 import           Plutus.SCB.Command                                (saveBalancedTx, saveBalancedTxResult,
@@ -225,16 +223,6 @@ activateContract contract = do
     logInfo . render $ "Activated contract instance:" <+> pretty activeContractInstanceId
     pure activeContractInstanceId
 
-extract :: Alternative f => Prism' a b -> a -> f b
-extract p = maybe empty pure . preview p
-
--- | Request handlers that can choose whether to handle an effect (using
---   'Alternative'). This is useful if 'req' is a sum type.
-newtype RequestHandler effs req resp = RequestHandler { unRequestHandler :: req -> Eff (NonDet ': effs) resp }
-    deriving stock (Functor)
-    deriving (Profunctor) via (Kleisli (Eff (NonDet ': effs)))
-    deriving (Semigroup, Monoid) via (Ap ((->) req) (Alt (Eff (NonDet ': effs)) resp))
-
 respondtoRequests ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
@@ -258,17 +246,18 @@ runRequestHandler ::
     -> ContractInstanceId
     -> [Request req]
     -> Eff effs [ChainEvent t]
-runRequestHandler RequestHandler{unRequestHandler} contractInstance requests = do
+runRequestHandler h contractInstance requests = do
     logDebug . render $ "runRequestHandler for" <+> pretty contractInstance <+> "with" <+> pretty (length requests) <+> "requests"
     logDebug . render . pretty . fmap (\req -> req{rqRequest = ()}) $ requests
 
     -- try the handler on the requests until it succeeds for the first time, then stop.
     -- We want to handle at most 1 request per iteration.
-    (response :: Maybe (Request ContractResponse)) <- foldM (\e i -> maybe (NonDet.makeChoiceA @Maybe $ traverse unRequestHandler i) (pure . Just) e) Nothing requests
+    (response :: Maybe (Response ContractResponse)) <-
+        tryHandler (wrapHandler h) requests
 
     case response of
-        Just Request{rqID, itID, rqRequest} ->
-            sendContractMessage @t contractInstance Response{rspItID=itID,rspRqID=rqID,rspResponse=rqRequest}
+        Just rsp ->
+            sendContractMessage @t contractInstance rsp
         _ -> do
             logDebug "runRequestHandler: did not handle any requests"
             pure []
@@ -358,15 +347,19 @@ submitTx tx = submitTxn tx >> pure tx
 processNextTxAtRequests ::
     forall effs.
     ( Member Log effs
+    , Member WalletEffect effs
+    , Member ChainIndexEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 processNextTxAtRequests = RequestHandler $ \req -> do
-    address <- extract Events.Contract._NextTxAtRequest req
+    request <- extract Events.Contract._NextTxAtRequest req
     logInfo "processNextTxAtRequests start"
-    logDebug . render $ "processNextTxAtRequest" <+> pretty address
-    logInfo "processNextTxAtRequests not implemented"
+    logDebug . render $ "processNextTxAtRequest" <+> pretty request
+    slot <- walletSlot
+    guard $ slot > acreqSlot request
+    response <- nextTx request
     logInfo "processNextTxAtRequests end"
-    empty
+    pure $ NextTxAtResponse response
 
 processTxConfirmedRequests ::
     forall effs.

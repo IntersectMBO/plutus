@@ -62,7 +62,7 @@ app stateVar =
     hoistServer
         (Proxy @API)
         (processIndexEffects stateVar)
-        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed)
+        (healthcheck :<|> startWatching :<|> watchedAddresses :<|> confirmedBlocks :<|> WalletEffects.transactionConfirmed :<|> WalletEffects.nextTx)
 
 main :: MonadIO m => ChainIndexConfig -> BaseUrl -> Availability -> m ()
 main ChainIndexConfig{ciBaseUrl} nodeBaseUrl availability = runStdoutLoggingT $ do

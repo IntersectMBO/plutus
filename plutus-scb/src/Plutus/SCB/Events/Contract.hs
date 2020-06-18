@@ -59,7 +59,6 @@ import           Ledger.Address                                    (Address)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
 import           Ledger.Crypto                                     (PubKey)
 import           Ledger.Slot                                       (Slot)
-import           Ledger.Tx                                         (Tx)
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -69,6 +68,7 @@ import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyReq
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
 import           Plutus.SCB.Utils                                  (abbreviate)
+import           Wallet.Effects                                    (AddressChangeRequest, AddressChangeResponse)
 
 -- $contract-events
 -- The events that compiled Plutus contracts are concerned with. For each type
@@ -118,7 +118,7 @@ data ContractSCBRequest =
   | UserEndpointRequest ActiveEndpoint -- ^ Expose a named endpoint to the user. The endpoints' schemas can be obtained statically from the contract (using 'Language.Plutus.Contract.IOTS.rowSchema'), so they are not included in the message.
   | OwnPubkeyRequest OwnPubKeyRequest -- ^ Request a public key. It is expected that the wallet treats any outputs locked by this public key as part of its own funds.
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
-  | NextTxAtRequest Address -- ^ Wait for the next transaction that modifies the UTXO at the address and return it. TODO: confirmation levels
+  | NextTxAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the SCB.
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
@@ -155,7 +155,7 @@ data ContractResponse =
   | UserEndpointResponse EndpointDescription (EndpointValue Value)
   | OwnPubkeyResponse PubKey
   | UtxoAtResponse UtxoAtAddress
-  | NextTxAtResponse (Address, Tx)
+  | NextTxAtResponse AddressChangeResponse
   | WriteTxResponse W.WriteTxResponse
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
@@ -166,7 +166,7 @@ instance Pretty ContractResponse where
         UserEndpointResponse n r       -> "UserEndpoint:" <+> pretty n <+> pretty r
         OwnPubkeyResponse pk           -> "OwnPubKey:" <+> pretty pk
         UtxoAtResponse utxo            -> "UtxoAt:" <+> pretty utxo
-        NextTxAtResponse (address, tx) -> "NextTxAt:" <+> pretty address <+> pretty tx
+        NextTxAtResponse rsp        -> "NextTxAt:" <+> pretty rsp
         WriteTxResponse w           -> "WriteTx:" <+> pretty w
         AwaitTxConfirmedResponse w  -> "AwaitTxConfirmed:" <+> pretty w
 

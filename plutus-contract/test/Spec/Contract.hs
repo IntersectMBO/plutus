@@ -9,25 +9,26 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 module Spec.Contract(tests) where
 
-import           Control.Monad                              (void)
+import           Control.Monad                                 (void)
 import           Control.Monad.Error.Lens
-import           Control.Monad.Except                       (catchError, throwError)
+import           Control.Monad.Except                          (catchError, throwError)
 import           Test.Tasty
 
-import           Language.Plutus.Contract                   as Con
+import           Language.Plutus.Contract                      as Con
 import           Language.Plutus.Contract.Test
-import           Language.Plutus.Contract.Util              (loopM)
-import qualified Language.PlutusTx                          as PlutusTx
+import           Language.Plutus.Contract.Util                 (loopM)
+import qualified Language.PlutusTx                             as PlutusTx
 import           Language.PlutusTx.Lattice
-import           Ledger                                     (Address)
-import qualified Ledger                                     as Ledger
-import qualified Ledger.Ada                                 as Ada
-import qualified Ledger.Constraints                         as Constraints
-import qualified Ledger.Crypto                              as Crypto
-import           Prelude                                    hiding (not)
-import qualified Wallet.Emulator                            as EM
+import           Ledger                                        (Address)
+import qualified Ledger                                        as Ledger
+import qualified Ledger.Ada                                    as Ada
+import qualified Ledger.Constraints                            as Constraints
+import qualified Ledger.Crypto                                 as Crypto
+import           Prelude                                       hiding (not)
+import qualified Wallet.Emulator                               as EM
 
-import qualified Language.Plutus.Contract.Effects.AwaitSlot as AwaitSlot
+import qualified Language.Plutus.Contract.Effects.AwaitSlot    as AwaitSlot
+import           Language.Plutus.Contract.Trace.RequestHandler (maybeToHandler)
 
 tests :: TestTree
 tests =
@@ -56,7 +57,7 @@ tests =
         , cp "both (2)"
             (void $ Con.both (awaitSlot 10) (awaitSlot 20))
             (waitingForSlot w1 20)
-            $ respondToRequest w1 (\_ -> Just $ AwaitSlot.event 10)
+            $ void $ respondToRequest w1 (maybeToHandler $ \_ -> Just $ AwaitSlot.event 10)
 
         , cp "fundsAtAddressGt"
             (void $ fundsAtAddressGt someAddress (Ada.adaValueOf 10))
@@ -109,11 +110,11 @@ tests =
 
         , let smallTx = Constraints.mustPayToPubKey (Crypto.pubKeyHash $ walletPubKey (Wallet 2)) (Ada.lovelaceValueOf 10)
           in cp "handle several blockchain events"
-                (submitTx smallTx >> submitTx smallTx)
+                (submitTx smallTx >>= awaitTxConfirmed . Ledger.txId >> submitTx smallTx)
                 (assertDone w1 (const True) "all blockchain events should be processed"
                 /\ assertNoFailedTransactions
                 /\ walletFundsChange w1 (Ada.lovelaceValueOf (-20)))
-                (handleBlockchainEvents w1)
+                (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1)
 
         , cp "select either"
             (let l = endpoint @"1" >> endpoint @"2"
@@ -144,7 +145,7 @@ tests =
             (walletFundsChange w1 (Ada.lovelaceValueOf (-20))
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 20)
             /\ assertNoFailedTransactions)
-            (payToWallet w1 w2 (Ada.lovelaceValueOf 20))
+            (payToWallet w1 w2 (Ada.lovelaceValueOf 20) >> addBlocks 1)
 
         , cp "ownPubKey"
             (ownPubKey)
@@ -156,7 +157,7 @@ tests =
              in submitTx t >>= awaitTxConfirmed . Ledger.txId)
             (assertDone w1 (const True) "should be done"
             /\ walletFundsChange w2 (Ada.lovelaceValueOf 10))
-            (handleBlockchainEvents w1)
+            (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1)
 
         , cp "checkpoint"
             checkpointContract

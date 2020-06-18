@@ -100,7 +100,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  10000
 
-==== Slot #2, Tx #0 ====
+==== Slot #1, Tx #0 ====
 TxId:       8a4cd97044142d4cf3e2136ee06e0013967d5a87ae72c48f8051703631e9ed05
 Fee:        -
 Forge:      -
@@ -174,7 +174,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  10
 
-==== Slot #3, Tx #0 ====
+==== Slot #2, Tx #0 ====
 TxId:       0e01b64274027bd12a1c8579d3a50f1c67bedfb35d370819df86f172448a3c0f
 Fee:        -
 Forge:      -
@@ -248,7 +248,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  20
 
-==== Slot #4, Tx #0 ====
+==== Slot #3, Tx #0 ====
 TxId:       d3699882826a5ec9812dba56b696167e4bb780873031735fd5e7a69ca6fee32e
 Fee:        -
 Forge:      -
@@ -322,7 +322,7 @@ Balances Carried Forward:
   Value:
     Ada:      Lovelace:  21
 
-==== Slot #23, Tx #0 ====
+==== Slot #20, Tx #0 ====
 TxId:       b3f9625d8b107afced2297ec29de44a07364caaba347419a2228de97f7e83001
 Fee:        -
 Forge:      -

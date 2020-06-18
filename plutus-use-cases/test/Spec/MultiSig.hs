@@ -25,9 +25,11 @@ tests = testGroup "multisig"
         (assertFailedTransaction (\_ err -> case err of {ScriptFailure (EvaluationError ["not enough signatures"]) -> True; _ -> False  }))
         (callEndpoint @"lock" w1 (multiSig, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
+        >> addBlocks 1
         >> callEndpoint @"unlock" w1 (multiSig, fmap (Ledger.pubKeyHash . walletPubKey) [w1, w2])
         >> setSigningProcess w1 (signWallets [w1, w2])
         >> handleBlockchainEvents w1
+        >> addBlocks 1
         )
 
     , checkPredicate @MultiSigSchema @ContractError "3 out of 5"

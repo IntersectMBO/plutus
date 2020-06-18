@@ -67,15 +67,12 @@ module Language.Plutus.Contract(
     , ContractRow
     , type (.\/)
     , type Empty
-    , waitingForBlockchainActions
-    , waitingForSlotNotification
     ) where
 
-import           Data.Maybe                                        (isJust)
 import           Data.Row
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint
 import           Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
@@ -83,7 +80,6 @@ import           Language.Plutus.Contract.Effects.WatchAddress     as WatchAddre
 import           Language.Plutus.Contract.Effects.WriteTx
 
 import           Language.Plutus.Contract.Request                  (ContractRow)
-import           Language.Plutus.Contract.Schema                   (Handlers)
 import           Language.Plutus.Contract.Typed.Tx                 as Tx
 import           Language.Plutus.Contract.Types                    (AsCheckpointError (..), AsContractError (..),
                                                                     CheckpointError (..), Contract (..),
@@ -91,7 +87,7 @@ import           Language.Plutus.Contract.Types                    (AsCheckpoint
                                                                     selectEither, throwError)
 
 import           Prelude                                           hiding (until)
-import           Wallet.API                                        (Slot, WalletAPIError)
+import           Wallet.API                                        (WalletAPIError)
 
 -- | Schema for contracts that can interact with the blockchain (via a node
 --   client & signing process)
@@ -111,26 +107,6 @@ type HasBlockchainActions s =
   , HasOwnPubKey s
   , HasTxConfirmation s
   )
-
--- | Check if there are handlers for any of the three blockchain
---   events.
-waitingForBlockchainActions
-  :: ( HasWriteTx s, HasUtxoAt s, HasOwnPubKey s )
-  => Handlers s
-  -> Bool
-waitingForBlockchainActions handlers =
-  isJust (UtxoAt.utxoAtRequest handlers)
-  || isJust (pendingTransaction handlers)
-  || isJust (OwnPubKey.request handlers)
-
--- | Check if there are handlers for the 'NotifySlot' event.
-waitingForSlotNotification
-  :: (HasAwaitSlot s)
-  => Slot
-  -> Handlers s
-  -> Bool
-waitingForSlotNotification currentSlot_ handlers =
-  maybe False (<= currentSlot_) (AwaitSlot.request handlers)
 
 -- | Execute both contracts in any order
 both :: Contract s e a -> Contract s e b -> Contract s e (a, b)

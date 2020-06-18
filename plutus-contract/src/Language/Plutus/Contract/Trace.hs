@@ -11,6 +11,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
@@ -40,6 +41,7 @@ module Language.Plutus.Contract.Trace
     , getHooks
     , callEndpoint
     , handleUtxoQueries
+    , handleNextTxAtQueries
     , addBlocks
     , addBlocks'
     , addBlocksUntil
@@ -70,36 +72,33 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, non, use,
-                                                                    view, (%=))
+import           Control.Applicative                               (empty)
+import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
+                                                                    (%=))
 import           Control.Monad.Except
 import qualified Control.Monad.Freer                               as Eff
 import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
-import           Control.Monad.State                               (MonadState, StateT, gets, runStateT)
+import           Control.Monad.State                               (MonadState, StateT, runStateT)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (fromMaybe, mapMaybe)
-import           Data.Row                                          (AllUniqueLabels, HasType, KnownSymbol, Label (..),
-                                                                    trial')
+import           Data.Maybe                                        (fromMaybe, isJust, mapMaybe)
+import           Data.Row                                          (KnownSymbol, Label (..), trial')
 import qualified Data.Row.Internal                                 as V
 import qualified Data.Row.Variants                                 as V
 import           Data.Sequence                                     (Seq, (|>))
-import qualified Data.Set                                          as Set
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Data.Text.Extras                                  (tshow)
 import           Numeric.Natural                                   (Natural)
 
 import           Language.Plutus.Contract                          (Contract (..), HasAwaitSlot, HasTxConfirmation,
-                                                                    HasUtxoAt, HasWatchAddress, HasWriteTx, mapError,
-                                                                    waitingForBlockchainActions,
-                                                                    waitingForSlotNotification)
+                                                                    HasUtxoAt, HasWatchAddress, HasWriteTx, mapError)
 import           Language.Plutus.Contract.Checkpoint               (CheckpointStore)
 import qualified Language.Plutus.Contract.Resumable                as State
-import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Output)
 import qualified Language.Plutus.Contract.Types                    as Contract.Types
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
@@ -112,26 +111,24 @@ import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
-import           Language.Plutus.Contract.Effects.WriteTx          (TxSymbol, WriteTxResponse)
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Language.Plutus.Contract.Resumable                (Request (..), Requests (..), Response (..))
+import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), tryHandler, wrapHandler)
 import           Language.Plutus.Contract.Types                    (ResumableResult (..))
 
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
 import qualified Ledger.AddressMap                                 as AM
-import           Ledger.Constraints.OffChain                       (UnbalancedTx)
 import           Ledger.Slot                                       (Slot (..))
-import           Ledger.Tx                                         (Tx, txId)
-import           Ledger.TxId                                       (TxId)
 import           Ledger.Value                                      (Value)
 
 import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
+import           Wallet.Effects                                    as EM
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
+import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects)
 import qualified Wallet.Emulator.MultiAgent                        as EM
-import qualified Wallet.Emulator.NodeClient                        as EM
 import           Wallet.Emulator.SigningProcess                    (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess                    as EM
 
@@ -380,21 +377,15 @@ runWallet
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> Eff.Eff EM.EmulatedWalletEffects a
-    -> m ([Tx], a)
-runWallet w t = do
-    (tx, result) <- EM.processEmulated $ EM.runWalletActionAndProcessPending allWallets w t
-    _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
-    pure (tx, result)
+    -> m a
+runWallet w = EM.processEmulated . EM.walletAction w
 
 runWalletControl
     :: ( MonadEmulator (TraceError e) m )
     => Wallet
     -> Eff.Eff EM.EmulatedWalletControlEffects a
-    -> m ([Tx], a)
-runWalletControl w t = do
-    (tx, result) <- EM.processEmulated $ EM.runWalletControlActionAndProcessPending allWallets w t
-    _ <- EM.processEmulated $ EM.walletsNotifyBlock allWallets tx
-    pure (tx, result)
+    -> m a
+runWalletControl w = EM.processEmulated . EM.walletControlAction w
 
 -- | Call the endpoint on the contract
 callEndpoint
@@ -411,116 +402,27 @@ callEndpoint wallet ep = do
     unless (any (Endpoint.isActive @l) $ fmap rqRequest hks) $
         throwError $ HookError $ "Endpoint " <> tshow (Label @l) <> " not active on " <> tshow wallet
 
-    let handleEvent e
-            | Endpoint.isActive @l e = Just (Endpoint.event @l ep)
-            | otherwise = Nothing
-
-    respondToRequest wallet handleEvent
-
--- | Balance, sign and submit the unbalanced transaction in the context
---   of the wallet
-submitUnbalancedTx
-    :: forall s e m a.
-       ( MonadEmulator (TraceError e) m
-       , HasType TxSymbol WriteTxResponse (Input s)
-       , AllUniqueLabels (Input s)
-       )
-    => Wallet
-    -> UnbalancedTx
-    -> ContractTrace s e m a [Tx]
-submitUnbalancedTx wallet tx = do
-    (txns, res) <- lift (runWallet wallet ((Right <$> Wallet.handleTx tx) `Eff.catchError` \e -> pure $ Left e))
-    let event = WriteTx.event $ view (from WriteTx.writeTxResponse) res
-    addEvent @TxSymbol wallet event
-    pure  txns
+    void $ respondToRequest wallet $ RequestHandler $ \req -> do
+        guard (Endpoint.isActive @l req)
+        pure $ Endpoint.event @l ep
 
 -- | Inspect the open requests of a wallet's contract instance,
---   and maybe respond to them.
+--   and maybe respond to them. Returns the response that was provided to the
+--   contract, if any.
 respondToRequest ::
     forall s e m a.
     ( MonadEmulator (TraceError e) m
     )
     => Wallet
     -- ^ The wallet
-    -> (Handlers s -> Maybe (Event s))
-    -- ^ How to respond to the requests. If this returns 'Just' for more than
-    --   one request then only the first response will be submitted to the
-    --   contract
-    -> ContractTrace s e m a ()
+    -> RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+    -- ^ How to respond to the requests.
+    -> ContractTrace s e m a (Maybe (Response (Event s)))
 respondToRequest wallet f = do
     hks <- getHooks wallet
-    let -- pick the first request that matches the predicate f
-        relevantRequest = msum (fmap (traverse f) hks)
-        handleReq Request{rqID,itID,rqRequest} =
-           addResponse wallet Response{rspItID=itID, rspRqID=rqID, rspResponse=rqRequest}
-    traverse_ handleReq relevantRequest
-
-addInterestingTxEvents
-    :: forall s e m a.
-       ( HasWatchAddress s
-       , MonadEmulator (TraceError e) m
-       )
-    => Map Address (Event s)
-    -> Wallet
-    -> ContractTrace s e m a ()
-addInterestingTxEvents mp wallet =
-    let handleEvent = WatchAddress.watchedAddress >=> flip Map.lookup mp
-    in respondToRequest wallet handleEvent
-
-addTxConfirmedEvent
-    :: forall s e m a.
-        ( HasTxConfirmation s
-        , MonadEmulator (TraceError e) m
-        )
-    => TxId
-    -> Wallet
-    -> ContractTrace s e m a ()
-addTxConfirmedEvent txid wallet =
-    let handleEvent e = case AwaitTxConfirmed.txId e of
-            Just txid' | txid' == txid -> Just (AwaitTxConfirmed.event txid)
-            _                          -> Nothing
-    in respondToRequest wallet handleEvent
-
--- | Respond to all 'WatchAddress' requests from contracts that are waiting
---   for a change to an address touched by this transaction
-addTxEvents
-    :: ( MonadEmulator (TraceError e) m
-       , HasWatchAddress s
-       , HasTxConfirmation s
-       )
-    => Tx
-    -> ContractTrace s e m a ()
-addTxEvents tx = do
-    let addTxEventsWallet wllt = do
-            idx <- lift (gets (view (EM.walletClientState wllt . EM.clientIndex)))
-            currentSlot <- lift $ use (EM.chainState . EM.currentSlot)
-            let watchAddressEvents = WatchAddress.events currentSlot idx tx
-            addInterestingTxEvents watchAddressEvents wllt
-            addTxConfirmedEvent (txId tx) wllt
-    traverse_ addTxEventsWallet allWallets
-
--- | Get the unbalanced transactions that the wallet's contract instance
---   would like to submit to the blockchain.
-unbalancedTransactions
-    :: forall s e m a.
-       ( Monad m
-       , HasType TxSymbol UnbalancedTx (Output s)
-       )
-    => Wallet
-    -> ContractTrace s e m a [UnbalancedTx]
-unbalancedTransactions wllt =
-    mapMaybe (WriteTx.pendingTransaction . rqRequest) <$> getHooks wllt
-
--- | Get the address that the contract has requested the unspent outputs for.
-utxoQueryAddresses
-    :: forall s e m a.
-       ( MonadEmulator (TraceError e) m
-       , HasUtxoAt s
-       )
-    => Wallet
-    -> ContractTrace s e m a (Set.Set Address)
-utxoQueryAddresses wllt =
-    Set.fromList . mapMaybe (UtxoAt.utxoAtRequest . rqRequest) <$> getHooks wllt
+    (response :: Maybe (Response (Event s))) <- lift $ runWallet wallet $ tryHandler (wrapHandler f) hks
+    traverse_ (addResponse wallet) response
+    pure response
 
 -- | Get the addresses that are of interest to the wallet's contract instance
 interestingAddresses
@@ -532,6 +434,16 @@ interestingAddresses
 interestingAddresses wllt =
     mapMaybe (WatchAddress.watchedAddress . rqRequest) <$> getHooks wllt
 
+handleSlotNotifications ::
+    ( HasAwaitSlot s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleSlotNotifications = RequestHandler $ \req -> do
+    waitingSlot <- maybe empty pure (AwaitSlot.request req)
+    currentSlot <- walletSlot
+    guard (currentSlot >= waitingSlot)
+    pure $ AwaitSlot.event currentSlot
+
 -- | Check whether the wallet's contract instance is waiting to be notified
 --   of a slot, and send the notification.
 notifySlot
@@ -541,15 +453,7 @@ notifySlot
        )
     => Wallet
     -> ContractTrace s e m a ()
-notifySlot wallet = do
-    currentSlot <- getCurrentSlot wallet
-    let handleEvent e = case AwaitSlot.request e of
-            Just waitingSlot | currentSlot >= waitingSlot -> Just (AwaitSlot.event currentSlot)
-            _                                             -> Nothing
-    respondToRequest wallet handleEvent
-
-getCurrentSlot :: (MonadState EmulatorState m) => Wallet -> ContractTrace s e m a Slot
-getCurrentSlot wallet = lift $ gets (view (EM.walletClientStates . at wallet . non EM.emptyNodeClientState . EM.clientSlot))
+notifySlot wallet = void $ respondToRequest wallet handleSlotNotifications
 
 -- | Whether to update the internal slot counter of a wallet (that is, the wallet's notion
 --   of the current time)
@@ -642,8 +546,9 @@ handleBlockchainEvents = handleBlockchainEventsOptions defaultHandleBlockchainEv
 
 -- | Handle all blockchain events for the wallet, throwing an error
 --   if the given number of iterations is exceeded
-handleBlockchainEventsOptions
-    :: ( MonadEmulator (TraceError e) m
+handleBlockchainEventsOptions ::
+    forall s e m a.
+    ( MonadEmulator (TraceError e) m
     , HasUtxoAt s
     , HasWatchAddress s
     , HasWriteTx s
@@ -656,63 +561,85 @@ handleBlockchainEventsOptions
     -> ContractTrace s e m a ()
 handleBlockchainEventsOptions o wallet = go 0 where
     HandleBlockchainEventsOptions{maxIterations=MaxIterations i,slotNotifications} = o
-    notify = case slotNotifications of
-                DontSendSlotNotifications -> pure ()
-                SendSlotNotifications     -> notifySlot wallet
+    handler = case slotNotifications of
+                DontSendSlotNotifications -> handleBlockchainQueries @s
+                SendSlotNotifications     ->
+                    handleBlockchainQueries <> handleSlotNotifications
     go j | j >= i    = lift (throwError (HandleBlockchainEventsMaxIterationsExceeded wallet (MaxIterations i)))
          | otherwise = do
-            sl <- getCurrentSlot wallet
-            hks <- getHooks wallet
-            when (any (waitingForSlotNotification sl . rqRequest) hks) $ do
-                notify
-            when (any (waitingForBlockchainActions . rqRequest) hks) $ do
-                submitPendingTransactions wallet
-                handleUtxoQueries wallet
-                handleOwnPubKeyQueries wallet
-                go (j + 1)
+             rsp <- respondToRequest wallet handler
+             case rsp of
+                 Nothing -> pure ()
+                 Just _  -> go (j + 1)
+
+handleBlockchainQueries ::
+    ( HasWriteTx s
+    , HasUtxoAt s
+    , HasTxConfirmation s
+    , HasOwnPubKey s
+    , HasWatchAddress s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleBlockchainQueries =
+    handlePendingTransactions
+    <> handleUtxoQueries
+    <> handleTxConfirmedQueries
+    <> handleOwnPubKeyQueries
+    <> handleNextTxAtQueries
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to
 --   UTXO queries
-submitPendingTransactions
-    :: ( MonadEmulator (TraceError e) m
-       , HasWatchAddress s
-       , HasWriteTx s
-       , HasTxConfirmation s
-       )
-    => Wallet
-    -> ContractTrace s e m a ()
-submitPendingTransactions wllt = do
-    utxs <- unbalancedTransactions wllt
-    traverse_ (submitUnbalancedTx wllt >=> traverse_ addTxEvents) utxs
+handlePendingTransactions ::
+    ( HasWriteTx s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handlePendingTransactions = RequestHandler $ \req -> do
+    tx <- maybe empty pure $ WriteTx.pendingTransaction req
+    res <- (Right <$> Wallet.handleTx tx) `Eff.catchError` (pure . Left)
+    pure $ WriteTx.event $ view (from WriteTx.writeTxResponse) res
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
-handleUtxoQueries
-    :: ( MonadEmulator (TraceError e) m
-       , HasUtxoAt s
-       )
-    => Wallet
-    -> ContractTrace s e m a ()
-handleUtxoQueries wallet = do
-    addresses <- utxoQueryAddresses wallet
-    AM.AddressMap utxoSet <- lift (gets (flip AM.restrict addresses . view (EM.walletClientState wallet . EM.clientIndex)))
-    let handleEvent e = case UtxoAt.utxoAtRequest e of
-            Just addr -> fmap (UtxoAt.event . UtxoAtAddress addr) (Map.lookup addr utxoSet)
-            _         -> Nothing
-    respondToRequest wallet handleEvent
+handleUtxoQueries ::
+    ( HasUtxoAt s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleUtxoQueries = RequestHandler $ \e -> do
+        addr <- maybe empty pure $ UtxoAt.utxoAtRequest e
+        AM.AddressMap utxoSet <- watchedAddresses
+        res <- maybe empty pure $ Map.lookup addr utxoSet
+        pure $ UtxoAt.event $ UtxoAtAddress addr res
 
-handleOwnPubKeyQueries
-    :: ( MonadEmulator (TraceError e) m
-       , HasOwnPubKey s
+handleTxConfirmedQueries ::
+    ( HasTxConfirmation s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleTxConfirmedQueries = RequestHandler $ \e -> do
+        req <- maybe empty pure $ AwaitTxConfirmed.txId e
+        conf <- EM.transactionConfirmed req
+        guard conf
+        pure $ AwaitTxConfirmed.event req
+
+handleNextTxAtQueries
+    :: ( HasWatchAddress s
        )
-    => Wallet
-    -> ContractTrace s e m a ()
-handleOwnPubKeyQueries wallet =
-    let handleEvent e = case OwnPubKey.request e of
-            Just _ -> pure (OwnPubKey.event (EM.walletPubKey wallet))
-            _      -> Nothing
-    in respondToRequest wallet handleEvent
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleNextTxAtQueries = RequestHandler $ \e -> do
+        req <- maybe empty pure $ WatchAddress.watchAddressRequest e
+        sl <- walletSlot
+        guard (sl > acreqSlot req)
+        rsp <- EM.nextTx req
+        pure $ WatchAddress.event rsp
+
+handleOwnPubKeyQueries ::
+    ( HasOwnPubKey s
+    )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleOwnPubKeyQueries = RequestHandler $ \req -> do
+        guard $ isJust $ OwnPubKey.request req
+        key <- ownPubKey
+        pure $ OwnPubKey.event key
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses

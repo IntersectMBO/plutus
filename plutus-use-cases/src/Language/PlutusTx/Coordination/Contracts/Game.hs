@@ -151,6 +151,7 @@ lockTrace =
     let w1 = Trace.Wallet 1 in
     Trace.callEndpoint @"lock" w1 (LockParams "secret" (Ada.lovelaceValueOf 10))
         >> Trace.handleBlockchainEvents w1
+        >> Trace.addBlocks 1
 
 guessTrace
     :: ( MonadEmulator (TraceError e) m )
@@ -160,6 +161,7 @@ guessTrace =
     lockTrace
         >> Trace.callEndpoint @"guess" w2 (GuessParams "secret")
         >> Trace.handleBlockchainEvents w2
+        >> Trace.addBlocks 1
 
 guessWrongTrace
     :: ( MonadEmulator (TraceError e) m )
@@ -169,3 +171,4 @@ guessWrongTrace =
     lockTrace
         >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET")
         >> Trace.handleBlockchainEvents w2
+        >> Trace.addBlocks 1

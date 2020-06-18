@@ -32,8 +32,7 @@ import           Language.Plutus.Contract.Test                   (renderTraceCon
 import           Language.Plutus.Contract.Trace                  (ContractTrace, ContractTraceState,
                                                                   TraceError (TContractError), addBlocks,
                                                                   addBlocksUntil, addNamedEvent, handleBlockchainEvents,
-                                                                  notifyInterestingAddresses, notifySlot, payToWallet,
-                                                                  runTraceWithDistribution)
+                                                                  payToWallet, runTraceWithDistribution)
 import           Ledger                                          (Blockchain, PubKey, TxOut (txOutValue), pubKeyHash,
                                                                   txOutTxOut)
 import           Ledger.AddressMap                               (fundsAt)
@@ -181,8 +180,6 @@ triggerEvents ::
     -> ContractTrace s e m a ()
 triggerEvents w = do
     handleBlockchainEvents w
-    notifyInterestingAddresses w
-    notifySlot w
 
 toInitialDistribution :: [SimulatorWallet] -> Map Wallet Value
 toInitialDistribution = Map.fromList . fmap (\(SimulatorWallet w v) -> (w, v))
