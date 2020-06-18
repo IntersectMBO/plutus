@@ -137,3 +137,20 @@ eqProgramM
 eqProgramM (Program _ ver1 term1) (Program _ ver2 term2) = do
     guard $ ver1 == ver2
     eqTermM term1 term2
+
+{-FIXME: Roman:
+
+I'd perhaps define eqListM parameterized by a function checking equality of elements, but no big deal.
+@effectfully
+effectfully 2 days ago Member
+
+Actually, I have a feeling that having
+
+data OneIsLonger = LeftIsLonger | RightIsLonger
+
+zipExact :: [a] -> [b] -> Either OneIsLonger [(a, b)]
+
+we can make this code and the type checker's code nicely readable.
+Especially the type checker, because there we won't need some explicit recursion then.
+-}
+

@@ -16,14 +16,14 @@ module Language.PlutusCore.Lexer.Type
 
 import           PlutusPrelude
 
+import           Control.Monad.State
+import qualified Data.ByteString.Lazy                            as BSL
+import qualified Data.Map                                        as M
+import qualified Data.Text                                       as T
+import           Language.PlutusCore.Core.Instance.Pretty.Common ()
 import           Language.PlutusCore.Core.Type
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-
-import           Control.Monad.State
-import qualified Data.ByteString.Lazy          as BSL
-import qualified Data.Map                      as M
-import qualified Data.Text                     as T
 
 -- | A keyword in Plutus Core.
 data Keyword
@@ -146,30 +146,11 @@ newIdentifier str = do
             pure nextU
 
 
-toStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
-toStaticBuiltinName = \case
-    "addInteger"               -> Just AddInteger
-    "subtractInteger"          -> Just SubtractInteger
-    "multiplyInteger"          -> Just MultiplyInteger
-    "divideInteger"            -> Just DivideInteger
-    "quotientInteger"          -> Just QuotientInteger
-    "modInteger"               -> Just ModInteger
-    "remainderInteger"         -> Just RemainderInteger
-    "lessThanInteger"          -> Just LessThanInteger
-    "lessThanEqualsInteger"    -> Just LessThanEqInteger
-    "greaterThanInteger"       -> Just GreaterThanInteger
-    "greaterThanEqualsInteger" -> Just GreaterThanEqInteger
-    "equalsInteger"            -> Just EqInteger
-    "concatenate"              -> Just Concatenate
-    "takeByteString"           -> Just TakeByteString
-    "dropByteString"           -> Just DropByteString
-    "equalsByteString"         -> Just EqByteString
-    "lessThanByteString"       -> Just LtByteString
-    "greaterThanByteString"    -> Just GtByteString
-    "sha2_256"                 -> Just SHA2
-    "sha3_256"                 -> Just SHA3
-    "verifySignature"          -> Just VerifySignature
-    "ifThenElse"               -> Just IfThenElse
-    _                          -> Nothing
+-- | A map from static built-in names to their syntactic forms as defined by their Pretty instances.
+staticBuiltinNamesMap :: M.Map T.Text StaticBuiltinName
+staticBuiltinNamesMap = M.fromList $ map (\x -> (T.pack . show . pretty $ x, x)) allBuiltinNames
 
+-- | Look up a string to see if it's the name of a static built-in function.
+toStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
+toStaticBuiltinName n = M.lookup n staticBuiltinNamesMap
 

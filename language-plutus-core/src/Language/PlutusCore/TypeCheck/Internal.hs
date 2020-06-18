@@ -11,10 +11,9 @@
 {-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.TypeCheck.Internal
-    ( DynamicBuiltinNameTypes (..)
-    , TypeCheckConfig (..)
+    ( TypeCheckConfig (..)
     , TypeCheckM
-    , tccDynamicBuiltinNameTypes
+    , tccDynamicBuiltinNameMeanings
     , runTypeCheckM
     , inferKindM
     , checkKindM
@@ -39,10 +38,7 @@ import           PlutusPrelude
 import           Control.Lens.TH                        (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import           Data.Map                               (Map)
 import qualified Data.Map                               as Map
-
---import           Debug.Trace
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -94,18 +90,12 @@ functions that cannot fail looks like this:
 -- ## Type definitions ##
 -- ######################
 
--- | Mapping from 'DynamicBuiltinName's to their 'Type's.
-newtype DynamicBuiltinNameTypes uni = DynamicBuiltinNameTypes
-    { unDynamicBuiltinNameTypes :: Map DynamicBuiltinName (Dupable (Normalized (Type TyName uni ())))
-    } deriving newtype (Semigroup, Monoid)
-
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
 type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni ())))
 
 -- | Configuration of the type checker.
 data TypeCheckConfig uni = TypeCheckConfig
-    { _tccDynamicBuiltinNameTypes    :: DynamicBuiltinNameTypes uni
-    , _tccDynamicBuiltinNameMeanings :: DynamicBuiltinNameMeanings uni
+    { _tccDynamicBuiltinNameMeanings :: DynamicBuiltinNameMeanings uni
     }
 
 -- | The environment that the type checker runs in.
@@ -462,6 +452,28 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
     -- See Note [PLC types and universes].
     pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
 
+{- FIXME: Roman:
+Please use the notation used everywhere else in this file. It should be clear where things are inferred and where checked.
+
+Should it be
+
+[check| G !- builtin bn {A_1 ... A_m} M_1 ... Mn : [A_1,...,A_m/a_1,...,a_m] C]
+
+instead of
+
+G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
+
+?
+
+I think it would be more readable if we used the following notation:
+
+[check| G !- builtin f {A_i*} M_j* : [A_i / a_i]* C]
+
+[infer| G !- a_i :: K_i]
+
+etc
+
+-}
 
 -- bn : [a_1 :: K_1, ..., a_n:: K_m](B_1, ..., B_n)C
 -- G !- M_i : D_i
@@ -472,6 +484,20 @@ inferTypeM (ApplyBuiltin ann bn tyargs args) = do
   TypeComponents typeVars argTypes rtype <- inferTypeComponentsOfBuiltinM ann bn
   rtype' <- checkBuiltinAppl ann bn typeVars tyargs argTypes args rtype
   pure rtype'
+
+
+{- FIXME: Roman:
+I'd inline the definition of checkBuiltinAppl as it's just
+
+    check types
+    check terms
+    return the final type
+
+which all seem to be very different things. Pulling the whole do into
+a separate function would also be sensible, then inlining
+checkBuiltinAppl would look even better. Right now checkBuiltinAppl
+receives way too many arguments loosely related to each other.
+-}
 
 
 -- [infer| G !- v : ty]    ty ~>? vTy

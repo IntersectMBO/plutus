@@ -20,10 +20,6 @@ import           Hedgehog                                  hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
--- FIXME: add some tests for under/overapplication?  We used to have
--- ConstAppStuck and the tests here checked for that with
--- underapplication, but now we have exceptions instead.
-
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
 -- An argument is generated as a Haskell value, then coerced to the corresponding PLC value which

@@ -48,8 +48,8 @@ main =
                 , env sampleScript $ \ f ->
                   let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete p = runQuoteT $ do
-                            bis <- traceBuiltins
-                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = bis }) p
+                            meanings = getStringBuiltinMeanings
+                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = meanings }) p
                       mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
                   in
 

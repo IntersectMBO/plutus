@@ -81,6 +81,12 @@ substituteDb varFor new = go where
 
     goUnder var term = if var == varFor then term else go term
 
+
+{- FIXME: Roman :
+
+(|>) has comments specifying the behavior of the machine. They should be updated as well.
+-}
+
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M

@@ -314,6 +314,5 @@ runCompiler opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
     when (poDoTypecheck opts) . void $ do
-        stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
-        PLC.typecheckPipeline (PLC.TypeCheckConfig stringBuiltinTypes PLC.getStringBuiltinMeanings) plcP
+        PLC.typecheckPipeline (PLC.TypeCheckConfig PLC.getStringBuiltinMeanings) plcP
     pure (pirP, plcP)

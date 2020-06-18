@@ -258,8 +258,7 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
     let tyOrErr = PLC.runQuoteT $ do
-            types <- getStringBuiltinTypes $ PLC.AlexPn 0 0 0
-            let cfg = PLC.TypeCheckConfig types getStringBuiltinMeanings
+            let cfg = PLC.TypeCheckConfig getStringBuiltinMeanings
             PLC.typecheckPipeline cfg prog
     case tyOrErr of
       Left (e :: PlcParserError) -> do

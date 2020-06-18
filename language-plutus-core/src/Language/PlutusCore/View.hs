@@ -35,3 +35,5 @@ termAsTermIterApp = go [] where
     go args (Apply _ fun arg) = go (arg : args) fun
     go args (TyInst _ fun _)  = go args fun
     go args  fun              = IterApp fun args
+
+-- FIXME: do we still need this function?

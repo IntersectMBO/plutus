@@ -432,11 +432,6 @@ wrapRel argTy arity bn = do
         PIR.mkIterLamAbs args $
         PIR.Apply () converter (PIR.ApplyBuiltin () bn [] (fmap (PIR.mkVar ()) args))
 
-{-
-  eqInteger :   lam x . lam y . (convertor (builtin eqInteger [] [x, y]))
-             -> lam x . lam y . (lam b plcBoolTy . (ifThenElse [haskellBoolTy] [b, True, False])) <applied to> (builtin eqInteger [] [x, y]) 
--}
-
 -- | Convert a PLC Unit into a Haskell Unit.
 plcUnitToHaskellUnit :: Compiling uni m => m (PIRTerm uni)
 plcUnitToHaskellUnit = do

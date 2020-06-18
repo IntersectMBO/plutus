@@ -165,7 +165,7 @@ printType
     -> m T.Text
 printType bs = runQuoteT $ displayPlcDef <$> do
     scoped <- parseScoped bs
-    inferTypeOfProgram (TypeCheckConfig mempty mempty) scoped
+    inferTypeOfProgram (TypeCheckConfig mempty) scoped
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.

@@ -26,8 +26,7 @@ typecheckAnd
     => (DynamicBuiltinNameMeanings uni -> CostModel -> Term TyName Name uni () -> a)
     -> DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
-    types <- dynamicBuiltinNameMeaningsToTypes () meanings
-    _ <- inferType (TypeCheckConfig types meanings) term
+    _ <- inferType (TypeCheckConfig meanings) term
     -- The bang is important in order to force the effects of a computation regardless of whether
     -- the result of the computation is forced or not.
     return $! action meanings defaultCostModel term

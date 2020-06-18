@@ -125,7 +125,7 @@ termSubstFreeNamesA f = go Set.empty where
     go bvs (TyAbs ann name kind body)     = TyAbs ann name kind <$> go bvs body
     go bvs (LamAbs ann name ty body)      = LamAbs ann name ty <$> go (insert (name ^. unique) bvs) body
     go bvs (Apply ann fun arg)            = Apply ann <$> go bvs fun <*> go bvs arg
-    go bvs (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn tys <$> traverse (go bvs) args -- FIXME: is this correct?
+    go bvs (ApplyBuiltin ann bn tys args) = ApplyBuiltin ann bn tys <$> traverse (go bvs) args
     go bvs (TyInst ann term ty)           = go bvs term <&> \term' -> TyInst ann term' ty
     go bvs (Unwrap ann term)              = Unwrap ann <$> go bvs term
     go bvs (IWrap ann pat arg term)       = IWrap ann pat arg <$> go bvs term
@@ -146,31 +146,31 @@ termSubstFreeNames = purely termSubstFreeNamesA
 fvTerm :: Ord name => Term tyname name uni ann -> Set name
 fvTerm = cata f
   where
-    f (VarF _ n)        = singleton n
-    f (TyAbsF _ _ _ t)  = t
-    f (LamAbsF _ n _ t) = delete n t
-    f (ApplyF _ t1 t2)  = t1 `union` t2
-    f (TyInstF _ t _)   = t
-    f (UnwrapF _ t)     = t
-    f (IWrapF _ _ _ t)  = t
-    f ConstantF{}       = Set.empty
-    f ApplyBuiltinF{}   = Set.empty
-    f ErrorF{}          = Set.empty
+    f (VarF _ n)               = singleton n
+    f (TyAbsF _ _ _ t)         = t
+    f (LamAbsF _ n _ t)        = delete n t
+    f (ApplyF _ t1 t2)         = t1 `union` t2
+    f (TyInstF _ t _)          = t
+    f (UnwrapF _ t)            = t
+    f (IWrapF _ _ _ t)         = t
+    f (ApplyBuiltinF _ _ _ ts) = unions ts
+    f ConstantF{}              = Set.empty
+    f ErrorF{}                 = Set.empty
 
 -- | Get all the free type variables in a term.
 ftvTerm :: Ord tyname => Term tyname name uni ann -> Set tyname
 ftvTerm = cata f
   where
-    f (TyAbsF _ ty _ t)    = delete ty t
-    f (LamAbsF _ _ ty t)   = ftvTy ty `union` t
-    f (ApplyF _ t1 t2)     = t1 `union` t2
-    f (TyInstF _ t ty)     = t `union` ftvTy ty
-    f (UnwrapF _ t)        = t
-    f (IWrapF _ pat arg t) = ftvTy pat `union` ftvTy arg `union` t
-    f (ErrorF _ ty)        = ftvTy ty
-    f VarF{}               = Set.empty
-    f ConstantF{}          = Set.empty
-    f ApplyBuiltinF{}      = Set.empty
+    f (TyAbsF _ ty _ t)          = delete ty t
+    f (LamAbsF _ _ ty t)         = ftvTy ty `union` t
+    f (ApplyF _ t1 t2)           = t1 `union` t2
+    f (TyInstF _ t ty)           = t `union` ftvTy ty
+    f (UnwrapF _ t)              = t
+    f (IWrapF _ pat arg t)       = ftvTy pat `union` ftvTy arg `union` t
+    f (ErrorF _ ty)              = ftvTy ty
+    f (ApplyBuiltinF _ _ tys ts) = unions (fmap ftvTy tys) `union` unions ts
+    f VarF{}                     = Set.empty
+    f ConstantF{}                = Set.empty
 
 -- | Get all the free type variables in a type.
 ftvTy :: Ord tyname => Type tyname uni ann -> Set tyname

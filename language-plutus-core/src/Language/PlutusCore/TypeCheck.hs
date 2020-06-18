@@ -5,11 +5,9 @@
 module Language.PlutusCore.TypeCheck
     (
     -- * Configuration.
-      DynamicBuiltinNameTypes (..)
-    , TypeCheckConfig (..)
-    , tccDynamicBuiltinNameTypes
+      TypeCheckConfig (..)
+    , tccDynamicBuiltinNameMeanings
     , defConfig
-    , dynamicBuiltinNameMeaningsToTypes
     -- * Kind/type inference/checking.
     , inferKind
     , checkKind
@@ -20,11 +18,9 @@ module Language.PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Error
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename
 import           Language.PlutusCore.TypeCheck.Internal
@@ -34,19 +30,7 @@ import           Control.Monad.Except
 
 -- | The default 'TypeCheckConfig'.
 defConfig :: TypeCheckConfig uni
-defConfig = TypeCheckConfig mempty mempty
-
--- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
--- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
-dynamicBuiltinNameMeaningsToTypes
-    :: (AsTypeError e uni ann, MonadError e m, MonadQuote m)
-    => ann -> DynamicBuiltinNameMeanings uni -> m (DynamicBuiltinNameTypes uni)
-dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
-    let getType mean = do
-            let ty = dynamicBuiltinNameMeaningToType mean
-            _ <- inferKind defConfig $ ann <$ ty
-            pure <$> normalizeType ty
-    DynamicBuiltinNameTypes <$> traverse getType means
+defConfig = TypeCheckConfig mempty
 
 -- | Infer the kind of a type.
 inferKind

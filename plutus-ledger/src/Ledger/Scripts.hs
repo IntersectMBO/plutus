@@ -187,12 +187,11 @@ typecheckScript (unScript -> p) =
       where
         act :: Either (PLC.Error PLC.DefaultUni ()) (PLC.Type PLC.TyName PLC.DefaultUni ())
         act = runExcept $ PLC.runQuoteT $ do
-            types <- PLC.getStringBuiltinTypes ()
             -- We should be normalized, so we can use the on-chain config
             -- See Note [Normalized types in Scripts]
             -- FIXME
             let meanings = PLC.getStringBuiltinMeanings
-                config = PLC.defConfig { PLC._tccDynamicBuiltinNameTypes = types, PLC._tccDynamicBuiltinNameMeanings = meanings }
+                config = PLC.defConfig { PLC._tccDynamicBuiltinNameMeanings = meanings }
             PLC.unNormalized Haskell.<$> PLC.typecheckPipeline config p
 
 instance ToJSON Script where
