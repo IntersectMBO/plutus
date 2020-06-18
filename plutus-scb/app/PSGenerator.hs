@@ -56,6 +56,8 @@ import           Servant.PureScript                                (HasBridge, S
                                                                     defaultSettings, languageBridge,
                                                                     writeAPIModuleWithSettings, _generateSubscriberAPI)
 import           System.FilePath                                   ((</>))
+import           Wallet.Effects                                    (AddressChangeRequest (..),
+                                                                    AddressChangeResponse (..))
 import qualified Wallet.Emulator.Chain                             as Chain
 
 myBridge :: BridgePart
@@ -115,6 +117,8 @@ myTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     ]
 
 mySettings :: Settings
