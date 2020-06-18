@@ -26,6 +26,9 @@ import           Ledger.TxId       (TxId)
 
 -- | The slot in which a transaction was added to the chain.
 newtype TxSlot = TxSlot
+    {- This is the 'Measure' of 'ChainIndexItem', but the class has a 'Monoid'
+       superclass. But 'Max' is only a 'Semigroup' so we add the 'Maybe'.
+    -}
     { unTxSlot :: Maybe (Max Slot)
     } deriving stock (Eq, Show, Generic)
       deriving newtype (Semigroup, Monoid)
@@ -43,7 +46,7 @@ instance Measured TxSlot ChainIndexItem where
             { unTxSlot = Just (Max ciSlot)
             }
 
--- | A list of transactions at an address, sorted by slot number
+-- | A list of transactions that touch an address, sorted by slot number
 newtype AddressIndex = AddressIndex{ unAddressIndex :: FingerTree TxSlot ChainIndexItem }
     deriving (Eq, Show)
 
