@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module Main (main) where
 
@@ -20,18 +21,17 @@ sig = "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb882159
 pubKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 msg = ""
 
-traceBuiltins :: QuoteT (Either (Error DefaultUni ())) (DynamicBuiltinNameTypes DefaultUni)
-traceBuiltins = getStringBuiltinTypes ()
-
 main :: IO ()
 main =
-    defaultMain [ env largeTypeFiles $ \ ~(f, g, h) ->
-                    let mkBench = bench "pretty" . nf (fmap prettyPlcDefText) . parse
+    defaultMain [ {- env largeTypeFiles $ \ ~(f, g, h) ->
+                    let mkBench = bench "pretty" . nf (fmap displayPlcDef) . parse
                     in
 
                     bgroup "prettyprint" $ mkBench <$> [f, g, h]
 
-                , env typeCompare $ \ ~(f, g) ->
+                , -}
+                  -- FIXME: ^ prettyprinting has changed
+                  env typeCompare $ \ ~(f, g) ->
                   let parsed0 = parse f
                       parsed1 = parse g
                   in
@@ -48,8 +48,8 @@ main =
                 , env sampleScript $ \ f ->
                   let typeCheckConcrete :: Program TyName Name DefaultUni () -> Either (Error DefaultUni ()) (Normalized (Type TyName DefaultUni ()))
                       typeCheckConcrete p = runQuoteT $ do
-                            meanings = getStringBuiltinMeanings
-                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameTypes = meanings }) p
+                            let meanings = getStringBuiltinMeanings
+                            inferTypeOfProgram (defConfig { _tccDynamicBuiltinNameMeanings = meanings }) p
                       mkBench = bench "type-check" . nf typeCheckConcrete . deserialise
                   in
 
