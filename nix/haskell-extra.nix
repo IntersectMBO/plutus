@@ -27,8 +27,7 @@ pkgs.haskell-nix.tools {
   # This fails for packages that use plutus due to missing unfoldings
   ghcide = {
     version = "0.2.0";
-    compiler-nix-name = "ghc883";
-    index-state = "2020-06-02T00:00:00Z";
+    inherit index-state checkMaterialization;
     plan-sha256 = "04l2ihni8ccbnb99apsainmfww6swavxg8vw4h4cg966lcwayndh";
   };
 } // {
@@ -46,8 +45,7 @@ pkgs.haskell-nix.tools {
     };
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version
-    plan-sha256 = "0v9r3d11y595w7zrn7zrcxbcvjph5q8qj4fnig4sff99wcm038ab";
-    compiler-nix-name = "ghc883";
+    plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
     modules = [{
       # Tests don't pass for some reason, but this is a somewhat random revision.
       packages.haskell-language-server.doCheck = false;
@@ -56,11 +54,9 @@ pkgs.haskell-nix.tools {
   ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
-    compiler-nix-name = "ghc883";
-    inherit checkMaterialization;
-    index-state = "2020-05-10T00:00:00Z";
+    inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1s7z6q9prwyy4m958rgddadzyz33bgnwy1i1az7p3gz3s0jp4m99";
+    plan-sha256 = "0ixxja89sbaflb4vcyx9rc5sj09ca0y5lhdy1wihmf8k5ynmzhvs";
     modules = [({config, ...}: {
       packages.ghcide.configureFlags = pkgs.lib.optional (!pkgs.stdenv.targetPlatform.isMusl)
         "--enable-executable-dynamic";

@@ -15,8 +15,6 @@
 let
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
-      index-state = "2020-05-10T00:00:00Z";
-
       modules = args.modules ++ [{
         # plan-to-nix does not expose `test: False` settings in cabal.project file
         packages.byron-spec-chain.components.tests.chain-rules-test.buildable = lib.mkForce false;
