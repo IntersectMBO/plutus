@@ -4,7 +4,7 @@ module Language.Marlowe.ACTUS.STF.StateTransitionLp (stateTransitionLp) where
 
 import Language.Marlowe
 import Language.Marlowe.ACTUS.BusinessEvents
-import Language.Marlowe.ACTUS.STF.StateTransitionSpec
+import Language.Marlowe.ACTUS.STF.StateTransitionModel
 import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule

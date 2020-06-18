@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-module Language.Marlowe.ACTUS.POF.PayoffSpec where
+module Language.Marlowe.ACTUS.POF.PayoffModel where
 
 import Language.Marlowe.ACTUS.ContractTerms
     ( FEB(FEB_N, FEB_A), PYTP(PYTP_O, PYTP_A, PYTP_N, PYTP_I) )

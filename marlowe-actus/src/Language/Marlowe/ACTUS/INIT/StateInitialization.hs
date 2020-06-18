@@ -5,7 +5,7 @@ import Language.Marlowe.ACTUS.ContractTerms
     ( ContractTerms(..), ContractType(LAM, PAM), ScheduleConfig )
 import Language.Marlowe.ACTUS.ContractState ( ContractState )
 import Language.Marlowe.ACTUS.BusinessEvents ( EventType(IP, FP) )
-import Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+import Language.Marlowe.ACTUS.INIT.StateInitializationModel
     ( _INIT_PAM )
 import Language.Marlowe.ACTUS.SCHED.ContractSchedule ( schedule )
 import Language.Marlowe.ACTUS.Utility.ScheduleGenerator

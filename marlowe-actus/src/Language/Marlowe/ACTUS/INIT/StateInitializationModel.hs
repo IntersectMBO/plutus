@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-module Language.Marlowe.ACTUS.INIT.StateInitializationSpec where
+module Language.Marlowe.ACTUS.INIT.StateInitializationModel where
 
 import Language.Marlowe.ACTUS.ContractState
     ( ContractStatePoly(ContractStatePoly, prnxt, ipcb, tmd, nt, ipnr,

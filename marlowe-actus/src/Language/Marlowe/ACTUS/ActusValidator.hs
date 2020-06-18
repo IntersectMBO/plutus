@@ -61,16 +61,16 @@ validateCashFlow terms past present =
     in
         case cashEvent present of
             AD_EVENT {..} -> True
-            PP_EVENT {..} -> noUnreportedOverdue -- maybe check that outstanding notional is still positive and compare pp_payoff to amount
+            PP_EVENT {..} -> (noUnreportedOverdue || error "unreported overdue") -- maybe check that outstanding notional is still positive and compare pp_payoff to amount
             CE_EVENT {..} -> not noUnreportedOverdue
             _ ->
                 let expectedPaymentDayOk =
                             isPaymentDay (cashPaymentDay present) sched
                     expectedPayOff = replayValidatedEvents terms past present
-                in  noUnreportedOverdue
-                        && expectedPaymentDayOk
-                        && expectedPayOff
-                        == amount present
+                in  (noUnreportedOverdue || error "unreported overdue") 
+                        && (expectedPaymentDayOk || (error $ "payment day is not ok: " ++ (show $ cashPaymentDay present)))
+                        && (abs expectedPayOff == amount present || (error $ "payoff is not ok, expected: " ++ show expectedPayOff ++ " actual: " ++ (show $ amount present) ))
+    --todo get rid of abs
     --todo check currency from contract terms
     --todocheck contractId
     --todo check if party is eligble to initate this event

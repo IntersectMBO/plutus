@@ -7,7 +7,7 @@ import Language.Marlowe.ACTUS.ContractTerms
 import Language.Marlowe.ACTUS.BusinessEvents
     ( EventType(SC, IED, MD, PP, PY, FP, PRD, TD, IP, IPCI, RR, RRF) )
 import Language.Marlowe.ACTUS.Schedule ( ShiftedDay )
-import Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
+import Language.Marlowe.ACTUS.SCHED.ContractScheduleModel
     ( _SCHED_IED_PAM,
       _SCHED_MD_PAM,
       _SCHED_PP_PAM,

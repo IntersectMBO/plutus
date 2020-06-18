@@ -36,7 +36,7 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
 
 mapEventType :: ScheduledEvent -> EventType
 mapEventType event = case event of
-    AD_EVENT {..}  -> MD
+    AD_EVENT {..}  -> AD
     MD_EVENT {..}  -> MD
     IED_EVENT {..} -> IED
     _             -> undefined

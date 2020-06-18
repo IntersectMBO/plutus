@@ -134,34 +134,51 @@ pamRePlay = do
 pamSimple :: IO ()
 pamSimple = do
     let customValidator = actusMarloweValidator contractTerms
-    let contract = genContract
-    let initState = emptyState 0
-    let inputs = 
-            let 
-                mkChoice role choice = 
-                    IChoice $ ChoiceId (fromString choice) (Role $ TokenName $ fromString role)
-                mkDeposit role = 
-                    IDeposit (AccountId 0 $ Role $ TokenName $ fromString role) (Role $ TokenName $ fromString role) ada
-                chooseContractId = mkChoice "party" "contractId" 10
-                chooseEventType = mkChoice "party" "eventType" (eventTypeToEventTypeId AD)
-                chooseRiskFactor1 = mkChoice "oracle" "riskFactor-o_rf_CURS" 0
-                chooseRiskFactor2 = mkChoice "oracle" "riskFactor-o_rf_RRMO" 0
-                chooseRiskFactor3 = mkChoice "oracle" "riskFactor-o_rf_SCMO" 0
-                chooseRiskFactor4 = mkChoice "oracle" "riskFactor-pp_payoff" 0
-                choosePayoff = mkChoice "party" "payoff" 0
-                choosePayoffCurrency = mkChoice "party" "payoffCurrency" 0
-                doDeposit = mkDeposit "party" 0
-            in [chooseContractId, chooseEventType, chooseRiskFactor1, chooseRiskFactor2, chooseRiskFactor3,
-                chooseRiskFactor4, choosePayoff, choosePayoffCurrency, doDeposit]
-        --
-    let txInput = TransactionInput { txInterval = (0, 2000), txInputs = inputs }
-    let txOutput = computeTransactionWithLoopSupport txInput initState contract
-    let validationResult = customValidator txOutput --trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ 
-    let parsedCashFlows = stateParser $ (appendPresentState $ txOutState txOutput)
+        contract = genContract
+        initState = emptyState 0
+        mkChoice role choice = 
+            IChoice $ ChoiceId (fromString choice) (Role $ TokenName $ fromString role)
+        mkDeposit role = 
+            IDeposit (AccountId 0 $ Role $ TokenName $ fromString role) (Role $ TokenName $ fromString role) ada
+    let inputs1 = 
+                [   mkChoice "party" "contractId" 10
+                ,   mkChoice "party" "eventType" (eventTypeToEventTypeId AD)
+                ,   mkChoice "oracle" "riskFactor-o_rf_CURS" 0
+                ,   mkChoice "oracle" "riskFactor-o_rf_RRMO" 0
+                ,   mkChoice "oracle" "riskFactor-o_rf_SCMO" 0
+                ,   mkChoice "oracle" "riskFactor-pp_payoff" 0
+                ,   mkChoice "party" "payoff" 0
+                ,   mkChoice "party" "payoffCurrency" 0
+                ,   mkDeposit "party" 0
+                ]
+    let inputs2 =
+                [   mkChoice "party" "contractId" 10
+                ,   mkChoice "party" "eventType" (eventTypeToEventTypeId IED)
+                ,   mkChoice "oracle" "riskFactor-o_rf_CURS" $ round marloweFixedPoint 
+                ,   mkChoice "oracle" "riskFactor-o_rf_RRMO" 0
+                ,   mkChoice "oracle" "riskFactor-o_rf_SCMO" 0
+                ,   mkChoice "oracle" "riskFactor-pp_payoff" 0
+                ,   mkChoice "party" "payoff" 900
+                ,   mkChoice "party" "payoffCurrency" 0
+                ,   mkDeposit "party" 900
+                ]
+    let txInput1 = TransactionInput { txInterval = (0, 2000), txInputs = inputs1 }
+    let txOutput1 = computeTransactionWithLoopSupport txInput1 initState contract
+    let validationResult1 = customValidator txOutput1 --trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ 
+    let state1 = txOutState txOutput1 
+
+    let txInput2 = TransactionInput { txInterval = (0, 2000), txInputs = inputs2 }
+    let txOutput2 = computeTransactionWithLoopSupport txInput2 state1 contract
+    let validationResult2 = customValidator txOutput2 --trace ("\ntxout: " ++ (show txOutput) ++ "\ncontract = " ++ (show contract)) $ 
+       
+    
+    let parsedCashFlows = stateParser $ appendPresentState $ txOutState txOutput1
     let parsedCashFlowsEmpty = null parsedCashFlows
     assertBool "Parsed cashflows are not empty" $ not parsedCashFlowsEmpty
-    assertBool "Validation result" validationResult
-    assertEqual "Contract is closed" Close (txOutContract txOutput)
+    assertBool "Validation result" validationResult1
+    assertEqual "Contract is closed" Close (txOutContract txOutput1)
+    assertBool "Validation result 2" validationResult2
+    assertEqual "Contract is closed 2" Close (txOutContract txOutput2)
 
 pamLpGeneration :: IO ()
 pamLpGeneration = do

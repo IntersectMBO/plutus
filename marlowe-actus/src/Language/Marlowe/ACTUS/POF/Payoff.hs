@@ -8,7 +8,7 @@ import Language.Marlowe.ACTUS.ContractState
       ContractState )
 import Language.Marlowe.ACTUS.BusinessEvents
     ( ScheduledEvent(..) )
-import Language.Marlowe.ACTUS.POF.PayoffSpec
+import Language.Marlowe.ACTUS.POF.PayoffModel
     ( _POF_IED_PAM,
       _POF_MD_PAM,
       _POF_PP_PAM,

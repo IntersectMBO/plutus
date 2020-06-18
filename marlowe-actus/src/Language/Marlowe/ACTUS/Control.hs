@@ -116,7 +116,7 @@ inquiry timePosfix party partyId oracle continue =
             (fromString ("riskFactor-" ++ name ++ timePosfix))
             oracleRole
             (Constant 0)
-            [Bound 0 1000000]
+            [Bound 0 100000000000000]
         payoffInquiry = inputTemplate (fromString ("payoff" ++ timePosfix))
                                       partyRole
                                       (Constant 0)
@@ -189,12 +189,11 @@ stateParser State {..} =
         parseCashFlow :: LogicalTime -> CashFlow
         parseCashFlow t =
             let
+                lookHist = 
+                    fromMaybe (error $ "no hist at t: " ++ show t) $ Map.lookup t stateHist
                 look :: String -> Integer
                 look name =
-                    fromJust
-                        $ Map.lookup (ValueId $ fromString name)
-                        $ fromJust
-                        $ Map.lookup t stateHist
+                    fromMaybe (error $ "no value:" ++ show name) $ Map.lookup (ValueId $ fromString name) lookHist
                 proposedPaymentDate = fromGregorian 2008 10 20 --todo slotRangeToDay (look "paymentSlotStart") (look "paymentSlotEnd") 
                 parseCashEvent eventId = case eventTypeIdToEventType eventId of
                     AD -> AD_EVENT $ parseDouble $ look "riskFactor-o_rf_CURS"
@@ -253,8 +252,8 @@ stateParser State {..} =
                          , cashPaymentDay     = proposedPaymentDate
                          , cashCalculationDay = undefined
                          , cashEvent = parseCashEvent $ look "eventType"
-                         , amount             = parseDouble $ look "amount"
-                         , currency           = show $ look "currency"
+                         , amount             = fromIntegral $ look "payoff"
+                         , currency           = show $ look "payoffCurrency"
                          }
     in
         if isJust loopState then parseCashFlow <$> Map.keys stateHist else []
@@ -264,5 +263,5 @@ actusMarloweValidator terms TransactionOutput {..} =
     let cashflows = stateParser $ appendPresentState txOutState
         result    = validateCashFlow terms (L.init cashflows) (L.last cashflows) --todo THIS IS NOT SECURE
     in  null cashflows || result
-actusMarloweValidator _ (Error _) = False
+actusMarloweValidator _ (Error x) = error $ show x
 

@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-} 
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
-module Language.Marlowe.ACTUS.STF.StateTransitionSpec where
+module Language.Marlowe.ACTUS.STF.StateTransitionModel where
 
 import Language.Marlowe.ACTUS.ContractTerms
     ( SCEF(SE_0NM, SE_I00, SE_0N0, SE_00M), FEB(FEB_N) )

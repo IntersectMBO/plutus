@@ -7,7 +7,7 @@ import Language.Marlowe ( Observation, Value(SlotIntervalStart) )
 import Language.Marlowe.ACTUS.Ops ( YearFractionOps(_y) )
 import Language.Marlowe.ACTUS.BusinessEvents
     ( EventType(IP, IED, MD, PP, PY, FP, PRD, TD) )
-import Language.Marlowe.ACTUS.POF.PayoffSpec
+import Language.Marlowe.ACTUS.POF.PayoffModel
     ( _POF_IED_PAM,
       _POF_MD_PAM,
       _POF_PP_PAM,

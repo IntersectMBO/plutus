@@ -13,7 +13,7 @@ import Language.Marlowe.ACTUS.BusinessEvents
                      RR_EVENT, RRF_EVENT, SC_EVENT, pp_payoff, o_rf_RRMO, o_rf_SCMO,
                      o_rf_CURS, creditDate),
       EventType(FP) )
-import Language.Marlowe.ACTUS.STF.StateTransitionSpec
+import Language.Marlowe.ACTUS.STF.StateTransitionModel
     ( _STF_AD_PAM,
       _STF_IED_PAM,
       _STF_MD_PAM,

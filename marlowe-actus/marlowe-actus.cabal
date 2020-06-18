@@ -64,15 +64,15 @@ library
     Language.Marlowe.ACTUS.ControlLp
     Language.Marlowe.ACTUS.ProjectedCashFlows
     Language.Marlowe.ACTUS.Schedule
-    Language.Marlowe.ACTUS.POF.PayoffSpec
+    Language.Marlowe.ACTUS.POF.PayoffModel
     Language.Marlowe.ACTUS.POF.Payoff
     Language.Marlowe.ACTUS.POF.PayoffLp
-    Language.Marlowe.ACTUS.STF.StateTransitionSpec
+    Language.Marlowe.ACTUS.STF.StateTransitionModel
     Language.Marlowe.ACTUS.STF.StateTransition
     Language.Marlowe.ACTUS.STF.StateTransitionLp
-    Language.Marlowe.ACTUS.SCHED.ContractScheduleSpec
+    Language.Marlowe.ACTUS.SCHED.ContractScheduleModel
     Language.Marlowe.ACTUS.SCHED.ContractSchedule
-    Language.Marlowe.ACTUS.INIT.StateInitializationSpec
+    Language.Marlowe.ACTUS.INIT.StateInitializationModel
     Language.Marlowe.ACTUS.INIT.StateInitialization
     Language.Marlowe.ACTUS.Utility.DateShift
     Language.Marlowe.ACTUS.Utility.ScheduleGenerator
