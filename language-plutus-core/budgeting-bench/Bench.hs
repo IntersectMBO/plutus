@@ -48,7 +48,7 @@ createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
         as <&> (\(x, xMem) ->
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
-                runTermBench (show yMem) $ mkIterApp () (builtin () $ BuiltinName () name) [(mkConstant () x), (mkConstant () y)]
+                runTermBench (show yMem) $ mkIterApp () (applyBuiltin () $ BuiltinName name [] [mkConstant () x, mkConstant () y]
             ))
 
 benchHashOperations :: BuiltinName -> Benchmark
