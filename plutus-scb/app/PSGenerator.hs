@@ -50,8 +50,8 @@ import qualified Plutus.SCB.MockApp                                as MockApp
 import           Plutus.SCB.Types                                  (ContractExe)
 import qualified Plutus.SCB.Webserver.API                          as API
 import qualified Plutus.SCB.Webserver.Server                       as Webserver
-import           Plutus.SCB.Webserver.Types                        (ContractReport, ChainReport, ContractSignatureResponse,
-                                                                    FullReport)
+import           Plutus.SCB.Webserver.Types                        (ChainReport, ContractReport,
+                                                                    ContractSignatureResponse, FullReport)
 import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
