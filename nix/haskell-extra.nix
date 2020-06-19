@@ -78,6 +78,9 @@ pkgs.haskell-nix.tools {
           rev = "3c073e1149ecdddd01f1d371c70d5b243d743bf2";
           sha256 = "0j8z9661anisp4griiv5dfpxarfyhcfb15yrd2k0mcbhs5nzhni0";
         };
+        # Swap out ghc 8.6.4 (selected based on the LTS in the stack.yaml)
+        # for 8.6.5 (which is more likely to be cached)
+        ghc = pkgs.buildPackages.haskell-nix.compiler.ghc865;
         # Invalidate and update if you change the version
         stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
         inherit checkMaterialization;
@@ -90,5 +93,5 @@ pkgs.haskell-nix.tools {
           })
         ];
       };
-    in hspkgs.purty;
+    in hspkgs.purty.components.exes.purty;
 }
