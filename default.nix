@@ -249,37 +249,58 @@ in rec {
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
 
-      script = pkgs.writeTextFile {
-        name = "playground.yaml";
-        text = ''
-        dbConfig:
-            dbConfigFile: scb-core.db
-            dbConfigPoolSize: 20
+        config = pkgs.writeTextFile {
+          name = "playground.yaml";
+          text = ''
+          dbConfig:
+              dbConfigFile: scb-core.db
+              dbConfigPoolSize: 20
 
-        scbWebserverConfig:
-          baseUrl: http://localhost:8080
-          staticDir: ${client}
+          scbWebserverConfig:
+            baseUrl: http://localhost:8080
+            staticDir: ${plutus-scb.client}
 
-        walletServerConfig:
-          baseUrl: http://localhost:8081
+          walletServerConfig:
+            baseUrl: http://localhost:8081
 
-        nodeServerConfig:
-          mscBaseUrl: http://localhost:8082
-          mscSlotLength: 5
-          mscRandomTxInterval: 20000000
-          mscBlockReaper:
-            brcInterval: 6000000
-            brcBlocksToKeep: 100000
+          nodeServerConfig:
+            mscBaseUrl: http://localhost:8082
+            mscSlotLength: 5
+            mscRandomTxInterval: 20000000
+            mscBlockReaper:
+              brcInterval: 6000000
+              brcBlocksToKeep: 100000
 
-        chainIndexConfig:
-          ciBaseUrl: http://localhost:8083
+          chainIndexConfig:
+            ciBaseUrl: http://localhost:8083
 
-        signingProcessConfig:
-          spBaseUrl: http://localhost:8084
-          spWallet: 
-            getWallet: 1
-        '';
-      };
+          signingProcessConfig:
+            spBaseUrl: http://localhost:8084
+            spWallet: 
+              getWallet: 1
+          '';
+        };
+    
+  demo = {
+
+        install-currency = pkgs.writeTextFile {
+          name = "install-currency.sh";
+          text = ''
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} contracts install --path ${plutus-currency}/bin/plutus-currency
+          '';
+          executable = true;
+        };
+
+      start-webserver = pkgs.writeTextFile {
+          name = "start-webserver.sh";
+          text = ''
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} webserver
+          '';
+          executable = true;
+        };
+
+  };
+
   });
 
   docker = rec {
