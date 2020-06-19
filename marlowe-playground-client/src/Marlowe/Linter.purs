@@ -446,6 +446,24 @@ lintValue env t@(Term (SubValue a b) pos) = do
       markSimplification constToVal SimplifiableValue b sb
       pure (ValueSimp pos false t)
 
+lintValue env t@(Term (MulValue a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 * v2))
+    (ConstantSimp _ _ v /\ _)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    (_ /\ ConstantSimp _ _ v)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    (ConstantSimp _ _ v /\ _)
+      | v == one -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ v)
+      | v == one -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
+
 lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
   if (b == zero) then do

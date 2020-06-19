@@ -144,6 +144,7 @@ getMarloweConstructors ValueType =
     , (Tuple "NegValue" [ DataArg ValueType ])
     , (Tuple "AddValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "SubValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "MulValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "Scale" [ DefaultRational (Rational one one), DataArg ValueType ])
     , (Tuple "ChoiceValue" [ GenArg ChoiceIdType, DataArg ValueType ])
     , (Tuple "SlotIntervalStart" [])
@@ -673,6 +674,7 @@ data Value
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
+  | MulValue (Term Value) (Term Value)
   | Scale (TermWrapper Rational) (Term Value)
   | ChoiceValue ChoiceId (Term Value)
   | SlotIntervalStart
@@ -702,6 +704,7 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (NegValue a) = S.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
+  fromTerm (MulValue a b) = S.MulValue <$> fromTerm a <*> fromTerm b
   fromTerm (Scale a b) = S.Scale <$> fromTerm a <*> fromTerm b
   fromTerm (ChoiceValue a b) = S.ChoiceValue <$> fromTerm a <*> fromTerm b
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
@@ -717,6 +720,7 @@ instance valueHasParties :: HasParties Value where
   getParties (NegValue a) s = getParties a s
   getParties (AddValue a b) s = getParties a s <> getParties b s
   getParties (SubValue a b) s = getParties a s <> getParties b s
+  getParties (MulValue a b) s = getParties a s <> getParties b s
   getParties (Scale _ a) s = getParties a s
   getParties (ChoiceValue a b) s = getParties a s <> getParties b s
   getParties (Cond c a b) s = getParties c s <> getParties a s <> getParties b s

@@ -34,6 +34,7 @@ const lexer = moo.compile({
                     'NegValue',
                     'AddValue',
                     'SubValue',
+                    'MulValue',
                     'Scale',
                     'ChoiceValue',
                     'SlotIntervalStart',
@@ -183,6 +184,7 @@ value
     | lparen "NegValue" someWS value rparen {% ([,{line,col},,value,]) => opts.mkTerm(opts.mkNegValue(value))({row: line, column: col}) %}
     | lparen "AddValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkAddValue(v1)(v2))({row: line, column: col}) %}
     | lparen "SubValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkSubValue(v1)(v2))({row: line, column: col}) %}
+    | lparen "MulValue" someWS value someWS value rparen {% ([,{line,col},,v1,,v2,]) => opts.mkTerm(opts.mkMulValue(v1)(v2))({row: line, column: col}) %}
     | lparen "Scale" someWS lparen rational rparen someWS value rparen {% ([,{line,col},,,ratio,,,v,]) => opts.mkTerm(opts.mkScale(ratio)(v))({row: line, column: col}) %}
     | lparen "ChoiceValue" someWS choiceId someWS value rparen {% ([,{line,col},,choiceId,,value,]) => opts.mkTerm(opts.mkChoiceValue(choiceId)(value))({row: line, column: col}) %}
     | "SlotIntervalStart" {% ([{line,col}]) => opts.mkTerm(opts.mkSlotIntervalStart)({row: line, column: col}) %}

@@ -177,6 +177,7 @@ data Value a = AvailableMoney AccountId Token
            | NegValue (Value a)
            | AddValue (Value a) (Value a)
            | SubValue (Value a) (Value a)
+           | MulValue (Value a) (Value a)
            | Scale Rational (Value a)
            | ChoiceValue ChoiceId (Value a)
            | SlotIntervalStart
@@ -478,6 +479,7 @@ evalValue env state value = let
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
+        MulValue lhs rhs     -> eval lhs * eval rhs
         Scale s rhs          -> let
             num = numerator s
             denom = denominator s
@@ -1093,6 +1095,7 @@ instance Eq a => Eq (Value a) where
     NegValue val1 == NegValue val2 = val1 == val2
     AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
     SubValue val1 val2 == SubValue val3 val4 = val1 == val3 && val2 == val4
+    MulValue val1 val2 == MulValue val3 val4 = val1 == val3 && val2 == val4
     Scale s1 val1 == Scale s2 val2 = s1 == s2 && val1 == val2
     ChoiceValue cid1 val1 == ChoiceValue cid2 val2 = cid1 == cid2 && val1 == val2
     SlotIntervalStart == SlotIntervalStart = True
