@@ -4,6 +4,7 @@ dbConfig:
 
 scbWebserverConfig:
   baseUrl: http://localhost:8080
+  staticDir: 
 
 walletServerConfig:
   baseUrl: http://localhost:8081
@@ -11,9 +12,9 @@ walletServerConfig:
 nodeServerConfig:
   mscBaseUrl: http://localhost:8082
   mscSlotLength: 5
-  mscRandomTxInterval: 20
+  mscRandomTxInterval: 20000000
   mscBlockReaper:
-    brcInterval: 600
+    brcInterval: 6000000
     brcBlocksToKeep: 100
 
 chainIndexConfig:

@@ -248,6 +248,38 @@ in rec {
         name = (pkgs.lib.importJSON packageJSON).name;
         checkPhase = ''node -e 'require("./output/Test.Main").main()' '';
       };
+
+      script = pkgs.writeTextFile {
+        name = "playground.yaml";
+        text = ''
+        dbConfig:
+            dbConfigFile: scb-core.db
+            dbConfigPoolSize: 20
+
+        scbWebserverConfig:
+          baseUrl: http://localhost:8080
+          staticDir: ${client}
+
+        walletServerConfig:
+          baseUrl: http://localhost:8081
+
+        nodeServerConfig:
+          mscBaseUrl: http://localhost:8082
+          mscSlotLength: 5
+          mscRandomTxInterval: 20000000
+          mscBlockReaper:
+            brcInterval: 6000000
+            brcBlocksToKeep: 100000
+
+        chainIndexConfig:
+          ciBaseUrl: http://localhost:8083
+
+        signingProcessConfig:
+          spBaseUrl: http://localhost:8084
+          spWallet: 
+            getWallet: 1
+        '';
+      };
   });
 
   docker = rec {
