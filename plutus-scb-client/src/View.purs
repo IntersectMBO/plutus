@@ -1,7 +1,7 @@
 module View (render) where
 
 import AjaxUtils (ajaxErrorPane)
-import Bootstrap (badge, badgePrimary, btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col12_, col2_, col4_, col6_, col8_, container_, nbsp, row_, tableBordered)
+import Bootstrap (badge, badgePrimary, btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col12_, col2_, col4_, col6_, container_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (preWrap_)
 import Chain.Types (ChainFocus)
