@@ -54,12 +54,13 @@ import           Plutus.SCB.Types                                (ChainOverview 
                                                                   SCBError (ContractInstanceNotFound, InvalidUUIDError),
                                                                   baseUrl, chainOverviewBlockchain,
                                                                   chainOverviewUnspentTxsById, chainOverviewUtxoIndex,
-                                                                  mkChainOverview, scbWebserverConfig)
+                                                                  mkChainOverview, scbWebserverConfig, staticDir)
 import           Plutus.SCB.Utils                                (tshow)
 import           Plutus.SCB.Webserver.API                        (API)
 import           Plutus.SCB.Webserver.Types
-import           Servant                                         ((:<|>) ((:<|>)), (:>), Application, Handler (Handler),
-                                                                  err400, err500, errBody, hoistServer, serve)
+import           Servant                                         ((:<|>) ((:<|>)), Application, Handler (Handler), Raw,
+                                                                  err400, err500, errBody, hoistServer, serve,
+                                                                  serveDirectoryFileServer)
 import           Servant.Client                                  (BaseUrl (baseUrlPort))
 import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
 import           Wallet.Emulator.Wallet                          (Wallet)
@@ -212,9 +213,12 @@ handler =
                    payload)))
 
 app :: Config -> Application
-app config = serve api $ hoistServer api (asHandler config) handler
+app config = serve rest (apiServer :<|> fileServer)
   where
-    api = Proxy @("api" :> API ContractExe)
+    rest = Proxy @(API ContractExe :<|> Raw)
+    api = Proxy @(API ContractExe)
+    apiServer = hoistServer api (asHandler config) handler
+    fileServer = serveDirectoryFileServer (staticDir . scbWebserverConfig $ config)
 
 main :: Config -> Availability -> App ()
 main config availability = do

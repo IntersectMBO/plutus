@@ -74,9 +74,10 @@ data Config =
         }
     deriving (Show, Eq, Generic, FromJSON)
 
-newtype WebserverConfig =
+data WebserverConfig =
     WebserverConfig
-        { baseUrl :: BaseUrl
+        { baseUrl   :: BaseUrl
+        , staticDir :: FilePath
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

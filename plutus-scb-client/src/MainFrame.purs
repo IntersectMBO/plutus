@@ -36,7 +36,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (FunctionSchema, _FunctionSchema)
-import Plutus.SCB.Webserver (SPParams_(..), getContractByContractinstanceidSchema, getFullreport, postContractActivate, postContractByContractinstanceidEndpointByEndpointname)
+import Plutus.SCB.Webserver (SPParams_(..), getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..))
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
@@ -61,7 +61,7 @@ initialState =
 
 ------------------------------------------------------------
 ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
+ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/" }
 
 initialMainFrame ::
   forall m.
@@ -95,12 +95,12 @@ handleAction Init = handleAction LoadFullReport
 handleAction (ChangeView view) = assign _currentView view
 
 handleAction (ActivateContract contract) = do
-  result <- runAjax $ postContractActivate contract
+  result <- runAjax $ postApiContractActivate contract
   handleAction LoadFullReport
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  reportResult <- runAjax getFullreport
+  reportResult <- runAjax getApiFullreport
   assign _fullReport reportResult
   case reportResult of
     Success fullReport ->
@@ -108,7 +108,7 @@ handleAction LoadFullReport = do
         ( \instanceId -> do
             let
               uuid = view _contractInstanceIdString instanceId
-            contractSchema <- runAjax $ getContractByContractinstanceidSchema uuid
+            contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
             modifying (_contractSignatures <<< at instanceId) (Just <<< upsertEndpointForm contractSchema)
         )
         (toArrayOf (_contractReport <<< _latestContractStatuses <<< traversed <<< _csContract) fullReport)
@@ -148,7 +148,7 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 
                 endpoint = view _getEndpointDescription endpointDescription
               in
-                postContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
+                postApiContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
         modifying (_contractSignatures <<< at contractInstanceId) (Just <<< upsertEndpointForm result)
         handleAction LoadFullReport
 
