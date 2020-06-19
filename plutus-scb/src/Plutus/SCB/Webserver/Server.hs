@@ -11,7 +11,7 @@
 
 module Plutus.SCB.Webserver.Server
     ( main
-    , fullReport
+    , getFullReport
     , contractSchema
     ) where
 
@@ -31,6 +31,7 @@ import qualified Data.Map                                        as Map
 import           Data.Proxy                                      (Proxy (Proxy))
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
+import           Data.Text.Prettyprint.Doc                       (Pretty)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -40,9 +41,11 @@ import qualified Network.Wai.Handler.Warp                        as Warp
 import           Plutus.SCB.App                                  (App, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
+import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Effects.Contract                     (ContractEffect, exportSchema)
 import           Plutus.SCB.Effects.EventLog                     (EventLogEffect)
+import           Plutus.SCB.Effects.UUID                         (UUIDEffect)
 import           Plutus.SCB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
                                                                   ContractInstanceState (ContractInstanceState),
                                                                   csContractDefinition)
@@ -51,17 +54,17 @@ import           Plutus.SCB.Types                                (ChainOverview 
                                                                   SCBError (ContractInstanceNotFound, InvalidUUIDError),
                                                                   baseUrl, chainOverviewBlockchain,
                                                                   chainOverviewUnspentTxsById, chainOverviewUtxoIndex,
-                                                                  mkChainOverview, scbWebserverConfig)
+                                                                  mkChainOverview, scbWebserverConfig, staticDir)
 import           Plutus.SCB.Utils                                (tshow)
 import           Plutus.SCB.Webserver.API                        (API)
 import           Plutus.SCB.Webserver.Types
-import           Servant                                         ((:<|>) ((:<|>)), (:>), Application, Handler (Handler),
-                                                                  err400, err500, errBody, hoistServer, serve)
+import           Servant                                         ((:<|>) ((:<|>)), Application, Handler (Handler), Raw,
+                                                                  err400, err500, errBody, hoistServer, serve,
+                                                                  serveDirectoryFileServer)
 import           Servant.Client                                  (BaseUrl (baseUrlPort))
 import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
 import           Wallet.Emulator.Wallet                          (Wallet)
 import qualified Wallet.Rollup                                   as Rollup
-import           Wallet.Rollup.Types                             (AnnotatedTx)
 
 asHandler :: Config -> App a -> Handler a
 asHandler config =
@@ -75,33 +78,46 @@ asHandler config =
 healthcheck :: Monad m => m ()
 healthcheck = pure ()
 
-fullReport ::
-       forall t effs.
-       ( Member (EventLogEffect (ChainEvent t)) effs
-       , Member ChainIndexEffect effs
-       )
-    => Eff effs (FullReport t)
-fullReport = do
+getContractReport ::
+       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs, Ord t)
+    => Eff effs (ContractReport t)
+getContractReport = do
+    installedContracts <- runGlobalQuery (Query.installedContractsProjection @t)
     latestContractStatuses <-
         Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
-    events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
+    pure ContractReport {installedContracts, latestContractStatuses}
+
+getChainReport ::
+       forall t effs. Member ChainIndexEffect effs
+    => Eff effs (ChainReport t)
+getChainReport = do
     blocks :: Blockchain <- confirmedBlocks
     let ChainOverview { chainOverviewBlockchain
-                  , chainOverviewUnspentTxsById
-                  , chainOverviewUtxoIndex
-                  } = mkChainOverview blocks
+                      , chainOverviewUnspentTxsById
+                      , chainOverviewUtxoIndex
+                      } = mkChainOverview blocks
     let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
-    annotatedBlockchain :: [[AnnotatedTx]] <-
-        Rollup.doAnnotateBlockchain chainOverviewBlockchain
+    annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
-        FullReport
-            { latestContractStatuses
-            , events
-            , transactionMap = chainOverviewUnspentTxsById
+        ChainReport
+            { transactionMap = chainOverviewUnspentTxsById
             , utxoIndex = chainOverviewUtxoIndex
             , annotatedBlockchain
             , walletMap
             }
+
+getFullReport ::
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member ChainIndexEffect effs
+       , Ord t
+       )
+    => Eff effs (FullReport t)
+getFullReport = do
+    events <- fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
+    contractReport <- getContractReport
+    chainReport <- getChainReport
+    pure FullReport {contractReport, chainReport, events}
 
 contractSchema ::
        forall t effs.
@@ -112,8 +128,24 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
+    ContractInstanceState {csContractDefinition} <-
+        getContractInstanceState @t contractId
     ContractSignatureResponse <$> exportSchema csContractDefinition
+
+activateContract ::
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member (Error SCBError) effs
+       , Member (ContractEffect t) effs
+       , Member UUIDEffect effs
+       , Member Log effs
+       , Ord t
+       , Show t
+       , Pretty t
+       )
+    => t
+    -> Eff effs ContractInstanceId
+activateContract = Core.activateContract
 
 getContractInstanceState ::
        forall t effs.
@@ -141,10 +173,12 @@ invokeEndpoint ::
     -> ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-  logInfo $ "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
-  newState :: [ChainEvent t] <- Instance.callContractEndpoint @t contractId endpointDescription payload
-  logInfo $ "Invocation response: " <> tshow newState
-  contractSchema contractId
+    logInfo $
+        "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
+    newState :: [ChainEvent t] <-
+        Instance.callContractEndpoint @t contractId endpointDescription payload
+    logInfo $ "Invocation response: " <> tshow newState
+    contractSchema contractId
 
 parseContractId ::
        (Member (Error SCBError) effs) => Text -> Eff effs ContractInstanceId
@@ -158,27 +192,33 @@ handler ::
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
+       , Member UUIDEffect effs
        , Member Log effs
        , Member (Error SCBError) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
-             :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                           :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe))))
+             :<|> ((ContractExe -> Eff effs ContractInstanceId)
+                   :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
+                                 :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe)))))
 handler =
-    healthcheck :<|> fullReport :<|>
-    (\rawInstanceId ->
-         (parseContractId rawInstanceId >>= contractSchema) :<|>
-         (\rawEndpointDescription payload ->
-              parseContractId rawInstanceId >>=
-              invokeEndpoint
-                  (EndpointDescription rawEndpointDescription)
-                  payload))
+    healthcheck :<|> getFullReport :<|>
+    (activateContract :<|>
+     (\rawInstanceId ->
+          (parseContractId rawInstanceId >>= contractSchema) :<|>
+          (\rawEndpointDescription payload ->
+               parseContractId rawInstanceId >>=
+               invokeEndpoint
+                   (EndpointDescription rawEndpointDescription)
+                   payload)))
 
 app :: Config -> Application
-app config = serve api $ hoistServer api (asHandler config) handler
+app config = serve rest (apiServer :<|> fileServer)
   where
-    api = Proxy @("api" :> API ContractExe)
+    rest = Proxy @(API ContractExe :<|> Raw)
+    api = Proxy @(API ContractExe)
+    apiServer = hoistServer api (asHandler config) handler
+    fileServer = serveDirectoryFileServer (staticDir . scbWebserverConfig $ config)
 
 main :: Config -> Availability -> App ()
 main config availability = do

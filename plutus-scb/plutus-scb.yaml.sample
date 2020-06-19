@@ -4,6 +4,7 @@ dbConfig:
 
 scbWebserverConfig:
   baseUrl: http://localhost:8080
+  staticDir: plutus-scb-client/dist
 
 walletServerConfig:
   baseUrl: http://localhost:8081

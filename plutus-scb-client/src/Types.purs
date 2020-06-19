@@ -6,6 +6,7 @@ import Chain.Types as Chain
 import Control.Monad.Gen as Gen
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
 import Data.Lens (Lens', Getter', to)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -14,15 +15,17 @@ import Data.Map (Map)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
-import Data.RawJson (RawJson)
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
-import Language.Plutus.Contract.Resumable (Request(..))
+import Language.Plutus.Contract.Resumable (Request)
+import Ledger.Index (UtxoIndex)
+import Ledger.Tx (Tx)
+import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse, ContractSCBRequest)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (FullReport, _FullReport)
+import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, FullReport, _ChainReport, _ContractReport)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -38,6 +41,7 @@ data HAction
   = Init
   | ChangeView View
   | LoadFullReport
+  | ActivateContract ContractExe
   | ChainAction (Maybe ChainFocus)
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
   | InvokeContractEndpoint ContractInstanceId EndpointForm
@@ -65,17 +69,32 @@ _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 _fullReport :: Lens' State (WebData (FullReport ContractExe))
 _fullReport = _Newtype <<< prop (SProxy :: SProxy "fullReport")
 
+_contractReport :: forall t. Lens' (FullReport t) (ContractReport t)
+_contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
+
+_chainReport :: forall t. Lens' (FullReport t) (ChainReport t)
+_chainReport = _Newtype <<< prop (SProxy :: SProxy "chainReport")
+
 _chainState :: Lens' State Chain.State
 _chainState = _Newtype <<< prop (SProxy :: SProxy "chainState")
 
 _contractSignatures :: Lens' State (Map ContractInstanceId (WebData (Array EndpointForm)))
 _contractSignatures = _Newtype <<< prop (SProxy :: SProxy "contractSignatures")
 
-_annotatedBlockchain :: Lens' (FullReport ContractExe) (Array (Array AnnotatedTx))
-_annotatedBlockchain = _FullReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
+_annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
+_annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
-_latestContractStatuses :: Lens' (FullReport ContractExe) (Array (ContractInstanceState ContractExe))
-_latestContractStatuses = _FullReport <<< prop (SProxy :: SProxy "latestContractStatuses")
+_transactionMap :: forall t. Lens' (ChainReport t) (JsonMap TxId Tx)
+_transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
+
+_utxoIndex :: forall t. Lens' (ChainReport t) UtxoIndex
+_utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
+
+_installedContracts :: forall t. Lens' (ContractReport t) (Array t)
+_installedContracts = _ContractReport <<< prop (SProxy :: SProxy "installedContracts")
+
+_latestContractStatuses :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
+_latestContractStatuses = _ContractReport <<< prop (SProxy :: SProxy "latestContractStatuses")
 
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
@@ -85,6 +104,9 @@ _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
+
+_contractPath :: Lens' ContractExe String
+_contractPath = _Newtype <<< prop (SProxy :: SProxy "contractPath")
 
 _contractInstanceId :: Lens' ContractInstanceId JsonUUID
 _contractInstanceId = _Newtype <<< prop (SProxy :: SProxy "unContractInstanceId")

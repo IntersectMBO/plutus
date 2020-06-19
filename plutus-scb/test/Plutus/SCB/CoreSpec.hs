@@ -163,7 +163,6 @@ guessingGameTest =
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
               syncAll
-              syncAll
               void Chain.processBlock
               assertTxCounts
                 "A wrong guess still produces a transaction."
@@ -188,7 +187,7 @@ guessingGameTest =
               blocks <- use blockchainNewestFirst
               assertBool
                   "We have some confirmed blocks in this test."
-                  (length (mconcat blocks) > 0)
+                  (not (null (mconcat blocks)))
               let chainOverview = mkChainOverview (reverse blocks)
               annotatedBlockchain <-
                       doAnnotateBlockchain

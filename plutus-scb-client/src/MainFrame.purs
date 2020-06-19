@@ -36,14 +36,14 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (FunctionSchema, _FunctionSchema)
-import Plutus.SCB.Webserver (SPParams_(..), getContractByContractinstanceidSchema, getFullreport, putContractByContractinstanceidEndpointByEndpointname)
+import Plutus.SCB.Webserver (SPParams_(..), getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..))
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainState, _contractInstanceIdString, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
 import Validation (_argument)
 import View as View
 
@@ -61,7 +61,7 @@ initialState =
 
 ------------------------------------------------------------
 ajaxSettings :: SPSettings_ SPParams_
-ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/api/" }
+ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/" }
 
 initialMainFrame ::
   forall m.
@@ -94,9 +94,13 @@ handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = assign _currentView view
 
+handleAction (ActivateContract contract) = do
+  result <- runAjax $ postApiContractActivate contract
+  handleAction LoadFullReport
+
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  reportResult <- runAjax getFullreport
+  reportResult <- runAjax getApiFullreport
   assign _fullReport reportResult
   case reportResult of
     Success fullReport ->
@@ -104,16 +108,16 @@ handleAction LoadFullReport = do
         ( \instanceId -> do
             let
               uuid = view _contractInstanceIdString instanceId
-            contractSchema <- runAjax $ getContractByContractinstanceidSchema uuid
+            contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
             modifying (_contractSignatures <<< at instanceId) (Just <<< upsertEndpointForm contractSchema)
         )
-        (toArrayOf (_latestContractStatuses <<< traversed <<< _csContract) fullReport)
+        (toArrayOf (_contractReport <<< _latestContractStatuses <<< traversed <<< _csContract) fullReport)
     _ -> pure unit
   pure unit
 
 handleAction (ChainAction newFocus) = do
   mAnnotatedBlockchain <-
-    peruse (_fullReport <<< _Success <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
+    peruse (_fullReport <<< _Success <<< _chainReport <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
   animate
     (_chainState <<< _chainFocusAppearing)
     (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)
@@ -144,7 +148,7 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 
                 endpoint = view _getEndpointDescription endpointDescription
               in
-                putContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
+                postApiContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
         modifying (_contractSignatures <<< at contractInstanceId) (Just <<< upsertEndpointForm result)
         handleAction LoadFullReport
 

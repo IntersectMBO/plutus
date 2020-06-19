@@ -222,8 +222,10 @@ in rec {
       };
   });
 
+  inherit (haskell.packages.plutus-scb.components.exes) plutus-game plutus-currency;
+
   plutus-scb = pkgs.recurseIntoAttrs (rec {
-    server-invoker= set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
+    server-invoker = set-git-rev haskell.packages.plutus-scb.components.exes.plutus-scb;
 
     generated-purescript = pkgs.runCommand "plutus-scb-purescript" {} ''
       mkdir $out
