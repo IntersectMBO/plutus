@@ -5,52 +5,54 @@
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
 { pkgs, index-state, checkMaterialization, sources }:
-pkgs.haskell-nix.tools {
-  cabal = {
-    version = "3.2.0.0";
+{
+  # FIXME: this cabal can't be used for development purposes until
+  # https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
+  # Also need to pick a version that builds properly
+  cabal-install = pkgs.haskell-nix.hackage-package {
+    name = "cabal-install";
+    version = "3.0.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "034rggaixxhji42sb473w4kzwxr856kw393q3sjc4nsz76xpkkfl";
+    plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
   };
-  stylish-haskell = {
+  stylish-haskell = pkgs.haskell-nix.hackage-package {
+    name = "stylish-haskell";
     version = "0.10.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "114npk6hjgcfa95fz8r28w6lxak4rslfvh9caiwmwrkgd8v3nmaz";
   };
-  hlint = {
+  hlint = pkgs.haskell-nix.hackage-package {
+    name = "hlint";
     version = "2.2.11";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "1mppmhhfqsnwigg3apj43ylc6zc7zqyvnsimwbnxwicvir2xzdqm";
   };
-  # This fails for packages that use plutus due to missing unfoldings
-  ghcide = {
-    version = "0.2.0";
-    inherit index-state checkMaterialization;
-    plan-sha256 = "04l2ihni8ccbnb99apsainmfww6swavxg8vw4h4cg966lcwayndh";
-  };
-} // {
-  haskell-language-server = (pkgs.haskell-nix.cabalProject {
-    src = pkgs.fetchFromGitHub {
-      owner = "haskell";
-      repo = "haskell-language-server";
-      rev = "2186df00a9414c640fba1ae2acc3d9aa21ab6e4c";
-      sha256 = "0qh41jbf1a697l8wf48zmfs6vf08gijb0w42h26nvimcgc5dkh9a";
-      fetchSubmodules = true;
-    };
-    sha256map = {
-      "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
-      "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
-    };
-    inherit index-state checkMaterialization;
-    # Invalidate and update if you change the version
-    plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
-    modules = [{
-      # Tests don't pass for some reason, but this is a somewhat random revision.
-      packages.haskell-language-server.doCheck = false;
-    }];
-  }).haskell-language-server.components.exes.haskell-language-server;
+  haskell-language-server =
+    let hspkgs = pkgs.haskell-nix.cabalProject {
+        src = pkgs.fetchFromGitHub {
+          owner = "haskell";
+          repo = "haskell-language-server";
+          rev = "2186df00a9414c640fba1ae2acc3d9aa21ab6e4c";
+          sha256 = "0qh41jbf1a697l8wf48zmfs6vf08gijb0w42h26nvimcgc5dkh9a";
+          fetchSubmodules = true;
+        };
+        sha256map = {
+          "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
+          "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
+        };
+        inherit index-state checkMaterialization;
+        # Invalidate and update if you change the version
+        plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
+        compiler-nix-name = "ghc883";
+        modules = [{
+          # Tests don't pass for some reason, but this is a somewhat random revision.
+          packages.haskell-language-server.doCheck = false;
+        }];
+      };
+    in hspkgs.haskell-language-server;
   ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
@@ -69,7 +71,7 @@ pkgs.haskell-nix.tools {
                              ];
       packages.hie-bios.src = sources.hie-bios;
     })];
-  }).ghcide.components.exes.ghcide;
+  }).ghcide;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {
@@ -93,5 +95,5 @@ pkgs.haskell-nix.tools {
           })
         ];
       };
-    in hspkgs.purty.components.exes.purty;
+    in hspkgs.purty;
 }
