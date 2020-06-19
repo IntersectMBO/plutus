@@ -37,7 +37,7 @@ import           Data.Maybe                                        (mapMaybe)
 import           Data.Semigroup                                    (Last (..))
 import qualified Data.Set                                          as Set
 import qualified Data.Text                                         as Text
-import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, (<+>))
+import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, viaShow, vsep, (<+>))
 
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
@@ -226,6 +226,8 @@ activateContract contract = do
 respondtoRequests ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (ContractEffect t) effs
+    , Member (Error SCBError) effs
     , Member Log effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
@@ -240,6 +242,8 @@ respondtoRequests handler = do
 runRequestHandler ::
     forall t effs req.
     ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (ContractEffect t) effs
+    , Member (Error SCBError) effs
     , Member Log effs
     )
     => RequestHandler effs req ContractResponse
@@ -256,8 +260,10 @@ runRequestHandler h contractInstance requests = do
         tryHandler (wrapHandler h) requests
 
     case response of
-        Just rsp ->
-            sendContractMessage @t contractInstance rsp
+        Just rsp -> do
+            r <- sendContractMessage @t contractInstance rsp
+            processFirstInboxMessage @t contractInstance (Last rsp)
+            pure r
         _ -> do
             logDebug "runRequestHandler: did not handle any requests"
             pure []
@@ -380,9 +386,11 @@ processTxConfirmedRequests = RequestHandler $ \req -> do
 callContractEndpoint ::
     forall t a effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (ContractEffect t) effs
     , Member Log effs
     , Member (Error SCBError) effs
     , JSON.ToJSON a
+    , Show a
     )
     => ContractInstanceId
     -> String
@@ -391,7 +399,12 @@ callContractEndpoint ::
 callContractEndpoint inst endpointName endpointValue = do
     -- we can't use respondtoRequests here because we want to call the endpoint only on
     -- the contract instance 'inst'. And we want to error if the endpoint is not active.
-    logInfo . render $ "calling endpoint" <+> pretty endpointName <+> "on instance" <+> pretty inst
+    logInfo . render $
+        vsep
+            [ "Calling endpoint" <+> pretty endpointName
+            , "On instance" <+> pretty inst
+            , "With payload" <+> viaShow endpointValue
+            ]
     state <- fmap (hooks . csCurrentState . getLast) <$> runGlobalQuery (Query.contractState @t)
     let activeEndpoints =
             filter ((==) (EndpointDescription endpointName) . unActiveEndpoints . rqRequest)
@@ -409,6 +422,8 @@ processAllContractOutboxes ::
     forall t effs.
     ( Member Log effs
     , Member (EventLogEffect (ChainEvent t)) effs
+    , Member (ContractEffect t) effs
+    , Member (Error SCBError) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     , Member SigningProcessEffect effs
