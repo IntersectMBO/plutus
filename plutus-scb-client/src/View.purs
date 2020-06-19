@@ -180,8 +180,7 @@ contractStatusPane ::
   ContractInstanceState t -> HTML p HAction
 contractStatusPane contractSignatures contractInstance =
   div_
-    [ contractRequestView contractInstance
-    , row_
+    [ row_
         ( case Map.lookup contractInstanceId contractSignatures of
             Just (Success endpointForms) ->
               mapWithIndex
@@ -192,6 +191,7 @@ contractStatusPane contractSignatures contractInstance =
             Just NotAsked -> []
             Nothing -> []
         )
+    , contractRequestView contractInstance
     ]
   where
   contractInstanceId :: ContractInstanceId
