@@ -37,7 +37,9 @@ import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLo
 import           Data.Aeson                    (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty      as JSON
 import qualified Data.ByteString.Lazy.Char8    as BSL8
+import Data.String (IsString(fromString))
 import qualified Data.Text                     as Text
+import           Data.Text.Prettyprint.Doc                         ((<+>))
 import           Database.Persist.Sqlite       (runSqlPool)
 import           Eventful.Store.Sqlite         (initializeSqliteEventStore)
 import           Network.HTTP.Client           (defaultManagerSettings, newManager)
@@ -49,6 +51,7 @@ import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events             (ChainEvent)
 import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
                                                 dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
+import           Plutus.SCB.Utils (render)
 import           Servant.Client                (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                (readProcessWithExitCode)
@@ -167,19 +170,23 @@ handleContractEffectApp ::
     => Eff (ContractEffect ContractExe ': effs) ~> Eff effs
 handleContractEffectApp =
     interpret $ \case
-        InvokeContract contractCommand ->
-            liftProcess $
+        InvokeContract contractCommand -> do
+            logDebug "InvokeContract"
             case contractCommand of
-                InitContract (ContractExe contractPath) ->
-                    readProcessWithExitCode contractPath ["init"] ""
-                UpdateContract (ContractExe contractPath) payload ->
-                    readProcessWithExitCode
-                        contractPath
-                        ["update"]
-                        (BSL8.unpack (JSON.encodePretty payload))
-        ExportSchema (ContractExe contractPath) ->
+                InitContract (ContractExe contractPath) -> do
+                    logDebug . render $ fromString contractPath <+> "init"
+                    liftProcess $ readProcessWithExitCode contractPath ["init"] ""
+                UpdateContract (ContractExe contractPath) payload -> do
+                    let pl = BSL8.unpack (JSON.encodePretty payload)
+                    logDebug . render $
+                        fromString contractPath
+                        <+> "update"
+                        <+> fromString pl
+                    liftProcess $ readProcessWithExitCode contractPath ["update"] pl
+        ExportSchema (ContractExe contractPath) -> do
+            logDebug . render $ fromString contractPath <+> "export-signature"
             liftProcess $
-            readProcessWithExitCode contractPath ["export-signature"] ""
+                readProcessWithExitCode contractPath ["export-signature"] ""
 
 liftProcess ::
        (LastMember m effs, MonadIO m, FromJSON b, Member Log effs, Member (Error SCBError) effs)
@@ -188,7 +195,8 @@ liftProcess ::
 liftProcess process = do
     (exitCode, stdout, stderr) <- sendM $ liftIO process
     case exitCode of
-        ExitFailure code ->
+        ExitFailure code -> do
+            logDebug . render $ "ExitFailure" <+> fromString stderr
             throwError $ ContractCommandError code (Text.pack stderr)
         ExitSuccess -> do
             logDebug $ "Response: " <> Text.pack stdout

@@ -69,6 +69,8 @@ data Command
     | ReportContractHistory UUID
     | ReportInstalledContracts
     | ReportActiveContracts
+    | ProcessContractInbox UUID
+    | ProcessAllContractOutboxes
     | ReportTxHistory
     | SCBWebserver
     | PSGenerator
@@ -134,6 +136,8 @@ commandParser =
                              , updateContractParser
                              , contractStateParser
                              , reportContractHistoryParser
+                             , processAllContractInboxesParser
+                             , processAllContractOutboxesParser
                              ]))
                    (fullDesc <> progDesc "Manage your smart contracts."))
         ]
@@ -270,6 +274,20 @@ updateContractParser =
              (help "JSON Payload."))
         (fullDesc <> progDesc "Update a smart contract.")
 
+processAllContractInboxesParser :: Mod CommandFields Command
+processAllContractInboxesParser =
+    command "process-inbox" $
+    info
+        (ProcessContractInbox <$> contractIdParser)
+        (fullDesc <> progDesc "Process the inbox of the contract instance.")
+
+processAllContractOutboxesParser :: Mod CommandFields Command
+processAllContractOutboxesParser =
+    command "process-outboxes" $
+    info
+        (pure ProcessAllContractOutboxes)
+        (fullDesc <> progDesc "Process all contract outboxes.")
+
 reportContractHistoryParser :: Mod CommandFields Command
 reportContractHistoryParser =
     command "history" $
@@ -336,6 +354,12 @@ runCliCommand _ _ _ (ReportContractHistory uuid) = do
     where
       logContract :: Int -> ContractInstanceState ContractExe -> App ()
       logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
+runCliCommand _ _ _ (ProcessContractInbox uuid) = do
+    logInfo "Process contract inbox"
+    Core.processContractInbox @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ ProcessAllContractOutboxes = do
+    logInfo "Process all contract outboxes"
+    Core.processAllContractOutboxes @ContractExe
 runCliCommand _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 

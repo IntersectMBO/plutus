@@ -1,0 +1,20 @@
+{
+  "event": {
+    "rspRqID": 1,
+    "rspResponse": {
+      "tag": "create-currency",
+      "value": {
+        "unEndpointValue": "{\"smTokenName\":{\"unTokenName\":\"hello\"},\"smAmount\":100}"
+      }
+    },
+    "rspItID": 1
+  },
+  "oldState": {
+    "record": {
+      "unResponses": []
+    },
+    "checkpoints": {
+      "unCheckpointStore": {}
+    }
+  }
+}

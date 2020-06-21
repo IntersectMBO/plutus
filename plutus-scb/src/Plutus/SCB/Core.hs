@@ -34,6 +34,7 @@ module Plutus.SCB.Core
     , SCBEffects
     -- * Contract messages
     , processAllContractInboxes
+    , processContractInbox
     , processAllContractOutboxes
     , callContractEndpoint
     ) where
@@ -61,7 +62,7 @@ import           Plutus.SCB.Utils                 (render, tshow)
 
 import           Cardano.Node.Follower            (NodeFollowerEffect)
 import           Plutus.SCB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,
-                                                   processAllContractOutboxes)
+                                                   processAllContractOutboxes, processContractInbox)
 import           Plutus.SCB.Effects.Contract      (ContractCommand (..), ContractEffect, invokeContract)
 import           Plutus.SCB.Effects.EventLog      (Connection (..), EventLogEffect, addProcessBus, refreshProjection,
                                                    runCommand, runGlobalQuery)
