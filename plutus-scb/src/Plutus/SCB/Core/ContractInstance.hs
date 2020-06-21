@@ -156,7 +156,7 @@ processFirstInboxMessage instanceID (Last msg) = do
         let payload = Contract.contractMessageToPayload msg
         logInfo "Invoking contract update."
         newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
-        logInfo "Obtained new state. Sendint contract state messages."
+        logInfo "Obtained new state. Sending contract state messages."
         -- send out the new requests
         -- see note [Contract Iterations]
         let newIteration = succ csCurrentIteration

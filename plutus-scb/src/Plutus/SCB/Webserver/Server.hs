@@ -198,7 +198,7 @@ parseStringifiedJSON v = case v of
         let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
         case s' of
             Nothing -> do
-                logDebug "parseStringifiedJSON: Failed, returning originial string"
+                logDebug "parseStringifiedJSON: Failed, returning original string"
                 pure v
             Just s'' -> do
                 logDebug "parseStringifiedJSON: Succeeded"
