@@ -13,6 +13,7 @@ module Plutus.SCB.Core.ContractInstance(
     lookupContractState
     , processFirstInboxMessage
     , processAllContractInboxes
+    , processContractInbox
     , lookupContract
     , activateContract
     -- * Contract outboxes
@@ -143,13 +144,19 @@ processFirstInboxMessage ::
 processFirstInboxMessage instanceID (Last msg) = do
     logInfo $ "processFirstInboxMessage start for " <> render (pretty instanceID)
     logInfo . render $ "The first message is: " <+> pretty msg
-    logInfo "Looking up the contract."
+    logInfo "Looking up current state of the contract instance."
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
+    logInfo . render $ "Current iteration:" <+> pretty csCurrentIteration
+    when (csCurrentIteration /= rspItID msg) $ do
+        logInfo "The first inbox message does not match the contract instance's iteration."
     when (csCurrentIteration == rspItID msg) $ do
+        logInfo "The first inbox message matches the contract instance's iteration."
         -- process the message
         let payload = Contract.contractMessageToPayload msg
+        logInfo "Invoking contract update."
         newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
+        logInfo "Obtained new state. Sendint contract state messages."
         -- send out the new requests
         -- see note [Contract Iterations]
         let newIteration = succ csCurrentIteration
@@ -171,6 +178,23 @@ processAllContractInboxes = do
     state <- runGlobalQuery (Query.inboxMessages @t)
     itraverse_ (processFirstInboxMessage @t) state
     logInfo "processAllContractInboxes end"
+
+-- | Check the inboxes of all contracts.
+processContractInbox ::
+    forall t effs.
+        ( Member (EventLogEffect (ChainEvent t)) effs
+        , Member (ContractEffect t) effs
+        , Member (Error SCBError) effs
+        , Member Log effs
+        )
+    => ContractInstanceId
+    -> Eff effs ()
+processContractInbox i = do
+    logInfo "processContractInbox start"
+    logInfo $ render $ pretty i
+    state <- runGlobalQuery (Query.inboxMessages @t)
+    itraverse_ (processFirstInboxMessage @t) (Map.filterWithKey  (\k _ -> k == i) state)
+    logInfo "processContractInbox end"
 
 -- | Generic error message for failures during the contract lookup
 newtype ContractLookupError = ContractLookupError { unContractLookupError :: String }

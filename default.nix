@@ -250,7 +250,7 @@ in rec {
       };
 
         config = pkgs.writeTextFile {
-          name = "playground.yaml";
+          name = "scb-config.yaml";
           text = ''
           dbConfig:
               dbConfigFile: scb-core.db
@@ -291,10 +291,34 @@ in rec {
           executable = true;
         };
 
+      process-inbox = pkgs.writeTextFile {
+          name = "process-inboxes.sh";
+          text = ''
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} contracts process-inbox
+          '';
+          executable = true;
+        };
+
+      process-outboxes = pkgs.writeTextFile {
+          name = "process-outboxes.sh";
+          text = ''
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} contracts process-outboxes
+          '';
+          executable = true;
+        };
+
       start-webserver = pkgs.writeTextFile {
           name = "start-webserver.sh";
           text = ''
           ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} webserver
+          '';
+          executable = true;
+        };
+
+      start-all-servers = pkgs.writeTextFile {
+          name = "start-all-servers.sh";
+          text = ''
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} all-servers
           '';
           executable = true;
         };
