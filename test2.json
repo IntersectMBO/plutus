@@ -1,6 +1,0 @@
-{
-  "tag": "create-currency",
-  "value": {
-    "unEndpointValue": "{\"smTokenName\":{\"unTokenName\":\"hello\"},\"smAmount\":100}"
-  }
-}
