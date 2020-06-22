@@ -28,6 +28,7 @@ import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddres
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
 import           Language.Plutus.Contract.Resumable                (Request, RequestID, Response, Responses)
 import           Language.Plutus.Contract.State                    (ContractRequest, State)
+import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
                                                                     buildBridge, equal, genericShow, mkSumType, order,
                                                                     writePSTypesWith)
@@ -35,7 +36,8 @@ import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptio
                                                                     unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters         (A)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
-import           Plutus.SCB.Core                                   (activateContract, installContract)
+import           Plutus.SCB.Core                                   (activateContract, callContractEndpoint,
+                                                                    installContract)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest)
@@ -52,6 +54,7 @@ import qualified Plutus.SCB.Webserver.API                          as API
 import qualified Plutus.SCB.Webserver.Server                       as Webserver
 import           Plutus.SCB.Webserver.Types                        (ChainReport, ContractReport,
                                                                     ContractSignatureResponse, FullReport)
+
 import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
@@ -138,11 +141,21 @@ writeTestData outputDir = do
                 agentAction defaultWallet $ do
                     installContract @TestContracts Currency
                     installContract @TestContracts Game
-                    currencyInstance <- activateContract Currency
+                    --
+                    currencyInstance1 <- activateContract Currency
+                    void $ activateContract Currency
                     void $ activateContract Game
+                    --
+                    void $
+                        callContractEndpoint
+                            @TestContracts
+                            currencyInstance1
+                            "create-currency"
+                            SimpleMPS {smTokenName = "TestCurrency", smAmount = 10000}
+                    --
                     report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-
-                        Webserver.contractSchema currencyInstance
+                        Webserver.contractSchema currencyInstance1
                     pure (report, schema)
             syncAll
             void Chain.processBlock
