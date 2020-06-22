@@ -1,13 +1,14 @@
 module Simulation.BottomPanel where
 
 import Control.Alternative (map)
-import Data.Array (concatMap, drop, fold, head, length, reverse)
+import Data.Array (concatMap, drop, head, length, reverse)
 import Data.Array as Array
+import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.Eq (eq, (==))
 import Data.Foldable (foldMap)
 import Data.HeytingAlgebra (not, (||))
-import Data.Lens (to, traversed, (^.), (^..))
+import Data.Lens (to, (^.))
 import Data.Lens.NonEmptyList (_Head)
 import Data.List (List, toUnfoldable)
 import Data.List as List
@@ -16,19 +17,19 @@ import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested (type (/\), (/\))
+import Data.Tuple.Nested ((/\))
 import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
+import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), BottomPanelView(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
-import Simulation.State (_contract, _currentTransactionInput, _editorErrors, _editorWarnings, _payments, _slot, _state, _transactionError, _transactionWarnings)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
 
@@ -121,12 +122,6 @@ panelContents state CurrentStateView =
                 , rowData: choicesData
                 }
             <> tableRow
-                { title: "Payments"
-                , emptyMessage: "No payments have been recorded"
-                , columns: ("Party" /\ "Currency Symbol" /\ "Token Name" /\ "Money" /\ mempty)
-                , rowData: paymentsData
-                }
-            <> tableRow
                 { title: "Let Bindings"
                 , emptyMessage: "No values have been bound"
                 , columns: ("Identifier" /\ "Value" /\ mempty /\ mempty /\ mempty)
@@ -177,25 +172,6 @@ panelContents state CurrentStateView =
       asTuple (Tuple (ChoiceId choiceName choiceOwner) value) = show choiceName /\ show choiceOwner /\ show value /\ mempty /\ mempty
     in
       map asTuple choices
-
-  paymentsData =
-    let
-      payments = state ^. (_marloweState <<< _Head <<< _payments)
-
-      asTuple :: Payment -> Array (String /\ String /\ String /\ String /\ String)
-      asTuple (Payment party (Assets mon)) =
-        concatMap
-          ( \(Tuple currencySymbol tokenMap) ->
-              ( map
-                  ( \(Tuple tokenName value) ->
-                      (show party /\ currencySymbol /\ tokenName /\ show value /\ mempty)
-                  )
-                  (Map.toUnfoldable tokenMap)
-              )
-          )
-          (Map.toUnfoldable mon)
-    in
-      concatMap asTuple payments
 
   bindingsData =
     let
@@ -404,14 +380,14 @@ panelContents state MarloweLogView =
     ]
     content
   where
-  inputLines = state ^.. (_marloweState <<< traversed <<< _currentTransactionInput <<< to txInputToLines)
+  inputLines = state ^. (_marloweState <<< _Head <<< _log <<< to (concatMap logToLines))
 
   content =
     [ div [ classes [ ClassName "error-headers", ClassName "error-row" ] ]
         [ div [] [ text "Action" ]
         , div [] [ text "Slot" ]
         ]
-    , ul [] (reverse (fold inputLines))
+    , ul [] (reverse inputLines)
     ]
 
 analysisResultPane :: forall p. State -> HTML p Action
@@ -634,10 +610,10 @@ displayWarning TransactionAssertionFailed =
   , text " - An assertion in the contract did not hold."
   ]
 
-txInputToLines :: forall p a. Maybe TransactionInput -> Array (HTML p a)
-txInputToLines Nothing = []
+logToLines :: forall p a. MarloweEvent -> Array (HTML p a)
+logToLines (InputEvent (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
 
-txInputToLines (Just (TransactionInput { interval, inputs })) = Array.fromFoldable $ map (inputToLine interval) inputs
+logToLines (OutputEvent interval payment) = paymentToLines interval payment
 
 inputToLine :: forall p a. SlotInterval -> Input -> HTML p a
 inputToLine (SlotInterval start end) (IDeposit (AccountId accountNumber accountOwner) party token money) =
@@ -648,7 +624,7 @@ inputToLine (SlotInterval start end) (IDeposit (AccountId accountNumber accountO
         , text " units of "
         , strong_ [ text (show token) ]
         , text " into account "
-        , strong_ [ text (show accountOwner <> " " <> show accountNumber <> "") ]
+        , strong_ [ text (show accountOwner <> " of " <> show accountNumber <> "") ]
         , text " as "
         , strong_ [ text (show party) ]
         ]
@@ -673,3 +649,33 @@ inputToLine (SlotInterval start end) INotify =
     [ text "Notify"
     , span_ [ text $ (show start) <> " - " <> (show end) ]
     ]
+
+paymentToLines :: forall p a. SlotInterval -> Payment -> Array (HTML p a)
+paymentToLines slotInterval (Payment party money) = unfoldAssets money (paymentToLine slotInterval party)
+
+paymentToLine :: forall p a. SlotInterval -> Party -> Token -> BigInteger -> HTML p a
+paymentToLine (SlotInterval start end) party token money =
+  li [ classes [ ClassName "error-row" ] ]
+    [ span_
+        [ text "The contract pays "
+        , strong_ [ text (show money) ]
+        , text " units of "
+        , strong_ [ text (show token) ]
+        , text " to participant "
+        , strong_ [ text (show party) ]
+        ]
+    , span_ [ text $ (show start) <> " - " <> (show end) ]
+    ]
+
+unfoldAssets :: forall a. Assets -> (Token -> BigInteger -> a) -> Array a
+unfoldAssets (Assets mon) f =
+  concatMap
+    ( \(Tuple currencySymbol tokenMap) ->
+        ( map
+            ( \(Tuple tokenName value) ->
+                f (Token currencySymbol tokenName) value
+            )
+            (Map.toUnfoldable tokenMap)
+        )
+    )
+    (Map.toUnfoldable mon)
