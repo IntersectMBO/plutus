@@ -21,8 +21,8 @@ import           Data.UUID.V4                    (nextRandom)
 import           GHC.Generics                    (Generic)
 import qualified Marlowe.Symbolic.Types.Response as MSRes
 import           Network.WebSockets              (WebSocketsData)
-import           Network.WebSockets.Connection   (Connection, PendingConnection, acceptRequest, forkPingThread,
-                                                  receiveData)
+import           Network.WebSockets.Connection   (Connection, PendingConnection, acceptRequest, receiveData,
+                                                  withPingThread)
 
 data WebSocketRequestMessage
     = CheckForWarnings String String
@@ -65,18 +65,17 @@ isWaiting uuid waiting registry = case Map.lookup uuid (unpack registry) of
 initializeConnection :: PendingConnection -> IO (UUID, Connection)
 initializeConnection pending = do
     connection <- acceptRequest pending
-    -- FIXME: This is deprecated
-    forkPingThread connection 30
     uuid <- nextRandom
     pure (uuid, connection)
 
 -- | Run an IO function that keeps being applied to new messages being received
 --   This function terminates when the connection is closed
 runWithConnection :: (WebSocketsData a) => Connection -> (a -> IO ()) -> IO ()
-runWithConnection connection f = handle disconnect . forever $ do
-            msg <- receiveData connection
-            f msg
-            pure Nothing
-    where
-        disconnect :: SomeException -> IO ()
-        disconnect _ = pure ()
+runWithConnection connection f =
+    handle disconnect . withPingThread connection 30 (pure ()) . forever $ do
+        msg <- receiveData connection
+        f msg
+        pure Nothing
+  where
+    disconnect :: SomeException -> IO ()
+    disconnect _ = pure ()
