@@ -63,8 +63,8 @@ import           Servant.API                (FromHttpApiData (parseUrlPiece), To
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Newtype, IotsType)
-    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData, ToJSON, FromJSON)
+    deriving anyclass (Newtype, IotsType, ToJSON, FromJSON)
+    deriving newtype (P.Eq, P.Ord, Serialise, PlutusTx.IsData)
     deriving IsString via LedgerBytes
     deriving (Show, Pretty) via LedgerBytes
 makeLift ''PubKey
