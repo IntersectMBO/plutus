@@ -27,6 +27,7 @@ module Language.Plutus.Contract(
     , HasEndpoint
     , Endpoint
     , endpoint
+    , endpointWithMeta
     -- * Blockchain events
     , HasWatchAddress
     , WatchAddress

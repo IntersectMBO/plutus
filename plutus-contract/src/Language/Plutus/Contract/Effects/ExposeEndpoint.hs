@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
@@ -13,6 +15,7 @@
 module Language.Plutus.Contract.Effects.ExposeEndpoint where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
+import qualified Data.Aeson as JSON
 import           Data.Maybe                       (isJust)
 import           Data.Proxy
 import           Data.Row
@@ -30,9 +33,8 @@ import           Language.Plutus.Contract.Types   (AsContractError, Contract)
 
 newtype EndpointDescription = EndpointDescription { getEndpointDescription :: String }
     deriving stock (Eq, Ord, Generic, Show, TH.Lift)
-    deriving newtype (IsString)
+    deriving newtype (IsString, Pretty)
     deriving anyclass (ToJSON, FromJSON, IotsType)
-    deriving Pretty via (Tagged "ExposeEndpoint:" String)
 
 newtype EndpointValue a = EndpointValue { unEndpointValue :: a }
     deriving stock (Eq, Ord, Generic, Show)
@@ -47,10 +49,19 @@ type HasEndpoint l a s =
   , ContractRow s
   )
 
-newtype ActiveEndpoint = ActiveEndpoint { unActiveEndpoints :: EndpointDescription }
-  deriving (Eq, Ord, Show, Generic)
+data ActiveEndpoint = ActiveEndpoint
+  { aeDescription :: EndpointDescription -- ^ The name of the endpoint
+  , aeMetadata    :: Maybe JSON.Value -- ^ Data that should be shown to the user
+  }
+  deriving (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON)
-  deriving Pretty via (Tagged "ActiveEndpoint:" EndpointDescription)
+
+instance Pretty ActiveEndpoint where
+  pretty ActiveEndpoint{aeDescription, aeMetadata} =
+    indent 2 $ vsep
+      [ "Endpoint:" <+> pretty aeDescription
+      , "Data:" <+> viaShow aeMetadata
+      ]
 
 type Endpoint l a = l .== (EndpointValue a, ActiveEndpoint)
 
@@ -62,7 +73,25 @@ endpoint
      )
   => Contract s e a
 endpoint = unEndpointValue <$> request @l @_ @_ @s s where
-  s = ActiveEndpoint $ EndpointDescription $ symbolVal (Proxy @l)
+  s = ActiveEndpoint 
+        { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
+        , aeMetadata    = Nothing
+        }
+
+-- | Expose an endpoint with some metadata. Return the data that was entered.
+endpointWithMeta
+  :: forall l a s e b.
+     ( HasEndpoint l a s
+     , AsContractError e
+     , ToJSON b
+     )
+  => b
+  -> Contract s e a
+endpointWithMeta b = unEndpointValue <$> request @l @_ @_ @s s where
+  s = ActiveEndpoint 
+        { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
+        , aeMetadata    = Just $ JSON.toJSON b
+        }
 
 event
   :: forall (l :: Symbol) a s. (KnownSymbol l, HasType l (EndpointValue a) (Input s), AllUniqueLabels (Input s))

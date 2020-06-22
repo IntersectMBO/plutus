@@ -130,7 +130,7 @@ newtype ContractHandlersResponse = ContractHandlersResponse { unContractHandlers
 
 instance FromJSON ContractHandlersResponse where
     parseJSON = JSON.withObject "ContractHandlersResponse" $ \v -> ContractHandlersResponse <$> do
-        tag <- v .: "tag"
+        (tag :: Text.Text) <- v .: "tag"
         case tag of
             "slot"            -> AwaitSlotRequest <$> v .: "value"
             "tx-confirmation" -> AwaitTxConfirmedRequest <$> v .: "value"
@@ -138,7 +138,7 @@ instance FromJSON ContractHandlersResponse where
             "utxo-at"         -> UtxoAtRequest <$> v.: "value"
             "address"         -> NextTxAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
-            _                 -> pure . UserEndpointRequest . ActiveEndpoint . EndpointDescription $ tag
+            _                 -> UserEndpointRequest <$> v .: "value"
 
 instance Pretty ContractSCBRequest where
     pretty = \case
