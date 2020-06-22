@@ -150,7 +150,9 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
               in
                 postApiContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
         modifying (_contractSignatures <<< at contractInstanceId) (Just <<< upsertEndpointForm result)
-        handleAction LoadFullReport
+        case result of
+          Success _ -> handleAction LoadFullReport
+          _ -> pure unit
 
 upsertEndpointForm ::
   forall t.
