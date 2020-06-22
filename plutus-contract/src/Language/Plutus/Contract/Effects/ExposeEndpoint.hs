@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DataKinds           #-}
@@ -7,7 +5,9 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -15,7 +15,7 @@
 module Language.Plutus.Contract.Effects.ExposeEndpoint where
 
 import           Data.Aeson                       (FromJSON, ToJSON)
-import qualified Data.Aeson as JSON
+import qualified Data.Aeson                       as JSON
 import           Data.Maybe                       (isJust)
 import           Data.Proxy
 import           Data.Row
@@ -73,7 +73,7 @@ endpoint
      )
   => Contract s e a
 endpoint = unEndpointValue <$> request @l @_ @_ @s s where
-  s = ActiveEndpoint 
+  s = ActiveEndpoint
         { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
         , aeMetadata    = Nothing
         }
@@ -88,7 +88,7 @@ endpointWithMeta
   => b
   -> Contract s e a
 endpointWithMeta b = unEndpointValue <$> request @l @_ @_ @s s where
-  s = ActiveEndpoint 
+  s = ActiveEndpoint
         { aeDescription = EndpointDescription $ symbolVal (Proxy @l)
         , aeMetadata    = Just $ JSON.toJSON b
         }
