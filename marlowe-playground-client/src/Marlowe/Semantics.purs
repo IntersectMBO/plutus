@@ -385,7 +385,7 @@ validInterval :: SlotInterval -> Boolean
 validInterval (SlotInterval from to) = from <= to
 
 above :: Slot -> SlotInterval -> Boolean
-above v (SlotInterval _ to) = v >= to
+above v (SlotInterval _ to) = v > to
 
 anyWithin :: forall f. Foldable f => Slot -> f SlotInterval -> Boolean
 anyWithin v = any (\(SlotInterval from to) -> v >= from && v <= to)
