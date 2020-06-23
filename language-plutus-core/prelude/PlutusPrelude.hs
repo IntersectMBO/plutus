@@ -80,6 +80,8 @@ module PlutusPrelude
     , printPretty
     -- * Text
     , showText
+    , LengthMismatch (..)
+    , zipExact
     ) where
 
 import           Control.Applicative                (Alternative (..))
@@ -182,3 +184,15 @@ printPretty = print . pretty
 
 showText :: Show a => a -> T.Text
 showText = T.pack . show
+
+
+data LengthMismatch = LeftLonger | RightLonger
+
+-- | Zip two lists together, checking that they have the same length.
+-- Return a LengthMismatch if they're different lengths.
+zipExact :: [a] -> [b] -> Either LengthMismatch [(a,b)]
+zipExact = zipExact' []
+     where zipExact' acc [] []         = Right $ reverse acc
+           zipExact' acc (a:as) (b:bs) = zipExact' ((a,b):acc) as bs
+           zipExact' _ _ []            = Left LeftLonger
+           zipExact' _ [] _            = Left RightLonger

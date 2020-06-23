@@ -118,7 +118,7 @@ eqTermM (ApplyBuiltin _ bn1 tys1 args1) (ApplyBuiltin _ bn2 tys2 args2) = do
     guard $ length tys1 == length tys2
     zipWithM_ eqTypeM tys1 tys2
     guard $ length args1 == length args2
-    zipWithM_ eqTermM (toList args1) (toList args2)
+    zipWithM_ eqTermM args1 args2
 eqTermM LamAbs       {} _ = empty
 eqTermM TyAbs        {} _ = empty
 eqTermM IWrap        {} _ = empty
@@ -138,7 +138,7 @@ eqProgramM (Program _ ver1 term1) (Program _ ver2 term2) = do
     guard $ ver1 == ver2
     eqTermM term1 term2
 
-{-FIXME: Roman:
+{- FIXME: (Roman)
 
 I'd perhaps define eqListM parameterized by a function checking equality of elements, but no big deal.
 @effectfully

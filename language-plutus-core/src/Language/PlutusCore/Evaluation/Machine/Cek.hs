@@ -304,7 +304,6 @@ returnCek (FrameApplyFun funVarEnv fun : ctx) arg =
                argVarEnv <- getVarEnv
                withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek ctx body
       _ ->  throwingWithCause _MachineError NonLambdaApplicationMachineError $ Just (Apply () (void fun) (void arg))
-      -- FIXME: ^ error message looks like eg (1 2) instead of [(con 1) (con 2)]
 returnCek (FrameIWrap ann pat arg : ctx) val =
     returnCek ctx $ IWrap ann pat arg val
 returnCek (FrameUnwrap : ctx) dat = case dat of

@@ -25,6 +25,7 @@ import           Data.Text                             (pack)
    and then applies the name to the relevant types and variables. This
    isn't ideal, but it does what's required for testing.
 -}
+-- Note that we
 embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
 embedBuiltinNameInTerm scheme name =
     let mkVarDecl :: (Type TyName uni (), Integer) -> Quote (VarDecl TyName Name uni ())

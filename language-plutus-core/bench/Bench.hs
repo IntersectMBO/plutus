@@ -8,7 +8,6 @@ import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Cek                 (unsafeEvaluateCek)
 import           Language.PlutusCore.Evaluation.Machine.Ck                  (unsafeEvaluateCk)
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad

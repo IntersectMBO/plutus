@@ -10,6 +10,10 @@ module Language.PlutusCore.Normalize.Internal
     , normalizeTypeM
     , substNormalizeTypeM
     , normalizeTypesInM
+    , TypeMapping
+    , emptyMapping
+    , appendToMapping
+    , substNormalizeMappingM
     ) where
 
 import           Language.PlutusCore.Core
@@ -169,3 +173,26 @@ normalizeTypesInM
     => Term tyname name uni ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni ann)
 normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)
+
+-- | A map mapping a number of type variables to types
+-- A mapping is implemented as a simple list of pairs.  It seems unlikely
+-- that we'll ever need more than two or three entries, so using a
+-- proper Map might be overkill.  We assume that no type variable is repeated.
+
+type TypeMapping tyname uni ann = [(tyname , Normalized (Type tyname uni ann))]
+
+emptyMapping :: TypeMapping tyname uni ann
+emptyMapping = []
+
+appendToMapping :: TypeMapping tyname uni ann -> tyname -> Normalized (Type tyname uni ann) -> TypeMapping tyname uni ann
+appendToMapping m tn ty = (tn,ty):m
+
+substNormalizeMappingM
+    :: (HasUnique tyname TypeUnique, MonadQuote m)
+    => TypeMapping tyname uni ann                                          -- ^ [name1 -> ty1, name2 -> ty2, ..., nameN -> tyN]
+    -> Type tyname uni ann                                                 -- ^ @body@
+    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([tyN / nameN]...[ty1 / name1] body)@
+substNormalizeMappingM [] t =
+    normalizeTypeM t
+substNormalizeMappingM ((tn,ty):m) t =
+    withExtendedTypeVarEnv tn ty $ substNormalizeMappingM m t

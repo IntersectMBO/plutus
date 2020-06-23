@@ -17,7 +17,6 @@ import           Language.PlutusIR
 
 import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltinName, genConstant, genKind, genVersion,
                                                                runAstGen, simpleRecursive)
-    -- FIXME - genBuiltinName, genBuiltin
 import qualified Language.PlutusCore.Generators.AST as PLC
 import qualified Language.PlutusCore.Universe       as PLC
 

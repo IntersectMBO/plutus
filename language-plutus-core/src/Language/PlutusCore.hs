@@ -61,7 +61,6 @@ module Language.PlutusCore
     , AlexPosn (..)
     -- * Views
     , IterApp (..)
-    , TermIterApp
     -- * Formatting
     , format
     , formatDoc

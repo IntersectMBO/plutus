@@ -82,21 +82,17 @@ substituteDb varFor new = go where
     goUnder var term = if var == varFor then term else go term
 
 
-{- FIXME: Roman :
-
-(|>) has comments specifying the behavior of the machine. They should be updated as well.
--}
-
 -- | The computing part of the CK machine. Rules are as follows:
 --
--- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
--- > s ▷ [M N]      ↦ s , [_ N]        ▷ M
--- > s ▷ wrap α A M ↦ s , (wrap α S _) ▷ M
--- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
--- > s ▷ abs α K M  ↦ s ◁ abs α K M
--- > s ▷ lam x A M  ↦ s ◁ lam x A M
--- > s ▷ con cn     ↦ s ◁ con cn
--- > s ▷ error A    ↦ ◆
+-- > s ▷ {M A}            ↦ s , {_ A}         ▷ M
+-- > s ▷ [M N]            ↦ s , [_ N]         ▷ M
+-- > s ▷ wrap α A M       ↦ s , (iwrap α S _) ▷ M
+-- > s ▷ unwrap M         ↦ s , (unwrap _ )   ▷ M
+-- > s ▷ abs α K M        ↦ s ◁ abs α K M
+-- > s ▷ lam x A M        ↦ s ◁ lam x A M
+-- > s ▷ con cn           ↦ s ◁ con cn
+-- > s ▷ builtin b A* MM* ↦ s , (builtin b A* _ M*) ▷ M
+-- > s ▷ error A          ↦ ◆
 (|>)
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
@@ -105,10 +101,10 @@ stack |> Apply _ fun arg                  = FrameApplyArg arg      : stack |> fu
 stack |> IWrap ann pat arg term           = FrameIWrap ann pat arg : stack |> term
 stack |> Unwrap _ term                    = FrameUnwrap            : stack |> term
 stack |> tyAbs@TyAbs{}                    = stack <| tyAbs
-stack |> lamAbs@LamAbs{}                  = stack <| lamAbs
-_     |> t@(ApplyBuiltin _ _ _ [])        = throwingWithCause _ConstAppError NullaryConstAppError $ Just (void t)
-stack |> ApplyBuiltin _ bn tys (arg:args) = FrameApplyBuiltin bn tys [] args : stack |> arg
 stack |> constant@Constant{}              = stack <| constant
+stack |> lamAbs@LamAbs{}                  = stack <| lamAbs
+_     |> t@(ApplyBuiltin _ _ _ [])        = throwingWithCause _ConstAppError NullaryConstAppError $ Just (void t) -- Zero-argument builtins not allowed
+stack |> ApplyBuiltin _ bn tys (arg:args) = FrameApplyBuiltin bn tys [] args : stack |> arg
 _     |> err@Error{}                      =
     throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
 _     |> var@Var{}                        =
@@ -116,14 +112,14 @@ _     |> var@Var{}                        =
 
 -- | The returning part of the CK machine. Rules are as follows:
 --
--- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ M
--- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
--- > s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
--- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant.
--- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant.
--- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
--- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
--- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
+-- > s , {_ A}                   ◁ abs α K M     ↦  s         ▷ M
+-- > s , [_ N]                   ◁ V             ↦  s , [V _] ▷ N
+-- > s , [(lam x A M) _]         ◁ V             ↦  s         ▷ [V/x]M
+-- > s , (iwrap α S _)           ◁ V             ↦  s ◁ wrap α S V
+-- > s , (unwrap _)              ◁ wrap α A V    ↦  s ◁ V
+-- > s , (builtin b A* V* _ MM*) ◁ V             ↦  s , (builtin b A* V*V _ M*) ▷ M  -- Builtin, arguments awating evaluation
+-- > s , (builtin b A* V* _ ∅)   ◁ V             ↦  s ▷ N                            -- Builtin, all arguments evaluated, b evaluates to N on A* and V*V
+
 (<|)
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Value TyName Name uni () -> CkM uni (Term TyName Name uni ())
@@ -177,15 +173,7 @@ applyEvaluateCkStaticBuiltinName name args = do
     void <$> applyBuiltinName params name (withMemory <$> args)
 
 
-
 -- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
--- This differs from the spec version: we do not have the following rule:
---
--- > s , {_ A} ◁ F ↦ s ◁ W  -- Fully saturated constant, {F A} ~> W.
---
--- The reason for that is that the operational semantics of constant applications is
--- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
--- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Term TyName Name uni () -> Either (CkEvaluationException uni) (Term TyName Name uni ())

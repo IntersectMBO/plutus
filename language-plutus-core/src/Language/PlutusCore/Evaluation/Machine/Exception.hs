@@ -187,6 +187,7 @@ instance (PrettyBy config (Term TyName Name uni ()), PrettyBy config err) =>
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, PrettyPlc err) =>
             Show (ErrorWithCause uni err) where
     show = render . prettyPlcReadableDebug
+-- Note: this means that terms in errors seen by the user will be in the non-standard format.
 
 instance ( GShow uni, Closed uni, uni `Everywhere` PrettyConst
          , Typeable uni, PrettyPlc err, Typeable err

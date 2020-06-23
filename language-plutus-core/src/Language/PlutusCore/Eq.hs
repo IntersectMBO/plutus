@@ -180,3 +180,8 @@ eqNameM name1 name2 = do
 eqM :: Eq a => a -> a -> EqRename ren
 eqM x1 x2 = guard $ x1 == x2
 
+{- FIXME:(mpj) Happened to spot this: but I note that the usage of this
+  is complicated quite a lot by this being monadic. Why not do the
+  zipping/equality checking purely, and then do a final guard at the
+  end? Having it deep in here just makes it a pain.
+-}
