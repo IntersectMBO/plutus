@@ -236,14 +236,14 @@ guess ::
 guess uuid params =
     void $ callContractEndpoint @TestContracts uuid "guess" params
 
--- | Call the @"create-currency"@ endpoint on the currency contract.
+-- | Call the @"Create native token"@ endpoint on the currency contract.
 createCurrency ::
     Members SpecEffects effs
     => ContractInstanceId
     -> SimpleMPS
     -> Eff effs ()
 createCurrency uuid value =
-    void $ callContractEndpoint @TestContracts uuid "create-currency" value
+    void $ callContractEndpoint @TestContracts uuid "Create native token" value
 
 assertEqual ::
     forall a effs.

@@ -180,12 +180,12 @@ data SimpleMPS =
 
 type CurrencySchema =
     BlockchainActions
-        .\/ Endpoint "create-currency" SimpleMPS
+        .\/ Endpoint "Create native token" SimpleMPS
 
 -- | Create the currency specified by a 'SimpleMPS'
 forgeCurrency
     :: Contract CurrencySchema CurrencyError Currency
 forgeCurrency = do
-    SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
+    SimpleMPS{smTokenName, smAmount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey
     forgeContract ownPK [(smTokenName, smAmount)]
