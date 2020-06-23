@@ -316,6 +316,9 @@ floatLeft = ClassName "float-left"
 floatRight :: ClassName
 floatRight = ClassName "float-right"
 
+displayFlex :: ClassName
+displayFlex = ClassName "d-flex"
+
 clearfix :: ClassName
 clearfix = ClassName "clearfix"
 

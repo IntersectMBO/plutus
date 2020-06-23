@@ -10,8 +10,10 @@ import AjaxUtils (renderForeignErrors)
 import Analytics (Event, defaultEvent, trackEvent)
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
-import Chain.Types (AnnotatedBlockchain(..), ChainFocus(..), _chainFocusAppearing)
-import Chain.Types (initialState) as Chain
+import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
+import Chain.Types as Chain
+import Clipboard (class MonadClipboard)
+import Clipboard as Clipboard
 import Control.Monad.Error.Class (class MonadThrow)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except.Extra (noteT)
@@ -191,9 +193,11 @@ toEvent EvaluateActions = Just $ (defaultEvent "EvaluateActions") { category = J
 
 toEvent (ChangeSimulation subAction) = toActionEvent subAction
 
-toEvent (SetChainFocus (Just (FocusTx _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
+toEvent (ChainAction (FocusTx (Just _))) = Just $ (defaultEvent "BlockchainFocus") { category = Just "Transaction" }
 
-toEvent (SetChainFocus Nothing) = Nothing
+toEvent (ChainAction (FocusTx Nothing)) = Nothing
+
+toEvent (ChainAction (ClipboardAction (Clipboard.CopyToClipboard _))) = Just $ (defaultEvent "ClipboardAction") { category = Just "CopyToClipboard" }
 
 toActionEvent :: SimulationAction -> Maybe Event
 toActionEvent (PopulateAction _ _) = Just $ (defaultEvent "PopulateAction") { category = Just "Action" }
@@ -215,6 +219,7 @@ toActionEvent (ModifyActions (SetWaitUntilTime _ _)) = Just $ (defaultEvent "Set
 handleAction ::
   forall m.
   MonadState State m =>
+  MonadClipboard m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadApp m =>
   MonadAnimate m State =>
@@ -322,12 +327,16 @@ handleAction (ChangeSimulation subaction) = do
     initialValue = mkInitialValue knownCurrencies 0
   modifying (_simulations <<< _current <<< _simulationActions) (handleSimulationAction initialValue subaction)
 
-handleAction (SetChainFocus newFocus) = do
+handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
     peruse (_evaluationResult <<< _Success <<< _JsonEither <<< _Right <<< _resultRollup <<< to AnnotatedBlockchain)
-  animate
-    (_blockchainVisualisationState <<< _chainFocusAppearing)
-    (zoomStateT _blockchainVisualisationState $ Chain.handleAction newFocus mAnnotatedBlockchain)
+  let
+    wrapper = case subaction of
+      (FocusTx _) -> animate (_blockchainVisualisationState <<< _chainFocusAppearing)
+      _ -> identity
+  wrapper
+    $ zoomStateT _blockchainVisualisationState
+    $ Chain.handleAction subaction mAnnotatedBlockchain
 
 handleAction CompileProgram = do
   mContents <- editorGetContents

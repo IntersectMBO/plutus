@@ -50,7 +50,7 @@ evaluationPane ::
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ SetChainFocus <<< Just
+    [ ChainAction
         <$> chainView
             state
             (AssocMap.toDataMap (AssocMap.Map walletKeys))

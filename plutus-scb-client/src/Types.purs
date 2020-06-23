@@ -1,7 +1,6 @@
 module Types where
 
 import Prelude
-import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Monad.Gen as Gen
 import Data.Generic.Rep (class Generic)
@@ -12,7 +11,6 @@ import Data.Lens (Lens', Getter', to)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
-import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
@@ -42,7 +40,7 @@ data HAction
   | ChangeView View
   | LoadFullReport
   | ActivateContract ContractExe
-  | ChainAction (Maybe ChainFocus)
+  | ChainAction Chain.Action
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
   | InvokeContractEndpoint ContractInstanceId EndpointForm
 
