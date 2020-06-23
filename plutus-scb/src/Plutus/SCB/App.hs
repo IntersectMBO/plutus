@@ -37,9 +37,9 @@ import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLo
 import           Data.Aeson                    (FromJSON, eitherDecode)
 import qualified Data.Aeson.Encode.Pretty      as JSON
 import qualified Data.ByteString.Lazy.Char8    as BSL8
-import Data.String (IsString(fromString))
+import           Data.String                   (IsString (fromString))
 import qualified Data.Text                     as Text
-import           Data.Text.Prettyprint.Doc                         ((<+>))
+import           Data.Text.Prettyprint.Doc     ((<+>))
 import           Database.Persist.Sqlite       (runSqlPool)
 import           Eventful.Store.Sqlite         (initializeSqliteEventStore)
 import           Network.HTTP.Client           (defaultManagerSettings, newManager)
@@ -51,7 +51,7 @@ import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events             (ChainEvent)
 import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
                                                 dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
-import           Plutus.SCB.Utils (render)
+import           Plutus.SCB.Utils              (render)
 import           Servant.Client                (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                (readProcessWithExitCode)
