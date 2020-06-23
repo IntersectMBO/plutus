@@ -11,7 +11,7 @@ module Cardano.Node.Mock where
 import           Control.Concurrent            (threadDelay)
 import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                  (over, set, view)
-import           Control.Monad                 (forever, void)
+import           Control.Monad                 (forever, void, when)
 import           Control.Monad.Freer           (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras    (handleZoomedState)
 import           Control.Monad.Freer.State     (State)
@@ -29,6 +29,7 @@ import           Servant                       (NoContent (NoContent))
 
 import           Ledger                        (Block, Slot (Slot), Tx)
 import qualified Ledger
+import           Ledger.Tx                     (outputs)
 
 import           Cardano.Node.Follower         (NodeFollowerEffect, handleNodeFollower)
 import           Cardano.Node.RandomTx
@@ -136,8 +137,10 @@ transactionGenerator ::
        (MonadIO m, MonadLogger m) => Second -> MVar AppState -> m ()
 transactionGenerator itvl stateVar =
     forever $ do
-        void $ processChainEffects stateVar (genRandomTx >>= addTx)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
+        processChainEffects stateVar $ do
+            tx' <- genRandomTx
+            when (not . null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)

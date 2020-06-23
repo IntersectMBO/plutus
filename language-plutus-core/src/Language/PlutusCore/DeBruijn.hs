@@ -46,7 +46,7 @@ data DeBruijn = DeBruijn { dbnString :: T.Text, dbnIndex :: Index }
 
 -- | A type name as a de Bruijn index.
 newtype TyDeBruijn = TyDeBruijn DeBruijn
-    deriving (Show, Generic)
+    deriving (Show, Generic, PrettyBy config)
 instance Wrapped TyDeBruijn
 
 instance HasPrettyConfigName config => PrettyBy config DeBruijn where
@@ -54,8 +54,6 @@ instance HasPrettyConfigName config => PrettyBy config DeBruijn where
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
-
-deriving newtype instance HasPrettyConfigName config => PrettyBy config TyDeBruijn
 
 class HasIndex a where
     index :: Lens' a Index

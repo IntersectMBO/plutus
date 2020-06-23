@@ -19,7 +19,7 @@ import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, Party(..), Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, moneyInContract)
 import Monaco (IMarker)
-import Prelude (class Eq, class Ord, append, map, mempty, min, one, zero, ($), (+), (<<<))
+import Prelude (class Eq, class Ord, append, map, mempty, min, zero, ($), (<<<))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -57,6 +57,10 @@ actionToActionInput _ (Choice choiceId bounds) = Tuple (ChoiceInputId choiceId b
 
 actionToActionInput _ (Notify _) = Tuple NotifyInputId NotifyInput
 
+data MarloweEvent
+  = InputEvent TransactionInput
+  | OutputEvent SlotInterval Payment
+
 type MarloweState
   = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
     , pendingInputs :: Array (Tuple Input (Maybe PubKey))
@@ -69,8 +73,7 @@ type MarloweState
     , editorErrors :: Array IMarker
     , editorWarnings :: Array IMarker
     , holes :: Holes
-    , payments :: Array Payment
-    , currentTransactionInput :: Maybe TransactionInput
+    , log :: Array MarloweEvent
     }
 
 _possibleActions :: forall s a. Lens' { possibleActions :: a | s } a
@@ -110,11 +113,8 @@ _holes = prop (SProxy :: SProxy "holes")
 _result :: forall s a. Lens' { result :: a | s } a
 _result = prop (SProxy :: SProxy "result")
 
-_payments :: forall s a. Lens' { payments :: a | s } a
-_payments = prop (SProxy :: SProxy "payments")
-
-_currentTransactionInput :: forall s a. Lens' { currentTransactionInput :: a | s } a
-_currentTransactionInput = prop (SProxy :: SProxy "currentTransactionInput")
+_log :: forall s a. Lens' { log :: a | s } a
+_log = prop (SProxy :: SProxy "log")
 
 emptyMarloweState :: Slot -> MarloweState
 emptyMarloweState sn =
@@ -129,8 +129,7 @@ emptyMarloweState sn =
   , editorErrors: mempty
   , editorWarnings: mempty
   , holes: mempty
-  , payments: []
-  , currentTransactionInput: Nothing
+  , log: []
   }
 
 updateContractInStateP :: String -> MarloweState -> MarloweState
@@ -201,13 +200,10 @@ updatePossibleActions oldState =
       Nothing -> def
     Nothing -> def
 
-updateStateImpl :: MarloweState -> MarloweState
-updateStateImpl = updatePossibleActions <<< updateStateP
-
 updateStateP :: MarloweState -> MarloweState
 updateStateP oldState = actState
   where
-  txInput = stateToTxInput oldState
+  txInput@(TransactionInput txIn) = stateToTxInput oldState
 
   actState = case computeTransaction txInput (oldState ^. _state) (oldState ^. _contract <<< to (fromMaybe Close)) of
     (TransactionOutput { txOutWarnings, txOutPayments, txOutState, txOutContract }) ->
@@ -217,8 +213,8 @@ updateStateP oldState = actState
           <<< set _state txOutState
           <<< set _contract (Just txOutContract)
           <<< set _moneyInContract (moneyInContract txOutState)
-          <<< over _payments (append (fromFoldable txOutPayments))
-          <<< set _currentTransactionInput (Just txInput)
+          <<< over _log (append (fromFoldable (map (OutputEvent txIn.interval) txOutPayments)))
+          <<< over _log (append [ InputEvent txInput ])
       )
         oldState
     (Error txError) -> set _transactionError (Just txError) oldState
@@ -228,7 +224,7 @@ stateToTxInput ms =
   let
     slot = ms ^. _slot
 
-    interval = SlotInterval slot (slot + one)
+    interval = SlotInterval slot slot
 
     inputs = map fst (ms ^. _pendingInputs)
   in

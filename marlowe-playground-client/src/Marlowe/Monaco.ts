@@ -137,6 +137,7 @@ const marloweLexer = moo.compile({
         'NegValue',
         'AddValue',
         'SubValue',
+        'MulValue',
         'ChoiceValue',
         'SlotIntervalStart',
         'SlotIntervalEnd',

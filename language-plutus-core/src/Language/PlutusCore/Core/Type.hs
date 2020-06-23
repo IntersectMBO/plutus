@@ -138,9 +138,8 @@ data Program tyname name uni ann = Program ann (Version ann) (Term tyname name u
 newtype Normalized a = Normalized
     { unNormalized :: a
     } deriving (Show, Eq, Functor, Foldable, Traversable, Lift, Generic)
-      deriving newtype NFData
+      deriving newtype (NFData, PrettyBy config)
       deriving Applicative via Identity
-deriving newtype instance PrettyBy config a => PrettyBy config (Normalized a)
 
 -- | All kinds of uniques an entity contains.
 type family HasUniques a :: Constraint

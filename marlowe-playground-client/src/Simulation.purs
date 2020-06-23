@@ -15,7 +15,7 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (_Just, assign, modifying, over, preview, set, to, use, view, (^.))
+import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty (NonEmptyList)
@@ -68,7 +68,7 @@ import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, i
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _currentTransactionInput, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
 import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
@@ -387,7 +387,7 @@ saveInitialState = do
     )
 
 updateMarloweState :: forall m. MonadState State m => (MarloweState -> MarloweState) -> m Unit
-updateMarloweState f = modifying _marloweState (extendWith (set _currentTransactionInput Nothing <<< updatePossibleActions <<< f))
+updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
 
 updateContractInState :: forall m. MonadState State m => String -> m Unit
 updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)

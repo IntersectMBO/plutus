@@ -316,6 +316,7 @@ data Value
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
+  | MulValue Value Value
   | Scale Rational Value
   | ChoiceValue ChoiceId Value
   | SlotIntervalStart
@@ -384,7 +385,7 @@ validInterval :: SlotInterval -> Boolean
 validInterval (SlotInterval from to) = from <= to
 
 above :: Slot -> SlotInterval -> Boolean
-above v (SlotInterval _ to) = v >= to
+above v (SlotInterval _ to) = v > to
 
 anyWithin :: forall f. Foldable f => Slot -> f SlotInterval -> Boolean
 anyWithin v = any (\(SlotInterval from to) -> v >= from && v <= to)
@@ -873,6 +874,7 @@ evalValue env state value =
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
+      MulValue lhs rhs -> eval lhs * eval rhs
       Scale (Rational num denom) rhs ->
         let
           -- quotient and reminder
