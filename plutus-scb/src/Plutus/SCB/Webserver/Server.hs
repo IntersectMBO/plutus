@@ -19,7 +19,7 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logInfo, logDebug)
+import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -187,7 +187,7 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
-parseStringifiedJSON :: 
+parseStringifiedJSON ::
     forall effs.
     Member Log effs
     => JSON.Value
