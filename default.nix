@@ -307,8 +307,12 @@ in rec {
       process-outboxes = pkgs.writeTextFile {
           name = "process-outboxes.sh";
           text = ''
-          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config-primary} contracts process-outboxes
-          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config-secondary} contracts process-outboxes
+          while [ 1 ]
+          do
+              ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config-primary} contracts process-outboxes
+              ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config-secondary} contracts process-outboxes
+              sleep 3
+          done
           '';
           executable = true;
         };
