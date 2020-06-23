@@ -97,7 +97,7 @@ executionTests =
 
 currencyTest :: TestTree
 currencyTest =
-    let mps = SimpleMPS{smTokenName="my token", smAmount = 10000} in
+    let mps = SimpleMPS{tokenName="my token", amount = 10000} in
     testCase "Currency" $
         runScenario $ do
               initialTxCounts <- txCounts
