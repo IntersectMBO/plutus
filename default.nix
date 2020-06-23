@@ -263,6 +263,8 @@ in rec {
 
               walletServerConfig:
                 baseUrl: http://localhost:${conf.walletserver-port}
+                wallet: 
+                  getWallet: ${conf.wallet}
 
               nodeServerConfig:
                 mscBaseUrl: http://localhost:${conf.nodeserver-port}
