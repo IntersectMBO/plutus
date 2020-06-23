@@ -7,6 +7,8 @@ scbWebserverConfig:
 
 walletServerConfig:
   baseUrl: http://localhost:8081
+  wallet: 
+    getWallet: 1
 
 nodeServerConfig:
   mscBaseUrl: http://localhost:8082
