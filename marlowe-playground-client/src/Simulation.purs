@@ -25,6 +25,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, trim)
 import Data.String as String
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -56,6 +57,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (replaceInPositions)
+import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
 import Marlowe.Parser (hole, parseTerm)
 import Marlowe.Parser as P
@@ -130,8 +132,9 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
   assign _activeDemo ""
-
-handleAction _ (HandleEditorMessage (Monaco.MarkersChanged markers)) = editorSetMarkers markers
+  state <- use (_currentMarloweState <<< _state)
+  markers <- query _editorSlot unit (Monaco.SetModelMarkers (Linter.markers state text) identity)
+  void $ traverse editorSetMarkers markers
 
 handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
 

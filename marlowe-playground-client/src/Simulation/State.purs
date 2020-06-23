@@ -136,7 +136,7 @@ updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
     let
-      lintResult = lint parsedContract
+      lintResult = lint state.state parsedContract
 
       mContract = fromTerm parsedContract
     in

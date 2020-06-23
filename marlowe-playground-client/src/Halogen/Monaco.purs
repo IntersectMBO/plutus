@@ -17,10 +17,10 @@ import Halogen (HalogenM, RefLabel, get, modify_)
 import Halogen as H
 import Halogen.HTML (HTML, div)
 import Halogen.HTML.Properties (class_, ref)
-import Halogen.Query.EventSource (Emitter(..), Finalizer(..), effectEventSource)
+import Halogen.Query.EventSource (Emitter(..), Finalizer, effectEventSource)
 import Monaco (CodeActionProvider, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarker, IMarkerData, IPosition, LanguageExtensionPoint, MonarchLanguage, Theme, TokensProvider)
 import Monaco as Monaco
-import Prelude (class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, pure, unit, void, ($), (>>=))
+import Prelude (class Applicative, class Bounded, class Eq, class Ord, class Show, Unit, bind, const, discard, mempty, pure, unit, void, ($), (>>=))
 
 data KeyBindings
   = DefaultBindings
@@ -64,16 +64,15 @@ data Query a
   | SetPosition IPosition a
   | Resize a
   | SetTheme String a
-  | SetModelMarkers (Array IMarkerData) a
+  | SetModelMarkers (Array IMarkerData) (Array IMarker -> a)
   | SetKeyBindings KeyBindings a
 
 data Action
   = Init
-  | HandleChange String (Array IMarker)
+  | HandleChange String
 
 data Message
   = TextChanged String
-  | MarkersChanged (Array IMarker)
 
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
@@ -86,14 +85,17 @@ type Settings m
     , documentFormattingEditProvider :: Maybe DocumentFormattingEditProvider
     , refLabel :: RefLabel
     , owner :: String
-    , getModelMarkers :: String -> Array IMarkerData
     , setup :: Editor -> m Unit
     }
 
 monacoComponent :: forall m. MonadAff m => MonadEffect m => Settings m -> H.Component HTML Query Unit Message m
 monacoComponent settings =
   H.mkComponent
-    { initialState: const { editor: Nothing, deactivateBindings: pure unit }
+    { initialState:
+      const
+        { editor: Nothing
+        , deactivateBindings: pure unit
+        }
     , render: render settings
     , eval:
       H.mkEval
@@ -131,31 +133,28 @@ handleAction settings Init = do
         for_ settings.codeActionProvider $ Monaco.registerCodeActionProvider monaco languageId
         for_ settings.documentFormattingEditProvider $ Monaco.registerDocumentFormattingEditProvider monaco languageId
       editor <- liftEffect $ Monaco.create monaco element languageId
-      void $ H.modify (\s -> s { editor = Just editor })
-      void $ H.subscribe $ effectEventSource (changeContentHandler monaco editor)
+      void $ H.subscribe $ effectEventSource (changeContentHandler editor)
+      void $ H.modify (_ { editor = Just editor })
       H.lift $ settings.setup editor
       model <- liftEffect $ Monaco.getModel editor
       H.raise $ TextChanged (Monaco.getValue model)
       pure unit
     Nothing -> pure unit
-  where
-  changeContentHandler monaco editor (Emitter emitter) = do
-    Monaco.onDidChangeContent editor
-      ( \_ -> do
-          model <- Monaco.getModel editor
-          let
-            v = Monaco.getValue model
 
-            markersData = settings.getModelMarkers v
-          Monaco.setModelMarkers monaco model settings.owner markersData
-          markers <- Monaco.getModelMarkers monaco model
-          emitter $ Left $ HandleChange (Monaco.getValue model) markers
-      )
-    pure $ Finalizer $ pure unit
+handleAction _ (HandleChange contents) = H.raise $ TextChanged contents
 
-handleAction _ (HandleChange contents markers) = do
-  H.raise $ TextChanged contents
-  H.raise $ MarkersChanged markers
+changeContentHandler ::
+  forall m.
+  Applicative m =>
+  Editor ->
+  Emitter Effect Action -> Effect (Finalizer m)
+changeContentHandler editor (Emitter emitter) = do
+  Monaco.onDidChangeContent editor
+    ( \_ -> do
+        model <- Monaco.getModel editor
+        emitter $ Left $ HandleChange (Monaco.getValue model)
+    )
+  pure mempty
 
 -- If the editor has been set then we can use it when handling our Query
 withEditor :: forall input m a. MonadEffect m => (Editor -> HalogenM State Action input Message m a) -> HalogenM State Action input Message m (Maybe a)
@@ -192,15 +191,16 @@ handleQuery (SetTheme themeName next) = do
     Monaco.setTheme monaco themeName
     pure $ Just next
 
-handleQuery (SetModelMarkers markers next) = do
+handleQuery (SetModelMarkers markersData f) = do
   withEditor \editor ->
     liftEffect do
       let
         owner = Monaco.getEditorId editor
       monaco <- Monaco.getMonaco
       model <- Monaco.getModel editor
-      Monaco.setModelMarkers monaco model owner markers
-      pure next
+      Monaco.setModelMarkers monaco model owner markersData
+      markers <- Monaco.getModelMarkers monaco model
+      pure $ f markers
 
 handleQuery (SetKeyBindings DefaultBindings next) =
   withEditor \editor -> do
@@ -213,7 +213,7 @@ handleQuery (SetKeyBindings Emacs next) =
     { deactivateBindings } <- get
     liftEffect deactivateBindings
     disableEmacsMode <- liftEffect $ Monaco.enableEmacsBindings editor
-    modify_ (\s -> s { deactivateBindings = disableEmacsMode })
+    modify_ (_ { deactivateBindings = disableEmacsMode })
     pure next
 
 handleQuery (SetKeyBindings Vim next) =
@@ -221,5 +221,5 @@ handleQuery (SetKeyBindings Vim next) =
     { deactivateBindings } <- get
     liftEffect deactivateBindings
     disableVimMode <- liftEffect $ Monaco.enableVimBindings editor
-    modify_ (\s -> s { deactivateBindings = disableVimMode })
+    modify_ (_ { deactivateBindings = disableVimMode })
     pure next

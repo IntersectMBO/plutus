@@ -113,8 +113,6 @@ handleAction _ (HandleSimulationMessage (ST.WebsocketMessage msg)) = H.raise (We
 
 handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = assign _activeHaskellDemo ""
 
-handleAction _ (HaskellHandleEditorMessage _) = pure unit
-
 handleAction _ (HaskellSelectEditorKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
   void $ query _haskellEditorSlot unit (Monaco.SetKeyBindings bindings unit)
@@ -142,7 +140,7 @@ handleAction settings CompileHaskellProgram = do
         markers = case result of
           Success (JsonEither (Left errors)) -> toMarkers errors
           _ -> []
-      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers unit)
+      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
 handleAction _ (LoadHaskellScript key) = do
   case Map.lookup key StaticData.demoFiles of
