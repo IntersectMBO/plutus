@@ -5,6 +5,7 @@ module MainFrameTests
 import Prelude
 import Animation (class MonadAnimate)
 import Auth (AuthRole(..), AuthStatus(..))
+import Clipboard (class MonadClipboard)
 import Control.Monad.Error.Extra (mapError)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (class MonadThrow)
@@ -140,6 +141,9 @@ instance monadRecMockApp :: Monad m => MonadRec (MockApp m) where
 -- | The mock app makes no attempt to animate anything, and just calls the embedded `action`.
 instance monadAnimateMockApp :: MonadAnimate (MockApp m) State where
   animate toggle action = action
+
+instance monadClipboardMockApp :: Monad m => MonadClipboard (MockApp m) where
+  copy _ = pure unit
 
 execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
 execMockApp world queries = do
