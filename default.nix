@@ -318,6 +318,9 @@ in rec {
       start-all-servers = pkgs.writeTextFile {
           name = "start-all-servers.sh";
           text = ''
+          rm -f scb-core.db
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} migrate
+          ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} contracts install --path ${plutus-currency}/bin/plutus-currency
           ${haskell.packages.plutus-scb.components.exes.plutus-scb}/bin/plutus-scb --config=${config} all-servers
           '';
           executable = true;
