@@ -98,8 +98,9 @@ app nodeClientEnv chainIndexEnv mVarState =
     walletSlot :<|> ownOutputs
 
 main :: MonadIO m => Config -> BaseUrl -> BaseUrl -> Availability -> m ()
-main Config {baseUrl} nodeBaseUrl chainIndexBaseUrl availability = runStdoutLoggingT $ do
+main Config {baseUrl, wallet} nodeBaseUrl chainIndexBaseUrl availability = runStdoutLoggingT $ do
     let port = baseUrlPort baseUrl
+        state = initialState wallet
     nodeClientEnv <-
         liftIO $ do
             nodeManager <- newManager defaultManagerSettings
@@ -108,12 +109,12 @@ main Config {baseUrl} nodeBaseUrl chainIndexBaseUrl availability = runStdoutLogg
         liftIO $ do
             chainIndexManager <- newManager defaultManagerSettings
             pure $ mkClientEnv chainIndexManager chainIndexBaseUrl
-    mVarState <- liftIO $ newMVar initialState
+    mVarState <- liftIO $ newMVar state
     _ <- liftIO
             $ runM
             $ flip handleError (error . show @ClientError)
             $ ChainIndexClient.handleChainIndexClient chainIndexEnv
-            $ startWatching (Wallet.ownAddress initialState)
+            $ startWatching (Wallet.ownAddress state)
     let warpSettings :: Warp.Settings
         warpSettings = Warp.defaultSettings & Warp.setPort port & Warp.setBeforeMainLoop (available availability)
     logInfoN $ "Starting wallet server on port: " <> tshow port

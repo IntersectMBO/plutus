@@ -33,7 +33,6 @@ module Plutus.SCB.MockApp
     ) where
 
 import qualified Cardano.Node.Types              as NodeServer
-import qualified Cardano.Wallet.Mock             as WalletServer
 import           Control.Lens                    hiding (use)
 import           Control.Monad                   (void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM, subsume)
@@ -78,7 +77,7 @@ data TestState =
 makeLenses 'TestState
 
 defaultWallet :: Wallet
-defaultWallet = WalletServer.activeWallet
+defaultWallet = Wallet 1
 
 initialTestState :: TestState
 initialTestState =
