@@ -70,7 +70,7 @@ mkEscrowParams p@AtomicSwapParams{party1,party2,deadline} =
 
 type AtomicSwapSchema =
     BlockchainActions
-        .\/ Endpoint "atomic-swap" AtomicSwapParams
+        .\/ Endpoint "Atomic swap" AtomicSwapParams
 
 data AtomicSwapError =
     EscrowError Escrow.EscrowError
@@ -86,7 +86,7 @@ instance AsContractError AtomicSwapError where
 --   involved.
 atomicSwap :: Contract AtomicSwapSchema AtomicSwapError ()
 atomicSwap = do
-    p <- endpoint @"atomic-swap"
+    p <- endpoint @"Atomic swap"
     let value1 = mkValue1 p
         value2 = mkValue2 p
         params = mkEscrowParams p
