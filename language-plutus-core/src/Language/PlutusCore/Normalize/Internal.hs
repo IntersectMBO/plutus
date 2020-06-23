@@ -179,6 +179,8 @@ normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
 -- that we'll ever need more than two or three entries, so using a
 -- proper Map might be overkill.  We assume that no type variable is repeated.
 
+-- ... although a TypeMapping is essentially a TypeVarEnv in disguise.
+-- Can we just use a TypeVarEnv directly?
 type TypeMapping tyname uni ann = [(tyname , Normalized (Type tyname uni ann))]
 
 emptyMapping :: TypeMapping tyname uni ann

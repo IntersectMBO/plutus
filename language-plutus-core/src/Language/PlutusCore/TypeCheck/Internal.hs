@@ -374,9 +374,8 @@ checkBuiltinTypeArgs ann bn tyNames tyArgs =
       Right namesAndTypes ->  do
         mapM_ (mapM_ (\tyarg -> checkKindM (typeAnn tyarg) tyarg (Type ()))) namesAndTypes
         -- NB: All of the type variables in TypeSchemes have kind *  ^
-        mapping <- mapM (mapM (normalizeType . void)) namesAndTypes
+        mapping <- mapM (mapM (normalizeType . void)) namesAndTypes  -- ie, normalise all the types in the (TyName, Type) pairs
         pure mapping
-        -- ie, normalise all the types in the (TyName, Type) pairs
 
 {- Roman: We'll never need to do anything with mapping apart from feeding it to
  substMapping, right? In that case I'd construct the substituter
@@ -391,15 +390,13 @@ checkBuiltinTypeArgs ann bn tyNames tyArgs =
  with Normalized explicitly and functions like normalizeType and
  substNormalizeTypeM ensure that global uniqueness is preserved. -}
 
--- | Given a mapping from type variables to types, we work our way
--- along the list of term arguments in an ApplyBuiltin, checking that
--- the types of the arguments match the types given in the signature
--- after instatiation according to the mapping.
+-- | Work our way along the list of term arguments in an ApplyBuiltin,
+-- checking that the arguments have the expected types.
 checkBuiltinTermArgs
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => ann
     -> BuiltinName
-    -> [Normalized (Type TyName uni ())] -- expected argument types
+    -> [Normalized (Type TyName uni ())] -- expected argument types (after instantiation and normalisation)
     -> [Value TyName Name uni ann]       -- actual arguments
     -> TypeCheckM uni ann ()
 checkBuiltinTermArgs ann bn tys args =
@@ -408,16 +405,6 @@ checkBuiltinTermArgs ann bn tys args =
       Left RightLonger -> throwError $ BuiltinTypeErrorE ann (BuiltinOverApplied  bn)
       Right argsAndTypes -> mapM_ checkArg argsAndTypes
           where checkArg (ty, arg) = checkTypeM (termAnn arg) arg ty
-
-{- Roman: We could remove the mapping argument by discharging the mapping into
- argTypes via map (substMapping mapping). Then checkBuiltinTermArgs
- doesn't need to know anything about mappings and can just directly
- type check arguments, which makes the code less tightly coupled. -}
-
-
--- | Check an entire ApplyBuiltin term: make sure that it has the right number of
--- type and term arguments and that the term argments have the right type.  Return
--- the return type, correctly instantiated.
 
 -- ####################
 -- ## Type inference ##
@@ -466,25 +453,10 @@ etc
 -- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
 inferTypeM (ApplyBuiltin ann bn typeArgs args) = do
   TypeComponents typeVars argTypes rtype <- inferTypeComponentsOfBuiltinM ann bn
-  mapping <- checkBuiltinTypeArgs ann bn typeVars typeArgs
+  mapping <- checkBuiltinTypeArgs ann bn typeVars typeArgs              -- How to instantiate the type variables
   normalizedArgTypes <- mapM (substNormalizeMappingM mapping) argTypes
-  checkBuiltinTermArgs ann bn normalizedArgTypes args
-  substNormalizeMappingM mapping rtype
-
-
--- DONE --
-{- FIXME: Roman:
-I'd inline the definition of checkBuiltinAppl as it's just
-
-    check types
-    check terms
-    return the final type
-
-which all seem to be very different things. Pulling the whole do into
-a separate function would also be sensible, then inlining
-checkBuiltinAppl would look even better. Right now checkBuiltinAppl
-receives way too many arguments loosely related to each other.
--}
+  checkBuiltinTermArgs ann bn normalizedArgTypes args                   -- Check the arguments have the correct types
+  substNormalizeMappingM mapping rtype                                  -- Instantiate the return type and return it
 
 
 -- [infer| G !- v : ty]    ty ~>? vTy
