@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 module Plutus.SCB.Types where

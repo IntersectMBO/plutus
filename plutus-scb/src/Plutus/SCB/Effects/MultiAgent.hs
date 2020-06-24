@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE StrictData       #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators    #-}
 module Plutus.SCB.Effects.MultiAgent(
