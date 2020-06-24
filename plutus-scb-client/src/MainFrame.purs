@@ -44,7 +44,8 @@ import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _csContract, _currentView, _fullReport)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStat
+es, _csContract, _currentView, _fullReport)
 import Validation (_argument)
 import View as View
 
