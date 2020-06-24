@@ -101,10 +101,13 @@ the value.
 
 This version is, I think, the same as the version of CEK described in
 the 1986 Tech Report "Control Operators, the SECD-machine, and the
-λ-calculus" by Felleisen and Friedman, page 5-table 1,
+λ-calculus" by Felleisen and Friedman, page 5, table 1,
 https://legacy.cs.indiana.edu/ftp/techreports/TR197.pdf. Their machine
 looks a bit different as they have 3-tuples of a term or nothing, an
-environment and a continuation for the state. Our `s ; ρ |> M` is written `(M , ρ , k)` and our `s <| V` is written `
+environment and a continuation for the state. Our `s ; ρ |> M` is
+written `(M , ρ , s)` and our `s <| V` is written `(%, 0, s ret V)`
+where % signifies there is no term in focus and 0 is the empty
+environment.
 
 2. Closure version
 
