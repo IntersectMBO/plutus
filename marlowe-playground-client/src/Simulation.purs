@@ -118,6 +118,10 @@ handleQuery (WebsocketResponse response next) = do
   assign _analysisState response
   pure (Just next)
 
+handleQuery (HasStarted f) = do
+  state <- use _marloweState
+  pure $ Just $ f (NEL.length state > 1)
+
 handleAction ::
   forall m.
   MonadEffect m =>
