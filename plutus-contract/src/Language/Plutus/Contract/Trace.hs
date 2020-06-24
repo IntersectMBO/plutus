@@ -65,6 +65,7 @@ module Language.Plutus.Contract.Trace
     , InitialDistribution
     , withInitialDistribution
     , defaultDist
+    , defaultDistFor
     -- * Wallets
     , EM.Wallet(..)
     , EM.walletPubKey
@@ -673,7 +674,10 @@ allWallets :: [EM.Wallet]
 allWallets = EM.Wallet <$> [1 .. 10]
 
 defaultDist :: InitialDistribution
-defaultDist = Map.fromList $ zip allWallets (repeat (Ada.lovelaceValueOf 10000))
+defaultDist = defaultDistFor allWallets
+
+defaultDistFor :: [EM.Wallet] -> InitialDistribution
+defaultDistFor wallets = Map.fromList $ zip wallets (repeat (Ada.lovelaceValueOf 10000))
 
 makeClassyPrisms ''TraceError
 
