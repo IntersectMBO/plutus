@@ -1,5 +1,5 @@
-Two versions of the CEK machine
-===============================
+# Two versions of the CEK machine
+
 
 Version 1 has values in the environment. Version 2 has closures (pairs
 of values and environments) in the environment.
@@ -11,8 +11,7 @@ The main point of this document is so that we can discuss whether to
 use version 1 in the implementation. Version 2 is described as a
 comparison.
 
-1. Value version
-----------------
+## 1. Value version
 
 Note: that this makes no attempt to delay doing type
 substitutions. This would be a further optimisation and I think it
@@ -114,8 +113,7 @@ written `(M , ρ , s)` and our `s <| V` is written `(%, 0, s ret V)`
 where % signifies there is no term in focus and 0 is the empty
 environment.
 
-2. Closure version
-------------------
+## 2. Closure version
 
 This is the version described in the spec and also the version used in
 the implementation. I have also formalised this.
