@@ -91,8 +91,8 @@ _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 _installedContracts :: forall t. Lens' (ContractReport t) (Array t)
 _installedContracts = _ContractReport <<< prop (SProxy :: SProxy "installedContracts")
 
-_latestContractStatuses :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
-_latestContractStatuses = _ContractReport <<< prop (SProxy :: SProxy "latestContractStatuses")
+_contractStates :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
+_contractStates = _ContractReport <<< prop (SProxy :: SProxy "contractStates")
 
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")

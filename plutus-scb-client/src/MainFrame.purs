@@ -44,7 +44,7 @@ import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _csContract, _currentView, _fullReport, _latestContractStatuses)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _csContract, _currentView, _fullReport)
 import Validation (_argument)
 import View as View
 
@@ -114,7 +114,7 @@ handleAction LoadFullReport = do
             contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
             modifying (_contractSignatures <<< at instanceId) (Just <<< upsertEndpointForm contractSchema)
         )
-        (toArrayOf (_contractReport <<< _latestContractStatuses <<< traversed <<< _csContract) fullReport)
+        (toArrayOf (_contractReport <<< _contractStates <<< traversed <<< _csContract) fullReport)
     _ -> pure unit
   pure unit
 

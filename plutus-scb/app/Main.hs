@@ -64,7 +64,7 @@ data Command
     | SigningProcess
     | InstallContract FilePath
     | ActivateContract FilePath
-    | ContractStatus UUID
+    | ContractState UUID
     | UpdateContract UUID EndpointDescription JSON.Value
     | ReportContractHistory UUID
     | ReportInstalledContracts
@@ -132,7 +132,7 @@ commandParser =
                              , activateContractParser
                              , reportActiveContractsParser
                              , updateContractParser
-                             , contractStatusParser
+                             , contractStateParser
                              , reportContractHistoryParser
                              ]))
                    (fullDesc <> progDesc "Manage your smart contracts."))
@@ -218,12 +218,12 @@ installContractParser =
               long "path" <> help "Path to the executable contract."))
         (fullDesc <> progDesc "Install a new smart contract.")
 
-contractStatusParser :: Mod CommandFields Command
-contractStatusParser =
-    command "status" $
+contractStateParser :: Mod CommandFields Command
+contractStateParser =
+    command "state" $
     info
-        (ContractStatus <$> contractIdParser)
-        (fullDesc <> progDesc "Show the current status of a contract.")
+        (ContractState <$> contractIdParser)
+        (fullDesc <> progDesc "Show the current state of a contract.")
 
 contractIdParser :: Parser UUID
 contractIdParser =
@@ -311,7 +311,7 @@ runCliCommand _ Config {signingProcessConfig} serviceAvailability SigningProcess
     SigningProcess.main signingProcessConfig serviceAvailability
 runCliCommand _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
 runCliCommand _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
-runCliCommand _ _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
 runCliCommand _ _ _ ReportInstalledContracts = do
     logInfo "Installed Contracts"
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
