@@ -340,7 +340,7 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes
-    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    :: (Compiling uni m, PLC.DefaultUni PLC.<: uni)
     => m ()
 defineBuiltinTypes = do
     do

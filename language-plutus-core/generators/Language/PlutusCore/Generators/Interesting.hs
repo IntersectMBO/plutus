@@ -250,7 +250,8 @@ genDivideByZeroDrop = do
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens
-    :: Generatable uni => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
+    :: Generatable uni
+    => (forall a. KnownType (Term TyName Name uni ()) a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
     [ f "overapplication"  genOverapplication
     , f "factorial"        genFactorial

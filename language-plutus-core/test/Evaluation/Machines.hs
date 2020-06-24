@@ -35,9 +35,10 @@ import           Test.Tasty.HUnit
 testMachine
     :: (uni ~ DefaultUni, Pretty internal)
     => String
-    -> (  Term TyName Name uni ()
-       -> Either (EvaluationException uni internal user) (Term TyName Name uni ())
-       )
+    -> (Term TyName Name uni () ->
+            Either
+                (EvaluationException (WithMemory Term uni) internal user)
+                (WithMemory Term uni))
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->

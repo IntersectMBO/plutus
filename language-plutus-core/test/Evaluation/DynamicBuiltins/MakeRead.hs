@@ -7,10 +7,13 @@ module Evaluation.DynamicBuiltins.MakeRead
     ( test_dynamicMakeRead
     ) where
 
+import           PlutusPrelude
+
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc                        hiding (error)
 import           Language.PlutusCore.Pretty
@@ -28,20 +31,27 @@ import           Test.Tasty.HUnit
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
-readMakeHetero :: (KnownType DefaultUni a, KnownType DefaultUni b) => a -> EvaluationResult b
+readMakeHetero
+    :: ( KnownType (Term TyName Name DefaultUni ExMemory) a
+       , KnownType (Term TyName Name DefaultUni ExMemory) b
+       )
+    => a -> EvaluationResult b
 readMakeHetero x =
-    case extractEvaluationResult <$> typecheckReadKnownCek mempty (makeKnown @DefaultUni x) of
-        Left err          ->
-            error $ "Type error" ++ displayPlcCondensedErrorClassic err
+    case extractEvaluationResult <$> typecheckReadKnownCek mempty xTerm of
+        Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
+  where
+    xTerm = void $ makeKnown @(Term TyName Name DefaultUni ExMemory) x
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
-readMake :: KnownType DefaultUni a => a -> EvaluationResult a
+readMake :: KnownType (Term TyName Name DefaultUni ExMemory) a => a -> EvaluationResult a
 readMake = readMakeHetero
 
-dynamicBuiltinRoundtrip :: (KnownType DefaultUni a, Show a, Eq a) => Gen a -> Property
+dynamicBuiltinRoundtrip
+    :: (KnownType (Term TyName Name DefaultUni ExMemory) a, Show a, Eq a)
+    => Gen a -> Property
 dynamicBuiltinRoundtrip genX = property $ do
     x <- forAll genX
     case readMake x of
@@ -67,7 +77,7 @@ test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
     (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
-            chars = map (makeKnown @DefaultUni) str
+            chars = map (makeKnown @(Term TyName Name DefaultUni ())) str
             in foldr step unitval chars
     case errOrRes of
         Left _                      -> failure

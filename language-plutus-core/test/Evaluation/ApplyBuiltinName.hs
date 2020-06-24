@@ -1,7 +1,12 @@
 -- | Constant application tests.
 
-{-# LANGUAGE GADTs      #-}
-{-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module Evaluation.ApplyBuiltinName
     ( test_applyBuiltinName
@@ -9,18 +14,28 @@ module Evaluation.ApplyBuiltinName
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy                      as BSL
-import qualified Data.ByteString.Lazy.Hash                 as Hash
+import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.ByteString.Lazy.Hash                                  as Hash
 import           Data.Coerce
 import           Data.Foldable
 import           Data.List
-import           Hedgehog                                  hiding (Var)
+import           Hedgehog                                                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
+
+type NoBudgetingM = Either (EvaluationException (Plain Term DefaultUni) () ())
+
+instance SpendBudget NoBudgetingM (Plain Term DefaultUni) where
+    spendBudget _ _ _ = pure ()
+    feedBudgeter exF _ = pure $ exF 0
+    builtinCostParams = pure defaultCostModel
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -32,17 +47,20 @@ import           Test.Tasty.Hedgehog
 -- we check that the results of the two computations match. We also check that each
 -- underapplication on the PLC side is a stuck application.
 prop_applyBuiltinName
-    :: (uni ~ DefaultUni, KnownType uni r, PrettyConst r)
-    => TypedBuiltinName uni as r  -- ^ A (typed) builtin name to apply.
-    -> FoldArgs as r              -- ^ The semantics of the builtin name. E.g. the semantics of
-                                  -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> TypedBuiltinGenT uni IO    -- ^ How to generate values of builtin types.
+    :: (uni ~ DefaultUni, KnownType (Plain Term uni) r, PrettyConst r)
+    => TypedBuiltinName (Plain Term uni) as r
+       -- ^ A (typed) builtin name to apply.
+    -> FoldArgs as r
+       -- ^ The semantics of the builtin name. E.g. the semantics of
+       -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
+    -> TypedBuiltinGenT uni IO
+       -- ^ How to generate values of builtin types.
     -> Property
 prop_applyBuiltinName tbn op allTbs = property $ do
     let getIterAppValue = runPlcT allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
-        app = applyEvaluateCkBuiltinName name
+        app = applyBuiltinName @NoBudgetingM name
     traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
     app spine === Right (ConstAppSuccess $ makeKnown y)
 

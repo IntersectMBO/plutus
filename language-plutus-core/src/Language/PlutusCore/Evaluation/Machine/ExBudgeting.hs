@@ -8,6 +8,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 {- Note [Budgeting]
@@ -121,10 +122,11 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @uni@ as parameter.
-class SpendBudget m uni | m -> uni where
+-- This works nicely because @m@ contains @term@ as parameter.
+class SpendBudget m term | m -> term where
     builtinCostParams :: m CostModel
-    spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
+    feedBudgeter :: (ExMemory -> r) -> term -> m r
+    spendBudget :: ExBudgetCategory -> term -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst

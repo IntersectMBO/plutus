@@ -34,8 +34,10 @@ import qualified Control.Exception
 import           System.IO.Unsafe
 
 stringBuiltins
-    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()])
-    => DynamicBuiltinNameMeanings uni
+    :: ( GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => DynamicBuiltinNameMeanings (WithMemory Term uni)
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
@@ -44,15 +46,15 @@ stringBuiltins =
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Program TyName Name uni () -> Either (CekEvaluationException uni) (Plain Term uni)
-evaluateCek = PLC.evaluateCek stringBuiltins PLC.defaultCostModel . toTerm
+evaluateCek = fmap void . PLC.evaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 
 -- | Evaluate a program in the CEK machine with the usual string dynamic builtins. May throw.
 unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => Program TyName Name uni () -> EvaluationResultDef uni
-unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . toTerm
+    => Program TyName Name uni () -> EvaluationResult (Plain Term uni)
+unsafeEvaluateCek = fmap void . PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood
 
@@ -70,4 +72,4 @@ evaluateCekTrace p =
                 env = insertDynamicBuiltinNameDefinition logDefinition
                                                          stringBuiltins
             Control.Exception.evaluate $ runCekCounting env PLC.defaultCostModel $ toTerm p
-    in  (lg, view exBudgetStateTally state, res)
+    in  (lg, view exBudgetStateTally state, void <$> res)

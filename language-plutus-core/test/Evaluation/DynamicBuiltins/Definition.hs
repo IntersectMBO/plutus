@@ -12,6 +12,7 @@ module Evaluation.DynamicBuiltins.Definition
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 
@@ -33,15 +34,15 @@ dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"
 
 dynamicFactorialMeaning
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameMeaning uni
+    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    => DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
 dynamicFactorialDefinition
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameDefinition uni
+    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    => DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
@@ -63,14 +64,14 @@ test_dynamicFactorial =
 dynamicConstName :: DynamicBuiltinName
 dynamicConstName = DynamicBuiltinName "const"
 
-dynamicConstMeaning :: DynamicBuiltinNameMeaning uni
+dynamicConstMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
         TypeSchemeAllType @"b" @1 Proxy $ \b ->
             a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicConstDefinition :: DynamicBuiltinNameDefinition uni
+dynamicConstDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicConstDefinition =
     DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
 
@@ -97,13 +98,13 @@ test_dynamicConst =
 dynamicIdName :: DynamicBuiltinName
 dynamicIdName = DynamicBuiltinName "id"
 
-dynamicIdMeaning :: DynamicBuiltinNameMeaning uni
+dynamicIdMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicIdMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
             a `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicIdDefinition :: DynamicBuiltinNameDefinition uni
+dynamicIdDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicIdDefinition =
     DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
 
@@ -132,7 +133,7 @@ test_dynamicId =
                                   . LamAbs () i integer
                                   . LamAbs () j integer
                                   $ Var () i
-        typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess $ withMemory one)
 
 test_definition :: TestTree
 test_definition =
