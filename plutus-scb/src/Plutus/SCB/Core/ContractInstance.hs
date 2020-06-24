@@ -286,7 +286,7 @@ processAwaitSlotRequests = RequestHandler $ \req -> do
     logInfo "processAwaitSlotRequests start"
     currentSlot <- walletSlot
     logDebug . render $ "targetSlot:" <+> pretty targetSlot <+> "current slot:" <+> pretty currentSlot
-    guard (targetSlot >= currentSlot)
+    guard (currentSlot >= targetSlot)
     logInfo "processAwaitSlotRequests end"
     pure $ AwaitSlotResponse currentSlot
 
