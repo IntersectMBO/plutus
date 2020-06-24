@@ -5,15 +5,19 @@ Version 1 has values in the environment. Version 2 has closures (pairs
 of values and environments) in the environment.
 
 In my limited testing I have found version 1 to be faster and I think
-it simplifies the implementation.
+it is simpler.
+
+The main point of this document is so that we can discuss whether to
+use version 1 in the implementation. Version 2 is described as a
+comparison.
 
 1. Value version
 
-This versions appears to faster in my testing. Note that it makes no
-attempt to avoid doing type substitutions. This would be a further
-optimisation and I think it could be modified to. To get an idea, and
-avoid this issue, I guess one can focus on the other parts of the
-syntax (constants, lambda, application, wrap/unwrap).
+Note: that this makes no attempt to delay doing type
+substitutions. This would be a further optimisation and I think it
+could be modified to do so. To get an idea, and avoid this issue, I
+guess one can focus on the other parts of the syntax (constants,
+lambda, application, wrap/unwrap).
 
 Values and environments are mutually defined. Environments only appear
 under binders, they have entries for all free variables in the term
@@ -83,7 +87,7 @@ Value configuration:
 .                          <| V          |-> [] V
 s , [_ (M,ρ)]              <| V          |-> s , [V _] ; ρ |> M
 s , [(lam x (M,ρ)) _]      <| V          |-> s ; ρ [ x |-> V ] |> M
-s , {_ A}                  <| abs α V    |-> s ; ρ |> M [ α / A ]*
+s , {_ A}                  <| abs α M    |-> s ; ρ |> M [ α / A ]*
 s , wrap A B _             <| V          |-> s <| wrap A B V
 s , unwrap _               <| wrap A B V |-> s <| V
 s , builtin b As Vs _ [] ρ <| V          |->
@@ -126,17 +130,58 @@ Environments contain closures:
 ```
 ρ := [] | ρ[x |-> C]
 ```
+Frames: note the contain closures instead of just values
+```
+f := [_ (M,ρ)]
+   | [C _]
+   | {_ A}
+   | wrap A B _
+   | unwrap _
+   | builtin b As Cs _ Ms ρ
+```
+
+Stacks of frames
+```
+s := .
+   | s , f
+```
 
 States contain environments in both the term and value configuration.
 ```
 σ := s ; ρ |> M
    | s ; ρ <| V
    | <> A
-   | [] (V , ρ)
+   | [] C
 ```
 
-I have not spelt out the definition of the machine, it's in the
-spec.
+The machine. Term configuration:
+```
+s ; ρ |> x                      |-> s ; ρ' <| V where (V , ρ' ) = ρ[ x ]
+s ; ρ |> lam x L                |-> s ; ρ <| lam x L
+s ; ρ |> [L M]                  |-> s , [_ (M,ρ)]  ; ρ |> L
+s ; ρ |> abs α L                |-> s ; ρ <| abs α L
+s ; ρ |> {L A}                  |-> s , {_ A} ; ρ |> L
+s ; ρ |> wrap A B L             |-> s , wrap A B _ ; ρ |> L
+s ; ρ |> unwrap L               |-> s , unwrap _ ; ρ |> L
+s ; ρ |> con c                  |-> s ; ρ <| con c
+s ; ρ |> builtin b As           |-> s ; ρ' |> M
+  where bn computes on As to (M,ρ')
+s ; ρ |> builtin b As (M :: Ms) |-> s , builtin b As [] _ Ms ρ ; ρ |> M
+s ; ρ |> error A                |-> <> A
+```
+Value configuration:
+```
+.                          ; ρ <| V          |-> [] (V,ρ)
+s , [_ (M,ρ)]              ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
+s , [(lam x (M,ρ')) _]     ; ρ <| V          |-> s ; ρ [ x |-> V ] |> M
+s , {_ A}                  ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
+s , wrap A B _             ; ρ <| V          |-> s ; ρ <| wrap A B V
+s , unwrap _               ; ρ <| wrap A B V |-> s ; ρ <| V
+s , builtin b As Cs _ [] ρ' ; ρ <| V         |-> s ; ρ |> M
+ where bn computes on As (Cs ++ [V,ρ]) to (M,ρ'')
+s , builtin b As Cs _ (M ∷ Ms) ρ ; ρ' <| V    |->
+  s , builtin b As (Cs ++ [V,ρ']) _ Ms ρ ; ρ |> M
+```
 
 There is a bit of a descrepency in the
 spec/implementation/formalisation when it comes to which environment
@@ -153,6 +198,3 @@ required as it may contain bindings from a builtin arg that is not
 relevant, e.g., if we have a builtin for if-then-else, then
 environment bindings for both branches would be returned even though
 we only pick one branch.
-
-There is also an argument to be had about which environment is used
-when looking up a variable in the environment.
