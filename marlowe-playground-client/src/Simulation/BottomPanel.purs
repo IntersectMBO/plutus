@@ -24,7 +24,7 @@ import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3,
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime)
+import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime, showPrettyToken)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
@@ -211,7 +211,7 @@ panelContents state CurrentStateView =
     , div [ class_ (ClassName "RTable-4-cells") ]
         [ text $ "Party " <> show party <> " is asked to deposit " <> show amount
             <> " units of "
-            <> show tok
+            <> showPrettyToken tok
             <> " into account "
             <> show accNum
             <> " of "
@@ -227,7 +227,7 @@ panelContents state CurrentStateView =
         [ text $ "The contract is supposed to make a payment of "
             <> show amount
             <> " units of "
-            <> show tok
+            <> showPrettyToken tok
             <> " from account "
             <> show accNum
             <> " of "
@@ -248,7 +248,7 @@ panelContents state CurrentStateView =
         [ text $ "The contract is supposed to make a payment of "
             <> show expected
             <> " units of "
-            <> show tok
+            <> showPrettyToken tok
             <> " from account "
             <> show accNum
             <> " of "
@@ -495,7 +495,7 @@ displayInput (IDeposit (AccountId accNum owner) party tok money) =
   , text " deposits "
   , b_ [ text $ show money ]
   , text " units of "
-  , b_ [ text $ show tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
@@ -552,7 +552,7 @@ displayWarning (TransactionNonPositiveDeposit party (AccountId accNum owner) tok
   , text " is asked to deposit "
   , b_ [ text $ show amount ]
   , text " units of "
-  , b_ [ text $ show tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " into account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text "."
@@ -563,7 +563,7 @@ displayWarning (TransactionNonPositivePay (AccountId accNum owner) payee tok amo
   , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show amount ]
   , text " units of "
-  , b_ [ text $ show tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
@@ -580,7 +580,7 @@ displayWarning (TransactionPartialPay (AccountId accNum owner) payee tok amount 
   , text " - The contract is supposed to make a payment of "
   , b_ [ text $ show expected ]
   , text " units of "
-  , b_ [ text $ show tok ]
+  , b_ [ text $ showPrettyToken tok ]
   , text " from account "
   , b_ [ text ((show accNum) <> " of " <> (show owner)) ]
   , text " to "
@@ -622,7 +622,7 @@ inputToLine (SlotInterval start end) (IDeposit (AccountId accountNumber accountO
         [ text "Deposit "
         , strong_ [ text (show money) ]
         , text " units of "
-        , strong_ [ text (show token) ]
+        , strong_ [ text (showPrettyToken token) ]
         , text " into account "
         , strong_ [ text (show accountOwner <> " of " <> show accountNumber <> "") ]
         , text " as "
@@ -660,7 +660,7 @@ paymentToLine (SlotInterval start end) party token money =
         [ text "The contract pays "
         , strong_ [ text (show money) ]
         , text " units of "
-        , strong_ [ text (show token) ]
+        , strong_ [ text (showPrettyToken token) ]
         , text " to participant "
         , strong_ [ text (show party) ]
         ]

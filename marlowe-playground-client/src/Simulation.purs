@@ -61,7 +61,7 @@ import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
 import Marlowe.Parser (hole, parseTerm)
 import Marlowe.Parser as P
-import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
+import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
@@ -677,7 +677,7 @@ renderDeposit (AccountId accountNumber accountOwner) party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
-  , b_ [ spanText (show tok) ]
+  , b_ [ spanText (showPrettyToken tok) ]
   , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
@@ -772,7 +772,7 @@ transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber a
         [ text "Deposit "
         , strong_ [ text (show money) ]
         , text " units of "
-        , strong_ [ text (show token) ]
+        , strong_ [ text (showPrettyToken token) ]
         , text " into account "
         , strong_ [ text (show accountOwner <> " (" <> show accountNumber <> ")") ]
         , text " as "
