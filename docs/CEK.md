@@ -171,16 +171,16 @@ s ; ρ |> error A                |-> <> A
 ```
 Value configuration:
 ```
-.                          ; ρ <| V          |-> [] (V,ρ)
-s , [_ (M,ρ)]              ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
-s , [(lam x (M,ρ')) _]     ; ρ <| V          |-> s ; ρ [ x |-> V ] |> M
-s , {_ A}                  ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
-s , wrap A B _             ; ρ <| V          |-> s ; ρ <| wrap A B V
-s , unwrap _               ; ρ <| wrap A B V |-> s ; ρ <| V
-s , builtin b As Cs _ [] ρ' ; ρ <| V         |-> s ; ρ |> M
- where bn computes on As (Cs ++ [V,ρ]) to (M,ρ'')
-s , builtin b As Cs _ (M ∷ Ms) ρ ; ρ' <| V    |->
-  s , builtin b As (Cs ++ [V,ρ']) _ Ms ρ ; ρ |> M
+.                                ; ρ <| V          |-> [] (V,ρ)
+s , [_ (M,ρ)]                    ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
+s , [(lam x (M,ρ')) _]           ; ρ <| V          |-> s ; ρ [ x |-> V ] |> M
+s , {_ A}                        ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
+s , wrap A B _                   ; ρ <| V          |-> s ; ρ <| wrap A B V
+s , unwrap _                     ; ρ <| wrap A B V |-> s ; ρ <| V
+s , builtin b As Cs _ [] ρ'      ; ρ <| V          |-> s ; ρ |> M
+ where bn computes on As (Cs ++ [(V,ρ)]) to (M,ρ'')
+s , builtin b As Cs _ (M ∷ Ms) ρ ; ρ' <| V         |->
+  s , builtin b As (Cs ++ [(V,ρ')]) _ Ms ρ ; ρ |> M
 ```
 
 There is a bit of a descrepency in the
