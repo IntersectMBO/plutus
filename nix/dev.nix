@@ -61,12 +61,11 @@ pkgs.recurseIntoAttrs (rec {
     updateClientDeps = pkgs.lib.meta.addMetaAttrs { platforms = pkgs.lib.platforms.linux; } (pkgs.writeScriptBin "update-client-deps" ''
       set -eou pipefail
 
-      export PATH=${pkgs.stdenv.lib.makeBinPath [
+      export PATH=${pkgs.gccStdenv.lib.makeBinPath [
         pkgs.coreutils
         pkgs.git
         pkgs.python
         pkgs.gnumake
-        pkgs.gcc
         pkgs.gnused
         pkgs.nodejs-10_x
         pkgs.nodePackages_10_x.node-gyp
@@ -74,7 +73,7 @@ pkgs.recurseIntoAttrs (rec {
         # yarn2nix won't seem to build on hydra, see
         # https://github.com/moretea/yarn2nix/pull/103
         # I can't figure out how to fix this...
-        #pkgs.yarn2nix-moretea.yarn2nix
+        pkgs.yarn2nix-moretea.yarn2nix
         easyPS.purs
         easyPS.psc-package
         easyPS.spago
