@@ -45,7 +45,7 @@
           }."${location}"."${tag}";
         inherit index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "0v9r3d11y595w7zrn7zrcxbcvjph5q8qj4fnig4sff99wcm038ab";
+        plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
         compiler-nix-name = "ghc883";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
