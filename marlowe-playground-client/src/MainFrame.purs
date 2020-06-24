@@ -10,7 +10,7 @@ import Data.Function (flip, identity)
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.Num (negate)
 import Data.String as String
@@ -167,8 +167,14 @@ handleAction _ (ShowBottomPanel val) = do
 handleAction _ (HandleBlocklyMessage Initialized) = pure unit
 
 handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
-  void $ query _simulationSlot unit (ST.SetEditorText code unit)
-  assign _view Simulation
+  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
+  let
+    hasStarted = fromMaybe false mHasStarted
+  if hasStarted then
+    void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
+  else do
+    void $ query _simulationSlot unit (ST.SetEditorText code unit)
+    assign _view Simulation
 
 ------------------------------------------------------------
 runAjax ::

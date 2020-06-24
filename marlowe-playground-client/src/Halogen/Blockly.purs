@@ -4,7 +4,7 @@ import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
 import Blockly.Types as BT
-import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
+import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
 import Control.Monad.State (modify_)
@@ -46,6 +46,7 @@ _errorMessage = prop (SProxy :: SProxy "errorMessage")
 data BlocklyQuery a
   = Resize a
   | SetCode String a
+  | SetError String a
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)
@@ -104,6 +105,10 @@ handleQuery (SetCode code next) = do
   assign _errorMessage Nothing
   pure $ Just next
 
+handleQuery (SetError err next) = do
+  assign _errorMessage $ Just err
+  pure $ Just next
+
 handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
   blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
@@ -133,11 +138,12 @@ handleAction GetCode = do
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
       code <- except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
-      contract <- except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
-      lift <<< raise <<< CurrentCode <<< show <<< pretty $ contract
+      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
   case res of
     Left e -> assign _errorMessage $ Just e
-    Right _ -> assign _errorMessage Nothing
+    Right contract -> do
+      assign _errorMessage Nothing
+      raise <<< CurrentCode <<< show <<< pretty $ contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
