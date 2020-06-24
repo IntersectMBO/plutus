@@ -102,6 +102,7 @@ instance showToken :: Show Token where
  -}
 showPrettyToken :: Token -> String
 showPrettyToken (Token "" "") = "ADA"
+
 showPrettyToken tok = show tok
 
 instance prettyToken :: Pretty Token where

@@ -35,11 +35,11 @@ genRational = do
   d <- genBigInteger
   pure
     -- we need to do this because in tests where we wrap a Rational in a Term or TermWrapper
-
+    
     -- when we have two negative values then the column position of the term will different
-
+    
     -- to if we have two positive values, even though the rationals themselves are equal
-
+    
     $ if d > zero then
         Rational n d
       else
@@ -115,7 +115,7 @@ genAccountId = do
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
-genToken = oneOf $ (pure $ Token "" "") :| [Token <$> genCurrencySymbol <*> genTokenName]
+genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
 
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ChoiceId
 genChoiceId = do
