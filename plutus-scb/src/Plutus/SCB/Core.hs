@@ -15,7 +15,7 @@ module Plutus.SCB.Core
     ( dbConnect
     , installContract
     , activateContract
-    , reportContractStatus
+    , reportContractState
     , installedContracts
     , activeContracts
     , txHistory
@@ -95,7 +95,7 @@ installContract contractHandle = do
             contractHandle
     logInfo "Installed."
 
-reportContractStatus ::
+reportContractState ::
     forall t effs.
     ( Member Log effs
     , Member (EventLogEffect (ChainEvent t)) effs
@@ -103,10 +103,10 @@ reportContractStatus ::
     )
     => ContractInstanceId
     -> Eff effs ()
-reportContractStatus cid = do
+reportContractState cid = do
     logInfo "Finding Contract"
-    statuses <- runGlobalQuery (Query.latestContractStatus @t)
-    logInfo $ render $ pretty $ Map.lookup cid statuses
+    contractState <- runGlobalQuery (Query.contractState @t)
+    logInfo $ render $ pretty $ Map.lookup cid contractState
 
 installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set t)
 installedContracts = runGlobalQuery Query.installedContractsProjection

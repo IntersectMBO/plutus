@@ -125,8 +125,8 @@ lookupContractState ::
 lookupContractState instanceID = do
     mp <- runGlobalQuery (Query.contractState @t)
     case Map.lookup instanceID mp of
-        Nothing       -> throwError $ OtherError $ "Contract instance not found " <> tshow instanceID
-        Just (Last s) -> pure s
+        Nothing -> throwError $ OtherError $ "Contract instance not found " <> tshow instanceID
+        Just s  -> pure s
 
 -- | For a given contract instance, take the first message
 --   from the inbox and update the contract with it.
@@ -232,7 +232,7 @@ respondtoRequests ::
     -> Eff effs ()
 respondtoRequests handler = do
     contractStates <- runGlobalQuery (Query.contractState @t)
-    let state = fmap (hooks . csCurrentState . getLast) contractStates
+    let state = fmap (hooks . csCurrentState) contractStates
     itraverse_ (runRequestHandler @t handler) state
 
 -- | Run a 'RequestHandler' on the 'ContractSCBRequest' list of a contract
@@ -392,7 +392,7 @@ callContractEndpoint inst endpointName endpointValue = do
     -- we can't use respondtoRequests here because we want to call the endpoint only on
     -- the contract instance 'inst'. And we want to error if the endpoint is not active.
     logInfo . render $ "calling endpoint" <+> pretty endpointName <+> "on instance" <+> pretty inst
-    state <- fmap (hooks . csCurrentState . getLast) <$> runGlobalQuery (Query.contractState @t)
+    state <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @t)
     let activeEndpoints =
             filter ((==) (EndpointDescription endpointName) . unActiveEndpoints . rqRequest)
             $ mapMaybe (traverse (preview Events.Contract._UserEndpointRequest))

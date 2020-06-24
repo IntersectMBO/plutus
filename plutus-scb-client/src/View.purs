@@ -161,16 +161,16 @@ contractStatusesPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   ContractReport t ->
   HTML p HAction
-contractStatusesPane contractSignatures (ContractReport { latestContractStatuses }) =
+contractStatusesPane contractSignatures (ContractReport { contractStates }) =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ if null latestContractStatuses then
+        [ if null contractStates then
             text "You do not have any active contracts."
           else
-            div_ (contractStatusPane contractSignatures <$> latestContractStatuses)
+            div_ (contractStatusPane contractSignatures <$> contractStates)
         ]
     ]
 

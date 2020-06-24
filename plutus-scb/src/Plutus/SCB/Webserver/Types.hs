@@ -18,8 +18,8 @@ import           Wallet.Rollup.Types    (AnnotatedTx)
 
 data ContractReport t =
     ContractReport
-        { installedContracts     :: Set t
-        , latestContractStatuses :: [ContractInstanceState t]
+        { installedContracts :: Set t
+        , contractStates     :: [ContractInstanceState t]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

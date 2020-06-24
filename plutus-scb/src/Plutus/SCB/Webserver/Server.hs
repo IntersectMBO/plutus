@@ -83,9 +83,9 @@ getContractReport ::
     => Eff effs (ContractReport t)
 getContractReport = do
     installedContracts <- runGlobalQuery (Query.installedContractsProjection @t)
-    latestContractStatuses <-
-        Map.elems <$> runGlobalQuery (Query.latestContractStatus @t)
-    pure ContractReport {installedContracts, latestContractStatuses}
+    contractStates <-
+        Map.elems <$> runGlobalQuery (Query.contractState @t)
+    pure ContractReport {installedContracts, contractStates}
 
 getChainReport ::
        forall t effs. Member ChainIndexEffect effs
@@ -155,8 +155,8 @@ getContractInstanceState ::
     => ContractInstanceId
     -> Eff effs (ContractInstanceState t)
 getContractInstanceState contractId = do
-    latestContractStatus <- runGlobalQuery (Query.latestContractStatus @t)
-    case Map.lookup contractId latestContractStatus of
+    contractStates <- runGlobalQuery (Query.contractState @t)
+    case Map.lookup contractId contractStates of
         Nothing    -> throwError $ ContractInstanceNotFound contractId
         Just value -> pure value
 
