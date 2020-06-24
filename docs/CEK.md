@@ -12,6 +12,7 @@ use version 1 in the implementation. Version 2 is described as a
 comparison.
 
 1. Value version
+----------------
 
 Note: that this makes no attempt to delay doing type
 substitutions. This would be a further optimisation and I think it
@@ -114,6 +115,7 @@ where % signifies there is no term in focus and 0 is the empty
 environment.
 
 2. Closure version
+------------------
 
 This is the version described in the spec and also the version used in
 the implementation. I have also formalised this.
