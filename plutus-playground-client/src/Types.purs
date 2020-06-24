@@ -3,7 +3,6 @@ module Types where
 import Prelude
 import Ace.Halogen.Component (AceMessage, AceQuery)
 import Auth (AuthStatus)
-import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Control.Monad.State.Class (class MonadState)
 import Cursor (Cursor)
@@ -144,7 +143,7 @@ data HAction
   | ChangeSimulation SimulationAction
   | EvaluateActions
   -- Chain.
-  | SetChainFocus (Maybe ChainFocus)
+  | ChainAction (Chain.Action)
 
 data WalletEvent
   = AddWallet

@@ -326,3 +326,22 @@ input.form-control {
 .preWrap {
     white-space: pre-wrap;
 }
+
+.clipboard {
+    display: inline;
+
+    button {
+        padding-top: 0;
+        padding-bottom: 0;
+
+        .fa {
+            transition: color 500ms;
+
+        }
+
+        &:active .fa {
+            transition: color 50ms;
+            color: $white;
+        }
+    }
+}

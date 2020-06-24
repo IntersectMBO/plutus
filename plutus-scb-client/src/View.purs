@@ -4,7 +4,6 @@ import AjaxUtils (ajaxErrorPane)
 import Bootstrap (badge, badgePrimary, btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col12_, col2_, col4_, col6_, container_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
 import Bootstrap.Extra (preWrap_)
-import Chain.Types (ChainFocus)
 import Chain.Types as Chain
 import Chain.View (chainView)
 import Data.Array (null)
@@ -19,6 +18,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap, wrap)
+import Data.String.Extra (abbreviate)
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.UUID as UUID
 import Effect.Aff.Class (class MonadAff)
@@ -111,7 +111,7 @@ fullReportPane currentView chainState contractSignatures fullReport@(FullReport 
         ]
     , viewContainer currentView Blockchain
         [ row_
-            [ col12_ [ ChainAction <<< Just <$> annotatedBlockchainPane chainState chainReport ]
+            [ col12_ [ ChainAction <$> annotatedBlockchainPane chainState chainReport ]
             ]
         ]
     , viewContainer currentView EventLog
@@ -241,7 +241,7 @@ actionCard contractInstanceId wrapper endpointForm =
         ]
     ]
 
-annotatedBlockchainPane :: forall t p. Chain.State -> ChainReport t -> HTML p ChainFocus
+annotatedBlockchainPane :: forall t p. Chain.State -> ChainReport t -> HTML p Chain.Action
 annotatedBlockchainPane chainState (ChainReport { walletMap, annotatedBlockchain }) =
   card_
     [ cardHeader_
@@ -350,10 +350,10 @@ showUserEvent ( ContractStateTransition
 ) = text $ "Update " <> show csContract
 
 showNodeEvent :: forall p i. NodeEvent -> HTML p i
-showNodeEvent event = text $ show event
+showNodeEvent event = text $ abbreviate 200 $ show event
 
 showContractEvent :: forall p i a. Show a => ContractEvent a -> HTML p i
-showContractEvent event = text $ show event
+showContractEvent event = text $ abbreviate 200 $ show event
 
 showWalletEvent :: forall p i. WalletEvent -> HTML p i
-showWalletEvent event = text $ show event
+showWalletEvent event = text $ abbreviate 200 $ show event

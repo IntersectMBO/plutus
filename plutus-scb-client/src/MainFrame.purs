@@ -7,8 +7,9 @@ module MainFrame
 import Prelude
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
-import Chain.Types (AnnotatedBlockchain(..), _chainFocusAppearing)
+import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
+import Clipboard (class MonadClipboard)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader (class MonadAsk, runReaderT)
 import Control.Monad.State (class MonadState)
@@ -66,6 +67,7 @@ ajaxSettings = defaultSettings $ SPParams_ { baseURL: "/" }
 initialMainFrame ::
   forall m.
   MonadAff m =>
+  MonadClipboard m =>
   Component HTML Query HAction Void m
 initialMainFrame =
   hoist (flip runReaderT ajaxSettings)
@@ -87,6 +89,7 @@ handleAction ::
   MonadState State m =>
   MonadAff m =>
   MonadAnimate m State =>
+  MonadClipboard m =>
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadEffect m =>
   HAction -> m Unit
@@ -115,12 +118,16 @@ handleAction LoadFullReport = do
     _ -> pure unit
   pure unit
 
-handleAction (ChainAction newFocus) = do
+handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
     peruse (_fullReport <<< _Success <<< _chainReport <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
-  animate
-    (_chainState <<< _chainFocusAppearing)
-    (zoomStateT _chainState $ Chain.handleAction newFocus mAnnotatedBlockchain)
+  let
+    wrapper = case subaction of
+      (FocusTx _) -> animate (_chainState <<< _chainFocusAppearing)
+      _ -> identity
+  wrapper
+    $ zoomStateT _chainState
+    $ Chain.handleAction subaction mAnnotatedBlockchain
 
 handleAction (ChangeContractEndpointCall contractInstanceId endpointIndex subaction) = do
   modifying
