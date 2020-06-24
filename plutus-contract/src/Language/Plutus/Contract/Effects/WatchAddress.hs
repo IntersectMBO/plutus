@@ -37,7 +37,7 @@ import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
 import qualified Ledger.Value                               as V
 
-import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, currentSlot)
+import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, currentSlot, awaitSlot)
 import           Language.Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
 import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
@@ -94,8 +94,7 @@ nextTransactionsAt addr = do
 --   has surpassed the given value.
 fundsAtAddressGt
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
@@ -107,8 +106,7 @@ fundsAtAddressGt addr vl =
 
 fundsAtAddressCondition
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
@@ -118,18 +116,18 @@ fundsAtAddressCondition
 fundsAtAddressCondition condition addr = loopM go () where
     go () = do
         cur <- utxoAt addr
+        sl <- currentSlot
         let presentVal = foldMap (txOutValue . txOutTxOut) cur
         if condition presentVal
             then pure (Right cur)
-            else nextTransactionsAt @s addr >> pure (Left ())
+            else awaitSlot (sl + 1) >> pure (Left ())
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
 --   has reached or surpassed the given value.
 fundsAtAddressGeq
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
        , HasAwaitSlot s
        , HasUtxoAt s
        )
