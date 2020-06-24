@@ -31,5 +31,8 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.purs
     dev.packages.spago
     pkgs.stack
+    dev.scripts.fixStylishHaskell
+    dev.scripts.fixPurty
+    dev.scripts.updateClientDeps
   ];
 }

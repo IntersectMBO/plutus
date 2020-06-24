@@ -17,7 +17,7 @@ pkgs.recurseIntoAttrs (rec {
   scripts = pkgs.recurseIntoAttrs {
     updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
 
-    fixStylishHaskell = pkgs.writeShellScript "fix-stylish-haskell" ''
+    fixStylishHaskell = pkgs.writeScriptBin "fix-stylish-haskell" ''
       ${pkgs.git}/bin/git diff > pre-stylish.diff
       ${pkgs.fd}/bin/fd \
         --extension hs \
@@ -36,7 +36,7 @@ pkgs.recurseIntoAttrs (rec {
       exit
     '';
 
-    fixPurty = pkgs.writeShellScript "fix-purty" ''
+    fixPurty = pkgs.writeScriptBin "fix-purty" ''
       ${pkgs.git}/bin/git diff > pre-purty.diff
       ${pkgs.fd}/bin/fd \
         --extension purs \
@@ -58,7 +58,7 @@ pkgs.recurseIntoAttrs (rec {
     '';
 
     # See note on 'easyPS' in 'default.nix'
-    updateClientDeps = pkgs.lib.meta.addMetaAttrs { platforms = pkgs.lib.platforms.linux; } (pkgs.writeShellScript "update-client-deps" ''
+    updateClientDeps = pkgs.lib.meta.addMetaAttrs { platforms = pkgs.lib.platforms.linux; } (pkgs.writeScriptBin "update-client-deps" ''
       set -eou pipefail
 
       export PATH=${pkgs.stdenv.lib.makeBinPath [
