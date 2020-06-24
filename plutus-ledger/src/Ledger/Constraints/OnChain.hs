@@ -19,7 +19,7 @@ import           Ledger.Constraints.TxConstraints
 import           Ledger.Interval                  (contains)
 import           Ledger.Scripts                   (Datum (..))
 import           Ledger.Tx                        (TxOut (..))
-import           Ledger.Validation                (TxInInfo' (..), TxInfo (..), ValidatorCtx (..))
+import           Ledger.Validation                (TxInInfo (..), TxInfo (..), ValidatorCtx (..))
 import qualified Ledger.Validation                as V
 import           Ledger.Value                     (leq)
 import qualified Ledger.Value                     as Value
@@ -30,7 +30,7 @@ checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
     let checkInput TxInInfo{txInInfoOutRef} =
             txInInfoOutRef == icTxOutRef -- TODO: We should also check the redeemer but we can't right now because it's hashed
     in traceIfFalseH "Input constraint"
-    $ any checkInput (txInfoInputs (valCtxTxInfo))
+    $ any checkInput (txInfoInputs valCtxTxInfo)
 
 {-# INLINABLE checkOwnOutputConstraint #-}
 checkOwnOutputConstraint

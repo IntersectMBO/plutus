@@ -902,7 +902,7 @@ marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
      -}
     validInputs = validateInputs marloweParams ctx inputs
 
-    TxInInfo _ _ scriptInValue = valCtxInput
+    TxInInfo _ _ scriptInValue = findOwnInput ctx
 
     -- total balance of all accounts in State
     -- accounts must be positive, and we checked it above

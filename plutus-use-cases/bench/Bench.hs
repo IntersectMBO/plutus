@@ -284,14 +284,7 @@ mockCtx = ValidatorCtx
       , txInfoId = TxId P.emptyByteString
       , txInfoData = []
       }
-    , valCtxInput = TxInInfo
-      { txInInfoOutRef = TxOutRef
-          { txOutRefId = TxId P.emptyByteString
-          , txOutRefIdx = 0
-          }
-      , txInInfoWitness = (ValidatorHash "", RedeemerHash "", DatumHash "")
-      , txInInfoValue = PlutusTx.zero
-      }
+    , valCtxInput = 0
     }
 
 -- Script hashes

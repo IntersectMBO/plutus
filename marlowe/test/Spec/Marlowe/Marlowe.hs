@@ -339,7 +339,7 @@ mulAnalysisTest :: IO ()
 mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
         alicePk = PK $ pubKeyHash $ walletPubKey alice
-        aliceAcc = AccountId 0 alicePk 
+        aliceAcc = AccountId 0 alicePk
         contract = If (muliply `ValueGE` (Constant 10000)) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result

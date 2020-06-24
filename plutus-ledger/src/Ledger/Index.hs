@@ -30,7 +30,7 @@ module Ledger.Index(
 import           Prelude                          hiding (lookup)
 
 
-import           Control.Lens                     (view, (^.))
+import           Control.Lens                     (itraverse, view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
 import           Control.Monad.Reader             (MonadReader (..), ReaderT (..), ask)
@@ -172,7 +172,8 @@ checkValidInputs :: ValidationMonad m => Tx -> m ()
 checkValidInputs tx = do
     let tid = txId tx
         sigs = tx ^. signatures
-    matches <- lkpOutputs tx >>= traverse (uncurry (matchInputOutput tid sigs))
+    outs <- lkpOutputs tx
+    matches <- itraverse (\ix (txin, txout) -> matchInputOutput tid sigs ix txin txout) outs
     vld     <- mkTxInfo tx
     traverse_ (checkMatch vld) matches
 
@@ -223,7 +224,7 @@ checkForgingScripts tx = do
 -- | A matching pair of transaction input and transaction output, ensuring that they are of matching types also.
 data InOutMatch =
     ScriptMatch
-        TxIn
+        Integer
         Validator
         Redeemer
         Datum
@@ -237,17 +238,19 @@ matchInputOutput :: ValidationMonad m
     -- ^ Hash of the transaction that is being verified
     -> Map.Map PubKey Signature
     -- ^ Signatures provided with the transaction
+    -> Int
+    -- ^ Index of the input
     -> TxIn
     -- ^ Input that allegedly spends the output
     -> TxOut
     -- ^ The unspent transaction output we are trying to unlock
     -> m InOutMatch
-matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress txo) of
+matchInputOutput txid mp ix txin txo = case (txInType txin, txOutType txo, txOutAddress txo) of
     (ConsumeScriptAddress v r d, PayToScript dh, ScriptAddress vh) -> do
         unless (datumHash d == dh) $ throwError $ InvalidDatumHash d dh
         unless (validatorHash v == vh) $ throwError $ InvalidScriptHash v vh
 
-        pure $ ScriptMatch i v r d
+        pure $ ScriptMatch (fromIntegral ix) v r d
     (ConsumePublicKeyAddress, PayToPubKey, PubKeyAddress pkh) ->
         let sigMatches = flip fmap (Map.toList mp) $ \(pk,sig) ->
                 if pubKeyHash pk == pkh
@@ -256,7 +259,7 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress t
         in case asum sigMatches of
             Just m  -> pure m
             Nothing -> throwError $ SignatureMissing pkh
-    _ -> throwError $ InOutTypeMismatch i txo
+    _ -> throwError $ InOutTypeMismatch txin txo
 
 -- | Check that a matching pair of transaction input and transaction output is
 --   valid. If this is a pay-to-script output then the script hash needs to be
@@ -265,10 +268,9 @@ matchInputOutput txid mp i txo = case (txInType i, txOutType txo, txOutAddress t
 --   locks it.
 checkMatch :: ValidationMonad m => TxInfo -> InOutMatch -> m ()
 checkMatch txinfo = \case
-    ScriptMatch txin vl r d -> do
-        pTxIn <- txInInfoScript (txInRef txin) vl r d
+    ScriptMatch ix vl r d -> do
         let
-            ptx' = ValidatorCtx { valCtxTxInfo = txinfo, valCtxInput = pTxIn }
+            ptx' = ValidatorCtx { valCtxTxInfo = txinfo, valCtxInput = ix }
             vd = Context (toData ptx')
         case runExcept $ runScript Typecheck vd vl d r of
             Left e  -> throwError $ ScriptFailure e
@@ -327,37 +329,12 @@ mkTxInfo tx = do
             }
     pure ptx
 
-txInInfoScript
-    :: ValidationMonad m
-    => TxOutRef
-    -> Validator
-    -> Redeemer
-    -> Datum
-    -> m Validation.TxInInfoScript
-txInInfoScript outRef val red dat = txInFromRef outRef witness where
-        witness = (Scripts.validatorHash val, Scripts.redeemerHash red, Scripts.datumHash dat)
-
-txInFromRef
-    :: ValidationMonad m
-    => TxOutRef
-    -> a
-    -> m (Validation.TxInInfo' a)
-txInFromRef outRef witness = Validation.TxInInfo ref witness <$> vl where
-    vl = lkpValue outRef
-    ref =
-        let tid = txOutRefId outRef
-            idx  = txOutRefIdx outRef
-        in Validation.TxOutRef tid idx
-
-txInInfoPubkey
-    :: ValidationMonad m
-    => TxOutRef
-    -> m Validation.TxInInfo
-txInInfoPubkey outRef = txInFromRef outRef Nothing
-
 -- | Create the data about a transaction input which will be passed to a validator script.
 mkIn :: ValidationMonad m => TxIn -> m Validation.TxInInfo
-mkIn TxIn{txInRef, txInType} = case txInType of
-    ConsumeScriptAddress v r d ->
-        Validation.toLedgerTxIn <$> txInInfoScript txInRef v r d
-    ConsumePublicKeyAddress -> txInInfoPubkey txInRef
+mkIn TxIn{txInRef, txInType} = do
+    vl <- lkpValue txInRef
+    pure $ case txInType of
+        ConsumeScriptAddress v r d ->
+            let witness = (Scripts.validatorHash v, Scripts.redeemerHash r, Scripts.datumHash d)
+            in Validation.TxInInfo txInRef (Just witness) vl
+        ConsumePublicKeyAddress -> Validation.TxInInfo txInRef Nothing vl
