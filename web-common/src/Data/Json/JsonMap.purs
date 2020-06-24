@@ -12,7 +12,7 @@ import Data.Newtype (class Newtype)
 import Data.Profunctor.Strong (first)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Foreign (F, Foreign, ForeignError(..), fail, readArray)
+import Foreign (F, Foreign, ForeignError(..), fail, readArray, readNull)
 import Foreign.Class (class Decode, class Encode, decode, encode)
 import Foreign.Generic (encodeJSON)
 import Foreign.Index (readProp)
@@ -28,6 +28,10 @@ derive instance eqJsonMap :: (Eq k, Eq v) => Eq (JsonMap k v)
 
 derive instance genericJsonMap :: Generic (JsonMap k v) _
 
+derive newtype instance semigroupJsonMap :: Ord k => Semigroup (JsonMap k v)
+
+derive newtype instance monoidJsonMap :: Ord k => Monoid (JsonMap k v)
+
 instance showJsonMap :: (Show k, Show v) => Show (JsonMap k v) where
   show = genericShow
 
@@ -38,7 +42,7 @@ instance encodeJsonMap :: (Encode k, Encode v) => Encode (JsonMap k v) where
     asPairs = first encodeJSON <$> Map.toUnfoldable m
 
 instance decodeJsonMap :: (Ord k, Decode k, Decode v) => Decode (JsonMap k v) where
-  decode o = decodeAsObjectWithStringKeys o <|> decodeAsArrayOfPairs o
+  decode o = decodeAsObjectWithStringKeys o <|> decodeAsArrayOfPairs o <|> decodeAsNull o
 
 decodeAsObjectWithStringKeys :: forall k v. Ord k => Decode k => Decode v => Foreign -> F (JsonMap k v)
 decodeAsObjectWithStringKeys o = do
@@ -67,6 +71,11 @@ decodeAsArrayOfPairs o = do
       )
       pairs
   pure $ JsonMap $ Map.fromFoldable asArray
+
+decodeAsNull :: forall v k. Ord k => Foreign -> F (JsonMap k v)
+decodeAsNull o = do
+  _ <- readNull o
+  pure mempty
 
 _JsonMap :: forall k v. Iso' (JsonMap k v) (Map k v)
 _JsonMap = _Newtype
