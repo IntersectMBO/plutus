@@ -331,7 +331,6 @@ refund inst escrow = do
 --   or reclaim the contribution if the goal has not been met.
 payRedeemRefund
     :: ( HasUtxoAt s
-       , HasWatchAddress s
        , HasWriteTx s
        , HasAwaitSlot s
        , HasOwnPubKey s
