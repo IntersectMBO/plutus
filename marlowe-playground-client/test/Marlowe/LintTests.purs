@@ -3,11 +3,14 @@ module Marlowe.LintTests where
 import Prelude
 import Data.Array (singleton)
 import Data.Either (Either(..))
+import Data.Map as Map
 import Data.Set (toUnfoldable)
-import Data.Tuple (fst)
+import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested (type (/\), (/\))
 import Marlowe.Linter (lint, State(..))
 import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (AccountId(..), Party(..), Token(..))
+import Marlowe.Semantics as S
 import Test.Unit (TestSuite, Test, suite, test, failure)
 import Test.Unit.Assert as Assert
 
@@ -49,6 +52,7 @@ all = do
     test "Defined Let" $ undefinedLet
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
+    test "Deposit in state" $ depositFromState
     test "Pay to hole" payToHole
 
 letContract :: String -> String
@@ -90,13 +94,16 @@ makeObservationSimplificationWarning simplifiableExpression simplification = "Th
 unCurry2 :: forall a b c. (a -> b -> c) -> (a /\ b) -> c
 unCurry2 f (a /\ b) = f a b
 
-testWarning :: forall a. (a -> Array String) -> (a -> String) -> a -> Test
-testWarning makeWarning composeExpression expression = case parseContract $ composeExpression expression of
+testWarningWithState :: forall a. S.State -> (a -> Array String) -> (a -> String) -> a -> Test
+testWarningWithState state makeWarning composeExpression expression = case parseContract $ composeExpression expression of
   Right contractTerm -> do
     let
-      State st = lint contractTerm
+      State st = lint state contractTerm
     Assert.equal (makeWarning expression) $ map show $ toUnfoldable $ st.warnings
   Left err -> failure (show err)
+
+testWarning :: forall a. (a -> Array String) -> (a -> String) -> a -> Test
+testWarning = testWarningWithState (S.emptyState zero)
 
 testSimplificationWarning :: (String -> String -> String) -> (String -> String) -> String -> String -> Test
 testSimplificationWarning f g simplifiableExpression simplification = testWarning (singleton <<< unCurry2 f) (g <<< fst) (simplifiableExpression /\ simplification)
@@ -110,8 +117,11 @@ testObservationSimplificationWarning = testSimplificationWarning makeObservation
 testWarningSimple :: String -> String -> Test
 testWarningSimple expression warning = testWarning (const [ warning ]) (const expression) unit
 
+testNoWarningWithState :: S.State -> String -> Test
+testNoWarningWithState state expression = testWarningWithState state (const []) (const expression) unit
+
 testNoWarning :: String -> Test
-testNoWarning expression = testWarning (const []) (const expression) unit
+testNoWarning = testNoWarningWithState (S.emptyState zero)
 
 letSimplifies :: Test
 letSimplifies =
@@ -323,6 +333,21 @@ normalLet = testNoWarning "Let \"a\" (Constant 0) (Let \"b\" (UseValue \"a\") Cl
 
 positiveDeposit :: Test
 positiveDeposit = testNoWarning (depositContract "(Constant 1)")
+
+depositFromState :: Test
+depositFromState =
+  let
+    accountId = AccountId zero (Role "test")
+
+    state =
+      S.State
+        { accounts: Map.singleton (Tuple accountId (Token "" "")) zero
+        , choices: mempty
+        , boundValues: mempty
+        , minSlot: zero
+        }
+  in
+    testNoWarningWithState state "When [] 2 (Pay (AccountId 0 (Role \"test\") ) (Party (Role \"test\")) (Token \"\" \"\") (Constant 10) Close)"
 
 positivePay :: Test
 positivePay = testNoWarning (payContract "(Constant 1)")
