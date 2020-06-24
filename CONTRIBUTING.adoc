@@ -11,6 +11,9 @@ You can get an environment for developing the entire project using
 dependencies present, so is suitable for building the packages with
 e.g. `cabal v2-build`.
 
+For `stack`, you may want to use the Nix integration and point it at `shell.nix`,
+which will make sure you get the right GHC.
+
 NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 convenient alternative to running `nix-shell` directly.
 
@@ -39,6 +42,7 @@ bug workarounds.
 === How to setup HIE
 
 Depending on your setup, symlink either `hie-cabal.yaml` or `hie-stack.yaml` to `hie.yaml`.
+The binary itself is provided by the Nix shell environment.
 
 
 [[update-generated]]
@@ -64,7 +68,7 @@ These can be managed normally, but ensure that:
 
 * The specifications remain in sync between `cabal.project` and `stack.yaml`.
 * You update the xref:update-generated[package set].
-* If it is an `extra-dep`, you update the `nix-sha256` comment in `stack.yaml`. For the moment you have to do this by hand, using the
+* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`. For the moment you have to do this by hand, using the
 following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`.
 
 ==== Nix pins
@@ -74,6 +78,15 @@ We pin versions of some git repositories that are used by Nix, for example `nixp
 These are specified in link:./nix/sources.json[`sources.json`]. This file is managed by
 https://github.com/nmattia/niv[`niv`]. You can edit it by hand, but I wouldn't recommend it.
 See the `niv` website for usage instructions.
+
+=== How to update the Hackage index state
+
+The Hackage index state is pinned to a particular time in `cabal.project`. This helps with
+reproducibility. If you want to use a Hackage package from after that time, you need to bump
+the pinned index state (not a big deal).
+
+You may also need to update `hackage.nix`, which is a Nix representation of Hackage. This also needs
+to be newer than the index state. From inside a Nix shell, run `niv update hackage.nix`.
 
 === How to add a new package to the repository
 
@@ -86,7 +99,6 @@ order:
 . Update the xref:update-generated[package set ].
 . Check that you can run `nix build -f default.nix haskell.projectPackages.<package name>`
 successfully.
-. If the package is from a newer hackage than is in our `index-state`, update the `index-state` field in `cabal.project`. You may also need to update `haskell.nix`: `nix-shell -p niv --run "niv update haskell.nix"`.
 
 === Code style
 
