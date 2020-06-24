@@ -25,7 +25,11 @@ import           Data.Text                             (pack)
    and then applies the name to the relevant types and variables. This
    isn't ideal, but it does what's required for testing.
 -}
--- Note that we
+-- Note that we generate fresh `Unique`s in mkVarDecl, which is called
+-- via `runQuote`.  This may produce variables whose `Unique` clashes
+-- with one in the surrounding code, but this is safe.  We're
+-- producing closed terms like `\x -> \y -> someBuiltin x y`, and the
+-- new variables disappear immediately upon application.
 embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
 embedBuiltinNameInTerm scheme name =
     let mkVarDecl :: (Type TyName uni (), Integer) -> Quote (VarDecl TyName Name uni ())
@@ -47,22 +51,6 @@ embedBuiltinNameInTerm scheme name =
                 tyArgs = map (TyVar ()) tynames
                 tyVarDecls = map mkTyVarDecl tynames
             pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
-
-{- FIMXE: mpj: It's not clear to me that this is safe, depending on
-where we run this. I'd have thought we need this to run in
-MonadQuote...
-
-@effectfully
-effectfully yesterday •
-Member
-
-The resulting term is supposed to be closed, right? In that case we
-don't need MonadQuote (e.g. we call runQuote everywhere in stdlib,
-examples etc). Global uniqueness does not get preserved this way, but
-it's just like in typeSchemeToType -- we ensure global uniqueness in
-the type checker by calling normalizeType (or liftDupable sometimes).
--}
-
 
 embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
 embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedBuiltinNameInTerm  sch $ StaticBuiltinName sbn

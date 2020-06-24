@@ -201,16 +201,12 @@ substNormalizeTypeM
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
 
---substNormalizeMappingM [] t =
---    :: (HasUnique tyname TypeUnique, MonadQuote m)
---    => TypeMapping tyname uni ann                                          -- ^ [name1 -> ty1, name2 -> ty2, ..., nameN -> tyN]
---    -> Type tyname uni ann                                                 -- ^ @body@
---    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([tyN / nameN]...[ty1 / name1] body)@
+-- | Perform a sequence of variable -> type substitutions in a type and normalize the result.
 substNormalizeMappingM
     :: (HasUnique tyname TypeUnique, MonadQuote m)
-    => Norm.TypeMapping tyname uni ann
-    -> Type tyname uni ann
-    -> m (Normalized (Type tyname uni ann))
+    => Norm.TypeMapping tyname uni ann       -- ^ [name1 -> ty1, name2 -> ty2, ..., nameN -> tyN]
+    -> Type tyname uni ann                   -- ^ @body@
+    -> m (Normalized (Type tyname uni ann))  -- ^ @NORM ([ty1 / name1]...[tyN / nameN] body)@
 
 substNormalizeMappingM mapping t = Norm.runNormalizeTypeM $ Norm.substNormalizeMappingM mapping t
 
@@ -339,28 +335,8 @@ inferTypeComponentsOfBuiltinM ann (StaticBuiltinName name) = getStaticBuiltinTyp
 inferTypeComponentsOfBuiltinM ann (DynBuiltinName name)    = lookupDynamicBuiltinTypeComponentsM ann name
 
 
-
-{- Roman: I think a better way would be to normalize ty passed to foldM
- and then instead of unwrapping the result you'll need to unwrap the
- argument in f, which is better because the result is going to be
- Normalized, so no additional normalizeTypeM ty' will be required. -}
-
---    normalizeTypeM ty'
-
-{- Roman:
-
-substNormalizeTypeM is defined as
-
-substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
-
-and so calling it iteratively is not efficient. Instead, we should
-provide a primitive for binding a map of, well, mappings in
-Normalize.Internal, expose it and use it here.
--}
-
--- | Work along the type parameters of a builtin application, building
--- a mapping from type parameters to the types they're being
--- instantiated at.
+-- | Work along the type parameters of a builtin application, building a
+-- mapping from type parameters to the types they're being instantiated at.
 checkBuiltinTypeArgs
     :: ann
     -> BuiltinName
@@ -375,20 +351,7 @@ checkBuiltinTypeArgs ann bn tyNames tyArgs =
         mapM_ (mapM_ (\tyarg -> checkKindM (typeAnn tyarg) tyarg (Type ()))) namesAndTypes
         -- NB: All of the type variables in TypeSchemes have kind *  ^
         mapping <- mapM (mapM (normalizeType . void)) namesAndTypes  -- ie, normalise all the types in the (TyName, Type) pairs
-        pure mapping
-
-{- Roman: We'll never need to do anything with mapping apart from feeding it to
- substMapping, right? In that case I'd construct the substituter
- directly just not to introduce an indirection. This way it would be
- also clearer whether we substitute types left to right or right to
- left (I don't think it's important from the correctness point of
- view, but it would make it easier to understand the whole thing). -}
-
-{- Roman: We need a note explaining how global uniqueness is
- preserved. Did you take any special care for handling global
- uniqueness? It looks correct to me, because you never wrap anything
- with Normalized explicitly and functions like normalizeType and
- substNormalizeTypeM ensure that global uniqueness is preserved. -}
+        pure $ Norm.TypeMapping mapping
 
 -- | Work our way along the list of term arguments in an ApplyBuiltin,
 -- checking that the arguments have the expected types.
@@ -422,42 +385,6 @@ inferTypeM
 inferTypeM (Constant _ (Some (ValueOf uni _))) =
     -- See Note [PLC types and universes].
     pure . Normalized . TyBuiltin () $ Some (TypeIn uni)
-
-{- FIXME: Roman:
-Please use the notation used everywhere else in this file. It should be clear where things are inferred and where checked.
-
-Should it be
-
-[check| G !- builtin bn {A_1 ... A_m} M_1 ... Mn : [A_1,...,A_m/a_1,...,a_m] C]
-
-instead of
-
-G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
-
-?
-
-I think it would be more readable if we used the following notation:
-
-[check| G !- builtin f {A_i*} M_j* : [A_i / a_i]* C]
-
-[infer| G !- a_i :: K_i]
-
-etc
-
--}
--- ###################################################################
--- bn : [a_1 :: K_1, ..., a_n:: K_m](B_1, ..., B_n)C
--- G !- M_i : D_i
--- D_i == [A_1,...,A_m/a_1,...,a_m]B_i
-----------------------------------------------------------------
--- G !- ({builtin bn A_1, ..., A_m} : [A_1,...,A_m/a_1,...,a_m]C)
-inferTypeM (ApplyBuiltin ann bn typeArgs args) = do
-  TypeComponents typeVars argTypes rtype <- inferTypeComponentsOfBuiltinM ann bn
-  mapping <- checkBuiltinTypeArgs ann bn typeVars typeArgs              -- How to instantiate the type variables
-  normalizedArgTypes <- mapM (substNormalizeMappingM mapping) argTypes
-  checkBuiltinTermArgs ann bn normalizedArgTypes args                   -- Check the arguments have the correct types
-  substNormalizeMappingM mapping rtype                                  -- Instantiate the return type and return it
-
 
 -- [infer| G !- v : ty]    ty ~>? vTy
 -- ----------------------------------
@@ -527,6 +454,24 @@ inferTypeM (Unwrap ann term)        = do
             -- Subparts of a normalized type, so normalized.
             unfoldFixOf (Normalized vPat) (Normalized vArg) k
         _                  -> throwError (TypeMismatch ann (void term) (TyIFix () dummyType dummyType) vTermTy)
+
+
+-- Typecheck a builtin application.  This performs a lot of
+-- substitutions and normalisations, but it should preserve the global
+-- uniqueness condition because it only uses uniquness-preserving
+-- operations from Normalize.Internal.
+
+-- [infer| bn : [a_1 :: K_1, ..., a_n :: K_m](B_1, ..., B_n)C]
+-- [check| G !- A_i :: K_i]
+-- [check| G !- M_j : T_j]     [A_i / a_i]* B_j ~>? S_j   T_j ~ S_j
+-------------------------------------------------------------------
+-- [infer| G !- builtin bn {A_i*} M_j* : NORM ([A_i/a_i]* C)]
+inferTypeM (ApplyBuiltin ann bn typeArgs args) = do
+  TypeComponents typeVars argTypes rtype <- inferTypeComponentsOfBuiltinM ann bn
+  mapping <- checkBuiltinTypeArgs ann bn typeVars typeArgs              -- How to instantiate the type variables
+  normalizedArgTypes <- mapM (substNormalizeMappingM mapping) argTypes --  Instantiate and normalise the argument types
+  checkBuiltinTermArgs ann bn normalizedArgTypes args                   -- Check that the arguments have the correct types
+  substNormalizeMappingM mapping rtype                                  -- Instantiate the return type and return it
 
 -- [check| G !- ty :: *]    ty ~>? vTy
 -- -----------------------------------

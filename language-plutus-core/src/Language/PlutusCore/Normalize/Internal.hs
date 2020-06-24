@@ -10,7 +10,7 @@ module Language.PlutusCore.Normalize.Internal
     , normalizeTypeM
     , substNormalizeTypeM
     , normalizeTypesInM
-    , TypeMapping
+    , TypeMapping (..)
     , emptyMapping
     , appendToMapping
     , substNormalizeMappingM
@@ -180,21 +180,26 @@ normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
 -- proper Map might be overkill.  We assume that no type variable is repeated.
 
 -- ... although a TypeMapping is essentially a TypeVarEnv in disguise.
--- Can we just use a TypeVarEnv directly?
-type TypeMapping tyname uni ann = [(tyname , Normalized (Type tyname uni ann))]
+-- Can/should we just use a TypeVarEnv directly?
+newtype TypeMapping tyname uni ann = TypeMapping { unTypeMapping :: [(tyname , Normalized (Type tyname uni ann))] }
 
 emptyMapping :: TypeMapping tyname uni ann
-emptyMapping = []
+emptyMapping = TypeMapping []
 
 appendToMapping :: TypeMapping tyname uni ann -> tyname -> Normalized (Type tyname uni ann) -> TypeMapping tyname uni ann
-appendToMapping m tn ty = (tn,ty):m
+appendToMapping (TypeMapping m) tn ty = TypeMapping((tn,ty):m)
 
+
+-- | Replace type variables in a term with types specfied in a TypeMapping.
+-- This extends the current environment with a new binding for each entry
+-- in the mapping and then calls normalizeTypeM, so will preserve the global
+-- uniqueness condition.
 substNormalizeMappingM
     :: (HasUnique tyname TypeUnique, MonadQuote m)
     => TypeMapping tyname uni ann                                          -- ^ [name1 -> ty1, name2 -> ty2, ..., nameN -> tyN]
     -> Type tyname uni ann                                                 -- ^ @body@
-    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([tyN / nameN]...[ty1 / name1] body)@
-substNormalizeMappingM [] t =
-    normalizeTypeM t
-substNormalizeMappingM ((tn,ty):m) t =
-    withExtendedTypeVarEnv tn ty $ substNormalizeMappingM m t
+    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([ty1 / name1]...[tyN / nameN] body)@
+substNormalizeMappingM = substNormalizeMappingM' . unTypeMapping
+    where substNormalizeMappingM' [] t = normalizeTypeM t
+          substNormalizeMappingM' ((tn,ty):m) t =
+              withExtendedTypeVarEnv tn ty $ substNormalizeMappingM' m t
