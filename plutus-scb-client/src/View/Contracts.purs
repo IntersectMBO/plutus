@@ -1,4 +1,4 @@
-module View.Contracts (contractStatusesPane, installedContractsPane) where
+module View.Contracts where
 
 import Halogen.HTML (HTML, br_, button, div_, h2_, h3_, table, tbody_, td_, text, th, th_, thead_, tr_)
 import Halogen.HTML.Properties (classes, colSpan)

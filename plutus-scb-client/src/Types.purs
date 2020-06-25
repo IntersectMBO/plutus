@@ -15,15 +15,16 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse, ContractSCBRequest)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, FullReport, _ChainReport, _ContractReport)
+import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, FullReport, _ChainReport, _ContractReport)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -102,6 +103,15 @@ _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
+
+_activeEndpoint :: Lens' ActiveEndpoint EndpointDescription
+_activeEndpoint = _Newtype <<< prop (SProxy :: SProxy "unActiveEndpoints")
+
+_rqRequest :: forall t. Lens' (Request t) t
+_rqRequest = _Newtype <<< prop (SProxy :: SProxy "rqRequest")
+
+_contractState :: forall t. Lens' (ContractSignatureResponse t) (ContractInstanceState t)
+_contractState = _Newtype <<< prop (SProxy :: SProxy "contractState")
 
 _contractPath :: Lens' ContractExe String
 _contractPath = _Newtype <<< prop (SProxy :: SProxy "contractPath")

@@ -128,9 +128,10 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <-
+    state@ContractInstanceState {csContractDefinition} <-
         getContractInstanceState @t contractId
-    ContractSignatureResponse <$> exportSchema csContractDefinition
+    schemas <- exportSchema csContractDefinition
+    pure $ ContractSignatureResponse schemas state
 
 activateContract ::
        forall t effs.

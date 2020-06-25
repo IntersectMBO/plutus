@@ -44,7 +44,10 @@ data FullReport t =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-newtype ContractSignatureResponse t =
-    ContractSignatureResponse [FunctionSchema FormSchema]
+data ContractSignatureResponse t =
+    ContractSignatureResponse
+        { contractSchemas :: [FunctionSchema FormSchema]
+        , contractState   :: ContractInstanceState t
+        }
     deriving (Show, Eq, Generic)
-    deriving newtype (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON)
