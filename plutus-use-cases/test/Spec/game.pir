@@ -169,12 +169,8 @@
                 arg
                 (con bytestring)
                 [
-                  (lam
-                    b
-                    (con bool)
-                    [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                  )
-                  [ [ (builtin equalsByteString) arg ] arg ]
+                  (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+                  (builtin equalsByteString arg arg)
                 ]
               )
             )
@@ -182,7 +178,7 @@
           (termbind
             (strict)
             (vardecl sha2_ (fun (con bytestring) (con bytestring)))
-            (lam arg (con bytestring) [ (builtin sha2_256) arg ])
+            (lam arg (con bytestring) (builtin sha2_256 arg))
           )
           (termbind
             (strict)

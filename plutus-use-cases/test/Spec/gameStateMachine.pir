@@ -160,12 +160,9 @@
                   arg
                   (con integer)
                   [
-                    (lam
-                      b
-                      (con bool)
-                      [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+                    (lam b (con bool) (builtin { ifThenElse Bool } b True False)
                     )
-                    [ [ (builtin equalsInteger) arg ] arg ]
+                    (builtin equalsInteger arg arg)
                   ]
                 )
               )
@@ -183,12 +180,9 @@
                   arg
                   (con bytestring)
                   [
-                    (lam
-                      b
-                      (con bool)
-                      [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+                    (lam b (con bool) (builtin { ifThenElse Bool } b True False)
                     )
-                    [ [ (builtin equalsByteString) arg ] arg ]
+                    (builtin equalsByteString arg arg)
                   ]
                 )
               )
@@ -1757,11 +1751,7 @@
                     (lam
                       arg
                       (con integer)
-                      (lam
-                        arg
-                        (con integer)
-                        [ [ (builtin multiplyInteger) arg ] arg ]
-                      )
+                      (lam arg (con integer) (builtin multiplyInteger arg arg))
                     )
                   )
                   (termbind
@@ -1986,9 +1976,7 @@
                     (lam
                       arg
                       (con integer)
-                      (lam
-                        arg (con integer) [ [ (builtin addInteger) arg ] arg ]
-                      )
+                      (lam arg (con integer) (builtin addInteger arg arg))
                     )
                   )
                   (let
@@ -3291,7 +3279,7 @@
                           (strict)
                           (vardecl sha2_ (fun (con bytestring) (con bytestring))
                           )
-                          (lam arg (con bytestring) [ (builtin sha2_256) arg ])
+                          (lam arg (con bytestring) (builtin sha2_256 arg))
                         )
                         (termbind
                           (strict)
@@ -4096,15 +4084,13 @@
                           (lam
                             arg
                             (con string)
-                            (lam
-                              arg (con string) [ [ (builtin append) arg ] arg ]
-                            )
+                            (lam arg (con string) (builtin append arg arg))
                           )
                         )
                         (termbind
                           (strict)
                           (vardecl charToString (fun (con char) (con string)))
-                          (lam arg (con char) [ (builtin charToString) arg ])
+                          (lam arg (con char) (builtin charToString arg))
                         )
                         (termbind
                           (strict) (vardecl emptyString (con string)) (con "")
@@ -4163,10 +4149,7 @@
                               (lam
                                 arg
                                 (con string)
-                                [
-                                  (lam b (con unit) Unit)
-                                  [ (builtin trace) arg ]
-                                ]
+                                [ (lam b (con unit) Unit) (builtin trace arg) ]
                               )
                             )
                             (termbind
@@ -5639,18 +5622,9 @@
                                     (lam
                                       b
                                       (con bool)
-                                      [
-                                        [
-                                          [ { (builtin ifThenElse) Bool } b ]
-                                          True
-                                        ]
-                                        False
-                                      ]
+                                      (builtin { ifThenElse Bool } b True False)
                                     )
-                                    [
-                                      [ (builtin lessThanEqualsInteger) arg ]
-                                      arg
-                                    ]
+                                    (builtin lessThanEqualsInteger arg arg)
                                   ]
                                 )
                               )
@@ -5782,18 +5756,9 @@
                                     (lam
                                       b
                                       (con bool)
-                                      [
-                                        [
-                                          [ { (builtin ifThenElse) Bool } b ]
-                                          True
-                                        ]
-                                        False
-                                      ]
+                                      (builtin { ifThenElse Bool } b True False)
                                     )
-                                    [
-                                      [ (builtin greaterThanEqualsInteger) arg ]
-                                      arg
-                                    ]
+                                    (builtin greaterThanEqualsInteger arg arg)
                                   ]
                                 )
                               )
@@ -5814,15 +5779,9 @@
                                     (lam
                                       b
                                       (con bool)
-                                      [
-                                        [
-                                          [ { (builtin ifThenElse) Bool } b ]
-                                          True
-                                        ]
-                                        False
-                                      ]
+                                      (builtin { ifThenElse Bool } b True False)
                                     )
-                                    [ [ (builtin greaterThanInteger) arg ] arg ]
+                                    (builtin greaterThanInteger arg arg)
                                   ]
                                 )
                               )
@@ -5843,15 +5802,9 @@
                                     (lam
                                       b
                                       (con bool)
-                                      [
-                                        [
-                                          [ { (builtin ifThenElse) Bool } b ]
-                                          True
-                                        ]
-                                        False
-                                      ]
+                                      (builtin { ifThenElse Bool } b True False)
                                     )
-                                    [ [ (builtin lessThanInteger) arg ] arg ]
+                                    (builtin lessThanInteger arg arg)
                                   ]
                                 )
                               )

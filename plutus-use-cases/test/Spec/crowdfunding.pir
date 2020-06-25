@@ -58,7 +58,7 @@
           (lam
             arg
             (con integer)
-            (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+            (lam arg (con integer) (builtin addInteger arg arg))
           )
         )
         (let
@@ -547,11 +547,9 @@
                     (con bytestring)
                     [
                       (lam
-                        b
-                        (con bool)
-                        [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+                        b (con bool) (builtin { ifThenElse Bool } b True False)
                       )
-                      [ [ (builtin equalsByteString) arg ] arg ]
+                      (builtin equalsByteString arg arg)
                     ]
                   )
                 )
@@ -1586,11 +1584,9 @@
                     (con integer)
                     [
                       (lam
-                        b
-                        (con bool)
-                        [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+                        b (con bool) (builtin { ifThenElse Bool } b True False)
                       )
-                      [ [ (builtin greaterThanEqualsInteger) arg ] arg ]
+                      (builtin greaterThanEqualsInteger arg arg)
                     ]
                   )
                 )
@@ -1814,11 +1810,9 @@
                           (lam
                             b
                             (con bool)
-                            [
-                              [ [ { (builtin ifThenElse) Bool } b ] True ] False
-                            ]
+                            (builtin { ifThenElse Bool } b True False)
                           )
-                          [ [ (builtin equalsInteger) arg ] arg ]
+                          (builtin equalsInteger arg arg)
                         ]
                       )
                     )
@@ -1839,11 +1833,9 @@
                           (lam
                             b
                             (con bool)
-                            [
-                              [ [ { (builtin ifThenElse) Bool } b ] True ] False
-                            ]
+                            (builtin { ifThenElse Bool } b True False)
                           )
-                          [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+                          (builtin lessThanEqualsInteger arg arg)
                         ]
                       )
                     )

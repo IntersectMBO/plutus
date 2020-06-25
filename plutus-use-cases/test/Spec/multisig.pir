@@ -21,12 +21,8 @@
           arg
           (con bytestring)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin equalsByteString) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin equalsByteString arg arg)
           ]
         )
       )
@@ -126,12 +122,8 @@
               arg
               (con integer)
               [
-                (lam
-                  b
-                  (con bool)
-                  [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                )
-                [ [ (builtin greaterThanEqualsInteger) arg ] arg ]
+                (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+                (builtin greaterThanEqualsInteger arg arg)
               ]
             )
           )
@@ -144,7 +136,7 @@
           (lam
             arg
             (con integer)
-            (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+            (lam arg (con integer) (builtin addInteger arg arg))
           )
         )
         (let
@@ -227,15 +219,13 @@
                 appendString (fun (con string) (fun (con string) (con string)))
               )
               (lam
-                arg
-                (con string)
-                (lam arg (con string) [ [ (builtin append) arg ] arg ])
+                arg (con string) (lam arg (con string) (builtin append arg arg))
               )
             )
             (termbind
               (strict)
               (vardecl charToString (fun (con char) (con string)))
-              (lam arg (con char) [ (builtin charToString) arg ])
+              (lam arg (con char) (builtin charToString arg))
             )
             (termbind (strict) (vardecl emptyString (con string)) (con ""))
             (let
@@ -284,7 +274,7 @@
                   (lam
                     arg
                     (con string)
-                    [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
+                    [ (lam b (con unit) Unit) (builtin trace arg) ]
                   )
                 )
                 (datatypebind
