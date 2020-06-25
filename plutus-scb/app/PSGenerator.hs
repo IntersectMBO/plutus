@@ -150,7 +150,7 @@ writeTestData outputDir = do
                         callContractEndpoint
                             @TestContracts
                             currencyInstance1
-                            "Create currency"
+                            "Create native token"
                             SimpleMPS {tokenName = "TestCurrency", amount = 10000}
                     --
                     report :: FullReport TestContracts <- Webserver.getFullReport
