@@ -4,7 +4,7 @@
       (let (nonrec)
            (termbind (strict) (vardecl j (con integer))
             (con 1))
-            [(builtin addInteger) j x])
+            (builtin addInteger j x))
        )
      i
  ))

@@ -7,8 +7,8 @@
     (termbind
       (strict)
       (vardecl i1 (con integer))
-      [ [ (builtin addInteger) i2 ] (con 3) ]
+      (builtin addInteger i2 (con 3))
     )
-    [ [ (builtin addInteger) (con 5) ] [ [ (builtin addInteger) j ] i2 ] ]
+    (builtin addInteger (con 5) (builtin addInteger j i2))
   )
 )

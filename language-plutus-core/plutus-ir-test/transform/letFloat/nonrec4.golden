@@ -8,9 +8,7 @@
       (let
         (nonrec)
         (termbind
-          (strict)
-          (vardecl j (con integer))
-          [ [ (builtin addInteger) i ] (con 1) ]
+          (strict) (vardecl j (con integer)) (builtin addInteger i (con 1))
         )
         j
       )

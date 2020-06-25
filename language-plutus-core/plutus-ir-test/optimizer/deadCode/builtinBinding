@@ -1,7 +1,16 @@
 (let
   (nonrec)
   (termbind (strict)
-    (vardecl add (fun (con integer) (con integer))) (builtin addInteger)
+    (vardecl add (fun (con integer) (con integer))) (lam m (con integer) (lam n (con integer) (builtin addInteger m n)))
   )
   (abs a (type) (lam x a x))
 )
+
+{- With unsaturated builtins this test just had
+
+   (vardecl add (fun (con integer) (con integer))) ((builtin addInteger))
+
+  That couldn't be elminated because there wasn't enough information to
+  tell whether or not it performed any computation, but now that bultins
+  are saturated the eta-expanded version can be elminated.
+-}

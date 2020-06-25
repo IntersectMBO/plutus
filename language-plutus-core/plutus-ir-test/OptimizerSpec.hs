@@ -25,10 +25,14 @@ deadCode = testNested "deadCode"
     , "datatypeLiveDestr"
     , "datatypeDead"
     , "singleBinding"
-    , "builtinBinding"
     , "etaBuiltinBinding"
     , "nestedBindings"
     , "nestedBindingsIndirect"
     , "recBindingSimple"
     , "recBindingComplex"
     ]
+
+{- There used to be a test checking that zero-argument builtin
+   applications were *not* eliminated, but that became irrelevant once
+   we required builtins to be saturated and non-nullary.  Remember to
+   add a suitable test if we ever allow nullary builtins. -}

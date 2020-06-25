@@ -77,7 +77,10 @@ genTerm = simpleRecursive nonRecursive recursive where
     instGen = TyInst () <$> genTerm <*> genType
     lamGen = LamAbs () <$> genName <*> genType <*> genTerm
     applyGen = Apply () <$> genTerm <*> genTerm
-    applyBuiltinGen = ApplyBuiltin () <$> genBuiltinName <*> Gen.list (Range.linear 0 2) genType <*> Gen.list (Range.linear 0 3) genTerm
+    applyBuiltinGen = ApplyBuiltin ()
+                      <$> genBuiltinName
+                      <*> Gen.list (Range.linear 0 2) genType
+                      <*> Gen.list (Range.linear 1 3) genTerm  -- No nullary builtins!
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType

@@ -113,7 +113,8 @@ genTerm = simpleRecursive nonRecursive recursive where
     applyBuiltinGen = ApplyBuiltin ()
                       <$> genBuiltinName
                       <*> Gen.list (Range.linear 0 2) genType
-                      <*> Gen.list (Range.linear 0 3) genTerm
+                      <*> Gen.list (Range.linear 1 3) genTerm
+                      -- Nullary builtins are disallowed in the parser and elsewhere, so we don't want to generate them
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
     nonRecursive = [varGen, Constant () <$> genConstant, errorGen, applyBuiltinGen]
