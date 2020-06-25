@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StrictData         #-}
 
 module Cardano.Wallet.Types where
 

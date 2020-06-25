@@ -9,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}

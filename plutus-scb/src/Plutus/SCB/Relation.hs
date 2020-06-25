@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE StrictData            #-}
 {-# LANGUAGE TypeFamilies          #-}
 
 -- | Relational joins for Haskell datatypes.

@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE StrictData      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Cardano.Node.Types where

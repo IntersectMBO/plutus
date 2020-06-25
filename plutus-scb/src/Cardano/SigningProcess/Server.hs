@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TypeApplications   #-}
 module Cardano.SigningProcess.Server(
     -- $signingProcess
