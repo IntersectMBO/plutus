@@ -26,10 +26,10 @@ tests :: TestTree
 tests = testGroup "Actus"
     [ testCase "PAM static schedule" pamProjected
     , testCase "PAM static contract" pamStatic
+    , testCase "PAM fixed schedule contract" pamFs
     , testCase "Simple PAM contract + Marlowe IO" pamSimple
     , testCase "Simple PAM contract" pamRePlay
     , testCase "Generate PAM-LP" pamLpGeneration
-
     ]
 
 ada :: Token
@@ -122,6 +122,12 @@ pamStatic = do
     assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
     return ()
 
+pamFs :: IO ()
+pamFs = do 
+    let contract = genFsContract contractTerms 
+    --print $ pretty contract
+    assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
+    return ()
 
 pamRePlay :: IO ()
 pamRePlay = do 

@@ -5,13 +5,19 @@ module Language.Marlowe.ACTUS.ControlLp
     ( lpValidator
     , genLpContract
     , genStaticContract
+    , genFsContract
     )
 where
 
 import Language.Marlowe.ACTUS.STF.StateTransitionLp
     ( stateTransitionLp )
 import Language.Marlowe.ACTUS.POF.PayoffLp ( payoffLp )
-import Language.Marlowe.ACTUS.Control ( invoice, inquiry )
+import Language.Marlowe.ACTUS.STF.StateTransitionLp
+    ( stateTransitionLp )
+import Language.Marlowe.ACTUS.STF.StateTransitionFs
+    ( stateTransitionFs )
+import Language.Marlowe.ACTUS.POF.PayoffFs ( payoffFs )
+import Language.Marlowe.ACTUS.Control ( invoice, inquiry, inquiryFs )
 import Language.Marlowe.ACTUS.Ops ( dayToSlotNumber )
 import Language.Marlowe.ACTUS.Schedule
     ( CashFlow(CashFlow, currency, amount, cashEvent,
@@ -19,8 +25,11 @@ import Language.Marlowe.ACTUS.Schedule
                cashContractId, tick) )
 import Language.Marlowe.ACTUS.ProjectedCashFlows
     ( genProjectedCashflows )
+import Language.Marlowe.ACTUS.BusinessEvents
+    ( mapEventType )
 import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
 import Data.String ( IsString(fromString) )
+import Data.List (zip)
 import Language.Marlowe
     ( Contract(Close, If, Let),
       Observation(ValueEQ),
@@ -59,3 +68,14 @@ genStaticContract terms =
         cfs = genProjectedCashflows terms
         gen CashFlow{..} = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
     in foldl (flip gen) Close cfs
+
+
+genFsContract :: ContractTerms -> Contract
+genFsContract terms = 
+    let
+        sched = mapEventType . cashEvent <$> genProjectedCashflows terms
+        gen (ev, t) cont = inquiryFs ev ("_" ++ show t) "oracle"
+            $ stateTransitionFs ev terms t
+            $ Let (payoffAt t) (payoffFs ev terms t)
+            $ invoice "party" "counterparty" (UseValue $ payoffAt t) 1000000 cont
+    in foldl (flip gen) Close $ zip sched [1..]

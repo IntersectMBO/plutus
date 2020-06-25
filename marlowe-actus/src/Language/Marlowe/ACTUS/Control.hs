@@ -4,6 +4,7 @@
 module Language.Marlowe.ACTUS.Control
     ( invoice
     , inquiry
+    , inquiryFs
     , genContract
     , stateParser
     , actusMarloweValidator
@@ -142,6 +143,45 @@ inquiry timePosfix party partyId oracle continue =
             . addEventInitiatorParty
             )
             continue
+
+
+inquiryFs
+    :: EventType
+    -> TimePostfix
+    -> Oracle
+    -> Continuation
+    -> Contract
+inquiryFs ev timePosfix oracle continue =
+    let
+        oracleRole = Role $ TokenName $ fromString oracle
+        inputTemplate inputChoiceId inputOwner inputDefault inputBound cont =
+            (When
+                [ Case
+                      (Choice (ChoiceId inputChoiceId inputOwner) inputBound)
+                      (Let
+                          (ValueId inputChoiceId)
+                          (ChoiceValue (ChoiceId inputChoiceId inputOwner)
+                                       inputDefault
+                          )
+                          cont
+                      )
+                ]
+                1000000000
+                Close
+            )
+        riskFactorInquiry name = inputTemplate
+            (fromString ("riskFactor-" ++ name ++ timePosfix))
+            oracleRole
+            (Constant 0)
+            [Bound 0 100000000000000]
+        riskFactorsInquiry =
+            riskFactorInquiry "o_rf_CURS"
+                . riskFactorInquiry "o_rf_RRMO"
+                . riskFactorInquiry "o_rf_SCMO"
+                . riskFactorInquiry "pp_payoff"
+    in
+        riskFactorsInquiry continue
+
 
 genContract :: Contract
 genContract = inquiry "" "party" 0 "oracle" $ invoice

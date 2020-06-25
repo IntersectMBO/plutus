@@ -88,3 +88,43 @@ dispatchStateTransition t continue handler =
             $ letval "ipcb" t (dispatchEvent t (ipcb inputState) handler_ipcb)
             continue
 
+stateTransition :: EventType -> Integer -> Contract -> EventHandlerSTF -> Contract
+stateTransition ev t continue handler =
+    let inputState = ContractStatePoly { tmd   = useval "tmd" $  t - 1
+                                       , nt    = useval "nt" $  t - 1
+                                       , ipnr  = useval "ipnr" $  t - 1
+                                       , ipac  = useval "ipac" $  t - 1
+                                       , feac  = useval "feac" $  t - 1
+                                       , fac   = useval "fac" $  t - 1
+                                       , nsc   = useval "nsc" $  t - 1
+                                       , isc   = useval "isc" $  t - 1
+                                       , sd    = useval "sd" $  t - 1
+                                       , prnxt = useval "prnxt" $  t - 1
+                                       , ipcb  = useval "ipcb" $  t - 1
+                                       , prf   = undefined
+                                       }
+        handler_tmd = tmd $ handler ev inputState
+        handler_nt = nt $ handler ev inputState
+        handler_ipnr = ipnr $ handler ev inputState
+        handler_ipac = ipac $ handler ev inputState
+        handler_feac = feac $ handler ev inputState
+        handler_fac = fac $ handler ev inputState
+        handler_nsc = nsc $ handler ev inputState
+        handler_isc = isc $ handler ev inputState
+        handler_sd = sd $ handler ev inputState
+        handler_prnxt = prnxt $ handler ev inputState
+        handler_ipcb = ipcb $ handler ev inputState
+    in  letval "tmd" t handler_tmd
+            $ letval "nt"   t handler_nt
+            $ letval "ipnr" t handler_ipnr
+            $ letval "ipac" t handler_ipac
+            $ letval "feac" t handler_feac
+            $ letval "fac"  t handler_fac
+            $ letval "nsc"  t handler_nsc
+            $ letval "isc"  t handler_isc
+            $ letval "sd"   t handler_sd
+            $ letval "prnxt" t handler_prnxt
+            $ letval "ipcb" t handler_ipcb
+            continue
+
+
