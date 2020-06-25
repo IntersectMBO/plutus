@@ -9,7 +9,7 @@
       (lam
         arg
         (con integer)
-        (lam arg (con integer) [ [ (builtin divideInteger) arg ] arg ])
+        (lam arg (con integer) (builtin divideInteger arg arg))
       )
     )
     (datatypebind
@@ -30,12 +30,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin equalsInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin equalsInteger arg arg)
           ]
         )
       )

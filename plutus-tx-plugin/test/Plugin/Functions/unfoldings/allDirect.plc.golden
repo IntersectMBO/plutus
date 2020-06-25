@@ -139,12 +139,8 @@
                 arg
                 (con integer)
                 [
-                  (lam
-                    b
-                    (con bool)
-                    [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-                  )
-                  [ [ (builtin greaterThanInteger) arg ] arg ]
+                  (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+                  (builtin greaterThanInteger arg arg)
                 ]
               )
             )

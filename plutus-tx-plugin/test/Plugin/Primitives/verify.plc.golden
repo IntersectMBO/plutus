@@ -25,12 +25,8 @@
             arg
             (con bytestring)
             [
-              (lam
-                b
-                (con bool)
-                [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-              )
-              [ [ [ (builtin verifySignature) arg ] arg ] arg ]
+              (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+              (builtin verifySignature arg arg arg)
             ]
           )
         )

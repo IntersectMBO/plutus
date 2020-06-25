@@ -26,16 +26,12 @@
           (vardecl
             appendString (fun (con string) (fun (con string) (con string)))
           )
-          (lam
-            arg
-            (con string)
-            (lam arg (con string) [ [ (builtin append) arg ] arg ])
-          )
+          (lam arg (con string) (lam arg (con string) (builtin append arg arg)))
         )
         (termbind
           (strict)
           (vardecl charToString (fun (con char) (con string)))
-          (lam arg (con char) [ (builtin charToString) arg ])
+          (lam arg (con char) (builtin charToString arg))
         )
         (termbind (strict) (vardecl emptyString (con string)) (con ""))
         (let
@@ -79,9 +75,7 @@
               (strict)
               (vardecl trace (fun (con string) Unit))
               (lam
-                arg
-                (con string)
-                [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
+                arg (con string) [ (lam b (con unit) Unit) (builtin trace arg) ]
               )
             )
             (termbind

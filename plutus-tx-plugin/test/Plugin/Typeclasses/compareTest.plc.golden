@@ -19,12 +19,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin equalsInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin equalsInteger arg arg)
           ]
         )
       )
@@ -39,12 +35,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin lessThanEqualsInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin lessThanEqualsInteger arg arg)
           ]
         )
       )
@@ -165,12 +157,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin greaterThanEqualsInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin greaterThanEqualsInteger arg arg)
           ]
         )
       )
@@ -185,12 +173,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin greaterThanInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin greaterThanInteger arg arg)
           ]
         )
       )
@@ -205,12 +189,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin lessThanInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin lessThanInteger arg arg)
           ]
         )
       )

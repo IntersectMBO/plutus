@@ -9,7 +9,7 @@
       (lam
         arg
         (con integer)
-        (lam arg (con integer) [ [ (builtin multiplyInteger) arg ] arg ])
+        (lam arg (con integer) (builtin multiplyInteger arg arg))
       )
     )
     (lam

@@ -5,9 +5,7 @@
       (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam
-        arg
-        (con integer)
-        (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
+        arg (con integer) (lam arg (con integer) (builtin addInteger arg arg))
       )
     )
     (datatypebind
@@ -28,12 +26,8 @@
           arg
           (con integer)
           [
-            (lam
-              b
-              (con bool)
-              [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
-            )
-            [ [ (builtin equalsInteger) arg ] arg ]
+            (lam b (con bool) (builtin { ifThenElse Bool } b True False))
+            (builtin equalsInteger arg arg)
           ]
         )
       )
@@ -46,7 +40,7 @@
       (lam
         arg
         (con integer)
-        (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
+        (lam arg (con integer) (builtin subtractInteger arg arg))
       )
     )
     (datatypebind
