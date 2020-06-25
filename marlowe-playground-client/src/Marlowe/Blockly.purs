@@ -520,7 +520,7 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
+        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
