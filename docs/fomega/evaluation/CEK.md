@@ -1,6 +1,5 @@
 # Two versions of the CEK machine
 
-
 Version 1 has values in the environment. Version 2 has closures (pairs
 of values and environments) in the environment.
 
@@ -10,6 +9,18 @@ it is simpler.
 The main point of this document is so that we can discuss whether to
 use version 1 in the implementation. Version 2 is described as a
 comparison.
+
+I have formalised both of these version in Agda and they can used via
+`plc-agda`.
+
+The relevant files are:
+
+Version 1:
+
+https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKV.lagda.md
+
+Version 2:
+https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKC.lagda.md
 
 ## 1. Value version
 
@@ -29,7 +40,7 @@ V := con cn
    | lam x (M , ρ)
    | iwrap A B V
 ρ := []
-   | ρ[x |-> V]`
+   | ρ[x |-> V]
 ```
 
 Frames: note that we never have pairs of values and environments, only
@@ -71,7 +82,7 @@ The machine. Term configuration:
 s ; ρ |> x                      |-> s <| ρ[ x ]
 s ; ρ |> lam x L                |-> s <| lam x (L , ρ)
 s ; ρ |> [L M]                  |-> s , [_ (M,ρ)]  ; ρ |> L
-s ; ρ |> abs α L                |-> s , <| abs α (L , ρ)
+s ; ρ |> abs α L                |-> s <| abs α (L , ρ)
 s ; ρ |> {L A}                  |-> s , {_ A} ; ρ |> L
 s ; ρ |> wrap A B L             |-> s , wrap A B _ ; ρ |> L
 s ; ρ |> unwrap L               |-> s , unwrap _ ; ρ |> L
@@ -173,7 +184,7 @@ Value configuration:
 ```
 .                                ; ρ <| V          |-> [] (V,ρ)
 s , [_ (M,ρ)]                    ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
-s , [(lam x (M,ρ')) _]           ; ρ <| V          |-> s ; ρ [ x |-> V ] |> M
+s , [(lam x (M,ρ')) _]           ; ρ <| V          |-> s ; ρ [ x |-> (V,ρ) ] |> M
 s , {_ A}                        ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
 s , wrap A B _                   ; ρ <| V          |-> s ; ρ <| wrap A B V
 s , unwrap _                     ; ρ <| wrap A B V |-> s ; ρ <| V
