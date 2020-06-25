@@ -78,16 +78,16 @@ convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
 conv (Var _ x)                        =
   RVar (unIndex (dbnIndex x))
-conv (TyAbs _ _ _K t)                 = RTLambda (convK _K) (conv t)
-conv (TyInst _ t _A)                  = RTApp (conv t) (convT _A)
-conv (LamAbs _ _ _A t)                = RLambda (convT _A) (conv t)
-conv (Apply _ t u)                    = RApp (conv t) (conv u)
-conv (Builtin _ (BuiltinName _ b))    = RBuiltin b
-conv (Builtin _ (DynBuiltinName _ b)) = undefined
-conv (Constant _ c)                   = RCon (convC c)
-conv (Unwrap _ t)                     = RUnWrap (conv t)
-conv (IWrap _ ty1 ty2 t)              = RWrap (convT ty1) (convT ty2) (conv t)
-conv (Error _ _A)                     = RError (convT _A)
+conv (TyAbs _ _ _K t)                    = RTLambda (convK _K) (conv t)
+conv (TyInst _ t _A)                     = RTApp (conv t) (convT _A)
+conv (LamAbs _ _ _A t)                   = RLambda (convT _A) (conv t)
+conv (Apply _ t u)                       = RApp (conv t) (conv u)
+conv (Builtin _ (StaticBuiltinName _ b)) = RBuiltin b
+conv (Builtin _ (DynBuiltinName _ b))    = undefined
+conv (Constant _ c)                      = RCon (convC c)
+conv (Unwrap _ t)                        = RUnWrap (conv t)
+conv (IWrap _ ty1 ty2 t)                 = RWrap (convT ty1) (convT ty2) (conv t)
+conv (Error _ _A)                        = RError (convT _A)
 
 unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
