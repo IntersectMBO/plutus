@@ -106,8 +106,8 @@
           "Language/PlutusCore/Constant/Dynamic/BuiltinName"
           "Language/PlutusCore/Constant/Dynamic/Call"
           "Language/PlutusCore/Constant/Dynamic/Emit"
-          "Language/PlutusCore/Constant/Dynamic/OnChain"
           "Language/PlutusCore/Constant/Dynamic/OffChain"
+          "Language/PlutusCore/Constant/Embed"
           "Language/PlutusCore/Constant/Function"
           "Language/PlutusCore/Constant/Name"
           "Language/PlutusCore/Constant/Typed"
@@ -248,6 +248,7 @@
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -286,7 +287,6 @@
             "Evaluation/ApplyBuiltinName"
             "Evaluation/DynamicBuiltins/Common"
             "Evaluation/DynamicBuiltins/Definition"
-            "Evaluation/DynamicBuiltins/Logging"
             "Evaluation/DynamicBuiltins/MakeRead"
             "Evaluation/DynamicBuiltins"
             "Evaluation/Golden"
