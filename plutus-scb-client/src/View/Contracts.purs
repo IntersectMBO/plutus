@@ -1,13 +1,6 @@
 module View.Contracts where
 
-import Halogen.HTML (HTML, br_, button, div_, h2_, h3_, table, tbody_, td_, text, th, th_, thead_, tr_)
-import Halogen.HTML.Properties (classes, colSpan)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
-import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ContractReport(..))
 import Prelude
-import Types (EndpointForm, HAction(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks)
-import AjaxUtils (ajaxErrorPane)
 import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col2_, col4_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
 import Data.Array (mapWithIndex, null)
@@ -18,15 +11,20 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.UUID as UUID
+import Halogen.HTML (HTML, br_, button, div_, h2_, h3_, table, tbody_, td_, text, th, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
-import Icons (Icon(..), icon)
+import Halogen.HTML.Properties (classes, colSpan)
 import Language.Plutus.Contract.Resumable (IterationID(..), Request(..), RequestID(..))
-import Network.RemoteData (RemoteData(..))
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Schema (actionArgumentForm)
 import Playground.Types (_FunctionSchema)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
+import Plutus.SCB.Types (ContractExe)
+import Plutus.SCB.Webserver.Types (ContractReport(..))
 import Schema.Types (FormEvent)
+import Types (EndpointForm, HAction(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
+import View.Utils (webDataPane)
 
 installedContractsPane ::
   forall p.
@@ -88,13 +86,16 @@ contractStatusPane contractSignatures contractInstance =
     [ contractRequestView contractInstance
     , row_
         ( case Map.lookup contractInstanceId contractSignatures of
-            Just (Success endpointForms) ->
-              mapWithIndex
-                (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
-                endpointForms
-            Just (Failure err) -> [ ajaxErrorPane err ]
-            Just Loading -> [ icon Spinner ]
-            Just NotAsked -> []
+            Just remoteData ->
+              webDataPane
+                ( \endpointForms ->
+                    div_
+                      ( mapWithIndex
+                          (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
+                          endpointForms
+                      )
+                )
+                remoteData
             Nothing -> []
         )
     ]
