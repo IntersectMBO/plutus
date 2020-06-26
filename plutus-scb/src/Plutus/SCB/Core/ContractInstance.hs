@@ -251,6 +251,8 @@ respondtoRequests ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member Log effs
+    , Member (ContractEffect t) effs
+    , Member (Error SCBError) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
     -> Eff effs ()
@@ -265,6 +267,8 @@ runRequestHandler ::
     forall t effs req.
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member Log effs
+    , Member (ContractEffect t) effs
+    , Member (Error SCBError) effs
     )
     => RequestHandler effs req ContractResponse
     -> ContractInstanceId
@@ -280,8 +284,10 @@ runRequestHandler h contractInstance requests = do
         tryHandler (wrapHandler h) requests
 
     case response of
-        Just rsp ->
-            sendContractMessage @t contractInstance rsp
+        Just rsp -> do
+            events <- sendContractMessage @t contractInstance rsp
+            processContractInbox @t contractInstance
+            pure events
         _ -> do
             logDebug "runRequestHandler: did not handle any requests"
             pure []
@@ -404,6 +410,7 @@ processTxConfirmedRequests = RequestHandler $ \req -> do
 callContractEndpoint ::
     forall t a effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (ContractEffect t) effs
     , Member Log effs
     , Member (Error SCBError) effs
     , JSON.ToJSON a
@@ -436,6 +443,8 @@ processAllContractOutboxes ::
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     , Member SigningProcessEffect effs
+    , Member (Error SCBError) effs
+    , Member (ContractEffect t) effs
     )
     => Eff effs ()
 processAllContractOutboxes = do
