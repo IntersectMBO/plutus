@@ -10,13 +10,10 @@
 {-# LANGUAGE TypeApplications    #-}
 
 import           Control.Applicative
-import           Control.DeepSeq
 import           Control.Monad.Morph
 import           CostModelCreation
 import           Data.Coerce
-import           Data.Functor.Compose
 import           Foreign.R                                          hiding (unsafeCoerce)
-import           GHC.Generics                                       (Generic, Generic1)
 import           H.Prelude                                          (MonadR, Region, r)
 import           Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
@@ -27,29 +24,50 @@ import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.R                                         hiding (unsafeCoerce)
 import           Unsafe.Coerce                                      (unsafeCoerce)
 
-
+prop_addInteger :: Property
 prop_addInteger = testPredict addInteger (getConst . paramAddInteger)
+prop_subtractInteger :: Property
 prop_subtractInteger = testPredict subtractInteger (getConst . paramSubtractInteger)
+prop_multiplyInteger :: Property
 prop_multiplyInteger = testPredict multiplyInteger (getConst . paramMultiplyInteger)
+prop_divideInteger :: Property
 prop_divideInteger = testPredict divideInteger (getConst . paramDivideInteger)
+prop_quotientInteger :: Property
 prop_quotientInteger = testPredict quotientInteger (getConst . paramQuotientInteger)
+prop_remainderInteger :: Property
 prop_remainderInteger = testPredict remainderInteger (getConst . paramRemainderInteger)
+prop_modInteger :: Property
 prop_modInteger = testPredict modInteger (getConst . paramModInteger)
+prop_lessThanInteger :: Property
 prop_lessThanInteger = testPredict lessThanInteger (getConst . paramLessThanInteger)
+prop_greaterThanInteger :: Property
 prop_greaterThanInteger = testPredict greaterThanInteger (getConst . paramGreaterThanInteger)
+prop_lessThanEqInteger :: Property
 prop_lessThanEqInteger = testPredict lessThanEqInteger (getConst . paramLessThanEqInteger)
+prop_greaterThanEqInteger :: Property
 prop_greaterThanEqInteger = testPredict greaterThanEqInteger (getConst . paramGreaterThanEqInteger)
+prop_eqInteger :: Property
 prop_eqInteger = testPredict eqInteger (getConst . paramEqInteger)
-  -- testPredict concatenate "concatenateModel"
-  -- testPredict takeByteString "takeByteStringModel"
-  -- testPredict dropByteString "dropByteStringModel"
-  -- testPredict sHA2 "sha2Model"
-  -- testPredict sHA3 "sha3Model"
-  -- testPredict verifySignature "verifySignatureModel"
-  -- testPredict eqByteString "eqByteStringModel"
-  -- testPredict ltByteString "ltByteStringModel"
-  -- testPredict gtByteString "gtByteStringModel"
-  -- testPredict ifThenElse "ifThenElseModel"
+-- prop_concatenate :: Property
+-- prop_concatenate = testPredict concatenate (getConst . paramConcatenate)
+-- prop_takeByteString :: Property
+-- prop_takeByteString = testPredict takeByteString (getConst . paramTakeByteString)
+-- prop_dropByteString :: Property
+-- prop_dropByteString = testPredict dropByteString (getConst . paramDropByteString)
+-- prop_sha2 :: Property
+-- prop_sha2 = testPredict sHA2 (getConst . paramSha2)
+-- prop_sha3 :: Property
+-- prop_sha3 = testPredict sHA3 (getConst . paramSha3)
+-- prop_verifySignature :: Property
+-- prop_verifySignature = testPredict verifySignature (getConst . paramVerifySignature)
+-- prop_eqByteString :: Property
+-- prop_eqByteString = testPredict eqByteString (getConst . paramEqByteString)
+-- prop_ltByteString :: Property
+-- prop_ltByteString = testPredict ltByteString (getConst . paramLtByteString)
+-- prop_gtByteString :: Property
+-- prop_gtByteString = testPredict gtByteString (getConst . paramGtByteString)
+-- prop_ifThenElse :: Property
+-- prop_ifThenElse = testPredict ifThenElse (getConst . paramIfThenElse)
 
 probablySafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
 probablySafeHoist nt = hoist (unsafeCoerce nt)
