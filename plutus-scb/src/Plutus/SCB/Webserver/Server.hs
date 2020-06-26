@@ -19,7 +19,7 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logInfo)
+import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -187,6 +187,24 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
+parseStringifiedJSON ::
+    forall effs.
+    Member Log effs
+    => JSON.Value
+    -> Eff effs JSON.Value
+parseStringifiedJSON v = case v of
+    JSON.String s -> do
+        logDebug "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
+        let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
+        case s' of
+            Nothing -> do
+                logDebug "parseStringifiedJSON: Failed, returning original string"
+                pure v
+            Just s'' -> do
+                logDebug "parseStringifiedJSON: Succeeded"
+                pure s''
+    _ -> pure v
+
 handler ::
        forall effs.
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
@@ -207,10 +225,11 @@ handler =
      (\rawInstanceId ->
           (parseContractId rawInstanceId >>= contractSchema) :<|>
           (\rawEndpointDescription payload ->
+               parseStringifiedJSON payload >>= \payload' ->
                parseContractId rawInstanceId >>=
                invokeEndpoint
                    (EndpointDescription rawEndpointDescription)
-                   payload)))
+                   payload')))
 
 app :: Config -> Application
 app config = serve rest (apiServer :<|> fileServer)

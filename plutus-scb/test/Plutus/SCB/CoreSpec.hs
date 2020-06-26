@@ -97,7 +97,7 @@ executionTests =
 
 currencyTest :: TestTree
 currencyTest =
-    let mps = SimpleMPS{smTokenName="my token", smAmount = 10000} in
+    let mps = SimpleMPS{tokenName="my token", amount = 10000} in
     testCase "Currency" $
         runScenario $ do
               initialTxCounts <- txCounts
@@ -236,14 +236,14 @@ guess ::
 guess uuid params =
     void $ callContractEndpoint @TestContracts uuid "guess" params
 
--- | Call the @"create-currency"@ endpoint on the currency contract.
+-- | Call the @"Create native token"@ endpoint on the currency contract.
 createCurrency ::
     Members SpecEffects effs
     => ContractInstanceId
     -> SimpleMPS
     -> Eff effs ()
 createCurrency uuid value =
-    void $ callContractEndpoint @TestContracts uuid "create-currency" value
+    void $ callContractEndpoint @TestContracts uuid "Create native token" value
 
 assertEqual ::
     forall a effs.

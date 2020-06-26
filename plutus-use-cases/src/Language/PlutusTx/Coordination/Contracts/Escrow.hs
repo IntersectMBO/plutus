@@ -331,7 +331,6 @@ refund inst escrow = do
 --   or reclaim the contribution if the goal has not been met.
 payRedeemRefund
     :: ( HasUtxoAt s
-       , HasWatchAddress s
        , HasWriteTx s
        , HasAwaitSlot s
        , HasOwnPubKey s
@@ -341,12 +340,12 @@ payRedeemRefund
     -> Contract s EscrowError (Either RefundSuccess RedeemSuccess)
 payRedeemRefund params vl = do
     let inst = scriptInstance params
-    -- Pay the value 'vl' into the contract and, at the same time, wait
+    -- Pay the value 'vl' into the contract
+    _ <- pay inst params vl
+    outcome <- selectEither (awaitSlot (escrowDeadline params)) (fundsAtAddressGeq (Scripts.scriptAddress inst) (targetTotal params))
+    -- wait
     -- for the 'targetTotal' of the contract to appear at the address, or
     -- for the 'escrowDeadline' to pass, whichever happens first.
-    (_, outcome) <- both
-                        (pay inst params vl)
-                        (awaitSlot (escrowDeadline params) `selectEither` fundsAtAddressGeq (Scripts.scriptAddress inst) (targetTotal params))
     -- If 'outcome' is a 'Right' then the total amount was deposited before the
     -- deadline, and we procedd with 'redeem'. If it's a 'Left', there are not
     -- enough funds at the address and we refund our own contribution.

@@ -22,6 +22,7 @@ Create a command line application from a @Contract schema Text ()@. For example:
 module Plutus.SCB.ContractCLI
     ( commandLineApp
     , runCliCommand
+    , runUpdate
     , Command(..)
     ) where
 
@@ -44,6 +45,8 @@ import           Options.Applicative             (CommandFields, Mod, Parser, co
                                                   short, showHelpOnEmpty, showHelpOnError, subparser)
 import           Playground.Schema               (EndpointToSchema, endpointsToSchemas)
 import           System.Exit                     (ExitCode (ExitFailure), exitSuccess, exitWith)
+import qualified System.IO
+
 data Command
     = Initialise
     | Update
@@ -92,13 +95,25 @@ runCliCommand :: forall s m.
 runCliCommand schema Initialise = pure $ bimap JSON.encodePretty JSON.encodePretty $ ContractState.initialiseContract schema
 runCliCommand schema Update = do
     arg <- liftIO BSL.getContents
-    pure $ bimap JSON.encodePretty JSON.encodePretty $
-        case JSON.eitherDecode arg of
-            Left err      -> Left $ Text.pack err
-            Right request -> ContractState.insertAndUpdateContract schema request
+    pure $ runUpdate schema arg
 runCliCommand _ ExportSignature = do
   let r = endpointsToSchemas @(s .\\ BlockchainActions)
   pure $ Right $ JSON.encodePretty r
+
+runUpdate :: forall s.
+    ( AllUniqueLabels (Input s)
+    , Forall (Input s) FromJSON
+    , Forall (Output s) ToJSON
+    , Forall (Input s) ToJSON
+    )
+    => Contract s Text ()
+    -> BSL.ByteString
+    -> Either BS8.ByteString BS8.ByteString
+runUpdate contract arg =
+    bimap JSON.encodePretty JSON.encodePretty $
+        case JSON.eitherDecode arg of
+            Left err      -> Left $ Text.pack err
+            Right request -> ContractState.insertAndUpdateContract contract request
 
 commandLineApp ::
        ( AllUniqueLabels (Input s)
@@ -117,7 +132,8 @@ commandLineApp schema = do
     result <- runCliCommand schema cmd
     case result of
         Left err -> do
-            BS8.putStrLn $ JSON.encodePretty err
+            BS8.hPut System.IO.stderr "Error "
+            BS8.hPut System.IO.stderr (JSON.encodePretty err)
             exitWith $ ExitFailure 1
         Right response -> do
             BS8.putStrLn response

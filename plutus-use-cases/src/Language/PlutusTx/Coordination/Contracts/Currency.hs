@@ -172,20 +172,20 @@ forgeContract pk amounts = mapError (review _CurrencyError) $ do
 --   in one transaction
 data SimpleMPS =
     SimpleMPS
-        { smTokenName :: TokenName
-        , smAmount    :: Integer
+        { tokenName :: TokenName
+        , amount    :: Integer
         }
         deriving stock (Prelude.Eq, Prelude.Show, Generic)
         deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
 
 type CurrencySchema =
     BlockchainActions
-        .\/ Endpoint "create-currency" SimpleMPS
+        .\/ Endpoint "Create native token" SimpleMPS
 
 -- | Create the currency specified by a 'SimpleMPS'
 forgeCurrency
     :: Contract CurrencySchema CurrencyError Currency
 forgeCurrency = do
-    SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
+    SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey
-    forgeContract ownPK [(smTokenName, smAmount)]
+    forgeContract ownPK [(tokenName, amount)]
