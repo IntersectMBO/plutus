@@ -148,20 +148,20 @@ processFirstInboxMessage instanceID (Last msg) = do
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
     logInfo . render $ "Current iteration:" <+> pretty csCurrentIteration
-    when (csCurrentIteration /= rspItID msg) $ do
-        logInfo "The first inbox message does not match the contract instance's iteration."
-    when (csCurrentIteration == rspItID msg) $ do
-        logInfo "The first inbox message matches the contract instance's iteration."
-        -- process the message
-        let payload = Contract.contractMessageToPayload msg
-        logInfo "Invoking contract update."
-        newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
-        logInfo "Obtained new state. Sending contract state messages."
-        -- send out the new requests
-        -- see note [Contract Iterations]
-        let newIteration = succ csCurrentIteration
-        sendContractStateMessages csContractDefinition instanceID newIteration newState
-        logInfo . render $ "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty newIteration
+    if (csCurrentIteration /= rspItID msg)
+        then logInfo "The first inbox message does not match the contract instance's iteration."
+        else do
+            logInfo "The first inbox message matches the contract instance's iteration."
+            -- process the message
+            let payload = Contract.contractMessageToPayload msg
+            logInfo "Invoking contract update."
+            newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
+            logInfo "Obtained new state. Sending contract state messages."
+            -- send out the new requests
+            -- see note [Contract Iterations]
+            let newIteration = succ csCurrentIteration
+            sendContractStateMessages csContractDefinition instanceID newIteration newState
+            logInfo . render $ "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty newIteration
     logInfo "processFirstInboxMessage end"
 
 -- | Check the inboxes of all contracts.
@@ -193,7 +193,7 @@ processContractInbox i = do
     logInfo "processContractInbox start"
     logInfo $ render $ pretty i
     state <- runGlobalQuery (Query.inboxMessages @t)
-    itraverse_ (processFirstInboxMessage @t) (Map.filterWithKey  (\k _ -> k == i) state)
+    traverse_ (processFirstInboxMessage @t i) (Map.lookup i state)
     logInfo "processContractInbox end"
 
 -- | Generic error message for failures during the contract lookup
