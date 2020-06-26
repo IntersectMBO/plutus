@@ -32,10 +32,14 @@ From that csv, a model is being calibrated and generated. Depending on the `Buil
 I'm using vscode with its R integration. Any editor/IDE where you can evaluate R from a text file should do.
 How to make a new model:
 
+- `models.R`: evaluate the `library` imports
+- `graphs.R`: evaluate the `library` imports
 - `graphs.R`: edit the options on top as required
+- `models.R`: evaluate the `benchData` line
 - `models.R`: uncomment & evaluate the `path` line
-- `models.R`: add your model to `models.R`, in the function `modelFun`, evaluate `data`, evaluate your model.
-- `graphs.R`: edit `filtered` and `ploterrorModel` with the correct names, evaluate
+- `models.R`: add your model to `models.R`, in the function `modelFun`, evaluate `data`, evaluate your model inside the function.
+- `graphs.R`: edit `filtered` and the `plotErrorModel` call with the correct names, evaluate
 - repeat as required
 - `ExBudgeting.hs`: add the haskell version of the predictor
+- `CostModelCreation.hs`: add code to load the model from R code
 - Fix compile errors until `language-plutus-core-test-cost-model` runs & run it.

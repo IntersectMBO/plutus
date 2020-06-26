@@ -54,6 +54,7 @@ prop_eqInteger = testPredict eqInteger (getConst . paramEqInteger)
 probablySafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
 probablySafeHoist nt = hoist (unsafeCoerce nt)
 
+-- Creates the model on the R side, loads the parameters over to Haskell, and runs both models with a bunch of ExMemory combinations and compares the outputs.
 testPredict :: forall s. ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
   -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property

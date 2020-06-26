@@ -56,33 +56,6 @@ costModelNames = CostModel
   , paramIfThenElse = "ifThenElseModel"
 }
 
--- type CostModelCreationFun m a = (SomeSEXP (Region m)) -> a
--- costModelCreationFuns :: CostModelBase (Const (CostModelCreationFun m a))
--- costModelCreationFuns = CostModel
---   { paramAddInteger           = addInteger
---   , paramSubtractInteger      = subtractInteger
---   , paramMultiplyInteger      = multiplyInteger
---   , paramDivideInteger        = divideInteger
---   , paramQuotientInteger      = quotientInteger
---   , paramRemainderInteger     = remainderInteger
---   , paramModInteger           = modInteger
---   , paramLessThanInteger      = lessThanInteger
---   , paramLessThanEqInteger    = lessThanEqInteger
---   , paramGreaterThanInteger   = greaterThanInteger
---   , paramGreaterThanEqInteger = greaterThanEqInteger
---   , paramEqInteger            = eqInteger
---   , paramConcatenate          = concatenate
---   , paramTakeByteString       = takeByteString
---   , paramDropByteString       = dropByteString
---   , paramSHA2                 = sHA2
---   , paramSHA3                 = sHA3
---   , paramVerifySignature      = verifySignature
---   , paramEqByteString         = eqByteString
---   , paramLtByteString         = ltByteString
---   , paramGtByteString         = gtByteString
---   , paramIfThenElse           = ifThenElse
---   }
-
 costModelR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
 costModelR = do
   list <- [r|
@@ -126,6 +99,7 @@ filterDF :: MonadR m => Text -> (SomeSEXP (Region m)) -> m (SomeSEXP (Region m))
 filterDF by df =
   [r| df_hs %>% filter(BuiltinName %in% c(by_hs))|]
 
+-- The output of `tidy(model)` on the R side.
 data LinearModelRaw = LinearModelRaw
   { linearModelIndex        :: Integer
   , linearModelRawTerm      :: String
@@ -135,6 +109,7 @@ data LinearModelRaw = LinearModelRaw
   , linearModelRawPValue    :: Double
   } deriving (Show, Eq, Generic)
 
+-- Reading via CSV because the R side did weird things in JSON
 instance FromNamedRecord LinearModelRaw where
   parseNamedRecord v =
       LinearModelRaw

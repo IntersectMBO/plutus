@@ -35,6 +35,6 @@ with packageSet; haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
-    (pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )
+    pkgs.rPackages.plotly
   ];
 }
