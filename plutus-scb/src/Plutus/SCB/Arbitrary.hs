@@ -158,7 +158,7 @@ instance Arbitrary EndpointDescription where
     arbitrary = EndpointDescription <$> arbitrary
 
 instance Arbitrary ActiveEndpoint where
-    arbitrary = ActiveEndpoint . EndpointDescription <$> arbitrary
+    arbitrary = ActiveEndpoint . EndpointDescription <$> arbitrary <*> arbitrary
 
 instance Arbitrary WaitingForSlot where
     arbitrary = WaitingForSlot <$> arbitrary

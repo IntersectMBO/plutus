@@ -5,9 +5,11 @@ Events by wallet:
     - Iteration: 1
     Requests:
         2: {schedule collection:
-            ActiveEndpoint: ExposeEndpoint: schedule collection}
+              Endpoint: schedule collection
+              Metadata: Nothing}
         1: {contribute:
-            ActiveEndpoint: ExposeEndpoint: contribute}
+              Endpoint: contribute
+              Metadata: Nothing}
       Response:
         (2, {schedule collection: EndpointValue: ()})
     - Iteration: 2
@@ -55,9 +57,11 @@ Events by wallet:
     - Iteration: 1
     Requests:
         2: {schedule collection:
-            ActiveEndpoint: ExposeEndpoint: schedule collection}
+              Endpoint: schedule collection
+              Metadata: Nothing}
         1: {contribute:
-            ActiveEndpoint: ExposeEndpoint: contribute}
+              Endpoint: contribute
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:
@@ -95,9 +99,11 @@ Events by wallet:
     - Iteration: 1
     Requests:
         2: {schedule collection:
-            ActiveEndpoint: ExposeEndpoint: schedule collection}
+              Endpoint: schedule collection
+              Metadata: Nothing}
         1: {contribute:
-            ActiveEndpoint: ExposeEndpoint: contribute}
+              Endpoint: contribute
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:
@@ -135,9 +141,11 @@ Events by wallet:
     - Iteration: 1
     Requests:
         2: {schedule collection:
-            ActiveEndpoint: ExposeEndpoint: schedule collection}
+              Endpoint: schedule collection
+              Metadata: Nothing}
         1: {contribute:
-            ActiveEndpoint: ExposeEndpoint: contribute}
+              Endpoint: contribute
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:

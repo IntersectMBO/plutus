@@ -418,7 +418,7 @@ callContractEndpoint inst endpointName endpointValue = do
     logInfo . render $ "calling endpoint" <+> pretty endpointName <+> "on instance" <+> pretty inst
     state <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @t)
     let activeEndpoints =
-            filter ((==) (EndpointDescription endpointName) . unActiveEndpoints . rqRequest)
+            filter ((==) (EndpointDescription endpointName) . aeDescription . rqRequest)
             $ mapMaybe (traverse (preview Events.Contract._UserEndpointRequest))
             $ Map.findWithDefault [] inst state
 
