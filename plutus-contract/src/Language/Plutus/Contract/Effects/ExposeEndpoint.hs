@@ -60,7 +60,7 @@ instance Pretty ActiveEndpoint where
   pretty ActiveEndpoint{aeDescription, aeMetadata} =
     indent 2 $ vsep
       [ "Endpoint:" <+> pretty aeDescription
-      , "Data:" <+> viaShow aeMetadata
+      , "Metadata:" <+> viaShow aeMetadata
       ]
 
 type Endpoint l a = l .== (EndpointValue a, ActiveEndpoint)

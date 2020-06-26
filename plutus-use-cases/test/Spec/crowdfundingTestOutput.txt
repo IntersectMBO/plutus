@@ -6,10 +6,10 @@ Events by wallet:
     Requests:
         2: {schedule collection:
               Endpoint: schedule collection
-              Data: Nothing}
+              Metadata: Nothing}
         1: {contribute:
               Endpoint: contribute
-              Data: Nothing}
+              Metadata: Nothing}
       Response:
         (2, {schedule collection: EndpointValue: ()})
     - Iteration: 2
@@ -58,10 +58,10 @@ Events by wallet:
     Requests:
         2: {schedule collection:
               Endpoint: schedule collection
-              Data: Nothing}
+              Metadata: Nothing}
         1: {contribute:
               Endpoint: contribute
-              Data: Nothing}
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:
@@ -100,10 +100,10 @@ Events by wallet:
     Requests:
         2: {schedule collection:
               Endpoint: schedule collection
-              Data: Nothing}
+              Metadata: Nothing}
         1: {contribute:
               Endpoint: contribute
-              Data: Nothing}
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:
@@ -142,10 +142,10 @@ Events by wallet:
     Requests:
         2: {schedule collection:
               Endpoint: schedule collection
-              Data: Nothing}
+              Metadata: Nothing}
         1: {contribute:
               Endpoint: contribute
-              Data: Nothing}
+              Metadata: Nothing}
       Response:
         ( 1
         , {contribute:
