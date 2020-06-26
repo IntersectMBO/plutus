@@ -34,6 +34,7 @@ extra-deps:
 - ekg-core-0.1.1.7
 - ekg-json-0.1.0.6
 - eventful-memory-0.2.0
+- barbies-2.0.1.0
 # A revision was added to keep the bounds down, we don't actually want this!
 # we work around the newer persistent-template by adding flags below
 - eventful-sql-common-0.2.0@rev:0

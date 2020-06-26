@@ -27,6 +27,7 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
+    dev.packages.hie-bios
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
@@ -34,5 +35,6 @@ with packageSet; haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
+    (pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )
   ];
 }

@@ -56,10 +56,10 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "MultiplyInteger")
+filtered <- data %>% filter(BuiltinName == "DivideInteger")
 plotRaw(filtered)
 
-plotErrorModel(filtered, multiplyIntegerModel)
+plotErrorModel(filtered, divideIntegerModel)
 
 # tidy(model)
 # summary(model)

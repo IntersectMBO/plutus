@@ -84,8 +84,7 @@ let
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
             language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
-              # Need a suitably wrapped R
-              build-tools = lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+              build-tools = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;
             };
