@@ -45,9 +45,10 @@ main MockServerConfig { mscBaseUrl
                       , mscRandomTxInterval
                       , mscBlockReaper
                       , mscSlotLength
+                      , mscInitialTxWallets
                       } availability =
     runStdoutLoggingT $ do
-        stateVar <- liftIO $ newMVar initialAppState
+        stateVar <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
         logInfoN "Starting slot coordination thread."
         void $
             liftIO $

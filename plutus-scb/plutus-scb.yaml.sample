@@ -18,6 +18,10 @@ nodeServerConfig:
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
+  mscInitialTxWallets:
+    - getWallet: 1
+    - getWallet: 2
+    - getWallet: 3
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083

@@ -46,6 +46,7 @@ import           Data.Foldable                   (traverse_)
 import           Data.Map                        (Map)
 import qualified Data.Map                        as Map
 import           Data.Text.Prettyprint.Doc
+import qualified Language.Plutus.Contract.Trace  as Trace
 import           Ledger                          (Address, Blockchain)
 import qualified Ledger
 import qualified Ledger.AddressMap               as AM
@@ -83,7 +84,7 @@ initialTestState :: TestState
 initialTestState =
     TestState
         { _agentStates = Map.empty
-        , _nodeState = NodeServer.initialAppState
+        , _nodeState = NodeServer.initialAppState Trace.allWallets
         , _emulatorEventLog = []
         }
 
