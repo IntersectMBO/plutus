@@ -23,7 +23,7 @@ import qualified Ledger.Ada                as Ada
 import           Ledger.Oracle             (Observation (..), SignedMessage)
 import qualified Ledger.Oracle             as Oracle
 import qualified Ledger.Typed.Scripts      as Scripts
-import           Ledger.Validation         (TxInInfo, TxInInfo' (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
+import           Ledger.Validation         (TxInInfo (..), TxInfo (..), TxOut (..), ValidatorCtx (..))
 import qualified Ledger.Validation         as Validation
 import           Ledger.Value              (Value)
 

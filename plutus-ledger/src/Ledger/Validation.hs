@@ -11,6 +11,7 @@
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -24,11 +25,9 @@ module Ledger.Validation
     , TxOut(..)
     , TxOutRef(..)
     , TxOutType(..)
-    , toLedgerTxIn
-    , TxInInfo'(..)
-    , TxInInfo
-    , TxInInfoScript
+    , TxInInfo(..)
     , TxOutInfo
+    , findOwnInput
     , findDatum
     , findDatumHash
     , findTxInByTxOutRef
@@ -55,22 +54,22 @@ module Ledger.Validation
     , fromSymbol
     ) where
 
-import           GHC.Generics              (Generic)
+import           GHC.Generics               (Generic)
 import           Language.PlutusTx
+import qualified Language.PlutusTx.Builtins as Builtins
 import           Language.PlutusTx.Prelude
-import qualified Prelude                   as Haskell
 
-import           Ledger.Ada                (Ada)
-import qualified Ledger.Ada                as Ada
-import           Ledger.Address            (Address (..), scriptHashAddress)
-import           Ledger.Crypto             (PubKey (..), PubKeyHash (..), Signature (..))
+import           Ledger.Ada                 (Ada)
+import qualified Ledger.Ada                 as Ada
+import           Ledger.Address             (Address (..), scriptHashAddress)
+import           Ledger.Crypto              (PubKey (..), PubKeyHash (..), Signature (..))
 import           Ledger.Scripts
-import           Ledger.Slot               (SlotRange)
-import           Ledger.Tx                 (TxOut (..), TxOutRef (..), TxOutType (..))
+import           Ledger.Slot                (SlotRange)
+import           Ledger.Tx                  (TxOut (..), TxOutRef (..), TxOutType (..))
 import           Ledger.TxId
-import           Ledger.Value              (CurrencySymbol (..), Value)
-import qualified Ledger.Value              as Value
-import           LedgerBytes               (LedgerBytes (..))
+import           Ledger.Value               (CurrencySymbol (..), Value)
+import qualified Ledger.Value               as Value
+import           LedgerBytes                (LedgerBytes (..))
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of
@@ -83,23 +82,15 @@ is provided by the `TxInfo` type. A `TxInfo` contains the hashes of
 redeemer and data scripts of all of its inputs and outputs.
 -}
 
--- | An input of a pending transaction, parameterised by its witness.
-data TxInInfo' w = TxInInfo
+-- | An input of a pending transaction.
+data TxInInfo = TxInInfo
     { txInInfoOutRef  :: TxOutRef
-    , txInInfoWitness :: w
-    -- ^ Tx input witness, hashes for Script input, or signature for a PubKey
+    , txInInfoWitness :: Maybe (ValidatorHash, RedeemerHash, DatumHash)
+    -- ^ Tx input witness, hashes for Script input
     , txInInfoValue   :: Value -- ^ Value consumed by this txn input
-    } deriving (Generic, Haskell.Functor)
+    } deriving (Generic)
 
-instance Functor TxInInfo' where
-    fmap f p = p{txInInfoWitness = f (txInInfoWitness p) }
-
-type TxInInfo = TxInInfo' (Maybe (ValidatorHash, RedeemerHash, DatumHash))
-type TxInInfoScript = TxInInfo' (ValidatorHash, RedeemerHash, DatumHash)
 type TxOutInfo = TxOut
-
-toLedgerTxIn :: TxInInfoScript -> TxInInfo
-toLedgerTxIn = fmap Just
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
@@ -116,9 +107,14 @@ data TxInfo = TxInfo
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving (Generic)
 
-data ValidatorCtx = ValidatorCtx { valCtxTxInfo :: TxInfo, valCtxInput :: TxInInfoScript }
+data ValidatorCtx = ValidatorCtx { valCtxTxInfo :: TxInfo, valCtxInput :: Integer }
 
 data PolicyCtx = PolicyCtx { policyCtxTxInfo :: TxInfo, policyCtxPolicy :: MonetaryPolicyHash }
+
+{-# INLINABLE findOwnInput #-}
+-- | Find the input currently being validated.
+findOwnInput :: ValidatorCtx -> TxInInfo
+findOwnInput ValidatorCtx{valCtxTxInfo=TxInfo{txInfoInputs}, valCtxInput} = txInfoInputs !! valCtxInput
 
 {-# INLINABLE findDatum #-}
 -- | Find the data corresponding to a data hash, if there is one
@@ -145,17 +141,19 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
 {-# INLINABLE findContinuingOutputs #-}
 -- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
 findContinuingOutputs :: ValidatorCtx -> [Integer]
-findContinuingOutputs ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}, valCtxInput=TxInInfo{txInInfoWitness=(inpHsh, _, _)}} = findIndices f txInfoOutputs
+findContinuingOutputs ctx@ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}} | TxInInfo{txInInfoWitness=Just (inpHsh, _, _)} <- findOwnInput ctx = findIndices (f inpHsh) txInfoOutputs
     where
-        f TxOut{txOutType=PayToScript{}, txOutAddress} = txOutAddress == scriptHashAddress inpHsh
-        f _                                            = False
+        f inpHsh TxOut{txOutType=PayToScript{}, txOutAddress} = txOutAddress == scriptHashAddress inpHsh
+        f _ _                                                 = False
+findContinuingOutputs _ = Builtins.error()
 
 {-# INLINABLE getContinuingOutputs #-}
 getContinuingOutputs :: ValidatorCtx -> [TxOutInfo]
-getContinuingOutputs ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}, valCtxInput=TxInInfo{txInInfoWitness=(inpHsh, _, _)}} = filter f txInfoOutputs
+getContinuingOutputs ctx@ValidatorCtx{valCtxTxInfo=TxInfo{txInfoOutputs}} | TxInInfo{txInInfoWitness=Just (inpHsh, _, _)} <- findOwnInput ctx = filter (f inpHsh) txInfoOutputs
     where
-        f TxOut{txOutType=PayToScript{}, txOutAddress} = txOutAddress == scriptHashAddress inpHsh
-        f _                                            = False
+        f inpHsh TxOut{txOutType=PayToScript{}, txOutAddress} = txOutAddress == scriptHashAddress inpHsh
+        f _ _                                                 = False
+getContinuingOutputs _ = Builtins.error()
 
 {- Note [Hashes in validator scripts]
 
@@ -204,7 +202,8 @@ pubKeyOutput TxOut{txOutAddress} = case txOutAddress of
 -- | Get the hashes of validator script and redeemer script that are
 --   currently being validated
 ownHashes :: ValidatorCtx -> (ValidatorHash, RedeemerHash, DatumHash)
-ownHashes ValidatorCtx{valCtxInput=TxInInfo{txInInfoWitness}} = txInInfoWitness
+ownHashes (findOwnInput -> TxInInfo{txInInfoWitness=Just witness}) = witness
+ownHashes _                                                        = Builtins.error ()
 
 {-# INLINABLE ownHash #-}
 -- | Get the hash of the validator script that is currently being validated.
@@ -288,8 +287,8 @@ spendsOutput p h i =
 
     in any spendsOutRef (txInfoInputs p)
 
-makeLift ''TxInInfo'
-makeIsData ''TxInInfo'
+makeLift ''TxInInfo
+makeIsData ''TxInInfo
 
 makeLift ''TxInfo
 makeIsData ''TxInfo

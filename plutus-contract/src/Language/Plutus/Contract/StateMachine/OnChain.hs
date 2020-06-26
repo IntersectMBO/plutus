@@ -30,7 +30,7 @@ import           Ledger.Constraints.TxConstraints (OutputConstraint (..))
 
 import           Ledger                           (Address, Value)
 import           Ledger.Typed.Scripts
-import           Ledger.Validation                (ValidatorCtx (..), TxInInfo' (..))
+import           Ledger.Validation                (ValidatorCtx (..), TxInInfo (..), findOwnInput)
 import           Ledger.Value                     (isZero)
 
 data State s = State { stateData :: s, stateValue :: Value }
@@ -83,7 +83,7 @@ machineAddress = scriptAddress . validatorInstance
 -- | Turn a state machine into a validator script.
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check) currentState input ptx =
-    let vl = txInInfoValue (valCtxInput ptx)
+    let vl = txInInfoValue (findOwnInput ptx)
         checkOk = traceIfFalseH "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
