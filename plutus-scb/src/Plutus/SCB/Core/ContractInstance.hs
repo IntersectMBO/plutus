@@ -148,7 +148,7 @@ processFirstInboxMessage instanceID (Last msg) = do
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
     logInfo . render $ "Current iteration:" <+> pretty csCurrentIteration
-    if (csCurrentIteration /= rspItID msg)
+    if csCurrentIteration /= rspItID msg
         then logInfo "The first inbox message does not match the contract instance's iteration."
         else do
             logInfo "The first inbox message matches the contract instance's iteration."
