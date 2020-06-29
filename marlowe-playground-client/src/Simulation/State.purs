@@ -1,25 +1,30 @@
 module Simulation.State where
 
-import Data.Array (foldl, fromFoldable, uncons)
+import Control.Monad.State (class MonadState)
+import Data.Array (foldl, fromFoldable, mapMaybe, uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (Lens', over, set, to, view, (^.))
+import Data.Lens (Getter', Lens', modifying, over, set, to, view, (^.))
+import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
+import Data.List.NonEmpty as NEL
+import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmpty (foldl1, (:|))
+import Data.NonEmptyList.Extra (extendWith)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..), fst)
 import Marlowe.Holes (Holes, fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, Party(..), Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, moneyInContract)
 import Monaco (IMarker)
-import Prelude (class Eq, class Ord, append, map, mempty, min, zero, ($), (<<<))
+import Prelude (class Eq, class Ord, Unit, append, map, mempty, min, zero, ($), (<<<), (<))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -36,6 +41,10 @@ data ActionInput
   = DepositInput AccountId Party Token BigInteger
   | ChoiceInput ChoiceId (Array Bound) ChosenNum
   | NotifyInput
+
+derive instance eqActionInput :: Eq ActionInput
+
+derive instance ordActionInput :: Ord ActionInput
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -62,7 +71,7 @@ data MarloweEvent
   | OutputEvent SlotInterval Payment
 
 type MarloweState
-  = { possibleActions :: Map (Maybe PubKey) (Map ActionInputId ActionInput)
+  = { possibleActions :: Map Party (Map ActionInputId ActionInput)
     , pendingInputs :: Array (Tuple Input (Maybe PubKey))
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
@@ -116,6 +125,13 @@ _result = prop (SProxy :: SProxy "result")
 _log :: forall s a. Lens' { log :: a | s } a
 _log = prop (SProxy :: SProxy "log")
 
+_payments :: forall s. Getter' { log :: Array MarloweEvent | s } (Array Payment)
+_payments = _log <<< to (mapMaybe f)
+  where
+  f (InputEvent _) = Nothing
+
+  f (OutputEvent _ payment) = Just payment
+
 emptyMarloweState :: Slot -> MarloweState
 emptyMarloweState sn =
   { possibleActions: mempty
@@ -123,7 +139,7 @@ emptyMarloweState sn =
   , transactionError: Nothing
   , transactionWarnings: []
   , state: emptyState sn
-  , slot: zero
+  , slot: sn
   , moneyInContract: mempty
   , contract: Nothing
   , editorErrors: mempty
@@ -167,20 +183,18 @@ updatePossibleActions oldState =
   insertTuple :: forall k v. Ord k => Tuple k v -> Map k v -> Map k v
   insertTuple (Tuple k v) m = Map.insert k v m
 
-  updateActions :: Map ActionInputId ActionInput -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Map (Maybe PubKey) (Map ActionInputId ActionInput)
+  updateActions :: Map ActionInputId ActionInput -> Map Party (Map ActionInputId ActionInput) -> Map Party (Map ActionInputId ActionInput)
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
 
-  addButPreserveActionInputs :: Map (Maybe PubKey) (Map ActionInputId ActionInput) -> ActionInputId -> Map (Maybe PubKey) (Map ActionInputId ActionInput) -> ActionInput -> Map (Maybe PubKey) (Map ActionInputId ActionInput)
-  addButPreserveActionInputs oldInputs actionInputIdx m actionInput = appendValue m oldInputs (actionPerson actionInput) actionInputIdx actionInput
+  addButPreserveActionInputs :: Map Party (Map ActionInputId ActionInput) -> ActionInputId -> Map Party (Map ActionInputId ActionInput) -> ActionInput -> Map Party (Map ActionInputId ActionInput)
+  addButPreserveActionInputs oldInputs actionInputIdx m actionInput = case (actionPerson actionInput) of
+    Just party -> appendValue m oldInputs party actionInputIdx actionInput
+    _ -> m
 
-  actionPerson :: ActionInput -> (Maybe PubKey)
-  actionPerson (DepositInput _ (PK party) _ _) = Just party
+  actionPerson :: ActionInput -> (Maybe Party)
+  actionPerson (DepositInput _ party _ _) = Just party
 
-  actionPerson (DepositInput _ (Role party) _ _) = Just party
-
-  actionPerson (ChoiceInput (ChoiceId _ (PK pubKey)) _ _) = Just pubKey
-
-  actionPerson (ChoiceInput (ChoiceId _ (Role role)) _ _) = Just role
+  actionPerson (ChoiceInput (ChoiceId _ party) _ _) = Just party
 
   -- We have a special person for notifications
   actionPerson NotifyInput = Nothing
@@ -229,3 +243,24 @@ stateToTxInput ms =
     inputs = map fst (ms ^. _pendingInputs)
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
+
+--
+-- Functions that can be used by records that contain MarloweState
+--
+_marloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } (NonEmptyList MarloweState)
+_marloweState = prop (SProxy :: SProxy "marloweState")
+
+_currentMarloweState :: forall s. Lens' { marloweState :: NonEmptyList MarloweState | s } MarloweState
+_currentMarloweState = _marloweState <<< _Head
+
+updateMarloweState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => (MarloweState -> MarloweState) -> m Unit
+updateMarloweState f = modifying _marloweState (extendWith (updatePossibleActions <<< f))
+
+updateContractInState :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => String -> m Unit
+updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
+
+applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
+applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
+
+hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
+hasHistory state = state ^. (_marloweState <<< to NEL.length <<< to ((<) 1))

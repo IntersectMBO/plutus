@@ -23,6 +23,7 @@ import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
+import Wallet as Wallet
 
 ------------------------------------------------------------
 data HQuery a
@@ -45,6 +46,8 @@ data HAction
   | HandleSimulationMessage Simulation.Message
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
+  -- Wallet Actions
+  | HandleWalletMessage Wallet.Message
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -52,6 +55,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (HaskellHandleEditorMessage _) = Just $ defaultEvent "HaskellHandleEditorMessage"
   toEvent (HaskellSelectEditorKeyBindings _) = Just $ defaultEvent "HaskellSelectEditorKeyBindings"
   toEvent (HandleSimulationMessage action) = Just $ defaultEvent "HandleSimulationMessage"
+  toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent CompileHaskellProgram = Just $ defaultEvent "CompileHaskellProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
@@ -64,6 +68,7 @@ type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     , simulationSlot :: H.Slot Simulation.Query Simulation.Message Unit
+    , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"
@@ -74,6 +79,9 @@ _blocklySlot = SProxy
 
 _simulationSlot :: SProxy "simulationSlot"
 _simulationSlot = SProxy
+
+_walletSlot :: SProxy "walletSlot"
+_walletSlot = SProxy
 
 -----------------------------------------------------------
 data View

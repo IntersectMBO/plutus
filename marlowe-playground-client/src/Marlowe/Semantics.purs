@@ -130,6 +130,8 @@ derive instance newtypeAssets :: Newtype Assets _
 
 derive instance eqAssets :: Eq Assets
 
+derive instance ordAssets :: Ord Assets
+
 derive newtype instance showAssets :: Show Assets
 
 instance semigroupAssets :: Semigroup Assets where
@@ -665,6 +667,8 @@ data Payment
 derive instance genericPayment :: Generic Payment _
 
 derive instance eqPayment :: Eq Payment
+
+derive instance ordPayment :: Ord Payment
 
 instance showPayment :: Show Payment where
   show = genericShow
