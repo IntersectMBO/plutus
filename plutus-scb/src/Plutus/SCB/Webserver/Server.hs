@@ -29,6 +29,7 @@ import           Data.Function                                   ((&))
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import           Data.Proxy                                      (Proxy (Proxy))
+import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
 import           Data.Text.Prettyprint.Doc                       (Pretty)
@@ -79,13 +80,18 @@ healthcheck :: Monad m => m ()
 healthcheck = pure ()
 
 getContractReport ::
-       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs, Ord t)
+       forall t effs.
+       ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member (ContractEffect t) effs
+       , Ord t
+       )
     => Eff effs (ContractReport t)
 getContractReport = do
-    installedContracts <- runGlobalQuery (Query.installedContractsProjection @t)
-    contractStates <-
+    installedContracts <- Set.toList <$> runGlobalQuery (Query.installedContractsProjection @t)
+    crAvailableContracts <- traverse (\t -> ContractSignatureResponse t <$> exportSchema t) installedContracts
+    crActiveContractStates <-
         Map.elems <$> runGlobalQuery (Query.contractState @t)
-    pure ContractReport {installedContracts, contractStates}
+    pure ContractReport {crAvailableContracts, crActiveContractStates}
 
 getChainReport ::
        forall t effs. Member ChainIndexEffect effs
@@ -109,6 +115,7 @@ getChainReport = do
 getFullReport ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
+       , Member (ContractEffect t) effs
        , Member ChainIndexEffect effs
        , Ord t
        )
@@ -128,10 +135,8 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    state@ContractInstanceState {csContractDefinition} <-
-        getContractInstanceState @t contractId
-    schemas <- exportSchema csContractDefinition
-    pure $ ContractSignatureResponse schemas state
+    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
+    ContractSignatureResponse csContractDefinition <$> exportSchema csContractDefinition
 
 activateContract ::
        forall t effs.
@@ -145,7 +150,7 @@ activateContract ::
        , Pretty t
        )
     => t
-    -> Eff effs ContractInstanceId
+    -> Eff effs (ContractInstanceState t)
 activateContract = Core.activateContract
 
 getContractInstanceState ::
@@ -164,22 +169,22 @@ getContractInstanceState contractId = do
 invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
-       , Member Log effs
        , Member (ContractEffect t) effs
+       , Member Log effs
        , Member (Error SCBError) effs
        , Show t
        )
     => EndpointDescription
     -> JSON.Value
     -> ContractInstanceId
-    -> Eff effs (ContractSignatureResponse t)
+    -> Eff effs (ContractInstanceState t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $
         "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
     logInfo $ "Invocation response: " <> tshow newState
-    contractSchema contractId
+    getContractInstanceState contractId
 
 parseContractId ::
        (Member (Error SCBError) effs) => Text -> Eff effs ContractInstanceId
@@ -217,9 +222,9 @@ handler ::
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
-             :<|> ((ContractExe -> Eff effs ContractInstanceId)
+             :<|> ((ContractExe -> Eff effs (ContractInstanceState ContractExe))
                    :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                                 :<|> (String -> JSON.Value -> Eff effs (ContractSignatureResponse ContractExe)))))
+                                 :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe)))))
 handler =
     healthcheck :<|> getFullReport :<|>
     (activateContract :<|>

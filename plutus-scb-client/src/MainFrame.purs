@@ -16,7 +16,7 @@ import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter)
 import Data.Foldable (traverse_)
-import Data.Lens (assign, modifying, to, traversed, view)
+import Data.Lens (assign, findOf, modifying, to, traversed, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Extra (peruse, toSetOf, toArrayOf)
 import Data.Lens.Index (ix)
@@ -41,14 +41,15 @@ import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceState(..), _UserEndpointRequest)
+import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver (SPParams_(..), getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
-import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..))
+import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport)
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _activeEndpoint, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractState, _contractStates, _csCurrentState, _currentView, _fullReport, _hooks, _rqRequest)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _activeEndpoint, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport, _hooks, _rqRequest)
 import Validation (_argument)
 import View as View
 
@@ -107,20 +108,20 @@ handleAction (ActivateContract contract) = do
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  reportResult <- runAjax getApiFullreport
-  assign _fullReport reportResult
-  case reportResult of
-    Success fullReport ->
-      traverse_
-        ( \(ContractInstanceState { csContract, csCurrentState }) -> do
-            let
-              uuid = view _contractInstanceIdString csContract
-            contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
-            modifying (_contractSignatures <<< at csContract) (Just <<< upsertEndpointForm contractSchema)
-        )
-        (toArrayOf (_contractReport <<< _contractStates <<< traversed) fullReport)
-    _ -> pure unit
-  pure unit
+  fullReportResult <- runAjax getApiFullreport
+  assign _fullReport fullReportResult
+  for_ fullReportResult
+    ( \fullReport ->
+        traverse_
+          ( \contractInstance@(ContractInstanceState { csContract, csCurrentState }) -> do
+              let
+                uuid = view _contractInstanceIdString csContract
+              contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
+              assign (_contractSignatures <<< at csContract)
+                (Just $ createEndpointForms contractInstance <$> contractSchema)
+          )
+          (toArrayOf (_contractReport <<< _contractStates <<< traversed) fullReport)
+    )
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
@@ -152,7 +153,7 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
     encodedForm = RawJson <<< encodeJSON <$> formArgumentToJson (view _argument endpointForm)
   for_ encodedForm
     $ \argument -> do
-        result <-
+        instanceStateResult <-
           runAjax
             $ let
                 instanceId = view _contractInstanceIdString contractInstanceId
@@ -160,43 +161,56 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
                 endpoint = view _getEndpointDescription endpointDescription
               in
                 postApiContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
-        modifying (_contractSignatures <<< at contractInstanceId) (Just <<< upsertEndpointForm result)
-        case result of
+        fullReportResult <- use _fullReport
+        let
+          newForms :: WebData (Maybe (Array EndpointForm))
+          newForms = createNewEndpointFormsM fullReportResult instanceStateResult
+        assign (_contractSignatures <<< at contractInstanceId) (sequence newForms)
+        case instanceStateResult of
           Success _ -> handleAction LoadFullReport
           _ -> pure unit
 
-upsertEndpointForm ::
-  forall t.
-  WebData (ContractSignatureResponse t) ->
-  Maybe (WebData (Array EndpointForm)) ->
-  WebData (Array EndpointForm)
-upsertEndpointForm response existing = upsertEndpointForm_ <$> response <*> sequence existing
+createNewEndpointFormsM ::
+  forall m.
+  Monad m =>
+  m (FullReport ContractExe) ->
+  m (ContractInstanceState ContractExe) ->
+  m (Maybe (Array EndpointForm))
+createNewEndpointFormsM mFullReport mInstanceState = do
+  fullReport <- mFullReport
+  instanceState <- mInstanceState
+  let
+    matchingSignature :: Maybe (ContractSignatureResponse ContractExe)
+    matchingSignature = getMatchingSignature instanceState fullReport
 
-upsertEndpointForm_ ::
+    newForms :: Maybe (Array EndpointForm)
+    newForms = createEndpointForms instanceState <$> matchingSignature
+  pure newForms
+
+createEndpointForms ::
   forall t.
+  ContractInstanceState t ->
   ContractSignatureResponse t ->
-  Maybe (Array EndpointForm) ->
   Array EndpointForm
-upsertEndpointForm_ response existing = responseToForms response
+createEndpointForms contractState = signatureToForms
   where
   activeEndpoints :: Set EndpointDescription
   activeEndpoints =
     toSetOf
-      ( _contractState
-          <<< _csCurrentState
+      ( _csCurrentState
           <<< _hooks
           <<< traversed
           <<< _rqRequest
           <<< _UserEndpointRequest
           <<< _activeEndpoint
       )
-      response
+      contractState
 
   isActive :: FunctionSchema FormSchema -> Boolean
   isActive (FunctionSchema { endpointDescription }) = Set.member endpointDescription activeEndpoints
 
-  responseToForms :: ContractSignatureResponse t -> Array EndpointForm
-  responseToForms (ContractSignatureResponse { contractSchemas, contractState }) = signatureToForm <$> filter isActive contractSchemas
+  signatureToForms :: ContractSignatureResponse t -> Array EndpointForm
+  signatureToForms (ContractSignatureResponse { csrSchemas }) = signatureToForm <$> filter isActive csrSchemas
 
   signatureToForm :: FunctionSchema FormSchema -> EndpointForm
   signatureToForm schema =
@@ -206,3 +220,19 @@ upsertEndpointForm_ response existing = responseToForms response
 
 runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)
 runAjax action = RemoteData.fromEither <$> runExceptT action
+
+getMatchingSignature ::
+  forall t.
+  Eq t =>
+  ContractInstanceState t ->
+  FullReport t ->
+  Maybe (ContractSignatureResponse t)
+getMatchingSignature (ContractInstanceState { csContractDefinition }) =
+  findOf
+    ( _contractReport
+        <<< _crAvailableContracts
+        <<< traversed
+    )
+    isMatch
+  where
+  isMatch (ContractSignatureResponse { csrDefinition }) = csrDefinition == csContractDefinition

@@ -24,7 +24,6 @@ import qualified Data.Set                                          as Set
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
-import qualified Language.PlutusTx.Coordination.Contracts.Currency as Currency
 import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
 import           Ledger                                            (pubKeyAddress)
 import           Ledger.Ada                                        (lovelaceValueOf)
@@ -34,7 +33,7 @@ import           Plutus.SCB.Effects.Contract                       (ContractEffe
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
 import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEffects, agentAction)
-import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId, csContract)
 import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
                                                                     defaultWallet, runScenario, syncAll, txCounts,
                                                                     txValidated, valueAt)
@@ -102,12 +101,13 @@ currencyTest =
         runScenario $ do
               initialTxCounts <- txCounts
               agentAction defaultWallet (installContract Currency)
-              uuid <- agentAction defaultWallet (activateContract Currency)
+              contractState <- agentAction defaultWallet (activateContract Currency)
+              let instanceId = csContract contractState
               syncAll
               assertTxCounts
                   "Activating the currency contract does not generate transactions."
                   initialTxCounts
-              agentAction defaultWallet $ createCurrency uuid mps
+              agentAction defaultWallet $ createCurrency instanceId mps
               syncAll
               void Chain.processBlock
               syncAll
@@ -133,13 +133,14 @@ guessingGameTest =
                     balance0
               agentAction defaultWallet (installContract Game)
               -- need to add contract address to wallet's watched addresses
-              uuid <- agentAction defaultWallet (activateContract Game)
+              contractState <- agentAction defaultWallet (activateContract Game)
+              let instanceId = csContract contractState
               syncAll
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
               agentAction defaultWallet $ lock
-                  uuid
+                  instanceId
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
@@ -156,10 +157,10 @@ guessingGameTest =
                   (lovelaceValueOf (openingBalance - lockAmount))
                   balance1
 
-              newUUID <- agentAction defaultWallet (activateContract Game)
+              game1State <- agentAction defaultWallet (activateContract Game)
               syncAll
               agentAction defaultWallet $ guess
-                  newUUID
+                  (csContract game1State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
               syncAll
@@ -167,10 +168,10 @@ guessingGameTest =
               assertTxCounts
                 "A wrong guess still produces a transaction."
                 (initialTxCounts & txValidated +~ 2)
-              newUUID2 <- agentAction defaultWallet (activateContract Game)
+              game2State <- agentAction defaultWallet (activateContract Game)
               syncAll
               agentAction defaultWallet $ guess
-                  newUUID2
+                  (csContract game2State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
               syncAll

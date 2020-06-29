@@ -69,7 +69,7 @@ import           Plutus.SCB.Effects.UUID                           (UUIDEffect, 
 import           Plutus.SCB.Events                                 (ChainEvent (..))
 import           Plutus.SCB.Events.Contract                        (ContractEvent (..), ContractInstanceId (..),
                                                                     ContractInstanceState (..), ContractResponse (..),
-                                                                    ContractSCBRequest (..), IterationID,
+                                                                    ContractSCBRequest (..),
                                                                     PartiallyDecodedResponse (..),
                                                                     unContractHandlersResponse)
 import qualified Plutus.SCB.Events.Contract                        as Events.Contract
@@ -84,20 +84,11 @@ sendContractStateMessages ::
         ( Member (EventLogEffect (ChainEvent t)) effs
         , Member Log effs
         )
-    => t
-    -> ContractInstanceId
-    -> IterationID
-    -> PartiallyDecodedResponse ContractSCBRequest
+    => ContractInstanceState t
     -> Eff effs ()
-sendContractStateMessages t instanceID iteration newState = do
-    logInfo . render $ "Sending messages for contract" <+> pretty instanceID <+> "at iteration" <+> pretty iteration
-    logInfo . render $ "The contract has the following requests:" <+> pretty (fmap (\rq -> rq{rqRequest = ()}) $ hooks newState)
-    let is = ContractInstanceState
-            { csContract = instanceID
-            , csCurrentIteration = iteration
-            , csCurrentState = newState
-            , csContractDefinition = t
-            }
+sendContractStateMessages is = do
+    logInfo . render $ "Sending messages for contract" <+> pretty (csContract is) <+> "at iteration" <+> pretty (csCurrentIteration is)
+    logInfo . render $ "The contract has the following requests:" <+> pretty (fmap (\rq -> rq{rqRequest = ()}) $ hooks (csCurrentState is))
     void
         $ runCommand (sendContractEvent @t) ContractEventSource
         $ ContractInstanceStateUpdateEvent is
@@ -160,7 +151,7 @@ processFirstInboxMessage instanceID (Last msg) = do
             -- send out the new requests
             -- see note [Contract Iterations]
             let newIteration = succ csCurrentIteration
-            sendContractStateMessages csContractDefinition instanceID newIteration newState
+            sendContractStateMessages $ ContractInstanceState instanceID newIteration newState csContractDefinition
             logInfo . render $ "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty newIteration
     logInfo "processFirstInboxMessage end"
 
@@ -232,7 +223,7 @@ activateContract ::
     , Ord t
     )
     => t
-    -> Eff effs ContractInstanceId
+    -> Eff effs (ContractInstanceState t)
 activateContract contract = do
     logInfo . render $ "Finding contract" <+> pretty contract
     contractDef <-
@@ -243,9 +234,15 @@ activateContract contract = do
     let initialIteration = succ mempty -- FIXME get max it. from initial response
     response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
     logInfo . render $ "Response was: " <+> pretty response
-    sendContractStateMessages @t contract activeContractInstanceId initialIteration response
+    let instanceState = ContractInstanceState
+                          { csContract = activeContractInstanceId
+                          , csCurrentIteration = initialIteration
+                          , csCurrentState = response
+                          , csContractDefinition = contract
+                          }
+    sendContractStateMessages instanceState
     logInfo . render $ "Activated contract instance:" <+> pretty activeContractInstanceId
-    pure activeContractInstanceId
+    pure instanceState
 
 respondtoRequests ::
     forall t effs.

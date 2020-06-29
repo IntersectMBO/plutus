@@ -64,16 +64,16 @@ contractStatusesPane ::
   Map ContractInstanceId (WebData (Array EndpointForm)) ->
   ContractReport t ->
   HTML p HAction
-contractStatusesPane contractSignatures (ContractReport { contractStates }) =
+contractStatusesPane contractSignatures (ContractReport { crActiveContractStates }) =
   card_
     [ cardHeader_
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ if null contractStates then
+        [ if null crActiveContractStates then
             text "You do not have any active contracts."
           else
-            div_ (contractStatusPane contractSignatures <$> contractStates)
+            div_ (contractStatusPane contractSignatures <$> crActiveContractStates)
         ]
     ]
 
@@ -84,12 +84,12 @@ contractStatusPane ::
 contractStatusPane contractSignatures contractInstance =
   div_
     [ contractRequestView contractInstance
-    , row_
+    , div_
         ( case Map.lookup contractInstanceId contractSignatures of
             Just remoteData ->
               webDataPane
                 ( \endpointForms ->
-                    div_
+                    row_
                       ( mapWithIndex
                           (\index endpointForm -> actionCard contractInstanceId (ChangeContractEndpointCall contractInstanceId index) endpointForm)
                           endpointForms
