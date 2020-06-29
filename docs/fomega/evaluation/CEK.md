@@ -17,10 +17,10 @@ The relevant files are:
 
 Version 1:
 
-https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKV.lagda.md
+https://github.com/input-output-hk/plutus/blob/master/metatheory/Algorithmic/CEKV.lagda.md
 
 Version 2:
-https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKC.lagda.md
+https://github.com/input-output-hk/plutus/blob/master/metatheory/Algorithmic/CEKC.lagda.md
 
 ## 1. Value version
 
@@ -32,7 +32,7 @@ lambda, application, wrap/unwrap).
 
 Values and environments are mutually defined. Environments only appear
 under binders, they have entries for all free variables in the term
-but no entry for the variable (`α` or `x`) bound by the binder.
+but no entry for the variable (`α` or `x`) bound by the binder. We define closures, pairs of a
 
 ```
 V := con cn
