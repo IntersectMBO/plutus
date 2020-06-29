@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE RankNTypes             #-}
@@ -109,6 +110,7 @@ import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
 import           Data.Hashable
+import qualified Data.Kind as Kind
 import           Data.HashMap.Monoidal
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
@@ -214,12 +216,14 @@ data CostModelBase f =
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance ToJSON (CostModelBase CostingFun)
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance FromJSON (CostModelBase CostingFun)
 
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f = (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
+
 -- HLS doesn't like the AllBF from Barbies.
-deriving instance (NFData (f ModelTwoArguments), NFData (f ModelThreeArguments), NFData (f ModelOneArgument)) => NFData (CostModelBase f)
-deriving instance (Default (f ModelTwoArguments), Default (f ModelThreeArguments), Default (f ModelOneArgument)) => Default (CostModelBase f)
-deriving instance (Lift (f ModelTwoArguments), Lift (f ModelThreeArguments), Lift (f ModelOneArgument)) => Lift (CostModelBase f)
-deriving instance (Show (f ModelTwoArguments), Show (f ModelThreeArguments), Show (f ModelOneArgument)) => Show (CostModelBase f)
-deriving instance (Eq (f ModelTwoArguments), Eq (f ModelThreeArguments), Eq (f ModelOneArgument)) => Eq   (CostModelBase f)
+deriving instance AllArgumentModels NFData f => NFData (CostModelBase f)
+deriving instance AllArgumentModels Default f => Default (CostModelBase f)
+deriving instance AllArgumentModels Lift f => Lift (CostModelBase f)
+deriving instance AllArgumentModels Show f => Show (CostModelBase f)
+deriving instance AllArgumentModels Eq f => Eq (CostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 

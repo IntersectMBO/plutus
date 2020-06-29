@@ -36,5 +36,6 @@ with packageSet; haskell.packages.shellFor {
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
     pkgs.rPackages.plotly
+    pkgs.python3
   ];
 }

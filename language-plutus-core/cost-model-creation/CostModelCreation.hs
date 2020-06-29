@@ -30,6 +30,7 @@ import           Language.R
 
 -- TODO some generics magic
 -- Mentioned in CostModel.md. Change here, change there.
+-- The names of the models in R
 costModelNames :: CostModelBase (Const Text)
 costModelNames = CostModel
   { paramAddInteger = "addIntegerModel"
@@ -54,8 +55,9 @@ costModelNames = CostModel
   , paramLtByteString = "ltByteStringModel"
   , paramGtByteString = "gtByteStringModel"
   , paramIfThenElse = "ifThenElseModel"
-}
+  }
 
+-- Loads the model from R
 costModelR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
 costModelR = do
   list <- [r|
@@ -65,6 +67,7 @@ costModelR = do
   -- TODO use btraverse instead
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) costModelNames
 
+-- Creates the cost model from the csv benchmarking files
 createCostModel :: IO CostModel
 createCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
@@ -94,10 +97,6 @@ createCostModel =
     paramIfThenElse <- ifThenElse (getConst $ paramIfThenElse models)
 
     pure $ CostModel {..}
-
-filterDF :: MonadR m => Text -> (SomeSEXP (Region m)) -> m (SomeSEXP (Region m))
-filterDF by df =
-  [r| df_hs %>% filter(BuiltinName %in% c(by_hs))|]
 
 -- The output of `tidy(model)` on the R side.
 data LinearModelRaw = LinearModelRaw

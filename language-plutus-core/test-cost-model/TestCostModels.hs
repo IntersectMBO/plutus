@@ -69,14 +69,26 @@ prop_eqInteger = testPredict eqInteger (getConst . paramEqInteger)
 -- prop_ifThenElse :: Property
 -- prop_ifThenElse = testPredict ifThenElse (getConst . paramIfThenElse)
 
-probablySafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
-probablySafeHoist nt = hoist (unsafeCoerce nt)
+-- Runs property tests in the `R` Monad.
+propertyR :: PropertyT (R s) () -> Property
+-- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s 
+-- a)` to ensure no `R` types leave the scope. Additionally, it has an `NFData`
+-- constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does away 
+-- with the first constraint. However, consuring up a `NFData` constraint for                                 
+-- `PropertyT` is impossible, because internally, `PropertyT` constructs a `TreeT`
+-- to hold all the branches for reduction. These branches will contain `(R s)`,
+-- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for
+-- `TreeT`. For now, this didn't crash yet.
+propertyR prop = property $ unsafeHoist unsafeRunRegion prop
+  where
+    unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
+    unsafeHoist nt = hoist (unsafeCoerce nt)
 
 -- Creates the model on the R side, loads the parameters over to Haskell, and runs both models with a bunch of ExMemory combinations and compares the outputs.
-testPredict :: forall s. ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
+testPredict :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments))
   -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
-testPredict haskellModelFun modelFun = property $ probablySafeHoist unsafeRunRegion $ do
+testPredict haskellModelFun modelFun = propertyR $ do
   modelR <- lift $ costModelR
   modelH <- lift $ haskellModelFun $ modelFun modelR
   let
