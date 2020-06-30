@@ -1,6 +1,6 @@
 module View (render) where
 
-import Bootstrap (col12_, col6_, container_, row_)
+import Bootstrap (col12_, col5_, col7_, container_, row_)
 import Chain.Types as Chain
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
@@ -13,10 +13,10 @@ import Plutus.SCB.Events.Contract (ContractInstanceId)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (FullReport(..))
 import Prelude (($), (<$>), (<<<))
-import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _crAvailableContracts, _csrDefinition, _transactionMap, _utxoIndex)
+import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _crAvailableContracts, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
-import View.Events (eventsPane, transactionPane, utxoIndexPane)
+import View.Events (eventsPane, utxoIndexPane)
 import View.Utils (webDataPane)
 
 render ::
@@ -88,9 +88,8 @@ fullReportPane currentView chainState contractSignatures fullReport@(FullReport 
         ]
     , viewContainer currentView EventLog
         [ row_
-            [ col12_ [ eventsPane events ]
-            , col6_ [ transactionPane (view _transactionMap chainReport) ]
-            , col6_ [ utxoIndexPane (view _utxoIndex chainReport) ]
+            [ col7_ [ eventsPane events ]
+            , col5_ [ utxoIndexPane (view _utxoIndex chainReport) ]
             ]
         ]
     ]

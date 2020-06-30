@@ -7,7 +7,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
-import Data.Lens (Lens', Getter', to)
+import Data.Lens (Getter', Lens', Traversal', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -22,7 +22,7 @@ import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, FullReport, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
@@ -115,6 +115,14 @@ _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
 
 _activeEndpoint :: Lens' ActiveEndpoint EndpointDescription
 _activeEndpoint = _Newtype <<< prop (SProxy :: SProxy "aeDescription")
+
+_contractActiveEndpoints :: Traversal' (PartiallyDecodedResponse ContractSCBRequest) EndpointDescription
+_contractActiveEndpoints =
+  _hooks
+    <<< traversed
+    <<< _rqRequest
+    <<< _UserEndpointRequest
+    <<< _activeEndpoint
 
 _rqRequest :: forall t. Lens' (Request t) t
 _rqRequest = _Newtype <<< prop (SProxy :: SProxy "rqRequest")

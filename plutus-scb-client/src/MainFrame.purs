@@ -40,7 +40,7 @@ import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceState(..), _UserEndpointRequest)
+import Plutus.SCB.Events.Contract (ContractInstanceState(..))
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver (SPParams_(..), getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport)
@@ -49,7 +49,7 @@ import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _activeEndpoint, _annotatedBlockchain, _chainReport, _chainState, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport, _hooks, _rqRequest)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport)
 import Validation (_argument)
 import View as View
 
@@ -198,11 +198,7 @@ createEndpointForms contractState = signatureToForms
   activeEndpoints =
     toSetOf
       ( _csCurrentState
-          <<< _hooks
-          <<< traversed
-          <<< _rqRequest
-          <<< _UserEndpointRequest
-          <<< _activeEndpoint
+          <<< _contractActiveEndpoints
       )
       contractState
 

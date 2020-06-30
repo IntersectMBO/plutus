@@ -5,12 +5,10 @@ import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, c
 import Bootstrap as Bootstrap
 import Data.Array (mapWithIndex, null)
 import Data.Foldable.Extra (interleave)
-import Data.Json.JsonUUID (_JsonUUID)
-import Data.Lens (to, view)
+import Data.Lens (view)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.UUID as UUID
 import Halogen.HTML (HTML, br_, button, div_, h2_, h3_, table, tbody_, td_, text, th, th_, thead_, tr_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (classes, colSpan)
@@ -22,7 +20,7 @@ import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ContractReport(..))
 import Schema.Types (FormEvent)
-import Types (EndpointForm, HAction(..), WebData, _contractInstanceId, _contractPath, _csContract, _csCurrentState, _hooks)
+import Types (EndpointForm, HAction(..), WebData, _contractInstanceIdString, _contractPath, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
 import View.Utils (webDataPane)
 
@@ -120,7 +118,7 @@ contractRequestView contractInstance =
     , tbody_ (requestRow <$> requests)
     ]
   where
-  contractTitle = view (_csContract <<< _contractInstanceId <<< _JsonUUID <<< to UUID.toString) contractInstance
+  contractTitle = view (_csContract <<< _contractInstanceIdString) contractInstance
 
   requests = view (_csCurrentState <<< _hooks) contractInstance
 
