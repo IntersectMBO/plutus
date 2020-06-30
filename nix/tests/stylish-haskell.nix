@@ -13,7 +13,6 @@ let
   };
 in
 runCommand "stylish-check" {
-  succeedOnFailure = true;
   buildInputs = [ stylish-haskell diffutils glibcLocales ];
 } ''
   set +e
