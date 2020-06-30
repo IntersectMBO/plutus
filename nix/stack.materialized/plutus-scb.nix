@@ -121,6 +121,7 @@
           "Plutus/SCB/Effects/Contract"
           "Plutus/SCB/Effects/ContractTest"
           "Plutus/SCB/Effects/ContractTest/AtomicSwap"
+          "Plutus/SCB/Effects/ContractTest/PayToWallet"
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
@@ -201,6 +202,15 @@
             ];
           buildable = true;
           hsSourceDirs = [ "atomic-swap-contract" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-pay-to-wallet" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "pay-to-wallet-contract" ];
           mainPath = [ "Main.hs" ];
           };
         };
