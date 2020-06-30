@@ -24,7 +24,10 @@ tests = testGroup "token account"
         /\ assertNotDone w1 "contract should not have any errors"
         /\ walletFundsChange w1 theToken)
         (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
-        >> handleBlockchainEvents w1)
+        >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
+        >> addBlocks 1)
 
     , checkPredicate @TokenAccountSchema @TokenAccountError "Pay into the account"
         tokenAccountContract
@@ -34,6 +37,9 @@ tests = testGroup "token account"
         ( callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1
         >> addBlocks 1
+        >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
         >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
         >> addBlocks 1)
@@ -46,12 +52,19 @@ tests = testGroup "token account"
         /\ walletFundsChange w2 (theToken <> Ada.lovelaceValueOf 10))
         (  callEndpoint @"new-account" w1 (tokenName, Ledger.pubKeyHash $ walletPubKey w1)
         >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
         >> callEndpoint @"pay" w1 (account, Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
+        >> addBlocks 1
         >> payToWallet w1 w2 theToken
+        >> addBlocks 1
         >> handleBlockchainEvents w1
         >> callEndpoint @"redeem" w2 (account, Ledger.pubKeyHash $ walletPubKey w2)
-        >> handleBlockchainEvents w2)
+        >> handleBlockchainEvents w2
+        >> addBlocks 1)
 
     ]
 
@@ -65,7 +78,7 @@ tokenName = "test token"
 account :: Account
 account =
     let con = Accounts.newAccount tokenName (Ledger.pubKeyHash $ walletPubKey w1) in
-    either error id $ evalTrace @TokenAccountSchema @TokenAccountError con (handleBlockchainEvents w1) w1
+    either error id $ evalTrace @TokenAccountSchema @TokenAccountError con (handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1 >> addBlocks 1 >> handleBlockchainEvents w1) w1
 
 theToken :: Value
 theToken = Accounts.accountToken account

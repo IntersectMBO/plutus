@@ -28,6 +28,7 @@ import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddres
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
 import           Language.Plutus.Contract.Resumable                (Request, RequestID, Response, Responses)
 import           Language.Plutus.Contract.State                    (ContractRequest, State)
+import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
 import           Language.PureScript.Bridge                        (BridgePart, Language (Haskell), SumType,
                                                                     buildBridge, equal, genericShow, mkSumType, order,
                                                                     writePSTypesWith)
@@ -35,10 +36,11 @@ import           Language.PureScript.Bridge.CodeGenSwitches        (ForeignOptio
                                                                     unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters         (A)
 import           Ledger.Constraints.OffChain                       (UnbalancedTx)
-import           Plutus.SCB.Core                                   (activateContract, installContract)
+import           Plutus.SCB.Core                                   (activateContract, callContractEndpoint,
+                                                                    installContract)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
-import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest, csContract)
 import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
                                                                     ContractInstanceState, ContractResponse,
                                                                     IterationID, PartiallyDecodedResponse)
@@ -50,12 +52,15 @@ import qualified Plutus.SCB.MockApp                                as MockApp
 import           Plutus.SCB.Types                                  (ContractExe)
 import qualified Plutus.SCB.Webserver.API                          as API
 import qualified Plutus.SCB.Webserver.Server                       as Webserver
-import           Plutus.SCB.Webserver.Types                        (ContractSignatureResponse, FullReport)
+import           Plutus.SCB.Webserver.Types                        (ChainReport, ContractReport,
+                                                                    ContractSignatureResponse, FullReport)
 import qualified PSGenerator.Common
 import           Servant.PureScript                                (HasBridge, Settings, apiModuleName, defaultBridge,
                                                                     defaultSettings, languageBridge,
                                                                     writeAPIModuleWithSettings, _generateSubscriberAPI)
 import           System.FilePath                                   ((</>))
+import           Wallet.Effects                                    (AddressChangeRequest (..),
+                                                                    AddressChangeResponse (..))
 import qualified Wallet.Emulator.Chain                             as Chain
 
 myBridge :: BridgePart
@@ -84,6 +89,8 @@ myTypes =
     [ (equal <*> (genericShow <*> mkSumType)) (Proxy @ContractExe)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TestContracts)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(FullReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
     , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
@@ -115,6 +122,8 @@ myTypes =
     , (order <*> (genericShow <*> mkSumType)) (Proxy @RequestID)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Request A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
     ]
 
 mySettings :: Settings
@@ -131,11 +140,21 @@ writeTestData outputDir = do
                 agentAction defaultWallet $ do
                     installContract @TestContracts Currency
                     installContract @TestContracts Game
-                    currencyInstance <- activateContract Currency
+                    --
+                    currencyInstance1 <- activateContract Currency
+                    void $ activateContract Currency
                     void $ activateContract Game
-                    report :: FullReport TestContracts <- Webserver.fullReport
+                    --
+                    void $
+                        callContractEndpoint
+                            @TestContracts
+                            (csContract currencyInstance1)
+                            "Create native token"
+                            SimpleMPS {tokenName = "TestCurrency", amount = 10000}
+                    --
+                    report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-
-                        Webserver.contractSchema currencyInstance
+                        Webserver.contractSchema (csContract currencyInstance1)
                     pure (report, schema)
             syncAll
             void Chain.processBlock

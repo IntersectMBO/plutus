@@ -20,7 +20,7 @@ module Ledger.Constraints(
     , modifiesUtxoSet
     , isSatisfiable
     -- * Checking
-    , checkPendingTx
+    , checkValidatorCtx
     -- * Generating transactions
     , ScriptLookups(..)
     , MkTxError(..)
@@ -37,7 +37,7 @@ module Ledger.Constraints(
 import           Ledger.Constraints.OffChain      (MkTxError (..), ScriptLookups (..), UnbalancedTx, mkTx,
                                                    monetaryPolicy, otherData, otherScript, ownPubKeyHash,
                                                    scriptInstanceLookups, unspentOutputs)
-import           Ledger.Constraints.OnChain       (checkPendingTx)
+import           Ledger.Constraints.OnChain       (checkValidatorCtx)
 import           Ledger.Constraints.TxConstraints
 
 -- $constraints
@@ -47,4 +47,4 @@ import           Ledger.Constraints.TxConstraints
 -- 'TxConstraints' value it can be used both to generate a transaction that
 -- satisfies the constraints (off-chain, using 'mkTx') and to check whether
 -- a given pending transaction meets the constraints (on-chain, using
--- 'checkPendingTx').
+-- 'checkValidatorCtx').

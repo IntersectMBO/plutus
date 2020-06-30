@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE StrictData      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Cardano.Node.Types where
@@ -17,6 +18,7 @@ import qualified Language.Plutus.Contract.Trace as Trace
 import           Servant                        (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                 (BaseUrl)
 import qualified Wallet.Emulator                as EM
+import Wallet.Emulator (Wallet)
 import           Wallet.Emulator.Chain          (ChainEvent, ChainState)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 
@@ -36,6 +38,8 @@ data MockServerConfig =
         -- ^ Time between two randomly generated transactions
         , mscBlockReaper      :: Maybe BlockReaperConfig
         -- ^ When to discard old blocks
+        , mscInitialTxWallets :: [Wallet]
+        -- ^ The wallets that receive money from the initial transaction.
         }
     deriving (Show, Eq, Generic, FromJSON)
 
@@ -53,10 +57,12 @@ initialChainState =
     view EM.chainState .
     MultiAgent.emulatorStateInitialDist . Map.mapKeys EM.walletPubKey
 
-initialAppState :: AppState
-initialAppState =
+-- | 'AppState' with an initial transaction that pays some Ada to
+--   the wallets.
+initialAppState :: [Wallet] -> AppState
+initialAppState wallets =
     AppState
-        { _chainState = initialChainState Trace.defaultDist
+        { _chainState = initialChainState (Trace.defaultDistFor wallets)
         , _eventHistory = mempty
         , _followerState = initialFollowerState
         }

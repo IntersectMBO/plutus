@@ -38,7 +38,7 @@ import           Language.Plutus.Contract                        as Contract
 import qualified Language.PlutusTx                               as PlutusTx
 import qualified Language.PlutusTx.AssocMap                      as AssocMap
 import           Ledger                                          (CurrencySymbol, PubKeyHash, TxId, TxOutRef (..),
-                                                                  pubKeyHash, scriptCurrencySymbol)
+                                                                  pubKeyHash, scriptCurrencySymbol, txId)
 import qualified Ledger.Ada                                      as Ada
 import qualified Ledger.Constraints                              as Constraints
 import           Ledger.Scripts
@@ -81,13 +81,13 @@ mkCurrency (TxOutRef h i) amts =
         , curAmounts              = AssocMap.fromList amts
         }
 
-validate :: Currency -> V.PendingTxMPS -> Bool
-validate c@(Currency (refHash, refIdx) _) p =
+validate :: Currency -> V.PolicyCtx -> Bool
+validate c@(Currency (refHash, refIdx) _) ctx@V.PolicyCtx{V.policyCtxTxInfo=txinfo} =
     let
         -- see note [Obtaining the currency symbol]
-        ownSymbol = V.ownCurrencySymbol p
+        ownSymbol = V.ownCurrencySymbol ctx
 
-        forged = V.pendingTxForge p
+        forged = V.txInfoForge txinfo
         expected = currencyValue ownSymbol c
 
         -- True if the pending transaction forges the amount of
@@ -99,7 +99,7 @@ validate c@(Currency (refHash, refIdx) _) p =
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
-            let v = V.spendsOutput p refHash refIdx
+            let v = V.spendsOutput txinfo refHash refIdx
             in  traceIfFalseH "Pending transaction does not spend the designated transaction output" v
 
     in forgeOK && txOutputSpent
@@ -119,7 +119,7 @@ for example in 'forgedValue'.
 Inside the validator script (on-chain) we can't use 'Ledger.scriptAddress',
 because at that point we don't know the hash of the script yet. That
 is why we use 'V.ownCurrencySymbol', which obtains the hash from the
-'PendingTx' value.
+'PolicyCtx' value.
 
 -}
 
@@ -148,8 +148,8 @@ instance AsPubKeyError CurrencyError where
 --   If @k == 0@ then no value is forged.
 forgeContract
     :: forall s e.
-    ( HasWatchAddress s
-    , HasWriteTx s
+    ( HasWriteTx s
+    , HasTxConfirmation s
     , AsCurrencyError e
     )
     => PubKeyHash
@@ -164,27 +164,28 @@ forgeContract pk amounts = mapError (review _CurrencyError) $ do
                         <> Constraints.unspentOutputs (Map.singleton txOutRef txOutTx)
     let forgeTx = Constraints.mustSpendScriptOutput txOutRef unitRedeemer
                     <> Constraints.mustForgeValue (forgedValue theCurrency)
-    _ <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
+    tx <- submitTxConstraintsWith @Scripts.Any lookups forgeTx
+    _ <- awaitTxConfirmed (txId tx)
     pure theCurrency
 
 -- | Monetary policy for a currency that has a fixed amount of tokens issued
 --   in one transaction
 data SimpleMPS =
     SimpleMPS
-        { smTokenName :: TokenName
-        , smAmount    :: Integer
+        { tokenName :: TokenName
+        , amount    :: Integer
         }
         deriving stock (Prelude.Eq, Prelude.Show, Generic)
         deriving anyclass (FromJSON, ToJSON, IotsType, ToSchema)
 
 type CurrencySchema =
     BlockchainActions
-        .\/ Endpoint "create-currency" SimpleMPS
+        .\/ Endpoint "Create native token" SimpleMPS
 
 -- | Create the currency specified by a 'SimpleMPS'
 forgeCurrency
     :: Contract CurrencySchema CurrencyError Currency
 forgeCurrency = do
-    SimpleMPS{smTokenName, smAmount} <- endpoint @"create-currency"
+    SimpleMPS{tokenName, amount} <- endpoint @"Create native token"
     ownPK <- pubKeyHash <$> ownPubKey
-    forgeContract ownPK [(smTokenName, smAmount)]
+    forgeContract ownPK [(tokenName, amount)]

@@ -242,6 +242,7 @@ data ValueType
   | NegValueValueType
   | AddValueValueType
   | SubValueValueType
+  | MulValueValueType
   | ScaleValueType
   | ChoiceValueValueType
   | SlotIntervalStartValueType
@@ -519,7 +520,7 @@ toDefinition (ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
-        , message0: "Pay %1 party %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
+        , message0: "Pay %1 payee %2 the amount of %3 of currency %4 from account %5 with owner %6 continue as %7 %8"
         , args0:
           [ DummyCentre
           , Value { name: "payee", check: "payee", align: Right }
@@ -817,6 +818,21 @@ toDefinition (ValueType AddValueValueType) =
     $ merge
         { type: show AddValueValueType
         , message0: "%1 + %2"
+        , args0:
+          [ Value { name: "value1", check: "value", align: Right }
+          , Value { name: "value2", check: "value", align: Right }
+          ]
+        , colour: "135"
+        , output: Just "value"
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+toDefinition (ValueType MulValueValueType) =
+  BlockDefinition
+    $ merge
+        { type: show MulValueValueType
+        , message0: "%1 * %2"
         , args0:
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
@@ -1181,6 +1197,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     value1 <- statementToTerm g block "value1" (Parser.value unit)
     value2 <- statementToTerm g block "value2" (Parser.value unit)
     pure $ mkDefaultTerm (SubValue value1 value2)
+  blockDefinition MulValueValueType g block = do
+    value1 <- statementToTerm g block "value1" (Parser.value unit)
+    value2 <- statementToTerm g block "value2" (Parser.value unit)
+    pure $ mkDefaultTerm (MulValue value1 value2)
   blockDefinition ScaleValueType g block = do
     numerator <- parse Parser.bigInteger =<< getFieldValue block "numerator"
     denominator <- parse Parser.bigInteger =<< getFieldValue block "denominator"
@@ -1484,6 +1504,11 @@ instance toBlocklyValue :: ToBlockly Value where
     inputToBlockly newBlock workspace block "value2" v2
   toBlockly newBlock workspace input (SubValue v1 v2) = do
     block <- newBlock workspace (show SubValueValueType)
+    connectToOutput block input
+    inputToBlockly newBlock workspace block "value1" v1
+    inputToBlockly newBlock workspace block "value2" v2
+  toBlockly newBlock workspace input (MulValue v1 v2) = do
+    block <- newBlock workspace (show MulValueValueType)
     connectToOutput block input
     inputToBlockly newBlock workspace block "value1" v1
     inputToBlockly newBlock workspace block "value2" v2

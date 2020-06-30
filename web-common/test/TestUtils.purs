@@ -5,7 +5,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Gen (class MonadGen, chooseInt, oneOf)
 import Data.Bifoldable (class Bifoldable, bifoldMap)
 import Data.Either (Either(..))
-import Data.Foldable (class Foldable, length)
+import Data.Foldable (class Foldable, intercalate, length)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (class GenericShow, genericShow)
 import Data.List as List
@@ -31,7 +31,9 @@ assertRight (Right _) = success
 assertDecodesTo :: forall a. Decode a => Proxy a -> String -> Test
 assertDecodesTo proxy filename = do
   result :: Either MultipleErrors a <- decodeFile filename
-  assertRight result
+  case result of
+    Left errs -> failure $ "JSON Decoding Error:\n" <> intercalate "\n" (show <$> errs)
+    Right _ -> success
 
 -- | Check a value encodes to the contents of a file.
 -- This test will reformat the input file to ignore any whitespace

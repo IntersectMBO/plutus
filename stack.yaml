@@ -57,21 +57,13 @@ extra-deps:
 # Needs some patches, but upstream seems to be fairly dead (no activity in > 1 year)
 - git: https://github.com/shmish111/purescript-bridge.git
   commit: 28c37771ef30b0d751960c061ef95627f05d290e
-  # nix-sha256: 0n6q7g2w1xafngd3dwbbmfxfn018fmq61db7mymplbrww8ld1cp3
 - git: https://github.com/shmish111/servant-purescript.git
   commit: ece5d1dad16a5731ac22040075615803796c7c21
-  # nix-sha256: 1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6
 - git: https://github.com/input-output-hk/cardano-crypto.git
   commit: 2547ad1e80aeabca2899951601079408becbc92c
-  # nix-sha256: 1p2kg2w02q5w1cvqzhfhqmxviy4xrzada3mmb096j2n6hfr20kri
 # Needs a fix (https://github.com/wenkokke/unlit/pull/11) and a Hackage release
 - git: https://github.com/michaelpj/unlit.git
   commit: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-  # nix-sha256: 145sffn8gbdn6xp9q5b75yd3m46ql5bnc02arzmpfs6wgjslfhff
-# Needs https://github.com/jpvillaisaza/slack-web/pull/80
-- git: https://github.com/michaelpj/slack-web.git
-  commit: 6ff88895c5da593e7bd09a46d7002441817aa6f8
-  # nix-sha256: 1115jngzx2hbvznhnrnm4qs9vn6hsjklxwiwa5i11npr2kxd5rm2
 ## Node protocols
 - canonical-json-0.6.0.0@sha256:9021f435ccb884a3b4c55bcc6b50eb19d5fc3cc3f29d5fcbdef016f5bbae23a2,3488
 - cborg-0.2.2.0@sha256:eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c,4779
@@ -81,7 +73,6 @@ extra-deps:
 # be properly updated to GHC-8.8.X
 - git: https://github.com/raduom/ouroboros-network
   commit: af744374a05d6a5eb76713b399595131e2a24c38
-  # nix-sha256: 1fljr384bkyg0lj46bkgdplp9dzwkb9dz1r6j863niyvm3q50h66
   subdirs:
     - typed-protocols
     - typed-protocols-examples
@@ -93,13 +84,11 @@ extra-deps:
     - Win32-network
 - git: https://github.com/input-output-hk/cardano-prelude
   commit: bd7eb69d27bfaee46d435bc1d2720520b1446426
-  # nix-sha256: 1cmxh1gk7lvgs6bfr8v6k2lpjxmk0qam58clvdvxkybrlbh186ps
   subdirs:
     - .
     - test
 - git: https://github.com/input-output-hk/cardano-base
   commit: 5035c9ed95e9d47f050314a7d96b1b2043288f61
-  # nix-sha256: 103z0009sz586f2mvnmwl2hp9n94qy0n72ik521xhq7zmfwyv3m7
   subdirs:
     - binary
     - binary/test
@@ -110,7 +99,6 @@ extra-deps:
 # be properly updated to GHC-8.8.X
 - git: https://github.com/raduom/cardano-ledger-specs
   commit: 2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3
-  # nix-sha256: 0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447
   subdirs:
     - byron/chain/executable-spec
     - byron/ledger/executable-spec
@@ -123,7 +111,6 @@ extra-deps:
 # be properly updated to GHC-8.8.X
 - git: https://github.com/raduom/iohk-monitoring-framework
   commit: b5c035ad4e226d634242ad5979fa677921181435
-  # nix-sha256: 19v32drfb7wy1yqpbxlqvgii0i7s2j89s05lqskx6855yn0calq4
   subdirs:
     - contra-tracer
 

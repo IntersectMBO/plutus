@@ -2,13 +2,13 @@
   "name": "marlowe-playground-client",
   "version": "1.0.0",
   "scripts": {
-    "webpack": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
+    "webpack": "NODE_OPTIONS=\"--max-old-space-size=8192\" DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --bail --mode=production -p",
     "webpack:watch": "PATH=$PATH:../releases/psc-package DEBUG=purs-loader* DEBUG_DEPTH=100 webpack --progress --display-error-details --display verbose --watch",
     "webpack:server": "webpack-dev-server --progress --inline --hot --mode=development --display verbose",
     "webpack:server:debug": "DEBUG=purs-loader* DEBUG_DEPTH=100 webpack-dev-server --progress --inline --hot",
     "purs:compile": "spago build",
     "purs:ide": "purs ide server --log-level=debug 'src/**/*.purs' 'generated/**/*.purs' 'test/**/*.purs' '../web-common/**/*.purs'",
-    "test": "webpack --config webpack.test.config.js --mode=development && node dist/test.js",
+    "test": "NODE_OPTIONS=\"--max-old-space-size=8192\" webpack --config webpack.test.config.js --mode=development && node --max-old-space-size=8192 dist/test.js",
     "docs": "spago docs",
     "repl": "spago repl"
   },

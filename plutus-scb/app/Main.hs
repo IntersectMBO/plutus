@@ -1,9 +1,11 @@
-{-# LANGUAGE ApplicativeDo       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE ApplicativeDo         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module Main
     ( main
@@ -14,6 +16,7 @@ import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
 import           Control.Concurrent.Async                        (Async, async, waitAny)
+import           Control.Concurrent.Availability                 (Availability, newToken, starting)
 import           Control.Lens.Indexed                            (itraverse_)
 import           Control.Monad                                   (void)
 import           Control.Monad.Freer.Extra.Log                   (logInfo)
@@ -61,11 +64,13 @@ data Command
     | SigningProcess
     | InstallContract FilePath
     | ActivateContract FilePath
-    | ContractStatus UUID
+    | ContractState UUID
     | UpdateContract UUID EndpointDescription JSON.Value
     | ReportContractHistory UUID
     | ReportInstalledContracts
     | ReportActiveContracts
+    | ProcessContractInbox UUID
+    | ProcessAllContractOutboxes
     | ReportTxHistory
     | SCBWebserver
     | PSGenerator
@@ -129,8 +134,10 @@ commandParser =
                              , activateContractParser
                              , reportActiveContractsParser
                              , updateContractParser
-                             , contractStatusParser
+                             , contractStateParser
                              , reportContractHistoryParser
+                             , processAllContractInboxesParser
+                             , processAllContractOutboxesParser
                              ]))
                    (fullDesc <> progDesc "Manage your smart contracts."))
         ]
@@ -183,8 +190,8 @@ allServersParser =
                   [ MockNode
                   , ChainIndex
                   , MockWallet
-                  , SigningProcess
                   , SCBWebserver
+                  , SigningProcess
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
@@ -215,12 +222,12 @@ installContractParser =
               long "path" <> help "Path to the executable contract."))
         (fullDesc <> progDesc "Install a new smart contract.")
 
-contractStatusParser :: Mod CommandFields Command
-contractStatusParser =
-    command "status" $
+contractStateParser :: Mod CommandFields Command
+contractStateParser =
+    command "state" $
     info
-        (ContractStatus <$> contractIdParser)
-        (fullDesc <> progDesc "Show the current status of a contract.")
+        (ContractState <$> contractIdParser)
+        (fullDesc <> progDesc "Show the current state of a contract.")
 
 contractIdParser :: Parser UUID
 contractIdParser =
@@ -267,6 +274,20 @@ updateContractParser =
              (help "JSON Payload."))
         (fullDesc <> progDesc "Update a smart contract.")
 
+processAllContractInboxesParser :: Mod CommandFields Command
+processAllContractInboxesParser =
+    command "process-inbox" $
+    info
+        (ProcessContractInbox <$> contractIdParser)
+        (fullDesc <> progDesc "Process the inbox of the contract instance.")
+
+processAllContractOutboxesParser :: Mod CommandFields Command
+processAllContractOutboxesParser =
+    command "process-outboxes" $
+    info
+        (pure ProcessAllContractOutboxes)
+        (fullDesc <> progDesc "Process all contract outboxes.")
+
 reportContractHistoryParser :: Mod CommandFields Command
 reportContractHistoryParser =
     command "history" $
@@ -275,34 +296,44 @@ reportContractHistoryParser =
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
 ------------------------------------------------------------
-runCliCommand :: LogLevel -> Config -> Command -> App ()
-runCliCommand _ _ Migrate = App.migrate
-runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} MockWallet =
+-- | Translate the command line configuation into the actual code to be run.
+--
+runCliCommand :: LogLevel -> Config ->  Availability -> Command -> App ()
+runCliCommand _ _ _ Migrate = App.migrate
+runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
-runCliCommand _ Config {nodeServerConfig} MockNode =
-    NodeServer.main nodeServerConfig
-runCliCommand _ config SCBWebserver = SCBServer.main config
-runCliCommand minLogLevel config (ForkCommands commands) =
+        serviceAvailability
+runCliCommand _ Config {nodeServerConfig} serviceAvailability MockNode =
+    NodeServer.main nodeServerConfig serviceAvailability
+runCliCommand _ config serviceAvailability SCBWebserver = SCBServer.main config serviceAvailability
+runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
+        putStrLn $ "Started all commands."
         waitAny threads
   where
+
     forkCommand ::  Command -> IO (Async ())
-    forkCommand = async . void . runApp minLogLevel config . runCliCommand minLogLevel config
-runCliCommand _ Config {nodeServerConfig, chainIndexConfig} ChainIndex =
-    ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig)
-runCliCommand _ Config {signingProcessConfig} SigningProcess =
-    SigningProcess.main signingProcessConfig
-runCliCommand _ _ (InstallContract path) = Core.installContract (ContractExe path)
-runCliCommand _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
-runCliCommand _ _ (ContractStatus uuid) = Core.reportContractStatus @ContractExe (ContractInstanceId uuid)
-runCliCommand _ _ ReportInstalledContracts = do
+    forkCommand subcommand = do
+      putStrLn $ "Starting: " <> show subcommand
+      asyncId <- async . void . runApp minLogLevel config . runCliCommand minLogLevel config serviceAvailability $ subcommand
+      putStrLn $ "Started: " <> show subcommand
+      starting serviceAvailability
+      pure asyncId
+runCliCommand _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
+    ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig) serviceAvailability
+runCliCommand _ Config {signingProcessConfig} serviceAvailability SigningProcess =
+    SigningProcess.main signingProcessConfig serviceAvailability
+runCliCommand _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ ReportInstalledContracts = do
     logInfo "Installed Contracts"
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
-runCliCommand _ _ ReportActiveContracts = do
+runCliCommand _ _ _ ReportActiveContracts = do
     logInfo "Active Contracts"
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
     let format :: (ContractExe, Set ContractInstanceId) -> Doc a
@@ -311,19 +342,25 @@ runCliCommand _ _ ReportActiveContracts = do
                , indent 2 (vsep (pretty <$> Set.toList contractInstanceIds))
                ]
     traverse_ (logInfo . render . format) instances
-runCliCommand _ _ ReportTxHistory = do
+runCliCommand _ _ _ ReportTxHistory = do
     logInfo "Transaction History"
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
-runCliCommand _ _ (UpdateContract uuid endpoint payload) =
+runCliCommand _ _ _ (UpdateContract uuid endpoint payload) =
     void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
-runCliCommand _ _ (ReportContractHistory uuid) = do
+runCliCommand _ _ _ (ReportContractHistory uuid) = do
     logInfo "Contract History"
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
     itraverse_ logContract contracts
     where
       logContract :: Int -> ContractInstanceState ContractExe -> App ()
       logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
-runCliCommand _ _ PSGenerator {_outputDir} =
+runCliCommand _ _ _ (ProcessContractInbox uuid) = do
+    logInfo "Process contract inbox"
+    Core.processContractInbox @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ ProcessAllContractOutboxes = do
+    logInfo "Process all contract outboxes"
+    Core.processAllContractOutboxes @ContractExe
+runCliCommand _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 
 main :: IO ()
@@ -334,10 +371,11 @@ main = do
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
     traverse_ (EKG.forkServer "localhost") ekgPort
+    serviceAvailability <- newToken
     result <-
         runApp minLogLevel config $ do
             logInfo $ "Running: " <> Text.pack (show cmd)
-            runCliCommand minLogLevel config cmd
+            runCliCommand minLogLevel config serviceAvailability cmd
     case result of
         Left err -> do
             runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ logErrorS err

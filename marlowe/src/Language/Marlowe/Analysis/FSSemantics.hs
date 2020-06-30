@@ -172,6 +172,8 @@ symEvalVal (AddValue lhs rhs) symState = symEvalVal lhs symState +
                                          symEvalVal rhs symState
 symEvalVal (SubValue lhs rhs) symState = symEvalVal lhs symState -
                                          symEvalVal rhs symState
+symEvalVal (MulValue lhs rhs) symState = symEvalVal lhs symState *
+                                         symEvalVal rhs symState
 symEvalVal (Scale s rhs) symState = let
     num = literal (P.numerator s)
     denom = literal (P.denominator s)

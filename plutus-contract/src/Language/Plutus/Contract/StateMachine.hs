@@ -65,7 +65,7 @@ import qualified Ledger.Typed.Tx                               as Typed
 --   an allocation function
 --
 -- In many cases it is enough to define the transition function
--- @t :: (state, Value) -> input -> Maybe (PendingTxConstraints state)@ and use
+-- @t :: (state, Value) -> input -> Maybe (TxConstraints state)@ and use
 -- 'mkStateMachine' and 'mkStateMachineClient' to get the client.
 -- You can then use 'runInitialise' and 'runStep' to initialise and transition
 -- the state machine. 'runStep' gets the current state from the utxo set and

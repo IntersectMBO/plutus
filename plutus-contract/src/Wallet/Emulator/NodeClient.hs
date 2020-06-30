@@ -47,23 +47,24 @@ emptyNodeClientState = NodeClientState (Slot 0) mempty
 
 makeLenses ''NodeClientState
 
--- | A notification sent to a node client about a change in the ledger.
-newtype BlockValidated = BlockValidated Block -- ^ A new block has been validated.
-                  deriving (Show, Eq)
+data ChainClientNotification =
+    BlockValidated Block
+    | SlotChanged Slot
+    deriving (Show, Eq)
 
-data NodeControlEffect r where
-    ClientNotify :: BlockValidated -> NodeControlEffect ()
-makeEffect ''NodeControlEffect
+data NodeClientControlEffect r where
+    ClientNotify :: ChainClientNotification -> NodeClientControlEffect ()
+makeEffect ''NodeClientControlEffect
 
 type NodeClientEffs = '[ChainEffect, State NodeClientState, Writer [NodeClientEvent]]
 
 handleNodeControl
     :: (Members NodeClientEffs effs)
-    => Eff (NodeControlEffect ': effs) ~> Eff effs
+    => Eff (NodeClientControlEffect ': effs) ~> Eff effs
 handleNodeControl = interpret $ \case
     ClientNotify (BlockValidated blk) -> modify $ \s ->
             s & clientIndex %~ (\am -> foldl (\am' t -> AM.updateAllAddresses t am') am blk)
-              & clientSlot +~ 1
+    ClientNotify (SlotChanged sl) -> modify (set clientSlot sl)
 
 handleNodeClient
     :: (Members NodeClientEffs effs)

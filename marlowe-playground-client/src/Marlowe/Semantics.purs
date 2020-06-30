@@ -93,8 +93,17 @@ derive instance eqToken :: Eq Token
 derive instance ordToken :: Ord Token
 
 instance showToken :: Show Token where
-  show (Token "" "") = "Ada"
-  show tok = genericShow tok
+  show = genericShow
+
+{- Use this to show a token to a user, i.e. in browser or logs.
+  If we choose to redefine either 'show' or 'pretty' we'd need to
+  make 'ADA' a valid Marlowe construct and add it to the Marlowe parser.
+  That we don't want to do, because 'ADA' can't be a Haskell function identifier.
+ -}
+showPrettyToken :: Token -> String
+showPrettyToken (Token "" "") = "ADA"
+
+showPrettyToken tok = show tok
 
 instance prettyToken :: Pretty Token where
   pretty = genericPretty
@@ -120,6 +129,8 @@ derive instance genericAssets :: Generic Assets _
 derive instance newtypeAssets :: Newtype Assets _
 
 derive instance eqAssets :: Eq Assets
+
+derive instance ordAssets :: Ord Assets
 
 derive newtype instance showAssets :: Show Assets
 
@@ -316,6 +327,7 @@ data Value
   | NegValue Value
   | AddValue Value Value
   | SubValue Value Value
+  | MulValue Value Value
   | Scale Rational Value
   | ChoiceValue ChoiceId Value
   | SlotIntervalStart
@@ -384,7 +396,7 @@ validInterval :: SlotInterval -> Boolean
 validInterval (SlotInterval from to) = from <= to
 
 above :: Slot -> SlotInterval -> Boolean
-above v (SlotInterval _ to) = v >= to
+above v (SlotInterval _ to) = v > to
 
 anyWithin :: forall f. Foldable f => Slot -> f SlotInterval -> Boolean
 anyWithin v = any (\(SlotInterval from to) -> v >= from && v <= to)
@@ -656,6 +668,8 @@ derive instance genericPayment :: Generic Payment _
 
 derive instance eqPayment :: Eq Payment
 
+derive instance ordPayment :: Ord Payment
+
 instance showPayment :: Show Payment where
   show = genericShow
 
@@ -873,6 +887,7 @@ evalValue env state value =
       NegValue val -> negate (eval val)
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
+      MulValue lhs rhs -> eval lhs * eval rhs
       Scale (Rational num denom) rhs ->
         let
           -- quotient and reminder

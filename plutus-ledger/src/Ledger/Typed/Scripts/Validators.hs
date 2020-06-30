@@ -21,7 +21,7 @@ import           Ledger.Scripts
 import qualified Ledger.Validation         as Validation
 
 -- | The type of validators for the given connection type.
-type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.PendingTx -> Bool
+type ValidatorType (a :: Type) = DatumType a -> RedeemerType a -> Validation.ValidatorCtx -> Bool
 
 type WrappedValidatorType = Data -> Data -> Data -> ()
 type WrappedMonetaryPolicyType = Data -> ()
@@ -66,14 +66,14 @@ otherwise. Then, as before, we just check for error in the overall evaluation.
 wrapValidator
     :: forall d r
     . (IsData d, IsData r)
-    => (d -> r -> Validation.PendingTx -> Bool)
+    => (d -> r -> Validation.ValidatorCtx -> Bool)
     -> WrappedValidatorType
 wrapValidator f (fromData -> Just d) (fromData -> Just r) (fromData -> Just p) = check $ f d r p
 wrapValidator _ _ _ _                                                          = check False
 
 {-# INLINABLE wrapMonetaryPolicy #-}
 wrapMonetaryPolicy
-    :: (Validation.PendingTxMPS -> Bool)
+    :: (Validation.PolicyCtx -> Bool)
     -> WrappedMonetaryPolicyType
 wrapMonetaryPolicy f (fromData -> Just p) = check $ f p
 wrapMonetaryPolicy _ _                    = check False
@@ -84,5 +84,5 @@ wrapMonetaryPolicy _ _                    = check False
 mkMonetaryPolicy :: ValidatorHash -> MonetaryPolicy
 mkMonetaryPolicy vshsh =
     mkMonetaryPolicyScript
-    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (\ptx -> not $ null $ Validation.scriptOutputsAt hsh ptx) ||]))
+    $ ($$(PlutusTx.compile [|| \(hsh :: ValidatorHash) -> wrapMonetaryPolicy (\ptx -> not $ null $ Validation.scriptOutputsAt hsh (Validation.policyCtxTxInfo ptx)) ||]))
        `PlutusTx.applyCode` PlutusTx.liftCode vshsh

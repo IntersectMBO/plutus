@@ -136,6 +136,7 @@ valueGenSized s
                   , NegValue <$> valueGenSized (s - 1)
                   , AddValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , SubValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
+                  , MulValue <$> valueGenSized (s `quot` 2) <*> valueGenSized (s `quot` 2)
                   , ChoiceValue <$> choiceIdGen <*> valueGenSized (s - 1)
                   , Scale <$> rationalGen <*> valueGenSized (s - 1)
                   , Cond  <$> observationGenSized (s `quot` 3)
@@ -172,6 +173,8 @@ shrinkValue value = case value of
                          ++ [AddValue val1 y | y <- shrinkValue val2])
     SubValue val1 val2 -> Constant 0 : val1 : val2 : ([SubValue x val2 | x <- shrinkValue val1]
                          ++ [SubValue val1 y | y <- shrinkValue val2])
+    MulValue val1 val2 -> Constant 0 : val1 : val2 : ([MulValue x val2 | x <- shrinkValue val1]
+                         ++ [MulValue val1 y | y <- shrinkValue val2])
     Scale r val -> Constant 0 : val : [Scale r v | v <- shrinkValue val]
     Cond b val1 val2 -> Constant 0 : val1 : val2 : ([Cond x val1 val2 | x <- shrinkObservation b]
                          ++ [Cond b x val2 | x <- shrinkValue val1]

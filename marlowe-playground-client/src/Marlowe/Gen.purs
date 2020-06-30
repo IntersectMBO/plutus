@@ -115,10 +115,7 @@ genAccountId = do
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
-genToken = do
-  currencySymbol <- genCurrencySymbol
-  tokenName <- genTokenName
-  pure $ Token currencySymbol tokenName
+genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
 
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ChoiceId
 genChoiceId = do
@@ -194,6 +191,7 @@ genValue' size
             , NegValue <$> genNewValue
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , MulValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , Scale <$> genTermWrapper genRational <*> genNewValue
             , ChoiceValue <$> genChoiceId <*> genNewValue
             , UseValue <$> genTermWrapper genValueId

@@ -22,6 +22,16 @@ foreign import readMoreIconWhite :: String
 
 foreign import iohkIcon :: String
 
+foreign import simulationIcon :: String
+
+foreign import walletIcon :: String
+
+foreign import greenCircle :: String
+
+foreign import greyCircle :: String
+
+foreign import selectButton :: String
+
 active :: ClassName
 active = ClassName "active"
 
@@ -129,6 +139,9 @@ rTable = ClassName "Rtable"
 
 rTable6cols :: ClassName
 rTable6cols = ClassName "Rtable--6cols"
+
+rTable4cols :: ClassName
+rTable4cols = ClassName "Rtable--4cols"
 
 rTableCell :: ClassName
 rTableCell = ClassName "Rtable-cell"

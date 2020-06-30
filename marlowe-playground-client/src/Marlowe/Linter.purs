@@ -26,7 +26,7 @@ import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
-import Data.Lens (Lens', modifying, over, to, view, (^.))
+import Data.Lens (Lens', modifying, over, set, to, view, (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
@@ -41,12 +41,13 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
+import Data.Tuple (fst)
 import Data.Tuple.Nested ((/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), emptyState, evalValue, makeEnvironment)
-import Marlowe.Semantics as S
+import Marlowe.Semantics (Rational(..), Slot(..), _accounts, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
 import Text.Pretty (pretty)
@@ -87,7 +88,7 @@ data WarningDetail
   | DivisionByZero
   | SimplifiableValue (Term Value) (Term Value)
   | SimplifiableObservation (Term Observation) (Term Observation)
-  | PayBeforeDeposit S.AccountId
+  | PayBeforeDeposit Semantics.AccountId
 
 instance showWarningDetail :: Show WarningDetail where
   show NegativePayment = "The contract can make a non-positive payment"
@@ -166,7 +167,7 @@ newtype LintEnv
   = LintEnv
   { letBindings :: Set ValueId
   , maxTimeout :: MaxTimeout
-  , deposits :: Set S.AccountId
+  , deposits :: Set Semantics.AccountId
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -181,7 +182,7 @@ _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 _maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
-_deposits :: Lens' LintEnv (Set S.AccountId)
+_deposits :: Lens' LintEnv (Set Semantics.AccountId)
 _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 
 data TemporarySimplification a b
@@ -239,10 +240,14 @@ constToVal x = Term (Constant x) { row: 0, column: 0 }
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
 -- the final lint result. After debugging it's strange because they seem to exist in intermediate states.
-lint :: Term Contract -> State
-lint contract = state
+lint :: Semantics.State -> Term Contract -> State
+lint contractState contract = state
   where
-  state = CMS.execState (lintContract mempty contract) mempty
+  deposits = contractState ^. (_accounts <<< to Map.keys <<< to (Set.map fst))
+
+  env = set _deposits deposits mempty
+
+  state = CMS.execState (lintContract env contract) mempty
 
 lintContract :: LintEnv -> Term Contract -> CMS.State State Unit
 lintContract env (Term Close _) = pure unit
@@ -446,6 +451,24 @@ lintValue env t@(Term (SubValue a b) pos) = do
       markSimplification constToVal SimplifiableValue b sb
       pure (ValueSimp pos false t)
 
+lintValue env t@(Term (MulValue a b) pos) = do
+  sa <- lintValue env a
+  sb <- lintValue env b
+  case sa /\ sb of
+    (ConstantSimp _ _ v1 /\ ConstantSimp _ _ v2) -> pure (ConstantSimp pos true (v1 * v2))
+    (ConstantSimp _ _ v /\ _)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    (_ /\ ConstantSimp _ _ v)
+      | v == zero -> pure (ConstantSimp pos true zero)
+    (ConstantSimp _ _ v /\ _)
+      | v == one -> pure (simplifyTo sb pos)
+    (_ /\ ConstantSimp _ _ v)
+      | v == one -> pure (simplifyTo sa pos)
+    _ -> do
+      markSimplification constToVal SimplifiableValue a sa
+      markSimplification constToVal SimplifiableValue b sb
+      pure (ValueSimp pos false t)
+
 lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
   sc <- lintValue env c
   if (b == zero) then do
@@ -463,7 +486,7 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
       isSimp = (abs gcdv) > one
     in
       case sc of
-        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (S.Scale (S.Rational a b) (S.Constant v))))
+        (ConstantSimp _ _ v) -> pure (ConstantSimp pos true (evalValue (makeEnvironment zero zero) (emptyState (Slot zero)) (Semantics.Scale (Semantics.Rational a b) (Semantics.Constant v))))
         (ValueSimp _ _ v) -> do
           if isSimp then
             pure unit
@@ -506,7 +529,7 @@ lintValue env t@(Term (Cond c a b) pos) = do
       pure (ValueSimp pos false t)
 
 data Effect
-  = ConstantDeposit S.AccountId
+  = ConstantDeposit Semantics.AccountId
   | NoEffect
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
@@ -562,15 +585,15 @@ suggestions stripParens contract range =
   fromMaybe [] do
     parsedContract <- hush $ parseContract contract
     let
-      (Holes holes) = view _holes (lint parsedContract)
+      (Holes holes) = view _holes ((lint (emptyState zero)) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
     { head } <- Array.uncons $ Set.toUnfoldable v
     pure $ holeSuggestions stripParens range head
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker
-markers :: String -> Array IMarkerData
-markers contract = case lint <$> parseContract contract of
+markers :: Semantics.State -> String -> Array IMarkerData
+markers contractState contract = case (lint contractState) <$> parseContract contract of
   Left EmptyInput -> []
   Left e@(ContractParseError { message, row, column, token }) ->
     let

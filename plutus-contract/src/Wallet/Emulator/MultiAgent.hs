@@ -94,7 +94,7 @@ type EmulatedWalletEffects =
          ]
 
 type EmulatedWalletControlEffects =
-        '[ NC.NodeControlEffect
+        '[ NC.NodeClientControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
          , Log

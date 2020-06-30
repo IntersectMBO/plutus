@@ -70,6 +70,5 @@ settings setup =
   , documentFormattingEditProvider: Just documentFormattingEditProvider
   , refLabel
   , owner: "marloweEditor"
-  , getModelMarkers: Linter.markers
   , setup
   }

@@ -57,7 +57,7 @@ annotateTransaction sequenceId tx@Tx {txOutputs} = do
             foldr
                 sumAccounts
                 cRollingBalances
-                ((over outValue inv . refersTo <$> dereferencedInputs) <>
+                ((over outValue inv . refersTo <$> filter isFound dereferencedInputs) <>
                  txOutputs)
         sumAccounts ::
                TxOut -> Map BeneficialOwner Value -> Map BeneficialOwner Value

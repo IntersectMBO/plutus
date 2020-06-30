@@ -24,16 +24,28 @@
         "type": "tarball",
         "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
+    "hackage.nix": {
+        "branch": "master",
+        "description": "Automatically generated Nix expressions for Hackage",
+        "homepage": "",
+        "owner": "input-output-hk",
+        "repo": "hackage.nix",
+        "rev": "4020c8c5bedc373a38f333353fd19b1988c230b5",
+        "sha256": "045jbij0j0pngs17kk7fnkir3f3zwxrps28cly5a27q2z5556n4h",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/4020c8c5bedc373a38f333353fd19b1988c230b5.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "haskell.nix": {
         "branch": "master",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "e2a39958269b186b1e83cf2a3fd7f0edadba7652",
-        "sha256": "0b21jkza5crv8shml6xgkyphsyxanimi5m0c8js97w4vb08wg5cz",
+        "rev": "285b4ae6ef222c299c100ae0d89e5060f6b0c879",
+        "sha256": "0dppnh7iigyxm5904g6a8m919zixsad3hbr8y6bphqia28glm0fa",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/e2a39958269b186b1e83cf2a3fd7f0edadba7652.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/285b4ae6ef222c299c100ae0d89e5060f6b0c879.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -69,10 +81,10 @@
         "homepage": "https://github.com/NixOS/nixpkgs",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "5272327b81ed355bbed5659b8d303cf2979b6953",
-        "sha256": "0182ys095dfx02vl2a20j1hz92dx3mfgz2a6fhn31bqlp1wa8hlq",
+        "rev": "db31e48c5c8d99dcaf4e5883a96181f6ac4ad6f6",
+        "sha256": "1j5j7vbnq2i5zyl8498xrf490jca488iw6hylna3lfwji6rlcaqr",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/5272327b81ed355bbed5659b8d303cf2979b6953.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/db31e48c5c8d99dcaf4e5883a96181f6ac4ad6f6.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nodejs-headers": {
@@ -82,5 +94,17 @@
         "type": "file",
         "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
+    },
+    "stackage.nix": {
+        "branch": "master",
+        "description": "Automatically generated Nix expressions of Stackage snapshots",
+        "homepage": "",
+        "owner": "input-output-hk",
+        "repo": "stackage.nix",
+        "rev": "bf7a672e8c31a98086265b43f3003acb4d0f22b0",
+        "sha256": "10v973r5xzqr2akiqx2a3j0fv5fgl75zzyxv949rsr0hqj18vnyi",
+        "type": "tarball",
+        "url": "https://github.com/input-output-hk/stackage.nix/archive/bf7a672e8c31a98086265b43f3003acb4d0f22b0.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

@@ -63,12 +63,16 @@ makeLenses ''ChainState
 data ChainEffect r where
     ProcessBlock :: ChainEffect Block
     QueueTx :: Tx -> ChainEffect ()
+    GetCurrentSlot :: ChainEffect Slot
 
 processBlock :: Member ChainEffect effs => Eff effs Block
 processBlock = send ProcessBlock
 
 queueTx :: Member ChainEffect effs => Tx -> Eff effs ()
 queueTx tx = send (QueueTx tx)
+
+getCurrentSlot :: Member ChainEffect effs => Eff effs Slot
+getCurrentSlot = send GetCurrentSlot
 
 type ChainEffs = '[State ChainState, Writer [ChainEvent]]
 
@@ -91,6 +95,7 @@ handleChain = interpret $ \case
 
         pure block
     QueueTx tx -> modify $ over txPool (tx :)
+    GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock

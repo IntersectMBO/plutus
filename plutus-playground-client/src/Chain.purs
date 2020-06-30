@@ -50,7 +50,7 @@ evaluationPane ::
   ComponentHTML HAction ChildSlots m
 evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorTrace, fundsDistribution, resultRollup, walletKeys }) =
   div_
-    [ SetChainFocus <<< Just
+    [ ChainAction
         <$> chainView
             state
             (AssocMap.toDataMap (AssocMap.Map walletKeys))
@@ -80,9 +80,9 @@ evaluationPane state evaluationResult@(EvaluationResult { emulatorLog, emulatorT
     ]
 
 emulatorEventPane :: forall i p. EmulatorEvent -> HTML p i
-emulatorEventPane (ChainIndexEvent _ ReceiveBlockNotification) =
+emulatorEventPane (ChainIndexEvent _ (ReceiveBlockNotification numTransactions)) =
   div_
-    [ text "Chain index receive block notification" ]
+    [ text $ "Chain index receive block notification. " <> show numTransactions <> " transactions." ]
 
 emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
   div_

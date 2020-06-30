@@ -33,7 +33,7 @@ import           Ledger.Constraints                    (TxConstraints)
 import qualified Ledger.Constraints                    as Constraints
 import qualified Ledger.Interval                       as Interval
 import qualified Ledger.Typed.Scripts                  as Scripts
-import           Ledger.Validation                     (PendingTx, PendingTx' (..))
+import           Ledger.Validation                     (TxInfo (..), ValidatorCtx (..))
 import qualified Ledger.Validation                     as Validation
 import           Ledger.Value                          (Value)
 import qualified Ledger.Value                          as Value
@@ -154,9 +154,9 @@ isValidProposal vl (Payment amt _ _) = amt `Value.leq` vl
 
 {-# INLINABLE proposalExpired #-}
 -- | Check whether a proposed 'Payment' has expired.
-proposalExpired :: PendingTx -> Payment -> Bool
-proposalExpired PendingTx{pendingTxValidRange} Payment{paymentDeadline} =
-    paymentDeadline `Interval.before` pendingTxValidRange
+proposalExpired :: TxInfo -> Payment -> Bool
+proposalExpired TxInfo{txInfoValidRange} Payment{paymentDeadline} =
+    paymentDeadline `Interval.before` txInfoValidRange
 
 {-# INLINABLE proposalAccepted #-}
 -- | Check whether enough signatories (represented as a list of public keys)
@@ -170,14 +170,14 @@ proposalAccepted (Params signatories numReq) pks =
 -- | @valuePreserved v p@ is true if the pending transaction @p@ pays the amount
 --   @v@ to this script's address. It does not assert the number of such outputs:
 --   this is handled in the generic state machine validator.
-valuePreserved :: Value -> PendingTx -> Bool
-valuePreserved vl ptx = vl == Validation.valueLockedBy ptx (Validation.ownHash ptx)
+valuePreserved :: Value -> ValidatorCtx -> Bool
+valuePreserved vl ctx = vl == Validation.valueLockedBy (valCtxTxInfo ctx) (Validation.ownHash ctx)
 
 {-# INLINABLE valuePaid #-}
 -- | @valuePaid pm ptx@ is true if the pending transaction @ptx@ pays
 --   the amount specified in @pm@ to the public key address specified in @pm@
-valuePaid :: Payment -> PendingTx -> Bool
-valuePaid (Payment vl pk _) ptx = vl == (Validation.valuePaidTo ptx pk)
+valuePaid :: Payment -> TxInfo -> Bool
+valuePaid (Payment vl pk _) txinfo = vl == (Validation.valuePaidTo txinfo pk)
 
 {-# INLINABLE transition #-}
 transition :: Params -> State MSState -> Input -> Maybe (TxConstraints Void Void, State MSState)

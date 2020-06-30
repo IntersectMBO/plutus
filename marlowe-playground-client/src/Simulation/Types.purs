@@ -195,6 +195,8 @@ data Query a
   | ResizeEditor a
   | ResetContract a
   | WebsocketResponse (RemoteData String Result) a
+  | HasStarted (Boolean -> a)
+  | GetCurrentContract (String -> a)
 
 data Message
   = BlocklyCodeSet String
