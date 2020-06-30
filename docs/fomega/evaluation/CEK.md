@@ -15,12 +15,9 @@ I have formalised both of these version in Agda and they can used via
 
 The relevant files are:
 
-Version 1:
+[Version 1](../../../metatheory/Algorithmic/CEKV.lagda.md)
 
-https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKV.lagda.md
-
-Version 2:
-https://github.com/jmchapman/plutus/blob/master/metatheory/Algorithmic/CEKC.lagda.md
+[Version 2](../../../metatheory/Algorithmic/CEKC.lagda.md)
 
 ## 1. Value version
 
@@ -95,16 +92,16 @@ s ; ρ |> error A                |-> <> A
 ```
 Value configuration:
 ```
-.                          <| V          |-> [] V
-s , [_ (M,ρ)]              <| V          |-> s , [V _] ; ρ |> M
-s , [(lam x (M,ρ)) _]      <| V          |-> s ; ρ [ x |-> V ] |> M
-s , {_ A}                  <| abs α M    |-> s ; ρ |> M [ α / A ]*
-s , wrap A B _             <| V          |-> s <| wrap A B V
-s , unwrap _               <| wrap A B V |-> s <| V
-s , builtin b As Vs _ [] ρ <| V          |->
+.                                <| V           |-> [] V
+s , [_ (M,ρ)]                    <| V           |-> s , [V _] ; ρ |> M
+s , [(lam x (M,ρ)) _]            <| V           |-> s ; ρ [ x |-> V ] |> M
+s , {_ A}                        <| abs α (M,ρ) |-> s ; ρ |> M [ α / A ]*
+s , wrap A B _                   <| V           |-> s <| wrap A B V
+s , unwrap _                     <| wrap A B V  |-> s <| V
+s , builtin b As Vs _ [] ρ       <| V           |->
  | bn computes on As (Vs ++ [V]) to V'      = s <| V'
  | bn computes on As (VS ++ [V]) to error A = <> A
-s , builtin b As Vs _ (M ∷ Ms) ρ <| V    |->
+s , builtin b As Vs _ (M ∷ Ms) ρ <| V           |->
   s , builtin b As (Vs ++ [V]) _ Ms ρ ; ρ |> M
 ```
 
@@ -182,16 +179,16 @@ s ; ρ |> error A                |-> <> A
 ```
 Value configuration:
 ```
-.                                ; ρ <| V          |-> [] (V,ρ)
-s , [_ (M,ρ)]                    ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
-s , [(lam x (M,ρ')) _]           ; ρ <| V          |-> s ; ρ [ x |-> (V,ρ) ] |> M
-s , {_ A}                        ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
-s , wrap A B _                   ; ρ <| V          |-> s ; ρ <| wrap A B V
-s , unwrap _                     ; ρ <| wrap A B V |-> s ; ρ <| V
-s , builtin b As Cs _ [] ρ'      ; ρ <| V          |-> s ; ρ |> M
+.                                 ; ρ <| V          |-> [] (V,ρ)
+s , [_ (M,ρ)]                     ; ρ <| V          |-> s , [(V,ρ) _] ; ρ' |> M
+s , [(lam x (M,ρ')) _]            ; ρ <| V          |-> s ; ρ [ x |-> (V,ρ) ] |> M
+s , {_ A}                         ; ρ <| abs α M    |-> s ; ρ |> M [ α / A ]*
+s , wrap A B _                    ; ρ <| V          |-> s ; ρ <| wrap A B V
+s , unwrap _                      ; ρ <| wrap A B V |-> s ; ρ <| V
+s , builtin b As Cs _ [] ρ'       ; ρ <| V          |-> s ; ρ'' |> M
  where bn computes on As (Cs ++ [(V,ρ)]) to (M,ρ'')
-s , builtin b As Cs _ (M ∷ Ms) ρ ; ρ' <| V         |->
-  s , builtin b As (Cs ++ [(V,ρ')]) _ Ms ρ ; ρ |> M
+s , builtin b As Cs _ (M ∷ Ms) ρ' ; ρ <| V         |->
+  s , builtin b As (Cs ++ [(V,ρ)]) _ Ms ρ' ; ρ' |> M
 ```
 
 There is a bit of a descrepency in the
