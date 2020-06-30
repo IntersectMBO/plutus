@@ -400,6 +400,7 @@
         "language-plutus-core-create-cost-model" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
