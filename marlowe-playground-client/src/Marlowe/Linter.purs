@@ -46,7 +46,7 @@ import Data.Tuple.Nested ((/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), _accounts, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
@@ -165,7 +165,7 @@ termToRange a { row, column } =
 
 newtype LintEnv
   = LintEnv
-  { letBindings :: Set ValueId
+  { letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
   , deposits :: Set Semantics.AccountId
   }
@@ -176,7 +176,7 @@ derive newtype instance semigroupLintEnv :: Semigroup LintEnv
 
 derive newtype instance monoidLintEnv :: Monoid LintEnv
 
-_letBindings :: Lens' LintEnv (Set ValueId)
+_letBindings :: Lens' LintEnv (Set Semantics.ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 
 _maxTimeout :: Lens' LintEnv (TermWrapper Slot)
@@ -245,7 +245,9 @@ lint contractState contract = state
   where
   deposits = contractState ^. (_accounts <<< to Map.keys <<< to (Set.map fst))
 
-  env = set _deposits deposits mempty
+  bindings = contractState ^. (_boundValues <<< to Map.keys)
+
+  env = (set _letBindings bindings <<< set _deposits deposits) mempty
 
   state = CMS.execState (lintContract env contract) mempty
 
@@ -296,9 +298,13 @@ lintContract env (Term (When cases timeout@(TermWrapper slot pos) cont) _) = do
   pure unit
 
 lintContract env (Term (Let (TermWrapper valueId pos) value cont) _) = do
-  let
-    newEnv = over _letBindings (Set.insert valueId) env
-  when (Set.member valueId (view _letBindings env)) $ addWarning ShadowedLet valueId pos
+  newEnv <- case fromTerm valueId of
+    Just valueIdSem -> do
+      let
+        newEnv = over _letBindings (Set.insert valueIdSem) env
+      when (Set.member valueIdSem (view _letBindings env)) $ addWarning ShadowedLet valueId pos
+      pure newEnv
+    Nothing -> pure env
   sa <- lintValue env value
   markSimplification constToVal SimplifiableValue value sa
   lintContract newEnv cont
@@ -505,7 +511,12 @@ lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
 lintValue env t@(Term SlotIntervalEnd pos) = pure (ValueSimp pos false t)
 
 lintValue env t@(Term (UseValue (TermWrapper valueId _)) pos) = do
-  when (not $ Set.member valueId (view _letBindings env)) $ addWarning UndefinedUse t pos
+  when
+    ( case fromTerm valueId of
+        Just semValueId -> not $ Set.member semValueId (view _letBindings env)
+        Nothing -> false
+    )
+    (addWarning UndefinedUse t pos)
   pure (ValueSimp pos false t)
 
 lintValue env hole@(Hole _ _ pos) = do
