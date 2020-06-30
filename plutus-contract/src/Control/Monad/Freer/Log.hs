@@ -15,6 +15,11 @@ module Control.Monad.Freer.Log(
     , logDebug
     , logWarn
     , logInfo
+    , surround
+    , surroundDebug
+    , surroundInfo
+    , surroundWarn
+    -- * Handlers
     , writeToLog
     , ignoreLog
     , traceLog
@@ -25,7 +30,7 @@ import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
-import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace
@@ -59,6 +64,26 @@ logWarn m = tell [LogMessage Warn m]
 
 logInfo :: Member Log effs => Text -> Eff effs ()
 logInfo m = tell [LogMessage Info m]
+
+-- | Write a log message before and after an action.
+surround :: Member Log effs => LogLevel -> Text -> Eff effs a -> Eff effs a
+surround lvl txt action = do
+    tell [LogMessage lvl (txt <> " start")]
+    result <- action
+    tell [LogMessage lvl (txt <> " end")]
+    pure result
+
+-- | @surroundInfo = surround Info@
+surroundInfo :: Member Log effs => Text -> Eff effs a -> Eff effs a
+surroundInfo = surround Info
+
+-- | @surroundDebug = surround Debug@
+surroundDebug :: Member Log effs => Text -> Eff effs a -> Eff effs a
+surroundDebug = surround Debug
+
+-- | @surroundWarn = surround Warn@
+surroundWarn :: Member Log effs => Text -> Eff effs a -> Eff effs a
+surroundWarn = surround Warn
 
 -- | Re-interpret a 'Writer' effect by writing the events to the log
 writeToLog ::
