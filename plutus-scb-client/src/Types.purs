@@ -15,15 +15,16 @@ import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
 import Data.UUID as UUID
+import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
 import Playground.Types (FunctionSchema)
-import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, PartiallyDecodedResponse, ContractSCBRequest)
+import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, FullReport, _ChainReport, _ContractReport)
+import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, FullReport, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -88,11 +89,17 @@ _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 _utxoIndex :: forall t. Lens' (ChainReport t) UtxoIndex
 _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
 
-_installedContracts :: forall t. Lens' (ContractReport t) (Array t)
-_installedContracts = _ContractReport <<< prop (SProxy :: SProxy "installedContracts")
+_crAvailableContracts :: forall t. Lens' (ContractReport t) (Array (ContractSignatureResponse t))
+_crAvailableContracts = _ContractReport <<< prop (SProxy :: SProxy "crAvailableContracts")
+
+_crActiveContractStates :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
+_crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveContractStates")
+
+_csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
+_csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefinition")
 
 _contractStates :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
-_contractStates = _ContractReport <<< prop (SProxy :: SProxy "contractStates")
+_contractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveContractStates")
 
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
@@ -100,8 +107,17 @@ _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")
 _csCurrentState :: forall t. Lens' (ContractInstanceState t) (PartiallyDecodedResponse ContractSCBRequest)
 _csCurrentState = _Newtype <<< prop (SProxy :: SProxy "csCurrentState")
 
+_csContractDefinition :: forall t. Lens' (ContractInstanceState t) t
+_csContractDefinition = _ContractInstanceState <<< prop (SProxy :: SProxy "csContractDefinition")
+
 _hooks :: forall t. Lens' (PartiallyDecodedResponse t) (Array (Request t))
 _hooks = _Newtype <<< prop (SProxy :: SProxy "hooks")
+
+_activeEndpoint :: Lens' ActiveEndpoint EndpointDescription
+_activeEndpoint = _Newtype <<< prop (SProxy :: SProxy "aeDescription")
+
+_rqRequest :: forall t. Lens' (Request t) t
+_rqRequest = _Newtype <<< prop (SProxy :: SProxy "rqRequest")
 
 _contractPath :: Lens' ContractExe String
 _contractPath = _Newtype <<< prop (SProxy :: SProxy "contractPath")
