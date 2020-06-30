@@ -12,6 +12,7 @@
 
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -19,6 +20,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
 
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
@@ -64,7 +66,6 @@ import           Language.PlutusCore.Mark
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
-import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
@@ -83,6 +84,35 @@ The CEK machine does not rely on the global uniqueness condition, so the renamer
 prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
+type TermWithMem uni = WithMemory Term uni
+type TypeWithMem uni = Type TyName uni ExMemory
+type KindWithMem = Kind ExMemory
+
+-- 'Values' for the modified CEK machine.
+data Val uni =
+    VCon (TermWithMem uni)
+  | VTyAbs TyName KindWithMem (TermWithMem uni) (ValEnv uni)
+  | VLamAbs Name (TypeWithMem uni) (TermWithMem uni) (ValEnv uni)
+  | VIWrap (TypeWithMem uni) (TypeWithMem uni) (Val uni)
+  | VBuiltin StagedBuiltinName [TypeWithMem uni] [TermWithMem uni] (ValEnv uni)
+    -- Builtin appplication, perhaps partial; term args are in fact constants/variables
+    deriving (Show)
+
+mem0 :: ExMemory
+mem0 = ExMemory 0
+
+dischargeVal :: Val uni -> WithMemory Term uni
+dischargeVal = \case
+    VCon t -> t
+    VTyAbs tn k body _env -> TyAbs mem0 tn k body
+    VLamAbs name ty body _env -> LamAbs mem0 name ty body
+    VIWrap ty1 ty2 val -> IWrap mem0 ty1 ty2 $ dischargeVal val
+    VBuiltin{} -> error "Discharging VBuiltin"
+    -- We'll only get this with a stuck partial application - should really make it back into a proper term
+
+
+type ValEnv uni = UniqueMap TermUnique (Val uni)
+
 data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
     | CekEvaluationFailure -- ^ Error has been called.
@@ -100,19 +130,11 @@ instance Pretty CekUserError where
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
 -- | A 'Value' packed together with the environment it's defined in.
-data Closure uni = Closure
-    { _closureVarEnv :: VarEnv uni
-    , _closureValue  :: WithMemory Value uni
-    } deriving (Show)
-
--- | Variable environments used by the CEK machine.
--- Each row is a mapping from the 'Unique' representing a variable to a 'Closure'.
-type VarEnv uni = UniqueMap TermUnique (Closure uni)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
     { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
-    , _cekEnvVarEnv            :: VarEnv uni
+    , _cekEnvVarEnv            :: ValEnv uni
     , _cekEnvBudgetMode        :: ExBudgetMode
     , _cekEnvBuiltinCostParams :: CostModel
     }
@@ -136,13 +158,22 @@ instance SpendBudget (CekM uni) uni where
                     throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
     builtinCostParams = view cekEnvBuiltinCostParams
 
+{-
+ f := [_ (M,ρ) ]
+   | [V _]
+   | {_ A}
+   | wrap A B _
+   | unwrap _
+   | builtin b As Vs _ Ms ρ
+-}
+
 data Frame uni
-    = FrameApplyFun (VarEnv uni) (WithMemory Value uni)                          -- ^ @[V _]@
-    | FrameApplyArg (VarEnv uni) (WithMemory Term uni)                           -- ^ @[_ N]@
+    = FrameApplyFun (Val uni)                                                    -- ^ @[V _]@
+    | FrameApplyArg (ValEnv uni) (WithMemory Term uni)                           -- ^ @[_ N]@
     | FrameTyInstArg (Type TyName uni ExMemory)                                  -- ^ @{_ A}@
     | FrameUnwrap                                                                -- ^ @(unwrap _)@
     | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
-    deriving (Show)
+ deriving (Show)
 
 type Context uni = [Frame uni]
 
@@ -154,29 +185,29 @@ runCekM
     -> (Either (CekEvaluationException uni) a, ExBudgetState)
 runCekM env s a = runState (runQuoteT . runExceptT $ runReaderT a env) s
 
--- | Get the current 'VarEnv'.
-getVarEnv :: CekM uni (VarEnv uni)
-getVarEnv = asks _cekEnvVarEnv
+-- | Get the current 'ValEnv'.
+getEnv :: CekM uni (ValEnv uni)
+getEnv = asks _cekEnvVarEnv
 
 -- | Set a new 'VarEnv' and proceed.
-withVarEnv :: VarEnv uni -> CekM uni a -> CekM uni a
-withVarEnv venv = local (set cekEnvVarEnv venv)
+withEnv :: ValEnv uni -> CekM uni a -> CekM uni a
+withEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendVarEnv :: Name -> WithMemory Value uni -> VarEnv uni -> VarEnv uni -> VarEnv uni
-extendVarEnv argName arg argVarEnv =
-    insertByName argName $ Closure argVarEnv arg
+extendEnv :: Name -> Val uni -> ValEnv uni -> ValEnv uni
+extendEnv argName arg  =
+    insertByName argName arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekM uni (Closure uni)
+lookupVarName :: Name -> CekM uni (Val uni)
 lookupVarName varName = do
-    varEnv <- getVarEnv
+    varEnv <- getEnv
     case lookupName varName varEnv of
         Nothing   -> throwingWithCause _MachineError
             OpenTermEvaluatedMachineError
             (Just . Var () $ varName)
-        Just clos -> pure clos
+        Just val -> pure val
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning uni)
@@ -190,6 +221,7 @@ lookupDynamicBuiltinName dynName = do
 
 -- See Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
+{-
 dischargeVarEnv :: VarEnv uni -> WithMemory Term uni -> WithMemory Term uni
 dischargeVarEnv varEnv =
     -- We recursively discharge the environments of closures, but we will gradually end up doing
@@ -198,7 +230,7 @@ dischargeVarEnv varEnv =
     termSubstFreeNames $ \name -> do
         Closure varEnv' term' <- lookupName name varEnv
         Just $ dischargeVarEnv varEnv' term'
-
+-}
 {- Note [Dropping environments of arguments]
 The CEK machine sometimes keeps in the environment those variables that are no longer required.
 This is a fundamental limitation of the CEK machine as it lacks garbage collection.
@@ -236,32 +268,48 @@ substitution, anything).
 -- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
+
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> WithMemory Term uni -> CekM uni (Plain Term uni)
-computeCek con t@(TyInst _ body ty) = do
+-- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
+computeCek ctx t@(TyInst _ body ty) = do
     spendBudget BTyInst t (ExBudget 1 1) -- TODO
-    computeCek (FrameTyInstArg ty : con) body
-computeCek con t@(Apply _ fun arg) = do
+    computeCek (FrameTyInstArg ty : ctx) body
+-- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
+computeCek ctx t@(Apply _ fun arg) = do
     spendBudget BApply t (ExBudget 1 1) -- TODO
-    varEnv <- getVarEnv
-    computeCek (FrameApplyArg varEnv arg : con) fun
-computeCek con t@(IWrap ann pat arg term) = do
+    env <- getEnv
+    computeCek (FrameApplyArg env arg : ctx) fun
+-- s ; ρ ▻ wrap A B L  ↦  s , wrap A B _ ; ρ ▻ L
+computeCek ctx t@(IWrap ann pat arg term) = do
     spendBudget BIWrap t (ExBudget 1 1) -- TODO
-    computeCek (FrameIWrap ann pat arg : con) term
-computeCek con t@(Unwrap _ term) = do
+    computeCek (FrameIWrap ann pat arg : ctx) term
+-- s ; ρ ▻ unwrap L  ↦  s , unwrap _ ; ρ ▻ L
+computeCek ctx t@(Unwrap _ term) = do
     spendBudget BUnwrap t (ExBudget 1 1) -- TODO
-    computeCek (FrameUnwrap : con) term
-computeCek con tyAbs@TyAbs{}       = returnCek con tyAbs
-computeCek con lamAbs@LamAbs{}     = returnCek con lamAbs
-computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
-computeCek con bi@Builtin{}        = returnCek con bi
+    computeCek (FrameUnwrap : ctx) term
+-- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
+computeCek ctx (TyAbs _ tn k body)  = do
+    env <- getEnv
+    returnCek ctx (VTyAbs tn k body env)
+-- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
+computeCek ctx (LamAbs _ name ty body)  = do
+    env <- getEnv
+    returnCek ctx (VLamAbs name ty body env)
+-- s ; ρ ▻ con c  ↦  s ◅ con c
+computeCek ctx constant@Constant{} = returnCek ctx (VCon constant)
+computeCek ctx (Builtin _ bn)        = do
+  env <- getEnv
+  returnCek ctx (VBuiltin (constantAsStagedBuiltinName bn) [] [] env)
+-- s ; ρ ▻ error A  ↦  <> A
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
-computeCek con t@(Var _ varName)   = do
+--  s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
+computeCek ctx t@(Var _ varName)   = do
     spendBudget BVar t (ExBudget 1 1) -- TODO
-    Closure newVarEnv term <- lookupVarName varName
-    withVarEnv newVarEnv $ returnCek con term
+    val <- lookupVarName varName
+    returnCek ctx val
 
 -- | The returning part of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -270,24 +318,36 @@ computeCek con t@(Var _ varName)   = do
 -- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
 -- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
 -- 4. grows the resulting term ('FrameWrap')
+
+-- s , builtin b As Vs _ [] ρ ◅ V           ↦
+--  | bn computes on As (Vs ++ [V]) to V'      = s ◅ V'
+--  | bn computes on As (VS ++ [V]) to error A = <> A
+-- s , builtin b As Vs _ (M ∷ Ms) ρ ◅ V     ↦  s , builtin b As (Vs ++ [V]) _ Ms ρ ; ρ ▻ M
+
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> WithMemory Value uni -> CekM uni (Plain Term uni)
--- Instantiate all the free variable of the resulting term in case there are any.
-returnCek [] res = getVarEnv <&> \varEnv -> void $ dischargeVarEnv varEnv res
-returnCek (FrameTyInstArg ty : con) fun = instantiateEvaluate con ty fun
-returnCek (FrameApplyArg argVarEnv arg : con) fun = do
-    funVarEnv <- getVarEnv
-    withVarEnv argVarEnv $ computeCek (FrameApplyFun funVarEnv fun : con) arg
-returnCek (FrameApplyFun funVarEnv fun : con) arg = do
-    argVarEnv <- getVarEnv
-    applyEvaluate funVarEnv argVarEnv con fun arg
-returnCek (FrameIWrap ann pat arg : con) val =
-    returnCek con $ IWrap ann pat arg val
-returnCek (FrameUnwrap : con) dat = case dat of
-    IWrap _ _ _ term -> returnCek con term
-    term             ->
-        throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just (void term)
+    => Context uni -> Val uni -> CekM uni (Plain Term uni)
+--- Instantiate all the free variable of the resulting term in case there are any.
+-- . ◅ V           ↦  [] V
+returnCek [] val = pure $ void $ dischargeVal val
+-- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
+returnCek (FrameTyInstArg ty : ctx) fun = instantiateEvaluate ctx ty fun
+-- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
+returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
+    -- funVarEnv <- getEnv
+    withEnv argVarEnv $ computeCek (FrameApplyFun fun : ctx) arg
+-- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
+returnCek (FrameApplyFun fun : ctx) arg = do
+    applyEvaluate ctx fun arg
+-- s , wrap A B _ ◅ V  ↦  s ◅ wrap A B V
+returnCek (FrameIWrap _ pat arg : ctx) val =
+    returnCek ctx $ VIWrap pat arg val
+-- s , unwrap _ ◅ wrap A B V  ↦  s ◅ V
+returnCek (FrameUnwrap : ctx) val =
+    case val of
+      VIWrap _ _ v -> returnCek ctx v
+      _            ->
+        throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Nothing -- Just (void val)
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -295,71 +355,45 @@ returnCek (FrameUnwrap : con) dat = case dat of
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> Type TyName uni ExMemory -> WithMemory Term uni -> CekM uni (Plain Term uni)
-instantiateEvaluate con _ (TyAbs _ _ _ body) = computeCek con body
-instantiateEvaluate con ty fun
-    | isJust $ termAsPrimIterApp fun = returnCek con $ TyInst (memoryUsage () <> memoryUsage fun <> memoryUsage ty) fun ty
-    | otherwise                      =
-        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void fun)
+    => Context uni -> Type TyName uni ExMemory -> Val uni -> CekM uni (Plain Term uni)
+instantiateEvaluate ctx _ (VTyAbs _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
+instantiateEvaluate ctx ty (VBuiltin bn tyargs args env) =
+    case args of
+      [] -> returnCek ctx $ VBuiltin bn (ty:tyargs) args env  -- The types will be the wrong way round, but we never use them.
+      _  -> error "Builtin instantiation after term argument"
+instantiateEvaluate _ _ val =
+        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
-{- Note [Saved mapping example]
-Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
 
-    id : all a. a -> a
+-- We're applying a builtin to a list of Vals.  As before, if we've
+-- got a const, feed it directly to the builtin. Otherwise, extend the
+-- environment with a new variable bound to the Val and feed that to
+-- the builtin instead and continue.
 
-Notation:
-
-- the variable environment is denoted as @{ <var> :-> (<env>, <value>), ... }@
-- the context is denoted as a Haskell list of 'Frame's
-- 'computeCek' is denoted as @(|>)@
-- 'returnCek' is denoted as @(<|)@
-
-When evaluating
-
-    id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
-
-We encounter the following state:
-
-    { i :-> ({}, 1) }
-    [ FrameApplyFun {} (id {integer -> integer})
-    , FrameApplyArg {} 0
-    ] |> \(j : integer) -> i
-
-and transition it into
-
-    { arg :-> ({ i :-> ({}, 1) }, \(j : integer) -> i) }
-    [ FrameApplyArg {} 0
-    ] <| id {integer -> integer} arg
-
-i.e. if the argument is not a constant, then we create a new variable, save the old environment in
-the closure of that variable and apply the function to the variable. This allows to restore the old
-environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
-
-    (\(j : integer) -> i)) 0
-
-which evaluates to @1@ in the old environment.
--}
-
--- See Note [Saved mapping example].
--- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
--- | If an argument to a built-in function is a constant, then feed it directly to the continuation
--- that handles the argument and invoke the continuation in the caller's environment.
--- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
--- the created variable to the continuation and invoke the continuation in the caller's environment
--- extended with a mapping from the created variable to the closure (i.e. original argument +
--- its environment). The "otherwise" is only supposed to happen when handling an argument to a
--- polymorphic built-in function.
-withScopedArgIn
-    :: VarEnv uni                            -- ^ The caller's envorinment.
-    -> VarEnv uni                            -- ^ The argument's environment.
-    -> WithMemory Value uni                  -- ^ The argument.
-    -> (WithMemory Value uni -> CekM uni a)  -- ^ A continuation handling the argument.
+{-withScopedArgIn
+    :: ValEnv uni               -- ^ The caller's envorinment.
+    -> ValEnv uni               -- ^ The argument's environment.
+    -> Val uni                  -- ^ The argument.
+    -> (Val uni -> CekM uni a)  -- ^ A continuation handling the argument.
     -> CekM uni a
-withScopedArgIn funVarEnv _         arg@Constant{} k = withVarEnv funVarEnv $ k arg
+withScopedArgIn funVarEnv _         arg@Constant{} k = withEnv funVarEnv $ k arg
 withScopedArgIn funVarEnv argVarEnv arg            k = do
     let cost = memoryUsage ()
     argName <- freshName "arg"
-    withVarEnv (extendVarEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
+    withEnv (extendEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
+-}
+
+getScopedArg :: Val uni -> ValEnv uni -> CekM uni (TermWithMem uni, ValEnv uni)
+getScopedArg val env =
+    case val of
+      VCon t -> pure (t, env)
+      _ -> do
+        argName <- freshName "arg"
+        let cost = memoryUsage ()
+            env' = extendEnv argName val env
+        pure (Var cost argName, env')
+
+
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -369,25 +403,23 @@ withScopedArgIn funVarEnv argVarEnv arg            k = do
 -- depending on whether 'BuiltinName' is saturated or not.
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => VarEnv uni
-    -> VarEnv uni
-    -> Context uni
-    -> WithMemory Value uni
-    -> WithMemory Value uni
+    =>  -- ValEnv uni ->
+       Context uni
+    -> Val uni   -- lsh of application
+    -> Val uni   -- rhs of application
     -> CekM uni (Plain Term uni)
-applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
-    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
-applyEvaluate funVarEnv argVarEnv con fun arg = do
-    withScopedArgIn funVarEnv argVarEnv arg $ \arg' ->
-        let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg') fun arg'
-        in case termAsPrimIterApp term of
-            Nothing                       ->
-                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
-            Just (IterApp headName spine) -> do
-                constAppResult <- applyStagedBuiltinName headName spine
-                case constAppResult of
-                    ConstAppSuccess res -> computeCek con res
-                    ConstAppStuck       -> returnCek con term
+applyEvaluate ctx (VLamAbs name _ty body env) arg =
+    withEnv (extendEnv name arg env) $ computeCek ctx body
+applyEvaluate ctx (VBuiltin bn tyargs args env) arg =
+    do
+      (arg', env') <- getScopedArg arg env
+      withEnv env' $ do
+        let args' = arg':args
+        constAppResult <- applyStagedBuiltinName bn (reverse args')
+        case constAppResult of
+          ConstAppSuccess res -> computeCek ctx res
+          ConstAppStuck       -> returnCek ctx (VBuiltin bn tyargs args' env')
+applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -458,3 +490,53 @@ readKnownCek
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
 readKnownCek means params = evaluateCek means params >=> readKnown
+
+
+{- Note [Saved mapping example]
+Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
+
+    id : all a. a -> a
+
+Notation:
+
+- the variable environment is denoted as @{ <var> :-> (<env>, <value>), ... }@
+- the context is denoted as a Haskell list of 'Frame's
+- 'computeCek' is denoted as @(▻)@
+- 'returnCek' is denoted as @(◅)@
+
+When evaluating
+
+    id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+
+We encounter the following state:
+
+    { i :-> ({}, 1) }
+    [ FrameApplyFun {} (id {integer -> integer})
+    , FrameApplyArg {} 0
+    ] ▻ \(j : integer) -> i
+
+and transition it into
+
+    { arg :-> ({ i :-> ({}, 1) }, \(j : integer) -> i) }
+    [ FrameApplyArg {} 0
+    ] ◅ id {integer -> integer} arg
+
+i.e. if the argument is not a constant, then we create a new variable, save the old environment in
+the closure of that variable and apply the function to the variable. This allows to restore the old
+environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
+
+    (\(j : integer) -> i)) 0
+
+which evaluates to @1@ in the old environment.
+-}
+
+-- See Note [Saved mapping example].
+-- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
+-- | If an argument to a built-in function is a constant, then feed it directly to the continuation
+-- that handles the argument and invoke the continuation in the caller's environment.
+-- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
+-- the created variable to the continuation and invoke the continuation in the caller's environment
+-- extended with a mapping from the created variable to the closure (i.e. original argument +
+-- its environment). The "otherwise" is only supposed to happen when handling an argument to a
+-- polymorphic built-in function.
+
