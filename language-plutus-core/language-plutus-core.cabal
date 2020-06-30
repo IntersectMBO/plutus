@@ -382,6 +382,7 @@ benchmark language-plutus-core-create-cost-model
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        barbies -any,
         bytestring -any,
         containers -any,
         language-plutus-core -any,
