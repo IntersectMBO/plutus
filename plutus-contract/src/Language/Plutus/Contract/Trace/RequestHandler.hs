@@ -1,10 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE MonoLocalBinds #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE MonoLocalBinds     #-}
 {-# LANGUAGE NamedFieldPuns     #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
@@ -23,33 +23,35 @@ module Language.Plutus.Contract.Trace.RequestHandler(
     , handleNextTxAtQueries
     ) where
 
-import           Control.Applicative                (Alternative (empty))
-import           Control.Arrow                      (Arrow, Kleisli (..))
-import Control.Category (Category)
-import Data.Foldable (traverse_)
-import qualified Ledger.AddressMap as AM
+import           Control.Applicative                               (Alternative (empty))
+import           Control.Arrow                                     (Arrow, Kleisli (..))
+import           Control.Category                                  (Category)
 import           Control.Lens
-import           Control.Monad                      (foldM, guard)
+import           Control.Monad                                     (foldM, guard)
 import           Control.Monad.Freer
 import qualified Control.Monad.Freer.Error                         as Eff
-import           Control.Monad.Freer.NonDet         (NonDet)
-import qualified Control.Monad.Freer.NonDet         as NonDet
-import qualified Data.Map as Map
-import           Data.Monoid                        (Alt (..), Ap (..))
-import qualified Data.Text as Text
+import           Control.Monad.Freer.NonDet                        (NonDet)
+import qualified Control.Monad.Freer.NonDet                        as NonDet
+import           Data.Foldable                                     (traverse_)
+import qualified Data.Map                                          as Map
+import           Data.Monoid                                       (Alt (..), Ap (..))
+import qualified Data.Text                                         as Text
+import qualified Ledger.AddressMap                                 as AM
 
-import           Language.Plutus.Contract.Resumable (Request (..), Response (..))
+import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import Ledger (PubKey, Slot, Tx, Address, TxId)
-import           Ledger.AddressMap                          (AddressMap(..))
-import           Ledger.Constraints.OffChain (UnbalancedTx(unBalancedTxTx))
-import Control.Monad.Freer.Log (Log, surroundDebug, logWarn, logDebug)
-import qualified Wallet.Effects
-import Language.Plutus.Contract.Effects.UtxoAt (UtxoAtAddress(..))
-import Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed(..))
-import Wallet.Effects (WalletEffect, SigningProcessEffect, ChainIndexEffect, AddressChangeRequest(..), AddressChangeResponse)
-import           Wallet.API                                        (WalletAPIError)
+import           Control.Monad.Freer.Log                           (Log, logDebug, logWarn, surroundDebug)
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
+import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
+import           Ledger                                            (Address, PubKey, Slot, Tx, TxId)
+import           Ledger.AddressMap                                 (AddressMap (..))
+import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
+import           Wallet.API                                        (WalletAPIError)
+import           Wallet.Effects                                    (AddressChangeRequest (..), AddressChangeResponse,
+                                                                    ChainIndexEffect, SigningProcessEffect,
+                                                                    WalletEffect)
+import qualified Wallet.Effects
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -88,7 +90,7 @@ handleOwnPubKey ::
     , Member Log effs
     )
     => RequestHandler effs a PubKey
-handleOwnPubKey = 
+handleOwnPubKey =
     RequestHandler $ \_ ->
         surroundDebug "handleOwnPubKey" Wallet.Effects.ownPubKey
 
@@ -99,7 +101,7 @@ handleSlotNotifications ::
     )
     => RequestHandler effs Slot Slot
 handleSlotNotifications =
-    RequestHandler $ \targetSlot -> 
+    RequestHandler $ \targetSlot ->
         surroundDebug "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.walletSlot
             logDebug $ Text.pack $ "targetSlot: " <> show targetSlot <> "; current slot: " <> show currentSlot

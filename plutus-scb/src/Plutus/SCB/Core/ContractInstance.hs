@@ -26,51 +26,50 @@ module Plutus.SCB.Core.ContractInstance(
     , callContractEndpoint
     ) where
 
-import Control.Arrow ((>>>), (>>^))
+import           Control.Arrow                                   ((>>>), (>>^))
 import           Control.Lens
-import           Control.Monad                                     (void, when)
+import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                         (Error, throwError)
+import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
-import qualified Data.Aeson                                        as JSON
-import           Data.Foldable                                     (traverse_)
-import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (mapMaybe)
-import           Data.Semigroup                                    (Last (..))
-import qualified Data.Set                                          as Set
-import qualified Data.Text                                         as Text
-import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, (<+>))
+import qualified Data.Aeson                                      as JSON
+import           Data.Foldable                                   (traverse_)
+import qualified Data.Map                                        as Map
+import           Data.Maybe                                      (mapMaybe)
+import           Data.Semigroup                                  (Last (..))
+import qualified Data.Set                                        as Set
+import qualified Data.Text                                       as Text
+import           Data.Text.Prettyprint.Doc                       (Pretty, pretty, (<+>))
 
-import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
-                                                                    EndpointValue (..))
-import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse (..))
-import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), extract, tryHandler,
-                                                                    wrapHandler, maybeToHandler)
-import qualified Language.Plutus.Contract.Trace.RequestHandler as RequestHandler
+import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
+                                                                  EndpointValue (..))
+import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
+import           Language.Plutus.Contract.Resumable              (Request (..), Response (..))
+import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), extract, maybeToHandler,
+                                                                  tryHandler, wrapHandler)
+import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
-import           Wallet.Effects                                    (ChainIndexEffect,
-                                                                    SigningProcessEffect, WalletEffect)
+import           Wallet.Effects                                  (ChainIndexEffect, SigningProcessEffect, WalletEffect)
 
-import           Plutus.SCB.Command                                (saveBalancedTx, saveBalancedTxResult,
-                                                                    saveContractState, sendContractEvent)
-import           Plutus.SCB.Effects.Contract                       (ContractCommand (..), ContractEffect)
-import qualified Plutus.SCB.Effects.Contract                       as Contract
-import           Plutus.SCB.Effects.EventLog                       (EventLogEffect, runCommand, runGlobalQuery)
-import           Plutus.SCB.Effects.UUID                           (UUIDEffect, uuidNextRandom)
-import           Plutus.SCB.Events                                 (ChainEvent (..))
-import           Plutus.SCB.Events.Contract                        (ContractEvent (..), ContractInstanceId (..),
-                                                                    ContractInstanceState (..), ContractResponse (..),
-                                                                    ContractSCBRequest (..),
-                                                                    PartiallyDecodedResponse (..),
-                                                                    unContractHandlersResponse)
-import qualified Plutus.SCB.Events.Contract                        as Events.Contract
-import qualified Plutus.SCB.Query                                  as Query
-import           Plutus.SCB.Types                                  (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
-import           Plutus.SCB.Utils                                  (render, tshow)
+import           Plutus.SCB.Command                              (saveBalancedTx, saveBalancedTxResult,
+                                                                  saveContractState, sendContractEvent)
+import           Plutus.SCB.Effects.Contract                     (ContractCommand (..), ContractEffect)
+import qualified Plutus.SCB.Effects.Contract                     as Contract
+import           Plutus.SCB.Effects.EventLog                     (EventLogEffect, runCommand, runGlobalQuery)
+import           Plutus.SCB.Effects.UUID                         (UUIDEffect, uuidNextRandom)
+import           Plutus.SCB.Events                               (ChainEvent (..))
+import           Plutus.SCB.Events.Contract                      (ContractEvent (..), ContractInstanceId (..),
+                                                                  ContractInstanceState (..), ContractResponse (..),
+                                                                  ContractSCBRequest (..),
+                                                                  PartiallyDecodedResponse (..),
+                                                                  unContractHandlersResponse)
+import qualified Plutus.SCB.Events.Contract                      as Events.Contract
+import qualified Plutus.SCB.Query                                as Query
+import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
+import           Plutus.SCB.Utils                                (render, tshow)
 
-import qualified Plutus.SCB.Core.Projections                       as Projections
+import qualified Plutus.SCB.Core.Projections                     as Projections
 
 sendContractStateMessages ::
     forall t effs.
@@ -288,7 +287,7 @@ processOwnPubkeyRequests ::
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processOwnPubkeyRequests = 
+processOwnPubkeyRequests =
     maybeToHandler (extract Events.Contract._OwnPubkeyRequest) >>>
         fmap OwnPubkeyResponse RequestHandler.handleOwnPubKey
 
@@ -298,10 +297,10 @@ processAwaitSlotRequests ::
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processAwaitSlotRequests = 
+processAwaitSlotRequests =
     maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
     >>> RequestHandler.handleSlotNotifications
-    >>^ AwaitSlotResponse 
+    >>^ AwaitSlotResponse
 
 processUtxoAtRequests ::
     forall effs.
@@ -309,7 +308,7 @@ processUtxoAtRequests ::
     , Member Log effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processUtxoAtRequests = 
+processUtxoAtRequests =
     maybeToHandler (extract Events.Contract._UtxoAtRequest)
     >>> RequestHandler.handleUtxoQueries
     >>^ UtxoAtResponse
@@ -323,7 +322,7 @@ processWriteTxRequests ::
     , Member SigningProcessEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processWriteTxRequests = 
+processWriteTxRequests =
     let store result = case result of
             Left err -> pure (Left err)
             Right signedTx -> do
@@ -345,7 +344,7 @@ processNextTxAtRequests ::
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processNextTxAtRequests = 
+processNextTxAtRequests =
     maybeToHandler (extract Events.Contract._NextTxAtRequest)
     >>> RequestHandler.handleNextTxAtQueries
     >>^ NextTxAtResponse
@@ -356,7 +355,7 @@ processTxConfirmedRequests ::
     , Member Log effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processTxConfirmedRequests = 
+processTxConfirmedRequests =
     maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
     >>> RequestHandler.handleTxConfirmedQueries
     >>^ AwaitTxConfirmedResponse

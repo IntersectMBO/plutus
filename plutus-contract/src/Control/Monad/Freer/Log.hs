@@ -30,7 +30,7 @@ import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
-import           Data.Text.Prettyprint.Doc hiding (surround)
+import           Data.Text.Prettyprint.Doc               hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace

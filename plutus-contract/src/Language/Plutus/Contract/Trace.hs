@@ -73,7 +73,7 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import Control.Arrow ((>>>), (>>^))
+import           Control.Arrow                                     ((>>>), (>>^))
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
 import           Control.Monad.Except
@@ -103,7 +103,7 @@ import qualified Language.Plutus.Contract.Types                    as Contract.T
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
 import qualified Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
-import Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed(..))
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint   as Endpoint
@@ -113,8 +113,9 @@ import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Language.Plutus.Contract.Resumable                (Request (..), Requests (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), tryHandler, wrapHandler, maybeToHandler)
-import qualified Language.Plutus.Contract.Trace.RequestHandler as RequestHandler
+import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), maybeToHandler, tryHandler,
+                                                                    wrapHandler)
+import qualified Language.Plutus.Contract.Trace.RequestHandler     as RequestHandler
 import           Language.Plutus.Contract.Types                    (ResumableResult (..))
 
 import qualified Ledger.Ada                                        as Ada
@@ -437,7 +438,7 @@ handleSlotNotifications ::
     ( HasAwaitSlot s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleSlotNotifications = 
+handleSlotNotifications =
     maybeToHandler AwaitSlot.request
     >>> RequestHandler.handleSlotNotifications
     >>^ AwaitSlot.event
@@ -592,7 +593,7 @@ handlePendingTransactions ::
     ( HasWriteTx s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handlePendingTransactions = 
+handlePendingTransactions =
     maybeToHandler WriteTx.pendingTransaction
     >>> RequestHandler.handlePendingTransactions
     >>^ WriteTx.event . view (from WriteTx.writeTxResponse)
@@ -603,25 +604,25 @@ handleUtxoQueries ::
     ( HasUtxoAt s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleUtxoQueries = 
+handleUtxoQueries =
     maybeToHandler UtxoAt.utxoAtRequest
     >>> RequestHandler.handleUtxoQueries
     >>^ UtxoAt.event
-    
+
 handleTxConfirmedQueries ::
     ( HasTxConfirmation s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleTxConfirmedQueries = 
+handleTxConfirmedQueries =
     maybeToHandler AwaitTxConfirmed.txId
     >>> RequestHandler.handleTxConfirmedQueries
-    >>^ AwaitTxConfirmed.event . unTxConfirmed 
+    >>^ AwaitTxConfirmed.event . unTxConfirmed
 
 handleNextTxAtQueries
     :: ( HasWatchAddress s
        )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleNextTxAtQueries = 
+handleNextTxAtQueries =
     maybeToHandler WatchAddress.watchAddressRequest
     >>> RequestHandler.handleNextTxAtQueries
     >>^ WatchAddress.event

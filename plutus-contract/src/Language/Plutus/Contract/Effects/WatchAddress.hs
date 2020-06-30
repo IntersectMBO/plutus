@@ -37,7 +37,7 @@ import qualified Ledger.AddressMap                          as AM
 import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
 import qualified Ledger.Value                               as V
 
-import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, currentSlot, awaitSlot)
+import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
 import           Language.Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
 import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
