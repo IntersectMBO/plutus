@@ -134,7 +134,9 @@ handleUtxoQueries = RequestHandler $ \addr ->
     surroundDebug "handleUtxoQueries" $ do
         Wallet.Effects.startWatching addr
         AddressMap utxoSet <- Wallet.Effects.watchedAddresses
-        maybe empty (pure . UtxoAtAddress addr) $ Map.lookup addr utxoSet
+        case Map.lookup addr utxoSet of
+            Nothing -> empty
+            Just s  -> pure (UtxoAtAddress addr s)
 
 handleTxConfirmedQueries ::
     forall effs.
