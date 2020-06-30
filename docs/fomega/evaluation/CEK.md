@@ -15,13 +15,9 @@ I have formalised both of these version in Agda and they can used via
 
 The relevant files are:
 
-Version 1:
+[Version 1](../../../metatheory/Algorithmic/CEKV.lagda.md)
 
-https://github.com/input-output-hk/plutus/blob/master/metatheory/Algorithmic/CEKV.lagda.md
-
-Version 2:
-
-https://github.com/input-output-hk/plutus/blob/master/metatheory/Algorithmic/CEKC.lagda.md
+[Version 2](../../../metatheory/Algorithmic/CEKC.lagda.md)
 
 ## 1. Value version
 
