@@ -73,7 +73,7 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import Control.Category ((>>>))
+import Control.Arrow ((>>>), (>>^))
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
 import           Control.Monad.Except
@@ -438,7 +438,9 @@ handleSlotNotifications ::
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleSlotNotifications = 
-    maybeToHandler AwaitSlot.request >>> fmap AwaitSlot.event RequestHandler.handleSlotNotifications
+    maybeToHandler AwaitSlot.request
+    >>> RequestHandler.handleSlotNotifications
+    >>^ AwaitSlot.event
 
 -- | Check whether the wallet's contract instance is waiting to be notified
 --   of a slot, and send the notification.
@@ -591,8 +593,9 @@ handlePendingTransactions ::
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handlePendingTransactions = 
-    maybeToHandler WriteTx.pendingTransaction >>>
-        fmap (WriteTx.event . view (from WriteTx.writeTxResponse)) RequestHandler.handlePendingTransactions
+    maybeToHandler WriteTx.pendingTransaction
+    >>> RequestHandler.handlePendingTransactions
+    >>^ WriteTx.event . view (from WriteTx.writeTxResponse)
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
@@ -601,30 +604,36 @@ handleUtxoQueries ::
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleUtxoQueries = 
-    maybeToHandler UtxoAt.utxoAtRequest >>> fmap UtxoAt.event RequestHandler.handleUtxoQueries
+    maybeToHandler UtxoAt.utxoAtRequest
+    >>> RequestHandler.handleUtxoQueries
+    >>^ UtxoAt.event
     
 handleTxConfirmedQueries ::
     ( HasTxConfirmation s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleTxConfirmedQueries = 
-    maybeToHandler AwaitTxConfirmed.txId >>>
-        fmap (AwaitTxConfirmed.event . unTxConfirmed) RequestHandler.handleTxConfirmedQueries
+    maybeToHandler AwaitTxConfirmed.txId
+    >>> RequestHandler.handleTxConfirmedQueries
+    >>^ AwaitTxConfirmed.event . unTxConfirmed 
 
 handleNextTxAtQueries
     :: ( HasWatchAddress s
        )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleNextTxAtQueries = 
-    maybeToHandler WatchAddress.watchAddressRequest >>>
-        fmap WatchAddress.event RequestHandler.handleNextTxAtQueries
+    maybeToHandler WatchAddress.watchAddressRequest
+    >>> RequestHandler.handleNextTxAtQueries
+    >>^ WatchAddress.event
 
 handleOwnPubKeyQueries ::
     ( HasOwnPubKey s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleOwnPubKeyQueries =
-    maybeToHandler OwnPubKey.request >>> fmap OwnPubKey.event RequestHandler.handleOwnPubKey
+    maybeToHandler OwnPubKey.request
+    >>> RequestHandler.handleOwnPubKey
+    >>^ OwnPubKey.event
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses
