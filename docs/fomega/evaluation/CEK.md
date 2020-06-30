@@ -33,7 +33,7 @@ lambda, application, wrap/unwrap).
 
 Values and environments are mutually defined. Environments only appear
 under binders, they have entries for all free variables in the term
-but no entry for the variable (`α` or `x`) bound by the binder. We define closures, pairs of a
+but no entry for the variable (`α` or `x`) bound by the binder.
 
 ```
 V := con cn
