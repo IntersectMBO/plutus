@@ -26,58 +26,50 @@ module Plutus.SCB.Core.ContractInstance(
     , callContractEndpoint
     ) where
 
+import           Control.Arrow                                   ((>>>), (>>^))
 import           Control.Lens
-import           Control.Monad                                     (guard, void, when)
+import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                         (Error, runError, throwError)
+import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
-import qualified Data.Aeson                                        as JSON
-import           Data.Foldable                                     (traverse_)
-import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (mapMaybe)
-import           Data.Semigroup                                    (Last (..))
-import qualified Data.Set                                          as Set
-import qualified Data.Text                                         as Text
-import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, (<+>))
+import qualified Data.Aeson                                      as JSON
+import           Data.Foldable                                   (traverse_)
+import qualified Data.Map                                        as Map
+import           Data.Maybe                                      (mapMaybe)
+import           Data.Semigroup                                  (Last (..))
+import qualified Data.Set                                        as Set
+import qualified Data.Text                                       as Text
+import           Data.Text.Prettyprint.Doc                       (Pretty, pretty, (<+>))
 
-import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot (..))
-import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
-import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
-                                                                    EndpointValue (..))
-import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
-import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse (..))
-import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), extract, tryHandler,
-                                                                    wrapHandler)
-import           Language.Plutus.Contract.Wallet                   (balanceWallet)
+import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
+                                                                  EndpointValue (..))
+import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
+import           Language.Plutus.Contract.Resumable              (Request (..), Response (..))
+import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), extract, maybeToHandler,
+                                                                  tryHandler, wrapHandler)
+import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
-import qualified Ledger
-import qualified Ledger.AddressMap                                 as AM
-import           Ledger.Constraints.OffChain                       (UnbalancedTx (..))
-import           Wallet.API                                        (signWithOwnPublicKey)
-import           Wallet.Effects                                    (AddressChangeRequest (..), ChainIndexEffect,
-                                                                    SigningProcessEffect, WalletEffect, nextTx,
-                                                                    ownPubKey, startWatching, submitTxn,
-                                                                    transactionConfirmed, walletSlot, watchedAddresses)
+import           Wallet.Effects                                  (ChainIndexEffect, SigningProcessEffect, WalletEffect)
 
-import           Plutus.SCB.Command                                (saveBalancedTx, saveBalancedTxResult,
-                                                                    saveContractState, sendContractEvent)
-import           Plutus.SCB.Effects.Contract                       (ContractCommand (..), ContractEffect)
-import qualified Plutus.SCB.Effects.Contract                       as Contract
-import           Plutus.SCB.Effects.EventLog                       (EventLogEffect, runCommand, runGlobalQuery)
-import           Plutus.SCB.Effects.UUID                           (UUIDEffect, uuidNextRandom)
-import           Plutus.SCB.Events                                 (ChainEvent (..))
-import           Plutus.SCB.Events.Contract                        (ContractEvent (..), ContractInstanceId (..),
-                                                                    ContractInstanceState (..), ContractResponse (..),
-                                                                    ContractSCBRequest (..),
-                                                                    PartiallyDecodedResponse (..),
-                                                                    unContractHandlersResponse)
-import qualified Plutus.SCB.Events.Contract                        as Events.Contract
-import qualified Plutus.SCB.Query                                  as Query
-import           Plutus.SCB.Types                                  (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
-import           Plutus.SCB.Utils                                  (render, tshow)
+import           Plutus.SCB.Command                              (saveBalancedTx, saveBalancedTxResult,
+                                                                  saveContractState, sendContractEvent)
+import           Plutus.SCB.Effects.Contract                     (ContractCommand (..), ContractEffect)
+import qualified Plutus.SCB.Effects.Contract                     as Contract
+import           Plutus.SCB.Effects.EventLog                     (EventLogEffect, runCommand, runGlobalQuery)
+import           Plutus.SCB.Effects.UUID                         (UUIDEffect, uuidNextRandom)
+import           Plutus.SCB.Events                               (ChainEvent (..))
+import           Plutus.SCB.Events.Contract                      (ContractEvent (..), ContractInstanceId (..),
+                                                                  ContractInstanceState (..), ContractResponse (..),
+                                                                  ContractSCBRequest (..),
+                                                                  PartiallyDecodedResponse (..),
+                                                                  unContractHandlersResponse)
+import qualified Plutus.SCB.Events.Contract                      as Events.Contract
+import qualified Plutus.SCB.Query                                as Query
+import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
+import           Plutus.SCB.Utils                                (render, tshow)
 
-import qualified Plutus.SCB.Core.Projections                       as Projections
+import qualified Plutus.SCB.Core.Projections                     as Projections
 
 sendContractStateMessages ::
     forall t effs.
@@ -295,12 +287,9 @@ processOwnPubkeyRequests ::
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processOwnPubkeyRequests = RequestHandler $ \req -> do
-        _ <- extract Events.Contract._OwnPubkeyRequest req
-        logInfo "processOwnPubkeyRequests start"
-        pk <- ownPubKey
-        logInfo "processOwnPubkeyRequests end"
-        pure (OwnPubkeyResponse pk)
+processOwnPubkeyRequests =
+    maybeToHandler (extract Events.Contract._OwnPubkeyRequest) >>>
+        fmap OwnPubkeyResponse RequestHandler.handleOwnPubKey
 
 processAwaitSlotRequests ::
     forall effs.
@@ -308,14 +297,10 @@ processAwaitSlotRequests ::
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processAwaitSlotRequests = RequestHandler $ \req -> do
-    WaitingForSlot targetSlot <- extract Events.Contract._AwaitSlotRequest req
-    logInfo "processAwaitSlotRequests start"
-    currentSlot <- walletSlot
-    logDebug . render $ "targetSlot:" <+> pretty targetSlot <+> "current slot:" <+> pretty currentSlot
-    guard (currentSlot >= targetSlot)
-    logInfo "processAwaitSlotRequests end"
-    pure $ AwaitSlotResponse currentSlot
+processAwaitSlotRequests =
+    maybeToHandler (fmap unWaitingForSlot . extract Events.Contract._AwaitSlotRequest)
+    >>> RequestHandler.handleSlotNotifications
+    >>^ AwaitSlotResponse
 
 processUtxoAtRequests ::
     forall effs.
@@ -323,17 +308,10 @@ processUtxoAtRequests ::
     , Member Log effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processUtxoAtRequests = RequestHandler $ \req -> do
-    address <- extract Events.Contract._UtxoAtRequest req
-    logDebug . render $ "processUtxoAtRequest" <+> pretty address
-    utxos <- watchedAddresses
-    startWatching address
-    let response = UtxoAtAddress
-            { address = address
-            , utxo    = view (AM.fundsAt address) utxos
-            }
-    logInfo "processUtxoAtRequests end"
-    pure $ UtxoAtResponse response
+processUtxoAtRequests =
+    maybeToHandler (extract Events.Contract._UtxoAtRequest)
+    >>> RequestHandler.handleUtxoQueries
+    >>^ UtxoAtResponse
 
 processWriteTxRequests ::
     forall t effs.
@@ -344,32 +322,20 @@ processWriteTxRequests ::
     , Member SigningProcessEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processWriteTxRequests = RequestHandler $ \req -> do
-    -- logDebug . render $ "The request is a" <+> pretty req
-    unbalancedTx <- extract Events.Contract._WriteTxRequest req
-    logInfo "processWriteTxRequests start"
-    logInfo "Start watching contract addresses."
-    wa <- watchedAddresses
-    traverse_ startWatching (AM.addressesTouched wa (unBalancedTxTx unbalancedTx))
-    logInfo $ "Balancing unbalanced TX: " <> tshow unbalancedTx
-    r <- runError $ do
-            balancedTx <- balanceWallet unbalancedTx
-            signedTx <- signWithOwnPublicKey balancedTx
-            logInfo $ "Storing signed TX: " <> tshow signedTx
-            void $ runCommand (saveBalancedTx @t) WalletEventSource balancedTx
-            logInfo $ "Submitting signed TX: " <> tshow signedTx
-            balanceResult <- submitTx signedTx
-            void $ runCommand (saveBalancedTxResult @t) NodeEventSource balanceResult
-            pure balanceResult
-    let response = either WriteTxFailed WriteTxSuccess r
-    logInfo . render $ "processWriteTxRequest result:" <+> pretty response
-    logInfo "processWriteTxRequests end"
-    pure (WriteTxResponse response)
+processWriteTxRequests =
+    let store result = case result of
+            Left err -> pure (Left err)
+            Right signedTx -> do
+                logInfo $ "Storing signed TX: " <> tshow signedTx
+                void $ runCommand (saveBalancedTx @t) WalletEventSource signedTx
+                void $ runCommand (saveBalancedTxResult @t) NodeEventSource signedTx
+                pure (Right signedTx)
+    in
 
--- | A wrapper around the NodeAPI function that returns some more
--- useful evidence of the work done.
-submitTx :: (Member WalletEffect effs) => Ledger.Tx -> Eff effs Ledger.Tx
-submitTx tx = submitTxn tx >> pure tx
+    maybeToHandler (extract Events.Contract._WriteTxRequest)
+    >>> RequestHandler.handlePendingTransactions
+    >>> RequestHandler store
+    >>^ WriteTxResponse . either WriteTxFailed WriteTxSuccess
 
 processNextTxAtRequests ::
     forall effs.
@@ -378,15 +344,10 @@ processNextTxAtRequests ::
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processNextTxAtRequests = RequestHandler $ \req -> do
-    request <- extract Events.Contract._NextTxAtRequest req
-    logInfo "processNextTxAtRequests start"
-    logDebug . render $ "processNextTxAtRequest" <+> pretty request
-    slot <- walletSlot
-    guard $ slot > acreqSlot request
-    response <- nextTx request
-    logInfo "processNextTxAtRequests end"
-    pure $ NextTxAtResponse response
+processNextTxAtRequests =
+    maybeToHandler (extract Events.Contract._NextTxAtRequest)
+    >>> RequestHandler.handleNextTxAtQueries
+    >>^ NextTxAtResponse
 
 processTxConfirmedRequests ::
     forall effs.
@@ -394,15 +355,10 @@ processTxConfirmedRequests ::
     , Member Log effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
-processTxConfirmedRequests = RequestHandler $ \req -> do
-    txid <- extract Events.Contract._AwaitTxConfirmedRequest req
-    logInfo "processTxConfirmedRequests start"
-    logDebug . render $ "processTxConfirmedRequest" <+> pretty txid
-    confirmed <- transactionConfirmed txid
-    logDebug . render $ "confirmed" <+> pretty confirmed
-    guard confirmed
-    logInfo "processTxConfirmedRequests end"
-    pure $ AwaitTxConfirmedResponse $ TxConfirmed txid
+processTxConfirmedRequests =
+    maybeToHandler (extract Events.Contract._AwaitTxConfirmedRequest)
+    >>> RequestHandler.handleTxConfirmedQueries
+    >>^ AwaitTxConfirmedResponse
 
 callContractEndpoint ::
     forall t a effs.
