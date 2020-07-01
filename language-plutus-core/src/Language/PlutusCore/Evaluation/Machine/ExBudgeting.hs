@@ -122,7 +122,7 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @term@ as parameter.
+-- This works nicely because @m@ contains @term@.
 class SpendBudget m term | m -> term where
     builtinCostParams :: m CostModel
     feedBudgeter :: (ExMemory -> r) -> term -> m r

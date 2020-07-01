@@ -61,6 +61,8 @@ infixr 9 `TypeSchemeArrow`
 
 type family UniOf a :: * -> *
 
+type instance UniOf (Term tyname name uni ann) = uni
+
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
 -- E.g. @Char -> Bool -> Integer@ is encoded as @TypeScheme term [Char, Bool] Integer@.
@@ -214,17 +216,11 @@ newtype Opaque term (text :: Symbol) (unique :: Nat) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
 
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-class    (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a) =>
-            KnownBuiltinType term a
-instance (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a) =>
-            KnownBuiltinType term a
-
 -- | Extract the 'Constant' from a 'Term'
 -- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
 unliftConstant
     :: forall a m term err.
-       (MonadError (ErrorWithCause term err) m, AsUnliftingError err, KnownBuiltinType term a)
+       (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
     => term -> m a
 unliftConstant term = case asConstant term of
     Just (Some (ValueOf uniAct x)) -> do
@@ -267,11 +263,9 @@ instance ToAnnotation uni () where
 
 
 
-type instance UniOf (Term tyname name uni ann) = uni
-
 class HasConstant term where
-    asConstant   :: term -> Maybe (Some (ValueOf (UniOf term)))
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+    asConstant :: term -> Maybe (Some (ValueOf (UniOf term)))
+    toConstant :: Some (ValueOf (UniOf term)) -> term
 
 instance ToAnnotation uni ann => HasConstant (Term tyname name uni ann) where
     asConstant (Constant _ con) = Just con
@@ -286,6 +280,10 @@ class KnownTypeAst uni a where
     toTypeAst :: proxy a -> Type TyName uni ()
     default toTypeAst :: uni `Includes` a => proxy a -> Type TyName uni ()
     toTypeAst _ = mkTyBuiltin @a ()
+
+-- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+type KnownBuiltinType term a =
+    (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `Includes` a)
 
 -- See Note [KnownType's defaults]
 -- | Haskell types known to exist on the PLC side.
@@ -302,10 +300,10 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: (MonadError (ErrorWithCause term err) m, AsUnliftingError err)
+        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
         => term -> m a
     default readKnown
-        :: (MonadError (ErrorWithCause term err) m, AsUnliftingError err, KnownBuiltinType term a)
+        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
         => term -> m a
     readKnown = unliftConstant
 

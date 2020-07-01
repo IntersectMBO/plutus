@@ -87,11 +87,10 @@ type TypeEvalCheckM uni = Either (TypeEvalCheckError uni)
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: ( Pretty internal, KnownType (Term TyName Name uni ()) a, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` Eq, uni `Everywhere` PrettyConst
+    :: ( KnownType (Term TyName Name uni ()) a, GShow uni, GEq uni, DefaultUni <: uni
+       , Closed uni, uni `Everywhere` Eq, Pretty internal, PrettyPlc termErr
        )
-    => (Term TyName Name uni () ->
-            Either (EvaluationException (WithMemory Term uni) internal user) (WithMemory Term uni))
+    => (Plain Term uni -> Either (EvaluationException internal user termErr) (Plain Term uni))
        -- ^ An evaluator.
     -> TermOf uni a
     -> TypeEvalCheckM uni (TermOf uni (TypeEvalCheckResult uni))
@@ -100,7 +99,7 @@ typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     let valExpected = case makeKnown x of
             Error _ _ -> EvaluationFailure
             t         -> EvaluationSuccess t
-    fmap (TypeEvalCheckResult termTy) $ case fmap void <$> extractEvaluationResult (eval term) of
+    fmap (TypeEvalCheckResult termTy) $ case extractEvaluationResult (eval term) of
         Right valActual
             | valExpected == valActual -> return valActual
             | otherwise                ->

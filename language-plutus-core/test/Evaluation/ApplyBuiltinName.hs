@@ -14,28 +14,19 @@ module Evaluation.ApplyBuiltinName
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Evaluation.Machine.Ck
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy                                       as BSL
-import qualified Data.ByteString.Lazy.Hash                                  as Hash
+import qualified Data.ByteString.Lazy                            as BSL
+import qualified Data.ByteString.Lazy.Hash                       as Hash
 import           Data.Coerce
 import           Data.Foldable
 import           Data.List
-import           Hedgehog                                                   hiding (Var)
+import           Hedgehog                                        hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
-
-type NoBudgetingM = Either (EvaluationException (Plain Term DefaultUni) () ())
-
-instance SpendBudget NoBudgetingM (Plain Term DefaultUni) where
-    spendBudget _ _ _ = pure ()
-    feedBudgeter exF _ = pure $ exF 0
-    builtinCostParams = pure defaultCostModel
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -60,7 +51,7 @@ prop_applyBuiltinName tbn op allTbs = property $ do
     let getIterAppValue = runPlcT allTbs . genIterAppValue $ denoteTypedBuiltinName tbn op
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
-        app = applyBuiltinName @NoBudgetingM name
+        app = applyBuiltinName @(CkM DefaultUni) name
     traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
     app spine === Right (ConstAppSuccess $ makeKnown y)
 
