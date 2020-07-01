@@ -1,15 +1,15 @@
-{ runCommand, lib, haskellPackages }:
+{ runCommand, lib, ghc }:
 { hspkgs # Haskell packages to make documentation for. Only those with a "doc" output will be used.
-  # Note: we do not provide arbitrary additional Haddock options, as these would not be 
+  # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
 , prologue ? null # Optionally, a file to be used for the Haddock "--prologue" option.
-}: 
-let 
-  hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs); 
+}:
+let
+  hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   # Merge all the docs from the packages. We don't use symlinkJoin because:
   # - We are going to want to redistribute this, so we don't want any symlinks.
-  # - We want to be selective about what we copy (we don't need the hydra 
+  # - We want to be selective about what we copy (we don't need the hydra
   #   tarballs from the other packages, for example.
   mkdir -p "$out/share/doc"
   for pkg in ${lib.concatStringsSep " " hsdocs}; do
@@ -23,7 +23,7 @@ in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   # rather than into the store.
   root=$out/share/doc
   for f in $(find $out -name "*.html"); do
-    # Replace all links to the docs we're processing with relative links 
+    # Replace all links to the docs we're processing with relative links
     # to the root of the doc directory we're creating - the rest of the link is
     # the same.
     # Also, it's not a a file:// link now because it's a relative URL instead
@@ -31,7 +31,7 @@ in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     relpath=$(realpath --relative-to=$(dirname $f) --no-symlinks $root)
     pkgsRegex="${"file://(" + (lib.concatStringsSep "|" hsdocs) + ")/share/doc"}"
     sed -i -r "s,$pkgsRegex,$relpath,g" "$f"
-    # Now also replace the index/contents links so they point to (what will be) 
+    # Now also replace the index/contents links so they point to (what will be)
     # the combined ones instead.
     # Match the enclosing quotes to make sure the regex for index.html doesn't also match
     # the trailing part of doc-index.html
@@ -51,7 +51,7 @@ in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   done
 
   # Generate the contents and index
-  ${haskellPackages.ghc}/bin/haddock \
+  ${ghc}/bin/haddock \
     --gen-contents \
     --gen-index \
     ${lib.optionalString (prologue != null) "--prologue ${prologue}"} \

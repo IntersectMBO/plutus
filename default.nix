@@ -121,7 +121,7 @@ in rec {
     plutus-report = pkgs.callPackage ./docs/plutus-report/default.nix { inherit latex; };
 
     combined-haddock = let
-      haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix {};
+      haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix { ghc = haskell.project.pkg-set.config.ghc.package; };
       toHaddock = pkgs.haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackages;
       in haddock-combine {
         hspkgs = builtins.attrValues toHaddock;
