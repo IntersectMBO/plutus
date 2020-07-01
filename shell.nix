@@ -35,7 +35,7 @@ with packageSet; haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
-    pkgs.rPackages.plotly
-    pkgs.python3
+    pkgs.rPackages.plotly # for generating R plots locally
+    pkgs.python3 # for @reactormonk who's running a python web server
   ];
 }
