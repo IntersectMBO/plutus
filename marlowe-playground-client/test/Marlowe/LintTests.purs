@@ -2,6 +2,7 @@ module Marlowe.LintTests where
 
 import Prelude
 import Data.Array (singleton)
+import Data.BigInteger (fromInt)
 import Data.Either (Either(..))
 import Data.Map as Map
 import Data.Set (toUnfoldable)
@@ -314,12 +315,12 @@ negativePay :: Test
 negativePay = testWarningSimple (payContract "(Constant -1)") "The contract can make a non-positive payment"
 
 payBeforeWarning :: Test
-payBeforeWarning = testWarningSimple contract "The contract makes a payment to account (AccountId 0 (Role \"role\")) before a deposit has been made"
+payBeforeWarning = testWarningSimple contract "The contract makes a payment from account (AccountId 0 (Role \"role\")) before a deposit has been made"
   where
   contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
 
 payBeforeWarningBranch :: Test
-payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment to account (AccountId 1 (Role \"role\")) before a deposit has been made"
+payBeforeWarningBranch = testWarningSimple contract "The contract makes a payment from account (AccountId 1 (Role \"role\")) before a deposit has been made"
   where
   contract = "When [Case (Deposit (AccountId 1 (Role \"role\")) (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (AccountId 1 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
@@ -341,7 +342,7 @@ depositFromState =
 
     state =
       S.State
-        { accounts: Map.singleton (Tuple accountId (Token "" "")) zero
+        { accounts: Map.singleton (Tuple accountId (Token "" "")) (fromInt 10)
         , choices: mempty
         , boundValues: mempty
         , minSlot: zero
