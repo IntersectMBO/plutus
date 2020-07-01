@@ -40,7 +40,7 @@ import           Plutus.SCB.Arbitrary          ()
 import           Plutus.SCB.Utils              (tshow)
 
 import qualified Wallet.Emulator               as EM
-import           Wallet.Emulator.Chain         (ChainEffect, ChainEvent, ChainState)
+import           Wallet.Emulator.Chain         (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.Chain         as Chain
 
 healthcheck :: Monad m => m NoContent
@@ -51,7 +51,7 @@ getCurrentSlot = Eff.gets (view EM.currentSlot)
 
 addBlock ::
     ( Member Log effs
-    , Member ChainEffect effs
+    , Member ChainControlEffect effs
     )
     => Eff effs ()
 addBlock = do
@@ -59,7 +59,7 @@ addBlock = do
     void Chain.processBlock
 
 getBlocksSince ::
-    ( Member ChainEffect effs
+    ( Member ChainControlEffect effs
     , Member (State ChainState) effs
     )
     => Slot
@@ -86,7 +86,7 @@ addTx tx = do
     pure NoContent
 
 type NodeServerEffects m
-     = '[ GenRandomTx, NodeFollowerEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], State AppState, Log, m]
+     = '[ GenRandomTx, NodeFollowerEffect, ChainControlEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], State AppState, Log, m]
 
 ------------------------------------------------------------
 runChainEffects ::
@@ -101,6 +101,7 @@ runChainEffects stateVar eff = do
         $ interpret (handleZoomedState T.chainState)
         $ interpret (handleZoomedState T.followerState)
         $ Chain.handleChain
+        $ Chain.handleControlChain
         $ handleNodeFollower
         $ runGenRandomTx
         $ do result <- eff

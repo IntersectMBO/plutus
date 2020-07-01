@@ -63,7 +63,7 @@ import           Test.QuickCheck.Instances.UUID  ()
 import qualified Cardano.ChainIndex.Server       as ChainIndex
 import qualified Cardano.ChainIndex.Types        as ChainIndex
 import           Wallet.API                      (WalletAPIError)
-import           Wallet.Emulator.Chain           (ChainEffect, handleChain)
+import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, handleChain, handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.MultiAgent      (EmulatorEvent, chainEvent)
 import           Wallet.Emulator.Wallet          (Wallet (..))
@@ -90,6 +90,7 @@ initialTestState =
 
 type MockAppEffects =
     '[ MultiAgentSCBEffect
+     , ChainControlEffect
      , ChainEffect
      , State TestState
      , Log
@@ -151,8 +152,9 @@ runMockApp state action =
     $ runStderrLog
     $ subsume
     $ handleChain
+    $ handleControlChain
     $ SCB.MultiAgent.handleMultiAgent
-    $ raiseEnd6
+    $ raiseEnd7
         -- interpret the 'MockAppEffects' using
         -- the following list of effects
         @'[ Writer [Wallet.Emulator.Chain.ChainEvent]
