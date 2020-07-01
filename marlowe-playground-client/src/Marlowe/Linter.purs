@@ -41,8 +41,7 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
-import Data.Tuple (fst)
-import Data.Tuple.Nested ((/\))
+import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
@@ -89,6 +88,7 @@ data WarningDetail
   | SimplifiableValue (Term Value) (Term Value)
   | SimplifiableObservation (Term Observation) (Term Observation)
   | PayBeforeDeposit Semantics.AccountId
+  | PartialPayment Semantics.AccountId Semantics.Token BigInteger BigInteger
 
 instance showWarningDetail :: Show WarningDetail where
   show NegativePayment = "The contract can make a non-positive payment"
@@ -102,7 +102,14 @@ instance showWarningDetail :: Show WarningDetail where
   show DivisionByZero = "Scale construct divides by zero"
   show (SimplifiableValue oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
   show (SimplifiableObservation oriVal newVal) = "The observation \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
-  show (PayBeforeDeposit account) = "The contract makes a payment to account " <> show account <> " before a deposit has been made"
+  show (PayBeforeDeposit account) = "The contract makes a payment from account " <> show account <> " before a deposit has been made"
+  show (PartialPayment accountId tokenId availableAmount demandedAmount) =
+    "The contract makes a payment of " <> show demandedAmount <> " "
+      <> show tokenId
+      <> " from account "
+      <> show accountId
+      <> " but the account only has "
+      <> show availableAmount
 
 derive instance genericWarningDetail :: Generic WarningDetail _
 
@@ -167,7 +174,7 @@ newtype LintEnv
   = LintEnv
   { letBindings :: Set Semantics.ValueId
   , maxTimeout :: MaxTimeout
-  , deposits :: Set Semantics.AccountId
+  , deposits :: Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger)
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -182,7 +189,7 @@ _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
 _maxTimeout :: Lens' LintEnv (TermWrapper Slot)
 _maxTimeout = _Newtype <<< prop (SProxy :: SProxy "maxTimeout") <<< _Newtype
 
-_deposits :: Lens' LintEnv (Set Semantics.AccountId)
+_deposits :: Lens' LintEnv (Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger))
 _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 
 data TemporarySimplification a b
@@ -236,6 +243,14 @@ constToObs false = Term FalseObs { row: 0, column: 0 }
 constToVal :: BigInteger -> Term Value
 constToVal x = Term (Constant x) { row: 0, column: 0 }
 
+addMoneyToEnvAccount :: BigInteger -> Semantics.AccountId -> Semantics.Token -> LintEnv -> LintEnv
+addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (addMoney amountToAdd) (accTerm /\ tokenTerm))
+  where
+  addMoney :: BigInteger -> Maybe (Maybe BigInteger) -> Maybe (Maybe BigInteger)
+  addMoney amount Nothing = Just (Just amount)
+
+  addMoney amount (Just prevVal) = Just (maybe Nothing (Just <<< (\prev -> prev + amount)) prevVal)
+
 -- | We lintContract through a contract term collecting all warnings and holes etc so that we can display them in the editor
 -- | The aim here is to only traverse the contract once since we are concerned about performance with the linting
 -- FIXME: There is a bug where if you create holes with the same name in different When blocks they are missing from
@@ -243,7 +258,7 @@ constToVal x = Term (Constant x) { row: 0, column: 0 }
 lint :: Semantics.State -> Term Contract -> State
 lint contractState contract = state
   where
-  deposits = contractState ^. (_accounts <<< to Map.keys <<< to (Set.map fst))
+  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
 
   bindings = contractState ^. (_boundValues <<< to Map.keys)
 
@@ -259,19 +274,38 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
     gatherHoles = getHoles acc <> getHoles payee <> getHoles token
   modifying _holes gatherHoles
   sa <- lintValue env payment
-  case sa of
+  payedValue <- case sa of
     (ConstantSimp _ _ c)
-      | c <= zero -> addWarning NegativePayment t pos
-    _ -> pure unit
+      | c <= zero -> do
+        addWarning NegativePayment t pos
+        pure (Just zero)
+      | otherwise -> pure (Just c)
+    _ -> pure Nothing
   markSimplification constToVal SimplifiableValue payment sa
-  case fromTerm acc of
-    Just accTerm -> do
+  newEnv <- case (fromTerm acc /\ fromTerm token) of
+    Just accTerm /\ Just tokenTerm -> do
       let
         deposits = view _deposits env
-      unless (Set.member accTerm deposits)
+
+        key = accTerm /\ tokenTerm
+      unless (Map.member key deposits)
         (addWarning (PayBeforeDeposit accTerm) t pos)
-    _ -> pure unit
-  lintContract env cont
+      case (Map.lookup key deposits /\ payedValue) of
+        (Just (Just avMoney)) /\ (Just paidMoney) -> do
+          unless (avMoney >= paidMoney) (addWarning (PartialPayment accTerm tokenTerm avMoney paidMoney) t pos)
+          let
+            actualPaidMoney = min avMoney paidMoney
+          let
+            tempEnv = over _deposits (Map.insert key (Just (avMoney - actualPaidMoney))) env
+          pure
+            ( case fromTerm payee of
+                Just (Semantics.Account newAcc) -> addMoneyToEnvAccount actualPaidMoney newAcc tokenTerm tempEnv
+                _ -> tempEnv
+            )
+        Nothing /\ _ -> pure env
+        _ -> pure (over _deposits (Map.insert key Nothing) env)
+    _ -> pure env
+  lintContract newEnv cont
 
 lintContract env (Term (If obs c1 c2) _) = do
   sa <- lintObservation env obs
@@ -540,7 +574,8 @@ lintValue env t@(Term (Cond c a b) pos) = do
       pure (ValueSimp pos false t)
 
 data Effect
-  = ConstantDeposit Semantics.AccountId
+  = ConstantDeposit Semantics.AccountId Semantics.Token BigInteger
+  | UnknownDeposit Semantics.AccountId Semantics.Token
   | NoEffect
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
@@ -548,7 +583,8 @@ lintCase env t@(Term (Case action contract) pos) = do
   effect <- lintAction env action
   let
     newEnv = case effect of
-      ConstantDeposit accTerm -> over _deposits (Set.insert accTerm) env
+      ConstantDeposit accTerm tokenTerm amount -> addMoneyToEnvAccount amount accTerm tokenTerm env
+      UnknownDeposit accTerm tokenTerm -> over _deposits (Map.insert (accTerm /\ tokenTerm) Nothing) env
       NoEffect -> env
   lintContract newEnv contract
   pure unit
@@ -560,7 +596,7 @@ lintCase env hole@(Hole _ _ _) = do
 lintAction :: LintEnv -> Term Action -> CMS.State State Effect
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
-    accTerm = maybe NoEffect ConstantDeposit (fromTerm acc)
+    accTerm = maybe NoEffect (maybe (const NoEffect) UnknownDeposit (fromTerm acc)) (fromTerm token)
 
     gatherHoles = getHoles acc <> getHoles party <> getHoles token
   modifying _holes (gatherHoles)
@@ -569,10 +605,17 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
     (ConstantSimp _ _ v)
       | v <= zero -> do
         addWarning NegativeDeposit t pos
-        pure accTerm
+        pure (makeDepositConstant accTerm zero)
+      | otherwise -> do
+        markSimplification constToVal SimplifiableValue value sa
+        pure (makeDepositConstant accTerm v)
     _ -> do
       markSimplification constToVal SimplifiableValue value sa
       pure accTerm
+  where
+  makeDepositConstant (UnknownDeposit ac to) v = ConstantDeposit ac to v
+
+  makeDepositConstant other _ = other
 
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
   modifying _holes (getHoles choiceId <> getHoles bounds)
