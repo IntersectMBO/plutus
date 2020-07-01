@@ -55,7 +55,7 @@ type To = String
 type Continuation = Contract
 type EventInitiatorPartyId = Integer
 
---todo check roleSign, enforce a date
+
 invoice :: From -> To -> Amount -> Slot -> Continuation -> Contract
 invoice from to amount timeout continue =
     let party        = Role $ TokenName $ fromString from
@@ -63,8 +63,8 @@ invoice from to amount timeout continue =
     in  When
             [ Case
                   (Deposit (AccountId 0 party) party ada amount)
-                  (Pay (AccountId 1 counterparty)
-                       (Party party)
+                  (Pay (AccountId 0 party)
+                       (Party counterparty)
                        ada
                        amount
                        continue
@@ -73,10 +73,6 @@ invoice from to amount timeout continue =
             timeout
             Close
 
---roleSign :: TimePostfix -> String -> MarloweBool
---roleSign postfix choiceName = TrueObs --todo use ChoiceValue in order to check which party made a choice
-
---todo read payment date 
 inquiry
     :: TimePostfix
     -> EventInitiatorParty
@@ -148,10 +144,11 @@ inquiry timePosfix party partyId oracle continue =
 inquiryFs
     :: EventType
     -> TimePostfix
+    -> Slot
     -> Oracle
     -> Continuation
     -> Contract
-inquiryFs ev timePosfix oracle continue =
+inquiryFs ev timePosfix date oracle continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
         inputTemplate inputChoiceId inputOwner inputDefault inputBound cont =
@@ -166,21 +163,23 @@ inquiryFs ev timePosfix oracle continue =
                           cont
                       )
                 ]
-                1000000000
+                date
                 Close
             )
         riskFactorInquiry name = inputTemplate
-            (fromString ("riskFactor-" ++ name ++ timePosfix))
+            (fromString (name ++ timePosfix))
             oracleRole
             (Constant 0)
             [Bound 0 100000000000000]
-        riskFactorsInquiry =
-            riskFactorInquiry "o_rf_CURS"
-                . riskFactorInquiry "o_rf_RRMO"
-                . riskFactorInquiry "o_rf_SCMO"
-                . riskFactorInquiry "pp_payoff"
+        riskFactorsInquiryEv AD = id
+        riskFactorsInquiryEv SC = riskFactorInquiry "o_rf_SCMO"
+        riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"    
+        riskFactorsInquiryEv PP = 
+            riskFactorInquiry "o_rf_CURS" .
+                riskFactorInquiry "pp_payoff"  
+        riskFactorsInquiryEv _ = riskFactorInquiry "o_rf_CURS"
     in
-        riskFactorsInquiry continue
+        (riskFactorsInquiryEv ev) continue
 
 
 genContract :: Contract

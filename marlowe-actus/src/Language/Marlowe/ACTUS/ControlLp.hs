@@ -9,6 +9,7 @@ module Language.Marlowe.ACTUS.ControlLp
     )
 where
 
+import           Ledger                     (Slot (..))
 import Language.Marlowe.ACTUS.STF.StateTransitionLp
     ( stateTransitionLp )
 import Language.Marlowe.ACTUS.POF.PayoffLp ( payoffLp )
@@ -16,6 +17,8 @@ import Language.Marlowe.ACTUS.STF.StateTransitionLp
     ( stateTransitionLp )
 import Language.Marlowe.ACTUS.STF.StateTransitionFs
     ( stateTransitionFs )
+import Language.Marlowe.ACTUS.INIT.StateInitializationFs
+    ( inititializeStateFs )
 import Language.Marlowe.ACTUS.POF.PayoffFs ( payoffFs )
 import Language.Marlowe.ACTUS.Control ( invoice, inquiry, inquiryFs )
 import Language.Marlowe.ACTUS.Ops ( dayToSlotNumber )
@@ -26,14 +29,14 @@ import Language.Marlowe.ACTUS.Schedule
 import Language.Marlowe.ACTUS.ProjectedCashFlows
     ( genProjectedCashflows )
 import Language.Marlowe.ACTUS.BusinessEvents
-    ( mapEventType )
+    ( mapEventType, )
 import Language.Marlowe.ACTUS.ContractTerms ( ContractTerms )
 import Data.String ( IsString(fromString) )
-import Data.List (zip)
+import Data.List (zip4)
 import Language.Marlowe
     ( Contract(Close, If, Let),
       Observation(ValueEQ),
-      Value(Constant, UseValue),
+      Value(Constant, UseValue, NegValue),
       ValueId(..),
       Slot(Slot) )
 
@@ -73,9 +76,14 @@ genStaticContract terms =
 genFsContract :: ContractTerms -> Contract
 genFsContract terms = 
     let
-        sched = mapEventType . cashEvent <$> genProjectedCashflows terms
-        gen (ev, t) cont = inquiryFs ev ("_" ++ show t) "oracle"
+        schedCfs = genProjectedCashflows terms
+        schedEvents = mapEventType . cashEvent <$> schedCfs
+        schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
+        cfsDirections = amount <$> schedCfs
+        gen (ev, date, r, t) cont = inquiryFs ev ("_" ++ show t) date "oracle"
             $ stateTransitionFs ev terms t
             $ Let (payoffAt t) (payoffFs ev terms t)
-            $ invoice "party" "counterparty" (UseValue $ payoffAt t) 1000000 cont
-    in foldl (flip gen) Close $ zip sched [1..]
+            $ if r > 0.0    then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
+                            else invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
+        schedule = foldl (flip gen) Close $ reverse $ zip4 schedEvents schedDates cfsDirections [1..]
+    in inititializeStateFs terms schedule

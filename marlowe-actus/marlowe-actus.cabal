@@ -76,6 +76,7 @@ library
     Language.Marlowe.ACTUS.SCHED.ContractSchedule
     Language.Marlowe.ACTUS.INIT.StateInitializationModel
     Language.Marlowe.ACTUS.INIT.StateInitialization
+    Language.Marlowe.ACTUS.INIT.StateInitializationFs
     Language.Marlowe.ACTUS.Utility.DateShift
     Language.Marlowe.ACTUS.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Utility.YearFraction

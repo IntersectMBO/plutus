@@ -1,4 +1,7 @@
+{-# LANGUAGE RecordWildCards #-}
+
 {- This module provides compatibility between Num and MarloweValue -}
+
 
 module Language.Marlowe.ACTUS.MarloweCompat where
 
@@ -11,9 +14,12 @@ import Language.Marlowe
 import Language.Marlowe.ACTUS.BusinessEvents
     ( EventType(IP, AD, IED, MD, FP), eventTypeToEventTypeId )
 import Language.Marlowe.ACTUS.ContractState
-    ( ContractStatePoly(..) )
+    ( ContractStatePoly(..), ContractState )
+import Language.Marlowe.ACTUS.Ops
+    ( marloweDate )
 import Data.String ( IsString(fromString) )
 import qualified Data.List as L ( foldl )
+
 
       
 
@@ -127,4 +133,17 @@ stateTransition ev t continue handler =
             $ letval "ipcb" t handler_ipcb
             continue
 
-
+stateInitialisation :: ContractState -> Contract -> Contract
+stateInitialisation ContractStatePoly{..} continue =
+    letval "tmd" 0 (marloweDate tmd)
+        $ letval "nt"   0 (constnt nt)
+        $ letval "ipnr" 0 (constnt ipnr)
+        $ letval "ipac" 0 (constnt ipac)
+        $ letval "feac" 0 (constnt feac)
+        $ letval "fac"  0 (constnt fac)
+        $ letval "nsc"  0 (constnt nsc)
+        $ letval "isc"  0 (constnt isc)
+        $ letval "sd"   0 (marloweDate sd)
+        $ letval "prnxt" 0 (constnt prnxt)
+        $ letval "ipcb" 0 (constnt ipcb)
+        continue

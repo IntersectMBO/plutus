@@ -66,6 +66,7 @@ import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol, TokenName)
 import qualified Ledger.Value               as Val
 import qualified Prelude                    as P
+import           Control.Arrow              ((>>>))
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: String) #-}
@@ -162,6 +163,7 @@ data Value a = AvailableMoney AccountId Token
            | NegValue (Value a)
            | AddValue (Value a) (Value a)
            | SubValue (Value a) (Value a)
+           | MulValue (Value a) (Value a)
            | Scale Rational (Value a)
            | ChoiceValue ChoiceId (Value a)
            | SlotIntervalStart
@@ -473,6 +475,7 @@ evalValue env state value = let
         NegValue val         -> negate (eval val)
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
+        MulValue lhs rhs     -> eval lhs * eval rhs
         Scale s rhs          -> let
             num = numerator s
             denom = denominator s
@@ -1215,21 +1218,25 @@ instance Eq State where
         && choices l == choices r
         && boundValues l == boundValues r
 
+marloweFixedPoint :: Double
+marloweFixedPoint = 1000000000.0
+
 instance P.Num (Value Observation) where
     negate      = NegValue
     (+)         = AddValue
-    (*)         = AddValue --todo
+    a * b       = Scale (1 % 1000000000) $ MulValue a b
     fromInteger = Constant
     abs         = undefined
     signum      = undefined
 
 instance P.Fractional (Value Observation) where
-    recip x          = NegValue x --todo
-    x / y            = AddValue x y --todo
-    fromRational     = undefined
+    recip (Constant x)          = Constant $ div 1 x
+    recip _                     = undefined
+    (Constant x) / (Constant y) = Constant $ div x y
+    _ / _                       = undefined
+    fromRational                = undefined
 
-marloweFixedPoint :: Double
-marloweFixedPoint = 1000000000.0
+
 
 -- Lifting data types to Plutus Core
 makeLift ''Party

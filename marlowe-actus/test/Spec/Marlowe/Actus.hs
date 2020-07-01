@@ -21,6 +21,7 @@ import           Data.Either
 import           Data.String (IsString (fromString))
 import           Ledger.Value
 import           Ledger.Ada                 (adaSymbol, adaToken)
+import           System.IO (writeFile)
 
 tests :: TestTree
 tests = testGroup "Actus"
@@ -29,7 +30,7 @@ tests = testGroup "Actus"
     , testCase "PAM fixed schedule contract" pamFs
     , testCase "Simple PAM contract + Marlowe IO" pamSimple
     , testCase "Simple PAM contract" pamRePlay
-    , testCase "Generate PAM-LP" pamLpGeneration
+   --, testCase "Generate PAM-LP" pamLpGeneration
     ]
 
 ada :: Token
@@ -44,7 +45,7 @@ contractTerms = ContractTerms {
         , _MD = fromGregorian 2009 10 22 -- maturity date
         , _TD = fromGregorian 2009 10 22  -- termination date
         , _PRD = fromGregorian 2008 10 20 -- purchase date
-        , _CNTRL = CR_LG
+        , _CNTRL = CR_ST
         , _PDIED = -100.0 -- Discount At IED
         , _NT = 1000.0 -- Notional
         , _PPRD = 1200.0 -- Price At Purchase Date
@@ -125,7 +126,7 @@ pamStatic = do
 pamFs :: IO ()
 pamFs = do 
     let contract = genFsContract contractTerms 
-    --print $ pretty contract
+    writeFile "PamFs.hs" $ show $ pretty contract
     assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
     return ()
 
