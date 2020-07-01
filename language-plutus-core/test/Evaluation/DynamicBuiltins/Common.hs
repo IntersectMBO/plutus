@@ -42,12 +42,12 @@ typecheckEvaluateCek
        )
     => DynamicBuiltinNameMeanings (Term TyName Name uni ExMemory)
     -> Term TyName Name uni ()
-    -> m (EvaluationResult (Term TyName Name uni ExMemory))
+    -> m (EvaluationResult (Term TyName Name uni ()))
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
-    :: ( MonadError (Error uni ()) m, KnownType (Term TyName Name uni ExMemory) a
+    :: ( MonadError (Error uni ()) m, KnownType (Term TyName Name uni ()) a
        , GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => DynamicBuiltinNameMeanings (Term TyName Name uni ExMemory)

@@ -56,10 +56,10 @@ data ConstAppError term
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | UnliftingConstAppError UnliftingError
       -- ^ Could not construct denotation for a builtin.
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
 -- | Errors which can occur during a run of an abstract machine.
-data MachineError term err
+data MachineError err term
     = NonPrimitiveInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
@@ -71,12 +71,12 @@ data MachineError term err
     | ConstAppMachineError (ConstAppError term)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
     | OtherMachineError err
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
-data EvaluationError term internal user
-    = InternalEvaluationError (MachineError term internal)
+data EvaluationError internal user term
+    = InternalEvaluationError (MachineError internal term)
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
@@ -89,37 +89,37 @@ mtraverse makeClassyPrisms
     , ''EvaluationError
     ]
 
-instance AsMachineError (EvaluationError term internal user) term internal where
+instance AsMachineError (EvaluationError internal user term) internal term where
     _MachineError = _InternalEvaluationError
-instance AsConstAppError (MachineError term err) term where
+instance AsConstAppError (MachineError err term) term where
     _ConstAppError = _ConstAppMachineError
-instance AsConstAppError (EvaluationError term internal user) term where
+instance AsConstAppError (EvaluationError internal user term) term where
     _ConstAppError = _InternalEvaluationError . _ConstAppMachineError
 instance AsUnliftingError (ConstAppError term) where
     _UnliftingError = _UnliftingConstAppError
-instance AsUnliftingError (EvaluationError term internal user) where
+instance AsUnliftingError (EvaluationError internal user term) where
     _UnliftingError = _InternalEvaluationError . _UnliftingConstAppError
-instance AsUnliftingError (MachineError term err) where
+instance AsUnliftingError (MachineError err term) where
     _UnliftingError = _ConstAppMachineError . _UnliftingConstAppError
 
 -- | An error and (optionally) what caused it.
-data ErrorWithCause term err
+data ErrorWithCause err term
     = ErrorWithCause err (Maybe term)
     deriving (Eq, Functor)
 
-type MachineException term internal = ErrorWithCause term (MachineError term internal)
-type EvaluationException term internal user = ErrorWithCause term (EvaluationError term internal user)
+type MachineException internal term = ErrorWithCause (MachineError internal term) term
+type EvaluationException internal user term = ErrorWithCause (EvaluationError internal user term) term
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
-    :: MonadError (ErrorWithCause term e) m
+    :: MonadError (ErrorWithCause e term) m
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
 -- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
-    :: Either (EvaluationException term internal user) a
-    -> Either (MachineException term internal) (EvaluationResult a)
+    :: Either (EvaluationException internal user term) a
+    -> Either (MachineException internal term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
     InternalEvaluationError err -> Left $ ErrorWithCause err cause
@@ -140,7 +140,7 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True) =>
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
 instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
-            PrettyBy config (MachineError term err) where
+            PrettyBy config (MachineError err term) where
     prettyBy _      NonPrimitiveInstantiationMachineError =
         "Cannot reduce a not immediately reducible type instantiation."
     prettyBy _      NonWrapUnwrappedMachineError          =
@@ -157,7 +157,7 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
 instance
         ( PrettyBy config term, HasPrettyDefaults config ~ 'True
         , Pretty internal, Pretty user
-        ) => PrettyBy config (EvaluationError term internal user) where
+        ) => PrettyBy config (EvaluationError internal user term) where
     prettyBy config (InternalEvaluationError err) = fold
         [ "Internal error:", hardline
         , prettyBy config err
@@ -168,7 +168,7 @@ instance
         ]
 
 instance (PrettyBy config term, PrettyBy config err) =>
-            PrettyBy config (ErrorWithCause term err) where
+            PrettyBy config (ErrorWithCause err term) where
     prettyBy config (ErrorWithCause err mayCause) =
         "An error has occurred: " <+> prettyBy config err <>
             case mayCause of
@@ -176,8 +176,8 @@ instance (PrettyBy config term, PrettyBy config err) =>
                 Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
 
 instance (PrettyPlc term, PrettyPlc err) =>
-            Show (ErrorWithCause term err) where
+            Show (ErrorWithCause err term) where
     show = render . prettyPlcReadableDebug
 
 instance (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) =>
-            Exception (ErrorWithCause term err)
+            Exception (ErrorWithCause err term)

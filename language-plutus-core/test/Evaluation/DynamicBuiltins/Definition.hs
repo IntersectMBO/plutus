@@ -12,7 +12,6 @@ module Evaluation.DynamicBuiltins.Definition
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 
@@ -133,7 +132,7 @@ test_dynamicId =
                                   . LamAbs () i integer
                                   . LamAbs () j integer
                                   $ Var () i
-        typecheckEvaluateCek env term @?= Right (EvaluationSuccess $ withMemory one)
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
 
 test_definition :: TestTree
 test_definition =

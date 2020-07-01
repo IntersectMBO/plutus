@@ -60,7 +60,7 @@ runPlc
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
        , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst, Typeable uni
        )
-    => [a] -> ExceptT SomeException IO (EvaluationResult (Term TyName Name uni ExMemory))
+    => [a] -> ExceptT SomeException IO (EvaluationResult (Plain Term uni))
 runPlc values = do
     ps <- traverse getProgram values
     let p = foldl1 applyProgram ps

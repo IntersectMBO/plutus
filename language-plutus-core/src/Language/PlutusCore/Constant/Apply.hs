@@ -57,7 +57,7 @@ integerToInt64 = fromIntegral
 -- Checks that the constants are of expected types.
 applyTypeSchemed
     :: forall err m args term res.
-       ( MonadError (ErrorWithCause term err) m, AsUnliftingError err, AsConstAppError err term
+       ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term
        )
     => StagedBuiltinName
@@ -102,7 +102,7 @@ applyTypeSchemed name = go where
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
-    :: ( MonadError (ErrorWithCause term err) m, AsUnliftingError err, AsConstAppError err term
+    :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term
        )
     => TypedBuiltinName term args res
@@ -117,7 +117,7 @@ applyTypedBuiltinName (TypedBuiltinName name schema) =
 -- Checks that the values are of expected types.
 applyBuiltinName
     :: forall m err uni term
-    .  ( MonadError (ErrorWithCause term err) m, AsUnliftingError err, AsConstAppError err term
+    .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
        )
     => BuiltinName -> [term] -> m (ConstAppResult term)

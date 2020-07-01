@@ -224,7 +224,7 @@ instance (HasConstant term, GShow (UniOf term), GEq (UniOf term), UniOf term `In
 -- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).
 unliftConstant
     :: forall a m term err.
-       (MonadError (ErrorWithCause term err) m, AsUnliftingError err, KnownBuiltinType term a)
+       (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
     => term -> m a
 unliftConstant term = case asConstant term of
     Just (Some (ValueOf uniAct x)) -> do
@@ -302,10 +302,10 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: (MonadError (ErrorWithCause term err) m, AsUnliftingError err)
+        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err)
         => term -> m a
     default readKnown
-        :: (MonadError (ErrorWithCause term err) m, AsUnliftingError err, KnownBuiltinType term a)
+        :: (MonadError (ErrorWithCause err term) m, AsUnliftingError err, KnownBuiltinType term a)
         => term -> m a
     readKnown = unliftConstant
 
