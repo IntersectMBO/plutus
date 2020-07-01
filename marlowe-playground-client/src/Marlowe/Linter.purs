@@ -294,9 +294,9 @@ lintContract env t@(Term (Pay acc payee token payment cont) pos) = do
         (Just (Just avMoney)) /\ (Just paidMoney) -> do
           unless (avMoney >= paidMoney) (addWarning (PartialPayment accTerm tokenTerm avMoney paidMoney) t pos)
           let
-            actualPaidMoney = max (avMoney - paidMoney) zero
+            actualPaidMoney = min avMoney paidMoney
           let
-            tempEnv = over _deposits (Map.insert key (Just actualPaidMoney)) env
+            tempEnv = over _deposits (Map.insert key (Just (avMoney - actualPaidMoney))) env
           pure
             ( case fromTerm payee of
                 Just (Semantics.Account newAcc) -> addMoneyToEnvAccount actualPaidMoney newAcc tokenTerm tempEnv

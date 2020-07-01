@@ -49,12 +49,16 @@ all = do
     test "Non-positive Pay" $ nonPositivePay
     test "Pay before deposit" $ payBeforeWarning
     test "Pay before deposit in branch" $ payBeforeWarningBranch
+    test "Pay with insufficient deposit" $ payInsufficientDeposit
+    test "Pay twice with insufficient deposit for both" $ payTwiceInsufficientDeposit
   suite "Marlowe.Linter does not report good contracts" do
     test "Defined Let" $ undefinedLet
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
     test "Deposit in state" $ depositFromState
     test "Pay to hole" payToHole
+    test "Pay to account and then Pay" $ payThroughAccount
+    test "Pay twice" $ payTwice
 
 letContract :: String -> String
 letContract subExpression = "Let \"simplifiableValue\" " <> subExpression <> " Close"
@@ -65,8 +69,11 @@ addContract subExpression = "Let \"simplifiableValue\" (AddValue SlotIntervalEnd
 subContract :: String -> String
 subContract subExpression = "Let \"simplifiableValue\" (SubValue SlotIntervalEnd " <> subExpression <> ") Close"
 
+depositAndThenDo :: String -> String -> String
+depositAndThenDo subExpression continuation = "When [Case (Deposit (AccountId 0 (Role \"role\")) (Role \"role\") (Token \"\" \"\") " <> subExpression <> ") " <> continuation <> "] 10 Close"
+
 depositContract :: String -> String
-depositContract subExpression = "When [Case (Deposit (AccountId 0 (Role \"role\")) (Role \"role\") (Token \"\" \"\") " <> subExpression <> ") Close] 10 Close"
+depositContract subExpression = depositAndThenDo subExpression "Close"
 
 payContract :: String -> String
 payContract subExpression = "When [Case (Deposit (AccountId 0 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") " <> subExpression <> " Close)] 10 Close"
@@ -324,10 +331,41 @@ payBeforeWarningBranch = testWarningSimple contract "The contract makes a paymen
   where
   contract = "When [Case (Deposit (AccountId 1 (Role \"role\")) (Role \"role\") (Token \"\" \"\") (Constant 10)) Close] 2 (Pay (AccountId 1 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
 
+payDepositDifferentCurrency :: Test
+payDepositDifferentCurrency = testWarningSimple (depositAndThenDo "(Constant 10)" continuation) "The contract makes a payment from account (AccountId 0 (Role \"role\")) before a deposit has been made"
+  where
+  continuation = "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"0000\" \"0000\") (Constant 10) Close)"
+
+payInsufficientDeposit :: Test
+payInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 10 (Token \"\" \"\") from account (AccountId 0 (Role \"role\")) but the account only has 9"
+  where
+  continuation = "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close)"
+
+payTwiceInsufficientDeposit :: Test
+payTwiceInsufficientDeposit = testWarningSimple (depositAndThenDo "(Constant 9)" continuation) "The contract makes a payment of 5 (Token \"\" \"\") from account (AccountId 0 (Role \"role\")) but the account only has 4"
+  where
+  continuation =
+    "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) "
+      <> "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) Close))"
+
 payToHole :: Test
 payToHole = testNoWarning contract
   where
   contract = "When [Case (Deposit (AccountId 1 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 ?party) (Party (Role \"role\")) (Token \"\" \"\") (Constant 1) Close)] 10 Close"
+
+payThroughAccount :: Test
+payThroughAccount = testNoWarning (depositAndThenDo "(Constant 10)" continuation)
+  where
+  continuation =
+    "(Pay (AccountId 0 (Role \"role\")) (Account (AccountId 1 (Role \"role2\"))) (Token \"\" \"\") (Constant 10) "
+      <> "(Pay (AccountId 1 (Role \"role2\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 10) Close))"
+
+payTwice :: Test
+payTwice = testNoWarning (depositAndThenDo "(Constant 10)" continuation)
+  where
+  continuation =
+    "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) "
+      <> "(Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") (Constant 5) Close))"
 
 normalLet :: Test
 normalLet = testNoWarning "Let \"a\" (Constant 0) (Let \"b\" (UseValue \"a\") Close)"
