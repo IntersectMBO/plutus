@@ -1,6 +1,6 @@
 module Main where
 
-import           Tutorial.PlutusTx ()
+import           PlutusTx ()
 
 main :: IO ()
 main = pure ()

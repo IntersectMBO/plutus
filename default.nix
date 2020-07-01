@@ -110,7 +110,8 @@ in rec {
   };
 
   docs = pkgs.recurseIntoAttrs {
-    plutus-tutorial = pkgs.callPackage ./plutus-tutorial/doc { };
+    site = pkgs.callPackage ./doc { pythonPackages = pkgs.python3Packages; };
+
     plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
     plutus-book = pkgs.callPackage ./plutus-book/doc { };
 

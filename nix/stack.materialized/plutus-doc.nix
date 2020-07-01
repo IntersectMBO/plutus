@@ -11,15 +11,15 @@
     flags = { defer-plugin-errors = false; };
     package = {
       specVersion = "2.2";
-      identifier = { name = "plutus-tutorial"; version = "0.1.0.0"; };
+      identifier = { name = "plutus-doc"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "jann.mueller@iohk.io";
       author = "Michael Peyton Jones, Jann Mueller";
       homepage = "";
       url = "";
-      synopsis = "PlutusTx tutorial";
-      description = "A tutorial for PlutusTx.";
+      synopsis = "Plutus documentation";
+      description = "Plutus documentation";
       buildType = "Simple";
       isLocal = true;
       detailLevel = "FullDetails";
@@ -28,11 +28,11 @@
       dataFiles = [];
       extraSrcFiles = [];
       extraTmpFiles = [];
-      extraDocFiles = [ "README.adoc" ];
+      extraDocFiles = [];
       };
     components = {
       exes = {
-        "tutorial-doctests" = {
+        "doc-doctests" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
@@ -49,8 +49,8 @@
             (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
             ];
           buildable = true;
-          modules = [ "Tutorial/PlutusTx" ];
-          hsSourceDirs = [ "doctest" "doc" ];
+          modules = [ "PlutusTx" ];
+          hsSourceDirs = [ "tutorials" ];
           mainPath = ([
             "Main.hs"
             ] ++ (pkgs.lib).optional (flags.defer-plugin-errors) "") ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
@@ -58,5 +58,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault ./plutus-tutorial;
+    src = (pkgs.lib).mkDefault ./doc;
     }

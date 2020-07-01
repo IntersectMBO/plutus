@@ -45,7 +45,6 @@
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
-        plutus-tutorial = ./plutus-tutorial.nix;
         plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;
         plutus-scb = ./plutus-scb.nix;
@@ -53,6 +52,7 @@
         iots-export = ./iots-export.nix;
         marlowe-symbolic = ./marlowe-symbolic.nix;
         prettyprinter-configurable = ./prettyprinter-configurable.nix;
+        plutus-doc = ./plutus-doc.nix;
         purescript-bridge = ./.stack-to-nix.cache.0;
         servant-purescript = ./.stack-to-nix.cache.1;
         cardano-crypto = ./.stack-to-nix.cache.2;
