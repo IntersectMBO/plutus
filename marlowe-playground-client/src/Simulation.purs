@@ -505,7 +505,7 @@ marloweEditor state = slot _editorSlot unit component unit (Just <<< HandleEdito
 
   component = monacoComponent $ MM.settings setup
 
-  initialContents = fromMaybe "" $ Array.head $ map fst StaticData.marloweContracts
+  initialContents = fromMaybe "?contract" $ Array.head $ map snd StaticData.marloweContracts
 
 sidebar ::
   forall p.
