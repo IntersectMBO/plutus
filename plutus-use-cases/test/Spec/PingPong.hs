@@ -2,18 +2,8 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.PingPong(tests) where
 
-import           Control.Monad                                     (void)
-import qualified Data.Map                                          as Map
-
 import           Language.Plutus.Contract
 import           Language.Plutus.Contract.Test
-import           Language.PlutusTx.Lattice
-import qualified Ledger
-import qualified Ledger.Ada                                        as Ada
-import           Ledger.Constraints                                (ScriptLookups (..))
-import qualified Ledger.Constraints                                as Constraints
-import           Ledger.Scripts                                    (unitRedeemer)
-import           Ledger.Typed.Scripts                              as Scripts
 
 import           Language.PlutusTx.Coordination.Contracts.PingPong (PingPongError, PingPongSchema)
 import qualified Language.PlutusTx.Coordination.Contracts.PingPong as PingPong
@@ -22,7 +12,7 @@ import           Test.Tasty
 
 theContract :: Contract PingPongSchema PingPongError ()
 theContract = do
-    PingPong.initialise
+    _ <- PingPong.initialise
     PingPong.runPong
     PingPong.runPing
     PingPong.runPong
