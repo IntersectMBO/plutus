@@ -127,7 +127,7 @@ getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "to_party", DataArg TokenType, DataArg ValueType ])
+    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
     , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg ObservationType ])
     ]

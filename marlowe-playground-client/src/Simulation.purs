@@ -717,7 +717,7 @@ transactionComposer state =
                             const Nothing
                     , class_ (Classes.disabled $ not isEnabled)
                     ]
-                    [ text $ "Next Block (" <> show currentBlock <> ")" ]
+                    [ text $ "Next Slot (" <> show currentBlock <> ")" ]
                 ]
             , li_
                 [ button

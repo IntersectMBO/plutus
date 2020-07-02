@@ -1277,7 +1277,7 @@ rightPanel state =
             [ a
                 [ onClick $ const $ Just NextSlot
                 ]
-                [ text $ "Next Block" ]
+                [ text $ "Next Slot" ]
             ]
         ]
     , article [ class_ (ClassName "documentation-panel") ]
