@@ -148,7 +148,8 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
     let states = getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
 
--- | Check if the on-chain state of the state machine instance has changed.
+-- | Wait until the on-chain state of the state machine instance has changed,
+--   and return the new state.
 waitForUpdate ::
     ( AsSMContractError e state i
     , AsContractError e
