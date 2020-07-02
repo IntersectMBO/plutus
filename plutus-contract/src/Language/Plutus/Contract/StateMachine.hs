@@ -26,6 +26,8 @@ module Language.Plutus.Contract.StateMachine(
     , runGuardedStep
     , runStep
     , runInitialise
+    , getOnChainState
+    , waitForUpdate
     -- * Re-exports
     , Void
     ) where
@@ -52,7 +54,8 @@ import           Ledger.Constraints.OffChain                   (UnbalancedTx)
 import qualified Ledger.Constraints.OffChain                   as Constraints
 import           Ledger.Constraints.TxConstraints              (InputConstraint (..), OutputConstraint (..))
 import           Ledger.Crypto                                 (pubKeyHash)
-import           Ledger.Tx
+import           Ledger.Tx                                     as Tx
+import qualified Ledger.Typed.Scripts                          as Scripts
 import           Ledger.Typed.Tx                               (TypedScriptTxOut (..))
 import qualified Ledger.Typed.Tx                               as Typed
 
@@ -131,6 +134,9 @@ mkStateMachineClient inst =
         , scChooser  = defaultChooser
         }
 
+-- | Get the current on-chain state of the state machine instance. Throws an
+--   @SMContractError@ if the number of outputs at the machine address
+--   is zero, or greater than one.
 getOnChainState ::
     ( AsSMContractError e state i
     , PlutusTx.IsData state
@@ -141,6 +147,27 @@ getOnChainState StateMachineClient{scInstance, scChooser} = mapError (review _SM
     utxo <- utxoAt (SM.machineAddress scInstance)
     let states = getStates scInstance utxo
     either (throwing _SMContractError) (\s -> pure (s, utxo)) (scChooser states)
+
+-- | Wait until the on-chain state of the state machine instance has changed,
+--   and return the new state.
+waitForUpdate ::
+    ( AsSMContractError e state i
+    , AsContractError e
+    , PlutusTx.IsData state
+    , HasAwaitSlot schema
+    , HasWatchAddress schema)
+    => StateMachineClient state i
+    -> Contract schema e (OnChainState state i)
+waitForUpdate StateMachineClient{scInstance, scChooser} = do
+    let addr = Scripts.scriptAddress $ validatorInstance scInstance
+        outputsMap :: Ledger.Tx -> Map TxOutRef TxOutTx
+        outputsMap t =
+                fmap (\txout -> TxOutTx{txOutTxTx=t, txOutTxOut = txout})
+                $ Map.filter ((==) addr . Tx.txOutAddress)
+                $ Tx.unspentOutputsTx t
+    txns <- nextTransactionsAt addr
+    let states = txns >>= getStates scInstance . outputsMap
+    either (throwing _SMContractError) pure (scChooser states)
 
 -- | Tries to run one step of a state machine: If the /guard/ (the last argument) returns @'Nothing'@ when given the
 -- unbalanced transaction to be submitted, the old state and the new step, the step is run and @'Right'@ the new state is returned.
