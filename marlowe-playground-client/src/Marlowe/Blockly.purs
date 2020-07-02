@@ -320,6 +320,49 @@ instance showBlockType :: Show BlockType where
   show (TokenType tt) = show tt
   show (ActionType at) = show at
 
+contractColour :: String
+contractColour = "#a380bc"
+
+boundsColour :: String
+boundsColour = "#1a7b84"
+
+actionColour :: String
+actionColour = "#e6aa00"
+
+observationColour :: String
+observationColour = "#1fc1c3"
+
+valueColour :: String
+valueColour = "#eb2256"
+
+payeeColour :: String
+payeeColour = "#709cf0"
+
+partyColour :: String
+partyColour = "#f69ab2"
+
+tokenColour :: String
+tokenColour = "#eb4a22"
+
+blockColour :: BlockType -> String
+blockColour BaseContractType = contractColour
+
+blockColour BoundsType = boundsColour
+
+blockColour (ActionType _) = actionColour
+
+blockColour (ContractType _) = contractColour
+
+blockColour (ObservationType _) = observationColour
+
+blockColour (ValueType _) = valueColour
+
+blockColour (PayeeType _) = payeeColour
+
+blockColour (PartyType _) = partyColour
+
+blockColour (TokenType _) = tokenColour
+
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
 
@@ -336,7 +379,7 @@ toDefinition BaseContractType =
           , Statement { name: (show BaseContractType), check: (show BaseContractType), align: Right }
           , DummyRight
           ]
-        , colour: "45"
+        , colour: blockColour BaseContractType
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -350,14 +393,14 @@ toDefinition BoundsType =
           [ Number { name: "from", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Number { name: "to", value: 2.0, min: Nothing, max: Nothing, precision: Nothing }
           ]
-        , colour: "75"
+        , colour: blockColour BoundsType
         , previousStatement: Just (show BoundsType)
         , nextStatement: Just (show BoundsType)
         }
         defaultBlockDefinition
 
 -- Action
-toDefinition (ActionType DepositActionType) =
+toDefinition blockType@(ActionType DepositActionType) =
   BlockDefinition
     $ merge
         { type: show DepositActionType
@@ -372,14 +415,14 @@ toDefinition (ActionType DepositActionType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "290"
+        , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
-toDefinition (ActionType ChoiceActionType) =
+toDefinition blockType@(ActionType ChoiceActionType) =
   BlockDefinition
     $ merge
         { type: show ChoiceActionType
@@ -393,14 +436,14 @@ toDefinition (ActionType ChoiceActionType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "290"
+        , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
-toDefinition (ActionType NotifyActionType) =
+toDefinition blockType@(ActionType NotifyActionType) =
   BlockDefinition
     $ merge
         { type: show NotifyActionType
@@ -410,7 +453,7 @@ toDefinition (ActionType NotifyActionType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "290"
+        , colour: blockColour blockType
         , previousStatement: Just "ActionType"
         , nextStatement: Just "ActionType"
         , inputsInline: Just false
@@ -418,7 +461,7 @@ toDefinition (ActionType NotifyActionType) =
         defaultBlockDefinition
 
 -- Payee
-toDefinition (PayeeType AccountPayeeType) =
+toDefinition blockType@(PayeeType AccountPayeeType) =
   BlockDefinition
     $ merge
         { type: show AccountPayeeType
@@ -427,13 +470,13 @@ toDefinition (PayeeType AccountPayeeType) =
           [ Number { name: "account_number", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           , Value { name: "party", check: "party", align: Right }
           ]
-        , colour: "210"
+        , colour: blockColour blockType
         , output: Just "payee"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (PayeeType PartyPayeeType) =
+toDefinition blockType@(PayeeType PartyPayeeType) =
   BlockDefinition
     $ merge
         { type: show PartyPayeeType
@@ -441,14 +484,14 @@ toDefinition (PayeeType PartyPayeeType) =
         , args0:
           [ Value { name: "party", check: "party", align: Right }
           ]
-        , colour: "210"
+        , colour: blockColour blockType
         , output: Just "payee"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
 -- Party
-toDefinition (PartyType PKPartyType) =
+toDefinition blockType@(PartyType PKPartyType) =
   BlockDefinition
     $ merge
         { type: show PKPartyType
@@ -456,27 +499,27 @@ toDefinition (PartyType PKPartyType) =
         , args0:
           [ Input { name: "pubkey", text: "pubkey", spellcheck: false }
           ]
-        , colour: "180"
+        , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
 -- Ada Token type
-toDefinition (TokenType AdaTokenType) =
+toDefinition blockType@(TokenType AdaTokenType) =
   BlockDefinition
     $ merge
         { type: show AdaTokenType
         , message0: "ada"
         , args0: []
-        , colour: "255"
+        , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
 -- Custom Token type
-toDefinition (TokenType CustomTokenType) =
+toDefinition blockType@(TokenType CustomTokenType) =
   BlockDefinition
     $ merge
         { type: show CustomTokenType
@@ -485,13 +528,13 @@ toDefinition (TokenType CustomTokenType) =
           [ Input { name: "currency_symbol", text: "", spellcheck: false }
           , Input { name: "token_name", text: "", spellcheck: false }
           ]
-        , colour: "255"
+        , colour: blockColour blockType
         , output: Just "token"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (PartyType RolePartyType) =
+toDefinition blockType@(PartyType RolePartyType) =
   BlockDefinition
     $ merge
         { type: show RolePartyType
@@ -499,24 +542,24 @@ toDefinition (PartyType RolePartyType) =
         , args0:
           [ Input { name: "role", text: "role", spellcheck: false }
           ]
-        , colour: "180"
+        , colour: blockColour blockType
         , output: Just "party"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
 -- Contracts
-toDefinition (ContractType CloseContractType) =
+toDefinition blockType@(ContractType CloseContractType) =
   BlockDefinition
     $ merge
         { type: show CloseContractType
         , message0: "Close"
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         }
         defaultBlockDefinition
 
-toDefinition (ContractType PayContractType) =
+toDefinition blockType@(ContractType PayContractType) =
   BlockDefinition
     $ merge
         { type: show PayContractType
@@ -531,13 +574,13 @@ toDefinition (ContractType PayContractType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
-toDefinition (ContractType IfContractType) =
+toDefinition blockType@(ContractType IfContractType) =
   BlockDefinition
     $ merge
         { type: show IfContractType
@@ -549,13 +592,13 @@ toDefinition (ContractType IfContractType) =
           , DummyLeft
           , Statement { name: "contract2", check: (show BaseContractType), align: Right }
           ]
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
-toDefinition (ContractType WhenContractType) =
+toDefinition blockType@(ContractType WhenContractType) =
   BlockDefinition
     $ merge
         { type: show WhenContractType
@@ -568,13 +611,13 @@ toDefinition (ContractType WhenContractType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
-toDefinition (ContractType LetContractType) =
+toDefinition blockType@(ContractType LetContractType) =
   BlockDefinition
     $ merge
         { type: show LetContractType
@@ -585,12 +628,12 @@ toDefinition (ContractType LetContractType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         }
         defaultBlockDefinition
 
-toDefinition (ContractType AssertContractType) =
+toDefinition blockType@(ContractType AssertContractType) =
   BlockDefinition
     $ merge
         { type: show AssertContractType
@@ -601,14 +644,14 @@ toDefinition (ContractType AssertContractType) =
           , DummyLeft
           , Statement { name: "contract", check: (show BaseContractType), align: Right }
           ]
-        , colour: "0"
+        , colour: blockColour blockType
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
         defaultBlockDefinition
 
 -- Observations
-toDefinition (ObservationType AndObservationType) =
+toDefinition blockType@(ObservationType AndObservationType) =
   BlockDefinition
     $ merge
         { type: show AndObservationType
@@ -617,13 +660,13 @@ toDefinition (ObservationType AndObservationType) =
           [ Value { name: "observation1", check: "observation", align: Right }
           , Value { name: "observation2", check: "observation", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType OrObservationType) =
+toDefinition blockType@(ObservationType OrObservationType) =
   BlockDefinition
     $ merge
         { type: show OrObservationType
@@ -632,13 +675,13 @@ toDefinition (ObservationType OrObservationType) =
           [ Value { name: "observation1", check: "observation", align: Right }
           , Value { name: "observation2", check: "observation", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType NotObservationType) =
+toDefinition blockType@(ObservationType NotObservationType) =
   BlockDefinition
     $ merge
         { type: show NotObservationType
@@ -646,13 +689,13 @@ toDefinition (ObservationType NotObservationType) =
         , args0:
           [ Value { name: "observation", check: "observation", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ChoseSomethingObservationType) =
+toDefinition blockType@(ObservationType ChoseSomethingObservationType) =
   BlockDefinition
     $ merge
         { type: show ChoseSomethingObservationType
@@ -661,13 +704,13 @@ toDefinition (ObservationType ChoseSomethingObservationType) =
           [ Value { name: "party", check: "party", align: Right }
           , Input { name: "choice_name", text: "name", spellcheck: false }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ValueGEObservationType) =
+toDefinition blockType@(ObservationType ValueGEObservationType) =
   BlockDefinition
     $ merge
         { type: show ValueGEObservationType
@@ -676,13 +719,13 @@ toDefinition (ObservationType ValueGEObservationType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ValueGTObservationType) =
+toDefinition blockType@(ObservationType ValueGTObservationType) =
   BlockDefinition
     $ merge
         { type: show ValueGTObservationType
@@ -691,13 +734,13 @@ toDefinition (ObservationType ValueGTObservationType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ValueLEObservationType) =
+toDefinition blockType@(ObservationType ValueLEObservationType) =
   BlockDefinition
     $ merge
         { type: show ValueLEObservationType
@@ -706,13 +749,13 @@ toDefinition (ObservationType ValueLEObservationType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ValueLTObservationType) =
+toDefinition blockType@(ObservationType ValueLTObservationType) =
   BlockDefinition
     $ merge
         { type: show ValueLTObservationType
@@ -721,13 +764,13 @@ toDefinition (ObservationType ValueLTObservationType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType ValueEQObservationType) =
+toDefinition blockType@(ObservationType ValueEQObservationType) =
   BlockDefinition
     $ merge
         { type: show ValueEQObservationType
@@ -736,38 +779,38 @@ toDefinition (ObservationType ValueEQObservationType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType TrueObservationType) =
+toDefinition blockType@(ObservationType TrueObservationType) =
   BlockDefinition
     $ merge
         { type: show TrueObservationType
         , message0: "true"
         , lastDummyAlign0: Centre
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ObservationType FalseObservationType) =
+toDefinition blockType@(ObservationType FalseObservationType) =
   BlockDefinition
     $ merge
         { type: show FalseObservationType
         , message0: "false"
         , lastDummyAlign0: Centre
-        , colour: "230"
+        , colour: blockColour blockType
         , output: Just "observation"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
 -- Values
-toDefinition (ValueType AvailableMoneyValueType) =
+toDefinition blockType@(ValueType AvailableMoneyValueType) =
   BlockDefinition
     $ merge
         { type: show AvailableMoneyValueType
@@ -779,13 +822,13 @@ toDefinition (ValueType AvailableMoneyValueType) =
           , Value { name: "party", check: "party", align: Right }
           , DummyRight
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType ConstantValueType) =
+toDefinition blockType@(ValueType ConstantValueType) =
   BlockDefinition
     $ merge
         { type: show ConstantValueType
@@ -793,13 +836,13 @@ toDefinition (ValueType ConstantValueType) =
         , args0:
           [ Number { name: "constant", value: 1.0, min: Nothing, max: Nothing, precision: Nothing }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType NegValueValueType) =
+toDefinition blockType@(ValueType NegValueValueType) =
   BlockDefinition
     $ merge
         { type: show NegValueValueType
@@ -807,13 +850,13 @@ toDefinition (ValueType NegValueValueType) =
         , args0:
           [ Value { name: "value", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType AddValueValueType) =
+toDefinition blockType@(ValueType AddValueValueType) =
   BlockDefinition
     $ merge
         { type: show AddValueValueType
@@ -822,13 +865,13 @@ toDefinition (ValueType AddValueValueType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType MulValueValueType) =
+toDefinition blockType@(ValueType MulValueValueType) =
   BlockDefinition
     $ merge
         { type: show MulValueValueType
@@ -837,13 +880,13 @@ toDefinition (ValueType MulValueValueType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType CondObservationValueValueType) =
+toDefinition blockType@(ValueType CondObservationValueValueType) =
   BlockDefinition
     $ merge
         { type: show CondObservationValueValueType
@@ -853,13 +896,13 @@ toDefinition (ValueType CondObservationValueValueType) =
           , Value { name: "then", check: "value", align: Right }
           , Value { name: "else", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType SubValueValueType) =
+toDefinition blockType@(ValueType SubValueValueType) =
   BlockDefinition
     $ merge
         { type: show SubValueValueType
@@ -868,13 +911,13 @@ toDefinition (ValueType SubValueValueType) =
           [ Value { name: "value1", check: "value", align: Right }
           , Value { name: "value2", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType ScaleValueType) =
+toDefinition blockType@(ValueType ScaleValueType) =
   BlockDefinition
     $ merge
         { type: show ScaleValueType
@@ -884,13 +927,13 @@ toDefinition (ValueType ScaleValueType) =
           , Number { name: "denominator", value: 1.0, min: Just 1.0, max: Nothing, precision: Nothing }
           , Value { name: "value", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType ChoiceValueValueType) =
+toDefinition blockType@(ValueType ChoiceValueValueType) =
   BlockDefinition
     $ merge
         { type: show ChoiceValueValueType
@@ -900,37 +943,37 @@ toDefinition (ValueType ChoiceValueValueType) =
           , Value { name: "party", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType SlotIntervalStartValueType) =
+toDefinition blockType@(ValueType SlotIntervalStartValueType) =
   BlockDefinition
     $ merge
         { type: show SlotIntervalStartValueType
         , message0: "Slot Interval Start"
         , lastDummyAlign0: Centre
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType SlotIntervalEndValueType) =
+toDefinition blockType@(ValueType SlotIntervalEndValueType) =
   BlockDefinition
     $ merge
         { type: show SlotIntervalEndValueType
         , message0: "Slot Interval End"
         , lastDummyAlign0: Centre
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
         defaultBlockDefinition
 
-toDefinition (ValueType UseValueValueType) =
+toDefinition blockType@(ValueType UseValueValueType) =
   BlockDefinition
     $ merge
         { type: show UseValueValueType
@@ -938,7 +981,7 @@ toDefinition (ValueType UseValueValueType) =
         , args0:
           [ Input { name: "value_id", text: "value", spellcheck: false }
           ]
-        , colour: "135"
+        , colour: blockColour blockType
         , output: Just "value"
         , inputsInline: Just true
         }
@@ -947,14 +990,14 @@ toDefinition (ValueType UseValueValueType) =
 toolbox :: forall a b. HTML a b
 toolbox =
   xml [ id_ "blocklyToolbox", style "display:none" ]
-    [ category [ name "Contracts", colour "0" ] (map mkBlock contractTypes)
-    , category [ name "Observations", colour "230" ] (map mkBlock observationTypes)
-    , category [ name "Actions", colour "290" ] (map mkBlock actionTypes)
-    , category [ name "Values", colour "135" ] (map mkBlock valueTypes)
-    , category [ name "Payee", colour "210" ] (map mkBlock payeeTypes)
-    , category [ name "Party", colour "180" ] (map mkBlock partyTypes)
-    , category [ name "Token", colour "255" ] (map mkBlock tokenTypes)
-    , category [ name "Bounds", colour "75" ] (map mkBlock [ BoundsType ])
+    [ category [ name "Contracts", colour contractColour ] (map mkBlock contractTypes)
+    , category [ name "Observations", colour observationColour ] (map mkBlock observationTypes)
+    , category [ name "Actions", colour actionColour ] (map mkBlock actionTypes)
+    , category [ name "Values", colour valueColour ] (map mkBlock valueTypes)
+    , category [ name "Payee", colour payeeColour ] (map mkBlock payeeTypes)
+    , category [ name "Party", colour partyColour ] (map mkBlock partyTypes)
+    , category [ name "Token", colour tokenColour ] (map mkBlock tokenTypes)
+    , category [ name "Bounds", colour boundsColour ] (map mkBlock [ BoundsType ])
     ]
   where
   mkBlock :: forall t. Show t => t -> _
