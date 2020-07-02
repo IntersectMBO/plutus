@@ -407,7 +407,7 @@ toDefinition blockType@(ActionType DepositActionType) =
         , message0: "Deposit %1 by %2 the amount of %3 currency %4 into account %5 with owner %6 continue as %7 %8"
         , args0:
           [ DummyCentre
-          , Value { name: "to_party", check: "party", align: Right }
+          , Value { name: "from_party", check: "party", align: Right }
           , Value { name: "value", check: "value", align: Right }
           , Value { name: "token", check: "token", align: Right }
           , Number { name: "account_number", value: 0.0, min: Nothing, max: Nothing, precision: Nothing }
@@ -1086,7 +1086,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     tok <- statementToTerm g block "token" Parser.token
     let
       accountId = AccountId accountNumber accountOwner
-    party <- statementToTerm g block "to_party" Parser.party
+    party <- statementToTerm g block "from_party" Parser.party
     amount <- statementToTerm g block "value" (Parser.value unit)
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Deposit accountId party tok amount)) contract)
@@ -1387,7 +1387,7 @@ oneCaseToBlockly newBlock workspace (Case (Term (Deposit (AccountId accountNumbe
   setField block "account_number" (show accountNumber)
   inputToBlockly newBlock workspace block "party" accountOwner
   inputToBlockly newBlock workspace block "token" tok
-  inputToBlockly newBlock workspace block "to_party" party
+  inputToBlockly newBlock workspace block "from_party" party
   inputToBlockly newBlock workspace block "value" value
   inputToBlockly newBlock workspace block "contract" cont
   pure block
