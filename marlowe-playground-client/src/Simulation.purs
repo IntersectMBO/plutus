@@ -58,7 +58,7 @@ import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (replaceInPositions)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
-import Marlowe.Parser (hole, parseTerm)
+import Marlowe.Parser (hole, parseContract)
 import Marlowe.Parser as P
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
@@ -167,7 +167,7 @@ handleAction _ (LoadScript key) = do
     Nothing -> pure unit
     Just contents -> do
       let
-        prettyContents = case runParser (parseTerm P.contract) contents of
+        prettyContents = case parseContract contents of
           Right pcon -> show $ pretty pcon
           Left _ -> contents
       editorSetValue prettyContents
