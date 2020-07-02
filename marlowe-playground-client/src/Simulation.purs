@@ -107,6 +107,7 @@ handleQuery (SetEditorText contents next) = do
 
 handleQuery (ResizeEditor next) = do
   void $ query _editorSlot unit (Monaco.Resize unit)
+  void $ query _editorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
   pure (Just next)
 
 handleQuery (ResetContract next) = do

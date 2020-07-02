@@ -40,7 +40,8 @@ data HAction
   -- haskell actions
   | CompileHaskellProgram
   | ChangeView View
-  | SendResult
+  | SendResultToSimulator
+  | SendResultToBlockly
   | LoadHaskellScript String
   -- Simulation Actions
   | HandleSimulationMessage Simulation.Message
@@ -61,7 +62,8 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent SendResult = Just $ defaultEvent "SendResult"
+  toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
+  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
 
 ------------------------------------------------------------
 type ChildSlots

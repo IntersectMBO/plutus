@@ -158,7 +158,7 @@ render state =
         , id_ "blocklyWorkspace"
         , classes [ ClassName "blockly-workspace", ClassName "container-fluid" ]
         ]
-        [ toCodeButton "To Code"
+        [ toCodeButton "Send To Simulator"
         , errorMessage state.errorMessage
         ]
     ]
