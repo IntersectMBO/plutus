@@ -35,6 +35,7 @@ import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Blockly as MB
+import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
@@ -46,6 +47,7 @@ import Simulation.State (_result)
 import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
+import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
@@ -161,7 +163,13 @@ handleAction _ SendResultToSimulator = do
   mContract <- use _compilationResult
   let
     contract = case mContract of
-      Success (JsonEither (Right x)) -> view (_InterpreterResult <<< _result <<< _RunResult) x
+      Success (JsonEither (Right result)) ->
+        let
+          unformatted = view (_InterpreterResult <<< _result <<< _RunResult) result
+        in
+          case parseContract unformatted of
+            Right pcon -> show $ pretty pcon
+            Left _ -> unformatted
       _ -> ""
   void $ query _simulationSlot unit (ST.SetEditorText contract unit)
   void $ query _simulationSlot unit (ST.ResetContract unit)
