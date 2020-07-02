@@ -97,7 +97,8 @@ bottomPanel state =
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "haskell-buttons" ])
                     ]
                     [ button [ onClick $ const $ Just CompileHaskellProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
-                    , sendResultButton state
+                    , sendResultButton state "Send To Simulator" SendResultToSimulator
+                    , sendResultButton state "Send To Blockly" SendResultToBlockly
                     ]
                 ]
             ]
@@ -108,18 +109,18 @@ bottomPanel state =
         ]
     ]
 
-sendResultButton :: forall p. FrontendState -> HTML p HAction
-sendResultButton state =
+sendResultButton :: forall p. FrontendState -> String -> HAction -> HTML p HAction
+sendResultButton state msg action =
   let
     compilationResult = view _compilationResult state
   in
     case view _compilationResult state of
       Success (JsonEither (Right (InterpreterResult result))) ->
         button
-          [ onClick $ const $ Just SendResult
+          [ onClick $ const $ Just action
           , disabled (isLoading compilationResult || (not isSuccess) compilationResult)
           ]
-          [ text "Send to Simulator" ]
+          [ text msg ]
       _ -> text ""
 
 resultPane :: forall p. FrontendState -> Array (HTML p HAction)

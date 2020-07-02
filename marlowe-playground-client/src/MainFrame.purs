@@ -14,7 +14,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Halogen (Component, ComponentHTML, query, request)
+import Halogen (Component, ComponentHTML, liftEffect, query, request)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
@@ -31,6 +31,7 @@ import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), SourceCode(SourceCode), _InterpreterResult)
 import Language.Haskell.Monaco as HM
+import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Blockly as MB
@@ -43,6 +44,7 @@ import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types as ST
+import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
@@ -115,7 +117,9 @@ handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
     Nothing -> pure unit
     Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = assign _activeHaskellDemo ""
+handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = do
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+  assign _activeHaskellDemo ""
 
 handleAction _ (HaskellSelectEditorKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
@@ -153,7 +157,7 @@ handleAction _ (LoadHaskellScript key) = do
       void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
       assign _activeHaskellDemo key
 
-handleAction _ SendResult = do
+handleAction _ SendResultToSimulator = do
   mContract <- use _compilationResult
   let
     contract = case mContract of
@@ -162,6 +166,17 @@ handleAction _ SendResult = do
   void $ query _simulationSlot unit (ST.SetEditorText contract unit)
   void $ query _simulationSlot unit (ST.ResetContract unit)
   selectSimulationView
+
+handleAction _ SendResultToBlockly = do
+  mContract <- use _compilationResult
+  case mContract of
+    Success (JsonEither (Right result)) -> do
+      let
+        source = view (_InterpreterResult <<< _result <<< _RunResult) result
+      void $ query _blocklySlot unit (Blockly.SetCode source unit)
+      assign _view BlocklyEditor
+      void $ query _blocklySlot unit (Blockly.Resize unit)
+    _ -> pure unit
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -178,7 +193,7 @@ handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
     void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
     void $ query _simulationSlot unit (ST.SetEditorText code unit)
-    assign _view Simulation
+    selectSimulationView
 
 ------------------------------------------------------------
 runAjax ::
