@@ -61,8 +61,8 @@ costModelNames = CostModel
 costModelR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
 costModelR = do
   list <- [r|
-    source("budgeting-bench/models.R")
-    modelFun("budgeting-bench/csvs/benching.csv")
+    source("language-plutus-core/budgeting-bench/models.R")
+    modelFun("language-plutus-core/budgeting-bench/csvs/benching.csv")
   |]
   -- TODO use btraverse instead
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs[[n_hs]] |]) costModelNames
