@@ -29,6 +29,10 @@
       extraSrcFiles = [
         "src/costModel.json"
         "language-plutus-core/src/costModel.json"
+        "budgeting-bench/csvs/*.csv"
+        "language-plutus-core/budgeting-bench/csvs/*.csv"
+        "budgeting-bench/*.R"
+        "language-plutus-core/budgeting-bench/*.R"
         ];
       extraTmpFiles = [];
       extraDocFiles = [ "README.md" ];

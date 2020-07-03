@@ -17,6 +17,10 @@ extra-doc-files: README.md
 extra-source-files:
     src/costModel.json
     language-plutus-core/src/costModel.json
+    budgeting-bench/csvs/*.csv
+    language-plutus-core/budgeting-bench/csvs/*.csv
+    budgeting-bench/*.R
+    language-plutus-core/budgeting-bench/*.R
 
 source-repository head
     type: git
