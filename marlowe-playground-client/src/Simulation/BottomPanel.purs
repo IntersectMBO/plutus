@@ -18,9 +18,9 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul)
+import Halogen.HTML (AttrName(..), ClassName(..), HTML, a, a_, attr, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
@@ -32,25 +32,16 @@ import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarn
 import Simulation.Types (Action(..), BottomPanelView(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
-
-simulationBottomPanel :: State -> Array ClassName
-simulationBottomPanel state = if state ^. _showBottomPanel then [ ClassName "simulation-bottom-panel" ] else [ ClassName "simulation-bottom-panel", ClassName "collapse" ]
-
-footerPanelBg :: Boolean -> Array ClassName
-footerPanelBg display =
-  if display then
-    [ ClassName "footer-panel-bg", ClassName "expanded" ]
-  else
-    [ ClassName "footer-panel-bg" ]
+import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div [ classes (simulationBottomPanel state) ]
-    [ div [ class_ flex ]
+  div ([ classes [ ClassName "simulation-bottom-panel" ], bottomPanelHeight (state ^. _showBottomPanel) ])
+    [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
         [ div [ class_ flexTen ]
-            [ div [ classes (footerPanelBg (state ^. _showBottomPanel) <> [ active ]) ]
+            [ div [ classes [ footerPanelBg, active ] ]
                 [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-                    [ div [ classes ([ ClassName "panel-sub-header-main", aHorizontal ] <> (if state ^. _showBottomPanel then [ accentBorderBottom ] else [])) ]
+                    [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
                         [ ul [ class_ (ClassName "start-item") ]
                             [ li [ class_ (ClassName "minimize-icon-container") ]
                                 [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
@@ -314,7 +305,7 @@ panelContents state MarloweWarningsView =
           [ div [] [ text "Description" ]
           , div [] [ text "Line Number" ]
           ]
-      , ul [] (map renderWarning warnings)
+      , ul_ (map renderWarning warnings)
       ]
 
   renderWarning warning =
@@ -343,7 +334,7 @@ panelContents state MarloweErrorsView =
           [ div [] [ text "Description" ]
           , div [] [ text "Line Number" ]
           ]
-      , ul [] (map renderError errors)
+      , ul_ (map renderError errors)
       ]
 
   renderError error =

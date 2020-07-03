@@ -12,7 +12,7 @@ import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
 import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, accentBorderBottom, activeClasses, closeDrawerArrowIcon, codeEditor, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.Classes (aHorizontal, accentBorderBottom, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
 import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
@@ -25,7 +25,7 @@ import Monaco as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==), (||))
 import StaticData as StaticData
-import Types (ChildSlots, FrontendState, HAction(..), View(..), _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, analysisPanel, footerPanelBg, isActiveTab)
+import Types (ChildSlots, FrontendState, HAction(..), _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
   forall m.
@@ -85,8 +85,9 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hask
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
-  div [ classes (analysisPanel state) ]
-    [ div [ classes (footerPanelBg (state ^. _showBottomPanel) HaskellEditor <> isActiveTab state HaskellEditor) ]
+  div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
+    [ div
+        [ classes [ footerPanelBg, ClassName "flip-x" ] ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
             [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
                 [ div [ class_ (ClassName "minimize-icon-container") ]

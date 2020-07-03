@@ -40,7 +40,7 @@ import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
@@ -606,24 +606,32 @@ inputItem isEnabled person (DepositInput accountId party token value) =
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
-    [ div []
-        [ p [ class_ (ClassName "choice-input") ]
-            [ spanText "Choice "
-            , b_ [ spanText (show choiceName) ]
-            , spanText ": Choose value "
-            , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
-            ]
-        , p [ class_ (ClassName "choice-error") ] error
-        ]
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled (isEnabled && inBounds chosenNum bounds)
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
-        ]
-        [ text "+" ]
-    ]
+    ( [ div []
+          [ p [ class_ (ClassName "choice-input") ]
+              [ spanText "Choice "
+              , b_ [ spanText (show choiceName <> ":") ]
+              , br_
+              , spanText "Choose value "
+              , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
   where
+  addButton =
+    if isEnabled && inBounds chosenNum bounds then
+      [ button
+          [ classes [ plusBtn, smallBtn ]
+          , onClick $ const $ Just
+              $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
   boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
