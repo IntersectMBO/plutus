@@ -2,7 +2,7 @@
 }:
 with packageSet;
 let
-  pyEnv = pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
+  pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
 in haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs

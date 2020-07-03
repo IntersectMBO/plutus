@@ -67,7 +67,7 @@ as values.
 The Plutus Tx compiler compiles Haskell *expressions* (not values!), so
 naturally it takes a quote (representing an expression) as an argument.
 The result is a new quote, this time for a Haskell program that
-represents the *compiled* program. In Haskell, the type of ``compile``
+represents the *compiled* program. In Haskell, the type of :hsobj:`Language.PlutusTx.TH.compile`
 is ``TExpQ a → TExpQ (CompiledCode PLC.DefaultUni a)``. This is just
 what we already said:
 
@@ -78,19 +78,19 @@ what we already said:
 
 .. note::
 
-   ``CompiledCode`` has a type parameter ``a`` as well, which
+   :hsobj:`Language.PlutusTx.CompiledCode` has a type parameter ``a`` as well, which
    corresponds to the type of the original expression. This lets us
    "remember" what the original type of the Haskell program that we
    compiled was.
 
-Since ``compile`` produces a quote, to use the result we need to splice
+Since :hsobj:`Language.PlutusTx.TH.compile` produces a quote, to use the result we need to splice
 it back into our program. When you compile the main program, the Plutus
 Tx compiler will run and the compiled program will be inserted into the
 main program.
 
 This is all the Template Haskell you need to know! We almost always use
 the same, very simple pattern, which is to make a quote, immediately
-call ``compile`` and then splice the result back in, so once you are
+call :hsobj:`Language.PlutusTx.TH.compile` and then splice the result back in, so once you are
 used to that you can mostly ignore it.
 
 .. _writing_basic_plutustx_programs:
@@ -125,7 +125,7 @@ inspect at runtime to see the generated Plutus Core (or to put it on the
 blockchain).
 
 We also see the standard usage pattern here: a TH quote, wrapped in a
-call to ``compile``, wrapped in a ``$$`` splice. This is how we write
+call to :hsobj:`Language.PlutusTx.TH.compile`, wrapped in a ``$$`` splice. This is how we write
 all of our Plutus Tx programs.
 
 Here’s a slightly more complex program, namely the identity function on
@@ -200,7 +200,7 @@ definition.
 The Plutus Tx Prelude
 ---------------------
 
-The ``Language.PlutusTx.Prelude`` module is a drop-in replacement for
+The :hsmod:`Language.PlutusTx.Prelude` module is a drop-in replacement for
 the normal Haskell Prelude, but with some functions and typeclasses
 redefined to be easier for the Plutus Tx compiler to handle (i.e.
 ``INLINABLE``).
@@ -212,13 +212,13 @@ so you can use them in normal Haskell code too, although the Haskell
 Prelude versions will probably perform better.
 
 To use the Plutus Tx Prelude, use the ``NoImplicitPrelude`` language
-pragma, and import ``Language.PlutusTx.Prelude``.
+pragma, and import :hsmod:`Language.PlutusTx.Prelude`.
 
 Plutus Tx has some builtin types and functions available for working
 with primitive data (integers and bytestrings), as well as a few special
 functions. These builtins are also exported from the Plutus Tx Prelude.
 
-The ``error`` builtin deserves a special mention. ``error`` causes the
+The :hsobj:`Language.PlutusTx.Builtins.error` builtin deserves a special mention. :hsobj:`Language.PlutusTx.Builtins.error` causes the
 transaction to abort when it is evaluated, which one way to trigger
 validation failure.
 
@@ -267,16 +267,15 @@ it.
    :start-after: BLOCK9
    :end-before: BLOCK10
 
-We lifted the argument using the ``liftCode`` function. In order to use
-this, a type must have an instance of the ``Lift`` class. In practice,
-you should generate these with the ``makeLift`` TH function from
-``Language.PlutusTx.Lift``.
+We lifted the argument using the :hsobj:`Language.PlutusTx.liftCode` function. In order to use
+this, a type must have an instance of the :hsobj:`Language.PlutusTx.Lift` class. In practice,
+you should generate these with the :hsobj:`Language.PlutusTx.makeLift` TH function from.
 
 .. note::
 
-   ``liftCode`` is a little "unsafe" because it ignores any errors that
+   :hsobj:`Language.PlutusTx.liftCode` is a little "unsafe" because it ignores any errors that
    might occur from lifting something that isn’t supported. There is a
-   ``safeLiftCode`` if you want to explicitly handle these.
+   :hsobj:`Language.PlutusTx.safeLiftCode` if you want to explicitly handle these.
 
 The combined program applies the original compiled lambda to the lifted
 value (notice that the lambda is a bit complicated now since we have

@@ -95,6 +95,19 @@
         "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
     },
+    "sphinxcontrib-haddock": {
+        "branch": "master",
+        "description": "Tools for using Haddock with Sphinx",
+        "homepage": null,
+        "owner": "michaelpj",
+        "repo": "sphinxcontrib-haddock",
+        "rev": "f3956b3256962b2d27d5a4e96edb7951acf5de34",
+        "sha256": "0mlxa5zzgdka0c6sj7pp4cfvc8rcrd8g2z2113vp614l43g17miv",
+        "type": "tarball",
+        "builtin": false,
+        "url": "https://github.com/michaelpj/sphinxcontrib-haddock/archive/f3956b3256962b2d27d5a4e96edb7951acf5de34.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "stackage.nix": {
         "branch": "master",
         "description": "Automatically generated Nix expressions of Stackage snapshots",
