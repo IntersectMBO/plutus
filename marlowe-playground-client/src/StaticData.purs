@@ -4,7 +4,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple.Nested ((/\), type (/\))
 import Examples.Haskell.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as HE
-import Examples.Marlowe.Contracts (escrow, zeroCouponBond, couponBondGuaranteed, swap) as ME
+import Examples.Marlowe.Contracts (escrow, zeroCouponBond, option, swap) as ME
 import LocalStorage as LocalStorage
 
 type Label
@@ -28,7 +28,7 @@ marloweContracts ::
 marloweContracts =
   [ "Escrow" /\ ME.escrow
   , "ZeroCouponBond" /\ ME.zeroCouponBond
-  , "CouponBondGuaranteed" /\ ME.couponBondGuaranteed
+  , "Option" /\ ME.option
   , "Swap" /\ ME.swap
   , "Empty" /\ "?empty_contract"
   ]

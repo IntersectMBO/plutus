@@ -110,7 +110,7 @@ writeUsecases outputDir = do
         marloweUsecases =
             multilineString "escrow" (contractToString Escrow.contract)
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
-         <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
+         <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")
