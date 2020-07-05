@@ -278,15 +278,15 @@ runEval (EvalOptions inp mode fmt) = do
                  CK  -> PLC.unsafeEvaluateCk
                  CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
       body = void . PLC.toTerm $ prog
-      () = rnf body
+      _ = rnf body
   start <- getCPUTime
   case evalFn body of
     PLC.EvaluationSuccess v -> do
       end <- getCPUTime
       let ms = 1e9 :: Double
           diff = (fromIntegral (end - start)) / ms
-      printf "Evaluation time: %0.2f ms\n" diff
       T.putStrLn $ PLC.displayPlcDef v
+      printf "Evaluation time: %0.2f ms\n" diff
       exitSuccess
     PLC.EvaluationFailure -> exitFailure
 
