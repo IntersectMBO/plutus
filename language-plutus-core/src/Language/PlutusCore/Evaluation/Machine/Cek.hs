@@ -421,6 +421,24 @@ applyEvaluate ctx (VBuiltin bn tyargs args env) arg =
           ConstAppStuck       -> returnCek ctx (VBuiltin bn tyargs args' env')
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
+{-
+applyEvaluate funVarEnv argVarEnv con (LamAbs _ name _ body) arg =
+    withVarEnv (extendVarEnv name arg argVarEnv funVarEnv) $ computeCek con body
+applyEvaluate funVarEnv argVarEnv con fun arg = do
+    withScopedArgIn funVarEnv argVarEnv arg $ \arg' ->
+        let term = Apply (memoryUsage () <> memoryUsage fun <> memoryUsage arg') fun arg'
+        in case termAsPrimIterApp term of
+            Nothing                       ->
+                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just (void term)
+            Just (IterApp headName spine) -> do
+                constAppResult <- applyStagedBuiltinName headName spine
+                case constAppResult of
+                    ConstAppSuccess res -> computeCek con res
+                    ConstAppStuck       -> returnCek con term
+-}
+
+
+
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)

@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -23,14 +24,17 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as P
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
+import           Control.DeepSeq                                            (rnf)
 import qualified Data.ByteString.Lazy                                       as BSL
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
-import           System.Exit
-
 import           Options.Applicative
+import           System.CPUTime
+import           System.Exit
+import           Text.Printf
+
 
 {- Note [Annotation types] This program now reads and writes
    CBOR-serialised PLC ASTs.  In all cases we require the annotation
@@ -273,8 +277,15 @@ runEval (EvalOptions inp mode fmt) = do
   let evalFn = case mode of
                  CK  -> PLC.unsafeEvaluateCk
                  CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
-  case evalFn . void . PLC.toTerm $ prog of
+      body = void . PLC.toTerm $ prog
+      () = rnf body
+  start <- getCPUTime
+  case evalFn body of
     PLC.EvaluationSuccess v -> do
+      end <- getCPUTime
+      let ms = 1e9 :: Double
+          diff = (fromIntegral (end - start)) / ms
+      printf "Evaluation time: %0.2f ms\n" diff
       T.putStrLn $ PLC.displayPlcDef v
       exitSuccess
     PLC.EvaluationFailure -> exitFailure
