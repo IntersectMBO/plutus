@@ -1,7 +1,7 @@
 # Experiments with variations on the CEK machine
 
 This document describes some experiments with variations on the CEK
-machine, including the one described in [this note](./CEK.md).
+machine, including the one proposed in [this note](./CEK.md).
 
 Time and memory figures are given for four different CEK machines:
 
@@ -128,3 +128,4 @@ the machine, but wasn't able to see any real difference in evaluation
 times.  This is possibly because validation only accounts for a small
 fraction of the time taken: a lot of time is occupied by blockchain
 simulation, serialisation/deserialisation, and so on.
+
