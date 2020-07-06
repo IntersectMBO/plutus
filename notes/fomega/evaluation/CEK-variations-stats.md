@@ -104,13 +104,14 @@ There's no discernible difference between execution times of the
 original and alternative machines (and this is backed up by
 examination of the actual numbers).  The alternative machine does seem
 to use a little less memory, but it's not drastically different.  The
-reason for this is possibly that there's a lot of extra stuff going on
-in the implementation which drowns out any differences due to
-evaluation strategy: for example, it is clear that the version with
-costing removed performs significantly better (especially in terms of
-memory usage) than either of the full versions.  Of course, we need
-the costing, but these figures suggest that it might be worthwhile
-spending time to optimise this and other features of the machine.
+reason for the similarity of performance is possibly that there's a
+lot of extra stuff going on in the implementation which drowns out any
+differences due to evaluation strategy: for example, it is clear that
+the version with costing removed performs significantly better
+(especially in terms of memory usage) than either of the full
+versions.  Of course, we need the costing, but these figures suggest
+that it might be worthwhile spending time to optimise this and other
+features of the machine.
 
 It also seems that saturated builtins give a noticeable improvement in
 speed, probably because repeated calls to the constant evaluation
@@ -119,7 +120,7 @@ examples here are simple and quite heavy on arithmetic, so gains from
 evaluation of builtin functions are quite noticeable.  The gains are
 likely to be less in the code produced by the PlutusTx compiler,
 especially in view of the fact that builtins are currently always called
-indirectly, via an eta-expanded (and usually nested) lambda term.  
+indirectly, via an η-expanded (and usually nested) lambda term.  
 
 
 I also ran all of the `plutus-use-cases` tests with each version fo
