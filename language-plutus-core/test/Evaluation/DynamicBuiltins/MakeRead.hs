@@ -33,13 +33,12 @@ readMakeHetero
        , KnownType (Term TyName Name DefaultUni ()) b
        )
     => a -> EvaluationResult b
-readMakeHetero x =
+readMakeHetero x = do
+    xTerm <- makeKnown @(Term TyName Name DefaultUni ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek mempty xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
-  where
-    xTerm = makeKnown @(Term TyName Name DefaultUni ()) x
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
@@ -74,7 +73,7 @@ test_collectChars = testProperty "collectChars" . property $ do
     str <- forAll $ Gen.string (Range.linear 0 20) Gen.unicode
     (str', errOrRes) <- liftIO . withEmitEvaluateBy typecheckEvaluateCek mempty $ \emit ->
         let step arg rest = mkIterApp () sequ [Apply () emit arg, rest]
-            chars = map (makeKnown @(Term TyName Name DefaultUni ())) str
+            chars = map (mkConstant @Char @DefaultUni ()) str
             in foldr step unitval chars
     case errOrRes of
         Left _                      -> failure

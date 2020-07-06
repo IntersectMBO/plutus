@@ -84,8 +84,8 @@ test_dynamicConst =
     testProperty "dynamicConst" . property $ do
         c <- forAll Gen.unicode
         b <- forAll Gen.bool
-        let tC = makeKnown c
-            tB = makeKnown b
+        let tC = mkConstant () c
+            tB = mkConstant () b
             char = toTypeAst @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty

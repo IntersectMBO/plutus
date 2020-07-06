@@ -66,7 +66,7 @@ instance (PrettyBy config a, PrettyBy config (Term TyName Name uni ())) =>
 
 attachCoercedTerm
     :: (Monad m, KnownType (Term TyName Name uni ()) a) => GenT m a -> GenT m (TermOf uni a)
-attachCoercedTerm = fmap $ \x -> TermOf (makeKnown x) x
+attachCoercedTerm = fmap $ \x -> TermOf (foldr (\term _ -> term) undefined $ makeKnown x) x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen

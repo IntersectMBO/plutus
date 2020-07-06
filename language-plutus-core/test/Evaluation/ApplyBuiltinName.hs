@@ -53,7 +53,7 @@ prop_applyBuiltinName tbn op allTbs = property $ do
     let IterApp name spine = iterApp
         app = applyBuiltinName @(CkM DefaultUni) name
     traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
-    app spine === Right (ConstAppSuccess $ makeKnown y)
+    app spine === Right (evaluationConstAppResult $ makeKnown y)
 
 test_typedAddInteger :: TestTree
 test_typedAddInteger

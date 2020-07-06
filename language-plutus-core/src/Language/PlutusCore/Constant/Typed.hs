@@ -55,8 +55,6 @@ import           Data.String
 import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
-import           Unsafe.Coerce
-
 infixr 9 `TypeSchemeArrow`
 
 type family UniOf a :: * -> *
@@ -271,7 +269,7 @@ instance ToAnnotation uni ann => HasConstant (Term tyname name uni ann) where
     asConstant (Constant _ con) = Just con
     asConstant _                = Nothing
 
-    fromConstant value = constant (toAnnotation value) value
+    toConstant value = constant (toAnnotation value) value
 
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
@@ -290,12 +288,12 @@ type KnownBuiltinType term a =
 class KnownTypeAst (UniOf term) a => KnownType term a where
     -- | Convert a Haskell value to the corresponding PLC term.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> term
-    default makeKnown :: KnownBuiltinType term a => a -> term
+    makeKnown :: a -> EvaluationResult term
+    default makeKnown :: KnownBuiltinType term a => a -> EvaluationResult term
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
-    makeKnown x = fromConstant . someValue $! x
+    makeKnown x = EvaluationSuccess . toConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
@@ -312,10 +310,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
 
 instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
             KnownType term (EvaluationResult a) where
-    -- 'EvaluationFailure' on the Haskell side becomes 'Error' on the PLC side.
-    -- TODO: fix me.
-    makeKnown EvaluationFailure     = unsafeCoerce $ Error () $ toTypeAst @(UniOf term) (Proxy @a)
-    makeKnown (EvaluationSuccess x) = makeKnown x
+    makeKnown mx = mx >>= makeKnown
 
     -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
     -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -334,7 +329,7 @@ instance (KnownSymbol text, KnownNat uniq, UniOf term ~ uni) =>
 
 instance (term ~ term', KnownSymbol text, KnownNat uniq) =>
             KnownType term (Opaque term' text uniq) where
-    makeKnown = unOpaque
+    makeKnown = EvaluationSuccess . unOpaque
     readKnown = pure . Opaque
 
 instance uni `Includes` Integer        => KnownTypeAst uni Integer

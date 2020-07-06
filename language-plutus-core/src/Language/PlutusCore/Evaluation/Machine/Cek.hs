@@ -393,6 +393,11 @@ applyEvaluate funVarEnv argVarEnv con fun arg = do
             Just (IterApp headName spine) -> do
                 constAppResult <- applyStagedBuiltinName headName spine
                 case constAppResult of
+                    ConstAppFailure     ->
+                        throwingWithCause
+                            _EvaluationError
+                            (UserEvaluationError CekEvaluationFailure)
+                            (Just term)
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 

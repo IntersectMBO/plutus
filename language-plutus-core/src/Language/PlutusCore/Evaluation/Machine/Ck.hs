@@ -166,6 +166,8 @@ applyEvaluate stack fun                    arg =
             Just (IterApp (StaticStagedBuiltinName name) spine) -> do
                 constAppResult <- applyBuiltinName name spine
                 case constAppResult of
+                    ConstAppFailure     ->
+                        throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term
                     ConstAppSuccess res -> stack |> res
                     ConstAppStuck       -> stack <| term
 

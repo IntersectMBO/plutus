@@ -13,6 +13,7 @@
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppResult (..)
+    , evaluationConstAppResult
     , nonZeroArg
     , integerToInt64
     , applyTypeSchemed
@@ -35,13 +36,21 @@ import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
 
+-- This type is only needed because of how the CEK machine is currently structured.
+-- Once we fix the machine, the 'ConstAppStuck' constructor will become obsolete,
+-- making the type isomorphic to 'EvaluationResult'.
 -- | The result of evaluation of a builtin applied to some arguments.
 data ConstAppResult term
-    = ConstAppSuccess term
+    = ConstAppFailure
+    | ConstAppSuccess term
       -- ^ Successfully computed a value.
     | ConstAppStuck
       -- ^ Not enough arguments.
     deriving (Show, Eq, Functor)
+
+evaluationConstAppResult :: EvaluationResult term -> ConstAppResult term
+evaluationConstAppResult EvaluationFailure        = ConstAppFailure
+evaluationConstAppResult (EvaluationSuccess term) = ConstAppSuccess term
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -77,8 +86,8 @@ applyTypeSchemed name = go where
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
-            [] -> pure . ConstAppSuccess $ makeKnown y    -- Computed the result.
-            _  -> throwingWithCause _ConstAppError        -- Too many arguments.
+            [] -> pure . evaluationConstAppResult $ makeKnown y  -- Computed the result.
+            _  -> throwingWithCause _ConstAppError               -- Too many arguments.
                     (ExcessArgumentsConstAppError args)
                     Nothing
     go (TypeSchemeAllType _ schK)  f exF args =

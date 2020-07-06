@@ -96,9 +96,7 @@ typeEvalCheckBy
     -> TypeEvalCheckM uni (TermOf uni (TypeEvalCheckResult uni))
 typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
     termTy <- runQuoteT $ inferType defConfig term
-    let valExpected = case makeKnown x of
-            Error _ _ -> EvaluationFailure
-            t         -> EvaluationSuccess t
+    let valExpected = makeKnown x
     fmap (TypeEvalCheckResult termTy) $ case extractEvaluationResult (eval term) of
         Right valActual
             | valExpected == valActual -> return valActual
