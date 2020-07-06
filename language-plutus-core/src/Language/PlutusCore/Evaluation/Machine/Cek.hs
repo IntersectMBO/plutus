@@ -369,18 +369,17 @@ instantiateEvaluate _ _ val =
 -- got a const, feed it directly to the builtin. Otherwise, extend the
 -- environment with a new variable bound to the Val and feed that to
 -- the builtin instead and continue.
-
-{-withScopedArgIn
-    :: ValEnv uni               -- ^ The caller's envorinment.
-    -> ValEnv uni               -- ^ The argument's environment.
-    -> Val uni                  -- ^ The argument.
-    -> (Val uni -> CekM uni a)  -- ^ A continuation handling the argument.
+{-
+withScopedArgIn
+    :: Val uni                  -- ^ The argument.
+    -> ValEnv uni               -- ^ The argument's environment
+    -> (TermWithMem uni -> CekM uni a)  -- ^ A continuation handling the argument.
     -> CekM uni a
-withScopedArgIn funVarEnv _         arg@Constant{} k = withEnv funVarEnv $ k arg
-withScopedArgIn funVarEnv argVarEnv arg            k = do
+withScopedArgIn (VCon con) env k = withEnv env $ k con
+withScopedArgIn arg env k = do
     let cost = memoryUsage ()
     argName <- freshName "arg"
-    withEnv (extendEnv argName arg argVarEnv funVarEnv) $ k (Var cost argName)
+    withEnv (extendEnv argName arg env) $ k (Var cost argName)
 -}
 
 getScopedArg :: Val uni -> ValEnv uni -> CekM uni (TermWithMem uni, ValEnv uni)
@@ -392,8 +391,6 @@ getScopedArg val env =
         let cost = memoryUsage ()
             env' = extendEnv argName val env
         pure (Var cost argName, env')
-
-
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -410,15 +407,14 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx (VBuiltin bn tyargs args env) arg =
-    do
-      (arg', env') <- getScopedArg arg env
-      withEnv env' $ do
-        let args' = arg':args
-        constAppResult <- applyStagedBuiltinName bn (reverse args')
-        case constAppResult of
-          ConstAppSuccess res -> computeCek ctx res
-          ConstAppStuck       -> returnCek ctx (VBuiltin bn tyargs args' env')
+applyEvaluate ctx (VBuiltin bn tyargs args env) arg = do
+    (arg', env') <- getScopedArg arg env
+    withEnv env' $ do
+      let args' = arg':args
+      constAppResult <- applyStagedBuiltinName bn (reverse args')
+      case constAppResult of
+        ConstAppSuccess res -> computeCek ctx res
+        ConstAppStuck       -> returnCek ctx (VBuiltin bn tyargs args' env')
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
 {-
