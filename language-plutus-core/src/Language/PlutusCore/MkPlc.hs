@@ -1,14 +1,20 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
+    , UniOf
+    , ToAnnotation (..)
+    , HasConstant (..)
+    , HasConstantIn
     , builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
     , mkTyBuiltin
@@ -64,6 +70,30 @@ class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni 
     error    :: ann -> Type tyname uni ann -> term ann
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
+
+-- | A class for computing annotations from Haskell values.
+class ToAnnotation uni ann where
+    -- | Compute an annotation from a Haskell value to use it later in a term.
+    toAnnotation :: Some (ValueOf uni) -> ann
+
+instance ToAnnotation uni () where
+    toAnnotation = const ()
+
+-- | Two functions constituting a prism focused on a 'Constant'-like constructor of @term@.
+class HasConstant term where
+    -- | Wrap a Haskell value as a @term@.
+    fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+    -- | Unwrap a shallowly embedded Haskell value from a @term@ or fail.
+    asConstant   :: term -> Maybe (Some (ValueOf (UniOf term)))
+
+type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
+
+instance ToAnnotation uni ann => HasConstant (Term tyname name uni ann) where
+    asConstant (Constant _ con) = Just con
+    asConstant _                = Nothing
+
+    fromConstant value = constant (toAnnotation value) value
 
 -- | Lift a 'BuiltinName' to 'Term'.
 builtinNameAsTerm :: TermLike term tyname name uni => BuiltinName -> term ()

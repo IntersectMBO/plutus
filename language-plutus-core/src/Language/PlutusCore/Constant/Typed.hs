@@ -26,11 +26,7 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
     , unliftConstant
-    , UniOf
-    , ToAnnotation (..)
     , Opaque (..)
-    , HasConstant (..)
-    , HasConstantIn
     , KnownTypeAst (..)
     , KnownType (..)
     ) where
@@ -39,8 +35,8 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
@@ -56,10 +52,6 @@ import qualified Data.Text                                          as Text
 import           GHC.TypeLits
 
 infixr 9 `TypeSchemeArrow`
-
-type family UniOf a :: * -> *
-
-type instance UniOf (Term tyname name uni ann) = uni
 
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
@@ -250,29 +242,6 @@ instead, but then we need to recover the original handy definitions and
 make the API and the code bloated (instances are more verbose with @DerivingVia@).
 -}
 
-class ToAnnotation uni ann where
-    toAnnotation :: Some (ValueOf uni) -> ann
-
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToAnnotation uni ExMemory where
-    toAnnotation = memoryUsage
-
-instance ToAnnotation uni () where
-    toAnnotation = const ()
-
-
-
-class HasConstant term where
-    asConstant :: term -> Maybe (Some (ValueOf (UniOf term)))
-    toConstant :: Some (ValueOf (UniOf term)) -> term
-
-instance ToAnnotation uni ann => HasConstant (Term tyname name uni ann) where
-    asConstant (Constant _ con) = Just con
-    asConstant _                = Nothing
-
-    toConstant value = constant (toAnnotation value) value
-
-type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
-
 class KnownTypeAst uni a where
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy a -> Type TyName uni ()
@@ -293,7 +262,7 @@ class KnownTypeAst (UniOf term) a => KnownType term a where
     -- We need @($!)@, because otherwise Haskell expressions are thrown away rather than being
     -- evaluated and we use 'unsafePerformIO' for logging, so we want to compute the Haskell value
     -- just for side effects that the evaluation may cause.
-    makeKnown x = EvaluationSuccess . toConstant . someValue $! x
+    makeKnown x = EvaluationSuccess . fromConstant . someValue $! x
 
     -- | Convert a PLC term to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.

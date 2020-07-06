@@ -26,6 +26,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
