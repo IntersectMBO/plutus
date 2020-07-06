@@ -1,6 +1,9 @@
 { packageSet ? import ./default.nix { rev = "in-nix-shell"; }
 }:
-with packageSet; haskell.packages.shellFor {
+with packageSet;
+let
+  pyEnv = pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
+in haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -15,6 +18,8 @@ with packageSet; haskell.packages.shellFor {
     pkgs.sqlite-interactive
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
+
+    pyEnv
 
     # Deployment tools
     pkgs.terraform_0_11

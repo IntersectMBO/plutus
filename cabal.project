@@ -8,7 +8,6 @@ packages: language-plutus-core
           plutus-tx-plugin
           plutus-use-cases
           plutus-playground-server
-          plutus-tutorial
           plutus-book
           plutus-scb
           playground-common
@@ -19,6 +18,7 @@ packages: language-plutus-core
           iots-export
           metatheory
           prettyprinter-configurable
+          doc
 
 -- We never, ever, want this.
 write-ghc-environment-files: never

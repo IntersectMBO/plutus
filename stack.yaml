@@ -11,7 +11,6 @@ packages:
 - metatheory
 - plutus-ledger
 - plutus-playground-server
-- plutus-tutorial
 - plutus-book
 - plutus-contract
 - plutus-scb
@@ -19,6 +18,7 @@ packages:
 - iots-export
 - marlowe-symbolic
 - prettyprinter-configurable
+- doc
 
 extra-deps:
 # Other missing packages

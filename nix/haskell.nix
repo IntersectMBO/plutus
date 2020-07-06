@@ -107,7 +107,7 @@ let
             plutus-scb.package.ghcOptions = "-Werror";
             plutus-tx.package.ghcOptions = "-Werror";
             plutus-tx-plugin.package.ghcOptions = "-Werror";
-            plutus-tutorial.package.ghcOptions = "-Werror";
+            plutus-doc.package.ghcOptions = "-Werror";
             plutus-use-cases.package.ghcOptions = "-Werror";
           };
         }

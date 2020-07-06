@@ -1,5 +1,5 @@
 cabal-version: 2.2
-name: plutus-tutorial
+name: plutus-doc
 version: 0.1.0.0
 license: Apache-2.0
 license-files:
@@ -7,12 +7,10 @@ license-files:
   NOTICE
 maintainer: jann.mueller@iohk.io
 author: Michael Peyton Jones, Jann Mueller
-synopsis: PlutusTx tutorial
-description:
-    A tutorial for PlutusTx.
+synopsis: Plutus documentation
+description: Plutus documentation
 category: Language
 build-type: Simple
-extra-doc-files: README.adoc
 
 source-repository head
     type: git
@@ -43,18 +41,14 @@ common lang
 
     if flag(defer-plugin-errors)
 
-
-executable tutorial-doctests
+executable doc-doctests
     import: lang
-    hs-source-dirs:
-        doctest
-        -- Make haskell.nix not clean this away - it has the sources for the symlinks in 'doctest'
-        doc
+    hs-source-dirs: tutorials
     main-is: Main.hs
     ghc-options: -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc -Wno-unused-imports
     build-tool-depends: unlit:unlit -any, doctest:doctest -any
     other-modules:
-      Tutorial.PlutusTx
+      PlutusTx
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
