@@ -62,7 +62,7 @@ The machines were run with three different examples:
   the built-in evaluation strategy affect running time and memory consumption.
 
 Each example loops using the Z combinator, and in the experiments
-aach program was run with a sequence of increasing inputs: for each
+each program was run with a sequence of increasing inputs: for each
 input the statstics were averaged over five runs.  The inputs were
 provided as CBOR files in an attempt to avoid lengthy parsing
 times. Two main figures were recorded:
