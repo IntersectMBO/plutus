@@ -48,6 +48,7 @@ import           System.Directory                           (createDirectoryIfMi
 import           System.FilePath                            ((</>))
 import           WebSocket                                  (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
+import qualified Option
 
 myBridge :: BridgePart
 myBridge =
