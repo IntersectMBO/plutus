@@ -38,6 +38,7 @@ import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Types.Request             as MSReq
 import qualified Marlowe.Symbolic.Types.Response            as MSRes
+import qualified Option
 import qualified PSGenerator.Common
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -48,7 +49,6 @@ import           System.Directory                           (createDirectoryIfMi
 import           System.FilePath                            ((</>))
 import           WebSocket                                  (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
-import qualified Option
 
 myBridge :: BridgePart
 myBridge =

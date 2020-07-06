@@ -45,11 +45,11 @@ contract = When
                             (Party (Role "buyer"))
                             (Token "" "")
                             (UseValue "payoff")
-                            Close 
+                            Close
                         )]
-                    120 Close 
+                    120 Close
                 )
             )]
-        110 Close 
+        110 Close
     )
 
