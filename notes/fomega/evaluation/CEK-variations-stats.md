@@ -83,15 +83,15 @@ appears to be a reasonable measure of memory usage.
 
 ### Results
 
-![Triangle: time](figures/tri-time.png)
+![Triangle: time](figures/tri-times.png)
 
 ![Triangle: memory](figures/tri-mem.png)
 
-![Fibonacci: time](figures/fib-time.png)
+![Fibonacci: time](figures/fib-times.png)
 
 ![Fibonacci: memory](figures/fib-mem.png)
 
-![Arith: time](figures/arith-time.png)
+![Arith: time](figures/arith-times.png)
 
 ![Arith: memory](figures/arith-mem.png)
 
