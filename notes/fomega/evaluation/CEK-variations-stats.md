@@ -5,7 +5,7 @@ machine, including the one described in [this note](./CEK.md).
 
 Time and memory figures are given for four different CEK machines:
 
-* The current version in `master` (start of July 2020), with closures and unsaturated builtins.
+* The current version in `master` (at the start of July 2020), with closures and unsaturated builtins.
 * A modification of the current version which uses values,
   with environments only appearing under binders.
 * The version above with the costing code commented out.  The implementation
@@ -34,7 +34,7 @@ to a value `V₁`, and a structure containing the name of the builtin
 and `V₁` is fed to the constant evaluation mechanism, which either
 succeeds in evaluating the function or becomes stuck because
 insufficiently many arguments have been provided.  In the latter case,
-`V₁` end the current environment are stored in a `builtin` value of
+`V₁` and the current environment are stored in a `builtin` value of
 the form shown above and evaluation continues with the next argument;
 longer and longer `builtin` values are generated until evaluation
 eventually succeeds.  [Technical note: the information contained in
@@ -49,21 +49,23 @@ the machine.]
 ### Experiments
 
 The machines were run with three different examples:
-* Fibonacci: a naive recursive implementation
+* Fibonacci: a naive recursive implementation.
 * Triangle: a program calculating `n + (n-1) + ... + 1`. This is
   essentially the factorial program with multiplication replaced
-  by addition.  This performs a reasnalbe amount of recursion and calculation
+  by addition.  This performs a reasonable amount of recursion and calculation
   without the time being dominated by computations invloving very large integers.
-* Arith: a program which evaluates an arithmetic expression with 100 terms, involving
+* Arith: a program which evaluates an arithmetic expression with 100 terms involving
   the four usual arithmetic operators.  The (hand-written) expression is random but does
   not generate large intermediate results.  For the experiments, the expression was
   contained in a loop which calculated it repeatedly.  This example is dominated by
   evaluation of built-in functions, so is useful for seeing how variations in
   the built-in evaluation strategy affect running time and memory consumption.
 
-Eaach program was run with a sequence of increasing inputs: for each input the
-statstics were averaged over five runs.  The inputs were provided as CBOR files,
-in an attempt to avoid lengthy parsing times. Two main figures were recorded:
+Each example loops using the Z combinator, and in the experiments
+aach program was run with a sequence of increasing inputs: for each
+input the statstics were averaged over five runs.  The inputs were
+provided as CBOR files in an attempt to avoid lengthy parsing
+times. Two main figures were recorded:
 
 * The execution time.  The CEK machine was extended to record the time
 just before and just after evaluation of its input (excluding time for
