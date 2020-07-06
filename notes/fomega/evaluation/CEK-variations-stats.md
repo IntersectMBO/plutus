@@ -1,11 +1,11 @@
-### Experiments with variations on the CEK machine
+# Experiments with variations on the CEK machine
 
 This document describes some experiments with variations on the CEK
 machine, including the one described in [this note](./CEK.md).
 
 Time and memory figures are given for four different CEK machines:
 
-* The current version in master (start of July 2020), with closures and unsaturated builtins.
+* The current version in `master` (start of July 2020), with closures and unsaturated builtins.
 * A modification of the current version which uses values,
   with environments only appearing under binders.
 * The version above with the costing code commented out.  The implementation
