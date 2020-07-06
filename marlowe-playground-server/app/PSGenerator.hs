@@ -19,7 +19,6 @@ import qualified API
 import qualified Auth
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, (&))
-import qualified CouponBondGuaranteed
 import qualified Data.ByteString                            as BS
 import qualified Data.ByteString.Char8                      as BS8
 import           Data.Monoid                                ()
@@ -48,6 +47,7 @@ import qualified Swap
 import           System.Directory                           (createDirectoryIfMissing)
 import           System.FilePath                            ((</>))
 import           WebSocket                                  (WebSocketRequestMessage, WebSocketResponseMessage)
+import qualified ZeroCouponBond
 
 myBridge :: BridgePart
 myBridge =
