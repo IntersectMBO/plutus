@@ -40,7 +40,7 @@ longer and longer `builtin` values are generated until evaluation
 eventually succeeds.  [Technical note: the information contained in
 the `builtin` values is essentially the same as that in the
 `primIterApp` mechanism used in the existing CEK machine, and we
-bypass the latter, going directly to the constant valuation mechanism.
+bypass the latter, going directly to the constant evaluation mechanism.
 Thus the evaluation strategy doesn't introduce any new ineffiency into
 the machine.]
 
