@@ -56,6 +56,11 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.Protocol.ChainEffect
+        Cardano.Protocol.FollowerEffect
+        Cardano.Protocol.Socket.Type
+        Cardano.Protocol.Socket.Server
+        Cardano.Protocol.Socket.Client
         Cardano.SigningProcess.API
         Cardano.SigningProcess.Server
         Cardano.SigningProcess.Client
@@ -110,9 +115,15 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
+        async -any,
         base >=4.7 && <5,
         bytestring -any,
+        cardano-prelude -any,
+        cardano-slotting -any,
         containers -any,
+        contra-tracer -any,
+        cryptonite -any,
+        cborg -any,
         directory -any,
         errors -any,
         eventful-core -any,
@@ -122,10 +133,16 @@ library
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
+        io-sim-classes -any,
         lens -any,
+        memory -any,
         monad-logger -any,
         mtl -any,
+        network -any,
+        network-mux -any,
         optparse-applicative -any,
+        ouroboros-network -any,
+        ouroboros-network-framework -any,
         persistent -any,
         persistent-sqlite -any,
         playground-common -any,
@@ -135,9 +152,12 @@ library
         random -any,
         row-types -any,
         scientific -any,
+        serialise -any,
         servant -any,
         servant-client -any,
         servant-server -any,
+        typed-protocols -any,
+        typed-protocols-examples -any,
         stm -any,
         text -any,
         time-units -any,
@@ -147,6 +167,7 @@ library
         uuid -any,
         vector -any,
         warp -any,
+        Win32-network -any,
         yaml -any,
         freer-simple -any,
         mwc-random -any,

@@ -30,6 +30,7 @@ module Ledger.Index(
 import           Prelude                          hiding (lookup)
 
 
+import           Codec.Serialise                  (Serialise)
 import           Control.Lens                     (itraverse, view, (^.))
 import           Control.Monad
 import           Control.Monad.Except             (MonadError (..), runExcept)
@@ -64,7 +65,7 @@ type ValidationMonad m = (MonadReader UtxoIndex m, MonadError ValidationError m)
 -- | The UTxOs of a blockchain indexed by their references.
 newtype UtxoIndex = UtxoIndex { getIndex :: Map.Map TxOutRef TxOut }
     deriving stock (Show, Generic)
-    deriving newtype (Eq, Semigroup, Monoid)
+    deriving newtype (Eq, Semigroup, Monoid, Serialise)
     deriving anyclass (FromJSON, ToJSON)
 
 -- | Create an index of all UTxOs on the chain.
