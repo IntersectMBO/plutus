@@ -594,13 +594,15 @@ inputItem ::
 inputItem isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled isEnabled
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IDeposit accountId party token value) []
+    , div []
+        [ button
+            [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+            , enabled isEnabled
+            , onClick $ const $ Just
+                $ AddInput (Just person) (IDeposit accountId party token value) []
+            ]
+            [ text "+" ]
         ]
-        [ text "+" ]
     ]
 
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
