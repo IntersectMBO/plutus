@@ -1,6 +1,6 @@
 # Experiments with variations on the CEK machine - Appendix
 
-The graphs in (CEK-variations.md)[./CEK-variations.md] don't include
+The graphs in [CEK-variations.md](./CEK-variations.md) don't include
 the CK machine because doing that usually compresses the informatin
 for the CEK machine, which is what we really care about.  For
 completeness, here are graphs including the CK machine (using
