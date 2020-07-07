@@ -12,10 +12,11 @@ import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy(..))
-import Halogen (ClassName(..))
+import Halogen (AttrName(..), ClassName)
 import Halogen as H
 import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
+import Halogen.HTML (IProp, attr)
 import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
@@ -147,18 +148,8 @@ _value = prop (SProxy :: SProxy "value")
 isActiveTab :: FrontendState -> View -> Array ClassName
 isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
 
-analysisPanel :: FrontendState -> Array ClassName
-analysisPanel state = if state ^. _showBottomPanel then [ ClassName "analysis-panel" ] else [ ClassName "analysis-panel", ClassName "collapse" ]
+-- TODO: https://github.com/purescript-halogen/purescript-halogen/issues/682
+bottomPanelHeight :: forall r i. Boolean -> IProp r i
+bottomPanelHeight true = attr (AttrName "style") "height: 3.5rem"
 
-footerPanelBg :: Boolean -> View -> Array ClassName
-footerPanelBg display HaskellEditor =
-  if display then
-    [ ClassName "footer-panel-bg", ClassName "expanded", ClassName "footer-panel-haskell" ]
-  else
-    [ ClassName "footer-panel-bg", ClassName "footer-panel-haskell" ]
-
-footerPanelBg display _ =
-  if display then
-    [ ClassName "footer-panel-bg", ClassName "expanded" ]
-  else
-    [ ClassName "footer-panel-bg" ]
+bottomPanelHeight false = attr (AttrName "style") ""

@@ -197,3 +197,9 @@ minimizeIcon :: Boolean -> Array ClassName
 minimizeIcon true = [ ClassName "minimize-icon", ClassName "expanded" ]
 
 minimizeIcon false = [ ClassName "minimize-icon" ]
+
+footerPanelBg :: ClassName
+footerPanelBg = ClassName "footer-panel-bg"
+
+analysisPanel :: ClassName
+analysisPanel = ClassName "analysis-panel"
