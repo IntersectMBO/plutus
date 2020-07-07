@@ -149,7 +149,7 @@ getMarloweConstructors ValueType =
     , (Tuple "SubValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "MulValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "Scale" [ DefaultRational (Rational one one), DataArg ValueType ])
-    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType, DataArg ValueType ])
+    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType ])
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
     , (Tuple "UseValue" [ DefaultString "valueId" ])
@@ -700,7 +700,7 @@ data Value
   | SubValue (Term Value) (Term Value)
   | MulValue (Term Value) (Term Value)
   | Scale (TermWrapper Rational) (Term Value)
-  | ChoiceValue ChoiceId (Term Value)
+  | ChoiceValue ChoiceId
   | SlotIntervalStart
   | SlotIntervalEnd
   | UseValue (TermWrapper ValueId)
@@ -730,7 +730,7 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
   fromTerm (MulValue a b) = S.MulValue <$> fromTerm a <*> fromTerm b
   fromTerm (Scale a b) = S.Scale <$> fromTerm a <*> fromTerm b
-  fromTerm (ChoiceValue a b) = S.ChoiceValue <$> fromTerm a <*> fromTerm b
+  fromTerm (ChoiceValue a) = S.ChoiceValue <$> fromTerm a
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
   fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd
   fromTerm (UseValue a) = S.UseValue <$> fromTerm a
@@ -746,7 +746,7 @@ instance valueHasContractData :: HasContractData Value where
   gatherContractData (SubValue a b) s = gatherContractData a s <> gatherContractData b s
   gatherContractData (MulValue a b) s = gatherContractData a s <> gatherContractData b s
   gatherContractData (Scale _ a) s = gatherContractData a s
-  gatherContractData (ChoiceValue a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (ChoiceValue a) s = gatherContractData a s
   gatherContractData (Cond c a b) s = gatherContractData c s <> gatherContractData a s <> gatherContractData b s
   gatherContractData _ s = s
 

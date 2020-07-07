@@ -25,7 +25,6 @@ contract = When
                     (ValueEQ
                         (ChoiceValue
                             (ChoiceId "exercise" (Role "buyer"))
-                            (Constant 0)
                         )
                         (Constant 1)
                     )

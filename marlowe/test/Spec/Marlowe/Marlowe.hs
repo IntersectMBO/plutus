@@ -173,10 +173,10 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     let contract = When [
             Case (Choice chId [Bound 100_000000 1500_000000])
                 (When [Case
-                    (Deposit aliceAcc alicePk ada (ChoiceValue chId (Constant 0)))
+                    (Deposit aliceAcc alicePk ada (ChoiceValue chId))
                         (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
                             (Pay aliceAcc (Party bobPk) ada
-                                (ChoiceValue chId (Constant 0)) Close)]
+                                (ChoiceValue chId) Close)]
                         (Slot 300) Close)
                     ] (Slot 200) Close)
             ] (Slot 100) Close
@@ -340,7 +340,7 @@ mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
         alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        contract = If (muliply `ValueGE` (Constant 10000)) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
+        contract = If (muliply `ValueGE` Constant 10000) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result
     assertBool "Analysis ok" $ isRight result

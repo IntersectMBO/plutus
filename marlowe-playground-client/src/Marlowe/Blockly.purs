@@ -937,11 +937,10 @@ toDefinition blockType@(ValueType ChoiceValueValueType) =
   BlockDefinition
     $ merge
         { type: show ChoiceValueValueType
-        , message0: "Choice %1 by %2 default %3"
+        , message0: "Choice %1 by %2"
         , args0:
           [ Input { name: "choice_name", text: "name", spellcheck: false }
           , Value { name: "party", check: "party", align: Right }
-          , Value { name: "value", check: "value", align: Right }
           ]
         , colour: blockColour blockType
         , output: Just "value"
@@ -1254,8 +1253,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     choiceOwner <- statementToTerm g block "party" Parser.party
     let
       choiceId = ChoiceId choiceName choiceOwner
-    value <- statementToTerm g block "value" (Parser.value unit)
-    pure $ mkDefaultTerm (ChoiceValue choiceId value)
+    pure $ mkDefaultTerm (ChoiceValue choiceId)
   blockDefinition SlotIntervalStartValueType g block = pure $ mkDefaultTerm SlotIntervalStart
   blockDefinition SlotIntervalEndValueType g block = pure $ mkDefaultTerm SlotIntervalEnd
   blockDefinition UseValueValueType g block = do
@@ -1568,12 +1566,11 @@ instance toBlocklyValue :: ToBlockly Value where
     setField block "numerator" (show fixedNumerator)
     setField block "denominator" (show fixedDenominator)
     inputToBlockly newBlock workspace block "value" value
-  toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
+  toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner)) = do
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input
     setField block "choice_name" choiceName
     inputToBlockly newBlock workspace block "party" choiceOwner
-    inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input SlotIntervalStart = do
     block <- newBlock workspace (show SlotIntervalStartValueType)
     connectToOutput block input

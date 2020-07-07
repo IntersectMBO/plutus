@@ -193,7 +193,7 @@ genValue' size
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , MulValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , Scale <$> genTermWrapper genRational <*> genNewValue
-            , ChoiceValue <$> genChoiceId <*> genNewValue
+            , ChoiceValue <$> genChoiceId
             , UseValue <$> genTermWrapper genValueId
             ]
   | otherwise =
