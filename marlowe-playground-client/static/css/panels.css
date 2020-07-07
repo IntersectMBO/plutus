@@ -82,11 +82,11 @@
 }
 
 .expanded.minimize-icon {
-  transform: rotate(0deg);
+  transform: rotate(180deg);
 }
 
 .minimize-icon {
-  transform: rotate(180deg);
+  transform: rotate(0deg);
 }
 
 .blockly-btn-icon {
@@ -163,6 +163,7 @@
 .composer input {
   width: 40px;
   height: 30px;
+  padding: 0 0.1rem;
 }
 
 .transaction-composer .participants {
@@ -176,6 +177,10 @@
 
 .participants li+li {
   margin-top: 1rem;
+}
+
+.align-top {
+  align-self: flex-start;
 }
 
 button.plus-btn {

@@ -594,7 +594,7 @@ inputItem ::
 inputItem isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
-    , div []
+    , div [ class_ (ClassName "align-top") ]
         [ button
             [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
             , enabled isEnabled
@@ -625,7 +625,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
   addButton =
     if isEnabled && inBounds chosenNum bounds then
       [ button
-          [ classes [ plusBtn, smallBtn ]
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
           , onClick $ const $ Just
               $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
@@ -645,7 +645,7 @@ inputItem isEnabled person NotifyInput =
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled), ClassName "align-top" ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) INotify []
