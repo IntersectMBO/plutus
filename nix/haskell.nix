@@ -15,6 +15,7 @@
 let
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
+      compiler-nix-name = "ghc883";
       modules = args.modules ++ [{
         # plan-to-nix does not expose `test: False` settings in cabal.project file
         packages.byron-spec-chain.components.tests.chain-rules-test.buildable = lib.mkForce false;
@@ -42,6 +43,7 @@ let
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization sources;
     sha256map = {
+      "https://github.com/input-output-hk/goblins"."26d35ad52fe9ade3391532dbfeb2f416f07650bc" = "17p5x0hj6c67jkdqx0cysqlwq2zs2l87azihn1alzajy9ak6ii0b";
       "https://github.com/shmish111/purescript-bridge.git"."28c37771ef30b0d751960c061ef95627f05d290e" = "0n6q7g2w1xafngd3dwbbmfxfn018fmq61db7mymplbrww8ld1cp3";
       "https://github.com/shmish111/servant-purescript.git"."ece5d1dad16a5731ac22040075615803796c7c21" = "1axcbsaym64q67hvjc7b3izd48cgqwi734l7f7m22jpdc80li5f6";
       "https://github.com/input-output-hk/cardano-crypto.git"."2547ad1e80aeabca2899951601079408becbc92c" = "1p2kg2w02q5w1cvqzhfhqmxviy4xrzada3mmb096j2n6hfr20kri";

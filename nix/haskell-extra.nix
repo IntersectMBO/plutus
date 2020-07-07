@@ -12,6 +12,7 @@
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "3.0.0.0";
+    compiler-nix-name = "ghc883";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
@@ -19,6 +20,7 @@
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
+    compiler-nix-name = "ghc883";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "114npk6hjgcfa95fz8r28w6lxak4rslfvh9caiwmwrkgd8v3nmaz";
@@ -26,6 +28,7 @@
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
+    compiler-nix-name = "ghc883";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "1mppmhhfqsnwigg3apj43ylc6zc7zqyvnsimwbnxwicvir2xzdqm";
@@ -56,6 +59,7 @@
   ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
+    compiler-nix-name = "ghc883";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "0ixxja89sbaflb4vcyx9rc5sj09ca0y5lhdy1wihmf8k5ynmzhvs";

@@ -4,7 +4,7 @@
 }@args:
 let
   packageSet = import ./default.nix ({ rev = "in-nix-shell"; } // args);
-  pyEnv = pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
+  pyEnv = packageSet.pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
 in
 with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [

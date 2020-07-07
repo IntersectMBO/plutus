@@ -13,7 +13,7 @@
 , useCabalProject ? true
 }@args:
 let
-  packageSet = import ./default.nix ({ rev = "in-nix-shell"; } // args);
+  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject;  } // args);
 in
 with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [
