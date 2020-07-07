@@ -61,6 +61,7 @@
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           ] ++ (pkgs.lib).optionals (!(compiler.isGhcjs && true || system.isGhcjs)) [
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
@@ -84,6 +85,7 @@
           "Language/Plutus/Contract/State"
           "Language/Plutus/Contract/Schema"
           "Language/Plutus/Contract/Trace"
+          "Language/Plutus/Contract/Trace/RequestHandler"
           "Language/Plutus/Contract/IOTS"
           "Language/Plutus/Contract/Servant"
           "Language/Plutus/Contract/Resumable"
@@ -99,6 +101,7 @@
           "Wallet/Emulator/Generators"
           "Wallet/Emulator/Chain"
           "Wallet/Emulator/ChainIndex"
+          "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
           "Wallet/Emulator/NodeClient"
           "Wallet/Emulator/MultiAgent"

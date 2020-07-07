@@ -659,13 +659,13 @@
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
         language-plutus-core = ./.plan.nix/language-plutus-core.nix;
         goblins = ./.plan.nix/goblins.nix;
-        plutus-tutorial = ./.plan.nix/plutus-tutorial.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
         iots-export = ./.plan.nix/iots-export.nix;
         byron-spec-chain = ./.plan.nix/byron-spec-chain.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
+        plutus-doc = ./.plan.nix/plutus-doc.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
         cardano-crypto-class = ./.plan.nix/cardano-crypto-class.nix;
@@ -714,9 +714,6 @@
           "typed-protocols-examples" = { flags = {}; };
           "language-plutus-core" = { flags = {}; };
           "goblins" = { flags = { "development" = lib.mkOverride 900 true; }; };
-          "plutus-tutorial" = {
-            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
-            };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
           "iots-export" = { flags = {}; };
           "byron-spec-chain" = {
@@ -728,6 +725,9 @@
           "contra-tracer" = { flags = {}; };
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
+            };
+          "plutus-doc" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
           "cardano-binary" = {
             flags = { "development" = lib.mkOverride 900 true; };
