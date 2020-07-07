@@ -14,7 +14,7 @@ import           Data.Bifunctor                                  (first)
 import qualified Data.ByteString.Lazy.Char8                      as BSL
 import           Data.Proxy                                      (Proxy (Proxy))
 import           GHC.TypeLits                                    (symbolVal)
-import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (ActiveEndpoint),
+import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..),
                                                                   EndpointDescription (EndpointDescription))
 import qualified Language.Plutus.Contract.Schema                 as Schema
 import           Language.PlutusTx.Coordination.Contracts.Game   (GameSchema, game)
@@ -36,7 +36,9 @@ jsonTests =
               handlers =
                   Schema.initialise @GameSchema @"guess" @_ $
                   ActiveEndpoint
-                      (EndpointDescription (symbolVal (Proxy @"guess")))
+                      { aeDescription = EndpointDescription (symbolVal (Proxy @"guess"))
+                      , aeMetadata    = Nothing
+                      }
               response :: Either String ContractHandlersResponse
               response = JSON.eitherDecode $ JSON.encode handlers
            in assertRight response

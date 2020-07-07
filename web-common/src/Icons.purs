@@ -13,6 +13,7 @@ data Icon
   | Close
   | Check
   | Bitcoin
+  | Clipboard
   | Github
   | Plus
   | Trash
@@ -48,6 +49,8 @@ iconClass Close = ClassName "fa fa-close"
 iconClass Check = ClassName "fa fa-check"
 
 iconClass Bitcoin = ClassName "fab fa-bitcoin"
+
+iconClass Clipboard = ClassName "fa fa-clipboard"
 
 iconClass Github = ClassName "fab fa-github"
 

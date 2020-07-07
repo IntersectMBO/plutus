@@ -11,7 +11,7 @@ module Cardano.Node.Mock where
 import           Control.Concurrent            (threadDelay)
 import           Control.Concurrent.MVar       (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Lens                  (over, set, view)
-import           Control.Monad                 (forever, void)
+import           Control.Monad                 (forever, void, when)
 import           Control.Monad.Freer           (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras    (handleZoomedState)
 import           Control.Monad.Freer.State     (State)
@@ -29,6 +29,7 @@ import           Servant                       (NoContent (NoContent))
 
 import           Ledger                        (Block, Slot (Slot), Tx)
 import qualified Ledger
+import           Ledger.Tx                     (outputs)
 
 import           Cardano.Node.Follower         (NodeFollowerEffect, handleNodeFollower)
 import           Cardano.Node.RandomTx
@@ -39,7 +40,7 @@ import           Plutus.SCB.Arbitrary          ()
 import           Plutus.SCB.Utils              (tshow)
 
 import qualified Wallet.Emulator               as EM
-import           Wallet.Emulator.Chain         (ChainEffect, ChainEvent, ChainState)
+import           Wallet.Emulator.Chain         (ChainControlEffect, ChainEffect, ChainEvent, ChainState)
 import qualified Wallet.Emulator.Chain         as Chain
 
 healthcheck :: Monad m => m NoContent
@@ -50,7 +51,7 @@ getCurrentSlot = Eff.gets (view EM.currentSlot)
 
 addBlock ::
     ( Member Log effs
-    , Member ChainEffect effs
+    , Member ChainControlEffect effs
     )
     => Eff effs ()
 addBlock = do
@@ -58,7 +59,7 @@ addBlock = do
     void Chain.processBlock
 
 getBlocksSince ::
-    ( Member ChainEffect effs
+    ( Member ChainControlEffect effs
     , Member (State ChainState) effs
     )
     => Slot
@@ -85,7 +86,7 @@ addTx tx = do
     pure NoContent
 
 type NodeServerEffects m
-     = '[ GenRandomTx, NodeFollowerEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], State AppState, Log, m]
+     = '[ GenRandomTx, NodeFollowerEffect, ChainControlEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], State AppState, Log, m]
 
 ------------------------------------------------------------
 runChainEffects ::
@@ -100,6 +101,7 @@ runChainEffects stateVar eff = do
         $ interpret (handleZoomedState T.chainState)
         $ interpret (handleZoomedState T.followerState)
         $ Chain.handleChain
+        $ Chain.handleControlChain
         $ handleNodeFollower
         $ runGenRandomTx
         $ do result <- eff
@@ -136,8 +138,10 @@ transactionGenerator ::
        (MonadIO m, MonadLogger m) => Second -> MVar AppState -> m ()
 transactionGenerator itvl stateVar =
     forever $ do
-        void $ processChainEffects stateVar (genRandomTx >>= addTx)
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
+        processChainEffects stateVar $ do
+            tx' <- genRandomTx
+            when (not . null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)

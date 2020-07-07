@@ -4,6 +4,7 @@
 }@args:
 let
   packageSet = import ./default.nix ({ rev = "in-nix-shell"; } // args);
+  pyEnv = pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
 in
 with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [
@@ -21,6 +22,8 @@ with packageSet; haskell.packages.shellFor {
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
 
+    pyEnv
+
     # Deployment tools
     pkgs.terraform_0_11
     pkgs.awscli
@@ -33,5 +36,8 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.purs
     dev.packages.spago
     pkgs.stack
+    dev.scripts.fixStylishHaskell
+    dev.scripts.fixPurty
+    dev.scripts.updateClientDeps
   ];
 }

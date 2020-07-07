@@ -125,6 +125,7 @@ data Value = AvailableMoney AccountId Token
            | NegValue Value
            | AddValue Value Value
            | SubValue Value Value
+           | MulValue Value Value
            | Scale Rational Value
            | ChoiceValue ChoiceId Value
            | SlotIntervalStart

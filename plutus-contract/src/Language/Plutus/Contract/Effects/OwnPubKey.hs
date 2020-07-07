@@ -5,14 +5,19 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.OwnPubKey where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
+import           Data.Aeson                       (FromJSON, ToJSON, toJSON)
+import qualified Data.Aeson                       as JSON
+import           Data.Aeson.Types                 (withText)
 import           Data.Row
+import qualified Data.Text                        as Text
 import           Data.Text.Prettyprint.Doc
 import           Data.Text.Prettyprint.Doc.Extras
 import           GHC.Generics                     (Generic)
@@ -33,7 +38,21 @@ type OwnPubKey = OwnPubKeySym .== (PubKey, OwnPubKeyRequest)
 
 data OwnPubKeyRequest = WaitingForPubKey
   deriving stock (Eq, Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+
+-- TODO Aeson encodes this single no-arg constructor as, '{ tag:
+-- OwnPubKey, contents: [] }', which our PureScript decoders can't
+-- handle.
+-- The correct fix is on the PureScript side - because we consider
+-- whatever Aeson does to be canon - but for now this is equivalent
+-- and faster.
+instance ToJSON OwnPubKeyRequest where
+    toJSON WaitingForPubKey = JSON.String "WaitingForPubKey"
+
+instance FromJSON OwnPubKeyRequest where
+    parseJSON =
+        withText "OwnPubKeyRequest" $ \case
+            "WaitingForPubKey" -> pure WaitingForPubKey
+            other -> fail $ "Invalid constructor: " <> Text.unpack other
 
 deriving via (PrettyShow OwnPubKeyRequest) instance Pretty OwnPubKeyRequest
 

@@ -67,6 +67,7 @@ type HelperFunctions a
     , mkNegValue :: Term Value -> Value
     , mkAddValue :: Term Value -> Term Value -> Value
     , mkSubValue :: Term Value -> Term Value -> Value
+    , mkMulValue :: Term Value -> Term Value -> Value
     , mkRational :: BigInteger -> BigInteger -> Rational
     , mkScale :: TermWrapper Rational -> Term Value -> Value
     , mkChoiceValue :: ChoiceId -> Term Value -> Value
@@ -118,6 +119,7 @@ helperFunctions =
   , mkNegValue: NegValue
   , mkAddValue: AddValue
   , mkSubValue: SubValue
+  , mkMulValue: MulValue
   , mkRational: Rational
   , mkScale: Scale
   , mkChoiceValue: ChoiceValue
@@ -312,6 +314,7 @@ recValue _ =
     <|> (NegValue <$> (string "NegValue" **> value'))
     <|> (AddValue <$> (string "AddValue" **> value') <**> value')
     <|> (SubValue <$> (string "SubValue" **> value') <**> value')
+    <|> (MulValue <$> (string "MulValue" **> value') <**> value')
     <|> do
         void $ string "Scale"
         skipSpaces

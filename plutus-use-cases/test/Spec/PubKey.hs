@@ -39,5 +39,5 @@ tests = testGroup "pubkey"
   [ checkPredicate "works like a public key output"
       theContract
       (walletFundsChange w1 mempty /\ assertDone w1 (const True) "pubkey contract not done")
-      (handleBlockchainEvents (Wallet 1))
+      (handleBlockchainEvents (Wallet 1) >> addBlocks 1 >> handleBlockchainEvents (Wallet 1) >> addBlocks 1)
   ]

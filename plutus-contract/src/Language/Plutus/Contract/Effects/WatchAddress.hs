@@ -6,65 +6,97 @@
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module Language.Plutus.Contract.Effects.WatchAddress where
+{-# LANGUAGE ViewPatterns        #-}
+module Language.Plutus.Contract.Effects.WatchAddress(
+    AddressSymbol,
+    HasWatchAddress,
+    WatchAddress,
+    addressChangeRequest,
+    nextTransactionsAt,
+    fundsAtAddressGt,
+    fundsAtAddressGeq,
+    events,
+    watchAddressRequest,
+    watchedAddress,
+    AddressChangeRequest(..),
+    AddressChangeResponse(..),
+    event
+    ) where
 
-import           Control.Lens                               (at, view, (^.))
 import           Data.Map                                   (Map)
 import qualified Data.Map                                   as Map
-import           Data.Maybe                                 (fromMaybe)
 import           Data.Row
-import           Ledger                                     (Address, Slot, TxId, Value, txId)
-import           Ledger.AddressMap                          (AddressMap, UtxoMap, fundsAt)
+import           Ledger                                     (Address, Slot, Value)
+import           Ledger.AddressMap                          (AddressMap, UtxoMap)
 import qualified Ledger.AddressMap                          as AM
-import           Ledger.Tx                                  (Tx)
+import           Ledger.Tx                                  (Tx, txOutTxOut, txOutValue)
 import qualified Ledger.Value                               as V
 
-import           Language.Plutus.Contract.Effects.AwaitSlot
+import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot, currentSlot)
+import           Language.Plutus.Contract.Effects.UtxoAt    (HasUtxoAt, utxoAt)
 import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
 import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
 import           Language.Plutus.Contract.Types             (AsContractError, Contract)
 import           Language.Plutus.Contract.Util              (loopM)
+import           Wallet.Effects                             (AddressChangeRequest (..), AddressChangeResponse (..))
 
 type AddressSymbol = "address"
 
 type HasWatchAddress s =
-    ( HasType AddressSymbol (Address, Tx) (Input s)
-    , HasType AddressSymbol Address (Output s)
+    ( HasType AddressSymbol AddressChangeResponse (Input s)
+    , HasType AddressSymbol AddressChangeRequest (Output s)
     , ContractRow s)
 
-type WatchAddress = AddressSymbol .== ((Address, Tx), Address)
+type WatchAddress = AddressSymbol .== (AddressChangeResponse, AddressChangeRequest)
 
--- | Wait for the next transaction that changes an address.
-nextTransactionAt :: forall s e. (AsContractError e, HasWatchAddress s) => Address -> Contract s e Tx
-nextTransactionAt addr =
-    let check :: (Address, Tx) -> Maybe Tx
-        check (addr', tx) = if addr == addr' then Just tx else Nothing
-    in
-    requestMaybe @AddressSymbol @_ @_ @s addr check
+{-| Get the transactions that modified an address in a specific slot.
+-}
+addressChangeRequest ::
+    forall s e.
+    ( HasWatchAddress s
+    , AsContractError e
+    )
+    => AddressChangeRequest
+    -> Contract s e AddressChangeResponse
+addressChangeRequest rq =
+    let check :: AddressChangeResponse -> Maybe AddressChangeResponse
+        check r@AddressChangeResponse{acrAddress, acrSlot}
+                | acrAddress == acreqAddress rq && acrSlot >= acreqSlot rq = Just r
+                | otherwise = Nothing
+    in requestMaybe @AddressSymbol @_ @_ @s rq check
 
--- | Watch an address until the given slot, then return all known outputs
---   at the address.
-watchAddressUntil
-    :: forall s e.
-       ( HasAwaitSlot s
-       , HasWatchAddress s
-       , AsContractError e
-       )
+-- | Call 'addresssChangeRequest' for the address in each slot, until at least one
+--   transaction is returned that modifies the address.
+nextTransactionsAt ::
+    forall s e.
+    ( HasWatchAddress s
+    , AsContractError e
+    , HasAwaitSlot s
+    )
     => Address
-    -> Slot
-    -> Contract s e UtxoMap
-watchAddressUntil a slot = view (fundsAt a) <$> collectUntil @s AM.updateAddresses (AM.addAddress a mempty) (nextTransactionAt @s a) slot
+    -> Contract s e [Tx]
+nextTransactionsAt addr = do
+    initial <- currentSlot
+    let go sl = do
+            txns <- acrTxns <$> addressChangeRequest AddressChangeRequest{acreqSlot = sl, acreqAddress=addr}
+            if null txns
+                then go (succ sl)
+                else pure txns
+    go initial
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
 --   has surpassed the given value.
 fundsAtAddressGt
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
+       , HasAwaitSlot s
+       , HasUtxoAt s
        )
     => Address
     -> Value
@@ -74,27 +106,30 @@ fundsAtAddressGt addr vl =
 
 fundsAtAddressCondition
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
+       , HasAwaitSlot s
+       , HasUtxoAt s
        )
     => (Value -> Bool)
     -> Address
     -> Contract s e UtxoMap
-fundsAtAddressCondition condition addr = view (fundsAt addr) <$> loopM go mempty where
-    go cur = do
-        delta <- AM.fromTxOutputs <$> nextTransactionAt @s addr
-        let cur' = cur <> delta
-            presentVal = fromMaybe mempty (AM.values cur' ^. at addr)
+fundsAtAddressCondition condition addr = loopM go () where
+    go () = do
+        cur <- utxoAt addr
+        sl <- currentSlot
+        let presentVal = foldMap (txOutValue . txOutTxOut) cur
         if condition presentVal
-        then pure (Right cur') else pure (Left cur')
+            then pure (Right cur)
+            else awaitSlot (sl + 1) >> pure (Left ())
 
 -- | Watch an address for changes, and return the outputs
 --   at that address when the total value at the address
 --   has reached or surpassed the given value.
 fundsAtAddressGeq
     :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
+       ( AsContractError e
+       , HasAwaitSlot s
+       , HasUtxoAt s
        )
     => Address
     -> Value
@@ -102,40 +137,43 @@ fundsAtAddressGeq
 fundsAtAddressGeq addr vl =
     fundsAtAddressCondition (\presentVal -> presentVal `V.geq` vl) addr
 
--- | Watch the address until the transaction with the given 'TxId' appears
---   on the ledger. Warning: If the transaction does not touch the address,
---   or is invalid, then 'awaitTransactionConfirmed' will not return.
-awaitTransactionConfirmed
-    :: forall s e.
-       ( HasWatchAddress s
-       , AsContractError e
-       )
-    => Address
-    -> TxId
-    -> Contract s e Tx
-awaitTransactionConfirmed addr txid =
-    flip loopM () $ \_ -> do
-        tx' <- nextTransactionAt addr
-        if txId tx' == txid
-        then pure $ Right tx'
-        else pure $ Left ()
-
+-- | The 'AddressChangeResponse' events for all addresses touched by the
+--   transaction. The 'AddressMap' is used to lookup the addresses of outputs
+--   spent by the transaction.
 events
     :: forall s.
-       ( HasType AddressSymbol (Address, Tx) (Input s)
+       ( HasType AddressSymbol AddressChangeResponse (Input s)
        , AllUniqueLabels (Input s)
        )
-    => AddressMap
+    => Slot
+    -> AddressMap
     -> Tx
     -> Map Address (Event s)
-events utxo tx =
-    Map.fromSet
-        (\addr -> Event $ IsJust (Label @AddressSymbol) (addr, tx))
+events sl utxo tx =
+    let mkEvent addr = AddressChangeResponse{acrAddress=addr,acrSlot=sl,acrTxns=[tx]}
+    in Map.fromSet
+        (Event . IsJust (Label @AddressSymbol) . mkEvent)
         (AM.addressesTouched utxo tx)
+
+watchAddressRequest
+    :: forall s.
+    ( HasType AddressSymbol AddressChangeRequest (Output s))
+    => Handlers s
+    -> Maybe AddressChangeRequest
+watchAddressRequest (Handlers r) = trial' r (Label @AddressSymbol)
 
 watchedAddress
     :: forall s.
-    ( HasType AddressSymbol Address (Output s))
+    ( HasType AddressSymbol AddressChangeRequest (Output s))
     => Handlers s
     -> Maybe Address
-watchedAddress (Handlers r) = trial' r (Label @AddressSymbol)
+watchedAddress = fmap acreqAddress . watchAddressRequest
+
+event
+    :: forall s.
+       ( HasType AddressSymbol AddressChangeResponse (Input s)
+       , AllUniqueLabels (Input s)
+       )
+    => AddressChangeResponse
+    -> Event s
+event = Event . IsJust (Label @AddressSymbol)

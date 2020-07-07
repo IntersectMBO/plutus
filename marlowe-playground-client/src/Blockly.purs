@@ -36,6 +36,12 @@ type ZoomConfig
     , scaleSpeed :: Number
     }
 
+type Move
+  = { scrollbars :: Boolean
+    , drag :: Boolean
+    , wheel :: Boolean
+    }
+
 type WorkspaceConfig
   = { toolbox :: HTMLElement
     , collapse :: Boolean
@@ -48,9 +54,9 @@ type WorkspaceConfig
     , css :: Boolean
     , media :: String
     , rtl :: Boolean
-    , scrollbars :: Boolean
     , sounds :: Boolean
     , oneBasedIndex :: Boolean
+    , move :: Move
     , zoom :: ZoomConfig
     , grid :: GridConfig
     }
@@ -96,9 +102,13 @@ createBlocklyInstance rootBlockName workspaceElementId toolboxElementId = do
     , css: true
     , media: "https://blockly-demo.appspot.com/static/media/"
     , rtl: false
-    , scrollbars: true
     , sounds: true
     , oneBasedIndex: true
+    , move:
+      { scrollbars: true
+      , drag: true
+      , wheel: true
+      }
     , zoom:
       { controls: true
       , wheel: false

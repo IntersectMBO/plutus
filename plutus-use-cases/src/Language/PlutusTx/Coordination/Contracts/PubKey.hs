@@ -29,8 +29,8 @@ import           Ledger.Validation            as V
 import           Language.Plutus.Contract     as Contract
 import qualified Ledger.Constraints           as Constraints
 
-mkValidator :: PubKeyHash -> () -> () -> PendingTx -> Bool
-mkValidator pk' _ _ p = V.txSignedBy p pk'
+mkValidator :: PubKeyHash -> () -> () -> ValidatorCtx -> Bool
+mkValidator pk' _ _ p = V.txSignedBy (valCtxTxInfo p) pk'
 
 data PubKeyContract
 
@@ -60,8 +60,8 @@ instance AsContractError PubKeyError where
 --   and a 'TxIn' transaction input that can spend it.
 pubKeyContract
     :: forall s e.
-    ( HasWatchAddress s
-    , HasWriteTx s
+    ( HasWriteTx s
+    , HasTxConfirmation s
     , AsPubKeyError e
     )
     => PubKeyHash
@@ -72,9 +72,9 @@ pubKeyContract pk vl = mapError (review _PubKeyError   ) $ do
         address = Scripts.scriptAddress inst
         tx = Constraints.mustPayToTheScript () vl
 
-    tid <- submitTxConstraints inst tx
+    ledgerTx <- submitTxConstraints inst tx
 
-    ledgerTx <- awaitTransactionConfirmed address tid
+    _ <- awaitTxConfirmed (txId ledgerTx)
     let output = Map.toList
                 $ Map.filter ((==) address . txOutAddress)
                 $ unspentOutputsTx ledgerTx

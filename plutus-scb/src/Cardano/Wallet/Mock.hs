@@ -31,8 +31,8 @@ import qualified Wallet.Effects                 as W
 import           Wallet.Emulator.Wallet         (Wallet (Wallet), WalletState (..))
 import qualified Wallet.Emulator.Wallet         as EM
 
-initialState :: WalletState
-initialState = WalletState (EM.walletPrivKey activeWallet)
+initialState :: Wallet -> WalletState
+initialState = WalletState . EM.walletPrivKey
 
 wallets :: (Member Log effs) => Eff effs [Wallet]
 wallets = do
@@ -91,6 +91,3 @@ allocateAddress ::
 allocateAddress _ = do
     logInfo "allocateAddress"
     sendM $ liftIO $ generate arbitrary
-
-activeWallet :: Wallet
-activeWallet = Wallet 1

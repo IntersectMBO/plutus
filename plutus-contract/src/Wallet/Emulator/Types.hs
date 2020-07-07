@@ -24,7 +24,7 @@ module Wallet.Emulator.Types(
     assertIsValidated,
     AssertionError(..),
     AsAssertionError(..),
-    BlockValidated(..),
+    ChainClientNotification(..),
     EmulatorEvent(..),
     EmulatorAction(..),
     -- ** Wallet state
@@ -84,22 +84,24 @@ import           Prelude                    as P
 import           Ledger
 import           Wallet.API                 (WalletAPIError (..))
 
-import           Wallet.Emulator.Chain
+import           Wallet.Emulator.Chain      as Chain
 import           Wallet.Emulator.ChainIndex
 import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
 
-type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
+type EmulatorEffs = '[MultiAgentEffect, ChainEffect, ChainControlEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
-walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [BlockValidated] -> Eff.Eff effs ()
+walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [ChainClientNotification] -> Eff.Eff effs ()
 walletRecvBlocks w nots = void $ walletControlAction w (traverse_ go nots) where
     go noti = clientNotify noti >> chainIndexNotify noti
 
--- | -- | Notify the given 'Wallet' that a block has been validated.
+-- | Notify the given 'Wallet' that a block has been validated.
 walletNotifyBlock :: Eff.Members EmulatorEffs effs => Wallet -> Block -> Eff.Eff effs ()
-walletNotifyBlock w = walletRecvBlocks w . pure . BlockValidated
+walletNotifyBlock w block = do
+    sl <- Chain.getCurrentSlot
+    walletRecvBlocks w [BlockValidated block, SlotChanged sl]
 
 -- | Notify a list of 'Wallet's that a block has been validated.
 walletsNotifyBlock :: forall effs . Eff.Members EmulatorEffs effs => [Wallet] -> Block -> Eff.Eff effs ()
@@ -131,9 +133,10 @@ newtype EmulatorAction e a = EmulatorAction { unEmulatorAction :: ExceptT e (Sta
 processEmulated :: forall m e a . (MonadEmulator e m) => Eff.Eff EmulatorEffs a -> m a
 processEmulated act =
     act
-        & Eff.raiseEnd2
+        & Eff.raiseEnd3
         & handleMultiAgent
         & handleChain
+        & handleControlChain
         & Eff.interpret (Eff.handleZoomedWriter p1)
         & Eff.interpret (Eff.handleZoomedState chainState)
         & Eff.interpret (Eff.writeIntoState emulatorLog)

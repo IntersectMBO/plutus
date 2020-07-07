@@ -94,7 +94,7 @@ type EmulatedWalletEffects =
          ]
 
 type EmulatedWalletControlEffects =
-        '[ NC.NodeControlEffect
+        '[ NC.NodeClientControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
          , Log
@@ -250,7 +250,7 @@ emulatorStateInitialDist mp = emulatorStatePool [tx] where
             , txData = mempty
             }
 
-type MultiAgentEffs = '[State EmulatorState, Error WAPI.WalletAPIError, Error AssertionError, Chain.ChainEffect]
+type MultiAgentEffs = '[State EmulatorState, Error WAPI.WalletAPIError, Error AssertionError, Chain.ChainEffect, Chain.ChainControlEffect]
 
 handleMultiAgent
     :: forall effs. Members MultiAgentEffs effs

@@ -191,10 +191,6 @@ cradle:
   #   component: "plutus-playground-server:lib"
   # - path: ./plutus-playground-server/test
   #   component: "plutus-playground-server:plutus-playground-server-test"
-  # - path: ./plutus-tutorial/src
-  #   component: "plutus-tutorial:lib"
-  # - path: ./plutus-tutorial/test
-  #   component: "plutus-tutorial:plutus-tutorial-test"
   # - path: ./plutus-use-cases/src
   #   component: "plutus-use-cases:lib"
   # - path: ./plutus-use-cases/test

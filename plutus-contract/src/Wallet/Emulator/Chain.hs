@@ -60,20 +60,26 @@ emptyChainState = ChainState [] [] mempty 0
 
 makeLenses ''ChainState
 
-data ChainEffect r where
-    ProcessBlock :: ChainEffect Block
-    QueueTx :: Tx -> ChainEffect ()
+data ChainControlEffect r where
+    ProcessBlock :: ChainControlEffect Block
 
-processBlock :: Member ChainEffect effs => Eff effs Block
+data ChainEffect r where
+    QueueTx :: Tx -> ChainEffect ()
+    GetCurrentSlot :: ChainEffect Slot
+
+processBlock :: Member ChainControlEffect effs => Eff effs Block
 processBlock = send ProcessBlock
 
 queueTx :: Member ChainEffect effs => Tx -> Eff effs ()
 queueTx tx = send (QueueTx tx)
 
+getCurrentSlot :: Member ChainEffect effs => Eff effs Slot
+getCurrentSlot = send GetCurrentSlot
+
 type ChainEffs = '[State ChainState, Writer [ChainEvent]]
 
-handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
-handleChain = interpret $ \case
+handleControlChain :: Members ChainEffs effs => Eff (ChainControlEffect ': effs) ~> Eff effs
+handleControlChain = interpret $ \case
     ProcessBlock -> do
         st <- get
         let pool  = st ^. txPool
@@ -90,7 +96,11 @@ handleChain = interpret $ \case
         tell events
 
         pure block
+
+handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
+handleChain = interpret $ \case
     QueueTx tx -> modify $ over txPool (tx :)
+    GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock

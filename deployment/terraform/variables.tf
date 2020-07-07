@@ -48,11 +48,11 @@ variable "monitoring_public_zone" {
   default = "Z2Y3TWJMJ0Q6Z7"
 }
 variable "marlowe_instance_type" {
-  default = "t2.large"
+  default = "t3.small"
 }
 
 variable "playground_instance_type" {
-  default = "t2.large"
+  default = "t3.small"
 }
 
 variable "nixops_instance_type" {

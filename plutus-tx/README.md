@@ -11,8 +11,6 @@ compiler plugin works. If you want to support cross-compilation, see the `plutus
 
 ## Using `plutus-tx`
 
-More extensive tutorials are available in `plutus-tutorial`.
-
 ### Compiling Haskell code
 
 The entry point is the `compile` function, which takes a typed Template Haskell

@@ -23,6 +23,7 @@ import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
+import Wallet as Wallet
 
 ------------------------------------------------------------
 data HQuery a
@@ -39,12 +40,15 @@ data HAction
   -- haskell actions
   | CompileHaskellProgram
   | ChangeView View
-  | SendResult
+  | SendResultToSimulator
+  | SendResultToBlockly
   | LoadHaskellScript String
   -- Simulation Actions
   | HandleSimulationMessage Simulation.Message
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
+  -- Wallet Actions
+  | HandleWalletMessage Wallet.Message
 
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
@@ -52,18 +56,21 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (HaskellHandleEditorMessage _) = Just $ defaultEvent "HaskellHandleEditorMessage"
   toEvent (HaskellSelectEditorKeyBindings _) = Just $ defaultEvent "HaskellSelectEditorKeyBindings"
   toEvent (HandleSimulationMessage action) = Just $ defaultEvent "HandleSimulationMessage"
+  toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent CompileHaskellProgram = Just $ defaultEvent "CompileHaskellProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent SendResult = Just $ defaultEvent "SendResult"
+  toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
+  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
 
 ------------------------------------------------------------
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     , simulationSlot :: H.Slot Simulation.Query Simulation.Message Unit
+    , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
 
 _haskellEditorSlot :: SProxy "haskellEditorSlot"
@@ -74,6 +81,9 @@ _blocklySlot = SProxy
 
 _simulationSlot :: SProxy "simulationSlot"
 _simulationSlot = SProxy
+
+_walletSlot :: SProxy "walletSlot"
+_walletSlot = SProxy
 
 -----------------------------------------------------------
 data View

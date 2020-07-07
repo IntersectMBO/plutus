@@ -63,11 +63,13 @@ tests = testGroup "Marlowe"
     , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
+    , testCase "Mul analysis" mulAnalysisTest
     , testProperty "Value equality is reflexive, symmetric, and transitive" checkEqValue
     , testProperty "Value double negation" doubleNegation
     , testProperty "Values form abelian group" valuesFormAbelianGroup
     , testProperty "Values can be serialized to JSON" valueSerialization
     , testProperty "Scale Value multiplies by a constant rational" scaleMulTest
+    , testProperty "Multiply by zero" mulTest
     , testProperty "Scale rounding" scaleRoundingTest
     , limitedProperty "Zero Coupon Bond Contract" zeroCouponBondTest
     , limitedProperty "Zero Coupon Bond w/ Roles Contract" zeroCouponBondRolesTest
@@ -320,6 +322,11 @@ scaleMulTest = property $ do
     forAll valueGen $ \a ->
         eval (Scale (0 P.% 1) a) === 0 .&&. eval (Scale (1 P.% 1) a) === eval a
 
+mulTest :: Property
+mulTest = property $ do
+    let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
+    forAll valueGen $ \a ->
+        eval (MulValue (Constant 0) a) === 0
 
 valueSerialization :: Property
 valueSerialization = property $
@@ -327,6 +334,16 @@ valueSerialization = property $
         let decoded :: Maybe (Value Observation)
             decoded = decode $ encode a
         in Just a === decoded
+
+mulAnalysisTest :: IO ()
+mulAnalysisTest = do
+    let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
+        alicePk = PK $ pubKeyHash $ walletPubKey alice
+        aliceAcc = AccountId 0 alicePk
+        contract = If (muliply `ValueGE` (Constant 10000)) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
+    result <- warningsTrace contract
+    --print result
+    assertBool "Analysis ok" $ isRight result
 
 
 pangramContractSerialization :: IO ()

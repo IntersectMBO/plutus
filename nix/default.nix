@@ -10,9 +10,10 @@ let
     // sourcesOverride;
   iohkNix = import sources.iohk-nix {};
   haskellNix = import sources."haskell.nix" {
-    # Dev tools should be compiled with the same compiler as
-    # plutus increase sharing and keep closure sizes down
-    defaultCompilerNixName = "ghc883";
+    sourcesOverride = {
+      hackage = sources."hackage.nix";
+      stackage = sources."stackage.nix";
+    };
   };
   # Use our own nixpkgs
   nixpkgs = sources.nixpkgs;

@@ -1,8 +1,0 @@
-[#plutus-tx]
-= Plutus Tx Tutorial
-
-This tutorial will walk you through the basics of using the Plutus Tx
-compiler to create embedded programs that can be used when generating
-transactions.
-
-include::plutus-tx.adoc[]

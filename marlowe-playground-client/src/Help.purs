@@ -17,6 +17,7 @@ data HelpContext
   = MarloweHelp
   | InputComposerHelp
   | TransactionComposerHelp
+  | WalletsSimulatorHelp
 
 derive instance genericHelpContext :: Generic HelpContext _
 
@@ -39,11 +40,15 @@ toHTML helpType =
 
   headerText TransactionComposerHelp = text "Transaction Composer"
 
+  headerText WalletsSimulatorHelp = text "Wallets Simulator"
+
   bodyText MarloweHelp = text "Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract"
 
   bodyText InputComposerHelp = text "The Input Composer allows you to choose any of the possible inputs to add to a transaction"
 
   bodyText TransactionComposerHelp = text "The transaction composer shows you the contents of a transaction which is ready to apply. The inputs within a transaction are applied in order."
+
+  bodyText WalletsSimulatorHelp = text "The Wallets Simulator allows you to see how your contract will look from the point of view of users. You can create multiple wallets then transfer roles, add assets and apply transactions in individual wallets. To get started create a wallet by clicking on the '+' button at the top of the main panel."
 
 holeText :: MarloweType -> String
 holeText marloweType = "Found a hole of type " <> dropEnd 4 (show marloweType) <> "\n" <> text <> "\nClick on Quick Fix below to see the options."
