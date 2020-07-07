@@ -38,7 +38,17 @@ import           GHC.Generics                            (Generic)
 
 type Log = Writer [LogMessage]
 
-data LogLevel = Debug | Info | Warn
+-- | The severity level of a log message
+--   See https://en.wikipedia.org/wiki/Syslog#Severity_level
+data LogLevel =
+        Debug
+        | Info
+        | Notice
+        | Warning
+        | Error
+        | Critical
+        | Alert
+        | Emergency
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
@@ -48,9 +58,14 @@ data LogMessage = LogMessage { logLevel :: LogLevel, logMessageText :: Text }
 
 instance Pretty LogLevel where
     pretty = \case
-        Debug -> "[DEBUG]"
-        Info ->  "[INFO ]"
-        Warn ->  "[WARN ]"
+        Debug      -> "[DEBUG]"
+        Info       -> "[INFO]"
+        Notice     -> "[NOTICE]"
+        Warning    -> "[WARNING]"
+        Error      -> "[ERROR]"
+        Critical   -> "[CRITICAL]"
+        Alert      -> "[ALERT]"
+        Emergency  -> "[EMERGENCY]"
 
 instance Pretty LogMessage where
     pretty LogMessage{logLevel, logMessageText} =
@@ -60,7 +75,7 @@ logDebug :: Member Log effs => Text -> Eff effs ()
 logDebug m = tell [LogMessage Debug m]
 
 logWarn :: Member Log effs => Text -> Eff effs ()
-logWarn m = tell [LogMessage Warn m]
+logWarn m = tell [LogMessage Warning m]
 
 logInfo :: Member Log effs => Text -> Eff effs ()
 logInfo m = tell [LogMessage Info m]
@@ -83,7 +98,7 @@ surroundDebug = surround Debug
 
 -- | @surroundWarn = surround Warn@
 surroundWarn :: Member Log effs => Text -> Eff effs a -> Eff effs a
-surroundWarn = surround Warn
+surroundWarn = surround Warning
 
 -- | Re-interpret a 'Writer' effect by writing the events to the log
 writeToLog ::
