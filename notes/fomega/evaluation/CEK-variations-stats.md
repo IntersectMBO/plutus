@@ -97,7 +97,7 @@ appears to be a reasonable measure of memory usage.
 
 ![Arith: memory](figures/arith-mem.png)
 
-See [CEK-variations-stats-appendix.md](./CEK-variations-stats-appendix..md)
+See [CEK-variations-stats-appendix.md](./CEK-variations-stats-appendix.md)
 for versions of these graphs including figures for the CK machine (with
 unsaturated builtins).
 
