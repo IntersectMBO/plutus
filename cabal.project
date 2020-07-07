@@ -280,3 +280,21 @@ source-repository-package
   subdir: cardano-crypto-class
 
 -- / Node protocols
+
+-- Logging & monitoring
+
+package iohk-monitoring
+  -- disable all warnings
+  ghc-options: -w 
+
+source-repository-package
+  type: git
+  location: https://github.com/raduom/iohk-monitoring-framework
+  tag: b5c035ad4e226d634242ad5979fa677921181435
+  subdir: iohk-monitoring
+
+source-repository-package
+  type: git
+  location: https://github.com/raduom/iohk-monitoring-framework
+  tag: b5c035ad4e226d634242ad5979fa677921181435
+  subdir: tracer-transformers
