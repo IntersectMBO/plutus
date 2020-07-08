@@ -166,14 +166,13 @@ applyEvaluate stack fun                    arg =
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
             Just (IterApp (StaticStagedBuiltinName name) spine) -> do
-                constAppResult <- applyEvaluateCkBuiltinName name spine
-                case constAppResult of
-                    ConstAppSuccess res -> stack |> res
-                    ConstAppStuck       -> stack <| term
+                -- TODO: wrong.
+                res <- applyEvaluateCkBuiltinName name spine
+                stack |> res
 
 applyEvaluateCkBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (ConstAppResult uni ())
+    => BuiltinName -> [Value TyName Name uni ()] -> CkM uni (Plain Term uni)
 applyEvaluateCkBuiltinName name args = do
     params <- builtinCostParams
     void <$> applyBuiltinName params name (withMemory <$> args)

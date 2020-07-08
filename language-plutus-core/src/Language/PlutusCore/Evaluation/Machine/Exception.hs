@@ -53,8 +53,8 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError uni
-    = ExcessArgumentsConstAppError [Value TyName Name uni ()]
-      -- ^ A constant is applied to more arguments than needed in order to reduce.
+    = WrongNumberOfArgumentsConstAppError [Value TyName Name uni ()]
+      -- ^ A constant is applied to the wrong number of arguments.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
     | UnliftingConstAppError UnliftingError
@@ -136,8 +136,8 @@ instance Pretty UnliftingError where
 
 instance (PrettyBy config (Term TyName Name uni ()), HasPrettyDefaults config ~ 'True) =>
         PrettyBy config (ConstAppError uni) where
-    prettyBy config (ExcessArgumentsConstAppError args) = fold
-        [ "A constant applied to too many arguments:", "\n"
+    prettyBy config (WrongNumberOfArgumentsConstAppError args) = fold
+        [ "A constant applied to the wrong number of arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err

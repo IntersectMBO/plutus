@@ -417,10 +417,8 @@ applyEvaluate ctx (VBuiltin argEnv resEnv bn count tyargs args) arg = do
     if count' /= 0
         then withEnv argEnv $ returnCek ctx (VBuiltin argEnv resEnv' bn count' tyargs args')
         else withEnv resEnv' $ do
-            constAppResult <- applyStagedBuiltinName bn (reverse args')
-            case constAppResult of
-              ConstAppSuccess res -> computeCek ctx res
-              ConstAppStuck       -> error "not supposed to happen"
+            res <- applyStagedBuiltinName bn (reverse args')
+            computeCek ctx res
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
 
@@ -429,7 +427,7 @@ applyStagedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => StagedBuiltinName
     -> [WithMemory Value uni]
-    -> CekM uni (ConstAppResult uni ExMemory)
+    -> CekM uni (WithMemory Term uni)
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args

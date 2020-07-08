@@ -12,8 +12,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Apply
-    ( ConstAppResult (..)
-    , nonZeroArg
+    ( nonZeroArg
     , integerToInt64
     , applyTypeSchemed
     , applyBuiltinName
@@ -37,14 +36,6 @@ import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
 
--- | The result of evaluation of a builtin applied to some arguments.
-data ConstAppResult uni ann
-    = ConstAppSuccess (Term TyName Name uni ann)
-      -- ^ Successfully computed a value.
-    | ConstAppStuck
-      -- ^ Not enough arguments.
-    deriving (Show, Eq, Functor)
-
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
 -- Useful for correctly handling `div`, `mod`, etc.
@@ -67,7 +58,7 @@ applyTypeSchemed
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [Value TyName Name uni ExMemory]
-    -> m (ConstAppResult uni ExMemory)
+    -> m (WithMemory Term uni)
 applyTypeSchemed name = go where
     go
         :: forall args'.
@@ -75,19 +66,22 @@ applyTypeSchemed name = go where
         -> FoldArgs args' res
         -> FoldArgsEx args'
         -> [Value TyName Name uni ExMemory]
-        -> m (ConstAppResult uni ExMemory)
+        -> m (WithMemory Term uni)
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
             -- TODO is `withMemory` a good idea here?
-            [] -> pure . ConstAppSuccess $ withMemory $ makeKnown y    -- Computed the result.
+            [] -> pure $ withMemory $ makeKnown y    -- Computed the result.
             _  -> throwingWithCause _ConstAppError        -- Too many arguments.
-                    (ExcessArgumentsConstAppError $ void <$> args)
+                    (WrongNumberOfArgumentsConstAppError $ void <$> args)
                     Nothing
     go (TypeSchemeAllType _ schK)  f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)    f exF args = case args of
-        []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
+        []          ->
+            throwingWithCause _ConstAppError              -- Too few arguments.
+                (WrongNumberOfArgumentsConstAppError [])  -- TODO: @[]@ is incorrect.
+                Nothing
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown $ void arg
@@ -109,7 +103,7 @@ applyTypedBuiltinName
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [Value TyName Name uni ExMemory]
-    -> m (ConstAppResult uni ExMemory)
+    -> m (WithMemory Term uni)
 applyTypedBuiltinName (TypedBuiltinName name schema) =
     applyTypeSchemed (StaticStagedBuiltinName name) schema
 
@@ -120,7 +114,7 @@ applyBuiltinName
     , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
     , GShow uni, GEq uni, DefaultUni <: uni
     )
-    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
+    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (WithMemory Term uni)
 applyBuiltinName params AddInteger           =
     applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
 applyBuiltinName params SubtractInteger      =
