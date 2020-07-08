@@ -36,19 +36,19 @@ tests = testGroup "all tests"
 prop_checkKindSound :: TyProp
 prop_checkKindSound _ _ k tyQ = isSafe $ do
   ty <- liftQuote tyQ
-  checkKind defOffChainConfig () ty k
+  checkKind defConfig () ty k
 
 -- |Property: Normalisation preserves kind.
 prop_normalizePreservesKind :: TyProp
 prop_normalizePreservesKind _ _ k tyQ = isSafe $ do
   ty <- liftQuote tyQ
-  ty' <- unNormalized <$> normalizeTypeFull ty
-  checkKind defOffChainConfig () ty' k
+  ty' <- unNormalized <$> normalizeType ty
+  checkKind defConfig () ty' k
 
 -- |Property: Normalisation for generated types is sound.
 prop_normalizeTypeSound :: TyProp
 prop_normalizeTypeSound kG tyG _ tyQ = eitherToCool . getResult $ do
-  ty1 <- unNormalized <$> (normalizeTypeFull =<< liftQuote tyQ)
+  ty1 <- unNormalized <$> (normalizeType =<< liftQuote tyQ)
   ty2 <- toClosedType kG (normalizeTypeG tyG)
   return (ty1 == ty2)
 
@@ -58,9 +58,10 @@ prop_normalizeTypeSound kG tyG _ tyQ = eitherToCool . getResult $ do
 eitherToCool :: Either e Bool -> Cool
 eitherToCool = either (const false) toCool
 
-getResult :: ExceptT (Error ()) Quote a -> Either (Error ()) a
+getResult :: ExceptT (Error DefaultUni ()) Quote a
+          -> Either  (Error DefaultUni ()) a
 getResult = runQuote . runExceptT
 
 -- |Check if the type/kind checker threw any errors.
-isSafe :: ExceptT (Error ()) Quote () -> Cool
+isSafe :: ExceptT (Error DefaultUni ()) Quote () -> Cool
 isSafe = toCool . isRight . runQuote . runExceptT

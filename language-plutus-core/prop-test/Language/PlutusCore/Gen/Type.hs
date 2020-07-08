@@ -58,11 +58,16 @@ data TypeBuiltinG
 $(deriveEnumerable ''TypeBuiltinG)
 
 -- |Convert generated builtin types to Plutus builtin types.
+{-
 toTypeBuiltin :: TypeBuiltinG -> TypeBuiltin
 toTypeBuiltin TyByteStringG = TyByteString
 toTypeBuiltin TyIntegerG    = TyInteger
 toTypeBuiltin TyStringG     = TyString
-
+-}
+toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
+toTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
+toTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
+toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 
 
 -- * Enumerating types
@@ -95,7 +100,7 @@ toType
   => TyNameState n      -- ^ Type name environment with fresh name stream
   -> KindG              -- ^ Kind of type below
   -> TypeG n            -- ^ Type to convert
-  -> m (Type TyName ())
+  -> m (Type TyName DefaultUni ())
 toType ns _ (TyVarG i) =
   return (TyVar () (tynameOf ns i))
 toType ns TypeG (TyFunG ty1 ty2) =
@@ -132,7 +137,7 @@ toClosedType
   => [Text.Text]
   -> KindG
   -> ClosedTypeG
-  -> m (Type TyName ())
+  -> m (Type TyName DefaultUni ())
 toClosedType strs = toType (emptyTyNameState strs)
 
 

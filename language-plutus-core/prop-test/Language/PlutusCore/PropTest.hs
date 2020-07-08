@@ -24,7 +24,11 @@ import           Test.Tasty.HUnit
 import           Text.Printf
 
 -- |The type for properties with access to both representations.
-type TyProp = KindG -> ClosedTypeG -> Kind () -> Quote (Type TyName ()) -> Cool
+type TyProp =  KindG
+     	    -> ClosedTypeG
+	    -> Kind ()
+	    -> Quote (Type TyName DefaultUni ())
+	    -> Cool
 
 -- |Internal version of type properties.
 type TyPropG = KindG -> ClosedTypeG -> Cool
@@ -50,7 +54,7 @@ testTyProp depth k typrop = do
 -- |Generate the error message for a failed `TyProp`.
 errorMsgTyProp :: KindG -> ClosedTypeG -> String
 errorMsgTyProp kG tyG =
-  case runTCM (inferKind defOffChainConfig =<< liftQuote tyQ) of
+  case runTCM (inferKind defConfig =<< liftQuote tyQ) of
     Left err ->
       printf "Counterexample found: %s, generated for kind %s\n%s"
         (show (pretty ty)) (show (pretty k1)) (show (prettyPlcClassicDef err))
@@ -58,10 +62,11 @@ errorMsgTyProp kG tyG =
       printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
         (show (pretty ty)) (show (pretty k1)) (show (pretty k2))
   where
-    runTCM :: ExceptT (TypeError ()) Quote a -> Either (TypeError ()) a
+    runTCM :: ExceptT (TypeError DefaultUni ()) Quote a
+           -> Either  (TypeError DefaultUni ()) a
     runTCM = runQuote . runExceptT
 
-    tyQ = toClosedType kG tyG :: Quote (Type TyName ())
+    tyQ = toClosedType kG tyG :: Quote (Type TyName DefaultUni ())
     ty  = runQuote tyQ
     k1  = toKind kG
 
@@ -85,5 +90,8 @@ tynames = mkTextNameStream "t"
 
 
 -- |Convert type.
-toClosedType :: MonadQuote m => KindG -> ClosedTypeG -> m (Type TyName ())
+toClosedType :: MonadQuote m
+             => KindG
+	     -> ClosedTypeG
+	     -> m (Type TyName DefaultUni ())
 toClosedType = Gen.toClosedType tynames
