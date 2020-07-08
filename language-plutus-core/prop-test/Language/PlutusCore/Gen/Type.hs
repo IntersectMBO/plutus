@@ -227,7 +227,7 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 -- |Extend renamings.
 extendRen :: (n -> m) -> S n -> S m
-extendRen r FZ     = FZ
+extendRen _ FZ     = FZ
 extendRen r (FS i) = FS (r i)
 
 -- |Simultaneous renaming of variables in generated types.
@@ -242,7 +242,7 @@ renameTypeG r (TyAppG ty1 ty2 k)     = TyAppG (renameTypeG r ty1) (renameTypeG r
 
 -- |Extend substitutions.
 extendSub :: (n -> TypeG m) -> S n -> TypeG (S m)
-extendSub s FZ     = TyVarG FZ
+extendSub _ FZ     = TyVarG FZ
 extendSub s (FS i) = renameTypeG FS (s i)
 
 -- |Simultaneous substitution of variables in generated types.
