@@ -71,10 +71,10 @@ prop_eqInteger = testPredict eqInteger (getConst . paramEqInteger)
 
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
--- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s 
+-- Why all the unsafe, you ask? `runRegion` (from inline-r) has a `(forall s. R s
 -- a)` to ensure no `R` types leave the scope. Additionally, it has an `NFData`
--- constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does away 
--- with the first constraint. However, consuring up a `NFData` constraint for                                 
+-- constraint to ensure no unexecuted R code escapes. `unsafeRunRegion` does away
+-- with the first constraint. However, consuring up a `NFData` constraint for
 -- `PropertyT` is impossible, because internally, `PropertyT` constructs a `TreeT`
 -- to hold all the branches for reduction. These branches will contain `(R s)`,
 -- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for

@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE RankNTypes             #-}
@@ -110,8 +110,8 @@ import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
 import           Data.Hashable
-import qualified Data.Kind as Kind
 import           Data.HashMap.Monoidal
+import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
