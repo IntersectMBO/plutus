@@ -1,4 +1,4 @@
-{ runCommand, lib, ghc }:
+{ runCommand, lib, ghc, sphinxcontrib-haddock }:
 { hspkgs # Haskell packages to make documentation for. Only those with a "doc" output will be used.
   # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
@@ -46,14 +46,19 @@ in runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   # we can just use the enclosing directory).
   interfaceOpts=()
   for interfaceFile in $(find . -name "*.haddock"); do
+    # this is '$PACKAGE/html'
     docdir=$(dirname $interfaceFile)
     interfaceOpts+=("--read-interface=$docdir,$interfaceFile")
+
+    # Jam this in here for now
+    ${sphinxcontrib-haddock}/bin/haddock_inventory $docdir
   done
 
   # Generate the contents and index
   ${ghc}/bin/haddock \
     --gen-contents \
     --gen-index \
+    --quickjump \
     ${lib.optionalString (prologue != null) "--prologue ${prologue}"} \
     "''${interfaceOpts[@]}"
 ''
