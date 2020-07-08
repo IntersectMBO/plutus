@@ -33,8 +33,7 @@ Template Haskell preliminaries
 
 Plutus Tx uses Haskell's metaprogramming support, Template Haskell, for two main reasons:
 
--  Template Haskell enables us to work at compile time, which is when
-we do Plutus Tx compilation.
+-  Template Haskell enables us to work at compile time, which is when we do Plutus Tx compilation.
 -  It allows us to wire up the machinery that invokes the Plutus Tx compiler.
 
 Template Haskell is very versatile, but we only use a few features.
