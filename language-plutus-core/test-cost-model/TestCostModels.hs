@@ -89,7 +89,7 @@ testPredict :: ((SomeSEXP (Region (R s))) -> (R s) (CostingFun ModelTwoArguments
   -> ((CostModelBase (Const (SomeSEXP (Region (R s))))) -> SomeSEXP s)
   -> Property
 testPredict haskellModelFun modelFun = propertyR $ do
-  modelR <- lift $ costModelR
+  modelR <- lift $ costModelsR
   modelH <- lift $ haskellModelFun $ modelFun modelR
   let
     predictR :: MonadR m => Integer -> Integer -> m Integer

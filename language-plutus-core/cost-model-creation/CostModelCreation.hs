@@ -57,9 +57,9 @@ costModelNames = CostModel
   , paramIfThenElse = "ifThenElseModel"
   }
 
--- Loads the model from R
-costModelR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
-costModelR = do
+-- Loads the models from R
+costModelsR :: MonadR m => m (CostModelBase (Const (SomeSEXP (Region m))))
+costModelsR = do
   list <- [r|
     source("language-plutus-core/budgeting-bench/models.R")
     modelFun("language-plutus-core/budgeting-bench/csvs/benching.csv")
@@ -71,7 +71,7 @@ costModelR = do
 createCostModel :: IO CostModel
 createCostModel =
   withEmbeddedR defaultConfig $ runRegion $ do
-    models <- costModelR
+    models <- costModelsR
     -- TODO: refactor with barbies
     paramAddInteger <- addInteger (getConst $ paramAddInteger models)
     paramSubtractInteger <- subtractInteger (getConst $ paramSubtractInteger models)
