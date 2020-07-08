@@ -7,16 +7,15 @@ let
    filter = with lib;
     name: type: let baseName = baseNameOf (toString name); in (
       (type == "regular" && hasSuffix ".purs" baseName) ||
-      (type == "directory" && (baseName != "generated" 
-                            && baseName != "output" 
-                            && baseName != "node_modules" 
-                            && baseName != ".psc-package" 
+      (type == "directory" && (baseName != "generated"
+                            && baseName != "output"
+                            && baseName != "node_modules"
+                            && baseName != ".psc-package"
                             && baseName != ".spago"))
     );
   };
 in
 runCommand "purty-check" {
-  succeedOnFailure = true;
   buildInputs = [ purty diffutils glibcLocales ];
 } ''
   set +e

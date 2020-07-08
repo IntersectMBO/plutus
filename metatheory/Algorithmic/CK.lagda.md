@@ -131,27 +131,32 @@ closeState (◆ A)             = error _
 -- contexts and provides a proof.  These things could be done
 -- seperately.
 
+deval : ∀{A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → ∅ ⊢ A
+deval {t = t} _ = t
+
 step : ∀{A} → State A → State A
 step (s ▻ ƛ L)                    = s ◅ V-ƛ L
 step (s ▻ (L · M))                = (s , -· M) ▻ L
 step (s ▻ Λ L)                    = s ◅ V-Λ L
-step (s ▻ (_·⋆_ L A))             = (s , -·⋆ A) ▻ L
+step (s ▻ (L ·⋆ A))               = (s , -·⋆ A) ▻ L
 step (s ▻ wrap1 pat arg L)        = (s , wrap-) ▻ L
 step (s ▻ unwrap1 L)              = (s , unwrap-) ▻ L
 step (s ▻ con cn)                 = s ◅ V-con cn
+step (s ▻ error A)                = ◆ A
+step (ε ◅ V)                      = □ V
+step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
+step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ deval V ])
+step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
+step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
+step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
+
 step (s ▻ builtin bn σ tel)
   with proj₁ (proj₂ (SIG bn)) | inspect (proj₁ ∘ (proj₂ ∘ SIG)) bn
 step (s ▻ builtin bn σ []) | [] | [[ p ]] = 
   s ▻ BUILTIN bn σ (substEq (Tel ∅ _ σ) (sym p) []) (vtel-lem σ (sym p) [] tt)
 step (s ▻ builtin bn σ (t ∷ ts)) | A ∷ As | [[ p ]] =
   (s , builtin- bn σ [] [] _ A As p ts) ▻ t
-step (s ▻ error A)                = ◆ A
-step (ε ◅ V)                      = □ V
-step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
-step (_◅_ (s , (V-ƛ t ·-)) {u} V) = s ▻ (t [ u ])
-step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
-step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
-step ((s , unwrap-) ◅ V-wrap V)   = s ◅ V
+
 step ( _◅_ (s , (builtin- b σ As ts vts A .[] p [])) {t = t} V) =
   s ▻ BUILTIN b
               σ

@@ -1,3 +1,0 @@
-= Plutus tutorial
-
-This is the repository used to generate the tutorial. For reading, you can use the rendered  https://prod.playground.plutus.iohkdev.io/tutorial/[production version] or https://alpha.plutus.iohkdev.io/tutorial/[development version].

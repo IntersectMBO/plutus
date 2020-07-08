@@ -17,8 +17,8 @@ import           GHC.Generics                   (Generic)
 import qualified Language.Plutus.Contract.Trace as Trace
 import           Servant                        (FromHttpApiData, ToHttpApiData)
 import           Servant.Client                 (BaseUrl)
+import           Wallet.Emulator                (Wallet)
 import qualified Wallet.Emulator                as EM
-import Wallet.Emulator (Wallet)
 import           Wallet.Emulator.Chain          (ChainEvent, ChainState)
 import qualified Wallet.Emulator.MultiAgent     as MultiAgent
 

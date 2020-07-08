@@ -22,7 +22,7 @@ in dimension "System" (systems genericPkgs) (systemName: system:
     lib = pkgs.lib;
     platformFilter = platformFilterGeneric pkgs system;
   in filterAttrsOnlyRecursive (_: v: platformFilter v) {
-    inherit (packageSet) docs papers dev plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
+    inherit (packageSet) docs papers dev tests plutus-playground marlowe-playground plutus-scb marlowe-symbolic-lambda;
     haskell =
       let
         # These functions pull out from the Haskell package set either all the components of a particular type, or

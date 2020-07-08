@@ -19,7 +19,6 @@ import qualified API
 import qualified Auth
 import           Control.Applicative                        ((<|>))
 import           Control.Lens                               (set, (&))
-import qualified CouponBondGuaranteed
 import qualified Data.ByteString                            as BS
 import qualified Data.ByteString.Char8                      as BS8
 import           Data.Monoid                                ()
@@ -38,6 +37,7 @@ import           Language.PureScript.Bridge.TypeParameters  (A)
 import           Marlowe.Contracts                          (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Types.Request             as MSReq
 import qualified Marlowe.Symbolic.Types.Response            as MSRes
+import qualified Option
 import qualified PSGenerator.Common
 import           Servant                                    ((:<|>))
 import           Servant.PureScript                         (HasBridge, Settings, apiModuleName, defaultBridge,
@@ -110,7 +110,7 @@ writeUsecases outputDir = do
         marloweUsecases =
             multilineString "escrow" (contractToString Escrow.contract)
          <> multilineString "zeroCouponBond" (contractToString ZeroCouponBond.contract)
-         <> multilineString "couponBondGuaranteed" (contractToString CouponBondGuaranteed.contract)
+         <> multilineString "option" (contractToString Option.contract)
          <> multilineString "swap" (contractToString Swap.contract)
         marloweUsecasesModule = psModule "Examples.Marlowe.Contracts" marloweUsecases
     createDirectoryIfMissing True (outputDir </> "Examples" </> "Marlowe")

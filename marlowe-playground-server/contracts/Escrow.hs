@@ -99,8 +99,8 @@ carolChoice = choice "carol" both
 
 aliceChosen, bobChosen :: (Value Observation)
 
-aliceChosen = ChoiceValue (ChoiceId choiceName "alice") defValue
-bobChosen   = ChoiceValue (ChoiceId choiceName "bob") defValue
+aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
+bobChosen   = ChoiceValue (ChoiceId choiceName "bob")
 
 defValue :: (Value Observation)
 defValue = Constant 42

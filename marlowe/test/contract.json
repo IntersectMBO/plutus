@@ -140,16 +140,10 @@
                   "contents": [
                     {
                       "contents": [
-                        [
-                          "choice",
-                          {
-                            "contents": "deadbeef",
-                            "tag": "PK"
-                          }
-                        ],
+                        "choice",
                         {
-                          "contents": 100,
-                          "tag": "Constant"
+                          "contents": "deadbeef",
+                          "tag": "PK"
                         }
                       ],
                       "tag": "ChoiceValue"

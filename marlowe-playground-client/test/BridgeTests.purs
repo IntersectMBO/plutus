@@ -67,7 +67,7 @@ serializationTest =
                       (Pay aliceAcc (Party bobRole) ada (Cond TrueObs (UseValue (ValueId "x")) (UseValue (ValueId "y"))) Close)
                   )
               , Case (Choice choiceId [ Bound (fromIntegral 0) (fromIntegral 1) ])
-                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId const `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
+                  ( If (ChoseSomething choiceId `OrObs` (ChoiceValue choiceId `ValueEQ` Scale (Rational (fromIntegral 1) (fromIntegral 10)) const))
                       (Pay aliceAcc (Account aliceAcc) token (AvailableMoney aliceAcc token) Close)
                       Close
                   )
