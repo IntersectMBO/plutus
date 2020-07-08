@@ -129,6 +129,7 @@
           "Language/PlutusCore/Analysis/Definitions"
           "Language/PlutusCore/Examples/Data/InterList"
           "Language/PlutusCore/Examples/Data/TreeForest"
+          "Language/PlutusCore/Examples/Data/Vec"
           "Language/PlutusCore/Generators/Internal/Denotation"
           "Language/PlutusCore/Generators/Internal/Dependent"
           "Language/PlutusCore/Generators/Internal/Entity"

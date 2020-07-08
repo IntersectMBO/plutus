@@ -17,6 +17,7 @@ import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Examples.Data.InterList
 import           Language.PlutusCore.Examples.Data.TreeForest
+import           Language.PlutusCore.Examples.Data.Vec
 
 -- | All examples exported as a single value.
 examples :: PlcFolderContents DefaultUni
@@ -35,6 +36,20 @@ examples =
               , plcTermFile "TreeNode"   treeNode
               , plcTermFile "ForestNil"  forestNil
               , plcTermFile "ForestCons" forestCons
+              ]
+          , treeFolderContents "Vec"
+              [ plcTypeFile "zeroT"            zeroT
+              , plcTypeFile "succT"            succT
+              , plcTypeFile "plusT"            plusT
+              , plcTypeFile "churchVec"        churchVec
+              , plcTermFile "churchNil"        churchNil
+              , plcTermFile "churchCons"       churchCons
+              , plcTermFile "churchConcat"     churchConcat
+              , plcTypeFile "scottVec"         scottVec
+              , plcTermFile "scottNil"         scottNil
+              , plcTermFile "scottCons"        scottCons
+              , plcTermFile "scottHead"        scottHead
+              , plcTermFile "scottSumHeadsOr0" scottSumHeadsOr0
               ]
           ]
       ]
