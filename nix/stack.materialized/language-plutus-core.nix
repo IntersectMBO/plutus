@@ -73,6 +73,7 @@
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+          (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))

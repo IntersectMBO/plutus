@@ -23,6 +23,14 @@ import qualified Data.Text as Text
 import           Test.Tasty.HUnit
 import           Text.Printf
 
+
+{-
+
+This file contains the testing machinery for property based testing of
+generated types
+
+-}
+
 -- |The type for properties with access to both representations.
 type TyProp =  Kind ()
             -> ClosedTypeG

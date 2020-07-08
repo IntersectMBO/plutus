@@ -23,6 +23,15 @@ import           Text.Printf
 
 
 {-
+
+This file contains:
+1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
+2. A kind checker and a type checker
+3. Reduction semantics for types
+
+-}
+
+{-
 data KindG
   = TypeG
   | KindArrowG KindG KindG
