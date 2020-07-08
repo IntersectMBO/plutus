@@ -3,7 +3,7 @@
 This document describes some experiments with variations on the CEK
 machine, including the one proposed in [this note](./CEK.md).
 
-Time and memory figures are given for four different CEK machines:
+Time and memory figures are given for five different CEK machines:
 
 * The current version in `master` (at the start of July 2020), with closures and unsaturated builtins.
 * A modification of the current version which uses values,
