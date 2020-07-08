@@ -43,9 +43,9 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
 import Text.Parsing.StringParser (Pos)
@@ -82,6 +82,7 @@ data WarningDetail
   | UnreachableCaseEmptyChoice
   | UnreachableCaseFalseNotify
   | UnreachableContract
+  | UndefinedChoice
   | UndefinedUse
   | ShadowedLet
   | DivisionByZero
@@ -97,6 +98,7 @@ instance showWarningDetail :: Show WarningDetail where
   show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose"
   show UnreachableCaseFalseNotify = "This case will never be used, because the Observation is always false"
   show UnreachableContract = "This contract is unreachable"
+  show UndefinedChoice = "The contract tries to use a ChoiceId that has not been input by a When"
   show UndefinedUse = "The contract tries to Use a ValueId that has not been defined in a Let"
   show ShadowedLet = "Let is redefining a ValueId that already exists"
   show DivisionByZero = "Scale construct divides by zero"
@@ -145,8 +147,6 @@ getWarningRange (Warning warn) = warn.range
 newtype State
   = State
   { holes :: Holes
-  , maxTimeout :: MaxTimeout
-  , letBindings :: Set ValueId
   , warnings :: Set Warning
   }
 
@@ -172,9 +172,10 @@ termToRange a { row, column } =
 
 newtype LintEnv
   = LintEnv
-  { letBindings :: Set Semantics.ValueId
-  , maxTimeout :: MaxTimeout
+  { choicesMade :: Set Semantics.ChoiceId
   , deposits :: Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger)
+  , letBindings :: Set Semantics.ValueId
+  , maxTimeout :: MaxTimeout
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -182,6 +183,9 @@ derive instance newtypeLintEnv :: Newtype LintEnv _
 derive newtype instance semigroupLintEnv :: Semigroup LintEnv
 
 derive newtype instance monoidLintEnv :: Monoid LintEnv
+
+_choicesMade :: Lens' LintEnv (Set Semantics.ChoiceId)
+_choicesMade = _Newtype <<< prop (SProxy :: SProxy "choicesMade")
 
 _letBindings :: Lens' LintEnv (Set Semantics.ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
@@ -258,11 +262,13 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 lint :: Semantics.State -> Term Contract -> State
 lint contractState contract = state
   where
-  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
+  choices = contractState ^. (_choices <<< to Map.keys)
 
   bindings = contractState ^. (_boundValues <<< to Map.keys)
 
-  env = (set _letBindings bindings <<< set _deposits deposits) mempty
+  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
+
+  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) mempty
 
   state = CMS.execState (lintContract env contract) mempty
 
@@ -535,6 +541,12 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
           pure (ValueSimp pos isSimp (Term (Scale (TermWrapper (Rational na nb) pos2) c) pos))
 
 lintValue env t@(Term (ChoiceValue choiceId) pos) = do
+  when
+    ( case fromTerm choiceId of
+        Just semChoiceId -> not $ Set.member semChoiceId (view _choicesMade env)
+        Nothing -> false
+    )
+    (addWarning UndefinedChoice t pos)
   modifying _holes (getHoles choiceId)
   pure (ValueSimp pos false t)
 
@@ -574,6 +586,7 @@ lintValue env t@(Term (Cond c a b) pos) = do
 data Effect
   = ConstantDeposit Semantics.AccountId Semantics.Token BigInteger
   | UnknownDeposit Semantics.AccountId Semantics.Token
+  | ChoiceMade Semantics.ChoiceId
   | NoEffect
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
@@ -583,6 +596,7 @@ lintCase env t@(Term (Case action contract) pos) = do
     newEnv = case effect of
       ConstantDeposit accTerm tokenTerm amount -> addMoneyToEnvAccount amount accTerm tokenTerm env
       UnknownDeposit accTerm tokenTerm -> over _deposits (Map.insert (accTerm /\ tokenTerm) Nothing) env
+      ChoiceMade choiceId -> over _choicesMade (Set.insert choiceId) env
       NoEffect -> env
   lintContract newEnv contract
   pure unit
@@ -616,9 +630,11 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
   makeDepositConstant other _ = other
 
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
+  let
+    choTerm = maybe NoEffect ChoiceMade (fromTerm choiceId)
   modifying _holes (getHoles choiceId <> getHoles bounds)
   when (Array.null bounds) $ addWarning UnreachableCaseEmptyChoice t pos
-  pure NoEffect
+  pure choTerm
 
 lintAction env t@(Term (Notify obs) pos) = do
   sa <- lintObservation env obs
