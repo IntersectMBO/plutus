@@ -13,6 +13,8 @@ Time and memory figures are given for four different CEK machines:
   this version was a quick experiment to get  idea of how much overhead the
   extra machinery adds.
 * A version with saturated builtins (and closures).
+* A version due to Roman where the alternative CEK machine keeps track
+  of the number of arguments to a builtin, improving the evaluation speed.
 
 ### Implementation
 
