@@ -51,11 +51,11 @@ fromZ i = i `seq` error "instance of empty type Z"
 
 -- * Namespaces
 
-data NameState n = NameState { nameOf :: n -> Name (), freshNameStrings :: [Text.Text] }
+data NameState n = NameState { nameOf :: n -> Name, freshNameStrings :: [Text.Text] }
 
 newtype TyNameState n = TyNameState (NameState n)
 
-tynameOf :: TyNameState n -> n -> TyName ()
+tynameOf :: TyNameState n -> n -> TyName
 tynameOf (TyNameState NameState{..}) i = TyName (nameOf i)
 
 -- |Create an empty name state from a stream of text names.
@@ -70,7 +70,7 @@ extendNameState
 extendNameState NameState{..} = liftQuote $ do
   let str = head freshNameStrings
       freshNameStrings' = tail freshNameStrings
-  name <- freshName () str
+  name <- freshName str
   let nameOf' FZ = name
       nameOf' (FS i) = nameOf i
   return NameState { nameOf = nameOf', freshNameStrings = freshNameStrings' }
