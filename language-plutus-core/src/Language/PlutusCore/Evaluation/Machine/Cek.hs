@@ -94,13 +94,19 @@ data Val uni =
   | VTyAbs TyName KindWithMem (TermWithMem uni) (ValEnv uni)
   | VLamAbs Name (TypeWithMem uni) (TermWithMem uni) (ValEnv uni)
   | VIWrap (TypeWithMem uni) (TypeWithMem uni) (Val uni)
-  | VBuiltin StagedBuiltinName Int [TypeWithMem uni] [TermWithMem uni] (ValEnv uni)
-    -- Builtin appplication, perhaps partial; term args are in fact constants/variables
+  | VBuiltin
+      (ValEnv uni)  -- Initial environment, used for evaluating every argument
+      (ValEnv uni)  -- Environment extended with bindings for non-ground arguments: see Note [Saved mapping example]
+      StagedBuiltinName
+      Int           -- Number of arguments to be provided
+      [TypeWithMem uni] -- The types the builtin is to be instantiated at.  We don't really need these.
+      [Value TyName Name uni ExMemory] -- Arguments we've computed so far.
     deriving (Show)
 
 mem0 :: ExMemory
 mem0 = ExMemory 0
 
+-- TODO: this doesn't discharge the environments.
 dischargeVal :: Val uni -> WithMemory Term uni
 dischargeVal = \case
     VCon t -> t
@@ -298,7 +304,7 @@ computeCek ctx constant@Constant{} = returnCek ctx (VCon constant)
 computeCek ctx (Builtin _ bn)        = do
   env <- getEnv
   count <- getArgsCount bn
-  returnCek ctx (VBuiltin (constantAsStagedBuiltinName bn) count [] [] env)
+  returnCek ctx (VBuiltin env env (constantAsStagedBuiltinName bn) count [] [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
@@ -354,9 +360,9 @@ instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> Val uni -> CekM uni (Plain Term uni)
 instantiateEvaluate ctx _ (VTyAbs _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
-instantiateEvaluate ctx ty (VBuiltin bn count tyargs args env) =
+instantiateEvaluate ctx ty (VBuiltin argEnv resEnv bn count tyargs args) =
     case args of
-      [] -> returnCek ctx $ VBuiltin bn count (ty:tyargs) args env  -- The types will be the wrong way round, but we never use them.
+      [] -> returnCek ctx $ VBuiltin argEnv resEnv bn count (ty:tyargs) args  -- The types will be the wrong way round, but we never use them.
       _  -> error "Builtin instantiation after term argument"
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
@@ -404,18 +410,17 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx (VBuiltin bn count tyargs args env) arg = do
-    (arg', env') <- getScopedArg arg env
-    withEnv env' $ do
-      let args' = arg':args
-          count' = count - 1
-      if count' /= 0
-          then returnCek ctx (VBuiltin bn count' tyargs args' env')
-          else do
-              constAppResult <- applyStagedBuiltinName bn (reverse args')
-              case constAppResult of
-                ConstAppSuccess res -> computeCek ctx res
-                ConstAppStuck       -> error "not supposed to happen"
+applyEvaluate ctx (VBuiltin argEnv resEnv bn count tyargs args) arg = do
+    (arg', resEnv') <- getScopedArg arg resEnv
+    let args' = arg':args
+        count' = count - 1
+    if count' /= 0
+        then withEnv argEnv $ returnCek ctx (VBuiltin argEnv resEnv' bn count' tyargs args')
+        else withEnv resEnv' $ do
+            constAppResult <- applyStagedBuiltinName bn (reverse args')
+            case constAppResult of
+              ConstAppSuccess res -> computeCek ctx res
+              ConstAppStuck       -> error "not supposed to happen"
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
 
