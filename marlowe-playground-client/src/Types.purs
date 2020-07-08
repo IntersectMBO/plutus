@@ -150,6 +150,6 @@ isActiveTab state activeView = state ^. _view <<< (activeClass (eq activeView))
 
 -- TODO: https://github.com/purescript-halogen/purescript-halogen/issues/682
 bottomPanelHeight :: forall r i. Boolean -> IProp r i
-bottomPanelHeight true = attr (AttrName "style") "height: 3.5rem"
+bottomPanelHeight true = attr (AttrName "style") ""
 
-bottomPanelHeight false = attr (AttrName "style") ""
+bottomPanelHeight false = attr (AttrName "style") "height: 3.5rem"
