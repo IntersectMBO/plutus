@@ -18,7 +18,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (length, splitAt, toLower)
+import Data.String (Pattern(..), contains, length, splitAt, toLower)
 import Data.String.CodeUnits (dropRight)
 import Data.String.Extra (unlines)
 import Data.Symbol (SProxy(..))
@@ -393,21 +393,37 @@ marloweHoleToSuggestionText stripParens firstHole@(MarloweHole { marloweType }) 
     else
       fullInsertText
 
-marloweHoleToSuggestion :: Boolean -> IRange -> MarloweHole -> String -> CompletionItem
-marloweHoleToSuggestion stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
+marloweHoleToSuggestion :: String -> Boolean -> IRange -> MarloweHole -> String -> CompletionItem
+marloweHoleToSuggestion original stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
   let
     kind = completionItemKind "Constructor"
 
     insertText = marloweHoleToSuggestionText stripParens marloweHole constructorName
-  in
-    { label: constructorName, kind, range, insertText }
 
-holeSuggestions :: Boolean -> IRange -> MarloweHole -> Array CompletionItem
-holeSuggestions stripParens range marloweHole@(MarloweHole { name, marloweType }) =
+    preselect = contains (Pattern original) constructorName
+
+    -- Weirdly, the item that has sortText equal to the word you typed is shown at the _bottom_ of the list so
+    -- since we want it to be at the top (so if you typed `W` you would have `When` at the top) we make sure it
+    -- is the _only_ one that doesn't have the 'correct' sortText.
+    -- The weirdest thing happens here, if you use mempty instead of "*" then Debug.trace shows constructorName
+    -- and this causes the ordering in Monaco not to work, it's crazy that Debug.trace seems to display the wrong thing
+    sortText = if preselect then "*" else original
+  in
+    { label: constructorName
+    , kind
+    , range
+    , insertText
+    , filterText: original
+    , sortText
+    , preselect
+    }
+
+holeSuggestions :: String -> Boolean -> IRange -> MarloweHole -> Array CompletionItem
+holeSuggestions original stripParens range marloweHole@(MarloweHole { name, marloweType }) =
   let
     marloweHoles = getMarloweConstructors marloweType
   in
-    map (marloweHoleToSuggestion stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
+    map (marloweHoleToSuggestion original stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
 
 -- a Monoid for collecting Holes
 newtype Holes

@@ -20,7 +20,7 @@ import Monaco (CodeAction, CodeActionProvider, CompletionItem, CompletionItemPro
 
 foreign import hoverProvider_ :: Fn1 (String -> { contents :: Array IMarkdownString }) HoverProvider
 
-foreign import completionItemProvider_ :: Fn1 (Boolean -> String -> IRange -> Array CompletionItem) CompletionItemProvider
+foreign import completionItemProvider_ :: Fn1 (String -> Boolean -> String -> IRange -> Array CompletionItem) CompletionItemProvider
 
 foreign import codeActionProvider_ :: Fn1 (Uri -> Array IMarkerData -> Array CodeAction) CodeActionProvider
 
