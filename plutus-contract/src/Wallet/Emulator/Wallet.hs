@@ -33,6 +33,7 @@ import           Data.Text.Prettyprint.Doc
 import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Language.PlutusTx.Prelude as PlutusTx
+import Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
 import           Ledger
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
@@ -70,13 +71,16 @@ walletAddress = pubKeyAddress . walletPubKey
 signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
 
-data WalletEvent = WalletMsg LogMessage
+data WalletEvent = 
+    GenericLog (LogMessage T.Text)
+    | CheckpointLog (LogMessage CheckpointLogMsg)
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WalletEvent where
     pretty = \case
-        WalletMsg msg -> "WalletMsg:" <+> pretty msg
+        GenericLog msg -> pretty msg
+        CheckpointLog msg -> pretty msg
 
 makePrisms ''WalletEvent
 

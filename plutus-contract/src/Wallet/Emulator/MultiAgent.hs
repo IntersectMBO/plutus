@@ -264,7 +264,7 @@ handleMultiAgent = interpret $ \case
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
-        & interpret (handleZoomedWriter p4)
+        & interpret (handleZoomedWriter _)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
@@ -280,8 +280,8 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
-            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
-            p4 = below (walletEvent wallet . Wallet._WalletMsg)
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage T.Text]
+            p4 = below (walletEvent wallet . Wallet._GenericLog)
     WalletControlAction wallet act -> act
         & raiseEnd4
         & NC.handleNodeControl
@@ -303,8 +303,8 @@ handleMultiAgent = interpret $ \case
             p2 = below (walletClientEvent wallet)
             p3 :: Prism' [EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (chainIndexEvent wallet)
-            p4 :: Prism' [EmulatorEvent] [Log.LogMessage]
-            p4 = below (walletEvent wallet . Wallet._WalletMsg)
+            p4 :: Prism' [EmulatorEvent] [Log.LogMessage T.Text]
+            p4 = below (walletEvent wallet . Wallet._GenericLog)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.
