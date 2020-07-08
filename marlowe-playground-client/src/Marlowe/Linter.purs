@@ -632,15 +632,15 @@ lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure NoEffect
 
-suggestions :: Boolean -> String -> IRange -> Array CompletionItem
-suggestions stripParens contract range =
+suggestions :: String -> Boolean -> String -> IRange -> Array CompletionItem
+suggestions original stripParens contract range =
   fromMaybe [] do
     parsedContract <- hush $ parseContract contract
     let
       (Holes holes) = view _holes ((lint (emptyState zero)) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
     { head } <- Array.uncons $ Set.toUnfoldable v
-    pure $ holeSuggestions stripParens range head
+    pure $ holeSuggestions original stripParens range head
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker

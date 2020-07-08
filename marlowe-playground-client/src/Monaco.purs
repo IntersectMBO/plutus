@@ -129,6 +129,9 @@ type CompletionItem
     , kind :: CompletionItemKind
     , insertText :: String
     , range :: IRange
+    , filterText :: String
+    , sortText :: String
+    , preselect :: Boolean
     }
 
 type Marker r
