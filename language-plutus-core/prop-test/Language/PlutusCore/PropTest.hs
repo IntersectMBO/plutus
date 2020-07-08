@@ -17,7 +17,7 @@ import           Language.PlutusCore.Pretty
 import           Control.Search
 import           Control.Monad.Except
 
-import           Data.Coolean (Cool)
+--import           Data.Coolean (Cool)
 import qualified Data.Coolean as Cool
 import qualified Data.Text as Text
 import           Test.Tasty.HUnit
@@ -25,10 +25,10 @@ import           Text.Printf
 
 -- |The type for properties with access to both representations.
 type TyProp =  KindG
-     	    -> ClosedTypeG
-	    -> Kind ()
-	    -> Quote (Type TyName DefaultUni ())
-	    -> Cool
+            -> ClosedTypeG
+            -> Kind ()
+            -> Quote (Type TyName DefaultUni ())
+            -> Cool
 
 -- |Internal version of type properties.
 type TyPropG = KindG -> ClosedTypeG -> Cool
@@ -78,10 +78,10 @@ toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
     tyG_ok    = checkClosedTypeG kG tyG
     typrop_ok = typrop kG tyG (toKind kG) (toClosedType kG tyG)
 
-
+-- not used
 -- |Stream of names x0, x1, x2, ..
-names :: [Text.Text]
-names = mkTextNameStream "x"
+--names :: [Text.Text]
+--names = mkTextNameStream "x"
 
 
 -- |Stream of type names t0, t1, t2, ..
@@ -92,6 +92,6 @@ tynames = mkTextNameStream "t"
 -- |Convert type.
 toClosedType :: MonadQuote m
              => KindG
-	     -> ClosedTypeG
-	     -> m (Type TyName DefaultUni ())
+             -> ClosedTypeG
+             -> m (Type TyName DefaultUni ())
 toClosedType = Gen.toClosedType tynames
