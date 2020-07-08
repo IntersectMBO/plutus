@@ -6,14 +6,11 @@
 {-# LANGUAGE TemplateHaskell     #-}
 
 module Language.PlutusCore.Gen.Type
-  ( KindG (..)
-  , TypeBuiltinG (..)
+  ( TypeBuiltinG (..)
   , TypeG (..)
   , ClosedTypeG
   , toClosedType
   , checkClosedTypeG
-  , toKind
-  , fromKind
   , normalizeTypeG
   ) where
 
@@ -25,8 +22,7 @@ import qualified Data.Text as Text
 import           Text.Printf
 
 
--- * Enumerating kinds
-
+{-
 data KindG
   = TypeG
   | KindArrowG KindG KindG
@@ -39,12 +35,7 @@ $(deriveEnumerable ''KindG)
 toKind :: KindG -> Kind ()
 toKind TypeG              = Type ()
 toKind (KindArrowG k1 k2) = KindArrow () (toKind k1) (toKind k2)
-
-
--- |Convert Plutus kinds to generated kinds.
-fromKind :: Kind ann -> KindG
-fromKind (Type _)            = TypeG
-fromKind (KindArrow _ k1 k2) = KindArrowG (fromKind k1) (fromKind k2)
+-}
 
 
 -- * Enumerating builtin types
@@ -75,11 +66,11 @@ toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 data TypeG n
   = TyVarG n
   | TyFunG (TypeG n) (TypeG n)
-  | TyIFixG (TypeG n) KindG (TypeG n)
-  | TyForallG KindG (TypeG (S n))
+  | TyIFixG (TypeG n) (Kind ()) (TypeG n)
+  | TyForallG (Kind ()) (TypeG (S n))
   | TyBuiltinG TypeBuiltinG
   | TyLamG (TypeG (S n))
-  | TyAppG (TypeG n) (TypeG n) KindG
+  | TyAppG (TypeG n) (TypeG n) (Kind ())
   deriving (Typeable, Eq, Show)
 
 $(deriveEnumerable ''TypeG)
@@ -98,29 +89,29 @@ $(deriveEnumerable ''TypeG)
 toType
   :: (Show n, MonadQuote m)
   => TyNameState n      -- ^ Type name environment with fresh name stream
-  -> KindG              -- ^ Kind of type below
+  -> Kind ()            -- ^ Kind of type below
   -> TypeG n            -- ^ Type to convert
   -> m (Type TyName DefaultUni ())
 toType ns _ (TyVarG i) =
   return (TyVar () (tynameOf ns i))
-toType ns TypeG (TyFunG ty1 ty2) =
-  TyFun () <$> toType ns TypeG ty1 <*> toType ns TypeG ty2
-toType ns TypeG (TyIFixG ty1 k ty2) =
+toType ns (Type _) (TyFunG ty1 ty2) =
+  TyFun () <$> toType ns (Type ()) ty1 <*> toType ns (Type ()) ty2
+toType ns (Type _) (TyIFixG ty1 k ty2) =
   TyIFix () <$> toType ns k' ty1 <*> toType ns k ty2
   where
-    k' = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
-toType ns TypeG (TyForallG k ty) = do
+    k' = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+toType ns (Type _) (TyForallG k ty) = do
   ns' <- extendTyNameState ns
-  TyForall () (tynameOf ns' FZ) (toKind k) <$> toType ns' TypeG ty
+  TyForall () (tynameOf ns' FZ) k <$> toType ns' (Type ()) ty
 toType _ _ (TyBuiltinG tyBuiltin) =
   return (TyBuiltin () (toTypeBuiltin tyBuiltin))
-toType ns (KindArrowG k1 k2) (TyLamG ty) = do
+toType ns (KindArrow _ k1 k2) (TyLamG ty) = do
   ns' <- extendTyNameState ns
-  TyLam () (tynameOf ns' FZ) (toKind k1) <$> toType ns' k2 ty
+  TyLam () (tynameOf ns' FZ) k1 <$> toType ns' k2 ty
 toType ns k2 (TyAppG ty1 ty2 k1) =
   TyApp () <$> toType ns k' ty1 <*> toType ns k1 ty2
   where
-    k' = k1 `KindArrowG` k2
+    k' = KindArrow () k1 k2
 toType _ k ty =
   error (printf "toType: convert type %s at kind %s" (show ty) (show k))
 
@@ -135,7 +126,7 @@ type ClosedTypeG = TypeG Z
 toClosedType
   :: (MonadQuote m)
   => [Text.Text]
-  -> KindG
+  -> Kind ()
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
 toClosedType strs = toType (emptyTyNameState strs)
@@ -150,44 +141,45 @@ toClosedType strs = toType (emptyTyNameState strs)
 --       lazy-search will only ever return one of the various builtin types.
 --       Perhaps this is preferable?
 --
-checkTypeBuiltinG :: KindG -> TypeBuiltinG -> Cool
-checkTypeBuiltinG TypeG TyByteStringG = true
-checkTypeBuiltinG TypeG TyIntegerG    = true
-checkTypeBuiltinG TypeG TyStringG     = true
-checkTypeBuiltinG _     _             = false
+checkTypeBuiltinG :: Kind () -> TypeBuiltinG -> Cool
+checkTypeBuiltinG (Type _) TyByteStringG = true
+checkTypeBuiltinG (Type _) TyIntegerG    = true
+checkTypeBuiltinG (Type _) TyStringG     = true
+checkTypeBuiltinG _        _             = false
 
 
 -- |Kind check types.
-checkTypeG :: KCS n -> KindG -> TypeG n -> Cool
+checkTypeG :: KCS n -> Kind () -> TypeG n -> Cool
 checkTypeG kcs k (TyVarG i)
   = varKindOk
   where
     varKindOk = toCool $ k == kindOf kcs i
 
-checkTypeG kcs TypeG (TyFunG ty1 ty2)
+checkTypeG kcs (Type _) (TyFunG ty1 ty2)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1KindOk = checkTypeG kcs TypeG ty1
-    ty2KindOk = checkTypeG kcs TypeG ty2
+    ty1KindOk = checkTypeG kcs (Type ()) ty1
+    ty2KindOk = checkTypeG kcs (Type ()) ty2
 
-checkTypeG kcs TypeG (TyIFixG ty1 k ty2)
+checkTypeG kcs (Type _) (TyIFixG ty1 k ty2)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1Kind   = (k `KindArrowG` TypeG) `KindArrowG` (k `KindArrowG` TypeG)
+    ty1Kind   =
+      KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
     ty1KindOk = checkTypeG kcs ty1Kind ty1
     ty2KindOk = checkTypeG kcs k ty2
 
-checkTypeG kcs TypeG (TyForallG k body)
+checkTypeG kcs (Type _) (TyForallG k body)
   = tyKindOk
   where
-    tyKindOk = checkTypeG (extendKCS k kcs) TypeG body
+    tyKindOk = checkTypeG (extendKCS k kcs) (Type ()) body
 
 checkTypeG _ k (TyBuiltinG tyBuiltin)
   = tyBuiltinKindOk
   where
     tyBuiltinKindOk = checkTypeBuiltinG k tyBuiltin
 
-checkTypeG kcs (k1 `KindArrowG` k2) (TyLamG body)
+checkTypeG kcs (KindArrow () k1 k2) (TyLamG body)
   = bodyKindOk
   where
     bodyKindOk = checkTypeG (extendKCS k1 kcs) k2 body
@@ -195,7 +187,7 @@ checkTypeG kcs (k1 `KindArrowG` k2) (TyLamG body)
 checkTypeG kcs k' (TyAppG ty1 ty2 k)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1Kind   = k `KindArrowG` k'
+    ty1Kind   = KindArrow () k k'
     ty1KindOk = checkTypeG kcs ty1Kind ty1
     ty2KindOk = checkTypeG kcs k ty2
 
@@ -203,22 +195,22 @@ checkTypeG _ _ _ = false
 
 
 -- |Kind check closed types.
-checkClosedTypeG :: KindG -> ClosedTypeG -> Cool
+checkClosedTypeG :: Kind () -> ClosedTypeG -> Cool
 checkClosedTypeG = checkTypeG emptyKCS
 
 
 
 -- * Kind checking state
 
-newtype KCS n = KCS{ kindOf :: n -> KindG }
+newtype KCS n = KCS{ kindOf :: n -> Kind () }
 
 emptyKCS :: KCS Z
 emptyKCS = KCS{ kindOf = fromZ }
 
-extendKCS :: forall n. KindG -> KCS n -> KCS (S n)
+extendKCS :: forall n. Kind () -> KCS n -> KCS (S n)
 extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
   where
-    kindOf' :: S n -> KindG
+    kindOf' :: S n -> Kind ()
     kindOf' FZ = k
     kindOf' (FS i) = kindOf i
 

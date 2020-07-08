@@ -214,6 +214,7 @@ library
         semigroups -any,
         semigroupoids -any,
         serialise -any,
+        size-based -any,
         tasty -any,
         tasty-golden -any,
         text -any,

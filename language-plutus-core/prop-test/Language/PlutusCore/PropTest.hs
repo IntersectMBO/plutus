@@ -24,43 +24,42 @@ import           Test.Tasty.HUnit
 import           Text.Printf
 
 -- |The type for properties with access to both representations.
-type TyProp =  KindG
+type TyProp =  Kind ()
             -> ClosedTypeG
             -> Kind ()
             -> Quote (Type TyName DefaultUni ())
             -> Cool
 
 -- |Internal version of type properties.
-type TyPropG = KindG -> ClosedTypeG -> Cool
+type TyPropG = Kind () -> ClosedTypeG -> Cool
 
 
 -- |Test property on well-kinded types.
-testTyProp :: Int      -- ^ Search depth
-           -> Kind ann -- ^ Kind for generated types
-           -> TyProp   -- ^ Property to test
+testTyProp :: Int     -- ^ Search depth
+           -> Kind () -- ^ Kind for generated types
+           -> TyProp  -- ^ Property to test
            -> IO ()
 testTyProp depth k typrop = do
   -- NOTE: Any strategy which attempts fairness will crash the search!
   --       These strategies evaluate !=> in *parallel*, and hence attempt
   --       to convert ill-kinded types, but `toType` is partial!
   -- TODO: This *may* be a bug in the lazy-search library.
-  let kG = Gen.fromKind k
-  result <- ctrex' O depth (toTyPropG typrop kG)
+  result <- ctrex' O depth (toTyPropG typrop k)
   case result of
     Left  _   -> return ()
-    Right tyG -> assertFailure (errorMsgTyProp kG tyG)
+    Right tyG -> assertFailure (errorMsgTyProp k tyG)
 
 
 -- |Generate the error message for a failed `TyProp`.
-errorMsgTyProp :: KindG -> ClosedTypeG -> String
+errorMsgTyProp :: Kind () -> ClosedTypeG -> String
 errorMsgTyProp kG tyG =
   case runTCM (inferKind defConfig =<< liftQuote tyQ) of
     Left err ->
       printf "Counterexample found: %s, generated for kind %s\n%s"
-        (show (pretty ty)) (show (pretty k1)) (show (prettyPlcClassicDef err))
+        (show (pretty ty)) (show (pretty kG)) (show (prettyPlcClassicDef err))
     Right k2 ->
       printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
-        (show (pretty ty)) (show (pretty k1)) (show (pretty k2))
+        (show (pretty ty)) (show (pretty kG)) (show (pretty k2))
   where
     runTCM :: ExceptT (TypeError DefaultUni ()) Quote a
            -> Either  (TypeError DefaultUni ()) a
@@ -68,7 +67,6 @@ errorMsgTyProp kG tyG =
 
     tyQ = toClosedType kG tyG :: Quote (Type TyName DefaultUni ())
     ty  = runQuote tyQ
-    k1  = toKind kG
 
 
 -- |Convert a `TyProp` to the internal representation of types.
@@ -76,7 +74,7 @@ toTyPropG :: TyProp -> TyPropG
 toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
   where
     tyG_ok    = checkClosedTypeG kG tyG
-    typrop_ok = typrop kG tyG (toKind kG) (toClosedType kG tyG)
+    typrop_ok = typrop kG tyG kG (toClosedType kG tyG)
 
 -- not used
 -- |Stream of names x0, x1, x2, ..
@@ -91,7 +89,7 @@ tynames = mkTextNameStream "t"
 
 -- |Convert type.
 toClosedType :: MonadQuote m
-             => KindG
+             => Kind ()
              -> ClosedTypeG
              -> m (Type TyName DefaultUni ())
 toClosedType = Gen.toClosedType tynames

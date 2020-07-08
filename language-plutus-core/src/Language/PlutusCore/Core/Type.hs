@@ -5,6 +5,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell       #-}
+
 
 module Language.PlutusCore.Core.Type
     ( Gas(..)
@@ -39,6 +41,8 @@ import           Data.Hashable
 import           Data.Text                    (Text)
 import           GHC.Exts                     (Constraint)
 import           Instances.TH.Lift            ()
+import           Control.Enumerable
+
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
@@ -53,6 +57,8 @@ data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+
+$(deriveEnumerable ''Kind)
 
 -- | A 'Type' assigned to expressions.
 data Type tyname uni ann
