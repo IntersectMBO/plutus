@@ -22,7 +22,6 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 ) where
 
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
