@@ -5,6 +5,7 @@
 
 module Language.PlutusCore.Constant.Function
     ( typeSchemeToType
+    , countArgs
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedBuiltinName
@@ -33,6 +34,11 @@ typeSchemeToType = runQuote . go 0 where
                 uniq = fromIntegral $ natVal @uniq Proxy
                 a    = TyName $ Name text $ Unique uniq
             TyForall () a (Type ()) <$> go i (schK Proxy)
+
+countArgs :: TypeScheme uni as r -> Int
+countArgs (TypeSchemeResult _)       = 0
+countArgs (TypeSchemeArrow _ schB)   = 1 + countArgs schB
+countArgs (TypeSchemeAllType _ schK) = countArgs (schK Proxy)
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.

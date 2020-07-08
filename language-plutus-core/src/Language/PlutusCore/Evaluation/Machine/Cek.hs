@@ -94,7 +94,7 @@ data Val uni =
   | VTyAbs TyName KindWithMem (TermWithMem uni) (ValEnv uni)
   | VLamAbs Name (TypeWithMem uni) (TermWithMem uni) (ValEnv uni)
   | VIWrap (TypeWithMem uni) (TypeWithMem uni) (Val uni)
-  | VBuiltin StagedBuiltinName [TypeWithMem uni] [TermWithMem uni] (ValEnv uni)
+  | VBuiltin StagedBuiltinName Int [TypeWithMem uni] [TermWithMem uni] (ValEnv uni)
     -- Builtin appplication, perhaps partial; term args are in fact constants/variables
     deriving (Show)
 
@@ -257,6 +257,14 @@ substitution, anything).
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
+getArgsCount
+    :: forall uni ann. (GShow uni, GEq uni, DefaultUni <: uni) => Builtin ann -> CekM uni Int
+getArgsCount (BuiltinName _ name) =
+    pure $ withTypedBuiltinName @uni name $ \(TypedBuiltinName _ sch) -> countArgs sch
+getArgsCount (DynBuiltinName _ name) = do
+    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
+    pure $ countArgs sch
+
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> WithMemory Term uni -> CekM uni (Plain Term uni)
@@ -289,7 +297,8 @@ computeCek ctx (LamAbs _ name ty body)  = do
 computeCek ctx constant@Constant{} = returnCek ctx (VCon constant)
 computeCek ctx (Builtin _ bn)        = do
   env <- getEnv
-  returnCek ctx (VBuiltin (constantAsStagedBuiltinName bn) [] [] env)
+  count <- getArgsCount bn
+  returnCek ctx (VBuiltin (constantAsStagedBuiltinName bn) count [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
@@ -345,9 +354,9 @@ instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> Val uni -> CekM uni (Plain Term uni)
 instantiateEvaluate ctx _ (VTyAbs _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
-instantiateEvaluate ctx ty (VBuiltin bn tyargs args env) =
+instantiateEvaluate ctx ty (VBuiltin bn count tyargs args env) =
     case args of
-      [] -> returnCek ctx $ VBuiltin bn (ty:tyargs) args env  -- The types will be the wrong way round, but we never use them.
+      [] -> returnCek ctx $ VBuiltin bn count (ty:tyargs) args env  -- The types will be the wrong way round, but we never use them.
       _  -> error "Builtin instantiation after term argument"
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
@@ -395,14 +404,18 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx (VBuiltin bn tyargs args env) arg = do
+applyEvaluate ctx (VBuiltin bn count tyargs args env) arg = do
     (arg', env') <- getScopedArg arg env
     withEnv env' $ do
       let args' = arg':args
-      constAppResult <- applyStagedBuiltinName bn (reverse args')
-      case constAppResult of
-        ConstAppSuccess res -> computeCek ctx res
-        ConstAppStuck       -> returnCek ctx (VBuiltin bn tyargs args' env')
+          count' = count - 1
+      if count' /= 0
+          then returnCek ctx (VBuiltin bn count' tyargs args' env')
+          else do
+              constAppResult <- applyStagedBuiltinName bn (reverse args')
+              case constAppResult of
+                ConstAppSuccess res -> computeCek ctx res
+                ConstAppStuck       -> error "not supposed to happen"
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
 
 
@@ -524,4 +537,3 @@ which evaluates to @1@ in the old environment.
 -- extended with a mapping from the created variable to the closure (i.e. original argument +
 -- its environment). The "otherwise" is only supposed to happen when handling an argument to a
 -- polymorphic built-in function.
-
