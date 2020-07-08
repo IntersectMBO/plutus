@@ -1,3 +1,11 @@
+{-|
+Module      : Language.PlutusCore.PropTest
+Description : Property based testing for Plutus Core 
+
+This file contains the machinery for property based testing of
+generated types. Generation of terms is not implemented yet.
+-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -17,19 +25,11 @@ import           Language.PlutusCore.Pretty
 import           Control.Search
 import           Control.Monad.Except
 
---import           Data.Coolean (Cool)
 import qualified Data.Coolean as Cool
 import qualified Data.Text as Text
 import           Test.Tasty.HUnit
 import           Text.Printf
 
-
-{-
-
-This file contains the testing machinery for property based testing of
-generated types
-
--}
 
 -- |The type for properties with access to both representations.
 type TyProp =  Kind ()
@@ -84,7 +84,7 @@ toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
     tyG_ok    = checkClosedTypeG kG tyG
     typrop_ok = typrop kG tyG kG (toClosedType kG tyG)
 
--- not used
+-- not used (yet)
 -- |Stream of names x0, x1, x2, ..
 --names :: [Text.Text]
 --names = mkTextNameStream "x"

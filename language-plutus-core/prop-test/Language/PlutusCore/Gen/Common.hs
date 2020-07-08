@@ -1,3 +1,12 @@
+{-|
+Module      : Language.PlutusCore.Gen.Common
+Description : Property based testing Name Utilities
+
+This file contains various naming related utilities used for
+generating Plutus Core types and terms.
+
+-}
+
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE EmptyDataDeriving   #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -23,13 +32,6 @@ import           Language.PlutusCore.Name (Name, TyName (..))
 import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 import           Control.Enumerable
 import qualified Data.Text as Text
-
-{-
-
-This file contains various naming related utilities
-
--}
-
 
 -- * Enumerating deBruijn indices
 

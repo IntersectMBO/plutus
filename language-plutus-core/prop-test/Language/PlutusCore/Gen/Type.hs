@@ -1,3 +1,12 @@
+{-|
+Module: Language.PlutusCore.Gen.Type
+
+This file contains:
+1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
+2. A kind checker and a type checker
+3. Reduction semantics for types
+-}
+
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE FlexibleInstances   #-}
@@ -21,32 +30,6 @@ import           Data.Coolean
 import qualified Data.Text as Text
 import           Text.Printf
 
-
-{-
-
-This file contains:
-1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
-2. A kind checker and a type checker
-3. Reduction semantics for types
-
--}
-
-{-
-data KindG
-  = TypeG
-  | KindArrowG KindG KindG
-  deriving (Typeable, Eq, Show)
-
-$(deriveEnumerable ''KindG)
-
-
--- |Convert generated kinds to Plutus kinds.
-toKind :: KindG -> Kind ()
-toKind TypeG              = Type ()
-toKind (KindArrowG k1 k2) = KindArrow () (toKind k1) (toKind k2)
--}
-
-
 -- * Enumerating builtin types
 
 data TypeBuiltinG
@@ -58,12 +41,6 @@ data TypeBuiltinG
 $(deriveEnumerable ''TypeBuiltinG)
 
 -- |Convert generated builtin types to Plutus builtin types.
-{-
-toTypeBuiltin :: TypeBuiltinG -> TypeBuiltin
-toTypeBuiltin TyByteStringG = TyByteString
-toTypeBuiltin TyIntegerG    = TyInteger
-toTypeBuiltin TyStringG     = TyString
--}
 toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
 toTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
 toTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
