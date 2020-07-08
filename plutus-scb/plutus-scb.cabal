@@ -56,6 +56,11 @@ library
         Cardano.Node.RandomTx
         Cardano.Node.Server
         Cardano.Node.Types
+        Cardano.Protocol.ChainEffect
+        Cardano.Protocol.FollowerEffect
+        Cardano.Protocol.Socket.Type
+        Cardano.Protocol.Socket.Server
+        Cardano.Protocol.Socket.Client
         Cardano.SigningProcess.API
         Cardano.SigningProcess.Server
         Cardano.SigningProcess.Client
@@ -66,6 +71,7 @@ library
         Cardano.Wallet.Types
         Control.Monad.Freer.Extra.Log
         Control.Monad.Freer.Extra.State
+        Control.Concurrent.Availability
         Data.Time.Units.Extra
         Plutus.SCB.App
         Plutus.SCB.MockApp
@@ -77,6 +83,8 @@ library
         Plutus.SCB.Core.Projections
         Plutus.SCB.Effects.Contract
         Plutus.SCB.Effects.ContractTest
+        Plutus.SCB.Effects.ContractTest.AtomicSwap
+        Plutus.SCB.Effects.ContractTest.PayToWallet
         Plutus.SCB.Effects.EventLog
         Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
@@ -107,9 +115,15 @@ library
         QuickCheck -any,
         aeson -any,
         aeson-pretty -any,
+        async -any,
         base >=4.7 && <5,
         bytestring -any,
+        cardano-prelude -any,
+        cardano-slotting -any,
         containers -any,
+        contra-tracer -any,
+        cryptonite -any,
+        cborg -any,
         directory -any,
         errors -any,
         eventful-core -any,
@@ -119,10 +133,16 @@ library
         freer-simple -any,
         generic-arbitrary -any,
         http-client -any,
+        io-sim-classes -any,
         lens -any,
+        memory -any,
         monad-logger -any,
         mtl -any,
+        network -any,
+        network-mux -any,
         optparse-applicative -any,
+        ouroboros-network -any,
+        ouroboros-network-framework -any,
         persistent -any,
         persistent-sqlite -any,
         playground-common -any,
@@ -132,9 +152,12 @@ library
         random -any,
         row-types -any,
         scientific -any,
+        serialise -any,
         servant -any,
         servant-client -any,
         servant-server -any,
+        typed-protocols -any,
+        typed-protocols-examples -any,
         stm -any,
         text -any,
         time-units -any,
@@ -144,6 +167,7 @@ library
         uuid -any,
         vector -any,
         warp -any,
+        Win32-network -any,
         yaml -any,
         freer-simple -any,
         mwc-random -any,
@@ -212,6 +236,30 @@ executable plutus-currency
         base >=4.9 && <5,
         plutus-scb -any,
         plutus-use-cases -any
+
+executable plutus-atomic-swap
+    main-is: Main.hs
+    hs-source-dirs: atomic-swap-contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any
+
+executable plutus-pay-to-wallet
+    main-is: Main.hs
+    hs-source-dirs: pay-to-wallet-contract
+    other-modules:
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wno-missing-import-lists -Wredundant-constraints -O0
+    build-depends:
+        base >=4.9 && <5,
+        plutus-scb -any
 
 test-suite plutus-scb-test
     default-language: Haskell2010

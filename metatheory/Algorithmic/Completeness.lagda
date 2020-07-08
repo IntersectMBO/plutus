@@ -14,7 +14,7 @@ open import Type.BetaNBE.RenamingSubstitution
 
 open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
 open import Function
-open import Data.Vec hiding ([_])
+open import Data.Vec hiding ([_];length)
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅

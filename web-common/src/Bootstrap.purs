@@ -10,7 +10,7 @@
 -- | try it and see how it works out!)
 module Bootstrap where
 
-import Halogen.HTML (ClassName(ClassName), HTML, div, li, text, ul)
+import Halogen.HTML (ClassName(ClassName), HTML, div, li, span, text, ul)
 import Halogen.HTML.Properties (class_, classes)
 
 container :: ClassName
@@ -316,6 +316,9 @@ floatLeft = ClassName "float-left"
 floatRight :: ClassName
 floatRight = ClassName "float-right"
 
+displayFlex :: ClassName
+displayFlex = ClassName "d-flex"
+
 clearfix :: ClassName
 clearfix = ClassName "clearfix"
 
@@ -366,6 +369,9 @@ badge = ClassName "badge"
 
 badgePrimary :: ClassName
 badgePrimary = ClassName "badge-primary"
+
+badgePrimary_ :: forall p i. Array (HTML p i) -> HTML p i
+badgePrimary_ = span [ classes [ badge, badgePrimary ] ]
 
 wasValidated :: ClassName
 wasValidated = ClassName "was-validated"

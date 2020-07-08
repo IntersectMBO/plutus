@@ -16,7 +16,7 @@ exports.getType_ = function (block) {
 
 exports.getFieldValue_ = function (left, right, block, key) {
     var result = block.getFieldValue(key);
-    if (result) {
+    if (result == 0 || result) {
         /* For some unknown reason, the xmljs library turns strings into numbers if it can
          * We are always expecting a string and that's what the browser gives us but the
          * tests break without this extra toString()

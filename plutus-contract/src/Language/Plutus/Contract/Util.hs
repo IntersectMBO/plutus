@@ -1,7 +1,5 @@
 module Language.Plutus.Contract.Util where
 
-import           Control.Applicative (liftA2)
-
 -- | A monadic version of 'loop', where the predicate returns 'Left' as a seed
 --   for the next loop or 'Right' to abort the loop.
 --
@@ -23,9 +21,6 @@ foldMaybe
     -> m b
 foldMaybe f b con = loopM go b where
     go b' = maybe (Right b') (Left . flip f b') <$> con
-
-both :: (Applicative f) => f a -> f b -> f (a, b)
-both = liftA2 (,)
 
 -- | Monadic version of `<*`
 finally :: Monad m => m a -> m b -> m a

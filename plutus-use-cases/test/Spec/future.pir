@@ -72,6 +72,35 @@
         )
         (datatypebind
           (datatype
+            (tyvardecl TxOutRef (type))
+            
+            TxOutRef_match
+            (vardecl
+              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl Maybe (fun (type) (type)))
+            (tyvardecl a (type))
+            Maybe_match
+            (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+          )
+        )
+        (datatypebind
+          (datatype
+            (tyvardecl TxInInfo (type))
+            
+            TxInInfo_match
+            (vardecl
+              TxInInfo
+              (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
+            )
+          )
+        )
+        (datatypebind
+          (datatype
             (tyvardecl Address (type))
             
             Address_match
@@ -96,27 +125,6 @@
             (vardecl
               TxOut
               (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun TxOutType TxOut)))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl TxOutRef (type))
-            
-            TxOutRef_match
-            (vardecl
-              TxOutRef (fun (con bytestring) (fun (con integer) TxOutRef))
-            )
-          )
-        )
-        (datatypebind
-          (datatype
-            (tyvardecl PendingTxIn (fun (type) (type)))
-            (tyvardecl w (type))
-            PendingTxIn_match
-            (vardecl
-              PendingTxIn
-              (fun TxOutRef (fun w (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [PendingTxIn w])))
             )
           )
         )
@@ -174,20 +182,22 @@
             (nonrec)
             (datatypebind
               (datatype
-                (tyvardecl Maybe (fun (type) (type)))
-                (tyvardecl a (type))
-                Maybe_match
-                (vardecl Just (fun a [Maybe a])) (vardecl Nothing [Maybe a])
+                (tyvardecl TxInfo (type))
+                
+                TxInfo_match
+                (vardecl
+                  TxInfo
+                  (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
+                )
               )
             )
             (datatypebind
               (datatype
-                (tyvardecl PendingTx (fun (type) (type)))
-                (tyvardecl i (type))
-                PendingTx_match
+                (tyvardecl ValidatorCtx (type))
+                
+                ValidatorCtx_match
                 (vardecl
-                  PendingTx
-                  (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i]))))))))))
+                  ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
                 )
               )
             )
@@ -277,7 +287,7 @@
                 StateMachine_match
                 (vardecl
                   StateMachine
-                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool))) [[StateMachine s] i])))
+                  (fun (fun [State s] (fun i [Maybe [[Tuple2 [[TxConstraints Void] Void]] [State s]]])) (fun (fun s Bool) (fun (fun s (fun i (fun ValidatorCtx Bool))) [[StateMachine s] i])))
                 )
               )
             )
@@ -285,28 +295,12 @@
               (strict)
               (vardecl
                 mkStateMachine
-                (all s (type) (all i (type) (fun s (fun i (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool)))))
+                (all s (type) (all i (type) (fun s (fun i (fun ValidatorCtx Bool)))))
               )
               (abs
                 s
                 (type)
-                (abs
-                  i
-                  (type)
-                  (lam
-                    ds
-                    s
-                    (lam
-                      ds
-                      i
-                      (lam
-                        ds
-                        [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]
-                        True
-                      )
-                    )
-                  )
-                )
+                (abs i (type) (lam ds s (lam ds i (lam ds ValidatorCtx True))))
               )
             )
             (termbind

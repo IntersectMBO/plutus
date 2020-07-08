@@ -24,6 +24,7 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 import           PlutusPrelude
 

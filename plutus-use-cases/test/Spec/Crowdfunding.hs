@@ -96,11 +96,13 @@ tests = testGroup "crowdfunding"
             >> makeContribution w2 (Ada.lovelaceValueOf 10)
             >> makeContribution w3 (Ada.lovelaceValueOf 10)
             >> makeContribution w4 (Ada.lovelaceValueOf 1)
-            >> Trace.addBlocks 18
-            -- The contributions could be collected now, but without the
-            -- call to 'Trace.notifySlot' wallet 1 is not aware that the
+            >> Trace.addBlocks' Trace.DontSendSlotNotifications 18
+            -- The contributions could be collected now, but without
+            -- the slot notifications, wallet 1 is not aware that the
             -- time has come, so it does not submit the transaction.
-            >> Trace.handleBlockchainEvents w1
+            >> Trace.handleBlockchainEventsOptions
+                    Trace.defaultHandleBlockchainEventsOptions{Trace.slotNotifications=Trace.DontSendSlotNotifications}
+                    w1
 
     , checkPredicate "can claim a refund"
         theContract
@@ -109,10 +111,13 @@ tests = testGroup "crowdfunding"
         $ startCampaign
             >> makeContribution w2 (Ada.lovelaceValueOf 5)
             >> makeContribution w3 (Ada.lovelaceValueOf 5)
-            >> Trace.addBlocksUntil (Slot 31)
             >> Trace.notifySlot w2
             >> Trace.notifySlot w3
-            >> traverse_ Trace.handleBlockchainEvents Trace.allWallets
+            >> Trace.addBlocksUntil' Trace.DontSendSlotNotifications (Slot 30)
+            >> Trace.notifySlot w2
+            >> Trace.notifySlot w3
+            >> traverse_ Trace.handleBlockchainEvents [w2, w3]
+            >> Trace.addBlocks 1
 
     , Lib.goldenPir "test/Spec/crowdfunding.pir" $$(PlutusTx.compile [|| mkValidator ||])
     ,   let

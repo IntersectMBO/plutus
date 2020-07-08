@@ -47,18 +47,15 @@ runBasicSpec = describe "Basic Contract" $
                        (ValueEQ
                           (ChoiceValue
                              (ChoiceId "choice"
-                                (Role "alice"))
-                             (Constant 42))
+                                (Role "alice")))
                           (ChoiceValue
                              (ChoiceId "choice"
-                                (Role "bob"))
-                             (Constant 42)))
+                                (Role "bob"))))
                        (If
                           (ValueEQ
                              (ChoiceValue
                                 (ChoiceId "choice"
-                                   (Role "alice"))
-                                (Constant 42))
+                                   (Role "alice")))
                              (Constant 0))
                           (Pay
                              (AccountId 0
@@ -121,18 +118,15 @@ runBasicSpec = describe "Basic Contract" $
                        (ValueEQ
                           (ChoiceValue
                              (ChoiceId "choice"
-                                (Role "alice"))
-                             (Constant 42))
+                                (Role "alice")))
                           (ChoiceValue
                              (ChoiceId "choice"
-                                (Role "bob"))
-                             (Constant 42)))
+                                (Role "bob"))))
                        (If
                           (ValueEQ
                              (ChoiceValue
                                 (ChoiceId "choice"
-                                   (Role "alice"))
-                                (Constant 42))
+                                   (Role "alice")))
                              (Constant 0))
                           (Pay
                              (AccountId 0

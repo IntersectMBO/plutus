@@ -58,6 +58,7 @@ handleNodeFollowerClient clientEnv =
     interpret $ \case
     NewFollower -> runClient newFollower
     GetBlocks fid -> runClient (getBlocks fid)
+    GetSlot -> runClient getCurrentSlot
 
 handleRandomTxClient ::
     forall m effs.

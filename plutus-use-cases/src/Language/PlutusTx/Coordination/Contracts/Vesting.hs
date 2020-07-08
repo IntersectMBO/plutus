@@ -46,8 +46,8 @@ import qualified Ledger.Tx as Tx
 import           Ledger.Value                 (Value)
 import qualified Ledger.Value                 as Value
 import qualified Ledger.Validation            as Validation
-import           Ledger.Validation            (PendingTx, PendingTx' (..))
-import qualified Prelude as Haskell 
+import           Ledger.Validation            (ValidatorCtx (..), TxInfo (..))
+import qualified Prelude as Haskell
 
 {- |
     A simple vesting scheme. Money is locked by a contract and may only be
@@ -126,21 +126,21 @@ remainingFrom t@VestingTranche{vestingTrancheAmount} range =
     vestingTrancheAmount - availableFrom t range
 
 {-# INLINABLE validate #-}
-validate :: VestingParams -> () -> () -> PendingTx -> Bool
-validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ptx@PendingTx{pendingTxValidRange} =
+validate :: VestingParams -> () -> () -> ValidatorCtx -> Bool
+validate VestingParams{vestingTranche1, vestingTranche2, vestingOwner} () () ctx@ValidatorCtx{valCtxTxInfo=txInfo@TxInfo{txInfoValidRange}} =
     let
-        remainingActual  = Validation.valueLockedBy ptx (Validation.ownHash ptx)
+        remainingActual  = Validation.valueLockedBy txInfo (Validation.ownHash ctx)
 
         remainingExpected =
-            remainingFrom vestingTranche1 pendingTxValidRange
-            + remainingFrom vestingTranche2 pendingTxValidRange
+            remainingFrom vestingTranche1 txInfoValidRange
+            + remainingFrom vestingTranche2 txInfoValidRange
 
     in remainingActual `Value.geq` remainingExpected
             -- The policy encoded in this contract
             -- is "vestingOwner can do with the funds what they want" (as opposed
             -- to "the funds must be paid to vestingOwner"). This is enforcey by
             -- the following condition:
-            && Validation.txSignedBy ptx vestingOwner
+            && Validation.txSignedBy txInfo vestingOwner
             -- That way the recipient of the funds can pay them to whatever address they
             -- please, potentially saving one transaction.
 

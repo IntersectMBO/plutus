@@ -44,10 +44,12 @@ import qualified Language.Plutus.Contract.State                    as ContractSt
 import qualified Language.PlutusTx.Coordination.Contracts.Currency as Contracts.Currency
 import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
 import           Playground.Schema                                 (endpointsToSchemas)
+import qualified Plutus.SCB.Effects.ContractTest.AtomicSwap        as Contracts.AtomicSwap
+import qualified Plutus.SCB.Effects.ContractTest.PayToWallet       as Contracts.PayToWallet
 
 import qualified Debug.Trace                                       as Trace
 
-data TestContracts = Game | Currency
+data TestContracts = Game | Currency | AtomicSwap | PayToWallet
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -61,17 +63,25 @@ handleContractTest ::
     ~> Eff effs
 handleContractTest = interpret $ \case
     InvokeContract (InitContract c) -> fmap ContractHandlersResponse <$> case c of
-        Game     -> doContractInit game
-        Currency -> doContractInit currency
+        Game        -> doContractInit game
+        Currency    -> doContractInit currency
+        AtomicSwap  -> doContractInit swp
+        PayToWallet -> doContractInit payToWallet
     InvokeContract (UpdateContract c p) -> fmap ContractHandlersResponse <$> case c of
-        Game     -> doContractUpdate game p
-        Currency -> doContractUpdate currency p
+        Game        -> doContractUpdate game p
+        Currency    -> doContractUpdate currency p
+        AtomicSwap  -> doContractUpdate swp p
+        PayToWallet -> doContractUpdate payToWallet p
     ExportSchema t -> case t of
-        Game     -> pure $ endpointsToSchemas @(Contracts.Game.GameSchema .\\ BlockchainActions)
-        Currency -> pure $ endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
+        Game        -> pure $ endpointsToSchemas @(Contracts.Game.GameSchema .\\ BlockchainActions)
+        Currency    -> pure $ endpointsToSchemas @(Contracts.Currency.CurrencySchema .\\ BlockchainActions)
+        AtomicSwap  -> pure $ endpointsToSchemas @(Contracts.AtomicSwap.AtomicSwapSchema .\\ BlockchainActions)
+        PayToWallet -> pure $ endpointsToSchemas @(Contracts.PayToWallet.PayToWalletSchema .\\ BlockchainActions)
     where
         game = first tshow $ Contracts.Game.game @ContractError
         currency = first tshow $ void Contracts.Currency.forgeCurrency
+        swp = first tshow $ Contracts.AtomicSwap.atomicSwap
+        payToWallet = first tshow $ Contracts.PayToWallet.payToWallet
 
 doContractInit ::
     forall schema effs.

@@ -29,7 +29,7 @@ module Starter where
 import           Control.Monad              (void)
 import qualified Language.PlutusTx          as PlutusTx
 import           Language.PlutusTx.Prelude  hiding (Applicative (..))
-import           Ledger                     (Address, PendingTx,
+import           Ledger                     (Address, ValidatorCtx,
                                              scriptAddress)
 import           Ledger.Value               (Value)
 import           Playground.Contract
@@ -47,7 +47,7 @@ PlutusTx.makeLift ''MyRedeemer
 
 -- | This method is the spending validator (which gets lifted to
 --   its on-chain representation).
-validateSpend :: MyDatum -> MyRedeemer -> PendingTx -> Bool
+validateSpend :: MyDatum -> MyRedeemer -> ValidatorCtx -> Bool
 validateSpend _myDataValue _myRedeemerValue _ = error () -- Please provide an implementation.
 
 -- | The address of the contract (the hash of its validator script).

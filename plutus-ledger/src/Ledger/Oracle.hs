@@ -40,7 +40,7 @@ import qualified Ledger.Crypto             as Crypto
 import           Ledger.Scripts            (Datum (..), DatumHash (..))
 import qualified Ledger.Scripts            as Scripts
 import           Ledger.Slot               (Slot)
-import           Ledger.Validation         (PendingTx)
+import           Ledger.Validation         (ValidatorCtx)
 import           LedgerBytes
 
 import qualified Prelude                   as Haskell
@@ -149,22 +149,22 @@ verifySignedMessageConstraints pk s@SignedMessage{osmSignature, osmMessageHash} 
 -- | Check the signature on a 'SignedMessage' and extract the contents of the
 --   message, using the pending transaction in lieu of a hash function. See
 --   'verifySignedMessageConstraints' for a version that does not require a
---   'PendingTx' value.
+--   'ValidatorCtx' value.
 verifySignedMessageOnChain ::
     ( IsData a)
-    => PendingTx
+    => ValidatorCtx
     -> PubKey
     -> SignedMessage a
     -> Either SignedMessageCheckError a
 verifySignedMessageOnChain ptx pk s@SignedMessage{osmSignature, osmMessageHash} = do
     checkSignature osmMessageHash pk osmSignature
     (a, constraints) <- checkHashConstraints s
-    unless (Constraints.checkPendingTx @() @() constraints ptx)
+    unless (Constraints.checkValidatorCtx @() @() constraints ptx)
         (Left $ DatumMissing osmMessageHash)
     pure a
 
 -- | The off-chain version of 'checkHashConstraints', using the hash function
---   directly instead of obtaining the hash from a 'PendingTx' value
+--   directly instead of obtaining the hash from a 'ValidatorCtx' value
 checkHashOffChain ::
     ( IsData a )
     => SignedMessage a

@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -18,7 +19,6 @@ module Plutus.SCB.Query
     , monoidProjection
     , setProjection
     , eventCount
-    , latestContractStatus
     , utxoAt
     , blockCount
     , pureProjection
@@ -90,16 +90,6 @@ setProjection = contramap Set.singleton monoidProjection
 eventCount :: Projection (Sum Int) (VersionedStreamEvent (ChainEvent t))
 eventCount = contramap (const 1) monoidProjection
 
--- | Retain the latest status for a given contract.
-latestContractStatus ::
-       Projection (Map ContractInstanceId (ContractInstanceState t)) (StreamEvent key position (ChainEvent t))
-latestContractStatus = projectionMapMaybe extractState monoidProjection
-  where
-    extractState (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-        let uuid = csContract state
-         in Just $ Map.singleton uuid state
-    extractState _ = Nothing
-
 ------------------------------------------------------------
 -- | The Pretty instance for 'StreamProjection' just pretty prints its resulting 'state'.
 instance Pretty state =>
@@ -130,11 +120,11 @@ blockCount :: forall t key position. Projection (Sum Integer) (StreamEvent key p
 blockCount = contramap (const 1) monoidProjection
 
 -- | The last known state of the contract.
-contractState :: forall t key position. Projection (Map ContractInstanceId (Last (ContractInstanceState t))) (StreamEvent key position (ChainEvent t))
+contractState :: forall t key position. Projection (Map ContractInstanceId (ContractInstanceState t)) (StreamEvent key position (ChainEvent t))
 contractState =
     let projectionEventHandler oldMap = \case
             (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent s))) ->
-                Map.unionWith (<>) oldMap (Map.singleton (csContract s) (Last s))
+                Map.union (Map.singleton (csContract s) s) oldMap
             _ -> oldMap
 
     in Projection

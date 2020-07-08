@@ -81,23 +81,6 @@ For example:
 ----
 `contract2` is unreachable, the whole `Case` could be removed from the contract and the behaviour would be the same.
 
-===== `Value` is never evaluated
-
-For example:
-[source,haskell]
-----
-    When [ Case (Choice choiceId [Bound 1 2])
-                (Pay accountId payee token
-                     (ChoiceValue choiceId value1)
-                     contract1)
-         ]
-         10
-         contract2
-----
-`value1` will never be evaluated. But in this case we don't have a choice but to write something in the default value of `ChoiceValue`
-
-In future versions of Marlowe, we may remove the default value for `ChoiceValue` and we may introduce a special `Value` construct for this kind of situation.
-
 ===== Nested non-increasing timeouts
 
 For example:

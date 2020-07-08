@@ -75,8 +75,8 @@ We can also describe the choices made by Alice and Bob, noting that we’re also
 ----
 aliceChosen, bobChosen :: Value
 
-aliceChosen = ChoiceValue (ChoiceId choiceName "alice") defValue
-bobChosen   = ChoiceValue (ChoiceId choiceName "bob") defValue
+aliceChosen = ChoiceValue (ChoiceId choiceName "alice")
+bobChosen   = ChoiceValue (ChoiceId choiceName "bob")
 
 defValue = Constant 42
 
@@ -134,16 +134,13 @@ When [
                     (If
                        (ValueEQ
                           (ChoiceValue
-                             (ChoiceId "choice" "alice")
-                             (Constant 42))
+                             (ChoiceId "choice" "alice"))
                           (ChoiceValue
-                             (ChoiceId "choice" "bob")
-                             (Constant 42)))
+                             (ChoiceId "choice" "bob")))
                        (If
                           (ValueEQ
                              (ChoiceValue
-                                (ChoiceId "choice" "alice")
-                                (Constant 42))
+                                (ChoiceId "choice" "alice"))
                              (Constant 0))
                           (Pay
                              (AccountId 0 "alice")

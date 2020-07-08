@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -13,19 +14,19 @@
 {-# LANGUAGE TypeOperators       #-}
 module Language.Plutus.Contract.Effects.UtxoAt where
 
-import           Data.Aeson                       (FromJSON, ToJSON)
-import           Data.Map                         (Map)
-import qualified Data.Map                         as Map
+import           Data.Aeson                                 (FromJSON, ToJSON)
+import qualified Data.Map                                   as Map
 import           Data.Row
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics                     (Generic)
-import           Ledger                           (Address, TxOut (..), TxOutTx (..))
-import           Ledger.Tx                        (TxOutRef)
+import           GHC.Generics                               (Generic)
+import           Ledger                                     (Address, Slot, TxOut (..), TxOutTx (..))
+import           Ledger.AddressMap                          (UtxoMap)
 
-import           IOTS                             (IotsType)
-import           Language.Plutus.Contract.Request (ContractRow, requestMaybe)
-import           Language.Plutus.Contract.Schema  (Event (..), Handlers (..), Input, Output)
-import           Language.Plutus.Contract.Types   (AsContractError, Contract)
+import           IOTS                                       (IotsType)
+import           Language.Plutus.Contract.Effects.AwaitSlot (HasAwaitSlot, awaitSlot)
+import           Language.Plutus.Contract.Request           (ContractRow, requestMaybe)
+import           Language.Plutus.Contract.Schema            (Event (..), Handlers (..), Input, Output)
+import           Language.Plutus.Contract.Types             (AsContractError, Contract)
 
 type UtxoAtSym = "utxo-at"
 
@@ -37,7 +38,7 @@ type HasUtxoAt s =
 data UtxoAtAddress =
   UtxoAtAddress
     { address :: Address
-    , utxo    :: Map TxOutRef TxOutTx
+    , utxo    :: UtxoMap
     }
   deriving stock (Eq, Show, Generic)
   deriving anyclass (ToJSON, FromJSON, IotsType)
@@ -53,9 +54,9 @@ instance Pretty UtxoAtAddress where
 type UtxoAt = UtxoAtSym .== (UtxoAtAddress, Address)
 
 -- | Get the unspent transaction outputs at an address.
-utxoAt :: forall s e. (AsContractError e, HasUtxoAt s) => Address -> Contract s e (Map TxOutRef TxOutTx)
+utxoAt :: forall s e. (AsContractError e, HasUtxoAt s) => Address -> Contract s e UtxoMap
 utxoAt address' =
-    let check :: UtxoAtAddress -> Maybe (Map TxOutRef TxOutTx)
+    let check :: UtxoAtAddress -> Maybe UtxoMap
         check UtxoAtAddress{address,utxo} =
           if address' == address then Just utxo else Nothing
     in
@@ -74,3 +75,16 @@ utxoAtRequest
     => Handlers s
     -> Maybe Address
 utxoAtRequest (Handlers r) = trial' r (Label @UtxoAtSym)
+
+-- | Watch an address until the given slot, then return all known outputs
+--   at the address.
+watchAddressUntil
+    :: forall s e.
+       ( HasAwaitSlot s
+       , HasUtxoAt s
+       , AsContractError e
+       )
+    => Address
+    -> Slot
+    -> Contract s e UtxoMap
+watchAddressUntil a slot = awaitSlot slot >> utxoAt a

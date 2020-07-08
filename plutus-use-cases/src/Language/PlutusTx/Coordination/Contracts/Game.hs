@@ -54,7 +54,7 @@ import qualified Ledger.Constraints as Constraints
 import qualified Ledger.Typed.Scripts as Scripts
 import Ledger
     ( Address
-    , PendingTx
+    , ValidatorCtx
     , Validator
     , Value
     )
@@ -79,8 +79,8 @@ type GameSchema =
         .\/ Endpoint "lock" LockParams
         .\/ Endpoint "guess" GuessParams
 
--- | The validation function (DataValue -> RedeemerValue -> PendingTx -> Bool)
-validateGuess :: HashedString -> ClearString -> PendingTx -> Bool
+-- | The validation function (DataValue -> RedeemerValue -> ValidatorCtx -> Bool)
+validateGuess :: HashedString -> ClearString -> ValidatorCtx -> Bool
 validateGuess (HashedString actual) (ClearString guess') _ = actual == sha2_256 guess'
 
 -- | The validator script of the game.
@@ -151,6 +151,7 @@ lockTrace =
     let w1 = Trace.Wallet 1 in
     Trace.callEndpoint @"lock" w1 (LockParams "secret" (Ada.lovelaceValueOf 10))
         >> Trace.handleBlockchainEvents w1
+        >> Trace.addBlocks 1
 
 guessTrace
     :: ( MonadEmulator (TraceError e) m )
@@ -160,6 +161,7 @@ guessTrace =
     lockTrace
         >> Trace.callEndpoint @"guess" w2 (GuessParams "secret")
         >> Trace.handleBlockchainEvents w2
+        >> Trace.addBlocks 1
 
 guessWrongTrace
     :: ( MonadEmulator (TraceError e) m )
@@ -169,3 +171,4 @@ guessWrongTrace =
     lockTrace
         >> Trace.callEndpoint @"guess" w2 (GuessParams "SECRET")
         >> Trace.handleBlockchainEvents w2
+        >> Trace.addBlocks 1

@@ -18,6 +18,7 @@ module Language.Plutus.Contract.Test(
     , Language.Plutus.Contract.Test.not
     , endpointAvailable
     , interestingAddress
+    , queryingUtxoAt
     , assertDone
     , assertNotDone
     , assertContractError
@@ -78,6 +79,7 @@ import           Ledger.Constraints.OffChain                     (UnbalancedTx)
 import           Language.Plutus.Contract.Effects.AwaitSlot      (SlotSymbol)
 import qualified Language.Plutus.Contract.Effects.AwaitSlot      as AwaitSlot
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint as Endpoints
+import qualified Language.Plutus.Contract.Effects.UtxoAt         as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress   as WatchAddress
 import           Language.Plutus.Contract.Effects.WriteTx        (TxSymbol)
 import qualified Language.Plutus.Contract.Effects.WriteTx        as WriteTx
@@ -261,6 +263,24 @@ interestingAddress w addr = PredF $ \(_, r) -> do
             ]
         pure False
 
+queryingUtxoAt
+    :: forall s e a.
+       ( UtxoAt.HasUtxoAt s )
+    => Wallet
+    -> Address
+    -> TracePredicate s e a
+queryingUtxoAt w addr =  PredF $ \(_, r) -> do
+    let hks = mapMaybe UtxoAt.utxoAtRequest (hooks w r)
+    if any (== addr) hks
+    then pure True
+    else do
+        tell $ hsep
+            [ "UTXO queries of " <+> pretty w <> colon
+                <+> nest 2 (concatWith (surround (comma <> space))  (viaShow <$> toList hks))
+            , "Missing address:", viaShow addr
+            ]
+        pure False
+
 tx
     :: forall s e a.
        ( HasType TxSymbol UnbalancedTx (Output s))
@@ -360,7 +380,7 @@ waitingForSlot
     -> Slot
     -> TracePredicate s e a
 waitingForSlot w sl = PredF $ \(_, r) ->
-    case mapMaybe (\e -> AwaitSlot.nextSlot e >>= guard . (==) sl) (hooks w r) of
+    case mapMaybe (\e -> AwaitSlot.request e >>= guard . (==) sl) (hooks w r) of
         [] -> do
             tell $ pretty w <+> "not waiting for any slot notifications. Expected:" <+>  viaShow sl
             pure False

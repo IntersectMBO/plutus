@@ -172,6 +172,8 @@ symEvalVal (AddValue lhs rhs) symState = symEvalVal lhs symState +
                                          symEvalVal rhs symState
 symEvalVal (SubValue lhs rhs) symState = symEvalVal lhs symState -
                                          symEvalVal rhs symState
+symEvalVal (MulValue lhs rhs) symState = symEvalVal lhs symState *
+                                         symEvalVal rhs symState
 symEvalVal (Scale s rhs) symState = let
     num = literal (P.numerator s)
     denom = literal (P.denominator s)
@@ -184,8 +186,8 @@ symEvalVal (Scale s rhs) symState = let
     isEven = (q `sRem` 2) .== 0
     in ite (r .== 0 .|| sign .== (-1) .|| (sign .== 0 .&& isEven))
     {- then -} q {- else -} m
-symEvalVal (ChoiceValue choId defVal) symState =
-  M.findWithDefault (symEvalVal defVal symState) choId (symChoices symState)
+symEvalVal (ChoiceValue choId) symState =
+  M.findWithDefault (literal 0) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState
 symEvalVal SlotIntervalEnd symState = highSlot symState
 symEvalVal (UseValue valId) symState =

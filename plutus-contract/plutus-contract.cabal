@@ -52,6 +52,7 @@ library
         Language.Plutus.Contract.State
         Language.Plutus.Contract.Schema
         Language.Plutus.Contract.Trace
+        Language.Plutus.Contract.Trace.RequestHandler
         Language.Plutus.Contract.IOTS
         Language.Plutus.Contract.Servant
         Language.Plutus.Contract.Resumable
@@ -67,6 +68,7 @@ library
         Wallet.Emulator.Generators
         Wallet.Emulator.Chain
         Wallet.Emulator.ChainIndex
+        Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
@@ -96,6 +98,7 @@ library
         bytestring -any,
         servant -any,
         servant-server -any,
+        serialise -any,
         mtl -any,
         semigroupoids -any,
         profunctors -any,
@@ -111,7 +114,8 @@ library
         freer-simple -any,
         prettyprinter >=1.1.0.1,
         semigroups -any,
-        cryptonite >=0.25
+        cryptonite >=0.25,
+        fingertree -any
 
     if !(impl(ghcjs) || os(ghcjs))
         exposed-modules:

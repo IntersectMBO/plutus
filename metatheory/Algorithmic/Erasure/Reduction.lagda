@@ -38,14 +38,14 @@ import Data.Bool as B
 \begin{code}
 eraseVal : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
   → A.Value t → U.Value (erase t)
-eraseVal (A.V-ƛ {N = t})      = U.V-F (U.V-ƛ (erase t))
-eraseVal (A.V-Λ {N = t})      = U.V-F (U.V-ƛ (U.weaken (erase t)))
+eraseVal (A.V-ƛ t)      = U.V-F (U.V-ƛ (erase t))
+eraseVal (A.V-Λ t)      = U.V-F (U.V-ƛ (U.weaken (erase t)))
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
 
 eraseFVal : ∀{Φ}{A B : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A ⇒ B}
   → A.Value t → U.FValue (erase t)
-eraseFVal (A.V-ƛ {N = t}) = U.V-ƛ (erase t)
+eraseFVal (A.V-ƛ t) = U.V-ƛ (erase t)
 
 eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
   → A.Error e → U.Error (erase e)

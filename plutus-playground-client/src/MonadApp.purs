@@ -6,6 +6,7 @@ import Ace.EditSession as Session
 import Ace.Editor as AceEditor
 import Animation (class MonadAnimate, animate)
 import Auth (AuthStatus)
+import Clipboard (class MonadClipboard, copy)
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.Reader.Class (class MonadAsk)
@@ -85,6 +86,9 @@ derive newtype instance monadAffHalogenApp :: MonadAff m => MonadAff (HalogenApp
 
 instance monadAnimateHalogenApp :: MonadAff m => MonadAnimate (HalogenApp m) State where
   animate toggle action = HalogenApp $ animate toggle (unwrap action)
+
+instance monadClipboardHalogenApp :: MonadEffect m => MonadClipboard (HalogenApp m) where
+  copy = liftEffect <<< copy
 
 instance monadThrowHalogenApp :: MonadThrow e m => MonadThrow e (HalogenApp m) where
   throwError e = lift (throwError e)

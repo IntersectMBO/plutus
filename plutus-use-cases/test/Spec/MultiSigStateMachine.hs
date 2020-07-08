@@ -91,18 +91,30 @@ lockProposeSignPay
     -> Integer
     -> ContractTrace MultiSigSchema MultiSigError m a ()
 lockProposeSignPay signatures rounds = do
+
+    let
+        wallets = EM.Wallet <$> [1..signatures]
+        handleAll = traverse_ handleBlockchainEvents wallets
     callEndpoint @"lock" w1 (Ada.lovelaceValueOf 10)
-    handleBlockchainEvents w1
+    handleAll
+    addBlocks 1
+    handleAll
+    addBlocks 1
 
     let proposeSignPay = do
             callEndpoint @"propose-payment" w2 payment
             handleBlockchainEvents w2
+            addBlocks 1
+            handleBlockchainEvents w2
 
             -- Call @"add-signature"@ @signatures@ times
-            traverse_ (\wllt -> callEndpoint @"add-signature" wllt () >> handleBlockchainEvents wllt) (EM.Wallet <$> [1..signatures])
+            traverse_ (\wllt -> callEndpoint @"add-signature" wllt () >> handleAll >> addBlocks 1) wallets
 
             -- Call @"pay"@ on wallet 1
+            handleAll
             callEndpoint @"pay" w1 ()
-            handleBlockchainEvents w1
+            handleAll
+            addBlocks 1
+            handleAll
 
     traverse_ (\_ -> proposeSignPay) [1..rounds]

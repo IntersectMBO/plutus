@@ -1,10 +1,11 @@
 module Chain.Types where
 
 import Prelude
+import Clipboard (Action) as Clipboard
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonMap (JsonMap)
-import Data.Lens (Fold', Iso', Lens', Traversal', filtered, iso, preview, traversed)
+import Data.Lens (Fold', Iso', Lens', Prism', Traversal', filtered, preview, prism', traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
@@ -17,22 +18,25 @@ import Ledger.Slot (Slot)
 import Ledger.Tx (Tx, TxIn, TxOut(..), TxOutRef(..))
 import Ledger.TxId (TxId)
 import Ledger.Value (Value)
-import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId, TxKey(..), _TxKey)
+import Wallet.Rollup.Types (AnnotatedTx(..), BeneficialOwner(..), DereferencedInput, SequenceId, TxKey, _TxKey)
 
-data ChainFocus
-  = FocusTx TxId
+data Action
+  = FocusTx (Maybe TxId)
+  | ClipboardAction Clipboard.Action
 
-_FocusTx :: Iso' ChainFocus TxId
-_FocusTx = iso get set
+derive instance genericChainFocus :: Generic Action _
+
+instance showChainFocus :: Show Action where
+  show = genericShow
+
+_FocusTx :: Prism' Action TxId
+_FocusTx = prism' set get
   where
   get (FocusTx txId) = txId
 
-  set = FocusTx
+  get _ = Nothing
 
-derive instance genericChainFocus :: Generic ChainFocus _
-
-instance showChainFocus :: Show ChainFocus where
-  show = genericShow
+  set = FocusTx <<< Just
 
 newtype AnnotatedBlockchain
   = AnnotatedBlockchain (Array (Array AnnotatedTx))
@@ -46,7 +50,7 @@ _AnnotatedBlocks :: Traversal' AnnotatedBlockchain AnnotatedTx
 _AnnotatedBlocks = _AnnotatedBlockchain <<< traversed <<< traversed
 
 type State
-  = { chainFocus :: Maybe ChainFocus
+  = { chainFocus :: Maybe TxId
     , chainFocusAppearing :: Boolean
     , chainFocusAge :: Ordering
     }
@@ -102,9 +106,6 @@ _txInputs = _Newtype <<< prop (SProxy :: SProxy "txInputs")
 
 _txOutputs :: Lens' Tx (Array TxOut)
 _txOutputs = _Newtype <<< prop (SProxy :: SProxy "txOutputs")
-
-_txId :: Lens' TxId String
-_txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 
 _txInRef :: Lens' TxIn TxOutRef
 _txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")

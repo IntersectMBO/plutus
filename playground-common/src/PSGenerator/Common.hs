@@ -276,7 +276,7 @@ playgroundTypes =
           (Proxy @(FunctionSchema A))
     , (functor <*> (equal <*> (equal1 <*> (genericShow <*> mkSumType))))
           (Proxy @(FormArgumentF A))
-    , (genericShow <*> (equal <*> mkSumType)) (Proxy @EndpointDescription)
+    , (genericShow <*> (order <*> mkSumType)) (Proxy @EndpointDescription)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @KnownCurrency)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(ContractCall A))
     ] <>

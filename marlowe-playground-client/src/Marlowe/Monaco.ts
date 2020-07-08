@@ -19,14 +19,23 @@ export class MarloweHoverProvider implements monaco.languages.HoverProvider {
 export class MarloweCompletionItemProvider implements monaco.languages.CompletionItemProvider {
 
   // This enables us to pass in a function from PureScript that provides suggestions based on a contract string
-  suggestionsProvider: (Boolean, string, IRange) => Array<monaco.languages.CompletionItem>
+  suggestionsProvider: (String, Boolean, string, IRange) => Array<monaco.languages.CompletionItem>
 
   constructor(suggestionsProvider) {
     this.suggestionsProvider = suggestionsProvider;
   }
 
   provideCompletionItems(model: monaco.editor.ITextModel, position: monaco.Position, context: monaco.languages.CompletionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
-    const word = model.getWordAtPosition(position);
+    var word = model.getWordAtPosition(position);
+    // if the word is empty then we need an extra space in the contract that we generate
+    const emptyWordHack = word == null ? " " : ""
+    if (word == null) {
+      word = {
+        word: "*",
+        startColumn: position.column,
+        endColumn: position.column,
+      }
+    }
     const stripParens = word.startColumn == 1 && position.lineNumber == 1;
     const wordStart = model.getOffsetAt(position);
     const wordEnd = wordStart + word.word.length;
@@ -35,7 +44,7 @@ export class MarloweCompletionItemProvider implements monaco.languages.Completio
 
     // we replace the word at the cursor with a hole with a special name so that the contract is parsable
     // if the contract is not valid then we won't get any suggestions
-    const contract = startOfContract + "?monaco_suggestions" + endOfContract;
+    const contract = startOfContract + emptyWordHack + "?monaco_suggestions" + endOfContract;
 
     const range = {
       startLineNumber: position.lineNumber,
@@ -44,7 +53,7 @@ export class MarloweCompletionItemProvider implements monaco.languages.Completio
       endColumn: word.endColumn
     }
 
-    return { suggestions: this.suggestionsProvider(stripParens, contract, range) };
+    return { suggestions: this.suggestionsProvider(word.word, stripParens, contract, range) };
   }
 
 }
@@ -137,6 +146,7 @@ const marloweLexer = moo.compile({
         'NegValue',
         'AddValue',
         'SubValue',
+        'MulValue',
         'ChoiceValue',
         'SlotIntervalStart',
         'SlotIntervalEnd',
