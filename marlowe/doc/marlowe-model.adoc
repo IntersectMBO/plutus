@@ -74,9 +74,15 @@ This effectively embedds Ethereum ERC-20/ERC-721 standards as primitive values i
 
 === Executing a Marlowe contract
 
-At each slot, a running Marlowe contract will receive a list of inputs in order. The contract is executed by evaluating it _step by step_ until it cannot be changed any further without processing any input, a condition that we call being _quiescent_. The first input is then processed, and then the contract is single stepped again until quiescence, and this process is repeated until all the inputs are processed. At each step the current contact and the state will change, some input may be processed, and payments made.
+Executing a Marlowe contract on Cardano blockchain means constraining user-generated transactions according to the contract's logic. If a contract expects a deposit of 100 Ada from Alice, only such a transaction will succed, anything else will be rejected.
 
-Putting this together gives us a _transaction_, as shown in the diagram below, and this information is added to the blockchain. What we do next is to describe in detail what Marlowe contracts look like, and how they are evaluated step by step.
+A transaction contains an ordered list of _inputs_. Marlowe interpreter is executed during transaction validation.
+First, it evaluates the contract _step by step_ until it cannot be changed any further without processing any input, a condition that we call being _quiescent_.
+At this stage we progress through `When` with passed timeouts, `If`, `Let`, `Pay`, and `Close` constructs without consuming any _inputs_.
+
+The first input is then processed, and then the contract is single stepped again until quiescence, and this process is repeated until all the inputs are processed. At each step the current contact and the state will change, some input may be processed, and payments made.
+
+Such a _transaction_, as shown in the diagram below, is added to the blockchain. What we do next is to describe in detail what Marlowe contracts look like, and how they are evaluated step by step.
 
 .Building a transaction
 [#img-transaction]
