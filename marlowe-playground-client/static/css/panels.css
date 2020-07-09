@@ -143,7 +143,7 @@
 
 .sidebar-composer {
   padding-left: 20px;
-  padding-bottom: 4rem;
+  padding-bottom: 7rem;
   overflow-y: unset;
 }
 
@@ -243,7 +243,19 @@ button.minus-btn:hover {
   display: flex;
 }
 
-.documentation-panel div img {
+.help-title {
+  display: flex;
+}
+
+.help-body div {
+  display: block;
+}
+
+.help-body p {
+  margin-bottom: 1rem;
+}
+
+.help-title img {
   display: block;
   max-width: 42px;
   padding-right: 10px;
@@ -253,6 +265,25 @@ button.minus-btn:hover {
   width: 44px;
   margin: -0.5rem auto 1rem auto;
   opacity: 0.7;
+}
+
+.underline-red {
+  text-decoration: underline dotted red;
+}
+
+.underline-yellow {
+  text-decoration: underline dotted yellow;
+}
+
+.inline-code {
+  font-family: monospace;
+  white-space: pre;
+}
+
+.blockly-btn-inline-icon {
+  display: inline;
+  padding: 0rem;
+  margin: 0rem 0rem -0.3rem 0rem;
 }
 
 .analysis-panel {
@@ -480,4 +511,8 @@ button.minus-btn:hover {
 .success-code {
   height: auto;
   padding-bottom: 3rem;
+}
+
+.editor-help img {
+  vertical-align: top;
 }

@@ -6,8 +6,9 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.String (fromCodePointArray, toCodePointArray)
-import Halogen.Classes (readMoreIconWhite)
-import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p_, text)
+import Halogen.Classes (blocklyIcon, readMoreIconWhite)
+import Halogen.Classes as Classes
+import Halogen.HTML (ClassName(..), HTML, div, h4, hr, img, p, p_, span, text)
 import Halogen.HTML.Properties (alt, class_, src)
 import Marlowe.Holes (MarloweType(..))
 import Marlowe.Holes as Holes
@@ -18,6 +19,7 @@ data HelpContext
   | InputComposerHelp
   | TransactionComposerHelp
   | WalletsSimulatorHelp
+  | EditorHelp
 
 derive instance genericHelpContext :: Generic HelpContext _
 
@@ -31,7 +33,7 @@ toHTML helpType =
       , h4 [] [ headerText helpType ]
       ]
   , hr []
-  , p_ [ bodyText helpType ]
+  , p [ class_ (ClassName "help-body") ] [ bodyText helpType ]
   ]
   where
   headerText MarloweHelp = text "Modelling contracts in Marlowe"
@@ -42,6 +44,8 @@ toHTML helpType =
 
   headerText WalletsSimulatorHelp = text "Wallets Simulator"
 
+  headerText EditorHelp = text "Marlowe Code Editor"
+
   bodyText MarloweHelp = text "Marlowe is designed to support the execution of financial contracts on blockchain, and specifically to work on Cardano. Contracts are built by putting together a small number of constructs that in combination can be used to describe many different kinds of financial contract"
 
   bodyText InputComposerHelp = text "The Input Composer allows you to choose any of the possible inputs to add to a transaction"
@@ -49,6 +53,57 @@ toHTML helpType =
   bodyText TransactionComposerHelp = text "The transaction composer shows you the contents of a transaction which is ready to apply. The inputs within a transaction are applied in order."
 
   bodyText WalletsSimulatorHelp = text "The Wallets Simulator allows you to see how your contract will look from the point of view of users. You can create multiple wallets then transfer roles, add assets and apply transactions in individual wallets. To get started create a wallet by clicking on the '+' button at the top of the main panel."
+
+  bodyText EditorHelp =
+    div []
+      [ p_ [ text "Marlowe code can be edited and analysed in the code editor. To make things easier to read, you can format code at any time by right-clicking in the editor and selecting \"Format Document\"." ]
+      , p_
+          [ text
+              "If you enter some invalid code, the code will be underlined in "
+          , span [ class_ (ClassName "underline-red") ] [ text "red" ]
+          , text
+              ". You can hover over it for information about the error. Alternatively click on the "
+          , bold "Errors"
+          , text " tab in the bottom panel."
+          ]
+      , p_
+          [ text "A valid contract can still contain parts that don't really make sense. Possible issues are underlined in "
+          , code "yellow"
+          , text " and again, hovering over them will display more information about the warning. These are displayed in full in the "
+          , bold "Warnings"
+          , text " tab in the bottom panel."
+          ]
+      , p_
+          [ text "It is also possible to leave a "
+          , code "hole"
+          , text " in a contract where you are not sure what to fill in yet, you can do this by typing a "
+          , code "?"
+          , text " followed by a name, for example "
+          , code "?next_contract."
+          , text " This will also show up as a warning but in this case, when you hover over the warning you will be given a "
+          , code "Quick Fix"
+          , text " link. If you click "
+          , code "Quick Fix"
+          , text " then you will be given a list of options. You can also see these options by clicking on the \x1f4a1 symbol."
+          ]
+      , p_ [ text "The editor also has an auto-complete feature. Instead of writing a hole you can just press ctrl+space to show a list of possible values. You can also just start typing to see the options." ]
+      , p_
+          [ text "You can transfer a contract to blockly by clicking on the "
+          , img [ class_ (ClassName "blockly-btn-inline-icon"), src blocklyIcon, alt "blockly logo" ]
+          , text " button at the top-right of the editor. You cannot transfer a contract that has errors but warnings and holes are fine."
+          ]
+      , p_
+          [ text "For more advanced users, the editor has key bindings for Vim and Emacs, you can select which mode you prefer from the drop-down list next to the "
+          , img [ class_ (ClassName "blockly-btn-inline-icon"), src blocklyIcon, alt "blockly logo" ]
+          , text " button."
+          ]
+      ]
+
+code :: forall p a. String -> HTML p a
+code s = span [ class_ (ClassName "inline-code") ] [ text s ]
+
+bold :: forall p a. String -> HTML p a
+bold s = span [ class_ Classes.bold ] [ text s ]
 
 holeText :: MarloweType -> String
 holeText marloweType = "Found a hole of type " <> dropEnd 4 (show marloweType) <> "\n" <> text <> "\nClick on Quick Fix below to see the options."
