@@ -20,15 +20,13 @@ module Plutus.SCB.Command
     ( installCommand
     , saveBalancedTx
     , saveBalancedTxResult
-    , saveContractState
     -- * Commands related to updating the contract state
     , sendContractEvent
     ) where
 
 import           Eventful                   (Aggregate (Aggregate), aggregateCommandHandler, aggregateProjection)
 import qualified Ledger
-import           Plutus.SCB.Events          (ChainEvent (ContractEvent, UserEvent), ContractInstanceState,
-                                             UserEvent (ContractStateTransition, InstallContract))
+import           Plutus.SCB.Events          (ChainEvent (ContractEvent, UserEvent), UserEvent (InstallContract))
 import qualified Plutus.SCB.Events          as Events
 import           Plutus.SCB.Query           (nullProjection)
 
@@ -54,9 +52,6 @@ saveBalancedTx = sendEvents (return . Events.WalletEvent . Events.BalancedTx)
 
 saveBalancedTxResult :: forall t. Aggregate () (ChainEvent t) Ledger.Tx
 saveBalancedTxResult = sendEvents (return . Events.NodeEvent . Events.SubmittedTx)
-
-saveContractState :: forall t. Aggregate () (ChainEvent t) (ContractInstanceState t)
-saveContractState = sendEvents (return . UserEvent . ContractStateTransition)
 
 sendContractEvent :: forall t. Aggregate () (ChainEvent t) (Events.Contract.ContractEvent t)
 sendContractEvent = sendEvents (return . ContractEvent)
