@@ -74,7 +74,7 @@ module Wallet.Emulator.Types(
 import           Control.Lens               hiding (index)
 import           Control.Monad.Except
 import qualified Control.Monad.Freer        as Eff
-import Control.Monad.Freer.Log (LogMessage)
+import Control.Monad.Freer.Log (LogMessage, logMessage, LogLevel(..))
 import qualified Control.Monad.Freer.Error  as Eff
 import qualified Control.Monad.Freer.Extras as Eff
 import           Control.Monad.State
@@ -149,7 +149,7 @@ processEmulated act =
         & Eff.runM
     where
         p1 :: Prism' [LogMessage EmulatorEvent] [ChainEvent]
-        p1 = undefined -- below chainEvent
+        p1 =  below (logMessage Info . chainEvent)
         p2 :: Prism' e AssertionError
         p2 = _AssertionError
 

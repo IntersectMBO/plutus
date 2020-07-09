@@ -20,6 +20,7 @@ module Control.Monad.Freer.Log(
     , LogMessage(..)
     , logLevel
     , logMessageContent
+    , logMessage
     , logDebug
     , logWarn
     , logInfo
@@ -37,7 +38,7 @@ module Control.Monad.Freer.Log(
     , renderLogMessages
     ) where
 
-import Control.Lens (Prism', review, makeLenses)
+import Control.Lens (Prism', review, makeLenses, prism')
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
@@ -87,6 +88,9 @@ data LogMessage a = LogMessage { _logLevel :: LogLevel, _logMessageContent :: a 
     deriving anyclass (ToJSON, FromJSON)
 
 makeLenses ''LogMessage
+
+logMessage :: LogLevel -> Prism' (LogMessage a) a
+logMessage lvl = prism' (LogMessage lvl) (\case { LogMessage lvl' a | lvl' == lvl -> Just a; _ -> Nothing})
 
 instance Pretty a => Pretty (LogMessage a) where
     pretty LogMessage{_logLevel, _logMessageContent} =

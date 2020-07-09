@@ -72,8 +72,8 @@ signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
 
 data WalletEvent = 
-    GenericLog (LogMessage T.Text)
-    | CheckpointLog (LogMessage CheckpointLogMsg)
+    GenericLog T.Text
+    | CheckpointLog CheckpointLogMsg
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (ToJSON, FromJSON)
 

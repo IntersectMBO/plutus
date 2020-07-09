@@ -21,12 +21,13 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (Log, logToWriter, LogMessage)
+import           Control.Monad.Freer.Log        (Log, logToWriter, LogMessage, logMessage, LogLevel(..))
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
+import Data.Maybe (listToMaybe)
 import qualified Data.Text                      as T
 import           Data.Text.Extras               (tshow)
 import           Data.Text.Prettyprint.Doc
@@ -275,13 +276,13 @@ handleMultiAgent = interpret $ \case
         & interpret (writeIntoState emulatorLog)
         where
             p1 :: Prism' [LogMessage EmulatorEvent] [Wallet.WalletEvent]
-            p1 = undefined -- below (walletEvent wallet)
+            p1 = below (logMessage Info . walletEvent wallet)
             p2 :: Prism' [LogMessage EmulatorEvent] [NC.NodeClientEvent]
-            p2 = undefined -- below (walletClientEvent wallet)
+            p2 = below (logMessage Info . walletClientEvent wallet)
             p3 :: Prism' [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = undefined -- below (chainIndexEvent wallet)
-            p4 :: Prism' [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
-            p4 = undefined -- below (walletEvent wallet . Wallet._GenericLog)
+            p3 = below (logMessage Info . chainIndexEvent wallet)
+            p4 :: Prism' [LogMessage EmulatorEvent] (LogMessage T.Text)
+            p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
     WalletControlAction wallet act -> act
         & raiseEnd4
         & NC.handleNodeControl
@@ -298,13 +299,13 @@ handleMultiAgent = interpret $ \case
         & interpret (writeIntoState emulatorLog)
         where
             p1 :: Prism' [LogMessage EmulatorEvent] [Wallet.WalletEvent]
-            p1 = undefined -- below (walletEvent wallet)
+            p1 = below (logMessage Info . walletEvent wallet)
             p2 :: Prism' [LogMessage EmulatorEvent] [NC.NodeClientEvent]
-            p2 = undefined -- below (walletClientEvent wallet)
+            p2 = below (logMessage Info . walletClientEvent wallet)
             p3 :: Prism' [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = undefined -- below (chainIndexEvent wallet)
+            p3 = below (logMessage Info . chainIndexEvent wallet)
             p4 :: Prism' [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
-            p4 = undefined -- below (walletEvent wallet . Wallet._GenericLog)
+            p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
     Assertion a -> assert a
 
 -- | Issue an 'Assertion'.
@@ -328,3 +329,6 @@ isValidated txn = do
     if notElem txn (join $ emState ^. chainState . Chain.chainNewestFirst)
         then throwError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
+
+_singleton :: Prism' [a] a
+_singleton = prism' return (\case { [x] -> Just x; _ -> Nothing})
