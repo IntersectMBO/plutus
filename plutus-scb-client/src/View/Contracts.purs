@@ -69,15 +69,15 @@ contractStatusesPane contractSignatures =
         [ h2_ [ text "Active Contracts" ]
         ]
     , cardBody_
-        [ if null contractStates then
+        [ if null contractsWithRequests then
             text "You do not have any active contracts."
           else
-            div_ (contractStatusPane contractSignatures <$> contractStates)
+            div_ (contractStatusPane contractSignatures <$> contractsWithRequests)
         ]
     ]
   where
-  contractStates :: Array (ContractInstanceState t)
-  contractStates = toArrayOf (traversed <<< _Success <<< _1) contractSignatures
+  contractsWithRequests :: Array (ContractInstanceState t)
+  contractsWithRequests = toArrayOf (traversed <<< _Success <<< _1 <<< filtered hasActiveRequests) contractSignatures
 
 contractStatusPane ::
   forall p t.
