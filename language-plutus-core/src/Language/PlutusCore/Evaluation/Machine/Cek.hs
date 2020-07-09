@@ -21,6 +21,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
     ( EvaluationResult(..)
@@ -78,6 +79,17 @@ import           Control.Monad.State.Strict
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
+
+import           Data.Array
+
+deriving instance Ix BuiltinName
+
+builtinNameArities :: Array BuiltinName Int
+builtinNameArities =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedBuiltinName @DefaultUni name (\(TypedBuiltinName _ sch) -> countArgs sch)
+{-# NOINLINE builtinNameArities #-}  -- Just in case.
 
 {- Note [Scoping]
 The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
@@ -263,10 +275,11 @@ substitution, anything).
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
-getArgsCount
-    :: forall uni ann. (GShow uni, GEq uni, DefaultUni <: uni) => Builtin ann -> CekM uni Int
+
+
+getArgsCount :: Builtin ann -> CekM uni Int
 getArgsCount (BuiltinName _ name) =
-    pure $ withTypedBuiltinName @uni name $ \(TypedBuiltinName _ sch) -> countArgs sch
+    pure $ builtinNameArities ! name
 getArgsCount (DynBuiltinName _ name) = do
     DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
     pure $ countArgs sch
