@@ -45,6 +45,7 @@ all = do
     test "Unreachable Case (empty Choice list)" $ unreachableCaseEmptyChoiceList
   suite "Marlowe.Linter reports bad contracts" do
     test "Undefined Let" $ undefinedLet
+    test "Undefined ChoiceValue" $ undefinedChoiceValue
     test "Non-positive Deposit" $ nonPositiveDeposit
     test "Non-positive Pay" $ nonPositivePay
     test "Pay before deposit" $ payBeforeWarning
@@ -52,13 +53,17 @@ all = do
     test "Pay with insufficient deposit" $ payInsufficientDeposit
     test "Pay twice with insufficient deposit for both" $ payTwiceInsufficientDeposit
   suite "Marlowe.Linter does not report good contracts" do
-    test "Defined Let" $ undefinedLet
+    test "Defined Let" $ normalLet
+    test "Defined ChoiceValue" $ normalChoiceValue
     test "Positive Deposit" $ positiveDeposit
     test "Positive Pay" $ positivePay
     test "Deposit in state" $ depositFromState
     test "Pay to hole" payToHole
     test "Pay to account and then Pay" $ payThroughAccount
     test "Pay twice" $ payTwice
+
+addParenthesis :: String -> String
+addParenthesis str = "(" <> str <> ")"
 
 letContract :: String -> String
 letContract subExpression = "Let \"simplifiableValue\" " <> subExpression <> " Close"
@@ -74,6 +79,9 @@ depositAndThenDo subExpression continuation = "When [Case (Deposit (AccountId 0 
 
 depositContract :: String -> String
 depositContract subExpression = depositAndThenDo subExpression "Close"
+
+choiceAndThenDo :: String -> String
+choiceAndThenDo continuation = "When [Case (Choice (ChoiceId \"choice\" (Role \"role\")) [Bound 50 100]) " <> continuation <> "] 5 Close"
 
 payContract :: String -> String
 payContract subExpression = "When [Case (Deposit (AccountId 0 (Role \"role\") ) (Role \"role\") (Token \"\" \"\") (Constant 100)) (Pay (AccountId 0 (Role \"role\")) (Party (Role \"role\")) (Token \"\" \"\") " <> subExpression <> " Close)] 10 Close"
@@ -309,6 +317,9 @@ unreachableCaseEmptyChoiceList =
 undefinedLet :: Test
 undefinedLet = testWarningSimple (letContract "(UseValue \"simplifiableValue\")") "The contract tries to Use a ValueId that has not been defined in a Let"
 
+undefinedChoiceValue :: Test
+undefinedChoiceValue = testWarningSimple (choiceAndThenDo (addParenthesis (payContract "(ChoiceValue (ChoiceId \"choice\" (Role \"role2\")))"))) "The contract tries to use a ChoiceId that has not been input by a When"
+
 nonPositiveDeposit :: Test
 nonPositiveDeposit = testWarningSimple (depositContract "(Constant 0)") "The contract can make a non-positive deposit"
 
@@ -369,6 +380,9 @@ payTwice = testNoWarning (depositAndThenDo "(Constant 10)" continuation)
 
 normalLet :: Test
 normalLet = testNoWarning "Let \"a\" (Constant 0) (Let \"b\" (UseValue \"a\") Close)"
+
+normalChoiceValue :: Test
+normalChoiceValue = testNoWarning (choiceAndThenDo (addParenthesis (payContract "(ChoiceValue (ChoiceId \"choice\" (Role \"role\")))")))
 
 positiveDeposit :: Test
 positiveDeposit = testNoWarning (depositContract "(Constant 1)")
