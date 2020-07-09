@@ -89,6 +89,10 @@ builtinNameArities =
     listArray (minBound, maxBound) $
         [minBound..maxBound] <&> \name ->
             withTypedBuiltinName @DefaultUni name (\(TypedBuiltinName _ sch) -> countArgs sch)
+<<<<<<< HEAD
+=======
+{-# NOINLINE builtinNameArities #-}  -- Just in case.
+>>>>>>> 4adfcb71c939bc916279b263a2fb4db1efcd6831
 
 {- Note [Scoping]
 The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
@@ -278,7 +282,7 @@ substitution, anything).
 
 getArgsCount :: Builtin ann -> CekM uni Int
 getArgsCount (BuiltinName _ name) =
-    pure $ unsafeIndex name builtinNameArities
+    pure $ builtinNameArities ! name
 getArgsCount (DynBuiltinName _ name) = do
     DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
     pure $ countArgs sch
