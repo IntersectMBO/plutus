@@ -14,6 +14,7 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
+import Data.Int (toNumber)
 import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
@@ -26,6 +27,7 @@ import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, tr
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
+import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
@@ -40,7 +42,7 @@ import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
@@ -65,7 +67,7 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>))
+import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
@@ -82,6 +84,7 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
+import Web.HTML.Window as Window
 import WebSocket (WebSocketRequestMessage(..))
 
 mkComponent :: forall m. MonadEffect m => MonadAff m => SPSettings_ SPParams_ -> H.Component HTML Query Unit Message m
@@ -371,11 +374,20 @@ scrollHelpPanel =
     window <- Web.window
     document <- toDocument <$> W.document window
     mSidePanel <- WC.item 0 =<< D.getElementsByClassName "sidebar-composer" document
-    case mSidePanel of
-      Nothing -> pure unit
-      Just sidePanel -> do
-        scrollHeight <- E.scrollHeight sidePanel
-        setScrollTop scrollHeight sidePanel
+    mDocPanel <- WC.item 0 =<< D.getElementsByClassName "documentation-panel" document
+    case mSidePanel, mDocPanel of
+      Just sidePanel, Just docPanel -> do
+        sidePanelHeight <- E.scrollHeight sidePanel
+        docPanelHeight <- E.scrollHeight docPanel
+        availableHeight <- E.clientHeight sidePanel
+        let
+          newScrollHeight =
+            if sidePanelHeight < availableHeight then
+              sidePanelHeight
+            else
+              sidePanelHeight - docPanelHeight - 120.0
+        setScrollTop newScrollHeight sidePanel
+      _, _ -> pure unit
 
 editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
 editorSetValue contents = void $ query _editorSlot unit (Monaco.SetText contents unit)
@@ -432,9 +444,11 @@ render state =
   div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
         [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-            [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-                [ div [ classes [ ClassName "demos", spaceLeft ] ]
-                    [ small_ [ text "Demos:" ]
+            [ a [ class_ (ClassName "editor-help"), onClick $ const $ Just $ ChangeHelpContext EditorHelp ]
+                [ img [ src infoIcon, alt "info book icon" ] ]
+            , div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
+                [ div [ classes [ spaceLeft ] ]
+                    [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Demos:" ]
                     ]
                 ]
             , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
