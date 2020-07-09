@@ -29,8 +29,8 @@ plotErrorModel <- function(filtered, filteredModel) {
   filtered$predicted <- predict(filteredModel, newdata = filtered)
 
   errors <- filtered$Mean - filtered$predicted
-  positiveErrors <- lapply(errors, function(x) { if (x > 0) x else 0 })
-  negativeErrors <- lapply(errors, function(x) { if (x > 0) 0 else { abs(x) } })
+  positiveErrors <- pmax(errors, 0)
+  negativeErrors <- lapply(pmin(errors,0), abs)
   plot_ly(filtered, x=filtered$x_mem, y=filtered$y_mem, z=filtered$predicte) %>%
     add_trace(
         type="scatter3d"
@@ -56,10 +56,10 @@ plotErrorModel <- function(filtered, filteredModel) {
 # predicting_df <- setNames(data.frame(grid), c("x_mem", "y_mem"))
 # m <- matrix(predicted, nrow=length(unique(predicting_df$x_mem)), ncol=length(unique(predicting_df$y_mem)))
 
-filtered <- data %>% filter(BuiltinName == "MultiplyInteger")
+filtered <- data %>% filter(BuiltinName == "DivideInteger")
 plotRaw(filtered)
 
-plotErrorModel(filtered, multiplyIntegerModel)
+plotErrorModel(filtered, divideIntegerModel)
 
 # tidy(model)
 # summary(model)

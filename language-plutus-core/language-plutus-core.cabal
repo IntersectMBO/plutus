@@ -17,6 +17,10 @@ extra-doc-files: README.md
 extra-source-files:
     src/costModel.json
     language-plutus-core/src/costModel.json
+    budgeting-bench/csvs/*.csv
+    language-plutus-core/budgeting-bench/csvs/*.csv
+    budgeting-bench/*.R
+    language-plutus-core/budgeting-bench/*.R
 
 source-repository head
     type: git
@@ -182,6 +186,7 @@ library
         aeson -any,
         algebraic-graphs >= 0.3,
         base >=4.9 && <5,
+        barbies -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -371,15 +376,18 @@ benchmark language-plutus-core-budgeting-bench
         integer-gmp -any,
         hedgehog -any
 
+-- benchmark sets the correct PWD and doesn't get run by `stack test`
 benchmark language-plutus-core-create-cost-model
     type: exitcode-stdio-1.0
-    main-is: CreateModel.hs
-    hs-source-dirs: create-cost-model
+    main-is: CreateCostModel.hs
+    -- cost-model-creation should be its own library, but stack + HIE really don't like sub-libraries.
+    hs-source-dirs: create-cost-model, cost-model-creation
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        barbies -any,
         bytestring -any,
         containers -any,
         language-plutus-core -any,
@@ -393,8 +401,47 @@ benchmark language-plutus-core-create-cost-model
         aeson -any,
         text -any,
         deriving-aeson >= 0.2.3,
-        aeson-pretty -any,
         extra -any,
         data-default -any,
         cassava -any,
-        exceptions -any
+        exceptions -any,
+        deriving-aeson >= 0.2.3,
+        aeson-pretty -any,
+        bytestring -any
+    other-modules:
+        CostModelCreation
+
+test-suite language-plutus-core-test-cost-model
+    type: exitcode-stdio-1.0
+    main-is: TestCostModels.hs
+    hs-source-dirs: test-cost-model, cost-model-creation
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        bytestring -any,
+        barbies -any,
+        containers -any,
+        language-plutus-core -any,
+        serialise -any,
+        deepseq -any,
+        lens -any,
+        directory -any,
+        hedgehog -any,
+        vector -any,
+        aeson -any,
+        text -any,
+        deriving-aeson >= 0.2.3,
+        extra -any,
+        data-default -any,
+        cassava -any,
+        mmorph -any,
+        exceptions -any,
+        hedgehog -any,
+        bytestring -any,
+        containers -any,
+        language-plutus-core -any,
+        inline-r -any
+    other-modules:
+        CostModelCreation

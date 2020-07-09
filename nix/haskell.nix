@@ -11,6 +11,7 @@
 }:
 
 let
+  r-packages = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
@@ -83,9 +84,14 @@ let
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
+            language-plutus-core.components.tests.language-plutus-core-test-cost-model = {
+              build-tools = r-packages;
+              # Seems to be broken on darwin for some reason
+              platforms = lib.platforms.linux;
+            };
+
             language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
-              # Need a suitably wrapped R
-              build-tools = lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+              build-tools = r-packages;
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;
             };

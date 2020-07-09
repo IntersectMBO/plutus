@@ -32,6 +32,7 @@ in haskell.packages.shellFor {
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
+    dev.packages.hie-bios
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
@@ -39,5 +40,7 @@ in haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
+    pkgs.rPackages.plotly # for generating R plots locally
+    pkgs.python3 # for @reactormonk who's running a python web server
   ];
 }

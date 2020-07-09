@@ -176,22 +176,44 @@ cradle:
     config:
       cradle:
         none:
+        # stack:
+        #   component: "language-plutus-core:bench:language-plutus-core-create-cost-model"
+  - path: ./language-plutus-core/cost-model-creation
+    config:
+      cradle:
+        none:
+        # stack:
+        #   component: "language-plutus-core:bench:language-plutus-core-create-cost-model"
+  - path: ./language-plutus-core/test-cost-model
+    config:
+      cradle:
+        stack:
+          component: "language-plutus-core:test:language-plutus-core-test-cost-model"
 
   # These use the plutus plugin - HIE doesn't support plugins yet
 
-  # - path: ./marlowe/src
-  #   component: "marlowe:lib"
-  # - path: ./marlowe/test
-  #   component: "marlowe:marlowe-test"
-  # - path: ./plutus-book/src
-  #   component: "plutus-book:lib"
-  # - path: ./plutus-book/test
-  #   component: "plutus-book:plutus-book-test"
-  # - path: ./plutus-playground-server/src
-  #   component: "plutus-playground-server:lib"
-  # - path: ./plutus-playground-server/test
-  #   component: "plutus-playground-server:plutus-playground-server-test"
-  # - path: ./plutus-use-cases/src
-  #   component: "plutus-use-cases:lib"
-  # - path: ./plutus-use-cases/test
-  #   component: "plutus-use-cases:plutus-use-cases-test"
+  - path: ./marlowe
+    config:
+      cradle:
+        none:
+  - path: ./plutus-book
+    config:
+      cradle:
+        none:
+  - path: ./plutus-playground-server
+    config:
+      cradle:
+        none:
+  - path: ./plutus-tutorial
+    config:
+      cradle:
+        none:
+  - path: ./plutus-use-cases
+    config:
+      cradle:
+        none:
+  - path: ./plutus-scb
+    config:
+      cradle:
+        none:
+
