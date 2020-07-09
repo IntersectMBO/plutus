@@ -564,8 +564,8 @@ joinFuture ft = mapError (review _FutureError) $ do
 --   public key output belonging to the wallet that ran 'setupTokens'.
 setupTokens
     :: ( HasWriteTx s
-       , HasWatchAddress s
        , HasOwnPubKey s
+       , HasTxConfirmation s
        , AsFutureError e
        )
     => Contract s e FutureAccounts

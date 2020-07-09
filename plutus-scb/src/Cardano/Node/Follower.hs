@@ -18,7 +18,7 @@ import           Control.Monad.Freer.TH          (makeEffect)
 import qualified Data.Map                        as Map
 
 import           Cardano.Node.Types              (FollowerID, NodeFollowerState, _NodeFollowerState)
-import           Ledger                          (Block)
+import           Ledger                          (Block, Slot)
 import           Plutus.SCB.Utils                (tshow)
 import           Wallet.Emulator.Chain           (ChainState)
 import qualified Wallet.Emulator.Chain           as Chain
@@ -26,6 +26,7 @@ import qualified Wallet.Emulator.Chain           as Chain
 data NodeFollowerEffect r where
     NewFollower :: NodeFollowerEffect FollowerID
     GetBlocks :: FollowerID -> NodeFollowerEffect [Block]
+    GetSlot :: NodeFollowerEffect Slot
 
 makeEffect ''NodeFollowerEffect
 
@@ -50,3 +51,6 @@ handleNodeFollower = interpret $ \case
         logDebug $ "New last block: " <> tshow newLastBlock
         assign (_NodeFollowerState . at i) (Just newLastBlock)
         pure $ reverse $ take (newLastBlock - lastBlock) chain
+    GetSlot -> do
+        logDebug "Get curent slot"
+        use Chain.currentSlot

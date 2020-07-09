@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeOperators         #-}
 module Wallet.Emulator.Chain where
 
+import           Codec.Serialise            (Serialise)
 import           Control.Lens               hiding (index)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.State
@@ -21,6 +22,7 @@ import           Control.Monad.Freer.Writer
 import qualified Control.Monad.State        as S
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.List                  (partition)
+import           Data.List                  ((\\))
 import           Data.Maybe                 (isNothing)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable           (for)
@@ -53,27 +55,33 @@ data ChainState = ChainState {
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
     _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
     _currentSlot      :: Slot -- ^ The current slot number
-} deriving (Show)
+} deriving (Show, Generic, Serialise)
 
 emptyChainState :: ChainState
 emptyChainState = ChainState [] [] mempty 0
 
 makeLenses ''ChainState
 
-data ChainEffect r where
-    ProcessBlock :: ChainEffect Block
-    QueueTx :: Tx -> ChainEffect ()
+data ChainControlEffect r where
+    ProcessBlock :: ChainControlEffect Block
 
-processBlock :: Member ChainEffect effs => Eff effs Block
+data ChainEffect r where
+    QueueTx :: Tx -> ChainEffect ()
+    GetCurrentSlot :: ChainEffect Slot
+
+processBlock :: Member ChainControlEffect effs => Eff effs Block
 processBlock = send ProcessBlock
 
 queueTx :: Member ChainEffect effs => Tx -> Eff effs ()
 queueTx tx = send (QueueTx tx)
 
+getCurrentSlot :: Member ChainEffect effs => Eff effs Slot
+getCurrentSlot = send GetCurrentSlot
+
 type ChainEffs = '[State ChainState, Writer [ChainEvent]]
 
-handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
-handleChain = interpret $ \case
+handleControlChain :: Members ChainEffs effs => Eff (ChainControlEffect ': effs) ~> Eff effs
+handleControlChain = interpret $ \case
     ProcessBlock -> do
         st <- get
         let pool  = st ^. txPool
@@ -86,11 +94,16 @@ handleChain = interpret $ \case
                    & chainNewestFirst %~ (block :)
                    & index .~ idx'
                    & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
+
         put st'
         tell events
 
         pure block
+
+handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
+handleChain = interpret $ \case
     QueueTx tx -> modify $ over txPool (tx :)
+    GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.
 data ValidatedBlock = ValidatedBlock
@@ -150,5 +163,15 @@ validateEm h txn = do
         Right idx' -> do
             _ <- S.put idx'
             pure Nothing
+
+-- | Adds a block to ChainState
+addBlock :: Block -> ChainState -> ChainState
+addBlock blk st =
+  st & chainNewestFirst %~ (blk :)
+     & index %~ Index.insertBlock blk
+     -- The block update may contain txs that are not in this client's
+     -- `txPool` which will get ignored
+     & txPool %~ (\\ blk)
+     & currentSlot %~ (+ 1)
 
 makePrisms ''ChainEvent

@@ -29,6 +29,10 @@
       extraSrcFiles = [
         "src/costModel.json"
         "language-plutus-core/src/costModel.json"
+        "budgeting-bench/csvs/*.csv"
+        "language-plutus-core/budgeting-bench/csvs/*.csv"
+        "budgeting-bench/*.R"
+        "language-plutus-core/budgeting-bench/*.R"
         ];
       extraTmpFiles = [];
       extraDocFiles = [ "README.md" ];
@@ -40,6 +44,7 @@
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."algebraic-graphs" or (errorHandler.buildDepError "algebraic-graphs"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
+          (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -130,6 +135,7 @@
           "Language/PlutusCore/Analysis/Definitions"
           "Language/PlutusCore/Examples/Data/InterList"
           "Language/PlutusCore/Examples/Data/TreeForest"
+          "Language/PlutusCore/Examples/Data/Vec"
           "Language/PlutusCore/Generators/Internal/Denotation"
           "Language/PlutusCore/Generators/Internal/Dependent"
           "Language/PlutusCore/Generators/Internal/Entity"
@@ -343,6 +349,38 @@
           hsSourceDirs = [ "prop-test" ];
           mainPath = [ "Spec.hs" ];
           };
+        "language-plutus-core-test-cost-model" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            ];
+          buildable = true;
+          modules = [ "CostModelCreation" ];
+          hsSourceDirs = [ "test-cost-model" "cost-model-creation" ];
+          mainPath = [ "TestCostModels.hs" ];
+          };
         };
       benchmarks = {
         "language-plutus-core-bench" = {
@@ -389,6 +427,7 @@
         "language-plutus-core-create-cost-model" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
@@ -402,14 +441,17 @@
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
-            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
             (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
             (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
+            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             ];
           buildable = true;
-          hsSourceDirs = [ "create-cost-model" ];
+          modules = [ "CostModelCreation" ];
+          hsSourceDirs = [ "create-cost-model" "cost-model-creation" ];
           };
         };
       };

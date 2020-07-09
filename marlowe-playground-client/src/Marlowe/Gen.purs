@@ -115,10 +115,7 @@ genAccountId = do
   pure $ AccountId accountNumber accountOwner
 
 genToken :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m Token
-genToken = do
-  currencySymbol <- genCurrencySymbol
-  tokenName <- genTokenName
-  pure $ Token currencySymbol tokenName
+genToken = oneOf $ (pure $ Token "" "") :| [ Token <$> genCurrencySymbol <*> genTokenName ]
 
 genChoiceId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ChoiceId
 genChoiceId = do
@@ -132,7 +129,7 @@ genPayee = oneOf $ (Account <$> genAccountId) :| [ Party <$> genTerm (mkArgName 
 genAction :: forall m. MonadGen m => MonadRec m => Lazy (m Observation) => Lazy (m Value) => MonadReader Boolean m => Int -> m Action
 genAction size =
   oneOf
-    $ (Deposit <$> genAccountId <*> genTerm "to_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
+    $ (Deposit <$> genAccountId <*> genTerm "from_party" genParty <*> genTerm (mkArgName TokenType) genToken <*> genTerm (mkArgName ValueType) (genValue' size))
     :| [ Choice <$> genChoiceId <*> resize (_ - 1) (unfoldable (genTerm (mkArgName BoundType) genBound))
       , Notify <$> genTerm (mkArgName ObservationType) (genObservation' size)
       ]
@@ -194,8 +191,9 @@ genValue' size
             , NegValue <$> genNewValue
             , AddValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , SubValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
+            , MulValue <$> genNewValueIndexed 1 <*> genNewValueIndexed 2
             , Scale <$> genTermWrapper genRational <*> genNewValue
-            , ChoiceValue <$> genChoiceId <*> genNewValue
+            , ChoiceValue <$> genChoiceId
             , UseValue <$> genTermWrapper genValueId
             ]
   | otherwise =

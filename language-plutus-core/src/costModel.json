@@ -6,8 +6,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.30996143433234e-9,
-                "intercept": 1.41545920047551e-5
+                "slope": 2.57131534207968e-3,
+                "intercept": 12.4146115713131
             },
             "type": "min_size"
         }
@@ -39,8 +39,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.33921519134611e-9,
-                "intercept": 1.43097446413291e-5
+                "slope": 2.57341692046719e-3,
+                "intercept": 12.6588130087786
             },
             "type": "min_size"
         }
@@ -72,8 +72,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.30996143433234e-9,
-                "intercept": 1.41545920047551e-5
+                "slope": 2.57131534207968e-3,
+                "intercept": 12.4146115713131
             },
             "type": "min_size"
         }
@@ -85,11 +85,10 @@
         },
         "cpu": {
             "arguments": {
-                "model_exp_sizes_intercept": -3.74225655423081e-5,
-                "model_exp_sizes_slope_y": 2.63531321333189e-7,
-                "model_exp_sizes_slope_x": 2.63612294283545e-7
+                "slope": 3.42754298808757e-6,
+                "intercept": 80355.6007155468
             },
-            "type": "exp_multi_sizes"
+            "type": "multi_sizes"
         }
     },
     "eq_integer": {
@@ -99,8 +98,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.33774811837635e-9,
-                "intercept": 1.41608549833989e-5
+                "slope": 2.57340907447076e-3,
+                "intercept": 12.306528479468
             },
             "type": "min_size"
         }
@@ -112,8 +111,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": -5.16391281909432e-6,
-                "model_split_const_slope": 3.2101736280908e-7
+                "model_split_const_intercept": 65704.4730557542,
+                "model_split_const_slope": 1.03392142494617e-5
             },
             "type": "split_const_multi"
         }
@@ -125,8 +124,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 3.58113448947309e-9,
-                "intercept": 1.40978354762796e-5
+                "slope": 3.35479222708949e-3,
+                "intercept": 43.3510477552762
             },
             "type": "added_sizes"
         }
@@ -148,8 +147,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 2.33921519134611e-9,
-                "intercept": 1.43097446413291e-5
+                "slope": 2.57341692046719e-3,
+                "intercept": 12.6588130087786
             },
             "type": "min_size"
         }
@@ -171,8 +170,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": -5.16391281909432e-6,
-                "model_split_const_slope": 3.2101736280908e-7
+                "model_split_const_intercept": 65704.4730557542,
+                "model_split_const_slope": 1.03392142494617e-5
             },
             "type": "split_const_multi"
         }
@@ -194,8 +193,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": -5.16391281909432e-6,
-                "model_split_const_slope": 3.2101736280908e-7
+                "model_split_const_intercept": 65704.4730557542,
+                "model_split_const_slope": 1.03392142494617e-5
             },
             "type": "split_const_multi"
         }
@@ -207,8 +206,8 @@
         },
         "cpu": {
             "arguments": {
-                "slope": 3.42279587535475e-9,
-                "intercept": 1.42219290300741e-5
+                "slope": 3.30823202136667e-3,
+                "intercept": 46.3071391681501
             },
             "type": "added_sizes"
         }
@@ -240,8 +239,8 @@
         },
         "cpu": {
             "arguments": {
-                "model_split_const_intercept": -5.16391281909432e-6,
-                "model_split_const_slope": 3.2101736280908e-7
+                "model_split_const_intercept": 65704.4730557542,
+                "model_split_const_slope": 1.03392142494617e-5
             },
             "type": "split_const_multi"
         }

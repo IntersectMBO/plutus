@@ -1,13 +1,15 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StrictData         #-}
 
 module Cardano.Wallet.Types where
 
-import           Data.Aeson     (FromJSON, ToJSON)
-import           Data.Text      (Text)
-import           GHC.Generics   (Generic)
-import           Servant.Client (BaseUrl)
+import           Data.Aeson             (FromJSON, ToJSON)
+import           Data.Text              (Text)
+import           GHC.Generics           (Generic)
+import           Servant.Client         (BaseUrl)
+import           Wallet.Emulator.Wallet (Wallet)
 
 type WalletId = Integer
 
@@ -42,9 +44,10 @@ data CoinSelectionResponse =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-newtype Config =
+data Config =
     Config
         { baseUrl :: BaseUrl
+        , wallet  :: Wallet
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

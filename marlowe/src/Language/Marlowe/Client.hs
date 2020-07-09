@@ -249,9 +249,9 @@ rolePayoutScript = mkValidatorScript ($$(PlutusTx.compile [|| wrapped ||]))
 
 
 {-# INLINABLE rolePayoutValidator #-}
-rolePayoutValidator :: (CurrencySymbol, TokenName) -> () -> PendingTx -> Bool
-rolePayoutValidator (currency, role) _ pendingTx =
-    Val.valueOf (valueSpent pendingTx) currency role P.> 0
+rolePayoutValidator :: (CurrencySymbol, TokenName) -> () -> ValidatorCtx -> Bool
+rolePayoutValidator (currency, role) _ ctx =
+    Val.valueOf (valueSpent (valCtxTxInfo ctx)) currency role P.> 0
 
 
 marloweParams :: CurrencySymbol -> MarloweParams

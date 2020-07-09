@@ -1,6 +1,9 @@
 { packageSet ? import ./default.nix { rev = "in-nix-shell"; }
 }:
-with packageSet; haskell.packages.shellFor {
+with packageSet;
+let
+  pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
+in haskell.packages.shellFor {
   nativeBuildInputs = [
     # From nixpkgs
     pkgs.ghcid
@@ -16,6 +19,8 @@ with packageSet; haskell.packages.shellFor {
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
 
+    pyEnv
+
     # Deployment tools
     pkgs.terraform_0_11
     pkgs.awscli
@@ -27,9 +32,15 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
+    dev.packages.hie-bios
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
     pkgs.stack
+    dev.scripts.fixStylishHaskell
+    dev.scripts.fixPurty
+    dev.scripts.updateClientDeps
+    pkgs.rPackages.plotly # for generating R plots locally
+    pkgs.python3 # for @reactormonk who's running a python web server
   ];
 }

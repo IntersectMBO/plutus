@@ -50,7 +50,8 @@ stdLib =
                   , plcTermFile "Fix2"   $ fixN 2 fixBy
                   ]
               , treeFolderContents "Integer"
-                  [ plcTermFile "SuccInteger" succInteger
+                  [ plcTypeFile "integer"     integer
+                  , plcTermFile "SuccInteger" succInteger
                   ]
               , treeFolderContents "List"
                   [ plcTypeFile "List"       $ _recursiveType listData

@@ -97,10 +97,9 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 
 === Where to find tutorials
 
-The link:./plutus-tutorial/README{outfilesuffix}[plutus-tutorial] project contains a basic tutorial
-for using the Plutus Platform to write smart contracts.
+The link:./doc[doc] folder contains the documentation site.
 
-To build a full HTML version of the tutorial that you can view locally, build the `docs.plutus-tutorial` xref:building-with-nix[using Nix].
+To build a full HTML version of the site that you can view locally, build the `docs.site` attribute xref:building-with-nix[using Nix].
 
 === How to learn about the terminology we use
 

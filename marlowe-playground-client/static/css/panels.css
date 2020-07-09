@@ -94,13 +94,18 @@
   width: 16px;
 }
 
+.simulation-btn-icon {
+  height: 16px;
+  width: 16px;
+}
+
 .code-panel {
   display: flex;
 }
 
 .code-editor {
   background: var(--white);
-  padding-bottom: 16rem;
+  padding-bottom: 0rem;
   overflow-x: unset;
 }
 
@@ -123,7 +128,7 @@
 }
 
 .code-editor.expanded {
-  padding-bottom: 7rem;
+  padding-bottom: 4rem;
 }
 
 .expanded>.code-editor {
@@ -158,6 +163,7 @@
 .composer input {
   width: 40px;
   height: 30px;
+  padding: 0 0.1rem;
 }
 
 .transaction-composer .participants {
@@ -171,6 +177,10 @@
 
 .participants li+li {
   margin-top: 1rem;
+}
+
+.align-top {
+  align-self: flex-start;
 }
 
 button.plus-btn {
@@ -250,6 +260,10 @@ button.minus-btn:hover {
   width: calc(100% - 4rem);
   bottom: 0;
   z-index: 1;
+  resize: vertical;
+  overflow: hidden;
+  transform: rotateX(180deg);
+  box-shadow: var(--box-shadow-inverted);
 }
 
 .simulation-bottom-panel {
@@ -257,6 +271,10 @@ button.minus-btn:hover {
   width: 67%;
   bottom: 0;
   z-index: 0;
+  resize: vertical;
+  overflow: hidden;
+  transform: rotateX(180deg);
+  box-shadow: var(--box-shadow-inverted);
 }
 
 
@@ -283,65 +301,29 @@ button.minus-btn:hover {
 }
 
 .footer-panel-bg {
-  padding: 0rem 2rem;
-  background: var(--bg-light);
-  box-shadow: var(--box-shadow);
-}
-
-.footer-panel-bg.expanded {
   padding: 0.5rem 2rem;
-  min-height: 16rem;
-  height: 16rem;
+  background: var(--bg-light);
+  height: 100%;
 }
 
-.expanded>.panel-contents {
-  height: 12rem;
+.footer-panel-bg .panel-header {
+  height: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.panel-contents {
+  height: calc(100% - 3rem);
+  max-height: 70vh;
   overflow-x: scroll;
   display: block;
+  margin-bottom: 1.5rem;
 }
 
-@media (min-height:1024px) {
-  .footer-panel-bg.expanded {
-    padding: 0.5rem 2rem;
-    min-height: 15rem;
-    height: 15rem;
-  }
-
-  .expanded>.panel-contents {
-    height: 10rem;
-  }
-}
-
-@media (min-height:1050px) {
-  .footer-panel-bg.expanded {
-    padding: 0.5rem 2rem;
-    min-height: 17rem;
-    height: 17rem;
-  }
-
-  .expanded>.panel-contents {
-    height: 12rem;
-  }
-}
-
-@media (min-height:1200px) {
-  .footer-panel-bg.expanded {
-    padding: 0.5rem 2rem;
-    min-height: 17rem;
-    height: 17rem;
-  }
-
-  .expanded>.panel-contents {
-    height: 12rem;
-  }
-}
-
-.footer-panel-bg.footer-panel-haskell {
-  /* height: 13rem; */
-}
-
-.footer-panel-bg.footer-panel-haskell.expanded {
-  /* height: 17rem; */
+.expanded>.haskell-panel-contents {
+  height: calc(100% - 3rem);
+  max-height: 70vh;
+  overflow-x: scroll;
+  display: block;
 }
 
 /* V impoprtant to add this, either treble the class like this to enhance specificity or use !important if needed */
@@ -353,17 +335,13 @@ button.minus-btn:hover {
   display: block;
 }
 
-.panel-contents {
-  display: none;
-}
-
 .flex-left {
   flex-direction: column;
   align-items: flex-start;
 }
 
 .haskell-buttons {
-  width: 17rem;
+  width: 27rem;
   margin-left: 1rem;
 }
 
@@ -392,6 +370,12 @@ button.minus-btn:hover {
   cursor: default;
 }
 
+.global-actions li a.disabled {
+  color: lightgray;
+  pointer-events: none;
+  cursor: default;
+}
+
 .rotate-left {
   transform: rotate(270deg);
 }
@@ -409,7 +393,7 @@ button.minus-btn:hover {
 }
 
 .analyse-btn {
-  margin: 1rem 0rem;
+  margin: 1rem 0rem 4rem 0rem;
 }
 
 .error-content {
@@ -421,9 +405,7 @@ button.minus-btn:hover {
 }
 
 .editor-options select {
-  height: 30px;
-  border: none;
-  background-color: var(--bg-dark);
+  width: 6rem;
 }
 
 .analysis-result-title {
@@ -442,4 +424,60 @@ button.minus-btn:hover {
 .indented-loweralpha-enum {
   list-style-type: lower-alpha;
   padding-left: 1.5rem;
+}
+
+.contract-buttons {
+  width: 7rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.single-contract-button {
+  display: flex;
+  justify-content: space-between;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.flip-x {
+  transform: rotateX(180deg);
+}
+
+.wallet-contents .code {
+  height: auto;
+  min-height: 100px;
+  white-space: pre;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  padding-bottom: 3rem;
+}
+
+.wallet-contents .code code {
+  display: block;
+}
+
+.wallet-contents .code:before {
+  counter-reset: listing;
+}
+
+.wallet-contents .code code {
+  counter-increment: listing;
+}
+
+.wallet-contents .code code::before {
+  content: counter(listing);
+  display: inline-block;
+  margin-right: 1rem;
+  width: 36px;
+  padding-left: auto;
+  margin-left: auto;
+  text-align: right;
+  color: #237893;
+  background: var(--white);
+}
+
+.success-code {
+  height: auto;
+  padding-bottom: 3rem;
 }

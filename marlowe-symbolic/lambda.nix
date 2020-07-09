@@ -26,7 +26,7 @@ let
     configureFlags = old.configureFlags ++ [ "no-shared" ];
   });
   gmp6 = pkgs.gmp6.override { withStatic = true; };
-  zlib = pkgs.zlib.static;
+  zlib = pkgs.zlib.override { static = true; };
   ncurses = pkgs.ncurses.override { enableStatic = true; };
   libffi = pkgs.libffi.overrideAttrs (old: { dontDisableStatic = true; });
   numactl = pkgs.numactl.overrideAttrs (_: { configureFlags = "--enable-static"; });

@@ -19,66 +19,66 @@ import           Ledger.Constraints.TxConstraints
 import           Ledger.Interval                  (contains)
 import           Ledger.Scripts                   (Datum (..))
 import           Ledger.Tx                        (TxOut (..))
-import           Ledger.Validation                (PendingTx, PendingTx' (..), PendingTxIn' (..))
+import           Ledger.Validation                (TxInInfo (..), TxInfo (..), ValidatorCtx (..))
 import qualified Ledger.Validation                as V
 import           Ledger.Value                     (leq)
 import qualified Ledger.Value                     as Value
 
 {-# INLINABLE checkOwnInputConstraint #-}
-checkOwnInputConstraint :: PendingTx -> InputConstraint a -> Bool
-checkOwnInputConstraint ptx InputConstraint{icTxOutRef} =
-    let checkInput PendingTxIn{pendingTxInRef} =
-            pendingTxInRef == icTxOutRef -- TODO: We should also check the redeemer but we can't right now because it's hashed
+checkOwnInputConstraint :: ValidatorCtx -> InputConstraint a -> Bool
+checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
+    let checkInput TxInInfo{txInInfoOutRef} =
+            txInInfoOutRef == icTxOutRef -- TODO: We should also check the redeemer but we can't right now because it's hashed
     in traceIfFalseH "Input constraint"
-    $ any checkInput (pendingTxInputs ptx)
+    $ any checkInput (txInfoInputs valCtxTxInfo)
 
 {-# INLINABLE checkOwnOutputConstraint #-}
 checkOwnOutputConstraint
     :: IsData o
-    => PendingTx
+    => ValidatorCtx
     -> OutputConstraint o
     -> Bool
-checkOwnOutputConstraint ptx OutputConstraint{ocDatum, ocValue} =
-    let hsh = V.findDatumHash (Datum $ toData ocDatum) ptx
+checkOwnOutputConstraint ctx@ValidatorCtx{valCtxTxInfo} OutputConstraint{ocDatum, ocValue} =
+    let hsh = V.findDatumHash (Datum $ toData ocDatum) valCtxTxInfo
         checkOutput TxOut{txOutValue, txOutType=V.PayToScript svh} =
             txOutValue == ocValue && hsh == Just svh
         checkOutput _       = False
     in traceIfFalseH "Output constraint"
-    $ any checkOutput (V.getContinuingOutputs ptx)
+    $ any checkOutput (V.getContinuingOutputs ctx)
 
 {-# INLINABLE checkTxConstraint #-}
-checkTxConstraint :: PendingTx -> TxConstraint -> Bool
-checkTxConstraint ptx = \case
+checkTxConstraint :: ValidatorCtx -> TxConstraint -> Bool
+checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
     MustIncludeDatum dv ->
         traceIfFalseH "Missing datum"
-        $ dv `elem` fmap snd (pendingTxData ptx)
+        $ dv `elem` fmap snd (txInfoData valCtxTxInfo)
     MustValidateIn interval ->
         traceIfFalseH "Wrong validation interval"
-        $ interval `contains` pendingTxValidRange ptx
+        $ interval `contains` txInfoValidRange valCtxTxInfo
     MustBeSignedBy pubKey ->
         traceIfFalseH "Missing signature"
-        $ ptx `V.txSignedBy` pubKey
+        $ valCtxTxInfo `V.txSignedBy` pubKey
     MustSpendValue vl ->
         traceIfFalseH "Spent value not OK"
-        $ vl `leq` V.valueSpent ptx
+        $ vl `leq` V.valueSpent valCtxTxInfo
     MustSpendPubKeyOutput txOutRef ->
         traceIfFalseH "Public key output not spent"
-        $ maybe False (isNothing . pendingTxInWitness) (V.findTxInByTxOutRef txOutRef ptx)
+        $ maybe False (isNothing . txInInfoWitness) (V.findTxInByTxOutRef txOutRef valCtxTxInfo)
     MustSpendScriptOutput txOutRef _ ->
         traceIfFalseH "Script output not spent"
-        -- Unfortunately we can't check the redeemer, because PendingTx only
+        -- Unfortunately we can't check the redeemer, because TxInfo only
         -- gives us the redeemer's hash, but 'MustSpendScriptOutput' gives
         -- us the full redeemer
-        $ isJust (V.findTxInByTxOutRef txOutRef ptx)
+        $ isJust (V.findTxInByTxOutRef txOutRef valCtxTxInfo)
     MustForgeValue mps tn v ->
         traceIfFalseH "Value forged not OK"
-        $ Value.valueOf (pendingTxForge ptx) (Value.mpsSymbol mps) tn == v
+        $ Value.valueOf (txInfoForge valCtxTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
         traceIfFalseH "MustPayToPubKey"
-        $ vl `leq` V.valuePaidTo ptx pk
+        $ vl `leq` V.valuePaidTo valCtxTxInfo pk
     MustPayToOtherScript vlh dv vl ->
-        let outs = V.pendingTxOutputs ptx
-            hsh = V.findDatumHash dv ptx
+        let outs = V.txInfoOutputs valCtxTxInfo
+            hsh = V.findDatumHash dv valCtxTxInfo
             addr = Address.scriptHashAddress vlh
             checkOutput TxOut{txOutAddress, txOutValue, txOutType=V.PayToScript svh} =
                 txOutValue == vl && hsh == Just svh && txOutAddress == addr
@@ -88,13 +88,13 @@ checkTxConstraint ptx = \case
         $ any checkOutput outs
     MustHashDatum dvh dv ->
         traceIfFalseH "MustHashDatum"
-        $ V.findDatum dvh ptx == Just dv
+        $ V.findDatum dvh valCtxTxInfo == Just dv
 
-{-# INLINABLE checkPendingTx #-}
--- | Does the 'PendingTx' satisfy the constraints?
-checkPendingTx :: forall i o. IsData o => TxConstraints i o -> PendingTx -> Bool
-checkPendingTx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
-    traceIfFalseH "checkPendingTx failed"
+{-# INLINABLE checkValidatorCtx #-}
+-- | Does the 'ValidatorCtx' satisfy the constraints?
+checkValidatorCtx :: forall i o. IsData o => TxConstraints i o -> ValidatorCtx -> Bool
+checkValidatorCtx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
+    traceIfFalseH "checkValidatorCtx failed"
     $ all (checkTxConstraint ptx) txConstraints
     && all (checkOwnInputConstraint ptx) txOwnInputs
     && all (checkOwnOutputConstraint ptx) txOwnOutputs

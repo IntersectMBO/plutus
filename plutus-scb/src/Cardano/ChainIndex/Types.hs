@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StrictData         #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 module Cardano.ChainIndex.Types where

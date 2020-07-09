@@ -36,7 +36,7 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
-import           Data.Text.Prettyprint.Doc (Pretty (..), colon, viaShow, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc (Pretty (..), colon, vsep, (<+>))
 import           GHC.Generics              (Generic)
 
 -- $checkpoints
@@ -70,7 +70,7 @@ newtype CheckpointStore = CheckpointStore { unCheckpointStore :: Map CheckpointK
 
 instance Pretty CheckpointStore where
     pretty (CheckpointStore mp) =
-        let p k v = pretty k <> colon <+> viaShow v in
+        let p k v = pretty k <> colon <+> (pretty . take 100 . show) v in
         vsep (uncurry p <$> Map.toList mp)
 
 _CheckpointStore :: Iso' CheckpointStore (Map CheckpointKey Value)

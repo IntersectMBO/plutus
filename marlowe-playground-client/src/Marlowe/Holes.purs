@@ -10,15 +10,18 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Lens (Lens', over)
+import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (length, splitAt, toLower)
+import Data.String (Pattern(..), contains, length, splitAt, toLower)
 import Data.String.CodeUnits (dropRight)
 import Data.String.Extra (unlines)
+import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
@@ -124,7 +127,7 @@ getMarloweConstructors ValueIdType = mempty
 
 getMarloweConstructors ActionType =
   Map.fromFoldable
-    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "to_party", DataArg TokenType, DataArg ValueType ])
+    [ (Tuple "Deposit" [ GenArg AccountIdType, NamedDataArg "from_party", DataArg TokenType, DataArg ValueType ])
     , (Tuple "Choice" [ GenArg ChoiceIdType, ArrayArg "bounds" ])
     , (Tuple "Notify" [ DataArg ObservationType ])
     ]
@@ -144,8 +147,9 @@ getMarloweConstructors ValueType =
     , (Tuple "NegValue" [ DataArg ValueType ])
     , (Tuple "AddValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "SubValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
+    , (Tuple "MulValue" [ DataArgIndexed 1 ValueType, DataArgIndexed 2 ValueType ])
     , (Tuple "Scale" [ DefaultRational (Rational one one), DataArg ValueType ])
-    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType, DataArg ValueType ])
+    , (Tuple "ChoiceValue" [ GenArg ChoiceIdType ])
     , (Tuple "SlotIntervalStart" [])
     , (Tuple "SlotIntervalEnd" [])
     , (Tuple "UseValue" [ DefaultString "valueId" ])
@@ -290,16 +294,31 @@ instance hasArgsTerm :: Args a => Args (Term a) where
 class HasMarloweHoles a where
   getHoles :: a -> Holes -> Holes
 
-class HasParties a where
-  getParties :: a -> Set Party -> Set Party
+type ContractData
+  = { parties :: Set Party
+    , tokens :: Set Token
+    }
+
+_parties :: forall s. Lens' { parties :: Set Party | s } (Set Party)
+_parties = prop (SProxy :: SProxy "parties")
+
+_tokens :: forall s. Lens' { tokens :: Set Token | s } (Set Token)
+_tokens = prop (SProxy :: SProxy "tokens")
+
+class HasContractData a where
+  gatherContractData :: a -> ContractData -> ContractData
 
 instance termHasMarloweHoles :: (IsMarloweType a, HasMarloweHoles a) => HasMarloweHoles (Term a) where
   getHoles (Term a _) m = getHoles a m
   getHoles h m = insertHole h m
 
-instance termHasParties :: HasParties a => HasParties (Term a) where
-  getParties (Term a _) s = getParties a s
-  getParties _ s = s
+instance termHasContractData :: HasContractData a => HasContractData (Term a) where
+  gatherContractData (Term a _) s = gatherContractData a s
+  gatherContractData _ s = s
+
+instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
+  fromTerm (Term a _) = fromTerm a
+  fromTerm _ = Nothing
 
 getPosition :: forall a. Term a -> { row :: Pos, column :: Pos }
 getPosition (Term _ pos) = pos
@@ -330,8 +349,8 @@ instance hasArgsTermWrapper :: Args a => Args (TermWrapper a) where
 instance fromTermTermWrapper :: FromTerm a b => FromTerm (TermWrapper a) b where
   fromTerm (TermWrapper a _) = fromTerm a
 
-instance termWrapperHasParties :: HasParties a => HasParties (TermWrapper a) where
-  getParties (TermWrapper a _) s = getParties a s
+instance termWrapperHasContractData :: HasContractData a => HasContractData (TermWrapper a) where
+  gatherContractData (TermWrapper a _) s = gatherContractData a s
 
 mkDefaultTermWrapper :: forall a. a -> TermWrapper a
 mkDefaultTermWrapper a = TermWrapper a { row: 0, column: 0 }
@@ -374,21 +393,37 @@ marloweHoleToSuggestionText stripParens firstHole@(MarloweHole { marloweType }) 
     else
       fullInsertText
 
-marloweHoleToSuggestion :: Boolean -> IRange -> MarloweHole -> String -> CompletionItem
-marloweHoleToSuggestion stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
+marloweHoleToSuggestion :: String -> Boolean -> IRange -> MarloweHole -> String -> CompletionItem
+marloweHoleToSuggestion original stripParens range marloweHole@(MarloweHole { marloweType }) constructorName =
   let
     kind = completionItemKind "Constructor"
 
     insertText = marloweHoleToSuggestionText stripParens marloweHole constructorName
-  in
-    { label: constructorName, kind, range, insertText }
 
-holeSuggestions :: Boolean -> IRange -> MarloweHole -> Array CompletionItem
-holeSuggestions stripParens range marloweHole@(MarloweHole { name, marloweType }) =
+    preselect = contains (Pattern original) constructorName
+
+    -- Weirdly, the item that has sortText equal to the word you typed is shown at the _bottom_ of the list so
+    -- since we want it to be at the top (so if you typed `W` you would have `When` at the top) we make sure it
+    -- is the _only_ one that doesn't have the 'correct' sortText.
+    -- The weirdest thing happens here, if you use mempty instead of "*" then Debug.trace shows constructorName
+    -- and this causes the ordering in Monaco not to work, it's crazy that Debug.trace seems to display the wrong thing
+    sortText = if preselect then "*" else original
+  in
+    { label: constructorName
+    , kind
+    , range
+    , insertText
+    , filterText: original
+    , sortText
+    , preselect
+    }
+
+holeSuggestions :: String -> Boolean -> IRange -> MarloweHole -> Array CompletionItem
+holeSuggestions original stripParens range marloweHole@(MarloweHole { name, marloweType }) =
   let
     marloweHoles = getMarloweConstructors marloweType
   in
-    map (marloweHoleToSuggestion stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
+    map (marloweHoleToSuggestion original stripParens range marloweHole) $ Set.toUnfoldable $ Map.keys marloweHoles
 
 -- a Monoid for collecting Holes
 newtype Holes
@@ -397,6 +432,10 @@ newtype Holes
 derive instance genericHoles :: Generic Holes _
 
 derive instance newtypeHoles :: Newtype Holes _
+
+derive newtype instance eqHoles :: Eq Holes
+
+derive newtype instance ordHoles :: Ord Holes
 
 derive newtype instance showHoles :: Show Holes
 
@@ -417,8 +456,8 @@ insertHole (Hole name proxy { row, column }) (Holes m) = Holes $ Map.alter f nam
 instance arrayHasMarloweHoles :: HasMarloweHoles a => HasMarloweHoles (Array a) where
   getHoles as m = foldMap (\a -> getHoles a m) as
 
-instance arrayHasParties :: HasParties a => HasParties (Array a) where
-  getParties as s = foldMap (\a -> getParties a s) as
+instance arrayHasContractData :: HasContractData a => HasContractData (Array a) where
+  gatherContractData as s = foldMap (\a -> gatherContractData a s) as
 
 data Bound
   = Bound BigInteger BigInteger
@@ -477,8 +516,8 @@ instance partyHasMarloweHoles :: HasMarloweHoles Party where
   getHoles (PK a) m = m
   getHoles (Role a) m = m
 
-instance partyHasParties :: HasParties Party where
-  getParties party s = Set.insert party s
+instance partyHasContractData :: HasContractData Party where
+  gatherContractData party s = over _parties (Set.insert party) s
 
 data AccountId
   = AccountId BigInteger (Term Party)
@@ -509,8 +548,8 @@ instance accountIdIsMarloweType :: IsMarloweType AccountId where
 instance accountIdHasMarloweHoles :: HasMarloweHoles AccountId where
   getHoles (AccountId a b) m = m <> getHoles b m
 
-instance accountIdHasParties :: HasParties AccountId where
-  getParties (AccountId _ party) s = getParties party s
+instance accountIdHasContractData :: HasContractData AccountId where
+  gatherContractData (AccountId _ party) s = gatherContractData party s
 
 data Token
   = Token String String
@@ -522,8 +561,7 @@ derive instance eqToken :: Eq Token
 derive instance ordToken :: Ord Token
 
 instance showToken :: Show Token where
-  show (Token "" "") = "Ada"
-  show tok = genericShow tok
+  show = genericShow
 
 instance prettyToken :: Pretty Token where
   pretty = genericPretty
@@ -540,6 +578,9 @@ instance tokenIsMarloweType :: IsMarloweType Token where
 
 instance tokenHasMarloweHoles :: HasMarloweHoles Token where
   getHoles (Token a b) m = m
+
+instance tokenHasContractData :: HasContractData Token where
+  gatherContractData token s = over _tokens (Set.insert token) s
 
 data ChoiceId
   = ChoiceId String (Term Party)
@@ -570,8 +611,8 @@ instance choiceIdIsMarloweType :: IsMarloweType ChoiceId where
 instance choiceIdHasMarloweHoles :: HasMarloweHoles ChoiceId where
   getHoles (ChoiceId a b) m = m <> insertHole b m
 
-instance choiceIdHasParties :: HasParties ChoiceId where
-  getParties (ChoiceId _ party) s = getParties party s
+instance choiceIdHasContractData :: HasContractData ChoiceId where
+  gatherContractData (ChoiceId _ party) s = gatherContractData party s
 
 data Action
   = Deposit AccountId (Term Party) (Term Token) (Term Value)
@@ -600,10 +641,10 @@ instance actionFromTerm :: FromTerm Action S.Action where
 instance actionMarloweType :: IsMarloweType Action where
   marloweType _ = ActionType
 
-instance actionHasParties :: HasParties Action where
-  getParties (Deposit accountId party _ value) s = getParties accountId s <> getParties party s <> getParties value s
-  getParties (Notify obs) s = getParties obs s
-  getParties _ s = s
+instance actionHasContractData :: HasContractData Action where
+  gatherContractData (Deposit accountId party token value) s = gatherContractData accountId s <> gatherContractData party s <> gatherContractData value s <> gatherContractData token s
+  gatherContractData (Choice choiceId _) s = gatherContractData choiceId s
+  gatherContractData (Notify obs) s = gatherContractData obs s
 
 data Payee
   = Account AccountId
@@ -637,9 +678,9 @@ instance payeeHasMarloweHoles :: HasMarloweHoles Payee where
   getHoles (Account a) m = getHoles a m
   getHoles (Party a) m = insertHole a m
 
-instance payeeHasParties :: HasParties Payee where
-  getParties (Account accountId) s = getParties accountId s
-  getParties (Party party) s = getParties party s
+instance payeeHasContractData :: HasContractData Payee where
+  gatherContractData (Account accountId) s = gatherContractData accountId s
+  gatherContractData (Party party) s = gatherContractData party s
 
 data Case
   = Case (Term Action) (Term Contract)
@@ -664,8 +705,8 @@ instance caseFromTerm :: FromTerm Case S.Case where
 instance caseMarloweType :: IsMarloweType Case where
   marloweType _ = CaseType
 
-instance caseHasParties :: HasParties Case where
-  getParties (Case action contract) s = getParties action s <> getParties contract s
+instance caseHasContractData :: HasContractData Case where
+  gatherContractData (Case action contract) s = gatherContractData action s <> gatherContractData contract s
 
 data Value
   = AvailableMoney AccountId (Term Token)
@@ -673,8 +714,9 @@ data Value
   | NegValue (Term Value)
   | AddValue (Term Value) (Term Value)
   | SubValue (Term Value) (Term Value)
+  | MulValue (Term Value) (Term Value)
   | Scale (TermWrapper Rational) (Term Value)
-  | ChoiceValue ChoiceId (Term Value)
+  | ChoiceValue ChoiceId
   | SlotIntervalStart
   | SlotIntervalEnd
   | UseValue (TermWrapper ValueId)
@@ -702,8 +744,9 @@ instance valueFromTerm :: FromTerm Value S.Value where
   fromTerm (NegValue a) = S.NegValue <$> fromTerm a
   fromTerm (AddValue a b) = S.AddValue <$> fromTerm a <*> fromTerm b
   fromTerm (SubValue a b) = S.SubValue <$> fromTerm a <*> fromTerm b
+  fromTerm (MulValue a b) = S.MulValue <$> fromTerm a <*> fromTerm b
   fromTerm (Scale a b) = S.Scale <$> fromTerm a <*> fromTerm b
-  fromTerm (ChoiceValue a b) = S.ChoiceValue <$> fromTerm a <*> fromTerm b
+  fromTerm (ChoiceValue a) = S.ChoiceValue <$> fromTerm a
   fromTerm SlotIntervalStart = pure S.SlotIntervalStart
   fromTerm SlotIntervalEnd = pure S.SlotIntervalEnd
   fromTerm (UseValue a) = S.UseValue <$> fromTerm a
@@ -712,15 +755,16 @@ instance valueFromTerm :: FromTerm Value S.Value where
 instance valueIsMarloweType :: IsMarloweType Value where
   marloweType _ = ValueType
 
-instance valueHasParties :: HasParties Value where
-  getParties (AvailableMoney a _) s = getParties a s
-  getParties (NegValue a) s = getParties a s
-  getParties (AddValue a b) s = getParties a s <> getParties b s
-  getParties (SubValue a b) s = getParties a s <> getParties b s
-  getParties (Scale _ a) s = getParties a s
-  getParties (ChoiceValue a b) s = getParties a s <> getParties b s
-  getParties (Cond c a b) s = getParties c s <> getParties a s <> getParties b s
-  getParties _ s = s
+instance valueHasContractData :: HasContractData Value where
+  gatherContractData (AvailableMoney a token) s = gatherContractData a s <> gatherContractData token s
+  gatherContractData (NegValue a) s = gatherContractData a s
+  gatherContractData (AddValue a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (SubValue a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (MulValue a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (Scale _ a) s = gatherContractData a s
+  gatherContractData (ChoiceValue a) s = gatherContractData a s
+  gatherContractData (Cond c a b) s = gatherContractData c s <> gatherContractData a s <> gatherContractData b s
+  gatherContractData _ s = s
 
 data Observation
   = AndObs (Term Observation) (Term Observation)
@@ -751,10 +795,6 @@ instance hasArgsObservation :: Args Observation where
   hasArgs a = genericHasArgs a
   hasNestedArgs a = genericHasNestedArgs a
 
-instance fromTermTerm :: FromTerm a b => FromTerm (Term a) b where
-  fromTerm (Term a _) = fromTerm a
-  fromTerm _ = Nothing
-
 instance observationFromTerm :: FromTerm Observation S.Observation where
   fromTerm (AndObs a b) = S.AndObs <$> fromTerm a <*> fromTerm b
   fromTerm (OrObs a b) = S.OrObs <$> fromTerm a <*> fromTerm b
@@ -771,17 +811,17 @@ instance observationFromTerm :: FromTerm Observation S.Observation where
 instance observationIsMarloweType :: IsMarloweType Observation where
   marloweType _ = ObservationType
 
-instance observationHasParties :: HasParties Observation where
-  getParties (AndObs a b) s = getParties a s <> getParties b s
-  getParties (OrObs a b) s = getParties a s <> getParties b s
-  getParties (NotObs a) s = getParties a s
-  getParties (ChoseSomething a) s = getParties a s
-  getParties (ValueGE a b) s = getParties a s <> getParties b s
-  getParties (ValueGT a b) s = getParties a s <> getParties b s
-  getParties (ValueLT a b) s = getParties a s <> getParties b s
-  getParties (ValueLE a b) s = getParties a s <> getParties b s
-  getParties (ValueEQ a b) s = getParties a s <> getParties b s
-  getParties _ s = s
+instance observationHasContractData :: HasContractData Observation where
+  gatherContractData (AndObs a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (OrObs a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (NotObs a) s = gatherContractData a s
+  gatherContractData (ChoseSomething a) s = gatherContractData a s
+  gatherContractData (ValueGE a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (ValueGT a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (ValueLT a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (ValueLE a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (ValueEQ a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData _ s = s
 
 data Contract
   = Close
@@ -816,13 +856,13 @@ instance contractFromTerm :: FromTerm Contract S.Contract where
 instance contractIsMarloweType :: IsMarloweType Contract where
   marloweType _ = ContractType
 
-instance contractHasParties :: HasParties Contract where
-  getParties Close s = s
-  getParties (Pay a b _ c d) s = getParties a s <> getParties b s <> getParties c s <> getParties d s
-  getParties (If a b c) s = getParties a s <> getParties b s <> getParties c s
-  getParties (When a _ b) s = getParties a s <> getParties b s
-  getParties (Let _ a b) s = getParties a s <> getParties b s
-  getParties (Assert a b) s = getParties a s <> getParties b s
+instance contractHasContractData :: HasContractData Contract where
+  gatherContractData Close s = s
+  gatherContractData (Pay a b c d e) s = gatherContractData a s <> gatherContractData b s <> gatherContractData c s <> gatherContractData d s <> gatherContractData e s
+  gatherContractData (If a b c) s = gatherContractData a s <> gatherContractData b s <> gatherContractData c s
+  gatherContractData (When as _ b) s = gatherContractData as s <> gatherContractData b s
+  gatherContractData (Let _ a b) s = gatherContractData a s <> gatherContractData b s
+  gatherContractData (Assert a b) s = gatherContractData a s <> gatherContractData b s
 
 newtype ValueId
   = ValueId String

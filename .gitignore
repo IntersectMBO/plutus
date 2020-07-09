@@ -48,6 +48,9 @@ stack.yaml.lock
 # Agda
 *.agdai
 
+# Python
+__pycache__
+
 # Nix
 result*
 pkgs/.cabal

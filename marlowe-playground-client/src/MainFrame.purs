@@ -1,23 +1,20 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Control.Bind (void)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
-import Data.Function (flip, identity)
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
-import Data.Num (negate)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Halogen (Component, ComponentHTML, query)
+import Halogen (Component, ComponentHTML, liftEffect, query, request)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
@@ -34,20 +31,25 @@ import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
 import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), SourceCode(SourceCode), _InterpreterResult)
 import Language.Haskell.Monaco as HM
+import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Blockly as MB
+import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
-import Prelude (Unit, bind, const, discard, eq, mempty, pure, show, unit, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, bind, const, discard, eq, flip, identity, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types as ST
+import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view)
+import Text.Pretty (pretty)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
 
 initialState :: FrontendState
@@ -111,9 +113,15 @@ handleAction _ (HandleSimulationMessage (ST.BlocklyCodeSet source)) = do
 
 handleAction _ (HandleSimulationMessage (ST.WebsocketMessage msg)) = H.raise (WebsocketMessage msg)
 
-handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = assign _activeHaskellDemo ""
+handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
+  mContract <- query _simulationSlot unit (request ST.GetCurrentContract)
+  case mContract of
+    Nothing -> pure unit
+    Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction _ (HaskellHandleEditorMessage _) = pure unit
+handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = do
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+  assign _activeHaskellDemo ""
 
 handleAction _ (HaskellSelectEditorKeyBindings bindings) = do
   assign _haskellEditorKeybindings bindings
@@ -142,7 +150,7 @@ handleAction settings CompileHaskellProgram = do
         markers = case result of
           Success (JsonEither (Left errors)) -> toMarkers errors
           _ -> []
-      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers unit)
+      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
 
 handleAction _ (LoadHaskellScript key) = do
   case Map.lookup key StaticData.demoFiles of
@@ -151,15 +159,32 @@ handleAction _ (LoadHaskellScript key) = do
       void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
       assign _activeHaskellDemo key
 
-handleAction _ SendResult = do
+handleAction _ SendResultToSimulator = do
   mContract <- use _compilationResult
   let
     contract = case mContract of
-      Success (JsonEither (Right x)) -> view (_InterpreterResult <<< _result <<< _RunResult) x
+      Success (JsonEither (Right result)) ->
+        let
+          unformatted = view (_InterpreterResult <<< _result <<< _RunResult) result
+        in
+          case parseContract unformatted of
+            Right pcon -> show $ pretty pcon
+            Left _ -> unformatted
       _ -> ""
   void $ query _simulationSlot unit (ST.SetEditorText contract unit)
   void $ query _simulationSlot unit (ST.ResetContract unit)
   selectSimulationView
+
+handleAction _ SendResultToBlockly = do
+  mContract <- use _compilationResult
+  case mContract of
+    Success (JsonEither (Right result)) -> do
+      let
+        source = view (_InterpreterResult <<< _result <<< _RunResult) result
+      void $ query _blocklySlot unit (Blockly.SetCode source unit)
+      assign _view BlocklyEditor
+      void $ query _blocklySlot unit (Blockly.Resize unit)
+    _ -> pure unit
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -169,8 +194,14 @@ handleAction _ (ShowBottomPanel val) = do
 handleAction _ (HandleBlocklyMessage Initialized) = pure unit
 
 handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
-  void $ query _simulationSlot unit (ST.SetEditorText code unit)
-  assign _view Simulation
+  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
+  let
+    hasStarted = fromMaybe false mHasStarted
+  if hasStarted then
+    void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
+  else do
+    void $ query _simulationSlot unit (ST.SetEditorText code unit)
+    selectSimulationView
 
 ------------------------------------------------------------
 runAjax ::
@@ -276,6 +307,13 @@ render settings state =
                 [ div [ class_ tabIcon ] []
                 , div [] [ text "Blockly" ]
                 ]
+            , div
+                [ classes ([ tabLink, aCenter, flexCol, ClassName "wallet-tab" ] <> isActiveTab state WalletEmulator)
+                , onClick $ const $ Just $ ChangeView WalletEmulator
+                ]
+                [ div [ class_ tabIcon ] []
+                , div [] [ text "Wallets" ]
+                ]
             , div [ class_ (ClassName "nav-bottom-links") ]
                 [ a [ href "./tutorial", target "_blank", classes [ btnSecondary, aHorizontal, ClassName "open-link-icon" ] ] [ text "Tutorial" ]
                 , p_ [ text "Privacy Policy" ]
@@ -298,6 +336,9 @@ render settings state =
                 , MB.toolbox
                 , MB.workspaceBlocks
                 ]
+            -- wallet panel
+            , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]
+                [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
             , bottomPanel
             ]
         ]

@@ -35,8 +35,7 @@ type HasTxConfirmation s =
 newtype TxConfirmed =
     TxConfirmed { unTxConfirmed :: TxId }
         deriving stock (Eq, Ord, Generic, Show)
-        deriving newtype (ToJSON, FromJSON)
-        deriving anyclass IotsType
+        deriving anyclass (ToJSON, FromJSON, IotsType)
         deriving Pretty via TxId
 
 type TxConfirmation = TxConfirmationSym .== (TxConfirmed, TxId)

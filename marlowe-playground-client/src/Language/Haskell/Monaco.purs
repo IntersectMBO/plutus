@@ -31,6 +31,5 @@ settings setup =
   , documentFormattingEditProvider: Nothing
   , refLabel
   , owner: "haskellEditor"
-  , getModelMarkers: const []
   , setup
   }
