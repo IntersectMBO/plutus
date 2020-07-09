@@ -40,22 +40,22 @@ tests = testGroup "all tests"
 
 -- |Property: Kind checker for generated types is sound.
 prop_checkKindSound :: TyProp
-prop_checkKindSound _ _ k tyQ = isSafe $ do
+prop_checkKindSound k _ tyQ = isSafe $ do
   ty <- liftQuote tyQ
   checkKind defConfig () ty k
 
 -- |Property: Normalisation preserves kind.
 prop_normalizePreservesKind :: TyProp
-prop_normalizePreservesKind _ _ k tyQ = isSafe $ do
+prop_normalizePreservesKind k _ tyQ = isSafe $ do
   ty <- liftQuote tyQ
   ty' <- unNormalized <$> normalizeType ty
   checkKind defConfig () ty' k
 
 -- |Property: Normalisation for generated types is sound.
 prop_normalizeTypeSound :: TyProp
-prop_normalizeTypeSound kG tyG _ tyQ = isSafe $ do
+prop_normalizeTypeSound k tyG tyQ = isSafe $ do
   ty1 <- unNormalized <$> (normalizeType =<< liftQuote tyQ)
-  ty2 <- toClosedType kG (normalizeTypeG tyG)
+  ty2 <- toClosedType k (normalizeTypeG tyG)
   return (ty1 == ty2)
 
 -- |Check if the type/kind checker threw any errors.

@@ -31,14 +31,14 @@ import           Text.Printf
 
 
 -- |The type for properties with access to both representations.
-type TyProp =  Kind ()
-            -> ClosedTypeG
-            -> Kind ()
-            -> Quote (Type TyName DefaultUni ())
-            -> Cool
-
+type TyProp =  Kind ()                           -- ^ kind for generated type
+            -> ClosedTypeG                       -- ^ generated type
+            -> Quote (Type TyName DefaultUni ()) -- ^ external rep. of gen. type
+            -> Cool                              -- ^ whether the property holds
 -- |Internal version of type properties.
-type TyPropG = Kind () -> ClosedTypeG -> Cool
+type TyPropG =  Kind ()      -- ^ kind of the generated type
+             -> ClosedTypeG  -- ^ generated type
+             -> Cool         -- ^ whether the property holds
 
 
 -- |Test property on well-kinded types.
@@ -81,7 +81,7 @@ toTyPropG :: TyProp -> TyPropG
 toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
   where
     tyG_ok    = checkClosedTypeG kG tyG
-    typrop_ok = typrop kG tyG kG (toClosedType kG tyG)
+    typrop_ok = typrop kG tyG (toClosedType kG tyG)
 
 
 -- |Stream of type names t0, t1, t2, ..
