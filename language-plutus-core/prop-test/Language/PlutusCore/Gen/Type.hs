@@ -1,18 +1,20 @@
 {-|
-Module: Language.PlutusCore.Gen.Type
+Description: PLC Syntax, typechecker,semantics property based testing.
 
-This file contains:
+
+This file contains
 1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
 2. A kind checker and a type checker
 3. Reduction semantics for types
 -}
 
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusCore.Gen.Type
   ( TypeBuiltinG (..)
@@ -23,11 +25,11 @@ module Language.PlutusCore.Gen.Type
   , normalizeTypeG
   ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Gen.Common
 import           Control.Enumerable
 import           Data.Coolean
-import qualified Data.Text as Text
+import qualified Data.Text                      as Text
+import           Language.PlutusCore
+import           Language.PlutusCore.Gen.Common
 import           Text.Printf
 
 -- * Enumerating builtin types
@@ -38,7 +40,7 @@ data TypeBuiltinG
   | TyStringG
   deriving (Typeable, Eq, Show)
 
-$(deriveEnumerable ''TypeBuiltinG)
+deriveEnumerable ''TypeBuiltinG
 
 -- |Convert generated builtin types to Plutus builtin types.
 toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
@@ -59,8 +61,9 @@ data TypeG n
   | TyAppG (TypeG n) (TypeG n) (Kind ())
   deriving (Typeable, Eq, Show)
 
-$(deriveEnumerable ''TypeG)
+deriveEnumerable ''Kind
 
+deriveEnumerable ''TypeG
 
 -- |Convert well-kinded generated types to Plutus types.
 --
@@ -197,7 +200,7 @@ extendKCS :: forall n. Kind () -> KCS n -> KCS (S n)
 extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
   where
     kindOf' :: S n -> Kind ()
-    kindOf' FZ = k
+    kindOf' FZ     = k
     kindOf' (FS i) = kindOf i
 
 

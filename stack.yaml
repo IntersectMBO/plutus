@@ -21,26 +21,11 @@ packages:
 - doc
 
 extra-deps:
-# this stuff is from Wen's fork - James
-
-#this looks ok - James
 # FEAT/NEAT and deps
 - lazy-search-0.1.2.0
 - size-based-0.1.2.0
 - testing-feat-1.1.0.0
 
-# not sure about this stuff - James
-# Agda and deps 
-# aws-lambda-haskell-runtime-2.0.1 - this upsets  dev.scripts.updateMaterialized - James
-- Agda-2.6.0
-- data-hash-0.2.0.1
-- EdisonCore-1.3.2.1
-- EdisonAPI-1.3.1
-- equivalence-0.3.4
-- STMonadTrans-0.4.3
-- geniplate-mirror-0.7.6
-
-# normal service resumed -- James
 # Other missing packages
 - aws-lambda-haskell-runtime-2.0.4
 - binary-instances-1.0.0.1

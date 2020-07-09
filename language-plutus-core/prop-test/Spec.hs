@@ -1,4 +1,10 @@
-{-# LANGUAGE OverloadedStrings#-}
+{-|
+Description: Runs property based tests on generated PLC
+
+Currently only generates types
+
+-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Normalize

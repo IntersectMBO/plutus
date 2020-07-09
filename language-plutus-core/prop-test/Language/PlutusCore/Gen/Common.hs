@@ -1,5 +1,4 @@
 {-|
-Module      : Language.PlutusCore.Gen.Common
 Description : Property based testing Name Utilities
 
 This file contains various naming related utilities used for
@@ -28,10 +27,10 @@ module Language.PlutusCore.Gen.Common
   ) where
 
 
-import           Language.PlutusCore.Name (Name, TyName (..))
-import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 import           Control.Enumerable
-import qualified Data.Text as Text
+import qualified Data.Text                 as Text
+import           Language.PlutusCore.Name  (Name, TyName (..))
+import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
 
 -- * Enumerating deBruijn indices
 
@@ -79,7 +78,7 @@ extendNameState NameState{..} = liftQuote $ do
   let str = head freshNameStrings
       freshNameStrings' = tail freshNameStrings
   name <- freshName str
-  let nameOf' FZ = name
+  let nameOf' FZ     = name
       nameOf' (FS i) = nameOf i
   return NameState { nameOf = nameOf', freshNameStrings = freshNameStrings' }
 
