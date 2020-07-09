@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE MonoLocalBinds    #-}
@@ -21,6 +22,7 @@ import           Data.Bifunctor              (second)
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
+import Data.Text (Text)
 import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
@@ -83,7 +85,7 @@ balanceWallet ::
     => UnbalancedTx
     -> Eff effs Tx
 balanceWallet utx = do
-    logInfo $
+    logInfo @Text $
         "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
     pk <- ownPubKey
     outputs <- ownOutputs
@@ -137,18 +139,18 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
 
     tx' <- if Value.isZero pos
            then do
-               logDebug "No outputs added"
+               logDebug @Text "No outputs added"
                pure unBalancedTxTx
            else do
-                   logDebug $ "Adding public key output for " <> fromString (show pos)
+                   logDebug @Text $ "Adding public key output for " <> fromString (show pos)
                    pure $ addOutputs pk pos unBalancedTxTx
 
     if Value.isZero neg
     then do
-        logDebug "No inputs added"
+        logDebug @Text "No inputs added"
         pure tx'
     else do
-        logDebug $ "Adding inputs for " <> fromString (show neg)
+        logDebug @Text $ "Adding inputs for " <> fromString (show neg)
         addInputs utxo pk neg tx'
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least

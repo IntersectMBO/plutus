@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE StrictData #-}
@@ -17,6 +18,8 @@ module Control.Monad.Freer.Log(
     , LogObserve
     , LogLevel(..)
     , LogMessage(..)
+    , logLevel
+    , logMessageContent
     , logDebug
     , logWarn
     , logInfo
@@ -28,13 +31,15 @@ module Control.Monad.Freer.Log(
     , writeToLog
     , ignoreLog
     , traceLog
+    , logToWriter
     , observeAsLogMessage
     , transformLogMessages
     , renderLogMessages
     ) where
 
+import Control.Lens (Prism', review, makeLenses)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Writer              (Writer (..))
+import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
@@ -77,13 +82,15 @@ instance Pretty LogLevel where
         Alert      -> "[ALERT]"
         Emergency  -> "[EMERGENCY]"
 
-data LogMessage a = LogMessage { logLevel :: LogLevel, logMessageContent :: a }
-    deriving stock (Show, Eq, Ord, Generic, Functor)
+data LogMessage a = LogMessage { _logLevel :: LogLevel, _logMessageContent :: a }
+    deriving stock (Show, Eq, Ord, Generic, Functor, Foldable, Traversable)
     deriving anyclass (ToJSON, FromJSON)
 
+makeLenses ''LogMessage
+
 instance Pretty a => Pretty (LogMessage a) where
-    pretty LogMessage{logLevel, logMessageContent} =
-        pretty logLevel <+> pretty logMessageContent
+    pretty LogMessage{_logLevel, _logMessageContent} =
+        pretty _logLevel <+> pretty _logMessageContent
 
 logDebug :: forall a effs. Member (LogMsg a) effs => a -> Eff effs ()
 logDebug m = send $ LMessage (LogMessage Debug m)
@@ -139,12 +146,16 @@ writeToLog ::
 writeToLog = interpret $ \case
     Tell es -> traverse_ (logInfo @a) es
 
+-- | Re-interpret a 'Log' effect with a 'Writer'
 logToWriter ::
-    forall a f effs.
-    ( Member (Writer (s2) effs
+    forall a w effs.
+    ( Member (Writer w) effs
     )
-    => Prism' s2 (LogMessage )
-    -> Eff (LogMsg )
+    => Prism' w (LogMessage a)
+    -> LogMsg a
+    ~> Eff effs
+logToWriter p = \case
+    LMessage msg -> tell @w (review p msg)
 
 -- | Ignore all log messages.
 ignoreLog :: Eff (LogMsg a ': effs) ~> Eff effs
