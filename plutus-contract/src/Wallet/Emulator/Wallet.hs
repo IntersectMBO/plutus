@@ -18,7 +18,6 @@ module Wallet.Emulator.Wallet where
 import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
-import           Control.Monad.Freer.Log   (LogMessage)
 import           Control.Monad.Freer.State
 import           Control.Newtype.Generics  (Newtype)
 import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
@@ -34,6 +33,7 @@ import           GHC.Generics              (Generic)
 import           IOTS                      (IotsType)
 import qualified Language.PlutusTx.Prelude as PlutusTx
 import Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
+import Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
 import           Ledger
 import qualified Ledger.Ada                as Ada
 import qualified Ledger.AddressMap         as AM
@@ -74,13 +74,17 @@ signWithWallet wlt = addSignature (walletPrivKey wlt)
 data WalletEvent = 
     GenericLog T.Text
     | CheckpointLog CheckpointLogMsg
-    deriving stock (Show, Eq, Ord, Generic)
+    | RequestHandlerLog RequestHandlerLogMsg
+    | TxBalanceLog TxBalanceMsg
+    deriving stock (Show, Eq, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty WalletEvent where
     pretty = \case
         GenericLog msg -> pretty msg
         CheckpointLog msg -> pretty msg
+        RequestHandlerLog msg -> pretty msg
+        TxBalanceLog msg -> pretty msg
 
 makePrisms ''WalletEvent
 

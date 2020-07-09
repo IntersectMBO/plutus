@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia        #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE TypeOperators      #-}
 module Language.Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
+    , RequestHandlerLogMsg(..)
     , tryHandler
     , wrapHandler
     , extract
@@ -35,15 +37,15 @@ import qualified Control.Monad.Freer.NonDet                        as NonDet
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Monoid                                       (Alt (..), Ap (..))
-import qualified Data.Text                                         as Text
 import qualified Ledger.AddressMap                                 as AM
 
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import           Control.Monad.Freer.Log                           (Log, logDebug, logWarn, surroundDebug)
+import           Control.Monad.Freer.Log                           (logDebug, logWarn, surroundDebug, LogObserve, LogMsg)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
+import Wallet.Emulator.LogMessages (RequestHandlerLogMsg(..), TxBalanceMsg)
 import           Ledger                                            (Address, PubKey, Slot, Tx, TxId)
 import           Ledger.AddressMap                                 (AddressMap (..))
 import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
@@ -60,7 +62,6 @@ newtype RequestHandler effs req resp = RequestHandler { unRequestHandler :: req 
     deriving stock (Functor)
     deriving (Profunctor, Category, Arrow) via (Kleisli (Eff (NonDet ': effs)))
     deriving (Semigroup, Monoid) via (Ap ((->) req) (Alt (Eff (NonDet ': effs)) resp))
-
 
 -- Try the handler on the requests until it succeeds for the first time, then stop.
 tryHandler ::
@@ -87,7 +88,7 @@ maybeToHandler f = RequestHandler $ maybe empty pure . f
 handleOwnPubKey ::
     forall a effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member LogObserve effs
     )
     => RequestHandler effs a PubKey
 handleOwnPubKey =
@@ -97,21 +98,24 @@ handleOwnPubKey =
 handleSlotNotifications ::
     forall effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member LogObserve effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
     )
     => RequestHandler effs Slot Slot
 handleSlotNotifications =
     RequestHandler $ \targetSlot ->
         surroundDebug "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.walletSlot
-            logDebug $ Text.pack $ "targetSlot: " <> show targetSlot <> "; current slot: " <> show currentSlot
+            logDebug $ SlotNoficationTargetVsCurrent targetSlot currentSlot
             guard (currentSlot >= targetSlot)
             pure currentSlot
 
 handlePendingTransactions ::
     forall effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member LogObserve effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member (LogMsg TxBalanceMsg) effs
     , Member SigningProcessEffect effs
     , Member ChainIndexEffect effs
     )
@@ -119,14 +123,14 @@ handlePendingTransactions ::
 handlePendingTransactions =
     RequestHandler $ \unbalancedTx ->
         surroundDebug "handlePendingTransactions" $ do
-        logDebug "Start watching contract addresses."
+        logDebug StartWatchingContractAddresses
         wa <- Wallet.Effects.watchedAddresses
         traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (unBalancedTxTx unbalancedTx))
-        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn "handleTxFailed" >> pure (Left err))
+        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn HandleTxFailed >> pure (Left err))
 
 handleUtxoQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member LogObserve effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs Address UtxoAtAddress
@@ -140,7 +144,7 @@ handleUtxoQueries = RequestHandler $ \addr ->
 
 handleTxConfirmedQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member LogObserve effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs TxId TxConfirmed
@@ -152,7 +156,7 @@ handleTxConfirmedQueries = RequestHandler $ \txid ->
 
 handleNextTxAtQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member LogObserve effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     )

@@ -21,13 +21,12 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (Log, logToWriter, LogMessage, logMessage, LogLevel(..))
+import           Control.Monad.Freer.Log        (Log, logToWriter, LogMessage, logMessage, LogLevel(..), LogObserve, observeAsLogMessage, LogMsg)
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map                       (Map)
 import qualified Data.Map                       as Map
-import Data.Maybe (listToMaybe)
 import qualified Data.Text                      as T
 import           Data.Text.Extras               (tshow)
 import           Data.Text.Prettyprint.Doc
@@ -39,6 +38,7 @@ import qualified Wallet.API                     as WAPI
 import qualified Wallet.Effects                 as Wallet
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.ChainIndex     as ChainIndex
+import Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient     as NC
 import qualified Wallet.Emulator.SigningProcess as SP
 import qualified Wallet.Emulator.Wallet         as Wallet
@@ -91,6 +91,9 @@ type EmulatedWalletEffects =
          , Wallet.NodeClientEffect
          , Wallet.ChainIndexEffect
          , Wallet.SigningProcessEffect
+         , LogObserve
+         , LogMsg RequestHandlerLogMsg
+         , LogMsg TxBalanceMsg
          , Log
          ]
 
@@ -98,6 +101,7 @@ type EmulatedWalletControlEffects =
         '[ NC.NodeClientControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
+         , LogObserve
          , Log
         ]
 
@@ -259,12 +263,15 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     -- TODO: catch, log, and rethrow wallet errors?
     WalletAction wallet act -> act
-        & raiseEnd6
+        & raiseEnd9
         & Wallet.handleWallet
         & subsume
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
+        & observeAsLogMessage
+        & interpret (logToWriter p5)
+        & interpret (logToWriter p6)
         & interpret (logToWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
@@ -283,11 +290,16 @@ handleMultiAgent = interpret $ \case
             p3 = below (logMessage Info . chainIndexEvent wallet)
             p4 :: Prism' [LogMessage EmulatorEvent] (LogMessage T.Text)
             p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
+            p5 :: Prism' [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
+            p5 = _singleton . below (walletEvent wallet . Wallet._RequestHandlerLog)
+            p6 :: Prism' [LogMessage EmulatorEvent] (LogMessage TxBalanceMsg)
+            p6 = _singleton . below (walletEvent wallet . Wallet._TxBalanceLog)
     WalletControlAction wallet act -> act
-        & raiseEnd4
+        & raiseEnd5
         & NC.handleNodeControl
         & ChainIndex.handleChainIndexControl
         & SP.handleSigningProcessControl
+        & observeAsLogMessage
         & interpret (logToWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)

@@ -36,10 +36,13 @@ module Control.Monad.Freer.Log(
     , observeAsLogMessage
     , transformLogMessages
     , renderLogMessages
+    , handleObserve
     ) where
 
 import Control.Lens (Prism', review, makeLenses, prism')
 import           Control.Monad.Freer
+import Control.Monad.Freer.Extras (raiseUnder)
+import Control.Monad.Freer.State (State, modify, evalState, get, put)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
@@ -55,8 +58,9 @@ type Log = LogMsg Text
 data LogMsg a r where
     LMessage :: LogMessage a -> LogMsg a ()
 
-data LogObserve effs r where
-    LObserve :: LogLevel -> Text -> Eff effs b -> LogObserve effs b
+data LogObserve r where
+    LObserveBefore :: LogLevel -> Text -> LogObserve ()
+    LObserveAfter  :: LogObserve ()
 
 -- | The severity level of a log message
 --   See https://en.wikipedia.org/wiki/Syslog#Severity_level
@@ -106,20 +110,23 @@ logInfo :: forall a effs. Member (LogMsg a) effs => a -> Eff effs ()
 logInfo m = send $ LMessage (LogMessage Info m)
 
 -- | Write a log message before and after an action.
-surround :: Member (LogObserve effs) effs => LogLevel -> Text -> Eff effs a -> Eff effs a
-surround lvl txt action = 
-    send $ LObserve lvl txt action
+surround :: Member LogObserve effs => LogLevel -> Text -> Eff effs a -> Eff effs a
+surround lvl txt action = do
+    send $ LObserveBefore lvl txt
+    a <- action
+    send LObserveAfter
+    pure a
 
 -- | @surroundInfo = surround Info@
-surroundInfo :: Member (LogObserve effs) effs => Text -> Eff effs a -> Eff effs a
+surroundInfo :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
 surroundInfo = surround Info
 
 -- | @surroundDebug = surround Debug@
-surroundDebug :: Member (LogObserve effs) effs => Text -> Eff effs a -> Eff effs a
+surroundDebug :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
 surroundDebug = surround Debug
 
 -- | @surroundWarn = surround Warn@
-surroundWarn :: Member (LogObserve effs) effs => Text -> Eff effs a -> Eff effs a
+surroundWarn :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
 surroundWarn = surround Warning
 
 transformLogMessages ::
@@ -166,19 +173,66 @@ ignoreLog :: Eff (LogMsg a ': effs) ~> Eff effs
 ignoreLog = interpret $ \case
     LMessage _ -> pure ()
 
+data Observation s =
+    Observation
+        { obsLabel :: Text
+        , obsStart :: s
+        , obsEnd :: s
+        }
+
+-- | Handle the 'LogObserve' effect by recording observations
+--   @s@ before and after the observed action, and turning
+--   them into 'LogMessage (Observation s)' values.
+handleObserve ::
+    forall s effs.
+    Eff effs s -- ^ How to get the current 's'
+    -> (LogMessage (Observation s) -> Eff effs ()) -- what to do with the observation
+    -> Eff (LogObserve ': effs)
+    ~> Eff effs
+handleObserve getCurrent handleObs = 
+    evalState @[LogMessage (Text, s)] []
+    . hdl
+    . raiseUnder @effs @LogObserve @(State [LogMessage (Text, s)])
+    where 
+        hdl = interpret $ \case
+            LObserveBefore lvl label -> do
+                current <- raise getCurrent
+                let msg = review (logMessage lvl) (label, current)
+                modify @[LogMessage (Text, s)] (msg :)
+            LObserveAfter -> do
+                current <- raise getCurrent
+                observations <- get
+                case observations of
+                    (x:xs) -> do
+                        let x' = fmap (\(lbl, start) -> Observation{obsLabel=lbl,obsStart=start,obsEnd=current}) x
+                        raise $ handleObs x'
+                        put xs
+                    _ -> error "handleObserve: Corrupted state" -- FIXME
+
 -- | Interpret the 'LogObserve' effect by logging a "start" message
 --   before the action and an "end" message after the action.
 observeAsLogMessage ::
     forall effs.
     Member (LogMsg Text) effs
-    => Eff ((LogObserve effs) ': effs)
+    => Eff (LogObserve ': effs)
     ~> Eff effs
-observeAsLogMessage = interpret $ \case
-    LObserve lvl txt action -> do
-        send (LMessage $ LogMessage lvl $ txt <> " start")
-        a <- action
-        send (LMessage $ LogMessage lvl $ txt <> " end")
-        pure a
+observeAsLogMessage = 
+    evalState @[LogMessage Text] []
+    . hdl
+    . raiseUnder @effs @LogObserve @(State [LogMessage Text])
+    where
+        hdl = interpret $ \case
+            LObserveBefore lvl label -> do
+                let msg = LogMessage lvl label
+                raise @effs $ send $ LMessage $ fmap (<> " start") msg
+                modify (msg :)
+            LObserveAfter -> do
+                observations <- get @[LogMessage Text]
+                case observations of
+                    (x:xs) -> do
+                        send $ LMessage $ fmap (<> " end") x
+                        put xs
+                    _ -> error "observeAsLogMessage: Corrupted state" -- FIXME
 
 -- | Write the log to stdout using 'Debug.Trace.trace'
 traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
