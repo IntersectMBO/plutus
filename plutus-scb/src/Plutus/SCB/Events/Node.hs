@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
@@ -15,13 +14,13 @@ import           GHC.Generics              (Generic)
 
 import           Ledger                    (Tx)
 
-data NodeEvent
+newtype NodeEvent
     = SubmittedTx Tx
   -- ^ Confirmation that the transactions were received.
   -- TODO: Rollbacks?
   -- | Rollback Int -- ^ n blocks were rolled back
     deriving (Show, Eq, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving newtype (FromJSON, ToJSON)
 
 instance Pretty NodeEvent where
   pretty = \case

@@ -80,8 +80,8 @@ handleContractTest = interpret $ \case
     where
         game = first tshow $ Contracts.Game.game @ContractError
         currency = first tshow $ void Contracts.Currency.forgeCurrency
-        swp = first tshow $ Contracts.AtomicSwap.atomicSwap
-        payToWallet = first tshow $ Contracts.PayToWallet.payToWallet
+        swp = first tshow Contracts.AtomicSwap.atomicSwap
+        payToWallet = first tshow Contracts.PayToWallet.payToWallet
 
 doContractInit ::
     forall schema effs.

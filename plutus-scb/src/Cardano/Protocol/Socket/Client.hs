@@ -52,7 +52,7 @@ startClientNode cfg =
             UnversionedProtocol
             (NodeToNodeVersionData $ NetworkMagic 0)
             (DictVersion nodeToNodeCodecCBORTerm)
-            (\_peerid -> app))
+            (const app))
           Nothing
           (localAddressFromPath (ccSocketPath cfg))
 
