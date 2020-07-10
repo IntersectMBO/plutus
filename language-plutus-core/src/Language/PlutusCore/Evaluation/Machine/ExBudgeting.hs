@@ -9,6 +9,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 {- Note [Budgeting]
@@ -126,10 +127,24 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @uni@ as parameter.
-class SpendBudget m uni | m -> uni where
+-- This works nicely because @m@ contains @term@.
+class SpendBudget m term | m -> term where
     builtinCostParams :: m CostModel
-    spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
+
+    -- We don't really need the @m@ here, but making another type class would be annoying
+    -- (as well as making a @Proxy@ argument) and 'getExMemory' is going to be used in the same
+    -- monad as 'spendBudget', so it's not a big deal to add @m@ to the type signature.
+    -- | Get 'ExMemory' of a @term@.
+    getExMemory :: term -> m ExMemory
+
+    -- | Spend the budget, which may mean different things depending on the monad:
+    --
+    -- 1. do nothing for an evaluator that does not care about costing
+    -- 2. count upwards to get the cost of a computation
+    -- 3. subtract from the current budget and fail if the budget goes below zero
+    --
+    -- The @term@ argument is only used for reporting an error.
+    spendBudget :: ExBudgetCategory -> term -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst

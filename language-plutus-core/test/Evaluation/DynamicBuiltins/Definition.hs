@@ -33,15 +33,15 @@ dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"
 
 dynamicFactorialMeaning
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameMeaning uni
+    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    => DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
 dynamicFactorialDefinition
-    :: (GShow uni, GEq uni, uni `Includes` Integer)
-    => DynamicBuiltinNameDefinition uni
+    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    => DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning
 
@@ -63,14 +63,14 @@ test_dynamicFactorial =
 dynamicConstName :: DynamicBuiltinName
 dynamicConstName = DynamicBuiltinName "const"
 
-dynamicConstMeaning :: DynamicBuiltinNameMeaning uni
+dynamicConstMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
         TypeSchemeAllType @"b" @1 Proxy $ \b ->
             a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicConstDefinition :: DynamicBuiltinNameDefinition uni
+dynamicConstDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicConstDefinition =
     DynamicBuiltinNameDefinition dynamicConstName dynamicConstMeaning
 
@@ -84,8 +84,8 @@ test_dynamicConst =
     testProperty "dynamicConst" . property $ do
         c <- forAll Gen.unicode
         b <- forAll Gen.bool
-        let tC = makeKnown c
-            tB = makeKnown b
+        let tC = mkConstant () c
+            tB = mkConstant () b
             char = toTypeAst @DefaultUni @Char Proxy
             runConst con = mkIterApp () (mkIterInst () con [char, bool]) [tC, tB]
             env = insertDynamicBuiltinNameDefinition dynamicConstDefinition mempty
@@ -97,13 +97,13 @@ test_dynamicConst =
 dynamicIdName :: DynamicBuiltinName
 dynamicIdName = DynamicBuiltinName "id"
 
-dynamicIdMeaning :: DynamicBuiltinNameMeaning uni
+dynamicIdMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicIdMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAllType @"a" @0 Proxy $ \a ->
             a `TypeSchemeArrow` TypeSchemeResult a
 
-dynamicIdDefinition :: DynamicBuiltinNameDefinition uni
+dynamicIdDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicIdDefinition =
     DynamicBuiltinNameDefinition dynamicIdName dynamicIdMeaning
 

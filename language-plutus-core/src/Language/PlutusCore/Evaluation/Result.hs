@@ -8,28 +8,22 @@
 
 module Language.PlutusCore.Evaluation.Result
     ( EvaluationResult (..)
-    , EvaluationResultDef
     , isEvaluationSuccess
     , isEvaluationFailure
     ) where
 
-import           Language.PlutusCore.Core
-import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 
 import           Control.Applicative
 import           PlutusPrelude
 
 -- | The parameterized type of results various evaluation engines return.
--- On the PLC side this becomes (via @makeKnown@) either a call to 'error' or
+-- On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
 -- a value of the PLC counterpart of type @a@.
 data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
     deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
-
--- | The default exception-free type of results various evaluation engines return.
-type EvaluationResultDef uni = EvaluationResult (Term TyName Name uni ())
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess

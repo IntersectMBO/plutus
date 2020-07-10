@@ -13,6 +13,7 @@
 
 module Language.PlutusCore.Constant.Apply
     ( ConstAppResult (..)
+    , evaluationConstAppResult
     , nonZeroArg
     , integerToInt64
     , applyTypeSchemed
@@ -24,9 +25,8 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
@@ -37,13 +37,21 @@ import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
 
+-- This type is only needed because of how the CEK machine is currently structured.
+-- Once we fix the machine, the 'ConstAppStuck' constructor will become obsolete,
+-- making the type isomorphic to 'EvaluationResult'.
 -- | The result of evaluation of a builtin applied to some arguments.
-data ConstAppResult uni ann
-    = ConstAppSuccess (Term TyName Name uni ann)
+data ConstAppResult term
+    = ConstAppFailure
+    | ConstAppSuccess term
       -- ^ Successfully computed a value.
     | ConstAppStuck
       -- ^ Not enough arguments.
     deriving (Show, Eq, Functor)
+
+evaluationConstAppResult :: EvaluationResult term -> ConstAppResult term
+evaluationConstAppResult EvaluationFailure        = ConstAppFailure
+evaluationConstAppResult (EvaluationSuccess term) = ConstAppSuccess term
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -58,31 +66,30 @@ integerToInt64 = fromIntegral
 -- | Apply a function with a known 'TypeScheme' to a list of 'Constant's (unwrapped from 'Value's).
 -- Checks that the constants are of expected types.
 applyTypeSchemed
-    :: forall e m args uni res.
-       ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+    :: forall err m args term res.
+       ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
+       , SpendBudget m term
        )
     => StagedBuiltinName
-    -> TypeScheme uni args res
+    -> TypeScheme term args res
     -> FoldArgs args res
     -> FoldArgsEx args
-    -> [Value TyName Name uni ExMemory]
-    -> m (ConstAppResult uni ExMemory)
+    -> [term]
+    -> m (ConstAppResult term)
 applyTypeSchemed name = go where
     go
         :: forall args'.
-           TypeScheme uni args' res
+           TypeScheme term args' res
         -> FoldArgs args' res
         -> FoldArgsEx args'
-        -> [Value TyName Name uni ExMemory]
-        -> m (ConstAppResult uni ExMemory)
+        -> [term]
+        -> m (ConstAppResult term)
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
-            -- TODO is `withMemory` a good idea here?
-            [] -> pure . ConstAppSuccess $ withMemory $ makeKnown y    -- Computed the result.
-            _  -> throwingWithCause _ConstAppError        -- Too many arguments.
-                    (ExcessArgumentsConstAppError $ void <$> args)
+            [] -> pure . evaluationConstAppResult $ makeKnown y  -- Computed the result.
+            _  -> throwingWithCause _ConstAppError               -- Too many arguments.
+                    (ExcessArgumentsConstAppError args)
                     Nothing
     go (TypeSchemeAllType _ schK)  f exF args =
         go (schK Proxy) f exF args
@@ -90,78 +97,172 @@ applyTypeSchemed name = go where
         []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
-            x <- readKnown $ void arg
-            let budget = exF $ termAnn arg
+            x <- readKnown arg
+            exF' <- exF <$> getExMemory arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    spendBudget (BBuiltin name) arg budget
-                    go schB (f x) budget args'
-                _ -> go schB (f x) budget args'
+                    -- Note that that if this fails, then the cause is reported to be @arg@, i.e.
+                    -- the last argument in the builtin application being processed, not the whole
+                    -- application. It would probably make sense to recreate the application here.
+                    spendBudget (BBuiltin name) arg exF'
+                    go schB (f x) exF' args'
+                _ -> go schB (f x) exF' args'
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
 applyTypedBuiltinName
-    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-       , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
+    :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
+       , SpendBudget m term
        )
-    => TypedBuiltinName uni args res
+    => TypedBuiltinName term args res
     -> FoldArgs args res
     -> FoldArgsEx args
-    -> [Value TyName Name uni ExMemory]
-    -> m (ConstAppResult uni ExMemory)
+    -> [term]
+    -> m (ConstAppResult term)
 applyTypedBuiltinName (TypedBuiltinName name schema) =
     applyTypeSchemed (StaticStagedBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
 applyBuiltinName
-    :: ( MonadError (ErrorWithCause uni e) m, AsUnliftingError e, AsConstAppError e uni
-    , SpendBudget m uni, Closed uni, uni `Everywhere` ExMemoryUsage
-    , GShow uni, GEq uni, DefaultUni <: uni
-    )
-    => CostModel -> BuiltinName -> [Value TyName Name uni ExMemory] -> m (ConstAppResult uni ExMemory)
-applyBuiltinName params AddInteger           =
-    applyTypedBuiltinName typedAddInteger           (+) (runCostingFunTwoArguments $ paramAddInteger params)
-applyBuiltinName params SubtractInteger      =
-    applyTypedBuiltinName typedSubtractInteger      (-) (runCostingFunTwoArguments $ paramSubtractInteger params)
-applyBuiltinName params MultiplyInteger      =
-    applyTypedBuiltinName typedMultiplyInteger      (*) (runCostingFunTwoArguments $ paramMultiplyInteger params)
-applyBuiltinName params DivideInteger        =
-    applyTypedBuiltinName typedDivideInteger        (nonZeroArg div) (runCostingFunTwoArguments $ paramDivideInteger params)
-applyBuiltinName params QuotientInteger      =
-    applyTypedBuiltinName typedQuotientInteger      (nonZeroArg quot) (runCostingFunTwoArguments $ paramQuotientInteger params)
-applyBuiltinName params RemainderInteger     =
-    applyTypedBuiltinName typedRemainderInteger     (nonZeroArg rem) (runCostingFunTwoArguments $ paramRemainderInteger params)
-applyBuiltinName params ModInteger           =
-    applyTypedBuiltinName typedModInteger           (nonZeroArg mod) (runCostingFunTwoArguments $ paramModInteger params)
-applyBuiltinName params LessThanInteger      =
-    applyTypedBuiltinName typedLessThanInteger      (<) (runCostingFunTwoArguments $ paramLessThanInteger params)
-applyBuiltinName params LessThanEqInteger    =
-    applyTypedBuiltinName typedLessThanEqInteger    (<=) (runCostingFunTwoArguments $ paramLessThanEqInteger params)
-applyBuiltinName params GreaterThanInteger   =
-    applyTypedBuiltinName typedGreaterThanInteger   (>) (runCostingFunTwoArguments $ paramGreaterThanInteger params)
-applyBuiltinName params GreaterThanEqInteger =
-    applyTypedBuiltinName typedGreaterThanEqInteger (>=) (runCostingFunTwoArguments $ paramGreaterThanEqInteger params)
-applyBuiltinName params EqInteger            =
-    applyTypedBuiltinName typedEqInteger            (==) (runCostingFunTwoArguments $ paramEqInteger params)
-applyBuiltinName params Concatenate          =
-    applyTypedBuiltinName typedConcatenate          (<>) (runCostingFunTwoArguments $ paramConcatenate params)
-applyBuiltinName params TakeByteString       =
-    applyTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64) (runCostingFunTwoArguments $ paramTakeByteString params)
-applyBuiltinName params DropByteString       =
-    applyTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64) (runCostingFunTwoArguments $ paramDropByteString params)
-applyBuiltinName params SHA2                 =
-    applyTypedBuiltinName typedSHA2                 (coerce Hash.sha2) (runCostingFunOneArgument $ paramSHA2 params)
-applyBuiltinName params SHA3                 =
-    applyTypedBuiltinName typedSHA3                 (coerce Hash.sha3) (runCostingFunOneArgument $ paramSHA3 params)
-applyBuiltinName params VerifySignature      =
-    applyTypedBuiltinName typedVerifySignature      (coerce $ verifySignature @EvaluationResult) (runCostingFunThreeArguments $ paramVerifySignature params)
-applyBuiltinName params EqByteString         =
-    applyTypedBuiltinName typedEqByteString         (==) (runCostingFunTwoArguments $ paramEqByteString params)
-applyBuiltinName params LtByteString         =
-    applyTypedBuiltinName typedLtByteString         (<) (runCostingFunTwoArguments $ paramLtByteString params)
-applyBuiltinName params GtByteString         =
-    applyTypedBuiltinName typedGtByteString         (>) (runCostingFunTwoArguments $ paramGtByteString params)
-applyBuiltinName params IfThenElse           =
-    applyTypedBuiltinName typedIfThenElse           (\b x y -> if b then x else y) (runCostingFunThreeArguments $ paramIfThenElse params)
+    :: forall m err uni term
+    .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
+       , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
+       )
+    => BuiltinName -> [term] -> m (ConstAppResult term)
+applyBuiltinName name args = do
+    params <- builtinCostParams
+    case name of
+        AddInteger ->
+            applyTypedBuiltinName
+                typedAddInteger
+                (+)
+                (runCostingFunTwoArguments $ paramAddInteger params)
+                args
+        SubtractInteger ->
+            applyTypedBuiltinName
+                typedSubtractInteger
+                (-)
+                (runCostingFunTwoArguments $ paramSubtractInteger params)
+                args
+        MultiplyInteger ->
+            applyTypedBuiltinName
+                typedMultiplyInteger
+                (*)
+                (runCostingFunTwoArguments $ paramMultiplyInteger params)
+                args
+        DivideInteger ->
+            applyTypedBuiltinName
+                typedDivideInteger
+                (nonZeroArg div)
+                (runCostingFunTwoArguments $ paramDivideInteger params)
+                args
+        QuotientInteger ->
+            applyTypedBuiltinName
+                typedQuotientInteger
+                (nonZeroArg quot)
+                (runCostingFunTwoArguments $ paramQuotientInteger params)
+                args
+        RemainderInteger ->
+            applyTypedBuiltinName
+                typedRemainderInteger
+                (nonZeroArg rem)
+                (runCostingFunTwoArguments $ paramRemainderInteger params)
+                args
+        ModInteger ->
+            applyTypedBuiltinName
+                typedModInteger
+                (nonZeroArg mod)
+                (runCostingFunTwoArguments $ paramModInteger params)
+                args
+        LessThanInteger ->
+            applyTypedBuiltinName
+                typedLessThanInteger
+                (<)
+                (runCostingFunTwoArguments $ paramLessThanInteger params)
+                args
+        LessThanEqInteger ->
+            applyTypedBuiltinName
+                typedLessThanEqInteger
+                (<=)
+                (runCostingFunTwoArguments $ paramLessThanEqInteger params)
+                args
+        GreaterThanInteger ->
+            applyTypedBuiltinName
+                typedGreaterThanInteger
+                (>)
+                (runCostingFunTwoArguments $ paramGreaterThanInteger params)
+                args
+        GreaterThanEqInteger ->
+            applyTypedBuiltinName
+                typedGreaterThanInteger
+                (>=)
+                (runCostingFunTwoArguments $ paramGreaterThanEqInteger params)
+                args
+        EqInteger ->
+            applyTypedBuiltinName
+                typedEqInteger
+                (==)
+                (runCostingFunTwoArguments $ paramEqInteger params)
+                args
+        Concatenate ->
+            applyTypedBuiltinName
+                typedConcatenate
+                (<>)
+                (runCostingFunTwoArguments $ paramConcatenate params)
+                args
+        TakeByteString ->
+            applyTypedBuiltinName
+                typedTakeByteString
+                (coerce BSL.take . integerToInt64)
+                (runCostingFunTwoArguments $ paramTakeByteString params)
+                args
+        DropByteString ->
+            applyTypedBuiltinName
+                typedDropByteString
+                (coerce BSL.drop . integerToInt64)
+                (runCostingFunTwoArguments $ paramDropByteString params)
+                args
+        SHA2 ->
+            applyTypedBuiltinName
+                typedSHA2
+                (coerce Hash.sha2)
+                (runCostingFunOneArgument $ paramSHA2 params)
+                args
+        SHA3 ->
+            applyTypedBuiltinName
+                typedSHA3
+                (coerce Hash.sha3)
+                (runCostingFunOneArgument $ paramSHA3 params)
+                args
+        VerifySignature ->
+            applyTypedBuiltinName
+                typedVerifySignature
+                (coerce $ verifySignature @EvaluationResult)
+                (runCostingFunThreeArguments $ paramVerifySignature params)
+                args
+        EqByteString ->
+            applyTypedBuiltinName
+                typedEqByteString
+                (==)
+                (runCostingFunTwoArguments $ paramEqByteString params)
+                args
+        LtByteString ->
+            applyTypedBuiltinName
+                typedLtByteString
+                (<)
+                (runCostingFunTwoArguments $ paramLtByteString params)
+                args
+        GtByteString ->
+            applyTypedBuiltinName
+                typedGtByteString
+                (>)
+                (runCostingFunTwoArguments $ paramGtByteString params)
+                args
+        IfThenElse ->
+            applyTypedBuiltinName
+                typedIfThenElse
+                (\b x y -> if b then x else y)
+                (runCostingFunThreeArguments $ paramIfThenElse params)
+                args
