@@ -1,14 +1,23 @@
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import Data.Time ( Day )
 import Language.Marlowe.ACTUS.Definitions.ContractState ( ContractStatus )
+import qualified Data.Aeson                 as JSON
+import qualified Data.Aeson.Extras          as JSON
+import           Data.Aeson.Types           hiding (Error, Value)
+import           GHC.Generics
 
-data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O
+type Calendar = [Day]
 
-data FEB = FEB_A | FEB_N deriving (Show, Eq)
+data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
+
+data FEB = FEB_A | FEB_N deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data EOMC = EOMC_EOM
-          | EOMC_SD deriving (Show, Eq)
+          | EOMC_SD deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data BDC =  BDC_NULL
           | BDC_SCF
@@ -18,19 +27,16 @@ data BDC =  BDC_NULL
           | BDC_SCP
           | BDC_SCMP
           | BDC_CSP
-          | BDC_CSMP deriving (Show, Eq)
+          | BDC_CSMP deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data DCC =  DCC_A_AISDA
           | DCC_A_360
           | DCC_A_365
           | DCC_E30_360ISDA
           | DCC_E30_360
-          | DCC_B_252 deriving (Show)
+          | DCC_B_252 deriving (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
-{- B-function -}
-type Calendar = Day -> Bool
-
-data CalendarType = NoCalendar | MondayToFriday | CustomCalendar {holidays :: [Day]} deriving (Show)
+data CalendarType = NoCalendar | MondayToFriday | CustomCalendar {holidays :: [Day]} deriving (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ContractRole = CR_RPA -- Real position asset
                   | CR_RPL -- Real position liability
@@ -45,7 +51,7 @@ data ContractRole = CR_RPA -- Real position asset
                   | CR_PFL -- Pay first leg
                   | CR_RF  -- Receive fix leg
                   | CR_PF  -- Pay fix leg
-                  deriving (Show, Eq)
+                  deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data SCEF =  SE_000 --ScalingEffect
                     | SE_0N0
@@ -54,15 +60,15 @@ data SCEF =  SE_000 --ScalingEffect
                     | SE_I00
                     | SE_IN0
                     | SE_I0M
-                    | SE_INM deriving (Show, Eq)
+                    | SE_INM deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data ICB = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq) --InterestCalculationBase
+data ICB = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--InterestCalculationBase
 
-data FB = FB_A | FB_N deriving (Show, Eq) --FeeBasis
+data FB = FB_A | FB_N deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--FeeBasis
 
-data PT = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq) --PenaltyType
+data PT = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON) --PenaltyType
 
-data PE = PE_N | PE_A | PE_M deriving (Show, Eq) --PrepaymentEffect
+data PE = PE_N | PE_A | PE_M deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--PrepaymentEffect
 
 data Period = P_D -- Day
             | P_W -- Week
@@ -70,17 +76,22 @@ data Period = P_D -- Day
             | P_Q -- Quarter
             | P_H -- Half Year
             | P_Y -- Year
-            deriving (Show, Eq, Ord)
+            deriving (Show, Eq, Ord, Generic)
+             deriving anyclass (FromJSON, ToJSON)
 
-data PREF = PREF_N | PREF_Y -- wether PP is allowed
+data PREF = PREF_N | PREF_Y 
+  deriving (Show, Eq, Ord, Generic)
+  deriving anyclass (FromJSON, ToJSON)
+-- wether PP is allowed
 
-data Stub = ShortStub | LongStub deriving (Show, Eq, Ord)
+data Stub = ShortStub | LongStub deriving (Show, Eq, Ord, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data Cycle = Cycle
   { n :: Integer
   , p :: Period
   , stub :: Stub
-  } deriving (Show, Eq, Ord)
+  } deriving (Show, Eq, Ord, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 data ScheduleConfig = ScheduleConfig
   {
@@ -88,9 +99,10 @@ data ScheduleConfig = ScheduleConfig
   , includeEndDay :: Bool
   , eomc :: EOMC
   , bdc :: BDC
-  }
+  }   deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
-data ContractType = PAM | LAM 
+data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data ContractTerms = ContractTerms {
   contractId :: String
@@ -145,3 +157,5 @@ data ContractTerms = ContractTerms {
   , _FEB :: FEB  -- fee basis
   , _FER :: Double -- fee rate
   }
+  deriving stock (Show,Generic)
+  deriving anyclass (FromJSON, ToJSON)

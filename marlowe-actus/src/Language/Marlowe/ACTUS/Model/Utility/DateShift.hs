@@ -10,7 +10,7 @@ import Data.Time ( Day, toGregorian, addDays )
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
     ( ScheduleConfig(..), Calendar, BDC(..) )
 import Language.Marlowe.ACTUS.Definitions.Schedule ( ShiftedDay(..) )
-
+import qualified Data.List as L
 
 {- Business Day Convention -}
 
@@ -81,17 +81,19 @@ shiftModifiedPreceeding date calendar =
         else maybeShiftToFollowingBusinessDay date calendar
 
 maybeShiftToFollowingBusinessDay :: Day -> Calendar -> Day
-maybeShiftToFollowingBusinessDay date isHoliday =
+maybeShiftToFollowingBusinessDay date calendar =
   let followingDay = addDays 1 date
+      isHoliday date = L.elem date calendar
   in  if isHoliday date
-        then maybeShiftToFollowingBusinessDay followingDay isHoliday
+        then maybeShiftToFollowingBusinessDay followingDay calendar
         else date
 
 
 maybeShiftToPreceedingBusinessDay :: Day -> Calendar -> Day
-maybeShiftToPreceedingBusinessDay date isHoliday =
+maybeShiftToPreceedingBusinessDay date calendar =
   let preceedingDay = addDays (-1) date
+      isHoliday date = L.elem date calendar
   in  if isHoliday date
-        then maybeShiftToPreceedingBusinessDay preceedingDay isHoliday
+        then maybeShiftToPreceedingBusinessDay preceedingDay calendar
         else date
 

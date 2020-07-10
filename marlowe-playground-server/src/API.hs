@@ -15,10 +15,14 @@ import qualified Marlowe.Symbolic.Types.Request  as MSReq
 import qualified Marlowe.Symbolic.Types.Response as MSRes
 import           Servant.API                     ((:<|>), (:>), Get, Header, JSON, NoContent, Post, ReqBody)
 import           Servant.API.WebSocket           (WebSocketPending)
+import           Language.Marlowe
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
+     :<|> "actus" :> "generate" :> ReqBody '[ JSON] ContractTerms :> Post '[ JSON] (Either String Contract)
+     :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] ContractTerms :> Post '[ JSON] (Either String Contract)
 
 type WSAPI = "ws" :> WebSocketPending
 

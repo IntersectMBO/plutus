@@ -50,6 +50,9 @@ import           WebSocket                       (Registry, WebSocketRequestMess
                                                   deleteFromRegistry, finishWaiting, initializeConnection,
                                                   insertIntoRegistry, isWaiting, lookupInRegistry, newRegistry,
                                                   runWithConnection, startWaiting)
+import           Language.Marlowe (Contract)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
+import           Language.Marlowe.ACTUS.Generator (genFsContract, genStaticContract)
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
@@ -149,6 +152,12 @@ handleNotification registryVar response = liftIO $ do
     pure NoContent
 
 
+genActusContract :: ContractTerms -> Handler (Either String Contract)
+genActusContract terms = pure $ Right $ genFsContract terms
+
+genActusContractStatic :: ContractTerms -> Handler (Either String Contract)
+genActusContractStatic terms = pure $ Right $ genStaticContract terms
+
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)
         #-}
@@ -157,4 +166,4 @@ mkHandlers :: (MonadLogger m, MonadIO m) => Text -> Text -> ClientEnv -> m (Serv
 mkHandlers apiKey callbackUrl marloweSymbolicClientEnv = do
     logInfoN "Interpreter ready"
     registry <- liftIO $ atomically newRegistry
-    pure $ (acceptSourceCode :<|> checkHealth) :<|> handleNotification registry :<|> handleWS registry apiKey callbackUrl marloweSymbolicClientEnv
+    pure $ (acceptSourceCode :<|> checkHealth :<|> genActusContract :<|> genActusContractStatic) :<|> handleNotification registry :<|> handleWS registry apiKey callbackUrl marloweSymbolicClientEnv

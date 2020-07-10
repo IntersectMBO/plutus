@@ -48,6 +48,7 @@ library
         lens -any,
         marlowe -any,
         marlowe-symbolic -any,
+        marlowe-actus -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
