@@ -275,11 +275,13 @@
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
@@ -304,8 +306,11 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
+            "Language/PlutusCore/Gen/Common"
+            "Language/PlutusCore/Gen/Type"
+            "Language/PlutusCore/PropTest"
             ];
-          hsSourceDirs = [ "test" ];
+          hsSourceDirs = [ "test" "prop-test" ];
           mainPath = [ "Spec.hs" ];
           };
         "plutus-ir-test" = {
@@ -326,27 +331,6 @@
           buildable = true;
           modules = [ "OptimizerSpec" "TransformSpec" "ParserSpec" "TestLib" ];
           hsSourceDirs = [ "plutus-ir-test" ];
-          mainPath = [ "Spec.hs" ];
-          };
-        "language-plutus-core-prop-test" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
-            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
-            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
-            (hsPkgs."testing-feat" or (errorHandler.buildDepError "testing-feat"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            ];
-          buildable = true;
-          modules = [
-            "Language/PlutusCore/Gen/Common"
-            "Language/PlutusCore/Gen/Type"
-            "Language/PlutusCore/PropTest"
-            ];
-          hsSourceDirs = [ "prop-test" ];
           mainPath = [ "Spec.hs" ];
           };
         "language-plutus-core-test-cost-model" = {

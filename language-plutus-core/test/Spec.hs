@@ -22,13 +22,14 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
-import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.PropTest
 
 import           Codec.Serialise
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                                       as BSL
+import           Data.Coolean
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import           Hedgehog                                                   hiding (Var)
@@ -37,7 +38,6 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
-import           Data.Coolean
 
 main :: IO ()
 main = do
