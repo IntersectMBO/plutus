@@ -232,7 +232,7 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
   Just [] -> constructorName
   Just vs -> parens row column $ constructorName <> " " <> intercalate " " (map showArgument vs)
   where
-  showArgument EmptyArrayArg = "[ ]"
+  showArgument EmptyArrayArg = "[]"
 
   showArgument (ArrayArg arg) = "[ ?" <> arg <> " ]"
 
