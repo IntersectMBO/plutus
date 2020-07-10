@@ -650,7 +650,11 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
-  boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 
