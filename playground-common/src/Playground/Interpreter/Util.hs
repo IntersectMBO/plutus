@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy.Char8                      as BSL
 import           Data.Foldable                                   (traverse_)
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
+import Control.Monad.Freer.Log (logMessageContent)
 import           Data.Row                                        (Forall)
 import           Data.Row.Internal                               (Unconstrained1)
 import           Data.Text                                       (Text)
@@ -90,7 +91,7 @@ analyzeEmulatorState traceState EmulatorState { _chainState = ChainState { _chai
     traceResult :: TraceResult
     traceResult =
         ( _chainNewestFirst
-        , _emulatorLog
+        , fmap (view logMessageContent) _emulatorLog
         , _emulatorTrace
         , fundsDistribution
         , Map.foldMapWithKey toKeyWalletPair _walletClientStates)
