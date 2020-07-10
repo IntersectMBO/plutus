@@ -2,19 +2,19 @@ module Types where
 
 import Prelude
 import Chain.Types as Chain
-import Data.Tuple.Nested (type (/\))
 import Control.Monad.Gen as Gen
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
-import Data.Lens (Getter', Lens', Traversal', to, traversed)
+import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
+import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
 import Foreign (MultipleErrors)
 import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
@@ -27,7 +27,7 @@ import Playground.Types (FunctionSchema)
 import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, FullReport, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
+import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
@@ -56,7 +56,9 @@ data HAction
 newtype State
   = State
   { currentView :: View
-  , fullReport :: WebData (FullReport ContractExe)
+  , contractReport :: WebData (ContractReport ContractExe)
+  , chainReport :: WebData (ChainReport ContractExe)
+  , events :: WebData (Array (ChainEvent ContractExe))
   , chainState :: Chain.State
   , contractSignatures :: Map ContractInstanceId (WebData (ContractInstanceState ContractExe /\ Array EndpointForm))
   , webSocketMessage :: RemoteData MultipleErrors (StreamToClient ContractExe)
@@ -74,16 +76,13 @@ derive instance genericState :: Generic State _
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_fullReport :: Lens' State (WebData (FullReport ContractExe))
-_fullReport = _Newtype <<< prop (SProxy :: SProxy "fullReport")
-
-_contractReport :: forall t. Lens' (FullReport t) (ContractReport t)
+_contractReport :: forall s r a. Newtype s { contractReport :: a | r } => Lens' s a
 _contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
 
-_chainReport :: forall t. Lens' (FullReport t) (ChainReport t)
+_chainReport :: forall s r a. Newtype s { chainReport :: a | r } => Lens' s a
 _chainReport = _Newtype <<< prop (SProxy :: SProxy "chainReport")
 
-_events :: forall t. Lens' (FullReport t) (Array (ChainEvent t))
+_events :: forall s r a. Newtype s { events :: a | r } => Lens' s a
 _events = _Newtype <<< prop (SProxy :: SProxy "events")
 
 _chainState :: Lens' State Chain.State
