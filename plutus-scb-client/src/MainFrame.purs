@@ -6,9 +6,9 @@ module MainFrame
   ) where
 
 import Plutus.SCB.Webserver (SPParams_(..))
-import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport, StreamToClient(..), StreamToServer(..))
+import Plutus.SCB.Webserver.Types (ContractReport, ContractSignatureResponse(..), StreamToClient(..), StreamToServer(..))
 import Prelude hiding (div)
-import Types (EndpointForm, HAction(..), Output, Query(..), State(..), View(..), _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _fullReport, _webSocketMessage)
+import Types (EndpointForm, HAction(..), Output, Query(..), State(..), View(..), _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage)
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
@@ -19,7 +19,6 @@ import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter)
 import Data.Either (Either(..))
-import Data.Foldable (traverse_)
 import Data.Lens (_1, _2, assign, findOf, modifying, to, traversed, view)
 import Data.Lens.At (at)
 import Data.Lens.Extra (peruse, toSetOf)
@@ -29,7 +28,7 @@ import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (for_)
+import Data.Traversable (for_, traverse_)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (encodeJSON)
@@ -63,7 +62,9 @@ initialState :: State
 initialState =
   State
     { currentView: ActiveContracts
-    , fullReport: NotAsked
+    , contractReport: NotAsked
+    , chainReport: NotAsked
+    , events: NotAsked
     , chainState: Chain.initialState
     , contractSignatures: Map.empty
     , webSocketMessage: NotAsked
@@ -102,12 +103,12 @@ handleQuery ::
   Query a -> m (Maybe a)
 handleQuery (ReceiveWebSocketMessage (WS.ReceiveMessage msg) next) = do
   case msg of
-    Right (NewChainReport report) -> assign (_fullReport <<< _Success <<< _chainReport) report
+    Right (NewChainReport report) -> assign (_chainReport <<< _Success) report
     Right (NewContractReport report) -> do
-      assign (_fullReport <<< _Success <<< _contractReport) report
+      assign (_contractReport <<< _Success) report
       traverse_ updateFormsForContractInstance
         (view _contractStates report)
-    Right (NewChainEvents events) -> assign (_fullReport <<< _Success <<< _events) events
+    Right (NewChainEvents events) -> assign (_events <<< _Success) events
     Right (Echo _) -> pure unit
     Right (ErrorResponse _) -> pure unit
     Left err -> pure unit
@@ -134,18 +135,23 @@ handleAction (ChangeView view) = do
 handleAction (ActivateContract contract) = activateContract contract
 
 handleAction LoadFullReport = do
-  assign _fullReport Loading
+  assignFullReportData Loading
   fullReportResult <- getFullReport
-  assign _fullReport fullReportResult
+  assignFullReportData fullReportResult
   for_ fullReportResult
-    ( \fullReport ->
+    ( \report ->
         traverse_ updateFormsForContractInstance
-          (view (_contractReport <<< _contractStates) fullReport)
+          (view (_contractReport <<< _contractStates) report)
     )
+  where
+  assignFullReportData v = do
+    assign _contractReport (view _contractReport <$> v)
+    assign _chainReport (view _chainReport <$> v)
+    assign _events (view _events <$> v)
 
 handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
-    peruse (_fullReport <<< _Success <<< _chainReport <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
+    peruse (_chainReport <<< _Success <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
   let
     wrapper ::
       Warn (Text "The question, 'Should we animate this?' feels like it belongs in the Chain module. Not here.") =>
@@ -204,15 +210,15 @@ updateFormsForContractInstance newContractInstance = do
 createNewEndpointFormsM ::
   forall m.
   Monad m =>
-  m (FullReport ContractExe) ->
+  m (ContractReport ContractExe) ->
   m (ContractInstanceState ContractExe) ->
   m (Maybe (Array EndpointForm))
-createNewEndpointFormsM mFullReport mInstanceState = do
-  fullReport <- mFullReport
+createNewEndpointFormsM mContractReport mInstanceState = do
+  contractReport <- mContractReport
   instanceState <- mInstanceState
   let
     matchingSignature :: Maybe (ContractSignatureResponse ContractExe)
-    matchingSignature = getMatchingSignature instanceState fullReport
+    matchingSignature = getMatchingSignature instanceState contractReport
 
     newForms :: Maybe (Array EndpointForm)
     newForms = createEndpointForms instanceState <$> matchingSignature
@@ -249,12 +255,11 @@ getMatchingSignature ::
   forall t.
   Eq t =>
   ContractInstanceState t ->
-  FullReport t ->
+  ContractReport t ->
   Maybe (ContractSignatureResponse t)
 getMatchingSignature (ContractInstanceState { csContractDefinition }) =
   findOf
-    ( _contractReport
-        <<< _crAvailableContracts
+    ( _crAvailableContracts
         <<< traversed
     )
     isMatch
