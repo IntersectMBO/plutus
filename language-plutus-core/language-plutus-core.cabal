@@ -249,7 +249,7 @@ test-suite language-plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: test
+    hs-source-dirs: test, prop-test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
         Evaluation.ApplyBuiltinName
@@ -266,6 +266,9 @@ test-suite language-plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        Language.PlutusCore.Gen.Common
+        Language.PlutusCore.Gen.Type
+        Language.PlutusCore.PropTest
     default-language: Haskell2010
     build-depends:
         base -any,
@@ -274,11 +277,13 @@ test-suite language-plutus-core-test
         filepath -any,
         hedgehog -any,
         language-plutus-core -any,
+        lazy-search -any,        
         lens -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
         serialise -any,
+        size-based -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
@@ -354,40 +359,6 @@ executable plc
         lens -any,
         prettyprinter -any,
         optparse-applicative -any
-
-test-suite language-plutus-core-prop-test
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: prop-test
-    other-modules: Language.PlutusCore.Gen.Common
-                 , Language.PlutusCore.Gen.Type
-                 , Language.PlutusCore.PropTest
-    default-language: Haskell2010
-    other-extensions: DeriveDataTypeable EmptyDataDeriving FlexibleContexts
-                      FlexibleInstances OverloadedStrings RecordWildCards
-                      ScopedTypeVariables TemplateHaskell
-    ghc-options: -threaded -O2 -Wall
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-    build-depends:
-        base -any,
-        language-plutus-core -any,
-        lazy-search -any,
-        mtl -any,
-        size-based -any,
-        tasty -any,
-        tasty-hunit -any,
-        testing-feat -any,
-        text -any
--- this stuff is from Wen's fork, commeting out for now - James
---    if flag(eventlog)
---        ghc-options: -eventlog
-
---    if (flag(development) && impl(ghc <8.4))
---        ghc-options: -Werror
-
-    if impl(ghc >=8.4)
-        ghc-options: -Wmissing-export-lists
 
 benchmark language-plutus-core-budgeting-bench
     import: lang

@@ -23,6 +23,8 @@ import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.PropTest
 
 import           Codec.Serialise
 import           Control.Monad.Except
@@ -35,6 +37,7 @@ import           Test.Tasty
 import           Test.Tasty.Golden
 import           Test.Tasty.Hedgehog
 import           Test.Tasty.HUnit
+import           Data.Coolean
 
 main :: IO ()
 main = do
@@ -156,6 +159,13 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     , test_evaluation
     , test_normalizationCheck
     , Check.tests
+    -- NEAT tests
+    , testCase "kind checker for generated types is sound" $
+        testTyProp depth kind prop_checkKindSound
+    , testCase "normalization preserves kinds" $
+        testTyProp depth kind prop_normalizePreservesKind
+    , testCase "normalization for generated types is sound" $
+        testTyProp depth kind prop_normalizeTypeSound
     ]
 
 type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
@@ -294,3 +304,37 @@ tests = testCase "example programs" $ fold
         fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
+
+-- NEAT stuff
+
+
+depth :: Int
+depth = 10
+
+kind :: Kind ()
+kind = Type ()
+
+
+-- |Property: Kind checker for generated types is sound.
+prop_checkKindSound :: TyProp
+prop_checkKindSound k _ tyQ = isSafe $ do
+  ty <- liftQuote tyQ
+  checkKind defConfig () ty k
+
+-- |Property: Normalisation preserves kind.
+prop_normalizePreservesKind :: TyProp
+prop_normalizePreservesKind k _ tyQ = isSafe $ do
+  ty <- liftQuote tyQ
+  ty' <- unNormalized <$> normalizeType ty
+  checkKind defConfig () ty' k
+
+-- |Property: Normalisation for generated types is sound.
+prop_normalizeTypeSound :: TyProp
+prop_normalizeTypeSound k tyG tyQ = isSafe $ do
+  ty1 <- unNormalized <$> (normalizeType =<< liftQuote tyQ)
+  ty2 <- toClosedType k (normalizeTypeG tyG)
+  return (ty1 == ty2)
+
+-- |Check if the type/kind checker threw any errors.
+isSafe :: ExceptT (Error DefaultUni a) Quote a -> Cool
+isSafe = toCool . isRight . runQuote . runExceptT
