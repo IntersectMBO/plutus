@@ -8,7 +8,7 @@ import Data.Map as Map
 import Data.Set (toUnfoldable)
 import Data.Tuple (Tuple(..), fst)
 import Data.Tuple.Nested (type (/\), (/\))
-import Marlowe.Linter (lint, State(..))
+import Marlowe.Linter (State(..), WarningDetail(..), lint)
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Party(..), Token(..))
 import Marlowe.Semantics as S
@@ -312,7 +312,7 @@ unreachableCaseNotify =
 unreachableCaseEmptyChoiceList :: Test
 unreachableCaseEmptyChoiceList =
   testWarningSimple "When [Case (Choice (ChoiceId \"choice\" (Role \"alice\")) []) Close] 10 Close"
-    "This case will never be used, because there are no options to choose"
+    $ show UnreachableCaseEmptyChoice
 
 undefinedLet :: Test
 undefinedLet = testWarningSimple (letContract "(UseValue \"simplifiableValue\")") "The contract tries to Use a ValueId that has not been defined in a Let"

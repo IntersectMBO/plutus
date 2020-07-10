@@ -14,7 +14,6 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Int (toNumber)
 import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
@@ -27,7 +26,6 @@ import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, tr
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
-import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
@@ -84,7 +82,6 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
-import Web.HTML.Window as Window
 import WebSocket (WebSocketRequestMessage(..))
 
 mkComponent :: forall m. MonadEffect m => MonadAff m => SPSettings_ SPParams_ -> H.Component HTML Query Unit Message m
@@ -650,7 +647,11 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
-  boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 

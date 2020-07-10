@@ -109,6 +109,7 @@ mkArgName t = case splitAt 1 (show t) of
 
 data Argument
   = ArrayArg String
+  | EmptyArrayArg
   | DataArg MarloweType
   | NamedDataArg String
   | DataArgIndexed Int MarloweType
@@ -176,7 +177,7 @@ getMarloweConstructors ContractType =
     [ (Tuple "Close" [])
     , (Tuple "Pay" [ GenArg AccountIdType, DataArg PayeeType, DataArg TokenType, DataArg ValueType, DataArg ContractType ])
     , (Tuple "If" [ DataArg ObservationType, DataArgIndexed 1 ContractType, DataArgIndexed 2 ContractType ])
-    , (Tuple "When" [ ArrayArg "case", DefaultNumber zero, DataArg ContractType ])
+    , (Tuple "When" [ EmptyArrayArg, DefaultNumber zero, DataArg ContractType ])
     , (Tuple "Let" [ DefaultString "valueId", DataArg ValueType, DataArg ContractType ])
     , (Tuple "Assert" [ DataArg ObservationType, DataArg ContractType ])
     ]
@@ -231,6 +232,8 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
   Just [] -> constructorName
   Just vs -> parens row column $ constructorName <> " " <> intercalate " " (map showArgument vs)
   where
+  showArgument EmptyArrayArg = "[]"
+
   showArgument (ArrayArg arg) = "[ ?" <> arg <> " ]"
 
   showArgument (DataArg arg) = "?" <> mkArgName arg

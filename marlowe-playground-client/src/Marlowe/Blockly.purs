@@ -1162,7 +1162,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
       eTopCaseBlock = getBlockInputConnectedTo casesInput
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
-      Either.Left _ -> pure [ Hole "case" Proxy { row: 0, column: 0 } ]
+      Either.Left _ -> pure []
     slot <- parse Parser.timeout =<< getFieldValue block "timeout"
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (When cases slot contract)
