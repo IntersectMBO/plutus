@@ -43,15 +43,15 @@ type CkM uni = Either (CkEvaluationException uni)
 
 instance SpendBudget (CkM uni) (Term TyName Name uni ()) where
     spendBudget _ _ _ = pure ()
-    feedBudgeter exF _ = pure $ exF 0
+    getExMemory _     = pure 0
     builtinCostParams = pure defaultCostModel
 
 data Frame uni
-    = FrameApplyFun (Plain Value uni)                          -- ^ @[V _]@
-    | FrameApplyArg (Plain Term uni)                           -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName uni ())                      -- ^ @{_ A}@
-    | FrameUnwrap                                              -- ^ @(unwrap _)@
-    | FrameIWrap () (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
+    = FrameApplyFun (Plain Value uni)                       -- ^ @[V _]@
+    | FrameApplyArg (Plain Term uni)                        -- ^ @[_ N]@
+    | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
+    | FrameUnwrap                                           -- ^ @(unwrap _)@
+    | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni = [Frame uni]
 
@@ -91,10 +91,10 @@ substituteDb varFor new = go where
 (|>)
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Plain Term uni -> CkM uni (Plain Term uni)
-stack |> TyInst _ fun ty      = FrameTyInstArg ty     : stack |> fun
-stack |> Apply _ fun arg      = FrameApplyArg arg     : stack |> fun
-stack |> IWrap _ pat arg term = FrameIWrap () pat arg : stack |> term
-stack |> Unwrap _ term        = FrameUnwrap           : stack |> term
+stack |> TyInst _ fun ty      = FrameTyInstArg ty  : stack |> fun
+stack |> Apply _ fun arg      = FrameApplyArg arg  : stack |> fun
+stack |> IWrap _ pat arg term = FrameIWrap pat arg : stack |> term
+stack |> Unwrap _ term        = FrameUnwrap        : stack |> term
 stack |> tyAbs@TyAbs{}        = stack <| tyAbs
 stack |> lamAbs@LamAbs{}      = stack <| lamAbs
 stack |> bi@Builtin{}         = stack <| bi
@@ -117,12 +117,12 @@ _     |> var@Var{}            =
 (<|)
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Plain Value uni -> CkM uni (Plain Term uni)
-[]                             <| term    = pure term
-FrameTyInstArg ty      : stack <| fun     = instantiateEvaluate stack ty fun
-FrameApplyArg arg      : stack <| fun     = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun      : stack <| arg     = applyEvaluate stack fun arg
-FrameIWrap ann pat arg : stack <| value   = stack <| IWrap ann pat arg value
-FrameUnwrap            : stack <| wrapped = case wrapped of
+[]                         <| term    = pure term
+FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
+FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
+FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
+FrameIWrap pat arg : stack <| value   = stack <| IWrap () pat arg value
+FrameUnwrap        : stack <| wrapped = case wrapped of
     IWrap _ _ _ term -> stack <| term
     term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
 

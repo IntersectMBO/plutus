@@ -87,6 +87,8 @@ class HasConstant term where
     -- | Unwrap a shallowly embedded Haskell value from a @term@ or fail.
     asConstant   :: term -> Maybe (Some (ValueOf (UniOf term)))
 
+-- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
+-- and connects @term@ and its @uni@.
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 instance ToAnnotation uni ann => HasConstant (Term tyname name uni ann) where

@@ -128,7 +128,7 @@ type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (Quot
 
 instance SpendBudget (CekM uni) (WithMemory Term uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
-    feedBudgeter exF  = pure . exF . termAnn
+    getExMemory = pure . termAnn
     spendBudget key term budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))

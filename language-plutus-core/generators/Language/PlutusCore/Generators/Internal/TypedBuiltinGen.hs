@@ -28,11 +28,13 @@ import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
+import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
 import qualified Hedgehog.Gen                                      as Gen
@@ -64,9 +66,14 @@ instance (PrettyBy config a, PrettyBy config (Term TyName Name uni ())) =>
         PrettyBy config (TermOf uni a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
+makeKnownEmbed :: forall uni a. KnownType (Term TyName Name uni ()) a => a -> Term TyName Name uni ()
+makeKnownEmbed x = case makeKnown x of
+    EvaluationFailure      -> Error () $ toTypeAst (Proxy @a)
+    EvaluationSuccess term -> term
+
 attachCoercedTerm
     :: (Monad m, KnownType (Term TyName Name uni ()) a) => GenT m a -> GenT m (TermOf uni a)
-attachCoercedTerm = fmap $ \x -> TermOf (foldr (\term _ -> term) undefined $ makeKnown x) x
+attachCoercedTerm = fmap $ \x -> TermOf (makeKnownEmbed x) x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
