@@ -7,6 +7,7 @@
 @import './header.css';
 @import './panels.css';
 @import './panel-mobile.css';
+@import './wallet.css';
 @import './main-tabs.css';
 @import './table.css';
 @import './animations.css';
@@ -44,7 +45,7 @@ a:hover {
 }
 
 .choice-a>button {
-    width: 24px;
+    width: 30px;
 }
 
 .choice-a>.choice-input {
@@ -141,6 +142,33 @@ a:hover {
 
 .code-to-blockly-wrap>.tooltip>.tooltiptext::after {
     left: 85%;
+}
+
+.load-from-simulation-btn.tooltip>.tooltiptext {
+    right: -15px;
+    top: 35px;
+    width: 13em;
+}
+
+.load-from-simulation-btn.tooltip>.tooltiptext::after {
+    left: 85%;
+}
+
+.start-simulation-btn.tooltip>.tooltiptext {
+    right: -146px;
+    top: 35px;
+    width: 13em;
+}
+
+.start-simulation-btn.tooltip>.tooltiptext::after {
+    left: 15%;
+}
+
+button.start-simulation-btn {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    height: 30px;
+    margin-bottom: 1rem;
 }
 
 .choice-error {

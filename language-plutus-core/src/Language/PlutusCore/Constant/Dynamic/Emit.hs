@@ -18,6 +18,7 @@ import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Evaluator
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
@@ -44,12 +45,13 @@ nextGlobalUnique :: IO Int
 nextGlobalUnique = atomicModifyIORef' globalUniqueVar $ \i -> (succ i, i)
 
 newtype EmitHandler uni r = EmitHandler
-    { unEmitHandler :: DynamicBuiltinNameMeanings uni -> Term TyName Name uni () -> IO r
+    { unEmitHandler
+        :: DynamicBuiltinNameMeanings (WithMemory Term uni) -> Plain Term uni -> IO r
     }
 
 feedEmitHandler
-    :: DynamicBuiltinNameMeanings uni
-    -> Term TyName Name uni ()
+    :: DynamicBuiltinNameMeanings (WithMemory Term uni)
+    -> Plain Term uni
     -> EmitHandler uni r
     -> IO r
 feedEmitHandler means term (EmitHandler handler) = handler means term
@@ -58,8 +60,10 @@ withEmitHandler :: AnEvaluator Term uni m r -> (EmitHandler uni (m r) -> IO r2) 
 withEmitHandler eval k = k . EmitHandler $ \env -> evaluate . eval env
 
 withEmitTerm
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
-    => (Term TyName Name uni () -> EmitHandler uni r1 -> IO r2)
+    :: ( KnownType (WithMemory Term uni) a, GShow uni, GEq uni, uni `Includes` ()
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => (Plain Term uni -> EmitHandler uni r1 -> IO r2)
     -> EmitHandler uni r1
     -> IO ([a], r2)
 withEmitTerm cont (EmitHandler handler) =
@@ -71,9 +75,11 @@ withEmitTerm cont (EmitHandler handler) =
         cont dynEmitTerm . EmitHandler $ handler . insertDynamicBuiltinNameDefinition dynEmitDef
 
 withEmitEvaluateBy
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    :: ( KnownType (WithMemory Term uni) a, GShow uni, GEq uni, uni `Includes` ()
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => AnEvaluator Term uni m b
-    -> DynamicBuiltinNameMeanings uni
+    -> DynamicBuiltinNameMeanings (WithMemory Term uni)
     -> (Term TyName Name uni () -> Term TyName Name uni ())
     -> IO ([a], m b)
 withEmitEvaluateBy eval means inst =

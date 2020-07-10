@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.TypeCheck.Internal
@@ -284,13 +285,13 @@ checkKindOfPatternFunctorM ann pat k =
 typeOfBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => BuiltinName -> Type TyName uni ()
-typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
+typeOfBuiltinName bn = withTypedBuiltinName bn $ typeOfTypedBuiltinName @(Term TyName Name _ ())
 
 -- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldFixOf
     :: Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
-    -> Kind ()                      -- ^ @k@
+    -> Kind ()                          -- ^ @k@
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 unfoldFixOf pat arg k = do
     let vPat = unNormalized pat

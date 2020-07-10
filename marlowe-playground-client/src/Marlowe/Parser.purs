@@ -70,7 +70,7 @@ type HelperFunctions a
     , mkMulValue :: Term Value -> Term Value -> Value
     , mkRational :: BigInteger -> BigInteger -> Rational
     , mkScale :: TermWrapper Rational -> Term Value -> Value
-    , mkChoiceValue :: ChoiceId -> Term Value -> Value
+    , mkChoiceValue :: ChoiceId -> Value
     , mkSlotIntervalStart :: Value
     , mkSlotIntervalEnd :: Value
     , mkUseValue :: TermWrapper ValueId -> Value
@@ -322,7 +322,7 @@ recValue _ =
         skipSpaces
         v <- value'
         pure $ Scale s v
-    <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId) <**> value')
+    <|> (ChoiceValue <$> (string "ChoiceValue" **> choiceId))
     <|> (UseValue <$> (string "UseValue" **> termWrapper valueId))
     <|> (Cond <$> (string "Cond" **> observation') <**> value' <**> value')
   where
@@ -472,16 +472,13 @@ testString =
                     (If
                        (ValueEQ
                           (ChoiceValue
-                             (ChoiceId "1" "alice")
-                             (Constant 42))
+                             (ChoiceId "1" "alice"))
                           (ChoiceValue
-                             (ChoiceId "1" "bob")
-                             (Constant 42)))
+                             (ChoiceId "1" "bob")))
                        (If
                           (ValueEQ
                              (ChoiceValue
-                                (ChoiceId "1" "alice")
-                                (Constant 42))
+                                (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
                              (AccountId 0 "alice")
@@ -528,16 +525,13 @@ testString =
                     (If
                        (ValueEQ
                           (ChoiceValue
-                             (ChoiceId "1" "alice")
-                             (Constant 42))
+                             (ChoiceId "1" "alice"))
                           (ChoiceValue
-                             (ChoiceId "1" "bob")
-                             (Constant 42)))
+                             (ChoiceId "1" "bob")))
                        (If
                           (ValueEQ
                              (ChoiceValue
-                                (ChoiceId "1" "alice")
-                                (Constant 42))
+                                (ChoiceId "1" "alice"))
                              (Constant 0))
                           (Pay
                              (AccountId 0 "alice")

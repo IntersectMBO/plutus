@@ -8,7 +8,7 @@ exports.hoverProvider_ = function (hoverProvider) {
 }
 
 exports.completionItemProvider_ = function (suggestionsProvider) {
-    let uncurriedSuggestions = (stripParens, contract, range) => suggestionsProvider(stripParens)(contract)(range);
+    let uncurriedSuggestions = (word, stripParens, contract, range) => suggestionsProvider(word)(stripParens)(contract)(range);
     return new monaco.MarloweCompletionItemProvider(uncurriedSuggestions);
 }
 

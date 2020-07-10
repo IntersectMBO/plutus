@@ -14,6 +14,7 @@
         "ekg-core" = (((hackage.ekg-core)."0.1.1.7").revisions).default;
         "ekg-json" = (((hackage.ekg-json)."0.1.0.6").revisions).default;
         "eventful-memory" = (((hackage.eventful-memory)."0.2.0").revisions).default;
+        "barbies" = (((hackage.barbies)."2.0.1.0").revisions).default;
         "eventful-sqlite" = (((hackage.eventful-sqlite)."0.2.0").revisions).default;
         "github" = (((hackage.github)."0.24").revisions).default;
         "github-webhooks" = (((hackage.github-webhooks)."0.12.0").revisions).default;
@@ -45,7 +46,6 @@
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
-        plutus-tutorial = ./plutus-tutorial.nix;
         plutus-book = ./plutus-book.nix;
         plutus-contract = ./plutus-contract.nix;
         plutus-scb = ./plutus-scb.nix;
@@ -53,6 +53,7 @@
         iots-export = ./iots-export.nix;
         marlowe-symbolic = ./marlowe-symbolic.nix;
         prettyprinter-configurable = ./prettyprinter-configurable.nix;
+        plutus-doc = ./plutus-doc.nix;
         purescript-bridge = ./.stack-to-nix.cache.0;
         servant-purescript = ./.stack-to-nix.cache.1;
         cardano-crypto = ./.stack-to-nix.cache.2;

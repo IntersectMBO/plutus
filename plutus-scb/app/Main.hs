@@ -38,7 +38,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescri
 import           Options.Applicative                             (CommandFields, Mod, Parser, argument, auto, command,
                                                                   customExecParser, disambiguate, eitherReader, flag,
                                                                   fullDesc, help, helper, idm, info, infoOption, long,
-                                                                  metavar, option, optional, prefs, progDesc, short,
+                                                                  metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
 import           Plutus.SCB.App                                  (App, runApp)
@@ -47,8 +47,8 @@ import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
 import           Plutus.SCB.Types                                (Config (Config), ContractExe (..), chainIndexConfig,
-                                                                  nodeServerConfig, signingProcessConfig,
-                                                                  walletServerConfig)
+                                                                  monitoringConfig, monitoringPort, nodeServerConfig,
+                                                                  signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
 import qualified PSGenerator
@@ -91,17 +91,8 @@ logLevelFlag =
         LevelDebug
         (short 'v' <> long "verbose" <> help "Enable debugging output.")
 
-commandLineParser :: Parser (Maybe Int, LogLevel, FilePath, Command)
-commandLineParser =
-    (,,,) <$> optional ekgPortParser <*> logLevelFlag <*> configFileParser <*>
-    commandParser
-
-ekgPortParser :: Parser Int
-ekgPortParser =
-    option
-        auto
-        (long "monitoring-port" <>
-         short 'p' <> metavar "PORT" <> help "Open an EKG server on PORT")
+commandLineParser :: Parser (LogLevel, FilePath, Command)
+commandLineParser = (,,) <$> logLevelFlag <*> configFileParser <*> commandParser
 
 configFileParser :: Parser FilePath
 configFileParser =
@@ -365,12 +356,12 @@ runCliCommand _ _ _ PSGenerator {_outputDir} =
 
 main :: IO ()
 main = do
-    (ekgPort, minLogLevel, configPath, cmd) <-
+    (minLogLevel, configPath, cmd) <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
-    traverse_ (EKG.forkServer "localhost") ekgPort
+    traverse_ (EKG.forkServer "localhost") (monitoringPort <$> monitoringConfig config)
     serviceAvailability <- newToken
     result <-
         runApp minLogLevel config $ do

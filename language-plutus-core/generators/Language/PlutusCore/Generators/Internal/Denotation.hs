@@ -33,12 +33,14 @@ import           Data.Proxy
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
 data Denotation uni object res = forall args. Denotation
-    { _denotationObject :: object                             -- ^ A PLC object.
-    , _denotationToTerm :: object -> Term TyName Name uni ()  -- ^ How to embed the object into a term.
-    , _denotationItself :: FoldArgs args res                  -- ^ The denotation of the object.
-                                                              -- E.g. the denotation of 'AddInteger' is '(+)'.
-    , _denotationScheme :: TypeScheme uni args res            -- ^ The 'TypeScheme' of the object.
-                                                              -- See 'intIntInt' for example.
+    { _denotationObject :: object
+      -- ^ A PLC object.
+    , _denotationToTerm :: object -> Term TyName Name uni ()
+      -- ^ How to embed the object into a term.
+    , _denotationItself :: FoldArgs args res
+      -- ^ The denotation of the object. E.g. the denotation of 'AddInteger' is '(+)'.
+    , _denotationScheme :: TypeScheme (Term TyName Name uni ()) args res
+      -- ^ The 'TypeScheme' of the object. See 'intIntInt' for example.
     }
 
 -- | A member of a 'DenotationContext'.
@@ -63,24 +65,26 @@ newtype DenotationContext uni = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme uni args res -> AsKnownType uni res
+typeSchemeResult :: TypeScheme (Term TyName Name uni ()) args res -> AsKnownType uni res
 typeSchemeResult (TypeSchemeResult _)       = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK Proxy
 
 -- | Get the 'Denotation' of a variable.
-denoteVariable :: KnownType uni res => Name -> res -> Denotation uni Name res
+denoteVariable :: KnownType (Term TyName Name uni ()) res => Name -> res -> Denotation uni Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
 -- | Get the 'Denotation' of a 'TypedBuiltinName'.
 denoteTypedBuiltinName
-    :: TypedBuiltinName uni args res -> FoldArgs args res -> Denotation uni BuiltinName res
+    :: TypedBuiltinName (Term TyName Name uni ()) args res
+    -> FoldArgs args res
+    -> Denotation uni BuiltinName res
 denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
     Denotation name (Builtin () . BuiltinName ()) meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
-    :: (GShow uni, KnownType uni res)
+    :: (GShow uni, KnownType (Term TyName Name uni ()) res)
     => Denotation uni object res -> DenotationContext uni -> DenotationContext uni
 insertDenotation denotation (DenotationContext vs) = DenotationContext $
     DMap.insertWith'
@@ -91,14 +95,14 @@ insertDenotation denotation (DenotationContext vs) = DenotationContext $
 
 -- | Insert a variable into a 'DenotationContext'.
 insertVariable
-    :: (GShow uni, KnownType uni a)
+    :: (GShow uni, KnownType (Term TyName Name uni ()) a)
     => Name -> a -> DenotationContext uni -> DenotationContext uni
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
 insertTypedBuiltinName
     :: GShow uni
-    => TypedBuiltinName uni args res
+    => TypedBuiltinName (Term TyName Name uni ()) args res
     -> FoldArgs args res
     -> DenotationContext uni
     -> DenotationContext uni

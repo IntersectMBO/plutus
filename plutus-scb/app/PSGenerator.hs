@@ -40,7 +40,7 @@ import           Plutus.SCB.Core                                   (activateCont
                                                                     installContract)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
-import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest, csContract)
 import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
                                                                     ContractInstanceState, ContractResponse,
                                                                     IterationID, PartiallyDecodedResponse)
@@ -148,13 +148,13 @@ writeTestData outputDir = do
                     void $
                         callContractEndpoint
                             @TestContracts
-                            currencyInstance1
+                            (csContract currencyInstance1)
                             "Create native token"
                             SimpleMPS {tokenName = "TestCurrency", amount = 10000}
                     --
                     report :: FullReport TestContracts <- Webserver.getFullReport
                     schema :: ContractSignatureResponse TestContracts <-
-                        Webserver.contractSchema currencyInstance1
+                        Webserver.contractSchema (csContract currencyInstance1)
                     pure (report, schema)
             syncAll
             void Chain.processBlock

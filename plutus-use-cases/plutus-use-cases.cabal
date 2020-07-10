@@ -36,6 +36,7 @@ library
         Language.PlutusTx.Coordination.Contracts.ErrorHandling
         Language.PlutusTx.Coordination.Contracts.MultiSig
         Language.PlutusTx.Coordination.Contracts.MultiSigStateMachine
+        Language.PlutusTx.Coordination.Contracts.PingPong
         Language.PlutusTx.Coordination.Contracts.PubKey
         Language.PlutusTx.Coordination.Contracts.Vesting
         Language.PlutusTx.Coordination.Contracts.Swap
@@ -88,6 +89,7 @@ test-suite plutus-use-cases-test
         Spec.Lib
         Spec.MultiSig
         Spec.MultiSigStateMachine
+        Spec.PingPong
         Spec.PubKey
         Spec.Rollup
         Spec.TokenAccount

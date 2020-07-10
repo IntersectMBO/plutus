@@ -72,6 +72,13 @@ data Config =
         , scbWebserverConfig   :: WebserverConfig
         , chainIndexConfig     :: ChainIndex.ChainIndexConfig
         , signingProcessConfig :: SigningProcess.SigningProcessConfig
+        , monitoringConfig     :: Maybe MonitoringConfig
+        }
+    deriving (Show, Eq, Generic, FromJSON)
+
+data MonitoringConfig =
+    MonitoringConfig
+        { monitoringPort :: Int
         }
     deriving (Show, Eq, Generic, FromJSON)
 

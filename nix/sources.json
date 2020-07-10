@@ -42,10 +42,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "285b4ae6ef222c299c100ae0d89e5060f6b0c879",
-        "sha256": "0dppnh7iigyxm5904g6a8m919zixsad3hbr8y6bphqia28glm0fa",
+        "rev": "4dbc429b81c78c637c95c040693ce5fe0d640c28",
+        "sha256": "1lhn0cwwjrvh5cxwx288927kgjh0ilgpqf2cdqazp5g95iwp5plv",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/285b4ae6ef222c299c100ae0d89e5060f6b0c879.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/4dbc429b81c78c637c95c040693ce5fe0d640c28.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {
@@ -94,6 +94,19 @@
         "type": "file",
         "url": "https://nodejs.org/download/release/v10.9.0/node-v10.9.0-headers.tar.gz",
         "url_template": "https://nodejs.org/download/release/<rev>/node-<rev>-headers.tar.gz"
+    },
+    "sphinxcontrib-haddock": {
+        "branch": "master",
+        "description": "Tools for using Haddock with Sphinx",
+        "homepage": null,
+        "owner": "michaelpj",
+        "repo": "sphinxcontrib-haddock",
+        "rev": "f3956b3256962b2d27d5a4e96edb7951acf5de34",
+        "sha256": "0mlxa5zzgdka0c6sj7pp4cfvc8rcrd8g2z2113vp614l43g17miv",
+        "type": "tarball",
+        "builtin": false,
+        "url": "https://github.com/michaelpj/sphinxcontrib-haddock/archive/f3956b3256962b2d27d5a4e96edb7951acf5de34.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "stackage.nix": {
         "branch": "master",

@@ -1,5 +1,6 @@
 -- | Kind/type inference/checking.
 
+{-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.TypeCheck
@@ -39,8 +40,8 @@ defConfig = TypeCheckConfig mempty
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and convert it to the
 -- corresponding @Type TyName@ for each row of a 'DynamicBuiltinNameMeanings'.
 dynamicBuiltinNameMeaningsToTypes
-    :: (AsTypeError e uni ann, MonadError e m, MonadQuote m)
-    => ann -> DynamicBuiltinNameMeanings uni -> m (DynamicBuiltinNameTypes uni)
+    :: (AsTypeError e uni ann, MonadError e m, MonadQuote m, UniOf term ~ uni)
+    => ann -> DynamicBuiltinNameMeanings term -> m (DynamicBuiltinNameTypes uni)
 dynamicBuiltinNameMeaningsToTypes ann (DynamicBuiltinNameMeanings means) = do
     let getType mean = do
             let ty = dynamicBuiltinNameMeaningToType mean
@@ -98,7 +99,7 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
-    :: (AsTypeError e uni ann, MonadError e m, MonadQuote m
+    :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
        , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni

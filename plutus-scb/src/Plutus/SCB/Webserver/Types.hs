@@ -7,7 +7,6 @@ module Plutus.SCB.Webserver.Types where
 
 import           Data.Aeson             (FromJSON, ToJSON)
 import           Data.Map               (Map)
-import           Data.Set               (Set)
 import           GHC.Generics           (Generic)
 import           Ledger                 (PubKeyHash, Tx, TxId)
 import           Ledger.Index           (UtxoIndex)
@@ -19,8 +18,8 @@ import           Wallet.Rollup.Types    (AnnotatedTx)
 
 data ContractReport t =
     ContractReport
-        { installedContracts :: Set t
-        , contractStates     :: [ContractInstanceState t]
+        { crAvailableContracts   :: [ContractSignatureResponse t]
+        , crActiveContractStates :: [ContractInstanceState t]
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
@@ -44,7 +43,10 @@ data FullReport t =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-newtype ContractSignatureResponse t =
-    ContractSignatureResponse [FunctionSchema FormSchema]
+data ContractSignatureResponse t =
+    ContractSignatureResponse
+        { csrDefinition :: t
+        , csrSchemas    :: [FunctionSchema FormSchema]
+        }
     deriving (Show, Eq, Generic)
-    deriving newtype (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON)

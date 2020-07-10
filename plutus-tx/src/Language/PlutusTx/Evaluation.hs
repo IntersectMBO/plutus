@@ -34,8 +34,10 @@ import qualified Control.Exception
 import           System.IO.Unsafe
 
 stringBuiltins
-    :: (GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()])
-    => DynamicBuiltinNameMeanings uni
+    :: ( GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
+    => DynamicBuiltinNameMeanings (WithMemory Term uni)
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
@@ -51,7 +53,7 @@ unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => Program TyName Name uni () -> EvaluationResultDef uni
+    => Program TyName Name uni () -> EvaluationResult (Plain Term uni)
 unsafeEvaluateCek = PLC.unsafeEvaluateCek stringBuiltins PLC.defaultCostModel . toTerm
 
 -- TODO: pretty sure we shouldn't need the unsafePerformIOs here, we should expose a pure interface even if it has IO hacks under the hood

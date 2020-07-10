@@ -28,5 +28,10 @@ chainIndexConfig:
 
 signingProcessConfig:
   spBaseUrl: http://localhost:8084
-  spWallet: 
+  spWallet:
     getWallet: 1
+
+# Optional EKG Server Config
+# ----
+# monitoringConfig:
+#   monitoringPort: 8090

@@ -90,7 +90,7 @@ import           Wallet.Emulator.MultiAgent
 import           Wallet.Emulator.NodeClient
 import           Wallet.Emulator.Wallet
 
-type EmulatorEffs = '[MultiAgentEffect, ChainEffect]
+type EmulatorEffs = '[MultiAgentEffect, ChainEffect, ChainControlEffect]
 
 -- | Notify the given 'Wallet' of some blockchain events.
 walletRecvBlocks :: Eff.Members EmulatorEffs effs => Wallet -> [ChainClientNotification] -> Eff.Eff effs ()
@@ -133,9 +133,10 @@ newtype EmulatorAction e a = EmulatorAction { unEmulatorAction :: ExceptT e (Sta
 processEmulated :: forall m e a . (MonadEmulator e m) => Eff.Eff EmulatorEffs a -> m a
 processEmulated act =
     act
-        & Eff.raiseEnd2
+        & Eff.raiseEnd3
         & handleMultiAgent
         & handleChain
+        & handleControlChain
         & Eff.interpret (Eff.handleZoomedWriter p1)
         & Eff.interpret (Eff.handleZoomedState chainState)
         & Eff.interpret (Eff.writeIntoState emulatorLog)

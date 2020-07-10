@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:url(#Rectangle_802_1_);}
+	.st1{fill:#FFFFFF;}
+</style>
+<linearGradient id="Rectangle_802_1_" gradientUnits="userSpaceOnUse" x1="-641.0208" y1="397.2708" x2="-640.0208" y2="397.2708" gradientTransform="matrix(24 0 0 -24 15398 9560)">
+	<stop  offset="0" style="stop-color:#832DC4"/>
+	<stop  offset="1" style="stop-color:#1746A0"/>
+</linearGradient>
+<path id="Rectangle_802" class="st0" d="M13.5,13.5h20c2.2,0,4,1.8,4,4v16c0,2.2-1.8,4-4,4h-20l0,0V13.5L13.5,13.5z"/>
+<path id="Polygon_8" class="st1" d="M25.2,28.5l-3.3-5h6.7L25.2,28.5z"/>
+</svg>
