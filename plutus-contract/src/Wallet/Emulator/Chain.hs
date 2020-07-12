@@ -87,13 +87,11 @@ handleControlChain = interpret $ \case
         let pool  = st ^. txPool
             slot  = st ^. currentSlot
             idx   = st ^. index
-            (ValidatedBlock block events rest, idx') =
+            ValidatedBlock block events rest =
                 validateBlock slot idx pool
 
         let st' = st & txPool .~ rest
-                   & chainNewestFirst %~ (block :)
-                   & index .~ idx'
-                   & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
+                     & addBlock block
 
         put st'
         tell events
@@ -119,7 +117,7 @@ data ValidatedBlock = ValidatedBlock
 -- | Validate a block given the current slot and UTxO index, returning the valid
 --   transactions, success/failure events, remaining transactions and the
 --   updated UTxO set.
-validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> (ValidatedBlock, Index.UtxoIndex)
+validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> ValidatedBlock
 validateBlock slot@(Slot s) idx txns =
     let
         -- Select those transactions that can be validated in the
@@ -127,8 +125,8 @@ validateBlock slot@(Slot s) idx txns =
         (eligibleTxns, rest) = partition (canValidateNow slot) txns
 
         -- Validate eligible transactions, updating the UTXO index each time
-        (processed, idx') =
-            flip S.runState idx $ for eligibleTxns $ \t -> do
+        processed =
+            flip S.evalState idx $ for eligibleTxns $ \t -> do
                 r <- validateEm slot t
                 pure (t, r)
 
@@ -141,7 +139,7 @@ validateBlock slot@(Slot s) idx txns =
         nextSlot = Slot (s + 1)
         events   = (reverse (uncurry mkValidationEvent <$> processed)) ++ [SlotAdd nextSlot]
 
-    in (ValidatedBlock block events rest, idx')
+    in ValidatedBlock block events rest
 
 -- | Check whether the given transaction can be validated in the given slot.
 canValidateNow :: Slot -> Tx -> Bool
@@ -172,6 +170,6 @@ addBlock blk st =
      -- The block update may contain txs that are not in this client's
      -- `txPool` which will get ignored
      & txPool %~ (\\ blk)
-     & currentSlot %~ (+ 1)
+     & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
 
 makePrisms ''ChainEvent
