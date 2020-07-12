@@ -130,6 +130,8 @@ derive instance newtypeAssets :: Newtype Assets _
 
 derive instance eqAssets :: Eq Assets
 
+derive instance ordAssets :: Ord Assets
+
 derive newtype instance showAssets :: Show Assets
 
 instance semigroupAssets :: Semigroup Assets where
@@ -327,7 +329,7 @@ data Value
   | SubValue Value Value
   | MulValue Value Value
   | Scale Rational Value
-  | ChoiceValue ChoiceId Value
+  | ChoiceValue ChoiceId
   | SlotIntervalStart
   | SlotIntervalEnd
   | UseValue ValueId
@@ -666,6 +668,8 @@ derive instance genericPayment :: Generic Payment _
 
 derive instance eqPayment :: Eq Payment
 
+derive instance ordPayment :: Ord Payment
+
 instance showPayment :: Show Payment where
   show = genericShow
 
@@ -905,7 +909,7 @@ evalValue env state value =
           isEven = (q `rem` fromInt 2) == zero
         in
           if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
-      ChoiceValue choiceId defVal -> fromMaybe (eval defVal) $ Map.lookup choiceId (unwrap state).choices
+      ChoiceValue choiceId -> fromMaybe zero $ Map.lookup choiceId (unwrap state).choices
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env
       UseValue valId -> fromMaybe zero $ Map.lookup valId (unwrap state).boundValues

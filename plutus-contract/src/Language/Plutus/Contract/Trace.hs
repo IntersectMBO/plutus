@@ -73,19 +73,18 @@ module Language.Plutus.Contract.Trace
     , allWallets
     ) where
 
-import           Control.Applicative                               (empty)
+import           Control.Arrow                                     ((>>>), (>>^))
 import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
                                                                     (%=))
 import           Control.Monad.Except
 import qualified Control.Monad.Freer                               as Eff
-import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Reader                              ()
 import           Control.Monad.State                               (MonadState, StateT, runStateT)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
-import           Data.Maybe                                        (fromMaybe, isJust, mapMaybe)
+import           Data.Maybe                                        (fromMaybe, mapMaybe)
 import           Data.Row                                          (KnownSymbol, Label (..), trial')
 import qualified Data.Row.Internal                                 as V
 import qualified Data.Row.Variants                                 as V
@@ -104,27 +103,27 @@ import qualified Language.Plutus.Contract.Types                    as Contract.T
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
 import qualified Language.Plutus.Contract.Effects.AwaitSlot        as AwaitSlot
+import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint   as Endpoint
 import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
 import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
-import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Language.Plutus.Contract.Resumable                (Request (..), Requests (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), tryHandler, wrapHandler)
+import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), maybeToHandler, tryHandler,
+                                                                    wrapHandler)
+import qualified Language.Plutus.Contract.Trace.RequestHandler     as RequestHandler
 import           Language.Plutus.Contract.Types                    (ResumableResult (..))
 
 import qualified Ledger.Ada                                        as Ada
 import           Ledger.Address                                    (Address)
-import qualified Ledger.AddressMap                                 as AM
 import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Value                                      (Value)
 
 import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
-import           Wallet.Effects                                    as EM
 import           Wallet.Emulator                                   (EmulatorAction, EmulatorState, MonadEmulator,
                                                                     Wallet)
 import qualified Wallet.Emulator                                   as EM
@@ -439,11 +438,10 @@ handleSlotNotifications ::
     ( HasAwaitSlot s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleSlotNotifications = RequestHandler $ \req -> do
-    waitingSlot <- maybe empty pure (AwaitSlot.request req)
-    currentSlot <- walletSlot
-    guard (currentSlot >= waitingSlot)
-    pure $ AwaitSlot.event currentSlot
+handleSlotNotifications =
+    maybeToHandler AwaitSlot.request
+    >>> RequestHandler.handleSlotNotifications
+    >>^ AwaitSlot.event
 
 -- | Check whether the wallet's contract instance is waiting to be notified
 --   of a slot, and send the notification.
@@ -595,10 +593,10 @@ handlePendingTransactions ::
     ( HasWriteTx s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handlePendingTransactions = RequestHandler $ \req -> do
-    tx <- maybe empty pure $ WriteTx.pendingTransaction req
-    res <- (Right <$> Wallet.handleTx tx) `Eff.catchError` (pure . Left)
-    pure $ WriteTx.event $ view (from WriteTx.writeTxResponse) res
+handlePendingTransactions =
+    maybeToHandler WriteTx.pendingTransaction
+    >>> RequestHandler.handlePendingTransactions
+    >>^ WriteTx.event . view (from WriteTx.writeTxResponse)
 
 -- | Look at the "utxo-at" requests of the contract and respond to all of them
 --   with the current UTXO set at the given address.
@@ -606,41 +604,37 @@ handleUtxoQueries ::
     ( HasUtxoAt s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleUtxoQueries = RequestHandler $ \e -> do
-        addr <- maybe empty pure $ UtxoAt.utxoAtRequest e
-        AM.AddressMap utxoSet <- watchedAddresses
-        res <- maybe empty pure $ Map.lookup addr utxoSet
-        pure $ UtxoAt.event $ UtxoAtAddress addr res
+handleUtxoQueries =
+    maybeToHandler UtxoAt.utxoAtRequest
+    >>> RequestHandler.handleUtxoQueries
+    >>^ UtxoAt.event
 
 handleTxConfirmedQueries ::
     ( HasTxConfirmation s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleTxConfirmedQueries = RequestHandler $ \e -> do
-        req <- maybe empty pure $ AwaitTxConfirmed.txId e
-        conf <- EM.transactionConfirmed req
-        guard conf
-        pure $ AwaitTxConfirmed.event req
+handleTxConfirmedQueries =
+    maybeToHandler AwaitTxConfirmed.txId
+    >>> RequestHandler.handleTxConfirmedQueries
+    >>^ AwaitTxConfirmed.event . unTxConfirmed
 
 handleNextTxAtQueries
     :: ( HasWatchAddress s
        )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleNextTxAtQueries = RequestHandler $ \e -> do
-        req <- maybe empty pure $ WatchAddress.watchAddressRequest e
-        sl <- walletSlot
-        guard (sl > acreqSlot req)
-        rsp <- EM.nextTx req
-        pure $ WatchAddress.event rsp
+handleNextTxAtQueries =
+    maybeToHandler WatchAddress.watchAddressRequest
+    >>> RequestHandler.handleNextTxAtQueries
+    >>^ WatchAddress.event
 
 handleOwnPubKeyQueries ::
     ( HasOwnPubKey s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
-handleOwnPubKeyQueries = RequestHandler $ \req -> do
-        guard $ isJust $ OwnPubKey.request req
-        key <- ownPubKey
-        pure $ OwnPubKey.event key
+handleOwnPubKeyQueries =
+    maybeToHandler OwnPubKey.request
+    >>> RequestHandler.handleOwnPubKey
+    >>^ OwnPubKey.event
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses

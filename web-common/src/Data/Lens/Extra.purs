@@ -1,4 +1,4 @@
-module Data.Lens.Extra (peruse, toArrayOf) where
+module Data.Lens.Extra (peruse, toArrayOf, toSetOf) where
 
 import Control.Category ((<<<))
 import Control.Monad.State.Class (class MonadState, gets)
@@ -9,6 +9,9 @@ import Data.List (List)
 import Data.Maybe (Maybe)
 import Data.Maybe.First (First)
 import Data.Monoid.Endo (Endo)
+import Data.Ord (class Ord)
+import Data.Set (Set)
+import Data.Set as Set
 
 -- | Extract a `Maybe` in the context of `MonadState`.
 -- ie. `preview` on a `use`.
@@ -24,3 +27,7 @@ peruse = gets <<< preview
 -- this.
 toArrayOf :: forall s t a b. Fold (Endo (->) (List a)) s t a b -> s -> Array a
 toArrayOf p = Array.fromFoldable <<< toListOf p
+
+-- | Analagous to `toListOf`.
+toSetOf :: forall s t a b. Ord a => Fold (Endo (->) (List a)) s t a b -> s -> Set a
+toSetOf p = Set.fromFoldable <<< toListOf p

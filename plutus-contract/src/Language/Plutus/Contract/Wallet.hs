@@ -14,7 +14,7 @@ module Language.Plutus.Contract.Wallet(
     ) where
 
 import           Control.Lens
-import           Control.Monad.Freer         (Eff, Member, Members)
+import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error)
 import           Control.Monad.Freer.Log     (Log, logDebug, logInfo)
 import           Data.Bifunctor              (second)
@@ -181,6 +181,6 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: (Members WalletEffects effs, Member Log effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
+handleTx :: (Member WalletEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs, Member Log effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
 handleTx utx =
     balanceWallet utx >>= addSignatures (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit

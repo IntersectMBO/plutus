@@ -107,9 +107,6 @@ _txInputs = _Newtype <<< prop (SProxy :: SProxy "txInputs")
 _txOutputs :: Lens' Tx (Array TxOut)
 _txOutputs = _Newtype <<< prop (SProxy :: SProxy "txOutputs")
 
-_txId :: Lens' TxId String
-_txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
-
 _txInRef :: Lens' TxIn TxOutRef
 _txInRef = _Newtype <<< prop (SProxy :: SProxy "txInRef")
 

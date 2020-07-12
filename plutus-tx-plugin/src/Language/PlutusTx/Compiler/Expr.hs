@@ -32,7 +32,7 @@ import qualified Language.PlutusIR.MkPir                as PIR
 import qualified Language.PlutusIR.Value                as PIR
 
 import qualified Language.PlutusCore                    as PLC
-import qualified Language.PlutusCore.Constant           as PLC
+import qualified Language.PlutusCore.MkPlc              as PLC
 
 import           Control.Monad.Reader
 
@@ -91,7 +91,7 @@ compileLiteral
     => GHC.Literal -> m (PIRTerm uni)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-    (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.makeKnown i
+    (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant () i
     GHC.LitString bs      ->
         -- Convert the bytestring into a core expression representing the list
         -- of characters, then compile that!
@@ -102,7 +102,7 @@ compileLiteral = \case
             charExprs = fmap GHC.mkCharExpr str
             listExpr = GHC.mkListExpr GHC.charTy charExprs
         in compileExpr listExpr
-    GHC.LitChar c      -> pure $ PIR.embed $ PLC.makeKnown c
+    GHC.LitChar c      -> pure $ PIR.embed $ PLC.mkConstant () c
     GHC.LitFloat _     -> throwPlain $ UnsupportedError "Literal float"
     GHC.LitDouble _    -> throwPlain $ UnsupportedError "Literal double"
     GHC.LitLabel {}    -> throwPlain $ UnsupportedError "Literal label"

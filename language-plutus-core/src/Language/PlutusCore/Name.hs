@@ -116,7 +116,7 @@ theUnique = unique . coerced
 -- | A mapping from uniques to values of type @a@.
 newtype UniqueMap unique a = UniqueMap
     { unUniqueMap :: IM.IntMap a
-    } deriving newtype (Show, Semigroup, Monoid, Functor)
+    } deriving newtype (Show, Eq, Semigroup, Monoid, Functor)
 
 -- | Insert a value by a unique.
 insertByUnique :: Coercible unique Unique => unique -> a -> UniqueMap unique a -> UniqueMap unique a

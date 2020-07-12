@@ -1,8 +1,8 @@
 ( (Right (1))
-, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 2
+, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 94
 | mem: 2
 })
-| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 1
+| BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 44
 | mem: 1
 })
 | BTyInst causes ({ cpu: 12
@@ -11,13 +11,13 @@
 | BApply causes ({ cpu: 52
 | mem: 52
 })
-| BVar causes ({ cpu: 39
-| mem: 39
+| BVar causes ({ cpu: 36
+| mem: 36
 })
 | BIWrap causes ({ cpu: 1
 | mem: 1
 })
-| BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 3
+| BBuiltin (StaticStagedBuiltinName LessThanEqInteger) causes ({ cpu: 39
 | mem: 3
 })
 | BBuiltin (StaticStagedBuiltinName IfThenElse) causes ({ cpu: 3
@@ -29,7 +29,7 @@
 | BAST causes ({ cpu: 0
 | mem: 118
 })})
-| budget: ({ cpu: 117
-| mem: 235
+| budget: ({ cpu: 285
+| mem: 232
 })
 }) )

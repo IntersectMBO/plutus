@@ -60,7 +60,9 @@ button.disabled::before {
 }
 
 button.small-btn {
-  padding: 0.5rem;
+  padding: 0rem;
+  width: 32px;
+  height: 30px;
 }
 
 .btn-secondary {
@@ -160,4 +162,8 @@ button.small-btn {
 
 .accent-border-bottom {
   border-bottom: 1px solid var(--layout-accent-color);
+}
+
+.hide {
+  display: none;
 }

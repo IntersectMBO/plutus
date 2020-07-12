@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies          #-}
 -- | The CEK machine.
 -- Rules are the same as for the CK machine except we do not use substitution and use
 -- environments instead.
@@ -24,8 +25,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
-    ( EvaluationResult(..)
-    , EvaluationResultDef
+    ( Val(..)
+    , EvaluationResult(..)
     , ErrorWithCause(..)
     , MachineError(..)
     , CekMachineException
@@ -64,6 +65,7 @@ import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Mark
+import           Language.PlutusCore.MkPlc                          hiding (error)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
@@ -88,7 +90,8 @@ builtinNameArities :: Array BuiltinName Int
 builtinNameArities =
     listArray (minBound, maxBound) $
         [minBound..maxBound] <&> \name ->
-            withTypedBuiltinName @DefaultUni name (\(TypedBuiltinName _ sch) -> countArgs sch)
+            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedBuiltinName _ sch) -> countArgs sch
 {-# NOINLINE builtinNameArities #-}  -- Just in case.
 
 {- Note [Scoping]
@@ -108,12 +111,22 @@ data Val uni =
   | VIWrap (TypeWithMem uni) (TypeWithMem uni) (Val uni)
   | VBuiltin
       (ValEnv uni)  -- Initial environment, used for evaluating every argument
-      (ValEnv uni)  -- Environment extended with bindings for non-ground arguments: see Note [Saved mapping example]
       StagedBuiltinName
       Int           -- Number of arguments to be provided
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.  We don't really need these.
-      [Value TyName Name uni ExMemory] -- Arguments we've computed so far.
-    deriving (Show)
+      [Val uni] -- Arguments we've computed so far.
+    deriving (Show, Eq)  -- Eq is just for tests.
+
+instance PrettyBy PrettyConfigPlc (Val uni) where
+    prettyBy _ _ = "<val>"
+
+type instance UniOf (Val uni) = uni
+
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => HasConstant (Val uni) where
+    fromConstant = VCon . fromConstant
+
+    asConstant (VCon term) = asConstant term
+    asConstant _           = Nothing
 
 mem0 :: ExMemory
 mem0 = ExMemory 0
@@ -137,21 +150,21 @@ data CekUserError
     deriving (Show, Eq)
 
 -- | The CEK machine-specific 'MachineException'.
-type CekMachineException uni = MachineException uni UnknownDynamicBuiltinNameError
+type CekMachineException uni =
+    MachineException UnknownDynamicBuiltinNameError (Val uni)
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni = EvaluationException uni UnknownDynamicBuiltinNameError CekUserError
+type CekEvaluationException uni =
+    EvaluationException UnknownDynamicBuiltinNameError CekUserError (Val uni)
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
         group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
--- | A 'Value' packed together with the environment it's defined in.
-
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { _cekEnvMeans             :: DynamicBuiltinNameMeanings uni
+    { _cekEnvMeans             :: DynamicBuiltinNameMeanings (Val uni)
     , _cekEnvVarEnv            :: ValEnv uni
     , _cekEnvBudgetMode        :: ExBudgetMode
     , _cekEnvBuiltinCostParams :: CostModel
@@ -163,8 +176,10 @@ makeLenses ''CekEnv
 -- get it back in case of error.
 type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (QuoteT (State ExBudgetState)))
 
-instance SpendBudget (CekM uni) uni where
-    spendBudget key term budget = do
+instance SpendBudget (CekM uni) (Val uni) where
+    builtinCostParams = view cekEnvBuiltinCostParams
+    getExMemory _ = pure 0 -- TODO: not 0 obviously.
+    spendBudget key budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))
         newBudget <- exBudgetStateBudget <%= (<> budget)
@@ -173,8 +188,9 @@ instance SpendBudget (CekM uni) uni where
             Counting -> pure ()
             Restricting resb ->
                 when (exceedsBudget resb newBudget) $
-                    throwingWithCause _EvaluationError (UserEvaluationError (CekOutOfExError resb newBudget)) (Just $ void term)
-    builtinCostParams = view cekEnvBuiltinCostParams
+                    throwingWithCause _EvaluationError
+                        (UserEvaluationError $ CekOutOfExError resb newBudget)
+                        Nothing
 
 {-
  f := [_ (M,ρ) ]
@@ -224,17 +240,18 @@ lookupVarName varName = do
     case lookupName varName varEnv of
         Nothing   -> throwingWithCause _MachineError
             OpenTermEvaluatedMachineError
-            (Just . Var () $ varName)
+            Nothing -- (Just . Var (memoryUsage ()) $ varName)
         Just val -> pure val
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
-lookupDynamicBuiltinName :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning uni)
+lookupDynamicBuiltinName
+    :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning (Val uni))
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
     case Map.lookup dynName means of
-        Nothing   -> throwingWithCause _MachineError err $ Just term where
+        Nothing   -> throwingWithCause _MachineError err Nothing where -- $ Just term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-            term = Builtin () $ DynBuiltinName () dynName
+--             term = Builtin (memoryUsage ()) $ DynBuiltinName (memoryUsage ()) dynName
         Just mean -> pure mean
 
 {- Note [Dropping environments of arguments]
@@ -289,20 +306,20 @@ computeCek
     => Context uni -> WithMemory Term uni -> CekM uni (Plain Term uni)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx t@(TyInst _ body ty) = do
-    spendBudget BTyInst t (ExBudget 1 1) -- TODO
+    spendBudget BTyInst (ExBudget 1 1) -- TODO
     computeCek (FrameTyInstArg ty : ctx) body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek ctx t@(Apply _ fun arg) = do
-    spendBudget BApply t (ExBudget 1 1) -- TODO
+    spendBudget BApply (ExBudget 1 1) -- TODO
     env <- getEnv
     computeCek (FrameApplyArg env arg : ctx) fun
 -- s ; ρ ▻ wrap A B L  ↦  s , wrap A B _ ; ρ ▻ L
 computeCek ctx t@(IWrap ann pat arg term) = do
-    spendBudget BIWrap t (ExBudget 1 1) -- TODO
+    spendBudget BIWrap (ExBudget 1 1) -- TODO
     computeCek (FrameIWrap ann pat arg : ctx) term
 -- s ; ρ ▻ unwrap L  ↦  s , unwrap _ ; ρ ▻ L
 computeCek ctx t@(Unwrap _ term) = do
-    spendBudget BUnwrap t (ExBudget 1 1) -- TODO
+    spendBudget BUnwrap (ExBudget 1 1) -- TODO
     computeCek (FrameUnwrap : ctx) term
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 computeCek ctx (TyAbs _ tn k body)  = do
@@ -317,13 +334,13 @@ computeCek ctx constant@Constant{} = returnCek ctx (VCon constant)
 computeCek ctx (Builtin _ bn)        = do
   env <- getEnv
   count <- getArgsCount bn
-  returnCek ctx (VBuiltin env env (constantAsStagedBuiltinName bn) count [] [])
+  returnCek ctx (VBuiltin env (constantAsStagedBuiltinName bn) count [] [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _   err@Error{} =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just (void err)
+    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- $ Just err
 --  s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx t@(Var _ varName)   = do
-    spendBudget BVar t (ExBudget 1 1) -- TODO
+    spendBudget BVar (ExBudget 1 1) -- TODO
     val <- lookupVarName varName
     returnCek ctx val
 
@@ -373,40 +390,18 @@ instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> Val uni -> CekM uni (Plain Term uni)
 instantiateEvaluate ctx _ (VTyAbs _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
-instantiateEvaluate ctx ty (VBuiltin argEnv resEnv bn count tyargs args) =
+instantiateEvaluate ctx ty (VBuiltin argEnv bn count tyargs args) =
     case args of
-      [] -> returnCek ctx $ VBuiltin argEnv resEnv bn count (ty:tyargs) args  -- The types will be the wrong way round, but we never use them.
+      [] -> returnCek ctx $ VBuiltin argEnv bn count (ty:tyargs) args  -- The types will be the wrong way round, but we never use them.
       _  -> error "Builtin instantiation after term argument"
 instantiateEvaluate _ _ val =
-        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
+        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just val
 
 
 -- We're applying a builtin to a list of Vals.  As before, if we've
 -- got a const, feed it directly to the builtin. Otherwise, extend the
 -- environment with a new variable bound to the Val and feed that to
 -- the builtin instead and continue.
-{-
-withScopedArgIn
-    :: Val uni                  -- ^ The argument.
-    -> ValEnv uni               -- ^ The argument's environment
-    -> (TermWithMem uni -> CekM uni a)  -- ^ A continuation handling the argument.
-    -> CekM uni a
-withScopedArgIn (VCon con) env k = withEnv env $ k con
-withScopedArgIn arg env k = do
-    let cost = memoryUsage ()
-    argName <- freshName "arg"
-    withEnv (extendEnv argName arg env) $ k (Var cost argName)
--}
-
-getScopedArg :: Val uni -> ValEnv uni -> CekM uni (TermWithMem uni, ValEnv uni)
-getScopedArg val env =
-    case val of
-      VCon t -> pure (t, env)
-      _ -> do
-        argName <- freshName "arg"
-        let cost = memoryUsage ()
-            env' = extendEnv argName val env
-        pure (Var cost argName, env')
 
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
@@ -423,35 +418,34 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx (VBuiltin argEnv resEnv bn count tyargs args) arg = do
-    (arg', resEnv') <- getScopedArg arg resEnv
-    let args' = arg':args
+applyEvaluate ctx (VBuiltin argEnv bn count tyargs args) arg = withEnv argEnv $ do
+    let args' = arg:args
         count' = count - 1
     if count' /= 0
-        then withEnv argEnv $ returnCek ctx (VBuiltin argEnv resEnv' bn count' tyargs args')
-        else withEnv resEnv' $ do
+        then returnCek ctx (VBuiltin argEnv bn count' tyargs args')
+        else do
             res <- applyStagedBuiltinName bn (reverse args')
-            computeCek ctx res
-applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just (void $ dischargeVal val)
-
+            case res of
+                EvaluationSuccess t -> returnCek ctx t  -- NOTE that this is 'returnCek' now.
+                EvaluationFailure ->
+                    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- $ Just err
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => StagedBuiltinName
-    -> [WithMemory Value uni]
-    -> CekM uni (WithMemory Term uni)
+    -> [Val uni]
+    -> CekM uni (EvaluationResult (Val uni))
 applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticStagedBuiltinName name) args = do
-    params <- builtinCostParams
-    applyBuiltinName params name args
+applyStagedBuiltinName (StaticStagedBuiltinName name) args =
+    applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings uni
+    => DynamicBuiltinNameMeanings (Val uni)
     -> ExBudgetMode
     -> CostModel
     -> Plain Term uni
@@ -463,7 +457,7 @@ runCek means mode params term =
             -- We generate fresh variables during evaluation, see Note [Saved mapping example],
             -- hence making sure here that no accidental variable capture can occur.
             markNonFreshTerm term
-            spendBudget BAST memTerm (ExBudget 0 (termAnn memTerm))
+            spendBudget BAST (ExBudget 0 (termAnn memTerm))
             computeCek [] memTerm
     where
         memTerm = withMemory term
@@ -471,7 +465,7 @@ runCek means mode params term =
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings uni
+    => DynamicBuiltinNameMeanings (Val uni)
     -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
@@ -480,7 +474,7 @@ runCekCounting means = runCek means Counting
 -- | Evaluate a term using the CEK machine.
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings uni
+    => DynamicBuiltinNameMeanings (Val uni)
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) (Plain Term uni)
@@ -491,20 +485,23 @@ unsafeEvaluateCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => DynamicBuiltinNameMeanings uni -> CostModel -> Plain Term uni -> EvaluationResultDef uni
+    => DynamicBuiltinNameMeanings (Val uni)
+    -> CostModel
+    -> Plain Term uni
+    -> EvaluationResult (Plain Term uni)
 unsafeEvaluateCek means params = either throw id . extractEvaluationResult . evaluateCek means params
 
 -- | Unlift a value using the CEK machine.
 readKnownCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       , KnownType uni a
+       , KnownType (Plain Term uni) a
        )
-    => DynamicBuiltinNameMeanings uni
+    => DynamicBuiltinNameMeanings (Val uni)
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
-readKnownCek means params = evaluateCek means params >=> readKnown
-
+-- Calling 'withMemory' just to unify the monads that 'readKnown' and the CEK machine run in.
+readKnownCek means params = evaluateCek means params >=> first (fmap $ VCon . withMemory) . readKnown
 
 {- Note [Saved mapping example]
 Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is

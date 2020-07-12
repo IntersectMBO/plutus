@@ -30,7 +30,7 @@
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "0vmf2wzc2b9h4cxxj0mwpza9dy23n7dxadj6x7xaf8p9pmcmmmd5";
   };
-  haskell-language-server =
+  inherit (
     let hspkgs = pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
           owner = "haskell";
@@ -52,7 +52,8 @@
           packages.haskell-language-server.doCheck = false;
         }];
       };
-    in hspkgs.haskell-language-server;
+    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
+  hie-bios haskell-language-server;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {

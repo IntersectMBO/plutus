@@ -78,6 +78,18 @@
   background-size: 50px;
 }
 
+.wallet-tab .tab-icon {
+  background: url(../images/wallet-icon-grey.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.wallet-tab.active .tab-icon {
+  background: url(../images/wallet-icon.svg) center center no-repeat;
+  background-size: 50px;
+  margin-left: 2px;
+  margin-top: 1px;
+}
+
 .nav-bottom-links {
   margin-top: auto;
 }

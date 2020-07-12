@@ -1,4 +1,7 @@
-module Chain.View (chainView) where
+module Chain.View
+  ( chainView
+  , txOutOfView
+  ) where
 
 import Chain.Types
 import Animation (animationClass)
