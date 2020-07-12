@@ -100,7 +100,7 @@ handleControlChain = interpret $ \case
 
 handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
 handleChain = interpret $ \case
-    QueueTx tx -> modify $ over txPool (tx :)
+    QueueTx tx -> modify $ over txPool (addTxToPool tx)
     GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.
@@ -171,5 +171,8 @@ addBlock blk st =
      -- `txPool` which will get ignored
      & txPool %~ (\\ blk)
      & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
+
+addTxToPool :: Tx -> TxPool -> TxPool
+addTxToPool = (:)
 
 makePrisms ''ChainEvent
