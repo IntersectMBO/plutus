@@ -14,8 +14,8 @@
 
 module Control.Monad.Freer.Log(
     Log
-    , LogMsg
-    , LogObserve
+    , LogMsg(..)
+    , LogObserve(..)
     , LogLevel(..)
     , LogMessage(..)
     , logLevel
@@ -28,6 +28,7 @@ module Control.Monad.Freer.Log(
     , surroundDebug
     , surroundInfo
     , surroundWarn
+    , contramapLog
     -- * Handlers
     , writeToLog
     , ignoreLog
@@ -108,6 +109,17 @@ logWarn m = send $ LMessage (LogMessage Warning m)
 
 logInfo :: forall a effs. Member (LogMsg a) effs => a -> Eff effs ()
 logInfo m = send $ LMessage (LogMessage Info m)
+
+-- | Re-interpret a logging effect by mapping the
+--   log messages.
+contramapLog ::
+    forall a b c effs.
+    Member (LogMsg a) effs
+    => (b -> a)
+    -> Eff (LogMsg b ': effs) c
+    -> Eff effs c
+contramapLog f = interpret $ \case
+    LMessage msg -> send $ LMessage (fmap f msg)
 
 -- | Write a log message before and after an action.
 surround :: Member LogObserve effs => LogLevel -> Text -> Eff effs a -> Eff effs a

@@ -55,13 +55,16 @@ healthcheck = pure NoContent
 getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
+data MockNodeLogMsg =
+    AddingSlot
+
 addBlock ::
-    ( Member Log effs
+    ( Member (LogMsg MockNodeLogMsg) effs
     , Member ChainControlEffect effs
     )
     => Eff effs ()
 addBlock = do
-    logInfo "Adding slot"
+    logInfo AddingSlot
     void Chain.processBlock
 
 getBlocksSince ::

@@ -11,6 +11,8 @@ module Cardano.Node.Follower where
 import           Control.Lens                    hiding (assign, use)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extra.Log
+import Control.Monad.Freer.Log (LogMsg)
+import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           Control.Monad.Freer.Extra.State
 import           Control.Monad.Freer.State
 import           Control.Monad.Freer.TH          (makeEffect)
@@ -30,27 +32,42 @@ data NodeFollowerEffect r where
 
 makeEffect ''NodeFollowerEffect
 
+data NodeFollowerLogMsg =
+    NewFollowerId FollowerID
+    | GetBlocksFor FollowerID
+    | LastBlock Int
+    | NewLastBlock Int
+    | GetCurrentSlot
+
+instance Pretty NodeFollowerLogMsg where
+    pretty  = \case
+        NewFollowerId newID -> "New follower ID:" <+> pretty newID
+        GetBlocksFor i -> "Get blocks for" <+> pretty i
+        LastBlock i -> "Last block:" <+> pretty i
+        NewLastBlock i -> "New last block:" <+> pretty i
+        GetCurrentSlot -> "Get current slot"
+
 handleNodeFollower ::
     ( Member (State ChainState) effs
     , Member (State NodeFollowerState) effs
-    , Member Log effs
+    , Member (LogMsg NodeFollowerLogMsg) effs
     )
     => Eff (NodeFollowerEffect ': effs) ~> Eff effs
 handleNodeFollower = interpret $ \case
     NewFollower -> do
         newID <- maybe 0 succ <$> use (_NodeFollowerState . to (fmap fst <$> Map.lookupMax))
         assign (_NodeFollowerState . at newID) (Just 0)
-        logInfo $ "New follower ID: " <> tshow newID
+        logInfo $ NewFollowerId newID
         pure newID
     GetBlocks i -> do
-        logDebug $ "Get blocks for " <> tshow i
+        logDebug $ GetBlocksFor i
         lastBlock <- use (_NodeFollowerState . at i . non 0)
-        logDebug $ "Last block: " <> tshow lastBlock
+        logDebug $ LastBlock lastBlock
         chain <- use Chain.chainNewestFirst
         let newLastBlock = length chain
-        logDebug $ "New last block: " <> tshow newLastBlock
+        logDebug $ NewLastBlock newLastBlock
         assign (_NodeFollowerState . at i) (Just newLastBlock)
         pure $ reverse $ take (newLastBlock - lastBlock) chain
     GetSlot -> do
-        logDebug "Get curent slot"
+        logDebug GetCurrentSlot
         use Chain.currentSlot

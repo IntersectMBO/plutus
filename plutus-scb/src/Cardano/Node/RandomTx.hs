@@ -19,12 +19,14 @@ import           Control.Monad.Freer           (Eff, LastMember, Member)
 import qualified Control.Monad.Freer           as Eff
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
+import Control.Monad.Freer.Log (LogMsg)
 import           Control.Monad.Freer.TH        (makeEffect)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.Primitive       (PrimMonad, PrimState)
 import           Data.List.NonEmpty            (NonEmpty (..))
 import qualified Data.Map                      as Map
 import           Data.Maybe                    (fromMaybe)
+import           Data.Text.Prettyprint.Doc (Pretty (..))
 import qualified Data.Set                      as Set
 import qualified Hedgehog.Gen                  as Gen
 import           System.Random.MWC             as MWC
@@ -51,9 +53,14 @@ data GenRandomTx r where
 
 makeEffect ''GenRandomTx
 
+data GenRandomTxMsg = GeneratingRandomTransaction
+
+instance Pretty GenRandomTxMsg where
+    pretty GeneratingRandomTransaction = "Generating a random transaction"
+
 runGenRandomTx ::
        ( Member (State ChainState) effs
-       , Member Log effs
+       , Member (LogMsg GenRandomTxMsg) effs
        , LastMember m effs
        , MonadIO m
        )
@@ -64,7 +71,7 @@ runGenRandomTx =
         (\case
              GenRandomTx -> do
                  UtxoIndex utxo <- Eff.gets (view EM.index)
-                 logDebug "Generating a random transaction"
+                 logDebug GeneratingRandomTransaction
                  Eff.sendM $
                      liftIO $ do
                          gen <- MWC.createSystemRandom

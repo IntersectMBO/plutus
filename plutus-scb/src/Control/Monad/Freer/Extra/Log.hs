@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
@@ -9,6 +10,7 @@
 module Control.Monad.Freer.Extra.Log(
     -- $log
       Log
+    , LogMsg
     , logDebug
     , logInfo
     , logWarn
@@ -18,9 +20,10 @@ module Control.Monad.Freer.Extra.Log(
 
 import           Control.Monad.Freer        (Eff, LastMember, type (~>))
 import qualified Control.Monad.Freer        as Eff
-import           Control.Monad.Freer.Log    (Log, LogMessage (..), logDebug, logInfo, logWarn, writeToLog)
+import           Control.Monad.Freer.Log    (Log, LogMsg(..), LogMessage (..), logDebug, logInfo, logWarn, writeToLog)
 import qualified Control.Monad.Freer.Log    as Log
 import           Control.Monad.Freer.Writer (Writer (..))
+import Data.Text (Text)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Logger       (LogLevel (..), logWithoutLoc, runStderrLoggingT)
 import           Data.Foldable              (traverse_)
@@ -28,14 +31,14 @@ import           Data.Foldable              (traverse_)
 -- $log
 -- A @freer-simple@ wrapper around @Control.Monad.Freer.Log.Log@
 
-runStderrLog :: (LastMember m effs, MonadIO m) => Eff (Log ': effs) ~> Eff effs
+runStderrLog :: forall effs m. (LastMember m effs, MonadIO m) => Eff (LogMsg Text ': effs) ~> Eff effs
 runStderrLog = Eff.interpretM $ \case
-    Tell es -> traverse_ logMessage es
+    LMessage es -> logMessage es
 
-logMessage :: MonadIO m => LogMessage -> m ()
-logMessage LogMessage{logLevel, logMessageText} =
-    let lvl = case logLevel of
+logMessage :: forall m. MonadIO m => LogMessage Text -> m ()
+logMessage LogMessage{_logLevel, _logMessageContent} =
+    let lvl = case _logLevel of
             Log.Debug -> LevelDebug
             Log.Info  -> LevelInfo
-            Log.Warn  -> LevelWarn
-    in liftIO $ runStderrLoggingT $ logWithoutLoc "" lvl logMessageText
+            Log.Warning  -> LevelWarn
+    in liftIO $ runStderrLoggingT $ logWithoutLoc "" lvl _logMessageContent
