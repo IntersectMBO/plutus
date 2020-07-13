@@ -16,6 +16,7 @@ import           Ledger                    (PubKeyHash, Tx, TxId)
 import           Ledger.Index              (UtxoIndex)
 import           Playground.Types          (FunctionSchema)
 import           Plutus.SCB.Events         (ChainEvent, ContractInstanceState)
+import           Plutus.SCB.Types          (ContractExe)
 import           Schema                    (FormSchema)
 import           Wallet.Emulator.Wallet    (Wallet)
 import           Wallet.Rollup.Types       (AnnotatedTx)
@@ -55,16 +56,15 @@ data ContractSignatureResponse t =
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
-newtype StreamToServer t =
-    Ping Text
+data StreamToServer =
+    Ping
     deriving (Show, Eq, Generic)
-    deriving newtype (FromJSON, ToJSON)
+    deriving anyclass (FromJSON, ToJSON)
 
-data StreamToClient t
-    = NewChainReport (ChainReport t)
-    | NewContractReport (ContractReport t)
-    | NewChainEvents [ChainEvent t]
-    | Echo Text
+data StreamToClient
+    = NewChainReport (ChainReport ContractExe)
+    | NewContractReport (ContractReport ContractExe)
+    | NewChainEvents [ChainEvent ContractExe]
     | ErrorResponse Text
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)

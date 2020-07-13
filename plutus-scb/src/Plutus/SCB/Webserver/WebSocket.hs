@@ -4,7 +4,6 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Plutus.SCB.Webserver.WebSocket
@@ -13,15 +12,15 @@ module Plutus.SCB.Webserver.WebSocket
 
 import           Control.Concurrent.Async      (Async, async, waitAnyCancel)
 import           Control.Exception             (SomeException, handle)
-import           Control.Monad                 (forever, void, when)
+import           Control.Monad                 (void, when)
 import           Control.Monad.Freer           (Eff, LastMember, Member)
 import           Control.Monad.Freer.Delay     (DelayEffect, delayThread, handleDelayEffect)
 import           Control.Monad.Freer.Extra.Log (LogMsg, logInfo)
 import           Control.Monad.Freer.Reader    (Reader, ask)
-import           Control.Monad.Freer.WebSocket (WebSocketEffect, acceptConnection, receiveJSON, sendJSON)
+import           Control.Monad.Freer.WebSocket (WebSocketEffect, acceptConnection, sendJSON)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.Logger          (LogLevel (LevelDebug))
-import qualified Data.Text                     as Text
+import           Data.Aeson                    (ToJSON)
 import           Data.Time.Units               (Second, TimeUnit)
 import           Network.WebSockets.Connection (Connection, PendingConnection, withPingThread)
 import           Plutus.SCB.App                (runApp)
@@ -29,17 +28,10 @@ import           Plutus.SCB.Effects.Contract   (ContractEffect)
 import           Plutus.SCB.Effects.EventLog   (EventLogEffect)
 import           Plutus.SCB.Events             (ChainEvent)
 import           Plutus.SCB.Types              (Config, ContractExe, SCBError)
-import           Plutus.SCB.Webserver.Handler  (getChainReport, getContractReport)
-import           Plutus.SCB.Webserver.Types    (StreamToClient (Echo, ErrorResponse, NewChainReport, NewContractReport),
-                                                StreamToServer (Ping),
+import           Plutus.SCB.Webserver.Handler  (getChainReport, getContractReport, getEvents)
+import           Plutus.SCB.Webserver.Types    (StreamToClient (NewChainEvents, NewChainReport, NewContractReport),
                                                 WebSocketLogMsg (ClosedConnection, CreatedConnection))
 import           Wallet.Effects                (ChainIndexEffect)
-
-timeBetweenChainReports :: Second
-timeBetweenChainReports = 10
-
-timeBetweenEvents :: Second
-timeBetweenEvents = 3
 
 ------------------------------------------------------------
 -- Message processors.
@@ -51,11 +43,7 @@ chainReportThread ::
        )
     => Connection
     -> Eff effs ()
-chainReportThread connection =
-    pollAndNotifyOnChange timeBetweenChainReports getChainReport notify
-  where
-    notify newReport =
-        sendJSON connection $ NewChainReport @ContractExe newReport
+chainReportThread = watchAndNotify (5 :: Second) getChainReport NewChainReport
 
 contractStateThread ::
        ( Member WebSocketEffect effs
@@ -65,18 +53,33 @@ contractStateThread ::
        )
     => Connection
     -> Eff effs ()
-contractStateThread connection =
-    pollAndNotifyOnChange timeBetweenEvents getContractReport notify
-  where
-    notify newReport =
-        sendJSON connection $ NewContractReport @ContractExe newReport
+contractStateThread =
+    watchAndNotify (3 :: Second) getContractReport NewContractReport
 
-chatThread :: Member WebSocketEffect effs => Connection -> Eff effs ()
-chatThread connection =
-    forever $ do
-        payload :: Either String (StreamToServer ContractExe) <-
-            receiveJSON connection
-        sendJSON connection $ handleStreamingMessage payload
+eventsThread ::
+       ( Member WebSocketEffect effs
+       , Member (EventLogEffect (ChainEvent ContractExe)) effs
+       , Member DelayEffect effs
+       )
+    => Connection
+    -> Eff effs ()
+eventsThread =
+    watchAndNotify (15 :: Second) getEvents NewChainEvents
+
+watchAndNotify ::
+       ( TimeUnit t
+       , Member DelayEffect effs
+       , Member WebSocketEffect effs
+       , Eq a
+       , ToJSON b
+       )
+    => t
+    -> Eff effs a
+    -> (a -> b)
+    -> Connection
+    -> Eff effs ()
+watchAndNotify time query wrapper connection =
+    watchForChanges time query (sendJSON connection . wrapper)
 
 -- TODO Polling is icky. But we can't use Eventful's hook system
 -- because that relies all events coming in from the same thread. We
@@ -85,23 +88,19 @@ chatThread connection =
 --
 -- Can we use the DB commit hook instead?
 -- https://www.sqlite.org/c3ref/commit_hook.html
-pollAndNotifyOnChange ::
+watchForChanges ::
        (TimeUnit t, Eq a, Member DelayEffect effs)
     => t
     -> Eff effs a
     -> (a -> Eff effs ())
     -> Eff effs ()
-pollAndNotifyOnChange time query notify = go Nothing
+watchForChanges time query notify = go Nothing
   where
     go oldValue = do
         newValue <- query
         when (oldValue /= Just newValue) (notify newValue)
         delayThread time
         go $ Just newValue
-
-handleStreamingMessage :: Either String (StreamToServer t) -> StreamToClient t
-handleStreamingMessage (Left err)         = ErrorResponse $ Text.pack err
-handleStreamingMessage (Right (Ping msg)) = Echo msg
 
 ------------------------------------------------------------
 -- Plumbing
@@ -113,7 +112,7 @@ threadApp config connection = do
             asyncApp
             [ chainReportThread connection
             , contractStateThread connection
-            , chatThread connection
+            , eventsThread connection
             ]
     void $ waitAnyCancel tasks
   where
