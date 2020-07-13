@@ -102,7 +102,7 @@ txSubmissionServer state = idleState
         TxSubmission.LocalTxSubmissionServer {
           TxSubmission.recvMsgSubmitTx =
             \tx -> do
-                modifyMVar_ state (pure . over (chainState . txPool) (tx :))
+                modifyMVar_ state (pure . over (chainState . txPool) (addTxToPool tx))
                 return (Nothing, idleState)
         , TxSubmission.recvMsgDone     = ()
         }
