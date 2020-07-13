@@ -14,6 +14,7 @@ module Plutus.SCB.Webserver.Handler
     , getFullReport
     , getChainReport
     , getContractReport
+    , getEvents
     , contractSchema
     ) where
 
@@ -91,6 +92,11 @@ getChainReport = do
             , annotatedBlockchain
             , walletMap
             }
+
+getEvents ::
+       forall t effs. (Member (EventLogEffect (ChainEvent t)) effs)
+    => Eff effs [ChainEvent t]
+getEvents = fmap streamEventEvent <$> runGlobalQuery Query.pureProjection
 
 getFullReport ::
        forall t effs.

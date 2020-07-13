@@ -1,2 +1,37 @@
 @import '../../web-common/static/main.scss';
 @import '../../web-common/static/chain.scss';
+
+.web-data-loading,
+.stream-data-refreshing {
+    .web-data-loading-content ,
+    .stream-data-refreshing-content {
+        opacity: 0.5;
+    }
+
+    & > .fa-spinner {
+        $spinner-height: 50px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        height: $spinner-height;
+        width: $spinner-height;
+        margin-left: - ($spinner-height / 2);
+        margin-top: - ($spinner-height / 2);
+        font-size: $spinner-height;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        z-index: 10;
+    }
+}
+
+.contract-status {
+    table {
+        .iteration-id ,
+        .request-id {
+            width: 3rem;
+        }
+    }
+}

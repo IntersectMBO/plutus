@@ -9,7 +9,6 @@ import Effect.Unsafe (unsafePerformEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import MainFrame (initialMainFrame)
-import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (StreamToClient)
 import Types (HAction(..), Output(..), Query(..))
 import WebSocket.Support (mkSocket, Output) as WS
@@ -22,7 +21,7 @@ main = do
     body <- awaitBody
     driver <- runUI initialMainFrame Init body
     let
-      handleWebSocket :: WS.Output (StreamToClient ContractExe) -> Aff Unit
+      handleWebSocket :: WS.Output StreamToClient -> Aff Unit
       handleWebSocket msg = void $ driver.query $ ReceiveWebSocketMessage msg unit
     void $ forkAff
       $ runProcess
