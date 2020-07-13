@@ -249,7 +249,7 @@ test-suite language-plutus-core-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: test, prop-test
+    hs-source-dirs: test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
         Evaluation.ApplyBuiltinName

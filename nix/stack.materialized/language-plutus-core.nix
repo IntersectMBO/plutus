@@ -310,7 +310,7 @@
             "Language/PlutusCore/Gen/Type"
             "Language/PlutusCore/PropTest"
             ];
-          hsSourceDirs = [ "test" "prop-test" ];
+          hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };
         "plutus-ir-test" = {
