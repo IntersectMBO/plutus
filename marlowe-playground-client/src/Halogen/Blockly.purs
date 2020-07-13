@@ -21,7 +21,7 @@ import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.Blockly (buildBlocks, buildGenerator)
-import Marlowe.Holes (Term(..))
+import Marlowe.Holes (Term(..), emptyRange)
 import Marlowe.Parser as Parser
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 import Text.Extra as Text
@@ -100,7 +100,7 @@ handleQuery (SetCode code next) = do
       let
         contract = case Parser.parseContract code of
           Right c -> c
-          Left _ -> Hole bs.rootBlockName Proxy { row: 0, column: 0 }
+          Left _ -> Hole bs.rootBlockName Proxy emptyRange
       pure $ ST.run (buildBlocks newBlock bs contract)
   assign _errorMessage Nothing
   pure $ Just next

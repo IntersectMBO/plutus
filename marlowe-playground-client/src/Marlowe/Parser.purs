@@ -16,22 +16,23 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), emptyRange, fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<$), (<*), (<*>), (<<<))
-import Text.Parsing.StringParser (Parser(..), Pos, fail, runParser)
+import Text.Parsing.StringParser (Parser(..), fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
 import Text.Parsing.StringParser.Combinators (between, choice, sepBy)
 import Type.Proxy (Proxy(..))
 
 type HelperFunctions a
-  = { mkHole :: String -> { row :: Pos, column :: Pos } -> Term a
-    , mkTerm :: a -> { row :: Pos, column :: Pos } -> Term a
-    , mkTermWrapper :: a -> { row :: Pos, column :: Pos } -> TermWrapper a
+  = { mkHole :: String -> Range -> Term a
+    , mkTerm :: a -> Range -> Term a
+    , mkTermWrapper :: a -> Range -> TermWrapper a
+    , getRange :: Term a -> Range
     , mkBigInteger :: Int -> BigInteger
-    , mkTimeout :: Int -> { row :: Pos, column :: Pos } -> TermWrapper Slot
+    , mkTimeout :: Int -> Range -> TermWrapper Slot
     , mkClose :: Contract
     , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
     , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
@@ -82,6 +83,7 @@ helperFunctions =
   { mkHole: mkHole
   , mkTerm: Term
   , mkTermWrapper: TermWrapper
+  , getRange: getRange
   , mkBigInteger: BigInteger.fromInt
   , mkTimeout: \v pos -> TermWrapper (Slot (BigInteger.fromInt v)) pos
   , mkClose: Close
@@ -174,7 +176,7 @@ hole =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Hole name Proxy { row: start, column: end }, suffix }
+    pure { result: Hole name Proxy emptyRange, suffix }
   where
   nameChars = alphaNum <|> char '_'
 
@@ -187,7 +189,7 @@ term' (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Term result { row: start, column: end }, suffix }
+    pure { result: Term result emptyRange, suffix }
 
 termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
 termWrapper (Parser p) =
@@ -198,7 +200,7 @@ termWrapper (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: TermWrapper result { row: start, column: end }, suffix }
+    pure { result: TermWrapper result emptyRange, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)
