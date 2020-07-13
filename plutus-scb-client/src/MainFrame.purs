@@ -5,10 +5,7 @@ module MainFrame
   , initialState
   ) where
 
-import Plutus.SCB.Webserver (SPParams_(..))
-import Plutus.SCB.Webserver.Types (ContractReport, ContractSignatureResponse(..), StreamToClient(..), StreamToServer(..))
 import Prelude hiding (div)
-import Types (EndpointForm, HAction(..), Output, Query(..), State(..), View(..), _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage)
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
@@ -19,7 +16,7 @@ import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter)
 import Data.Either (Either(..))
-import Data.Lens (_1, _2, assign, findOf, modifying, to, traversed, view)
+import Data.Lens (_1, _2, assign, findOf, modifying, to, traversed, use, view)
 import Data.Lens.At (at)
 import Data.Lens.Extra (peruse, toSetOf)
 import Data.Lens.Index (ix)
@@ -28,7 +25,7 @@ import Data.Maybe (Maybe(..))
 import Data.RawJson (RawJson(..))
 import Data.Set (Set)
 import Data.Set as Set
-import Data.Traversable (for_, traverse_)
+import Data.Traversable (for_, sequence, traverse_)
 import Data.Tuple (Tuple(..))
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Generic (encodeJSON)
@@ -39,18 +36,21 @@ import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, activateContract, getContractSignature, getFullReport, invokeEndpoint, log, runHalogenApp, sendWebSocketMessage)
+import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp, sendWebSocketMessage)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Playground.Lenses (_endpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceState(..))
 import Plutus.SCB.Types (ContractExe)
+import Plutus.SCB.Webserver (SPParams_(..))
+import Plutus.SCB.Webserver.Types (ContractReport, ContractSignatureResponse(..), StreamToClient(..), StreamToServer(..))
 import Prim.TypeError (class Warn, Text)
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
+import Types (EndpointForm, HAction(..), Output, Query(..), State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage)
 import Validation (_argument)
 import View as View
 import WebSocket.Support as WS
@@ -188,7 +188,6 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
 
 updateFormsForContractInstance ::
   forall m.
-  MonadApp m =>
   MonadState State m =>
   ContractInstanceState ContractExe -> m Unit
 updateFormsForContractInstance newContractInstance = do
@@ -203,26 +202,23 @@ updateFormsForContractInstance newContractInstance = do
       )
   when (oldContractInstance /= Just newContractInstance)
     $ do
-        contractSchema <- getContractSignature $ view _csContract newContractInstance
+        contractReport :: WebData (ContractReport ContractExe) <- use _contractReport
+        let
+          newForms :: Maybe (WebData (Array EndpointForm))
+          newForms = sequence $ createNewEndpointForms <$> contractReport <*> pure newContractInstance
         assign (_contractSignatures <<< at csContractId)
-          (Just (Tuple newContractInstance <$> (createEndpointForms newContractInstance <$> contractSchema)))
+          (map (Tuple newContractInstance) <$> newForms)
 
-createNewEndpointFormsM ::
-  forall m.
-  Monad m =>
-  m (ContractReport ContractExe) ->
-  m (ContractInstanceState ContractExe) ->
-  m (Maybe (Array EndpointForm))
-createNewEndpointFormsM mContractReport mInstanceState = do
-  contractReport <- mContractReport
-  instanceState <- mInstanceState
+createNewEndpointForms ::
+  ContractReport ContractExe ->
+  ContractInstanceState ContractExe ->
+  Maybe (Array EndpointForm)
+createNewEndpointForms contractReport instanceState =
   let
     matchingSignature :: Maybe (ContractSignatureResponse ContractExe)
     matchingSignature = getMatchingSignature instanceState contractReport
-
-    newForms :: Maybe (Array EndpointForm)
-    newForms = createEndpointForms instanceState <$> matchingSignature
-  pure newForms
+  in
+    createEndpointForms instanceState <$> matchingSignature
 
 createEndpointForms ::
   forall t.
