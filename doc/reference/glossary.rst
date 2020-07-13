@@ -4,45 +4,45 @@ Glossary
 ========
 
 .. glossary::
-    Address
+    address
       The address of an UTXO says where the output is "going". The address
       stipulates the conditions for unlocking the output. This can be a
       public key hash, or (in the Extended UTXO model) a script hash.
 
-    Contract application
+    contract application
       An application written against the contract application API, which
       runs in the PAB.
 
-    Contract application API
+    contract application API
       The API that provides an interface between a contract application and
       the PAB. Also allows the contract to declare contract endpoints that
       will be forwarded on to PAB clients via the application interface.
 
-    Contract application instance
+    contract application instance
       A configured, running instance of a contract application.
       Configuration and initialization may require additional parameters to
       be set by the user. Has its state and lifecycle managed by the PAB.
 
-    Contract endpoint
+    contract endpoint
       An interface point exposed by a contract application as part of its
       own API. These are forwarded on by the PAB to the wallet frontend or
       other clients.
 
-    Contract executable
+    contract executable
       A compiled executable of a contract application. These are what are
       actually distributed to users and run by the PAB.
 
-    Context
+    context
       A data structure containing a summary of the transaction being
       validated.
 
-    Currency
+    currency
       A class of token whose forging is controlled by a particular monetary
       policy script. On the Cardano ledger there is a special currency
       called Ada which can never be forged and which is controlled
       separately.
 
-    Datum
+    datum
       The data field on script outputs in the Extended UTXO model.
 
     Extended UTXO Model
@@ -64,7 +64,7 @@ Glossary
 
           c. The context representing the transaction being validated
 
-    Forging
+    forging
       A transaction which forges tokens creates new tokens, providing that
       the corresponding monetary policy script is satisfied. The amount
       forged can be negative, in which case the tokens will be destroyed
@@ -74,19 +74,19 @@ Glossary
       A domain-specific language for writing financial contract
       applications.
 
-    Monetary policy script
+    monetary policy script
       A script which must be satisfied in order for a transaction to forge
       tokens of the corresponding currency.
 
-    Multicurrency
+    multicurrency
       A generic term for a ledger which supports multiple different
       currencies natively.
 
-    Off-chain code
+    off-chain code
       The part of a contract application’s code which runs off the chain,
       usually as a contract application.
 
-    On-chain code
+    on-chain code
       The part of a contract application’s code which runs on the chain
       (i.e. as scripts).
 
@@ -149,18 +149,18 @@ Glossary
       The libraries and compiler for compiling Haskell into Plutus Core to
       form the on-chain part of a contract application.
 
-    Redeemer
+    redeemer
       The argument to the validator script which is provided by the
       transaction which spends a script output.
 
-    Script
+    script
       A generic term for an executable program used in the ledger. In the
       Cardano blockchain, these are written in Plutus Core.
 
-    Script output
+    script output
       A UTXO locked by a script.
 
-    Token
+    token
       A generic term for a native tradeable asset in the ledger.
 
     UTXO
@@ -170,7 +170,7 @@ Glossary
       a signature from a public key, or (in the Extended UTXO Model)
       satisfying a script.
 
-    Validator script
+    validator script
       The script attached to a script output in the Extended UTXO model.
       Must be run and return positively in order for the output to be
       spent. Determines the address of the output.
