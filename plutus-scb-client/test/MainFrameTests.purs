@@ -78,8 +78,8 @@ instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
 instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   activateContract _ = pure unit
   invokeEndpoint _ _ _ = pure Loading
-  getContractSignature _ = pure Loading
   getFullReport = pure Loading
+  getContractSignature _ = pure Loading
   sendWebSocketMessage _ = pure unit
   log msg =
     wrap
