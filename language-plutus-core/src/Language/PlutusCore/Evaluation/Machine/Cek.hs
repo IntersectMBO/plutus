@@ -105,11 +105,14 @@ type KindWithMem = Kind ExMemory
 
 -- 'Values' for the modified CEK machine.
 data Val uni =
+    -- TODO: we probably want to store a @Some (ValueOf uni)@ here, but then we have trouble in
+    -- 'readKnownCek'. I'll reconsider the way we deal with annotations once again.
     VCon (TermWithMem uni)
-  | VTyAbs TyName KindWithMem (TermWithMem uni) (ValEnv uni)
-  | VLamAbs Name (TypeWithMem uni) (TermWithMem uni) (ValEnv uni)
-  | VIWrap (TypeWithMem uni) (TypeWithMem uni) (Val uni)
+  | VTyAbs ExMemory TyName KindWithMem (TermWithMem uni) (ValEnv uni)
+  | VLamAbs ExMemory Name (TypeWithMem uni) (TermWithMem uni) (ValEnv uni)
+  | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (Val uni)
   | VBuiltin
+      ExMemory
       (ValEnv uni)  -- Initial environment, used for evaluating every argument
       StagedBuiltinName
       Int           -- Number of arguments to be provided
@@ -128,16 +131,21 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => HasConstant (Val uni) w
     asConstant (VCon term) = asConstant term
     asConstant _           = Nothing
 
-mem0 :: ExMemory
-mem0 = ExMemory 0
+valEx :: Val uni -> ExMemory
+valEx = \case
+    VCon t -> termAnn t
+    VTyAbs ex _ _ _ _ -> ex
+    VLamAbs ex _ _ _ _ -> ex
+    VIWrap ex _ _ _ -> ex
+    VBuiltin ex _ _ _ _ _ -> ex
 
 -- TODO: this doesn't discharge the environments.
 dischargeVal :: Val uni -> WithMemory Term uni
 dischargeVal = \case
     VCon t -> t
-    VTyAbs tn k body _env -> TyAbs mem0 tn k body
-    VLamAbs name ty body _env -> LamAbs mem0 name ty body
-    VIWrap ty1 ty2 val -> IWrap mem0 ty1 ty2 $ dischargeVal val
+    VTyAbs ex tn k body _env -> TyAbs ex tn k body
+    VLamAbs ex name ty body _env -> LamAbs ex name ty body
+    VIWrap ex ty1 ty2 val -> IWrap ex ty1 ty2 $ dischargeVal val
     VBuiltin{} -> error "Discharging VBuiltin"
     -- We'll only get this with a stuck partial application - should really make it back into a proper term
 
@@ -178,7 +186,7 @@ type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (Quot
 
 instance SpendBudget (CekM uni) (Val uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
-    getExMemory _ = pure 0 -- TODO: not 0 obviously.
+    getExMemory = pure . valEx
     spendBudget key budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))
@@ -322,19 +330,19 @@ computeCek ctx t@(Unwrap _ term) = do
     spendBudget BUnwrap (ExBudget 1 1) -- TODO
     computeCek (FrameUnwrap : ctx) term
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
-computeCek ctx (TyAbs _ tn k body)  = do
+computeCek ctx (TyAbs ex tn k body)  = do
     env <- getEnv
-    returnCek ctx (VTyAbs tn k body env)
+    returnCek ctx (VTyAbs ex tn k body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-computeCek ctx (LamAbs _ name ty body)  = do
+computeCek ctx (LamAbs ex name ty body)  = do
     env <- getEnv
-    returnCek ctx (VLamAbs name ty body env)
+    returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 computeCek ctx constant@Constant{} = returnCek ctx (VCon constant)
-computeCek ctx (Builtin _ bn)        = do
+computeCek ctx (Builtin ex bn)        = do
   env <- getEnv
   count <- getArgsCount bn
-  returnCek ctx (VBuiltin env (constantAsStagedBuiltinName bn) count [] [])
+  returnCek ctx (VBuiltin ex env (constantAsStagedBuiltinName bn) count [] [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _   err@Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- $ Just err
@@ -373,13 +381,13 @@ returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
 returnCek (FrameApplyFun fun : ctx) arg = do
     applyEvaluate ctx fun arg
 -- s , wrap A B _ ◅ V  ↦  s ◅ wrap A B V
-returnCek (FrameIWrap _ pat arg : ctx) val =
-    returnCek ctx $ VIWrap pat arg val
+returnCek (FrameIWrap ex pat arg : ctx) val =
+    returnCek ctx $ VIWrap ex pat arg val
 -- s , unwrap _ ◅ wrap A B V  ↦  s ◅ V
 returnCek (FrameUnwrap : ctx) val =
     case val of
-      VIWrap _ _ v -> returnCek ctx v
-      _            ->
+      VIWrap _ _ _ v -> returnCek ctx v
+      _              ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Nothing -- Just (void val)
 
 -- | Instantiate a term with a type and proceed.
@@ -389,10 +397,10 @@ returnCek (FrameUnwrap : ctx) val =
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> Val uni -> CekM uni (Plain Term uni)
-instantiateEvaluate ctx _ (VTyAbs _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
-instantiateEvaluate ctx ty (VBuiltin argEnv bn count tyargs args) =
+instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
+instantiateEvaluate ctx ty (VBuiltin ex argEnv bn count tyargs args) =
     case args of
-      [] -> returnCek ctx $ VBuiltin argEnv bn count (ty:tyargs) args  -- The types will be the wrong way round, but we never use them.
+      [] -> returnCek ctx $ VBuiltin ex argEnv bn count (ty:tyargs) args  -- The types will be the wrong way round, but we never use them.
       _  -> error "Builtin instantiation after term argument"
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just val
@@ -416,13 +424,13 @@ applyEvaluate
     -> Val uni   -- lsh of application
     -> Val uni   -- rhs of application
     -> CekM uni (Plain Term uni)
-applyEvaluate ctx (VLamAbs name _ty body env) arg =
+applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx (VBuiltin argEnv bn count tyargs args) arg = withEnv argEnv $ do
+applyEvaluate ctx (VBuiltin ex argEnv bn count tyargs args) arg = withEnv argEnv $ do
     let args' = arg:args
         count' = count - 1
     if count' /= 0
-        then returnCek ctx (VBuiltin argEnv bn count' tyargs args')
+        then returnCek ctx $ VBuiltin ex argEnv bn count' tyargs args'
         else do
             res <- applyStagedBuiltinName bn (reverse args')
             case res of
