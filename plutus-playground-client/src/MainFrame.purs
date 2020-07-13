@@ -140,13 +140,13 @@ handleActionWithAnalyticsTracking ::
   MonadAsk (SPSettings_ SPParams_) m =>
   MonadAff m =>
   HAction -> HalogenM State HAction ChildSlots Void m Unit
-handleActionWithAnalyticsTracking query = do
-  liftEffect $ analyticsTracking query
-  runHalogenApp $ handleAction query
+handleActionWithAnalyticsTracking action = do
+  liftEffect $ analyticsTracking action
+  runHalogenApp $ handleAction action
 
 analyticsTracking :: HAction -> Effect Unit
-analyticsTracking query = do
-  case toEvent query of
+analyticsTracking action = do
+  case toEvent action of
     Nothing -> pure unit
     Just event -> trackEvent event
 
