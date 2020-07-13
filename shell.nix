@@ -40,7 +40,10 @@ in haskell.packages.shellFor {
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
-    pkgs.rPackages.plotly # for generating R plots locally
     pkgs.python3 # for @reactormonk who's running a python web server
-  ];
+  ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
+    # This breaks compilation of R on macOS. The latest version of R
+    # does compile, so we can remove it when we upgrade to 20.09.
+    pkgs.rPackages.plotly # for generating R plots locally
+  ]);
 }
