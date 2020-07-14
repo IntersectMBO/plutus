@@ -98,7 +98,7 @@ applyTypeSchemed name = go where
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown arg
-            exF' <- exF <$> getExMemory arg
+            let exF' = exF $ toExMemory arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
