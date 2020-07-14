@@ -32,10 +32,6 @@ Glossary
       A compiled executable of a contract application. These are what are
       actually distributed to users and run by the PAB.
 
-    context
-      A data structure containing a summary of the transaction being
-      validated.
-
     currency
       A class of token whose forging is controlled by a particular monetary
       policy script. On the Cardano ledger there is a special currency
@@ -69,6 +65,10 @@ Glossary
       the corresponding monetary policy script is satisfied. The amount
       forged can be negative, in which case the tokens will be destroyed
       instead of created.
+
+    forging context
+      A data structure containing a summary of the transaction being
+      validated, and the current forging policy which is being run.
 
     Marlowe
       A domain-specific language for writing financial contract
@@ -174,3 +174,7 @@ Glossary
       The script attached to a script output in the Extended UTXO model.
       Must be run and return positively in order for the output to be
       spent. Determines the address of the output.
+
+    validation context
+      A data structure containing a summary of the transaction being
+      validated, and the current input whose validator is being run.

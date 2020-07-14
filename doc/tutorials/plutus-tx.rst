@@ -1,8 +1,8 @@
 .. highlight:: haskell
-.. _what_is_plutus_tx:
+.. _plutus_tx_tutorial:
 
-What is Plutus Tx?
-==================
+Using Plutus Tx
+===============
 
 Plutus applications are written as a single Haskell program, which
 describes both the code that runs off the chain (on a user’s computer,
