@@ -64,11 +64,9 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Mark
 import           Language.PlutusCore.MkPlc                          hiding (error)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
@@ -182,7 +180,7 @@ makeLenses ''CekEnv
 
 -- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
 -- get it back in case of error.
-type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (QuoteT (State ExBudgetState)))
+type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
 
 instance SpendBudget (CekM uni) (Val uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
@@ -225,7 +223,7 @@ runCekM
     -> ExBudgetState
     -> CekM uni a
     -> (Either (CekEvaluationException uni) a, ExBudgetState)
-runCekM env s a = runState (runQuoteT . runExceptT $ runReaderT a env) s
+runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
 -- | Get the current 'ValEnv'.
 getEnv :: CekM uni (ValEnv uni)
@@ -462,9 +460,6 @@ runCek means mode params term =
     runCekM (CekEnv means mempty mode params)
             (ExBudgetState mempty mempty)
         $ do
-            -- We generate fresh variables during evaluation, see Note [Saved mapping example],
-            -- hence making sure here that no accidental variable capture can occur.
-            markNonFreshTerm term
             spendBudget BAST (ExBudget 0 (termAnn memTerm))
             computeCek [] memTerm
     where
