@@ -10,11 +10,9 @@ maintainer: dmytro.kondratiuk@iohk.io
 stability: experimental
 author: Dmytro Kondratiuk
 synopsis:
-  Marlowe ACTUS: financial contracts on Cardano Computation Layer
+  Marlowe ACTUS: standardised financial contracts on Cardano Computation Layer
 description:
-  A reference implementation of Marlowe, domain-specific language targeted at
-  the execution of financial contracts in the style of Peyton Jones et al
-  on Cardano Computation Layer.
+  implementation of ACTUS contracts on Marlowe
 category: Language
 extra-doc-files: README.md
 
