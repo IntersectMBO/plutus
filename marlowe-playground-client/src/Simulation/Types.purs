@@ -22,7 +22,6 @@ import Halogen as H
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
-import Marlowe.Holes (MarloweHole)
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, PubKey)
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData(..))
@@ -148,7 +147,6 @@ data Action
   | ResetSimulator
   | Undo
   | SelectHole (Maybe String)
-  | InsertHole String MarloweHole (Array MarloweHole)
   -- simulation view
   | ChangeSimulationView BottomPanelView
   | ChangeHelpContext HelpContext
@@ -180,7 +178,6 @@ instance isEventAction :: IsEvent Action where
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
-  toEvent (InsertHole _ _ _) = Just $ defaultEvent "InsertHole"
   toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
   toEvent (ChangeHelpContext help) = Just $ (defaultEvent "ChangeHelpContext") { label = Just $ show help }
   toEvent (GistAction _) = Just $ defaultEvent "GistAction"

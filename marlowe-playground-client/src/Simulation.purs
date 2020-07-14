@@ -22,7 +22,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
-import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, trim)
+import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -55,11 +55,9 @@ import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
-import Marlowe.Holes (replaceInPositions)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
-import Marlowe.Parser (hole, parseContract)
-import Marlowe.Parser as P
+import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
@@ -73,7 +71,6 @@ import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorW
 import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
@@ -231,30 +228,6 @@ handleAction _ Undo = do
     Nothing -> pure unit
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
-
-handleAction _ (InsertHole constructor firstHole holes) = do
-  mCurrContract <- editorGetValue
-  case mCurrContract of
-    Just currContract -> do
-      -- If we have a top level hole we don't want surround the value with brackets
-      -- so we parse the editor contents and if it is a hole we strip the parens
-      let
-        contractWithHole = case runParser hole currContract of
-          Right _ -> stripParens $ replaceInPositions constructor firstHole holes currContract
-          Left _ -> replaceInPositions constructor firstHole holes currContract
-
-        prettyContract = case runParser P.contract contractWithHole of
-          Right c -> show $ genericPretty c
-          Left _ -> contractWithHole
-      editorSetValue prettyContract
-    Nothing -> pure unit
-  where
-  stripParens s =
-    fromMaybe s
-      $ do
-          withoutPrefix <- stripPrefix (Pattern "(") $ trim s
-          withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
-          pure withoutSuffix
 
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
