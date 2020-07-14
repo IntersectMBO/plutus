@@ -42,7 +42,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, emptyRange, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
@@ -245,12 +245,12 @@ markSimplification f c oriVal x
   | otherwise = pure unit
 
 constToObs :: Boolean -> Term Observation
-constToObs true = Term TrueObs emptyRange
+constToObs true = Term TrueObs zero
 
-constToObs false = Term FalseObs emptyRange
+constToObs false = Term FalseObs zero
 
 constToVal :: BigInteger -> Term Value
-constToVal x = Term (Constant x) emptyRange
+constToVal x = Term (Constant x) zero
 
 addMoneyToEnvAccount :: BigInteger -> Semantics.AccountId -> Semantics.Token -> LintEnv -> LintEnv
 addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (addMoney amountToAdd) (accTerm /\ tokenTerm))

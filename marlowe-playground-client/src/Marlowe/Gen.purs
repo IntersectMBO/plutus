@@ -12,7 +12,7 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), emptyRange, mkArgName)
+import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
@@ -49,7 +49,7 @@ genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
 genTimeout :: forall m. MonadGen m => MonadRec m => m (TermWrapper Slot)
-genTimeout = TermWrapper <$> genSlot <*> pure emptyRange
+genTimeout = TermWrapper <$> genSlot <*> pure zero
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -109,11 +109,11 @@ genHole name = do
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => String -> m a -> m (Term a)
 genTerm name g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure emptyRange) :| (if withHoles then [ genHole name ] else [])
+  oneOf $ (Term <$> g <*> pure zero) :| (if withHoles then [ genHole name ] else [])
 
 genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => m a -> m (TermWrapper a)
 genTermWrapper g = do
-  TermWrapper <$> g <*> pure emptyRange
+  TermWrapper <$> g <*> pure zero
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m AccountId
 genAccountId = do

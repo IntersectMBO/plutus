@@ -253,7 +253,7 @@ constructMarloweType constructorName (MarloweHole { range: { startColumn, startL
       let
         newArgs = getMarloweConstructors marloweType
 
-        hole = MarloweHole { name, marloweType, range: emptyRange }
+        hole = MarloweHole { name, marloweType, range: zero }
       in
         constructMarloweType name hole newArgs
 
@@ -267,14 +267,6 @@ type Range
     , endLineNumber :: Int
     , endColumn :: Int
     }
-
-emptyRange :: Range
-emptyRange =
-  { startLineNumber: 0
-  , startColumn: 0
-  , endLineNumber: 0
-  , endColumn: 0
-  }
 
 -- We need to compare the fields in the correct order
 compareRange :: Range -> Range -> Ordering
@@ -312,7 +304,7 @@ mkHole :: forall a. String -> Range -> Term a
 mkHole name range = Hole name Proxy range
 
 mkDefaultTerm :: forall a. a -> Term a
-mkDefaultTerm a = Term a emptyRange
+mkDefaultTerm a = Term a zero
 
 class HasMarloweHoles a where
   getHoles :: a -> Holes -> Holes
@@ -380,7 +372,7 @@ instance termWrapperHasContractData :: HasContractData a => HasContractData (Ter
   gatherContractData (TermWrapper a _) s = gatherContractData a s
 
 mkDefaultTermWrapper :: forall a. a -> TermWrapper a
-mkDefaultTermWrapper a = TermWrapper a emptyRange
+mkDefaultTermWrapper a = TermWrapper a zero
 
 -- special case
 instance fromTermRational :: FromTerm Rational Rational where

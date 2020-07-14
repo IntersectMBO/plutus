@@ -16,10 +16,10 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), emptyRange, fromTerm, getRange, mkHole)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
-import Prelude (class Show, bind, const, discard, pure, show, void, ($), (*>), (-), (<$>), (<$), (<*), (<*>), (<<<))
+import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
 import Text.Parsing.StringParser (Parser(..), fail, runParser)
 import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteSpaceChar)
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
@@ -176,7 +176,7 @@ hole =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Hole name Proxy emptyRange, suffix }
+    pure { result: Hole name Proxy zero, suffix }
   where
   nameChars = alphaNum <|> char '_'
 
@@ -189,7 +189,7 @@ term' (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: Term result emptyRange, suffix }
+    pure { result: Term result zero, suffix }
 
 termWrapper :: forall a. Parser a -> Parser (TermWrapper a)
 termWrapper (Parser p) =
@@ -200,7 +200,7 @@ termWrapper (Parser p) =
 
       end = suffix.pos
     -- this position info is incorrect however we don't use it anywhere at this time
-    pure { result: TermWrapper result emptyRange, suffix }
+    pure { result: TermWrapper result zero, suffix }
 
 parseTerm :: forall a. Parser a -> Parser (Term a)
 parseTerm p = hole <|> (term' p)

@@ -51,7 +51,7 @@ mkTestState = do
   pure { blocklyState: blocklyState, generator: generator }
 
 -- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
--- It uses emptyRange to create a dummy range. By using `show` we can reasonably compare contracts
+-- It uses zero to create a dummy range. By using `show` we can reasonably compare contracts
 c2b2c :: GenWithHoles Result
 c2b2c = do
   contract <- genTerm "contract" genContract
