@@ -11,7 +11,7 @@
 | BIWrap causes ({ cpu: 1
 | mem: 1
 })
-| BBuiltin (StaticBuiltinName LessThanEqInteger) causes ({ cpu: 1
+| BBuiltin (StaticBuiltinName LessThanEqInteger) causes ({ cpu: 14
 | mem: 1
 })
 | BBuiltin (StaticBuiltinName IfThenElse) causes ({ cpu: 1
@@ -23,7 +23,7 @@
 | BAST causes ({ cpu: 0
 | mem: 331
 })})
-| budget: ({ cpu: 39
+| budget: ({ cpu: 52
 | mem: 370
 })
 }) )

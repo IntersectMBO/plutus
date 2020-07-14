@@ -7,6 +7,8 @@ scbWebserverConfig:
 
 walletServerConfig:
   baseUrl: http://localhost:8081
+  wallet: 
+    getWallet: 1
 
 nodeServerConfig:
   mscBaseUrl: http://localhost:8082
@@ -15,6 +17,10 @@ nodeServerConfig:
   mscBlockReaper:
     brcInterval: 600
     brcBlocksToKeep: 100
+  mscInitialTxWallets:
+    - getWallet: 1
+    - getWallet: 2
+    - getWallet: 3
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083

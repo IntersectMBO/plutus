@@ -53,7 +53,7 @@ type TermGen uni a = Gen (TermOf uni a)
 --       (lessThanInteger i j)
 --       (embedTypedBuiltinNameInTerm addInteger)
 --       (embedTypedBuiltinNameInTerm subtractInteger)
---     ) 
+--     )
 --   i j ]
 -- >  == if i < j then i + j else i - j
 genBuiltinApplication :: Generatable uni => TermGen uni Integer
@@ -65,8 +65,8 @@ genBuiltinApplication = do
     TermOf tj j <- genTypedBuiltinDef typedInteger
     let fun = mkStaticBuiltinApp IfThenElse [intIntInt]
                  [ mkStaticBuiltinApp LessThanInteger [] [ti, tj]
-                 , embedTypedBuiltinNameInTerm typedAddInteger
-                 , embedTypedBuiltinNameInTerm typedSubtractInteger
+                 , embedStaticBuiltinNameInTerm AddInteger
+                 , embedStaticBuiltinNameInTerm SubtractInteger
                  ]
         term = mkIterApp () fun [ti, tj]
     return . TermOf term $ if i < j then i + j else i - j
@@ -208,13 +208,13 @@ genApplySubtract0 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, TyFun () int int])
-                [ embedTypedBuiltinNameInTerm typedSubtractInteger
+                [ embedStaticBuiltinNameInTerm SubtractInteger
                 , i
                 , j
                 ]
     return . TermOf term $ iv - jv
 
--- Test partial application of (\x y -> SubtractInteger x y) to one argument 
+-- Test partial application of (\x y -> SubtractInteger x y) to one argument
 genApplySubtract1 :: Generatable uni => TermGen uni Integer
 genApplySubtract1 = do
     let typedInt = AsKnownType
@@ -223,7 +223,7 @@ genApplySubtract1 = do
     TermOf j jv <- genTermLoose typedInt
     let term =
             mkIterApp () (mkIterInst () applyFun [int, int])
-                [ Apply () (embedTypedBuiltinNameInTerm typedSubtractInteger) i
+                [ Apply () (embedStaticBuiltinNameInTerm SubtractInteger) i
                 , j
                 ]
     return . TermOf term $ iv - jv
@@ -261,7 +261,8 @@ genDivideByZeroDrop = do
 
 -- | Apply a function to all interesting generators and collect the results.
 fromInterestingTermGens
-    :: Generatable uni => (forall a. KnownType uni a => String -> TermGen uni a -> c) -> [c]
+    :: Generatable uni
+    => (forall a. KnownType (Term TyName Name uni ()) a => String -> TermGen uni a -> c) -> [c]
 fromInterestingTermGens f =
     [ f "builtinApplication"  genBuiltinApplication
     , f "factorial"           genFactorial

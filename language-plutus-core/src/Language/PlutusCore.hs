@@ -102,7 +102,6 @@ module Language.PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
-    , EvaluationResultDef
     -- * Combining programs
     , applyProgram
     -- * Benchmarking

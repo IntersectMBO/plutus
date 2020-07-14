@@ -23,7 +23,7 @@ tests = testGroup "escrow"
         (void $ payEp escrowParams)
         (assertDone w1 (const True) "escrow pay not done" /\ walletFundsChange w1 (Ada.lovelaceValueOf (-10)))
         (callEndpoint @"pay-escrow" w1 (Ada.lovelaceValueOf 10)
-        >> handleBlockchainEvents w1)
+        >> handleBlockchainEvents w1 >> addBlocks 1)
 
     , checkPredicate @EscrowSchema @EscrowError "can redeem"
         (void $ selectEither (payEp escrowParams) (redeemEp escrowParams))
@@ -36,11 +36,14 @@ tests = testGroup "escrow"
         >> callEndpoint @"pay-escrow" w2 (Ada.lovelaceValueOf 10)
         >> handleBlockchainEvents w1
         >> handleBlockchainEvents w2
+        >> addBlocks 1
         >> callEndpoint @"redeem-escrow" w3 ()
-        >> notifySlot w3
         >> handleBlockchainEvents w3
+        >> addBlocks 1
         >> handleBlockchainEvents w1
-        >> handleBlockchainEvents w2)
+        >> handleBlockchainEvents w2
+        >> handleBlockchainEvents w3
+        )
 
     , checkPredicate @EscrowSchema @EscrowError "can redeem even if more money than required has been paid in"
           (both (payEp escrowParams) (redeemEp escrowParams))
@@ -73,8 +76,10 @@ tests = testGroup "escrow"
           >> handleBlockchainEvents w1
           >> handleBlockchainEvents w2
           >> handleBlockchainEvents w3
+          >> addBlocks 1
           >> callEndpoint @"redeem-escrow" w1 ()
-          >> notifySlot w1
+          >> handleBlockchainEvents w1
+          >> addBlocks 1
           >> handleBlockchainEvents w1
           >> handleBlockchainEvents w3
           >> handleBlockchainEvents w2)
@@ -87,7 +92,10 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents w1
         >> addBlocks 200
         >> callEndpoint @"refund-escrow" w1 ()
-        >> handleBlockchainEvents w1)
+        >> handleBlockchainEvents w1
+        >> addBlocks 1
+        >> handleBlockchainEvents w1
+        )
 
     , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 35000)
     ]

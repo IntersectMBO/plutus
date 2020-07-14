@@ -28,7 +28,9 @@ benchData <- function(path) {
   numbers <- benchmark_name_to_numbers(dat$Name)
 
   mutated <- numbers %>% mutate_at(numbercols, function(x) { as.numeric(as.character(x))}) %>% mutate_at(c("BuiltinName"), as.character)
-  cbind(dat, mutated) %>% filter(x_mem < 2000) %>% filter(y_mem < 2000)
+  cbind(dat, mutated) %>%
+    filter(x_mem < 2000) %>% filter(y_mem < 2000) %>%
+    mutate_at(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), function(x) { x * 1000 * 1000 })
 }
 
 # path <- "language-plutus-core/budgeting-bench/csvs/benching.csv"
@@ -54,27 +56,40 @@ modelFun <- function(path) {
 
   multiplyIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "MultiplyInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
-    lm(Mean ~ x_mem^2 + y_mem^2, filtered)
+    lm(Mean ~ I(x_mem * y_mem), filtered)
   }
 
-  # Used for DivideInteger, QuotientInteger, RemainderInteger, ModInteger
   divideIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "DivideInteger") %>% filter(x_mem != 0) %>% filter(y_mem != 0)
     # This one does seem to underestimate the cost by a factor of two
-    lm(Mean ~ ifelse(x_mem > y_mem, x_mem + y_mem, 0) , filtered)
+    lm(Mean ~ ifelse(x_mem > y_mem, I(x_mem * y_mem), 0) , filtered)
   }
+  quotientIntegerModel <- divideIntegerModel
+  remainderIntegerModel <- divideIntegerModel
+  modIntegerModel <- divideIntegerModel
 
-  # Used for LessThanInteger, GreaterThanInteger
   lessThanIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "LessThanInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
+  greaterThanIntegerModel <- lessThanIntegerModel
 
-  # Used for LessThanEqInteger, GreaterThanEqInteger
   lessThanEqIntegerModel <- {
     filtered <- data %>% filter(BuiltinName == "LessThanEqInteger") %>% filter(x_mem == y_mem) %>% filter (x_mem != 0)
     lm(Mean ~ I(pmin(x_mem, y_mem)), data=filtered)
   }
+  greaterThanEqIntegerModel <- lessThanEqIntegerModel
+
+  concatenateModel <- 0
+  takeByteStringModel <- 0
+  dropByteStringModel <- 0
+  sha2Model <- 0
+  sha3Model <- 0
+  verifySignatureModel <- 0
+  eqByteStringModel <- 0
+  ltByteStringModel <- 0
+  gtByteStringModel <- 0
+  ifThenElseModel <- 0
 
   list(
     addIntegerModel=addIntegerModel,
@@ -82,6 +97,23 @@ modelFun <- function(path) {
     subtractIntegerModel=subtractIntegerModel,
     multiplyIntegerModel=multiplyIntegerModel,
     divideIntegerModel=divideIntegerModel,
+    quotientIntegerModel=quotientIntegerModel,
+    remainderIntegerModel=remainderIntegerModel,
+    modIntegerModel=modIntegerModel,
     lessThanIntegerModel=lessThanIntegerModel,
-    lessThanEqIntegerModel=lessThanEqIntegerModel)
+    greaterThanIntegerModel=greaterThanIntegerModel,
+    lessThanEqIntegerModel=lessThanEqIntegerModel,
+    greaterThanEqIntegerModel=greaterThanEqIntegerModel,
+    concatenateModel=concatenateModel,
+    takeByteStringModel=takeByteStringModel,
+    dropByteStringModel=dropByteStringModel,
+    sha2Model=sha2Model,
+    sha3Model=sha3Model,
+    verifySignatureModel=verifySignatureModel,
+    eqByteStringModel=eqByteStringModel,
+    ltByteStringModel=ltByteStringModel,
+    gtByteStringModel=gtByteStringModel,
+    ifThenElseModel=ifThenElseModel
+  )
+
 }

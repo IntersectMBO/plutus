@@ -97,7 +97,7 @@ adaToValue (Lovelace ada) =
         [ JsonTuple
             ( Tuple
                 (CurrencySymbol { unCurrencySymbol: "" })
-                (AssocMap.Map [ JsonTuple (Tuple (TokenName { unTokenName: "Lovelace" }) ada.getLovelace) ])
+                (AssocMap.Map [ JsonTuple (Tuple (TokenName { unTokenName: "" }) ada.getLovelace) ])
             )
         ]
     }

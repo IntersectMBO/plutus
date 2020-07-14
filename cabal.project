@@ -8,7 +8,6 @@ packages: language-plutus-core
           plutus-tx-plugin
           plutus-use-cases
           plutus-playground-server
-          plutus-tutorial
           plutus-book
           plutus-scb
           playground-common
@@ -19,6 +18,7 @@ packages: language-plutus-core
           iots-export
           metatheory
           prettyprinter-configurable
+          doc
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
@@ -48,11 +48,6 @@ source-repository-package
   type: git
   location: https://github.com/michaelpj/unlit.git
   tag: 9ca1112093c5ffd356fc99c7dafa080e686dd748
-
-source-repository-package
-   type: git
-   location: https://github.com/michaelpj/slack-web.git
-   tag: 6ff88895c5da593e7bd09a46d7002441817aa6f8
 
 -- This is also needed so evenful-sql-common will build with a
 -- newer version of persistent. See stack.yaml for the mirrored

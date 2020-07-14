@@ -43,9 +43,15 @@
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+          (hsPkgs."async" or (errorHandler.buildDepError "async"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+          (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+          (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+          (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+          (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
           (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
           (hsPkgs."errors" or (errorHandler.buildDepError "errors"))
           (hsPkgs."eventful-core" or (errorHandler.buildDepError "eventful-core"))
@@ -55,10 +61,16 @@
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
           (hsPkgs."generic-arbitrary" or (errorHandler.buildDepError "generic-arbitrary"))
           (hsPkgs."http-client" or (errorHandler.buildDepError "http-client"))
+          (hsPkgs."io-sim-classes" or (errorHandler.buildDepError "io-sim-classes"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."monad-logger" or (errorHandler.buildDepError "monad-logger"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+          (hsPkgs."network" or (errorHandler.buildDepError "network"))
+          (hsPkgs."network-mux" or (errorHandler.buildDepError "network-mux"))
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+          (hsPkgs."ouroboros-network" or (errorHandler.buildDepError "ouroboros-network"))
+          (hsPkgs."ouroboros-network-framework" or (errorHandler.buildDepError "ouroboros-network-framework"))
           (hsPkgs."persistent" or (errorHandler.buildDepError "persistent"))
           (hsPkgs."persistent-sqlite" or (errorHandler.buildDepError "persistent-sqlite"))
           (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -67,9 +79,12 @@
           (hsPkgs."random" or (errorHandler.buildDepError "random"))
           (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
           (hsPkgs."scientific" or (errorHandler.buildDepError "scientific"))
+          (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."servant" or (errorHandler.buildDepError "servant"))
           (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
+          (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
+          (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
@@ -79,6 +94,7 @@
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
+          (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           (hsPkgs."mwc-random" or (errorHandler.buildDepError "mwc-random"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
@@ -98,6 +114,11 @@
           "Cardano/Node/RandomTx"
           "Cardano/Node/Server"
           "Cardano/Node/Types"
+          "Cardano/Protocol/ChainEffect"
+          "Cardano/Protocol/FollowerEffect"
+          "Cardano/Protocol/Socket/Type"
+          "Cardano/Protocol/Socket/Server"
+          "Cardano/Protocol/Socket/Client"
           "Cardano/SigningProcess/API"
           "Cardano/SigningProcess/Server"
           "Cardano/SigningProcess/Client"
@@ -108,6 +129,7 @@
           "Cardano/Wallet/Types"
           "Control/Monad/Freer/Extra/Log"
           "Control/Monad/Freer/Extra/State"
+          "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
           "Plutus/SCB/MockApp"
@@ -119,6 +141,8 @@
           "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
           "Plutus/SCB/Effects/ContractTest"
+          "Plutus/SCB/Effects/ContractTest/AtomicSwap"
+          "Plutus/SCB/Effects/ContractTest/PayToWallet"
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
@@ -190,6 +214,24 @@
             ];
           buildable = true;
           hsSourceDirs = [ "currency-contract" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-atomic-swap" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "atomic-swap-contract" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "plutus-pay-to-wallet" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-scb" or (errorHandler.buildDepError "plutus-scb"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "pay-to-wallet-contract" ];
           mainPath = [ "Main.hs" ];
           };
         };

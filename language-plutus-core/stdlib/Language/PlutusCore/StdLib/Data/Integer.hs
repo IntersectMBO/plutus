@@ -5,7 +5,8 @@
 {-# LANGUAGE TypeOperators     #-}
 
 module Language.PlutusCore.StdLib.Data.Integer
-    ( succInteger
+    ( integer
+    , succInteger
     ) where
 
 import           Language.PlutusCore.Core
@@ -13,6 +14,9 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
+
+integer :: uni `Includes` Integer => Type tyname uni ()
+integer = mkTyBuiltin @Integer ()
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --

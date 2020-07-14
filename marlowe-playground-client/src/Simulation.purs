@@ -7,7 +7,6 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Control.Monad.State (class MonadState)
 import Data.Array (delete, filter, foldr, intercalate, snoc, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap)
@@ -15,16 +14,17 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Lens (_Just, assign, modifying, over, preview, set, to, use, view, (^.))
+import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
-import Data.List.NonEmpty (NonEmptyList)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, trim)
 import Data.String as String
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -40,7 +40,7 @@ import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
@@ -56,19 +56,20 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Holes (replaceInPositions)
+import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
-import Marlowe.Parser (hole, parseTerm)
+import Marlowe.Parser (hole, parseContract)
 import Marlowe.Parser as P
-import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party, PubKey, Token, TransactionError, inBounds)
+import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>))
+import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _currentTransactionInput, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyTransactions, emptyMarloweState, hasHistory, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
@@ -106,6 +107,7 @@ handleQuery (SetEditorText contents next) = do
 
 handleQuery (ResizeEditor next) = do
   void $ query _editorSlot unit (Monaco.Resize unit)
+  void $ query _editorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
   pure (Just next)
 
 handleQuery (ResetContract next) = do
@@ -115,6 +117,17 @@ handleQuery (ResetContract next) = do
 handleQuery (WebsocketResponse response next) = do
   assign _analysisState response
   pure (Just next)
+
+handleQuery (HasStarted f) = do
+  state <- use _marloweState
+  pure $ Just $ f (NEL.length state > 1)
+
+handleQuery (GetCurrentContract next) = do
+  oldContract <- use _oldContract
+  currContract <- editorGetValue
+  let
+    newContract = fromMaybe mempty $ oldContract <|> currContract
+  pure $ Just $ next newContract
 
 handleAction ::
   forall m.
@@ -130,8 +143,9 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
   updateContractInState text
   assign _activeDemo ""
-
-handleAction _ (HandleEditorMessage (Monaco.MarkersChanged markers)) = editorSetMarkers markers
+  state <- use (_currentMarloweState <<< _state)
+  markers <- query _editorSlot unit (Monaco.SetModelMarkers (Linter.markers state text) identity)
+  void $ traverse editorSetMarkers markers
 
 handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
 
@@ -153,7 +167,7 @@ handleAction _ (LoadScript key) = do
     Nothing -> pure unit
     Just contents -> do
       let
-        prettyContents = case runParser (parseTerm P.contract) contents of
+        prettyContents = case parseContract contents of
           Right pcon -> show $ pretty pcon
           Left _ -> contents
       editorSetValue prettyContents
@@ -215,14 +229,6 @@ handleAction _ Undo = do
   case mCurrContract of
     Just currContract -> editorSetValue (show $ genericPretty currContract)
     Nothing -> pure unit
-  where
-  tailIfNotEmpty ms =
-    let
-      tail = NEL.tail ms
-    in
-      case NEL.fromList tail of
-        Nothing -> ms
-        Just netail -> netail
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
@@ -365,11 +371,20 @@ scrollHelpPanel =
     window <- Web.window
     document <- toDocument <$> W.document window
     mSidePanel <- WC.item 0 =<< D.getElementsByClassName "sidebar-composer" document
-    case mSidePanel of
-      Nothing -> pure unit
-      Just sidePanel -> do
-        scrollHeight <- E.scrollHeight sidePanel
-        setScrollTop scrollHeight sidePanel
+    mDocPanel <- WC.item 0 =<< D.getElementsByClassName "documentation-panel" document
+    case mSidePanel, mDocPanel of
+      Just sidePanel, Just docPanel -> do
+        sidePanelHeight <- E.scrollHeight sidePanel
+        docPanelHeight <- E.scrollHeight docPanel
+        availableHeight <- E.clientHeight sidePanel
+        let
+          newScrollHeight =
+            if sidePanelHeight < availableHeight then
+              sidePanelHeight
+            else
+              sidePanelHeight - docPanelHeight - 120.0
+        setScrollTop newScrollHeight sidePanel
+      _, _ -> pure unit
 
 editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
 editorSetValue contents = void $ query _editorSlot unit (Monaco.SetText contents unit)
@@ -385,15 +400,6 @@ saveInitialState = do
         Nothing -> Just $ fromMaybe "" oldContract
         _ -> x
     )
-
-updateMarloweState :: forall m. MonadState State m => (MarloweState -> MarloweState) -> m Unit
-updateMarloweState f = modifying _marloweState (extendWith (set _currentTransactionInput Nothing <<< updatePossibleActions <<< f))
-
-updateContractInState :: forall m. MonadState State m => String -> m Unit
-updateContractInState contents = modifying _currentMarloweState (updatePossibleActions <<< updateContractInStateP contents)
-
-applyTransactions :: forall m. MonadState State m => m Unit
-applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
 
 resetContract :: forall m. HalogenM State Action ChildSlots Message m Unit
 resetContract = do
@@ -426,10 +432,6 @@ editorSetMarkers markers = do
   assign (_marloweState <<< _Head <<< _editorErrors) errors
   pure unit
 
--- | Apply a function to the head of a non-empty list and cons the result on
-extendWith :: forall a. (a -> a) -> NonEmptyList a -> NonEmptyList a
-extendWith f l = NEL.cons ((f <<< NEL.head) l) l
-
 render ::
   forall m.
   MonadAff m =>
@@ -439,9 +441,11 @@ render state =
   div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
         [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-            [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-                [ div [ classes [ ClassName "demos", spaceLeft ] ]
-                    [ small_ [ text "Demos:" ]
+            [ a [ class_ (ClassName "editor-help"), onClick $ const $ Just $ ChangeHelpContext EditorHelp ]
+                [ img [ src infoIcon, alt "info book icon" ] ]
+            , div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
+                [ div [ classes [ spaceLeft ] ]
+                    [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Demos:" ]
                     ]
                 ]
             , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
@@ -513,7 +517,7 @@ marloweEditor state = slot _editorSlot unit component unit (Just <<< HandleEdito
 
   component = monacoComponent $ MM.settings setup
 
-  initialContents = fromMaybe "" $ Array.head $ map fst StaticData.marloweContracts
+  initialContents = fromMaybe "?contract" $ Array.head $ map snd StaticData.marloweContracts
 
 sidebar ::
   forall p.
@@ -550,7 +554,7 @@ inputComposer state =
         if (Map.isEmpty possibleActions) then
           [ text "No valid inputs can be added to the transaction" ]
         else
-          (actionsForPeople possibleActions)
+          (actionsForParties possibleActions)
     ]
   where
   isEnabled = isContractValid state
@@ -563,26 +567,30 @@ inputComposer state =
   vs :: forall k v. Map k v -> Array v
   vs m = map snd (kvs m)
 
-  lastKey :: Maybe (Maybe PubKey)
+  lastKey :: Maybe Party
   lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-  people :: forall v. Array (Tuple (Maybe String) v) -> Array (Tuple String v)
-  people = foldr f mempty
+  parties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
+  parties = foldr f mempty
     where
-    f (Tuple (Just k) v) acc = (Tuple k v) : acc
+    f (Tuple k v) acc = (Tuple k v) : acc
 
-    f _ acc = acc
-
-  actionsForPeople :: Map (Maybe PubKey) (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForPeople m = map (\(Tuple k v) -> participant isEnabled k (vs v)) (people (kvs m))
+  actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
+  actionsForParties m = map (\(Tuple k v) -> participant isEnabled k (vs v)) (parties (kvs m))
 
 participant ::
   forall p.
   Boolean ->
-  PubKey ->
+  Party ->
   Array ActionInput ->
   HTML p Action
-participant isEnabled person actionInputs =
+participant isEnabled (PK person) actionInputs =
+  li [ classes [ ClassName "participant-a", noMargins ] ]
+    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
+        <> (map (inputItem isEnabled person) actionInputs)
+    )
+
+participant isEnabled (Role person) actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
     ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
         <> (map (inputItem isEnabled person) actionInputs)
@@ -597,39 +605,53 @@ inputItem ::
 inputItem isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled isEnabled
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IDeposit accountId party token value) []
+    , div [ class_ (ClassName "align-top") ]
+        [ button
+            [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+            , enabled isEnabled
+            , onClick $ const $ Just
+                $ AddInput (Just person) (IDeposit accountId party token value) []
+            ]
+            [ text "+" ]
         ]
-        [ text "+" ]
     ]
 
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
-    [ div []
-        [ p [ class_ (ClassName "choice-input") ]
-            [ spanText "Choice "
-            , b_ [ spanText (show choiceName) ]
-            , spanText ": Choose value "
-            , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
-            ]
-        , p [ class_ (ClassName "choice-error") ] error
-        ]
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled (isEnabled && inBounds chosenNum bounds)
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
-        ]
-        [ text "+" ]
-    ]
+    ( [ div []
+          [ p [ class_ (ClassName "choice-input") ]
+              [ spanText "Choice "
+              , b_ [ spanText (show choiceName <> ":") ]
+              , br_
+              , spanText "Choose value "
+              , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
   where
+  addButton =
+    if isEnabled && inBounds chosenNum bounds then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just
+              $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
-  boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 
@@ -638,7 +660,7 @@ inputItem isEnabled person NotifyInput =
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled), ClassName "align-top" ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) INotify []
@@ -670,7 +692,7 @@ renderDeposit (AccountId accountNumber accountOwner) party tok money =
   [ spanText "Deposit "
   , b_ [ spanText (show money) ]
   , spanText " units of "
-  , b_ [ spanText (show tok) ]
+  , b_ [ spanText (showPrettyToken tok) ]
   , spanText " into Account "
   , b_ [ spanText (show accountOwner <> " (" <> show accountNumber <> ")") ]
   , spanText " as "
@@ -721,7 +743,7 @@ transactionComposer state =
                             const Nothing
                     , class_ (Classes.disabled $ not isEnabled)
                     ]
-                    [ text $ "Next Block (" <> show currentBlock <> ")" ]
+                    [ text $ "Next Slot (" <> show currentBlock <> ")" ]
                 ]
             , li_
                 [ button
@@ -765,7 +787,7 @@ transactionRow state isEnabled (Tuple input@(IDeposit (AccountId accountNumber a
         [ text "Deposit "
         , strong_ [ text (show money) ]
         , text " units of "
-        , strong_ [ text (show token) ]
+        , strong_ [ text (showPrettyToken token) ]
         , text " into account "
         , strong_ [ text (show accountOwner <> " (" <> show accountNumber <> ")") ]
         , text " as "
@@ -809,9 +831,6 @@ transactionRow state isEnabled (Tuple INotify person) =
         ]
         [ text "-" ]
     ]
-
-hasHistory :: State -> Boolean
-hasHistory state = NEL.length (view _marloweState state) > 1
 
 -- TODO: Need to make these errors nice explanations - function in smeantics utils
 printTransError :: forall p. TransactionError -> Array (HTML p Action)

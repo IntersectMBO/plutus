@@ -3,6 +3,7 @@
 
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Language.PlutusCore.Constant.Dynamic.Call
@@ -16,6 +17,7 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators.Internal.Denotation
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
@@ -23,22 +25,26 @@ import           Data.Proxy
 import           System.IO.Unsafe
 
 dynamicCallTypeScheme
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
-    => TypeScheme uni '[a] ()
+    :: forall a uni term.
+       (HasConstantIn uni term, KnownType term a, GShow uni, GEq uni, uni `Includes` ())
+    => TypeScheme term '[a] ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicCallAssign
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    :: (HasConstantIn uni term, KnownType term a, GShow uni, GEq uni, uni `Includes` ())
     => DynamicBuiltinName
     -> (a -> IO ())
     -> (ExMemory -> ExBudget)
-    -> DynamicBuiltinNameDefinition uni
+    -> DynamicBuiltinNameDefinition term
 dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF
 
 dynamicCall
-    :: forall a uni proxy.
-       (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
-    => proxy a -> DynamicBuiltinName -> Term TyName Name uni ()
-dynamicCall _ = embedDynamicBuiltinNameInTerm $ dynamicCallTypeScheme @uni @a
+    :: forall ann a uni proxy.
+       ( KnownType (Term TyName Name uni ann) a, ToAnnotation uni ann
+       , GShow uni, GEq uni, uni `Includes` ()
+       )
+    => proxy ann -> proxy a -> DynamicBuiltinName -> Term TyName Name uni ()
+dynamicCall _ _ =
+    embedDynamicBuiltinNameInTerm @(Term TyName Name _ ann) $ dynamicCallTypeScheme @a

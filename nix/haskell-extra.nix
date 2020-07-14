@@ -30,7 +30,7 @@
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "0vmf2wzc2b9h4cxxj0mwpza9dy23n7dxadj6x7xaf8p9pmcmmmd5";
   };
-  haskell-language-server =
+  inherit (
     let hspkgs = pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
           owner = "haskell";
@@ -45,14 +45,15 @@
           }."${location}"."${tag}";
         inherit index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "0v9r3d11y595w7zrn7zrcxbcvjph5q8qj4fnig4sff99wcm038ab";
+        plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
         compiler-nix-name = "ghc883";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
         }];
       };
-    in hspkgs.haskell-language-server;
+    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
+  hie-bios haskell-language-server;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {

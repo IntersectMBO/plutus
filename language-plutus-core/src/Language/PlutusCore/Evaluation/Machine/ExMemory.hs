@@ -22,8 +22,9 @@ module Language.PlutusCore.Evaluation.Machine.ExMemory
 ) where
 
 import           Language.PlutusCore.Core
-import           Language.PlutusCore.Pretty
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Universe
 import           PlutusPrelude
 
@@ -67,6 +68,9 @@ newtype ExCPU = ExCPU Integer
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum Integer)
 deriving newtype instance PrettyDefaultBy config Integer => PrettyBy config ExCPU
+
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ToAnnotation uni ExMemory where
+    toAnnotation = memoryUsage
 
 -- Based on https://github.com/ekmett/semigroups/blob/master/src/Data/Semigroup/Generic.hs
 class GExMemoryUsage f where

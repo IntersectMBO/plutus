@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE StrictData       #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators    #-}
 module Plutus.SCB.Effects.MultiAgent(
@@ -55,7 +56,7 @@ import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect)
 import qualified Wallet.Emulator.ChainIndex      as ChainIndex
 import           Wallet.Emulator.Error           (WalletAPIError)
 import           Wallet.Emulator.MultiAgent      (EmulatorEvent, chainIndexEvent, walletClientEvent, walletEvent)
-import           Wallet.Emulator.NodeClient      (NodeControlEffect)
+import           Wallet.Emulator.NodeClient      (NodeClientControlEffect)
 import qualified Wallet.Emulator.NodeClient      as NC
 import           Wallet.Emulator.SigningProcess  (SigningProcessControlEffect)
 import qualified Wallet.Emulator.SigningProcess  as SP
@@ -109,7 +110,7 @@ type SCBClientEffects =
 type SCBControlEffects =
     '[ChainIndexControlEffect
     , NodeFollowerEffect
-    , NodeControlEffect
+    , NodeClientControlEffect
     , SigningProcessControlEffect
     , State CI.AppState
     , Log

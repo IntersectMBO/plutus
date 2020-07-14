@@ -3,26 +3,25 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Language.PlutusCore.Evaluation.Machine.Ck
-    ( CkMachineException
+    ( EvaluationResult (..)
     , CkEvaluationException
-    , EvaluationResult (..)
-    , EvaluationResultDef
-    , applyEvaluateCkStaticBuiltinName
+    , CkM
     , evaluateCk
     , unsafeEvaluateCk
     ) where
 
 import           PlutusPrelude
 
-import           Language.PlutusCore.Constant.Apply
+import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
+import           Language.PlutusCore.Evaluation.Machine.ExMemory            (Plain)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty                                 (PrettyConst)
@@ -35,16 +34,15 @@ data NoDynamicBuiltinNamesMachineError
     = NoDynamicBuiltinNamesMachineError
     deriving (Show, Eq)
 
--- | The CK machine-specific 'MachineException'.
-type CkMachineException uni = MachineException uni NoDynamicBuiltinNamesMachineError
-
 -- | The CK machine-specific 'EvaluationException'.
-type CkEvaluationException uni = EvaluationException uni NoDynamicBuiltinNamesMachineError ()
+type CkEvaluationException uni =
+    EvaluationException NoDynamicBuiltinNamesMachineError () (Plain Term uni)
 
 type CkM uni = Either (CkEvaluationException uni)
 
-instance SpendBudget (CkM uni) uni where
+instance SpendBudget (CkM uni) (Term TyName Name uni ()) where
     spendBudget _ _ _ = pure ()
+    getExMemory _     = pure 0
     builtinCostParams = pure defaultCostModel
 
 data Frame uni
@@ -55,7 +53,6 @@ data Frame uni
     | FrameIWrap () (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
     | FrameApplyBuiltin BuiltinName [Type TyName uni ()] [Value TyName Name uni ()] [Term TyName Name uni ()]
                                                                -- ^ @(builtin bn A V* _ M*)
-
 type Context uni = [Frame uni]
 
 instance Pretty NoDynamicBuiltinNamesMachineError where
@@ -94,7 +91,7 @@ substituteDb varFor new = go where
 -- > s ▷ builtin b A* MM* ↦ s , (builtin b A* _ M*) ▷ M
 -- > s ▷ error A          ↦ ◆
 (|>)
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
 stack |> TyInst _ fun ty                  = FrameTyInstArg ty      : stack |> fun
 stack |> Apply _ fun arg                  = FrameApplyArg arg      : stack |> fun
@@ -103,7 +100,7 @@ stack |> Unwrap _ term                    = FrameUnwrap            : stack |> te
 stack |> tyAbs@TyAbs{}                    = stack <| tyAbs
 stack |> constant@Constant{}              = stack <| constant
 stack |> lamAbs@LamAbs{}                  = stack <| lamAbs
-_     |> t@(ApplyBuiltin _ _ _ [])        = throwingWithCause _ConstAppError NullaryConstAppError $ Just (void t) -- Zero-argument builtins not allowed
+_     |> t@(ApplyBuiltin _ _ _ [])        = throwingWithCause _ConstAppError NullaryConstAppError $ Just t -- Zero-argument builtins not allowed
 stack |> ApplyBuiltin _ bn tys (arg:args) = FrameApplyBuiltin bn tys [] args : stack |> arg
 _     |> err@Error{}                      =
     throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
@@ -121,7 +118,7 @@ _     |> var@Var{}                        =
 -- > s , (builtin b A* V* _ ∅)   ◁ V             ↦  s ▷ N                            -- Builtin, all arguments evaluated, b evaluates to N on A* and V*V
 
 (<|)
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni -> Value TyName Name uni () -> CkM uni (Term TyName Name uni ())
 []                             <| term    = pure term
 FrameTyInstArg _      : stack <| fun     =
@@ -145,7 +142,7 @@ FrameApplyBuiltin bn tys values terms : stack <| value =
          arg:args -> FrameApplyBuiltin bn tys values' args : stack |> arg
 
 applyBuiltin
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
     =>  Context uni
     -> BuiltinName
     -> [Type TyName uni ()]
@@ -153,36 +150,27 @@ applyBuiltin
     -> CkM uni (Term TyName Name uni ())
 applyBuiltin stack bn tys args =
     do
-      let term = Just (ApplyBuiltin () bn (fmap void tys) (fmap void args))
+      let term = Just (ApplyBuiltin () bn tys args)
       result <- case bn of
-                  StaticBuiltinName name -> do
-                          params <- builtinCostParams
-                          void <$> applyBuiltinName params name (withMemory <$> args)
+                  StaticBuiltinName name -> applyBuiltinName name args
                   DynBuiltinName{} -> do
                           throwingWithCause _MachineError
                                              (OtherMachineError NoDynamicBuiltinNamesMachineError)
                                              term
-      stack |> (void result)
+      case result of
+          EvaluationSuccess t -> stack |> t
+          EvaluationFailure   ->
+              throwingWithCause _EvaluationError (UserEvaluationError ()) term
 
--- Used for testing - see ApplyBuiltinName.hs
-applyEvaluateCkStaticBuiltinName
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => StaticBuiltinName -> [Value TyName Name uni ()] -> CkM uni (Term TyName Name uni ())
-applyEvaluateCkStaticBuiltinName name args = do
-    params <- builtinCostParams
-    void <$> applyBuiltinName params name (withMemory <$> args)
-
-
--- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
 evaluateCk
-    :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Term TyName Name uni () -> Either (CkEvaluationException uni) (Term TyName Name uni ())
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => Plain Term uni -> Either (CkEvaluationException uni) (Plain Term uni)
 evaluateCk term = [] |> term
 
--- | Evaluate a term using the CK machine. May throw a 'CkMachineException'.
+-- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
-    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
+    :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni
        , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => Term TyName Name uni () -> EvaluationResultDef uni
+    => Plain Term uni -> EvaluationResult (Plain Term uni)
 unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk

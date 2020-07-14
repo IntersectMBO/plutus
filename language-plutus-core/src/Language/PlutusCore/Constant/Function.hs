@@ -25,10 +25,9 @@ import           GHC.TypeLits
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
-typeSchemeToType :: TypeScheme uni as r -> Type TyName uni ()
+typeSchemeToType :: UniOf term ~ uni => TypeScheme term as r -> Type TyName uni ()
 typeSchemeToType (TypeSchemeResult pR)          = toTypeAst pR
-typeSchemeToType (TypeSchemeArrow pA schB)      =
-    TyFun () (toTypeAst pA) $ typeSchemeToType schB
+typeSchemeToType (TypeSchemeArrow pA schB)      = TyFun () (toTypeAst pA) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAllType proxy schK) = case proxy of
     (_ :: Proxy '(text, uniq)) ->
         let text = Text.pack $ symbolVal @text Proxy
@@ -38,7 +37,8 @@ typeSchemeToType (TypeSchemeAllType proxy schK) = case proxy of
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.
-dynamicBuiltinNameMeaningToType :: DynamicBuiltinNameMeaning uni -> Type TyName uni ()
+dynamicBuiltinNameMeaningToType
+    :: UniOf term ~ uni => DynamicBuiltinNameMeaning term -> Type TyName uni ()
 dynamicBuiltinNameMeaningToType (DynamicBuiltinNameMeaning sch _ _) = typeSchemeToType sch
 
 -- | Insert a 'DynamicBuiltinNameDefinition' into a 'DynamicBuiltinNameMeanings'.
@@ -51,7 +51,8 @@ insertDynamicBuiltinNameDefinition
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName :: TypedBuiltinName uni as r -> Type TyName uni ()
+typeOfTypedBuiltinName
+    :: UniOf term ~ uni => TypedBuiltinName term as r -> Type TyName uni ()
 typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
 
 {- | A type to represent types of built-in functions in a convenient
@@ -84,9 +85,12 @@ data TypeComponents uni = TypeComponents { tcTypeVars   :: [TyName]
    wrong form (for instance, with a `forall` in the middle).  This can
    probably be done a lot more cleanly.
 -}
-typeComponentsOfTypeScheme :: TypeScheme uni args res -> Maybe (TypeComponents uni)
+typeComponentsOfTypeScheme
+    :: forall uni term args res. UniOf term ~ uni
+    => TypeScheme term args res
+    -> Maybe (TypeComponents uni)
 typeComponentsOfTypeScheme = split1 []
-    where split1 :: [TyName] -> TypeScheme uni args res -> Maybe (TypeComponents uni)
+    where split1 :: forall args'. [TyName] -> TypeScheme term args' res -> Maybe (TypeComponents uni)
           split1 tynames (TypeSchemeResult r)           = Just $ TypeComponents (reverse tynames) [] (toTypeAst r) -- Only type variables, no types
           split1 tynames (TypeSchemeArrow tyA schB)     = split2 tynames [toTypeAst tyA] schB  -- At the end of the type variables, look for types
           split1 tynames (TypeSchemeAllType proxy schK) = -- Found a type variable
@@ -97,16 +101,19 @@ typeComponentsOfTypeScheme = split1 []
                         tyname = TyName $ Name text $ Unique uniq
                     in split1 (tyname : tynames) (schK Proxy)
 
-          split2 :: [TyName] -> [Type TyName uni ()] -> TypeScheme uni args res -> Maybe (TypeComponents uni)
+          split2 :: forall args'. [TyName] -> [Type TyName uni ()] -> TypeScheme term args' res -> Maybe (TypeComponents uni)
           split2 tynames argtys (TypeSchemeResult r)       = Just $ TypeComponents (reverse tynames) (reverse argtys) (toTypeAst r)  -- Nothing left
           split2 tynames argtys (TypeSchemeArrow tyA schB) = split2 tynames (toTypeAst tyA : argtys) schB  -- Found a type
           split2 _ _ (TypeSchemeAllType _ _ )              = Nothing  -- Found a type variable after a type
 
 
 -- | Return the 'TypeComponents' of a 'TypedBuiltinName'.
-typeComponentsOfTypedBuiltinName :: TypedBuiltinName uni as r -> Maybe (TypeComponents uni)
+typeComponentsOfTypedBuiltinName
+    :: TypedBuiltinName term as r -> Maybe (TypeComponents (UniOf term))
 typeComponentsOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeComponentsOfTypeScheme scheme
 
 -- | Return the 'TypeComponents' of a 'DynamicBuiltinNameMeaning'.
-typeComponentsOfDynamicBuiltinNameMeaning :: DynamicBuiltinNameMeaning uni -> Maybe (TypeComponents uni)
-typeComponentsOfDynamicBuiltinNameMeaning (DynamicBuiltinNameMeaning scheme _ _) = typeComponentsOfTypeScheme scheme
+typeComponentsOfDynamicBuiltinNameMeaning
+    :: DynamicBuiltinNameMeaning term -> Maybe (TypeComponents (UniOf term))
+typeComponentsOfDynamicBuiltinNameMeaning (DynamicBuiltinNameMeaning scheme _ _) =
+    typeComponentsOfTypeScheme scheme

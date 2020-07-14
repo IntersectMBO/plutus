@@ -57,7 +57,7 @@ import qualified Language.Plutus.Contract.Trace    as Trace
 import qualified Language.Plutus.Contract.Typed.Tx as Typed
 import qualified Language.PlutusTx                 as PlutusTx
 import           Language.PlutusTx.Prelude         hiding (Applicative (..), Semigroup(..), return, (<$>), (>>), (>>=))
-import           Ledger                            (PubKeyHash, pubKeyHash, Slot, Validator)
+import           Ledger                            (PubKeyHash, pubKeyHash, Slot, Validator, txId)
 import qualified Ledger                            as Ledger
 import qualified Ledger.Ada                        as Ada
 import qualified Ledger.Constraints                as Constraints
@@ -143,23 +143,23 @@ scriptInstance cmp = Scripts.validator @Crowdfunding
         wrap = Scripts.wrapValidator @PubKeyHash @CampaignAction
 
 {-# INLINABLE validRefund #-}
-validRefund :: Campaign -> PubKeyHash -> PendingTx -> Bool
-validRefund campaign contributor ptx =
+validRefund :: Campaign -> PubKeyHash -> TxInfo -> Bool
+validRefund campaign contributor txinfo =
     -- Check that the transaction falls in the refund range of the campaign
-    Interval.contains (refundRange campaign) (pendingTxValidRange ptx)
+    Interval.contains (refundRange campaign) (txInfoValidRange txinfo)
     -- Check that the transaction is signed by the contributor
-    && (ptx `V.txSignedBy` contributor)
+    && (txinfo `V.txSignedBy` contributor)
 
 {-# INLINABLE validCollection #-}
-validCollection :: Campaign -> PendingTx -> Bool
-validCollection campaign p =
+validCollection :: Campaign -> TxInfo -> Bool
+validCollection campaign txinfo =
     -- Check that the transaction falls in the collection range of the campaign
-    (collectionRange campaign `Interval.contains` pendingTxValidRange p)
+    (collectionRange campaign `Interval.contains` txInfoValidRange txinfo)
     -- Check that the transaction is trying to spend more money than the campaign
     -- target (and hence the target was reached)
-    && (valueSpent p `Value.geq` campaignTarget campaign)
+    && (valueSpent txinfo `Value.geq` campaignTarget campaign)
     -- Check that the transaction is signed by the campaign owner
-    && (p `V.txSignedBy` campaignOwner campaign)
+    && (txinfo `V.txSignedBy` campaignOwner campaign)
 
 {-# INLINABLE mkValidator #-}
 -- | The validator script is of type 'CrowdfundingValidator', and is
@@ -169,12 +169,12 @@ validCollection campaign p =
 -- and different campaigns have different addresses. The Campaign{..} syntax
 -- means that all fields of the 'Campaign' value are in scope
 -- (for example 'campaignDeadline' in l. 70).
-mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> PendingTx -> Bool
+mkValidator :: Campaign -> PubKeyHash -> CampaignAction -> ValidatorCtx -> Bool
 mkValidator c con act p = case act of
     -- the "refund" branch
-    Refund -> validRefund c con p
+    Refund -> validRefund c con (valCtxTxInfo p)
     -- the "collection" branch
-    Collect -> validCollection c p
+    Collect -> validCollection c (valCtxTxInfo p)
 
 -- | The validator script that determines whether the campaign owner can
 --   retrieve the funds or the contributors can claim a refund.
@@ -210,7 +210,7 @@ contribute cmp = do
     let inst = scriptInstance cmp
         tx = Constraints.mustPayToTheScript (pubKeyHash contributor) contribValue
                 <> Constraints.mustValidateIn (Ledger.interval 1 (campaignDeadline cmp))
-    txId <- submitTxConstraints inst tx
+    txid <- fmap txId (submitTxConstraints inst tx)
 
     utxo <- watchAddressUntil (Scripts.scriptAddress inst) (campaignCollectionDeadline cmp)
 
@@ -218,7 +218,7 @@ contribute cmp = do
     -- collection deadline. If 'utxo' still contains our own contribution
     -- then we can claim a refund.
 
-    let flt Ledger.TxOutRef{txOutRefId} _ = txId Haskell.== txOutRefId
+    let flt Ledger.TxOutRef{txOutRefId} _ = txid Haskell.== txOutRefId
         tx' = Typed.collectFromScriptFilter flt utxo Refund
                 <> Constraints.mustValidateIn (refundRange cmp)
                 <> Constraints.mustBeSignedBy (pubKeyHash contributor)
@@ -263,6 +263,7 @@ makeContribution
 makeContribution w v =
     Trace.callEndpoint @"contribute" w Contribution{contribValue=v}
         >> Trace.handleBlockchainEvents w
+        >> Trace.addBlocks 1
 
 -- | Run a successful campaign with contributions from wallets 2, 3 and 4.
 successfulCampaign
@@ -273,6 +274,6 @@ successfulCampaign =
         >> makeContribution (Trace.Wallet 2) (Ada.lovelaceValueOf 10)
         >> makeContribution (Trace.Wallet 3) (Ada.lovelaceValueOf 10)
         >> makeContribution (Trace.Wallet 4) (Ada.lovelaceValueOf 1)
-        >> Trace.addBlocks 18
-        >> Trace.notifySlot (Trace.Wallet 1)
+        >> Trace.addBlocksUntil 20
         >> Trace.handleBlockchainEvents (Trace.Wallet 1)
+        >> Trace.addBlocks 1

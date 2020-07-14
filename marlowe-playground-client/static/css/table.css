@@ -70,6 +70,18 @@
   width: 25%;
 }
 
+.Rtable--4cols>.RTable-empty-row {
+  width: 75%;
+}
+
+.Rtable--4cols>.RTable-data-row {
+  width: 75%;
+}
+
+.Rtable--4cols>.Rtable-single-column-row {
+  width: 75%;
+}
+
 .Rtable--5cols>.Rtable-cell {
   width: 20%;
 }

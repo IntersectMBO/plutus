@@ -32,6 +32,7 @@ import           Test.QuickCheck.Arbitrary.Generic                 (Arbitrary, a
                                                                     genericShrink, shrink)
 import           Test.QuickCheck.Instances                         ()
 import           Wallet                                            (WalletAPIError)
+import           Wallet.Effects                                    (AddressChangeRequest (..))
 
 instance Arbitrary LedgerBytes where
     arbitrary = LedgerBytes.fromBytes <$> arbitrary
@@ -132,6 +133,9 @@ instance Arbitrary Ledger.Value where
 instance (Arbitrary k, Arbitrary v) => Arbitrary (AssocMap.Map k v) where
     arbitrary = AssocMap.fromList <$> arbitrary
 
+instance Arbitrary AddressChangeRequest where
+    arbitrary =  AddressChangeRequest <$> arbitrary <*> arbitrary
+
 instance Arbitrary ContractSCBRequest where
     arbitrary =
         oneof
@@ -154,7 +158,7 @@ instance Arbitrary EndpointDescription where
     arbitrary = EndpointDescription <$> arbitrary
 
 instance Arbitrary ActiveEndpoint where
-    arbitrary = ActiveEndpoint . EndpointDescription <$> arbitrary
+    arbitrary = ActiveEndpoint . EndpointDescription <$> arbitrary <*> arbitrary
 
 instance Arbitrary WaitingForSlot where
     arbitrary = WaitingForSlot <$> arbitrary

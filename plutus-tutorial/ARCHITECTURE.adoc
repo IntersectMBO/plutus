@@ -1,4 +1,0 @@
-=== `plutus-tutorial`
-
-This package contains a tutorial for Plutus. It is a
-literate Haskell project.

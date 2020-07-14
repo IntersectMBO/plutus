@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 module Language.PlutusTx.Lift (
     makeLift,
@@ -27,7 +28,7 @@ import qualified Language.PlutusIR.MkPir                       as PIR
 
 import qualified Language.PlutusCore                           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic          as PLC
-import           Language.PlutusCore.Pretty                    (PrettyConst) 
+import           Language.PlutusCore.Pretty                    (PrettyConst)
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function      as PLC
 import qualified Language.PlutusCore.StdLib.Meta.Data.Function as PLC
@@ -140,9 +141,9 @@ typeCheckAgainst p plcTerm = do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
-        dynamics = PLC.getStringBuiltinMeanings
+        dynamics = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name _ ())
     compiled <- flip runReaderT defaultCompilationCtx $ compileTerm applied
-    void $ PLC.inferType (PLC.defConfig { PLC._tccDynamicBuiltinNameMeanings = dynamics } ) compiled
+    void $ PLC.inferType (PLC.TypeCheckConfig dynamics) compiled
 
 -- | Try to interpret a PLC program as a 'CompiledCode' of the given type. Returns successfully iff the program has the right type.
 typeCode

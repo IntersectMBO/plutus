@@ -10,41 +10,43 @@ module Plutus.SCB.CoreSpec
     ( tests
     ) where
 
-import           Cardano.Node.Follower                         (NodeFollowerEffect)
-import           Control.Lens                                  ((&), (+~))
-import           Control.Monad                                 (unless, void)
-import           Control.Monad.Freer                           (Eff, Member, Members)
-import           Control.Monad.Freer.Error                     (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                 (Log)
-import           Control.Monad.Freer.Extra.State               (use)
-import qualified Control.Monad.Freer.Log                       as EmulatorLog
-import           Control.Monad.Freer.State                     (State)
-import           Data.Foldable                                 (fold)
-import qualified Data.Set                                      as Set
-import           Data.Text                                     (Text)
-import qualified Data.Text                                     as Text
-import qualified Language.PlutusTx.Coordination.Contracts.Game as Contracts.Game
-import           Ledger                                        (pubKeyAddress)
-import           Ledger.Ada                                    (lovelaceValueOf)
-import           Plutus.SCB.Command                            ()
+import           Cardano.Node.Follower                             (NodeFollowerEffect)
+import           Control.Lens                                      ((&), (+~))
+import           Control.Monad                                     (unless, void)
+import           Control.Monad.Freer                               (Eff, Member, Members)
+import           Control.Monad.Freer.Error                         (Error, throwError)
+import           Control.Monad.Freer.Extra.Log                     (Log)
+import           Control.Monad.Freer.Extra.State                   (use)
+import qualified Control.Monad.Freer.Log                           as EmulatorLog
+import           Control.Monad.Freer.State                         (State)
+import           Data.Foldable                                     (fold)
+import qualified Data.Set                                          as Set
+import           Data.Text                                         (Text)
+import qualified Data.Text                                         as Text
+import           Language.PlutusTx.Coordination.Contracts.Currency (SimpleMPS (..))
+import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.Game
+import           Ledger                                            (pubKeyAddress)
+import           Ledger.Ada                                        (lovelaceValueOf)
+import           Plutus.SCB.Command                                ()
 import           Plutus.SCB.Core
-import           Plutus.SCB.Effects.Contract                   (ContractEffect)
-import           Plutus.SCB.Effects.ContractTest               (TestContracts (..))
-import           Plutus.SCB.Effects.EventLog                   (EventLogEffect)
-import           Plutus.SCB.Effects.MultiAgent                 (SCBClientEffects, agentAction)
-import           Plutus.SCB.Events                             (ChainEvent, ContractInstanceId)
-import           Plutus.SCB.MockApp                            (TestState, TxCounts (..), blockchainNewestFirst,
-                                                                defaultWallet, runScenario, syncAll, txCounts,
-                                                                txValidated, valueAt)
-import           Plutus.SCB.Types                              (SCBError (..), chainOverviewBlockchain, mkChainOverview)
-import           Plutus.SCB.Utils                              (tshow)
-import           Test.QuickCheck.Instances.UUID                ()
-import           Test.Tasty                                    (TestTree, testGroup)
-import           Test.Tasty.HUnit                              (testCase)
-import           Wallet.API                                    (WalletAPIError, ownPubKey)
-import qualified Wallet.Emulator.Chain                         as Chain
-import           Wallet.Rollup                                 (doAnnotateBlockchain)
-import           Wallet.Rollup.Types                           (DereferencedInput, dereferencedInputs, isFound)
+import           Plutus.SCB.Effects.Contract                       (ContractEffect)
+import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
+import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
+import           Plutus.SCB.Effects.MultiAgent                     (SCBClientEffects, agentAction)
+import           Plutus.SCB.Events                                 (ChainEvent, ContractInstanceId, csContract)
+import           Plutus.SCB.MockApp                                (TestState, TxCounts (..), blockchainNewestFirst,
+                                                                    defaultWallet, runScenario, syncAll, txCounts,
+                                                                    txValidated, valueAt)
+import           Plutus.SCB.Types                                  (SCBError (..), chainOverviewBlockchain,
+                                                                    mkChainOverview)
+import           Plutus.SCB.Utils                                  (tshow)
+import           Test.QuickCheck.Instances.UUID                    ()
+import           Test.Tasty                                        (TestTree, testGroup)
+import           Test.Tasty.HUnit                                  (testCase)
+import           Wallet.API                                        (WalletAPIError, ownPubKey)
+import qualified Wallet.Emulator.Chain                             as Chain
+import           Wallet.Rollup                                     (doAnnotateBlockchain)
+import           Wallet.Rollup.Types                               (DereferencedInput, dereferencedInputs, isFound)
 
 tests :: TestTree
 tests = testGroup "SCB.Core" [installContractTests, executionTests]
@@ -88,7 +90,33 @@ executionTests :: TestTree
 executionTests =
     testGroup
         "Executing contracts."
-        [ guessingGameTest ]
+        [ guessingGameTest
+        , currencyTest
+        ]
+
+currencyTest :: TestTree
+currencyTest =
+    let mps = SimpleMPS{tokenName="my token", amount = 10000} in
+    testCase "Currency" $
+        runScenario $ do
+              initialTxCounts <- txCounts
+              agentAction defaultWallet (installContract Currency)
+              contractState <- agentAction defaultWallet (activateContract Currency)
+              let instanceId = csContract contractState
+              syncAll
+              assertTxCounts
+                  "Activating the currency contract does not generate transactions."
+                  initialTxCounts
+              agentAction defaultWallet $ createCurrency instanceId mps
+              syncAll
+              void Chain.processBlock
+              syncAll
+              void Chain.processBlock
+              syncAll
+              assertTxCounts
+                "Forging the currency should produce two valid transactions."
+                (initialTxCounts & txValidated +~ 2)
+
 
 guessingGameTest :: TestTree
 guessingGameTest =
@@ -105,13 +133,14 @@ guessingGameTest =
                     balance0
               agentAction defaultWallet (installContract Game)
               -- need to add contract address to wallet's watched addresses
-              uuid <- agentAction defaultWallet (activateContract Game)
+              contractState <- agentAction defaultWallet (activateContract Game)
+              let instanceId = csContract contractState
               syncAll
               assertTxCounts
                   "Activating the game does not generate transactions."
                   initialTxCounts
               agentAction defaultWallet $ lock
-                  uuid
+                  instanceId
                   Contracts.Game.LockParams
                       { Contracts.Game.amount = lovelaceValueOf lockAmount
                       , Contracts.Game.secretWord = "password"
@@ -128,22 +157,21 @@ guessingGameTest =
                   (lovelaceValueOf (openingBalance - lockAmount))
                   balance1
 
-              newUUID <- agentAction defaultWallet (activateContract Game)
+              game1State <- agentAction defaultWallet (activateContract Game)
               syncAll
               agentAction defaultWallet $ guess
-                  newUUID
+                  (csContract game1State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "wrong"}
-              syncAll
               syncAll
               void Chain.processBlock
               assertTxCounts
                 "A wrong guess still produces a transaction."
                 (initialTxCounts & txValidated +~ 2)
-              newUUID2 <- agentAction defaultWallet (activateContract Game)
+              game2State <- agentAction defaultWallet (activateContract Game)
               syncAll
               agentAction defaultWallet $ guess
-                  newUUID2
+                  (csContract game2State)
                   Contracts.Game.GuessParams
                       {Contracts.Game.guessWord = "password"}
               syncAll
@@ -160,7 +188,7 @@ guessingGameTest =
               blocks <- use blockchainNewestFirst
               assertBool
                   "We have some confirmed blocks in this test."
-                  (length (mconcat blocks) > 0)
+                  (not (null (mconcat blocks)))
               let chainOverview = mkChainOverview (reverse blocks)
               annotatedBlockchain <-
                       doAnnotateBlockchain
@@ -208,6 +236,15 @@ guess ::
     -> Eff effs ()
 guess uuid params =
     void $ callContractEndpoint @TestContracts uuid "guess" params
+
+-- | Call the @"Create native token"@ endpoint on the currency contract.
+createCurrency ::
+    Members SpecEffects effs
+    => ContractInstanceId
+    -> SimpleMPS
+    -> Eff effs ()
+createCurrency uuid value =
+    void $ callContractEndpoint @TestContracts uuid "Create native token" value
 
 assertEqual ::
     forall a effs.

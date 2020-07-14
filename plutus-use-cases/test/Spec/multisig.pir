@@ -279,18 +279,6 @@
                 )
                 (datatypebind
                   (datatype
-                    (tyvardecl
-                      Tuple3 (fun (type) (fun (type) (fun (type) (type))))
-                    )
-                    (tyvardecl a (type))
-                    (tyvardecl b (type))
-                    (tyvardecl c (type))
-                    Tuple3_match
-                    (vardecl Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c]))))
-                  )
-                )
-                (datatypebind
-                  (datatype
                     (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
                     (tyvardecl a (type)) (tyvardecl b (type))
                     Tuple2_match
@@ -359,6 +347,42 @@
                     )
                     (datatypebind
                       (datatype
+                        (tyvardecl
+                          Tuple3 (fun (type) (fun (type) (fun (type) (type))))
+                        )
+                        (tyvardecl a (type))
+                        (tyvardecl b (type))
+                        (tyvardecl c (type))
+                        Tuple3_match
+                        (vardecl
+                          Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c])))
+                        )
+                      )
+                    )
+                    (datatypebind
+                      (datatype
+                        (tyvardecl TxOutRef (type))
+                        
+                        TxOutRef_match
+                        (vardecl
+                          TxOutRef
+                          (fun (con bytestring) (fun (con integer) TxOutRef))
+                        )
+                      )
+                    )
+                    (datatypebind
+                      (datatype
+                        (tyvardecl TxInInfo (type))
+                        
+                        TxInInfo_match
+                        (vardecl
+                          TxInInfo
+                          (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
+                        )
+                      )
+                    )
+                    (datatypebind
+                      (datatype
                         (tyvardecl Address (type))
                         
                         Address_match
@@ -388,34 +412,23 @@
                     )
                     (datatypebind
                       (datatype
-                        (tyvardecl TxOutRef (type))
+                        (tyvardecl TxInfo (type))
                         
-                        TxOutRef_match
+                        TxInfo_match
                         (vardecl
-                          TxOutRef
-                          (fun (con bytestring) (fun (con integer) TxOutRef))
+                          TxInfo
+                          (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
                         )
                       )
                     )
                     (datatypebind
                       (datatype
-                        (tyvardecl PendingTxIn (fun (type) (type)))
-                        (tyvardecl w (type))
-                        PendingTxIn_match
+                        (tyvardecl ValidatorCtx (type))
+                        
+                        ValidatorCtx_match
                         (vardecl
-                          PendingTxIn
-                          (fun TxOutRef (fun w (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] [PendingTxIn w])))
-                        )
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl PendingTx (fun (type) (type)))
-                        (tyvardecl i (type))
-                        PendingTx_match
-                        (vardecl
-                          PendingTx
-                          (fun [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun i (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) [PendingTx i]))))))))))
+                          ValidatorCtx
+                          (fun TxInfo (fun (con integer) ValidatorCtx))
                         )
                       )
                     )
@@ -423,7 +436,7 @@
                       (strict)
                       (vardecl
                         wvalidate
-                        (fun [List (con bytestring)] (fun (con integer) (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool)))
+                        (fun [List (con bytestring)] (fun (con integer) (fun ValidatorCtx Bool)))
                       )
                       (lam
                         ww
@@ -433,7 +446,7 @@
                           (con integer)
                           (lam
                             w
-                            [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]
+                            ValidatorCtx
                             [
                               [
                                 [
@@ -461,96 +474,105 @@
                                                       [
                                                         {
                                                           [
-                                                            {
-                                                              PendingTx_match
-                                                              [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
-                                                            }
-                                                            w
+                                                            ValidatorCtx_match w
                                                           ]
                                                           [List (con bytestring)]
                                                         }
                                                         (lam
                                                           ds
-                                                          [List [PendingTxIn [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]]
+                                                          TxInfo
                                                           (lam
                                                             ds
-                                                            [List TxOut]
-                                                            (lam
-                                                              ds
-                                                              [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                            (con integer)
+                                                            [
+                                                              {
+                                                                [
+                                                                  TxInfo_match
+                                                                  ds
+                                                                ]
+                                                                [List (con bytestring)]
+                                                              }
                                                               (lam
                                                                 ds
-                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                [List TxInInfo]
                                                                 (lam
                                                                   ds
-                                                                  [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]
+                                                                  [List TxOut]
                                                                   (lam
                                                                     ds
-                                                                    [Interval (con integer)]
+                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                     (lam
                                                                       ds
-                                                                      [List (con bytestring)]
+                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                       (lam
                                                                         ds
-                                                                        [List (con bytestring)]
+                                                                        [Interval (con integer)]
                                                                         (lam
                                                                           ds
-                                                                          [List [[Tuple2 (con bytestring)] Data]]
+                                                                          [List (con bytestring)]
                                                                           (lam
                                                                             ds
-                                                                            (con bytestring)
-                                                                            [
-                                                                              [
+                                                                            [List (con bytestring)]
+                                                                            (lam
+                                                                              ds
+                                                                              [List [[Tuple2 (con bytestring)] Data]]
+                                                                              (lam
+                                                                                ds
+                                                                                (con bytestring)
                                                                                 [
-                                                                                  {
+                                                                                  [
                                                                                     [
                                                                                       {
-                                                                                        Maybe_match
-                                                                                        (con bytestring)
-                                                                                      }
-                                                                                      [
                                                                                         [
                                                                                           {
-                                                                                            find
+                                                                                            Maybe_match
                                                                                             (con bytestring)
                                                                                           }
                                                                                           [
-                                                                                            equalsByteString
-                                                                                            e
+                                                                                            [
+                                                                                              {
+                                                                                                find
+                                                                                                (con bytestring)
+                                                                                              }
+                                                                                              [
+                                                                                                equalsByteString
+                                                                                                e
+                                                                                              ]
+                                                                                            ]
+                                                                                            ds
                                                                                           ]
                                                                                         ]
+                                                                                        (fun Unit [List (con bytestring)])
+                                                                                      }
+                                                                                      (lam
                                                                                         ds
-                                                                                      ]
+                                                                                        (con bytestring)
+                                                                                        (lam
+                                                                                          thunk
+                                                                                          Unit
+                                                                                          [
+                                                                                            [
+                                                                                              {
+                                                                                                Cons
+                                                                                                (con bytestring)
+                                                                                              }
+                                                                                              e
+                                                                                            ]
+                                                                                            xs
+                                                                                          ]
+                                                                                        )
+                                                                                      )
                                                                                     ]
-                                                                                    (fun Unit [List (con bytestring)])
-                                                                                  }
-                                                                                  (lam
-                                                                                    ds
-                                                                                    (con bytestring)
                                                                                     (lam
                                                                                       thunk
                                                                                       Unit
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            Cons
-                                                                                            (con bytestring)
-                                                                                          }
-                                                                                          e
-                                                                                        ]
-                                                                                        xs
-                                                                                      ]
+                                                                                      xs
                                                                                     )
-                                                                                  )
-                                                                                ]
-                                                                                (lam
-                                                                                  thunk
+                                                                                  ]
                                                                                   Unit
-                                                                                  xs
-                                                                                )
-                                                                              ]
-                                                                              Unit
-                                                                            ]
+                                                                                ]
+                                                                              )
+                                                                            )
                                                                           )
                                                                         )
                                                                       )
@@ -558,7 +580,7 @@
                                                                   )
                                                                 )
                                                               )
-                                                            )
+                                                            ]
                                                           )
                                                         )
                                                       ]
@@ -814,7 +836,7 @@
                       (strict)
                       (vardecl
                         validate
-                        (fun MultiSig (fun Unit (fun Unit (fun [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]] Bool))))
+                        (fun MultiSig (fun Unit (fun Unit (fun ValidatorCtx Bool))))
                       )
                       (lam
                         w
@@ -827,7 +849,7 @@
                             Unit
                             (lam
                               w
-                              [PendingTx [PendingTxIn [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]]]
+                              ValidatorCtx
                               [
                                 { [ MultiSig_match w ] Bool }
                                 (lam

@@ -1,12 +1,12 @@
 -- | Kind/type inference/checking.
 
+{-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.TypeCheck
     (
     -- * Configuration.
       TypeCheckConfig (..)
-    , tccDynamicBuiltinNameMeanings
     , defConfig
     -- * Kind/type inference/checking.
     , inferKind
@@ -82,7 +82,7 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
-    :: (AsTypeError e uni ann, MonadError e m, MonadQuote m
+    :: ( AsTypeError e uni ann, MonadError e m, MonadQuote m
        , GShow uni, GEq uni, DefaultUni <: uni
        )
     => TypeCheckConfig uni

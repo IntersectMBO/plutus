@@ -8,7 +8,12 @@ let
   sources = import ./sources.nix { inherit pkgs; }
     // sourcesOverride;
   iohkNix = import sources.iohk-nix {};
-  haskellNix = import sources."haskell.nix" {};
+  haskellNix = import sources."haskell.nix" {
+    sourcesOverride = {
+      hackage = sources."hackage.nix";
+      stackage = sources."stackage.nix";
+    };
+  };
   # Use our own nixpkgs
   nixpkgs = sources.nixpkgs;
 

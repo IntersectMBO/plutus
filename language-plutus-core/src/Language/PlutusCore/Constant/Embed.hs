@@ -1,6 +1,7 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE GADTs         #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Language.PlutusCore.Constant.Embed
     ( embedStaticBuiltinNameInTerm
@@ -30,7 +31,7 @@ import           Data.Text                             (pack)
 -- with one in the surrounding code, but this is safe.  We're
 -- producing closed terms like `\x -> \y -> someBuiltin x y`, and the
 -- new variables disappear immediately upon application.
-embedBuiltinNameInTerm :: TypeScheme uni args res -> BuiltinName -> Term TyName Name uni ()
+embedBuiltinNameInTerm :: TypeScheme term args res -> BuiltinName -> Term TyName Name (UniOf term) ()
 embedBuiltinNameInTerm scheme name =
     let mkVarDecl :: (Type TyName uni (), Integer) -> Quote (VarDecl TyName Name uni ())
         mkVarDecl (ty, idx) = do
@@ -52,12 +53,16 @@ embedBuiltinNameInTerm scheme name =
                 tyVarDecls = map mkTyVarDecl tynames
             pure $ mkIterTyAbs tyVarDecls (mkIterLamAbs varDecls (ApplyBuiltin () name tyArgs termArgs))
 
-embedTypedBuiltinNameInTerm :: TypedBuiltinName uni args r -> Term TyName Name uni ()
-embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) = embedBuiltinNameInTerm  sch $ StaticBuiltinName sbn
+embedTypedBuiltinNameInTerm :: TypedBuiltinName term args r -> Term TyName Name (UniOf term) ()
+embedTypedBuiltinNameInTerm (TypedBuiltinName sbn sch) =
+    embedBuiltinNameInTerm  sch $ StaticBuiltinName sbn
 
-embedStaticBuiltinNameInTerm :: (GShow uni, GEq uni, DefaultUni <: uni) => StaticBuiltinName -> Term TyName Name uni ()
-embedStaticBuiltinNameInTerm sbn = withTypedBuiltinName sbn embedTypedBuiltinNameInTerm
+embedStaticBuiltinNameInTerm
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => StaticBuiltinName -> Term TyName Name uni ()
+embedStaticBuiltinNameInTerm sbn =
+    withTypedBuiltinName sbn $ embedTypedBuiltinNameInTerm @(Term TyName Name _ ())
 
-embedDynamicBuiltinNameInTerm :: TypeScheme uni args res -> DynamicBuiltinName -> Term TyName Name uni ()
+embedDynamicBuiltinNameInTerm
+    :: TypeScheme term args res -> DynamicBuiltinName -> Term TyName Name (UniOf term) ()
 embedDynamicBuiltinNameInTerm sch = embedBuiltinNameInTerm sch . DynBuiltinName
-

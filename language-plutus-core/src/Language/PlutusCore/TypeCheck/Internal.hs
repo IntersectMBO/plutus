@@ -4,16 +4,17 @@
 -- 'makeLenses' produces an unused lens.
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeOperators             #-}
 
 module Language.PlutusCore.TypeCheck.Internal
     ( TypeCheckConfig (..)
     , TypeCheckM
-    , tccDynamicBuiltinNameMeanings
     , runTypeCheckM
     , inferKindM
     , checkKindM
@@ -94,8 +95,8 @@ type TyVarKinds = UniqueMap TypeUnique (Kind ())
 type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni ())))
 
 -- | Configuration of the type checker.
-data TypeCheckConfig uni = TypeCheckConfig
-    { _tccDynamicBuiltinNameMeanings :: DynamicBuiltinNameMeanings uni
+data TypeCheckConfig uni = forall ann. TypeCheckConfig
+    { _tccDynamicBuiltinNameMeanings :: DynamicBuiltinNameMeanings (Term TyName Name uni ann)
     }
 
 -- | The environment that the type checker runs in.
@@ -135,7 +136,7 @@ withVar name = local . over tceVarTypes . insertByName name . pure
 lookupDynamicBuiltinTypeComponentsM
     :: ann -> DynamicBuiltinName -> TypeCheckM uni ann (TypeComponents uni)
 lookupDynamicBuiltinTypeComponentsM ann name = do
-  DynamicBuiltinNameMeanings dbnms <- asks $ _tccDynamicBuiltinNameMeanings . _tceTypeCheckConfig
+  TypeCheckConfig (DynamicBuiltinNameMeanings dbnms) <- asks $ _tceTypeCheckConfig
   case Map.lookup name dbnms of
     Nothing -> throwError $ BuiltinTypeErrorE ann (UnknownDynamicBuiltinName name)
     Just dbn ->
@@ -149,7 +150,7 @@ getStaticBuiltinTypeComponentsM
     -> StaticBuiltinName
     -> TypeCheckM uni ann (TypeComponents uni)
 getStaticBuiltinTypeComponentsM ann name =
-    case withTypedBuiltinName name typeComponentsOfTypedBuiltinName of
+    case withTypedBuiltinName name $ typeComponentsOfTypedBuiltinName @(Term TyName Name _ ()) of
       Nothing   -> throwError $ BuiltinTypeErrorE ann (BadTypeScheme (StaticBuiltinName name))
       Just cpts -> pure cpts
 
@@ -298,13 +299,13 @@ checkKindOfPatternFunctorM ann pat k =
 typeOfBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => StaticBuiltinName -> Type TyName uni ()
-typeOfBuiltinName bn = withTypedBuiltinName bn typeOfTypedBuiltinName
+typeOfBuiltinName bn = withTypedBuiltinName bn $ typeOfTypedBuiltinName @(Term TyName Name _ ())
 
 -- | @unfoldFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldFixOf
     :: Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
-    -> Kind ()                      -- ^ @k@
+    -> Kind ()                          -- ^ @k@
     -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 unfoldFixOf pat arg k = do
     let vPat = unNormalized pat

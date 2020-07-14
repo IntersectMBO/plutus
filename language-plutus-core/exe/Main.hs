@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Main (main) where
 
@@ -258,7 +259,8 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
     prog <- getProg inp fmt
     let tyOrErr = PLC.runQuoteT $ do
-            let cfg = PLC.TypeCheckConfig getStringBuiltinMeanings
+            let cfg = PLC.TypeCheckConfig $
+                        getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
             PLC.typecheckPipeline cfg prog
     case tyOrErr of
       Left (e :: PlcParserError) -> do

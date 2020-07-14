@@ -1,4 +1,3 @@
-
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -10,6 +9,7 @@
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StrictData                 #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeOperators              #-}
@@ -33,7 +33,6 @@ module Plutus.SCB.MockApp
     ) where
 
 import qualified Cardano.Node.Types              as NodeServer
-import qualified Cardano.Wallet.Mock             as WalletServer
 import           Control.Lens                    hiding (use)
 import           Control.Monad                   (void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM, subsume)
@@ -47,6 +46,7 @@ import           Data.Foldable                   (traverse_)
 import           Data.Map                        (Map)
 import qualified Data.Map                        as Map
 import           Data.Text.Prettyprint.Doc
+import qualified Language.Plutus.Contract.Trace  as Trace
 import           Ledger                          (Address, Blockchain)
 import qualified Ledger
 import qualified Ledger.AddressMap               as AM
@@ -63,7 +63,7 @@ import           Test.QuickCheck.Instances.UUID  ()
 import qualified Cardano.ChainIndex.Server       as ChainIndex
 import qualified Cardano.ChainIndex.Types        as ChainIndex
 import           Wallet.API                      (WalletAPIError)
-import           Wallet.Emulator.Chain           (ChainEffect, handleChain)
+import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, handleChain, handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.MultiAgent      (EmulatorEvent, chainEvent)
 import           Wallet.Emulator.Wallet          (Wallet (..))
@@ -78,18 +78,19 @@ data TestState =
 makeLenses 'TestState
 
 defaultWallet :: Wallet
-defaultWallet = WalletServer.activeWallet
+defaultWallet = Wallet 1
 
 initialTestState :: TestState
 initialTestState =
     TestState
         { _agentStates = Map.empty
-        , _nodeState = NodeServer.initialAppState
+        , _nodeState = NodeServer.initialAppState Trace.allWallets
         , _emulatorEventLog = []
         }
 
 type MockAppEffects =
     '[ MultiAgentSCBEffect
+     , ChainControlEffect
      , ChainEffect
      , State TestState
      , Log
@@ -151,8 +152,9 @@ runMockApp state action =
     $ runStderrLog
     $ subsume
     $ handleChain
+    $ handleControlChain
     $ SCB.MultiAgent.handleMultiAgent
-    $ raiseEnd6
+    $ raiseEnd7
         -- interpret the 'MockAppEffects' using
         -- the following list of effects
         @'[ Writer [Wallet.Emulator.Chain.ChainEvent]

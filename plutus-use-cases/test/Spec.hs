@@ -10,6 +10,7 @@ import qualified Spec.Game
 import qualified Spec.GameStateMachine
 import qualified Spec.MultiSig
 import qualified Spec.MultiSigStateMachine
+import qualified Spec.PingPong
 import qualified Spec.PubKey
 import qualified Spec.Rollup
 import qualified Spec.TokenAccount
@@ -41,5 +42,6 @@ tests = localOption limit $ testGroup "use cases" [
     Spec.Escrow.tests,
     Spec.GameStateMachine.tests,
     Spec.Rollup.tests,
-    Spec.TokenAccount.tests
+    Spec.TokenAccount.tests,
+    Spec.PingPong.tests
     ]
