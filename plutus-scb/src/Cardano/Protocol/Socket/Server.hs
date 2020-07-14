@@ -141,14 +141,14 @@ chainSyncServer state =
       rollForward :: AppState -> Integer -> ChainSync.ServerStNext Block Tip IO ()
       rollForward st offset =
         ChainSync.SendMsgRollForward
-          (reverse (st ^. (chainState . chainNewestFirst)) !! (fromIntegral offset))
+          (reverse (st ^. (chainState . chainNewestFirst)) !! fromIntegral offset)
           (head    (st ^. (chainState . chainNewestFirst)))
           (ChainSync.ChainSyncServer (idleState (offset + 1)))
 
       -- Predicate that selects the slots that have not been seen at the given offset.
       lowerThanSlot :: Integer -> AppState -> Bool
       lowerThanSlot offset st =
-        length (st ^. chainState . chainNewestFirst) <= (fromIntegral offset)
+        length (st ^. chainState . chainNewestFirst) <= fromIntegral offset
 
       {- Intersect client provided state with the server state and find the
          best slot to start streaming from. -}
