@@ -41,17 +41,6 @@ constnt = Constant . round <$> (marloweFixedPoint *)
 enum :: forall a . a -> a
 enum = id
 
-dispatchEvent
-    :: Integer -> Value Observation -> EventHandler -> Value Observation
-dispatchEvent t defaultValue handler =
-    let
-        eventId ev = Constant $ eventTypeToEventTypeId ev
-        eventIdInput = useval "eventType_" t
-        cond cont ev =
-            Cond (ValueEQ (eventId ev) eventIdInput) (handler ev) cont
-    in
-        L.foldl cond defaultValue [AD, IED, MD, FP, IP]
-
 stateTransitionMarlowe :: EventType -> Integer -> Contract -> EventHandlerSTF -> Contract
 stateTransitionMarlowe ev t continue handler =
     let inputState = ContractStatePoly { tmd   = useval "tmd" $  t - 1

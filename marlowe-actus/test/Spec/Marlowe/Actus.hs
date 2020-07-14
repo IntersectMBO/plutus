@@ -92,19 +92,6 @@ contractTerms = ContractTerms {
         , _FER = 0.03 -- fee rate
     }
 
-cashFlowFixture :: Integer -> Day -> ScheduledEvent -> Double -> CashFlow
-cashFlowFixture t date event amnt = CashFlow {
-    tick = t,
-    cashContractId = "0",
-    cashParty = "party",
-    cashCounterParty = "counterparty",
-    cashPaymentDay = date,
-    cashCalculationDay = date,
-    cashEvent = event,
-    amount = amnt,
-    currency = "ada"
-}
-
 pamProjected :: IO ()
 pamProjected = do 
     let cfs = genProjectedCashflows contractTerms 

@@ -118,7 +118,7 @@ inquiryFs ev timePosfix date oracle continue =
 genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows terms =
     let
-        eventTypes   = [IED, MD]
+        eventTypes   = [IED, MD, RR, IP]
         analysisDate = fromGregorian 2008 10 22
 
         projectPreserveDate e d = (projectEvent e, d)
