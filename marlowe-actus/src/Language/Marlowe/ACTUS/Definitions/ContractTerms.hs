@@ -5,12 +5,8 @@ module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
 import Data.Time ( Day )
 import Language.Marlowe.ACTUS.Definitions.ContractState ( ContractStatus )
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
-import           Data.Aeson.Types           hiding (Error, Value)
-import           GHC.Generics
-
-type Calendar = [Day]
+import Data.Aeson.Types (FromJSON, ToJSON)
+import GHC.Generics
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
@@ -52,8 +48,8 @@ data ContractRole = CR_RPA -- Real position asset
                   | CR_RF  -- Receive fix leg
                   | CR_PF  -- Pay fix leg
                   deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
-
-data SCEF =  SE_000 --ScalingEffect
+--ScalingEffect
+data SCEF =  SE_000 
                     | SE_0N0
                     | SE_00M
                     | SE_0NM
@@ -62,27 +58,30 @@ data SCEF =  SE_000 --ScalingEffect
                     | SE_I0M
                     | SE_INM deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data ICB = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--InterestCalculationBase
+--InterestCalculationBase
+data ICB = ICB_NT | ICB_NTIED | ICB_NTL deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data FB = FB_A | FB_N deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--FeeBasis
+--FeeBasis
+data FB = FB_A | FB_N deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data PT = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON) --PenaltyType
+--PenaltyType
+data PT = PT_O | PT_A | PT_N | PT_I deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON) 
 
-data PE = PE_N | PE_A | PE_M deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)--PrepaymentEffect
+--PrepaymentEffect
+data PE = PE_N | PE_A | PE_M deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
-data Period = P_D -- Day
-            | P_W -- Week
-            | P_M -- Month
-            | P_Q -- Quarter
-            | P_H -- Half Year
-            | P_Y -- Year
+data Period = P_D 
+            | P_W
+            | P_M
+            | P_Q
+            | P_H
+            | P_Y
             deriving (Show, Eq, Ord, Generic)
              deriving anyclass (FromJSON, ToJSON)
 
 data PREF = PREF_N | PREF_Y 
   deriving (Show, Eq, Ord, Generic)
   deriving anyclass (FromJSON, ToJSON)
--- wether PP is allowed
 
 data Stub = ShortStub | LongStub deriving (Show, Eq, Ord, Generic) deriving anyclass (FromJSON, ToJSON)
 
@@ -95,7 +94,7 @@ data Cycle = Cycle
 
 data ScheduleConfig = ScheduleConfig
   {
-    calendar :: Calendar
+    calendar :: [Day]
   , includeEndDay :: Bool
   , eomc :: EOMC
   , bdc :: BDC
@@ -157,5 +156,5 @@ data ContractTerms = ContractTerms {
   , _FEB :: FEB  -- fee basis
   , _FER :: Double -- fee rate
   }
-  deriving stock (Show,Generic)
+  deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

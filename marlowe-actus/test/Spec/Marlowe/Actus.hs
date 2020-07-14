@@ -29,9 +29,6 @@ tests = testGroup "Actus"
     , testCase "PAM fixed schedule contract" pamFs
     ]
 
-ada :: Token
-ada = Token adaSymbol adaToken
-
 contractTerms :: ContractTerms
 contractTerms = ContractTerms {
           contractId = "0"
@@ -96,15 +93,12 @@ pamProjected :: IO ()
 pamProjected = do 
     let cfs = genProjectedCashflows contractTerms 
     let cfsEmpty = null cfs
-    assertBool "Cashflows should not be empty" (not cfsEmpty) --trace ("Projected CashFlows: " ++ (show cfs))
-    return ()
+    assertBool "Cashflows should not be empty" (not cfsEmpty)
 
 pamStatic :: IO ()
 pamStatic = do 
     let contract = genStaticContract contractTerms 
-    --print $ pretty contract
-    assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
-    return ()
+    assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
 pamFs = do 
@@ -113,7 +107,7 @@ pamFs = do
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
     let contract = genFsContract contractTerms 
-    writeFile "PamFs.hs" $ show $ pretty contract
-    assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
-    return ()
+    writeFile "PamFs.marlowe" $ show $ pretty contract
+    assertBool "Cashflows should not be Close" $ contract /= Close 
+
 

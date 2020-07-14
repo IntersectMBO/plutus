@@ -17,7 +17,7 @@ import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing )
 r = contractRoleSign
 y = yearFraction
 
-scef_xNx SE_0N0 = True -- List.elem ...
+scef_xNx SE_0N0 = True
 scef_xNx SE_0NM = True
 scef_xNx SE_IN0 = True
 scef_xNx SE_INM = True
@@ -28,7 +28,6 @@ scef_Ixx SE_I00 = True
 scef_Ixx SE_I0M = True
 scef_Ixx _      = False
 
---t0 == SD
 _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC _FER _FEAC _FEB _SCEF _SCIXSD _PRF = 
     let 
         tmd                                     = _MD

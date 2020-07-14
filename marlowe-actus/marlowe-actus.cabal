@@ -73,7 +73,6 @@ library
     Language.Marlowe.ACTUS.Model.Utility.DateShift
     Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
     Language.Marlowe.ACTUS.Model.Utility.YearFraction
-    Language.Marlowe.ACTUS.Model.Utility.Annuity
     Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
   other-modules:
     Language.Marlowe.ACTUS.Ops
@@ -91,11 +90,9 @@ test-suite marlowe-actus-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-      -- Spec.Common
         Spec.Marlowe.Actus
-      -- Spec.Actus
     build-depends:
-       aeson -any,
+        aeson -any,
         base >=4.9 && <5,
         containers -any,
         hedgehog -any,

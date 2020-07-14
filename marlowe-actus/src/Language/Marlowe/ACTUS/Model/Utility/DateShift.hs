@@ -8,7 +8,7 @@ where
 
 import Data.Time ( Day, toGregorian, addDays )
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( ScheduleConfig(..), Calendar, BDC(..) )
+    ( ScheduleConfig(..), BDC(..) )
 import Language.Marlowe.ACTUS.Definitions.Schedule ( ShiftedDay(..) )
 import qualified Data.List as L
 
@@ -17,7 +17,7 @@ import qualified Data.List as L
 applyBDCWithCfg :: ScheduleConfig -> Day -> ShiftedDay
 applyBDCWithCfg ScheduleConfig {..} = applyBDC bdc calendar
 
-applyBDC :: BDC -> Calendar -> Day -> ShiftedDay
+applyBDC :: BDC -> [Day] -> Day -> ShiftedDay
 applyBDC BDC_NULL _ date =
   ShiftedDay { paymentDay = date, calculationDay = date }
 
@@ -62,7 +62,7 @@ applyBDC BDC_CSMP calendar date = ShiftedDay
   }
 
 
-shiftModifiedFollowing :: Day -> Calendar -> Day
+shiftModifiedFollowing :: Day -> [Day] -> Day
 shiftModifiedFollowing date calendar =
   let (_, month, _)        = toGregorian date
       shiftedFollowing     = maybeShiftToFollowingBusinessDay date calendar
@@ -71,7 +71,7 @@ shiftModifiedFollowing date calendar =
         then shiftedFollowing
         else maybeShiftToPreceedingBusinessDay date calendar
 
-shiftModifiedPreceeding :: Day -> Calendar -> Day
+shiftModifiedPreceeding :: Day -> [Day] -> Day
 shiftModifiedPreceeding date calendar =
   let (_, month, _)        = toGregorian date
       shiftedPreceeding    = maybeShiftToPreceedingBusinessDay date calendar
@@ -80,19 +80,19 @@ shiftModifiedPreceeding date calendar =
         then shiftedPreceeding
         else maybeShiftToFollowingBusinessDay date calendar
 
-maybeShiftToFollowingBusinessDay :: Day -> Calendar -> Day
+maybeShiftToFollowingBusinessDay :: Day -> [Day] -> Day
 maybeShiftToFollowingBusinessDay date calendar =
   let followingDay = addDays 1 date
-      isHoliday date = L.elem date calendar
+      isHoliday dt = L.elem dt calendar
   in  if isHoliday date
         then maybeShiftToFollowingBusinessDay followingDay calendar
         else date
 
 
-maybeShiftToPreceedingBusinessDay :: Day -> Calendar -> Day
+maybeShiftToPreceedingBusinessDay :: Day -> [Day] -> Day
 maybeShiftToPreceedingBusinessDay date calendar =
   let preceedingDay = addDays (-1) date
-      isHoliday date = L.elem date calendar
+      isHoliday dt = L.elem dt calendar
   in  if isHoliday date
         then maybeShiftToPreceedingBusinessDay preceedingDay calendar
         else date

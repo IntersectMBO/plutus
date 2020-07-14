@@ -7,10 +7,8 @@ module Language.Marlowe.ACTUS.Definitions.ContractState where
 import Data.Time ( Day )
 import Data.Map ( Map )
 
-import qualified Data.Aeson                 as JSON
-import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
-import           GHC.Generics
+import           GHC.Generics (Generic)
 
 -- all contract states in a composite contract
 type ContractStateContext = Map String ContractState

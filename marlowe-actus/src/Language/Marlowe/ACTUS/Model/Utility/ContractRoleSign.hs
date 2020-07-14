@@ -2,7 +2,6 @@ module Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign where
 
 import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractRole(..) )
 
--- R
 contractRoleSign :: ContractRole -> Double
 contractRoleSign role = case role of
     CR_RPA ->  1.0

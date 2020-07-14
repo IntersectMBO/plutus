@@ -8,15 +8,14 @@ module Language.Marlowe.ACTUS.MarloweCompat where
 import Language.Marlowe
     ( 
       Contract(Let),
-      Observation(ValueEQ),
-      Value(Cond, UseValue, Constant),
+      Observation,
+      Value(UseValue, Constant),
       ValueId(ValueId) )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( EventType(IP, AD, IED, MD, FP), eventTypeToEventTypeId )
+
+import Language.Marlowe.ACTUS.Definitions.BusinessEvents(EventType)
 import Language.Marlowe.ACTUS.Definitions.ContractState
     ( ContractStatePoly(..), ContractState )
-import Data.String ( IsString(fromString) )
-import qualified Data.List as L ( foldl )   
+import Data.String ( IsString(fromString) )  
 import Language.Marlowe.ACTUS.Ops (marloweFixedPoint) 
 import Data.Time ( UTCTime(UTCTime), Day )
 import Data.Time.Clock.System
@@ -38,7 +37,7 @@ letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 constnt :: Double -> Value Observation
 constnt = Constant . round <$> (marloweFixedPoint *)
 
-enum :: forall a . a -> a
+enum :: a -> a
 enum = id
 
 stateTransitionMarlowe :: EventType -> Integer -> Contract -> EventHandlerSTF -> Contract

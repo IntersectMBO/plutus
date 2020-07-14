@@ -38,7 +38,6 @@ import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractTerms )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents
     ( ScheduledEvent(..),
       EventType(..),
-      eventTypeIdToEventType,
       projectEvent,
       mapEventType )
 import Language.Marlowe.ACTUS.MarloweCompat
@@ -50,18 +49,7 @@ import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
 import Language.Marlowe.ACTUS.Model.INIT.StateInitialization
 
-
-type TimePostfix = String -- sequence number of event
-type Amount = (Language.Marlowe.Value Language.Marlowe.Observation)
-type Oracle = String
-type EventInitiatorParty = String
-type From = String
-type To = String
-type Continuation = Contract
-type EventInitiatorPartyId = Integer
-
-
-invoice :: From -> To -> Amount -> Slot -> Continuation -> Contract
+invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
 invoice from to amount timeout continue =
     let party        = Role $ TokenName $ fromString from
         counterparty = Role $ TokenName $ fromString to
@@ -78,12 +66,15 @@ invoice from to amount timeout continue =
             timeout
             Close
 
+maxPseudoDecimalValue :: Integer
+maxPseudoDecimalValue = 100000000000000
+
 inquiryFs
     :: EventType
-    -> TimePostfix
+    -> String
     -> Slot
-    -> Oracle
-    -> Continuation
+    -> String
+    -> Contract
     -> Contract
 inquiryFs ev timePosfix date oracle continue =
     let
@@ -104,7 +95,7 @@ inquiryFs ev timePosfix date oracle continue =
         riskFactorInquiry name = inputTemplate
             (fromString (name ++ timePosfix))
             oracleRole
-            [Bound 0 100000000000000]
+            [Bound 0 maxPseudoDecimalValue]
         riskFactorsInquiryEv AD = id
         riskFactorsInquiryEv SC = riskFactorInquiry "o_rf_SCMO"
         riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"    
@@ -174,5 +165,5 @@ genFsContract terms =
             $ Let (payoffAt t) (payoffFs ev terms t)
             $ if r > 0.0    then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                             else invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
-        schedule = foldl (flip gen) Close $ reverse $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]
-    in inititializeStateFs terms schedule
+        scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]
+    in inititializeStateFs terms scheduleAcc

@@ -37,7 +37,7 @@ instance ActusOps Double where
     _one  = 1.0
 
 instance DateOps Day Double where
-    _lt a b = if a < b then 1.0 else 0.0
+    _lt a b = if a < b then _one else _zero
 
 instance YearFractionOps Day Double where
     _y = yearFraction

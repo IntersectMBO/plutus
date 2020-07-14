@@ -19,6 +19,8 @@ import Data.Time.Calendar
       toGregorian,
       addDays )
 import qualified Data.List as L ( elem, notElem, init, last )
+import Control.Arrow((>>>))
+import Data.Function((&))
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
     ( ScheduleConfig(..),
       Cycle(..),
@@ -43,22 +45,19 @@ inf set threshold =
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)
 
-type AnchorDay = Day
-type EndDay = Day
-
-stubCorrection :: Stub -> EndDay -> ShiftedSchedule -> ShiftedSchedule
+stubCorrection :: Stub -> Day -> ShiftedSchedule -> ShiftedSchedule
 stubCorrection stub endDay schedule =
   if (paymentDay $ L.last schedule) == endDay && stub == ShortStub
     then schedule
     else L.init schedule
 
-endDateCorrection :: Bool -> EndDay -> Schedule -> Schedule
+endDateCorrection :: Bool -> Day -> Schedule -> Schedule
 endDateCorrection includeEndDay endDay schedule
   | includeEndDay && L.notElem endDay schedule = schedule ++ [endDay]
   | not includeEndDay && L.elem endDay schedule = L.init schedule
   | otherwise = schedule
 
-generateRecurrentSchedule :: Cycle -> AnchorDay -> EndDay -> Schedule
+generateRecurrentSchedule :: Cycle -> Day -> Day -> Schedule
 generateRecurrentSchedule Cycle {..} anchorDate endDate =
   let go :: Day -> Integer -> [Day] -> [Day]
       go current k acc = if current > endDate
@@ -71,14 +70,15 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
 
 
 generateRecurrentScheduleWithCorrections
-  :: AnchorDay -> Cycle -> EndDay -> ScheduleConfig -> ShiftedSchedule
+  :: Day -> Cycle -> Day -> ScheduleConfig -> ShiftedSchedule
 generateRecurrentScheduleWithCorrections anchorDate cycle endDate ScheduleConfig {..}
-  = let schedule     = generateRecurrentSchedule cycle anchorDate endDate
-        schedule'    = endDateCorrection includeEndDay endDate schedule
-        schedule''    = applyEOMC anchorDate cycle eomc <$> schedule'
-        schedule'''   = applyBDC bdc calendar <$> schedule''
-        schedule''''   = stubCorrection (stub cycle) endDate schedule'''
-    in  schedule''''
+  = generateRecurrentSchedule cycle anchorDate endDate &
+      (endDateCorrection includeEndDay endDate >>>
+      (fmap $ applyEOMC anchorDate cycle eomc) >>>
+      (fmap $ applyBDC bdc calendar) >>>
+      stubCorrection (stub cycle) endDate)
+
+
 
 plusCycle :: Day -> Cycle -> Day
 plusCycle date cycle = shiftDate date (n cycle) (p cycle)

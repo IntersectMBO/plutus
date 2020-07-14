@@ -2,8 +2,6 @@
 
 module Language.Marlowe.ACTUS.Definitions.BusinessEvents where
 import Data.Time ( Day )
-import Data.Maybe ( fromJust )
-import Data.Tuple ( swap )
 
 
 data EventType =
@@ -30,7 +28,7 @@ data ScheduledEvent = AD_EVENT {o_rf_CURS :: Double}  -- Analysis Event Retrieve
                     | MR_EVENT {o_rf_CURS :: Double}   -- Margin Call Date Scheduled margin call event
                     | STD_EVENT {o_rf_CURS :: Double}  -- Settlement Date Date when payment for derivatives is settled
                     | MD_EVENT {o_rf_CURS :: Double}   -- Maturity Date Scheduled maturity or expiry of a contract
-                    | PP_EVENT { pp_payoff :: Double, o_rf_CURS :: Double}
+                    | PP_EVENT { pp_payoff :: Double, o_rf_CURS :: Double} -- Principal Prepayment
                     | CE_EVENT { creditDate :: Day, o_rf_CURS :: Double} -- Credit event of counterparty to a contract
                     deriving (Eq, Ord, Show)
 
@@ -41,6 +39,7 @@ mapEventType event = case event of
     IED_EVENT {..} -> IED
     RR_EVENT {..}  -> RR
     IP_EVENT {..}  -> IP
+
     _             -> undefined
 
 
@@ -52,12 +51,3 @@ projectEvent eventType = case eventType of
     RR  -> RR_EVENT 1.0 1.0 
     IP  -> IP_EVENT 1.0
     _   -> undefined
-
-eventEnumTable :: [(EventType, Integer)]
-eventEnumTable = [(AD, 0), (IED, 1), (MD, 2), (FP, 3), (IP, 4), (RR, 5)] --can't use Enums in Plutus???
-
-eventTypeIdToEventType :: Integer -> EventType
-eventTypeIdToEventType = fromJust . flip lookup (map swap eventEnumTable)
-
-eventTypeToEventTypeId :: EventType -> Integer
-eventTypeToEventTypeId = fromJust . flip lookup eventEnumTable

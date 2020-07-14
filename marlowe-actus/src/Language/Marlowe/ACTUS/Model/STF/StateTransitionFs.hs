@@ -77,11 +77,4 @@ stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
                 _    -> st
         LAM -> undefined
 
-
-     
-
-    
-     
-    
-     
-    
+ 
