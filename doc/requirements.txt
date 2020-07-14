@@ -1,2 +1,0 @@
-sphinx>=2.3
-sphinxcontrib-domaintools>=0.3
