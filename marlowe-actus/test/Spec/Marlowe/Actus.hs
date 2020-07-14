@@ -19,6 +19,8 @@ import           Data.String (IsString (fromString))
 import           Ledger.Value
 import           Ledger.Ada                 (adaSymbol, adaToken)
 import           System.IO (writeFile)
+import           Data.Aeson                            (decode, encode)
+import           Data.ByteString.Lazy.Char8 (unpack)
 
 tests :: TestTree
 tests = testGroup "Actus"
@@ -119,6 +121,10 @@ pamStatic = do
 
 pamFs :: IO ()
 pamFs = do 
+    let jsonTermsStr = encode contractTerms
+    writeFile "ContractTerms.json" $ unpack jsonTermsStr
+    let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
+    assertBool "JSON terms there and back" $ not $ null jsonTerms'
     let contract = genFsContract contractTerms 
     writeFile "PamFs.hs" $ show $ pretty contract
     assertBool "Cashflows should not be Close" $ contract /= Close --trace ("Projected CashFlows: " ++ (show cfs))
