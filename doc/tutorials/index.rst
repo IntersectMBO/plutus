@@ -6,3 +6,4 @@ Tutorials
    :titlesonly:
 
    plutus-tx
+   basic-validators

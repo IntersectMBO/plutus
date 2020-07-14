@@ -49,6 +49,7 @@ executable doc-doctests
     build-tool-depends: unlit:unlit -any, doctest:doctest -any
     other-modules:
       PlutusTx
+      BasicValidators
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
