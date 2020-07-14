@@ -10,6 +10,7 @@
 module Cardano.Node.RandomTx(
     -- $randomTx
     GenRandomTx(..)
+    , GenRandomTxMsg(..)
     , genRandomTx
     , runGenRandomTx
     ) where

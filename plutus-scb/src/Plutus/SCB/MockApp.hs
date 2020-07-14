@@ -37,12 +37,13 @@ import           Control.Lens                    hiding (use)
 import           Control.Monad                   (void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM, subsume)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (Log, logDebug, runStderrLog)
+import Control.Monad.Freer.Log (logToWriter)
+import           Control.Monad.Freer.Extra.Log   (Log, logDebug, runStderrLog, LogMsg)
 import           Control.Monad.Freer.Extra.State (use)
 import           Control.Monad.Freer.Extras
 import           Control.Monad.Freer.State       (State, runState)
 import           Control.Monad.Freer.Writer      (Writer)
-import           Data.Foldable                   (traverse_)
+import           Data.Foldable                   (traverse_, toList)
 import           Data.Map                        (Map)
 import qualified Data.Map                        as Map
 import           Data.Text.Prettyprint.Doc
@@ -52,7 +53,7 @@ import qualified Ledger
 import qualified Ledger.AddressMap               as AM
 import           Plutus.SCB.Command              ()
 import           Plutus.SCB.Core
-import           Plutus.SCB.Effects.ContractTest (TestContracts)
+import           Plutus.SCB.Effects.ContractTest (TestContracts, ContractTestMsg)
 import           Plutus.SCB.Effects.MultiAgent   (AgentState, MultiAgentSCBEffect)
 import qualified Plutus.SCB.Effects.MultiAgent   as SCB.MultiAgent
 import           Plutus.SCB.Effects.UUID         (UUIDEffect, handleUUIDEffect)
@@ -63,7 +64,8 @@ import           Test.QuickCheck.Instances.UUID  ()
 import qualified Cardano.ChainIndex.Server       as ChainIndex
 import qualified Cardano.ChainIndex.Types        as ChainIndex
 import           Wallet.API                      (WalletAPIError)
-import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, handleChain, handleControlChain)
+import           Wallet.Emulator.Chain           (ChainControlEffect, ChainEffect, handleChain, handleControlChain, ChainEvent)
+import Wallet.Emulator.ChainIndex (ChainIndexEvent)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.MultiAgent      (EmulatorEvent, chainEvent)
 import           Wallet.Emulator.Wallet          (Wallet (..))
@@ -72,7 +74,7 @@ data TestState =
     TestState
         { _agentStates      :: Map Wallet AgentState
         , _nodeState        :: NodeServer.AppState
-        , _emulatorEventLog :: [EmulatorEvent]
+        , _emulatorEventLog :: [LogMessage EmulatorEvent]
         }
 
 makeLenses 'TestState
@@ -93,10 +95,15 @@ type MockAppEffects =
      , ChainControlEffect
      , ChainEffect
      , State TestState
-     , Log
+     , LogMsg MockAppMsg
      , Error SCBError
      , IO
      ]
+
+data MockAppMsg =
+    FinalChainEvents [ChainEvent]
+    | FinalEmulatorEvents [EmulatorEvent]
+    | FinalChainIndexEvents Wallet [ChainIndexEvent]
 
 
 runScenario :: Eff MockAppEffects a -> IO a
@@ -108,21 +115,12 @@ runScenario action = do
     case result of
         Left err -> do
             void $ runMockApp finalState $ do
-                logDebug "Final chain events"
-                logDebug "--"
                 chainEvents <- use (nodeState . NodeServer.eventHistory)
-                traverse_ (logDebug . abbreviate 120 . tshow . pretty) chainEvents
-                logDebug "--"
-                logDebug "Final emulator events"
-                logDebug "--"
+                logDebug $ FinalChainEvents chainEvents
                 emulatorEvents <- use emulatorEventLog
-                traverse_ (logDebug . abbreviate 120 . tshow . pretty) emulatorEvents
-                logDebug "--"
-                logDebug "Final chain index events (default wallet)"
-                logDebug "--"
+                logDebug $ FinalEmulatorEvents emulatorEvents
                 chainIndexEvents <- use (agentStates . at defaultWallet . anon (SCB.MultiAgent.emptyAgentState defaultWallet) (const False) . SCB.MultiAgent.chainIndexState  . ChainIndex.indexEvents)
-                traverse_ (logDebug . abbreviate 120 . tshow) chainIndexEvents
-                logDebug "--"
+                logDebug $ FinalChainIndexEvents defaultWallet (toList chainIndexEvents)
             error $ show err
         Right value -> pure value
 
@@ -146,6 +144,9 @@ runMockApp state action =
     $ interpret (writeIntoState emulatorEventLog)
     $ interpret (handleZoomedWriter @[EmulatorEvent] @_ @[Wallet.Emulator.Chain.ChainEvent] (below chainEvent))
 
+    -- log messages
+    $ interpret (logToWriter _)
+
     -- handlers for 'MockAppEffects'
     $ subsume
     $ subsume
@@ -157,7 +158,8 @@ runMockApp state action =
     $ raiseEnd7
         -- interpret the 'MockAppEffects' using
         -- the following list of effects
-        @'[ Writer [Wallet.Emulator.Chain.ChainEvent]
+        @'[ LogMsg ContractTestMsg
+          , Writer [Wallet.Emulator.Chain.ChainEvent]
           , Writer [EmulatorEvent]
 
           , State _

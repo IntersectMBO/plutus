@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
@@ -16,6 +17,7 @@ import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
 import           Control.Monad.Freer.Reader      (Reader)
+import Control.Monad.Freer.Log (contramapLog, renderLogMessages)
 import qualified Control.Monad.Freer.Reader      as Eff
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
@@ -35,7 +37,7 @@ import           Ledger                          (Block, Slot (Slot), Tx)
 import qualified Ledger
 import           Ledger.Tx                       (outputs)
 
-import           Cardano.Node.Follower           (NodeFollowerEffect)
+import           Cardano.Node.Follower           (NodeFollowerEffect, NodeFollowerLogMsg)
 import           Cardano.Node.RandomTx
 import           Cardano.Node.Types              as T
 import           Cardano.Protocol.ChainEffect    as CE
@@ -56,7 +58,11 @@ getCurrentSlot :: (Member (State ChainState) effs) => Eff effs Slot
 getCurrentSlot = Eff.gets (view EM.currentSlot)
 
 data MockNodeLogMsg =
-    AddingSlot
+        AddingSlot
+        | AddingTx Tx
+
+instance Pretty MockNodeLogMsg where
+    pretty AddingSlot = "Adding slot"
 
 addBlock ::
     ( Member (LogMsg MockNodeLogMsg) effs
@@ -87,15 +93,39 @@ consumeEventHistory stateVar =
         putMVar stateVar newState
         pure events
 
-addTx :: (Member Log effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
+addTx :: (Member (LogMsg MockNodeLogMsg) effs, Member ChainEffect effs) => Tx -> Eff effs NoContent
 addTx tx = do
-    logInfo $ "Adding tx " <> tshow (Ledger.txId tx)
-    logDebug $ tshow (pretty tx)
+    logInfo $ AddingTx tx
     Chain.queueTx tx
     pure NoContent
 
+data NodeServerMsg =
+    NodeServerFollowerMsg NodeFollowerLogMsg
+    | NodeGenRandomTxMsg GenRandomTxMsg
+    | NodeMockNodeMsg MockNodeLogMsg
+
+instance Pretty NodeServerMsg where
+    pretty = \case
+        NodeServerFollowerMsg m -> pretty m
+        NodeGenRandomTxMsg m -> pretty m
+        NodeMockNodeMsg m -> pretty m
+
 type NodeServerEffects m
-     = '[ GenRandomTx, NodeFollowerEffect, ChainControlEffect, ChainEffect, State NodeFollowerState, State ChainState, Writer [ChainEvent], Reader (TQueue Block), Reader (TQueue Tx), State AppState, Log, m]
+     = '[ GenRandomTx
+        , LogMsg GenRandomTxMsg
+        , NodeFollowerEffect
+        , LogMsg NodeFollowerLogMsg
+        , ChainControlEffect
+        , ChainEffect
+        , State NodeFollowerState
+        , State ChainState
+        , Writer [ChainEvent]
+        , Reader (TQueue Block)
+        , Reader (TQueue Tx)
+        , State AppState
+        , LogMsg MockNodeLogMsg
+        , LogMsg NodeServerMsg
+        , m]
 
 ------------------------------------------------------------
 runChainEffects ::
@@ -105,6 +135,8 @@ runChainEffects txQueue blockQueue stateVar eff = do
     ((a, events), newState) <- liftIO
         $ runM
         $ runStderrLog
+        $ renderLogMessages
+        $ contramapLog NodeMockNodeMsg
         $ Eff.runState oldAppState
         $ Eff.runReader txQueue
         $ Eff.runReader blockQueue
@@ -113,7 +145,9 @@ runChainEffects txQueue blockQueue stateVar eff = do
         $ interpret (handleZoomedState T.followerState)
         $ CE.handleChain
         $ Chain.handleControlChain
+        $ contramapLog NodeServerFollowerMsg 
         $ FE.handleNodeFollower
+        $ contramapLog NodeGenRandomTxMsg
         $ runGenRandomTx
         $ do result <- eff
              void Chain.processBlock
