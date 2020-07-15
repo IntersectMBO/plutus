@@ -41,8 +41,8 @@
         plutus-use-cases = ./plutus-use-cases.nix;
         playground-common = ./playground-common.nix;
         marlowe = ./marlowe.nix;
-        marlowe-actus = ./marlowe-actus.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
+        marlowe-actus = ./marlowe-actus.nix;
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;

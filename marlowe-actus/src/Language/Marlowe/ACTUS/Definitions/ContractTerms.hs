@@ -6,7 +6,7 @@ module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 import Data.Time ( Day )
 import Language.Marlowe.ACTUS.Definitions.ContractState ( ContractStatus )
 import Data.Aeson.Types (FromJSON, ToJSON)
-import GHC.Generics
+import GHC.Generics (Generic)
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 

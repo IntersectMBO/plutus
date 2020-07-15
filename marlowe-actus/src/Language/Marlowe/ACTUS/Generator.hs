@@ -34,14 +34,14 @@ import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractTerms )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents
     ( EventType(..),
       RiskFactors(..))
-import Language.Marlowe.ACTUS.MarloweCompat
-import Language.Marlowe.ACTUS.Model.POF.PayoffFs
-import Language.Marlowe.ACTUS.Model.POF.Payoff
-import Language.Marlowe.ACTUS.Model.STF.StateTransition
-import Language.Marlowe.ACTUS.Model.STF.StateTransitionFs
-import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
-import Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
-import Language.Marlowe.ACTUS.Model.INIT.StateInitialization
+import Language.Marlowe.ACTUS.MarloweCompat(dayToSlotNumber)
+import Language.Marlowe.ACTUS.Model.POF.PayoffFs(payoffFs)
+import Language.Marlowe.ACTUS.Model.POF.Payoff(payoff)
+import Language.Marlowe.ACTUS.Model.STF.StateTransition(stateTransition)
+import Language.Marlowe.ACTUS.Model.STF.StateTransitionFs(stateTransitionFs)
+import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule(schedule)
+import Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs(inititializeStateFs)
+import Language.Marlowe.ACTUS.Model.INIT.StateInitialization(inititializeState)
 
 
 invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract

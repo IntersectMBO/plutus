@@ -10,7 +10,7 @@
   {
     flags = { defer-plugin-errors = false; };
     package = {
-      specVersion = "2.0";
+      specVersion = "2.2";
       identifier = { name = "marlowe-actus"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -49,18 +49,36 @@
           (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
           (hsPkgs."wl-pprint" or (errorHandler.buildDepError "wl-pprint"))
           (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
-          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+          (hsPkgs."time" or (errorHandler.buildDepError "time"))
+          ];
         build-tools = [
           (hsPkgs.buildPackages.unlit or (pkgs.buildPackages.unlit or (errorHandler.buildToolDepError "unlit")))
           ];
         buildable = true;
         modules = [
-          "Language/Marlowe"
-          "Language/Marlowe/Semantics"
-          "Language/Marlowe/Client"
-          "Language/Marlowe/Util"
-          "Language/Marlowe/Pretty"
-          "Language/Marlowe/Analysis/FSSemantics"
+          "Language/Marlowe/ACTUS/Ops"
+          "Language/Marlowe/ACTUS/MarloweCompat"
+          "Language/Marlowe/ACTUS/Generator"
+          "Language/Marlowe/ACTUS/Definitions/BusinessEvents"
+          "Language/Marlowe/ACTUS/Definitions/ContractTerms"
+          "Language/Marlowe/ACTUS/Definitions/ContractState"
+          "Language/Marlowe/ACTUS/Definitions/Schedule"
+          "Language/Marlowe/ACTUS/Model/POF/PayoffModel"
+          "Language/Marlowe/ACTUS/Model/POF/Payoff"
+          "Language/Marlowe/ACTUS/Model/POF/PayoffFs"
+          "Language/Marlowe/ACTUS/Model/STF/StateTransitionModel"
+          "Language/Marlowe/ACTUS/Model/STF/StateTransition"
+          "Language/Marlowe/ACTUS/Model/STF/StateTransitionFs"
+          "Language/Marlowe/ACTUS/Model/SCHED/ContractScheduleModel"
+          "Language/Marlowe/ACTUS/Model/SCHED/ContractSchedule"
+          "Language/Marlowe/ACTUS/Model/INIT/StateInitializationModel"
+          "Language/Marlowe/ACTUS/Model/INIT/StateInitialization"
+          "Language/Marlowe/ACTUS/Model/INIT/StateInitializationFs"
+          "Language/Marlowe/ACTUS/Model/Utility/DateShift"
+          "Language/Marlowe/ACTUS/Model/Utility/ScheduleGenerator"
+          "Language/Marlowe/ACTUS/Model/Utility/YearFraction"
+          "Language/Marlowe/ACTUS/Model/Utility/ContractRoleSign"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -71,37 +89,27 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."hint" or (errorHandler.buildDepError "hint"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
-            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
-            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."cborg" or (errorHandler.buildDepError "cborg"))
             (hsPkgs."plutus-ledger" or (errorHandler.buildDepError "plutus-ledger"))
             (hsPkgs."plutus-contract" or (errorHandler.buildDepError "plutus-contract"))
             (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
-            (hsPkgs."sbv" or (errorHandler.buildDepError "sbv"))
+            (hsPkgs."marlowe-actus" or (errorHandler.buildDepError "marlowe-actus"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
             (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+            (hsPkgs."marlowe" or (errorHandler.buildDepError "marlowe"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
             ];
           buildable = true;
-          modules = [
-            "Spec/Marlowe/Common"
-            "Spec/Marlowe/Marlowe"
-            "OldAnalysis/FSMap"
-            "OldAnalysis/FSSemantics"
-            "OldAnalysis/FSSet"
-            "OldAnalysis/IntegerArray"
-            "OldAnalysis/MkSymb"
-            "OldAnalysis/Numbering"
-            ];
+          modules = [ "Spec/Marlowe/Actus" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

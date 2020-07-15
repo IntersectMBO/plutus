@@ -21,8 +21,6 @@ import Data.Time ( UTCTime(UTCTime), Day )
 import Data.Time.Clock.System
     ( utcToSystemTime, SystemTime(MkSystemTime) )
 
-type EventHandler = EventType -> Value Observation
-
 type EventHandlerSTF = EventType -> ContractStateMarlowe -> ContractStateMarlowe
 
 type ContractStateMarlowe

@@ -5,13 +5,9 @@
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
 import Data.Time ( Day )
-import Data.Map ( Map )
 
 import           Data.Aeson.Types           hiding (Error, Value)
 import           GHC.Generics (Generic)
-
--- all contract states in a composite contract
-type ContractStateContext = Map String ContractState
 
 type ContractState = ContractStatePoly Double Day
 
