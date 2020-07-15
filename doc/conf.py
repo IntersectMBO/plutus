@@ -71,7 +71,7 @@ source_suffix = {
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['haddock'] # Otherwise it tries to pick up the README.md's in the Haddock doc!
 
 
 # -- Options for HTML output -------------------------------------------------
