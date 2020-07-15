@@ -30,7 +30,7 @@ import Language.Marlowe.ACTUS.Definitions.ContractTerms
 import Language.Marlowe.ACTUS.Definitions.Schedule
     ( ShiftedSchedule,
       ShiftedDay(calculationDay, paymentDay),
-      Schedule )
+    )
 import Language.Marlowe.ACTUS.Model.Utility.DateShift ( applyBDC )
 
 
@@ -51,13 +51,13 @@ stubCorrection stub endDay schedule =
     then schedule
     else L.init schedule
 
-endDateCorrection :: Bool -> Day -> Schedule -> Schedule
+endDateCorrection :: Bool -> Day -> [Day] -> [Day]
 endDateCorrection includeEndDay endDay schedule
   | includeEndDay && L.notElem endDay schedule = schedule ++ [endDay]
   | not includeEndDay && L.elem endDay schedule = L.init schedule
   | otherwise = schedule
 
-generateRecurrentSchedule :: Cycle -> Day -> Day -> Schedule
+generateRecurrentSchedule :: Cycle -> Day -> Day -> [Day]
 generateRecurrentSchedule Cycle {..} anchorDate endDate =
   let go :: Day -> Integer -> [Day] -> [Day]
       go current k acc = if current > endDate

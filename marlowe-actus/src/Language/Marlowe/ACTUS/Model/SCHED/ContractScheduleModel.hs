@@ -3,10 +3,11 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel where
 
-import Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
-import Language.Marlowe.ACTUS.Model.Utility.DateShift
-import Data.Maybe
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
+import Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator 
+    (remove, generateRecurrentScheduleWithCorrections, plusCycle, inf)
+import Language.Marlowe.ACTUS.Model.Utility.DateShift (applyBDCWithCfg)
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (PREF(..), PYTP(..), SCEF(..))
+import Data.Maybe (isNothing, isJust, fromJust)
 
 _S = generateRecurrentScheduleWithCorrections
 shift = applyBDCWithCfg

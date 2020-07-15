@@ -3,16 +3,16 @@ module Spec.Marlowe.Actus
     )
 where
 
-import           Language.Marlowe.ACTUS.Generator
-import           Language.Marlowe.Semantics
-import           Language.Marlowe.Pretty
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import           Data.Aeson                                       (decode, encode)
+import           Data.ByteString.Lazy.Char8                       (unpack)
+import           Data.Time
 import           Language.Marlowe.ACTUS.Definitions.ContractState
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import           Language.Marlowe.ACTUS.Generator
+import           Language.Marlowe.Pretty
+import           Language.Marlowe.Semantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Data.Time
-import           Data.Aeson                            (decode, encode)
-import           Data.ByteString.Lazy.Char8 (unpack)
 
 tests :: TestTree
 tests = testGroup "Actus"
@@ -60,7 +60,7 @@ contractTerms = ContractTerms {
         -- Rate Reset
         , _RRCL = Nothing
         , _RRANX = Nothing
-        , _RRNXT = Nothing 
+        , _RRNXT = Nothing
         , _RRSP = 0.0
         , _RRMLT = 0.0
         , _RRPF = 0.0
@@ -82,24 +82,24 @@ contractTerms = ContractTerms {
     }
 
 pamProjected :: IO ()
-pamProjected = do 
-    let cfs = genProjectedCashflows contractTerms 
+pamProjected = do
+    let cfs = genProjectedCashflows contractTerms
     let cfsEmpty = null cfs
     assertBool "Cashflows should not be empty" (not cfsEmpty)
 
 pamStatic :: IO ()
-pamStatic = do 
-    let contract = genStaticContract contractTerms 
+pamStatic = do
+    let contract = genStaticContract contractTerms
     assertBool "Cashflows should not be Close" $ contract /= Close
 
 pamFs :: IO ()
-pamFs = do 
+pamFs = do
     let jsonTermsStr = encode contractTerms
     writeFile "ContractTerms.json" $ unpack jsonTermsStr
     let jsonTerms' = decode jsonTermsStr :: Maybe ContractTerms
     assertBool "JSON terms there and back" $ not $ null jsonTerms'
-    let contract = genFsContract contractTerms 
+    let contract = genFsContract contractTerms
     writeFile "PamFs.marlowe" $ show $ pretty contract
-    assertBool "Cashflows should not be Close" $ contract /= Close 
+    assertBool "Cashflows should not be Close" $ contract /= Close
 
 

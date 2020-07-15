@@ -3,9 +3,6 @@ module Language.Marlowe.ACTUS.Definitions.Schedule where
 import Data.Time ( Day )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents ( EventType )
 
-
-type Schedule = [Day]
-
 data ShiftedDay = ShiftedDay {
     paymentDay :: Day,
     calculationDay :: Day
