@@ -4,8 +4,7 @@
 {-# LANGUAGE DerivingStrategies         #-}
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
-import Data.Time ( Day )
-
+import           Data.Time ( Day )
 import           Data.Aeson.Types           hiding (Error, Value)
 import           GHC.Generics (Generic)
 
