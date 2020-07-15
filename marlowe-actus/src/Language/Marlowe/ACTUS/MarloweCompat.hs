@@ -35,7 +35,7 @@ letval :: String -> Integer -> Value Observation -> Contract -> Contract
 letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
 constnt :: Double -> Value Observation
-constnt = Constant . round <$> (marloweFixedPoint *)
+constnt = Constant . round <$> (fromIntegral marloweFixedPoint *)
 
 enum :: a -> a
 enum = id

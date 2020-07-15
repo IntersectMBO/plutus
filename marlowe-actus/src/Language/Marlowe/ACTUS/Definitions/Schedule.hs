@@ -1,7 +1,7 @@
 module Language.Marlowe.ACTUS.Definitions.Schedule where
 
 import Data.Time ( Day )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents ( ScheduledEvent )
+import Language.Marlowe.ACTUS.Definitions.BusinessEvents ( EventType )
 
 
 type Schedule = [Day]
@@ -20,7 +20,7 @@ data CashFlow = CashFlow {
     cashCounterParty :: String,
     cashPaymentDay :: Day,
     cashCalculationDay :: Day,
-    cashEvent :: ScheduledEvent,
+    cashEvent :: EventType,
     amount :: Double,
     currency :: String
 } deriving (Show)

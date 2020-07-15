@@ -8,17 +8,9 @@ import           Language.Marlowe.Semantics
 import           Language.Marlowe.Pretty
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Definitions.ContractState
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents
-import           Language.Marlowe.ACTUS.Definitions.Schedule
-import           Language.Marlowe.Analysis.FSSemantics
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.Time
-import           Data.Either
-import           Data.String (IsString (fromString))
-import           Ledger.Value
-import           Ledger.Ada                 (adaSymbol, adaToken)
-import           System.IO (writeFile)
 import           Data.Aeson                            (decode, encode)
 import           Data.ByteString.Lazy.Char8 (unpack)
 

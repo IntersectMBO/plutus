@@ -8,11 +8,8 @@ import Language.Marlowe.ACTUS.Definitions.ContractState
                         nsc, fac, feac, ipac, ipnr, nt, tmd),
       ContractState )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( ScheduledEvent(CE_EVENT, AD_EVENT, IED_EVENT, MD_EVENT, PP_EVENT,
-                     PY_EVENT, FP_EVENT, PRD_EVENT, TD_EVENT, IP_EVENT, IPCI_EVENT,
-                     RR_EVENT, RRF_EVENT, SC_EVENT, pp_payoff, o_rf_RRMO, o_rf_SCMO,
-                     o_rf_CURS, creditDate),
-      EventType(FP) )
+    ( EventType(..), RiskFactors(..))
+
 import Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
     ( _STF_AD_PAM,
       _STF_IED_PAM,
@@ -43,8 +40,8 @@ import Language.Marlowe.ACTUS.Model.Utility.DateShift
 shift :: ScheduleConfig -> Day -> ShiftedDay
 shift = applyBDCWithCfg
 
-stateTransition :: ScheduledEvent -> ContractTerms -> ContractState -> Day -> ContractState
-stateTransition ev terms@ContractTerms{..} st@ContractStatePoly{..} t = 
+stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
+stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{..} t = 
     let 
         fpSchedule         = fromMaybe [shift scfg _SD] $ schedule FP terms
         tfp_minus          = calculationDay $ sup fpSchedule t
@@ -56,21 +53,21 @@ stateTransition ev terms@ContractTerms{..} st@ContractStatePoly{..} t =
     in case contractType of
         PAM -> 
             case ev of 
-                AD_EVENT{..}   -> _STF_AD_PAM st t y_sd_t
-                IED_EVENT{..}  -> _STF_IED_PAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT
-                MD_EVENT{..}   -> _STF_MD_PAM st t
-                PP_EVENT{..}   -> _STF_PP_PAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                PY_EVENT{..}   -> _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                FP_EVENT{..}   -> _STF_FP_PAM st t y_sd_t
-                PRD_EVENT{..}  -> _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL 
-                TD_EVENT{..}   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL 
-                IP_EVENT{..}   -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                IPCI_EVENT{..} -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                RR_EVENT{..}   -> _STF_RR_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO
-                RRF_EVENT{..}  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT 
-                SC_EVENT{..}   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED
-                CE_EVENT{..}   -> _STF_CE_PAM st t y_sd_t
-                _             -> st
+                AD   -> _STF_AD_PAM st t y_sd_t
+                IED  -> _STF_IED_PAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT
+                MD   -> _STF_MD_PAM st t
+                PP   -> _STF_PP_PAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+                PY   -> _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+                FP   -> _STF_FP_PAM st t y_sd_t
+                PRD  -> _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL 
+                TD   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL 
+                IP   -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+                IPCI -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+                RR   -> _STF_RR_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO
+                RRF  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT 
+                SC   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED
+                CE   -> _STF_CE_PAM st t y_sd_t
+                _    -> st
         LAM -> undefined
 
 

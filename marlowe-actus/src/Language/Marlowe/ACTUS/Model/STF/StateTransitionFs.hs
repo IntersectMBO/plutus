@@ -13,7 +13,6 @@ import Language.Marlowe.ACTUS.Ops
 import Data.Maybe
 import Data.Time
 
-import qualified Data.List as L
 
 import Language.Marlowe.ACTUS.Model.Utility.DateShift
 import Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
@@ -25,6 +24,7 @@ shift = applyBDCWithCfg
 stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Contract -> Contract
 stateTransitionFs ev terms@ContractTerms{..} t curDate continue = 
     let 
+        -- value wrappers:
         __IPANX = marloweDate <$> _IPANX
         __IPNR  = constnt <$> _IPNR
         __IPAC  = constnt <$> _IPAC
@@ -46,16 +46,14 @@ stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
         __pp_payoff        = useval "pp_payoff" t
 
         -- dates:
-        t0                 = _SD
-        time               = SlotIntervalStart
-        fpSchedule         = fromMaybe [shift scfg t0] $ schedule FP terms
-        tfp_minus          = marloweDate $ calculationDay $ sup fpSchedule curDate
-        tfp_plus           = marloweDate $ calculationDay $ inf fpSchedule curDate
-
-        y_sd_t             = _y _DCC (useval "sd" t) time undefined
-        y_tfpminus_t       = _y _DCC tfp_minus time undefined
-        y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus undefined
-        y_ipanx_t          = _y _DCC (fromJust __IPANX) time undefined
+        time               = marloweDate $ curDate
+        fpSchedule         = fromMaybe [shift scfg _SD] $ schedule FP terms
+        tfp_minus          = calculationDay $ sup fpSchedule curDate
+        tfp_plus           = calculationDay $ inf fpSchedule curDate
+        y_sd_t             = constnt $ _y _DCC _SD curDate _MD
+        y_tfpminus_t       = constnt $ _y _DCC tfp_minus curDate _MD
+        y_tfpminus_tfpplus = constnt $ _y _DCC tfp_minus tfp_plus _MD
+        y_ipanx_t          = constnt $ _y _DCC (fromJust _IPANX) curDate _MD
                         
     in case contractType of
         PAM -> 
@@ -77,4 +75,3 @@ stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
                 _    -> st
         LAM -> undefined
 
- 

@@ -11,7 +11,8 @@ import Language.Marlowe.ACTUS.Definitions.ContractState
                         nsc, fac, feac, ipac, ipnr, nt, tmd) )
 import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing )
 import Language.Marlowe.ACTUS.Ops
-    ( RoleSignOps(_r), DateOps(_lt), ActusOps(_zero, _min, _max) )
+    ( RoleSignOps(_r), DateOps(_lt), ActusOps(_zero, _min, _max), ActusNum(..) )
+import Prelude hiding (Num, Fractional, (+), (-), (*), (/))
 
 
 _STF_AD_PAM st@ContractStatePoly{..} t y_sd_t = st {

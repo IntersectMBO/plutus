@@ -4,7 +4,6 @@ module Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs where
 import Language.Marlowe
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
     ( ContractTerms(..), ContractType(LAM, PAM), ScheduleConfig )
-import Language.Marlowe.ACTUS.Definitions.ContractState ( ContractState )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents ( EventType(IP, FP) )
 import Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
     ( _INIT_PAM )

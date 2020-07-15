@@ -12,10 +12,8 @@ where
 import Data.Time ( fromGregorian )
 import Ledger.Value ( TokenName(TokenName) )
 import Data.String ( IsString(fromString) )
-import qualified Language.PlutusTx.AssocMap as Map
-    ( insert, keys, empty, lookup )
-import Data.Maybe ( fromJust, fromMaybe, isJust )
-import qualified Data.List as L ( init, last, zip, scanl, tail, zip5 )
+import Data.Maybe ( fromMaybe )
+import qualified Data.List as L ( zip, scanl, tail, zip5 )
 import Language.Marlowe
     ( 
       ada,
@@ -28,18 +26,14 @@ import Language.Marlowe
       Observation,
       Party(Role),
       Payee(Party),
-      State(..),
-      TransactionOutput(..),
       Value(UseValue, ChoiceValue, Constant, NegValue),
       ValueId(ValueId),
       Slot(..) )
 import Language.Marlowe.ACTUS.Definitions.Schedule ( CashFlow(..), calculationDay, paymentDay, ShiftedDay(..) )
 import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractTerms )
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( ScheduledEvent(..),
-      EventType(..),
-      projectEvent,
-      mapEventType )
+    ( EventType(..),
+      RiskFactors(..))
 import Language.Marlowe.ACTUS.MarloweCompat
 import Language.Marlowe.ACTUS.Model.POF.PayoffFs
 import Language.Marlowe.ACTUS.Model.POF.Payoff
@@ -48,6 +42,7 @@ import Language.Marlowe.ACTUS.Model.STF.StateTransitionFs
 import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
 import Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
 import Language.Marlowe.ACTUS.Model.INIT.StateInitialization
+
 
 invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
 invoice from to amount timeout continue =
@@ -80,7 +75,7 @@ inquiryFs ev timePosfix date oracle continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
         inputTemplate inputChoiceId inputOwner inputBound cont =
-            (When
+            When
                 [ Case
                       (Choice (ChoiceId inputChoiceId inputOwner) inputBound)
                       (Let
@@ -91,7 +86,7 @@ inquiryFs ev timePosfix date oracle continue =
                 ]
                 date
                 Close
-            )
+            
         riskFactorInquiry name = inputTemplate
             (fromString (name ++ timePosfix))
             oracleRole
@@ -104,27 +99,28 @@ inquiryFs ev timePosfix date oracle continue =
                 riskFactorInquiry "pp_payoff"  
         riskFactorsInquiryEv _ = riskFactorInquiry "o_rf_CURS"
     in
-        (riskFactorsInquiryEv ev) continue
+        riskFactorsInquiryEv ev continue
 
 genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows terms =
     let
         eventTypes   = [IED, MD, RR, IP]
         analysisDate = fromGregorian 2008 10 22
+        riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate 
 
-        projectPreserveDate e d = (projectEvent e, d)
+        preserveDate e d = (e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
-        scheduleEvent e = projectPreserveDate e <$> getSchedule e
+        scheduleEvent e = preserveDate e <$> getSchedule e
         events = concatMap scheduleEvent eventTypes
 
         applyStateTransition (st, ev, date) (ev', date') =
-            (stateTransition ev terms st (calculationDay date), ev', date')
+            (stateTransition ev riskFactors terms st (calculationDay date), ev', date')
         calculatePayoff (st, ev, date) =
-            payoff ev terms st (calculationDay date)
+            payoff ev riskFactors terms st (calculationDay date)
 
         initialState =
             ( inititializeState terms
-            , projectEvent AD
+            , AD
             , ShiftedDay analysisDate analysisDate
             )
         states  = L.tail $ L.scanl applyStateTransition initialState events
@@ -157,12 +153,13 @@ genFsContract terms =
     let
         payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
         schedCfs = genProjectedCashflows terms
-        schedEvents = mapEventType . cashEvent <$> schedCfs
+        schedEvents = cashEvent <$> schedCfs
         schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
         cfsDirections = amount <$> schedCfs
+        gen :: (CashFlow, EventType, Slot, Double, Integer) -> Contract -> Contract
         gen (cf, ev, date, r, t) cont = inquiryFs ev ("_" ++ show t) date "oracle"
             $ stateTransitionFs ev terms t (cashCalculationDay cf)
-            $ Let (payoffAt t) (payoffFs ev terms t)
+            $ Let (payoffAt t) (payoffFs ev terms t (cashCalculationDay cf))
             $ if r > 0.0    then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                             else invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
         scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]

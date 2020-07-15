@@ -49,22 +49,24 @@ Let "tmd_0"
                                                               (UseValue "nsc_0")
                                                               (Let "isc_1"
                                                                  (UseValue "isc_0")
-                                                                 (Let "sd_1" SlotIntervalStart
+                                                                 (Let "sd_1"
+                                                                    (Constant 1224460800)
                                                                     (Let "prnxt_1"
                                                                        (UseValue "prnxt_0")
                                                                        (Let "ipcb_1"
                                                                           (UseValue "ipcb_0")
                                                                           (Let "payoff_1"
-                                                                             (NegValue
-                                                                                (Scale 1 % 1000
-                                                                                   (MulValue
-                                                                                      (Scale 1 % 1000
-                                                                                         (MulValue
-                                                                                            (UseValue "o_rf_CURS_1")
-                                                                                            (Constant -1)))
-                                                                                      (AddValue
-                                                                                         (Constant 1000000)
-                                                                                         (Constant -100000)))))
+                                                                             (Scale 1 % 1000
+                                                                                (MulValue
+                                                                                   (Scale 1 % 1000
+                                                                                      (MulValue
+                                                                                         (SubValue
+                                                                                            (Constant 0)
+                                                                                            (UseValue "o_rf_CURS_1"))
+                                                                                         (Constant -1)))
+                                                                                   (AddValue
+                                                                                      (Constant 1000000)
+                                                                                      (Constant -100000))))
                                                                              (When [
                                                                                 (Case
                                                                                    (Deposit
@@ -106,7 +108,8 @@ Let "tmd_0"
                                                                                                                     (UseValue "nsc_1")
                                                                                                                     (Let "isc_2"
                                                                                                                        (UseValue "isc_1")
-                                                                                                                       (Let "sd_2" SlotIntervalStart
+                                                                                                                       (Let "sd_2"
+                                                                                                                          (Constant 1256169600)
                                                                                                                           (Let "prnxt_2"
                                                                                                                              (UseValue "prnxt_1")
                                                                                                                              (Let "ipcb_2"
@@ -116,15 +119,15 @@ Let "tmd_0"
                                                                                                                                       (MulValue
                                                                                                                                          (UseValue "o_rf_CURS_2")
                                                                                                                                          (AddValue
-                                                                                                                                            (AddValue
-                                                                                                                                               (Scale 1 % 1000
-                                                                                                                                                  (MulValue
-                                                                                                                                                     (UseValue "nsc_2")
-                                                                                                                                                     (UseValue "nt_2")))
-                                                                                                                                               (Scale 1 % 1000
-                                                                                                                                                  (MulValue
-                                                                                                                                                     (UseValue "isc_2")
-                                                                                                                                                     (UseValue "ipac_2"))))
+                                                                                                                                            (Scale 1 % 1000
+                                                                                                                                               (MulValue
+                                                                                                                                                  (AddValue
+                                                                                                                                                     (Scale 1 % 1000
+                                                                                                                                                        (MulValue
+                                                                                                                                                           (UseValue "nsc_2")
+                                                                                                                                                           (UseValue "nt_2")))
+                                                                                                                                                     (UseValue "isc_2"))
+                                                                                                                                                  (UseValue "ipac_2")))
                                                                                                                                             (UseValue "feac_2"))))
                                                                                                                                    (When [
                                                                                                                                       (Case
