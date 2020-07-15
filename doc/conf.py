@@ -40,10 +40,7 @@ extensions = [
     'recommonmark',
     'sphinx_markdown_tables',
     'sphinxemoji.sphinxemoji',
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.viewcode",
     'hs_domain',
 ]
 
@@ -69,14 +66,6 @@ html_static_path = ['.sphinx/_static']
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
-}
-
-intersphinx_mapping = {
-    "commandsv1": (
-        "https://robotpy.readthedocs.io/projects/commands-v1/en/%s/"
-        % rtd_version,
-        None,
-    ),
 }
 
 # List of patterns, relative to source directory, that match files and
@@ -106,18 +95,14 @@ html_theme_options = {
     'titles_only': False
 }
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-
 html_logo = ".sphinx/cardano-logo.png"
 
 html_context = {
   "display_github": True, # Add 'Edit on Github' link instead of 'View page source'
   "github_user": "input-output-hk",
-  "github_repo": "cardano-node",
+  "github_repo": "plutus",
   "github_version": "master",
-  "conf_py_path": "/",
+  "conf_py_path": "/doc",
   "source_suffix": source_suffix,
 }
 
