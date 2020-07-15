@@ -90,8 +90,8 @@ tynames = mkTextNameStream "t"
 
 
 -- |Convert type.
-toClosedType :: (MonadQuote m)
+toClosedType :: (MonadQuote m, MonadError GenError m)
              => Kind ()
              -> ClosedTypeG
-             -> ExceptT GenError m (Type TyName DefaultUni ())
+             -> m (Type TyName DefaultUni ())
 toClosedType = Gen.toClosedType tynames
