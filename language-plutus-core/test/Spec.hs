@@ -307,34 +307,33 @@ tests = testCase "example programs" $ fold
 
 -- NEAT stuff
 
-
 depth :: Int
 depth = 10
 
 kind :: Kind ()
 kind = Type ()
 
+-- |Check if the type/kind checker or generation threw any errors.
+isSafe :: ExceptT (ErrorP a) Quote a -> Cool
+isSafe = toCool . isRight . runQuote . runExceptT
 
 -- |Property: Kind checker for generated types is sound.
 prop_checkKindSound :: TyProp
 prop_checkKindSound k _ tyQ = isSafe $ do
-  ty <- liftQuote tyQ
-  checkKind defConfig () ty k
+  ty <- withExceptT GenErrorP tyQ
+  withExceptT TypeErrorP $ checkKind defConfig () ty k
 
 -- |Property: Normalisation preserves kind.
 prop_normalizePreservesKind :: TyProp
 prop_normalizePreservesKind k _ tyQ = isSafe $ do
-  ty <- liftQuote tyQ
-  ty' <- unNormalized <$> normalizeType ty
-  checkKind defConfig () ty' k
+  ty  <- withExceptT GenErrorP tyQ
+  ty' <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
+  withExceptT TypeErrorP $ checkKind defConfig () ty' k
 
 -- |Property: Normalisation for generated types is sound.
 prop_normalizeTypeSound :: TyProp
 prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty1 <- unNormalized <$> (normalizeType =<< liftQuote tyQ)
-  ty2 <- toClosedType k (normalizeTypeG tyG)
+  ty <- withExceptT GenErrorP tyQ
+  ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
+  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
   return (ty1 == ty2)
-
--- |Check if the type/kind checker threw any errors.
-isSafe :: ExceptT (Error DefaultUni a) Quote a -> Cool
-isSafe = toCool . isRight . runQuote . runExceptT

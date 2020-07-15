@@ -1,20 +1,20 @@
 {-|
 Description: PLC Syntax, typechecker,semantics property based testing.
 
-
 This file contains
 1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
 2. A kind checker and a type checker
 3. Reduction semantics for types
 -}
 
-{-# LANGUAGE DeriveDataTypeable  #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE DeriveDataTypeable        #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE RecordWildCards           #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TemplateHaskell           #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module Language.PlutusCore.Gen.Type
   ( TypeBuiltinG (..)
@@ -23,14 +23,16 @@ module Language.PlutusCore.Gen.Type
   , toClosedType
   , checkClosedTypeG
   , normalizeTypeG
+  , GenError (..)
+  , ErrorP (..)
   ) where
 
 import           Control.Enumerable
+import           Control.Monad.Except
 import           Data.Coolean
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
-import           Text.Printf
 
 -- * Enumerating builtin types
 
@@ -65,18 +67,26 @@ deriveEnumerable ''Kind
 
 deriveEnumerable ''TypeG
 
+
+-- NOTE: The errors we need to handle in property based testing are
+--       when the generator generates garbage or we encounter an
+--       actual type error in testing.
+
+data GenError
+ =  forall n. Show n => Gen (TypeG n) (Kind ())
+
+data ErrorP ann
+ = TypeErrorP (TypeError DefaultUni ann)
+ | GenErrorP GenError
+
+
 -- |Convert well-kinded generated types to Plutus types.
 --
 -- NOTE: Passes an explicit `TyNameState`, instead of using a State monad,
 --       as the type of the `TyNameState` changes throughout the computation.
 --       Alternatively, this could be written using an indexed State monad.
---
--- NOTE: The error types in Language.PlutusCore.Error are closed, and hence it
---       isn't possible to define new possible errors without introducing them
---       for the full language. Since conversion errors always indicate an
---       internal error in `checkKindG`, I'm deciding to just use `error`.
 toType
-  :: (Show n, MonadQuote m)
+  :: (Show n, MonadQuote m, MonadError GenError m)
   => TyNameState n      -- ^ Type name environment with fresh name stream
   -> Kind ()            -- ^ Kind of type below
   -> TypeG n            -- ^ Type to convert
@@ -101,9 +111,7 @@ toType ns k2 (TyAppG ty1 ty2 k1) =
   TyApp () <$> toType ns k' ty1 <*> toType ns k1 ty2
   where
     k' = KindArrow () k1 k2
-toType _ k ty =
-  error (printf "toType: convert type %s at kind %s" (show ty) (show k))
-
+toType _ k ty = throwError $ Gen ty k
 
 
 -- * Enumerating closed types
@@ -113,14 +121,12 @@ type ClosedTypeG = TypeG Z
 
 -- |Convert generated closed types to Plutus types.
 toClosedType
-  :: (MonadQuote m)
+  :: (MonadQuote m, MonadError GenError m)
   => [Text.Text]
   -> Kind ()
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
 toClosedType strs = toType (emptyTyNameState strs)
-
-
 
 -- * Kind checking
 
