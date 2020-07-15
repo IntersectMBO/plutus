@@ -54,6 +54,11 @@ toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 
 -- * Enumerating types
 
+-- NOTE: Unusually, the application case is annotated with a kind.
+--       The reason is eagerness and efficiency. If we have the kind
+--       information at the application site, we can check the two
+--       subterms in parallel, while evaluating as little as possible.
+
 data TypeG n
   = TyVarG n
   | TyFunG (TypeG n) (TypeG n)
@@ -67,6 +72,9 @@ data TypeG n
 deriveEnumerable ''Kind
 
 deriveEnumerable ''TypeG
+
+
+
 
 
 -- NOTE: The errors we need to handle in property based testing are
