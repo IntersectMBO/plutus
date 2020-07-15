@@ -33,14 +33,14 @@ dynamicFactorialName :: DynamicBuiltinName
 dynamicFactorialName = DynamicBuiltinName "factorial"
 
 dynamicFactorialMeaning
-    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, FromConstant (Term TyName Name uni ann))
     => DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicFactorialMeaning = DynamicBuiltinNameMeaning sch fac (\_ -> ExBudget 1 1) where
     sch = Proxy @Integer `TypeSchemeArrow` TypeSchemeResult Proxy
     fac n = product [1..n]
 
 dynamicFactorialDefinition
-    :: (GShow uni, GEq uni, uni `Includes` Integer, ToAnnotation uni ann)
+    :: (GShow uni, GEq uni, uni `Includes` Integer, FromConstant (Term TyName Name uni ann))
     => DynamicBuiltinNameDefinition (Term TyName Name uni ann)
 dynamicFactorialDefinition =
     DynamicBuiltinNameDefinition dynamicFactorialName dynamicFactorialMeaning

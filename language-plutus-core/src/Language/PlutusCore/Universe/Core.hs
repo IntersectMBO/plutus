@@ -48,7 +48,7 @@ import           Language.Haskell.TH.Syntax
 import           Text.Show.Deriving
 
 import           Language.PlutusCore.Pretty (PrettyConst, prettyConst)
-    
+
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
 

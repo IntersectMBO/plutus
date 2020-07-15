@@ -130,6 +130,8 @@ data ExBudgetMode =
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
 class ToExMemory term where
+    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
+    -- return something arbitrary just to fit such a term into the builtin application machinery.
     toExMemory :: term -> ExMemory
 
 instance ToExMemory (Term TyName Name uni ()) where
