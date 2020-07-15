@@ -7,6 +7,7 @@ generating Plutus Core types and terms.
 -}
 
 {-# LANGUAGE DeriveDataTypeable  #-}
+{-# LANGUAGE EmptyCase           #-}
 {-# LANGUAGE EmptyDataDeriving   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE RecordWildCards     #-}
@@ -53,8 +54,7 @@ instance Enumerable n => Enumerable (S n) where
 
 -- |Absurd for the zero type.
 fromZ :: Z -> a
-fromZ i = i `seq` error "instance of empty type Z"
-
+fromZ i = case i of {}
 
 -- * Namespaces
 
