@@ -230,7 +230,8 @@ library
         template-haskell -any,
         data-default -any,
         data-default-class -any,
-        transformers -any
+        transformers -any,
+        Stream -any
 
 executable language-plutus-core-generate-evaluation-test
     import: lang
@@ -284,6 +285,7 @@ test-suite language-plutus-core-test
         prettyprinter -any,
         serialise -any,
         size-based -any,
+        Stream -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,

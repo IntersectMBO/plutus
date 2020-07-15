@@ -30,6 +30,7 @@ module Language.PlutusCore.Gen.Type
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Coolean
+import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
@@ -122,7 +123,7 @@ type ClosedTypeG = TypeG Z
 -- |Convert generated closed types to Plutus types.
 toClosedType
   :: (MonadQuote m, MonadError GenError m)
-  => [Text.Text]
+  => Stream.Stream Text.Text
   -> Kind ()
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())

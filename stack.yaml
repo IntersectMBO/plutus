@@ -25,7 +25,8 @@ extra-deps:
 - lazy-search-0.1.2.0
 - size-based-0.1.2.0
 - testing-feat-1.1.0.0
-
+- Stream-0.4.7.2@sha256:ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53,1009
+- lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
 # Other missing packages
 - aws-lambda-haskell-runtime-2.0.4
 - binary-instances-1.0.0.1

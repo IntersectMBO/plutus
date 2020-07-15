@@ -26,6 +26,7 @@ import           Language.PlutusCore.Pretty
 import           Control.Monad.Except
 import           Control.Search
 import qualified Data.Coolean                   as Cool
+import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Test.Tasty.HUnit
 import           Text.Printf
@@ -85,7 +86,7 @@ toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
     typrop_ok = typrop kG tyG (toClosedType kG tyG)
 
 -- |Stream of type names t0, t1, t2, ..
-tynames :: [Text.Text]
+tynames :: Stream.Stream Text.Text
 tynames = mkTextNameStream "t"
 
 

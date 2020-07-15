@@ -29,6 +29,7 @@ module Language.PlutusCore.Gen.Common
 
 
 import           Control.Enumerable
+import qualified Data.Stream               as Stream
 import qualified Data.Text                 as Text
 import           Language.PlutusCore.Name  (Name, TyName (..))
 import           Language.PlutusCore.Quote (MonadQuote (..), freshName)
@@ -58,7 +59,7 @@ fromZ i = case i of {}
 
 -- * Namespaces
 
-data NameState n = NameState { nameOf :: n -> Name, freshNameStrings :: [Text.Text] }
+data NameState n = NameState { nameOf :: n -> Name, freshNameStrings :: Stream.Stream Text.Text }
 
 newtype TyNameState n = TyNameState (NameState n)
 
@@ -66,7 +67,7 @@ tynameOf :: TyNameState n -> n -> TyName
 tynameOf (TyNameState NameState{..}) i = TyName (nameOf i)
 
 -- |Create an empty name state from a stream of text names.
-emptyNameState :: [Text.Text] -> NameState Z
+emptyNameState :: Stream.Stream Text.Text -> NameState Z
 emptyNameState strs = NameState { nameOf = fromZ, freshNameStrings = strs }
 
 -- |Extend name state with a fresh name.
@@ -75,15 +76,15 @@ extendNameState
   => NameState n
   -> m (NameState (S n))
 extendNameState NameState{..} = liftQuote $ do
-  let str = head freshNameStrings
-      freshNameStrings' = tail freshNameStrings
+  let str = Stream.head freshNameStrings
+      freshNameStrings' = Stream.tail freshNameStrings
   name <- freshName str
   let nameOf' FZ     = name
       nameOf' (FS i) = nameOf i
   return NameState { nameOf = nameOf', freshNameStrings = freshNameStrings' }
 
 -- |Create an empty name state from a stream of text names.
-emptyTyNameState :: [Text.Text] -> TyNameState Z
+emptyTyNameState :: Stream.Stream Text.Text -> TyNameState Z
 emptyTyNameState strs = TyNameState (emptyNameState strs)
 
 -- |Extend type name state with a fresh type name.
@@ -95,5 +96,8 @@ extendTyNameState (TyNameState nameState) =
   TyNameState <$> extendNameState nameState
 
 -- |Create a stream of names |x0, x1, x2, ...| from a prefix |"x"|
-mkTextNameStream :: Text.Text -> [Text.Text]
-mkTextNameStream prefix = [ prefix <> Text.pack (show n) | n <- [0 :: Integer ..] ]
+mkTextNameStream :: Text.Text -> Stream.Stream Text.Text
+mkTextNameStream prefix =
+  Stream.map
+    (\n -> prefix <> Text.pack (show n))
+    (Stream.iterate (+1) (0 :: Integer))
