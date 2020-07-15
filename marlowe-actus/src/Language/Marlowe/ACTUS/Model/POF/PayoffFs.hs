@@ -21,7 +21,6 @@ import Language.Marlowe.ACTUS.MarloweCompat
     ( useval, constnt, enum )
 import Data.Time (Day)
 
-
 payoffFs :: EventType -> ContractTerms -> Integer -> Day -> Value Observation
 payoffFs ev ContractTerms{..} t curDate = 
     let __NT              = constnt _NT
