@@ -1,6 +1,7 @@
 -- | An internal module that defines functions for deciding equality of values of data types
 -- that encode things with binders.
 
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -10,7 +11,10 @@
 module Language.PlutusCore.Eq
     ( LR (..)
     , RL (..)
+    , Bilateral (..)
     , EqRename
+    , TypeEtaMapping
+    , ScopedEtaMapping
     , ScopedEqRename
     , runEqRename
     , withTwinBindings
@@ -23,7 +27,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Rename.Monad
 
-import           Control.Lens
+import           Control.Lens                     hiding (mapping)
 
 {- Note [Modulo alpha]
 The implemented algorithm of checking equality modulo alpha works as follows
@@ -77,7 +81,7 @@ of terms and programs). This amounts to the following generic monad:
 i.e. regardless of what the underlying renaming is, it has to be bilateral.
 
 We zoom into the sides of a bilateral renaming using the 'LR' and 'RL' newtype wrappers using the
-same 'HasRenaming' machinery that we use for zooming into the scopes of a scoped renaming:
+same 'HasMapping' machinery that we use for zooming into the scopes of a scoped renaming:
 
 - the 'LR' wrapper allows to retrieve a lens focusing on the left  renaming
 - the 'RL' wrapper allows to retrieve a lens focusing on the right renaming
@@ -135,18 +139,22 @@ instance Monoid a => Monoid (Bilateral a) where
     mempty = Bilateral mempty mempty
 
 -- To rename from left to right is to update the left renaming.
-instance HasRenaming ren unique => HasRenaming (Bilateral ren) (LR unique) where
-    renaming = bilateralL . renaming . coerced @(Renaming unique)
+instance HasMapping ren unique a => HasMapping (Bilateral ren) (LR unique) a where
+    mapping = bilateralL . mapping . coerced @(UniqueMap unique a)
 
 -- To rename from right to left is to update the right renaming.
-instance HasRenaming ren unique => HasRenaming (Bilateral ren) (RL unique) where
-    renaming = bilateralR . renaming . coerced @(Renaming unique)
+instance HasMapping ren unique a => HasMapping (Bilateral ren) (RL unique) a where
+    mapping = bilateralR . mapping . coerced @(UniqueMap unique a)
 
 -- | The type of a runnable equality check. @Maybe ()@ is isomorphic to 'Bool' and we use it
 -- instead of 'Bool', because this unlocks the convenient and readable do-notation and allows for
 -- automatic short-circuiting, which would be tedious with @Rename (Bilateral ren) Bool@.
 type EqRename ren = RenameT (Bilateral ren) Maybe ()
-type ScopedEqRename = EqRename ScopedRenaming
+
+type TypeEtaMapping   = TypeMapping (Maybe TypeUnique)
+type ScopedEtaMapping = ScopedMapping (Maybe TypeUnique) (Maybe TermUnique)
+
+type ScopedEqRename = EqRename ScopedEtaMapping
 
 -- | Run an 'EqRename' computation.
 runEqRename :: Monoid ren => EqRename ren -> Bool
@@ -155,26 +163,29 @@ runEqRename = isJust . runRenameT
 -- See Note [Modulo alpha].
 -- | Record that two names map to each other.
 withTwinBindings
-    :: (HasRenaming ren unique, HasUnique name unique, Monad m)
+    :: (HasMapping ren unique (Maybe unique), HasUnique name unique, Monad m)
     => name -> name -> RenameT (Bilateral ren) m c -> RenameT (Bilateral ren) m c
 withTwinBindings name1 name2 k =
-    withRenamedName (LR name1) (LR name2) $
-    withRenamedName (RL name2) (RL name1) k
+    withMappedName (LR name1) (Just $ name2 ^. unique) $
+    withMappedName (RL name2) (Just $ name1 ^. unique) k
 
 -- See Note [Modulo alpha].
 -- | Check equality of two names.
 eqNameM
-    :: (HasRenaming ren unique, HasUnique name unique, Eq unique)
+    :: (HasMapping ren unique (Maybe unique), HasUnique name unique, Eq unique)
     => name -> name -> EqRename ren
 eqNameM name1 name2 = do
-    mayUniq2' <- lookupNameM $ LR name1
-    mayUniq1' <- lookupNameM $ RL name2
+    mayMayUniq2' <- lookupNameM $ LR name1
+    mayMayUniq1' <- lookupNameM $ RL name2
     let uniq1 = name1 ^. unique
         uniq2 = name2 ^. unique
-    guard $ case (mayUniq1', mayUniq2') of
-        (Nothing         , Nothing         ) -> uniq1 == uniq2
-        (Just (RL uniq1'), Just (LR uniq2')) -> uniq1 == uniq1' && uniq2 == uniq2'
-        (_               , _               ) -> False
+    guard $ case (mayMayUniq1', mayMayUniq2') of
+        (Nothing       , Nothing       ) -> uniq1 == uniq2
+        (Just mayUniq1', Just mayUniq2') -> fromMaybe False $ do
+            uniq1' <- mayUniq1'
+            uniq2' <- mayUniq2'
+            Just $ uniq1 == uniq1' && uniq2 == uniq2'
+        (_             , _             ) -> False
 
 -- | Check equality of things having an 'Eq' instance.
 eqM :: Eq a => a -> a -> EqRename ren

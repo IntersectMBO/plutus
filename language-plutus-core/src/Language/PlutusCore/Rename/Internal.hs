@@ -3,6 +3,7 @@
 
 module Language.PlutusCore.Rename.Internal
     ( module Export
+    , ScopedRenameT
     , withFreshenedTyVarDecl
     , withFreshenedVarDecl
     , renameTypeM
@@ -15,6 +16,8 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Rename.Monad as Export
+
+type ScopedRenameT = RenameT (ScopedMapping TypeUnique TermUnique)
 
 -- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
 -- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.

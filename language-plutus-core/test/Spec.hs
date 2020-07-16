@@ -22,11 +22,14 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
 import           Codec.Serialise
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                                       as BSL
+import           Data.Foldable
+import           Data.List
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import           Hedgehog                                                   hiding (Var)
@@ -281,6 +284,77 @@ testRebindCapturedVariable =
                 varX
     in [typeL1, typeL2] == [typeR1, typeR2]
 
+allDistinct :: Eq a => [a] -> Bool
+allDistinct []     = True
+allDistinct (x:xs) = x `notElem` xs && allDistinct xs
+
+splits :: [a] -> [([a], [a])]
+splits xs = zip (inits xs) (tails xs)
+
+-- This generates thousands of test cases.
+tyEtaPairs :: [(Type TyName DefaultUni (), Type TyName DefaultUni (), Bool)]
+tyEtaPairs = do
+    let (x, y, f) = runQuote $ (,,) <$> freshTyName "x" <*> freshTyName "y" <*> freshTyName "f"
+        -- @varRows 2 ~> [[],[x],[y],[x,x],[x,y],[y,x],[y,y]]@
+        varRows n = [0..n] >>= \i -> replicateM i [x, y]
+    -- The 'x' variable goes always goes first, because if we also allowed 'y' to go first,
+    -- that would just duplicate all the tests as @\x y -> x@ and @\y x -> y@ are alpha-equal.
+    binds1 <- map (x :) (varRows 2)
+    args1  <- do
+        -- Here we compute these lists of lists that get transformed and fed to @f@ as arguments:
+        -- [ []
+        -- , [x]   , [\x -> x]   , [\y -> x]   , [\x x -> x]   , ...
+        -- , [y]   , [\x -> y]   , [\y -> y]   , [\x x -> y]   , ...
+        -- , [x, x], [\x -> x, x], [\y -> x, x], [\x x -> x, x], ... , [x, \x -> x] , ...
+        -- , [x, y], [\x -> x, y], [\y -> x, y], [\x x -> x, y], ... , [x, \x -> y] , ...
+        -- ...
+        -- ]
+        args <- varRows 3
+        for args $ \arg -> flip (,) arg <$> varRows 1
+    (binds2, bindsDiff) <- splits binds1
+    (args2 , argsDiff ) <- splits args1
+    let mkLams = mkIterTyLam . map (\v -> TyVarDecl () v $ Type ())
+        -- > mkTy [x, y] [([x1, y1], a), ([x2, y2], b)] ~>
+        -- >   \x y -> f (\x1 y1 -> a) (\x2 y2 -> b)
+        mkTy binds
+            = mkLams binds
+            . mkIterTyApp () (TyVar () f)
+            . map (\(locs, body) -> mkLams locs $ TyVar () body)
+        ty1 = mkTy binds1 args1
+        ty2 = mkTy binds2 args2
+        -- Answers this question: is 'ty2' a correct eta-contracted version of 'ty1'?
+        -- Note that the eta-contractibility relation is reflexive.
+        res = and
+            [ -- Removed arguments of @f@ are the same variables, in exactly the same order,
+              -- as removed outer lambda bindings.
+              map ((,) []) bindsDiff == argsDiff
+              -- All removed lambda bindings are different variables. We can't just require
+              -- @allDistinct binds1@, because @(\x x -> f x) == (\x -> f)@ does hold.
+            , allDistinct bindsDiff
+              -- None of the removed lambda bindings are referenced in the remaining arguments.
+              -- The @concatMap@ ensures that if a variable bound by an outer lambda is shadowed
+              -- by a local lambda binding, then the outer variable is not referenced.
+            , null $ bindsDiff `intersect` concatMap (\(locs, body) -> [body] \\ locs) args2
+            ]
+    -- We generate tuples like that:
+    --
+    --     ( \x y -> f (\y -> y) x y
+    --     , f (\y -> y)
+    --     , True
+    --     )
+    --
+    -- The 'True' says that the second type is a correct eta-contracted version of the first type.
+    -- "A correct" is due to the fact that it's also correct to eta-contract the first type to
+    -- @\x -> f (\y -> y) x@ and such a test case gets generated as well.
+    [(ty1, ty2, res)]
+
+testEtaEquality :: Assertion
+testEtaEquality =
+    for_ tyEtaPairs $ \(ty1, ty2, b) ->
+        if b
+            then unless (ty1 == ty2) . assertFailure $ displayPlcDef (ty1, ty2, b)
+            else unless (ty1 /= ty2) . assertFailure $ displayPlcDef (ty1, ty2, b)
+
 tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0\n  [ [ (builtin addInteger) x ] y ]\n)"
@@ -289,6 +363,7 @@ tests = testCase "example programs" $ fold
     , testRebindShadowedVariable @?= True
     , testRebindCapturedVariable @?= True
     , testEqTerm @?= True
+    , testEtaEquality
     ]
     where
         fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text

@@ -1,21 +1,27 @@
 -- | The monad that the renamer runs in and related infrastructure.
 
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Rename.Monad
     ( RenameT (..)
-    , ScopedRenameT
-    , Renaming (..)
-    , TypeRenaming
-    , ScopedRenaming (..)
-    , HasRenaming (..)
+    , Renaming
+    , TypeMapping
+    , TermMapping
+    , ScopedMapping (..)
+    , HasMapping (..)
+    , HasRenaming
     , scopedRenamingTypes
     , scopedRenamingTerms
     , runRenameT
     , lookupNameM
+    , withMappedUnique
+    , withMappedName
     , renameNameM
     , withFreshenedName
     , withRenamedName
@@ -26,7 +32,7 @@ import           PlutusPrelude
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Quote
 
-import           Control.Lens
+import           Control.Lens              hiding (mapping)
 import           Control.Monad.Reader
 
 -- | The monad the renamer runs in.
@@ -38,74 +44,87 @@ newtype RenameT ren m a = RenameT
         , MonadQuote
         )
 
--- | A renaming is a mapping from old uniques to new ones.
-newtype Renaming unique = Renaming
-    { unRenaming :: UniqueMap unique unique
-    } deriving newtype (Semigroup, Monoid)
-
--- | A type-level renaming.
--- Needed for instantiating functions running over types in generic @RenameT ren m@ to
--- a particular type of renaming.
-type TypeRenaming = Renaming TypeUnique
-
 -- | A class that specifies which 'Renaming' a @ren@ has inside.
 -- A @ren@ can contain several 'Renaming's (like 'Scoped', for example).
-class Coercible unique Unique => HasRenaming ren unique where
-    renaming :: Lens' ren (Renaming unique)
+class Coercible unique Unique => HasMapping map unique a | map unique -> a where
+    mapping :: Lens' map (UniqueMap unique a)
+
+-- | A renaming is a mapping from old uniques to new ones.
+type Renaming unique = UniqueMap unique unique
+
+type HasRenaming ren unique = HasMapping ren unique unique
+
+-- | A type-level mapping.
+-- Needed for instantiating functions running over types in generic @RenameT ren m@ to
+-- a particular type of renaming.
+type TypeMapping = UniqueMap TypeUnique
+
+-- | A term-level mapping.
+-- Needed for symmetry with 'TypeMapping'.
+type TermMapping = UniqueMap TermUnique
 
 -- | Scoping-aware mapping from locally unique uniques to globally unique uniques.
-data ScopedRenaming = ScopedRenaming
-    { _scopedRenamingTypes :: Renaming TypeUnique
-    , _scopedRenamingTerms :: Renaming TermUnique
+data ScopedMapping type' term' = ScopedMapping
+    { _scopedRenamingTypes :: TypeMapping type'
+    , _scopedRenamingTerms :: TermMapping term'
     }
 
-makeLenses ''ScopedRenaming
+makeLenses ''ScopedMapping
 
-type ScopedRenameT = RenameT ScopedRenaming
+instance Semigroup (ScopedMapping type' term') where
+    ScopedMapping types1 terms1 <> ScopedMapping types2 terms2 =
+        ScopedMapping (types1 <> types2) (terms1 <> terms2)
 
-instance Semigroup ScopedRenaming where
-    ScopedRenaming types1 terms1 <> ScopedRenaming types2 terms2 =
-        ScopedRenaming (types1 <> types2) (terms1 <> terms2)
-
-instance Monoid ScopedRenaming where
-    mempty = ScopedRenaming mempty mempty
+instance Monoid (ScopedMapping type' term') where
+    mempty = ScopedMapping mempty mempty
 
 instance (Coercible unique1 Unique, unique1 ~ unique2) =>
-        HasRenaming (Renaming unique1) unique2 where
-    renaming = id
+        HasMapping (UniqueMap unique1 a) unique2 a where
+    mapping = id
 
-instance HasRenaming ScopedRenaming TypeUnique where
-    renaming = scopedRenamingTypes . renaming
+instance HasMapping (ScopedMapping type' term') TypeUnique type' where
+    mapping = scopedRenamingTypes . mapping
 
-instance HasRenaming ScopedRenaming TermUnique where
-    renaming = scopedRenamingTerms . renaming
+instance HasMapping (ScopedMapping type' term') TermUnique term' where
+    mapping = scopedRenamingTerms . mapping
 
 -- | Run a 'RenameT' computation with an empty renaming.
 runRenameT :: Monoid ren => RenameT ren m a -> m a
 runRenameT (RenameT a) = runReaderT a mempty
 
--- | Map the underlying representation of 'Renaming'.
-mapRenaming
-    :: (UniqueMap unique unique -> UniqueMap unique unique)
-    -> Renaming unique
-    -> Renaming unique
-mapRenaming = coerce
-
--- | Save the mapping from the @unique@ of a name to a new @unique@.
-insertByNameM
-    :: (HasUnique name unique, HasRenaming ren unique)
-    => name -> unique -> ren -> ren
-insertByNameM name = over renaming . mapRenaming . insertByName name
-
 -- | Look up the new unique a name got mapped to.
 lookupNameM
-    :: (HasUnique name unique, HasRenaming ren unique, Monad m)
-    => name -> RenameT ren m (Maybe unique)
-lookupNameM name = asks $ lookupName name . unRenaming . view renaming
+    :: (HasUnique name unique, HasMapping map unique a, Monad m)
+    => name -> RenameT map m (Maybe a)
+lookupNameM name = asks $ lookupName name . view mapping
+
+-- | Save the mapping from a @unique@ to a value.
+insertByUniqueM
+    :: HasMapping map unique a
+    => unique -> a -> map -> map
+insertByUniqueM uniq = over mapping . insertByUnique uniq
+
+-- | Save the mapping from the @unique@ of a name to a value.
+insertByNameM
+    :: (HasUnique name unique, HasMapping map unique a)
+    => name -> a -> map -> map
+insertByNameM name = over mapping . insertByName name
+
+-- | Run a 'RenameT' computation in the environment extended by the mapping from a unique to a value.
+withMappedUnique
+    :: (HasMapping map unique a, Monad m)
+    => unique -> a -> RenameT map m c -> RenameT map m c
+withMappedUnique uniq = local . insertByUniqueM uniq
+
+-- | Run a 'RenameT' computation in the environment extended by the mapping from a name to a value.
+withMappedName
+    :: (HasUnique name unique, HasMapping map unique a, Monad m)
+    => name -> a -> RenameT map m c -> RenameT map m c
+withMappedName name = local . insertByNameM name
 
 -- | Rename a name that has a unique inside.
 renameNameM
-    :: (HasRenaming ren unique, HasUnique name unique, Monad m)
+    :: (HasUnique name unique, HasRenaming ren unique, Monad m)
     => name -> RenameT ren m name
 renameNameM name = do
     mayUniqNew <- lookupNameM name
@@ -116,7 +135,7 @@ renameNameM name = do
 -- | Replace the unique in a name by a new unique, save the mapping
 -- from the old unique to the new one and supply the updated value to a continuation.
 withFreshenedName
-    :: (HasRenaming ren unique, HasUnique name unique, MonadQuote m)
+    :: (HasUnique name unique, HasRenaming ren unique, MonadQuote m)
     => name -> (name -> RenameT ren m c) -> RenameT ren m c
 withFreshenedName nameOld k = do
     uniqNew <- coerce <$> freshUnique
@@ -125,6 +144,6 @@ withFreshenedName nameOld k = do
 -- | Run a 'RenameT' computation in the environment extended by the mapping from an old name
 -- to a new one.
 withRenamedName
-    :: (HasRenaming ren unique, HasUnique name unique, Monad m)
+    :: (HasUnique name unique, HasRenaming ren unique, Monad m)
     => name -> name -> RenameT ren m c -> RenameT ren m c
-withRenamedName old new = local $ insertByNameM old (new ^. unique)
+withRenamedName old new = withMappedName old $ new ^. unique

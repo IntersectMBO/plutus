@@ -40,7 +40,7 @@ class Rename a where
 
 instance HasUniques (Type tyname uni ann) => Rename (Type tyname uni ann) where
     -- See Note [Marking].
-    rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
+    rename = through markNonFreshType >=> runRenameT @(TypeMapping TypeUnique) . renameTypeM
 
 instance HasUniques (Term tyname name uni ann) => Rename (Term tyname name uni ann) where
     -- See Note [Marking].
