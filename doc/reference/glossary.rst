@@ -70,17 +70,17 @@ Glossary
       A data structure containing a summary of the transaction being
       validated, and the current forging policy which is being run.
 
+    forging policy script
+      A script which must be satisfied in order for a transaction to forge
+      tokens of the corresponding currency.
+
     Marlowe
       A domain-specific language for writing financial contract
       applications.
 
-    monetary policy script
-      A script which must be satisfied in order for a transaction to forge
-      tokens of the corresponding currency.
-
-    multicurrency
+    multi-asset
       A generic term for a ledger which supports multiple different
-      currencies natively.
+      asset types natively.
 
     off-chain code
       The part of a contract application’s code which runs off the chain,
