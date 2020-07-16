@@ -7,8 +7,8 @@ Writing basic validator scripts
 :term:`Validator scripts<validator script>` are the programs that can be used to lock transaction outputs on the chain.
 Validator scripts are :term:`Plutus Core` programs, but we can use :term:`Plutus Tx` to write them easily in Haskell.
 
-The ``Data`` type
------------------
+Validator arguments
+-------------------
 
 Validators receive some information from the validating node:
 
@@ -16,8 +16,13 @@ Validators receive some information from the validating node:
 - The :term:`datum`, which is some script-specific data specified by the party who created the output.
 - The :term:`validation context`, which contains a representation of the spending transaction, as well as the index of the input whose validator is currently being run.
 
-These three are passed as *arguments* to the validator.
-But how are they passed?
+The validator is a function which receives these three inputs as *arguments*.
+The validating node is responsible for passing them in and running the validator.
+
+The ``Data`` type
+-----------------
+
+But how are the validator's arguments passed?
 At least the redeemer and datum can be of different types depending on the script.
 
 The answer is that we pass them as a generic structured data type :hsobj:`Language.PlutusTx.Data.Data`.
