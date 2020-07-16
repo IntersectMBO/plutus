@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -95,20 +96,20 @@ allPlc :: CompiledCode PLC.DefaultUni Bool
 allPlc = $$(compile [|| all (\(x::Integer) -> x > 5) [7, 6] ||])
 
 convertString :: CompiledCode PLC.DefaultUni Builtins.String
-convertString = $$(compile [|| toPlutusString "test" ||])
+convertString = $$(compile [|| "test" ||])
 
 traceDirect :: CompiledCode PLC.DefaultUni ()
-traceDirect = $$(compile [|| Builtins.trace (toPlutusString "test") ||])
+traceDirect = $$(compile [|| Builtins.trace "test" ||])
 
 tracePrelude :: CompiledCode PLC.DefaultUni Integer
-tracePrelude = $$(compile [|| trace (toPlutusString "test") (1::Integer) ||])
+tracePrelude = $$(compile [|| trace "test" (1::Integer) ||])
 
 traceRepeatedly :: CompiledCode PLC.DefaultUni Integer
 traceRepeatedly = $$(compile
      [||
-               let i1 = traceH "Making my first int" (1::Integer)
-                   i2 = traceH "Making my second int" (2::Integer)
-                   i3 = traceH "Adding them up" (i1 + i2)
+               let i1 = trace "Making my first int" (1::Integer)
+                   i2 = trace "Making my second int" (2::Integer)
+                   i3 = trace "Adding them up" (i1 + i2)
               in i3
     ||])
 

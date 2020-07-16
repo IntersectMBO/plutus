@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -70,11 +71,11 @@ mkValidator Swap{..} SwapOwners{..} redeemer p@ValidatorCtx{valCtxTxInfo=txInfo}
         extractVerifyAt :: SignedMessage (Observation Rational) -> PubKey -> Slot -> Rational
         extractVerifyAt sm pk slt =
             case Oracle.verifySignedMessageOnChain p pk sm of
-                Left _ -> traceH "checkSignatureAndDecode failed" (error ())
+                Left _ -> trace "checkSignatureAndDecode failed" (error ())
                 Right Observation{obsValue, obsSlot} ->
                     if obsSlot == slt
                         then obsValue
-                        else traceH "wrong slot" (error ())
+                        else trace "wrong slot" (error ())
 
         -- | Convert an [[Integer]] to a [[Rational]]
         fromInt :: Integer -> Rational

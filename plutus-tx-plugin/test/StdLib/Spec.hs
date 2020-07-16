@@ -117,4 +117,4 @@ genData =
             ]
 
 errorTrace :: CompiledCode PLC.DefaultUni (Integer)
-errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceErrorH "")
+errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

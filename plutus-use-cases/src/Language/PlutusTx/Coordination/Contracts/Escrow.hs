@@ -4,6 +4,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -179,8 +180,8 @@ meetsTarget ptx = \case
     ScriptTarget validatorHash dataValue vl ->
         case scriptOutputsAt validatorHash ptx of
             [(dataValue', vl')] ->
-                traceIfFalseH "dataValue" (dataValue' == dataValue)
-                && traceIfFalseH "value" (vl' `geq` vl)
+                traceIfFalse "dataValue" (dataValue' == dataValue)
+                && traceIfFalse "value" (vl' `geq` vl)
             _ -> False
 
 {-# INLINABLE validate #-}
@@ -188,11 +189,11 @@ validate :: EscrowParams DatumHash -> PubKeyHash -> Action -> ValidatorCtx -> Bo
 validate EscrowParams{escrowDeadline, escrowTargets} contributor action ValidatorCtx{valCtxTxInfo} =
     case action of
         Redeem ->
-            traceIfFalseH "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange valCtxTxInfo)
-            && traceIfFalseH "meetsTarget" (all (meetsTarget valCtxTxInfo) escrowTargets)
+            traceIfFalse "escrowDeadline-after" (escrowDeadline `after` txInfoValidRange valCtxTxInfo)
+            && traceIfFalse "meetsTarget" (all (meetsTarget valCtxTxInfo) escrowTargets)
         Refund ->
-            traceIfFalseH "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange valCtxTxInfo)
-            && traceIfFalseH "txSignedBy" (valCtxTxInfo `txSignedBy` contributor)
+            traceIfFalse "escrowDeadline-before" (escrowDeadline `before` txInfoValidRange valCtxTxInfo)
+            && traceIfFalse "txSignedBy" (valCtxTxInfo `txSignedBy` contributor)
 
 scriptInstance :: EscrowParams Datum -> Scripts.ScriptInstance Escrow
 scriptInstance escrow = go (Haskell.fmap Ledger.datumHash escrow) where

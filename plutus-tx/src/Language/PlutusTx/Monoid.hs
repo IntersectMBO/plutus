@@ -27,6 +27,10 @@ instance Monoid Builtins.ByteString where
     {-# INLINABLE mempty #-}
     mempty = Builtins.emptyByteString
 
+instance Monoid Builtins.String where
+    {-# INLINABLE mempty #-}
+    mempty = Builtins.emptyString
+
 instance Monoid [a] where
     {-# INLINABLE mempty #-}
     mempty = []

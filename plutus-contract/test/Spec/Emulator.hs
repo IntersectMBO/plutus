@@ -26,7 +26,6 @@ import qualified Data.Map                   as Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
 import           Data.String                (IsString (fromString))
-import           Data.String                (IsString (fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
 import qualified Hedgehog.Gen               as Gen
@@ -244,7 +243,7 @@ invalidScript = property $ do
         failValidator :: Validator
         failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
         validator :: () -> () -> ValidatorCtx -> Bool
-        validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
+        validator _ _ _ = PlutusTx.traceError "I always fail everything"
 
 
 txnFlowsTest :: Property

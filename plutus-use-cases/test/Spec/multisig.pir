@@ -1,6 +1,19 @@
 (program
   (let
     (nonrec)
+    (termbind
+      (strict)
+      (vardecl appendString (fun (con string) (fun (con string) (con string))))
+      (lam
+        arg (con string) (lam arg (con string) [ [ (builtin append) arg ] arg ])
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl charToString (fun (con char) (con string)))
+      (lam arg (con char) [ (builtin charToString) arg ])
+    )
+    (termbind (strict) (vardecl emptyString (con string)) (con ""))
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -223,366 +236,296 @@
             )
             (termbind
               (strict)
-              (vardecl
-                appendString (fun (con string) (fun (con string) (con string)))
-              )
+              (vardecl trace (fun (con string) Unit))
               (lam
                 arg
                 (con string)
-                (lam arg (con string) [ [ (builtin append) arg ] arg ])
+                [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
               )
             )
-            (termbind
-              (strict)
-              (vardecl charToString (fun (con char) (con string)))
-              (lam arg (con char) [ (builtin charToString) arg ])
+            (datatypebind
+              (datatype
+                (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+                (tyvardecl a (type)) (tyvardecl b (type))
+                Tuple2_match
+                (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+              )
             )
-            (termbind (strict) (vardecl emptyString (con string)) (con ""))
             (let
               (rec)
-              (termbind
-                (strict)
-                (vardecl toPlutusString (fun [List (con char)] (con string)))
-                (lam
-                  str
-                  [List (con char)]
-                  [
-                    [
-                      [
-                        {
-                          [ { Nil_match (con char) } str ]
-                          (fun Unit (con string))
-                        }
-                        (lam thunk Unit emptyString)
-                      ]
-                      (lam
-                        c
-                        (con char)
-                        (lam
-                          rest
-                          [List (con char)]
-                          (lam
-                            thunk
-                            Unit
-                            [
-                              [ appendString [ charToString c ] ]
-                              [ toPlutusString rest ]
-                            ]
-                          )
-                        )
-                      )
-                    ]
-                    Unit
-                  ]
+              (datatypebind
+                (datatype
+                  (tyvardecl Data (type))
+                  
+                  Data_match
+                  (vardecl B (fun (con bytestring) Data))
+                  (vardecl Constr (fun (con integer) (fun [List Data] Data)))
+                  (vardecl I (fun (con integer) Data))
+                  (vardecl List (fun [List Data] Data))
+                  (vardecl Map (fun [List [[Tuple2 Data] Data]] Data))
                 )
               )
               (let
                 (nonrec)
-                (termbind
-                  (strict)
-                  (vardecl trace (fun (con string) Unit))
-                  (lam
-                    arg
-                    (con string)
-                    [ (lam b (con unit) Unit) [ (builtin trace) arg ] ]
+                (datatypebind
+                  (datatype
+                    (tyvardecl Extended (fun (type) (type)))
+                    (tyvardecl a (type))
+                    Extended_match
+                    (vardecl Finite (fun a [Extended a]))
+                    (vardecl NegInf [Extended a])
+                    (vardecl PosInf [Extended a])
                   )
                 )
                 (datatypebind
                   (datatype
-                    (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
-                    (tyvardecl a (type)) (tyvardecl b (type))
-                    Tuple2_match
-                    (vardecl Tuple2 (fun a (fun b [[Tuple2 a] b])))
+                    (tyvardecl LowerBound (fun (type) (type)))
+                    (tyvardecl a (type))
+                    LowerBound_match
+                    (vardecl
+                      LowerBound (fun [Extended a] (fun Bool [LowerBound a]))
+                    )
                   )
                 )
-                (let
-                  (rec)
-                  (datatypebind
-                    (datatype
-                      (tyvardecl Data (type))
-                      
-                      Data_match
-                      (vardecl B (fun (con bytestring) Data))
-                      (vardecl Constr (fun (con integer) (fun [List Data] Data))
-                      )
-                      (vardecl I (fun (con integer) Data))
-                      (vardecl List (fun [List Data] Data))
-                      (vardecl Map (fun [List [[Tuple2 Data] Data]] Data))
+                (datatypebind
+                  (datatype
+                    (tyvardecl UpperBound (fun (type) (type)))
+                    (tyvardecl a (type))
+                    UpperBound_match
+                    (vardecl
+                      UpperBound (fun [Extended a] (fun Bool [UpperBound a]))
                     )
                   )
-                  (let
-                    (nonrec)
-                    (datatypebind
-                      (datatype
-                        (tyvardecl Extended (fun (type) (type)))
-                        (tyvardecl a (type))
-                        Extended_match
-                        (vardecl Finite (fun a [Extended a]))
-                        (vardecl NegInf [Extended a])
-                        (vardecl PosInf [Extended a])
-                      )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl Interval (fun (type) (type)))
+                    (tyvardecl a (type))
+                    Interval_match
+                    (vardecl
+                      Interval
+                      (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl LowerBound (fun (type) (type)))
-                        (tyvardecl a (type))
-                        LowerBound_match
-                        (vardecl
-                          LowerBound
-                          (fun [Extended a] (fun Bool [LowerBound a]))
-                        )
-                      )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl
+                      Tuple3 (fun (type) (fun (type) (fun (type) (type))))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl UpperBound (fun (type) (type)))
-                        (tyvardecl a (type))
-                        UpperBound_match
-                        (vardecl
-                          UpperBound
-                          (fun [Extended a] (fun Bool [UpperBound a]))
-                        )
-                      )
+                    (tyvardecl a (type))
+                    (tyvardecl b (type))
+                    (tyvardecl c (type))
+                    Tuple3_match
+                    (vardecl Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c]))))
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl TxOutRef (type))
+                    
+                    TxOutRef_match
+                    (vardecl
+                      TxOutRef
+                      (fun (con bytestring) (fun (con integer) TxOutRef))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl Interval (fun (type) (type)))
-                        (tyvardecl a (type))
-                        Interval_match
-                        (vardecl
-                          Interval
-                          (fun [LowerBound a] (fun [UpperBound a] [Interval a]))
-                        )
-                      )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl TxInInfo (type))
+                    
+                    TxInInfo_match
+                    (vardecl
+                      TxInInfo
+                      (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl
-                          Tuple3 (fun (type) (fun (type) (fun (type) (type))))
-                        )
-                        (tyvardecl a (type))
-                        (tyvardecl b (type))
-                        (tyvardecl c (type))
-                        Tuple3_match
-                        (vardecl
-                          Tuple3 (fun a (fun b (fun c [[[Tuple3 a] b] c])))
-                        )
-                      )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl Address (type))
+                    
+                    Address_match
+                    (vardecl PubKeyAddress (fun (con bytestring) Address))
+                    (vardecl ScriptAddress (fun (con bytestring) Address))
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl TxOutType (type))
+                    
+                    TxOutType_match
+                    (vardecl PayToPubKey TxOutType)
+                    (vardecl PayToScript (fun (con bytestring) TxOutType))
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl TxOut (type))
+                    
+                    TxOut_match
+                    (vardecl
+                      TxOut
+                      (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun TxOutType TxOut)))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl TxOutRef (type))
-                        
-                        TxOutRef_match
-                        (vardecl
-                          TxOutRef
-                          (fun (con bytestring) (fun (con integer) TxOutRef))
-                        )
-                      )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl TxInfo (type))
+                    
+                    TxInfo_match
+                    (vardecl
+                      TxInfo
+                      (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl TxInInfo (type))
-                        
-                        TxInInfo_match
-                        (vardecl
-                          TxInInfo
-                          (fun TxOutRef (fun [Maybe [[[Tuple3 (con bytestring)] (con bytestring)] (con bytestring)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] TxInInfo)))
-                        )
-                      )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl ValidatorCtx (type))
+                    
+                    ValidatorCtx_match
+                    (vardecl
+                      ValidatorCtx (fun TxInfo (fun (con integer) ValidatorCtx))
                     )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl Address (type))
-                        
-                        Address_match
-                        (vardecl PubKeyAddress (fun (con bytestring) Address))
-                        (vardecl ScriptAddress (fun (con bytestring) Address))
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl TxOutType (type))
-                        
-                        TxOutType_match
-                        (vardecl PayToPubKey TxOutType)
-                        (vardecl PayToScript (fun (con bytestring) TxOutType))
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl TxOut (type))
-                        
-                        TxOut_match
-                        (vardecl
-                          TxOut
-                          (fun Address (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun TxOutType TxOut)))
-                        )
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl TxInfo (type))
-                        
-                        TxInfo_match
-                        (vardecl
-                          TxInfo
-                          (fun [List TxInInfo] (fun [List TxOut] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]] (fun [Interval (con integer)] (fun [List (con bytestring)] (fun [List (con bytestring)] (fun [List [[Tuple2 (con bytestring)] Data]] (fun (con bytestring) TxInfo)))))))))
-                        )
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl ValidatorCtx (type))
-                        
-                        ValidatorCtx_match
-                        (vardecl
-                          ValidatorCtx
-                          (fun TxInfo (fun (con integer) ValidatorCtx))
-                        )
-                      )
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl
-                        wvalidate
-                        (fun [List (con bytestring)] (fun (con integer) (fun ValidatorCtx Bool)))
-                      )
+                  )
+                )
+                (termbind
+                  (strict)
+                  (vardecl
+                    wvalidate
+                    (fun [List (con bytestring)] (fun (con integer) (fun ValidatorCtx Bool)))
+                  )
+                  (lam
+                    ww
+                    [List (con bytestring)]
+                    (lam
+                      ww
+                      (con integer)
                       (lam
-                        ww
-                        [List (con bytestring)]
-                        (lam
-                          ww
-                          (con integer)
-                          (lam
-                            w
-                            ValidatorCtx
+                        w
+                        ValidatorCtx
+                        [
+                          [
                             [
-                              [
+                              {
                                 [
-                                  {
+                                  Bool_match
+                                  [
                                     [
-                                      Bool_match
+                                      greaterThanEqInteger
                                       [
+                                        { length (con bytestring) }
                                         [
-                                          greaterThanEqInteger
                                           [
-                                            { length (con bytestring) }
                                             [
-                                              [
-                                                [
-                                                  {
-                                                    { foldr (con bytestring) }
-                                                    [List (con bytestring)]
-                                                  }
-                                                  (lam
-                                                    e
-                                                    (con bytestring)
-                                                    (lam
-                                                      xs
+                                              {
+                                                { foldr (con bytestring) }
+                                                [List (con bytestring)]
+                                              }
+                                              (lam
+                                                e
+                                                (con bytestring)
+                                                (lam
+                                                  xs
+                                                  [List (con bytestring)]
+                                                  [
+                                                    {
+                                                      [ ValidatorCtx_match w ]
                                                       [List (con bytestring)]
-                                                      [
-                                                        {
-                                                          [
-                                                            ValidatorCtx_match w
-                                                          ]
-                                                          [List (con bytestring)]
-                                                        }
-                                                        (lam
-                                                          ds
-                                                          TxInfo
+                                                    }
+                                                    (lam
+                                                      ds
+                                                      TxInfo
+                                                      (lam
+                                                        ds
+                                                        (con integer)
+                                                        [
+                                                          {
+                                                            [ TxInfo_match ds ]
+                                                            [List (con bytestring)]
+                                                          }
                                                           (lam
                                                             ds
-                                                            (con integer)
-                                                            [
-                                                              {
-                                                                [
-                                                                  TxInfo_match
-                                                                  ds
-                                                                ]
-                                                                [List (con bytestring)]
-                                                              }
+                                                            [List TxInInfo]
+                                                            (lam
+                                                              ds
+                                                              [List TxOut]
                                                               (lam
                                                                 ds
-                                                                [List TxInInfo]
+                                                                [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                 (lam
                                                                   ds
-                                                                  [List TxOut]
+                                                                  [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
                                                                   (lam
                                                                     ds
-                                                                    [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                    [Interval (con integer)]
                                                                     (lam
                                                                       ds
-                                                                      [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] [[(lam k (type) (lam v (type) [List [[Tuple2 k] v]])) (con bytestring)] (con integer)]]
+                                                                      [List (con bytestring)]
                                                                       (lam
                                                                         ds
-                                                                        [Interval (con integer)]
+                                                                        [List (con bytestring)]
                                                                         (lam
                                                                           ds
-                                                                          [List (con bytestring)]
+                                                                          [List [[Tuple2 (con bytestring)] Data]]
                                                                           (lam
                                                                             ds
-                                                                            [List (con bytestring)]
-                                                                            (lam
-                                                                              ds
-                                                                              [List [[Tuple2 (con bytestring)] Data]]
-                                                                              (lam
-                                                                                ds
-                                                                                (con bytestring)
+                                                                            (con bytestring)
+                                                                            [
+                                                                              [
                                                                                 [
-                                                                                  [
+                                                                                  {
                                                                                     [
                                                                                       {
+                                                                                        Maybe_match
+                                                                                        (con bytestring)
+                                                                                      }
+                                                                                      [
                                                                                         [
                                                                                           {
-                                                                                            Maybe_match
+                                                                                            find
                                                                                             (con bytestring)
                                                                                           }
                                                                                           [
-                                                                                            [
-                                                                                              {
-                                                                                                find
-                                                                                                (con bytestring)
-                                                                                              }
-                                                                                              [
-                                                                                                equalsByteString
-                                                                                                e
-                                                                                              ]
-                                                                                            ]
-                                                                                            ds
+                                                                                            equalsByteString
+                                                                                            e
                                                                                           ]
                                                                                         ]
-                                                                                        (fun Unit [List (con bytestring)])
-                                                                                      }
-                                                                                      (lam
                                                                                         ds
-                                                                                        (con bytestring)
-                                                                                        (lam
-                                                                                          thunk
-                                                                                          Unit
-                                                                                          [
-                                                                                            [
-                                                                                              {
-                                                                                                Cons
-                                                                                                (con bytestring)
-                                                                                              }
-                                                                                              e
-                                                                                            ]
-                                                                                            xs
-                                                                                          ]
-                                                                                        )
-                                                                                      )
+                                                                                      ]
                                                                                     ]
+                                                                                    (fun Unit [List (con bytestring)])
+                                                                                  }
+                                                                                  (lam
+                                                                                    ds
+                                                                                    (con bytestring)
                                                                                     (lam
                                                                                       thunk
                                                                                       Unit
-                                                                                      xs
+                                                                                      [
+                                                                                        [
+                                                                                          {
+                                                                                            Cons
+                                                                                            (con bytestring)
+                                                                                          }
+                                                                                          e
+                                                                                        ]
+                                                                                        xs
+                                                                                      ]
                                                                                     )
-                                                                                  ]
-                                                                                  Unit
+                                                                                  )
                                                                                 ]
-                                                                              )
-                                                                            )
+                                                                                (lam
+                                                                                  thunk
+                                                                                  Unit
+                                                                                  xs
+                                                                                )
+                                                                              ]
+                                                                              Unit
+                                                                            ]
                                                                           )
                                                                         )
                                                                       )
@@ -590,73 +533,102 @@
                                                                   )
                                                                 )
                                                               )
-                                                            ]
+                                                            )
                                                           )
-                                                        )
-                                                      ]
+                                                        ]
+                                                      )
                                                     )
-                                                  )
-                                                ]
-                                                { Nil (con bytestring) }
-                                              ]
-                                              ww
+                                                  ]
+                                                )
+                                              )
                                             ]
+                                            { Nil (con bytestring) }
                                           ]
+                                          ww
                                         ]
-                                        ww
                                       ]
                                     ]
-                                    (fun Unit Bool)
-                                  }
-                                  (lam thunk Unit True)
+                                    ww
+                                  ]
                                 ]
-                                (lam
-                                  thunk
-                                  Unit
-                                  [
+                                (fun Unit Bool)
+                              }
+                              (lam thunk Unit True)
+                            ]
+                            (lam
+                              thunk
+                              Unit
+                              [
+                                [
+                                  {
                                     [
-                                      {
+                                      Unit_match
+                                      [
+                                        trace
                                         [
-                                          Unit_match
                                           [
-                                            trace
                                             [
-                                              toPlutusString
+                                              {
+                                                { foldr (con char) }
+                                                (con string)
+                                              }
+                                              (lam
+                                                a
+                                                (con char)
+                                                (lam
+                                                  m
+                                                  (con string)
+                                                  [
+                                                    [
+                                                      appendString
+                                                      [ charToString a ]
+                                                    ]
+                                                    m
+                                                  ]
+                                                )
+                                              )
+                                            ]
+                                            emptyString
+                                          ]
+                                          [
+                                            [ { Cons (con char) } (con 'n') ]
+                                            [
+                                              [ { Cons (con char) } (con 'o') ]
                                               [
                                                 [
-                                                  { Cons (con char) } (con 'n')
+                                                  { Cons (con char) } (con 't')
                                                 ]
                                                 [
                                                   [
                                                     { Cons (con char) }
-                                                    (con 'o')
+                                                    (con ' ')
                                                   ]
                                                   [
                                                     [
                                                       { Cons (con char) }
-                                                      (con 't')
+                                                      (con 'e')
                                                     ]
                                                     [
                                                       [
                                                         { Cons (con char) }
-                                                        (con ' ')
+                                                        (con 'n')
                                                       ]
                                                       [
                                                         [
                                                           { Cons (con char) }
-                                                          (con 'e')
+                                                          (con 'o')
                                                         ]
                                                         [
                                                           [
                                                             { Cons (con char) }
-                                                            (con 'n')
+                                                            (con 'u')
                                                           ]
                                                           [
                                                             [
                                                               {
                                                                 Cons (con char)
                                                               }
-                                                              (con 'o')
+                                                              (con 'g')
                                                             ]
                                                             [
                                                               [
@@ -664,7 +636,7 @@
                                                                   Cons
                                                                   (con char)
                                                                 }
-                                                                (con 'u')
+                                                                (con 'h')
                                                               ]
                                                               [
                                                                 [
@@ -672,7 +644,7 @@
                                                                     Cons
                                                                     (con char)
                                                                   }
-                                                                  (con 'g')
+                                                                  (con ' ')
                                                                 ]
                                                                 [
                                                                   [
@@ -680,7 +652,7 @@
                                                                       Cons
                                                                       (con char)
                                                                     }
-                                                                    (con 'h')
+                                                                    (con 's')
                                                                   ]
                                                                   [
                                                                     [
@@ -688,7 +660,7 @@
                                                                         Cons
                                                                         (con char)
                                                                       }
-                                                                      (con ' ')
+                                                                      (con 'i')
                                                                     ]
                                                                     [
                                                                       [
@@ -696,7 +668,7 @@
                                                                           Cons
                                                                           (con char)
                                                                         }
-                                                                        (con 's'
+                                                                        (con 'g'
                                                                         )
                                                                       ]
                                                                       [
@@ -706,7 +678,7 @@
                                                                             (con char)
                                                                           }
                                                                           (con
-                                                                            'i'
+                                                                            'n'
                                                                           )
                                                                         ]
                                                                         [
@@ -716,7 +688,7 @@
                                                                               (con char)
                                                                             }
                                                                             (con
-                                                                              'g'
+                                                                              'a'
                                                                             )
                                                                           ]
                                                                           [
@@ -726,7 +698,7 @@
                                                                                 (con char)
                                                                               }
                                                                               (con
-                                                                                'n'
+                                                                                't'
                                                                               )
                                                                             ]
                                                                             [
@@ -736,7 +708,7 @@
                                                                                   (con char)
                                                                                 }
                                                                                 (con
-                                                                                  'a'
+                                                                                  'u'
                                                                                 )
                                                                               ]
                                                                               [
@@ -746,7 +718,7 @@
                                                                                     (con char)
                                                                                   }
                                                                                   (con
-                                                                                    't'
+                                                                                    'r'
                                                                                   )
                                                                                 ]
                                                                                 [
@@ -756,7 +728,7 @@
                                                                                       (con char)
                                                                                     }
                                                                                     (con
-                                                                                      'u'
+                                                                                      'e'
                                                                                     )
                                                                                   ]
                                                                                   [
@@ -766,35 +738,13 @@
                                                                                         (con char)
                                                                                       }
                                                                                       (con
-                                                                                        'r'
+                                                                                        's'
                                                                                       )
                                                                                     ]
-                                                                                    [
-                                                                                      [
-                                                                                        {
-                                                                                          Cons
-                                                                                          (con char)
-                                                                                        }
-                                                                                        (con
-                                                                                          'e'
-                                                                                        )
-                                                                                      ]
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            Cons
-                                                                                            (con char)
-                                                                                          }
-                                                                                          (con
-                                                                                            's'
-                                                                                          )
-                                                                                        ]
-                                                                                        {
-                                                                                          Nil
-                                                                                          (con char)
-                                                                                        }
-                                                                                      ]
-                                                                                    ]
+                                                                                    {
+                                                                                      Nil
+                                                                                      (con char)
+                                                                                    }
                                                                                   ]
                                                                                 ]
                                                                               ]
@@ -817,69 +767,67 @@
                                             ]
                                           ]
                                         ]
-                                        (fun Unit Bool)
-                                      }
-                                      (lam thunk Unit False)
+                                      ]
                                     ]
-                                    Unit
-                                  ]
-                                )
-                              ]
-                              Unit
-                            ]
-                          )
-                        )
-                      )
-                    )
-                    (datatypebind
-                      (datatype
-                        (tyvardecl MultiSig (type))
-                        
-                        MultiSig_match
-                        (vardecl
-                          MultiSig
-                          (fun [List (con bytestring)] (fun (con integer) MultiSig))
-                        )
-                      )
-                    )
-                    (termbind
-                      (strict)
-                      (vardecl
-                        validate
-                        (fun MultiSig (fun Unit (fun Unit (fun ValidatorCtx Bool))))
-                      )
-                      (lam
-                        w
-                        MultiSig
-                        (lam
-                          w
-                          Unit
-                          (lam
-                            w
-                            Unit
-                            (lam
-                              w
-                              ValidatorCtx
-                              [
-                                { [ MultiSig_match w ] Bool }
-                                (lam
-                                  ww
-                                  [List (con bytestring)]
-                                  (lam
-                                    ww
-                                    (con integer)
-                                    [ [ [ wvalidate ww ] ww ] w ]
-                                  )
-                                )
+                                    (fun Unit Bool)
+                                  }
+                                  (lam thunk Unit False)
+                                ]
+                                Unit
                               ]
                             )
-                          )
+                          ]
+                          Unit
+                        ]
+                      )
+                    )
+                  )
+                )
+                (datatypebind
+                  (datatype
+                    (tyvardecl MultiSig (type))
+                    
+                    MultiSig_match
+                    (vardecl
+                      MultiSig
+                      (fun [List (con bytestring)] (fun (con integer) MultiSig))
+                    )
+                  )
+                )
+                (termbind
+                  (strict)
+                  (vardecl
+                    validate
+                    (fun MultiSig (fun Unit (fun Unit (fun ValidatorCtx Bool))))
+                  )
+                  (lam
+                    w
+                    MultiSig
+                    (lam
+                      w
+                      Unit
+                      (lam
+                        w
+                        Unit
+                        (lam
+                          w
+                          ValidatorCtx
+                          [
+                            { [ MultiSig_match w ] Bool }
+                            (lam
+                              ww
+                              [List (con bytestring)]
+                              (lam
+                                ww (con integer) [ [ [ wvalidate ww ] ww ] w ]
+                              )
+                            )
+                          ]
                         )
                       )
                     )
-                    validate
                   )
                 )
+                validate
               )
             )
           )
