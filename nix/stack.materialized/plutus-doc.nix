@@ -49,7 +49,7 @@
             (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
             ];
           buildable = true;
-          modules = [ "PlutusTx" ];
+          modules = [ "PlutusTx" "BasicValidators" ];
           hsSourceDirs = [ "tutorials" ];
           mainPath = ([
             "Main.hs"
