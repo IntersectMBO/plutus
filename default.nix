@@ -36,6 +36,8 @@ let
   };
 
   sphinxcontrib-haddock = pkgs.callPackage sources.sphinxcontrib-haddock { pythonPackages = pkgs.python3Packages; };
+  sphinx-markdown-tables = pkgs.python3Packages.callPackage ./nix/python/sphinx-markdown-tables.nix {};
+  sphinxemoji = pkgs.python3Packages.callPackage ./nix/python/sphinxemoji.nix {};
 
   pkgsMusl = import ./nix/default.nix {
     inherit system config sourcesOverride;
@@ -54,7 +56,12 @@ let
   easyPS = pkgs.callPackage sources.easy-purescript-nix {};
 
 in rec {
-  inherit pkgs localLib iohkNix sphinxcontrib-haddock;
+  inherit pkgs localLib iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
+
+  python = {
+    inherit sphinx-markdown-tables sphinxemoji;
+    inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
+  };
 
   # The git revision comes from `rev` if available (Hydra), otherwise
   # it is read using IFD and git, which is avilable on local builds.
@@ -113,7 +120,7 @@ in rec {
 
   docs = pkgs.recurseIntoAttrs rec {
     site = pkgs.callPackage ./doc {
-      inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
+      inherit (python) sphinxcontrib-haddock sphinxcontrib-domaintools sphinx-markdown-tables sphinxemoji;
       inherit combined-haddock;
       pythonPackages = pkgs.python3Packages;
     };
