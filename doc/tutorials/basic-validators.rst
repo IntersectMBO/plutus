@@ -65,6 +65,7 @@ However, a decoding failure indicates a mistake in the transaction that was subm
 
 .. important::
    Unfortunately there's no way to provide failure diagnostics when a validator fails on chain -- it just fails.
+   However, since transaction validation is entirely deterministic, you'll always be informed of this before you submit the transaction to the chain, so you can debug it locally.
 
 Here's an example that uses our date types to check whether the date which was provided is less than the stored limit in the datum.
 
