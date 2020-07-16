@@ -8,4 +8,4 @@ sphinx:
 python:
   version: 3.7
   install:
-    - requirements: doc/.sphinx/requirements.txt
+    - requirements: doc/requirements.txt

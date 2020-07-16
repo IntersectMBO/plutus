@@ -60,8 +60,8 @@ intersphinx_mapping = haddock_mapping
 
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['.sphinx/_templates']
-html_static_path = ['.sphinx/_static']
+templates_path = ['_templates']
+html_static_path = ['_static']
 
 source_suffix = {
     '.rst': 'restructuredtext',
@@ -95,7 +95,7 @@ html_theme_options = {
     'titles_only': False
 }
 
-html_logo = ".sphinx/cardano-logo.png"
+html_logo = "cardano-logo.png"
 
 html_context = {
   "display_github": True, # Add 'Edit on Github' link instead of 'View page source'
