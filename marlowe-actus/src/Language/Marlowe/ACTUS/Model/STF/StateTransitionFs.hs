@@ -3,12 +3,9 @@
 module Language.Marlowe.ACTUS.Model.STF.StateTransitionFs (stateTransitionFs) where
 
 import Data.Time ( Day )
-import Language.Marlowe.ACTUS.Definitions.ContractState
-    ( ContractStatePoly(ContractStatePoly, ipcb, prnxt, sd, prf, isc,
-                        nsc, fac, feac, ipac, ipnr, nt, tmd),
-      ContractState )
+
 import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( EventType(..), RiskFactors(..))
+    ( EventType(..))
 
 import Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
     ( _STF_AD_PAM,

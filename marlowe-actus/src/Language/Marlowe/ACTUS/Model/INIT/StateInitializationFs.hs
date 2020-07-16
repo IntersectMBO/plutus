@@ -16,7 +16,7 @@ import Data.Maybe ( fromMaybe )
 import Data.Time ( Day )
 import Language.Marlowe.ACTUS.Model.Utility.DateShift ( applyBDCWithCfg )
 import Language.Marlowe.ACTUS.MarloweCompat
-    ( useval, constnt, enum )
+    ( useval, constnt, enum, stateInitialisation)
 
 
 shift :: ScheduleConfig -> Day -> ShiftedDay
