@@ -12,7 +12,7 @@ import           Control.Concurrent              (threadDelay)
 import           Control.Concurrent.MVar         (MVar, modifyMVar_, putMVar, takeMVar)
 import           Control.Concurrent.STM          (TQueue)
 import           Control.Lens                    (over, set, view)
-import           Control.Monad                   (forever, void, when)
+import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
 import           Control.Monad.Freer.Reader      (Reader)
@@ -151,7 +151,7 @@ transactionGenerator itvl txQueue blockQueue stateVar =
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
         processChainEffects txQueue blockQueue stateVar $ do
             tx' <- genRandomTx
-            when (not . null $ view outputs tx') (void $ addTx tx')
+            unless (null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)

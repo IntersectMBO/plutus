@@ -76,11 +76,12 @@ data Config =
         }
     deriving (Show, Eq, Generic, FromJSON)
 
-data MonitoringConfig =
+newtype MonitoringConfig =
     MonitoringConfig
         { monitoringPort :: Int
         }
-    deriving (Show, Eq, Generic, FromJSON)
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON)
 
 data WebserverConfig =
     WebserverConfig

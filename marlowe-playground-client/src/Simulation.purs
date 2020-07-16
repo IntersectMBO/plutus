@@ -14,7 +14,6 @@ import Data.BigInteger (BigInteger, fromString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
-import Data.Int (toNumber)
 import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
 import Data.Lens.NonEmptyList (_Head)
@@ -23,11 +22,10 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
-import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, trim)
+import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
-import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
@@ -57,11 +55,9 @@ import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
-import Marlowe.Holes (replaceInPositions)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
-import Marlowe.Parser (hole, parseContract)
-import Marlowe.Parser as P
+import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
@@ -75,7 +71,6 @@ import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorW
 import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
@@ -84,7 +79,6 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
-import Web.HTML.Window as Window
 import WebSocket (WebSocketRequestMessage(..))
 
 mkComponent :: forall m. MonadEffect m => MonadAff m => SPSettings_ SPParams_ -> H.Component HTML Query Unit Message m
@@ -234,30 +228,6 @@ handleAction _ Undo = do
     Nothing -> pure unit
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
-
-handleAction _ (InsertHole constructor firstHole holes) = do
-  mCurrContract <- editorGetValue
-  case mCurrContract of
-    Just currContract -> do
-      -- If we have a top level hole we don't want surround the value with brackets
-      -- so we parse the editor contents and if it is a hole we strip the parens
-      let
-        contractWithHole = case runParser hole currContract of
-          Right _ -> stripParens $ replaceInPositions constructor firstHole holes currContract
-          Left _ -> replaceInPositions constructor firstHole holes currContract
-
-        prettyContract = case runParser P.contract contractWithHole of
-          Right c -> show $ genericPretty c
-          Left _ -> contractWithHole
-      editorSetValue prettyContract
-    Nothing -> pure unit
-  where
-  stripParens s =
-    fromMaybe s
-      $ do
-          withoutPrefix <- stripPrefix (Pattern "(") $ trim s
-          withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
-          pure withoutSuffix
 
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
@@ -650,7 +620,11 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
-  boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 

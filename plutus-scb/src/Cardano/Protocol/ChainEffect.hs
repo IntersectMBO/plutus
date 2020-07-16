@@ -33,7 +33,7 @@ handleChain
     => Eff (EC.ChainEffect ': effs) ~> Eff effs
 handleChain = interpret $ \case
   EC.QueueTx tx -> do
-    ask >>= sendM . liftIO . atomically . (flip writeTQueue) tx
+    ask >>= sendM . liftIO . atomically . flip writeTQueue tx
     EC.handleChain (EC.queueTx tx)
   EC.GetCurrentSlot ->
     EC.handleChain EC.getCurrentSlot

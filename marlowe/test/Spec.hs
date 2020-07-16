@@ -18,5 +18,7 @@ tests = testGroup "Marlowe"
 --                                           Spec.Marlowe.Marlowe.prop_showWorksForContracts
                             ]
     , testGroup "Static Analysis"
-        [ testProperty "No false positives" Spec.Marlowe.Marlowe.prop_noFalsePositives ]
+        [ testProperty "No false positives" Spec.Marlowe.Marlowe.prop_noFalsePositives
+--        , testProperty "Same as old implementation" Spec.Marlowe.Marlowe.runManuallySameAsOldImplementation
+        ]
     ]

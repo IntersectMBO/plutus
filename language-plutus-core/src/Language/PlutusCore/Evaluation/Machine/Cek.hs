@@ -123,19 +123,20 @@ instance PrettyBy PrettyConfigPlc (Val uni) where
 
 type instance UniOf (Val uni) = uni
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => HasConstant (Val uni) where
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (Val uni) where
     fromConstant = VCon . fromConstant
 
+instance AsConstant (Val uni) where
     asConstant (VCon term) = asConstant term
     asConstant _           = Nothing
 
-valEx :: Val uni -> ExMemory
-valEx = \case
-    VCon t -> termAnn t
-    VTyAbs ex _ _ _ _ -> ex
-    VLamAbs ex _ _ _ _ -> ex
-    VIWrap ex _ _ _ -> ex
-    VBuiltin ex _ _ _ _ _ -> ex
+instance ToExMemory (Val uni) where
+    toExMemory = \case
+        VCon t -> termAnn t
+        VTyAbs ex _ _ _ _ -> ex
+        VLamAbs ex _ _ _ _ -> ex
+        VIWrap ex _ _ _ -> ex
+        VBuiltin ex _ _ _ _ _ -> ex
 
 -- TODO: this doesn't discharge the environments.
 dischargeVal :: Val uni -> WithMemory Term uni
@@ -184,7 +185,6 @@ type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (Stat
 
 instance SpendBudget (CekM uni) (Val uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
-    getExMemory = pure . valEx
     spendBudget key budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))
