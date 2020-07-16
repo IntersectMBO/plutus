@@ -47,7 +47,7 @@ type TyPropG =  Kind ()      -- ^ kind of the generated type
 testTyProp :: Int     -- ^ Search depth
            -> Kind () -- ^ Kind for generated types
            -> TyProp  -- ^ Property to test
-           -> IO ()
+           -> IO Integer
 testTyProp depth k typrop = do
   -- NOTE: Any strategy which attempts fairness will crash the search!
   --       These strategies evaluate !=> in *parallel*, and hence attempt
@@ -56,7 +56,7 @@ testTyProp depth k typrop = do
   -- UPDATE: toType is nolonger partial
   result <- ctrex' O depth (toTyPropG typrop k)
   case result of
-    Left  _   -> return ()
+    Left  i   -> return i
     Right tyG -> assertFailure (errorMsgTyProp k tyG)
 
 

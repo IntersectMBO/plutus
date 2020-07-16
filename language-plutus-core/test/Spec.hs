@@ -160,13 +160,18 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     , test_normalizationCheck
     , Check.tests
     -- NEAT tests
-    , testCase "kind checker for generated types is sound" $
+    , testCaseCount "kind checker for generated types is sound" $
         testTyProp depth kind prop_checkKindSound
-    , testCase "normalization preserves kinds" $
+    , testCaseCount "normalization preserves kinds" $
         testTyProp depth kind prop_normalizePreservesKind
-    , testCase "normalization for generated types is sound" $
+    , testCaseCount "normalization for generated types is sound" $
         testTyProp depth kind prop_normalizeTypeSound
     ]
+
+testCaseCount :: String -> IO Integer -> TestTree
+testCaseCount name act = testCaseInfo name $
+  liftM (\i -> show i ++ " types generated") act
+
 
 type TestFunction a = BSL.ByteString -> Either (Error DefaultUni a) T.Text
 
