@@ -43,7 +43,6 @@ type CkM uni = Either (CkEvaluationException uni)
 
 instance SpendBudget (CkM uni) (Term TyName Name uni ()) where
     spendBudget _ _ _ = pure ()
-    getExMemory _     = pure 0
     builtinCostParams = pure defaultCostModel
 
 data Frame uni

@@ -26,7 +26,6 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
@@ -98,7 +97,10 @@ applyTypeSchemed name = go where
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown arg
-            exF' <- exF <$> getExMemory arg
+            -- Note that it is very important to feed the costing function purely,
+            -- otherwise (i.e. if instead of using a pure 'toExMemory' we use a function supplying
+            -- an argument to 'exF' in a monadic fashion) execution time skyrockets for some reason.
+            let exF' = exF $ toExMemory arg
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
