@@ -65,7 +65,7 @@ tests =
     , Lib.goldenPir "test/Spec/gameStateMachine.pir" $$(PlutusTx.compile [|| mkValidator ||])
 
     , HUnit.testCase "script size is reasonable"
-        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 51000)
+        (Lib.reasonable (Scripts.validatorScript G.scriptInstance) 49000)
 
     ]
 

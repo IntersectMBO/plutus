@@ -66,6 +66,7 @@ library
         Language.PlutusTx.Builtins
         Language.PlutusTx.Plugin.Utils
         Language.PlutusTx.Utils
+        Language.PlutusTx.String
     other-modules:
         Language.PlutusTx.IsData.Instances
         Language.PlutusTx.IsData.TH
@@ -85,3 +86,4 @@ library
         serialise -any,
         language-plutus-core -any,
         lens -any,
+        ghc-prim -any,

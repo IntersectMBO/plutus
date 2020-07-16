@@ -14,10 +14,13 @@ import qualified Language.PlutusTx.Builtins   as Builtins
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Lift
 import           Language.PlutusTx.Plugin
+import qualified Language.PlutusTx.Prelude    as P
 
 import qualified Language.PlutusCore.Universe as PLC
 
 import           Data.Proxy
+
+import           GHC.Magic
 
 -- this module does lots of weird stuff deliberately
 {-# ANN module ("HLint: ignore"::String) #-}
@@ -53,6 +56,7 @@ primitives = testNested "Primitives" [
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "stringLiteral" stringLiteral
+  , goldenPir "stringConvert" stringConvert
   ]
 
 string :: CompiledCode PLC.DefaultUni String
@@ -124,3 +128,6 @@ trace = plc (Proxy @"trace") (\(x :: Builtins.String) -> Builtins.trace x)
 
 stringLiteral :: CompiledCode PLC.DefaultUni (Builtins.String)
 stringLiteral = plc (Proxy @"stringLiteral") ("abc"::Builtins.String)
+
+stringConvert :: CompiledCode PLC.DefaultUni (Builtins.String)
+stringConvert = plc (Proxy @"stringConvert") ((noinline P.stringToBuiltinString) "abc")
