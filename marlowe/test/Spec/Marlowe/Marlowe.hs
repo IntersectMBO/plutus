@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests, prop_showWorksForContracts
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation
     )
 where
 
@@ -304,7 +304,6 @@ valuesFormAbelianGroup = property $ do
         -- substraction works
         eval (SubValue (AddValue a b) b) === eval a
 
-
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
@@ -313,8 +312,9 @@ scaleRoundingTest = property $ do
             n <- amount
             d <- suchThat amount (/= 0)
             return (n, d)
-    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === round (n % d)
-
+    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === halfAwayRound (n % d)
+    where
+      halfAwayRound fraction = let (n,f) = properFraction fraction in n + round (f + 1) - 1
 
 scaleMulTest :: Property
 scaleMulTest = property $ do

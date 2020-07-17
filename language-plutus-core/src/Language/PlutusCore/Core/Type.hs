@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+
 module Language.PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
@@ -38,6 +39,7 @@ import           Data.Hashable
 import           Data.Text                    (Text)
 import           GHC.Exts                     (Constraint)
 import           Instances.TH.Lift            ()
+
 
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.

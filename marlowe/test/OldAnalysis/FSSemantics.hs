@@ -139,6 +139,7 @@ data Value = AvailableMoney AccountId
            | AddValue Value Value
            | SubValue Value Value
            | MulValue Value Value
+           | Scale Rational Value
            | ChoiceValue ChoiceId
            | SlotIntervalStart
            | SlotIntervalEnd
@@ -323,6 +324,10 @@ evalValue bnds env state value =
     AddValue lhs rhs         -> go lhs + go rhs
     SubValue lhs rhs         -> go lhs - go rhs
     MulValue lhs rhs         -> go lhs * go rhs
+    Scale s rhs              -> let (n, d) = (numerator s, denominator s)
+                                    nn = go rhs * literal n
+                                    (q, r) = nn `sQuotRem` literal d in
+                                ite (abs r * 2 .< literal (abs d)) q (q + signum nn * literal (signum d))
     ChoiceValue (ChoiceId c p) -> SM.maybe (literal 0)
                                            id
                                            (IntegerArray.lookup c $ choice state)

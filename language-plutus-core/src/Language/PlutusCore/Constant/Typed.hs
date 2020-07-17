@@ -27,6 +27,10 @@ module Language.PlutusCore.Constant.Typed
     , DynamicBuiltinNameMeanings (..)
     , unliftConstant
     , Opaque (..)
+    , AsConstant (..)
+    , FromConstant (..)
+    , HasConstant
+    , HasConstantIn
     , KnownTypeAst (..)
     , KnownType (..)
     ) where
@@ -205,6 +209,37 @@ see https://github.com/input-output-hk/plutus/issues/1882
 newtype Opaque term (text :: Symbol) (unique :: Nat) = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
+
+class AsConstant term where
+    -- | Unwrap a shallowly embedded Haskell value from a @term@ or fail.
+    asConstant :: term -> Maybe (Some (ValueOf (UniOf term)))
+
+class FromConstant term where
+    -- | Wrap a Haskell value as a @term@.
+    fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+instance AsConstant (Term TyName Name uni ann) where
+    asConstant (Constant _ val) = Just val
+    asConstant _                = Nothing
+
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
+            FromConstant (Term tyname name uni ExMemory) where
+    fromConstant value = Constant (memoryUsage value) value
+
+instance FromConstant (Term tyname name uni ()) where
+    fromConstant value = Constant () value
+
+-- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
+--
+-- 'AsConstant' and 'FromConstant' are separate, because we need only one instance of 'AsConstant'
+-- per 'Term'-like type and 'FromConstant' requires as many instances as there are different kinds
+-- of annotations (we're mostly interested in 'ExMemory' and @()@). Originally we had a single type
+-- class but it proved to be less efficient than having two of them.
+type HasConstant term = (AsConstant term, FromConstant term)
+
+-- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
+-- and connects @term@ and its @uni@.
+type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 -- | Extract the 'Constant' from a 'Term'
 -- (or throw an error if the term is not a 'Constant' or the constant is not of the expected type).

@@ -17,7 +17,6 @@ import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators.Internal.Denotation
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
@@ -42,7 +41,7 @@ dynamicCallAssign name f exF =
 
 dynamicCall
     :: forall ann a uni proxy.
-       ( KnownType (Term TyName Name uni ann) a, ToAnnotation uni ann
+       ( KnownType (Term TyName Name uni ann) a, FromConstant (Term TyName Name uni ann)
        , GShow uni, GEq uni, uni `Includes` ()
        )
     => proxy ann -> proxy a -> DynamicBuiltinName -> Term TyName Name uni ()

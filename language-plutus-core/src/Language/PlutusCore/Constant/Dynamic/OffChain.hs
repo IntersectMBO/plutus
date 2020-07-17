@@ -10,7 +10,6 @@ module Language.PlutusCore.Constant.Dynamic.OffChain
 import           Language.PlutusCore.Constant.Dynamic.BuiltinName
 import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Typed
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 getStringBuiltinMeanings

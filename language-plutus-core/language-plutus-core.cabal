@@ -220,6 +220,7 @@ library
         semigroups -any,
         semigroupoids -any,
         serialise -any,
+        size-based -any,
         tasty -any,
         tasty-golden -any,
         text -any,
@@ -229,7 +230,8 @@ library
         template-haskell -any,
         data-default -any,
         data-default-class -any,
-        transformers -any
+        transformers -any,
+        Stream -any
 
 executable language-plutus-core-generate-evaluation-test
     import: lang
@@ -264,6 +266,9 @@ test-suite language-plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        Language.PlutusCore.Gen.Common
+        Language.PlutusCore.Gen.Type
+        Language.PlutusCore.PropTest
     default-language: Haskell2010
     build-depends:
         base -any,
@@ -272,11 +277,14 @@ test-suite language-plutus-core-test
         filepath -any,
         hedgehog -any,
         language-plutus-core -any,
+        lazy-search -any,        
         lens -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
         serialise -any,
+        size-based -any,
+        Stream -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
@@ -353,7 +361,6 @@ executable plc
         lens -any,
         prettyprinter -any,
         optparse-applicative -any
-
 
 benchmark language-plutus-core-budgeting-bench
     import: lang

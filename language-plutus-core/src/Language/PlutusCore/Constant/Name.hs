@@ -39,7 +39,6 @@ module Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                  as BSL

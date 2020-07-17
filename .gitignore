@@ -43,6 +43,7 @@ stack.yaml.lock
 *.chi
 *.chs.h
 *.prof
+.liquid/
 
 # Agda
 *.agdai

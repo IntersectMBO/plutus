@@ -2,6 +2,7 @@
 }:
 with packageSet;
 let
+  # For Sphinx, and ad-hoc usage
   pyEnv = pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
 in haskell.packages.shellFor {
   nativeBuildInputs = [
@@ -16,8 +17,10 @@ in haskell.packages.shellFor {
     # Broken on 20.03, needs a backport
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
+
     # Take cabal from nixpkgs for now, see below
     pkgs.cabal-install
+    pkgs.stack
 
     pyEnv
 
@@ -36,11 +39,9 @@ in haskell.packages.shellFor {
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
-    pkgs.stack
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
-    pkgs.python3 # for @reactormonk who's running a python web server
   ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
     # This breaks compilation of R on macOS. The latest version of R
     # does compile, so we can remove it when we upgrade to 20.09.

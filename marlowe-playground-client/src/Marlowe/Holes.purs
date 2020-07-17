@@ -1,11 +1,12 @@
 module Marlowe.Holes where
 
 import Prelude
-import Data.Array (foldMap, foldl, mapWithIndex)
+import Data.Array (foldMap)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (intercalate)
+import Data.Function (on)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
@@ -18,19 +19,15 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Set (Set)
 import Data.Set as Set
-import Data.String (Pattern(..), contains, length, splitAt, toLower)
+import Data.String (Pattern(..), contains, splitAt, toLower)
 import Data.String.CodeUnits (dropRight)
-import Data.String.Extra (unlines)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested ((/\))
 import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Extra as Text
-import Text.Parsing.StringParser (Pos)
-import Text.Parsing.StringParser.Basic (lines, replaceInPosition)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, hasArgs, hasNestedArgs, pretty)
 import Text.Pretty as P
 import Type.Proxy (Proxy(..))
@@ -227,10 +224,10 @@ getConstructorFromMarloweType t = case Set.toUnfoldable $ Map.keys (getMarloweCo
 -- | Creates a String consisting of the data constructor name followed by argument holes
 --   e.g. "When [ ?case_10 ] ?timeout_11 ?contract_12"
 constructMarloweType :: String -> MarloweHole -> Map String (Array Argument) -> String
-constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.lookup constructorName m of
+constructMarloweType constructorName (MarloweHole { range: { startColumn, startLineNumber } }) m = case Map.lookup constructorName m of
   Nothing -> ""
   Just [] -> constructorName
-  Just vs -> parens row column $ constructorName <> " " <> intercalate " " (map showArgument vs)
+  Just vs -> parens startLineNumber startColumn $ constructorName <> " " <> intercalate " " (map showArgument vs)
   where
   showArgument EmptyArrayArg = "[]"
 
@@ -256,7 +253,7 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
       let
         newArgs = getMarloweConstructors marloweType
 
-        hole = MarloweHole { name, marloweType, row: 0, column: 0 }
+        hole = MarloweHole { name, marloweType, range: zero }
       in
         constructMarloweType name hole newArgs
 
@@ -264,15 +261,24 @@ constructMarloweType constructorName (MarloweHole { row, column }) m = case Map.
 
   parens _ _ text = "(" <> text <> ")"
 
-mkHole :: forall a. String -> { row :: Pos, column :: Pos } -> Term a
-mkHole name position = Hole name Proxy position
+type Range
+  = { startLineNumber :: Int
+    , startColumn :: Int
+    , endLineNumber :: Int
+    , endColumn :: Int
+    }
 
-mkDefaultTerm :: forall a. a -> Term a
-mkDefaultTerm a = Term a { row: 0, column: 0 }
+-- We need to compare the fields in the correct order
+compareRange :: Range -> Range -> Ordering
+compareRange =
+  compare `on` _.startColumn
+    <> compare `on` _.startLineNumber
+    <> compare `on` _.endLineNumber
+    <> compare `on` _.endColumn
 
 data Term a
-  = Term a { row :: Pos, column :: Pos }
-  | Hole String (Proxy a) { row :: Pos, column :: Pos }
+  = Term a Range
+  | Hole String (Proxy a) Range
 
 derive instance genericTerm :: Generic (Term a) _
 
@@ -293,6 +299,12 @@ instance hasArgsTerm :: Args a => Args (Term a) where
   hasArgs _ = false
   hasNestedArgs (Term a _) = hasNestedArgs a
   hasNestedArgs _ = false
+
+mkHole :: forall a. String -> Range -> Term a
+mkHole name range = Hole name Proxy range
+
+mkDefaultTerm :: forall a. a -> Term a
+mkDefaultTerm a = Term a zero
 
 class HasMarloweHoles a where
   getHoles :: a -> Holes -> Holes
@@ -323,13 +335,17 @@ instance termFromTerm :: FromTerm a b => FromTerm (Term a) b where
   fromTerm (Term a _) = fromTerm a
   fromTerm _ = Nothing
 
-getPosition :: forall a. Term a -> { row :: Pos, column :: Pos }
-getPosition (Term _ pos) = pos
+-- FIXME: I need to add the end position to Term in the entire project
+-- in the nearley parser I can get this info by finding the position of the last paren
+-- once I've done this I can fix the markers which actually have the incorrect range
+getRange :: forall a. Term a -> Range
+getRange (Term _ range) = range
 
-getPosition (Hole _ _ pos) = pos
+getRange (Hole _ _ range) = range
 
+-- A TermWrapper is like a Term but doesn't have a Hole constructor
 data TermWrapper a
-  = TermWrapper a { row :: Pos, column :: Pos }
+  = TermWrapper a Range
 
 derive instance genericTermWrapper :: Generic a r => Generic (TermWrapper a) _
 
@@ -356,7 +372,7 @@ instance termWrapperHasContractData :: HasContractData a => HasContractData (Ter
   gatherContractData (TermWrapper a _) s = gatherContractData a s
 
 mkDefaultTermWrapper :: forall a. a -> TermWrapper a
-mkDefaultTermWrapper a = TermWrapper a { row: 0, column: 0 }
+mkDefaultTermWrapper a = TermWrapper a zero
 
 -- special case
 instance fromTermRational :: FromTerm Rational Rational where
@@ -367,8 +383,7 @@ data MarloweHole
   = MarloweHole
     { name :: String
     , marloweType :: MarloweType
-    , row :: Pos
-    , column :: Pos
+    , range :: Range
     }
 
 derive instance genericMarloweHole :: Generic MarloweHole _
@@ -376,7 +391,7 @@ derive instance genericMarloweHole :: Generic MarloweHole _
 derive instance eqMarloweHole :: Eq MarloweHole
 
 instance ordMarloweHole :: Ord MarloweHole where
-  compare (MarloweHole { row: la, column: ca }) (MarloweHole { row: lb, column: cb }) = if la == lb then compare ca cb else compare la lb
+  compare (MarloweHole { range: a }) (MarloweHole { range: b }) = compareRange a b
 
 instance showMarloweHole :: Show MarloweHole where
   show = genericShow
@@ -450,9 +465,9 @@ derive newtype instance monoidHoles :: Monoid Holes
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _) m = m
 
-insertHole (Hole name proxy { row, column }) (Holes m) = Holes $ Map.alter f name m
+insertHole (Hole name proxy range) (Holes m) = Holes $ Map.alter f name m
   where
-  marloweHole = MarloweHole { name, marloweType: (marloweType proxy), row, column }
+  marloweHole = MarloweHole { name, marloweType: (marloweType proxy), range }
 
   f v = Just (Set.insert marloweHole $ fromMaybe mempty v)
 
@@ -904,34 +919,3 @@ termToValue _ = Nothing
 
 class FromTerm a b where
   fromTerm :: a -> Maybe b
-
--- Replace all holes of a certain name with the value
-replaceInPositions :: String -> MarloweHole -> Array MarloweHole -> String -> String
-replaceInPositions constructor firstHole@(MarloweHole { marloweType, name }) holes currentContract = unlines $ mapWithIndex go (lines currentContract)
-  where
-  go :: Int -> String -> String
-  go idx currentLine =
-    let
-      m = getMarloweConstructors marloweType
-
-      holeString = constructMarloweType constructor firstHole m
-
-      stringLengthDifference = (length holeString) - (length name)
-
-      (final /\ _) =
-        foldl
-          ( \(currString /\ currLength) hole@(MarloweHole { name, row, column }) ->
-              if row == (idx + 1) then
-                let
-                  newString = replaceInPosition { start: column - 1 + currLength, end: column + currLength + (length name), string: currString, replacement: holeString }
-
-                  newLength = currLength + stringLengthDifference
-                in
-                  (newString /\ newLength)
-              else
-                (currString /\ currLength)
-          )
-          (currentLine /\ 0)
-          holes
-    in
-      final
