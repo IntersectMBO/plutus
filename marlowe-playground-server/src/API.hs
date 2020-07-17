@@ -11,8 +11,8 @@ import           Data.Aeson                                       (FromJSON, ToJ
 import           Data.Text                                        (Text)
 import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (InterpreterError, InterpreterResult, SourceCode)
-import           Language.Marlowe
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import qualified Language.Marlowe                                 as M
+import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
 import           Servant.API                                      ((:<|>), (:>), Get, Header, JSON, NoContent, Post,
@@ -22,8 +22,8 @@ import           Servant.API.WebSocket                            (WebSocketPend
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))
      :<|> "health" :> Get '[ JSON] ()
-     :<|> "actus" :> "generate" :> ReqBody '[ JSON] ContractTerms :> Post '[ JSON] (Either String Contract)
-     :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] ContractTerms :> Post '[ JSON] (Either String Contract)
+     :<|> "actus" :> "generate" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] (Either String M.Contract)
+     :<|> "actus" :> "generate-static" :> ReqBody '[ JSON] CT.ContractTerms :> Post '[ JSON] (Either String M.Contract)
 
 type WSAPI = "ws" :> WebSocketPending
 
