@@ -26,13 +26,13 @@ import           Data.Proxy                                       (Proxy (Proxy)
 import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
+import           Data.Time                                        as DT
 import qualified Escrow
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe                                 as M
-import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import qualified Language.Marlowe.ACTUS.Definitions.ContractState as CS
-import           Data.Time                                        as DT
+import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, buildBridge,
                                                                    mkSumType, writePSTypesWith)
