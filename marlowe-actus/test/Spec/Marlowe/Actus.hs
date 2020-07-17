@@ -6,7 +6,6 @@ where
 import           Data.Aeson                                       (decode, encode)
 import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
-import           Language.Marlowe.ACTUS.Definitions.ContractState
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
 import           Language.Marlowe.Pretty
