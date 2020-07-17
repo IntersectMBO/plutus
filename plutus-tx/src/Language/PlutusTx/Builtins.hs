@@ -184,6 +184,7 @@ it is a problem. So we just expose the delayed version as the builtin.
 error :: () -> a
 error = mustBeReplaced "error"
 
+-- Note: IsString instance is in 'Prelude.hs'
 -- | An opaque type representing Plutus Core strings.
 data String
 

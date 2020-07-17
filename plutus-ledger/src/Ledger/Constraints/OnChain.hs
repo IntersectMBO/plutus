@@ -29,7 +29,7 @@ checkOwnInputConstraint :: ValidatorCtx -> InputConstraint a -> Bool
 checkOwnInputConstraint ValidatorCtx{valCtxTxInfo} InputConstraint{icTxOutRef} =
     let checkInput TxInInfo{txInInfoOutRef} =
             txInInfoOutRef == icTxOutRef -- TODO: We should also check the redeemer but we can't right now because it's hashed
-    in traceIfFalseH "Input constraint"
+    in traceIfFalse "Input constraint"
     $ any checkInput (txInfoInputs valCtxTxInfo)
 
 {-# INLINABLE checkOwnOutputConstraint #-}
@@ -43,38 +43,38 @@ checkOwnOutputConstraint ctx@ValidatorCtx{valCtxTxInfo} OutputConstraint{ocDatum
         checkOutput TxOut{txOutValue, txOutType=V.PayToScript svh} =
             txOutValue == ocValue && hsh == Just svh
         checkOutput _       = False
-    in traceIfFalseH "Output constraint"
+    in traceIfFalse "Output constraint"
     $ any checkOutput (V.getContinuingOutputs ctx)
 
 {-# INLINABLE checkTxConstraint #-}
 checkTxConstraint :: ValidatorCtx -> TxConstraint -> Bool
 checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
     MustIncludeDatum dv ->
-        traceIfFalseH "Missing datum"
+        traceIfFalse "Missing datum"
         $ dv `elem` fmap snd (txInfoData valCtxTxInfo)
     MustValidateIn interval ->
-        traceIfFalseH "Wrong validation interval"
+        traceIfFalse "Wrong validation interval"
         $ interval `contains` txInfoValidRange valCtxTxInfo
     MustBeSignedBy pubKey ->
-        traceIfFalseH "Missing signature"
+        traceIfFalse "Missing signature"
         $ valCtxTxInfo `V.txSignedBy` pubKey
     MustSpendValue vl ->
-        traceIfFalseH "Spent value not OK"
+        traceIfFalse "Spent value not OK"
         $ vl `leq` V.valueSpent valCtxTxInfo
     MustSpendPubKeyOutput txOutRef ->
-        traceIfFalseH "Public key output not spent"
+        traceIfFalse "Public key output not spent"
         $ maybe False (isNothing . txInInfoWitness) (V.findTxInByTxOutRef txOutRef valCtxTxInfo)
     MustSpendScriptOutput txOutRef _ ->
-        traceIfFalseH "Script output not spent"
+        traceIfFalse "Script output not spent"
         -- Unfortunately we can't check the redeemer, because TxInfo only
         -- gives us the redeemer's hash, but 'MustSpendScriptOutput' gives
         -- us the full redeemer
         $ isJust (V.findTxInByTxOutRef txOutRef valCtxTxInfo)
     MustForgeValue mps tn v ->
-        traceIfFalseH "Value forged not OK"
+        traceIfFalse "Value forged not OK"
         $ Value.valueOf (txInfoForge valCtxTxInfo) (Value.mpsSymbol mps) tn == v
     MustPayToPubKey pk vl ->
-        traceIfFalseH "MustPayToPubKey"
+        traceIfFalse "MustPayToPubKey"
         $ vl `leq` V.valuePaidTo valCtxTxInfo pk
     MustPayToOtherScript vlh dv vl ->
         let outs = V.txInfoOutputs valCtxTxInfo
@@ -84,17 +84,17 @@ checkTxConstraint ValidatorCtx{valCtxTxInfo} = \case
                 txOutValue == vl && hsh == Just svh && txOutAddress == addr
             checkOutput _ = False
         in
-        traceIfFalseH "MustPayToOtherScript"
+        traceIfFalse "MustPayToOtherScript"
         $ any checkOutput outs
     MustHashDatum dvh dv ->
-        traceIfFalseH "MustHashDatum"
+        traceIfFalse "MustHashDatum"
         $ V.findDatum dvh valCtxTxInfo == Just dv
 
 {-# INLINABLE checkValidatorCtx #-}
 -- | Does the 'ValidatorCtx' satisfy the constraints?
 checkValidatorCtx :: forall i o. IsData o => TxConstraints i o -> ValidatorCtx -> Bool
 checkValidatorCtx TxConstraints{txConstraints, txOwnInputs, txOwnOutputs} ptx =
-    traceIfFalseH "checkValidatorCtx failed"
+    traceIfFalse "checkValidatorCtx failed"
     $ all (checkTxConstraint ptx) txConstraints
     && all (checkOwnInputConstraint ptx) txOwnInputs
     && all (checkOwnOutputConstraint ptx) txOwnOutputs

@@ -852,7 +852,7 @@ validateTxOutputs params ctx expectedTxOutputs = case expectedTxOutputs of
             Close -> validatePayments params ctx txOutPayments
             -- otherwise check the continuation
             _     -> validateContinuation txOutPayments txOutState txOutContract
-    Error _ -> traceErrorH "Error"
+    Error _ -> traceError "Error"
   where
     validateContinuation txOutPayments txOutState txOutContract =
         case getContinuingOutputs ctx of
@@ -884,10 +884,10 @@ marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
     -}
     (minSlot, maxSlot) = case txInfoValidRange valCtxTxInfo of
         Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
-        _ -> traceErrorH "Tx valid slot must have lower bound and upper bounds"
+        _ -> traceError "Tx valid slot must have lower bound and upper bounds"
 
     positiveBalances = validateBalances marloweState ||
-        traceErrorH "Invalid contract state. There exists an account with non positive balance"
+        traceError "Invalid contract state. There exists an account with non positive balance"
 
     {-  We do not check that a transaction contains exact input payments.
         We only require an evidence from a party, e.g. a signature for PubKey party,

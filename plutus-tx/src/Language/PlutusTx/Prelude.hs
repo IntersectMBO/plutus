@@ -1,5 +1,6 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
 module Language.PlutusTx.Prelude (
@@ -16,12 +17,10 @@ module Language.PlutusTx.Prelude (
     -- * Standard functions
     ($),
     -- * String and tracing functions
-    toPlutusString,
     trace,
-    traceH,
-    traceIfTrueH,
-    traceIfFalseH,
-    traceErrorH,
+    traceIfTrue,
+    traceIfFalse,
+    traceError,
     -- * Error
     error,
     check,
@@ -58,6 +57,7 @@ module Language.PlutusTx.Prelude (
     module Prelude
     ) where
 
+import           Data.String                   (IsString (..))
 import           Language.PlutusTx.Applicative as Applicative
 import           Language.PlutusTx.Bool        as Bool
 import           Language.PlutusTx.Builtins    (ByteString, concatenate, dropByteString, emptyByteString,
@@ -107,12 +107,12 @@ error = Builtins.error
 check :: Bool -> ()
 check b = if b then () else error ()
 
-{-# INLINABLE toPlutusString #-}
--- | Convert a Haskell 'String' into a PlutusTx 'Builtins.String'.
-toPlutusString :: String -> Builtins.String
-toPlutusString str = case str of
-    []       -> Builtins.emptyString
-    (c:rest) -> Builtins.charToString c `Builtins.appendString` toPlutusString rest
+-- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
+-- the unfoldings from going in. So we just stick it here. Fiddly.
+-- It does have the nice feature that we can just define it with 'foldMap', though.
+instance IsString Builtins.String where
+    {-# INLINABLE fromString #-}
+    fromString = foldMap Builtins.charToString
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
@@ -122,25 +122,20 @@ trace :: Builtins.String -> a -> a
 -- thrown away by GHC or the PIR compiler.
 trace str a = case Builtins.trace str of () -> a
 
-{-# INLINABLE traceH #-}
--- | A version of 'trace' that takes a Haskell 'String'.
-traceH :: String -> a -> a
-traceH str = trace (toPlutusString str)
-
-{-# INLINABLE traceErrorH #-}
+{-# INLINABLE traceError #-}
 -- | Log a message and then terminate the evaluation with an error.
-traceErrorH :: String -> a
-traceErrorH str = error (traceH str ())
+traceError :: Builtins.String -> a
+traceError str = error (trace str ())
 
-{-# INLINABLE traceIfFalseH #-}
--- | Emit the given Haskell 'String' only if the argument evaluates to 'False'.
-traceIfFalseH :: String -> Bool -> Bool
-traceIfFalseH str a = if a then True else traceH str False
+{-# INLINABLE traceIfFalse #-}
+-- | Emit the given 'String' only if the argument evaluates to 'False'.
+traceIfFalse :: Builtins.String -> Bool -> Bool
+traceIfFalse str a = if a then True else trace str False
 
-{-# INLINABLE traceIfTrueH #-}
--- | Emit the given Haskell 'String' only if the argument evaluates to 'True'.
-traceIfTrueH :: String -> Bool -> Bool
-traceIfTrueH str a = if a then traceH str True else False
+{-# INLINABLE traceIfTrue #-}
+-- | Emit the given 'String' only if the argument evaluates to 'True'.
+traceIfTrue :: Builtins.String -> Bool -> Bool
+traceIfTrue str a = if a then trace str True else False
 
 {-# INLINABLE divide #-}
 -- | Integer division
