@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -6,9 +7,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# OPTIONS_GHC -fno-warn-orphans  #-}
 
 module PSGenerator
     ( generate
@@ -28,6 +31,7 @@ import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
 import           Data.Time                                        as DT
 import qualified Escrow
+import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe                                 as M
@@ -70,6 +74,8 @@ myBridgeProxy = Proxy
 
 instance HasBridge MyBridge where
     languageBridge _ = buildBridge myBridge
+
+deriving instance Generic DT.Day
 
 myTypes :: [SumType 'Haskell]
 myTypes =

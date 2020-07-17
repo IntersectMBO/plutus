@@ -24,7 +24,7 @@ data ContractStatePoly a b = ContractStatePoly
   , sd    :: b
   , prnxt :: a
   , ipcb  :: a
-  } deriving (Show)
+  } deriving (Show, Generic)
 
   -- CS – Indicates different states of the contract from performance to default
 data ContractStatus = CS_PF -- performant
