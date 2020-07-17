@@ -19,12 +19,12 @@ shift = applyBDCWithCfg
 
 inititializeState :: ContractTerms -> ContractState
 inititializeState terms@ContractTerms {..} =
-    let t0         = _SD
+    let t0         = ct_SD
         fpSchedule = fromMaybe [shift scfg t0] $ schedule FP terms
         ipSchedule = fromMaybe [shift scfg t0] $ schedule IP terms
         tminus     = calculationDay $ sup ipSchedule t0
         tfp_minus  = calculationDay $ sup fpSchedule t0
         tfp_plus   = calculationDay $ inf fpSchedule t0
     in  case contractType of
-        PAM -> _INIT_PAM t0 tminus tfp_minus tfp_plus _MD _IED _IPNR _CNTRL _NT _IPAC _DCC (Just _FER) _FEAC _FEB _SCEF _SCIXSD _PRF
+        PAM -> _INIT_PAM t0 tminus tfp_minus tfp_plus ct_MD ct_IED ct_IPNR ct_CNTRL ct_NT ct_IPAC ct_DCC (Just ct_FER) ct_FEAC ct_FEB ct_SCEF ct_SCIXSD ct_PRF
         LAM -> undefined

@@ -25,19 +25,19 @@ contractTerms :: ContractTerms
 contractTerms = ContractTerms {
           contractId = "0"
         , contractType = PAM
-        , _IED = fromGregorian 2008 10 20 -- Initial Exchange Date
-        , _SD = fromGregorian 2008 10 22 -- start date
-        , _MD = fromGregorian 2009 10 22 -- maturity date
-        , _TD = fromGregorian 2009 10 22  -- termination date
-        , _PRD = fromGregorian 2008 10 20 -- purchase date
-        , _CNTRL = CR_ST
-        , _PDIED = -100.0 -- Discount At IED
-        , _NT = 1000.0 -- Notional
-        , _PPRD = 1200.0 -- Price At Purchase Date
-        , _PTD = 1200.0 -- Price At Termination Date
-        , _DCC = DCC_A_360 -- Date Count Convention
-        , _PREF = PREF_Y -- allow PP
-        , _PRF = CS_PF
+        , ct_IED = fromGregorian 2008 10 20 -- Initial Exchange Date
+        , ct_SD = fromGregorian 2008 10 22 -- start date
+        , ct_MD = fromGregorian 2009 10 22 -- maturity date
+        , ct_TD = fromGregorian 2009 10 22  -- termination date
+        , ct_PRD = fromGregorian 2008 10 20 -- purchase date
+        , ct_CNTRL = CR_ST
+        , ct_PDIED = -100.0 -- Discount At IED
+        , ct_NT = 1000.0 -- Notional
+        , ct_PPRD = 1200.0 -- Price At Purchase Date
+        , ct_PTD = 1200.0 -- Price At Termination Date
+        , ct_DCC = DCC_A_360 -- Date Count Convention
+        , ct_PREF = PREF_Y -- allow PP
+        , ct_PRF = CS_PF
         , scfg = ScheduleConfig {
             calendar = []
             , includeEndDay = False
@@ -45,40 +45,40 @@ contractTerms = ContractTerms {
             , bdc = BDC_NULL
         }
         -- Penalties
-        , _PYRT = 0.0
-        , _PYTP = PYTP_A -- Penalty Pype
-        , _cPYRT = 0.0
+        , ct_PYRT = 0.0
+        , ct_PYTP = PYTP_A -- Penalty Pype
+        , ct_cPYRT = 0.0
         -- Optionality
-        , _OPCL = Nothing
-        , _OPANX = Nothing
+        , ct_OPCL = Nothing
+        , ct_OPANX = Nothing
         -- Scaling:
-        , _SCIED = 0.0
-        , _SCEF = SE_000
-        , _SCCL = Nothing
-        , _SCANX = Nothing
-        , _SCIXSD = 0.0
+        , ct_SCIED = 0.0
+        , ct_SCEF = SE_000
+        , ct_SCCL = Nothing
+        , ct_SCANX = Nothing
+        , ct_SCIXSD = 0.0
         -- Rate Reset
-        , _RRCL = Nothing
-        , _RRANX = Nothing
-        , _RRNXT = Nothing
-        , _RRSP = 0.0
-        , _RRMLT = 0.0
-        , _RRPF = 0.0
-        , _RRPC = 0.0
-        , _RRLC = 0.0
-        , _RRLF = 0.0
+        , ct_RRCL = Nothing
+        , ct_RRANX = Nothing
+        , ct_RRNXT = Nothing
+        , ct_RRSP = 0.0
+        , ct_RRMLT = 0.0
+        , ct_RRPF = 0.0
+        , ct_RRPC = 0.0
+        , ct_RRLC = 0.0
+        , ct_RRLF = 0.0
         -- Interest
-        , _IPCED = Nothing
-        , _IPCL  = Nothing
-        , _IPANX = Nothing
-        , _IPNR  = Nothing
-        , _IPAC  = Nothing
+        , ct_IPCED = Nothing
+        , ct_IPCL  = Nothing
+        , ct_IPANX = Nothing
+        , ct_IPNR  = Nothing
+        , ct_IPAC  = Nothing
         -- Fee
-        , _FECL  = Nothing
-        , _FEANX  = Nothing
-        , _FEAC  = Nothing
-        , _FEB = FEB_N
-        , _FER = 0.03 -- fee rate
+        , ct_FECL  = Nothing
+        , ct_FEANX  = Nothing
+        , ct_FEAC  = Nothing
+        , ct_FEB = FEB_N
+        , ct_FER = 0.03 -- fee rate
     }
 
 pamProjected :: IO ()

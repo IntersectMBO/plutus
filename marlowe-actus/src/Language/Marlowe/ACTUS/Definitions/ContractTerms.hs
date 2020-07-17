@@ -106,55 +106,55 @@ data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass
 data ContractTerms = ContractTerms {
   contractId     :: String
   , contractType :: ContractType
-  , _IED         :: Day -- Initial Exchange Date
-  , _SD          :: Day -- start date
-  , _MD          :: Day -- maturity date
-  , _TD          :: Day -- termination date
-  , _PRD         :: Day -- purchase date
-  , _CNTRL       :: ContractRole
-  , _PDIED       :: Double -- Premium / Discount At IED
-  , _NT          :: Double -- Notional
-  , _PPRD        :: Double -- Price At Purchase Date
-  , _PTD         :: Double -- Price At Termination Date
-  , _DCC         :: DCC -- Date Count Convention
-  , _PREF        :: PREF -- allow PP
-  , _PRF         :: ContractStatus
+  , ct_IED         :: Day -- Initial Exchange Date
+  , ct_SD          :: Day -- start date
+  , ct_MD          :: Day -- maturity date
+  , ct_TD          :: Day -- termination date
+  , ct_PRD         :: Day -- purchase date
+  , ct_CNTRL       :: ContractRole
+  , ct_PDIED       :: Double -- Premium / Discount At IED
+  , ct_NT          :: Double -- Notional
+  , ct_PPRD        :: Double -- Price At Purchase Date
+  , ct_PTD         :: Double -- Price At Termination Date
+  , ct_DCC         :: DCC -- Date Count Convention
+  , ct_PREF        :: PREF -- allow PP
+  , ct_PRF         :: ContractStatus
   , scfg         :: ScheduleConfig
   -- Penalties
-  , _PYRT        :: Double -- Penalty Rate
-  , _PYTP        :: PYTP -- Penalty Pype
-  , _cPYRT       :: Double
+  , ct_PYRT        :: Double -- Penalty Rate
+  , ct_PYTP        :: PYTP -- Penalty Pype
+  , ct_cPYRT       :: Double
   -- Optionality
-  , _OPCL        :: Maybe Cycle
-  , _OPANX       :: Maybe Day
+  , ct_OPCL        :: Maybe Cycle
+  , ct_OPANX       :: Maybe Day
   -- Scaling:
-  , _SCIED       :: Double
-  , _SCEF        :: SCEF
-  , _SCCL        :: Maybe Cycle
-  , _SCANX       :: Maybe Day
-  , _SCIXSD      :: Double
+  , ct_SCIED       :: Double
+  , ct_SCEF        :: SCEF
+  , ct_SCCL        :: Maybe Cycle
+  , ct_SCANX       :: Maybe Day
+  , ct_SCIXSD      :: Double
   -- Rate Reset
-  , _RRCL        :: Maybe Cycle
-  , _RRANX       :: Maybe Day
-  , _RRNXT       :: Maybe Double -- next reset date
-  , _RRSP        :: Double
-  , _RRMLT       :: Double
-  , _RRPF        :: Double
-  , _RRPC        :: Double
-  , _RRLC        :: Double
-  , _RRLF        :: Double
+  , ct_RRCL        :: Maybe Cycle
+  , ct_RRANX       :: Maybe Day
+  , ct_RRNXT       :: Maybe Double -- next reset date
+  , ct_RRSP        :: Double
+  , ct_RRMLT       :: Double
+  , ct_RRPF        :: Double
+  , ct_RRPC        :: Double
+  , ct_RRLC        :: Double
+  , ct_RRLF        :: Double
   -- Interest
-  , _IPCED       :: Maybe Day
-  , _IPCL        :: Maybe Cycle
-  , _IPANX       :: Maybe Day
-  , _IPNR        :: Maybe Double
-  , _IPAC        :: Maybe Double
+  , ct_IPCED       :: Maybe Day
+  , ct_IPCL        :: Maybe Cycle
+  , ct_IPANX       :: Maybe Day
+  , ct_IPNR        :: Maybe Double
+  , ct_IPAC        :: Maybe Double
   -- Fee
-  , _FECL        :: Maybe Cycle
-  , _FEANX       :: Maybe Day
-  , _FEAC        :: Maybe Double
-  , _FEB         :: FEB  -- fee basis
-  , _FER         :: Double -- fee rate
+  , ct_FECL        :: Maybe Cycle
+  , ct_FEANX       :: Maybe Day
+  , ct_FEAC        :: Maybe Double
+  , ct_FEB         :: FEB  -- fee basis
+  , ct_FER         :: Double -- fee rate
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

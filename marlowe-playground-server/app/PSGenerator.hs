@@ -34,15 +34,15 @@ import qualified Escrow
 import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
-import qualified Language.Marlowe                                 as M
 import qualified Language.Marlowe.ACTUS.Definitions.ContractState as CS
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
-import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, buildBridge,
-                                                                   mkSumType, writePSTypesWith)
+import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, PSType, buildBridge,
+                                                                   TypeInfo (TypeInfo), psTypeParameters, mkSumType, writePSTypesWith, typeModule, typeName, (^==))
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
                                                                    genForeign)
 import           Language.PureScript.Bridge.TypeParameters        (A)
+import           Language.PureScript.Bridge.PSTypes               (psNumber)
 import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -57,6 +57,23 @@ import           System.Directory                                 (createDirecto
 import           System.FilePath                                  ((</>))
 import           WebSocket                                        (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
+import           Control.Monad.Reader                             (MonadReader)
+import           Language.PureScript.Bridge.Builder               (BridgeData)
+
+
+psContract :: MonadReader BridgeData m => m PSType
+psContract =
+    TypeInfo "marlowe-playground-client" "Marlowe.Semantics" "Contract" <$>
+    psTypeParameters
+
+contractBridge :: BridgePart
+contractBridge = do
+    typeName ^== "Contract"
+    typeModule ^== "Marlowe.Semantics"
+    psContract
+
+doubleBridge :: BridgePart
+doubleBridge = typeName ^== "Double" >> return psNumber
 
 myBridge :: BridgePart
 myBridge =
@@ -65,6 +82,8 @@ myBridge =
     PSGenerator.Common.ledgerBridge <|>
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
+    doubleBridge <|>
+    contractBridge <|>
     defaultBridge
 
 data MyBridge
@@ -94,7 +113,6 @@ myTypes =
     , mkSumType (Proxy @CS.ContractState)
     , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
-    , mkSumType (Proxy @M.Contract)
     , mkSumType (Proxy @WebSocketRequestMessage)
     , mkSumType (Proxy @WebSocketResponseMessage)
     ]

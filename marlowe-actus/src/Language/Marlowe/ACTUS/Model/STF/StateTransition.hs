@@ -28,29 +28,29 @@ shift = applyBDCWithCfg
 stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
 stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{..} t =
     let
-        fpSchedule         = fromMaybe [shift scfg _SD] $ schedule FP terms
+        fpSchedule         = fromMaybe [shift scfg ct_SD] $ schedule FP terms
         tfp_minus          = calculationDay $ sup fpSchedule t
         tfp_plus           = calculationDay $ inf fpSchedule t
-        y_sd_t             = _y _DCC sd t _MD
-        y_tfpminus_t       = _y _DCC tfp_minus t _MD
-        y_tfpminus_tfpplus = _y _DCC tfp_minus tfp_plus _MD
-        y_ipanx_t          = _y _DCC (fromJust _IPANX) t _MD
+        y_sd_t             = _y ct_DCC sd t ct_MD
+        y_tfpminus_t       = _y ct_DCC tfp_minus t ct_MD
+        y_tfpminus_tfpplus = _y ct_DCC tfp_minus tfp_plus ct_MD
+        y_ipanx_t          = _y ct_DCC (fromJust ct_IPANX) t ct_MD
     in case contractType of
         PAM ->
             case ev of
                 AD   -> _STF_AD_PAM st t y_sd_t
-                IED  -> _STF_IED_PAM st t y_ipanx_t _IPNR _IPANX _CNTRL _IPAC _NT
+                IED  -> _STF_IED_PAM st t y_ipanx_t ct_IPNR ct_IPANX ct_CNTRL ct_IPAC ct_NT
                 MD   -> _STF_MD_PAM st t
-                PP   -> _STF_PP_PAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                PY   -> _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
+                PP   -> _STF_PP_PAM st t pp_payoff y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                PY   -> _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
                 FP   -> _STF_FP_PAM st t y_sd_t
-                PRD  -> _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                TD   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                IP   -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                IPCI -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL
-                RR   -> _STF_RR_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRLF _RRLC _RRPC _RRPF _RRMLT _RRSP o_rf_RRMO
-                RRF  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _RRNXT
-                SC   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus _FEB _FER _CNTRL _SCEF o_rf_SCMO _SCIED
+                PRD  -> _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                TD   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                IP   -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                IPCI -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                RR   -> _STF_RR_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_RRLF ct_RRLC ct_RRPC ct_RRPF ct_RRMLT ct_RRSP o_rf_RRMO
+                RRF  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_RRNXT
+                SC   -> _STF_SC_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_SCEF o_rf_SCMO ct_SCIED
                 CE   -> _STF_CE_PAM st t y_sd_t
                 _    -> st
         LAM -> undefined

@@ -13,13 +13,13 @@ import           Language.Marlowe.ACTUS.Ops                        (YearFraction
 
 payoffFs :: EventType -> ContractTerms -> Integer -> Day -> Value Observation
 payoffFs ev ContractTerms{..} t curDate =
-    let __NT              = constnt _NT
-        __PDIED           = constnt _PDIED
-        __PYTP            = enum _PYTP
-        __FEB             = enum _FEB
-        __FER             = constnt _FER
-        (__PPRD, __PTD  ) = (constnt _PPRD, constnt _PTD)
-        (__PYRT, __cPYRT) = (constnt _PYRT, constnt _cPYRT)
+    let __NT              = constnt ct_NT
+        __PDIED           = constnt ct_PDIED
+        __PYTP            = enum ct_PYTP
+        __FEB             = enum ct_FEB
+        __FER             = constnt ct_FER
+        (__PPRD, __PTD  ) = (constnt ct_PPRD, constnt ct_PTD)
+        (__PYRT, __cPYRT) = (constnt ct_PYRT, constnt ct_cPYRT)
 
 
         __o_rf_CURS       = useval "o_rf_CURS" t
@@ -33,17 +33,17 @@ payoffFs ev ContractTerms{..} t curDate =
         __fac             = useval "fac" t
         __ipnr            = useval "ipnr" t
 
-        y_sd_t = constnt $ _y _DCC _SD curDate undefined
+        y_sd_t = constnt $ _y ct_DCC ct_SD curDate undefined
 
     in case contractType of
         PAM -> case ev of
-            IED -> _POF_IED_PAM __o_rf_CURS _CNTRL __NT __PDIED
+            IED -> _POF_IED_PAM __o_rf_CURS ct_CNTRL __NT __PDIED
             MD  -> _POF_MD_PAM __o_rf_CURS __nsc __nt __isc __ipac __feac
             PP  -> _POF_PP_PAM __o_rf_CURS __pp_payoff
-            PY  -> _POF_PY_PAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT _CNTRL __nt __ipnr y_sd_t
-            FP  -> _POF_FP_PAM __FEB __FER __o_rf_CURS _CNTRL __nt __fac y_sd_t
-            PRD -> _POF_PRD_PAM __o_rf_CURS _CNTRL __PPRD __ipac __ipnr __nt y_sd_t
-            TD  -> _POF_TD_PAM __o_rf_CURS _CNTRL __PTD __ipac __ipnr __nt y_sd_t
+            PY  -> _POF_PY_PAM __PYTP __o_rf_CURS __o_rf_RRMO __PYRT __cPYRT ct_CNTRL __nt __ipnr y_sd_t
+            FP  -> _POF_FP_PAM __FEB __FER __o_rf_CURS ct_CNTRL __nt __fac y_sd_t
+            PRD -> _POF_PRD_PAM __o_rf_CURS ct_CNTRL __PPRD __ipac __ipnr __nt y_sd_t
+            TD  -> _POF_TD_PAM __o_rf_CURS ct_CNTRL __PTD __ipac __ipnr __nt y_sd_t
             IP  -> _POF_IP_PAM __o_rf_CURS __isc __ipac __ipnr __nt y_sd_t
             _   -> constnt 0
         LAM -> undefined
