@@ -6,17 +6,18 @@
 {-# LANGUAGE TypeOperators              #-}
 module API where
 
-import           Control.Newtype.Generics        (Newtype)
-import           Data.Aeson                      (FromJSON, ToJSON)
-import           Data.Text                       (Text)
-import           GHC.Generics                    (Generic)
-import           Language.Haskell.Interpreter    (InterpreterError, InterpreterResult, SourceCode)
-import qualified Marlowe.Symbolic.Types.Request  as MSReq
-import qualified Marlowe.Symbolic.Types.Response as MSRes
-import           Servant.API                     ((:<|>), (:>), Get, Header, JSON, NoContent, Post, ReqBody)
-import           Servant.API.WebSocket           (WebSocketPending)
+import           Control.Newtype.Generics                         (Newtype)
+import           Data.Aeson                                       (FromJSON, ToJSON)
+import           Data.Text                                        (Text)
+import           GHC.Generics                                     (Generic)
+import           Language.Haskell.Interpreter                     (InterpreterError, InterpreterResult, SourceCode)
 import           Language.Marlowe
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
+import qualified Marlowe.Symbolic.Types.Request                   as MSReq
+import qualified Marlowe.Symbolic.Types.Response                  as MSRes
+import           Servant.API                                      ((:<|>), (:>), Get, Header, JSON, NoContent, Post,
+                                                                   ReqBody)
+import           Servant.API.WebSocket                            (WebSocketPending)
 
 type API
    = "contract" :> "haskell" :> ReqBody '[ JSON] SourceCode :> Post '[ JSON] (Either InterpreterError (InterpreterResult RunResult))

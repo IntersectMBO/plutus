@@ -1,6 +1,6 @@
 module Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractRole(..) )
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractRole (..))
 
 contractRoleSign :: ContractRole -> Double
 contractRoleSign role = case role of

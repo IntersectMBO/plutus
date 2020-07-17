@@ -1,16 +1,14 @@
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Language.Marlowe.ACTUS.Ops where
 
-import Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
-    ( contractRoleSign )
-import Language.Marlowe.ACTUS.Model.Utility.YearFraction ( yearFraction )
-import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractRole, DCC )
-import Language.Marlowe
-    ( Observation(ValueLT, ValueGT),
-      Value(Cond, Constant, MulValue, Scale, AddValue, SubValue), (%) )
-import Data.Time ( Day )
+import           Data.Time                                             (Day)
+import           Language.Marlowe                                      (Observation (ValueGT, ValueLT), Value (AddValue, Cond, Constant, MulValue, Scale, SubValue),
+                                                                        (%))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (ContractRole, DCC)
+import           Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign (contractRoleSign)
+import           Language.Marlowe.ACTUS.Model.Utility.YearFraction     (yearFraction)
 
 marloweFixedPoint :: Integer
 marloweFixedPoint = 1000
@@ -21,7 +19,7 @@ class ActusOps a where
     _zero :: a
     _one :: a
 
-class ActusNum a where 
+class ActusNum a where
     (+) :: a -> a -> a
     (-) :: a -> a -> a
     (*) :: a -> a -> a

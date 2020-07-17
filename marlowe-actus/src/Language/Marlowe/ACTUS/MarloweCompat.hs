@@ -5,21 +5,15 @@
 
 module Language.Marlowe.ACTUS.MarloweCompat where
 
-import Language.Marlowe
-    ( 
-      Contract(Let),
-      Observation,
-      Value(UseValue, Constant),
-      ValueId(ValueId) )
+import           Language.Marlowe                                  (Contract (Let), Observation,
+                                                                    Value (Constant, UseValue), ValueId (ValueId))
 
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents(EventType)
-import Language.Marlowe.ACTUS.Definitions.ContractState
-    ( ContractStatePoly(..), ContractState )
-import Data.String ( IsString(fromString) )  
-import Language.Marlowe.ACTUS.Ops (marloweFixedPoint) 
-import Data.Time ( UTCTime(UTCTime), Day )
-import Data.Time.Clock.System
-    ( utcToSystemTime, SystemTime(MkSystemTime) )
+import           Data.String                                       (IsString (fromString))
+import           Data.Time                                         (Day, UTCTime (UTCTime))
+import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
+import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Ops                        (marloweFixedPoint)
 
 type EventHandlerSTF = EventType -> ContractStateMarlowe -> ContractStateMarlowe
 

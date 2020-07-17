@@ -2,24 +2,14 @@
 
 module Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( ContractTerms(..), ContractType(LAM, PAM) )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( EventType(SC, IED, MD, PP, PY, FP, PRD, TD, IP, IPCI, RR, RRF) )
-import Language.Marlowe.ACTUS.Definitions.Schedule ( ShiftedDay )
-import Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
-    ( _SCHED_IED_PAM,
-      _SCHED_MD_PAM,
-      _SCHED_PP_PAM,
-      _SCHED_PY_PAM,
-      _SCHED_FP_PAM,
-      _SCHED_PRD_PAM,
-      _SCHED_TD_PAM,
-      _SCHED_IP_PAM,
-      _SCHED_IPCI_PAM,
-      _SCHED_RR_PAM,
-      _SCHED_RRF_PAM,
-      _SCHED_SC_PAM )
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents        (EventType (FP, IED, IP, IPCI, MD, PP, PRD, PY, RR, RRF, SC, TD))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms         (ContractTerms (..), ContractType (LAM, PAM))
+import           Language.Marlowe.ACTUS.Definitions.Schedule              (ShiftedDay)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel (_SCHED_FP_PAM, _SCHED_IED_PAM,
+                                                                           _SCHED_IPCI_PAM, _SCHED_IP_PAM,
+                                                                           _SCHED_MD_PAM, _SCHED_PP_PAM, _SCHED_PRD_PAM,
+                                                                           _SCHED_PY_PAM, _SCHED_RRF_PAM, _SCHED_RR_PAM,
+                                                                           _SCHED_SC_PAM, _SCHED_TD_PAM)
 
 
 schedule :: EventType -> ContractTerms -> Maybe [ShiftedDay]

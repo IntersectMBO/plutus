@@ -1,22 +1,18 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs where
 
-import Language.Marlowe
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( ContractTerms(..), ContractType(LAM, PAM), ScheduleConfig )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents ( EventType(IP, FP) )
-import Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
-    ( _INIT_PAM )
-import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule ( schedule )
-import Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
-    ( sup, inf )
-import Language.Marlowe.ACTUS.Definitions.Schedule
-    ( ShiftedDay(calculationDay) )
-import Data.Maybe ( fromMaybe )
-import Data.Time ( Day )
-import Language.Marlowe.ACTUS.Model.Utility.DateShift ( applyBDCWithCfg )
-import Language.Marlowe.ACTUS.MarloweCompat
-    ( useval, constnt, enum, stateInitialisation)
+import           Data.Maybe                                                 (fromMaybe)
+import           Data.Time                                                  (Day)
+import           Language.Marlowe
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (EventType (FP, IP))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
+                                                                             ContractType (LAM, PAM), ScheduleConfig)
+import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
+import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, enum, stateInitialisation, useval)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_PAM)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
+import           Language.Marlowe.ACTUS.Model.Utility.DateShift             (applyBDCWithCfg)
+import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator     (inf, sup)
 
 
 shift :: ScheduleConfig -> Day -> ShiftedDay

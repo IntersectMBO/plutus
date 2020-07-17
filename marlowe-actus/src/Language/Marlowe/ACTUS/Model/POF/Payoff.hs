@@ -2,29 +2,18 @@
 
 module Language.Marlowe.ACTUS.Model.POF.Payoff where
 
-import Data.Time ( Day )
-import Language.Marlowe.ACTUS.Definitions.ContractState
-    ( ContractStatePoly(..),
-      ContractState )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( EventType(..), RiskFactors(..))
-import Language.Marlowe.ACTUS.Model.POF.PayoffModel
-    ( _POF_IED_PAM,
-      _POF_MD_PAM,
-      _POF_PP_PAM,
-      _POF_PY_PAM,
-      _POF_FP_PAM,
-      _POF_PRD_PAM,
-      _POF_TD_PAM,
-      _POF_IP_PAM )
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( ContractTerms(..), ContractType(LAM, PAM) )
-import Language.Marlowe.ACTUS.Ops ( YearFractionOps(_y) )
+import           Data.Time                                         (Day)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerms (..), ContractType (LAM, PAM))
+import           Language.Marlowe.ACTUS.Model.POF.PayoffModel      (_POF_FP_PAM, _POF_IED_PAM, _POF_IP_PAM, _POF_MD_PAM,
+                                                                    _POF_PP_PAM, _POF_PRD_PAM, _POF_PY_PAM, _POF_TD_PAM)
+import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y))
 
 
 
 payoff :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> Double
-payoff ev RiskFactors{..} ContractTerms{..} ContractStatePoly {..} t = 
+payoff ev RiskFactors{..} ContractTerms{..} ContractStatePoly {..} t =
     let
         y_sd_t = _y _DCC sd t _MD
     in case contractType of
@@ -38,7 +27,7 @@ payoff ev RiskFactors{..} ContractTerms{..} ContractStatePoly {..} t =
                 PRD -> _POF_PRD_PAM o_rf_CURS _CNTRL _PPRD ipac ipnr nt y_sd_t
                 TD  -> _POF_TD_PAM o_rf_CURS _CNTRL _PTD ipac ipnr nt y_sd_t
                 IP  -> _POF_IP_PAM o_rf_CURS isc ipac ipnr nt y_sd_t
-                _             -> 0.0
+                _   -> 0.0
         LAM -> undefined
 
 

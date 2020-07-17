@@ -10,28 +10,17 @@ module Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
   )
 where
 
-import Data.Time.Calendar
-    ( Day,
-      addGregorianMonthsClip,
-      addGregorianYearsClip,
-      fromGregorian,
-      gregorianMonthLength,
-      toGregorian,
-      addDays )
-import qualified Data.List as L ( elem, notElem, init, last )
-import Control.Arrow((>>>))
-import Data.Function((&))
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( ScheduleConfig(..),
-      Cycle(..),
-      Stub(ShortStub),
-      Period(..),
-      EOMC(EOMC_EOM) )
-import Language.Marlowe.ACTUS.Definitions.Schedule
-    ( ShiftedSchedule,
-      ShiftedDay(calculationDay, paymentDay),
-    )
-import Language.Marlowe.ACTUS.Model.Utility.DateShift ( applyBDC )
+import           Control.Arrow                                    ((>>>))
+import           Data.Function                                    ((&))
+import qualified Data.List                                        as L (elem, init, last, notElem)
+import           Data.Time.Calendar                               (Day, addDays, addGregorianMonthsClip,
+                                                                   addGregorianYearsClip, fromGregorian,
+                                                                   gregorianMonthLength, toGregorian)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle (..), EOMC (EOMC_EOM), Period (..),
+                                                                   ScheduleConfig (..), Stub (ShortStub))
+import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (calculationDay, paymentDay),
+                                                                   ShiftedSchedule)
+import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
 
 
 sup :: [ShiftedDay] -> Day -> ShiftedDay
@@ -99,7 +88,7 @@ applyEOMC s Cycle {..} endOfMonthConvention date
   | isLastDayOfMonthWithLessThan31Days s
     && p /= P_D
     && p /= P_W
-    && endOfMonthConvention == EOMC_EOM   
+    && endOfMonthConvention == EOMC_EOM
   = moveToEndOfMonth date
   | otherwise
   = date

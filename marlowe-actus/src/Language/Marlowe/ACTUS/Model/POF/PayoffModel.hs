@@ -2,11 +2,11 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 module Language.Marlowe.ACTUS.Model.POF.PayoffModel where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( FEB(FEB_N, FEB_A), PYTP(PYTP_O, PYTP_A, PYTP_N, PYTP_I) )
-import Language.Marlowe.ACTUS.Ops
-    ( RoleSignOps(_r), ActusOps(_zero,_max), ActusNum(..) )
-import Prelude hiding (Num, Fractional, (+), (-), (*), (/))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (FEB (FEB_A, FEB_N),
+                                                                   PYTP (PYTP_A, PYTP_I, PYTP_N, PYTP_O))
+import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), ActusOps (_max, _zero),
+                                                                   RoleSignOps (_r))
+import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
 
 _POF_IED_PAM o_rf_CURS _CNTRL _NT _PDIED =
     _zero - o_rf_CURS * _r _CNTRL * (_NT + _PDIED)

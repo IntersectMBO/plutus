@@ -2,46 +2,37 @@
 
 {- This module contains templates for Marlowe constructs required by ACTUS logic -}
 module Language.Marlowe.ACTUS.Generator
-    ( 
+    (
     genStaticContract
     , genFsContract
     , genProjectedCashflows
     )
 where
 
-import Data.Time ( fromGregorian )
-import Ledger.Value ( TokenName(TokenName) )
-import Data.String ( IsString(fromString) )
-import Data.Maybe ( fromMaybe )
-import qualified Data.List as L ( zip, scanl, tail, zip5 )
-import Language.Marlowe
-    ( 
-      ada,
-      AccountId(AccountId),
-      Action(Choice, Deposit),
-      Bound(Bound),
-      Case(Case),
-      ChoiceId(ChoiceId),
-      Contract(Close, Pay, When, Let),
-      Observation,
-      Party(Role),
-      Payee(Party),
-      Value(UseValue, ChoiceValue, Constant, NegValue),
-      ValueId(ValueId),
-      Slot(..) )
-import Language.Marlowe.ACTUS.Definitions.Schedule ( CashFlow(..), calculationDay, paymentDay, ShiftedDay(..) )
-import Language.Marlowe.ACTUS.Definitions.ContractTerms ( ContractTerms )
-import Language.Marlowe.ACTUS.Definitions.BusinessEvents
-    ( EventType(..),
-      RiskFactors(..))
-import Language.Marlowe.ACTUS.MarloweCompat(dayToSlotNumber)
-import Language.Marlowe.ACTUS.Model.POF.PayoffFs(payoffFs)
-import Language.Marlowe.ACTUS.Model.POF.Payoff(payoff)
-import Language.Marlowe.ACTUS.Model.STF.StateTransition(stateTransition)
-import Language.Marlowe.ACTUS.Model.STF.StateTransitionFs(stateTransitionFs)
-import Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule(schedule)
-import Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs(inititializeStateFs)
-import Language.Marlowe.ACTUS.Model.INIT.StateInitialization(inititializeState)
+import qualified Data.List                                               as L (scanl, tail, zip, zip5)
+import           Data.Maybe                                              (fromMaybe)
+import           Data.String                                             (IsString (fromString))
+import           Data.Time                                               (fromGregorian)
+import           Language.Marlowe                                        (AccountId (AccountId),
+                                                                          Action (Choice, Deposit), Bound (Bound),
+                                                                          Case (Case), ChoiceId (ChoiceId),
+                                                                          Contract (Close, Let, Pay, When), Observation,
+                                                                          Party (Role), Payee (Party), Slot (..),
+                                                                          Value (ChoiceValue, Constant, NegValue, UseValue),
+                                                                          ValueId (ValueId), ada)
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms)
+import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
+                                                                          calculationDay, paymentDay)
+import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization   (inititializeState)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
+import           Language.Marlowe.ACTUS.Model.POF.Payoff                 (payoff)
+import           Language.Marlowe.ACTUS.Model.POF.PayoffFs               (payoffFs)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule     (schedule)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition        (stateTransition)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs      (stateTransitionFs)
+import           Ledger.Value                                            (TokenName (TokenName))
 
 
 invoice :: String -> String -> Value Observation -> Slot -> Contract -> Contract
@@ -86,17 +77,17 @@ inquiryFs ev timePosfix date oracle continue =
                 ]
                 date
                 Close
-            
+
         riskFactorInquiry name = inputTemplate
             (fromString (name ++ timePosfix))
             oracleRole
             [Bound 0 maxPseudoDecimalValue]
         riskFactorsInquiryEv AD = id
         riskFactorsInquiryEv SC = riskFactorInquiry "o_rf_SCMO"
-        riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"    
-        riskFactorsInquiryEv PP = 
+        riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"
+        riskFactorsInquiryEv PP =
             riskFactorInquiry "o_rf_CURS" .
-                riskFactorInquiry "pp_payoff"  
+                riskFactorInquiry "pp_payoff"
         riskFactorsInquiryEv _ = riskFactorInquiry "o_rf_CURS"
     in
         riskFactorsInquiryEv ev continue
@@ -106,7 +97,7 @@ genProjectedCashflows terms =
     let
         eventTypes   = [IED, MD, RR, IP]
         analysisDate = fromGregorian 2008 10 22
-        riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate 
+        riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate
 
         preserveDate e d = (e, d)
         getSchedule e = fromMaybe [] $ schedule e terms
@@ -141,7 +132,7 @@ genProjectedCashflows terms =
         genCashflow <$> L.zip states payoffs
 
 genStaticContract :: ContractTerms -> Contract
-genStaticContract terms = 
+genStaticContract terms =
     let
         cfs = genProjectedCashflows terms
         gen CashFlow{..} = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
@@ -149,7 +140,7 @@ genStaticContract terms =
 
 
 genFsContract :: ContractTerms -> Contract
-genFsContract terms = 
+genFsContract terms =
     let
         payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
         schedCfs = genProjectedCashflows terms

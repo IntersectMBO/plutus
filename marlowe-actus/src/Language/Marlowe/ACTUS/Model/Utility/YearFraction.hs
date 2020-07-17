@@ -1,15 +1,8 @@
 module Language.Marlowe.ACTUS.Model.Utility.YearFraction where
 
-import Data.Time
-    ( Day,
-      fromGregorian,
-      gregorianMonthLength,
-      toGregorian,
-      isLeapYear,
-      diffDays )
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
-    ( DCC(DCC_E30_360, DCC_A_AISDA, DCC_A_360, DCC_A_365,
-          DCC_E30_360ISDA) )
+import           Data.Time                                        (Day, diffDays, fromGregorian, gregorianMonthLength,
+                                                                   isLeapYear, toGregorian)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (DCC (DCC_A_360, DCC_A_365, DCC_A_AISDA, DCC_E30_360, DCC_E30_360ISDA))
 
 
 yearFraction :: DCC -> Day -> Day -> Day -> Double
