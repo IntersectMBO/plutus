@@ -4,9 +4,9 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Language.Marlowe.ACTUS.Definitions.ContractState where
 
-import           Data.Aeson.Types hiding (Error, Value)
-import           Data.Time        (Day)
-import           GHC.Generics     (Generic)
+import           Data.Aeson.Types                                 hiding (Error, Value)
+import           Data.Time                                        (Day)
+import           GHC.Generics                                     (Generic)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractStatus)
 
 type ContractState = ContractStatePoly Double Day

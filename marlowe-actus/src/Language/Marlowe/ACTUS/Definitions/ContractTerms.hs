@@ -3,9 +3,9 @@
 {-# LANGUAGE DerivingStrategies #-}
 module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 
-import           Data.Aeson.Types                                 (FromJSON, ToJSON)
-import           Data.Time                                        (Day)
-import           GHC.Generics                                     (Generic)
+import           Data.Aeson.Types (FromJSON, ToJSON)
+import           Data.Time        (Day)
+import           GHC.Generics     (Generic)
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
@@ -111,55 +111,55 @@ data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass
 data ContractTerms = ContractTerms {
   contractId     :: String
   , contractType :: ContractType
-  , ct_IED         :: Day -- Initial Exchange Date
-  , ct_SD          :: Day -- start date
-  , ct_MD          :: Day -- maturity date
-  , ct_TD          :: Day -- termination date
-  , ct_PRD         :: Day -- purchase date
-  , ct_CNTRL       :: ContractRole
-  , ct_PDIED       :: Double -- Premium / Discount At IED
-  , ct_NT          :: Double -- Notional
-  , ct_PPRD        :: Double -- Price At Purchase Date
-  , ct_PTD         :: Double -- Price At Termination Date
-  , ct_DCC         :: DCC -- Date Count Convention
-  , ct_PREF        :: PREF -- allow PP
-  , ct_PRF         :: ContractStatus
+  , ct_IED       :: Day -- Initial Exchange Date
+  , ct_SD        :: Day -- start date
+  , ct_MD        :: Day -- maturity date
+  , ct_TD        :: Day -- termination date
+  , ct_PRD       :: Day -- purchase date
+  , ct_CNTRL     :: ContractRole
+  , ct_PDIED     :: Double -- Premium / Discount At IED
+  , ct_NT        :: Double -- Notional
+  , ct_PPRD      :: Double -- Price At Purchase Date
+  , ct_PTD       :: Double -- Price At Termination Date
+  , ct_DCC       :: DCC -- Date Count Convention
+  , ct_PREF      :: PREF -- allow PP
+  , ct_PRF       :: ContractStatus
   , scfg         :: ScheduleConfig
   -- Penalties
-  , ct_PYRT        :: Double -- Penalty Rate
-  , ct_PYTP        :: PYTP -- Penalty Pype
-  , ct_cPYRT       :: Double
+  , ct_PYRT      :: Double -- Penalty Rate
+  , ct_PYTP      :: PYTP -- Penalty Pype
+  , ct_cPYRT     :: Double
   -- Optionality
-  , ct_OPCL        :: Maybe Cycle
-  , ct_OPANX       :: Maybe Day
+  , ct_OPCL      :: Maybe Cycle
+  , ct_OPANX     :: Maybe Day
   -- Scaling:
-  , ct_SCIED       :: Double
-  , ct_SCEF        :: SCEF
-  , ct_SCCL        :: Maybe Cycle
-  , ct_SCANX       :: Maybe Day
-  , ct_SCIXSD      :: Double
+  , ct_SCIED     :: Double
+  , ct_SCEF      :: SCEF
+  , ct_SCCL      :: Maybe Cycle
+  , ct_SCANX     :: Maybe Day
+  , ct_SCIXSD    :: Double
   -- Rate Reset
-  , ct_RRCL        :: Maybe Cycle
-  , ct_RRANX       :: Maybe Day
-  , ct_RRNXT       :: Maybe Double -- next reset date
-  , ct_RRSP        :: Double
-  , ct_RRMLT       :: Double
-  , ct_RRPF        :: Double
-  , ct_RRPC        :: Double
-  , ct_RRLC        :: Double
-  , ct_RRLF        :: Double
+  , ct_RRCL      :: Maybe Cycle
+  , ct_RRANX     :: Maybe Day
+  , ct_RRNXT     :: Maybe Double -- next reset date
+  , ct_RRSP      :: Double
+  , ct_RRMLT     :: Double
+  , ct_RRPF      :: Double
+  , ct_RRPC      :: Double
+  , ct_RRLC      :: Double
+  , ct_RRLF      :: Double
   -- Interest
-  , ct_IPCED       :: Maybe Day
-  , ct_IPCL        :: Maybe Cycle
-  , ct_IPANX       :: Maybe Day
-  , ct_IPNR        :: Maybe Double
-  , ct_IPAC        :: Maybe Double
+  , ct_IPCED     :: Maybe Day
+  , ct_IPCL      :: Maybe Cycle
+  , ct_IPANX     :: Maybe Day
+  , ct_IPNR      :: Maybe Double
+  , ct_IPAC      :: Maybe Double
   -- Fee
-  , ct_FECL        :: Maybe Cycle
-  , ct_FEANX       :: Maybe Day
-  , ct_FEAC        :: Maybe Double
-  , ct_FEB         :: FEB  -- fee basis
-  , ct_FER         :: Double -- fee rate
+  , ct_FECL      :: Maybe Cycle
+  , ct_FEANX     :: Maybe Day
+  , ct_FEAC      :: Maybe Double
+  , ct_FEB       :: FEB  -- fee basis
+  , ct_FER       :: Double -- fee rate
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

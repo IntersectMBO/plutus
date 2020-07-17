@@ -22,6 +22,7 @@ import qualified API
 import qualified Auth
 import           Control.Applicative                              ((<|>))
 import           Control.Lens                                     (set, (&))
+import           Control.Monad.Reader                             (MonadReader)
 import qualified Data.ByteString                                  as BS
 import qualified Data.ByteString.Char8                            as BS8
 import           Data.Monoid                                      ()
@@ -36,12 +37,15 @@ import           Language.Haskell.Interpreter                     (CompilationEr
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
-import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, PSType, buildBridge,
-                                                                   TypeInfo (TypeInfo), psTypeParameters, mkSumType, writePSTypesWith, typeModule, typeName, (^==))
+import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
+                                                                   TypeInfo (TypeInfo), buildBridge, mkSumType,
+                                                                   psTypeParameters, typeModule, typeName,
+                                                                   writePSTypesWith, (^==))
+import           Language.PureScript.Bridge.Builder               (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
                                                                    genForeign)
-import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Language.PureScript.Bridge.PSTypes               (psNumber)
+import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
 import qualified Marlowe.Symbolic.Types.Response                  as MSRes
@@ -56,8 +60,6 @@ import           System.Directory                                 (createDirecto
 import           System.FilePath                                  ((</>))
 import           WebSocket                                        (WebSocketRequestMessage, WebSocketResponseMessage)
 import qualified ZeroCouponBond
-import           Control.Monad.Reader                             (MonadReader)
-import           Language.PureScript.Bridge.Builder               (BridgeData)
 
 
 psContract :: MonadReader BridgeData m => m PSType
