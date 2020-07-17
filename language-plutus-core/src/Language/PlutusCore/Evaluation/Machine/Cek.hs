@@ -442,7 +442,12 @@ applyBuiltin finalEnv ctx bn tys args = do
                 StaticBuiltinName name ->
                     applyBuiltinName name args
     case result of
-        EvaluationSuccess t -> withVarEnv finalEnv $ computeCek ctx t
+        EvaluationSuccess t -> withVarEnv finalEnv $ case t of
+            Var _ varName -> do
+                spendBudget BVar t (ExBudget 1 1) -- TODO
+                Closure newVarEnv term' <- lookupVarName varName
+                withVarEnv newVarEnv $ returnCek ctx term'
+            _ -> returnCek ctx t
         EvaluationFailure ->
             throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just term
 
