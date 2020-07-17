@@ -22,4 +22,3 @@ data CashFlow = CashFlow {
     currency           :: String
 } deriving (Show)
 
-type CashFlows = [CashFlow]

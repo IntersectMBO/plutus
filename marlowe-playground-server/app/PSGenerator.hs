@@ -85,7 +85,7 @@ myTypes =
     , mkSumType (Proxy @MSRes.Response)
     , mkSumType (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
-    , mkSumType (Proxy @CT.ContractState)
+    , mkSumType (Proxy @CS.ContractState)
     , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
     , mkSumType (Proxy @M.Contract)

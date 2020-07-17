@@ -8,7 +8,7 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents          (Eve
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms           (ContractTerms (..),
                                                                              ContractType (LAM, PAM), ScheduleConfig)
 import           Language.Marlowe.ACTUS.Definitions.Schedule                (ShiftedDay (calculationDay))
-import           Language.Marlowe.ACTUS.MarloweCompat                       (constnt, enum, stateInitialisation, useval)
+import           Language.Marlowe.ACTUS.MarloweCompat                       (stateInitialisation)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel (_INIT_PAM)
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule        (schedule)
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift             (applyBDCWithCfg)
