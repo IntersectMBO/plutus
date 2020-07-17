@@ -6,7 +6,6 @@ module Language.Marlowe.ACTUS.Definitions.ContractTerms where
 import           Data.Aeson.Types                                 (FromJSON, ToJSON)
 import           Data.Time                                        (Day)
 import           GHC.Generics                                     (Generic)
-import           Language.Marlowe.ACTUS.Definitions.ContractState (ContractStatus)
 
 data PYTP = PYTP_A | PYTP_N | PYTP_I | PYTP_O deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
@@ -82,6 +81,12 @@ data Period = P_D
 data PREF = PREF_N | PREF_Y
   deriving (Show, Eq, Ord, Generic)
   deriving anyclass (FromJSON, ToJSON)
+
+data ContractStatus = CS_PF -- performant
+                    | CS_DL -- delayed
+                    | CS_DQ -- delinquent
+                    | CS_DF -- default
+                    deriving (Show, Eq, Generic) deriving anyclass (FromJSON, ToJSON)
 
 data Stub = ShortStub | LongStub deriving (Show, Eq, Ord, Generic) deriving anyclass (FromJSON, ToJSON)
 

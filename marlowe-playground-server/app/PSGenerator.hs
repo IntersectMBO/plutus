@@ -34,7 +34,6 @@ import qualified Escrow
 import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
-import qualified Language.Marlowe.ACTUS.Definitions.ContractState as CS
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, PSType, buildBridge,
@@ -110,9 +109,16 @@ myTypes =
     , mkSumType (Proxy @MSRes.Response)
     , mkSumType (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
-    , mkSumType (Proxy @CS.ContractState)
     , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
+    , mkSumType (Proxy @CT.PYTP)
+    , mkSumType (Proxy @CT.SCEF)
+    , mkSumType (Proxy @CT.Cycle)
+    , mkSumType (Proxy @CT.DCC)
+    , mkSumType (Proxy @CT.ContractStatus)
+    , mkSumType (Proxy @CT.FEB)
+    , mkSumType (Proxy @CT.ContractRole)
+    , mkSumType (Proxy @CT.ContractType)
     , mkSumType (Proxy @WebSocketRequestMessage)
     , mkSumType (Proxy @WebSocketResponseMessage)
     ]
