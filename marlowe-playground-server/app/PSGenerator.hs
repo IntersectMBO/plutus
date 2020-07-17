@@ -69,7 +69,7 @@ psContract =
 contractBridge :: BridgePart
 contractBridge = do
     typeName ^== "Contract"
-    typeModule ^== "Marlowe.Semantics"
+    typeModule ^== "Language.Marlowe.Semantics"
     psContract
 
 doubleBridge :: BridgePart
