@@ -115,7 +115,8 @@ executable marlowe-playground-server
         wai-cors -any,
         wai-extra -any,
         warp -any,
-        yaml -any
+        yaml -any,
+        time -any
 
 test-suite marlowe-playground-server-test
     type: exitcode-stdio-1.0

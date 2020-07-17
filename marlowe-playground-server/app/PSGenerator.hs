@@ -31,6 +31,8 @@ import           Language.Haskell.Interpreter                     (CompilationEr
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe                                 as M
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
+import qualified Language.Marlowe.ACTUS.Definitions.ContractState as CS
+import           Data.Time                                        as DT
 import           Language.Marlowe.Pretty                          (pretty)
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), SumType, buildBridge,
                                                                    mkSumType, writePSTypesWith)
@@ -83,6 +85,8 @@ myTypes =
     , mkSumType (Proxy @MSRes.Response)
     , mkSumType (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
+    , mkSumType (Proxy @CT.ContractState)
+    , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
     , mkSumType (Proxy @M.Contract)
     , mkSumType (Proxy @WebSocketRequestMessage)
