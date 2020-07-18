@@ -12,44 +12,49 @@ module Server
     )
 where
 
-import           API                             (API, MarloweSymbolicAPI, RunResult, WSAPI)
-import           Control.Concurrent              (forkIO, threadDelay)
-import           Control.Concurrent.STM          (atomically)
-import           Control.Concurrent.STM.TVar     (TVar, modifyTVar, readTVarIO)
-import           Control.Monad                   (forever, void, when)
-import           Control.Monad.Catch             (MonadCatch, MonadMask, bracket, catch)
-import           Control.Monad.Except            (MonadError, runExceptT, throwError)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.Logger            (MonadLogger, logInfoN)
-import           Data.Aeson                      (ToJSON, eitherDecode, encode)
-import qualified Data.ByteString.Char8           as BS
-import qualified Data.ByteString.Lazy.Char8      as BSL
-import           Data.Maybe                      (fromMaybe)
-import           Data.Proxy                      (Proxy (Proxy))
-import           Data.Text                       (Text)
-import qualified Data.Text                       as Text
-import           Data.Time.Units                 (Second)
-import qualified Data.UUID                       as UUID
-import           Data.UUID.V4                    (nextRandom)
+import           API                                              (API, MarloweSymbolicAPI, RunResult, WSAPI)
+import           Control.Concurrent                               (forkIO, threadDelay)
+import           Control.Concurrent.STM                           (atomically)
+import           Control.Concurrent.STM.TVar                      (TVar, modifyTVar, readTVarIO)
+import           Control.Monad                                    (forever, void, when)
+import           Control.Monad.Catch                              (MonadCatch, MonadMask, bracket, catch)
+import           Control.Monad.Except                             (MonadError, runExceptT, throwError)
+import           Control.Monad.IO.Class                           (MonadIO, liftIO)
+import           Control.Monad.Logger                             (MonadLogger, logInfoN)
+import           Data.Aeson                                       (ToJSON, eitherDecode, encode)
+import qualified Data.ByteString.Char8                            as BS
+import qualified Data.ByteString.Lazy.Char8                       as BSL
+import           Data.Maybe                                       (fromMaybe)
+import           Data.Proxy                                       (Proxy (Proxy))
+import           Data.Text                                        (Text)
+import qualified Data.Text                                        as Text
+import           Data.Time.Units                                  (Second)
+import qualified Data.UUID                                        as UUID
+import           Data.UUID.V4                                     (nextRandom)
 import qualified Interpreter
-import           Language.Haskell.Interpreter    (InterpreterError (CompilationErrors), InterpreterResult,
-                                                  SourceCode (SourceCode))
-import           Marlowe.Contracts               (escrow)
-import qualified Marlowe.Symbolic.Types.API      as MS
-import qualified Marlowe.Symbolic.Types.Request  as MSReq
-import qualified Marlowe.Symbolic.Types.Response as MSRes
-import           Network.HTTP.Types              (hContentType)
-import           Network.WebSockets.Connection   (Connection, PendingConnection, receiveData, sendTextData)
-import           Servant                         (ServerError, err400, errBody, errHeaders)
-import           Servant.API                     ((:<|>) ((:<|>)), (:>), JSON, NoContent (NoContent), Post, ReqBody)
-import           Servant.Client                  (ClientEnv, ClientM, client, runClientM)
-import           Servant.Server                  (Handler, Server)
-import           System.Timeout                  (timeout)
-import           WebSocket                       (Registry, WebSocketRequestMessage (CheckForWarnings),
-                                                  WebSocketResponseMessage (CheckForWarningsResult, OtherError),
-                                                  deleteFromRegistry, finishWaiting, initializeConnection,
-                                                  insertIntoRegistry, isWaiting, lookupInRegistry, newRegistry,
-                                                  runWithConnection, startWaiting)
+import           Language.Haskell.Interpreter                     (InterpreterError (CompilationErrors),
+                                                                   InterpreterResult, SourceCode (SourceCode))
+import           Language.Marlowe                                 (Contract)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
+import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
+import           Marlowe.Contracts                                (escrow)
+import qualified Marlowe.Symbolic.Types.API                       as MS
+import qualified Marlowe.Symbolic.Types.Request                   as MSReq
+import qualified Marlowe.Symbolic.Types.Response                  as MSRes
+import           Network.HTTP.Types                               (hContentType)
+import           Network.WebSockets.Connection                    (Connection, PendingConnection, receiveData,
+                                                                   sendTextData)
+import           Servant                                          (ServerError, err400, errBody, errHeaders)
+import           Servant.API                                      ((:<|>) ((:<|>)), (:>), JSON, NoContent (NoContent),
+                                                                   Post, ReqBody)
+import           Servant.Client                                   (ClientEnv, ClientM, client, runClientM)
+import           Servant.Server                                   (Handler, Server)
+import           System.Timeout                                   (timeout)
+import           WebSocket                                        (Registry, WebSocketRequestMessage (CheckForWarnings), WebSocketResponseMessage (CheckForWarningsResult, OtherError),
+                                                                   deleteFromRegistry, finishWaiting,
+                                                                   initializeConnection, insertIntoRegistry, isWaiting,
+                                                                   lookupInRegistry, newRegistry, runWithConnection,
+                                                                   startWaiting)
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
@@ -149,6 +154,12 @@ handleNotification registryVar response = liftIO $ do
     pure NoContent
 
 
+genActusContract :: ContractTerms -> Handler (Either String Contract)
+genActusContract terms = pure $ Right $ genFsContract terms
+
+genActusContractStatic :: ContractTerms -> Handler (Either String Contract)
+genActusContractStatic terms = pure $ Right $ genStaticContract terms
+
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)
         #-}
@@ -157,4 +168,4 @@ mkHandlers :: (MonadLogger m, MonadIO m) => Text -> Text -> ClientEnv -> m (Serv
 mkHandlers apiKey callbackUrl marloweSymbolicClientEnv = do
     logInfoN "Interpreter ready"
     registry <- liftIO $ atomically newRegistry
-    pure $ (acceptSourceCode :<|> checkHealth) :<|> handleNotification registry :<|> handleWS registry apiKey callbackUrl marloweSymbolicClientEnv
+    pure $ (acceptSourceCode :<|> checkHealth :<|> genActusContract :<|> genActusContractStatic) :<|> handleNotification registry :<|> handleWS registry apiKey callbackUrl marloweSymbolicClientEnv

@@ -8,6 +8,7 @@ packages:
 - playground-common
 - marlowe
 - marlowe-playground-server
+- marlowe-actus
 - metatheory
 - plutus-ledger
 - plutus-playground-server

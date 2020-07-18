@@ -102,6 +102,7 @@ let
             language-plutus-core.package.ghcOptions = "-Werror";
             marlowe.package.ghcOptions = "-Werror";
             marlowe-symbolic.package.ghcOptions = "-Werror";
+            marlowe-actus.package.ghcOptions = "-Werror";
             marlowe-playground-server.package.ghcOptions = "-Werror";
             playground-common.package.ghcOptions = "-Werror";
             # FIXME: has warnings
