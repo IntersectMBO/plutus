@@ -54,12 +54,3 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
                 CE   -> _STF_CE_PAM st t y_sd_t
                 _    -> st
         LAM -> undefined
-
-
-
-
-
-
-
-
-

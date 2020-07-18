@@ -94,8 +94,5 @@ dayToSlotNumber d =
     let (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
     in  fromIntegral secs - cardanoEpochStart `mod` 20
 
-slotRangeToDay :: Integer -> Integer -> Day
-slotRangeToDay _ _ = undefined
-
 marloweDate :: Day -> Value Observation
 marloweDate = Constant . fromInteger . dayToSlotNumber
