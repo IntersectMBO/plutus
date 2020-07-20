@@ -41,6 +41,7 @@ import qualified GameSimulations
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
+import           Language.Plutus.Contract.Checkpoint        (CheckpointKey, CheckpointLogMsg)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
                                                              equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
@@ -73,6 +74,7 @@ import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
 import qualified Wallet.Emulator.Chain                      as EM
 import qualified Wallet.Emulator.ChainIndex                 as EM
+import qualified Wallet.Emulator.LogMessages                as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
 import qualified Wallet.Emulator.Wallet                     as EM
@@ -127,6 +129,10 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
+    , (genericShow <*> mkSumType) (Proxy @CheckpointLogMsg)
+    , (genericShow <*> mkSumType) (Proxy @CheckpointKey)
+    , (genericShow <*> mkSumType) (Proxy @EM.RequestHandlerLogMsg)
+    , (genericShow <*> mkSumType) (Proxy @EM.TxBalanceMsg)
     ]
 
 mySettings :: Settings
