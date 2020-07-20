@@ -47,6 +47,7 @@ import           Language.PureScript.Bridge                 (BridgePart, Languag
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
@@ -133,6 +134,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @CheckpointKey)
     , (genericShow <*> mkSumType) (Proxy @EM.RequestHandlerLogMsg)
     , (genericShow <*> mkSumType) (Proxy @EM.TxBalanceMsg)
+    , (genericShow <*> mkSumType) (Proxy @UnbalancedTx)
     ]
 
 mySettings :: Settings
