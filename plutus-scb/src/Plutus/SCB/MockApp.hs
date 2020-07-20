@@ -84,7 +84,7 @@ data TestState =
 
 
 data MockAppLog =
-    MockAppEmulatorLog EmulatorEvent -- subsumed by SCBMultiAgentMsg ?
+    MockAppEmulatorLog EmulatorEvent
     | MockAppContractTest ContractTestMsg
     | MockAppNodeFollower NodeFollowerLogMsg
     | MockAppMultiAgent SCBMultiAgentMsg
@@ -153,15 +153,12 @@ runScenario action = do
         Left err -> do
             void $ runMockApp finalState $ do
                 chainEvents <- use (nodeState . NodeServer.eventHistory)
-                -- logDebug $ FinalChainEvents chainEvents
                 emulatorEvents <- use emulatorEventLog
-                -- logDebug $ FinalEmulatorEvents emulatorEvents
                 chainIndexEvents <- use (agentStates . at defaultWallet . anon (SCB.MultiAgent.emptyAgentState defaultWallet) (const False) . SCB.MultiAgent.chainIndexState  . ChainIndex.indexEvents)
-                -- logDebug $ FinalChainIndexEvents defaultWallet (toList chainIndexEvents)
+
                 let theReport = MockAppReport (toList chainEvents) emulatorEvents (toList chainIndexEvents)
                     doc = renderStrict . layoutPretty defaultLayoutOptions . pretty $ theReport
                 liftIO $ putStrLn $ Text.unpack doc
-                -- FIXME Print report
             error $ show err
         Right value -> pure value
 
