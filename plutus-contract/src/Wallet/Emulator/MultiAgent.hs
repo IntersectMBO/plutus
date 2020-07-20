@@ -92,7 +92,7 @@ type EmulatedWalletEffects =
          , Wallet.NodeClientEffect
          , Wallet.ChainIndexEffect
          , Wallet.SigningProcessEffect
-         , LogObserve
+         , LogObserve (LogMessage T.Text)
          , LogMsg RequestHandlerLogMsg
          , LogMsg TxBalanceMsg
          , LogMsg T.Text
@@ -102,7 +102,7 @@ type EmulatedWalletControlEffects =
         '[ NC.NodeClientControlEffect
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
-         , LogObserve
+         , LogObserve (LogMessage T.Text)
          , LogMsg T.Text
         ]
 

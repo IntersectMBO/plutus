@@ -21,7 +21,7 @@ import           Control.Monad.Except                            (ExceptT (Excep
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (LogObserve)
+import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -175,7 +175,7 @@ invokeEndpoint ::
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
-       , Member LogObserve effs
+       , Member (LogObserve (LogMessage Text)) effs
        , Pretty t
        )
     => EndpointDescription
@@ -206,7 +206,7 @@ handler ::
        , Member (Error SCBError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
-       , Member LogObserve effs
+       , Member (LogObserve (LogMessage Text)) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)

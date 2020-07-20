@@ -34,7 +34,7 @@ import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
-import           Control.Monad.Freer.Log                         (LogObserve, mapLog, surroundInfo)
+import           Control.Monad.Freer.Log                         (LogMessage, LogObserve, mapLog, surroundInfo)
 import qualified Data.Aeson                                      as JSON
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -177,12 +177,12 @@ processFirstInboxMessage ::
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
         , Member (LogMsg (ContractInstanceMsg t)) effs
-        , Member LogObserve effs
+        , Member (LogObserve (LogMessage Text.Text)) effs
         )
     => ContractInstanceId
     -> Last (Response ContractResponse)
     -> Eff effs ()
-processFirstInboxMessage instanceID (Last msg) = surroundInfo "processFirstInboxMessage" $ do
+processFirstInboxMessage instanceID (Last msg) = surroundInfo @Text.Text "processFirstInboxMessage" $ do
     logInfo @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
     logInfo @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
     -- look up contract 't'
@@ -210,11 +210,11 @@ processAllContractInboxes ::
         ( Member (EventLogEffect (ChainEvent t)) effs
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
-        , Member LogObserve effs
+        , Member (LogObserve (LogMessage Text.Text)) effs
         , Member (LogMsg (ContractInstanceMsg t)) effs
         )
     => Eff effs ()
-processAllContractInboxes = surroundInfo "processAllContractInboxes" $ do
+processAllContractInboxes = surroundInfo @Text.Text "processAllContractInboxes" $ do
     state <- runGlobalQuery (Query.inboxMessages @t)
     itraverse_ (processFirstInboxMessage @t) state
 
@@ -224,12 +224,12 @@ processContractInbox ::
         ( Member (EventLogEffect (ChainEvent t)) effs
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
-        , Member LogObserve effs
+        , Member (LogObserve (LogMessage Text.Text)) effs
         , Member (LogMsg (ContractInstanceMsg t)) effs
         )
     => ContractInstanceId
     -> Eff effs ()
-processContractInbox i = surroundInfo "processContractInbox" $ do
+processContractInbox i = surroundInfo @Text.Text "processContractInbox" $ do
     logInfo @(ContractInstanceMsg t) $ ProcessContractInbox i
     state <- runGlobalQuery (Query.inboxMessages @t)
     traverse_ (processFirstInboxMessage @t i) (Map.lookup i state)
@@ -296,7 +296,7 @@ respondtoRequests ::
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (ContractEffect t) effs
     , Member (Error SCBError) effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
     -> Eff effs ()
@@ -313,7 +313,7 @@ runRequestHandler ::
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (ContractEffect t) effs
     , Member (Error SCBError) effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => RequestHandler effs req ContractResponse
     -> ContractInstanceId
@@ -337,7 +337,7 @@ runRequestHandler h contractInstance requests = do
 
 processOwnPubkeyRequests ::
     forall effs.
-    ( Member LogObserve effs
+    ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
@@ -347,7 +347,7 @@ processOwnPubkeyRequests =
 
 processAwaitSlotRequests ::
     forall effs.
-    ( Member LogObserve effs
+    ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
     )
@@ -360,7 +360,7 @@ processAwaitSlotRequests =
 processUtxoAtRequests ::
     forall effs.
     ( Member ChainIndexEffect effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 processUtxoAtRequests =
@@ -373,7 +373,7 @@ processWriteTxRequests ::
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member ChainIndexEffect effs
     , Member WalletEffect effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
@@ -397,7 +397,7 @@ processWriteTxRequests =
 
 processNextTxAtRequests ::
     forall effs.
-    ( Member LogObserve effs
+    ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     )
@@ -410,7 +410,7 @@ processNextTxAtRequests =
 processTxConfirmedRequests ::
     forall effs.
     ( Member ChainIndexEffect effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 processTxConfirmedRequests =
@@ -423,7 +423,7 @@ callContractEndpoint ::
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member (ContractEffect t) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (Error SCBError) effs
     , JSON.ToJSON a
     )
@@ -450,7 +450,7 @@ callContractEndpoint inst endpointName endpointValue = do
 -- | Look at the outboxes of all contract instances and process them.
 processAllContractOutboxes ::
     forall t effs.
-    ( Member LogObserve effs
+    ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
     , Member WalletEffect effs
@@ -463,7 +463,7 @@ processAllContractOutboxes ::
 processAllContractOutboxes =
     mapLog @_ @(ContractInstanceMsg t) HandlingRequest
     $ mapLog @_ @(ContractInstanceMsg t) BalancingTx
-    $ surroundInfo "processAllContractOutboxes"
+    $ surroundInfo @Text.Text "processAllContractOutboxes"
     $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
     $ contractRequestHandler @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
 
@@ -474,7 +474,7 @@ contractRequestHandler ::
     , Member WalletEffect effs
     , Member SigningProcessEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member LogObserve effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     )

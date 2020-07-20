@@ -134,7 +134,7 @@ type SCBClientEffects =
     , Error SCBError
     , LogMsg (ContractInstanceMsg TestContracts)
     , LogMsg (CoreMsg TestContracts)
-    , LogObserve
+    , LogObserve (LogMessage T.Text)
     , LogMsg T.Text
     ]
 

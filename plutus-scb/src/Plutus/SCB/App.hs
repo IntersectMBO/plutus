@@ -30,7 +30,7 @@ import qualified Cardano.Wallet.Server            as WalletServer
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
 import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo, runStderrLog)
-import           Control.Monad.Freer.Log          (LogObserve, handleObserveLog, renderLogMessages)
+import           Control.Monad.Freer.Log          (LogMessage, LogObserve, handleObserveLog, renderLogMessages)
 import qualified Control.Monad.Freer.Log          as Log
 import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
 import           Control.Monad.Freer.Writer       (Writer)
@@ -103,7 +103,7 @@ type AppBackend m =
          , LogMsg (ContractInstanceMsg ContractExe)
          , LogMsg UnStringifyJSONLog
          , LogMsg (CoreMsg ContractExe)
-         , LogObserve
+         , LogObserve (LogMessage Text.Text)
          , LogMsg Text.Text
          , Reader Connection
          , Reader Env

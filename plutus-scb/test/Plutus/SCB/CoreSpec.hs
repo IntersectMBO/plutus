@@ -218,8 +218,8 @@ type SpecEffects =
         , ContractEffect TestContracts
         , NodeFollowerEffect
         , LogMsg Text
-        , LogMsg ContractInstanceMsg
-        , EmulatorLog.LogObserve
+        , LogMsg (ContractInstanceMsg TestContracts)
+        , EmulatorLog.LogObserve (EmulatorLog.LogMessage Text)
         ]
 
 lock ::
