@@ -14,12 +14,12 @@ module Control.Monad.Freer.Extra.Log(
     , logInfo
     , logWarn
     , runStderrLog
-    , writeToLog
+    , handleWriterLog
     ) where
 
 import           Control.Monad.Freer     (Eff, LastMember, type (~>))
 import qualified Control.Monad.Freer     as Eff
-import           Control.Monad.Freer.Log (LogMessage (..), LogMsg (..), logDebug, logInfo, logWarn, writeToLog)
+import           Control.Monad.Freer.Log (LogMessage (..), LogMsg (..), handleWriterLog, logDebug, logInfo, logWarn)
 import qualified Control.Monad.Freer.Log as Log
 import           Control.Monad.IO.Class  (MonadIO, liftIO)
 import           Control.Monad.Logger    (LogLevel (..), logWithoutLoc, runStderrLoggingT)

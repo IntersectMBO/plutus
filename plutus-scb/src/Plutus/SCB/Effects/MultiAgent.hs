@@ -31,8 +31,8 @@ import           Control.Monad.Freer              (Eff, Members, type (~>), inte
 import           Control.Monad.Freer.Error        (Error)
 import           Control.Monad.Freer.Extra.Log    (LogMsg)
 import           Control.Monad.Freer.Extras       (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
-import           Control.Monad.Freer.Log          (LogLevel (..), LogMessage, LogObserve, logMessage, logToWriter,
-                                                   observeAsLogMessage)
+import           Control.Monad.Freer.Log          (LogLevel (..), LogMessage, LogObserve, handleLogWriter,
+                                                   handleObserveLog, logMessage)
 import qualified Control.Monad.Freer.Log          as Log
 import           Control.Monad.Freer.State        (State)
 import           Control.Monad.Freer.TH           (makeEffect)
@@ -184,10 +184,10 @@ handleMultiAgent = interpret $ \case
             & NF.handleNodeFollower
             & subsume
             & subsume
-            & interpret (logToWriter p5)
-            & interpret (logToWriter p6)
-            & observeAsLogMessage
-            & interpret (logToWriter p4)
+            & interpret (handleLogWriter p5)
+            & interpret (handleLogWriter p6)
+            & handleObserveLog
+            & interpret (handleLogWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
             & interpret (handleZoomedWriter p1)
             & interpret (handleZoomedState (agentState wallet . nodeClientState))
@@ -217,8 +217,8 @@ handleMultiAgent = interpret $ \case
             & NC.handleNodeControl
             & SP.handleSigningProcessControl
             & interpret (handleZoomedState (agentState wallet . chainIndexState))
-            & interpret (logToWriter p5)
-            & interpret (logToWriter p4)
+            & interpret (handleLogWriter p5)
+            & interpret (handleLogWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
             & interpret (handleZoomedWriter p1)
             & interpret (handleZoomedState (agentState wallet . nodeClientState))

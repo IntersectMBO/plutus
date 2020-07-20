@@ -16,7 +16,7 @@ import           Control.Lens                    (over, set, view)
 import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
-import           Control.Monad.Freer.Log         (contramapLog, renderLogMessages)
+import           Control.Monad.Freer.Log         (mapLog, renderLogMessages)
 import           Control.Monad.Freer.Reader      (Reader)
 import qualified Control.Monad.Freer.Reader      as Eff
 import           Control.Monad.Freer.State       (State)
@@ -139,7 +139,7 @@ runChainEffects txQueue blockQueue stateVar eff = do
         $ runM
         $ runStderrLog
         $ renderLogMessages
-        $ contramapLog NodeMockNodeMsg
+        $ mapLog NodeMockNodeMsg
         $ Eff.runState oldAppState
         $ Eff.runReader txQueue
         $ Eff.runReader blockQueue
@@ -148,9 +148,9 @@ runChainEffects txQueue blockQueue stateVar eff = do
         $ interpret (handleZoomedState T.followerState)
         $ CE.handleChain
         $ Chain.handleControlChain
-        $ contramapLog NodeServerFollowerMsg
+        $ mapLog NodeServerFollowerMsg
         $ FE.handleNodeFollower
-        $ contramapLog NodeGenRandomTxMsg
+        $ mapLog NodeGenRandomTxMsg
         $ runGenRandomTx
         $ do result <- eff
              void Chain.processBlock

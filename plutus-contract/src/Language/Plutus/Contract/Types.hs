@@ -49,7 +49,7 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
 import           Control.Monad.Freer.Extras          (raiseEnd3, raiseUnderN)
-import           Control.Monad.Freer.Log             (LogMsg, ignoreLog)
+import           Control.Monad.Freer.Log             (LogMsg, handleLogIgnore)
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
@@ -235,7 +235,7 @@ runWithRecord action store rc =
       $ run
       $ E.runError  @e @_
       $ runReader @(Responses (Event s)) @_ rc
-      $ ignoreLog @CheckpointLogMsg
+      $ handleLogIgnore @CheckpointLogMsg
       $ runState @CheckpointStore store
       $ runState  @(Requests (Handlers s)) mempty
       $ handleContractEffs @s @e @_ @a action

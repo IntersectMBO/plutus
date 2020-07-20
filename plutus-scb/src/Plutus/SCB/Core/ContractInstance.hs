@@ -34,7 +34,7 @@ import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
-import           Control.Monad.Freer.Log                         (LogObserve, contramapLog, surroundInfo)
+import           Control.Monad.Freer.Log                         (LogObserve, mapLog, surroundInfo)
 import qualified Data.Aeson                                      as JSON
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -463,8 +463,8 @@ processAllContractOutboxes ::
     )
     => Eff effs ()
 processAllContractOutboxes =
-    contramapLog HandlingRequest
-    $ contramapLog BalancingTx
+    mapLog HandlingRequest
+    $ mapLog BalancingTx
     $ surroundInfo "processAllContractOutboxes"
     $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
     $ contractRequestHandler @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)

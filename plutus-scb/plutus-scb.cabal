@@ -121,6 +121,7 @@ library
         cardano-prelude -any,
         cardano-slotting -any,
         containers -any,
+        contra-tracer -any,
         cryptonite -any,
         cborg -any,
         directory -any,

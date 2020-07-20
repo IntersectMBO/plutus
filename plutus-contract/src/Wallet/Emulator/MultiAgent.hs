@@ -21,8 +21,8 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage, logToWriter,
-                                                 observeAsLogMessage)
+import           Control.Monad.Freer.Log        (LogLevel (..), LogMessage, LogMsg, LogObserve, handleLogWriter,
+                                                 handleObserveLog, logMessage)
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
@@ -270,10 +270,10 @@ handleMultiAgent = interpret $ \case
         & NC.handleNodeClient
         & ChainIndex.handleChainIndex
         & SP.handleSigningProcess
-        & observeAsLogMessage
-        & interpret (logToWriter p5)
-        & interpret (logToWriter p6)
-        & interpret (logToWriter p4)
+        & handleObserveLog
+        & interpret (handleLogWriter p5)
+        & interpret (handleLogWriter p6)
+        & interpret (handleLogWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))
@@ -300,8 +300,8 @@ handleMultiAgent = interpret $ \case
         & NC.handleNodeControl
         & ChainIndex.handleChainIndexControl
         & SP.handleSigningProcessControl
-        & observeAsLogMessage
-        & interpret (logToWriter p4)
+        & handleObserveLog
+        & interpret (handleLogWriter p4)
         & interpret (handleZoomedState (walletState wallet))
         & interpret (handleZoomedWriter p1)
         & interpret (handleZoomedState (walletClientState wallet))

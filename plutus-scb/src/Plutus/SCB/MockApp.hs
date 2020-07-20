@@ -40,7 +40,7 @@ import           Control.Monad.Freer.Error             (Error, handleError, runE
 import           Control.Monad.Freer.Extra.Log         (LogMsg)
 import           Control.Monad.Freer.Extra.State       (use)
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log               (LogLevel (Info), LogMessage, logMessage, logToWriter)
+import           Control.Monad.Freer.Log               (LogLevel (Info), LogMessage, handleLogWriter, logMessage)
 import           Control.Monad.Freer.State             (State, runState)
 import           Control.Monad.Freer.Writer            (Writer)
 import           Control.Monad.IO.Class                (MonadIO (..))
@@ -184,8 +184,8 @@ runMockApp state action =
     $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage SCBMultiAgentMsg] (below (below _MockAppMultiAgent)))
 
     -- log messages
-    $ interpret (logToWriter @NodeFollowerLogMsg @[LogMessage MockAppLog] (_singleton . below _MockAppNodeFollower))
-    $ interpret (logToWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
+    $ interpret (handleLogWriter @NodeFollowerLogMsg @[LogMessage MockAppLog] (_singleton . below _MockAppNodeFollower))
+    $ interpret (handleLogWriter @ContractTestMsg @[LogMessage MockAppLog] (_singleton . below _MockAppContractTest))
 
     -- handlers for 'MockAppEffects'
     $ subsume

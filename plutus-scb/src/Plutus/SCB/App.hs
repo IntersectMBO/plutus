@@ -29,8 +29,9 @@ import qualified Cardano.Wallet.Client            as WalletClient
 import qualified Cardano.Wallet.Server            as WalletServer
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log    (LogMsg, logDebug, logInfo, runStderrLog, writeToLog)
-import           Control.Monad.Freer.Log          (LogObserve, observeAsLogMessage, renderLogMessages)
+import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo, runStderrLog)
+import           Control.Monad.Freer.Log          (LogObserve, handleObserveLog, renderLogMessages)
+import qualified Control.Monad.Freer.Log          as Log
 import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
 import           Control.Monad.Freer.Writer       (Writer)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
@@ -123,13 +124,13 @@ runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcess
     . runReader e
     . runReader dbConnection
     . runStderrLog
-    . observeAsLogMessage
+    . handleObserveLog
     . renderLogMessages
     . renderLogMessages
     . renderLogMessages
     . renderLogMessages
     . renderLogMessages
-    . writeToLog
+    . handleWriterLog (\_ -> Log.Info)
     . runError
     . handleEventLogSql
     . handleChainIndex

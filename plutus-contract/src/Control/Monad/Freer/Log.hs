@@ -25,30 +25,31 @@ module Control.Monad.Freer.Log(
     , logWarn
     , logInfo
     -- ** Handlers
-    , contramapLog
-    , writeToLog
-    , ignoreLog
-    , traceLog
-    , logToWriter
+    , mapLog
+    , handleWriterLog
+    , handleLogIgnore
+    , handleLogTrace
+    , handleLogWriter
     , renderLogMessages
     -- * Tracing
     , LogObserve(..)
+    , ObservationHandle
     , surround
     , surroundDebug
     , surroundInfo
     , surroundWarn
     -- ** Handlers
-    , observeAsLogMessage
+    , handleObserveLog
     , handleObserve
     ) where
 
-import           Control.Lens                            (Prism', makeLenses, prism', review)
+import           Control.Lens                            (Prism', makeLenses, prism', review, (<&>))
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras              (raiseUnder)
 import           Control.Monad.Freer.State               (State, get, put, runState)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
-import           Data.Foldable                           (traverse_)
+import           Data.Foldable                           (for_, traverse_)
 import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc               hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
@@ -89,9 +90,9 @@ and recording the difference between them. It is implemented using two markers,
 
 Some effects such as Error, Prompt may short-circuit the action, so that the
 LObserveAfter marker is never encountered by the handler. 'handleObserve' deals
-with this by keeping a stack of unmatched 'LObserveBefore' markers and popping 
-as many items of the stack as needed whenever 'LObserveAfter' is run. It works 
-even if the topmost LObserveAfter is never seen, by popping all remaining items 
+with this by keeping a stack of unmatched 'LObserveBefore' markers and popping
+as many items of the stack as needed whenever 'LObserveAfter' is run. It works
+even if the topmost LObserveAfter is never seen, by popping all remaining items
 off the stack at the end.
 
 -}
@@ -99,9 +100,13 @@ off the stack at the end.
 data LogMsg a r where
     LMessage :: LogMessage a -> LogMsg a ()
 
+-- | An abstract type used to tie the beginning and end of observations
+--   together.
+newtype ObservationHandle = ObservationHandle Integer
+
 data LogObserve r where
-    LObserveBefore :: LogLevel -> Text -> LogObserve Integer
-    LObserveAfter  :: Integer -> LogObserve ()
+    LObserveBefore :: LogLevel -> Text -> LogObserve ObservationHandle
+    LObserveAfter  :: ObservationHandle -> LogObserve ()
 
 -- | The severity level of a log message
 --   See https://en.wikipedia.org/wiki/Syslog#Severity_level
@@ -152,13 +157,15 @@ logInfo m = send $ LMessage (LogMessage Info m)
 
 -- | Re-interpret a logging effect by mapping the
 --   log messages.
-contramapLog ::
+--   (Does the same thing as 'Covariant.contramap' for
+--   'Control.Tracer.Trace')
+mapLog ::
     forall a b c effs.
-    Member (LogMsg a) effs
-    => (b -> a)
-    -> Eff (LogMsg b ': effs) c
+    Member (LogMsg b) effs
+    => (a -> b)
+    -> Eff (LogMsg a ': effs) c
     -> Eff effs c
-contramapLog f = interpret $ \case
+mapLog f = interpret $ \case
     LMessage msg -> send $ LMessage (fmap f msg)
 
 -- | Pretty-print the log messages
@@ -170,38 +177,39 @@ renderLogMessages ::
     => Eff (LogMsg a ': effs)
     ~> Eff effs
 renderLogMessages =
-    contramapLog (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
+    mapLog (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
 
 -- | Re-interpret a 'Writer' effect by writing the events to the log
-writeToLog ::
+handleWriterLog ::
     forall a f effs.
     ( Member (LogMsg a) effs
     , Traversable f
     )
-    => Eff (Writer (f a) ': effs)
+    => (a -> LogLevel)
+    -> Eff (Writer (f a) ': effs)
     ~> Eff effs
-writeToLog = interpret $ \case
-    Tell es -> traverse_ (logInfo @a) es
+handleWriterLog f = interpret $ \case
+    Tell es -> traverse_ (\a -> send $ LMessage $ LogMessage (f a) a) es
 
 -- | Re-interpret a 'Log' effect with a 'Writer'
-logToWriter ::
+handleLogWriter ::
     forall a w effs.
     ( Member (Writer w) effs
     )
     => Prism' w (LogMessage a)
     -> LogMsg a
     ~> Eff effs
-logToWriter p = \case
+handleLogWriter p = \case
     LMessage msg -> tell @w (review p msg)
 
 -- | Ignore all log messages.
-ignoreLog :: Eff (LogMsg a ': effs) ~> Eff effs
-ignoreLog = interpret $ \case
+handleLogIgnore :: Eff (LogMsg a ': effs) ~> Eff effs
+handleLogIgnore = interpret $ \case
     LMessage _ -> pure ()
 
 -- | Write the log to stdout using 'Debug.Trace.trace'
-traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
-traceLog = interpret $ \case
+handleLogTrace :: Eff (LogMsg String ': effs) ~> Eff effs
+handleLogTrace = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
 
 -- | Write a log message before and after an action.
@@ -285,9 +293,14 @@ handleObserve getCurrent handleObs =
         handleObserveAfter ObsState{obsPartials} i = do
                 current <- getCurrent
                 let (finishedPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
-                flip traverse_ finishedPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
+                for_ finishedPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
+                    -- we assume that a 'PartialObservation' was completed
+                    -- regularly if it is handled at its own depth level.
+                    -- If the @obsDepth@ is greater than @i@ then one or more
+                    -- 'LObserveAfter' calls were skipped, which we note with
+                    -- 'Irregular'.
                     let exitMode = if obsDepth == i then Regular else Irregular
-                        message  = fmap (\l -> Observation{obsLabel=l, obsStart=obsValue, obsEnd=current, obsExit=exitMode}) obsMsg
+                        message  = obsMsg <&> (\l -> Observation{obsLabel=l, obsStart=obsValue, obsEnd=current, obsExit=exitMode})
                     handleObs message
                 pure ObsState{obsMaxDepth=i - 1, obsPartials=remainingPartials}
 
@@ -302,20 +315,20 @@ handleObserve getCurrent handleObs =
                             , obsDepth = newMaxDepth
                             }
                 put ObsState{obsMaxDepth=newMaxDepth,obsPartials=msg:obsPartials}
-                pure newMaxDepth
-            LObserveAfter i -> do
+                pure (ObservationHandle newMaxDepth)
+            LObserveAfter (ObservationHandle i) -> do
                 currentState <- get @(ObsState s)
                 newState <- raise (handleObserveAfter currentState i)
                 put newState
 
 -- | Interpret the 'LogObserve' effect by logging a "start" message
 --   before the action and an "end" message after the action.
-observeAsLogMessage ::
+handleObserveLog ::
     forall effs.
     Member (LogMsg Text) effs
     => Eff (LogObserve ': effs)
     ~> Eff effs
-observeAsLogMessage =
+handleObserveLog =
     handleObserve (pure ()) handleAfter
     . interpose handleBefore
         where
