@@ -283,17 +283,17 @@ handleMultiAgent = interpret $ \case
         & interpret (handleZoomedState (signingProcessState wallet))
         & interpret (writeIntoState emulatorLog)
         where
-            p1 :: Prism' [LogMessage EmulatorEvent] [Wallet.WalletEvent]
+            p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
             p1 = below (logMessage Info . walletEvent wallet)
-            p2 :: Prism' [LogMessage EmulatorEvent] [NC.NodeClientEvent]
+            p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . walletClientEvent wallet)
-            p3 :: Prism' [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
+            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (logMessage Info . chainIndexEvent wallet)
-            p4 :: Prism' [LogMessage EmulatorEvent] (LogMessage T.Text)
+            p4 :: AReview [LogMessage EmulatorEvent] (LogMessage T.Text)
             p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
-            p5 :: Prism' [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
+            p5 :: AReview [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
             p5 = _singleton . below (walletEvent wallet . Wallet._RequestHandlerLog)
-            p6 :: Prism' [LogMessage EmulatorEvent] (LogMessage TxBalanceMsg)
+            p6 :: AReview [LogMessage EmulatorEvent] (LogMessage TxBalanceMsg)
             p6 = _singleton . below (walletEvent wallet . Wallet._TxBalanceLog)
     WalletControlAction wallet act -> act
         & raiseEnd5
@@ -311,13 +311,13 @@ handleMultiAgent = interpret $ \case
         & interpret (handleZoomedState (signingProcessState wallet))
         & interpret (writeIntoState emulatorLog)
         where
-            p1 :: Prism' [LogMessage EmulatorEvent] [Wallet.WalletEvent]
+            p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
             p1 = below (logMessage Info . walletEvent wallet)
-            p2 :: Prism' [LogMessage EmulatorEvent] [NC.NodeClientEvent]
+            p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . walletClientEvent wallet)
-            p3 :: Prism' [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
+            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (logMessage Info . chainIndexEvent wallet)
-            p4 :: Prism' [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
+            p4 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
             p4 = _singleton . below (walletEvent wallet . Wallet._GenericLog)
     Assertion a -> assert a
 
@@ -343,5 +343,5 @@ isValidated txn = do
         then throwError $ GenericAssertion $ "Txn not validated: " <> T.pack (show txn)
         else pure ()
 
-_singleton :: Prism' [a] a
-_singleton = prism' return (\case { [x] -> Just x; _ -> Nothing})
+_singleton :: AReview [a] a
+_singleton = unto return

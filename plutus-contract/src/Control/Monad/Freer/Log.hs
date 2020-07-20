@@ -46,7 +46,7 @@ module Control.Monad.Freer.Log(
     , handleObserve
     ) where
 
-import           Control.Lens                            (Prism', makeLenses, prism', review)
+import           Control.Lens                            (AReview, Prism', makeLenses, prism', review)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras              (raiseUnder)
 import           Control.Monad.Freer.State               (State, get, put, runState)
@@ -211,7 +211,7 @@ handleLogWriter ::
     forall a w effs.
     ( Member (Writer w) effs
     )
-    => Prism' w (LogMessage a)
+    => AReview w (LogMessage a)
     -> LogMsg a
     ~> Eff effs
 handleLogWriter p = \case

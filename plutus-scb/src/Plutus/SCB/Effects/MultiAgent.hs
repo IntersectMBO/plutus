@@ -26,7 +26,7 @@ module Plutus.SCB.Effects.MultiAgent(
     , handleMultiAgent
     ) where
 
-import           Control.Lens                     (Lens', Prism', anon, at, below, makeClassyPrisms, makeLenses, (&))
+import           Control.Lens                     (AReview, Lens', anon, at, below, makeClassyPrisms, makeLenses, (&))
 import           Control.Monad.Freer              (Eff, Members, type (~>), interpret, subsume)
 import           Control.Monad.Freer.Error        (Error)
 import           Control.Monad.Freer.Extra.Log    (LogMsg)
@@ -197,17 +197,17 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
             & interpret (handleZoomedState (agentState wallet . agentEventState))
             where
-                p1 :: Prism' [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
+                p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
                 p1 = below (logMessage Info . _EmulatorMsg . walletEvent wallet)
-                p2 :: Prism' [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
+                p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
                 p2 = below (logMessage Info . _EmulatorMsg . walletClientEvent wallet)
-                p3 :: Prism' [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
+                p3 :: AReview [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
                 p3 = below (logMessage Info . _EmulatorMsg . chainIndexEvent wallet)
-                p4 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage T.Text)
+                p4 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage T.Text)
                 p4 = _singleton . below (_EmulatorMsg . walletEvent wallet . Wallet._GenericLog)
-                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage (ContractInstanceMsg TestContracts))
+                p5 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage (ContractInstanceMsg TestContracts))
                 p5 = _singleton . below _ContractInstanceLog
-                p6 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage (CoreMsg TestContracts))
+                p6 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage (CoreMsg TestContracts))
                 p6 = _singleton . below _CoreLog
     AgentControlAction wallet action ->
         action
@@ -227,13 +227,13 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
             where
-                p1 :: Prism' [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
+                p1 :: AReview [LogMessage SCBMultiAgentMsg] [Wallet.WalletEvent]
                 p1 = below (logMessage Info . _EmulatorMsg . walletEvent wallet)
-                p2 :: Prism' [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
+                p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
                 p2 = below (logMessage Info . _EmulatorMsg . walletClientEvent wallet)
-                p3 :: Prism' [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
+                p3 :: AReview [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
                 p3 = below (logMessage Info . _EmulatorMsg . chainIndexEvent wallet)
-                p4 :: Prism' [LogMessage SCBMultiAgentMsg] (Log.LogMessage T.Text)
+                p4 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage T.Text)
                 p4 = _singleton . below (_EmulatorMsg . walletEvent wallet . Wallet._GenericLog)
-                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
+                p5 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
                 p5 = _singleton . below _ChainIndexServerLog

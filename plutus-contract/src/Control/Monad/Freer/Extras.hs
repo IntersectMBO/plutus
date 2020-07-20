@@ -220,13 +220,13 @@ handleZoomedState l = \case
     Get -> view l <$> get
     Put v -> modify (set l v)
 
--- | Handle a 'Writer' effect in terms of a "larger" 'Writer' effect from which we have a prism.
-handleZoomedWriter :: Member (Writer s2) effs => Prism' s2 s1 -> (Writer s1 ~> Eff effs)
+-- | Handle a 'Writer' effect in terms of a "larger" 'Writer' effect from which we have a review.
+handleZoomedWriter :: Member (Writer s2) effs => AReview s2 s1 -> (Writer s1 ~> Eff effs)
 handleZoomedWriter p = \case
     Tell w -> tell (review p w)
 
--- | Handle an 'Error' effect in terms of a "larger" 'Error' effect from which we have a prism.
-handleZoomedError :: Member (Error s2) effs => Prism' s2 s1 -> (Error s1 ~> Eff effs)
+-- | Handle an 'Error' effect in terms of a "larger" 'Error' effect from which we have a review.
+handleZoomedError :: Member (Error s2) effs => AReview s2 s1 -> (Error s1 ~> Eff effs)
 handleZoomedError p = \case
     Error e -> throwError (review p e)
 
