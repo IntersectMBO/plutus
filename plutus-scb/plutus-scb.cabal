@@ -121,7 +121,6 @@ library
         cardano-prelude -any,
         cardano-slotting -any,
         containers -any,
-        contra-tracer -any,
         cryptonite -any,
         cborg -any,
         directory -any,
@@ -210,7 +209,6 @@ executable plutus-scb
         uuid -any,
         yaml -any,
         containers -any,
-        contra-tracer -any,
         iohk-monitoring -any
 
 executable plutus-game
