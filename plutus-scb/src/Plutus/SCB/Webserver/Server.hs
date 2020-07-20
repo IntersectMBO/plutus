@@ -147,10 +147,9 @@ activateContract ::
        , Member (Error SCBError) effs
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
-       , Member (LogMsg Instance.ContractInstanceMsg) effs
+       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
        , Ord t
        , Show t
-       , Pretty t
        )
     => t
     -> Eff effs (ContractInstanceState t)
@@ -175,7 +174,7 @@ invokeEndpoint ::
        , Member (ContractEffect t) effs
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
-       , Member (LogMsg Instance.ContractInstanceMsg) effs
+       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
        , Member LogObserve effs
        , Pretty t
        )
@@ -206,7 +205,7 @@ handler ::
        , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg UnStringifyJSONLog) effs
-       , Member (LogMsg Instance.ContractInstanceMsg) effs
+       , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
        , Member LogObserve effs
        )
     => Eff effs ()

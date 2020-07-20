@@ -52,8 +52,7 @@ import qualified Control.Monad.Logger             as MonadLogger
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
 import           Data.Text                        (Text)
-import           Data.Text.Prettyprint.Doc        (Doc, Pretty, pretty, (<+>))
-import           Data.Void                        (Void, absurd)
+import           Data.Text.Prettyprint.Doc        (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
 import qualified Ledger
@@ -82,48 +81,46 @@ type ContractEffects t =
          , Error SCBError
          ]
 
-data CoreMsg =
-    Installing (Doc Void)
+data CoreMsg t =
+    Installing t
     | Installed
     | FindingContract ContractInstanceId
-    | FoundContract (Doc Void)
+    | FoundContract (Maybe (ContractInstanceState t))
 
-instance Pretty CoreMsg where
+instance Pretty t => Pretty (CoreMsg t) where
     pretty = \case
-        Installing d -> "Installing" <+> fmap absurd d
+        Installing d -> "Installing" <+> pretty d
         Installed -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
-        FoundContract c -> "Found contract" <+> fmap absurd c
+        FoundContract c -> "Found contract" <+> pretty c
 
 installContract ::
     forall t effs.
-    ( Member (LogMsg CoreMsg) effs
+    ( Member (LogMsg (CoreMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
-    , Pretty t
     )
     => t
     -> Eff effs ()
 installContract contractHandle = do
-    logInfo $ Installing (pretty contractHandle)
+    logInfo $ Installing contractHandle
     void $
         runCommand
             installCommand
             UserEventSource
             contractHandle
-    logInfo Installed
+    logInfo @(CoreMsg t) Installed
 
 reportContractState ::
     forall t effs.
-    ( Member (LogMsg CoreMsg) effs
+    ( Member (LogMsg (CoreMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
-    , Pretty t
     )
     => ContractInstanceId
     -> Eff effs ()
 reportContractState cid = do
-    logInfo $ FindingContract cid
+    logInfo @(CoreMsg t) $ FindingContract cid
     contractState <- runGlobalQuery (Query.contractState @t)
-    logInfo $ FoundContract (pretty $ Map.lookup cid contractState)
+    logInfo $ FoundContract (Map.lookup cid contractState)
 
 installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set t)
 installedContracts = runGlobalQuery Query.installedContractsProjection

@@ -42,8 +42,7 @@ import           Data.Maybe                                      (mapMaybe)
 import           Data.Semigroup                                  (Last (..))
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Doc, Pretty, parens, pretty, viaShow, (<+>))
-import           Data.Void                                       (Void, absurd)
+import           Data.Text.Prettyprint.Doc                       (Pretty, parens, pretty, viaShow, (<+>))
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
@@ -77,9 +76,9 @@ import           Plutus.SCB.Utils                                (tshow)
 
 import qualified Plutus.SCB.Core.Projections                     as Projections
 
-data ContractInstanceMsg =
+data ContractInstanceMsg t =
     ProcessFirstInboxMessage ContractInstanceId (Response ContractResponse)
-    | SendingContractStateMessages (Doc Void) IterationID [Request ContractSCBRequest]
+    | SendingContractStateMessages ContractInstanceId IterationID [Request ContractSCBRequest]
     | LookingUpStateOfContractInstance
     | CurrentIteration IterationID
     | InboxMessageDoesntMatchIteration IterationID IterationID
@@ -87,8 +86,8 @@ data ContractInstanceMsg =
     | InvokingContractUpdate
     | ObtainedNewState
     | UpdatedContract ContractInstanceId IterationID
-    | LookingUpContract (Doc Void)
-    | InitialisingContract (Doc Void) ContractInstanceId
+    | LookingUpContract t
+    | InitialisingContract t ContractInstanceId
     | InitialContractResponse (PartiallyDecodedResponse ContractSCBRequest)
     | ActivatedContractInstance ContractInstanceId
     | RunRequestHandler ContractInstanceId Int -- number of requests
@@ -99,18 +98,18 @@ data ContractInstanceMsg =
     | HandlingRequest RequestHandlerLogMsg
     | BalancingTx TxBalanceMsg
 
--- FIXME
+-- TODO:
 -- 1. per-instanceID messages
 -- 2. per-iteration messages for
 --      * RequestHandlerLogMsg
 --      * TxBalanceMsg
 
-instance Pretty ContractInstanceMsg where
+instance Pretty t => Pretty (ContractInstanceMsg t) where
     pretty = \case
         ProcessFirstInboxMessage instanceID response ->
             "processFirstInboxMessage for" <+> pretty instanceID <> ". The first message is:" <+> pretty response
         SendingContractStateMessages contract iterationID requests ->
-            "Sending messages for contract" <+> (fmap absurd contract) <+> "at iteration" <+> pretty iterationID <+> ". The contract has the following requests:" <+> pretty requests
+            "Sending messages for contract" <+> pretty contract <+> "at iteration" <+> pretty iterationID <+> ". The contract has the following requests:" <+> pretty requests
         LookingUpStateOfContractInstance -> "Looking up current state of the contract instance."
         CurrentIteration i -> "CurrentIteration:" <+> pretty i
         InboxMessageDoesntMatchIteration imsg iinstance -> "The iteration of the first inbox message" <+> parens (pretty imsg) <+> "does not match the contract instance's iteration" <+> parens (pretty iinstance) <> "."
@@ -118,8 +117,8 @@ instance Pretty ContractInstanceMsg where
         InvokingContractUpdate -> "Invoking contract update."
         ObtainedNewState -> "Obtained new state. Sending contract state messages."
         UpdatedContract instanceID iterationID -> "Updated contract" <+> pretty instanceID <+> "to new iteration" <+> pretty iterationID
-        LookingUpContract c -> "Looking up contract" <+> (absurd <$> c)
-        InitialisingContract c instanceID -> "Initialising contract" <+> (absurd <$> c) <+> "with ID" <+> pretty instanceID
+        LookingUpContract c -> "Looking up contract" <+> pretty c
+        InitialisingContract c instanceID -> "Initialising contract" <+> pretty c <+> "with ID" <+> pretty instanceID
         InitialContractResponse rsp -> "Initial contract response:" <+> pretty rsp
         ActivatedContractInstance instanceID -> "Activated instance" <+> pretty instanceID
         RunRequestHandler instanceID numRequests -> "Running request handler for" <+> pretty instanceID <+> "with" <+> pretty numRequests <+> "requests."
@@ -134,12 +133,12 @@ instance Pretty ContractInstanceMsg where
 sendContractStateMessages ::
     forall t effs.
         ( Member (EventLogEffect (ChainEvent t)) effs
-        , Member (LogMsg ContractInstanceMsg) effs
+        , Member (LogMsg (ContractInstanceMsg t)) effs
         )
     => ContractInstanceState t
     -> Eff effs ()
 sendContractStateMessages is = do
-    logInfo $ SendingContractStateMessages (pretty (csContract is)) (csCurrentIteration is) (hooks (csCurrentState is))
+    logInfo @(ContractInstanceMsg t) $ SendingContractStateMessages (csContract is) (csCurrentIteration is) (hooks (csCurrentState is))
     void
         $ runCommand (sendContractEvent @t) ContractEventSource
         $ ContractInstanceStateUpdateEvent is
@@ -177,32 +176,32 @@ processFirstInboxMessage ::
         ( Member (EventLogEffect (ChainEvent t)) effs
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
-        , Member (LogMsg ContractInstanceMsg) effs
+        , Member (LogMsg (ContractInstanceMsg t)) effs
         , Member LogObserve effs
         )
     => ContractInstanceId
     -> Last (Response ContractResponse)
     -> Eff effs ()
 processFirstInboxMessage instanceID (Last msg) = surroundInfo "processFirstInboxMessage" $ do
-    logInfo $ ProcessFirstInboxMessage instanceID msg
-    logInfo $ LookingUpStateOfContractInstance
+    logInfo @(ContractInstanceMsg t) $ ProcessFirstInboxMessage instanceID msg
+    logInfo @(ContractInstanceMsg t) $ LookingUpStateOfContractInstance
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
-    logInfo $ CurrentIteration csCurrentIteration
+    logInfo @(ContractInstanceMsg t) $ CurrentIteration csCurrentIteration
     if csCurrentIteration /= rspItID msg
-        then logInfo $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
+        then logInfo @(ContractInstanceMsg t) $ InboxMessageDoesntMatchIteration (rspItID msg) csCurrentIteration
         else do
-            logInfo InboxMessageMatchesIteration
+            logInfo @(ContractInstanceMsg t) InboxMessageMatchesIteration
             -- process the message
             let payload = Contract.contractMessageToPayload msg
-            logInfo InvokingContractUpdate
+            logInfo @(ContractInstanceMsg t) InvokingContractUpdate
             newState <- Contract.invokeContractUpdate_ csContractDefinition csCurrentState payload
-            logInfo ObtainedNewState
+            logInfo @(ContractInstanceMsg t) ObtainedNewState
             -- send out the new requests
             -- see note [Contract Iterations]
             let newIteration = succ csCurrentIteration
             sendContractStateMessages $ ContractInstanceState instanceID newIteration newState csContractDefinition
-            logInfo $ UpdatedContract instanceID newIteration
+            logInfo @(ContractInstanceMsg t) $ UpdatedContract instanceID newIteration
 
 
 -- | Check the inboxes of all contracts.
@@ -212,7 +211,7 @@ processAllContractInboxes ::
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
         , Member LogObserve effs
-        , Member (LogMsg ContractInstanceMsg) effs
+        , Member (LogMsg (ContractInstanceMsg t)) effs
         )
     => Eff effs ()
 processAllContractInboxes = surroundInfo "processAllContractInboxes" $ do
@@ -226,12 +225,12 @@ processContractInbox ::
         , Member (ContractEffect t) effs
         , Member (Error SCBError) effs
         , Member LogObserve effs
-        , Member (LogMsg ContractInstanceMsg) effs
+        , Member (LogMsg (ContractInstanceMsg t)) effs
         )
     => ContractInstanceId
     -> Eff effs ()
 processContractInbox i = surroundInfo "processContractInbox" $ do
-    logInfo $ ProcessContractInbox i
+    logInfo @(ContractInstanceMsg t) $ ProcessContractInbox i
     state <- runGlobalQuery (Query.inboxMessages @t)
     traverse_ (processFirstInboxMessage @t i) (Map.lookup i state)
 
@@ -261,27 +260,26 @@ lookupContract t = do
 -- | Create a new instance of the contract
 activateContract ::
     forall t effs.
-    ( Member (LogMsg ContractInstanceMsg) effs
+    ( Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
     , Member (Error SCBError) effs
     , Member UUIDEffect effs
     , Member (ContractEffect t) effs
     , Show t
-    , Pretty t
     , Ord t
     )
     => t
     -> Eff effs (ContractInstanceState t)
 activateContract contract = do
-    logInfo $ LookingUpContract (pretty contract)
+    logInfo @(ContractInstanceMsg t) $ LookingUpContract contract
     contractDef <-
         either (throwError . ContractNotFound . unContractLookupError) pure =<<
         lookupContract @t contract
     activeContractInstanceId <- ContractInstanceId <$> uuidNextRandom
-    logInfo $ InitialisingContract (pretty contract) activeContractInstanceId
+    logInfo $ InitialisingContract contract activeContractInstanceId
     let initialIteration = succ mempty -- FIXME get max it. from initial response
     response <- fmap (fmap unContractHandlersResponse) <$> Contract.invokeContract @t $ InitContract contractDef
-    logInfo $ InitialContractResponse response
+    logInfo @(ContractInstanceMsg t) $ InitialContractResponse response
     let instanceState = ContractInstanceState
                           { csContract = activeContractInstanceId
                           , csCurrentIteration = initialIteration
@@ -289,13 +287,13 @@ activateContract contract = do
                           , csContractDefinition = contract
                           }
     sendContractStateMessages instanceState
-    logInfo $ ActivatedContractInstance activeContractInstanceId
+    logInfo @(ContractInstanceMsg t) $ ActivatedContractInstance activeContractInstanceId
     pure instanceState
 
 respondtoRequests ::
     forall t effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (ContractEffect t) effs
     , Member (Error SCBError) effs
     , Member LogObserve effs
@@ -312,7 +310,7 @@ respondtoRequests handler = do
 runRequestHandler ::
     forall t effs req.
     ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (ContractEffect t) effs
     , Member (Error SCBError) effs
     , Member LogObserve effs
@@ -322,7 +320,7 @@ runRequestHandler ::
     -> [Request req]
     -> Eff effs [ChainEvent t]
 runRequestHandler h contractInstance requests = do
-    logDebug $ RunRequestHandler contractInstance (length requests)
+    logDebug @(ContractInstanceMsg t) $ RunRequestHandler contractInstance (length requests)
     -- try the handler on the requests until it succeeds for the first time,
     -- then stop. We want to handle at most 1 request per iteration.
     (response :: Maybe (Response ContractResponse)) <-
@@ -334,7 +332,7 @@ runRequestHandler h contractInstance requests = do
             processContractInbox @t contractInstance
             pure events
         _ -> do
-            logDebug RunRequestHandlerDidNotHandleAnyEvents
+            logDebug @(ContractInstanceMsg t) RunRequestHandlerDidNotHandleAnyEvents
             pure []
 
 processOwnPubkeyRequests ::
@@ -377,7 +375,7 @@ processWriteTxRequests ::
     , Member WalletEffect effs
     , Member LogObserve effs
     , Member (LogMsg RequestHandlerLogMsg) effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     , Member SigningProcessEffect effs
     )
@@ -386,7 +384,7 @@ processWriteTxRequests =
     let store result = case result of
             Left err -> pure (Left err)
             Right signedTx -> do
-                logInfo $ StoringSignedTx signedTx
+                logInfo @(ContractInstanceMsg t) $ StoringSignedTx signedTx
                 void $ runCommand (saveBalancedTx @t) WalletEventSource signedTx
                 void $ runCommand (saveBalancedTxResult @t) NodeEventSource signedTx
                 pure (Right signedTx)
@@ -424,7 +422,7 @@ callContractEndpoint ::
     forall t a effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member (ContractEffect t) effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member LogObserve effs
     , Member (Error SCBError) effs
     , JSON.ToJSON a
@@ -436,7 +434,7 @@ callContractEndpoint ::
 callContractEndpoint inst endpointName endpointValue = do
     -- we can't use respondtoRequests here because we want to call the endpoint only on
     -- the contract instance 'inst'. And we want to error if the endpoint is not active.
-    logInfo $  CallingEndpoint endpointName inst (JSON.toJSON endpointValue)
+    logInfo @(ContractInstanceMsg t) $ CallingEndpoint endpointName inst (JSON.toJSON endpointValue)
     state <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @t)
     let activeEndpoints =
             filter ((==) (EndpointDescription endpointName) . aeDescription . rqRequest)
@@ -453,7 +451,7 @@ callContractEndpoint inst endpointName endpointValue = do
 processAllContractOutboxes ::
     forall t effs.
     ( Member LogObserve effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
@@ -463,8 +461,8 @@ processAllContractOutboxes ::
     )
     => Eff effs ()
 processAllContractOutboxes =
-    mapLog HandlingRequest
-    $ mapLog BalancingTx
+    mapLog @_ @(ContractInstanceMsg t) HandlingRequest
+    $ mapLog @_ @(ContractInstanceMsg t) BalancingTx
     $ surroundInfo "processAllContractOutboxes"
     $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
     $ contractRequestHandler @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
@@ -477,7 +475,7 @@ contractRequestHandler ::
     , Member SigningProcessEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member LogObserve effs
-    , Member (LogMsg ContractInstanceMsg) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse

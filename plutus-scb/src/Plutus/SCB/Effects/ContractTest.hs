@@ -55,7 +55,7 @@ data TestContracts = Game | Currency | AtomicSwap | PayToWallet
 
 data ContractTestMsg =
     DoContractUpdate (ContractRequest Value)
-    | Request (Doc Void)
+    | Request (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
     | Response (PartiallyDecodedResponse ContractSCBRequest)
 
 instance Pretty ContractTestMsg where

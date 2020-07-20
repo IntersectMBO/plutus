@@ -35,7 +35,7 @@ data NodeFollowerLogMsg =
     | GetBlocksFor FollowerID
     | LastBlock Int
     | NewLastBlock Int
-    | GetCurrentSlot
+    | GetCurrentSlot Slot
 
 instance Pretty NodeFollowerLogMsg where
     pretty  = \case
@@ -43,7 +43,7 @@ instance Pretty NodeFollowerLogMsg where
         GetBlocksFor i -> "Get blocks for" <+> pretty i
         LastBlock i -> "Last block:" <+> pretty i
         NewLastBlock i -> "New last block:" <+> pretty i
-        GetCurrentSlot -> "Get current slot"
+        GetCurrentSlot s -> "Get current slot:" <+> pretty s
 
 handleNodeFollower ::
     ( Member (State ChainState) effs
@@ -67,5 +67,6 @@ handleNodeFollower = interpret $ \case
         assign (_NodeFollowerState . at i) (Just newLastBlock)
         pure $ reverse $ take (newLastBlock - lastBlock) chain
     GetSlot -> do
-        logDebug GetCurrentSlot
-        use Chain.currentSlot
+        s <- use Chain.currentSlot
+        logDebug $ GetCurrentSlot s
+        pure s

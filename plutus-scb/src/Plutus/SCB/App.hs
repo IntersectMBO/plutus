@@ -100,9 +100,9 @@ type AppBackend m =
          , Writer [Wallet.Emulator.Wallet.WalletEvent]
          , LogMsg Wallet.Emulator.Wallet.WalletEvent
          , LogMsg ContractExeLogMsg
-         , LogMsg ContractInstanceMsg
+         , LogMsg (ContractInstanceMsg ContractExe)
          , LogMsg UnStringifyJSONLog
-         , LogMsg CoreMsg
+         , LogMsg (CoreMsg ContractExe)
          , LogObserve
          , LogMsg Text.Text
          , Reader Connection

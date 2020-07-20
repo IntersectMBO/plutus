@@ -107,8 +107,8 @@ data SCBMultiAgentMsg =
     | ContractMsg ContractTestMsg
     | NodeFollowerMsg NodeFollowerLogMsg
     | ChainIndexServerLog ChainIndexServerMsg
-    | ContractInstanceLog ContractInstanceMsg
-    | CoreLog CoreMsg
+    | ContractInstanceLog (ContractInstanceMsg TestContracts)
+    | CoreLog (CoreMsg TestContracts)
 
 instance Pretty SCBMultiAgentMsg where
     pretty = \case
@@ -132,8 +132,8 @@ type SCBClientEffects =
     , NodeFollowerEffect
     , Error WalletAPIError
     , Error SCBError
-    , LogMsg ContractInstanceMsg
-    , LogMsg CoreMsg
+    , LogMsg (ContractInstanceMsg TestContracts)
+    , LogMsg (CoreMsg TestContracts)
     , LogObserve
     , LogMsg T.Text
     ]
@@ -205,9 +205,9 @@ handleMultiAgent = interpret $ \case
                 p3 = below (logMessage Info . _EmulatorMsg . chainIndexEvent wallet)
                 p4 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage T.Text)
                 p4 = _singleton . below (_EmulatorMsg . walletEvent wallet . Wallet._GenericLog)
-                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage ContractInstanceMsg)
+                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage (ContractInstanceMsg TestContracts))
                 p5 = _singleton . below _ContractInstanceLog
-                p6 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage CoreMsg)
+                p6 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage (CoreMsg TestContracts))
                 p6 = _singleton . below _CoreLog
     AgentControlAction wallet action ->
         action
