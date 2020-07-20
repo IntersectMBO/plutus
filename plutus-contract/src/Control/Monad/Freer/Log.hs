@@ -296,7 +296,7 @@ handleObserve ::
 handleObserve getCurrent handleObs =
     handleFinalState
     . runState @(ObsState v s) initialState
-    . hdl
+    . handler
     . raiseUnder @effs @(LogObserve v) @(State (ObsState v s))
     where
         -- empty the stack of partial observations at the very end.
@@ -330,20 +330,27 @@ handleObserve getCurrent handleObs =
                     handleObs message
                 pure ObsState{obsMaxDepth=i - 1, obsPartials=remainingPartials}
 
-        -- hdl :: Eff (LogObserve v ': State (ObsState v s) ': effs)
-        --     ~> Eff (State (ObsState v s) ': effs)
-        hdl = interpret $ \case
+        handleObserveBefore :: v -> ObsState v s -> Eff effs (ObsState v s, ObservationHandle)
+        handleObserveBefore v ObsState{obsPartials,obsMaxDepth} = do
+            current <- getCurrent
+            let newMaxDepth = obsMaxDepth + 1
+                msg = PartialObservation
+                        { obsMsg = v
+                        , obsValue = current
+                        , obsDepth = newMaxDepth
+                        }
+                newState = ObsState{obsMaxDepth=newMaxDepth,obsPartials=msg:obsPartials}
+            pure (newState, ObservationHandle newMaxDepth)
+
+        handler ::
+            Eff (LogObserve v ': State (ObsState v s) ': effs)
+            ~> Eff (State (ObsState v s) ': effs)
+        handler = interpret $ \case
             ObserveBefore vl -> do
-                current <- raise getCurrent
-                ObsState{obsMaxDepth, obsPartials} <- get
-                let newMaxDepth = obsMaxDepth + 1
-                    msg = PartialObservation
-                            { obsMsg = vl
-                            , obsValue = current
-                            , obsDepth = newMaxDepth
-                            }
-                put ObsState{obsMaxDepth=newMaxDepth,obsPartials=msg:obsPartials}
-                pure (ObservationHandle newMaxDepth)
+                currentState <- get @(ObsState v s)
+                (newState, handle) <- raise (handleObserveBefore vl currentState)
+                put newState
+                pure handle
             ObserveAfter v' (ObservationHandle i) -> do
                 currentState <- get @(ObsState v s)
                 newState <- raise (handleObserveAfter v' currentState i)
