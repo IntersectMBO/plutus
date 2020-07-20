@@ -20,6 +20,7 @@ import Data.Array as Array
 import Data.Array.NonEmpty (index)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..), hush)
+import Data.Foldable (foldM)
 import Data.Function (on)
 import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
@@ -42,7 +43,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
@@ -76,6 +77,7 @@ data WarningDetail
   | NegativeDeposit
   | TimeoutNotIncreasing
   | UnreachableCaseEmptyChoice
+  | InvalidBound
   | UnreachableCaseFalseNotify
   | UnreachableContract
   | UndefinedChoice
@@ -91,11 +93,12 @@ instance showWarningDetail :: Show WarningDetail where
   show NegativePayment = "The contract can make a non-positive payment"
   show NegativeDeposit = "The contract can make a non-positive deposit"
   show TimeoutNotIncreasing = "Timeouts should always increase in value"
-  show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose"
+  show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose from"
+  show InvalidBound = "This pair of bounds is invalid, since the lower bound is greater than the higher bound"
   show UnreachableCaseFalseNotify = "This case will never be used, because the Observation is always false"
   show UnreachableContract = "This contract is unreachable"
-  show UndefinedChoice = "The contract tries to use a ChoiceId that has not been input by a When"
-  show UndefinedUse = "The contract tries to Use a ValueId that has not been defined in a Let"
+  show UndefinedChoice = "The contract uses a ChoiceId that has not been input by a When, so (Constant 0) will be used"
+  show UndefinedUse = "The contract uses a ValueId that has not been defined in a Let, so (Constant 0) will be used"
   show ShadowedLet = "Let is redefining a ValueId that already exists"
   show DivisionByZero = "Scale construct divides by zero"
   show (SimplifiableValue oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
@@ -115,6 +118,7 @@ warningType (Warning { warning }) = case warning of
   NegativeDeposit -> "NegativeDeposit"
   TimeoutNotIncreasing -> "TimeoutNotIncreasing"
   UnreachableCaseEmptyChoice -> "UnreachableCaseEmptyChoice"
+  InvalidBound -> "InvalidBound"
   UnreachableCaseFalseNotify -> "UnreachableCaseFalseNotify"
   UnreachableContract -> "UnreachableContract"
   UndefinedChoice -> "UndefinedChoice"
@@ -610,6 +614,16 @@ lintCase env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
 
+lintBounds :: Boolean -> Term Bound -> CMS.State State Boolean
+lintBounds restAreInvalid t@(Hole _ _ _) = do
+  pure false
+
+lintBounds restAreInvalid t@(Term (Bound l h) pos) = do
+  let
+    isInvalidBound = l > h
+  when isInvalidBound $ addWarning InvalidBound t pos
+  pure (isInvalidBound && restAreInvalid)
+
 lintAction :: LintEnv -> Term Action -> CMS.State State Effect
 lintAction env t@(Term (Deposit acc party token value) pos) = do
   let
@@ -638,7 +652,8 @@ lintAction env t@(Term (Choice choiceId bounds) pos) = do
   let
     choTerm = maybe NoEffect ChoiceMade (fromTerm choiceId)
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  when (Array.null bounds) $ addWarning UnreachableCaseEmptyChoice t pos
+  allInvalid <- foldM lintBounds true bounds
+  when (allInvalid) $ addWarning UnreachableCaseEmptyChoice t pos
   pure choTerm
 
 lintAction env t@(Term (Notify obs) pos) = do
