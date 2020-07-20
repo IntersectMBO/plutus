@@ -11,7 +11,8 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 module Plutus.SCB.Core.ContractInstance(
-    lookupContractState
+    ContractInstanceMsg(..)
+    , lookupContractState
     , processFirstInboxMessage
     , processAllContractInboxes
     , processContractInbox

@@ -35,21 +35,23 @@ module Control.Monad.Freer.Log(
     , traceLog
     , logToWriter
     , observeAsLogMessage
-    , transformLogMessages
     , renderLogMessages
     , handleObserve
+    , runLog
     ) where
 
 import Control.Lens (Prism', review, makeLenses, prism')
 import           Control.Monad.Freer
 import Control.Monad.Freer.Extras (raiseUnder)
-import Control.Monad.Freer.State (State, modify, evalState, get, put)
+import Control.Monad.Freer.Error (Error, runError)
+import Control.Monad.Freer.State (State, get, put, runState)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
 import           Data.Text.Prettyprint.Doc               hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
+import qualified Data.Text as Text
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace
 import           GHC.Generics                            (Generic)
@@ -60,8 +62,8 @@ data LogMsg a r where
     LMessage :: LogMessage a -> LogMsg a ()
 
 data LogObserve r where
-    LObserveBefore :: LogLevel -> Text -> LogObserve ()
-    LObserveAfter  :: LogObserve ()
+    LObserveBefore :: LogLevel -> Text -> LogObserve Integer
+    LObserveAfter  :: Integer -> LogObserve ()
 
 -- | The severity level of a log message
 --   See https://en.wikipedia.org/wiki/Syslog#Severity_level
@@ -121,12 +123,22 @@ contramapLog ::
 contramapLog f = interpret $ \case
     LMessage msg -> send $ LMessage (fmap f msg)
 
+renderLogMessages ::
+    forall a effs.
+    ( Member (LogMsg Text) effs
+    , Pretty a
+    )
+    => Eff (LogMsg a ': effs)
+    ~> Eff effs
+renderLogMessages = 
+    contramapLog (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
+
 -- | Write a log message before and after an action.
 surround :: Member LogObserve effs => LogLevel -> Text -> Eff effs a -> Eff effs a
 surround lvl txt action = do
-    send $ LObserveBefore lvl txt
+    i <- send $ LObserveBefore lvl txt
     a <- action
-    send LObserveAfter
+    send $ LObserveAfter i
     pure a
 
 -- | @surroundInfo = surround Info@
@@ -140,23 +152,6 @@ surroundDebug = surround Debug
 -- | @surroundWarn = surround Warn@
 surroundWarn :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
 surroundWarn = surround Warning
-
-transformLogMessages ::
-    forall a b effs.
-    (a -> b)
-    -> Eff (LogMsg a ': effs)
-    ~> Eff (LogMsg b ': effs)
-transformLogMessages f =
-    reinterpret @(LogMsg a) @(LogMsg b) $ \case
-        LMessage lms -> send (LMessage $ fmap f lms)
-
-renderLogMessages ::
-    forall a effs.
-    Pretty a
-    => Eff (LogMsg a ': effs)
-    ~> Eff (LogMsg Text ': effs)
-renderLogMessages = 
-    transformLogMessages (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
 
 -- | Re-interpret a 'Writer' effect by writing the events to the log
 writeToLog ::
@@ -185,12 +180,34 @@ ignoreLog :: Eff (LogMsg a ': effs) ~> Eff effs
 ignoreLog = interpret $ \case
     LMessage _ -> pure ()
 
+data ExitMode =
+    Regular
+    | Irregular -- execution of the observed action was cut short. This can happen if you use 'LogObserve' in combination with 'Error', 'NonDet', 'Prompt' or similar effects.
+    deriving (Eq, Ord, Show)
+
 data Observation s =
     Observation
         { obsLabel :: Text
         , obsStart :: s
         , obsEnd :: s
+        , obsExit :: ExitMode
         }
+
+data PartialObservation s =
+    PartialObservation
+        { obsMsg :: LogMessage Text
+        , obsValue :: s
+        , obsDepth :: Integer
+        }
+
+data ObsState s =
+    ObsState
+        { obsMaxDepth :: Integer
+        , obsPartials :: [PartialObservation s]
+        }
+
+initialState :: ObsState s
+initialState = ObsState 0 []
 
 -- | Handle the 'LogObserve' effect by recording observations
 --   @s@ before and after the observed action, and turning
@@ -202,24 +219,40 @@ handleObserve ::
     -> Eff (LogObserve ': effs)
     ~> Eff effs
 handleObserve getCurrent handleObs = 
-    evalState @[LogMessage (Text, s)] []
+    handleFinalState
+    . runState @(ObsState s) initialState
     . hdl
-    . raiseUnder @effs @LogObserve @(State [LogMessage (Text, s)])
-    where 
+    . raiseUnder @effs @LogObserve @(State (ObsState s))
+    where
+        handleFinalState action = do
+            (result, finalState) <- action
+            _ <- handleObserveAfter finalState 0
+            pure result
+        handleObserveAfter :: ObsState s -> Integer -> Eff effs (ObsState s)
+        handleObserveAfter ObsState{obsPartials} i = do
+                current <- getCurrent
+                let (relevantPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
+                flip traverse_ relevantPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
+                    let exitMode = if obsDepth == i then Regular else Irregular
+                        message  = fmap (\l -> Observation{obsLabel=l, obsStart=obsValue, obsEnd=current, obsExit=exitMode}) obsMsg
+                    handleObs message
+                pure ObsState{obsMaxDepth=i - 1, obsPartials=remainingPartials}
         hdl = interpret $ \case
             LObserveBefore lvl label -> do
                 current <- raise getCurrent
-                let msg = review (logMessage lvl) (label, current)
-                modify @[LogMessage (Text, s)] (msg :)
-            LObserveAfter -> do
-                current <- raise getCurrent
-                observations <- get
-                case observations of
-                    (x:xs) -> do
-                        let x' = fmap (\(lbl, start) -> Observation{obsLabel=lbl,obsStart=start,obsEnd=current}) x
-                        raise $ handleObs x'
-                        put xs
-                    _ -> error "handleObserve: Corrupted state" -- FIXME
+                ObsState{obsMaxDepth, obsPartials} <- get
+                let newMaxDepth = obsMaxDepth + 1
+                    msg = PartialObservation
+                            { obsMsg = LogMessage lvl label
+                            , obsValue = current
+                            , obsDepth = newMaxDepth
+                            }
+                put ObsState{obsMaxDepth=newMaxDepth,obsPartials=msg:obsPartials}
+                pure newMaxDepth
+            LObserveAfter i -> do
+                currentState <- get @(ObsState s)
+                newState <- raise (handleObserveAfter currentState i)
+                put newState
 
 -- | Interpret the 'LogObserve' effect by logging a "start" message
 --   before the action and an "end" message after the action.
@@ -228,25 +261,30 @@ observeAsLogMessage ::
     Member (LogMsg Text) effs
     => Eff (LogObserve ': effs)
     ~> Eff effs
-observeAsLogMessage = 
-    evalState @[LogMessage Text] []
-    . hdl
-    . raiseUnder @effs @LogObserve @(State [LogMessage Text])
-    where
-        hdl = interpret $ \case
-            LObserveBefore lvl label -> do
-                let msg = LogMessage lvl label
-                raise @effs $ send $ LMessage $ fmap (<> " start") msg
-                modify (msg :)
-            LObserveAfter -> do
-                observations <- get @[LogMessage Text]
-                case observations of
-                    (x:xs) -> do
-                        send $ LMessage $ fmap (<> " end") x
-                        put xs
-                    _ -> error "observeAsLogMessage: Corrupted state" -- FIXME
-
+observeAsLogMessage =  
+    handleObserve (pure ()) handleAfter
+    . interpose handleBefore
+        where
+            handleBefore :: LogObserve ~> Eff (LogObserve ': effs)
+            handleBefore = \case
+                    LObserveBefore lvl label -> do
+                        let msg = LogMessage{_logLevel=lvl, _logMessageContent=label <> " start"}
+                        send $ LMessage msg
+                        send $ LObserveBefore lvl label
+                    LObserveAfter i -> send $ LObserveAfter i
+            handleAfter msg = do
+                let msg' = fmap (\Observation{obsLabel, obsExit} -> case obsExit of { Regular -> obsLabel <> " end"; Irregular -> obsLabel <> " end (irregular)"} ) msg
+                send $ LMessage msg'
+    
 -- | Write the log to stdout using 'Debug.Trace.trace'
 traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
 traceLog = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
+
+runLog :: Eff [Error String, LogObserve,  LogMsg Text, LogMsg String, IO] a -> IO (Either String a)
+runLog = 
+    runM
+    . traceLog
+    . contramapLog Text.unpack
+    . observeAsLogMessage
+    . runError

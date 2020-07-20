@@ -27,7 +27,7 @@ import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.Logger            (MonadLogger, logDebugN)
 import           Data.Foldable                   (traverse_)
 import           Data.List                       (genericDrop)
-import           Data.Text.Prettyprint.Doc       (Pretty (pretty))
+import           Data.Text.Prettyprint.Doc       (Pretty (pretty), (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Data.Time.Units.Extra           ()
 import           Servant                         (NoContent (NoContent))
@@ -63,6 +63,7 @@ data MockNodeLogMsg =
 
 instance Pretty MockNodeLogMsg where
     pretty AddingSlot = "Adding slot"
+    pretty (AddingTx t) = "AddingTx" <+> pretty (Ledger.txId t)
 
 addBlock ::
     ( Member (LogMsg MockNodeLogMsg) effs
@@ -125,6 +126,7 @@ type NodeServerEffects m
         , State AppState
         , LogMsg MockNodeLogMsg
         , LogMsg NodeServerMsg
+        , Log
         , m]
 
 ------------------------------------------------------------

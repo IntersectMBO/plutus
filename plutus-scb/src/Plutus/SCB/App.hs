@@ -26,29 +26,35 @@ import qualified Cardano.SigningProcess.Client as SigningProcessClient
 import qualified Cardano.SigningProcess.Server as SigningProcess
 import qualified Cardano.Wallet.Client         as WalletClient
 import qualified Cardano.Wallet.Server         as WalletServer
+import qualified Data.ByteString.Lazy.Char8                      as LBS
+import qualified Data.Text.Encoding                              as Text
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error     (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log (Log, logDebug, logInfo, runStderrLog, writeToLog)
+import Control.Monad.Freer.Log (renderLogMessages, observeAsLogMessage, LogObserve)
+import           Control.Monad.Freer.Extra.Log (Log, logDebug, logInfo, runStderrLog, writeToLog, LogMsg)
 import           Control.Monad.Freer.Reader    (Reader, asks, runReader)
 import           Control.Monad.Freer.Writer    (Writer)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift       (MonadUnliftIO)
 import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLogger, filterLogger, runStdoutLoggingT)
 import           Data.Aeson                    (FromJSON, eitherDecode)
+import qualified Data.Aeson as JSON
 import qualified Data.Aeson.Encode.Pretty      as JSON
 import qualified Data.ByteString.Lazy.Char8    as BSL8
 import           Data.String                   (IsString (fromString))
 import qualified Data.Text                     as Text
-import           Data.Text.Prettyprint.Doc     ((<+>))
+import           Data.Text.Prettyprint.Doc     ((<+>), Pretty(..))
 import           Database.Persist.Sqlite       (runSqlPool)
 import           Eventful.Store.Sqlite         (initializeSqliteEventStore)
 import           Network.HTTP.Client           (defaultManagerSettings, newManager)
+import Language.Plutus.Contract.State (ContractRequest)
 import           Plutus.SCB.Core               (Connection (Connection), ContractCommand (InitContract, UpdateContract),
-                                                dbConnect)
+                                                dbConnect, CoreMsg)
 import           Plutus.SCB.Effects.Contract   (ContractEffect (..))
 import           Plutus.SCB.Effects.EventLog   (EventLogEffect (..), handleEventLogSql)
 import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events             (ChainEvent)
+import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
                                                 dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils              (render)
@@ -88,6 +94,12 @@ type AppBackend m =
          , EventLogEffect (ChainEvent ContractExe)
          , Error SCBError
          , Writer [Wallet.Emulator.Wallet.WalletEvent]
+         , LogMsg Wallet.Emulator.Wallet.WalletEvent
+         , LogMsg ContractExeLogMsg
+         , LogMsg ContractInstanceMsg
+         , LogMsg SCBServerLog
+         , LogMsg CoreMsg
+         , LogObserve
          , Log
          , Reader Connection
          , Reader Env
@@ -108,6 +120,12 @@ runAppBackend e@Env{dbConnection, nodeClientEnv, walletClientEnv, signingProcess
     . runReader e
     . runReader dbConnection
     . runStderrLog
+    . observeAsLogMessage
+    . renderLogMessages
+    . renderLogMessages
+    . renderLogMessages
+    . renderLogMessages
+    . renderLogMessages
     . writeToLog
     . runError
     . handleEventLogSql
@@ -165,41 +183,61 @@ runApp minLogLevel Config {dbConfig, nodeServerConfig, walletServerConfig, signi
                 <$> liftIO (newManager defaultManagerSettings)
                 <*> pure baseUrl
 
+data ContractExeLogMsg =
+    InvokeContractMsg
+    | InitContractMsg FilePath
+    | UpdateContractMsg FilePath (ContractRequest JSON.Value)
+    | ExportSignatureMsg FilePath
+    | ProcessExitFailure String
+    | ContractResponse String
+    | Migrating
+
+instance Pretty ContractExeLogMsg where
+    pretty = \case
+        InvokeContractMsg -> "InvokeContract"
+        InitContractMsg fp -> fromString fp <+> "init"
+        UpdateContractMsg fp vl ->
+            let pl = BSL8.unpack (JSON.encodePretty vl) in
+            fromString fp
+            <+> "update"
+            <+> fromString pl
+        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
+        ProcessExitFailure err -> "ExitFailure" <+> pretty err
+        ContractResponse str -> pretty str
+        Migrating -> "Migrating"
+
 handleContractEffectApp ::
-       (Member Log effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
+       (Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
     => Eff (ContractEffect ContractExe ': effs) ~> Eff effs
 handleContractEffectApp =
     interpret $ \case
         InvokeContract contractCommand -> do
-            logDebug "InvokeContract"
+            logDebug InvokeContractMsg
             case contractCommand of
                 InitContract (ContractExe contractPath) -> do
-                    logDebug . render $ fromString contractPath <+> "init"
+                    logDebug $ InitContractMsg contractPath
                     liftProcess $ readProcessWithExitCode contractPath ["init"] ""
                 UpdateContract (ContractExe contractPath) payload -> do
                     let pl = BSL8.unpack (JSON.encodePretty payload)
-                    logDebug . render $
-                        fromString contractPath
-                        <+> "update"
-                        <+> fromString pl
+                    logDebug $ UpdateContractMsg contractPath payload
                     liftProcess $ readProcessWithExitCode contractPath ["update"] pl
         ExportSchema (ContractExe contractPath) -> do
-            logDebug . render $ fromString contractPath <+> "export-signature"
+            logDebug $ ExportSignatureMsg contractPath
             liftProcess $
                 readProcessWithExitCode contractPath ["export-signature"] ""
 
 liftProcess ::
-       (LastMember m effs, MonadIO m, FromJSON b, Member Log effs, Member (Error SCBError) effs)
+       (LastMember m effs, MonadIO m, FromJSON b, Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs)
     => IO (ExitCode, String, String)
     -> Eff effs b
 liftProcess process = do
     (exitCode, stdout, stderr) <- sendM $ liftIO process
     case exitCode of
         ExitFailure code -> do
-            logDebug . render $ "ExitFailure" <+> fromString stderr
+            logDebug $ ProcessExitFailure stderr
             throwError $ ContractCommandError code (Text.pack stderr)
         ExitSuccess -> do
-            logDebug $ "Response: " <> Text.pack stdout
+            logDebug $ ContractResponse stdout
             case eitherDecode (BSL8.pack stdout) of
                 Right value -> pure value
                 Left err    -> throwError $ ContractCommandError 0 (Text.pack err)
@@ -207,8 +245,37 @@ liftProcess process = do
 -- | Initialize/update the database to hold events.
 migrate :: App ()
 migrate = do
-    logInfo "Migrating"
+    logInfo Migrating
     Connection (sqlConfig, connectionPool) <- asks dbConnection
     liftIO
         $ flip runSqlPool connectionPool
         $ initializeSqliteEventStore sqlConfig connectionPool
+
+data SCBServerLog =
+    ParseStringifiedJSONAttempt
+    | ParseStringifiedJSONFailed
+    | ParseStringifiedJSONSuccess
+
+instance Pretty SCBServerLog where
+    pretty = \case
+        ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
+        ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
+        ParseStringifiedJSONSuccess -> "parseStringifiedJSON: Succeeded"
+
+parseStringifiedJSON ::
+    forall effs.
+    Member (LogMsg SCBServerLog) effs
+    => JSON.Value
+    -> Eff effs JSON.Value
+parseStringifiedJSON v = case v of
+    JSON.String s -> do
+        logDebug ParseStringifiedJSONAttempt
+        let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
+        case s' of
+            Nothing -> do
+                logDebug ParseStringifiedJSONFailed
+                pure v
+            Just s'' -> do
+                logDebug ParseStringifiedJSONSuccess
+                pure s''
+    _ -> pure v

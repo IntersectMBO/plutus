@@ -18,6 +18,7 @@ module Plutus.SCB.Effects.MultiAgent(
     , emptyAgentState
     -- * Multi-agent effect
     , MultiAgentSCBEffect(..)
+    , SCBMultiAgentMsg(..)
     , SCBClientEffects
     , SCBControlEffects
     , agentAction
@@ -29,10 +30,10 @@ import           Control.Lens                    (Lens', Prism', anon, at, below
 import           Control.Monad.Freer             (Eff, Members, type (~>), interpret, subsume)
 import           Control.Monad.Freer.Error       (Error)
 import           Control.Monad.Freer.Extra.Log   (Log, LogMsg)
-import           Control.Monad.Freer.Extras      (handleZoomedState, handleZoomedWriter, raiseEnd11, raiseEnd6)
+import           Control.Monad.Freer.Extras      (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
 import qualified Control.Monad.Freer.Log         as Log
 import           Data.Text.Prettyprint.Doc
-import Control.Monad.Freer.Log (LogMessage, logToWriter, logMessage, LogLevel(..))
+import Control.Monad.Freer.Log (LogMessage, logToWriter, logMessage, LogLevel(..), LogObserve, observeAsLogMessage)
 import           Control.Monad.Freer.State       (State)
 import           Control.Monad.Freer.TH          (makeEffect)
 import           Control.Monad.Freer.Writer      (Writer)
@@ -41,13 +42,16 @@ import qualified Data.Text as T
 import           Eventful.Store.Memory           (EventMap, emptyEventMap)
 
 import qualified Cardano.ChainIndex.Types        as CI
+import Cardano.ChainIndex.Server (ChainIndexServerMsg)
 import           Cardano.Node.Follower           (NodeFollowerEffect, NodeFollowerLogMsg)
 import qualified Cardano.Node.Follower           as NF
 import qualified Cardano.Node.Types              as NF
 
+import Plutus.SCB.Core (CoreMsg)
 import           Plutus.SCB.Effects.Contract     (ContractEffect (..))
 import           Plutus.SCB.Effects.ContractTest (TestContracts (..), handleContractTest, ContractTestMsg)
 import           Plutus.SCB.Effects.EventLog     (EventLogEffect, handleEventLogState)
+import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.SCB.Effects.UUID         (UUIDEffect)
 import           Plutus.SCB.Events               (ChainEvent)
 import           Plutus.SCB.Types                (SCBError (..))
@@ -100,12 +104,18 @@ data SCBMultiAgentMsg =
     EmulatorMsg EmulatorEvent
     | ContractMsg ContractTestMsg
     | NodeFollowerMsg NodeFollowerLogMsg
+    | ChainIndexServerLog ChainIndexServerMsg
+    | ContractInstanceLog ContractInstanceMsg
+    | CoreLog CoreMsg
 
 instance Pretty SCBMultiAgentMsg where
     pretty = \case
         EmulatorMsg m -> pretty m
         ContractMsg m -> pretty m
         NodeFollowerMsg m -> pretty m
+        ChainIndexServerLog m -> pretty m
+        ContractInstanceLog m -> pretty m
+        CoreLog m -> pretty m
 
 makeClassyPrisms ''SCBMultiAgentMsg
 
@@ -120,6 +130,9 @@ type SCBClientEffects =
     , NodeFollowerEffect
     , Error WalletAPIError
     , Error SCBError
+    , LogMsg ContractInstanceMsg
+    , LogMsg CoreMsg
+    , LogObserve
     , Log
     ]
 
@@ -129,6 +142,7 @@ type SCBControlEffects =
     , NodeClientControlEffect
     , SigningProcessControlEffect
     , State CI.AppState
+    , LogMsg ChainIndexServerMsg
     , Log
     ]
 
@@ -157,7 +171,7 @@ handleMultiAgent
 handleMultiAgent = interpret $ \case
     AgentAction wallet action ->
         action
-            & raiseEnd11
+            & raiseEnd14
             & Wallet.handleWallet
             & handleContractTest
             & NC.handleNodeClient
@@ -168,6 +182,9 @@ handleMultiAgent = interpret $ \case
             & NF.handleNodeFollower
             & subsume
             & subsume
+            & interpret (logToWriter p5)
+            & interpret (logToWriter p6)
+            & observeAsLogMessage
             & interpret (logToWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
             & interpret (handleZoomedWriter p1)
@@ -186,14 +203,19 @@ handleMultiAgent = interpret $ \case
                 p3 = below (logMessage Info . _EmulatorMsg . chainIndexEvent wallet)
                 p4 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage T.Text)
                 p4 = _singleton . below (_EmulatorMsg . walletEvent wallet . Wallet._GenericLog)
+                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage ContractInstanceMsg)
+                p5 = _singleton . below _ContractInstanceLog
+                p6 :: Prism' [LogMessage SCBMultiAgentMsg] (LogMessage CoreMsg)
+                p6 = _singleton . below _CoreLog
     AgentControlAction wallet action ->
         action
-            & raiseEnd6
+            & raiseEnd7
             & ChainIndex.handleChainIndexControl
             & NF.handleNodeFollower
             & NC.handleNodeControl
             & SP.handleSigningProcessControl
             & interpret (handleZoomedState (agentState wallet . chainIndexState))
+            & interpret (logToWriter p5)
             & interpret (logToWriter p4)
             & interpret (handleZoomedState (agentState wallet . walletState))
             & interpret (handleZoomedWriter p1)
@@ -211,3 +233,5 @@ handleMultiAgent = interpret $ \case
                 p3 = below (logMessage Info . _EmulatorMsg . chainIndexEvent wallet)
                 p4 :: Prism' [LogMessage SCBMultiAgentMsg] (Log.LogMessage T.Text)
                 p4 = _singleton . below (_EmulatorMsg . walletEvent wallet . Wallet._GenericLog)
+                p5 :: Prism' [LogMessage SCBMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
+                p5 = _singleton . below _ChainIndexServerLog

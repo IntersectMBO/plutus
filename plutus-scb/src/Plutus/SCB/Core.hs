@@ -33,6 +33,7 @@ module Plutus.SCB.Core
     -- * Effects
     , ContractEffects
     , SCBEffects
+    , CoreMsg(..)
     -- * Contract messages
     , processAllContractInboxes
     , processContractInbox

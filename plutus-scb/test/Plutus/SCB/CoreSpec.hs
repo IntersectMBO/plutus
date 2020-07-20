@@ -15,7 +15,7 @@ import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
 import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                     (Log)
+import           Control.Monad.Freer.Extra.Log                     (Log, LogMsg)
 import           Control.Monad.Freer.Extra.State                   (use)
 import qualified Control.Monad.Freer.Log                           as EmulatorLog
 import           Control.Monad.Freer.State                         (State)
@@ -28,6 +28,7 @@ import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.
 import           Ledger                                            (pubKeyAddress)
 import           Ledger.Ada                                        (lovelaceValueOf)
 import           Plutus.SCB.Command                                ()
+import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.SCB.Core
 import           Plutus.SCB.Effects.Contract                       (ContractEffect)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
@@ -218,6 +219,8 @@ type SpecEffects =
         , ContractEffect TestContracts
         , NodeFollowerEffect
         , EmulatorLog.Log
+        , LogMsg ContractInstanceMsg
+        , EmulatorLog.LogObserve
         ]
 
 lock ::

@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -19,7 +20,8 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo)
+import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo, LogMsg)
+import Control.Monad.Freer.Log (LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -32,14 +34,14 @@ import           Data.Proxy                                      (Proxy (Proxy))
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty(pretty))
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import qualified Network.Wai.Handler.Warp                        as Warp
-import           Plutus.SCB.App                                  (App, runApp)
+import           Plutus.SCB.App                                  (App, runApp, SCBServerLog, parseStringifiedJSON)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
@@ -145,6 +147,7 @@ activateContract ::
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
        , Member Log effs
+       , Member (LogMsg Instance.ContractInstanceMsg) effs
        , Ord t
        , Show t
        , Pretty t
@@ -172,6 +175,8 @@ invokeEndpoint ::
        , Member (ContractEffect t) effs
        , Member Log effs
        , Member (Error SCBError) effs
+       , Member (LogMsg Instance.ContractInstanceMsg) effs
+       , Member LogObserve effs
        , Show t
        )
     => EndpointDescription
@@ -193,24 +198,6 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
-parseStringifiedJSON ::
-    forall effs.
-    Member Log effs
-    => JSON.Value
-    -> Eff effs JSON.Value
-parseStringifiedJSON v = case v of
-    JSON.String s -> do
-        logDebug "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
-        case s' of
-            Nothing -> do
-                logDebug "parseStringifiedJSON: Failed, returning original string"
-                pure v
-            Just s'' -> do
-                logDebug "parseStringifiedJSON: Succeeded"
-                pure s''
-    _ -> pure v
-
 handler ::
        forall effs.
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
@@ -219,6 +206,9 @@ handler ::
        , Member UUIDEffect effs
        , Member Log effs
        , Member (Error SCBError) effs
+       , Member (LogMsg SCBServerLog) effs
+       , Member (LogMsg Instance.ContractInstanceMsg) effs
+       , Member LogObserve effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
