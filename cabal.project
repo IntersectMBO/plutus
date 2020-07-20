@@ -11,6 +11,7 @@ packages: language-plutus-core
           plutus-book
           plutus-scb
           playground-common
+          marlowe-actus
           marlowe-playground-server
           marlowe-symbolic
           plutus-contract
