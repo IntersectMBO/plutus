@@ -13,8 +13,9 @@
 {-# LANGUAGE TypeOperators      #-}
 
 module Control.Monad.Freer.Log(
+    -- $log
+    -- * Logging
     LogMsg(..)
-    , LogObserve(..)
     , LogLevel(..)
     , LogMessage(..)
     , logLevel
@@ -23,37 +24,77 @@ module Control.Monad.Freer.Log(
     , logDebug
     , logWarn
     , logInfo
-    , surround
-    , surroundDebug
-    , surroundInfo
-    , surroundWarn
+    -- ** Handlers
     , contramapLog
-    -- * Handlers
     , writeToLog
     , ignoreLog
     , traceLog
     , logToWriter
-    , observeAsLogMessage
     , renderLogMessages
+    -- * Tracing
+    , LogObserve(..)
+    , surround
+    , surroundDebug
+    , surroundInfo
+    , surroundWarn
+    -- ** Handlers
+    , observeAsLogMessage
     , handleObserve
-    , runLog
     ) where
 
 import           Control.Lens                            (Prism', makeLenses, prism', review)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error               (Error, runError)
 import           Control.Monad.Freer.Extras              (raiseUnder)
 import           Control.Monad.Freer.State               (State, get, put, runState)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
-import qualified Data.Text                               as Text
 import           Data.Text.Prettyprint.Doc               hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace
 import           GHC.Generics                            (Generic)
+
+-- $log
+-- This module provides effects and handlers for structured logging and
+-- tracing.
+
+{- Note [Logging and Tracing]
+
+This module provides two effects for structured logging, implementing a
+'freer-simple' version of https://github.com/input-output-hk/iohk-monitoring-framework/tree/master/contra-tracer.
+
+* 'LogMsg' and its handlers correspond to 'Control.Tracer'
+* 'LogObserve' and its handler correspond to 'Control.Tracer.Observe'
+
+= LogMsg
+
+When using 'Control.Tracer' with mtl-style effects, we usually have a
+'Tracer m s' at the top level with a sum type @s@, and we can use
+'contramap' to get tracers for the finer-grained message
+types.
+
+In this module we have 'Member (LogMsg s) effs' instead of the 'Tracer m s'
+value. With 'freer' effects we can have many instances of 'LogMsg' in our
+effects stack so we don't need to call 'contramap' or similar on
+the client side. The conversion to @s@ happens in the big effect handler that
+discharges all the 'LogMsg' effects.
+
+= LogObserve
+
+'LogObserve' is an effect for taking measurements before and after an action,
+and recording the difference between them. It is implemented using two markers,
+'LObserveBefore' and 'LObserveAfter'.
+
+Some effects such as Error, Prompt may short-circuit the action, so that the
+LObserveAfter marker is never encountered by the handler. 'handleObserve' deals
+with this by keeping a stack of unmatched 'LObserveBefore' markers and popping 
+as many items of the stack as needed whenever 'LObserveAfter' is run. It works 
+even if the topmost LObserveAfter is never seen, by popping all remaining items 
+off the stack at the end.
+
+-}
 
 data LogMsg a r where
     LMessage :: LogMessage a -> LogMsg a ()
@@ -120,6 +161,7 @@ contramapLog ::
 contramapLog f = interpret $ \case
     LMessage msg -> send $ LMessage (fmap f msg)
 
+-- | Pretty-print the log messages
 renderLogMessages ::
     forall a effs.
     ( Member (LogMsg Text) effs
@@ -129,26 +171,6 @@ renderLogMessages ::
     ~> Eff effs
 renderLogMessages =
     contramapLog (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
-
--- | Write a log message before and after an action.
-surround :: Member LogObserve effs => LogLevel -> Text -> Eff effs a -> Eff effs a
-surround lvl txt action = do
-    i <- send $ LObserveBefore lvl txt
-    a <- action
-    send $ LObserveAfter i
-    pure a
-
--- | @surroundInfo = surround Info@
-surroundInfo :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
-surroundInfo = surround Info
-
--- | @surroundDebug = surround Debug@
-surroundDebug :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
-surroundDebug = surround Debug
-
--- | @surroundWarn = surround Warn@
-surroundWarn :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
-surroundWarn = surround Warning
 
 -- | Re-interpret a 'Writer' effect by writing the events to the log
 writeToLog ::
@@ -177,19 +199,47 @@ ignoreLog :: Eff (LogMsg a ': effs) ~> Eff effs
 ignoreLog = interpret $ \case
     LMessage _ -> pure ()
 
+-- | Write the log to stdout using 'Debug.Trace.trace'
+traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
+traceLog = interpret $ \case
+    LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
+
+-- | Write a log message before and after an action.
+surround :: Member LogObserve effs => LogLevel -> Text -> Eff effs a -> Eff effs a
+surround lvl txt action = do
+    i <- send $ LObserveBefore lvl txt
+    a <- action
+    send $ LObserveAfter i
+    pure a
+
+-- | @surroundInfo = surround Info@
+surroundInfo :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
+surroundInfo = surround Info
+
+-- | @surroundDebug = surround Debug@
+surroundDebug :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
+surroundDebug = surround Debug
+
+-- | @surroundWarn = surround Warn@
+surroundWarn :: Member LogObserve effs => Text -> Eff effs a -> Eff effs a
+surroundWarn = surround Warning
+
+-- | How did the observed action end
 data ExitMode =
-    Regular
-    | Irregular -- execution of the observed action was cut short. This can happen if you use 'LogObserve' in combination with 'Error', 'NonDet', 'Prompt' or similar effects.
+    Regular -- ^ The action was run to completion
+    | Irregular -- ^ Execution of the observed action was cut short. This can happen if you use 'LogObserve' in combination with 'Error', 'NonDet', 'Prompt' or similar effects.
     deriving (Eq, Ord, Show)
 
+-- | An observation with measurements before and after running an action.
 data Observation s =
     Observation
-        { obsLabel :: Text
-        , obsStart :: s
-        , obsEnd   :: s
-        , obsExit  :: ExitMode
+        { obsLabel :: Text -- ^ Description of the action
+        , obsStart :: s -- ^ Measurement before running the action
+        , obsEnd   :: s -- ^ Measurement after running the action
+        , obsExit  :: ExitMode -- ^ 'ExitMode' of the action.
         }
 
+--  | An 'Observation' that doesn't have an 'obsEnd' value yet.
 data PartialObservation s =
     PartialObservation
         { obsMsg   :: LogMessage Text
@@ -197,6 +247,7 @@ data PartialObservation s =
         , obsDepth :: Integer
         }
 
+-- | State of partial observations
 data ObsState s =
     ObsState
         { obsMaxDepth :: Integer
@@ -206,6 +257,7 @@ data ObsState s =
 initialState :: ObsState s
 initialState = ObsState 0 []
 
+-- see note [Logging and Tracing]
 -- | Handle the 'LogObserve' effect by recording observations
 --   @s@ before and after the observed action, and turning
 --   them into 'LogMessage (Observation s)' values.
@@ -221,19 +273,24 @@ handleObserve getCurrent handleObs =
     . hdl
     . raiseUnder @effs @LogObserve @(State (ObsState s))
     where
+        -- empty the stack of partial observations at the very end.
         handleFinalState action = do
             (result, finalState) <- action
             _ <- handleObserveAfter finalState 0
             pure result
+
+        -- when an action with the given depth is finished, take the final
+        -- measurement and clear the stack of partial observations.
         handleObserveAfter :: ObsState s -> Integer -> Eff effs (ObsState s)
         handleObserveAfter ObsState{obsPartials} i = do
                 current <- getCurrent
-                let (relevantPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
-                flip traverse_ relevantPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
+                let (finishedPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
+                flip traverse_ finishedPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
                     let exitMode = if obsDepth == i then Regular else Irregular
                         message  = fmap (\l -> Observation{obsLabel=l, obsStart=obsValue, obsEnd=current, obsExit=exitMode}) obsMsg
                     handleObs message
                 pure ObsState{obsMaxDepth=i - 1, obsPartials=remainingPartials}
+
         hdl = interpret $ \case
             LObserveBefore lvl label -> do
                 current <- raise getCurrent
@@ -272,16 +329,3 @@ observeAsLogMessage =
             handleAfter msg = do
                 let msg' = fmap (\Observation{obsLabel, obsExit} -> case obsExit of { Regular -> obsLabel <> " end"; Irregular -> obsLabel <> " end (irregular)"} ) msg
                 send $ LMessage msg'
-
--- | Write the log to stdout using 'Debug.Trace.trace'
-traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
-traceLog = interpret $ \case
-    LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
-
-runLog :: Eff [Error String, LogObserve,  LogMsg Text, LogMsg String, IO] a -> IO (Either String a)
-runLog =
-    runM
-    . traceLog
-    . contramapLog Text.unpack
-    . observeAsLogMessage
-    . runError
