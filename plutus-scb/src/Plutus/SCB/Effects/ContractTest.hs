@@ -35,7 +35,7 @@ import           Plutus.SCB.Events.Contract                        (ContractHand
                                                                     PartiallyDecodedResponse)
 import qualified Plutus.SCB.Events.Contract                        as C
 import           Plutus.SCB.Types                                  (SCBError (..))
-import           Plutus.SCB.Utils                                  (render, tshow)
+import           Plutus.SCB.Utils                                  (tshow)
 
 import           Control.Monad.Freer.Extra.Log                     (LogMsg, logDebug)
 
@@ -48,8 +48,6 @@ import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.
 import           Playground.Schema                                 (endpointsToSchemas)
 import qualified Plutus.SCB.Effects.ContractTest.AtomicSwap        as Contracts.AtomicSwap
 import qualified Plutus.SCB.Effects.ContractTest.PayToWallet       as Contracts.PayToWallet
-
-import qualified Debug.Trace                                       as Trace
 
 data TestContracts = Game | Currency | AtomicSwap | PayToWallet
     deriving (Eq, Ord, Show, Generic)

@@ -38,8 +38,8 @@ import           Control.Monad                   (void)
 import Control.Monad.IO.Class (MonadIO(..))
 import           Control.Monad.Freer             (Eff, Member, interpret, runM, subsume)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import Control.Monad.Freer.Log (logToWriter, LogMessage, logMessageContent, logMessage, LogLevel(Info), renderLogMessages)
-import           Control.Monad.Freer.Extra.Log   (Log, logDebug, runStderrLog, LogMsg)
+import Control.Monad.Freer.Log (logToWriter, LogMessage, logMessage, LogLevel(Info))
+import           Control.Monad.Freer.Extra.Log   (LogMsg)
 import           Control.Monad.Freer.Extra.State (use)
 import           Control.Monad.Freer.Extras
 import qualified Data.Text as Text
@@ -61,7 +61,6 @@ import           Plutus.SCB.Effects.MultiAgent   (AgentState, MultiAgentSCBEffec
 import qualified Plutus.SCB.Effects.MultiAgent   as SCB.MultiAgent
 import           Plutus.SCB.Effects.UUID         (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Types                (SCBError (..))
-import           Plutus.SCB.Utils                (abbreviate, tshow)
 import           Test.QuickCheck.Instances.UUID  ()
 
 import qualified Cardano.ChainIndex.Server       as ChainIndex

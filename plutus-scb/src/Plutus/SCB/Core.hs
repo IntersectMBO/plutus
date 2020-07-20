@@ -61,7 +61,6 @@ import           Plutus.SCB.Events                (ChainEvent, ContractInstanceI
 import qualified Plutus.SCB.Query                 as Query
 import           Plutus.SCB.Types                 (ContractExe, DbConfig (DbConfig), SCBError, Source (..),
                                                    dbConfigFile, dbConfigPoolSize, toUUID)
-import           Plutus.SCB.Utils                 (render, tshow)
 
 import           Cardano.Node.Follower            (NodeFollowerEffect)
 import           Plutus.SCB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,

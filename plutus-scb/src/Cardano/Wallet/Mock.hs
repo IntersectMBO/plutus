@@ -24,7 +24,6 @@ import           Ledger                         (Address, PubKey, TxOut (..), Tx
 import           Ledger.AddressMap              (UtxoMap)
 import qualified Ledger.AddressMap              as AddressMap
 import           Plutus.SCB.Arbitrary           ()
-import           Plutus.SCB.Utils               (tshow)
 import           Servant                        (ServerError, err401, err404, err500, errBody)
 import           Test.QuickCheck                (arbitrary, generate)
 import           Wallet.API                     (WalletAPIError (InsufficientFunds, OtherError, PrivateKeyNotFound))

@@ -11,7 +11,6 @@ module Cardano.Node.Follower where
 import           Control.Lens                    hiding (assign, use)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extra.Log
-import Control.Monad.Freer.Log (LogMsg)
 import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import           Control.Monad.Freer.Extra.State
 import           Control.Monad.Freer.State
@@ -21,7 +20,6 @@ import qualified Data.Map                        as Map
 
 import           Cardano.Node.Types              (FollowerID, NodeFollowerState, _NodeFollowerState)
 import           Ledger                          (Block, Slot)
-import           Plutus.SCB.Utils                (tshow)
 import           Wallet.Emulator.Chain           (ChainState)
 import qualified Wallet.Emulator.Chain           as Chain
 

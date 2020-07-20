@@ -57,7 +57,6 @@ import           Plutus.SCB.Events             (ChainEvent)
 import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
                                                 dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
-import           Plutus.SCB.Utils              (render)
 import           Servant.Client                (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
 import           System.Process                (readProcessWithExitCode)

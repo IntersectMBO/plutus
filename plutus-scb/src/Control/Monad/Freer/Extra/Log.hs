@@ -22,11 +22,9 @@ import           Control.Monad.Freer        (Eff, LastMember, type (~>))
 import qualified Control.Monad.Freer        as Eff
 import           Control.Monad.Freer.Log    (Log, LogMsg(..), LogMessage (..), logDebug, logInfo, logWarn, writeToLog)
 import qualified Control.Monad.Freer.Log    as Log
-import           Control.Monad.Freer.Writer (Writer (..))
 import Data.Text (Text)
 import           Control.Monad.IO.Class     (MonadIO, liftIO)
 import           Control.Monad.Logger       (LogLevel (..), logWithoutLoc, runStderrLoggingT)
-import           Data.Foldable              (traverse_)
 
 -- $log
 -- A @freer-simple@ wrapper around @Control.Monad.Freer.Log.Log@
@@ -40,5 +38,10 @@ logMessage LogMessage{_logLevel, _logMessageContent} =
     let lvl = case _logLevel of
             Log.Debug -> LevelDebug
             Log.Info  -> LevelInfo
+            Log.Notice -> LevelInfo
             Log.Warning  -> LevelWarn
+            Log.Error -> LevelError
+            Log.Critical -> LevelError
+            Log.Alert -> LevelError
+            Log.Emergency -> LevelError
     in liftIO $ runStderrLoggingT $ logWithoutLoc "" lvl _logMessageContent

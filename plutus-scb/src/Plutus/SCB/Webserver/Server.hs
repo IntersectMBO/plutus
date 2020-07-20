@@ -20,7 +20,7 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo, LogMsg)
+import           Control.Monad.Freer.Extra.Log                   (Log, logInfo, LogMsg)
 import Control.Monad.Freer.Log (LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
@@ -34,7 +34,7 @@ import           Data.Proxy                                      (Proxy (Proxy))
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty(pretty))
+import           Data.Text.Prettyprint.Doc                       (Pretty)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
@@ -146,7 +146,6 @@ activateContract ::
        , Member (Error SCBError) effs
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
-       , Member Log effs
        , Member (LogMsg Instance.ContractInstanceMsg) effs
        , Ord t
        , Show t

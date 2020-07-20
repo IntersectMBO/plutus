@@ -20,7 +20,6 @@ import           Control.Monad.Freer           (Eff, LastMember, Member)
 import qualified Control.Monad.Freer           as Eff
 import           Control.Monad.Freer.State     (State)
 import qualified Control.Monad.Freer.State     as Eff
-import Control.Monad.Freer.Log (LogMsg)
 import           Control.Monad.Freer.TH        (makeEffect)
 import           Control.Monad.IO.Class        (MonadIO, liftIO)
 import           Control.Monad.Primitive       (PrimMonad, PrimState)

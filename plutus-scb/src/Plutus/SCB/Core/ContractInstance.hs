@@ -73,7 +73,7 @@ import           Plutus.SCB.Events.Contract                      (ContractEvent 
 import qualified Plutus.SCB.Events.Contract                      as Events.Contract
 import qualified Plutus.SCB.Query                                as Query
 import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
-import           Plutus.SCB.Utils                                (render, tshow)
+import           Plutus.SCB.Utils                                (tshow)
 
 import qualified Plutus.SCB.Core.Projections                     as Projections
 
@@ -340,7 +340,6 @@ runRequestHandler h contractInstance requests = do
 processOwnPubkeyRequests ::
     forall effs.
     ( Member LogObserve effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
     , Member WalletEffect effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
@@ -364,7 +363,6 @@ processUtxoAtRequests ::
     forall effs.
     ( Member ChainIndexEffect effs
     , Member LogObserve effs
-    , Member (LogMsg RequestHandlerLogMsg) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 processUtxoAtRequests =
