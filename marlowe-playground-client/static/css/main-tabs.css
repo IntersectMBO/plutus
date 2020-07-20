@@ -78,6 +78,16 @@
   background-size: 50px;
 }
 
+.actus-blockly-tab .tab-icon {
+  background: url(../images/blockly-icon-grey.svg) center center no-repeat;
+  background-size: 50px;
+}
+
+.actus-blockly-tab.active .tab-icon {
+  background: url(../images/blockly-icon.svg) center center no-repeat;
+  background-size: 50px;
+}
+
 .wallet-tab .tab-icon {
   background: url(../images/wallet-icon-grey.svg) center center no-repeat;
   background-size: 50px;

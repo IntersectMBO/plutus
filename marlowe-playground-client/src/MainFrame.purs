@@ -19,6 +19,7 @@ import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
+import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hide, iohkIcon, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
@@ -35,6 +36,7 @@ import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Blockly as MB
+import Marlowe.ActusBlockly as AMB
 import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
@@ -48,7 +50,7 @@ import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _actusBlocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
 
@@ -58,6 +60,7 @@ initialState =
     { view: Simulation
     , compilationResult: NotAsked
     , blocklyState: Nothing
+    , actusBlocklyState: Nothing
     , showBottomPanel: true
     , haskellEditorKeybindings: DefaultBindings
     , activeHaskellDemo: mempty
@@ -135,6 +138,10 @@ handleAction _ (ChangeView BlocklyEditor) = do
   assign _view BlocklyEditor
   void $ query _blocklySlot unit (Blockly.Resize unit)
 
+handleAction _ (ChangeView ActusBlocklyEditor) = do
+  assign _view ActusBlocklyEditor
+  void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
+
 handleAction _ (ChangeView WalletEmulator) = selectWalletView
 
 handleAction settings CompileHaskellProgram = do
@@ -199,6 +206,18 @@ handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
     hasStarted = fromMaybe false mHasStarted
   if hasStarted then
     void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
+  else do
+    void $ query _simulationSlot unit (ST.SetEditorText code unit)
+    selectSimulationView
+
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
+
+handleAction _ (HandleActusBlocklyMessage (ActusBlockly.CurrentCode code)) = do
+  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
+  let
+    hasStarted = fromMaybe false mHasStarted
+  if hasStarted then
+    void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
     void $ query _simulationSlot unit (ST.SetEditorText code unit)
     selectSimulationView
@@ -308,6 +327,13 @@ render settings state =
                 , div [] [ text "Blockly" ]
                 ]
             , div
+                [ classes ([ tabLink, aCenter, flexCol, ClassName "actus-blockly-tab" ] <> isActiveTab state ActusBlocklyEditor)
+                , onClick $ const $ Just $ ChangeView ActusBlocklyEditor
+                ]
+                [ div [ class_ tabIcon ] []
+                , div [] [ text "ACTUS" ]
+                ]
+            , div
                 [ classes ([ tabLink, aCenter, flexCol, ClassName "wallet-tab" ] <> isActiveTab state WalletEmulator)
                 , onClick $ const $ Just $ ChangeView WalletEmulator
                 ]
@@ -335,6 +361,12 @@ render settings state =
                 [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
                 , MB.toolbox
                 , MB.workspaceBlocks
+                ]
+            -- ACTUS blockly panel
+            , div [ classes ([ hide ] <> isActiveTab state ActusBlocklyEditor) ]
+                [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
+                , AMB.toolbox
+                , AMB.workspaceBlocks
                 ]
             -- wallet panel
             , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]
