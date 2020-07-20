@@ -39,14 +39,14 @@ import           Control.Monad.Logger             (LogLevel, LoggingT (..), Mona
                                                    runStdoutLoggingT)
 import           Data.Aeson                       (FromJSON, eitherDecode)
 import qualified Data.Aeson                       as JSON
-import Data.Void (Void, absurd)
 import qualified Data.Aeson.Encode.Pretty         as JSON
 import qualified Data.ByteString.Lazy.Char8       as LBS
 import qualified Data.ByteString.Lazy.Char8       as BSL8
 import           Data.String                      (IsString (fromString))
 import qualified Data.Text                        as Text
 import qualified Data.Text.Encoding               as Text
-import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>), Doc, viaShow, hang, vsep)
+import           Data.Text.Prettyprint.Doc        (Doc, Pretty (..), hang, viaShow, vsep, (<+>))
+import           Data.Void                        (Void, absurd)
 import           Database.Persist.Sqlite          (runSqlPool)
 import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
 import           Language.Plutus.Contract.State   (ContractRequest)

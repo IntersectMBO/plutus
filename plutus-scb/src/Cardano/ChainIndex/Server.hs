@@ -30,9 +30,9 @@ import           Data.Foldable                   (fold, traverse_)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
+import           Data.Text                       (Text)
 import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
-import Data.Text (Text)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp

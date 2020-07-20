@@ -34,14 +34,15 @@ import           Data.Proxy                                      (Proxy (Proxy))
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty(..))
+import           Data.Text.Prettyprint.Doc                       (Pretty (..))
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import qualified Network.Wai.Handler.Warp                        as Warp
-import           Plutus.SCB.App                                  (App, UnStringifyJSONLog, parseStringifiedJSON, runApp, ContractExeLogMsg(..))
+import           Plutus.SCB.App                                  (App, ContractExeLogMsg (..), UnStringifyJSONLog,
+                                                                  parseStringifiedJSON, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core

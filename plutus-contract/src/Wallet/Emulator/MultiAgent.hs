@@ -21,8 +21,8 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage,
-                                                 logToWriter, observeAsLogMessage)
+import           Control.Monad.Freer.Log        (LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage, logToWriter,
+                                                 observeAsLogMessage)
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)

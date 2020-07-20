@@ -30,7 +30,7 @@ import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import qualified Data.ByteString.Lazy.Char8      as Char8
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
-import Data.Text (Text)
+import           Data.Text                       (Text)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.SCB.Arbitrary            ()

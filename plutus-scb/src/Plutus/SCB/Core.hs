@@ -51,8 +51,8 @@ import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
+import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Doc, Pretty, pretty, (<+>))
-import Data.Text (Text)
 import           Data.Void                        (Void, absurd)
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
