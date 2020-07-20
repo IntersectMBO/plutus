@@ -22,8 +22,9 @@ module Control.Monad.Freer.Log(
     , logMessageContent
     , logMessage
     , logDebug
-    , logWarn
     , logInfo
+    , logWarn
+    , logError
     -- ** Handlers
     , mapLog
     , handleWriterLog
@@ -154,6 +155,9 @@ logWarn m = send $ LMessage (LogMessage Warning m)
 
 logInfo :: forall a effs. Member (LogMsg a) effs => a -> Eff effs ()
 logInfo m = send $ LMessage (LogMessage Info m)
+
+logError :: forall a effs. Member (LogMsg a) effs => a -> Eff effs ()
+logError m = send $ LMessage (LogMessage Error m)
 
 -- | Re-interpret a logging effect by mapping the
 --   log messages.

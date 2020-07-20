@@ -29,7 +29,7 @@ module Language.Plutus.Contract.Checkpoint(
 import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error (Error, throwError)
-import           Control.Monad.Freer.Log   (LogMsg, logDebug)
+import           Control.Monad.Freer.Log   (LogMsg, logDebug, logError)
 import           Control.Monad.Freer.State (State, get, gets, modify, put)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
 import qualified Data.Aeson.Types          as JSON
@@ -86,12 +86,12 @@ data CheckpointStoreItem a =
     deriving anyclass (ToJSON, FromJSON)
 
 data CheckpointLogMsg =
-    LogFoundValueRestoringKey
+    LogFoundValueRestoringKey CheckpointKey
     | LogDecodingErrorAtKey CheckpointKey
     | LogNoValueForKey CheckpointKey
     | LogDoCheckpoint
     | LogAllocateKey
-    | LogRetrieve
+    | LogRetrieve CheckpointKey
     | LogStore CheckpointKey CheckpointKey
     | LogKeyUpdate CheckpointKey CheckpointKey
     deriving (Eq, Ord, Show, Generic)
@@ -99,12 +99,12 @@ data CheckpointLogMsg =
 
 instance Pretty CheckpointLogMsg where
     pretty = \case
-        LogFoundValueRestoringKey -> "Found a value, restoring previous key"
+        LogFoundValueRestoringKey k -> "Found a value, restoring previous key" <+> pretty k
         LogDecodingErrorAtKey k -> "Decoding error at key" <+> pretty k
-        LogNoValueForKey k -> "No value for key" <+> pretty k
+        LogNoValueForKey k -> "No value for key" <+> pretty k <> ". The action will be once."
         LogDoCheckpoint -> "doCheckpoint"
         LogAllocateKey -> "allocateKey"
-        LogRetrieve -> "retrieve"
+        LogRetrieve k -> "retrieve" <+> pretty k
         LogStore k1 k2 -> "Store; key1:" <+> pretty k1 <> "; key2:" <+> pretty k2
         LogKeyUpdate k1 k2 -> "Key update; key then:" <+> pretty k1 <> "; key now:" <+> pretty k2
 
@@ -152,10 +152,10 @@ restore k = do
             logDebug (LogNoValueForKey k)
             pure $ Right Nothing
         Just (Left err) -> do
-            logDebug (LogDecodingErrorAtKey k)
+            logError (LogDecodingErrorAtKey k)
             pure $ Left (JSONDecodeError $ Text.pack err)
         Just (Right CheckpointStoreItem{csValue,csNewKey}) -> do
-            logDebug LogFoundValueRestoringKey
+            logDebug $ LogFoundValueRestoringKey csNewKey
             put csNewKey
             pure (Right (Just csValue))
 
@@ -198,7 +198,7 @@ handleCheckpoint = interpret $ \case
         logDebug $ LogStore k k'
         insert k k' a
     Retrieve k -> do
-        logDebug LogRetrieve
+        logDebug $ LogRetrieve k
         result <- restore @_ @effs k
         k' <- get @CheckpointKey
         logDebug $ LogKeyUpdate k k'
