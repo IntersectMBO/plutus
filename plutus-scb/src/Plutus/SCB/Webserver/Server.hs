@@ -1,8 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -20,8 +20,8 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logInfo, LogMsg)
-import Control.Monad.Freer.Log (LogObserve)
+import           Control.Monad.Freer.Extra.Log                   (Log, LogMsg, logInfo)
+import           Control.Monad.Freer.Log                         (LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -41,7 +41,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescri
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import qualified Network.Wai.Handler.Warp                        as Warp
-import           Plutus.SCB.App                                  (App, runApp, SCBServerLog, parseStringifiedJSON)
+import           Plutus.SCB.App                                  (App, SCBServerLog, parseStringifiedJSON, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core

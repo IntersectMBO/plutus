@@ -44,7 +44,7 @@ module Language.Plutus.Contract.Test(
 
 import           Control.Lens                                    (at, view, (^.))
 import           Control.Monad                                   (guard, unless)
-import Control.Monad.Freer.Log (LogMessage(..))
+import           Control.Monad.Freer.Log                         (LogMessage (..))
 import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
 import           Data.Bifunctor                                  (Bifunctor (..))
 import           Data.Foldable                                   (fold, toList)

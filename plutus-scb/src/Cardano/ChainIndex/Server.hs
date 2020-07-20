@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -24,13 +24,13 @@ import           Control.Monad.Freer.State
 import qualified Control.Monad.Freer.State       as Eff
 import           Control.Monad.Freer.Writer
 import qualified Control.Monad.Freer.Writer      as Eff
-import           Data.Text.Prettyprint.Doc      (Pretty(..), (<+>), parens)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Control.Monad.Logger            (MonadLogger, logDebugN, logInfoN, runStdoutLoggingT)
 import           Data.Foldable                   (fold, traverse_)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
+import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)

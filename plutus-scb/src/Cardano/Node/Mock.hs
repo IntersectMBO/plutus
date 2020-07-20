@@ -1,7 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -16,8 +16,8 @@ import           Control.Lens                    (over, set, view)
 import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM)
 import           Control.Monad.Freer.Extras      (handleZoomedState)
+import           Control.Monad.Freer.Log         (contramapLog, renderLogMessages)
 import           Control.Monad.Freer.Reader      (Reader)
-import Control.Monad.Freer.Log (contramapLog, renderLogMessages)
 import qualified Control.Monad.Freer.Reader      as Eff
 import           Control.Monad.Freer.State       (State)
 import qualified Control.Monad.Freer.State       as Eff
@@ -62,7 +62,7 @@ data MockNodeLogMsg =
         | AddingTx Tx
 
 instance Pretty MockNodeLogMsg where
-    pretty AddingSlot = "Adding slot"
+    pretty AddingSlot   = "Adding slot"
     pretty (AddingTx t) = "AddingTx" <+> pretty (Ledger.txId t)
 
 addBlock ::
@@ -147,7 +147,7 @@ runChainEffects txQueue blockQueue stateVar eff = do
         $ interpret (handleZoomedState T.followerState)
         $ CE.handleChain
         $ Chain.handleControlChain
-        $ contramapLog NodeServerFollowerMsg 
+        $ contramapLog NodeServerFollowerMsg
         $ FE.handleNodeFollower
         $ contramapLog NodeGenRandomTxMsg
         $ runGenRandomTx

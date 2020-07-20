@@ -28,8 +28,8 @@ import qualified Language.PlutusTx.Coordination.Contracts.Game     as Contracts.
 import           Ledger                                            (pubKeyAddress)
 import           Ledger.Ada                                        (lovelaceValueOf)
 import           Plutus.SCB.Command                                ()
-import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
 import           Plutus.SCB.Core
+import           Plutus.SCB.Core.ContractInstance                  (ContractInstanceMsg)
 import           Plutus.SCB.Effects.Contract                       (ContractEffect)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)

@@ -13,8 +13,8 @@ import           Control.Monad              (void)
 import qualified Control.Monad.Freer        as Eff
 import qualified Control.Monad.Freer.Error  as E
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Log    (logMessageContent)
 import           Control.Monad.Trans.Except (runExcept)
-import Control.Monad.Freer.Log (logMessageContent)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import qualified Data.Aeson.Internal        as Aeson

@@ -1,7 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE StrictData #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -10,6 +6,10 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE StrictData         #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
 
 module Control.Monad.Freer.Log(
@@ -40,18 +40,18 @@ module Control.Monad.Freer.Log(
     , runLog
     ) where
 
-import Control.Lens (Prism', review, makeLenses, prism')
+import           Control.Lens                            (Prism', makeLenses, prism', review)
 import           Control.Monad.Freer
-import Control.Monad.Freer.Extras (raiseUnder)
-import Control.Monad.Freer.Error (Error, runError)
-import Control.Monad.Freer.State (State, get, put, runState)
+import           Control.Monad.Freer.Error               (Error, runError)
+import           Control.Monad.Freer.Extras              (raiseUnder)
+import           Control.Monad.Freer.State               (State, get, put, runState)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (traverse_)
 import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
 import           Data.Text.Prettyprint.Doc               hiding (surround)
 import qualified Data.Text.Prettyprint.Doc.Render.String as Render
-import qualified Data.Text as Text
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace
 import           GHC.Generics                            (Generic)
@@ -130,7 +130,7 @@ renderLogMessages ::
     )
     => Eff (LogMsg a ': effs)
     ~> Eff effs
-renderLogMessages = 
+renderLogMessages =
     contramapLog (Render.renderStrict . layoutPretty defaultLayoutOptions . pretty)
 
 -- | Write a log message before and after an action.
@@ -189,13 +189,13 @@ data Observation s =
     Observation
         { obsLabel :: Text
         , obsStart :: s
-        , obsEnd :: s
-        , obsExit :: ExitMode
+        , obsEnd   :: s
+        , obsExit  :: ExitMode
         }
 
 data PartialObservation s =
     PartialObservation
-        { obsMsg :: LogMessage Text
+        { obsMsg   :: LogMessage Text
         , obsValue :: s
         , obsDepth :: Integer
         }
@@ -218,7 +218,7 @@ handleObserve ::
     -> (LogMessage (Observation s) -> Eff effs ()) -- what to do with the observation
     -> Eff (LogObserve ': effs)
     ~> Eff effs
-handleObserve getCurrent handleObs = 
+handleObserve getCurrent handleObs =
     handleFinalState
     . runState @(ObsState s) initialState
     . hdl
@@ -261,7 +261,7 @@ observeAsLogMessage ::
     Member (LogMsg Text) effs
     => Eff (LogObserve ': effs)
     ~> Eff effs
-observeAsLogMessage =  
+observeAsLogMessage =
     handleObserve (pure ()) handleAfter
     . interpose handleBefore
         where
@@ -275,14 +275,14 @@ observeAsLogMessage =
             handleAfter msg = do
                 let msg' = fmap (\Observation{obsLabel, obsExit} -> case obsExit of { Regular -> obsLabel <> " end"; Irregular -> obsLabel <> " end (irregular)"} ) msg
                 send $ LMessage msg'
-    
+
 -- | Write the log to stdout using 'Debug.Trace.trace'
 traceLog :: Eff (LogMsg String ': effs) ~> Eff effs
 traceLog = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
 
 runLog :: Eff [Error String, LogObserve,  LogMsg Text, LogMsg String, IO] a -> IO (Either String a)
-runLog = 
+runLog =
     runM
     . traceLog
     . contramapLog Text.unpack

@@ -16,52 +16,55 @@
 
 module Plutus.SCB.App where
 
-import           Cardano.ChainIndex.Client     (handleChainIndexClient)
-import qualified Cardano.ChainIndex.Types      as ChainIndex
-import           Cardano.Node.Client           (handleNodeClientClient, handleNodeFollowerClient, handleRandomTxClient)
-import           Cardano.Node.Follower         (NodeFollowerEffect)
-import           Cardano.Node.RandomTx         (GenRandomTx)
-import qualified Cardano.Node.Server           as NodeServer
-import qualified Cardano.SigningProcess.Client as SigningProcessClient
-import qualified Cardano.SigningProcess.Server as SigningProcess
-import qualified Cardano.Wallet.Client         as WalletClient
-import qualified Cardano.Wallet.Server         as WalletServer
-import qualified Data.ByteString.Lazy.Char8                      as LBS
-import qualified Data.Text.Encoding                              as Text
+import           Cardano.ChainIndex.Client        (handleChainIndexClient)
+import qualified Cardano.ChainIndex.Types         as ChainIndex
+import           Cardano.Node.Client              (handleNodeClientClient, handleNodeFollowerClient,
+                                                   handleRandomTxClient)
+import           Cardano.Node.Follower            (NodeFollowerEffect)
+import           Cardano.Node.RandomTx            (GenRandomTx)
+import qualified Cardano.Node.Server              as NodeServer
+import qualified Cardano.SigningProcess.Client    as SigningProcessClient
+import qualified Cardano.SigningProcess.Server    as SigningProcess
+import qualified Cardano.Wallet.Client            as WalletClient
+import qualified Cardano.Wallet.Server            as WalletServer
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error     (Error, handleError, runError, throwError)
-import Control.Monad.Freer.Log (renderLogMessages, observeAsLogMessage, LogObserve)
-import           Control.Monad.Freer.Extra.Log (Log, logDebug, logInfo, runStderrLog, writeToLog, LogMsg)
-import           Control.Monad.Freer.Reader    (Reader, asks, runReader)
-import           Control.Monad.Freer.Writer    (Writer)
-import           Control.Monad.IO.Class        (MonadIO, liftIO)
-import           Control.Monad.IO.Unlift       (MonadUnliftIO)
-import           Control.Monad.Logger          (LogLevel, LoggingT (..), MonadLogger, filterLogger, runStdoutLoggingT)
-import           Data.Aeson                    (FromJSON, eitherDecode)
-import qualified Data.Aeson as JSON
-import qualified Data.Aeson.Encode.Pretty      as JSON
-import qualified Data.ByteString.Lazy.Char8    as BSL8
-import           Data.String                   (IsString (fromString))
-import qualified Data.Text                     as Text
-import           Data.Text.Prettyprint.Doc     ((<+>), Pretty(..))
-import           Database.Persist.Sqlite       (runSqlPool)
-import           Eventful.Store.Sqlite         (initializeSqliteEventStore)
-import           Network.HTTP.Client           (defaultManagerSettings, newManager)
-import Language.Plutus.Contract.State (ContractRequest)
-import           Plutus.SCB.Core               (Connection (Connection), ContractCommand (InitContract, UpdateContract),
-                                                dbConnect, CoreMsg)
-import           Plutus.SCB.Effects.Contract   (ContractEffect (..))
-import           Plutus.SCB.Effects.EventLog   (EventLogEffect (..), handleEventLogSql)
-import           Plutus.SCB.Effects.UUID       (UUIDEffect, handleUUIDEffect)
-import           Plutus.SCB.Events             (ChainEvent)
-import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
-import           Plutus.SCB.Types              (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
-                                                dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
-import           Servant.Client                (ClientEnv, ClientError, mkClientEnv)
-import           System.Exit                   (ExitCode (ExitFailure, ExitSuccess))
-import           System.Process                (readProcessWithExitCode)
-import           Wallet.API                    (WalletAPIError)
-import           Wallet.Effects                (ChainIndexEffect, NodeClientEffect, SigningProcessEffect, WalletEffect)
+import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
+import           Control.Monad.Freer.Extra.Log    (Log, LogMsg, logDebug, logInfo, runStderrLog, writeToLog)
+import           Control.Monad.Freer.Log          (LogObserve, observeAsLogMessage, renderLogMessages)
+import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
+import           Control.Monad.Freer.Writer       (Writer)
+import           Control.Monad.IO.Class           (MonadIO, liftIO)
+import           Control.Monad.IO.Unlift          (MonadUnliftIO)
+import           Control.Monad.Logger             (LogLevel, LoggingT (..), MonadLogger, filterLogger,
+                                                   runStdoutLoggingT)
+import           Data.Aeson                       (FromJSON, eitherDecode)
+import qualified Data.Aeson                       as JSON
+import qualified Data.Aeson.Encode.Pretty         as JSON
+import qualified Data.ByteString.Lazy.Char8       as LBS
+import qualified Data.ByteString.Lazy.Char8       as BSL8
+import           Data.String                      (IsString (fromString))
+import qualified Data.Text                        as Text
+import qualified Data.Text.Encoding               as Text
+import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>))
+import           Database.Persist.Sqlite          (runSqlPool)
+import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
+import           Language.Plutus.Contract.State   (ContractRequest)
+import           Network.HTTP.Client              (defaultManagerSettings, newManager)
+import           Plutus.SCB.Core                  (Connection (Connection),
+                                                   ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
+import           Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
+import           Plutus.SCB.Effects.Contract      (ContractEffect (..))
+import           Plutus.SCB.Effects.EventLog      (EventLogEffect (..), handleEventLogSql)
+import           Plutus.SCB.Effects.UUID          (UUIDEffect, handleUUIDEffect)
+import           Plutus.SCB.Events                (ChainEvent)
+import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
+                                                   dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
+import           Servant.Client                   (ClientEnv, ClientError, mkClientEnv)
+import           System.Exit                      (ExitCode (ExitFailure, ExitSuccess))
+import           System.Process                   (readProcessWithExitCode)
+import           Wallet.API                       (WalletAPIError)
+import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect, SigningProcessEffect,
+                                                   WalletEffect)
 import qualified Wallet.Emulator.Wallet
 
 

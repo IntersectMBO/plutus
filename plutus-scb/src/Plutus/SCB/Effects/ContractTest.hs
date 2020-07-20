@@ -22,12 +22,12 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                         (Error, throwError)
 import           Data.Aeson                                        as JSON
 import           Data.Aeson.Types                                  as JSON
-import Data.Void (Void, absurd)
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Row
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
+import           Data.Void                                         (Void, absurd)
 import           GHC.Generics                                      (Generic)
 
 import           Plutus.SCB.Effects.Contract                       (ContractCommand (..), ContractEffect (..))

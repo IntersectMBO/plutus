@@ -21,7 +21,8 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (Log, logToWriter, LogMessage, logMessage, LogLevel(..), LogObserve, observeAsLogMessage, LogMsg)
+import           Control.Monad.Freer.Log        (Log, LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage,
+                                                 logToWriter, observeAsLogMessage)
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
 import           Data.Aeson                     (FromJSON, ToJSON)
@@ -38,7 +39,7 @@ import qualified Wallet.API                     as WAPI
 import qualified Wallet.Effects                 as Wallet
 import qualified Wallet.Emulator.Chain          as Chain
 import qualified Wallet.Emulator.ChainIndex     as ChainIndex
-import Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Emulator.LogMessages    (RequestHandlerLogMsg, TxBalanceMsg)
 import qualified Wallet.Emulator.NodeClient     as NC
 import qualified Wallet.Emulator.SigningProcess as SP
 import qualified Wallet.Emulator.Wallet         as Wallet

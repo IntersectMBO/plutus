@@ -26,49 +26,51 @@ module Plutus.SCB.Effects.MultiAgent(
     , handleMultiAgent
     ) where
 
-import           Control.Lens                    (Lens', Prism', anon, at, below, makeLenses, (&), makeClassyPrisms)
-import           Control.Monad.Freer             (Eff, Members, type (~>), interpret, subsume)
-import           Control.Monad.Freer.Error       (Error)
-import           Control.Monad.Freer.Extra.Log   (Log, LogMsg)
-import           Control.Monad.Freer.Extras      (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
-import qualified Control.Monad.Freer.Log         as Log
+import           Control.Lens                     (Lens', Prism', anon, at, below, makeClassyPrisms, makeLenses, (&))
+import           Control.Monad.Freer              (Eff, Members, type (~>), interpret, subsume)
+import           Control.Monad.Freer.Error        (Error)
+import           Control.Monad.Freer.Extra.Log    (Log, LogMsg)
+import           Control.Monad.Freer.Extras       (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
+import           Control.Monad.Freer.Log          (LogLevel (..), LogMessage, LogObserve, logMessage, logToWriter,
+                                                   observeAsLogMessage)
+import qualified Control.Monad.Freer.Log          as Log
+import           Control.Monad.Freer.State        (State)
+import           Control.Monad.Freer.TH           (makeEffect)
+import           Control.Monad.Freer.Writer       (Writer)
+import           Data.Map                         (Map)
+import qualified Data.Text                        as T
 import           Data.Text.Prettyprint.Doc
-import Control.Monad.Freer.Log (LogMessage, logToWriter, logMessage, LogLevel(..), LogObserve, observeAsLogMessage)
-import           Control.Monad.Freer.State       (State)
-import           Control.Monad.Freer.TH          (makeEffect)
-import           Control.Monad.Freer.Writer      (Writer)
-import           Data.Map                        (Map)
-import qualified Data.Text as T
-import           Eventful.Store.Memory           (EventMap, emptyEventMap)
+import           Eventful.Store.Memory            (EventMap, emptyEventMap)
 
-import qualified Cardano.ChainIndex.Types        as CI
-import Cardano.ChainIndex.Server (ChainIndexServerMsg)
-import           Cardano.Node.Follower           (NodeFollowerEffect, NodeFollowerLogMsg)
-import qualified Cardano.Node.Follower           as NF
-import qualified Cardano.Node.Types              as NF
+import           Cardano.ChainIndex.Server        (ChainIndexServerMsg)
+import qualified Cardano.ChainIndex.Types         as CI
+import           Cardano.Node.Follower            (NodeFollowerEffect, NodeFollowerLogMsg)
+import qualified Cardano.Node.Follower            as NF
+import qualified Cardano.Node.Types               as NF
 
-import Plutus.SCB.Core (CoreMsg)
-import           Plutus.SCB.Effects.Contract     (ContractEffect (..))
-import           Plutus.SCB.Effects.ContractTest (TestContracts (..), handleContractTest, ContractTestMsg)
-import           Plutus.SCB.Effects.EventLog     (EventLogEffect, handleEventLogState)
-import Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
-import           Plutus.SCB.Effects.UUID         (UUIDEffect)
-import           Plutus.SCB.Events               (ChainEvent)
-import           Plutus.SCB.Types                (SCBError (..))
+import           Plutus.SCB.Core                  (CoreMsg)
+import           Plutus.SCB.Core.ContractInstance (ContractInstanceMsg)
+import           Plutus.SCB.Effects.Contract      (ContractEffect (..))
+import           Plutus.SCB.Effects.ContractTest  (ContractTestMsg, TestContracts (..), handleContractTest)
+import           Plutus.SCB.Effects.EventLog      (EventLogEffect, handleEventLogState)
+import           Plutus.SCB.Effects.UUID          (UUIDEffect)
+import           Plutus.SCB.Events                (ChainEvent)
+import           Plutus.SCB.Types                 (SCBError (..))
 
-import           Wallet.Effects                  (ChainIndexEffect, NodeClientEffect, SigningProcessEffect,
-                                                  WalletEffect)
-import qualified Wallet.Emulator.Chain           as Chain
-import           Wallet.Emulator.ChainIndex      (ChainIndexControlEffect)
-import qualified Wallet.Emulator.ChainIndex      as ChainIndex
-import           Wallet.Emulator.Error           (WalletAPIError)
-import           Wallet.Emulator.MultiAgent      (EmulatorEvent, chainIndexEvent, walletClientEvent, walletEvent, _singleton)
-import           Wallet.Emulator.NodeClient      (NodeClientControlEffect)
-import qualified Wallet.Emulator.NodeClient      as NC
-import           Wallet.Emulator.SigningProcess  (SigningProcessControlEffect)
-import qualified Wallet.Emulator.SigningProcess  as SP
-import           Wallet.Emulator.Wallet          (Wallet, WalletState)
-import qualified Wallet.Emulator.Wallet          as Wallet
+import           Wallet.Effects                   (ChainIndexEffect, NodeClientEffect, SigningProcessEffect,
+                                                   WalletEffect)
+import qualified Wallet.Emulator.Chain            as Chain
+import           Wallet.Emulator.ChainIndex       (ChainIndexControlEffect)
+import qualified Wallet.Emulator.ChainIndex       as ChainIndex
+import           Wallet.Emulator.Error            (WalletAPIError)
+import           Wallet.Emulator.MultiAgent       (EmulatorEvent, chainIndexEvent, walletClientEvent, walletEvent,
+                                                   _singleton)
+import           Wallet.Emulator.NodeClient       (NodeClientControlEffect)
+import qualified Wallet.Emulator.NodeClient       as NC
+import           Wallet.Emulator.SigningProcess   (SigningProcessControlEffect)
+import qualified Wallet.Emulator.SigningProcess   as SP
+import           Wallet.Emulator.Wallet           (Wallet, WalletState)
+import qualified Wallet.Emulator.Wallet           as Wallet
 
 -- $multiagent
 -- An SCB version of 'Wallet.Emulator.MultiAgent', with agent-specific states and actions on them.

@@ -1,8 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE MonoLocalBinds     #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -41,11 +41,11 @@ import qualified Ledger.AddressMap                                 as AM
 
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import           Control.Monad.Freer.Log                           (logDebug, logWarn, surroundDebug, LogObserve, LogMsg)
+import           Control.Monad.Freer.Log                           (LogMsg, LogObserve, logDebug, logWarn,
+                                                                    surroundDebug)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
-import Wallet.Emulator.LogMessages (RequestHandlerLogMsg(..), TxBalanceMsg)
 import           Ledger                                            (Address, PubKey, Slot, Tx, TxId)
 import           Ledger.AddressMap                                 (AddressMap (..))
 import           Ledger.Constraints.OffChain                       (UnbalancedTx (unBalancedTxTx))
@@ -54,6 +54,7 @@ import           Wallet.Effects                                    (AddressChang
                                                                     ChainIndexEffect, SigningProcessEffect,
                                                                     WalletEffect)
 import qualified Wallet.Effects
+import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
 
 
 -- | Request handlers that can choose whether to handle an effect (using

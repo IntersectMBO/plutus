@@ -1,14 +1,14 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo         #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Main
     ( main
@@ -20,14 +20,14 @@ import qualified Cardano.SigningProcess.Server                   as SigningProce
 import qualified Cardano.Wallet.Server                           as WalletServer
 import           Control.Concurrent.Async                        (Async, async, waitAny)
 import           Control.Concurrent.Availability                 (Availability, newToken, starting)
-import Control.Monad.Freer.Log(renderLogMessages)
 import           Control.Lens.Indexed                            (itraverse_)
 import           Control.Monad                                   (void)
-import Control.Monad.Freer (Eff, raise)
-import           Control.Monad.Freer.Extra.Log                   (logInfo, LogMsg)
+import           Control.Monad.Freer                             (Eff, raise)
+import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
+import           Control.Monad.Freer.Log                         (renderLogMessages)
 import           Control.Monad.IO.Class                          (liftIO)
-import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), filterLogger,
-                                                                  runStdoutLoggingT, LoggingT)
+import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), LoggingT,
+                                                                  filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                                      as JSON
 import qualified Data.ByteString.Lazy.Char8                      as BS8
 import           Data.Foldable                                   (traverse_)
@@ -35,7 +35,7 @@ import qualified Data.Map                                        as Map
 import           Data.Set                                        (Set)
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Doc, indent, parens, pretty, vsep, (<+>), Pretty(..))
+import           Data.Text.Prettyprint.Doc                       (Doc, Pretty (..), indent, parens, pretty, vsep, (<+>))
 import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
@@ -46,7 +46,7 @@ import           Options.Applicative                             (CommandFields,
                                                                   metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
-import           Plutus.SCB.App                                  (App, runApp, AppBackend)
+import           Plutus.SCB.App                                  (App, AppBackend, runApp)
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance

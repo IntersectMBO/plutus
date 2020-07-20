@@ -1,8 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -51,8 +51,8 @@ import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
-import           Data.Text.Prettyprint.Doc        (Pretty, pretty, Doc, (<+>))
-import Data.Void (Void, absurd)
+import           Data.Text.Prettyprint.Doc        (Doc, Pretty, pretty, (<+>))
+import           Data.Void                        (Void, absurd)
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
 import qualified Ledger

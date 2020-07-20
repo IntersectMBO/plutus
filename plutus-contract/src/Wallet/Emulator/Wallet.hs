@@ -19,31 +19,32 @@ import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.State
-import           Control.Newtype.Generics  (Newtype)
-import           Data.Aeson                (FromJSON, ToJSON, ToJSONKey)
+import           Control.Newtype.Generics            (Newtype)
+import           Data.Aeson                          (FromJSON, ToJSON, ToJSONKey)
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.Hashable             (Hashable)
-import qualified Data.Map                  as Map
+import           Data.Hashable                       (Hashable)
+import qualified Data.Map                            as Map
 import           Data.Maybe
-import qualified Data.Set                  as Set
-import qualified Data.Text                 as T
+import qualified Data.Set                            as Set
+import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc
-import           GHC.Generics              (Generic)
-import           IOTS                      (IotsType)
-import qualified Language.PlutusTx.Prelude as PlutusTx
-import Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
-import Wallet.Emulator.LogMessages (RequestHandlerLogMsg, TxBalanceMsg)
+import           GHC.Generics                        (Generic)
+import           IOTS                                (IotsType)
+import           Language.Plutus.Contract.Checkpoint (CheckpointLogMsg)
+import qualified Language.PlutusTx.Prelude           as PlutusTx
 import           Ledger
-import qualified Ledger.Ada                as Ada
-import qualified Ledger.AddressMap         as AM
-import qualified Ledger.Crypto             as Crypto
-import qualified Ledger.Value              as Value
-import           Prelude                   as P
-import           Servant.API               (FromHttpApiData (..), ToHttpApiData (..))
-import qualified Wallet.API                as WAPI
-import           Wallet.Effects            (ChainIndexEffect, NodeClientEffect, Payment (..), WalletEffect (..))
-import qualified Wallet.Effects            as W
+import qualified Ledger.Ada                          as Ada
+import qualified Ledger.AddressMap                   as AM
+import qualified Ledger.Crypto                       as Crypto
+import qualified Ledger.Value                        as Value
+import           Prelude                             as P
+import           Servant.API                         (FromHttpApiData (..), ToHttpApiData (..))
+import qualified Wallet.API                          as WAPI
+import           Wallet.Effects                      (ChainIndexEffect, NodeClientEffect, Payment (..),
+                                                      WalletEffect (..))
+import qualified Wallet.Effects                      as W
+import           Wallet.Emulator.LogMessages         (RequestHandlerLogMsg, TxBalanceMsg)
 
 -- | A wallet in the emulator model.
 newtype Wallet = Wallet { getWallet :: Integer }
@@ -71,7 +72,7 @@ walletAddress = pubKeyAddress . walletPubKey
 signWithWallet :: Wallet -> Tx -> Tx
 signWithWallet wlt = addSignature (walletPrivKey wlt)
 
-data WalletEvent = 
+data WalletEvent =
     GenericLog T.Text
     | CheckpointLog CheckpointLogMsg
     | RequestHandlerLog RequestHandlerLogMsg

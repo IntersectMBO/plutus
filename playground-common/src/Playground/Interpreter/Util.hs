@@ -10,6 +10,7 @@ module Playground.Interpreter.Util
 
 import           Control.Lens                                    (view)
 import           Control.Monad.Except                            (throwError)
+import           Control.Monad.Freer.Log                         (logMessageContent)
 import           Data.Aeson                                      (FromJSON, eitherDecode)
 import qualified Data.Aeson                                      as JSON
 import           Data.Bifunctor                                  (first)
@@ -18,7 +19,6 @@ import qualified Data.ByteString.Lazy.Char8                      as BSL
 import           Data.Foldable                                   (traverse_)
 import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
-import Control.Monad.Freer.Log (logMessageContent)
 import           Data.Row                                        (Forall)
 import           Data.Row.Internal                               (Unconstrained1)
 import           Data.Text                                       (Text)

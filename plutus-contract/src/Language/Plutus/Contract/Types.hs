@@ -49,7 +49,7 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
 import           Control.Monad.Freer.Extras          (raiseEnd3, raiseUnderN)
-import           Control.Monad.Freer.Log             (ignoreLog, LogMsg)
+import           Control.Monad.Freer.Log             (LogMsg, ignoreLog)
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
@@ -61,7 +61,8 @@ import qualified Data.Text                           as T
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
 import           Language.Plutus.Contract.Checkpoint (AsCheckpointError, Checkpoint (..), CheckpointError (..),
-                                                      CheckpointKey, CheckpointStore, handleCheckpoint, jsonCheckpoint, CheckpointLogMsg)
+                                                      CheckpointKey, CheckpointLogMsg, CheckpointStore,
+                                                      handleCheckpoint, jsonCheckpoint)
 import qualified Language.Plutus.Contract.Checkpoint as C
 import           Language.Plutus.Contract.Resumable  hiding (select)
 import qualified Language.Plutus.Contract.Resumable  as Resumable

@@ -1,20 +1,20 @@
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 -- | The log messages produced by the emulator.
 module Wallet.Emulator.LogMessages(
   RequestHandlerLogMsg(..)
   , TxBalanceMsg(..)
   ) where
 
-import Data.Aeson (ToJSON, FromJSON)
-import GHC.Generics (Generic)
-import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
-import Ledger.Slot (Slot)
-import Ledger.Constraints.OffChain (UnbalancedTx)
-import Ledger.Value (Value)
+import           Data.Aeson                  (FromJSON, ToJSON)
+import           Data.Text.Prettyprint.Doc   (Pretty (..), (<+>))
+import           GHC.Generics                (Generic)
+import           Ledger.Constraints.OffChain (UnbalancedTx)
+import           Ledger.Slot                 (Slot)
+import           Ledger.Value                (Value)
 
 data RequestHandlerLogMsg =
     SlotNoficationTargetVsCurrent Slot Slot

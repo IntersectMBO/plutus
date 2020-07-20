@@ -1,7 +1,7 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -11,14 +11,14 @@ import           Cardano.Wallet.Types           (WalletId)
 import           Control.Lens                   (view)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error      (Error, runError, throwError)
-import Control.Monad.Freer.Log (LogMsg, logInfo)
+import           Control.Monad.Freer.Log        (LogMsg, logInfo)
 import           Control.Monad.IO.Class         (MonadIO, liftIO)
 import           Data.Bifunctor                 (Bifunctor (..))
 import qualified Data.ByteString.Lazy           as BSL
 import qualified Data.ByteString.Lazy.Char8     as BSL8
-import           Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
 import qualified Data.Map                       as Map
 import           Data.Text.Encoding             (encodeUtf8)
+import           Data.Text.Prettyprint.Doc      (Pretty (..), (<+>))
 import           Language.Plutus.Contract.Trace (allWallets)
 import           Ledger                         (Address, PubKey, TxOut (..), TxOutRef, TxOutTx (..), Value)
 import           Ledger.AddressMap              (UtxoMap)

@@ -1,11 +1,11 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
 -- | Turn 'UnbalancedTx' values into transactions using the
 --   wallet API.
 module Language.Plutus.Contract.Wallet(
@@ -18,7 +18,7 @@ module Language.Plutus.Contract.Wallet(
 import           Control.Lens
 import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error)
-import           Control.Monad.Freer.Log     (logDebug, logInfo, LogMsg)
+import           Control.Monad.Freer.Log     (LogMsg, logDebug, logInfo)
 import           Data.Bifunctor              (second)
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
@@ -36,7 +36,7 @@ import           Wallet.API                  (PubKey, WalletAPIError)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
 import qualified Wallet.Emulator             as E
-import Wallet.Emulator.LogMessages (TxBalanceMsg(..))
+import           Wallet.Emulator.LogMessages (TxBalanceMsg (..))
 
 {- Note [Submitting transactions from Plutus contracts]
 

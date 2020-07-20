@@ -26,8 +26,8 @@ import           Control.Monad.Primitive       (PrimMonad, PrimState)
 import           Data.List.NonEmpty            (NonEmpty (..))
 import qualified Data.Map                      as Map
 import           Data.Maybe                    (fromMaybe)
-import           Data.Text.Prettyprint.Doc (Pretty (..))
 import qualified Data.Set                      as Set
+import           Data.Text.Prettyprint.Doc     (Pretty (..))
 import qualified Hedgehog.Gen                  as Gen
 import           System.Random.MWC             as MWC
 

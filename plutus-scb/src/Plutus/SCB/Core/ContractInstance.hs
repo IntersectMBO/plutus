@@ -1,8 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -34,7 +34,7 @@ import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
-import Control.Monad.Freer.Log (LogObserve, surroundInfo, contramapLog)
+import           Control.Monad.Freer.Log                         (LogObserve, contramapLog, surroundInfo)
 import qualified Data.Aeson                                      as JSON
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -42,21 +42,21 @@ import           Data.Maybe                                      (mapMaybe)
 import           Data.Semigroup                                  (Last (..))
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty, pretty, (<+>), Doc, parens, viaShow)
-import Data.Void (Void, absurd)
+import           Data.Text.Prettyprint.Doc                       (Doc, Pretty, parens, pretty, viaShow, (<+>))
+import           Data.Void                                       (Void, absurd)
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
                                                                   EndpointValue (..))
 import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
-import           Language.Plutus.Contract.Resumable              (Request (..), Response (..), IterationID)
-import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), extract, maybeToHandler,
-                                                                  tryHandler, wrapHandler, RequestHandlerLogMsg)
+import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
+import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
+                                                                  maybeToHandler, tryHandler, wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
-import Ledger.Tx (Tx, txId)
+import           Ledger.Tx                                       (Tx, txId)
 import           Wallet.Effects                                  (ChainIndexEffect, SigningProcessEffect, WalletEffect)
-import Wallet.Emulator.LogMessages (TxBalanceMsg)
+import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
 
 import           Plutus.SCB.Command                              (saveBalancedTx, saveBalancedTxResult,
                                                                   saveContractState, sendContractEvent)
@@ -185,7 +185,7 @@ processFirstInboxMessage ::
     -> Eff effs ()
 processFirstInboxMessage instanceID (Last msg) = surroundInfo "processFirstInboxMessage" $ do
     logInfo $ ProcessFirstInboxMessage instanceID msg
-    logInfo $ LookingUpStateOfContractInstance 
+    logInfo $ LookingUpStateOfContractInstance
     -- look up contract 't'
     ContractInstanceState{csCurrentIteration, csCurrentState, csContractDefinition} <- lookupContractState @t instanceID
     logInfo $ CurrentIteration csCurrentIteration
@@ -322,7 +322,7 @@ runRequestHandler ::
     -> [Request req]
     -> Eff effs [ChainEvent t]
 runRequestHandler h contractInstance requests = do
-    logDebug $ RunRequestHandler contractInstance (length requests) 
+    logDebug $ RunRequestHandler contractInstance (length requests)
     -- try the handler on the requests until it succeeds for the first time,
     -- then stop. We want to handle at most 1 request per iteration.
     (response :: Maybe (Response ContractResponse)) <-
@@ -462,7 +462,7 @@ processAllContractOutboxes ::
     , Member (ContractEffect t) effs
     )
     => Eff effs ()
-processAllContractOutboxes = 
+processAllContractOutboxes =
     contramapLog HandlingRequest
     $ contramapLog BalancingTx
     $ surroundInfo "processAllContractOutboxes"
