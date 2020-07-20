@@ -9,8 +9,7 @@
 
 module Control.Monad.Freer.Extra.Log(
     -- $log
-      Log
-    , LogMsg
+    LogMsg
     , logDebug
     , logInfo
     , logWarn
@@ -20,7 +19,7 @@ module Control.Monad.Freer.Extra.Log(
 
 import           Control.Monad.Freer     (Eff, LastMember, type (~>))
 import qualified Control.Monad.Freer     as Eff
-import           Control.Monad.Freer.Log (Log, LogMessage (..), LogMsg (..), logDebug, logInfo, logWarn, writeToLog)
+import           Control.Monad.Freer.Log (LogMessage (..), LogMsg (..), logDebug, logInfo, logWarn, writeToLog)
 import qualified Control.Monad.Freer.Log as Log
 import           Control.Monad.IO.Class  (MonadIO, liftIO)
 import           Control.Monad.Logger    (LogLevel (..), logWithoutLoc, runStderrLoggingT)

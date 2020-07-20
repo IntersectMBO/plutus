@@ -29,7 +29,7 @@ module Plutus.SCB.Effects.MultiAgent(
 import           Control.Lens                     (Lens', Prism', anon, at, below, makeClassyPrisms, makeLenses, (&))
 import           Control.Monad.Freer              (Eff, Members, type (~>), interpret, subsume)
 import           Control.Monad.Freer.Error        (Error)
-import           Control.Monad.Freer.Extra.Log    (Log, LogMsg)
+import           Control.Monad.Freer.Extra.Log    (LogMsg)
 import           Control.Monad.Freer.Extras       (handleZoomedState, handleZoomedWriter, raiseEnd14, raiseEnd7)
 import           Control.Monad.Freer.Log          (LogLevel (..), LogMessage, LogObserve, logMessage, logToWriter,
                                                    observeAsLogMessage)
@@ -135,7 +135,7 @@ type SCBClientEffects =
     , LogMsg ContractInstanceMsg
     , LogMsg CoreMsg
     , LogObserve
-    , Log
+    , LogMsg T.Text
     ]
 
 type SCBControlEffects =
@@ -145,7 +145,7 @@ type SCBControlEffects =
     , SigningProcessControlEffect
     , State CI.AppState
     , LogMsg ChainIndexServerMsg
-    , Log
+    , LogMsg T.Text
     ]
 
 type MultiAgentEffs =

@@ -21,7 +21,7 @@ import           Control.Monad
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error
 import           Control.Monad.Freer.Extras
-import           Control.Monad.Freer.Log        (Log, LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage,
+import           Control.Monad.Freer.Log        (LogLevel (..), LogMessage, LogMsg, LogObserve, logMessage,
                                                  logToWriter, observeAsLogMessage)
 import qualified Control.Monad.Freer.Log        as Log
 import           Control.Monad.Freer.State
@@ -95,7 +95,7 @@ type EmulatedWalletEffects =
          , LogObserve
          , LogMsg RequestHandlerLogMsg
          , LogMsg TxBalanceMsg
-         , Log
+         , LogMsg T.Text
          ]
 
 type EmulatedWalletControlEffects =
@@ -103,7 +103,7 @@ type EmulatedWalletControlEffects =
          , ChainIndex.ChainIndexControlEffect
          , SP.SigningProcessControlEffect
          , LogObserve
-         , Log
+         , LogMsg T.Text
         ]
 
 {- Note [Control effects]

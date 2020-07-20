@@ -13,8 +13,7 @@
 {-# LANGUAGE TypeOperators      #-}
 
 module Control.Monad.Freer.Log(
-    Log
-    , LogMsg(..)
+    LogMsg(..)
     , LogObserve(..)
     , LogLevel(..)
     , LogMessage(..)
@@ -55,8 +54,6 @@ import qualified Data.Text.Prettyprint.Doc.Render.String as Render
 import qualified Data.Text.Prettyprint.Doc.Render.Text   as Render
 import qualified Debug.Trace                             as Trace
 import           GHC.Generics                            (Generic)
-
-type Log = LogMsg Text
 
 data LogMsg a r where
     LMessage :: LogMessage a -> LogMsg a ()

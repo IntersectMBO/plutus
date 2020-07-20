@@ -32,6 +32,7 @@ import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
 import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
+import Data.Text (Text)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp
@@ -181,7 +182,7 @@ type ChainIndexEffects m
         , ChainIndexEffect
         , State ChainIndexState
         , Writer [ChainIndexEvent]
-        , Log
+        , LogMsg Text
         , m
         ]
 

@@ -15,7 +15,7 @@ import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
 import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                     (Log, LogMsg)
+import           Control.Monad.Freer.Extra.Log                     (LogMsg)
 import           Control.Monad.Freer.Extra.State                   (use)
 import qualified Control.Monad.Freer.Log                           as EmulatorLog
 import           Control.Monad.Freer.State                         (State)
@@ -215,10 +215,9 @@ type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
         , EventLogEffect (ChainEvent TestContracts)
-        , Log
         , ContractEffect TestContracts
         , NodeFollowerEffect
-        , EmulatorLog.Log
+        , LogMsg Text
         , LogMsg ContractInstanceMsg
         , EmulatorLog.LogObserve
         ]

@@ -28,6 +28,7 @@ import           Control.Monad.Logger            (MonadLogger, logDebugN)
 import           Data.Foldable                   (traverse_)
 import           Data.List                       (genericDrop)
 import           Data.Text.Prettyprint.Doc       (Pretty (pretty), (<+>))
+import Data.Text (Text)
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Data.Time.Units.Extra           ()
 import           Servant                         (NoContent (NoContent))
@@ -126,7 +127,7 @@ type NodeServerEffects m
         , State AppState
         , LogMsg MockNodeLogMsg
         , LogMsg NodeServerMsg
-        , Log
+        , LogMsg Text
         , m]
 
 ------------------------------------------------------------
