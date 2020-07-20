@@ -20,7 +20,7 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, LogMsg, logInfo)
+import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
 import           Control.Monad.Freer.Log                         (LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
@@ -34,14 +34,14 @@ import           Data.Proxy                                      (Proxy (Proxy))
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty(..))
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import qualified Network.Wai.Handler.Warp                        as Warp
-import           Plutus.SCB.App                                  (App, SCBServerLog, parseStringifiedJSON, runApp)
+import           Plutus.SCB.App                                  (App, UnStringifyJSONLog, parseStringifiedJSON, runApp, ContractExeLogMsg(..))
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
@@ -172,22 +172,21 @@ invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (ContractEffect t) effs
-       , Member Log effs
+       , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
        , Member (LogMsg Instance.ContractInstanceMsg) effs
        , Member LogObserve effs
-       , Show t
+       , Pretty t
        )
     => EndpointDescription
     -> JSON.Value
     -> ContractInstanceId
     -> Eff effs (ContractInstanceState t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-    logInfo $
-        "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
+    logInfo $ InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $ "Invocation response: " <> tshow newState
+    logInfo $ EndpointInvocationResponse $ fmap pretty newState
     getContractInstanceState contractId
 
 parseContractId ::
@@ -203,9 +202,9 @@ handler ::
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
        , Member UUIDEffect effs
-       , Member Log effs
+       , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
-       , Member (LogMsg SCBServerLog) effs
+       , Member (LogMsg UnStringifyJSONLog) effs
        , Member (LogMsg Instance.ContractInstanceMsg) effs
        , Member LogObserve effs
        )

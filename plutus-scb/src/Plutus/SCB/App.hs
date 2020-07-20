@@ -39,13 +39,14 @@ import           Control.Monad.Logger             (LogLevel, LoggingT (..), Mona
                                                    runStdoutLoggingT)
 import           Data.Aeson                       (FromJSON, eitherDecode)
 import qualified Data.Aeson                       as JSON
+import Data.Void (Void, absurd)
 import qualified Data.Aeson.Encode.Pretty         as JSON
 import qualified Data.ByteString.Lazy.Char8       as LBS
 import qualified Data.ByteString.Lazy.Char8       as BSL8
 import           Data.String                      (IsString (fromString))
 import qualified Data.Text                        as Text
 import qualified Data.Text.Encoding               as Text
-import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>))
+import           Data.Text.Prettyprint.Doc        (Pretty (..), (<+>), Doc, viaShow, hang, vsep)
 import           Database.Persist.Sqlite          (runSqlPool)
 import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
 import           Language.Plutus.Contract.State   (ContractRequest)
@@ -99,7 +100,7 @@ type AppBackend m =
          , LogMsg Wallet.Emulator.Wallet.WalletEvent
          , LogMsg ContractExeLogMsg
          , LogMsg ContractInstanceMsg
-         , LogMsg SCBServerLog
+         , LogMsg UnStringifyJSONLog
          , LogMsg CoreMsg
          , LogObserve
          , Log
@@ -193,6 +194,8 @@ data ContractExeLogMsg =
     | ProcessExitFailure String
     | ContractResponse String
     | Migrating
+    | InvokingEndpoint String JSON.Value
+    | EndpointInvocationResponse [Doc Void]
 
 instance Pretty ContractExeLogMsg where
     pretty = \case
@@ -207,6 +210,10 @@ instance Pretty ContractExeLogMsg where
         ProcessExitFailure err -> "ExitFailure" <+> pretty err
         ContractResponse str -> pretty str
         Migrating -> "Migrating"
+        InvokingEndpoint s v ->
+            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
+        EndpointInvocationResponse v ->
+            hang 2 $ vsep ("Invocation response:" : fmap (fmap absurd) v)
 
 handleContractEffectApp ::
        (Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
@@ -253,12 +260,12 @@ migrate = do
         $ flip runSqlPool connectionPool
         $ initializeSqliteEventStore sqlConfig connectionPool
 
-data SCBServerLog =
+data UnStringifyJSONLog =
     ParseStringifiedJSONAttempt
     | ParseStringifiedJSONFailed
     | ParseStringifiedJSONSuccess
 
-instance Pretty SCBServerLog where
+instance Pretty UnStringifyJSONLog where
     pretty = \case
         ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
         ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
@@ -266,7 +273,7 @@ instance Pretty SCBServerLog where
 
 parseStringifiedJSON ::
     forall effs.
-    Member (LogMsg SCBServerLog) effs
+    Member (LogMsg UnStringifyJSONLog) effs
     => JSON.Value
     -> Eff effs JSON.Value
 parseStringifiedJSON v = case v of
