@@ -35,6 +35,8 @@ module Control.Monad.Freer.Log(
     -- * Tracing
     , LogObserve(..)
     , ObservationHandle
+    , observeBefore
+    , observeAfter
     , surround
     , surroundDebug
     , surroundInfo
@@ -48,6 +50,7 @@ import           Control.Lens                            (Prism', makeLenses, pr
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Extras              (raiseUnder)
 import           Control.Monad.Freer.State               (State, get, put, runState)
+import           Control.Monad.Freer.TH                  (makeEffect)
 import           Control.Monad.Freer.Writer              (Writer (..), tell)
 import           Data.Aeson                              (FromJSON, ToJSON)
 import           Data.Foldable                           (for_, traverse_)
@@ -96,6 +99,14 @@ as many items of the stack as needed whenever 'LObserveAfter' is run. It works
 even if the topmost LObserveAfter is never seen, by popping all remaining items
 off the stack at the end.
 
+'LogObserve' supports measures taken on the call site and on the
+interpretation site.
+
+* Interpretation-site measures are produced with the second argument to
+  'handleObserve'
+* Call-site measures can be provided using the type parameter a in the
+  constructors of 'LogObserve'
+
 -}
 
 data LogMsg a r where
@@ -106,8 +117,8 @@ data LogMsg a r where
 newtype ObservationHandle = ObservationHandle Integer
 
 data LogObserve a r where
-    LObserveBefore :: a -> LogObserve a ObservationHandle
-    LObserveAfter  :: ObservationHandle -> LogObserve a ()
+    ObserveBefore :: a -> LogObserve a ObservationHandle
+    ObserveAfter  :: Maybe a -> ObservationHandle -> LogObserve a ()
 
 -- | The severity level of a log message
 --   See https://en.wikipedia.org/wiki/Syslog#Severity_level
@@ -216,12 +227,14 @@ handleLogTrace :: Eff (LogMsg String ': effs) ~> Eff effs
 handleLogTrace = interpret $ \case
     LMessage msg -> Trace.trace (Render.renderString . layoutPretty defaultLayoutOptions . pretty $ msg) (pure ())
 
--- | Write a log message before and after an action.
+-- | Write a log message before and after an action. Consider using
+--   'observeBefore' and 'observeAfter' directly if you need more control
+--   over the values that are observed at the call site.
 surround :: forall v a effs. Member (LogObserve v) effs => v -> Eff effs a -> Eff effs a
 surround v action = do
-    i <- send $ LObserveBefore v
+    i <- send $ ObserveBefore v
     result <- action
-    send @(LogObserve v) $ LObserveAfter i
+    send @(LogObserve v) $ ObserveAfter Nothing i
     pure result
 
 -- | @surroundInfo = surround Info@
@@ -245,10 +258,11 @@ data ExitMode =
 -- | An observation with measurements before and after running an action.
 data Observation v s =
     Observation
-        { obsLabel :: v -- ^ Description of the action
-        , obsStart :: s -- ^ Measurement before running the action
-        , obsEnd   :: s -- ^ Measurement after running the action
-        , obsExit  :: ExitMode -- ^ 'ExitMode' of the action.
+        { obsLabelStart :: v -- ^ Call-site information about the start of the observation
+        , obsStart      :: s -- ^ Measurement before running the action
+        , obsEnd        :: s -- ^ Measurement after running the action
+        , obsLabelEnd   :: Maybe v -- ^ Call-site information about the end of the observation
+        , obsExit       :: ExitMode -- ^ 'ExitMode' of the action.
         }
 
 --  | An 'Observation' that doesn't have an 'obsEnd' value yet.
@@ -289,13 +303,13 @@ handleObserve getCurrent handleObs =
         handleFinalState :: forall a. Eff effs (a, (ObsState v s)) -> Eff effs a
         handleFinalState action = do
             (result, finalState) <- action
-            _ <- handleObserveAfter finalState 0
+            _ <- handleObserveAfter Nothing finalState 0
             pure result
 
         -- when an action with the given depth is finished, take the final
         -- measurement and clear the stack of partial observations.
-        handleObserveAfter :: ObsState v s -> Integer -> Eff effs (ObsState v s)
-        handleObserveAfter ObsState{obsPartials} i = do
+        handleObserveAfter :: Maybe v -> ObsState v s -> Integer -> Eff effs (ObsState v s)
+        handleObserveAfter v' ObsState{obsPartials} i = do
                 current <- getCurrent
                 let (finishedPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
                 for_ finishedPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
@@ -305,14 +319,21 @@ handleObserve getCurrent handleObs =
                     -- 'LObserveAfter' calls were skipped, which we note with
                     -- 'Irregular'.
                     let exitMode = if obsDepth == i then Regular else Irregular
-                        message  = Observation{obsLabel=obsMsg, obsStart=obsValue, obsEnd=current, obsExit=exitMode}
+                        message  =
+                            Observation
+                                { obsLabelStart = obsMsg
+                                , obsStart = obsValue
+                                , obsEnd=current
+                                , obsExit=exitMode
+                                , obsLabelEnd = case exitMode of { Regular -> v'; Irregular -> Nothing }
+                                }
                     handleObs message
                 pure ObsState{obsMaxDepth=i - 1, obsPartials=remainingPartials}
 
         -- hdl :: Eff (LogObserve v ': State (ObsState v s) ': effs)
         --     ~> Eff (State (ObsState v s) ': effs)
         hdl = interpret $ \case
-            LObserveBefore vl -> do
+            ObserveBefore vl -> do
                 current <- raise getCurrent
                 ObsState{obsMaxDepth, obsPartials} <- get
                 let newMaxDepth = obsMaxDepth + 1
@@ -323,9 +344,9 @@ handleObserve getCurrent handleObs =
                             }
                 put ObsState{obsMaxDepth=newMaxDepth,obsPartials=msg:obsPartials}
                 pure (ObservationHandle newMaxDepth)
-            LObserveAfter (ObservationHandle i) -> do
+            ObserveAfter v' (ObservationHandle i) -> do
                 currentState <- get @(ObsState v s)
-                newState <- raise (handleObserveAfter currentState i)
+                newState <- raise (handleObserveAfter v' currentState i)
                 put newState
 
 -- | Interpret the 'LogObserve' effect by logging a "start" message
@@ -341,11 +362,13 @@ handleObserveLog =
         where
             handleBefore :: LogObserve (LogMessage Text) ~> Eff (LogObserve (LogMessage Text) ': effs)
             handleBefore = \case
-                    LObserveBefore msg -> do
+                    ObserveBefore msg -> do
                         let msg' = fmap  (<> " start") msg
                         send $ LMessage msg'
-                        send $ LObserveBefore msg
-                    LObserveAfter i -> send @(LogObserve (LogMessage Text)) $ LObserveAfter i
-            handleAfter Observation{obsLabel, obsExit} = do
-                let msg' = fmap (\lbl -> case obsExit of { Regular -> lbl <> " end"; Irregular -> lbl <> " end (irregular)"} ) obsLabel
+                        send $ ObserveBefore msg
+                    ObserveAfter v' i -> send @(LogObserve (LogMessage Text)) $ ObserveAfter v' i
+            handleAfter Observation{obsLabelStart, obsExit} = do
+                let msg' = fmap (\lbl -> case obsExit of { Regular -> lbl <> " end"; Irregular -> lbl <> " end (irregular)"} ) obsLabelStart
                 send $ LMessage msg'
+
+makeEffect ''LogObserve
