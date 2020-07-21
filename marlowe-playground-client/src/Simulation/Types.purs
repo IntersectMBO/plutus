@@ -33,6 +33,15 @@ import Web.HTML.Event.DragEvent (DragEvent)
 type WebData
   = RemoteData AjaxError
 
+type ReachabilityAnalysisData
+  = { remoteData :: RemoteData String Result
+    }
+
+data AnalysisState
+  = NoneAsked
+  | WarningAnalysis (RemoteData String Result)
+  | ReachabilityAnalysis ReachabilityAnalysisData
+
 type State
   = { showRightPanel :: Boolean
     , marloweState :: NonEmptyList MarloweState
@@ -46,7 +55,7 @@ type State
     , showBottomPanel :: Boolean
     , showErrorDetail :: Boolean
     , bottomPanelView :: BottomPanelView
-    , analysisState :: RemoteData String Result
+    , analysisState :: AnalysisState
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     }
@@ -93,7 +102,7 @@ _showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
 _bottomPanelView :: Lens' State BottomPanelView
 _bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
 
-_analysisState :: Lens' State (RemoteData String Result)
+_analysisState :: Lens' State AnalysisState
 _analysisState = prop (SProxy :: SProxy "analysisState")
 
 _selectedHole :: Lens' State (Maybe String)
@@ -116,7 +125,7 @@ mkState =
   , showBottomPanel: true
   , showErrorDetail: false
   , bottomPanelView: CurrentStateView
-  , analysisState: NotAsked
+  , analysisState: NoneAsked
   , selectedHole: Nothing
   , oldContract: Nothing
   }
@@ -157,6 +166,7 @@ data Action
   | SetBlocklyCode
   -- websocket
   | AnalyseContract
+  | AnalyseReachabilityContract
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Simulation." <> s
@@ -186,6 +196,7 @@ instance isEventAction :: IsEvent Action where
   toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
   toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
+  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
 
 data Query a
   = SetEditorText String a
