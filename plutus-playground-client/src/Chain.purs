@@ -108,7 +108,7 @@ emulatorEventPane (ChainEvent (SlotAdd (Slot slot))) =
   div [ class_ $ ClassName "info" ]
     [ text $ "Add slot #" <> show slot.getSlot ]
 
-emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText )) =
+emulatorEventPane (WalletEvent (Wallet walletId) (GenericLog logMessageText)) =
   div [ class_ $ ClassName "error" ]
     [ text $ "Message from wallet #" <> show walletId.getWallet <> ": " <> logMessageText ]
 
