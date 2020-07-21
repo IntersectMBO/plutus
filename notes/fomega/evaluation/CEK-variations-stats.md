@@ -44,7 +44,7 @@ Time and memory figures are given for four different CEK machines:
   See `kwxm/alternative-cek`.
 * Another version of the alternative machine in which the builtin arities are stored in the
   `Builtin` constructor, avoiding the use of the table.    See `kwxm/alternative-cek-arities`.
-* A version with saturated builtins (and standard closures).  See `kwxm/saturated-builtins`
+* A version with saturated builtins (and standard closures).  See `kwxm/saturated-builtins`.
 
 I think it should also be possible to modify the standard CEK machine to
 use the argument-counting strategy, but I haven't done this (yet).  The
