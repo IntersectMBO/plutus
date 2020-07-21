@@ -78,6 +78,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExTally(..)
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
+    , ToExMemory(..)
     , SpendBudget(..)
     , CostModel
     , CostModelBase(..)
@@ -103,7 +104,8 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
 where
 
 
-import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Barbies
@@ -117,7 +119,7 @@ import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax
+import           Language.Haskell.TH.Syntax                      hiding (Name)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
@@ -127,15 +129,20 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @term@.
-class SpendBudget m term | m -> term where
-    builtinCostParams :: m CostModel
+class ToExMemory term where
+    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
+    -- return something arbitrary just to fit such a term into the builtin application machinery.
+    toExMemory :: term -> ExMemory
 
-    -- We don't really need the @m@ here, but making another type class would be annoying
-    -- (as well as making a @Proxy@ argument) and 'getExMemory' is going to be used in the same
-    -- monad as 'spendBudget', so it's not a big deal to add @m@ to the type signature.
-    -- | Get 'ExMemory' of a @term@.
-    getExMemory :: term -> m ExMemory
+instance ToExMemory (Term TyName Name uni ()) where
+    toExMemory _ = 0
+
+instance ToExMemory (Term TyName Name uni ExMemory) where
+    toExMemory = termAnn
+
+-- This works nicely because @m@ contains @term@.
+class ToExMemory term => SpendBudget m term | m -> term where
+    builtinCostParams :: m CostModel
 
     -- | Spend the budget, which may mean different things depending on the monad:
     --

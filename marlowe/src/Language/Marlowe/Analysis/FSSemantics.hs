@@ -174,18 +174,11 @@ symEvalVal (SubValue lhs rhs) symState = symEvalVal lhs symState -
                                          symEvalVal rhs symState
 symEvalVal (MulValue lhs rhs) symState = symEvalVal lhs symState *
                                          symEvalVal rhs symState
-symEvalVal (Scale s rhs) symState = let
-    num = literal (P.numerator s)
-    denom = literal (P.denominator s)
-    symVal = symEvalVal rhs symState
-    -- quotient and reminder
-    (q, r) = (num * symVal) `sQuotRem` denom
-    -- abs (rem (num/denom)) - 1/2
-    sign = signum (2 * abs r - abs denom)
-    m = ite (r .< 0) (q - 1) (q + 1)
-    isEven = (q `sRem` 2) .== 0
-    in ite (r .== 0 .|| sign .== (-1) .|| (sign .== 0 .&& isEven))
-    {- then -} q {- else -} m
+symEvalVal (Scale s rhs) symState =
+  let (n, d) = (P.numerator s, P.denominator s)
+      nn = symEvalVal rhs symState * literal n
+      (q, r) = nn `sQuotRem` literal d in
+  ite (abs r * 2 .< literal (abs d)) q (q + signum nn * literal (signum d))
 symEvalVal (ChoiceValue choId) symState =
   M.findWithDefault (literal 0) choId (symChoices symState)
 symEvalVal SlotIntervalStart symState = lowSlot symState
@@ -329,7 +322,8 @@ isValidAndFailsAux hasErr (Let valId val cont) sState =
   do let concVal = symEvalVal val sState
      let newBVMap = M.insert valId concVal (symBoundValues sState)
      let newSState = sState { symBoundValues = newBVMap }
-     isValidAndFailsAux hasErr cont newSState
+     isValidAndFailsAux (literal (M.member valId (symBoundValues sState)) -- Shadowed definition
+                         .|| hasErr) cont newSState
 isValidAndFailsAux hasErr (Assert obs cont) sState =
   isValidAndFailsAux (hasErr .|| sNot obsVal) cont sState
   where obsVal = symEvalObs obs sState

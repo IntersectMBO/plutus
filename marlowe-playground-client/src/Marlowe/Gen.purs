@@ -12,7 +12,7 @@ import Data.Char.Gen (genAlpha, genDigitChar)
 import Data.Foldable (class Foldable)
 import Data.NonEmpty (NonEmpty, foldl1, (:|))
 import Data.String.CodeUnits (fromCharArray)
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
+import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), MarloweType(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkArgName)
 import Marlowe.Semantics (Rational(..), CurrencySymbol, Input(..), PubKey, Slot(..), SlotInterval(..), TokenName, TransactionInput(..), TransactionWarning(..))
 import Marlowe.Semantics as S
 import Text.Parsing.StringParser (Pos)
@@ -49,7 +49,7 @@ genSlot :: forall m. MonadGen m => MonadRec m => m Slot
 genSlot = Slot <$> genBigInteger
 
 genTimeout :: forall m. MonadGen m => MonadRec m => m (TermWrapper Slot)
-genTimeout = TermWrapper <$> genSlot <*> pure { row: 0, column: 0 }
+genTimeout = TermWrapper <$> genSlot <*> pure zero
 
 genValueId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m ValueId
 genValueId = ValueId <$> genString
@@ -91,22 +91,29 @@ genBound = do
 genPosition :: forall m. MonadGen m => MonadRec m => m Pos
 genPosition = chooseInt 0 1000
 
+genRange :: forall m. MonadGen m => MonadRec m => m Range
+genRange = do
+  startLineNumber <- genPosition
+  startColumn <- genPosition
+  endLineNumber <- genPosition
+  endColumn <- genPosition
+  pure { startLineNumber, startColumn, endLineNumber, endColumn }
+
 genHole :: forall m a. MonadGen m => MonadRec m => String -> m (Term a)
 genHole name = do
   -- name <- suchThat genString (\s -> s /= "")
   proxy <- pure (Proxy :: Proxy a)
-  row <- genPosition
-  column <- genPosition
-  pure $ Hole name proxy { row, column }
+  range <- genRange
+  pure $ Hole name proxy range
 
 genTerm :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => String -> m a -> m (Term a)
 genTerm name g = do
   withHoles <- ask
-  oneOf $ (Term <$> g <*> pure { row: 0, column: 0 }) :| (if withHoles then [ genHole name ] else [])
+  oneOf $ (Term <$> g <*> pure zero) :| (if withHoles then [ genHole name ] else [])
 
 genTermWrapper :: forall m a. MonadGen m => MonadRec m => MonadReader Boolean m => m a -> m (TermWrapper a)
 genTermWrapper g = do
-  TermWrapper <$> g <*> pure { row: 0, column: 0 }
+  TermWrapper <$> g <*> pure zero
 
 genAccountId :: forall m. MonadGen m => MonadRec m => MonadReader Boolean m => m AccountId
 genAccountId = do

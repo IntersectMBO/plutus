@@ -27,10 +27,12 @@ export class MarloweCompletionItemProvider implements monaco.languages.Completio
 
   provideCompletionItems(model: monaco.editor.ITextModel, position: monaco.Position, context: monaco.languages.CompletionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
     var word = model.getWordAtPosition(position);
+    const isEmptyWord = word == null;
     // if the word is empty then we need an extra space in the contract that we generate
-    const emptyWordHack = word == null ? " " : ""
-    if (word == null) {
+    const emptyWordHack = isEmptyWord ? " " : ""
+    if (isEmptyWord) {
       word = {
+        // for some reason an empty string here doesn't work so we give it a dummy value
         word: "*",
         startColumn: position.column,
         endColumn: position.column,
@@ -39,9 +41,10 @@ export class MarloweCompletionItemProvider implements monaco.languages.Completio
     const stripParens = word.startColumn == 1 && position.lineNumber == 1;
     const wordStart = model.getOffsetAt(position);
     const wordEnd = wordStart + word.word.length;
-    const startOfContract = model.getValue().substring(0, wordStart - 1);
+    // because of the dummy * value we need to mess with the substring lengths
+    const offset = isEmptyWord ? 0 : word.word.length;
+    const startOfContract = model.getValue().substring(0, wordStart - offset);
     const endOfContract = model.getValue().substring(wordEnd - 1);
-
     // we replace the word at the cursor with a hole with a special name so that the contract is parsable
     // if the contract is not valid then we won't get any suggestions
     const contract = startOfContract + emptyWordHack + "?monaco_suggestions" + endOfContract;

@@ -480,23 +480,10 @@ evalValue env state value = let
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
         MulValue lhs rhs     -> eval lhs * eval rhs
-        Scale s rhs          -> let
-            num = numerator s
-            denom = denominator s
-            -- quotient and reminder
-            multiplied = num * eval rhs
-            (q, r) = multiplied `quotRem` denom
-            -- abs (rem (num/denom)) - 1/2
-            abs a = if a >= 0 then a else negate a
-            signum x
-              | x > 0 = 1
-              | x == 0 = 0
-              | otherwise = -1
-            sign :: Integer
-            sign = signum (2 * abs r - abs denom)
-            m = if r < 0 then q - 1 else q + 1
-            isEven = (q `remainder` 2) == 0
-            in if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
+        Scale s rhs          -> let (n, d) = (numerator s, denominator s)
+                                    nn = eval rhs * n
+                                    (q, r) = nn `quotRem` d in
+                                if abs r * 2 < abs d then q else q + signum nn * signum d
         ChoiceValue choiceId ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x
@@ -508,6 +495,15 @@ evalValue env state value = let
                 Just x  -> x
                 Nothing -> 0
         Cond cond thn els    -> if evalObservation env state cond then eval thn else eval els
+  where
+    abs :: Integer -> Integer
+    abs a = if a >= 0 then a else negate a
+
+    signum :: Integer -> Integer
+    signum x
+      | x > 0 = 1
+      | x == 0 = 0
+      | otherwise = -1
 
 
 -- | Evaluate 'Observation' to 'Bool'.

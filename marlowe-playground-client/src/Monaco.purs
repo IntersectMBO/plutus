@@ -149,6 +149,9 @@ type Marker r
 type IMarkerData
   = Record (Marker ())
 
+getRange :: IMarkerData -> IRange
+getRange { startLineNumber, startColumn, endLineNumber, endColumn } = { startLineNumber, startColumn, endLineNumber, endColumn }
+
 type IMarker
   = Record (Marker ( owner :: String, resource :: Uri ))
 

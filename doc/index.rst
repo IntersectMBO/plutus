@@ -1,13 +1,6 @@
 The Plutus Platform
 ===================
 
-.. toctree::
-   :maxdepth: 2
-
-   tutorials/index
-
-   reference/index
-
 The Plutus Platform is the smart contract platform of the Cardano blockchain.
 Plutus contracts consist of pieces that run on the blockchain (*on-chain* code) and pieces that run on a user’s machine (*off-chain* or *client* code).
 
@@ -33,3 +26,15 @@ To write a smart contract using the Plutus Platform, you can code directly in th
 The Plutus Playground is a lightweight, web-based environment for exploratory Plutus development. Here you can easily write and simulate deployment of your contracts without the overhead of installing and maintaining a full development environment.
 
 You can also use a normal Haskell development environment on your computer to write Plutus programs. See the main `Plutus repository <https://github.com/input-output-hk/plutus>`_ for more information.
+
+.. toctree::
+   :caption: Explore Plutus
+   :maxdepth: 2
+
+   tutorials/index
+
+.. toctree::
+   :caption: Plutus Reference
+   :maxdepth: 2
+
+   reference/index

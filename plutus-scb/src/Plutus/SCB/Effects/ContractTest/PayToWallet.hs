@@ -5,7 +5,6 @@
 {-# LANGUAGE GADTs              #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE StrictData         #-}
-{-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE TypeOperators      #-}
 module Plutus.SCB.Effects.ContractTest.PayToWallet(

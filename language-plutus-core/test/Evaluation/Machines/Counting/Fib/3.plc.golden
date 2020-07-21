@@ -1,5 +1,5 @@
 ( (Right (2))
-, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 188
+, ({ tally: ({ BBuiltin (StaticStagedBuiltinName SubtractInteger) causes ({ cpu: 190
 | mem: 4
 })
 | BBuiltin (StaticStagedBuiltinName AddInteger) causes ({ cpu: 88
@@ -29,7 +29,7 @@
 | BAST causes ({ cpu: 0
 | mem: 118
 })})
-| budget: ({ cpu: 516
+| budget: ({ cpu: 518
 | mem: 304
 })
 }) )

@@ -174,7 +174,7 @@ txnUpdateUtxo = property $ do
 
         -- Validate a pool that contains `txn` twice. It should succeed the
         -- first and fail the second time
-        (Chain.ValidatedBlock [t1] [e2, e1, _] [], _) = Chain.validateBlock slot idx [txn, txn]
+        Chain.ValidatedBlock [t1] [e2, e1, _] [] = Chain.validateBlock slot idx [txn, txn]
         tid = txId txn
     Hedgehog.assert (t1 == txn)
     Hedgehog.annotateShow (e1, e2)
