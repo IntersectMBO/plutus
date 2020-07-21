@@ -1,52 +1,63 @@
 # Experiments with variations on the CEK machine
 
 This document describes some experiments with variations on the CEK
-machine, including the one proposed in [this note](./CEK.md).
+machine, including the one proposed in [this note](./CEK.md), where
+instead of closures of the form `(V,ρ)`, an alternative form of
+closure is used where environments only appear under binders, and are
+not stored with every value.
 
-Time and memory figures are given for five different CEK machines:
+### Efficiency of builtin application.
 
-* The current version in `master` (at the start of July 2020), with closures and unsaturated builtins.
-* A modification of the current version which uses values,
-  with environments only appearing under binders.
-* The version above with the costing code commented out.  The implementation
-  of the CEK machine is more complicated than the theoretical version, and
-  this version was a quick experiment to get  idea of how much overhead the
-  extra machinery adds.
-* A version with saturated builtins (and closures).
-* A version due to Roman where the alternative CEK machine keeps track
-  of the number of arguments to a builtin, improving the evaluation speed.
+The mechanism for evaluating builtins in the original CEK machine (and
+the version currently in the `master` branch) was somewhat
+inefficient.  When evaluating a builtin `b` applied to a list of terms
+`t_1, ..., t_n`, it would first evaluate `t_1` to a value `v_1` then
+hand off the application `builtin b v_1` to the constant application
+machinery (ie, the code which evaluates the Haskell function
+underlying a builtin), which would attempt to evaluate it; if this
+succeeded then the result would be returned to the CEK machine for
+further processing, but if it failed a `stuck` result would be
+returned to the machine, which would then evaluate the next argument
+and try again, and so on (this is an approximation, since sometimes
+partially-applied builtins were stored in closures for later use).
 
-### Implementation
+The repeated calls to the constant application machinery took quite a
+lot of time, and the branch with saturated builtins was considerably
+faster because it only need to call the constant application machinery
+once, when it had collected the correct number of arguments.
 
-The CEK version described in the note mentioned above assumes that all
-built-in functions are fully-applied.  However, the figures here are
-for a machine with _unsaturated_ builtins.  Ideally there'd also be a
-version with saturated builtins and values instead of closures, but
-this doesn't exist (yet).  The implementation introduces a new kind of value,
+Roman observed that with the alternative version of the CEK machine,
+this problem could be avoided while still supporting unsaturated
+builtins. The idea is that the machine knows the arities of each
+builtin and doesn't attempt to call the constant application machinery
+until it has the correct number of arguments.  A difficulty is that
+the machine has to keep track of how many arguments are available for
+a builtin call, but with the alternative CEK machine this information
+can be stored in the modified "closures" use by the machine.  We've
+implelemented this (in fact, two different versions), and run some tests. 
 
-```
-   builtin b [A] [V] ρ
-```
+Time and memory figures are given for four different CEK machines:
 
-representing the builtin function `b` instantiated at a list of types
-and (perhaps partially) applied to a list of values `[V]` ("values" in
-the sense of the [note](./CEK.md) mentioned above).  When we encounter
-an application `[(builtin b) A₁ ... Aₖ M₁ ... Mₙ]`, `M₁` is evaluated
-to a value `V₁`, and a structure containing the name of the builtin
-and `V₁` is fed to the constant evaluation mechanism, which either
-succeeds in evaluating the function or becomes stuck because
-insufficiently many arguments have been provided.  In the latter case,
-`V₁` and the current environment are stored in a `builtin` value of
-the form shown above and evaluation continues with the next argument;
-longer and longer `builtin` values are generated until evaluation
-eventually succeeds.  [Technical note: the information contained in
-the `builtin` values is essentially the same as that in the
-`primIterApp` mechanism used in the existing CEK machine, and we
-bypass the latter, going directly to the constant evaluation mechanism.
-Thus the evaluation strategy doesn't introduce any new ineffiency into
-the machine.]
+* The current version in `master` (at 21st July 2020), with standard closures and unsaturated builtins.
+* A modification of the alternative machine which has a table of builtin arities as described above.
+* Another version of the alternative machine in which the builtin arities are stored in the
+  `Builtin` constructor, avoiding the use of the table
+* A version with saturated builtins (and standard closures).
 
+I think it should also be possible to modify the standard CEK machine to
+use the argument-counting strategy, but I haven't done this (yet).  The
+experiments here are designed to test the efficiency of builtin application,
+and do not have large and complicated environments of the sort that might
+be expected to show up differences in the environment-storages strategy.
+We might wish to take another look at this when we have more complicated
+benchmarks (and this shouldn't be too difficult because it would only involve
+modifying the CEK machine, not the entire AST).
 
+Note also that during the course of all this, Roman made some
+improvements to the constant application machinery in preparation for
+the introduction of untyped PLC: these have been incorporated in all
+of the machines reported on here, so there shouldn't be any
+inconsistencies because of that.
 
 ### Experiments
 
@@ -101,36 +112,15 @@ appears to be a reasonable measure of memory usage.
 
 See [CEK-variations-stats-appendix.md](./CEK-variations-stats-appendix.md)
 for versions of these graphs including figures for the CK machine (with
-unsaturated builtins).
+saturated builtins).
 
 ### Comments
-
-There's no discernible difference between execution times of the
-original and alternative machines (and this is backed up by
-examination of the actual numbers).  The alternative machine does seem
-to use a little less memory, but it's not drastically different.  The
-reason for the similarity of performance is possibly that there's a
-lot of extra stuff going on in the implementation which drowns out any
-differences due to evaluation strategy: for example, it is clear that
-the version with costing removed performs significantly better
-(especially in terms of memory usage) than either of the full
-versions.  Of course, we need the costing, but these figures suggest
-that it might be worthwhile spending time to optimise this and other
-features of the machine.
-
-It also seems that saturated builtins give a noticeable improvement in
-speed, probably because repeated calls to the constant evaluation
-mechanism with partially-evaluated applications aren't required.  The
-examples here are simple and quite heavy on arithmetic, so gains from
-evaluation of builtin functions are quite noticeable.  The gains are
-likely to be less in the code produced by the PlutusTx compiler,
-especially in view of the fact that builtins are currently always called
-indirectly, via an η-expanded (and usually nested) lambda term.  
+With the old builtin application method, saturated builtins were
+clearly faster than unsaturated ones: however the argument-counting
+technique seems to solve this problem and make unsaturated builtins at
+least as efficient as saturated ones, so there doesn't seem to be any
+compelling reason to adopt saturated ones.
 
 
-I also ran all of the `plutus-use-cases` tests with each version fo
-the machine, but wasn't able to see any real difference in evaluation
-times.  This is possibly because validation only accounts for a small
-fraction of the time taken: a lot of time is occupied by blockchain
-simulation, serialisation/deserialisation, and so on.
+
 
