@@ -97,7 +97,7 @@ tests = testGroup "escrow"
         >> handleBlockchainEvents w1
         )
 
-    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 35000)
+    , HUnit.testCase "script size is reasonable" (Lib.reasonable (Scripts.validatorScript $ scriptInstance escrowParams) 32000)
     ]
 
 w1, w2, w3 :: Wallet

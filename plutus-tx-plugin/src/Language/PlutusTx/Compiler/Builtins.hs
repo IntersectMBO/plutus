@@ -19,6 +19,8 @@ module Language.PlutusTx.Compiler.Builtins (
     , errorFunc) where
 
 import qualified Language.PlutusTx.Builtins             as Builtins
+import qualified Language.PlutusTx.String               as String
+
 import           Language.PlutusTx.Compiler.Error
 import {-# SOURCE #-} Language.PlutusTx.Compiler.Expr
 import           Language.PlutusTx.Compiler.Laziness
@@ -204,6 +206,7 @@ builtinNames = [
     , 'Builtins.appendString
     , 'Builtins.emptyString
     , 'Builtins.charToString
+    , 'String.stringToBuiltinString
 
     , 'Builtins.trace
     ]

@@ -45,6 +45,7 @@
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.doctest or (pkgs.buildPackages.doctest or (errorHandler.buildToolDepError "doctest")))
@@ -82,6 +83,7 @@
           "Language/PlutusTx/Builtins"
           "Language/PlutusTx/Plugin/Utils"
           "Language/PlutusTx/Utils"
+          "Language/PlutusTx/String"
           ];
         hsSourceDirs = [ "src" ];
         };
