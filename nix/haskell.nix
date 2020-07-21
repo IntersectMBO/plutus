@@ -96,6 +96,9 @@ let
               platforms = lib.platforms.linux;
             };
 
+            # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
+            iohk-monitoring.doHaddock = false;
+
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
             iots-export.package.ghcOptions = "-Werror";
