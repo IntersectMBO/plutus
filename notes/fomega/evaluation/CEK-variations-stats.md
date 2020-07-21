@@ -39,10 +39,12 @@ implelemented this (in fact, two different versions), and run some tests.
 Time and memory figures are given for four different CEK machines:
 
 * The current version in `master` (at 21st July 2020), with standard closures and unsaturated builtins.
+  See `master` at `872238f1`.
 * A modification of the alternative machine which has a table of builtin arities as described above.
+  See `kwxm/alternative-cek`.
 * Another version of the alternative machine in which the builtin arities are stored in the
-  `Builtin` constructor, avoiding the use of the table
-* A version with saturated builtins (and standard closures).
+  `Builtin` constructor, avoiding the use of the table.    See `kwxm/alternative-cek-arities`.
+* A version with saturated builtins (and standard closures).  See `kwxm/saturated-builtins`
 
 I think it should also be possible to modify the standard CEK machine to
 use the argument-counting strategy, but I haven't done this (yet).  The
