@@ -79,7 +79,7 @@ propertyR :: PropertyT (R s) () -> Property
 -- to hold all the branches for reduction. These branches will contain `(R s)`,
 -- which has a `MonadIO` instance. No `NFData` for `IO`, so no `NFData` for
 -- `TreeT`. For now, this didn't crash yet.
-propertyR prop = property $ unsafeHoist unsafeRunRegion prop
+propertyR prop = withTests 20 $ property $ unsafeHoist unsafeRunRegion prop
   where
     unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
     unsafeHoist nt = hoist (unsafeCoerce nt)
