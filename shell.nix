@@ -18,8 +18,6 @@ in haskell.packages.shellFor {
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
 
-    # Take cabal from nixpkgs for now, see below
-    pkgs.cabal-install
     pkgs.stack
 
     pyEnv
@@ -30,8 +28,7 @@ in haskell.packages.shellFor {
     pkgs.aws_shell
 
     # Extra dev packages acquired from elsewhere
-    # FIXME: Can't use this cabal until https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
-    #dev.packages.cabal-install
+    dev.packages.cabal-install
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
