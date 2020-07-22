@@ -10,6 +10,7 @@ module Playground.Interpreter.Util
 
 import           Control.Lens                                    (view)
 import           Control.Monad.Except                            (throwError)
+import           Control.Monad.Freer.Log                         (logMessageContent)
 import           Data.Aeson                                      (FromJSON, eitherDecode)
 import qualified Data.Aeson                                      as JSON
 import           Data.Bifunctor                                  (first)
@@ -90,7 +91,7 @@ analyzeEmulatorState traceState EmulatorState { _chainState = ChainState { _chai
     traceResult :: TraceResult
     traceResult =
         ( _chainNewestFirst
-        , _emulatorLog
+        , fmap (view logMessageContent) _emulatorLog
         , _emulatorTrace
         , fundsDistribution
         , Map.foldMapWithKey toKeyWalletPair _walletClientStates)

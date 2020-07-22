@@ -1,9 +1,11 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TypeApplications  #-}
 -- | Turn 'UnbalancedTx' values into transactions using the
 --   wallet API.
 module Language.Plutus.Contract.Wallet(
@@ -16,12 +18,11 @@ module Language.Plutus.Contract.Wallet(
 import           Control.Lens
 import           Control.Monad.Freer         (Eff, Member)
 import           Control.Monad.Freer.Error   (Error)
-import           Control.Monad.Freer.Log     (Log, logDebug, logInfo)
+import           Control.Monad.Freer.Log     (LogMsg, logDebug, logInfo)
 import           Data.Bifunctor              (second)
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
 import           Data.String                 (IsString (fromString))
-import           Data.Text.Prettyprint.Doc   (Pretty (..))
 import qualified Language.PlutusTx.Prelude   as P
 import qualified Ledger                      as L
 import           Ledger.AddressMap           (UtxoMap)
@@ -35,6 +36,7 @@ import           Wallet.API                  (PubKey, WalletAPIError)
 import qualified Wallet.API                  as WAPI
 import           Wallet.Effects
 import qualified Wallet.Emulator             as E
+import           Wallet.Emulator.LogMessages (TxBalanceMsg (..))
 
 {- Note [Submitting transactions from Plutus contracts]
 
@@ -78,13 +80,12 @@ balanceWallet ::
    ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     , Member ChainIndexEffect effs
-    , Member Log effs
+    , Member (LogMsg TxBalanceMsg) effs
     )
     => UnbalancedTx
     -> Eff effs Tx
 balanceWallet utx = do
-    logInfo $
-        "Balancing an unbalanced transaction: " <> fromString (show $ pretty utx)
+    logInfo $ BalancingUnbalancedTx utx
     pk <- ownPubKey
     outputs <- ownOutputs
     balanceTx outputs pk utx
@@ -121,7 +122,7 @@ balanceTx ::
     ( Member WalletEffect effs
     , Member (Error WalletAPIError) effs
     , Member ChainIndexEffect effs
-    , Member Log effs
+    , Member (LogMsg TxBalanceMsg) effs
     )
     => UtxoMap
     -- ^ Unspent transaction outputs that may be used to balance the
@@ -137,18 +138,18 @@ balanceTx utxo pk UnbalancedTx{unBalancedTxTx} = do
 
     tx' <- if Value.isZero pos
            then do
-               logDebug "No outputs added"
+               logDebug NoOutputsAdded
                pure unBalancedTxTx
            else do
-                   logDebug $ "Adding public key output for " <> fromString (show pos)
+                   logDebug $ AddingPublicKeyOutputFor pos
                    pure $ addOutputs pk pos unBalancedTxTx
 
     if Value.isZero neg
     then do
-        logDebug "No inputs added"
+        logDebug NoInputsAdded
         pure tx'
     else do
-        logDebug $ "Adding inputs for " <> fromString (show neg)
+        logDebug $ AddingInputsFor neg
         addInputs utxo pk neg tx'
 
 -- | @addInputs mp pk vl tx@ selects transaction outputs worth at least
@@ -181,6 +182,6 @@ addOutputs pk vl tx = tx & over Tx.outputs (pko :) where
 
 -- | Balance an unabalanced transaction, sign it, and submit
 --   it to the chain in the context of a wallet.
-handleTx :: (Member WalletEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs, Member Log effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
+handleTx :: (Member WalletEffect effs, Member ChainIndexEffect effs, Member SigningProcessEffect effs, Member (LogMsg TxBalanceMsg) effs, Member (Error WalletAPIError) effs) => UnbalancedTx -> Eff effs Tx
 handleTx utx =
     balanceWallet utx >>= addSignatures (Set.toList $ unBalancedTxRequiredSignatories utx) >>= WAPI.signTxAndSubmit

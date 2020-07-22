@@ -153,6 +153,10 @@ package shelley-spec-ledger-test
   tests: false
   flags: +development
 
+package iohk-monitoring
+  -- disable all warnings
+  ghc-options: -w 
+
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-base
@@ -223,6 +227,18 @@ source-repository-package
   location: https://github.com/raduom/ouroboros-network
   tag: af744374a05d6a5eb76713b399595131e2a24c38
   subdir: Win32-network
+
+source-repository-package
+  type: git
+  location: https://github.com/raduom/iohk-monitoring-framework
+  tag: b5c035ad4e226d634242ad5979fa677921181435
+  subdir: iohk-monitoring
+
+source-repository-package
+  type: git
+  location: https://github.com/raduom/iohk-monitoring-framework
+  tag: b5c035ad4e226d634242ad5979fa677921181435
+  subdir: tracer-transformers
 
 source-repository-package
   type: git

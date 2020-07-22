@@ -15,7 +15,7 @@ import           Control.Lens                                      ((&), (+~))
 import           Control.Monad                                     (unless, void)
 import           Control.Monad.Freer                               (Eff, Member, Members)
 import           Control.Monad.Freer.Error                         (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                     (Log)
+import           Control.Monad.Freer.Extra.Log                     (LogMsg)
 import           Control.Monad.Freer.Extra.State                   (use)
 import qualified Control.Monad.Freer.Log                           as EmulatorLog
 import           Control.Monad.Freer.State                         (State)
@@ -29,6 +29,7 @@ import           Ledger                                            (pubKeyAddres
 import           Ledger.Ada                                        (lovelaceValueOf)
 import           Plutus.SCB.Command                                ()
 import           Plutus.SCB.Core
+import           Plutus.SCB.Core.ContractInstance                  (ContractInstanceMsg)
 import           Plutus.SCB.Effects.Contract                       (ContractEffect)
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (..))
 import           Plutus.SCB.Effects.EventLog                       (EventLogEffect)
@@ -214,10 +215,11 @@ type SpecEffects =
         '[Error WalletAPIError
         , Error SCBError
         , EventLogEffect (ChainEvent TestContracts)
-        , Log
         , ContractEffect TestContracts
         , NodeFollowerEffect
-        , EmulatorLog.Log
+        , LogMsg Text
+        , LogMsg (ContractInstanceMsg TestContracts)
+        , EmulatorLog.LogObserve (EmulatorLog.LogMessage Text)
         ]
 
 lock ::

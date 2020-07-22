@@ -10,6 +10,7 @@
 module Cardano.Node.RandomTx(
     -- $randomTx
     GenRandomTx(..)
+    , GenRandomTxMsg(..)
     , genRandomTx
     , runGenRandomTx
     ) where
@@ -26,6 +27,7 @@ import           Data.List.NonEmpty            (NonEmpty (..))
 import qualified Data.Map                      as Map
 import           Data.Maybe                    (fromMaybe)
 import qualified Data.Set                      as Set
+import           Data.Text.Prettyprint.Doc     (Pretty (..))
 import qualified Hedgehog.Gen                  as Gen
 import           System.Random.MWC             as MWC
 
@@ -51,9 +53,14 @@ data GenRandomTx r where
 
 makeEffect ''GenRandomTx
 
+data GenRandomTxMsg = GeneratingRandomTransaction
+
+instance Pretty GenRandomTxMsg where
+    pretty GeneratingRandomTransaction = "Generating a random transaction"
+
 runGenRandomTx ::
        ( Member (State ChainState) effs
-       , Member Log effs
+       , Member (LogMsg GenRandomTxMsg) effs
        , LastMember m effs
        , MonadIO m
        )
@@ -64,7 +71,7 @@ runGenRandomTx =
         (\case
              GenRandomTx -> do
                  UtxoIndex utxo <- Eff.gets (view EM.index)
-                 logDebug "Generating a random transaction"
+                 logDebug GeneratingRandomTransaction
                  Eff.sendM $
                      liftIO $ do
                          gen <- MWC.createSystemRandom

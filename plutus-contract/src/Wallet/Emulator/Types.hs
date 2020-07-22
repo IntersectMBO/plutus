@@ -76,6 +76,7 @@ import           Control.Monad.Except
 import qualified Control.Monad.Freer        as Eff
 import qualified Control.Monad.Freer.Error  as Eff
 import qualified Control.Monad.Freer.Extras as Eff
+import           Control.Monad.Freer.Log    (LogLevel (..), LogMessage, logMessage)
 import           Control.Monad.State
 import           Data.Foldable              (traverse_)
 import qualified Data.Text                  as T
@@ -147,8 +148,8 @@ processEmulated act =
         & Eff.interpretM Eff.errorToMonadError
         & Eff.runM
     where
-        p1 :: Prism' [EmulatorEvent] [ChainEvent]
-        p1 = below chainEvent
+        p1 :: Prism' [LogMessage EmulatorEvent] [ChainEvent]
+        p1 =  below (logMessage Info . chainEvent)
         p2 :: Prism' e AssertionError
         p2 = _AssertionError
 

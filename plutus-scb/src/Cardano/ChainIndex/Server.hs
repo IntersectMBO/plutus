@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MonoLocalBinds    #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -8,6 +9,7 @@ module Cardano.ChainIndex.Server(
     -- $chainIndex
     main
     , ChainIndexConfig(..)
+    , ChainIndexServerMsg(..)
     , syncState
     ) where
 
@@ -28,6 +30,8 @@ import           Data.Foldable                   (fold, traverse_)
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
 import qualified Data.Sequence                   as Seq
+import           Data.Text                       (Text)
+import           Data.Text.Prettyprint.Doc       (Pretty (..), parens, (<+>))
 import           Data.Time.Units                 (Second, toMicroseconds)
 import           Ledger.Blockchain               (Block)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
@@ -91,21 +95,38 @@ watchedAddresses = WalletEffects.watchedAddresses
 confirmedBlocks :: (Member ChainIndexEffect effs) => Eff effs [Block]
 confirmedBlocks = WalletEffects.confirmedBlocks
 
+data ChainIndexServerMsg =
+    ObtainingFollowerID
+    | ObtainedFollowerID FollowerID
+    | UpdatingChainIndex FollowerID
+    | ReceivedBlocksTxns Int Int
+    | AskingNodeForNewBlocks
+    | AskingNodeForCurrentSlot
+
+instance Pretty ChainIndexServerMsg where
+    pretty = \case
+        ObtainingFollowerID -> "Obtaining follower ID"
+        ObtainedFollowerID i -> "Obtained follower ID:" <+> pretty i
+        UpdatingChainIndex i -> "Updating chain index with follower ID" <+> pretty i
+        ReceivedBlocksTxns blocks txns -> "Received" <+> pretty blocks <+> "blocks" <+> parens (pretty txns <+> "transactions")
+        AskingNodeForNewBlocks -> "Asking the node for new blocks"
+        AskingNodeForCurrentSlot -> "Asking the node for the current slot"
+
 -- | Update the chain index by asking the node for new blocks since the last
 --   time.
 syncState ::
     ( Member (State AppState) effs
-    , Member Log effs
+    , Member (LogMsg ChainIndexServerMsg) effs
     , Member NodeFollowerEffect effs
     , Member ChainIndexControlEffect effs
     )
     => Eff effs ()
 syncState = do
     followerID <- use indexFollowerID >>=
-        maybe (logInfo "Obtaining folllower ID" >> NodeFollower.newFollower >>= \i -> assign indexFollowerID (Just i) >> return i) pure
-    logDebug $ "Updating chain index with follower ID " <> tshow followerID
+        maybe (logInfo ObtainingFollowerID >> NodeFollower.newFollower >>= \i -> assign indexFollowerID (Just i) >> return i) pure
+    logDebug $ UpdatingChainIndex followerID
     newBlocks <- NodeFollower.getBlocks followerID
-    logInfo $ "Received " <> tshow (length newBlocks) <> " blocks (" <> tshow (length $ fold newBlocks) <> " transactions)"
+    logInfo $ ReceivedBlocksTxns (length newBlocks) (length $ fold newBlocks)
     currentSlot <- SlotChanged <$> getSlot
     let notifications = BlockValidated <$> newBlocks
     traverse_ ChainIndex.chainIndexNotify (notifications ++ [currentSlot])
@@ -161,7 +182,7 @@ type ChainIndexEffects m
         , ChainIndexEffect
         , State ChainIndexState
         , Writer [ChainIndexEvent]
-        , Log
+        , LogMsg Text
         , m
         ]
 

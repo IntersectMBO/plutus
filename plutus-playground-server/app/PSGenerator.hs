@@ -41,11 +41,13 @@ import qualified GameSimulations
 import           Language.Haskell.Interpreter               (CompilationError, InterpreterError,
                                                              InterpreterResult (InterpreterResult),
                                                              SourceCode (SourceCode), Warning, result, warnings)
+import           Language.Plutus.Contract.Checkpoint        (CheckpointKey, CheckpointLogMsg)
 import           Language.PureScript.Bridge                 (BridgePart, Language (Haskell), SumType, buildBridge,
                                                              equal, genericShow, mkSumType, order, writePSTypesWith)
 import           Language.PureScript.Bridge.CodeGenSwitches (ForeignOptions (ForeignOptions), genForeign,
                                                              unwrapSingleConstructors)
 import           Language.PureScript.Bridge.TypeParameters  (A)
+import           Ledger.Constraints.OffChain                (UnbalancedTx)
 import qualified Playground.API                             as API
 import qualified Playground.Interpreter                     as PI
 import           Playground.Types                           (CompilationResult (CompilationResult), ContractCall,
@@ -73,6 +75,7 @@ import qualified VestingSimulations
 import           Wallet.API                                 (WalletAPIError)
 import qualified Wallet.Emulator.Chain                      as EM
 import qualified Wallet.Emulator.ChainIndex                 as EM
+import qualified Wallet.Emulator.LogMessages                as EM
 import qualified Wallet.Emulator.MultiAgent                 as EM
 import qualified Wallet.Emulator.NodeClient                 as EM
 import qualified Wallet.Emulator.Wallet                     as EM
@@ -114,7 +117,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @Log.LogLevel)
-    , (genericShow <*> mkSumType) (Proxy @Log.LogMessage)
+    , (genericShow <*> mkSumType) (Proxy @(Log.LogMessage A))
     , (genericShow <*> mkSumType) (Proxy @EM.WalletEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.NodeClientEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainIndexEvent)
@@ -127,6 +130,11 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @TxKey)
     , (genericShow <*> mkSumType) (Proxy @InterpreterError)
     , (genericShow <*> (equal <*> mkSumType)) (Proxy @(InterpreterResult A))
+    , (genericShow <*> mkSumType) (Proxy @CheckpointLogMsg)
+    , (genericShow <*> mkSumType) (Proxy @CheckpointKey)
+    , (genericShow <*> mkSumType) (Proxy @EM.RequestHandlerLogMsg)
+    , (genericShow <*> mkSumType) (Proxy @EM.TxBalanceMsg)
+    , (genericShow <*> mkSumType) (Proxy @UnbalancedTx)
     ]
 
 mySettings :: Settings

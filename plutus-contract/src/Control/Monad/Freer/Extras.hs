@@ -87,6 +87,21 @@ weakenEnd11 u = case decomp u of
     Left u' -> weaken $ weakenEnd10 u'
     Right t -> inj t
 
+weakenEnd12 :: forall effs a b c d e f g h i j k l. Union '[a, b, c, d, e, f, g, h, i, j, k, l] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': effs)
+weakenEnd12 u = case decomp u of
+    Left u' -> weaken $ weakenEnd11 u'
+    Right t -> inj t
+
+weakenEnd13 :: forall effs a b c d e f g h i j k l m. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': effs)
+weakenEnd13 u = case decomp u of
+    Left u' -> weaken $ weakenEnd12 u'
+    Right t -> inj t
+
+weakenEnd14 :: forall effs a b c d e f g h i j k l m n. Union '[a, b, c, d, e, f, g, h, i, j, k, l, m, n] ~> Union (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': effs)
+weakenEnd14 u = case decomp u of
+    Left u' -> weaken $ weakenEnd13 u'
+    Right t -> inj t
+
 weakenUnder :: forall effs a b . Union (a ': effs) ~> Union (a ': b ': effs)
 weakenUnder u = case decomp u of
     Left u' -> weaken $ weaken u'
@@ -163,6 +178,24 @@ raiseEnd11 = loop where
         Val a -> pure a
         E u q -> E (weakenEnd11 u) (tsingleton $ qComp q loop)
 
+raiseEnd12 :: forall effs a b c d e f g h i j k l. Eff '[a, b, c, d, e, f, g, h, i, j, k, l] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': effs)
+raiseEnd12 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd12 u) (tsingleton $ qComp q loop)
+
+raiseEnd13 :: forall effs a b c d e f g h i j k l m. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': effs)
+raiseEnd13 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd13 u) (tsingleton $ qComp q loop)
+
+raiseEnd14 :: forall effs a b c d e f g h i j k l m n. Eff '[a, b, c, d, e, f, g, h, i, j, k, l, m, n] ~> Eff (a ': b ': c ': d ': e ': f ': g ': h ': i ': j ': k ': l ': m ': n ': effs)
+raiseEnd14 = loop where
+    loop = \case
+        Val a -> pure a
+        E u q -> E (weakenEnd14 u) (tsingleton $ qComp q loop)
+
 raiseUnder :: forall effs a b . Eff (a ': effs) ~> Eff (a ': b ': effs)
 raiseUnder = loop where
     loop = \case
@@ -187,13 +220,13 @@ handleZoomedState l = \case
     Get -> view l <$> get
     Put v -> modify (set l v)
 
--- | Handle a 'Writer' effect in terms of a "larger" 'Writer' effect from which we have a prism.
-handleZoomedWriter :: Member (Writer s2) effs => Prism' s2 s1 -> (Writer s1 ~> Eff effs)
+-- | Handle a 'Writer' effect in terms of a "larger" 'Writer' effect from which we have a review.
+handleZoomedWriter :: Member (Writer s2) effs => AReview s2 s1 -> (Writer s1 ~> Eff effs)
 handleZoomedWriter p = \case
     Tell w -> tell (review p w)
 
--- | Handle an 'Error' effect in terms of a "larger" 'Error' effect from which we have a prism.
-handleZoomedError :: Member (Error s2) effs => Prism' s2 s1 -> (Error s1 ~> Eff effs)
+-- | Handle an 'Error' effect in terms of a "larger" 'Error' effect from which we have a review.
+handleZoomedError :: Member (Error s2) effs => AReview s2 s1 -> (Error s1 ~> Eff effs)
 handleZoomedError p = \case
     Error e -> throwError (review p e)
 
