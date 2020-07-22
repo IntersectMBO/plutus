@@ -38,7 +38,7 @@ with packageSet; haskell.packages.shellFor {
 
     dev.packages.hlint
     dev.packages.stylish-haskell
-    dev.packages.haskell-language-server
+#    dev.packages.haskell-language-server
     dev.packages.ghcide-use-cases
     dev.packages.purty
     dev.packages.purs

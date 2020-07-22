@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2020-06-06T00:00:00Z
+index-state: 2020-07-07T00:00:00Z
 
 packages: language-plutus-core
           marlowe
@@ -73,11 +73,19 @@ allow-newer: Win32-network:base
            -- The following two dependencies are needed by plutus.
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
+           , *:base
+           , *:lens
+           , *:template-haskell
+           , *:ghc
+--           , *:persistent
+--           , *:persistent-template
+
+-- allow-older: persistent-template:persistent
 
 -- Protolude gets updated to 0.3 when using a newer
 -- version of GHC, not sure why.
-constraints:
-  protolude == 0.2.4
+-- constraints: persistent-template ==2.8.3.0
+--  protolude == 0.2.4
 
 package ouroboros-network
   tests: False

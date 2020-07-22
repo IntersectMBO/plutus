@@ -35,7 +35,7 @@ import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
-import qualified Hedgehog.Gen                                      as Gen
+import qualified Hedgehog.Gen ()
 import qualified Hedgehog.Internal.Gen                             as Gen
 import qualified Hedgehog.Range                                    as Range
 

@@ -15,7 +15,7 @@
 let
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
-      compiler-nix-name = "ghc883";
+      compiler-nix-name = "ghc8101";
       modules = args.modules ++ [{
         # plan-to-nix does not expose `test: False` settings in cabal.project file
         packages.byron-spec-chain.components.tests.chain-rules-test.buildable = lib.mkForce false;

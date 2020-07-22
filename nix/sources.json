@@ -37,16 +37,15 @@
         "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
     "ghcide": {
-        "branch": "wip/object-files",
-        "builtin": false,
+        "branch": "master",
         "description": "A library for building Haskell IDE tooling",
         "homepage": "",
-        "owner": "hamishmack",
+        "owner": "digital-asset",
         "repo": "ghcide",
-        "rev": "97606ff0155e9f3028cedbcf5ea54b2a34ee349a",
-        "sha256": "0iyakikrqk724lxlsvn60i94sr52lrz5yyyw8cdc6cwgq04pdclq",
+        "rev": "9272bfe03021d50dc8a486031217257c8ca5c7a4",
+        "sha256": "0g5dpj3m8z846hbzwnrzbrly4iki3lmhbxi0j8yqlbsivm4jnydq",
         "type": "tarball",
-        "url": "https://github.com/hamishmack/ghcide/archive/97606ff0155e9f3028cedbcf5ea54b2a34ee349a.tar.gz",
+        "url": "https://github.com/digital-asset/ghcide/archive/9272bfe03021d50dc8a486031217257c8ca5c7a4.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hackage.nix": {
@@ -55,10 +54,10 @@
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "4020c8c5bedc373a38f333353fd19b1988c230b5",
-        "sha256": "045jbij0j0pngs17kk7fnkir3f3zwxrps28cly5a27q2z5556n4h",
+        "rev": "803e0ab1c3c3e8185f09aa917a96f63f0aea4220",
+        "sha256": "067aiakif0snlfv4vycxdhj1zqg6izf2r56cy2bw9gkb1z2ifls5",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/4020c8c5bedc373a38f333353fd19b1988c230b5.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/803e0ab1c3c3e8185f09aa917a96f63f0aea4220.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
@@ -67,10 +66,10 @@
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "285b4ae6ef222c299c100ae0d89e5060f6b0c879",
-        "sha256": "0dppnh7iigyxm5904g6a8m919zixsad3hbr8y6bphqia28glm0fa",
+        "rev": "b6de6ef3b8ab338504f4961581a4c4fbfdd7ceed",
+        "sha256": "01784w1n7fbvhwxx7s3b9m9s595zmv4f6k0ndk7vrk31jyl84qnd",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/285b4ae6ef222c299c100ae0d89e5060f6b0c879.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/b6de6ef3b8ab338504f4961581a4c4fbfdd7ceed.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hie-bios": {

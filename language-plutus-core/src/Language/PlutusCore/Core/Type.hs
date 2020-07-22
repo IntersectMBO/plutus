@@ -97,8 +97,8 @@ data BuiltinName
 -- this allows to type check and evaluate dynamic built-in names just like static ones.
 newtype DynamicBuiltinName = DynamicBuiltinName
     { unDynamicBuiltinName :: Text  -- ^ The name of a dynamic built-in name.
-    } deriving (Show, Eq, Ord, Generic)
-      deriving newtype (NFData, Lift, Hashable)
+    } deriving (Show, Eq, Ord, Generic, Lift)
+      deriving newtype (NFData, Hashable)
 
 -- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
 data StagedBuiltinName

@@ -1,6 +1,8 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DeriveLift            #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
@@ -48,7 +50,7 @@ import           Language.Haskell.TH.Syntax
 import           Text.Show.Deriving
 
 import           Language.PlutusCore.Pretty (PrettyConst, prettyConst)
-    
+
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
 
@@ -340,6 +342,9 @@ class GLift f where
 
 instance GLift f => Lift (AG f a) where
     lift (AG a) = glift a
+#if MIN_VERSION_template_haskell(2,16,0)
+    liftTyped = unsafeTExpCoerce . lift
+#endif
 
 -- See Note [The G, the Tag and the Auto].
 -- >>> :set -XGADTs
@@ -360,11 +365,20 @@ instance GLift f => Lift (AG f a) where
 -- Some (ValueOf UBool True)
 instance GLift f => Lift (Some f) where
     lift (Some a) = ($(makeLift ''Some)) (Some (AG a))
+#if MIN_VERSION_template_haskell(2,16,0)
+    liftTyped = unsafeTExpCoerce . lift
+#endif
 
 instance GLift uni => GLift (TypeIn uni)
 instance GLift uni => Lift (TypeIn uni a) where
     lift (TypeIn uni) = ($(makeLift ''TypeIn)) (TypeIn (AG uni))
+#if MIN_VERSION_template_haskell(2,16,0)
+    liftTyped = unsafeTExpCoerce . lift
+#endif
 
 instance (GLift uni, Closed uni, uni `Everywhere` Lift) => GLift (ValueOf uni)
 instance (GLift uni, Closed uni, uni `Everywhere` Lift) => Lift (ValueOf uni a) where
     lift (ValueOf uni x) = bring (Proxy @Lift) uni $ ($(makeLift ''ValueOf)) (ValueOf (AG uni) x)
+#if MIN_VERSION_template_haskell(2,16,0)
+    liftTyped = unsafeTExpCoerce . lift
+#endif

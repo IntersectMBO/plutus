@@ -12,7 +12,7 @@
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "3.0.0.0";
-    compiler-nix-name = "ghc883";
+    compiler-nix-name = "ghc8101";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
@@ -20,18 +20,18 @@
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
-    compiler-nix-name = "ghc883";
+    compiler-nix-name = "ghc8101";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "114npk6hjgcfa95fz8r28w6lxak4rslfvh9caiwmwrkgd8v3nmaz";
+    plan-sha256 = "1igjqfxhsp1qfqy0ma442b5bi1pkaa6f03sg00haxx95848smyys";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
-    compiler-nix-name = "ghc883";
+    compiler-nix-name = "ghc8101";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1mppmhhfqsnwigg3apj43ylc6zc7zqyvnsimwbnxwicvir2xzdqm";
+    plan-sha256 = "0kr9raph1wjqbpywrq99bz00ijjqppv5avh1014d087k5yhpcffq";
   };
   haskell-language-server =
     let hspkgs = pkgs.haskell-nix.cabalProject {
@@ -48,21 +48,29 @@
         };
         inherit index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
-        compiler-nix-name = "ghc883";
+        plan-sha256 = "1hw6886g0i6zjw1n5g9wa595bhxija3ai5a2dmg6273zwd84a61z";
+        compiler-nix-name = "ghc8101";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
         }];
       };
     in hspkgs.haskell-language-server;
+  ghcide-use-casesX = pkgs.haskell-nix.hackage-package {
+    name = "ghcide";
+    compiler-nix-name = "ghc8101";
+    version = "0.2.0";
+  };
   ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
-    compiler-nix-name = "ghc883";
+    compiler-nix-name = "ghc8101";
     inherit index-state checkMaterialization;
+    cabalProjectLocal = ''
+      allow-newer: diagrams-svg:base, monoid-extras:base, *:base
+    '';
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0ixxja89sbaflb4vcyx9rc5sj09ca0y5lhdy1wihmf8k5ynmzhvs";
+    # plan-sha256 = "0ixxja89sbaflb4vcyx9rc5sj09ca0y5lhdy1wihmf8k5ynmzhvs";
     modules = [({config, ...}: {
       packages.ghcide.configureFlags = pkgs.lib.optional (!pkgs.stdenv.targetPlatform.isMusl)
         "--enable-executable-dynamic";
