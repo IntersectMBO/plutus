@@ -64,6 +64,7 @@ import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
+import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
@@ -119,7 +120,8 @@ handleQuery (WebsocketResponse response next) = do
       assign _analysisState (WarningAnalysis response)
       pure (Just next)
     ReachabilityAnalysis reachabilityState -> do
-      assign _analysisState (ReachabilityAnalysis (reachabilityState { remoteData = response }))
+      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
       pure (Just next)
 
 handleQuery (HasStarted f) = do
@@ -284,13 +286,8 @@ handleAction _ AnalyseReachabilityContract = do
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForReachability (encodeJSON contract) (encodeJSON currState)
-      assign _analysisState (ReachabilityAnalysis { remoteData: Loading })
-  where
-  checkContractForReachability contract state = do
-    let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON true) contract state
-    H.raise (WebsocketMessage msgString)
+      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
 checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
 checkAuthStatus settings = do
