@@ -11,6 +11,7 @@ import           Data.Bifunctor                                             (sec
 import           Data.Foldable                                              (traverse_)
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
+import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
@@ -250,29 +251,34 @@ getProg inp fmt =
                return (fakeAlexPosn <$ plc)  -- Adjust the return type to ParsedProgram
                    where fakeAlexPosn = PLC.AlexPn 0 0 0
 
+
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-    prog <- getProg inp fmt
-    let cfg = PLC.defConfig
-    case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
-      Left (e :: PlcParserError) -> do
-            T.putStrLn $ PLC.displayPlcDef e
-            exitFailure
-      Right ty -> do
-            T.putStrLn $ PLC.displayPlcDef ty
-            exitSuccess
+  prog <- getProg inp fmt
+  case PLC.runQuoteT $ do
+    types <- PLC.getStringBuiltinTypes ()
+    PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
+    of
+       Left (e :: PLC.Error PLC.DefaultUni ()) -> do
+           putStrLn $ PLC.displayPlcDef e
+           exitFailure
+       Right ty -> do
+           T.putStrLn $ PLC.displayPlcDef ty
+           exitSuccess
 
 
 ---------------- Evaluation ----------------
 
+
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt) = do
   prog <- getProg inp fmt
-  let evalFn = case mode of
+  let meanings = PLC.getStringBuiltinMeanings
+      evalFn = case mode of
                  CK  -> PLC.unsafeEvaluateCk
-                 CEK -> PLC.unsafeEvaluateCek mempty PLC.defaultCostModel
+                 CEK -> PLC.unsafeEvaluateCek meanings PLC.defaultCostModel
   case evalFn . void . PLC.toTerm $ prog of
     PLC.EvaluationSuccess v -> do
       T.putStrLn $ PLC.displayPlcDef v
