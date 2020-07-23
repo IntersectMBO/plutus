@@ -6,15 +6,15 @@ PRESENTED FOR INFORMATION ONLY: the machine implementations have now
 been updated and new data can be found in
 [CEK-variations-stats.md](./CEK-variations-stats.md).
 
-![Triangle: time](figures/tri-times+ck.png)
+![Triangle: time](figures/tri-times-old.png)
 
-![Triangle: memory](figures/tri-mem+ck.png)
+![Triangle: memory](figures/tri-mem-old.png)
 
-![Fibonacci: time](figures/fib-times+ck.png)
+![Fibonacci: time](figures/fib-times-old.png)
 
-![Fibonacci: memory](figures/fib-mem+ck.png)
+![Fibonacci: memory](figures/fib-mem-old.png)
 
-![Arith: time](figures/arith-times+ck.png)
+![Arith: time](figures/arith-times-old.png)
 
-![Arith: memory](figures/arith-mem+ck.png)
+![Arith: memory](figures/arith-mem-old.png)
 
