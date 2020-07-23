@@ -258,9 +258,9 @@ runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
   prog <- getProg inp fmt
   case PLC.runQuoteT $ do
-            types <- PLC.getStringBuiltinTypes ()
-            PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
-     of
+    types <- PLC.getStringBuiltinTypes ()
+    PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
+    of
        Left (e :: PLC.Error PLC.DefaultUni ()) -> do
            putStrLn $ PLC.displayPlcDef e
            exitFailure
