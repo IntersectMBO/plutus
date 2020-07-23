@@ -257,9 +257,8 @@ getProg inp fmt =
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt) = do
-    let meanings = PLC.getStringBuiltinMeanings @ (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.ExMemory)
-    case PLC.runQuoteT $ PLC.dynamicBuiltinNameMeaningsToTypes () meanings of
+runTypecheck (TypecheckOptions inp fmt) =
+    case PLC.runQuoteT $ PLC.getStringBuiltinTypes () of
       Left (e :: PLC.Error PLC.DefaultUni ()) -> do
           T.putStrLn $ PLC.displayPlcDef e
           exitFailure
