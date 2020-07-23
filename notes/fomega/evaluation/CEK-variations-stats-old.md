@@ -7,9 +7,9 @@ been updated and new data can be found in
 [CEK-variations-stats.md](./CEK-variations-stats.md).
 
 The graphs contain data for
-* The standard CEK machine
-* The alternative CEK machine
-* The standard CEK machine with saturated builtins
+* The standard CEK machine.
+* The alternative CEK machine.
+* The standard CEK machine with saturated builtins.
 * The standard CEK machine with the costing mechanism (ie gas
   consumption tracking) removed: this was done as an experiment to get
   an idea of the overhead due to costing and how this compared with
