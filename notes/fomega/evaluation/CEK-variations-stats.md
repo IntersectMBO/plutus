@@ -23,8 +23,12 @@ partially-applied builtins were stored in closures for later use).
 
 The repeated calls to the constant application machinery took quite a
 lot of time, and the branch with saturated builtins was considerably
-faster because it only need to call the constant application machinery
-once, when it had collected the correct number of arguments.
+faster because it only needed to call the constant application
+machinery once, when it had collected the correct number of arguments.
+(See the graphs in
+[CEK-variations-stats-old.md](./CEK-variations-stats-old.md), for the
+results of our initial experiments, but be aware that these have been
+superseded by the graphs below).
 
 Roman observed that with the alternative version of the CEK machine,
 this problem could be avoided while still supporting unsaturated
