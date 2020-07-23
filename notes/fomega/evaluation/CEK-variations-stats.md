@@ -1,4 +1,4 @@
-# Experiments with variations on the CEK machine
+# Experiments with variations on the CEK machine, July 2020.
 
 This document describes some experiments with variations on the CEK
 machine, including the one proposed in [this note](./CEK.md), where
@@ -117,11 +117,19 @@ for versions of these graphs including figures for the CK machine (with
 saturated builtins).
 
 ### Comments
+
 With the old builtin application method, saturated builtins were
 clearly faster than unsaturated ones: however the argument-counting
 technique seems to solve this problem and make unsaturated builtins at
 least as efficient as saturated ones, so there doesn't seem to be any
 compelling reason to adopt saturated ones.
+
+Conclusion: it seems reasonable to abandon saturated builtins and
+proceed with the alternative CEK machine.  Let's keep an eye on the
+performance of the machine though. It would be helpful a large and
+varied set of benchmarks designed specifically for evaluating the
+performance of the machine so that we can check how changes to the
+machine affect its performance.
 
 
 
