@@ -128,12 +128,12 @@ technique seems to solve this problem and make unsaturated builtins at
 least as efficient as saturated ones, so there doesn't seem to be any
 compelling reason to adopt saturated ones.
 
-Conclusion: it seems reasonable to abandon saturated builtins and
-proceed with the alternative CEK machine.  Let's keep an eye on the
-performance of the machine though. It would be helpful a large and
-varied set of benchmarks designed specifically for evaluating the
-performance of the machine so that we can check how changes to the
-machine affect its performance.
+Our conclusion is that it seems reasonable to abandon saturated
+builtins and proceed with the alternative CEK machine.  Let's keep an
+eye on the performance of the machine though. It would be helpful to
+have a large and varied set of benchmarks designed specifically for
+evaluating the performance of the machine so that we can check how
+changes to the machine affect its performance.
 
 
 
