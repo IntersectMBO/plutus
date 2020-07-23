@@ -7,7 +7,7 @@
       (lam x (con integer) x)
     )
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl
         fSizedInteger [(lam a (type) (fun a (con integer))) (con integer)]
       )

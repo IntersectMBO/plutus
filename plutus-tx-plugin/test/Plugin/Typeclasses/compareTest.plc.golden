@@ -82,16 +82,9 @@
                 Unit
                 [
                   [
-                    [
-                      {
-                        [ Bool_match [ [ lessThanEqInteger x ] y ] ]
-                        (fun Unit Ordering)
-                      }
-                      (lam thunk Unit LT)
-                    ]
-                    (lam thunk Unit GT)
+                    { [ Bool_match [ [ lessThanEqInteger x ] y ] ] Ordering } LT
                   ]
-                  Unit
+                  GT
                 ]
               )
             ]
@@ -112,17 +105,8 @@
           y
           (con integer)
           [
-            [
-              [
-                {
-                  [ Bool_match [ [ lessThanEqInteger x ] y ] ]
-                  (fun Unit (con integer))
-                }
-                (lam thunk Unit y)
-              ]
-              (lam thunk Unit x)
-            ]
-            Unit
+            [ { [ Bool_match [ [ lessThanEqInteger x ] y ] ] (con integer) } y ]
+            x
           ]
         )
       )
@@ -139,17 +123,8 @@
           y
           (con integer)
           [
-            [
-              [
-                {
-                  [ Bool_match [ [ lessThanEqInteger x ] y ] ]
-                  (fun Unit (con integer))
-                }
-                (lam thunk Unit x)
-              ]
-              (lam thunk Unit y)
-            ]
-            Unit
+            [ { [ Bool_match [ [ lessThanEqInteger x ] y ] ] (con integer) } x ]
+            y
           ]
         )
       )
@@ -310,18 +285,15 @@
               [
                 [
                   [
-                    [
-                      {
-                        [ Ordering_match [ [ [ { compare a } dOrd ] a ] b ] ]
-                        (fun Unit Ordering)
-                      }
-                      (lam thunk Unit EQ)
-                    ]
-                    (lam thunk Unit LT)
+                    {
+                      [ Ordering_match [ [ [ { compare a } dOrd ] a ] b ] ]
+                      Ordering
+                    }
+                    EQ
                   ]
-                  (lam thunk Unit GT)
+                  LT
                 ]
-                Unit
+                GT
               ]
             )
           )

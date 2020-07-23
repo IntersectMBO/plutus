@@ -31,19 +31,7 @@
             [
               [
                 { [ Bool_match x ] (fun Unit Unit) }
-                (lam
-                  thunk
-                  Unit
-                  [
-                    [
-                      [
-                        { [ Bool_match y ] (fun Unit Unit) }
-                        (lam thunk Unit joinError)
-                      ]
-                      (lam thunk Unit Unit)
-                    ]
-                    Unit
-                  ]
+                (lam thunk Unit [ [ { [ Bool_match y ] Unit } joinError ] Unit ]
                 )
               ]
               (lam thunk Unit Unit)

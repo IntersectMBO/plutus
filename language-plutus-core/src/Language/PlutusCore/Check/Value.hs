@@ -16,4 +16,7 @@ termValue (IWrap _ _ _ term) = termValue term
 termValue LamAbs {}          = pure ()
 termValue TyAbs {}           = pure ()
 termValue Constant {}        = pure ()
+-- Variables are values: they can only refer to entries in the environment, which
+-- are always values
+termValue Var{}              = pure ()
 termValue t                  = Left $ BadTerm (termAnn t) t "term value"

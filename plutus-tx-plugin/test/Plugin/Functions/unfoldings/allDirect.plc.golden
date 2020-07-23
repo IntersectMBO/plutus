@@ -24,20 +24,7 @@
           [
             [
               [ { [ Bool_match ds ] (fun Unit Bool) } (lam thunk Unit False) ]
-              (lam
-                thunk
-                Unit
-                [
-                  [
-                    [
-                      { [ Bool_match ds ] (fun Unit Bool) }
-                      (lam thunk Unit False)
-                    ]
-                    (lam thunk Unit True)
-                  ]
-                  Unit
-                ]
-              )
+              (lam thunk Unit [ [ { [ Bool_match ds ] Bool } False ] True ])
             ]
             Unit
           ]
@@ -84,26 +71,16 @@
                 l
                 [List a]
                 [
-                  [
-                    [
-                      { [ { Nil_match a } l ] (fun Unit Bool) }
-                      (lam thunk Unit True)
-                    ]
+                  [ { [ { Nil_match a } l ] Bool } True ]
+                  (lam
+                    h
+                    a
                     (lam
-                      h
-                      a
-                      (lam
-                        t
-                        [List a]
-                        (lam
-                          thunk
-                          Unit
-                          [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
-                        )
-                      )
+                      t
+                      [List a]
+                      [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
                     )
-                  ]
-                  Unit
+                  )
                 ]
               )
             )

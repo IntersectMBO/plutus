@@ -29,9 +29,6 @@
         )
       )
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (lam
       ds
       (con integer)
@@ -39,17 +36,7 @@
         ds
         (con integer)
         [
-          [
-            [
-              {
-                [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                (fun Unit (con integer))
-              }
-              (lam thunk Unit ds)
-            ]
-            (lam thunk Unit ds)
-          ]
-          Unit
+          [ { [ Bool_match [ [ equalsInteger ds ] ds ] ] (con integer) } ds ] ds
         ]
       )
     )

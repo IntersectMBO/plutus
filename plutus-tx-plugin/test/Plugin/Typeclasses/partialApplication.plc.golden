@@ -82,16 +82,9 @@
                 Unit
                 [
                   [
-                    [
-                      {
-                        [ Bool_match [ [ lessThanEqInteger x ] y ] ]
-                        (fun Unit Ordering)
-                      }
-                      (lam thunk Unit LT)
-                    ]
-                    (lam thunk Unit GT)
+                    { [ Bool_match [ [ lessThanEqInteger x ] y ] ] Ordering } LT
                   ]
-                  Unit
+                  GT
                 ]
               )
             ]

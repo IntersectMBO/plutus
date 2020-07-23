@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
         
@@ -15,21 +12,7 @@
     (termbind
       (strict)
       (vardecl bad_name (fun Bool (fun Bool Bool)))
-      (lam
-        l
-        Bool
-        (lam
-          r
-          Bool
-          [
-            [
-              [ { [ Bool_match l ] (fun Unit Bool) } (lam thunk Unit r) ]
-              (lam thunk Unit False)
-            ]
-            Unit
-          ]
-        )
-      )
+      (lam l Bool (lam r Bool [ [ { [ Bool_match l ] Bool } r ] False ]))
     )
     (datatypebind
       (datatype
@@ -144,6 +127,9 @@
         [ [ { [ Person_match ds ] (con integer) } (con 35) ] (con 30) ]
       )
     )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
     (termbind
       (strict)
       (vardecl clikesAnimal (fun Person (fun Animal Bool)))
@@ -157,20 +143,7 @@
             [
               [
                 { [ Person_match ds ] (fun Unit Bool) }
-                (lam
-                  thunk
-                  Unit
-                  [
-                    [
-                      [
-                        { [ Animal_match ds ] (fun Unit Bool) }
-                        (lam thunk Unit True)
-                      ]
-                      (lam thunk Unit False)
-                    ]
-                    Unit
-                  ]
-                )
+                (lam thunk Unit [ [ { [ Animal_match ds ] Bool } True ] False ])
               ]
               (lam thunk Unit False)
             ]

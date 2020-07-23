@@ -24,11 +24,8 @@
             (let
               (nonrec)
               (termbind (strict) (vardecl dt a) dt)
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl dt a) dt)
-                [ [ { StrictPattern a } dt ] dt ]
-              )
+              (termbind (strict) (vardecl dt a) dt)
+              [ [ { StrictPattern a } dt ] dt ]
             )
           )
         )

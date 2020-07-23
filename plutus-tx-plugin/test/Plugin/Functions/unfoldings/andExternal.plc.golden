@@ -2,9 +2,6 @@
   (let
     (nonrec)
     (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
-    (datatypebind
       (datatype
         (tyvardecl Bool (type))
         
@@ -15,21 +12,7 @@
     (termbind
       (strict)
       (vardecl andExternal (fun Bool (fun Bool Bool)))
-      (lam
-        a
-        Bool
-        (lam
-          b
-          Bool
-          [
-            [
-              [ { [ Bool_match a ] (fun Unit Bool) } (lam thunk Unit b) ]
-              (lam thunk Unit False)
-            ]
-            Unit
-          ]
-        )
-      )
+      (lam a Bool (lam b Bool [ [ { [ Bool_match a ] Bool } b ] False ]))
     )
     [ [ andExternal True ] False ]
   )

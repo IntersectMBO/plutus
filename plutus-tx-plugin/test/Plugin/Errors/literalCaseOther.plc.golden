@@ -66,7 +66,7 @@
                                                                   [
                                                                     (lam
                                                                       fIsStringAType_i0
-                                                                      (fun (all a_i0 (type) (fun a_i1 a_i1)) [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i17])
+                                                                      [(lam a_i0 (type) (fun [List_i7 (con char)] a_i1)) AType_i17]
                                                                       [
                                                                         (lam
                                                                           fromString_i0
@@ -91,18 +91,7 @@
                                                                                               fromString_i2
                                                                                               AType_i19
                                                                                             }
-                                                                                            [
-                                                                                              fIsStringAType_i3
-                                                                                              (abs
-                                                                                                a_i0
-                                                                                                (type)
-                                                                                                (lam
-                                                                                                  x_i0
-                                                                                                  a_i2
-                                                                                                  x_i1
-                                                                                                )
-                                                                                              )
-                                                                                            ]
+                                                                                            fIsStringAType_i3
                                                                                           ]
                                                                                           [
                                                                                             [
@@ -155,18 +144,7 @@
                                                                                           fromString_i3
                                                                                           AType_i20
                                                                                         }
-                                                                                        [
-                                                                                          fIsStringAType_i4
-                                                                                          (abs
-                                                                                            a_i0
-                                                                                            (type)
-                                                                                            (lam
-                                                                                              x_i0
-                                                                                              a_i2
-                                                                                              x_i1
-                                                                                            )
-                                                                                          )
-                                                                                        ]
+                                                                                        fIsStringAType_i4
                                                                                       ]
                                                                                       {
                                                                                         Nil_i8
@@ -196,11 +174,7 @@
                                                                         )
                                                                       ]
                                                                     )
-                                                                    (lam
-                                                                      arg_i0
-                                                                      (all a_i0 (type) (fun a_i1 a_i1))
-                                                                      cfromString_i2
-                                                                    )
+                                                                    cfromString_i1
                                                                   ]
                                                                 )
                                                                 (lam
@@ -300,21 +274,14 @@
                                                       thunk_i0
                                                       Unit_i10
                                                       [
-                                                        [
-                                                          {
-                                                            [
-                                                              AType_match_i11
-                                                              ds_i2
-                                                            ]
-                                                            (fun Unit_i10 Bool_i7)
-                                                          }
-                                                          (lam
-                                                            thunk_i0
-                                                            Unit_i11
-                                                            True_i7
-                                                          )
-                                                        ]
-                                                        Unit_i9
+                                                        {
+                                                          [
+                                                            AType_match_i11
+                                                            ds_i2
+                                                          ]
+                                                          Bool_i7
+                                                        }
+                                                        True_i6
                                                       ]
                                                     )
                                                   ]

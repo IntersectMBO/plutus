@@ -52,7 +52,7 @@
       )
     )
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl
         fSizedTuple2
         (all a (type) (all b (type) (fun [(lam a (type) (fun a (con integer))) a] (fun [(lam a (type) (fun a (con integer))) b] [(lam a (type) (fun a (con integer))) [[Tuple2 a] b]]))))
@@ -65,7 +65,7 @@
       (lam x (con integer) x)
     )
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl
         fSizedInteger [(lam a (type) (fun a (con integer))) (con integer)]
       )

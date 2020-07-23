@@ -171,28 +171,16 @@
                       l
                       [List a]
                       [
-                        [
-                          [
-                            { [ { Nil_match a } l ] (fun Unit b) }
-                            (lam thunk Unit acc)
-                          ]
+                        [ { [ { Nil_match a } l ] b } acc ]
+                        (lam
+                          x
+                          a
                           (lam
-                            x
-                            a
-                            (lam
-                              xs
-                              [List a]
-                              (lam
-                                thunk
-                                Unit
-                                [
-                                  [ f x ] [ [ [ { { foldr a } b } f ] acc ] xs ]
-                                ]
-                              )
-                            )
+                            xs
+                            [List a]
+                            [ [ f x ] [ [ [ { { foldr a } b } f ] acc ] xs ] ]
                           )
-                        ]
-                        Unit
+                        )
                       ]
                     )
                   )
@@ -463,55 +451,44 @@
                                                                             (con bytestring)
                                                                             [
                                                                               [
-                                                                                [
-                                                                                  {
+                                                                                {
+                                                                                  [
+                                                                                    {
+                                                                                      Maybe_match
+                                                                                      (con bytestring)
+                                                                                    }
                                                                                     [
-                                                                                      {
-                                                                                        Maybe_match
-                                                                                        (con bytestring)
-                                                                                      }
                                                                                       [
+                                                                                        {
+                                                                                          find
+                                                                                          (con bytestring)
+                                                                                        }
                                                                                         [
-                                                                                          {
-                                                                                            find
-                                                                                            (con bytestring)
-                                                                                          }
-                                                                                          [
-                                                                                            equalsByteString
-                                                                                            e
-                                                                                          ]
-                                                                                        ]
-                                                                                        ds
-                                                                                      ]
-                                                                                    ]
-                                                                                    (fun Unit [List (con bytestring)])
-                                                                                  }
-                                                                                  (lam
-                                                                                    ds
-                                                                                    (con bytestring)
-                                                                                    (lam
-                                                                                      thunk
-                                                                                      Unit
-                                                                                      [
-                                                                                        [
-                                                                                          {
-                                                                                            Cons
-                                                                                            (con bytestring)
-                                                                                          }
+                                                                                          equalsByteString
                                                                                           e
                                                                                         ]
-                                                                                        xs
                                                                                       ]
-                                                                                    )
-                                                                                  )
-                                                                                ]
+                                                                                      ds
+                                                                                    ]
+                                                                                  ]
+                                                                                  [List (con bytestring)]
+                                                                                }
                                                                                 (lam
-                                                                                  thunk
-                                                                                  Unit
-                                                                                  xs
+                                                                                  ds
+                                                                                  (con bytestring)
+                                                                                  [
+                                                                                    [
+                                                                                      {
+                                                                                        Cons
+                                                                                        (con bytestring)
+                                                                                      }
+                                                                                      e
+                                                                                    ]
+                                                                                    xs
+                                                                                  ]
                                                                                 )
                                                                               ]
-                                                                              Unit
+                                                                              xs
                                                                             ]
                                                                           )
                                                                         )
@@ -546,17 +523,14 @@
                               thunk
                               Unit
                               [
-                                [
-                                  {
-                                    [
-                                      Unit_match
-                                      [ trace (con "not enough signatures") ]
-                                    ]
-                                    (fun Unit Bool)
-                                  }
-                                  (lam thunk Unit False)
-                                ]
-                                Unit
+                                {
+                                  [
+                                    Unit_match
+                                    [ trace (con "not enough signatures") ]
+                                  ]
+                                  Bool
+                                }
+                                False
                               ]
                             )
                           ]
