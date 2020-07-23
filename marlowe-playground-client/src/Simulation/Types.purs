@@ -14,8 +14,10 @@ import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
+import Data.List (List)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Symbol (SProxy(..))
+import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Gists (GistAction)
 import Halogen as H
@@ -23,6 +25,7 @@ import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, PubKey)
+import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -33,9 +36,38 @@ import Web.HTML.Event.DragEvent (DragEvent)
 type WebData
   = RemoteData AjaxError
 
-type ReachabilityAnalysisData
-  = { remoteData :: RemoteData String Result
+data ContractPathStep
+  = PayContPath
+  | IfTruePath
+  | IfFalsePath
+  | WhenCasePath Int
+  | WhenTimeoutPath
+  | LetPath
+  | AssertPath
+
+derive instance eqContractPathStep :: Eq ContractPathStep
+
+derive instance genericContractPathStep :: Generic ContractPathStep _
+
+instance showContractPathStep :: Show ContractPathStep where
+  show = genericShow
+
+type ContractPath
+  = List ContractPathStep
+
+data ReachabilityAnalysisData
+  = NotStarted
+  | InProgress
+    { currPath :: ContractPath
+    , currContract :: Contract
+    , originalState :: S.State
+    , subproblems :: List (Unit -> ContractPath /\ Contract)
+    , numSubproblems :: Int
+    , numSolvedSubproblems :: Int
     }
+  | ReachabilityFailure String
+  | UnreachableSubcontract ContractPath
+  | AllReachable
 
 data AnalysisState
   = NoneAsked
