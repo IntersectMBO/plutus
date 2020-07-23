@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
 
 module Main (main) where
 
@@ -16,7 +15,6 @@ import qualified Language.PlutusCore.Constant.Dynamic                       as P
 import qualified Language.PlutusCore.Evaluation.Machine.Cek                 as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.Ck                  as PLC
 import qualified Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults as PLC
-import qualified Language.PlutusCore.Evaluation.Machine.ExMemory            as PLC
 import qualified Language.PlutusCore.Generators                             as PLC
 import qualified Language.PlutusCore.Generators.Interesting                 as PLC
 import qualified Language.PlutusCore.Generators.Test                        as PLC
@@ -257,21 +255,18 @@ getProg inp fmt =
 ---------------- Typechecking ----------------
 
 runTypecheck :: TypecheckOptions -> IO ()
-runTypecheck (TypecheckOptions inp fmt) =
-    case PLC.runQuoteT $ PLC.getStringBuiltinTypes () of
-      Left (e :: PLC.Error PLC.DefaultUni ()) -> do
-          T.putStrLn $ PLC.displayPlcDef e
-          exitFailure
-      Right dyntypes -> do
-          let cfg = PLC.TypeCheckConfig dyntypes
-          prog <- getProg inp fmt
-          case PLC.runQuoteT $ PLC.typecheckPipeline cfg prog of
-            Left (e :: PlcParserError) -> do
-                          T.putStrLn $ PLC.displayPlcDef e
-                          exitFailure
-            Right ty -> do
-              T.putStrLn $ PLC.displayPlcDef ty
-              exitSuccess
+runTypecheck (TypecheckOptions inp fmt) = do
+  prog <- getProg inp fmt
+  case PLC.runQuoteT $ do
+            types <- PLC.getStringBuiltinTypes ()
+            PLC.typecheckPipeline (PLC.TypeCheckConfig types) (void prog)
+     of
+       Left (e :: PLC.Error PLC.DefaultUni ()) -> do
+           putStrLn $ PLC.displayPlcDef e
+           exitFailure
+       Right ty -> do
+           T.putStrLn $ PLC.displayPlcDef ty
+           exitSuccess
 
 
 ---------------- Evaluation ----------------
@@ -280,7 +275,7 @@ runTypecheck (TypecheckOptions inp fmt) =
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt) = do
   prog <- getProg inp fmt
-  let meanings = PLC.getStringBuiltinMeanings @ (PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.ExMemory)
+  let meanings = PLC.getStringBuiltinMeanings
       evalFn = case mode of
                  CK  -> PLC.unsafeEvaluateCk
                  CEK -> PLC.unsafeEvaluateCek meanings PLC.defaultCostModel
