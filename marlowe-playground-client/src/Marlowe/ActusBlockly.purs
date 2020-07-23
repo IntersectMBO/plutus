@@ -2,10 +2,13 @@ module Marlowe.ActusBlockly where
 
 import Prelude
 
+import Affjax.RequestBody (RequestBody(..))
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
 import Blockly.Types (Block, BlocklyState, Workspace)
 import Control.Alternative ((<|>))
+import Control.Category (identity)
+import Control.Monad.Except (mapExcept, runExcept)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Internal (ST, STRef)
 import Control.Monad.ST.Ref as STRef
@@ -15,6 +18,7 @@ import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either, note)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
+import Data.Function (const)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
@@ -24,10 +28,15 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Foreign (F, readString, Foreign)
+import Foreign.Class (class Encode, class Decode, encode, decode)
+import Foreign.Generic (genericEncode, genericDecode, encodeJSON)
+import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
+import Foreign.JSON (parseJSON)
 import Foreign.NullOrUndefined (undefined)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle(..), ScheduleConfig(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle(..), EOMC, ScheduleConfig(..))
 import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
@@ -35,6 +44,7 @@ import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
 import Type.Proxy (Proxy(..))
+
 
 rootBlockName :: String
 rootBlockName = "root_contract"
@@ -214,11 +224,7 @@ toDefinition (ActusValueType ActusDate) =
         { type: show ActusDate
         , message0: "%1 ActusDate %2 %3 %4 %5"
         , args0:
-          [ DummyRight
-          , DummyRight
-          , DummyRight
-          , DummyRight
-          , DummyRight
+          [ Value { name: "date", check: "date", align: Right }
           ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
@@ -367,40 +373,82 @@ mkGenFun generator blockType f = insertGeneratorFunction generator (show blockTy
 class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
 
-baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
-baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy zero
-  Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
+baseContractDefinition :: Generator -> Block -> Either String ActusContract
+baseContractDefinition g block = 
+  do 
+    code <- statementToCode g block (show BaseContractType)
+    json <- catch $ runExcept $ parseJSON code
+    catch $ runExcept (decode json :: F ActusContract)
 
-getAllBlocks :: Block -> Array Block
-getAllBlocks currentBlock =
-  currentBlock
-    : ( case nextBlock currentBlock of
-          Nothing -> []
-          Just nextBlock' -> getAllBlocks nextBlock'
-      )
-
-statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
-statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy zero
-  Either.Right s -> parse (mkDefaultTerm <$> p) s
-
-data ActusContract = ActusContract
+data ActusContract = ActusContract {
+  startDate :: ActusValue
+  , initialExchangeDate :: ActusValue
+  , maturityDate :: ActusValue
+  , terminationDate :: ActusValue
+  , purchaseDate :: ActusValue
+  , dayCountConvention :: ActusValue
+  , endOfMonthConvention :: ActusValue
+}
 
 derive instance actusContract :: Generic ActusContract _
 
 instance showActusContract :: Show ActusContract where
-  show = genericShow
+  show = encodeJSON
 
-data ActusValue = ActusValue
+instance encodeJsonActusContract :: Encode ActusContract where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonActusContract :: Decode ActusContract where
+  decode a = genericDecode aesonCompatibleOptions a
+
+data ActusValue = DateValue Int | NoActusValue
 
 derive instance actusValue :: Generic ActusValue _
 
 instance showActusValue :: Show ActusValue where
-  show = genericShow
+  show = encodeJSON
+
+instance encodeJsonActusValue :: Encode ActusValue where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonActusValue :: Decode ActusValue where
+  decode a = genericDecode aesonCompatibleOptions a
+
+catch :: forall a b. Show a => Either a b -> Either String b
+catch = lmap show
+
+parseFieldActusValueJson :: Block -> String -> ActusValue
+parseFieldActusValueJson block name = 
+  Either.either (const NoActusValue) identity result 
+    where 
+      result = do
+        value <- getFieldValue block name
+        parsed <- catch $ runExcept $ parseJSON value
+        let decoded = decode parsed :: F ActusValue
+        catch $ runExcept $ decoded
+        
 
 instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType ActusContract where
-  blockDefinition _ g block = Either.Right ActusContract
+  blockDefinition _ g block = Either.Right $ ActusContract {
+    startDate : parseFieldActusValueJson block "startDate"
+    , initialExchangeDate : parseFieldActusValueJson block "initialExchangeDate"
+    , maturityDate : parseFieldActusValueJson block "maturityDate"
+    , terminationDate : parseFieldActusValueJson block "terminationDate"
+    , purchaseDate : parseFieldActusValueJson block "purchaseDate"
+    , dayCountConvention : parseFieldActusValueJson block "dayCountConvention"
+    , endOfMonthConvention : parseFieldActusValueJson block "endOfMonthConvention"
+  }
   
-instance hasBlockDefinitionPayee :: HasBlockDefinition ActusValueType ActusValue where
-  blockDefinition _ g block = Either.Right ActusValue
+instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
+  blockDefinition ActusDate g block = do 
+    date <- getFieldValue block "date"
+    pure $ DateValue 100
+  blockDefinition _ g block = Either.Right NoActusValue
+
+
+aesonCompatibleOptions :: Options
+aesonCompatibleOptions =
+  defaultOptions
+    { unwrapSingleConstructors = true
+    , sumEncoding = aesonSumEncoding
+    }
