@@ -64,11 +64,12 @@ import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
+import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyTransactions, emptyMarloweState, hasHistory, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
+import Simulation.Types (Action(..), AnalysisState(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
@@ -112,8 +113,16 @@ handleQuery (ResetContract next) = do
   pure (Just next)
 
 handleQuery (WebsocketResponse response next) = do
-  assign _analysisState response
-  pure (Just next)
+  analysisState <- use _analysisState
+  case analysisState of
+    NoneAsked -> pure (Just next) -- Unrequested response
+    WarningAnalysis _ -> do
+      assign _analysisState (WarningAnalysis response)
+      pure (Just next)
+    ReachabilityAnalysis reachabilityState -> do
+      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+      pure (Just next)
 
 handleQuery (HasStarted f) = do
   state <- use _marloweState
@@ -264,12 +273,21 @@ handleAction _ AnalyseContract = do
     Nothing -> pure unit
     Just contract -> do
       checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
-      assign _analysisState Loading
+      assign _analysisState (WarningAnalysis Loading)
   where
   checkContractForWarnings contract state = do
     let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings contract state
+      msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON false) contract state
     H.raise (WebsocketMessage msgString)
+
+handleAction _ AnalyseReachabilityContract = do
+  currContract <- use _currentContract
+  currState <- use (_currentMarloweState <<< _state)
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
 checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
 checkAuthStatus settings = do

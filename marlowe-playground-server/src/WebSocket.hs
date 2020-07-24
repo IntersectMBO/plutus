@@ -25,7 +25,7 @@ import           Network.WebSockets.Connection   (Connection, PendingConnection,
                                                   withPingThread)
 
 data WebSocketRequestMessage
-    = CheckForWarnings String String
+    = CheckForWarnings String String String
     deriving (Generic, ToJSON, FromJSON)
 
 data WebSocketResponseMessage
