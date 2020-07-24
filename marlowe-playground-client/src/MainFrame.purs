@@ -212,14 +212,14 @@ handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction _ (HandleActusBlocklyMessage (ActusBlockly.CurrentCode code)) = do
+handleAction _ (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms terms)) = do
   mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
   let
     hasStarted = fromMaybe false mHasStarted
   if hasStarted then
     void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
-    void $ query _simulationSlot unit (ST.SetEditorText code unit)
+    void $ query _simulationSlot unit (ST.SetEditorText terms unit)
     selectSimulationView
 
 ------------------------------------------------------------

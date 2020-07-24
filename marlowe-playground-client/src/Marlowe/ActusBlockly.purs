@@ -1,5 +1,7 @@
 module Marlowe.ActusBlockly where
 
+import Data.Time.Calendar.Days
+import Language.Marlowe.ACTUS.Definitions.ContractTerms
 import Prelude
 
 import Affjax.RequestBody (RequestBody(..))
@@ -25,7 +27,9 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, unwrap)
 import Data.Traversable (traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Foreign (F, readString, Foreign)
@@ -36,7 +40,7 @@ import Foreign.JSON (parseJSON)
 import Foreign.NullOrUndefined (undefined)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (Cycle(..), EOMC, ScheduleConfig(..))
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms(..), Cycle(..), EOMC, ScheduleConfig(..))
 import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
 import Marlowe.Parser as Parser
 import Marlowe.Semantics (Rational(..))
@@ -44,7 +48,6 @@ import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
 import Type.Proxy (Proxy(..))
-
 
 rootBlockName :: String
 rootBlockName = "root_contract"
@@ -205,15 +208,17 @@ toDefinition (ActusContractType PaymentAtMaturity) =
   BlockDefinition
     $ merge
         { type: show PaymentAtMaturity
-        , message0: "%1 PaymentAtMaturity %2 %3 %4 %5"
+        , message0: "Payment At Maturity %1 initial exchange date * %2 %3 %4 %5 %6"
         , args0:
-          [ DummyRight
+          [ DummyCentre
+          , Value { name: "initial_exchange_date", check: "date", align: Right }
           , DummyRight
           , DummyRight
           , DummyRight
           , DummyRight
           ]
         , colour: blockColour BaseContractType
+        , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -222,11 +227,12 @@ toDefinition (ActusValueType ActusDate) =
   BlockDefinition
     $ merge
         { type: show ActusDate
-        , message0: "%1 ActusDate %2 %3 %4 %5"
+        , message0: "ActusDate %1"
         , args0:
-          [ Value { name: "date", check: "date", align: Right }
+          [ Input { name: "date", text: "10/10/2020", spellcheck: false }
           ]
         , colour: blockColour BaseContractType
+        , output: Just "date"
         , inputsInline: Just false
         }
         defaultBlockDefinition
@@ -359,7 +365,7 @@ buildGenerator :: BlocklyState -> Generator
 buildGenerator blocklyState =
   ST.run
     ( do
-        gRef <- mkGenerator blocklyState "Marlowe"
+        gRef <- mkGenerator blocklyState "Actus"
         g <- STRef.read gRef
         traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusContractTypes
@@ -380,7 +386,7 @@ baseContractDefinition g block =
     json <- catch $ runExcept $ parseJSON code
     catch $ runExcept (decode json :: F ActusContract)
 
-data ActusContract = ActusContract {
+newtype ActusContract = ActusContract {
   startDate :: ActusValue
   , initialExchangeDate :: ActusValue
   , maturityDate :: ActusValue
@@ -392,6 +398,8 @@ data ActusContract = ActusContract {
 
 derive instance actusContract :: Generic ActusContract _
 
+derive instance actusContractNewtype :: Newtype ActusContract _
+
 instance showActusContract :: Show ActusContract where
   show = encodeJSON
 
@@ -401,7 +409,7 @@ instance encodeJsonActusContract :: Encode ActusContract where
 instance decodeJsonActusContract :: Decode ActusContract where
   decode a = genericDecode aesonCompatibleOptions a
 
-data ActusValue = DateValue Int | NoActusValue
+data ActusValue = DateValue Int | NoActusValue | ActusError String
 
 derive instance actusValue :: Generic ActusValue _
 
@@ -417,33 +425,98 @@ instance decodeJsonActusValue :: Decode ActusValue where
 catch :: forall a b. Show a => Either a b -> Either String b
 catch = lmap show
 
-parseFieldActusValueJson :: Block -> String -> ActusValue
-parseFieldActusValueJson block name = 
+parseFieldActusValueJson :: Generator -> Block -> String -> ActusValue
+parseFieldActusValueJson g block name = 
   Either.either (const NoActusValue) identity result 
     where 
       result = do
-        value <- getFieldValue block name
+        value <- statementToCode g block name
         parsed <- catch $ runExcept $ parseJSON value
         let decoded = decode parsed :: F ActusValue
         catch $ runExcept $ decoded
-        
+
+parseActusJsonCode :: String -> Either String ContractTerms
+parseActusJsonCode str = do
+  parsed <- catch $ runExcept $ parseJSON str
+  let decoded = decode parsed :: F ActusContract
+  result <- catch $ runExcept $ decoded 
+  pure $ actusContractToTerms result
 
 instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType ActusContract where
   blockDefinition _ g block = Either.Right $ ActusContract {
-    startDate : parseFieldActusValueJson block "startDate"
-    , initialExchangeDate : parseFieldActusValueJson block "initialExchangeDate"
-    , maturityDate : parseFieldActusValueJson block "maturityDate"
-    , terminationDate : parseFieldActusValueJson block "terminationDate"
-    , purchaseDate : parseFieldActusValueJson block "purchaseDate"
-    , dayCountConvention : parseFieldActusValueJson block "dayCountConvention"
-    , endOfMonthConvention : parseFieldActusValueJson block "endOfMonthConvention"
+    startDate : parseFieldActusValueJson g block "start_date"
+    , initialExchangeDate : parseFieldActusValueJson g block "initial_exchange_date"
+    , maturityDate : parseFieldActusValueJson g block "maturity_date"
+    , terminationDate : parseFieldActusValueJson g block "termination_date"
+    , purchaseDate : parseFieldActusValueJson g block "purchase_date"
+    , dayCountConvention : parseFieldActusValueJson g block "day_count_convention"
+    , endOfMonthConvention : parseFieldActusValueJson g block "end_of_month_convention"
   }
   
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
   blockDefinition ActusDate g block = do 
-    date <- getFieldValue block "date"
+    -- date <- getFieldValue block "date"
     pure $ DateValue 100
   blockDefinition _ g block = Either.Right NoActusValue
+
+actusDateToDay :: ActusValue -> Day
+actusDateToDay date = ModifiedJulianDay {toModifiedJulianDay : 0}
+
+actusContractToTerms :: ActusContract -> ContractTerms
+actusContractToTerms c =
+  ContractTerms
+      { contractId : "0"
+      , contractType : PAM
+      , ct_IED : actusDateToDay (unwrap c).initialExchangeDate
+      , ct_SD : actusDateToDay (unwrap c).initialExchangeDate
+      , ct_MD : actusDateToDay (unwrap c).maturityDate
+      , ct_TD : actusDateToDay (unwrap c).terminationDate
+      , ct_PRD : actusDateToDay (unwrap c).purchaseDate
+      , ct_CNTRL : CR_ST
+      , ct_PDIED : -100.0
+      , ct_NT : 1000.0
+      , ct_PPRD : 1200.0
+      , ct_PTD : 1200.0
+      , ct_DCC : DCC_A_360
+      , ct_PREF : PREF_N
+      , ct_PRF : CS_PF
+      , scfg : ScheduleConfig {
+            calendar : []
+            , includeEndDay : false
+            , eomc : EOMC_EOM
+            , bdc : BDC_NULL
+        }
+      , ct_PYRT : 0.0
+      , ct_PYTP : PYTP_A
+      , ct_cPYRT : 0.0
+      , ct_OPCL : Nothing
+      , ct_OPANX : Nothing
+      , ct_SCIED : 0.0
+      , ct_SCEF : SE_000
+      , ct_SCCL : Nothing
+      , ct_SCANX : Nothing
+      , ct_SCIXSD : 0.0
+      , ct_RRCL : Nothing
+      , ct_RRANX : Nothing
+      , ct_RRNXT : Nothing
+      , ct_RRSP : 0.0
+      , ct_RRMLT : 0.0
+      , ct_RRPF : 0.0
+      , ct_RRPC : 0.0
+      , ct_RRLC : 0.0
+      , ct_RRLF : 0.0
+      , ct_IPCED : Nothing
+      , ct_IPCL : Nothing
+      , ct_IPANX : Nothing
+      , ct_IPNR : Nothing
+      , ct_IPAC : Nothing
+      , ct_FECL : Nothing
+      , ct_FEANX : Nothing
+      , ct_FEAC : Nothing
+      , ct_FEB : FEB_N
+      , ct_FER : 0.0
+      }
+
 
 
 aesonCompatibleOptions :: Options

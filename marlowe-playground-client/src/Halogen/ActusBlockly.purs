@@ -1,5 +1,7 @@
 module Halogen.ActusBlockly where
 
+import Data.Json.JsonEither
+
 import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
@@ -10,7 +12,8 @@ import Control.Monad.ST.Ref as STRef
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Json.JsonEither (JsonEither(..))
+import Data.Lens (Lens', _1, assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
@@ -20,9 +23,10 @@ import Halogen as H
 import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
-import Marlowe.Blockly (buildBlocks, buildGenerator)
+import Marlowe.ActusBlockly (buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
+import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, zero, ($), (<<<), (<>))
 import Text.Extra as Text
 import Text.Pretty (pretty)
@@ -45,17 +49,15 @@ _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
 data BlocklyQuery a
   = Resize a
-  | SetCode String a
   | SetError String a
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)
-  | SetData Unit
-  | GetCode
+  | GetTerms
 
 data BlocklyMessage
   = Initialized
-  | CurrentCode String
+  | CurrentTerms String
 
 type Slots
   = ()
@@ -74,7 +76,7 @@ blockly rootBlockName blockDefinitions =
         , handleAction
         , initialize: Just $ Inject rootBlockName blockDefinitions
         , finalize: Nothing
-        , receive: Just <<< SetData
+        , receive: const Nothing
         }
     }
 
@@ -90,19 +92,6 @@ handleQuery (Resize next) = do
                 Blockly.resize state.blockly workspaceRef
             )
     Nothing -> pure unit
-  pure $ Just next
-
-handleQuery (SetCode code next) = do
-  mState <- use _actusBlocklyState
-  case mState of
-    Nothing -> pure unit
-    Just bs -> do
-      let
-        contract = case Parser.parseContract code of
-          Right c -> c
-          Left _ -> Hole bs.rootBlockName Proxy zero
-      pure $ ST.run (buildBlocks newBlock bs contract)
-  assign _errorMessage Nothing
   pure $ Just next
 
 handleQuery (SetError err next) = do
@@ -125,25 +114,21 @@ handleAction (Inject rootBlockName blockDefinitions) = do
     generator = buildGenerator blocklyState
   modify_ _ { actusBlocklyState = Just blocklyState, generator = Just generator }
 
-handleAction (SetData _) = pure unit
-
-handleAction GetCode = do
+handleAction GetTerms = do
   res <-
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _actusBlocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       let
         workspace = blocklyState.workspace
-
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
   case res of
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      raise <<< CurrentCode <<< show <<< pretty $ contract
+      raise $ CurrentTerms $ contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
@@ -166,7 +151,7 @@ render state =
 toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
   button
-    [ onClick $ const $ Just GetCode
+    [ onClick $ const $ Just GetTerms
     ]
     [ text key ]
 
