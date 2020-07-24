@@ -252,6 +252,7 @@
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
