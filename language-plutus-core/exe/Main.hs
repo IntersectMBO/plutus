@@ -5,10 +5,6 @@
 
 module Main (main) where
 
-import           Control.Monad
-import           Control.Monad.Trans.Except                                 (runExceptT)
-import           Data.Bifunctor                                             (second)
-import           Data.Foldable                                              (traverse_)
 import qualified Language.PlutusCore                                        as PLC
 import           Language.PlutusCore.CBOR
 import qualified Language.PlutusCore.Constant.Dynamic                       as PLC
@@ -24,14 +20,20 @@ import qualified Language.PlutusCore.StdLib.Data.ChurchNat                  as P
 import qualified Language.PlutusCore.StdLib.Data.Integer                    as PLC
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
+import           Control.DeepSeq                                            (rnf)
+import           Control.Monad
+import           Control.Monad.Trans.Except                                 (runExceptT)
+import           Data.Bifunctor                                             (second)
 import qualified Data.ByteString.Lazy                                       as BSL
+import           Data.Foldable                                              (traverse_)
 import qualified Data.Text                                                  as T
 import           Data.Text.Encoding                                         (encodeUtf8)
 import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
-import           System.Exit
-
 import           Options.Applicative
+import           System.CPUTime                                             (getCPUTime)
+import           System.Exit
+import           Text.Printf                                                (printf)
 
 {- Note [Annotation types] This program now reads and writes
    CBOR-serialised PLC ASTs.  In all cases we require the annotation
@@ -102,10 +104,20 @@ format = flag Plc Cbor
   )
 
 
+data Timing = NoTiming | Timing deriving (Eq)  -- Report program execution time?
+
+timing :: Parser Timing
+timing = flag NoTiming Timing
+  ( long "time-execution"
+  <> short 't'
+  <> help "Report execution time of program"
+  )
+
+
 data NormalizationMode = Required | NotRequired deriving (Show, Read)
 data TypecheckOptions = TypecheckOptions Input Format
 data EvalMode = CK | CEK deriving (Show, Read)
-data EvalOptions = EvalOptions Input EvalMode Format
+data EvalOptions = EvalOptions Input EvalMode Format Timing
 data PrintMode = Classic | Debug deriving (Show, Read)
 data PrintOptions = PrintOptions Input PrintMode
 data PlcToCborOptions = PlcToCborOptions Input Output
@@ -159,7 +171,7 @@ evalMode = option auto
   <> help "Evaluation mode (CK or CEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOptions <$> input <*> evalMode <*> format
+evalOpts = EvalOptions <$> input <*> evalMode <*> format <*> timing
 
 printMode :: Parser PrintMode
 printMode = option auto
@@ -271,17 +283,23 @@ runTypecheck (TypecheckOptions inp fmt) = do
 
 ---------------- Evaluation ----------------
 
-
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp mode fmt) = do
+runEval (EvalOptions inp mode fmt printtime) = do
   prog <- getProg inp fmt
   let meanings = PLC.getStringBuiltinMeanings
       evalFn = case mode of
                  CK  -> PLC.unsafeEvaluateCk
                  CEK -> PLC.unsafeEvaluateCek meanings PLC.defaultCostModel
-  case evalFn . void . PLC.toTerm $ prog of
+      body = void . PLC.toTerm $ prog
+      _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
+  start <- getCPUTime
+  case evalFn body of
     PLC.EvaluationSuccess v -> do
+      end <- getCPUTime
+      let ms = 1e9 :: Double
+          diff = (fromIntegral (end - start)) / ms
       T.putStrLn $ PLC.displayPlcDef v
+      when (printtime == Timing) $ printf "Evaluation time: %0.2f ms\n" diff
       exitSuccess
     PLC.EvaluationFailure -> exitFailure
 

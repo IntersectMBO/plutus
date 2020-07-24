@@ -351,6 +351,7 @@ executable plc
     hs-source-dirs: exe
     build-depends:
         base <5,
+        deepseq -any,
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
