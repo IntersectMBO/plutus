@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators   #-}
 module Language.PlutusIR.Compiler.Types where
 
 import qualified Language.PlutusIR                     as PIR
@@ -15,6 +16,7 @@ import           Control.Lens
 
 import qualified Language.PlutusCore                   as PLC
 import qualified Language.PlutusCore.MkPlc             as PLC
+import qualified Language.PlutusCore.Constant          as PLC
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Type       as Types
 
@@ -29,23 +31,24 @@ makeLenses ''CompilationOpts
 defaultCompilationOpts :: CompilationOpts
 defaultCompilationOpts = CompilationOpts True
 
-data CompilationCtx a = CompilationCtx {
+data CompilationCtx uni a = CompilationCtx {
     _ccOpts        :: CompilationOpts
+    , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni ())
     , _ccEnclosing :: Provenance a
-    } deriving (Eq, Show)
+    }
 
 makeLenses ''CompilationCtx
 
-defaultCompilationCtx :: CompilationCtx a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts noProvenance
+defaultCompilationCtx :: CompilationCtx uni a
+defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance
 
-getEnclosing :: MonadReader (CompilationCtx a) m => m (Provenance a)
+getEnclosing :: MonadReader (CompilationCtx uni a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
 
-withEnclosing :: MonadReader (CompilationCtx a) m => (Provenance a -> Provenance a) -> m b -> m b
+withEnclosing :: MonadReader (CompilationCtx uni a) m => (Provenance a -> Provenance a) -> m b -> m b
 withEnclosing f = local (over ccEnclosing f)
 
-runIfOpts :: MonadReader (CompilationCtx a) m => (b -> m b) -> (b -> m b)
+runIfOpts :: MonadReader (CompilationCtx uni a) m => (b -> m b) -> (b -> m b)
 runIfOpts pass arg = do
     doOpt <- view (ccOpts . coOptimize)
     if doOpt then pass arg else pure arg
@@ -81,11 +84,13 @@ type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 
 type Compiling m e uni a =
     ( Monad m
-    , MonadReader (CompilationCtx a) m
+    , MonadReader (CompilationCtx uni a) m
     , AsError e uni (Provenance a)
     , MonadError e m
     , MonadQuote m
     , Ord a
+    , PLC.GShow uni, PLC.GEq uni
+    , PLC.DefaultUni PLC.<: uni
     )
 
 type TermDef tyname name uni a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni a)

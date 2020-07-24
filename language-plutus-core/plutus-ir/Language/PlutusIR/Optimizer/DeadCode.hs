@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE GADTs       #-}
 -- | Optimization passes for removing dead code, mainly dead let bindings.
 module Language.PlutusIR.Optimizer.DeadCode (removeDeadBindings) where
 
@@ -10,6 +12,7 @@ import           Language.PlutusIR.Transform.Rename      ()
 
 import qualified Language.PlutusCore                     as PLC
 import qualified Language.PlutusCore.Name                as PLC
+import qualified Language.PlutusCore.Constant            as PLC
 
 import           Control.Lens
 import           Control.Monad
@@ -24,23 +27,27 @@ import qualified Data.List.NonEmpty                      as NE
 
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
-    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
+    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
+       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => PLC.DynamicBuiltinNameMeanings term
     -> Term tyname name uni a
-removeDeadBindings t =
+    -> Term tyname name uni a
+removeDeadBindings means t =
     let tRen = PLC.runQuote $ PLC.rename t
-    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
+    in runReader (transformMOf termSubterms processTerm tRen) (calculateLiveness means tRen)
 
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
-    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni a
+    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
+       PLC.HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    => PLC.DynamicBuiltinNameMeanings term
+    -> Term tyname name uni a
     -> Liveness
-calculateLiveness t =
+calculateLiveness means t =
     let
         depGraph :: G.Graph Deps.Node
-        depGraph = Deps.runTermDeps t
+        depGraph = Deps.runTermDeps means t
     in Set.fromList $ T.reachable Deps.Root depGraph
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 module OptimizerSpec where
 
 import           Common
@@ -8,14 +9,19 @@ import           Language.PlutusIR.Optimizer.DeadCode
 import           Language.PlutusIR.Parser
 import           Language.PlutusIR.Transform.Rename   ()
 
+import qualified Language.PlutusCore                  as PLC
+import qualified Language.PlutusCore.Constant.Dynamic as PLC
+
 optimizer :: TestNested
 optimizer = testNested "optimizer" [
     deadCode
     ]
 
 deadCode :: TestNested
-deadCode = testNested "deadCode"
-    $ map (goldenPir removeDeadBindings term)
+deadCode =
+    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    in testNested "deadCode"
+    $ map (goldenPir (removeDeadBindings means) term)
     [ "typeLet"
     , "termLet"
     , "strictLet"

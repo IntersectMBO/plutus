@@ -4,6 +4,7 @@
   (let
     (nonrec)
     (termbind (strict) (vardecl j1 (con integer)) (con 0))
+    (termbind (strict) (vardecl j (con integer)) (con 0))
     (termbind (strict) (vardecl i2 (con integer)) (con 2))
     (termbind
       (strict)
@@ -13,14 +14,10 @@
     (termbind
       (strict)
       (vardecl i (con integer))
-      (let
-        (nonrec)
-        (termbind (strict) (vardecl j (con integer)) (con 0))
-        [
-          [ (builtin addInteger) i1 ]
-          [ [ (builtin addInteger) x ] [ [ (builtin addInteger) i2 ] j ] ]
-        ]
-      )
+      [
+        [ (builtin addInteger) i1 ]
+        [ [ (builtin addInteger) x ] [ [ (builtin addInteger) i2 ] j ] ]
+      ]
     )
     [ [ (builtin addInteger) i ] j1 ]
   )

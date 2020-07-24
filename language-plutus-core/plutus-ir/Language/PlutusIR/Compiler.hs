@@ -14,6 +14,7 @@ module Language.PlutusIR.Compiler (
     CompilationCtx,
     ccOpts,
     ccEnclosing,
+    ccBuiltinMeanings,
     defaultCompilationCtx) where
 
 import           Language.PlutusIR
@@ -35,19 +36,27 @@ import           Control.Monad
 import           Control.Monad.Reader
 
 -- | Perform some simplification of a 'Term'.
-simplifyTerm :: MonadReader (CompilationCtx a) m => Term TyName Name uni b -> m (Term TyName Name uni b)
-simplifyTerm = runIfOpts (pure . DeadCode.removeDeadBindings)
+simplifyTerm :: Compiling m e uni a => Term TyName Name uni b -> m (Term TyName Name uni b)
+simplifyTerm = runIfOpts deadCode
+    where
+        deadCode t = do
+            means <- asks _ccBuiltinMeanings
+            pure $ DeadCode.removeDeadBindings means t
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
-floatTerm :: (MonadReader (CompilationCtx a) m, Semigroup b) => Term TyName Name uni b -> m (Term TyName Name uni b)
-floatTerm = runIfOpts (pure . LetFloat.floatTerm)
+floatTerm :: (Compiling m e uni a, Semigroup b) => Term TyName Name uni b -> m (Term TyName Name uni b)
+floatTerm = runIfOpts letFloat
+    where
+        letFloat t = do
+            means <- asks _ccBuiltinMeanings
+            pure $ LetFloat.floatTerm means t
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
 -- to dump a "readable" version of pir (i.e. floated).
-compileToReadable :: (PLC.MonadQuote m, MonadReader (CompilationCtx a) m, Ord b)
-                  => Term TyName Name uni b -> m (Term TyName Name uni (Provenance b))
+compileToReadable :: Compiling m e uni a
+                  => Term TyName Name uni a -> m (Term TyName Name uni (Provenance a))
 compileToReadable =
     (pure . original)
     >=> simplifyTerm

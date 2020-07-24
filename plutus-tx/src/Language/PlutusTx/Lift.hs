@@ -27,7 +27,7 @@ import qualified Language.PlutusIR.MkPir                       as PIR
 
 import qualified Language.PlutusCore                           as PLC
 import qualified Language.PlutusCore.Constant.Dynamic          as PLC
-import           Language.PlutusCore.Pretty                    (PrettyConst) 
+import           Language.PlutusCore.Pretty                    (PrettyConst)
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.StdLib.Data.Function      as PLC
 import qualified Language.PlutusCore.StdLib.Meta.Data.Function as PLC
@@ -40,11 +40,12 @@ import           Control.Monad.Reader                          hiding (lift)
 import           Data.Proxy
 import qualified Data.Typeable                                 as GHC
 
-type Throwable uni = (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni)
+type Throwable uni = (PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni)
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
-    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m,
+        PLC.GShow uni, PLC.GEq uni , PLC.DefaultUni PLC.<: uni)
     => a -> m (PLC.Term TyName Name uni ())
 safeLift x = do
     lifted <- liftQuote $ runDefT () $ Lift.lift x
@@ -53,19 +54,20 @@ safeLift x = do
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
-    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m,
+        PLC.GShow uni, PLC.GEq uni , PLC.DefaultUni PLC.<: uni)
     => a -> m (PLC.Program TyName Name uni ())
 safeLiftProgram x = PLC.Program () (PLC.defaultVersion ()) <$> safeLift x
 
 safeLiftCode
-    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m)
+    :: (Lift.Lift uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m,
+        PLC.GShow uni, PLC.GEq uni , PLC.DefaultUni PLC.<: uni)
     => a -> m (CompiledCode uni a)
 safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing
 
 safeConstCode
     :: ( Lift.Typeable uni a, AsError e uni (Provenance ()), MonadError e m, MonadQuote m
-       , PLC.Closed uni, uni `PLC.Everywhere` Serialise
-       )
+       , PLC.Closed uni, uni `PLC.Everywhere` Serialise, PLC.GShow uni, PLC.GEq uni , PLC.DefaultUni PLC.<: uni)
     => Proxy a
     -> CompiledCode uni b
     -> m (CompiledCode uni (a -> b))

@@ -34,7 +34,7 @@ import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
-import qualified Language.PlutusIR.Value                as PIR
+import qualified Language.PlutusIR.Purity               as PIR
 
 import qualified Language.PlutusCore                    as PLC
 import qualified Language.PlutusCore.Constant           as PLC
@@ -224,8 +224,9 @@ defineBuiltinTerm :: Compiling uni m => TH.Name -> PIRTerm uni -> [GHC.Name] -> 
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
+    CompileContext {ccBuiltinMeanings=means} <- ask
     -- See Note [Builtin terms and values]
-    let strictness = if PIR.isTermValue term then PIR.Strict else PIR.NonStrict
+    let strictness = if PIR.isPure means (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)
     PIR.defineTerm (LexName $ GHC.getName ghcId) def (Set.fromList $ LexName <$> deps)
 
@@ -239,7 +240,7 @@ defineBuiltinType name ty deps = do
     PIR.recordAlias @LexName @uni @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: (Compiling uni m, PLC.DefaultUni PLC.<: uni) => m ()
+defineBuiltinTerms :: Compiling uni m => m ()
 defineBuiltinTerms = do
     bs <- GHC.getName <$> getThing ''Builtins.ByteString
     int <- GHC.getName <$> getThing ''Integer
@@ -343,7 +344,7 @@ defineBuiltinTerms = do
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes
-    :: (Compiling uni m, PLC.DefaultUni PLC.<: uni)
+    :: Compiling uni m
     => m ()
 defineBuiltinTypes = do
     do

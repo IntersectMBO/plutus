@@ -1,9 +1,1 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl add (fun (con integer) (con integer)))
-    (builtin addInteger)
-  )
-  (abs a (type) (lam x a x))
-)
+(abs a (type) (lam x a x))
