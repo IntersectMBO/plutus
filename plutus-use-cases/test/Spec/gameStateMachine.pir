@@ -1753,15 +1753,7 @@
                       multiplyInteger
                       (fun (con integer) (fun (con integer) (con integer)))
                     )
-                    (lam
-                      arg
-                      (con integer)
-                      (lam
-                        arg
-                        (con integer)
-                        [ [ (builtin multiplyInteger) arg ] arg ]
-                      )
-                    )
+                    (builtin multiplyInteger)
                   )
                   (termbind
                     (strict)
@@ -1982,13 +1974,7 @@
                       addInteger
                       (fun (con integer) (fun (con integer) (con integer)))
                     )
-                    (lam
-                      arg
-                      (con integer)
-                      (lam
-                        arg (con integer) [ [ (builtin addInteger) arg ] arg ]
-                      )
-                    )
+                    (builtin addInteger)
                   )
                   (let
                     (rec)
@@ -3290,7 +3276,7 @@
                           (strict)
                           (vardecl sha2_ (fun (con bytestring) (con bytestring))
                           )
-                          (lam arg (con bytestring) [ (builtin sha2_256) arg ])
+                          (builtin sha2_256)
                         )
                         (termbind
                           (strict)
@@ -4023,15 +4009,7 @@
                             subtractInteger
                             (fun (con integer) (fun (con integer) (con integer)))
                           )
-                          (lam
-                            arg
-                            (con integer)
-                            (lam
-                              arg
-                              (con integer)
-                              [ [ (builtin subtractInteger) arg ] arg ]
-                            )
-                          )
+                          (builtin subtractInteger)
                         )
                         (let
                           (rec)
