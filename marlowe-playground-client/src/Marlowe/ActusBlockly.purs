@@ -229,7 +229,7 @@ toDefinition (ActusValueType ActusDate) =
         { type: show ActusDate
         , message0: "ActusDate %1"
         , args0:
-          [ Input { name: "date", text: "10/10/2020", spellcheck: false }
+          [ Input { name: "date", text: "2020-10-10", spellcheck: false }
           ]
         , colour: blockColour BaseContractType
         , output: Just "date"
@@ -459,8 +459,8 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     pure $ DateValue 100
   blockDefinition _ g block = Either.Right NoActusValue
 
-actusDateToDay :: ActusValue -> Day
-actusDateToDay date = ModifiedJulianDay {toModifiedJulianDay : 0}
+actusDateToDay :: ActusValue -> String
+actusDateToDay date = "2020-10-10"
 
 actusContractToTerms :: ActusContract -> ContractTerms
 actusContractToTerms c =

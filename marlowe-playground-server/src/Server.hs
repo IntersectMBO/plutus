@@ -55,6 +55,7 @@ import           WebSocket                                        (Registry, Web
                                                                    initializeConnection, insertIntoRegistry, isWaiting,
                                                                    lookupInRegistry, newRegistry, runWithConnection,
                                                                    startWaiting)
+import           Language.Marlowe.Pretty                       
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do
@@ -154,11 +155,11 @@ handleNotification registryVar response = liftIO $ do
     pure NoContent
 
 
-genActusContract :: ContractTerms -> Handler (Either String Contract)
-genActusContract terms = pure $ Right $ genFsContract terms
+genActusContract :: ContractTerms -> Handler String
+genActusContract terms = pure $ show $ pretty $ genFsContract terms
 
-genActusContractStatic :: ContractTerms -> Handler (Either String Contract)
-genActusContractStatic terms = pure $ Right $ genStaticContract terms
+genActusContractStatic :: ContractTerms -> Handler String
+genActusContractStatic terms = pure $ show $ pretty $ genStaticContract terms
 
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)

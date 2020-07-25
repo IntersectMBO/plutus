@@ -1,10 +1,12 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Control.Monad.Except (ExceptT, runExceptT)
+import AjaxUtils (renderForeignErrors, defaultJsonOptions)
+import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
+import Data.Either as Either
 import Data.Json.JsonEither (JsonEither(..))
 import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
@@ -13,13 +15,15 @@ import Data.Newtype (unwrap)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)
+import Foreign.Generic (decodeJSON, encodeJSON)
+import Foreign.Generic.Class (aesonSumEncoding, defaultOptions)
 import Foreign.JSON (parseJSON)
 import Halogen (Component, ComponentHTML, liftEffect, query, request)
 import Halogen as H
+import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
-import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hide, iohkIcon, noMargins, spaceLeft, tabIcon, tabLink, uppercase)
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
@@ -35,15 +39,20 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Blockly as MB
 import Marlowe.ActusBlockly as AMB
+import Marlowe.Blockly as MB
+import Marlowe.Holes (Contract)
 import Marlowe.Parser (parseContract)
+import Marlowe.Semantics (Contract(..))
+import Marlowe.Semantics as MS
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Prelude (Unit, bind, const, discard, eq, flip, identity, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>))
 import Servant.PureScript.Ajax (AjaxError)
-import Servant.PureScript.Settings (SPSettings_)
+import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
+import Servant.PureScript.Settings (SPSettingsDecodeJson_(..))
+import Servant.PureScript.Settings (SPSettings_(..))
 import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types as ST
@@ -52,7 +61,10 @@ import StaticData as StaticData
 import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _actusBlocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
+import Web.HTML.Event.EventTypes (offline)
 import WebSocket (WebSocketResponseMessage(..))
+import Foreign (F)
+import Control.Monad.Except (mapExcept, runExcept)
 
 initialState :: FrontendState
 initialState =
@@ -212,15 +224,37 @@ handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction _ (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms terms)) = do
+handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms terms)) = do
   mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
   let
     hasStarted = fromMaybe false mHasStarted
+    parsedTermsEither = AMB.parseActusJsonCode terms
   if hasStarted then
     void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
-  else do
-    void $ query _simulationSlot unit (ST.SetEditorText terms unit)
-    selectSimulationView
+  else 
+    case parsedTermsEither of 
+      Left e -> 
+        void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("JSON: Couldn't parse contract-terms - " <> (show e)) unit)
+      Right parsedTerms -> do
+        result <- runAjax $ flip runReaderT settings $ (Server.postActusGenerate parsedTerms)
+        case result of
+          Success contractAST -> do
+            void $ query _simulationSlot unit (ST.SetEditorText contractAST unit)
+            selectSimulationView
+          Failure e        -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
+          _                -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
+
+
+----------
+showErrorDescription :: ErrorDescription -> String
+showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
+  "Cannot connect to the server. Please check your network connection."
+showErrorDescription (DecodingError err) = "DecodingError: " <> err
+showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
+showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
+
+
+
 
 ------------------------------------------------------------
 runAjax ::

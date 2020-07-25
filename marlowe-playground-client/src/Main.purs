@@ -9,6 +9,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Foreign.Generic (defaultOptions)
+import Foreign.Generic.Class (aesonSumEncoding)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
 import LocalStorage (RawStorageEvent)
@@ -27,7 +28,7 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
   where
   SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
-  jsonOptions = defaultOptions { unwrapSingleConstructors = true }
+  jsonOptions = defaultOptions { unwrapSingleConstructors = true, sumEncoding = aesonSumEncoding }
 
   decodeJson = SPSettingsDecodeJson_ jsonOptions
 
