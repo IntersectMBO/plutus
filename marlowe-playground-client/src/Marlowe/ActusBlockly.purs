@@ -121,11 +121,53 @@ instance boundedEnumActusValueType :: BoundedEnum ActusValueType where
 actusValueTypes :: Array ActusValueType
 actusValueTypes = upFromIncluding bottom
 
+data ActusPeriodType =
+  PeriodDayType
+  | PeriodMonthType
+  | PeriodQuarterType
+  | PeriodYearType
+
+
+derive instance actusActusPeriodType :: Generic ActusPeriodType _
+
+instance eqActusPeriodType :: Eq ActusPeriodType where
+  eq = genericEq
+
+instance ordActusPeriodType :: Ord ActusPeriodType where
+  compare = genericCompare
+
+instance enumActusPeriodType :: Enum ActusPeriodType where
+  succ = genericSucc
+  pred = genericPred
+
+
+instance boundedActusPeriodType :: Bounded ActusPeriodType where
+  bottom = genericBottom
+  top = genericTop
+
+instance boundedEnumActusPeriodType :: BoundedEnum ActusPeriodType where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
+
+instance showActusPeriod :: Show ActusPeriodType  where
+  show = encodeJSON
+
+instance encodeJsonActusPeriod  :: Encode ActusPeriodType  where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeJsonActusPeriod  :: Decode ActusPeriodType  where
+  decode a = genericDecode aesonCompatibleOptions a
+
+actusPeriodTypes :: Array ActusPeriodType
+actusPeriodTypes = upFromIncluding bottom
+
 
 data BlockType
   = BaseContractType
   | ActusContractType ActusContractType
   | ActusValueType ActusValueType
+  | ActusPeriodType ActusPeriodType
 
 derive instance genericBlockType :: Generic BlockType _
 
@@ -152,6 +194,7 @@ instance showBlockType :: Show BlockType where
   show BaseContractType = "BaseContractType"
   show (ActusContractType c) = show c
   show (ActusValueType c) = show c
+  show (ActusPeriodType c) = show c
 
 contractColour :: String
 contractColour = "#a380bc"
@@ -184,6 +227,8 @@ blockColour (ActusContractType _) = boundsColour
 
 blockColour (ActusValueType _) = actionColour
 
+blockColour (ActusPeriodType _) = actionColour
+
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
 
@@ -204,18 +249,24 @@ toDefinition BaseContractType =
         , inputsInline: Just false
         }
         defaultBlockDefinition
+
 toDefinition (ActusContractType PaymentAtMaturity) = 
   BlockDefinition
     $ merge
         { type: show PaymentAtMaturity
-        , message0: "Payment At Maturity %1 initial exchange date * %2 %3 %4 %5 %6"
+        , message0: "Payment At Maturity %1" <> 
+            "start_date * %2" <> 
+            "purchase date * %3" <>
+            "initial exchange date * %4" <>
+            "maturity date * %5" <>
+            "termination date * %6"
         , args0:
           [ DummyCentre
+          , Value { name: "start_date", check: "date", align: Right }
+          , Value { name: "purchase_date", check: "date", align: Right }
           , Value { name: "initial_exchange_date", check: "date", align: Right }
-          , DummyRight
-          , DummyRight
-          , DummyRight
-          , DummyRight
+          , Value { name: "maturity_date", check: "date", align: Right }
+          , Value { name: "termination_date", check: "date", align: Right }
           ]
         , colour: blockColour BaseContractType
         , previousStatement: Just (show BaseContractType)
@@ -227,13 +278,15 @@ toDefinition (ActusValueType ActusDate) =
   BlockDefinition
     $ merge
         { type: show ActusDate
-        , message0: "ActusDate %1"
+        , message0: "YYYY: %1 MM: %2 DD: %3"
         , args0:
-          [ Input { name: "date", text: "2020-10-10", spellcheck: false }
+          [ Input { name: "yyyy", text: "2020", spellcheck: false },
+            Input { name: "mm", text: "10", spellcheck: false },
+            Input { name: "dd", text: "10", spellcheck: false }
           ]
         , colour: blockColour BaseContractType
         , output: Just "date"
-        , inputsInline: Just false
+        , inputsInline: Just true
         }
         defaultBlockDefinition
 
@@ -241,11 +294,11 @@ toDefinition (ActusValueType ActusCycle) =
   BlockDefinition
     $ merge
         { type: show ActusCycle
-        , message0: "%1 ActusCycle %2 %3 %4 %5"
+        , message0: "Cycle with anchor %2 and period %3 of % 4 with stub LongStub"
         , args0:
-          [ DummyRight
-          , DummyRight
-          , DummyRight
+          [ Value { name: "anchor", check: "date", align: Right }
+          , Input { name: "value", text: "1", spellcheck: false }
+          , Input { name: "period", text: "2020", spellcheck: false }
           , DummyRight
           , DummyRight
           ]
@@ -275,7 +328,7 @@ toDefinition (ActusValueType PenaltyType) =
   BlockDefinition
     $ merge
         { type: show PenaltyType
-        , message0: "%1 Decimal %2 %3 %4 %5"
+        , message0: "%1 Penalty %2 %3 %4 %5"
         , args0:
           [ DummyRight
           , DummyRight
@@ -339,14 +392,66 @@ toDefinition (ActusValueType ActusScheduleConfig) =
         }
         defaultBlockDefinition
 
+toDefinition (ActusPeriodType PeriodDayType) = 
+  BlockDefinition
+    $ merge
+        { type: show FeeBasis
+        , message0: "Days"
+        , args0:
+          [ 
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusPeriodType PeriodMonthType) = 
+  BlockDefinition
+    $ merge
+        { type: show FeeBasis
+        , message0: "Months"
+        , args0:
+          [ 
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusPeriodType PeriodQuarterType) = 
+  BlockDefinition
+    $ merge
+        { type: show FeeBasis
+        , message0: "Quarters"
+        , args0:
+          [ 
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusPeriodType PeriodYearType) = 
+  BlockDefinition
+    $ merge
+        { type: show FeeBasis
+        , message0: "Years"
+        , args0:
+          [ 
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just true
+        }
+        defaultBlockDefinition
+
+
 
 toolbox :: forall a b. HTML a b
 toolbox =
   xml [ id_ "actusBlocklyToolbox", style "display:none" ]
-    [ category [ name "Contract Types", colour contractColour ] (map mkBlock actusContractTypes)
-    , category [ name "Value", colour observationColour ] (map mkBlock actusValueTypes)
-    , category [ name "Cycles", colour actionColour ] (map mkBlock actusValueTypes)
-    , category [ name "Assertions", colour valueColour ] (map mkBlock actusValueTypes)
+    [ category [ name "Contracts", colour contractColour ] (map mkBlock actusContractTypes)
+    , category [ name "Values", colour observationColour ] (map mkBlock actusValueTypes)
+    , category [ name "Periods", colour actionColour ] (map mkBlock actusPeriodTypes)
     ]
   where
   mkBlock :: forall t. Show t => t -> _
@@ -370,6 +475,7 @@ buildGenerator blocklyState =
         traverse_ (\t -> mkGenFun gRef t (baseContractDefinition g)) [ BaseContractType ]
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusContractTypes
         traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusValueTypes
+        traverse_ (\t -> mkGenFun gRef t (blockDefinition t g)) actusPeriodTypes
         STRef.read gRef
     )
 
@@ -409,7 +515,7 @@ instance encodeJsonActusContract :: Encode ActusContract where
 instance decodeJsonActusContract :: Decode ActusContract where
   decode a = genericDecode aesonCompatibleOptions a
 
-data ActusValue = DateValue Int | NoActusValue | ActusError String
+data ActusValue = DateValue String String String | NoActusValue | PeriodValue | ActusError String
 
 derive instance actusValue :: Generic ActusValue _
 
@@ -455,12 +561,19 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
   
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
   blockDefinition ActusDate g block = do 
-    -- date <- getFieldValue block "date"
-    pure $ DateValue 100
+    yyyy <- getFieldValue block "yyyy"
+    mm <- getFieldValue block "mm"
+    dd <- getFieldValue block "dd"
+    pure $ DateValue yyyy mm dd --todo validation: return value if date is invalid
   blockDefinition _ g block = Either.Right NoActusValue
 
+instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPeriodType where
+  blockDefinition x g block = do 
+    pure $ x 
+
 actusDateToDay :: ActusValue -> String
-actusDateToDay date = "2020-10-10"
+actusDateToDay (DateValue yyyy mm dd) = yyyy <> "-" <> mm <> "-" <> dd --should be validated in a parser
+actusDateToDay date = "actus: not a date! look up this message in a codebase" -- we should never reach it
 
 actusContractToTerms :: ActusContract -> ContractTerms
 actusContractToTerms c =
