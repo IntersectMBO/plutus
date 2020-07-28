@@ -51,13 +51,15 @@ data BlocklyQuery a
   = Resize a
   | SetError String a
 
+data ContractFlavour = FS | F
+
 data BlocklyAction
   = Inject String (Array BlockDefinition)
-  | GetTerms
+  | GetTerms ContractFlavour
 
 data BlocklyMessage
   = Initialized
-  | CurrentTerms String
+  | CurrentTerms ContractFlavour String
 
 type Slots
   = ()
@@ -114,7 +116,7 @@ handleAction (Inject rootBlockName blockDefinitions) = do
     generator = buildGenerator blocklyState
   modify_ _ { actusBlocklyState = Just blocklyState, generator = Just generator }
 
-handleAction GetTerms = do
+handleAction (GetTerms flavour) = do
   res <-
     runExceptT do
       blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _actusBlocklyState
@@ -128,7 +130,7 @@ handleAction GetTerms = do
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      raise $ CurrentTerms $ contract
+      raise $ CurrentTerms flavour $ contract
   where
   unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
@@ -143,7 +145,8 @@ render state =
         , id_ "actusBlocklyWorkspace"
         , classes [ ClassName "actus-blockly-workspace", ClassName "container-fluid" ]
         ]
-        [ toCodeButton "Send To Simulator"
+        [ toCodeButton "Generate reactive contract"
+        , toStaticCodeButton "Generate static contract"
         , errorMessage state.errorMessage
         ]
     ]
@@ -151,7 +154,14 @@ render state =
 toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
   button
-    [ onClick $ const $ Just GetTerms
+    [ onClick $ const $ Just $ GetTerms FS
+    ]
+    [ text key ]
+
+toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
+toStaticCodeButton key =
+  button
+    [ onClick $ const $ Just $ GetTerms F
     ]
     [ text key ]
 

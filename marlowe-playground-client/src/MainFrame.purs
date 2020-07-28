@@ -224,7 +224,7 @@ handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms terms)) = do
+handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
   mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
   let
     hasStarted = fromMaybe false mHasStarted
@@ -236,7 +236,9 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms term
       Left e -> 
         void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("JSON: Couldn't parse contract-terms - " <> (show e)) unit)
       Right parsedTerms -> do
-        result <- runAjax $ flip runReaderT settings $ (Server.postActusGenerate parsedTerms)
+        result <- case flavour of 
+          ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postActusGenerate parsedTerms)
+          ActusBlockly.F -> runAjax $ flip runReaderT settings $ (Server.postActusGeneratestatic parsedTerms)
         case result of
           Success contractAST -> do
             void $ query _simulationSlot unit (ST.SetEditorText contractAST unit)
