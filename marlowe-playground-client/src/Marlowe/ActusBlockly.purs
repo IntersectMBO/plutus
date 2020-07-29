@@ -34,6 +34,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Traversable (sequence, traverse, traverse_)
 import Data.Tuple (Tuple(..))
+import Data.FloatParser(parseFloat)
 import Foreign (F, readString, Foreign)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Generic (genericEncode, genericDecode, encodeJSON)
@@ -91,6 +92,8 @@ data ActusValueType =
   | ActusCycleType
   | ActusDecimalType
   | ActusScheduleConfigType
+  | ActusAssertionContextType
+  | ActusAssertionType
 
 
 derive instance actusActusValueType :: Generic ActusValueType _
@@ -266,18 +269,22 @@ toDefinition (ActusContractType PaymentAtMaturity) =
     $ merge
         { type: show PaymentAtMaturity
         , message0: "Payment At Maturity %1" <> 
-            "start_date * %2" <> 
-            "purchase date %3" <>
-            "initial exchange date %4" <>
-            "maturity date * %5" <>
-            "termination date %6" <>
-            "rate reset cycle %7"
+            "start date * %2" <> 
+            "maturity date * %3" <>
+            "notional * %4" <>
+            "premium/discount %5" <>
+            "purchase date %6" <>
+            "initial exchange date %7" <>
+            "termination date %8" <>
+            "rate reset cycle %9"
         , args0:
           [ DummyCentre
           , Value { name: "start_date", check: "date", align: Right }
+          , Value { name: "maturity_date", check: "date", align: Right }
+          , Value { name: "notional", check: "decimal", align: Right }
+          , Value { name: "premium_discount", check: "decimal", align: Right }
           , Value { name: "purchase_date", check: "date", align: Right }
           , Value { name: "initial_exchange_date", check: "date", align: Right }
-          , Value { name: "maturity_date", check: "date", align: Right }
           , Value { name: "termination_date", check: "date", align: Right }
           , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
           ]
@@ -323,12 +330,13 @@ toDefinition (ActusValueType ActusDecimalType) =
   BlockDefinition
     $ merge
         { type: show ActusDecimalType
-        , message0: "ActusDecimalType %1"
+        , message0: "decimal %1"
         , args0:
           [ Input { name: "value", text: "1", spellcheck: false }
           ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
+        , output: Just "decimal"
         }
         defaultBlockDefinition
 
@@ -344,6 +352,39 @@ toDefinition (ActusValueType ActusScheduleConfigType) =
           ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
+        , output: Just "scheduleCfg"
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusValueType ActusAssertionContextType) = 
+  BlockDefinition
+    $ merge
+        { type: show ActusAssertionContextType
+        , message0: "min interest rate %1, max interest rate %2"
+        , args0:
+          [ 
+          Input { name: "min_rrmo", text: "0", spellcheck: false }
+          , Input { name: "max_rrmo", text: "1000", spellcheck: false }
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just false
+        , output: Just "assertionCtx"
+        }
+        defaultBlockDefinition
+
+toDefinition (ActusValueType ActusAssertionType) = 
+  BlockDefinition
+    $ merge
+        { type: show ActusAssertionType
+        , message0: "net present value is more than %1 against zero-risk bond with rate %2"
+        , args0:
+          [ 
+          Input { name: "npv", text: "0", spellcheck: false }
+          , Input { name: "rate", text: "0", spellcheck: false }
+          ]
+        , colour: blockColour BaseContractType
+        , inputsInline: Just false
+        , output: Just "assertion"
         }
         defaultBlockDefinition
 
@@ -452,6 +493,8 @@ newtype ActusContract = ActusContract {
   , dayCountConvention :: ActusValue
   , endOfMonthConvention :: ActusValue
   , rateReset :: ActusValue
+  , notional :: ActusValue
+  , premiumDiscount :: ActusValue
 }
 
 derive instance actusContract :: Generic ActusContract _
@@ -469,6 +512,7 @@ instance decodeJsonActusContract :: Decode ActusContract where
 
 data ActusValue = DateValue String String String 
   | CycleValue ActusValue Int ActusPeriodType 
+  | DecimalValue Number
   | NoActusValue
   | ActusError String
 
@@ -523,6 +567,8 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     , dayCountConvention : parseFieldActusValueJson g block "day_count_convention"
     , endOfMonthConvention : parseFieldActusValueJson g block "end_of_month_convention"
     , rateReset : parseFieldActusValueJson g block "rate_reset_cycle"
+    , notional : parseFieldActusValueJson g block "notional"
+    , premiumDiscount : parseFieldActusValueJson g block "premium_discount"
   }
   
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
@@ -537,6 +583,10 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     let anchor = parseFieldActusValueJson g block "anchor"
     let period = parseFieldActusPeriodJson g block "period"
     pure $ fromMaybe NoActusValue $ CycleValue anchor value <$> period --todo validation: return value if date is invalid
+  blockDefinition ActusDecimalType g block = do
+    valueString <- getFieldValue block "value"
+    value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat valueString
+    pure $ DecimalValue value
   blockDefinition _ g block = Either.Right NoActusValue
 
 instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPeriodType where
@@ -549,6 +599,12 @@ actusDateToDay (DateValue yyyy mm dd) = Either.Right $ Just $ yyyy <> "-" <> mm 
 actusDateToDay (ActusError msg) = Either.Left msg
 actusDateToDay NoActusValue = Either.Right Nothing
 actusDateToDay x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
+
+actusDecimalToNumber :: ActusValue -> Either String (Maybe Number)
+actusDecimalToNumber (DecimalValue n) = Either.Right $ Just $ n
+actusDecimalToNumber (ActusError msg) = Either.Left msg
+actusDecimalToNumber NoActusValue = Either.Right Nothing
+actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x 
 
 blocklyCycleToCycle :: ActusValue -> Either String (Maybe Cycle)
 blocklyCycleToCycle (CycleValue _ value period) = Either.Right $ Just $ Cycle {
@@ -571,7 +627,7 @@ blocklyCycleToAnchor NoActusValue = Either.Right Nothing
 blocklyCycleToAnchor x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 actusContractToTerms :: ActusContract -> Either String ContractTerms
-actusContractToTerms raw = do --todo rewrite to EitherT ??
+actusContractToTerms raw = do --todo use monad transformers?
   let c = (unwrap raw)
   startDate <- Either.note "start date is a mandatory field!" <$> actusDateToDay c.startDate >>= identity
   maturityDate <- Either.note "maturity date is a mandatory field!" <$> actusDateToDay c.maturityDate >>= identity
@@ -581,6 +637,8 @@ actusContractToTerms raw = do --todo rewrite to EitherT ??
   rateResetCycle <- blocklyCycleToCycle c.rateReset
   rateResetAnchorValue <- blocklyCycleToAnchor c.rateReset
   rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue 
+  notional <- Either.note "notional is a mandatory field!" <$> actusDecimalToNumber c.notional >>= identity
+  premium <- fromMaybe 0.0 <$> actusDecimalToNumber c.notional
 
   pure $ ContractTerms
       { contractId : "0"
@@ -591,8 +649,8 @@ actusContractToTerms raw = do --todo rewrite to EitherT ??
       , ct_TD : terminationDate
       , ct_PRD : purchaseDate
       , ct_CNTRL : CR_ST
-      , ct_PDIED : -100.0
-      , ct_NT : 1000.0
+      , ct_PDIED : premium
+      , ct_NT : notional
       , ct_PPRD : 0.0
       , ct_PTD : 0.0
       , ct_DCC : DCC_A_360
