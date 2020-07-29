@@ -18,9 +18,11 @@ import Data.Array (filter, head, uncons, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
 import Data.BigInteger (BigInteger)
+import Data.Date (exactDate, month)
 import Data.Either (Either, note)
 import Data.Either as Either
-import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
+import Data.Enum (class BoundedEnum, class Enum, upFromIncluding, toEnum)
+import Data.FloatParser (parseFloat)
 import Data.Function (const)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
@@ -30,11 +32,11 @@ import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
 import Data.Lens (to, view, (^.))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.List (reverse, take)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Traversable (sequence, traverse, traverse_)
 import Data.Tuple (Tuple(..))
-import Data.FloatParser(parseFloat)
 import Foreign (F, readString, Foreign)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Generic (genericEncode, genericDecode, encodeJSON)
@@ -300,9 +302,10 @@ toDefinition (ActusValueType ActusDate) =
         { type: show ActusDate
         , message0: "year %1 month %2 day %3"
         , args0:
-          [ Input { name: "yyyy", text: "2020", spellcheck: false },
-            Input { name: "mm", text: "10", spellcheck: false },
-            Input { name: "dd", text: "10", spellcheck: false }
+          [             
+            Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Nothing }
+            , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Nothing }
+            , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Nothing }
           ]
         , colour: blockColour BaseContractType
         , output: Just "date"
@@ -574,9 +577,19 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
   blockDefinition ActusDate g block = do 
     yyyy <- getFieldValue block "yyyy"
-    mm <- getFieldValue block "mm"
-    dd <- getFieldValue block "dd"
-    pure $ DateValue yyyy mm dd --todo validation: return value if date is invalid
+    m <- getFieldValue block "mm"
+    d <- getFieldValue block "dd"
+    year <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString yyyy
+    month <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString m
+    day <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString d
+    safeYear <- fromMaybe (Either.Left "wrong year") $ Either.Right <$> toEnum year
+    safeMonth <- fromMaybe (Either.Left "wrong month") $ Either.Right <$> toEnum month
+    safeDay <- fromMaybe (Either.Left "wrong day") $ Either.Right <$> toEnum day
+    -- we could use DateTime formatters instead
+    let mm = if month < 10 then "0" <> m else m
+    let dd = if day < 10 then "0" <> d else d
+    let date = exactDate safeYear safeMonth safeDay
+    pure $ if isJust date then DateValue yyyy mm dd else ActusError "Incorrect date!"
   blockDefinition ActusCycleType g block = do 
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString valueString

@@ -234,7 +234,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
   else 
     case parsedTermsEither of 
       Left e -> 
-        void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("JSON: Couldn't parse contract-terms - " <> (show e)) unit)
+        void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
       Right parsedTerms -> do
         result <- case flavour of 
           ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postActusGenerate parsedTerms)
@@ -250,7 +250,7 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
 ----------
 showErrorDescription :: ErrorDescription -> String
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
-  "Cannot connect to the server. Please check your network connection."
+  "BadResponse"
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
