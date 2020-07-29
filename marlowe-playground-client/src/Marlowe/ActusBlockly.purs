@@ -93,7 +93,6 @@ data ActusValueType =
   ActusDate
   | ActusCycleType
   | ActusDecimalType
-  | ActusScheduleConfigType
   | ActusAssertionContextType
   | ActusAssertionType
 
@@ -275,20 +274,24 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             "maturity date * %3" <>
             "notional * %4" <>
             "premium/discount %5" <>
-            "purchase date %6" <>
-            "initial exchange date %7" <>
-            "termination date %8" <>
-            "rate reset cycle %9"
+            "interest rate %6" <>
+            "purchase date %7" <>
+            "initial exchange date %8" <>
+            "termination date %9" <>
+            "rate reset cycle %10" <>
+            "interest payment cycle %11"
         , args0:
           [ DummyCentre
           , Value { name: "start_date", check: "date", align: Right }
           , Value { name: "maturity_date", check: "date", align: Right }
           , Value { name: "notional", check: "decimal", align: Right }
           , Value { name: "premium_discount", check: "decimal", align: Right }
+          , Value { name: "interest_rate", check: "decimal", align: Right }
           , Value { name: "purchase_date", check: "date", align: Right }
           , Value { name: "initial_exchange_date", check: "date", align: Right }
           , Value { name: "termination_date", check: "date", align: Right }
           , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
+          , Value { name: "interest_cycle", check: "cycle", align: Right }
           ]
         , colour: blockColour BaseContractType
         , previousStatement: Just (show BaseContractType)
@@ -340,22 +343,6 @@ toDefinition (ActusValueType ActusDecimalType) =
         , colour: blockColour BaseContractType
         , inputsInline: Just false
         , output: Just "decimal"
-        }
-        defaultBlockDefinition
-
-toDefinition (ActusValueType ActusScheduleConfigType) = 
-  BlockDefinition
-    $ merge
-        { type: show ActusScheduleConfigType
-        , message0: "ScheduleConfig %1 %2 %3"
-        , args0:
-          [ DummyRight
-          , DummyRight
-          , DummyRight
-          ]
-        , colour: blockColour BaseContractType
-        , inputsInline: Just false
-        , output: Just "scheduleCfg"
         }
         defaultBlockDefinition
 
@@ -498,6 +485,8 @@ newtype ActusContract = ActusContract {
   , rateReset :: ActusValue
   , notional :: ActusValue
   , premiumDiscount :: ActusValue
+  , interestRate :: ActusValue
+  , interestRateCycle :: ActusValue --todo validate that both are present
 }
 
 derive instance actusContract :: Generic ActusContract _
@@ -572,6 +561,8 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     , rateReset : parseFieldActusValueJson g block "rate_reset_cycle"
     , notional : parseFieldActusValueJson g block "notional"
     , premiumDiscount : parseFieldActusValueJson g block "premium_discount"
+    , interestRate : parseFieldActusValueJson g block "interest_rate"
+    , interestRateCycle : parseFieldActusValueJson g block "interest_rate_cycle"
   }
   
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
@@ -651,7 +642,11 @@ actusContractToTerms raw = do --todo use monad transformers?
   rateResetAnchorValue <- blocklyCycleToAnchor c.rateReset
   rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue 
   notional <- Either.note "notional is a mandatory field!" <$> actusDecimalToNumber c.notional >>= identity
-  premium <- fromMaybe 0.0 <$> actusDecimalToNumber c.notional
+  premium <- fromMaybe 0.0 <$> actusDecimalToNumber c.premiumDiscount
+  interestRate <- actusDecimalToNumber c.interestRate
+  interestRateCycle <- blocklyCycleToCycle c.interestRateCycle
+  interestRateAnchorValue <- blocklyCycleToAnchor c.interestRateCycle
+  interestRateAnchor <- sequence $ actusDateToDay <$> interestRateAnchorValue 
 
   pure $ ContractTerms
       { contractId : "0"
@@ -695,9 +690,9 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_RRLC : 0.0
       , ct_RRLF : 0.0
       , ct_IPCED : Nothing
-      , ct_IPCL : Nothing
-      , ct_IPANX : Nothing
-      , ct_IPNR : Nothing
+      , ct_IPCL : interestRateCycle
+      , ct_IPANX : interestRateAnchor >>= identity
+      , ct_IPNR : interestRate
       , ct_IPAC : Nothing
       , ct_FECL : Nothing
       , ct_FEANX : Nothing

@@ -146,6 +146,7 @@ render state =
         , classes [ ClassName "actus-blockly-workspace", ClassName "container-fluid" ]
         ]
         [ toCodeButton "Generate reactive contract"
+        , text "  "
         , toStaticCodeButton "Generate static contract"
         , errorMessage state.errorMessage
         ]
