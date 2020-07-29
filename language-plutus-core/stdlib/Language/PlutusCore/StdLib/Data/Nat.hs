@@ -6,6 +6,7 @@
 
 module Language.PlutusCore.StdLib.Data.Nat
     ( natData
+    , natTy
     , zero
     , succ
     , foldrNat
@@ -36,6 +37,9 @@ natData = runQuote $ do
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () nat) $ TyVar () r)
         $ TyVar () r
+
+natTy :: Type TyName uni ()
+natTy = _recursiveType natData
 
 -- |  '0' as a PLC term.
 --
