@@ -20,24 +20,31 @@ data Arg tyname name uni a = TypeArg (Type tyname uni a) | TermArg (Term tyname 
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
 data BuiltinApp tyname name uni a = BuiltinApp (PLC.Builtin a) [Arg tyname name uni a]
 
-saturatesScheme ::  [Arg tyname name uni a] -> TypeScheme term args res -> Bool
-saturatesScheme [] TypeSchemeResult{} = True
+saturatesScheme ::  [Arg tyname name uni a] -> TypeScheme term args res -> Maybe Bool
+-- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
+saturatesScheme _ TypeSchemeResult{} = Just True
+-- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
 saturatesScheme (TypeArg _ : args) (TypeSchemeAllType _ k) = saturatesScheme args (k Proxy)
-saturatesScheme _ _ = False
+-- Under-applied, not saturated
+saturatesScheme [] TypeSchemeArrow{} = Just False
+saturatesScheme [] TypeSchemeAllType{} = Just False
+-- These cases are only possible in case we have an ill-typed builtin application, so we can't give an answer.
+saturatesScheme (TypeArg _ : _) TypeSchemeArrow{} = Nothing
+saturatesScheme (TermArg _ : _) TypeSchemeAllType{} = Nothing
 
--- | Is the given 'BuiltinApp' saturated?
+-- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
     :: forall tyname name uni a term
     . (HasConstantIn uni term, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => DynamicBuiltinNameMeanings term
     -> BuiltinApp tyname name uni a
-    -> Bool
+    -> Maybe Bool
 isSaturated (DynamicBuiltinNameMeanings means) (BuiltinApp b args) = case b of
     PLC.BuiltinName _ bn -> withTypedBuiltinName @uni @term bn $ \(TypedBuiltinName _ sch) -> saturatesScheme args sch
     PLC.DynBuiltinName _ bn -> case Map.lookup bn means of
         Just (DynamicBuiltinNameMeaning sch _ _) -> saturatesScheme args sch
-        Nothing -> False
+        Nothing -> Nothing
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
 asBuiltinApp :: Term tyname name uni a -> Maybe (BuiltinApp tyname name uni a)
@@ -76,9 +83,9 @@ isPure means varStrictness = go
             Constant {} -> True
             IWrap _ _ _ t -> go t
 
-            -- "Stuck" builtin applications won't compute, so won't have effects
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
-                not $ isSaturated means bapp
+                -- Pure only if we can tell that the builtin application is not saturated
+                (case isSaturated means bapp of { Just b -> not b; Nothing -> False; })
                 &&
                 -- But all the arguments need to also be effect-free, since they will be evaluated
                 -- when we evaluate the application.
