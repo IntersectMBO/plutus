@@ -46,8 +46,7 @@ asBuiltinApp = go []
         go argsSoFar = \case
             Apply _ t arg -> go (TermArg arg:argsSoFar) t
             TyInst _ t arg -> go (TypeArg arg:argsSoFar) t
-            -- We accumulated the arguments last-first, so reverse them here.
-            Builtin _ b -> Just $ BuiltinApp b (reverse argsSoFar)
+            Builtin _ b -> Just $ BuiltinApp b argsSoFar
             _ -> Nothing
 
 {- Note [Purity, strictness, and variables]
