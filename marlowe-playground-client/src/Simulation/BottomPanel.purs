@@ -18,9 +18,9 @@ import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
+import Halogen.Classes (aHorizontal, accentBorderBottom, active, activeClass, closeDrawerArrowIcon, first, flex, flexLeft, flexTen, footerPanelBg, minimizeIcon, rTable, rTable6cols, rTableCell, rTableDataRow, rTableEmptyRow, spanText, underline)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul)
+import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3, img, li, li_, ol, pre, section, span_, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
@@ -29,28 +29,19 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
-import Simulation.Types (Action(..), BottomPanelView(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
-
-simulationBottomPanel :: State -> Array ClassName
-simulationBottomPanel state = if state ^. _showBottomPanel then [ ClassName "simulation-bottom-panel" ] else [ ClassName "simulation-bottom-panel", ClassName "collapse" ]
-
-footerPanelBg :: Boolean -> Array ClassName
-footerPanelBg display =
-  if display then
-    [ ClassName "footer-panel-bg", ClassName "expanded" ]
-  else
-    [ ClassName "footer-panel-bg" ]
+import Types (bottomPanelHeight)
 
 bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
-  div [ classes (simulationBottomPanel state) ]
-    [ div [ class_ flex ]
+  div ([ classes [ ClassName "simulation-bottom-panel" ], bottomPanelHeight (state ^. _showBottomPanel) ])
+    [ div [ classes [ flex, ClassName "flip-x", ClassName "full-height" ] ]
         [ div [ class_ flexTen ]
-            [ div [ classes (footerPanelBg (state ^. _showBottomPanel) <> [ active ]) ]
+            [ div [ classes [ footerPanelBg, active ] ]
                 [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-                    [ div [ classes ([ ClassName "panel-sub-header-main", aHorizontal ] <> (if state ^. _showBottomPanel then [ accentBorderBottom ] else [])) ]
+                    [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
                         [ ul [ class_ (ClassName "start-item") ]
                             [ li [ class_ (ClassName "minimize-icon-container") ]
                                 [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
@@ -101,6 +92,16 @@ bottomPanel state =
   hasRuntimeWarnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings <<< to Array.null <<< to not)
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
+
+isStaticLoading :: AnalysisState -> Boolean
+isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
+
+isStaticLoading _ = false
+
+isReachabilityLoading :: AnalysisState -> Boolean
+isReachabilityLoading (ReachabilityAnalysis (InProgress _)) = true
+
+isReachabilityLoading _ = false
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =
@@ -291,12 +292,16 @@ panelContents state StaticAnalysisView =
     ]
     [ analysisResultPane state
     , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loading then "Analysing..." else "Analyse") ]
+        [ text (if loading then "Analysing..." else "Analyse for warnings") ]
+    , button [ onClick $ const $ Just $ AnalyseReachabilityContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
+        [ text (if loadingReachability then "Analysing..." else "Analyse reachability") ]
     ]
   where
-  loading = state ^. _analysisState <<< to isLoading
+  loading = state ^. _analysisState <<< to isStaticLoading
 
-  enabled' = not loading && isContractValid state
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  enabled' = not loading && not loadingReachability && isContractValid state
 
 panelContents state MarloweWarningsView =
   section
@@ -314,7 +319,7 @@ panelContents state MarloweWarningsView =
           [ div [] [ text "Description" ]
           , div [] [ text "Line Number" ]
           ]
-      , ul [] (map renderWarning warnings)
+      , ul_ (map renderWarning warnings)
       ]
 
   renderWarning warning =
@@ -343,7 +348,7 @@ panelContents state MarloweErrorsView =
           [ div [] [ text "Description" ]
           , div [] [ text "Line Number" ]
           ]
-      , ul [] (map renderError errors)
+      , ul_ (map renderError errors)
       ]
 
   renderError error =
@@ -398,55 +403,92 @@ analysisResultPane state =
     explanation = div [ classes [ ClassName "padded-explanation" ] ]
   in
     case result of
-      NotAsked ->
+      NoneAsked ->
         explanation
           [ text ""
           ]
-      Success (R.Valid) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Pass" ]
-          , text "Static analysis could not find any execution that results in any warning."
-          ]
-      Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Warnings Found" ]
-          , text "Static analysis found the following counterexample:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ spanText "Warnings issued: "
-                  , displayWarningList transactionWarning
-                  ]
-              , li_
-                  [ spanText "Initial slot: "
-                  , b_ [ spanText (show initialSlot) ]
-                  ]
-              , li_
-                  [ spanText "Offending transaction list: "
-                  , displayTransactionList transactionList
-                  ]
-              ]
-          ]
-      Success (R.Error str) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ b_ [ spanText str ]
-                  ]
-              ]
-          ]
-      Failure failure ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ b_ [ spanText failure ]
-                  ]
-              ]
-          ]
-      Loading -> text ""
+      WarningAnalysis staticSubResult -> case staticSubResult of
+        NotAsked ->
+          explanation
+            [ text ""
+            ]
+        Success (R.Valid) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Warning Analysis Result: Pass" ]
+            , text "Static analysis could not find any execution that results in any warning."
+            ]
+        Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Warning Analysis Result: Warnings Found" ]
+            , text "Static analysis found the following counterexample:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ spanText "Warnings issued: "
+                    , displayWarningList transactionWarning
+                    ]
+                , li_
+                    [ spanText "Initial slot: "
+                    , b_ [ spanText (show initialSlot) ]
+                    ]
+                , li_
+                    [ spanText "Offending transaction list: "
+                    , displayTransactionList transactionList
+                    ]
+                ]
+            ]
+        Success (R.Error str) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText str ]
+                    ]
+                ]
+            ]
+        Failure failure ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText failure ]
+                    ]
+                ]
+            ]
+        Loading -> text ""
+      ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
+        NotStarted ->
+          explanation
+            [ text ""
+            ]
+        InProgress
+          { numSubproblems: totalSteps
+        , numSolvedSubproblems: doneSteps
+        } ->
+          explanation
+            [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+        ReachabilityFailure err ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
+            , text "Reachability analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText err ]
+                    ]
+                ]
+            ]
+        UnreachableSubcontract contractPath ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
+            , text "Static analysis found the following subcontract that is unreachable:"
+            , text (show contractPath)
+            ]
+        AllReachable ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]
+            , text "Reachability analysis could not find any subcontract that is not reachable."
+            ]
 
 displayTransactionList :: forall p. String -> HTML p Action
 displayTransactionList transactionList = case runParser transactionInputList transactionList of

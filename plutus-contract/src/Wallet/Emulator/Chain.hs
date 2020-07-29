@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeOperators         #-}
 module Wallet.Emulator.Chain where
 
+import           Codec.Serialise            (Serialise)
 import           Control.Lens               hiding (index)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.State
@@ -21,6 +22,7 @@ import           Control.Monad.Freer.Writer
 import qualified Control.Monad.State        as S
 import           Data.Aeson                 (FromJSON, ToJSON)
 import           Data.List                  (partition)
+import           Data.List                  ((\\))
 import           Data.Maybe                 (isNothing)
 import           Data.Text.Prettyprint.Doc
 import           Data.Traversable           (for)
@@ -53,7 +55,7 @@ data ChainState = ChainState {
     _txPool           :: TxPool, -- ^ The pool of pending transactions.
     _index            :: Index.UtxoIndex, -- ^ The UTxO index, used for validation.
     _currentSlot      :: Slot -- ^ The current slot number
-} deriving (Show)
+} deriving (Show, Generic, Serialise)
 
 emptyChainState :: ChainState
 emptyChainState = ChainState [] [] mempty 0
@@ -85,13 +87,12 @@ handleControlChain = interpret $ \case
         let pool  = st ^. txPool
             slot  = st ^. currentSlot
             idx   = st ^. index
-            (ValidatedBlock block events rest, idx') =
+            ValidatedBlock block events rest =
                 validateBlock slot idx pool
 
         let st' = st & txPool .~ rest
-                   & chainNewestFirst %~ (block :)
-                   & index .~ idx'
-                   & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
+                     & addBlock block
+
         put st'
         tell events
 
@@ -99,7 +100,7 @@ handleControlChain = interpret $ \case
 
 handleChain :: (Members ChainEffs effs) => Eff (ChainEffect ': effs) ~> Eff effs
 handleChain = interpret $ \case
-    QueueTx tx -> modify $ over txPool (tx :)
+    QueueTx tx -> modify $ over txPool (addTxToPool tx)
     GetCurrentSlot -> gets _currentSlot
 
 -- | The result of validating a block.
@@ -116,7 +117,7 @@ data ValidatedBlock = ValidatedBlock
 -- | Validate a block given the current slot and UTxO index, returning the valid
 --   transactions, success/failure events, remaining transactions and the
 --   updated UTxO set.
-validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> (ValidatedBlock, Index.UtxoIndex)
+validateBlock :: Slot -> Index.UtxoIndex -> [Tx] -> ValidatedBlock
 validateBlock slot@(Slot s) idx txns =
     let
         -- Select those transactions that can be validated in the
@@ -124,8 +125,8 @@ validateBlock slot@(Slot s) idx txns =
         (eligibleTxns, rest) = partition (canValidateNow slot) txns
 
         -- Validate eligible transactions, updating the UTXO index each time
-        (processed, idx') =
-            flip S.runState idx $ for eligibleTxns $ \t -> do
+        processed =
+            flip S.evalState idx $ for eligibleTxns $ \t -> do
                 r <- validateEm slot t
                 pure (t, r)
 
@@ -138,7 +139,7 @@ validateBlock slot@(Slot s) idx txns =
         nextSlot = Slot (s + 1)
         events   = (reverse (uncurry mkValidationEvent <$> processed)) ++ [SlotAdd nextSlot]
 
-    in (ValidatedBlock block events rest, idx')
+    in ValidatedBlock block events rest
 
 -- | Check whether the given transaction can be validated in the given slot.
 canValidateNow :: Slot -> Tx -> Bool
@@ -160,5 +161,18 @@ validateEm h txn = do
         Right idx' -> do
             _ <- S.put idx'
             pure Nothing
+
+-- | Adds a block to ChainState
+addBlock :: Block -> ChainState -> ChainState
+addBlock blk st =
+  st & chainNewestFirst %~ (blk :)
+     & index %~ Index.insertBlock blk
+     -- The block update may contain txs that are not in this client's
+     -- `txPool` which will get ignored
+     & txPool %~ (\\ blk)
+     & currentSlot +~ 1 -- This assumes that there is exactly one block per slot. In the real chain there may be more than one block per slot.
+
+addTxToPool :: Tx -> TxPool -> TxPool
+addTxToPool = (:)
 
 makePrisms ''ChainEvent

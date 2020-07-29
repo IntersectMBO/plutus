@@ -1,14 +1,17 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.MkPlc
     ( TermLike (..)
+    , UniOf
     , builtinNameAsTerm
     , dynamicBuiltinNameAsTerm
     , mkTyBuiltin
@@ -50,7 +53,6 @@ import           Language.PlutusCore.Core
 import           Data.List                             (foldl')
 import           GHC.Generics                          (Generic)
 
---- TODO: add @con@.
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
 class TermLike term tyname name uni | term -> tyname, term -> name, term -> uni where
     var      :: ann -> name -> term ann

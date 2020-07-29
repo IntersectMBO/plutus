@@ -6,15 +6,13 @@
 ############################################################################
 { pkgs, compiler-nix-name, index-state, checkMaterialization, sources }:
 {
-  # FIXME: this cabal can't be used for development purposes until
-  # https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
-  # Also need to pick a version that builds properly
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
-    version = "3.0.0.0";
-    inherit compiler-nix-name index-state checkMaterialization;
+    version = "3.2.0.0";
+    inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
+      ghc883 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
     }.${compiler-nix-name};
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
@@ -39,7 +37,7 @@
       ghc8101 = "182ghddbj9fg6jd6w54s1byrfzhnhf3vwmfwzm5a9rg6yik0vm82";
     }.${compiler-nix-name};
   };
-  haskell-language-server =
+  inherit (
     let hspkgs = pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
           owner = "haskell";
@@ -62,7 +60,8 @@
           packages.haskell-language-server.doCheck = false;
         }];
       };
-    in hspkgs.haskell-language-server;
+    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
+  hie-bios haskell-language-server;
   ghcide = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;

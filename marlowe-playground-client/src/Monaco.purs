@@ -129,6 +129,9 @@ type CompletionItem
     , kind :: CompletionItemKind
     , insertText :: String
     , range :: IRange
+    , filterText :: String
+    , sortText :: String
+    , preselect :: Boolean
     }
 
 type Marker r
@@ -145,6 +148,9 @@ type Marker r
 
 type IMarkerData
   = Record (Marker ())
+
+getRange :: IMarkerData -> IRange
+getRange { startLineNumber, startColumn, endLineNumber, endColumn } = { startLineNumber, startColumn, endLineNumber, endColumn }
 
 type IMarker
   = Record (Marker ( owner :: String, resource :: Uri ))

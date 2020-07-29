@@ -60,6 +60,7 @@ library
         containers -any,
         extra -any,
         ghc >=8.8 && <8.9,
+        ghc-prim -any,
         language-plutus-core -any,
         lens -any,
         mtl -any,
@@ -106,5 +107,6 @@ test-suite plutus-tx-tests
         tasty-hedgehog -any,
         hedgehog -any,
         lens -any,
+        ghc-prim -any,
     -- this makes the plugin give better errors
     ghc-options: -g

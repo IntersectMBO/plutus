@@ -38,6 +38,7 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
           (hsPkgs."ghc" or (errorHandler.buildDepError "ghc"))
+          (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
@@ -85,6 +86,7 @@
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
             ];
           buildable = true;
           modules = [

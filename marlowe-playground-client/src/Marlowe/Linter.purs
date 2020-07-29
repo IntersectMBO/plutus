@@ -1,7 +1,6 @@
 module Marlowe.Linter
   ( lint
   , State(..)
-  , Position
   , MaxTimeout
   , Warning(..)
   , WarningDetail(..)
@@ -21,6 +20,7 @@ import Data.Array as Array
 import Data.Array.NonEmpty (index)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..), hush)
+import Data.Foldable (foldM)
 import Data.Function (on)
 import Data.Functor (mapFlipped)
 import Data.Generic.Rep (class Generic)
@@ -43,16 +43,13 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
-import Marlowe.Holes (Action(..), Argument, Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), ValueId, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getPosition, holeSuggestions, insertHole, readMarloweType)
+import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
-import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, emptyState, evalValue, makeEnvironment)
+import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
 import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
-import Text.Parsing.StringParser (Pos)
+import Monaco as Monaco
 import Text.Pretty (pretty)
-
-type Position
-  = { row :: Pos, column :: Pos }
 
 newtype MaxTimeout
   = MaxTimeout (TermWrapper Slot)
@@ -80,8 +77,10 @@ data WarningDetail
   | NegativeDeposit
   | TimeoutNotIncreasing
   | UnreachableCaseEmptyChoice
+  | InvalidBound
   | UnreachableCaseFalseNotify
   | UnreachableContract
+  | UndefinedChoice
   | UndefinedUse
   | ShadowedLet
   | DivisionByZero
@@ -94,10 +93,12 @@ instance showWarningDetail :: Show WarningDetail where
   show NegativePayment = "The contract can make a non-positive payment"
   show NegativeDeposit = "The contract can make a non-positive deposit"
   show TimeoutNotIncreasing = "Timeouts should always increase in value"
-  show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose"
+  show UnreachableCaseEmptyChoice = "This case will never be used, because there are no options to choose from"
+  show InvalidBound = "This pair of bounds is invalid, since the lower bound is greater than the higher bound"
   show UnreachableCaseFalseNotify = "This case will never be used, because the Observation is always false"
   show UnreachableContract = "This contract is unreachable"
-  show UndefinedUse = "The contract tries to Use a ValueId that has not been defined in a Let"
+  show UndefinedChoice = "The contract uses a ChoiceId that has not been input by a When, so (Constant 0) will be used"
+  show UndefinedUse = "The contract uses a ValueId that has not been defined in a Let, so (Constant 0) will be used"
   show ShadowedLet = "Let is redefining a ValueId that already exists"
   show DivisionByZero = "Scale construct divides by zero"
   show (SimplifiableValue oriVal newVal) = "The value \"" <> (show oriVal) <> "\" can be simplified to \"" <> (show newVal) <> "\""
@@ -110,6 +111,24 @@ instance showWarningDetail :: Show WarningDetail where
       <> show accountId
       <> " but the account only has "
       <> show availableAmount
+
+warningType :: Warning -> String
+warningType (Warning { warning }) = case warning of
+  NegativePayment -> "NegativePayment"
+  NegativeDeposit -> "NegativeDeposit"
+  TimeoutNotIncreasing -> "TimeoutNotIncreasing"
+  UnreachableCaseEmptyChoice -> "UnreachableCaseEmptyChoice"
+  InvalidBound -> "InvalidBound"
+  UnreachableCaseFalseNotify -> "UnreachableCaseFalseNotify"
+  UnreachableContract -> "UnreachableContract"
+  UndefinedChoice -> "UndefinedChoice"
+  UndefinedUse -> "UndefinedUse"
+  ShadowedLet -> "ShadowedLet"
+  DivisionByZero -> "DivisionByZero"
+  (SimplifiableValue _ _) -> "SimplifiableValue"
+  (SimplifiableObservation _ _) -> "SimplifiableObservation"
+  (PayBeforeDeposit _) -> "PayBeforeDeposit"
+  (PartialPayment _ _ _ _) -> "PartialPayment"
 
 derive instance genericWarningDetail :: Generic WarningDetail _
 
@@ -124,7 +143,7 @@ derive instance genericWarning :: Generic Warning _
 instance eqWarning :: Eq Warning where
   eq = genericEq
 
--- We order Warnings by their position first
+-- We order Warnings by their Range first
 instance ordWarning :: Ord Warning where
   compare a@(Warning { range: rangeA }) b@(Warning { range: rangeB }) =
     let
@@ -145,8 +164,6 @@ getWarningRange (Warning warn) = warn.range
 newtype State
   = State
   { holes :: Holes
-  , maxTimeout :: MaxTimeout
-  , letBindings :: Set ValueId
   , warnings :: Set Warning
   }
 
@@ -162,19 +179,12 @@ _holes = _Newtype <<< prop (SProxy :: SProxy "holes")
 _warnings :: Lens' State (Set Warning)
 _warnings = _Newtype <<< prop (SProxy :: SProxy "warnings")
 
-termToRange :: forall a. Show a => a -> { row :: Int, column :: Int } -> IRange
-termToRange a { row, column } =
-  { startLineNumber: row
-  , startColumn: column
-  , endLineNumber: row
-  , endColumn: column + (length (show a))
-  }
-
 newtype LintEnv
   = LintEnv
-  { letBindings :: Set Semantics.ValueId
-  , maxTimeout :: MaxTimeout
+  { choicesMade :: Set Semantics.ChoiceId
   , deposits :: Map (Semantics.AccountId /\ Semantics.Token) (Maybe BigInteger)
+  , letBindings :: Set Semantics.ValueId
+  , maxTimeout :: MaxTimeout
   }
 
 derive instance newtypeLintEnv :: Newtype LintEnv _
@@ -182,6 +192,9 @@ derive instance newtypeLintEnv :: Newtype LintEnv _
 derive newtype instance semigroupLintEnv :: Semigroup LintEnv
 
 derive newtype instance monoidLintEnv :: Monoid LintEnv
+
+_choicesMade :: Lens' LintEnv (Set Semantics.ChoiceId)
+_choicesMade = _Newtype <<< prop (SProxy :: SProxy "choicesMade")
 
 _letBindings :: Lens' LintEnv (Set Semantics.ValueId)
 _letBindings = _Newtype <<< prop (SProxy :: SProxy "letBindings")
@@ -194,18 +207,18 @@ _deposits = _Newtype <<< prop (SProxy :: SProxy "deposits")
 
 data TemporarySimplification a b
   = ConstantSimp
-    Position
+    Range
     Boolean -- Is simplified (it is not just a constant that was already a constant)
     a -- Constant
   | ValueSimp
-    Position
+    Range
     Boolean -- Is simplified (only root, no subtrees)
     (Term b) -- Value
 
-getSimpPosition :: forall a b. TemporarySimplification a b -> Position
-getSimpPosition (ConstantSimp pos _ _) = pos
+getSimpRange :: forall a b. TemporarySimplification a b -> Range
+getSimpRange (ConstantSimp pos _ _) = pos
 
-getSimpPosition (ValueSimp pos _ _) = pos
+getSimpRange (ValueSimp pos _ _) = pos
 
 isSimplified :: forall a b. TemporarySimplification a b -> Boolean
 isSimplified (ConstantSimp _ simp _) = simp
@@ -217,31 +230,31 @@ getValue f (ConstantSimp _ _ c) = f c
 
 getValue _ (ValueSimp _ _ v) = v
 
-simplifyTo :: forall a b. TemporarySimplification a b -> Position -> TemporarySimplification a b
+simplifyTo :: forall a b. TemporarySimplification a b -> Range -> TemporarySimplification a b
 simplifyTo (ConstantSimp _ _ c) pos = (ConstantSimp pos true c)
 
 simplifyTo (ValueSimp _ _ c) pos = (ValueSimp pos true c)
 
-addWarning :: forall a. Show a => WarningDetail -> a -> { row :: Int, column :: Int } -> CMS.State State Unit
-addWarning warnDetail term pos =
+addWarning :: forall a. Show a => WarningDetail -> a -> Range -> CMS.State State Unit
+addWarning warnDetail term range =
   modifying _warnings $ Set.insert
     $ Warning
         { warning: warnDetail
-        , range: termToRange term pos
+        , range
         }
 
 markSimplification :: forall a b. Show b => (a -> Term b) -> (Term b -> Term b -> WarningDetail) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
 markSimplification f c oriVal x
-  | isSimplified x = addWarning (c oriVal (getValue f x)) oriVal (getPosition oriVal)
+  | isSimplified x = addWarning (c oriVal (getValue f x)) oriVal (getRange oriVal)
   | otherwise = pure unit
 
 constToObs :: Boolean -> Term Observation
-constToObs true = Term TrueObs { row: 0, column: 0 }
+constToObs true = Term TrueObs zero
 
-constToObs false = Term FalseObs { row: 0, column: 0 }
+constToObs false = Term FalseObs zero
 
 constToVal :: BigInteger -> Term Value
-constToVal x = Term (Constant x) { row: 0, column: 0 }
+constToVal x = Term (Constant x) zero
 
 addMoneyToEnvAccount :: BigInteger -> Semantics.AccountId -> Semantics.Token -> LintEnv -> LintEnv
 addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (addMoney amountToAdd) (accTerm /\ tokenTerm))
@@ -258,11 +271,13 @@ addMoneyToEnvAccount amountToAdd accTerm tokenTerm = over _deposits (Map.alter (
 lint :: Semantics.State -> Term Contract -> State
 lint contractState contract = state
   where
-  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
+  choices = contractState ^. (_choices <<< to Map.keys)
 
   bindings = contractState ^. (_boundValues <<< to Map.keys)
 
-  env = (set _letBindings bindings <<< set _deposits deposits) mempty
+  deposits = contractState ^. (_accounts <<< to (Map.mapMaybe (Just <<< Just)))
+
+  env = (set _letBindings bindings <<< set _deposits deposits <<< set _choicesMade choices) mempty
 
   state = CMS.execState (lintContract env contract) mempty
 
@@ -314,10 +329,10 @@ lintContract env (Term (If obs c1 c2) _) = do
   case sa of
     (ConstantSimp _ _ c) ->
       if c then do
-        addWarning UnreachableContract c2 (getPosition c2)
+        addWarning UnreachableContract c2 (getRange c2)
         pure unit
       else do
-        addWarning UnreachableContract c1 (getPosition c1)
+        addWarning UnreachableContract c1 (getRange c1)
         pure unit
     _ -> do
       markSimplification constToObs SimplifiableObservation obs sa
@@ -534,10 +549,14 @@ lintValue env t@(Term (Scale (TermWrapper r@(Rational a b) pos2) c) pos) = do
             markSimplification constToVal SimplifiableValue c sc
           pure (ValueSimp pos isSimp (Term (Scale (TermWrapper (Rational na nb) pos2) c) pos))
 
-lintValue env t@(Term (ChoiceValue choiceId a) pos) = do
+lintValue env t@(Term (ChoiceValue choiceId) pos) = do
+  when
+    ( case fromTerm choiceId of
+        Just semChoiceId -> not $ Set.member semChoiceId (view _choicesMade env)
+        Nothing -> false
+    )
+    (addWarning UndefinedChoice t pos)
   modifying _holes (getHoles choiceId)
-  sa <- lintValue env a
-  markSimplification constToVal SimplifiableValue a sa
   pure (ValueSimp pos false t)
 
 lintValue env t@(Term SlotIntervalStart pos) = pure (ValueSimp pos false t)
@@ -576,6 +595,7 @@ lintValue env t@(Term (Cond c a b) pos) = do
 data Effect
   = ConstantDeposit Semantics.AccountId Semantics.Token BigInteger
   | UnknownDeposit Semantics.AccountId Semantics.Token
+  | ChoiceMade Semantics.ChoiceId
   | NoEffect
 
 lintCase :: LintEnv -> Term Case -> CMS.State State Unit
@@ -585,6 +605,7 @@ lintCase env t@(Term (Case action contract) pos) = do
     newEnv = case effect of
       ConstantDeposit accTerm tokenTerm amount -> addMoneyToEnvAccount amount accTerm tokenTerm env
       UnknownDeposit accTerm tokenTerm -> over _deposits (Map.insert (accTerm /\ tokenTerm) Nothing) env
+      ChoiceMade choiceId -> over _choicesMade (Set.insert choiceId) env
       NoEffect -> env
   lintContract newEnv contract
   pure unit
@@ -592,6 +613,16 @@ lintCase env t@(Term (Case action contract) pos) = do
 lintCase env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure unit
+
+lintBounds :: Boolean -> Term Bound -> CMS.State State Boolean
+lintBounds restAreInvalid t@(Hole _ _ _) = do
+  pure false
+
+lintBounds restAreInvalid t@(Term (Bound l h) pos) = do
+  let
+    isInvalidBound = l > h
+  when isInvalidBound $ addWarning InvalidBound t pos
+  pure (isInvalidBound && restAreInvalid)
 
 lintAction :: LintEnv -> Term Action -> CMS.State State Effect
 lintAction env t@(Term (Deposit acc party token value) pos) = do
@@ -618,9 +649,12 @@ lintAction env t@(Term (Deposit acc party token value) pos) = do
   makeDepositConstant other _ = other
 
 lintAction env t@(Term (Choice choiceId bounds) pos) = do
+  let
+    choTerm = maybe NoEffect ChoiceMade (fromTerm choiceId)
   modifying _holes (getHoles choiceId <> getHoles bounds)
-  when (Array.null bounds) $ addWarning UnreachableCaseEmptyChoice t pos
-  pure NoEffect
+  allInvalid <- foldM lintBounds true bounds
+  when (allInvalid) $ addWarning UnreachableCaseEmptyChoice t pos
+  pure choTerm
 
 lintAction env t@(Term (Notify obs) pos) = do
   sa <- lintObservation env obs
@@ -634,15 +668,15 @@ lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure NoEffect
 
-suggestions :: Boolean -> String -> IRange -> Array CompletionItem
-suggestions stripParens contract range =
+suggestions :: String -> Boolean -> String -> IRange -> Array CompletionItem
+suggestions original stripParens contract range =
   fromMaybe [] do
     parsedContract <- hush $ parseContract contract
     let
       (Holes holes) = view _holes ((lint (emptyState zero)) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
     { head } <- Array.uncons $ Set.toUnfoldable v
-    pure $ holeSuggestions stripParens range head
+    pure $ holeSuggestions original stripParens range head
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker
@@ -682,11 +716,11 @@ holesToMarkers (Holes holes) =
     foldMap holeToMarkers allHoles
 
 holeToMarker :: MarloweHole -> Map String (Array Argument) -> String -> IMarkerData
-holeToMarker hole@(MarloweHole { name, marloweType, row, column }) m constructorName =
-  { startColumn: column
-  , startLineNumber: row
-  , endColumn: column + (length name) + 1
-  , endLineNumber: row
+holeToMarker hole@(MarloweHole { name, marloweType, range: { startLineNumber, startColumn, endLineNumber, endColumn } }) m constructorName =
+  { startColumn
+  , startLineNumber
+  , endColumn
+  , endLineNumber
   , message: holeText marloweType
   , severity: markerSeverity "Warning"
   , code: ""
@@ -697,7 +731,7 @@ holeToMarker hole@(MarloweHole { name, marloweType, row, column }) m constructor
   dropEnd n = fromCodePointArray <<< Array.dropEnd n <<< toCodePointArray
 
 holeToMarkers :: MarloweHole -> Array IMarkerData
-holeToMarkers hole@(MarloweHole { name, marloweType, row, column }) =
+holeToMarkers hole@(MarloweHole { name, marloweType }) =
   let
     m = getMarloweConstructors marloweType
 
@@ -706,7 +740,7 @@ holeToMarkers hole@(MarloweHole { name, marloweType, row, column }) =
     map (holeToMarker hole m) constructors
 
 markerToHole :: IMarkerData -> MarloweType -> MarloweHole
-markerToHole { startColumn, startLineNumber } marloweType = MarloweHole { name: "unknown", marloweType, row: startLineNumber, column: startColumn }
+markerToHole markerData marloweType = MarloweHole { name: "unknown", marloweType, range: (Monaco.getRange markerData) }
 
 warningToMarker :: Warning -> IMarkerData
 warningToMarker warning =
@@ -720,7 +754,7 @@ warningToMarker warning =
     , message: show warning
     , severity: markerSeverity "Warning"
     , code: ""
-    , source: ""
+    , source: warningType warning
     }
 
 format :: String -> String
@@ -728,34 +762,38 @@ format contractString = case parseContract contractString of
   Left _ -> contractString
   Right contract -> show $ pretty contract
 
+provideLintCodeActions :: Uri -> Array IMarkerData -> Array CodeAction
+provideLintCodeActions _ _ = []
+
 provideCodeActions :: Uri -> Array IMarkerData -> Array CodeAction
 provideCodeActions uri markers' =
-  (flip foldMap) markers' \(marker@{ source, startLineNumber, startColumn, endLineNumber, endColumn }) -> case regex "Hole: (\\w+)" noFlags of
-    Left _ -> []
-    Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of
-      Nothing -> []
-      Just marloweType ->
-        let
-          m = getMarloweConstructors marloweType
+  provideLintCodeActions uri markers'
+    <> (flip foldMap) markers' \(marker@{ source, startLineNumber, startColumn, endLineNumber, endColumn }) -> case regex "Hole: (\\w+)" noFlags of
+        Left _ -> []
+        Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of
+          Nothing -> []
+          Just marloweType ->
+            let
+              m = getMarloweConstructors marloweType
 
-          hole = markerToHole marker marloweType
+              hole = markerToHole marker marloweType
 
-          (constructors :: Array _) = Set.toUnfoldable $ Map.keys m
+              (constructors :: Array _) = Set.toUnfoldable $ Map.keys m
 
-          range =
-            { startLineNumber
-            , startColumn
-            , endLineNumber
-            , endColumn
-            }
+              range =
+                { startLineNumber
+                , startColumn
+                , endLineNumber
+                , endColumn
+                }
 
-          actions =
-            mapFlipped constructors \constructorName ->
-              let
-                text = constructMarloweType constructorName hole m
+              actions =
+                mapFlipped constructors \constructorName ->
+                  let
+                    text = constructMarloweType constructorName hole m
 
-                edit = { resource: uri, edit: { range, text } }
-              in
-                { title: constructorName, edit: { edits: [ edit ] }, kind: "quickfix" }
-        in
-          actions
+                    edit = { resource: uri, edit: { range, text } }
+                  in
+                    { title: constructorName, edit: { edits: [ edit ] }, kind: "quickfix" }
+            in
+              actions

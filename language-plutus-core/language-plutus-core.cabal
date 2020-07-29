@@ -17,6 +17,10 @@ extra-doc-files: README.md
 extra-source-files:
     src/costModel.json
     language-plutus-core/src/costModel.json
+    budgeting-bench/csvs/*.csv
+    language-plutus-core/budgeting-bench/csvs/*.csv
+    budgeting-bench/*.R
+    language-plutus-core/budgeting-bench/*.R
 
 source-repository head
     type: git
@@ -133,7 +137,6 @@ library
         Language.PlutusCore.Constant.Dynamic.BuiltinName
         Language.PlutusCore.Constant.Dynamic.Call
         Language.PlutusCore.Constant.Dynamic.Emit
-        Language.PlutusCore.Constant.Dynamic.OnChain
         Language.PlutusCore.Constant.Dynamic.OffChain
         Language.PlutusCore.Constant.Function
         Language.PlutusCore.Constant.Name
@@ -157,6 +160,7 @@ library
         Language.PlutusCore.Analysis.Definitions
         Language.PlutusCore.Examples.Data.InterList
         Language.PlutusCore.Examples.Data.TreeForest
+        Language.PlutusCore.Examples.Data.Vec
         Language.PlutusCore.Generators.Internal.Denotation
         Language.PlutusCore.Generators.Internal.Dependent
         Language.PlutusCore.Generators.Internal.Entity
@@ -181,6 +185,7 @@ library
         aeson -any,
         algebraic-graphs >= 0.3,
         base >=4.9 && <5,
+        barbies -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -214,6 +219,7 @@ library
         semigroups -any,
         semigroupoids -any,
         serialise -any,
+        size-based -any,
         tasty -any,
         tasty-golden -any,
         text -any,
@@ -223,7 +229,8 @@ library
         template-haskell -any,
         data-default -any,
         data-default-class -any,
-        transformers -any
+        transformers -any,
+        Stream -any
 
 executable language-plutus-core-generate-evaluation-test
     import: lang
@@ -248,7 +255,6 @@ test-suite language-plutus-core-test
         Evaluation.ApplyBuiltinName
         Evaluation.DynamicBuiltins.Common
         Evaluation.DynamicBuiltins.Definition
-        Evaluation.DynamicBuiltins.Logging
         Evaluation.DynamicBuiltins.MakeRead
         Evaluation.DynamicBuiltins
         Evaluation.Golden
@@ -259,6 +265,9 @@ test-suite language-plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
+        Language.PlutusCore.Gen.Common
+        Language.PlutusCore.Gen.Type
+        Language.PlutusCore.PropTest
     default-language: Haskell2010
     build-depends:
         base -any,
@@ -267,11 +276,14 @@ test-suite language-plutus-core-test
         filepath -any,
         hedgehog -any,
         language-plutus-core -any,
+        lazy-search -any,        
         lens -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
         serialise -any,
+        size-based -any,
+        Stream -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
@@ -339,6 +351,7 @@ executable plc
     hs-source-dirs: exe
     build-depends:
         base <5,
+        deepseq -any,
         language-plutus-core -any,
         transformers -any,
         bytestring -any,
@@ -347,7 +360,6 @@ executable plc
         lens -any,
         prettyprinter -any,
         optparse-applicative -any
-
 
 benchmark language-plutus-core-budgeting-bench
     import: lang
@@ -370,15 +382,18 @@ benchmark language-plutus-core-budgeting-bench
         integer-gmp -any,
         hedgehog -any
 
+-- benchmark sets the correct PWD and doesn't get run by `stack test`
 benchmark language-plutus-core-create-cost-model
     type: exitcode-stdio-1.0
-    main-is: CreateModel.hs
-    hs-source-dirs: create-cost-model
+    main-is: CreateCostModel.hs
+    -- cost-model-creation should be its own library, but stack + HIE really don't like sub-libraries.
+    hs-source-dirs: create-cost-model, cost-model-creation
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
+        barbies -any,
         bytestring -any,
         containers -any,
         language-plutus-core -any,
@@ -392,8 +407,47 @@ benchmark language-plutus-core-create-cost-model
         aeson -any,
         text -any,
         deriving-aeson >= 0.2.3,
-        aeson-pretty -any,
         extra -any,
         data-default -any,
         cassava -any,
-        exceptions -any
+        exceptions -any,
+        deriving-aeson >= 0.2.3,
+        aeson-pretty -any,
+        bytestring -any
+    other-modules:
+        CostModelCreation
+
+test-suite language-plutus-core-test-cost-model
+    type: exitcode-stdio-1.0
+    main-is: TestCostModels.hs
+    hs-source-dirs: test-cost-model, cost-model-creation
+    default-language: Haskell2010
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
+        base -any,
+        bytestring -any,
+        barbies -any,
+        containers -any,
+        language-plutus-core -any,
+        serialise -any,
+        deepseq -any,
+        lens -any,
+        directory -any,
+        hedgehog -any,
+        vector -any,
+        aeson -any,
+        text -any,
+        deriving-aeson >= 0.2.3,
+        extra -any,
+        data-default -any,
+        cassava -any,
+        mmorph -any,
+        exceptions -any,
+        hedgehog -any,
+        bytestring -any,
+        containers -any,
+        language-plutus-core -any,
+        inline-r -any
+    other-modules:
+        CostModelCreation

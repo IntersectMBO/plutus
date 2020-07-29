@@ -15,6 +15,8 @@ module Language.PlutusCore.Generators.Internal.Dependent
 import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Data.GADT.Compare
@@ -27,7 +29,7 @@ liftOrdering GT = GGT
 
 -- | Contains a proof that @a@ is a 'KnownType'.
 data AsKnownType uni a where
-    AsKnownType :: KnownType uni a => AsKnownType uni a
+    AsKnownType :: KnownType (Term TyName Name uni ()) a => AsKnownType uni a
 
 instance GShow uni => Pretty (AsKnownType uni a) where
     pretty a@AsKnownType = pretty $ toTypeAst @uni a
@@ -49,5 +51,5 @@ instance GShow uni => GCompare (AsKnownType uni) where
         | otherwise              = liftOrdering $ display @String a `compare` display b
 
 -- | Turn any @proxy a@ into an @AsKnownType a@ provided @a@ is a 'KnownType'.
-proxyAsKnownType :: KnownType uni a => proxy a -> AsKnownType uni a
+proxyAsKnownType :: KnownType (Term TyName Name uni ()) a => proxy a -> AsKnownType uni a
 proxyAsKnownType _ = AsKnownType

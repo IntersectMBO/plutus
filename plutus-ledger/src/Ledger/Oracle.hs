@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
@@ -128,7 +129,7 @@ checkHashConstraints ::
     -> Either SignedMessageCheckError (a, TxConstraints i o)
 checkHashConstraints SignedMessage{osmMessageHash, osmDatum=Datum dt} =
     maybe
-        (traceH "DecodingError" $ Left DecodingError)
+        (trace "DecodingError" $ Left DecodingError)
         (\a -> pure (a, Constraints.mustHashDatum osmMessageHash (Datum dt)))
         (fromData dt)
 

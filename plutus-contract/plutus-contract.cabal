@@ -70,6 +70,7 @@ library
         Wallet.Emulator.ChainIndex
         Wallet.Emulator.ChainIndex.Index
         Wallet.Emulator.Error
+        Wallet.Emulator.LogMessages
         Wallet.Emulator.NodeClient
         Wallet.Emulator.MultiAgent
         Wallet.Emulator.SigningProcess
@@ -98,6 +99,7 @@ library
         bytestring -any,
         servant -any,
         servant-server -any,
+        serialise -any,
         mtl -any,
         semigroupoids -any,
         profunctors -any,

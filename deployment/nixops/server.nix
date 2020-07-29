@@ -13,17 +13,15 @@
                             ''
                             machine_role{role="nginx"} 1
                             '';
-    docs = if serviceName == "plutus-playground" then plutus.docs.plutus-tutorial else plutus.docs.marlowe-tutorial;
+    docs = if serviceName == "plutus-playground" then plutus.docs.site else plutus.docs.marlowe-tutorial;
     documentation-site =
       let
         adjustedTutorial = docs.override { marlowePlaygroundUrl = "https://${machines.environment}.${machines.marloweTld}";
                                            plutusPlaygroundUrl = "https://${machines.environment}.${machines.plutusTld}";
-                                           haddockUrl = "../haddock";
                                          };
       in pkgs.runCommand "documentation-site" {} ''
         mkdir -p $out
         cp -aR ${adjustedTutorial} $out/tutorial
-        cp -aR ${plutus.docs.combined-haddock}/share/doc $out/haddock
       '';
   in
   {
@@ -116,9 +114,6 @@
             '';
           };
           "/tutorial/" = {
-            root = "${documentation-site}/";
-          };
-          "/haddock/" = {
             root = "${documentation-site}/";
           };
           "/+" = {

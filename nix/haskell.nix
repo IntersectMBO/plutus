@@ -14,6 +14,7 @@
 }:
 
 let
+  r-packages = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
       inherit compiler-nix-name;
@@ -102,12 +103,20 @@ let
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
-            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
-              # Need a suitably wrapped R
-              build-tools = lib.mkForce [(pkgs.rWrapper.override { packages = with pkgs.rPackages; [tidyverse dplyr stringr MASS]; } )];
+            language-plutus-core.components.tests.language-plutus-core-test-cost-model = {
+              build-tools = r-packages;
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;
             };
+
+            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
+              build-tools = r-packages;
+              # Seems to be broken on darwin for some reason
+              platforms = lib.platforms.linux;
+            };
+
+            # Broken due to warnings, unclear why the setting that fixes this for the build doesn't work here.
+            iohk-monitoring.doHaddock = false;
 
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
@@ -115,6 +124,7 @@ let
             language-plutus-core.package.ghcOptions = "-Werror";
             marlowe.package.ghcOptions = "-Werror";
             marlowe-symbolic.package.ghcOptions = "-Werror";
+            marlowe-actus.package.ghcOptions = "-Werror";
             marlowe-playground-server.package.ghcOptions = "-Werror";
             playground-common.package.ghcOptions = "-Werror";
             # FIXME: has warnings

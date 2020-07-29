@@ -22,7 +22,7 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
-import Data.String (Pattern(..), codePointFromChar, stripPrefix, stripSuffix, trim)
+import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -40,7 +40,7 @@ import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, small_, span, strong_, text, ul, ul_)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, span, strong_, text, ul, ul_)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange, onValueChange, onValueInput)
 import Halogen.HTML.Properties (InputType(..), alt, class_, classes, disabled, enabled, href, placeholder, src, type_, value)
 import Halogen.HTML.Properties as HTML
@@ -55,25 +55,23 @@ import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
-import Marlowe.Holes (replaceInPositions)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco as MM
-import Marlowe.Parser (hole, parseContract)
-import Marlowe.Parser as P
+import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
 import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>))
+import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
+import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyTransactions, emptyMarloweState, hasHistory, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
+import Simulation.Types (Action(..), AnalysisState(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Parsing.StringParser (runParser)
 import Text.Pretty (genericPretty, pretty)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
@@ -115,8 +113,16 @@ handleQuery (ResetContract next) = do
   pure (Just next)
 
 handleQuery (WebsocketResponse response next) = do
-  assign _analysisState response
-  pure (Just next)
+  analysisState <- use _analysisState
+  case analysisState of
+    NoneAsked -> pure (Just next) -- Unrequested response
+    WarningAnalysis _ -> do
+      assign _analysisState (WarningAnalysis response)
+      pure (Just next)
+    ReachabilityAnalysis reachabilityState -> do
+      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+      pure (Just next)
 
 handleQuery (HasStarted f) = do
   state <- use _marloweState
@@ -232,30 +238,6 @@ handleAction _ Undo = do
 
 handleAction _ (SelectHole hole) = assign _selectedHole hole
 
-handleAction _ (InsertHole constructor firstHole holes) = do
-  mCurrContract <- editorGetValue
-  case mCurrContract of
-    Just currContract -> do
-      -- If we have a top level hole we don't want surround the value with brackets
-      -- so we parse the editor contents and if it is a hole we strip the parens
-      let
-        contractWithHole = case runParser hole currContract of
-          Right _ -> stripParens $ replaceInPositions constructor firstHole holes currContract
-          Left _ -> replaceInPositions constructor firstHole holes currContract
-
-        prettyContract = case runParser P.contract contractWithHole of
-          Right c -> show $ genericPretty c
-          Left _ -> contractWithHole
-      editorSetValue prettyContract
-    Nothing -> pure unit
-  where
-  stripParens s =
-    fromMaybe s
-      $ do
-          withoutPrefix <- stripPrefix (Pattern "(") $ trim s
-          withoutSuffix <- stripSuffix (Pattern ")") withoutPrefix
-          pure withoutSuffix
-
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
   assign _showBottomPanel true
@@ -291,12 +273,21 @@ handleAction _ AnalyseContract = do
     Nothing -> pure unit
     Just contract -> do
       checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
-      assign _analysisState Loading
+      assign _analysisState (WarningAnalysis Loading)
   where
   checkContractForWarnings contract state = do
     let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings contract state
+      msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON false) contract state
     H.raise (WebsocketMessage msgString)
+
+handleAction _ AnalyseReachabilityContract = do
+  currContract <- use _currentContract
+  currState <- use (_currentMarloweState <<< _state)
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
 checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
 checkAuthStatus settings = do
@@ -371,11 +362,20 @@ scrollHelpPanel =
     window <- Web.window
     document <- toDocument <$> W.document window
     mSidePanel <- WC.item 0 =<< D.getElementsByClassName "sidebar-composer" document
-    case mSidePanel of
-      Nothing -> pure unit
-      Just sidePanel -> do
-        scrollHeight <- E.scrollHeight sidePanel
-        setScrollTop scrollHeight sidePanel
+    mDocPanel <- WC.item 0 =<< D.getElementsByClassName "documentation-panel" document
+    case mSidePanel, mDocPanel of
+      Just sidePanel, Just docPanel -> do
+        sidePanelHeight <- E.scrollHeight sidePanel
+        docPanelHeight <- E.scrollHeight docPanel
+        availableHeight <- E.clientHeight sidePanel
+        let
+          newScrollHeight =
+            if sidePanelHeight < availableHeight then
+              sidePanelHeight
+            else
+              sidePanelHeight - docPanelHeight - 120.0
+        setScrollTop newScrollHeight sidePanel
+      _, _ -> pure unit
 
 editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
 editorSetValue contents = void $ query _editorSlot unit (Monaco.SetText contents unit)
@@ -432,9 +432,11 @@ render state =
   div []
     [ section [ classes [ panelSubHeader, aHorizontal ] ]
         [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-            [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-                [ div [ classes [ ClassName "demos", spaceLeft ] ]
-                    [ small_ [ text "Demos:" ]
+            [ a [ class_ (ClassName "editor-help"), onClick $ const $ Just $ ChangeHelpContext EditorHelp ]
+                [ img [ src infoIcon, alt "info book icon" ] ]
+            , div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
+                [ div [ classes [ spaceLeft ] ]
+                    [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Demos:" ]
                     ]
                 ]
             , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
@@ -594,39 +596,53 @@ inputItem ::
 inputItem isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled isEnabled
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IDeposit accountId party token value) []
+    , div [ class_ (ClassName "align-top") ]
+        [ button
+            [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+            , enabled isEnabled
+            , onClick $ const $ Just
+                $ AddInput (Just person) (IDeposit accountId party token value) []
+            ]
+            [ text "+" ]
         ]
-        [ text "+" ]
     ]
 
 inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
-    [ div []
-        [ p [ class_ (ClassName "choice-input") ]
-            [ spanText "Choice "
-            , b_ [ spanText (show choiceName) ]
-            , spanText ": Choose value "
-            , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
-            ]
-        , p [ class_ (ClassName "choice-error") ] error
-        ]
-    , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
-        , enabled (isEnabled && inBounds chosenNum bounds)
-        , onClick $ const $ Just
-            $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
-        ]
-        [ text "+" ]
-    ]
+    ( [ div []
+          [ p [ class_ (ClassName "choice-input") ]
+              [ spanText "Choice "
+              , b_ [ spanText (show choiceName <> ":") ]
+              , br_
+              , spanText "Choose value "
+              , marloweActionInput isEnabled (SetChoice choiceId) chosenNum
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
   where
+  addButton =
+    if isEnabled && inBounds chosenNum bounds then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just
+              $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
   error = if inBounds chosenNum bounds then [] else [ text boundsError ]
 
-  boundsError = "Choice must be between " <> intercalate " or " (map boundError bounds)
+  boundsError =
+    if Array.null bounds then
+      "A choice must have set bounds, please fix the contract"
+    else
+      "Choice must be between " <> intercalate " or " (map boundError bounds)
 
   boundError (Bound from to) = show from <> " and " <> show to
 
@@ -635,7 +651,7 @@ inputItem isEnabled person NotifyInput =
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
     , button
-        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
+        [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled), ClassName "align-top" ]
         , enabled isEnabled
         , onClick $ const $ Just
             $ AddInput (Just person) INotify []

@@ -10,11 +10,13 @@
         "warp".flags.allow-sendfilefd = true;
         "warp".flags.network-bytestring = false;
         "warp".flags.warp-debug = false;
+        "Stream".revision = (((hackage."Stream")."0.4.7.2").revisions).default;
         "http-client".revision = (((hackage."http-client")."0.6.4.1").revisions).default;
         "http-client".flags.network-uri = true;
         "mtl-compat".revision = (((hackage."mtl-compat")."0.2.2").revisions).default;
         "mtl-compat".flags.two-point-one = false;
         "mtl-compat".flags.two-point-two = false;
+        "barbies".revision = (((hackage."barbies")."2.0.1.0").revisions).default;
         "row-types".revision = (((hackage."row-types")."0.4.0.0").revisions).default;
         "io-streams-haproxy".revision = (((hackage."io-streams-haproxy")."1.0.1.0").revisions).default;
         "wai-websockets".revision = (((hackage."wai-websockets")."3.0.1.2").revisions).default;
@@ -34,6 +36,7 @@
         "singleton-bool".revision = (((hackage."singleton-bool")."0.1.5").revisions).default;
         "free".revision = (((hackage."free")."5.1.3").revisions).default;
         "tf-random".revision = (((hackage."tf-random")."0.5").revisions).default;
+        "async-timer".revision = (((hackage."async-timer")."0.1.4.1").revisions).default;
         "ghc".revision = (((hackage."ghc")."8.8.3").revisions).default;
         "Only".revision = (((hackage."Only")."0.1").revisions).default;
         "insert-ordered-containers".revision = (((hackage."insert-ordered-containers")."0.2.3.1").revisions).default;
@@ -46,6 +49,7 @@
         "ghc-boot".revision = (((hackage."ghc-boot")."8.8.3").revisions).default;
         "http-link-header".revision = (((hackage."http-link-header")."1.0.3.1").revisions).default;
         "wl-pprint-text".revision = (((hackage."wl-pprint-text")."1.2.0.1").revisions).default;
+        "lazysmallcheck".revision = (((hackage."lazysmallcheck")."0.6").revisions).default;
         "attoparsec-iso8601".revision = (((hackage."attoparsec-iso8601")."1.0.1.0").revisions).default;
         "attoparsec-iso8601".flags.fast = false;
         "attoparsec-iso8601".flags.developer = false;
@@ -113,6 +117,7 @@
         "zlib".flags.non-blocking-ffi = false;
         "zlib".flags.pkg-config = false;
         "rts".revision = (((hackage."rts")."1.0").revisions).default;
+        "lazy-search".revision = (((hackage."lazy-search")."0.1.2.1").revisions).default;
         "mmorph".revision = (((hackage."mmorph")."1.1.3").revisions).default;
         "cmdargs".revision = (((hackage."cmdargs")."0.10.20").revisions).default;
         "cmdargs".flags.testprog = false;
@@ -122,6 +127,7 @@
         "github".flags.openssl = false;
         "ghci".revision = (((hackage."ghci")."8.8.3").revisions).default;
         "js-flot".revision = (((hackage."js-flot")."0.8.3").revisions).default;
+        "dictionary-sharing".revision = (((hackage."dictionary-sharing")."0.1.0.0").revisions).default;
         "natural-transformation".revision = (((hackage."natural-transformation")."0.4").revisions).default;
         "statistics".revision = (((hackage."statistics")."0.15.2.0").revisions).default;
         "th-expand-syns".revision = (((hackage."th-expand-syns")."0.4.6.0").revisions).default;
@@ -272,6 +278,7 @@
         "primitive".revision = (((hackage."primitive")."0.7.1.0").revisions).default;
         "profunctors".revision = (((hackage."profunctors")."5.5.2").revisions).default;
         "safe".revision = (((hackage."safe")."0.3.19").revisions).default;
+        "size-based".revision = (((hackage."size-based")."0.1.2.0").revisions).default;
         "ListLike".revision = (((hackage."ListLike")."4.7.1").revisions).default;
         "blaze-builder".revision = (((hackage."blaze-builder")."0.4.1.0").revisions).default;
         "base-compat".revision = (((hackage."base-compat")."0.11.1").revisions).default;
@@ -311,6 +318,8 @@
         "parsers".flags.attoparsec = true;
         "cassava".revision = (((hackage."cassava")."0.5.2.0").revisions).default;
         "cassava".flags.bytestring--lt-0_10_4 = false;
+        "string-conv".revision = (((hackage."string-conv")."0.1.2").revisions).default;
+        "string-conv".flags.lib-werror = false;
         "lens".revision = (((hackage."lens")."4.19.2").revisions).default;
         "lens".flags.j = false;
         "lens".flags.test-properties = true;
@@ -337,6 +346,8 @@
         "reflection".revision = (((hackage."reflection")."2.1.6").revisions).default;
         "reflection".flags.slow = false;
         "reflection".flags.template-haskell = true;
+        "katip".revision = (((hackage."katip")."0.8.4.0").revisions).default;
+        "katip".flags.lib-werror = false;
         "time-interval".revision = (((hackage."time-interval")."0.1.1").revisions).default;
         "these".revision = (((hackage."these")."1.0.1").revisions).default;
         "these".flags.semigroupoids = true;
@@ -378,12 +389,15 @@
         "serialise".revision = (((hackage."serialise")."0.2.3.0").revisions).default;
         "serialise".flags.newtime15 = true;
         "wl-pprint".revision = (((hackage."wl-pprint")."1.2.1").revisions).default;
+        "hostname".revision = (((hackage."hostname")."1.0").revisions).default;
         "sbv".revision = (((hackage."sbv")."8.7").revisions).default;
         "sbv".flags.skiphlinttester = false;
+        "either".revision = (((hackage."either")."5.0.1.1").revisions).default;
         "old-locale".revision = (((hackage."old-locale")."1.0.0.7").revisions).default;
         "wcwidth".revision = (((hackage."wcwidth")."0.0.2").revisions).default;
         "wcwidth".flags.split-base = true;
         "wcwidth".flags.cli = false;
+        "testing-type-modifiers".revision = (((hackage."testing-type-modifiers")."0.1.0.1").revisions).default;
         "StateVar".revision = (((hackage."StateVar")."1.2").revisions).default;
         "safe-exceptions-checked".revision = (((hackage."safe-exceptions-checked")."0.1.0").revisions).default;
         "typed-process".revision = (((hackage."typed-process")."0.2.6.0").revisions).default;
@@ -655,18 +669,21 @@
     {
       packages = {
         plutus-contract = ./.plan.nix/plutus-contract.nix;
+        iohk-monitoring = ./.plan.nix/iohk-monitoring.nix;
         plutus-use-cases = ./.plan.nix/plutus-use-cases.nix;
         plutus-playground-server = ./.plan.nix/plutus-playground-server.nix;
         shelley-spec-ledger = ./.plan.nix/shelley-spec-ledger.nix;
         typed-protocols-examples = ./.plan.nix/typed-protocols-examples.nix;
         language-plutus-core = ./.plan.nix/language-plutus-core.nix;
         goblins = ./.plan.nix/goblins.nix;
+        marlowe-actus = ./.plan.nix/marlowe-actus.nix;
         Win32-network = ./.plan.nix/Win32-network.nix;
         iots-export = ./.plan.nix/iots-export.nix;
         byron-spec-chain = ./.plan.nix/byron-spec-chain.nix;
         plutus-ledger = ./.plan.nix/plutus-ledger.nix;
         contra-tracer = ./.plan.nix/contra-tracer.nix;
         shelley-spec-non-integral = ./.plan.nix/shelley-spec-non-integral.nix;
+        tracer-transformers = ./.plan.nix/tracer-transformers.nix;
         plutus-doc = ./.plan.nix/plutus-doc.nix;
         cardano-binary = ./.plan.nix/cardano-binary.nix;
         cardano-slotting = ./.plan.nix/cardano-slotting.nix;
@@ -704,6 +721,12 @@
       {
         packages = {
           "plutus-contract" = { flags = {}; };
+          "iohk-monitoring" = {
+            flags = {
+              "disable-observables" = lib.mkOverride 900 false;
+              "performance-test-queue" = lib.mkOverride 900 false;
+              };
+            };
           "plutus-use-cases" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };
@@ -716,6 +739,9 @@
           "typed-protocols-examples" = { flags = {}; };
           "language-plutus-core" = { flags = {}; };
           "goblins" = { flags = { "development" = lib.mkOverride 900 true; }; };
+          "marlowe-actus" = {
+            flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
+            };
           "Win32-network" = { flags = { "demo" = lib.mkOverride 900 false; }; };
           "iots-export" = { flags = {}; };
           "byron-spec-chain" = {
@@ -728,6 +754,7 @@
           "shelley-spec-non-integral" = {
             flags = { "development" = lib.mkOverride 900 false; };
             };
+          "tracer-transformers" = { flags = {}; };
           "plutus-doc" = {
             flags = { "defer-plugin-errors" = lib.mkOverride 900 false; };
             };

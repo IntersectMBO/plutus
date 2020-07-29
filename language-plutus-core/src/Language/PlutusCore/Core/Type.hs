@@ -6,9 +6,9 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+
 module Language.PlutusCore.Core.Type
-    ( Gas(..)
-    , Kind(..)
+    ( Kind(..)
     , Type(..)
     , BuiltinName(..)
     , DynamicBuiltinName(..)
@@ -18,6 +18,7 @@ module Language.PlutusCore.Core.Type
     , Value
     , Version(..)
     , Program(..)
+    , UniOf
     , Normalized(..)
     , HasUniques
     , defaultVersion
@@ -40,14 +41,11 @@ import           Data.Text                    (Text)
 import           GHC.Exts                     (Constraint)
 import           Instances.TH.Lift            ()
 
+
 {- Note [Annotations and equality]
 Equality of two things does not depend on their annotations.
 So don't use @deriving Eq@ for things with annotations.
 -}
-
-newtype Gas = Gas
-    { unGas :: Natural
-    }
 
 data Kind ann
     = Type ann
@@ -134,6 +132,11 @@ data Version ann
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni ann = Program ann (Version ann) (Term tyname name uni ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+
+-- | Extract the universe from a type.
+type family UniOf a :: * -> *
+
+type instance UniOf (Term tyname name uni ann) = uni
 
 newtype Normalized a = Normalized
     { unNormalized :: a

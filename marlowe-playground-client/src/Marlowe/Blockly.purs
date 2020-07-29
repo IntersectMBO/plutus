@@ -937,11 +937,10 @@ toDefinition blockType@(ValueType ChoiceValueValueType) =
   BlockDefinition
     $ merge
         { type: show ChoiceValueValueType
-        , message0: "Choice %1 by %2 default %3"
+        , message0: "Choice %1 by %2"
         , args0:
           [ Input { name: "choice_name", text: "name", spellcheck: false }
           , Value { name: "party", check: "party", align: Right }
-          , Value { name: "value", check: "value", align: Right }
           ]
         , colour: blockColour blockType
         , output: Just "value"
@@ -1038,7 +1037,7 @@ class HasBlockDefinition a b | a -> b where
 
 baseContractDefinition :: Generator -> Block -> Either String (Term Contract)
 baseContractDefinition g block = case statementToCode g block (show BaseContractType) of
-  Either.Left _ -> pure $ Hole "contract" Proxy { row: 0, column: 0 }
+  Either.Left _ -> pure $ Hole "contract" Proxy zero
   Either.Right s -> parse (mkDefaultTerm <$> Parser.contract) s
 
 getAllBlocks :: Block -> Array Block
@@ -1076,7 +1075,7 @@ boundsDefinition g block = traverse (boundDefinition g) (getAllBlocks block)
 
 statementToTerm :: forall a. Generator -> Block -> String -> Parser a -> Either String (Term a)
 statementToTerm g block name p = case statementToCode g block name of
-  Either.Left _ -> pure $ Hole name Proxy { row: 0, column: 0 }
+  Either.Left _ -> pure $ Hole name Proxy zero
   Either.Right s -> parse (mkDefaultTerm <$> p) s
 
 instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) where
@@ -1101,7 +1100,7 @@ instance hasBlockDefinitionAction :: HasBlockDefinition ActionType (Term Case) w
     let
       mTopboundBlock = getBlockInputConnectedTo boundsInput
     bounds <- case mTopboundBlock of
-      Either.Left _ -> pure [ Hole "bounds" Proxy { row: 0, column: 0 } ]
+      Either.Left _ -> pure [ Hole "bounds" Proxy zero ]
       Either.Right topboundBlock -> boundsDefinition g topboundBlock
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (Case (mkDefaultTerm (Choice choiceId bounds)) contract)
@@ -1124,7 +1123,7 @@ instance hasBlockDefinitionPayee :: HasBlockDefinition PayeeType (Term Payee) wh
 instance hasBlockDefinitionParty :: HasBlockDefinition PartyType (Term Party) where
   blockDefinition PKPartyType g block = do
     case getFieldValue block "pubkey" of
-      Either.Left _ -> pure $ Hole "n" Proxy { row: 0, column: 0 }
+      Either.Left _ -> pure $ Hole "n" Proxy zero
       Either.Right pk -> pure $ mkDefaultTerm (PK pk)
   blockDefinition RolePartyType g block = do
     role <- getFieldValue block "role"
@@ -1163,7 +1162,7 @@ instance hasBlockDefinitionContract :: HasBlockDefinition ContractType (Term Con
       eTopCaseBlock = getBlockInputConnectedTo casesInput
     cases <- case eTopCaseBlock of
       Either.Right topCaseBlock -> casesDefinition g topCaseBlock
-      Either.Left _ -> pure [ Hole "case" Proxy { row: 0, column: 0 } ]
+      Either.Left _ -> pure []
     slot <- parse Parser.timeout =<< getFieldValue block "timeout"
     contract <- statementToTerm g block "contract" Parser.contract
     pure $ mkDefaultTerm (When cases slot contract)
@@ -1254,8 +1253,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ValueType (Term Value) wh
     choiceOwner <- statementToTerm g block "party" Parser.party
     let
       choiceId = ChoiceId choiceName choiceOwner
-    value <- statementToTerm g block "value" (Parser.value unit)
-    pure $ mkDefaultTerm (ChoiceValue choiceId value)
+    pure $ mkDefaultTerm (ChoiceValue choiceId)
   blockDefinition SlotIntervalStartValueType g block = pure $ mkDefaultTerm SlotIntervalStart
   blockDefinition SlotIntervalEndValueType g block = pure $ mkDefaultTerm SlotIntervalEnd
   blockDefinition UseValueValueType g block = do
@@ -1568,12 +1566,11 @@ instance toBlocklyValue :: ToBlockly Value where
     setField block "numerator" (show fixedNumerator)
     setField block "denominator" (show fixedDenominator)
     inputToBlockly newBlock workspace block "value" value
-  toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner) value) = do
+  toBlockly newBlock workspace input (ChoiceValue (ChoiceId choiceName choiceOwner)) = do
     block <- newBlock workspace (show ChoiceValueValueType)
     connectToOutput block input
     setField block "choice_name" choiceName
     inputToBlockly newBlock workspace block "party" choiceOwner
-    inputToBlockly newBlock workspace block "value" value
   toBlockly newBlock workspace input SlotIntervalStart = do
     block <- newBlock workspace (show SlotIntervalStartValueType)
     connectToOutput block input

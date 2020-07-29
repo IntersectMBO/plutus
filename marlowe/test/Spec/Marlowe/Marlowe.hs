@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -w #-}
 module Spec.Marlowe.Marlowe
-    ( prop_noFalsePositives, tests, prop_showWorksForContracts
+    ( prop_noFalsePositives, tests, prop_showWorksForContracts, runManuallySameAsOldImplementation
     )
 where
 
@@ -60,6 +60,7 @@ limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ Hedgehog.testPr
 tests :: TestTree
 tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
+    , testCase "Token Show instance respects HEX and Unicode" tokenShowTest
     , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
@@ -173,10 +174,10 @@ trustFundTest = checkMarloweTrace (MarloweScenario {
     let contract = When [
             Case (Choice chId [Bound 100_000000 1500_000000])
                 (When [Case
-                    (Deposit aliceAcc alicePk ada (ChoiceValue chId (Constant 0)))
+                    (Deposit aliceAcc alicePk ada (ChoiceValue chId))
                         (When [Case (Notify (SlotIntervalStart `ValueGE` Constant 150))
                             (Pay aliceAcc (Party bobPk) ada
-                                (ChoiceValue chId (Constant 0)) Close)]
+                                (ChoiceValue chId) Close)]
                         (Slot 300) Close)
                     ] (Slot 200) Close)
             ] (Slot 100) Close
@@ -304,7 +305,6 @@ valuesFormAbelianGroup = property $ do
         -- substraction works
         eval (SubValue (AddValue a b) b) === eval a
 
-
 scaleRoundingTest :: Property
 scaleRoundingTest = property $ do
     let eval = evalValue (Environment (Slot 10, Slot 1000)) (emptyState (Slot 10))
@@ -313,8 +313,9 @@ scaleRoundingTest = property $ do
             n <- amount
             d <- suchThat amount (/= 0)
             return (n, d)
-    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === round (n % d)
-
+    forAll gen $ \(n, d) -> eval (Scale (n P.% d) (Constant 1)) === halfAwayRound (n % d)
+    where
+      halfAwayRound fraction = let (n,f) = properFraction fraction in n + round (f + 1) - 1
 
 scaleMulTest :: Property
 scaleMulTest = property $ do
@@ -340,7 +341,7 @@ mulAnalysisTest = do
     let muliply = foldl (\a _ -> MulValue (UseValue $ ValueId "a") a) (Constant 1) [1..100]
         alicePk = PK $ pubKeyHash $ walletPubKey alice
         aliceAcc = AccountId 0 alicePk
-        contract = If (muliply `ValueGE` (Constant 10000)) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
+        contract = If (muliply `ValueGE` Constant 10000) Close (Pay aliceAcc (Party alicePk) ada (Constant (-100)) Close)
     result <- warningsTrace contract
     --print result
     assertBool "Analysis ok" $ isRight result
@@ -354,6 +355,16 @@ pangramContractSerialization = do
     case decoded of
         Just cont -> Just cont @=? (decode $ encode cont)
         _         -> assertFailure "Nope"
+
+
+tokenShowTest :: IO ()
+tokenShowTest = do
+    -- SCP-834, CurrencySymbol is HEX encoded ByteString,
+    -- and TokenSymbol as UTF8 encoded Unicode string
+    let actual :: Value Observation
+        actual = AvailableMoney (AccountId 1 (Role "alice")) (Token "00010afF" "ÚSD©")
+
+    show actual @=? "AvailableMoney (AccountId 1 \"alice\") (Token \"00010aff\" \"ÚSD©\")"
 
 
 stateSerialization :: IO ()

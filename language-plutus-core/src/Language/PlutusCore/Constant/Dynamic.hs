@@ -8,4 +8,3 @@ import           Language.PlutusCore.Constant.Dynamic.BuiltinName as Export
 import           Language.PlutusCore.Constant.Dynamic.Call        as Export
 import           Language.PlutusCore.Constant.Dynamic.Emit        as Export
 import           Language.PlutusCore.Constant.Dynamic.OffChain    as Export
-import           Language.PlutusCore.Constant.Dynamic.OnChain     as Export

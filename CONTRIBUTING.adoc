@@ -137,7 +137,7 @@ if you don’t apply it them your PR will not go green. To avoid annoyance,
 set up your editor to run it automatically.
 
 You can run `stylish-haskell` over your tree and apply changes
-by running `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)`.
+by running `$(nix-shell shell.nix --run fix-stylish-haskell)`.
 
 ==== Compiler warnings
 
@@ -196,7 +196,7 @@ and people may not be notified if you just push commits.
 
 .Pre-submit checklist:
 * `$(nix-build default.nix -A dev.scripts.updateMaterialized)` to update the materialized Nix files.
-* `$(nix-build default.nix -A dev.scripts.fixStylishHaskell)` to fix any formatting issues.
+* `$(nix-shell shell.nix --run fix-stylish-haskell)` to fix any formatting issues.
 * `cabal v2-build all` to check that everything builds.
 
 You can build some things with Nix locally if you like, but it's fine to let the CI do that for you.

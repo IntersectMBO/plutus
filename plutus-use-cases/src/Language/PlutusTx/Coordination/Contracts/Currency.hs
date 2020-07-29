@@ -94,13 +94,13 @@ validate c@(Currency (refHash, refIdx) _) ctx@V.PolicyCtx{V.policyCtxTxInfo=txin
         -- currency that we expect
         forgeOK =
             let v = expected == forged
-            in traceIfFalseH "Value forged different from expected" v
+            in traceIfFalse "Value forged different from expected" v
 
         -- True if the pending transaction spends the output
         -- identified by @(refHash, refIdx)@
         txOutputSpent =
             let v = V.spendsOutput txinfo refHash refIdx
-            in  traceIfFalseH "Pending transaction does not spend the designated transaction output" v
+            in  traceIfFalse "Pending transaction does not spend the designated transaction output" v
 
     in forgeOK && txOutputSpent
 

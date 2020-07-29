@@ -3,11 +3,13 @@
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE KindSignatures         #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 {- Note [Budgeting]
@@ -76,10 +78,13 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExTally(..)
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
+    , ToExMemory(..)
     , SpendBudget(..)
-    , CostModel(..)
+    , CostModel
+    , CostModelBase(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
+    , ModelMultiSizes(..)
     , ModelMinSize(..)
     , ModelSplitConst(..)
     , ModelExpSizes(..)
@@ -99,19 +104,22 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
 where
 
 
-import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
+import           Barbies
 import           Control.Lens.Indexed
 import           Control.Lens.TH                                 (makeLenses)
 import           Data.Default.Class
 import           Data.Hashable
 import           Data.HashMap.Monoidal
+import qualified Data.Kind                                       as Kind
 import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax
+import           Language.Haskell.TH.Syntax                      hiding (Name)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
@@ -121,10 +129,29 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @uni@ as parameter.
-class SpendBudget m uni | m -> uni where
+class ToExMemory term where
+    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
+    -- return something arbitrary just to fit such a term into the builtin application machinery.
+    toExMemory :: term -> ExMemory
+
+instance ToExMemory (Term TyName Name uni ()) where
+    toExMemory _ = 0
+
+instance ToExMemory (Term TyName Name uni ExMemory) where
+    toExMemory = termAnn
+
+-- This works nicely because @m@ contains @term@.
+class ToExMemory term => SpendBudget m term | m -> term where
     builtinCostParams :: m CostModel
-    spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
+
+    -- | Spend the budget, which may mean different things depending on the monad:
+    --
+    -- 1. do nothing for an evaluator that does not care about costing
+    -- 2. count upwards to get the cost of a computation
+    -- 3. subtract from the current budget and fail if the budget goes below zero
+    --
+    -- The @term@ argument is only used for reporting an error.
+    spendBudget :: ExBudgetCategory -> term -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst
@@ -178,34 +205,47 @@ estimateStaticStagedCost
     :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
+type CostModel = CostModelBase CostingFun
+
 -- | The main model which contains all data required to predict the cost of builtin functions. See Note [Creation of the Cost Model] for how this is generated. Calibrated for the CeK machine.
-data CostModel =
+data CostModelBase f =
     CostModel
-    { paramAddInteger           :: CostingFun ModelTwoArguments
-    , paramSubtractInteger      :: CostingFun ModelTwoArguments
-    , paramMultiplyInteger      :: CostingFun ModelTwoArguments
-    , paramDivideInteger        :: CostingFun ModelTwoArguments
-    , paramQuotientInteger      :: CostingFun ModelTwoArguments
-    , paramRemainderInteger     :: CostingFun ModelTwoArguments
-    , paramModInteger           :: CostingFun ModelTwoArguments
-    , paramLessThanInteger      :: CostingFun ModelTwoArguments
-    , paramLessThanEqInteger    :: CostingFun ModelTwoArguments
-    , paramGreaterThanInteger   :: CostingFun ModelTwoArguments
-    , paramGreaterThanEqInteger :: CostingFun ModelTwoArguments
-    , paramEqInteger            :: CostingFun ModelTwoArguments
-    , paramConcatenate          :: CostingFun ModelTwoArguments
-    , paramTakeByteString       :: CostingFun ModelTwoArguments -- TODO these two might be a bit interesting on size
-    , paramDropByteString       :: CostingFun ModelTwoArguments
-    , paramSHA2                 :: CostingFun ModelOneArgument
-    , paramSHA3                 :: CostingFun ModelOneArgument
-    , paramVerifySignature      :: CostingFun ModelThreeArguments
-    , paramEqByteString         :: CostingFun ModelTwoArguments
-    , paramLtByteString         :: CostingFun ModelTwoArguments
-    , paramGtByteString         :: CostingFun ModelTwoArguments
-    , paramIfThenElse           :: CostingFun ModelThreeArguments
+    { paramAddInteger           :: f ModelTwoArguments
+    , paramSubtractInteger      :: f ModelTwoArguments
+    , paramMultiplyInteger      :: f ModelTwoArguments
+    , paramDivideInteger        :: f ModelTwoArguments
+    , paramQuotientInteger      :: f ModelTwoArguments
+    , paramRemainderInteger     :: f ModelTwoArguments
+    , paramModInteger           :: f ModelTwoArguments
+    , paramLessThanInteger      :: f ModelTwoArguments
+    , paramLessThanEqInteger    :: f ModelTwoArguments
+    , paramGreaterThanInteger   :: f ModelTwoArguments
+    , paramGreaterThanEqInteger :: f ModelTwoArguments
+    , paramEqInteger            :: f ModelTwoArguments
+    , paramConcatenate          :: f ModelTwoArguments
+    , paramTakeByteString       :: f ModelTwoArguments -- TODO these two might be a bit interesting on size
+    , paramDropByteString       :: f ModelTwoArguments
+    , paramSHA2                 :: f ModelOneArgument
+    , paramSHA3                 :: f ModelOneArgument
+    , paramVerifySignature      :: f ModelThreeArguments
+    , paramEqByteString         :: f ModelTwoArguments
+    , paramLtByteString         :: f ModelTwoArguments
+    , paramGtByteString         :: f ModelTwoArguments
+    , paramIfThenElse           :: f ModelThreeArguments
     }
-    deriving (Show, Eq, Generic, Lift, Default, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] CostModel
+    deriving (Generic, FunctorB, TraversableB, ConstraintsB)
+
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance ToJSON (CostModelBase CostingFun)
+deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", CamelToSnake)] (CostModelBase CostingFun) instance FromJSON (CostModelBase CostingFun)
+
+type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f = (constraint (f ModelOneArgument), constraint (f ModelTwoArguments), constraint (f ModelThreeArguments))
+
+-- HLS doesn't like the AllBF from Barbies.
+deriving instance AllArgumentModels NFData f => NFData (CostModelBase f)
+deriving instance AllArgumentModels Default f => Default (CostModelBase f)
+deriving instance AllArgumentModels Lift f => Lift (CostModelBase f)
+deriving instance AllArgumentModels Show f => Show (CostModelBase f)
+deriving instance AllArgumentModels Eq f => Eq (CostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 
@@ -243,6 +283,14 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
+-- | s * (x * y) + I
+data ModelMultiSizes = ModelMultiSizes
+    { modelMultiSizesIntercept :: Double
+    , modelMultiSizesSlope     :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelMultiSizes", CamelToSnake)] ModelMultiSizes
+
 -- | s * min(x, y) + I
 data ModelMinSize = ModelMinSize
     { modelMinSizeIntercept :: Double
@@ -251,7 +299,7 @@ data ModelMinSize = ModelMinSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
--- | sX * x^2 + xY * y^2 + I
+-- | sX * x^2 + sY * y^2 + I
 data ModelExpSizes = ModelExpSizes
     { modelExpSizesIntercept :: Double
     , modelExpSizesSlopeX    :: Double
@@ -271,6 +319,7 @@ data ModelSplitConst = ModelSplitConst
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
+    | ModelTwoArgumentsMultiSizes ModelMultiSizes
     | ModelTwoArgumentsMinSize ModelMinSize
     | ModelTwoArgumentsExpMultiSizes ModelExpSizes
     | ModelTwoArgumentsSplitConstMulti ModelSplitConst
@@ -292,11 +341,14 @@ runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
+    (ModelTwoArgumentsMultiSizes (ModelMultiSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (fromInteger (size1 * size2)) * slope + intercept
+runTwoArgumentModel
     (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (min size1 size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsExpMultiSizes (ModelExpSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (((fromInteger size1) ** 2) * slopeX) * (((fromInteger size2) ** 2) * slopeY) + intercept
+        ceiling $ (((fromInteger size1) ** 2) * slopeX) + (((fromInteger size2) ** 2) * slopeY) + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept

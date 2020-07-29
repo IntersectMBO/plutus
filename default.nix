@@ -38,6 +38,10 @@ let
     sourcesOverride = { inherit (sources) nixpkgs; };
   };
 
+  sphinxcontrib-haddock = pkgs.callPackage sources.sphinxcontrib-haddock { pythonPackages = pkgs.python3Packages; };
+  sphinx-markdown-tables = pkgs.python3Packages.callPackage ./nix/python/sphinx-markdown-tables.nix {};
+  sphinxemoji = pkgs.python3Packages.callPackage ./nix/python/sphinxemoji.nix {};
+
   pkgsMusl = import ./nix/default.nix {
     inherit system config sourcesOverride;
     crossSystem = lib.systems.examples.musl64;
@@ -55,7 +59,12 @@ let
   easyPS = pkgs.callPackage sources.easy-purescript-nix {};
 
 in rec {
-  inherit pkgs localLib iohkNix;
+  inherit pkgs localLib iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
+
+  python = {
+    inherit sphinx-markdown-tables sphinxemoji;
+    inherit (sphinxcontrib-haddock) sphinxcontrib-haddock sphinxcontrib-domaintools;
+  };
 
   # The git revision comes from `rev` if available (Hydra), otherwise
   # it is read using IFD and git, which is avilable on local builds.
@@ -115,8 +124,12 @@ in rec {
     };
   };
 
-  docs = pkgs.recurseIntoAttrs {
-    site = pkgs.callPackage ./doc { pythonPackages = pkgs.python3Packages; };
+  docs = pkgs.recurseIntoAttrs rec {
+    site = pkgs.callPackage ./doc {
+      inherit (python) sphinxcontrib-haddock sphinxcontrib-domaintools sphinx-markdown-tables sphinxemoji;
+      inherit combined-haddock;
+      pythonPackages = pkgs.python3Packages;
+    };
 
     plutus-contract = pkgs.callPackage ./plutus-contract/doc { };
     plutus-book = pkgs.callPackage ./plutus-book/doc { };
@@ -128,7 +141,7 @@ in rec {
     plutus-report = pkgs.callPackage ./notes/plutus-report/default.nix { inherit latex; };
 
     combined-haddock = let
-      haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix { ghc = haskell.project.pkg-set.config.ghc.package; };
+      haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix { ghc = haskell.project.pkg-set.config.ghc.package; inherit (sphinxcontrib-haddock) sphinxcontrib-haddock; };
       toHaddock = pkgs.haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackages;
       in haddock-combine {
         hspkgs = builtins.attrValues toHaddock;

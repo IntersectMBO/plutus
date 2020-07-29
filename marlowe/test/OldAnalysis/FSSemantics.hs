@@ -139,7 +139,8 @@ data Value = AvailableMoney AccountId
            | AddValue Value Value
            | SubValue Value Value
            | MulValue Value Value
-           | ChoiceValue ChoiceId Value
+           | Scale Rational Value
+           | ChoiceValue ChoiceId
            | SlotIntervalStart
            | SlotIntervalEnd
            | UseValue ValueId
@@ -323,9 +324,13 @@ evalValue bnds env state value =
     AddValue lhs rhs         -> go lhs + go rhs
     SubValue lhs rhs         -> go lhs - go rhs
     MulValue lhs rhs         -> go lhs * go rhs
-    ChoiceValue (ChoiceId c p) defVal -> SM.maybe (go defVal)
-                                                  id
-                                                  (IntegerArray.lookup c $ choice state)
+    Scale s rhs              -> let (n, d) = (numerator s, denominator s)
+                                    nn = go rhs * literal n
+                                    (q, r) = nn `sQuotRem` literal d in
+                                ite (abs r * 2 .< literal (abs d)) q (q + signum nn * literal (signum d))
+    ChoiceValue (ChoiceId c p) -> SM.maybe (literal 0)
+                                           id
+                                           (IntegerArray.lookup c $ choice state)
     SlotIntervalStart        -> inStart
     SlotIntervalEnd          -> inEnd
     UseValue (ValueId valId) -> IntegerArray.findWithDefault 0 valId $ boundValues state
@@ -921,10 +926,9 @@ convertValue (MS.SubValue val1 val2) maps =
     (SubValue newVal1 newVal2, mapsWithVal2)
   where (newVal1, mapsWithVal1) = convertValue val1 maps
         (newVal2, mapsWithVal2) = convertValue val2 mapsWithVal1
-convertValue (MS.ChoiceValue choId val) maps =
-    (ChoiceValue newChoId newVal, mapsWithVal)
+convertValue (MS.ChoiceValue choId) maps =
+    (ChoiceValue newChoId, mapsWithChoId)
   where (newChoId, mapsWithChoId) = convertChoId choId maps
-        (newVal, mapsWithVal) = convertValue val mapsWithChoId
 convertValue MS.SlotIntervalStart maps =
     (SlotIntervalStart, maps)
 convertValue MS.SlotIntervalEnd maps =

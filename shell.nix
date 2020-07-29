@@ -4,7 +4,7 @@
 }@args:
 let
   packageSet = import ./default.nix ({ rev = "in-nix-shell"; } // args);
-  pyEnv = packageSet.pkgs.python3.withPackages (ps: [ ps.sphinx ps.sphinx_rtd_theme ]);
+  pyEnv = packageSet.pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
 in
 with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [
@@ -19,8 +19,8 @@ with packageSet; haskell.packages.shellFor {
     # Broken on 20.03, needs a backport
     # pkgs.sqlite-analyzer
     pkgs.sqlite-interactive
-    # Take cabal from nixpkgs for now, see below
-    pkgs.cabal-install
+
+    pkgs.stack
 
     pyEnv
 
@@ -29,15 +29,21 @@ with packageSet; haskell.packages.shellFor {
     pkgs.awscli
     pkgs.aws_shell
 
+    # Extra dev packages acquired from elsewhere
+    dev.packages.cabal-install
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
+    dev.packages.hie-bios
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago
-    pkgs.stack
     dev.scripts.fixStylishHaskell
     dev.scripts.fixPurty
     dev.scripts.updateClientDeps
-  ];
+  ] ++ (pkgs.stdenv.lib.optionals (!pkgs.stdenv.isDarwin) [
+    # This breaks compilation of R on macOS. The latest version of R
+    # does compile, so we can remove it when we upgrade to 20.09.
+    pkgs.rPackages.plotly # for generating R plots locally
+  ]);
 }

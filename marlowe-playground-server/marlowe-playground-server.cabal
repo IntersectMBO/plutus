@@ -48,6 +48,7 @@ library
         lens -any,
         marlowe -any,
         marlowe-symbolic -any,
+        marlowe-actus -any,
         monad-logger -any,
         mtl -any,
         newtype-generics -any,
@@ -98,6 +99,7 @@ executable marlowe-playground-server
         marlowe -any,
         marlowe-playground-server -any,
         marlowe-symbolic -any,
+        marlowe-actus -any,
         monad-logger -any,
         mtl -any,
         plutus-ledger,
@@ -113,7 +115,8 @@ executable marlowe-playground-server
         wai-cors -any,
         wai-extra -any,
         warp -any,
-        yaml -any
+        yaml -any,
+        time -any
 
 test-suite marlowe-playground-server-test
     type: exitcode-stdio-1.0
