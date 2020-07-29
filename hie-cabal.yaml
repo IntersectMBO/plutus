@@ -66,4 +66,9 @@ cradle:
   - path: ./metatheory/test
     component: "metatheory:metatheory-test"
 
+  - path: ./plutus-use-cases/src
+    component: "lib:plutus-use-cases"
+  - path: ./plutus-use-cases/test
+    component: "plutus-use-cases:plutus-use-cases-test"
+
 # Add more as needed, I'm too lazy

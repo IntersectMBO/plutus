@@ -80,5 +80,5 @@ marlowe-playground-server/playground.yaml
 *.db
 *.db-shm
 *.db-wal
-hie.yaml
+/hie.yaml
 /dist-hie/

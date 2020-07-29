@@ -7,7 +7,7 @@ pkgs.recurseIntoAttrs (rec {
     stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
     hlint = haskell.extraPackages.hlint.components.exes.hlint;
     haskell-language-server = haskell.extraPackages.haskell-language-server.components.exes.haskell-language-server;
-    ghcide-use-cases = haskell.extraPackages.ghcide-use-cases.components.exes.ghcide;
+    ghcide = haskell.extraPackages.ghcide.components.exes.ghcide;
     purty = haskell.extraPackages.purty.components.exes.purty;
     purs = easyPS.purs;
     spago = easyPS.spago;

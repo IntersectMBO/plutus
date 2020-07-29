@@ -4,7 +4,7 @@
 #
 # These are for e.g. developer usage, or for running formatting tests.
 ############################################################################
-{ pkgs, index-state, checkMaterialization, sources }:
+{ pkgs, compiler-nix-name, index-state, checkMaterialization, sources }:
 {
   # FIXME: this cabal can't be used for development purposes until
   # https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
@@ -12,26 +12,32 @@
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "3.0.0.0";
-    compiler-nix-name = "ghc8101";
-    inherit index-state checkMaterialization;
+    inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
+    plan-sha256 = {
+    }.${compiler-nix-name};
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
-    compiler-nix-name = "ghc8101";
-    inherit index-state checkMaterialization;
+    inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1igjqfxhsp1qfqy0ma442b5bi1pkaa6f03sg00haxx95848smyys";
+    plan-sha256 = {
+      ghc883 = "1siknyba41fasb7avwpf9mcwv9pz4j5m85ckd6jwq9bml6dfv2dz";
+      ghc884 = "1zfkn8jy2yxxg1h4531pkxsjfip3l2bm0lyai2n1vp04l3i2yk3y";
+      ghc8101 = "1igjqfxhsp1qfqy0ma442b5bi1pkaa6f03sg00haxx95848smyys";
+    }.${compiler-nix-name};
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
-    compiler-nix-name = "ghc8101";
-    inherit index-state checkMaterialization;
+    inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0kr9raph1wjqbpywrq99bz00ijjqppv5avh1014d087k5yhpcffq";
+    plan-sha256 = {
+      ghc883 = "13slad643d1parhwliw69fpcqyx663amc1pri0avn1jclvdspqbk";
+      ghc884 = "0xpc3vdd0mh0bx6p6jpmdvzqlj2dqkb3fz2kvg711qdk40z6d8sc";
+      ghc8101 = "182ghddbj9fg6jd6w54s1byrfzhnhf3vwmfwzm5a9rg6yik0vm82";
+    }.${compiler-nix-name};
   };
   haskell-language-server =
     let hspkgs = pkgs.haskell-nix.cabalProject {
@@ -46,31 +52,30 @@
           "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
           "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
         };
-        inherit index-state checkMaterialization;
+        inherit compiler-nix-name index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "1hw6886g0i6zjw1n5g9wa595bhxija3ai5a2dmg6273zwd84a61z";
-        compiler-nix-name = "ghc8101";
+        plan-sha256 = {
+          ghc883 = "0xr20i83wv7m4hg2vmqxfz2427whgzvh4kq0f67n7ay6kyzfaafm";
+        }.${compiler-nix-name};
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
         }];
       };
     in hspkgs.haskell-language-server;
-  ghcide-use-casesX = pkgs.haskell-nix.hackage-package {
-    name = "ghcide";
-    compiler-nix-name = "ghc8101";
-    version = "0.2.0";
-  };
-  ghcide-use-cases = (pkgs.haskell-nix.cabalProject {
+  ghcide = (pkgs.haskell-nix.cabalProject {
     name = "ghcide";
     src = sources.ghcide;
-    compiler-nix-name = "ghc8101";
-    inherit index-state checkMaterialization;
+    inherit compiler-nix-name index-state checkMaterialization;
     cabalProjectLocal = ''
       allow-newer: diagrams-svg:base, monoid-extras:base, *:base
     '';
     # Invalidate and update if you change the version or index-state
-    # plan-sha256 = "0ixxja89sbaflb4vcyx9rc5sj09ca0y5lhdy1wihmf8k5ynmzhvs";
+    plan-sha256 = {
+      ghc883 = "14i14k0v2mmqiaz1dfd6x3bw011hns3a0ylj5w940pf7h8yjccaj";
+      ghc884 = "0115vb8hqcgjkdq3x8qdh7wz3wabvs2v29ybc3iw0bkpcwv0g7q2";
+      ghc8101 = "0mabhag58g9zikgfcs2xrydfza7nhfi04ndvmpir08x470m1z4rv";
+    }.${compiler-nix-name};
     modules = [({config, ...}: {
       packages.ghcide.configureFlags = pkgs.lib.optional (!pkgs.stdenv.targetPlatform.isMusl)
         "--enable-executable-dynamic";

@@ -196,7 +196,7 @@ library
         deepseq -any,
         filepath -any,
         hashable,
-        hedgehog >=1.0,
+        hedgehog >=1.0.3,
         integer-gmp -any,
         ghc-prim -any,
         lens -any,

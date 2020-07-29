@@ -10,12 +10,13 @@
 , checkMaterialization
 , sources
 , useCabalProject
+, compiler-nix-name ? "ghc883"
 }:
 
 let
   makeProject = args: if useCabalProject
     then haskell-nix.cabalProject' (args // {
-      compiler-nix-name = "ghc8101";
+      inherit compiler-nix-name;
       modules = args.modules ++ [{
         # plan-to-nix does not expose `test: False` settings in cabal.project file
         packages.byron-spec-chain.components.tests.chain-rules-test.buildable = lib.mkForce false;
@@ -39,7 +40,7 @@ let
     };
     # These files need to be regenerated when you change the cabal files or stack resolver.
     # See ../CONTRIBUTING.doc for more information.
-    materialized = if useCabalProject then ./cabal.materialized else ./stack.materialized;
+    materialized = if useCabalProject then ./cabal.materialized + "/${compiler-nix-name}" else ./stack.materialized;
     # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
     inherit checkMaterialization sources;
     sha256map = {

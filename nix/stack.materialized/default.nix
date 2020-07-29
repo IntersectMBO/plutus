@@ -17,6 +17,7 @@
         "eventful-sqlite" = (((hackage.eventful-sqlite)."0.2.0").revisions).default;
         "github" = (((hackage.github)."0.24").revisions).default;
         "github-webhooks" = (((hackage.github-webhooks)."0.12.0").revisions).default;
+        "hedgehog" = (((hackage.hedgehog)."1.0.3").revisions).default;
         "monoidal-containers" = (((hackage.monoidal-containers)."0.6.0.1").revisions).default;
         "monad-stm" = (((hackage.monad-stm)."0.1.0.2").revisions).default;
         "prometheus" = (((hackage.prometheus)."2.1.3").revisions).default;

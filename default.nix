@@ -21,6 +21,7 @@
 # false, generally, since it does more work, but we set it to true in the CI
 , checkMaterialization ? false
 , useCabalProject ? false
+, compiler-nix-name ? "ghc883"
 , enableLibraryProfiling ? true
 }:
 
@@ -82,7 +83,7 @@ in rec {
             in pkgs.lib.lists.head (indexState ++ [ null ]);
       in parseIndexState (builtins.readFile ./cabal.project);
 
-    project = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization sources useCabalProject; };
+    project = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization sources useCabalProject compiler-nix-name; };
     # All the packages defined by our project, including dependencies
     packages = project.hsPkgs;
     # Just the packages in the project
@@ -96,7 +97,10 @@ in rec {
     muslPackages = muslProject.hsPkgs;
 
     # Extra Haskell packages which we use but aren't part of the main project definition.
-    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix { inherit index-state checkMaterialization sources; };
+    extraPackages = pkgs.callPackage ./nix/haskell-extra.nix {
+      inherit compiler-nix-name;
+      inherit index-state checkMaterialization sources;
+    };
   };
 
   tests = import ./nix/tests/default.nix {

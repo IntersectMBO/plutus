@@ -11,9 +11,10 @@
 { sourcesOverride ? {}
 , checkMaterialization ? false
 , useCabalProject ? true
+, compiler-nix-name ? "ghc883"
 }@args:
 let
-  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject;  } // args);
+  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args);
 in
 with packageSet; haskell.packages.shellFor {
   nativeBuildInputs = [
@@ -39,7 +40,7 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.hlint
     dev.packages.stylish-haskell
 #    dev.packages.haskell-language-server
-    dev.packages.ghcide-use-cases
+    dev.packages.ghcide
     dev.packages.purty
     dev.packages.purs
     dev.packages.spago

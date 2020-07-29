@@ -40,16 +40,16 @@ let
       # This contains musl-specific stuff, but it's all guarded by appropriate host-platform
       # checks, so we can include it unconditionally
       (import ./overlays/musl.nix)
-      # Disable profiling libraries in ghc883 to keep the devcontainer size down
-      (final: prev: {
-        haskell-nix = prev.haskell-nix // {
-          compiler = prev.haskell-nix.compiler // {
-            ghc883 = prev.haskell-nix.compiler.ghc883.override {
-              inherit enableLibraryProfiling;
-            };
-          };
-        };
-      })
+      # Disable profiling libraries in ghc884 to keep the devcontainer size down
+      #(final: prev: {
+      #  haskell-nix = prev.haskell-nix // {
+      #    compiler = prev.haskell-nix.compiler // {
+      #      ghc884 = prev.haskell-nix.compiler.ghc884.override {
+      #        inherit enableLibraryProfiling;
+      #      };
+      #    };
+      #  };
+      #})
     ];
 
   pkgs = import nixpkgs {
