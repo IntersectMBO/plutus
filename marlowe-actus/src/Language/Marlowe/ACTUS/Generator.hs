@@ -135,7 +135,10 @@ genStaticContract :: ContractTerms -> Contract
 genStaticContract terms =
     let
         cfs = genProjectedCashflows terms
-        gen CashFlow{..} = invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
+        gen CashFlow{..} = 
+            if amount > 0.0 
+                then invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
+                else invoice "counterparty" "party" (Constant $ round $ -amount) (Slot $ dayToSlotNumber cashPaymentDay)
     in foldl (flip gen) Close cfs
 
 
