@@ -9,10 +9,12 @@
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "3.2.0.0";
-    inherit index-state checkMaterialization;
+    inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
-      ghc883 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
+      ghc883 = "13rwlkbhb1jszxamfy85j5wfs0pflsgb1jda2h3d6i0bzi1m0kgw";
+      ghc884 = "0a3gfm5qbi7cqgjs7ia8c2rkwi89x4bb2r0zr9xl5gz8x73sv588";
+      ghc8101 = "1clgs6vafmzas4iyck13z7gnymphw3fw4lwrbbh2j8227v0b6rgf";
     }.${compiler-nix-name};
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
@@ -54,10 +56,13 @@
         # Invalidate and update if you change the version
         plan-sha256 = {
           ghc883 = "0xr20i83wv7m4hg2vmqxfz2427whgzvh4kq0f67n7ay6kyzfaafm";
+          ghc884 = "0fylfdsbbsc2q2ckgcjxxzhnizpz2i6j6a6l4a26w72a13pd9lva";
+          ghc8101 = "0x1dv1pvkvasqkhgnk6qlq0xng37dr21agcbm13bxdich3gisbhm";
         }.${compiler-nix-name};
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
+          packages.hie-bios.src = sources.hie-bios;
         }];
       };
     in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
