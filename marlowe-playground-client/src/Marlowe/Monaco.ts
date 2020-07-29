@@ -6,26 +6,36 @@ export class MarloweHoverProvider implements monaco.languages.HoverProvider {
   // This enables us to pass in a function from PureScript that provides hover information
   hoverProvider: (word: string) => monaco.languages.Hover
 
-  constructor(hoverProvider) {
+  constructor (hoverProvider) {
     this.hoverProvider = hoverProvider;
   }
-  provideHover(model: monaco.editor.ITextModel, position: monaco.Position, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.Hover> {
+  provideHover (model: monaco.editor.ITextModel, position: monaco.Position, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.Hover> {
     const word = model.getWordAtPosition(position);
-    return this.hoverProvider(word.word)
+    return word ? this.hoverProvider(word.word) : null
   }
 
 }
 
+// This is a purescript type at runtime but we don't know anything about it, so we just tag any
+type AdditionalContext = any
+
 export class MarloweCompletionItemProvider implements monaco.languages.CompletionItemProvider {
 
   // This enables us to pass in a function from PureScript that provides suggestions based on a contract string
-  suggestionsProvider: (String, Boolean, string, IRange) => Array<monaco.languages.CompletionItem>
+  suggestionsProvider: (String, Boolean, string, IRange, additionalContext: AdditionalContext) => Array<monaco.languages.CompletionItem>
 
-  constructor(suggestionsProvider) {
+  additionalContext: AdditionalContext
+
+  constructor (suggestionsProvider) {
     this.suggestionsProvider = suggestionsProvider;
+    this.additionalContext = {}
   }
 
-  provideCompletionItems(model: monaco.editor.ITextModel, position: monaco.Position, context: monaco.languages.CompletionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
+  updateAdditionalContext (additionalContext) {
+    this.additionalContext = additionalContext
+  }
+
+  provideCompletionItems (model: monaco.editor.ITextModel, position: monaco.Position, context: monaco.languages.CompletionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
     var word = model.getWordAtPosition(position);
     const isEmptyWord = word == null;
     // if the word is empty then we need an extra space in the contract that we generate
@@ -56,22 +66,29 @@ export class MarloweCompletionItemProvider implements monaco.languages.Completio
       endColumn: word.endColumn
     }
 
-    return { suggestions: this.suggestionsProvider(word.word, stripParens, contract, range) };
+    return { suggestions: this.suggestionsProvider(word.word, stripParens, contract, range, this.additionalContext) };
   }
 
 }
 
 export class MarloweCodeActionProvider implements monaco.languages.CodeActionProvider {
-  actionsProvider: (uri: monaco.Uri, marloweType: Array<monaco.editor.IMarkerData>) => Array<monaco.languages.CodeAction>
 
-  constructor(actionsProvider) {
+  actionsProvider: (uri: monaco.Uri, marloweType: Array<monaco.editor.IMarkerData>, additionalContext: AdditionalContext) => Array<monaco.languages.CodeAction>
+
+  additionalContext: AdditionalContext
+
+  constructor (actionsProvider, additionalContext) {
     this.actionsProvider = actionsProvider
+    this.additionalContext = additionalContext
   }
 
-  provideCodeActions(model: monaco.editor.ITextModel, range: monaco.Range, context: monaco.languages.CodeActionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CodeActionList> {
+  updateAdditionalContext (additionalContext) {
+    this.additionalContext = additionalContext
+  }
+
+  provideCodeActions (model: monaco.editor.ITextModel, range: monaco.Range, context: monaco.languages.CodeActionContext, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.CodeActionList> {
     // create actions for all the markers
-    // console.log(context);
-    const actions = this.actionsProvider(model.uri, context.markers);
+    const actions = this.actionsProvider(model.uri, context.markers, this.additionalContext);
     return {
       actions: actions,
       dispose: () => { }
@@ -82,13 +99,13 @@ export class MarloweCodeActionProvider implements monaco.languages.CodeActionPro
 export class MarloweDocumentFormattingEditProvider implements monaco.languages.DocumentFormattingEditProvider {
   format: (contractString: string) => string
 
-  constructor(format: (contractString: string) => string) {
+  constructor (format: (contractString: string) => string) {
     this.format = format;
   }
 
   displayName: "Marlowe";
 
-  provideDocumentFormattingEdits(model: monaco.editor.ITextModel, options: monaco.languages.FormattingOptions, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.TextEdit[]> {
+  provideDocumentFormattingEdits (model: monaco.editor.ITextModel, options: monaco.languages.FormattingOptions, token: monaco.CancellationToken): monaco.languages.ProviderResult<monaco.languages.TextEdit[]> {
     const range = model.getFullModelRange();
     const text = this.format(model.getValue());
     return [{
@@ -102,13 +119,13 @@ export class MarloweDocumentFormattingEditProvider implements monaco.languages.D
 export class MarloweTokensState implements monaco.languages.IState {
   lexer: any;
 
-  constructor(lexer: any) {
+  constructor (lexer: any) {
     this.lexer = lexer;
   }
-  clone(): monaco.languages.IState {
+  clone (): monaco.languages.IState {
     return new MarloweTokensState(this.lexer);
   }
-  equals(other: MarloweTokensState): boolean {
+  equals (other: MarloweTokensState): boolean {
     return (other === this || other.lexer === this.lexer);
   }
 
@@ -176,11 +193,11 @@ interface ILexResult { offset: number, type: string }
 
 export class MarloweTokensProvider implements monaco.languages.TokensProvider {
 
-  getInitialState(): MarloweTokensState {
+  getInitialState (): MarloweTokensState {
     return new MarloweTokensState(marloweLexer);
   }
 
-  tokenize(line: string, state: MarloweTokensState): monaco.languages.ILineTokens {
+  tokenize (line: string, state: MarloweTokensState): monaco.languages.ILineTokens {
     let lexer = state.lexer;
     lexer.reset(line);
     let result: Array<ILexResult> = Array.from(lexer);

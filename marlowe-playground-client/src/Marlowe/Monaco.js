@@ -8,13 +8,18 @@ exports.hoverProvider_ = function (hoverProvider) {
 }
 
 exports.completionItemProvider_ = function (suggestionsProvider) {
-    let uncurriedSuggestions = (word, stripParens, contract, range) => suggestionsProvider(word)(stripParens)(contract)(range);
+    let uncurriedSuggestions = (word, stripParens, contract, range, context) => suggestionsProvider(word)(stripParens)(contract)(range)(context);
     return new monaco.MarloweCompletionItemProvider(uncurriedSuggestions);
 }
 
-exports.codeActionProvider_ = function (provideCodeActions) {
-    let uncurriedProvideCodeActions = (a, b) => provideCodeActions(a)(b);
-    return new monaco.MarloweCodeActionProvider(uncurriedProvideCodeActions);
+exports.codeActionProvider_ = function (provideCodeActions, additionalContext) {
+    let uncurriedProvideCodeActions = (a, b, c) => provideCodeActions(a)(b)(c);
+    return new monaco.MarloweCodeActionProvider(uncurriedProvideCodeActions, additionalContext);
+}
+
+exports.updateAdditionalContext_ = function (codeActionProvider, completionItemProvider, additionalContext) {
+    codeActionProvider.updateAdditionalContext(additionalContext);
+    completionItemProvider.updateAdditionalContext(additionalContext);
 }
 
 exports.documentFormattingEditProvider_ = function (format) {
