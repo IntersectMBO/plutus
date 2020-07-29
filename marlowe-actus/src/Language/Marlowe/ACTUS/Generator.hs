@@ -150,7 +150,7 @@ genFsContract terms =
         gen :: (CashFlow, EventType, Slot, Double, Integer) -> Contract -> Contract
         gen (cf, ev, date, r, t) cont = inquiryFs ev ("_" ++ show t) date "oracle"
             $ stateTransitionFs ev terms t (cashCalculationDay cf)
-            $ Let (payoffAt t) (payoffFs ev terms t (cashCalculationDay cf))
+            $ Let (payoffAt t) (payoffFs ev terms t (t - 1)(cashCalculationDay cf))
             $ if r > 0.0    then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                             else invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
         scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]

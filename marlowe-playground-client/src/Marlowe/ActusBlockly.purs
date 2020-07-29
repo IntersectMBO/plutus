@@ -28,10 +28,11 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
+import Data.Int (fromString)
 import Data.Lens (to, view, (^.))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
-import Data.Traversable (traverse, traverse_)
+import Data.Traversable (sequence, traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Foreign (F, readString, Foreign)
 import Foreign.Class (class Encode, class Decode, encode, decode)
@@ -49,7 +50,6 @@ import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
 import Type.Proxy (Proxy(..))
-import Data.Int (fromString)
 
 rootBlockName :: String
 rootBlockName = "root_contract"
@@ -267,10 +267,10 @@ toDefinition (ActusContractType PaymentAtMaturity) =
         { type: show PaymentAtMaturity
         , message0: "Payment At Maturity %1" <> 
             "start_date * %2" <> 
-            "purchase date * %3" <>
-            "initial exchange date * %4" <>
+            "purchase date %3" <>
+            "initial exchange date %4" <>
             "maturity date * %5" <>
-            "termination date * %6" <>
+            "termination date %6" <>
             "rate reset cycle %7"
         , args0:
           [ DummyCentre
@@ -511,7 +511,7 @@ parseActusJsonCode str = do
   parsed <- catch $ runExcept $ parseJSON str
   let decoded = decode parsed :: F ActusContract
   result <- catch $ runExcept $ decoded 
-  pure $ actusContractToTerms result
+  actusContractToTerms result
 
 instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType ActusContract where
   blockDefinition _ g block = Either.Right $ ActusContract {
@@ -543,12 +543,15 @@ instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPer
   blockDefinition x g block = do 
     pure $ x 
 
-actusDateToDay :: ActusValue -> String
-actusDateToDay (DateValue yyyy mm dd) = yyyy <> "-" <> mm <> "-" <> dd --should be validated in a parser
-actusDateToDay date = "actus: not a date! look up this message in a codebase" -- we should never reach it
 
-blocklyCycleToCycle :: ActusValue -> Maybe Cycle
-blocklyCycleToCycle (CycleValue _ value period) = Just $ Cycle {
+actusDateToDay :: ActusValue -> Either String (Maybe String)
+actusDateToDay (DateValue yyyy mm dd) = Either.Right $ Just $ yyyy <> "-" <> mm <> "-" <> dd --should be validated in a parser
+actusDateToDay (ActusError msg) = Either.Left msg
+actusDateToDay NoActusValue = Either.Right Nothing
+actusDateToDay x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
+
+blocklyCycleToCycle :: ActusValue -> Either String (Maybe Cycle)
+blocklyCycleToCycle (CycleValue _ value period) = Either.Right $ Just $ Cycle {
   n: value 
   , p: case period of
      PeriodYearType -> P_Y
@@ -557,27 +560,41 @@ blocklyCycleToCycle (CycleValue _ value period) = Just $ Cycle {
      PeriodQuarterType -> P_Q
   , stub: LongStub
 }
-blocklyCycleToCycle _ = Nothing
+blocklyCycleToCycle (ActusError msg) = Either.Left msg
+blocklyCycleToCycle NoActusValue = Either.Right Nothing
+blocklyCycleToCycle x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
-blocklyCycleToAnchor :: ActusValue -> Maybe ActusValue
-blocklyCycleToAnchor (CycleValue anchor _ _) = Just anchor 
-blocklyCycleToAnchor _ = Nothing 
+blocklyCycleToAnchor :: ActusValue -> Either String (Maybe ActusValue)
+blocklyCycleToAnchor (CycleValue anchor _ _) = Either.Right $ Just anchor 
+blocklyCycleToAnchor (ActusError msg) = Either.Left msg
+blocklyCycleToAnchor NoActusValue = Either.Right Nothing
+blocklyCycleToAnchor x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
-actusContractToTerms :: ActusContract -> ContractTerms
-actusContractToTerms c = --todo process error values, return Either
-  ContractTerms
+actusContractToTerms :: ActusContract -> Either String ContractTerms
+actusContractToTerms raw = do --todo rewrite to EitherT ??
+  let c = (unwrap raw)
+  startDate <- Either.note "start date is a mandatory field!" <$> actusDateToDay c.startDate >>= identity
+  maturityDate <- Either.note "maturity date is a mandatory field!" <$> actusDateToDay c.maturityDate >>= identity
+  initialExchangeDate <- fromMaybe startDate <$> actusDateToDay c.initialExchangeDate
+  terminationDate <- fromMaybe maturityDate <$> actusDateToDay c.terminationDate
+  purchaseDate <- fromMaybe maturityDate <$> actusDateToDay c.purchaseDate
+  rateResetCycle <- blocklyCycleToCycle c.rateReset
+  rateResetAnchorValue <- blocklyCycleToAnchor c.rateReset
+  rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue 
+
+  pure $ ContractTerms
       { contractId : "0"
       , contractType : PAM
-      , ct_IED : actusDateToDay (unwrap c).initialExchangeDate
-      , ct_SD : actusDateToDay (unwrap c).initialExchangeDate
-      , ct_MD : actusDateToDay (unwrap c).maturityDate
-      , ct_TD : actusDateToDay (unwrap c).terminationDate
-      , ct_PRD : actusDateToDay (unwrap c).purchaseDate
+      , ct_IED : initialExchangeDate
+      , ct_SD : startDate
+      , ct_MD : maturityDate
+      , ct_TD : terminationDate
+      , ct_PRD : purchaseDate
       , ct_CNTRL : CR_ST
       , ct_PDIED : -100.0
       , ct_NT : 1000.0
-      , ct_PPRD : 1200.0
-      , ct_PTD : 1200.0
+      , ct_PPRD : 0.0
+      , ct_PTD : 0.0
       , ct_DCC : DCC_A_360
       , ct_PREF : PREF_N
       , ct_PRF : CS_PF
@@ -597,8 +614,8 @@ actusContractToTerms c = --todo process error values, return Either
       , ct_SCCL : Nothing
       , ct_SCANX : Nothing
       , ct_SCIXSD : 0.0
-      , ct_RRCL : blocklyCycleToCycle (unwrap c).rateReset
-      , ct_RRANX : actusDateToDay <$> blocklyCycleToAnchor (unwrap c).rateReset
+      , ct_RRCL : rateResetCycle
+      , ct_RRANX : rateResetAnchor >>= identity
       , ct_RRNXT : Nothing
       , ct_RRSP : 0.0
       , ct_RRMLT : 0.0
