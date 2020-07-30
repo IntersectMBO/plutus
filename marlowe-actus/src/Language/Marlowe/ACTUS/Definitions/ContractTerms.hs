@@ -180,6 +180,8 @@ data ContractTerms = ContractTerms {
   , ct_FEAC      :: Maybe Double
   , ct_FEB       :: FEB  -- fee basis
   , ct_FER       :: Double -- fee rate
+  -- enable settlement currency
+  , ct_CURS      :: Bool
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

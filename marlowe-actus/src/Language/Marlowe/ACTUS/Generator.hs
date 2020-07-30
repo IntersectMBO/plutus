@@ -21,10 +21,10 @@ import           Language.Marlowe                                        (Accoun
                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
                                                                           ValueId (ValueId), ada)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms)
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
                                                                           calculationDay, paymentDay)
-import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber)
+import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization   (inititializeState)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
 import           Language.Marlowe.ACTUS.Model.POF.Payoff                 (payoff)
@@ -57,23 +57,25 @@ maxPseudoDecimalValue = 100000000000000
 
 inquiryFs
     :: EventType
+    -> ContractTerms
     -> String
     -> Slot
     -> String
     -> Contract
     -> Contract
-inquiryFs ev timePosfix date oracle continue =
+inquiryFs ev ct timePosfix date oracle continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
+        letTemplate inputChoiceId inputOwner cont = 
+            Let
+                (ValueId inputChoiceId)
+                (ChoiceValue (ChoiceId inputChoiceId inputOwner))
+                cont
+                      
         inputTemplate inputChoiceId inputOwner inputBound cont =
             When
-                [ Case
-                      (Choice (ChoiceId inputChoiceId inputOwner) inputBound)
-                      (Let
-                          (ValueId inputChoiceId)
-                          (ChoiceValue (ChoiceId inputChoiceId inputOwner))
-                          cont
-                      )
+                [ Case (Choice (ChoiceId inputChoiceId inputOwner) inputBound) $
+                    letTemplate inputChoiceId inputOwner cont
                 ]
                 date
                 Close
@@ -88,7 +90,9 @@ inquiryFs ev timePosfix date oracle continue =
         riskFactorsInquiryEv PP =
             riskFactorInquiry "o_rf_CURS" .
                 riskFactorInquiry "pp_payoff"
-        riskFactorsInquiryEv _ = riskFactorInquiry "o_rf_CURS"
+        riskFactorsInquiryEv _ = 
+            if ct_CURS ct then riskFactorInquiry "o_rf_CURS" 
+            else Let (ValueId (fromString ("o_rf_CURS" ++ timePosfix))) (constnt 1.0)
     in
         riskFactorsInquiryEv ev continue
 
@@ -151,9 +155,9 @@ genFsContract terms =
         schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
         cfsDirections = amount <$> schedCfs
         gen :: (CashFlow, EventType, Slot, Double, Integer) -> Contract -> Contract
-        gen (cf, ev, date, r, t) cont = inquiryFs ev ("_" ++ show t) date "oracle"
+        gen (cf, ev, date, r, t) cont = inquiryFs ev terms ("_" ++ show t) date "oracle"
             $ stateTransitionFs ev terms t (cashCalculationDay cf)
-            $ Let (payoffAt t) (payoffFs ev terms t (t - 1)(cashCalculationDay cf))
+            $ Let (payoffAt t) (payoffFs ev terms t (t - 1) (cashCalculationDay cf))
             $ if r > 0.0    then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
                             else invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
         scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]

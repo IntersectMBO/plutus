@@ -125,7 +125,7 @@ handleAction (GetTerms flavour) = do
         workspace = blocklyState.workspace
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
+      except <<< lmap (\x -> "This workspace cannot be converted to code: " <> (show x)) $ blockToCode block generator
   case res of
     Left e -> assign _errorMessage $ Just e
     Right contract -> do

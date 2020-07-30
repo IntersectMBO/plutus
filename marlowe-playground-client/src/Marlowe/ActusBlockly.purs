@@ -306,9 +306,9 @@ toDefinition (ActusValueType ActusDate) =
         , message0: "year %1 month %2 day %3"
         , args0:
           [             
-            Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Nothing }
-            , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Nothing }
-            , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Nothing }
+            Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Just 0.0 }
+            , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
+            , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
           ]
         , colour: blockColour BaseContractType
         , output: Just "date"
@@ -320,7 +320,7 @@ toDefinition (ActusValueType ActusCycleType) =
   BlockDefinition
     $ merge
         { type: show ActusCycleType
-        , message0: "Cycle with anchor %1 and period %2 of %3 with stub LongStub"
+        , message0: "Cycle with anchor %1 and period %2 of %3 with long stub"
         , args0:
           [ Value { name: "anchor", check: "date", align: Right }
           , Input { name: "value", text: "1", spellcheck: false }
@@ -338,7 +338,7 @@ toDefinition (ActusValueType ActusDecimalType) =
         { type: show ActusDecimalType
         , message0: "decimal %1"
         , args0:
-          [ Input { name: "value", text: "1", spellcheck: false }
+          [ Input { name: "value", text: "1000", spellcheck: false }
           ]
         , colour: blockColour BaseContractType
         , inputsInline: Just false
@@ -570,9 +570,9 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     yyyy <- getFieldValue block "yyyy"
     m <- getFieldValue block "mm"
     d <- getFieldValue block "dd"
-    year <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString yyyy
-    month <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString m
-    day <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString d
+    year <- fromMaybe (Either.Left $ "can't parse integer: " <> yyyy) $ Either.Right <$> fromString yyyy
+    month <- fromMaybe (Either.Left $ "can't parse integer: " <> m) $ Either.Right <$> fromString m
+    day <- fromMaybe (Either.Left $ "can't parse integer: " <> d) $ Either.Right <$> fromString d
     safeYear <- fromMaybe (Either.Left "wrong year") $ Either.Right <$> toEnum year
     safeMonth <- fromMaybe (Either.Left "wrong month") $ Either.Right <$> toEnum month
     safeDay <- fromMaybe (Either.Left "wrong day") $ Either.Right <$> toEnum day
@@ -580,7 +580,9 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     let mm = if month < 10 then "0" <> m else m
     let dd = if day < 10 then "0" <> d else d
     let date = exactDate safeYear safeMonth safeDay
-    pure $ if isJust date then DateValue yyyy mm dd else ActusError "Incorrect date!"
+    pure $ if isJust date 
+      then DateValue yyyy mm dd 
+      else ActusError $ "Incorrect date: " <> yyyy <> "-" <> mm <> "-" <> dd
   blockDefinition ActusCycleType g block = do 
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString valueString
@@ -699,6 +701,7 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_FEAC : Nothing
       , ct_FEB : FEB_N
       , ct_FER : 0.0
+      , ct_CURS : false
       }
 
 
