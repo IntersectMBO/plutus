@@ -8,6 +8,7 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (PREF (.
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift         (applyBDCWithCfg)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (generateRecurrentScheduleWithCorrections, inf,
                                                                          plusCycle, remove)
+import Debug.Trace
 
 _S = generateRecurrentScheduleWithCorrections
 shift = applyBDCWithCfg
@@ -67,7 +68,7 @@ _SCHED_RR_PAM scfg _IED _SD _RRANX _RRCL _RRNXT _MD =
                 | otherwise                           = _RRANX
 
         tt      = (\s -> _S s (fromJust _RRCL) _MD scfg) <$> maybeS
-        trry    = inf (fromJust tt) _SD
+        trry    = trace (show tt) $ fromJust $ inf (fromJust tt) _SD
 
         result  | isNothing _RRANX && isNothing _RRCL  = Nothing
                 | isNothing _RRNXT                    = remove trry <$> tt

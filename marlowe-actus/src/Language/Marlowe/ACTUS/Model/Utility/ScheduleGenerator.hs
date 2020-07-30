@@ -23,13 +23,24 @@ import           Language.Marlowe.ACTUS.Definitions.Schedule      (ShiftedDay (c
 import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
 
 
-sup :: [ShiftedDay] -> Day -> ShiftedDay
-sup set threshold =
-  minimum [t | t <- set, calculationDay t >= threshold]
 
-inf :: [ShiftedDay] -> Day -> ShiftedDay
+maximumMaybe :: (Ord a, Foldable f) => f a -> Maybe a
+maximumMaybe xs
+  | null xs   = Nothing
+  | otherwise = Just $ maximum xs
+
+minimumMaybe :: (Ord a, Foldable f) => f a -> Maybe a
+minimumMaybe xs
+  | null xs   = Nothing
+  | otherwise = Just $ minimum xs
+
+inf :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 inf set threshold =
-  maximum [t | t <- set, calculationDay t <= threshold]
+  minimumMaybe [t | t <- set, calculationDay t >= threshold]
+
+sup :: [ShiftedDay] -> Day -> Maybe ShiftedDay
+sup set threshold =
+  maximumMaybe [t | t <- set, calculationDay t <= threshold]
 
 remove :: ShiftedDay -> [ShiftedDay] -> [ShiftedDay]
 remove d = filter (\t -> calculationDay t /= calculationDay d)

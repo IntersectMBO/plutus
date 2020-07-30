@@ -8,7 +8,7 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventTy
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM),
-                                                                         ScheduleConfig)
+                                                                        )
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  (_STF_AD_PAM, _STF_CE_PAM, _STF_FP_PAM,
@@ -19,14 +19,10 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  (_STF_AD
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
-import           Language.Marlowe.ACTUS.Model.Utility.DateShift
-
 import           Language.Marlowe                                       (Contract)
 import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweDate,
                                                                          stateTransitionMarlowe, useval)
 
-shift :: ScheduleConfig -> Day -> ShiftedDay
-shift = applyBDCWithCfg
 
 stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Contract -> Contract
 stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
@@ -54,9 +50,9 @@ stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
 
         -- dates:
         time               = marloweDate $ curDate
-        fpSchedule         = fromMaybe [shift scfg ct_SD] $ schedule FP terms
-        tfp_minus          = calculationDay $ sup fpSchedule curDate
-        tfp_plus           = calculationDay $ inf fpSchedule curDate
+        fpSchedule         = schedule FP terms
+        tfp_minus          = fromMaybe curDate $ calculationDay <$> ((\sc -> sup sc curDate) =<< fpSchedule)
+        tfp_plus           = fromMaybe curDate $ calculationDay <$> ((\sc -> inf sc curDate) =<< fpSchedule)
         y_sd_t             = constnt $ _y ct_DCC ct_SD curDate ct_MD
         y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate ct_MD
         y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus ct_MD

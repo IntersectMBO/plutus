@@ -28,9 +28,9 @@ shift = applyBDCWithCfg
 stateTransition :: EventType -> RiskFactors -> ContractTerms -> ContractState -> Day -> ContractState
 stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{..} t =
     let
-        fpSchedule         = fromMaybe [shift scfg ct_SD] $ schedule FP terms
-        tfp_minus          = calculationDay $ sup fpSchedule t
-        tfp_plus           = calculationDay $ inf fpSchedule t
+        fpSchedule         = schedule FP terms
+        tfp_minus          = fromMaybe t $ calculationDay <$> ((\sc -> sup sc t) =<< fpSchedule)
+        tfp_plus           = fromMaybe t $ calculationDay <$> ((\sc -> inf sc t) =<< fpSchedule)
         y_sd_t             = _y ct_DCC sd t ct_MD
         y_tfpminus_t       = _y ct_DCC tfp_minus t ct_MD
         y_tfpminus_tfpplus = _y ct_DCC tfp_minus tfp_plus ct_MD

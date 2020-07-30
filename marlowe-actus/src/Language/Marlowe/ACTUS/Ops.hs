@@ -72,9 +72,10 @@ infixl 7  *, /
 infixl 6  +, -
 
 instance ActusNum (Value Observation) where
-    (+)         = AddValue
-    (-)         = SubValue
-    a * b       = Scale (1 % marloweFixedPoint) $ MulValue a b
+    (+)                         = AddValue
+    (-)                         = SubValue
+    a * b                       = Scale (1 % marloweFixedPoint) $ MulValue a b
+    (Constant 0) / (Constant 0) = (Constant 0) -- by convention in finance
     (Constant x) / (Constant y) = Scale (marloweFixedPoint % 1) $ Constant $ div x y
-    x / (Constant y) = Scale (marloweFixedPoint % y) $ x
+    x / (Constant y)            = Scale (marloweFixedPoint % y) $ x
     _ / _                       = undefined --division not supported in Marlowe yet
