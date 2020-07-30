@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -28,7 +29,17 @@ import           Language.PlutusCore.Pretty                                 (Pre
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
+import           Data.Array
+
 infix 4 |>, <|
+
+builtinNameArities :: Array BuiltinName Int
+builtinNameArities =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedBuiltinName _ sch) -> countArgs sch
+{-# NOINLINE builtinNameArities #-}  -- Just in case.
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
 data NoDynamicBuiltinNamesMachineError
@@ -162,12 +173,16 @@ applyEvaluate stack fun                    arg =
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
-            Just (IterApp (StaticStagedBuiltinName name) spine) -> do
-                res <- applyBuiltinName name spine
-                case res of
+            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+                if length spine == builtinNameArities ! name  -- Quick fix for unsaturated builtins.
+                                                              -- FIXME: improve this, probably by modifying the frames.
+                then do
+                  res <- applyBuiltinName name spine
+                  case res of
                     EvaluationSuccess t -> stack |> t
                     EvaluationFailure   ->
                         throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term
+                else stack <| term
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 -- This differs from the spec version: we do not have the following rule:

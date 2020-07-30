@@ -36,6 +36,7 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
 import           Control.Lens
+import           Data.Array                   (Ix)
 import           Data.Hashable
 import           Data.Text                    (Text)
 import           GHC.Exts                     (Constraint)
@@ -88,7 +89,7 @@ data BuiltinName
     | LtByteString
     | GtByteString
     | IfThenElse
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable)
+    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Lift, Hashable, Ix)
 
 -- | The type of dynamic built-in functions. I.e. functions that exist on certain chains and do
 -- not exist on others. Each 'DynamicBuiltinName' has an associated type and operational semantics --

@@ -9,16 +9,12 @@ module Evaluation.DynamicBuiltins.MakeRead
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Constant.Dynamic
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc                        hiding (error)
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.StdLib.Data.Unit
 
 import           Evaluation.DynamicBuiltins.Common
 
-import           Control.Monad.IO.Class                           (liftIO)
 import           Hedgehog                                         hiding (Size, Var)
 import qualified Hedgehog.Gen                                     as Gen
 import qualified Hedgehog.Range                                   as Range
