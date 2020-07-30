@@ -8,6 +8,7 @@ import Data.Lens (to, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
+import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
@@ -89,7 +90,7 @@ bottomPanel state =
     [ div
         [ classes [ footerPanelBg, ClassName "flip-x" ] ]
         [ section [ classes [ ClassName "panel-header", aHorizontal ] ]
-            [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal, accentBorderBottom ] ]
+            [ div [ classes [ ClassName "panel-sub-header-main", aHorizontal ] ]
                 [ div [ class_ (ClassName "minimize-icon-container") ]
                     [ a [ onClick $ const $ Just $ ShowBottomPanel (state ^. _showBottomPanel <<< to not) ]
                         [ img [ classes (minimizeIcon $ state ^. _showBottomPanel), src closeDrawerArrowIcon, alt "close drawer icon" ] ]
@@ -128,10 +129,15 @@ resultPane :: forall p. FrontendState -> Array (HTML p HAction)
 resultPane state =
   if state ^. _showBottomPanel then case view _compilationResult state of
     Success (JsonEither (Right (InterpreterResult result))) ->
-      [ code_
-          [ pre [ class_ $ ClassName "success-code" ] [ text (unwrap result.result) ]
-          ]
+      [ div [ classes [ ClassName "code-editor", ClassName "expanded", ClassName "code" ] ]
+          numberedText
       ]
+      -- [ code_
+      --     [ pre [ class_ $ ClassName "success-code" ] [ text (unwrap result.result) ]
+      --     ]
+      -- ]
+      where
+      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") (unwrap result.result)
     Success (JsonEither (Left (TimeoutError error))) -> [ text error ]
     Success (JsonEither (Left (CompilationErrors errors))) -> map compilationErrorPane errors
     _ -> [ text "" ]
