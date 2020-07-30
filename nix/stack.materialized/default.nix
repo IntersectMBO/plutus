@@ -48,6 +48,7 @@
         playground-common = ./playground-common.nix;
         marlowe = ./marlowe.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
+        marlowe-actus = ./marlowe-actus.nix;
         plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
@@ -84,6 +85,8 @@
         shelley-spec-ledger = ./.stack-to-nix.cache.22;
         shelley-spec-ledger-test = ./.stack-to-nix.cache.23;
         contra-tracer = ./.stack-to-nix.cache.24;
+        iohk-monitoring = ./.stack-to-nix.cache.25;
+        tracer-transformers = ./.stack-to-nix.cache.26;
         };
       };
   resolver = "lts-15.6";
@@ -125,6 +128,7 @@
         })
     {
       packages = {
+        "iohk-monitoring" = { package = { ghcOptions = "-w"; }; };
         "eventful-sql-common" = {
           package = {
             ghcOptions = "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances";

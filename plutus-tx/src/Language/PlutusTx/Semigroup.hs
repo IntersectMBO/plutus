@@ -16,6 +16,10 @@ instance Semigroup Builtins.ByteString where
     {-# INLINABLE (<>) #-}
     (<>) = Builtins.concatenate
 
+instance Semigroup Builtins.String where
+    {-# INLINABLE (<>) #-}
+    (<>) = Builtins.appendString
+
 instance Semigroup [a] where
     {-# INLINABLE (<>) #-}
     (<>) = (++)

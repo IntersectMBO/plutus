@@ -44,6 +44,7 @@ module Language.Plutus.Contract.Test(
 
 import           Control.Lens                                    (at, view, (^.))
 import           Control.Monad                                   (guard, unless)
+import           Control.Monad.Freer.Log                         (LogMessage (..))
 import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
 import           Data.Bifunctor                                  (Bifunctor (..))
 import           Data.Foldable                                   (fold, toList)
@@ -389,7 +390,7 @@ waitingForSlot w sl = PredF $ \(_, r) ->
 emulatorLog
     :: forall s e a.
        ()
-    => ([EmulatorEvent] -> Bool)
+    => ([LogMessage EmulatorEvent] -> Bool)
     -> String
     -> TracePredicate s e a
 emulatorLog f nm = PredF $ \(_, r) ->
@@ -611,8 +612,8 @@ assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState 
             tell $ vsep ("Transactions failed to validate:" : fmap pretty xs)
             pure False
 
-failedTransactions :: [EM.EmulatorEvent] -> [(TxId, ValidationError)]
+failedTransactions :: [LogMessage EmulatorEvent] -> [(TxId, ValidationError)]
 failedTransactions = mapMaybe $
     \case
-        EM.ChainEvent (EM.TxnValidationFail txid err) -> Just (txid, err)
+        LogMessage{_logMessageContent=EM.ChainEvent (EM.TxnValidationFail txid err)} -> Just (txid, err)
         _ -> Nothing

@@ -53,8 +53,8 @@ Marlowe is modelled on financial contract DSLs popularised in the last
 decade or so by academics and enterprises such as LexiFi, which provides
 contract software in the financial sector. In developing Marlowe, we
 have adapted these languages to work on blockchain. Marlowe is
-implemented on the settlement layer (SL) of the Cardano blockchain, but
-could equally well be implemented on Ethereum/Solidity or other
+implemented on the Cardano blockchain, but
+could equally well be implemented on Ethereum or other
 blockchain platforms; in this respect it is “platform agnostic” just
 like modern programming languages like Java and C++. The Marlowe
 Playground online emulator tool allows you to experiment with, develop, simulate and analyse Marlowe contracts in your web browser, without having
@@ -76,7 +76,7 @@ happen_”. We do this using *timeouts*.
 
 A contract can ask a participant to make a *deposit* of some funds, but obviously the contract cannot actually force a participant to make a deposit. Instead, the contract can wait for a period of time for the participant to commit to the contract: when that period of time expires, the contract moves on to follow some alternative instructions. This prevents a participant stopping a contract by not taking part, thus making sure that “things happen”.
 
-All the constructs of Marlowe that require user participation – including user deposits and user choices – are protected by timeouts. Because of this, it is easy to see that the *commitment* made by a participant to a contract is _finite_: we can predict when the contract will have nothing left to do – when it can be closed – at this point any unspent funds left in the contract are *refunded* to participants, and the contract stops, or _terminates_. So, any funds put into the contract by a participant _can't be locked up forever_: at this point the commitment effectively ends. 
+All the constructs of Marlowe that require user participation – including user deposits and user choices – are protected by timeouts. Because of this, it is easy to see that the *commitment* made by a participant to a contract is _finite_: we can predict when the contract will have nothing left to do – when it can be closed – at this point any unspent funds left in the contract are *refunded* to participants, and the contract stops, or _terminates_. So, any funds put into the contract by a participant _can't be locked up forever_: at this point the commitment effectively ends.
 
 What is more, it is easy for us to _read off_ from the contract when it will terminate, we call this the _lifetime_ of the contract: all participants will therefore be able to find out this lifetime before taking part in the contract,
 
@@ -104,7 +104,7 @@ contracts behave as intended.
 
 This tutorial covers the latest version of Marlowe, while all but the
 first of these links covers Marlowe 1.3, which is very close to Marlowe
-3.0 in conception but which differs in a number of detailed ways. 
+3.0 in conception but which differs in a number of detailed ways.
 
 * https://github.com/input-output-hk/marlowe[The Marlowe github repository]
 * https://api.zotero.org/groups/478201/items/L65KWDLX/file/view?key=Qcjdk4erSuUZ8jvAah59Asef[The Marlowe paper]

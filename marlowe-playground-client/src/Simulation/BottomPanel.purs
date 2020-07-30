@@ -29,7 +29,7 @@ import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
-import Simulation.Types (Action(..), BottomPanelView(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser (runParser)
 import Text.Parsing.StringParser.Basic (lines)
 import Types (bottomPanelHeight)
@@ -92,6 +92,16 @@ bottomPanel state =
   hasRuntimeWarnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings <<< to Array.null <<< to not)
 
   hasRuntimeError = state ^. (_marloweState <<< _Head <<< _transactionError <<< to isJust)
+
+isStaticLoading :: AnalysisState -> Boolean
+isStaticLoading (WarningAnalysis remoteData) = isLoading remoteData
+
+isStaticLoading _ = false
+
+isReachabilityLoading :: AnalysisState -> Boolean
+isReachabilityLoading (ReachabilityAnalysis (InProgress _)) = true
+
+isReachabilityLoading _ = false
 
 panelContents :: forall p. State -> BottomPanelView -> HTML p Action
 panelContents state CurrentStateView =
@@ -282,12 +292,16 @@ panelContents state StaticAnalysisView =
     ]
     [ analysisResultPane state
     , button [ onClick $ const $ Just $ AnalyseContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
-        [ text (if loading then "Analysing..." else "Analyse") ]
+        [ text (if loading then "Analysing..." else "Analyse for warnings") ]
+    , button [ onClick $ const $ Just $ AnalyseReachabilityContract, enabled enabled', classes (if enabled' then [ ClassName "analyse-btn" ] else [ ClassName "analyse-btn", ClassName "disabled" ]) ]
+        [ text (if loadingReachability then "Analysing..." else "Analyse reachability") ]
     ]
   where
-  loading = state ^. _analysisState <<< to isLoading
+  loading = state ^. _analysisState <<< to isStaticLoading
 
-  enabled' = not loading && isContractValid state
+  loadingReachability = state ^. _analysisState <<< to isReachabilityLoading
+
+  enabled' = not loading && not loadingReachability && isContractValid state
 
 panelContents state MarloweWarningsView =
   section
@@ -389,55 +403,92 @@ analysisResultPane state =
     explanation = div [ classes [ ClassName "padded-explanation" ] ]
   in
     case result of
-      NotAsked ->
+      NoneAsked ->
         explanation
           [ text ""
           ]
-      Success (R.Valid) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Pass" ]
-          , text "Static analysis could not find any execution that results in any warning."
-          ]
-      Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Analysis Result: Warnings Found" ]
-          , text "Static analysis found the following counterexample:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ spanText "Warnings issued: "
-                  , displayWarningList transactionWarning
-                  ]
-              , li_
-                  [ spanText "Initial slot: "
-                  , b_ [ spanText (show initialSlot) ]
-                  ]
-              , li_
-                  [ spanText "Offending transaction list: "
-                  , displayTransactionList transactionList
-                  ]
-              ]
-          ]
-      Success (R.Error str) ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ b_ [ spanText str ]
-                  ]
-              ]
-          ]
-      Failure failure ->
-        explanation
-          [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during analysis" ]
-          , text "Analysis failed for the following reason:"
-          , ul [ classes [ ClassName "indented-enum-initial" ] ]
-              [ li_
-                  [ b_ [ spanText failure ]
-                  ]
-              ]
-          ]
-      Loading -> text ""
+      WarningAnalysis staticSubResult -> case staticSubResult of
+        NotAsked ->
+          explanation
+            [ text ""
+            ]
+        Success (R.Valid) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Warning Analysis Result: Pass" ]
+            , text "Static analysis could not find any execution that results in any warning."
+            ]
+        Success (R.CounterExample { initialSlot, transactionList, transactionWarning }) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Warning Analysis Result: Warnings Found" ]
+            , text "Static analysis found the following counterexample:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ spanText "Warnings issued: "
+                    , displayWarningList transactionWarning
+                    ]
+                , li_
+                    [ spanText "Initial slot: "
+                    , b_ [ spanText (show initialSlot) ]
+                    ]
+                , li_
+                    [ spanText "Offending transaction list: "
+                    , displayTransactionList transactionList
+                    ]
+                ]
+            ]
+        Success (R.Error str) ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText str ]
+                    ]
+                ]
+            ]
+        Failure failure ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+            , text "Analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText failure ]
+                    ]
+                ]
+            ]
+        Loading -> text ""
+      ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
+        NotStarted ->
+          explanation
+            [ text ""
+            ]
+        InProgress
+          { numSubproblems: totalSteps
+        , numSolvedSubproblems: doneSteps
+        } ->
+          explanation
+            [ text ("Reachability analysis in progress, " <> show doneSteps <> " subcontracts out of " <> show totalSteps <> " analysed...") ]
+        ReachabilityFailure err ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during reachability analysis" ]
+            , text "Reachability analysis failed for the following reason:"
+            , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                [ li_
+                    [ b_ [ spanText err ]
+                    ]
+                ]
+            ]
+        UnreachableSubcontract contractPath ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Unreachable Subcontract Found" ]
+            , text "Static analysis found the following subcontract that is unreachable:"
+            , text (show contractPath)
+            ]
+        AllReachable ->
+          explanation
+            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Reachability Analysis Result: Pass" ]
+            , text "Reachability analysis could not find any subcontract that is not reachable."
+            ]
 
 displayTransactionList :: forall p. String -> HTML p Action
 displayTransactionList transactionList = case runParser transactionInputList transactionList of

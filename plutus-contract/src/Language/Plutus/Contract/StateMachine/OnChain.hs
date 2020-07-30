@@ -3,6 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -84,19 +85,19 @@ machineAddress = scriptAddress . validatorInstance
 mkValidator :: forall s i. (PlutusTx.IsData s) => StateMachine s i -> ValidatorType (StateMachine s i)
 mkValidator (StateMachine step isFinal check) currentState input ptx =
     let vl = txInInfoValue (findOwnInput ptx)
-        checkOk = traceIfFalseH "State transition invalid - checks failed" (check currentState input ptx)
+        checkOk = traceIfFalse "State transition invalid - checks failed" (check currentState input ptx)
         oldState = State{stateData=currentState, stateValue=vl}
         stateAndOutputsOk = case step oldState input of
             Just (newConstraints, State{stateData=newData, stateValue=newValue})
                 | isFinal newData ->
-                    traceIfFalseH "Non-zero value allocated in final state" (isZero newValue)
-                    && traceIfFalseH "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx newConstraints ptx)
+                    traceIfFalse "Non-zero value allocated in final state" (isZero newValue)
+                    && traceIfFalse "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx newConstraints ptx)
                 | otherwise ->
                     let txc =
                             newConstraints
                                 { txOwnOutputs=
                                     [ OutputConstraint{ocDatum=newData, ocValue= newValue} ]
                                 }
-                    in traceIfFalseH "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx @_ @s txc ptx)
-            Nothing -> traceH "State transition invalid - input is not a valid transition at the current state" False
+                    in traceIfFalse "State transition invalid - constraints not satisfied by ValidatorCtx" (checkValidatorCtx @_ @s txc ptx)
+            Nothing -> trace "State transition invalid - input is not a valid transition at the current state" False
     in checkOk && stateAndOutputsOk

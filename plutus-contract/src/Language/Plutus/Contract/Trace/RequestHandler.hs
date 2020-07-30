@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE MonoLocalBinds     #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -10,6 +11,7 @@
 {-# LANGUAGE TypeOperators      #-}
 module Language.Plutus.Contract.Trace.RequestHandler(
     RequestHandler(..)
+    , RequestHandlerLogMsg(..)
     , tryHandler
     , wrapHandler
     , extract
@@ -35,12 +37,13 @@ import qualified Control.Monad.Freer.NonDet                        as NonDet
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Monoid                                       (Alt (..), Ap (..))
-import qualified Data.Text                                         as Text
+import           Data.Text                                         (Text)
 import qualified Ledger.AddressMap                                 as AM
 
 import           Language.Plutus.Contract.Resumable                (Request (..), Response (..))
 
-import           Control.Monad.Freer.Log                           (Log, logDebug, logWarn, surroundDebug)
+import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
+                                                                    surroundDebug)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
@@ -52,6 +55,7 @@ import           Wallet.Effects                                    (AddressChang
                                                                     ChainIndexEffect, SigningProcessEffect,
                                                                     WalletEffect)
 import qualified Wallet.Effects
+import           Wallet.Emulator.LogMessages                       (RequestHandlerLogMsg (..), TxBalanceMsg)
 
 
 -- | Request handlers that can choose whether to handle an effect (using
@@ -60,7 +64,6 @@ newtype RequestHandler effs req resp = RequestHandler { unRequestHandler :: req 
     deriving stock (Functor)
     deriving (Profunctor, Category, Arrow) via (Kleisli (Eff (NonDet ': effs)))
     deriving (Semigroup, Monoid) via (Ap ((->) req) (Alt (Eff (NonDet ': effs)) resp))
-
 
 -- Try the handler on the requests until it succeeds for the first time, then stop.
 tryHandler ::
@@ -87,51 +90,54 @@ maybeToHandler f = RequestHandler $ maybe empty pure . f
 handleOwnPubKey ::
     forall a effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member (LogObserve (LogMessage Text)) effs
     )
     => RequestHandler effs a PubKey
 handleOwnPubKey =
     RequestHandler $ \_ ->
-        surroundDebug "handleOwnPubKey" Wallet.Effects.ownPubKey
+        surroundDebug @Text "handleOwnPubKey" Wallet.Effects.ownPubKey
 
 handleSlotNotifications ::
     forall effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
     )
     => RequestHandler effs Slot Slot
 handleSlotNotifications =
     RequestHandler $ \targetSlot ->
-        surroundDebug "handleSlotNotifications" $ do
+        surroundDebug @Text "handleSlotNotifications" $ do
             currentSlot <- Wallet.Effects.walletSlot
-            logDebug $ Text.pack $ "targetSlot: " <> show targetSlot <> "; current slot: " <> show currentSlot
+            logDebug $ SlotNoficationTargetVsCurrent targetSlot currentSlot
             guard (currentSlot >= targetSlot)
             pure currentSlot
 
 handlePendingTransactions ::
     forall effs.
     ( Member WalletEffect effs
-    , Member Log effs
+    , Member (LogObserve (LogMessage Text)) effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
+    , Member (LogMsg TxBalanceMsg) effs
     , Member SigningProcessEffect effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs UnbalancedTx (Either WalletAPIError Tx)
 handlePendingTransactions =
     RequestHandler $ \unbalancedTx ->
-        surroundDebug "handlePendingTransactions" $ do
-        logDebug "Start watching contract addresses."
+        surroundDebug @Text "handlePendingTransactions" $ do
+        logDebug StartWatchingContractAddresses
         wa <- Wallet.Effects.watchedAddresses
         traverse_ Wallet.Effects.startWatching (AM.addressesTouched wa (unBalancedTxTx unbalancedTx))
-        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn "handleTxFailed" >> pure (Left err))
+        (Right <$> Wallet.handleTx unbalancedTx) `Eff.handleError` (\err -> logWarn HandleTxFailed >> pure (Left err))
 
 handleUtxoQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member (LogObserve (LogMessage Text)) effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs Address UtxoAtAddress
 handleUtxoQueries = RequestHandler $ \addr ->
-    surroundDebug "handleUtxoQueries" $ do
+    surroundDebug @Text "handleUtxoQueries" $ do
         Wallet.Effects.startWatching addr
         AddressMap utxoSet <- Wallet.Effects.watchedAddresses
         case Map.lookup addr utxoSet of
@@ -140,25 +146,25 @@ handleUtxoQueries = RequestHandler $ \addr ->
 
 handleTxConfirmedQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member (LogObserve (LogMessage Text)) effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs TxId TxConfirmed
 handleTxConfirmedQueries = RequestHandler $ \txid ->
-    surroundDebug "handleTxConfirmedQueries" $ do
+    surroundDebug @Text "handleTxConfirmedQueries" $ do
         conf <- Wallet.Effects.transactionConfirmed txid
         guard conf
         pure (TxConfirmed txid)
 
 handleNextTxAtQueries ::
     forall effs.
-    ( Member Log effs
+    ( Member (LogObserve (LogMessage Text)) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     )
     => RequestHandler effs AddressChangeRequest AddressChangeResponse
 handleNextTxAtQueries = RequestHandler $ \req ->
-    surroundDebug "handleNextTxAtQueries" $ do
+    surroundDebug @Text "handleNextTxAtQueries" $ do
         sl <- Wallet.Effects.walletSlot
         guard (sl >= acreqSlot req)
         Wallet.Effects.nextTx req

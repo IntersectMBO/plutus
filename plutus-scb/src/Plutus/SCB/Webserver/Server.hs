@@ -2,6 +2,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
@@ -19,7 +20,8 @@ import           Control.Concurrent.Availability                 (Availability, 
 import           Control.Monad.Except                            (ExceptT (ExceptT))
 import           Control.Monad.Freer                             (Eff, Member)
 import           Control.Monad.Freer.Error                       (Error, throwError)
-import           Control.Monad.Freer.Extra.Log                   (Log, logDebug, logInfo)
+import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
+import           Control.Monad.Freer.Log                         (LogMessage, LogObserve)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug))
 import qualified Data.Aeson                                      as JSON
@@ -32,14 +34,15 @@ import           Data.Proxy                                      (Proxy (Proxy))
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
 import qualified Data.Text.Encoding                              as Text
-import           Data.Text.Prettyprint.Doc                       (Pretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty (..))
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import qualified Network.Wai.Handler.Warp                        as Warp
-import           Plutus.SCB.App                                  (App, runApp)
+import           Plutus.SCB.App                                  (App, ContractExeLogMsg (..), UnStringifyJSONLog,
+                                                                  parseStringifiedJSON, runApp)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
@@ -144,10 +147,9 @@ activateContract ::
        , Member (Error SCBError) effs
        , Member (ContractEffect t) effs
        , Member UUIDEffect effs
-       , Member Log effs
+       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
        , Ord t
        , Show t
-       , Pretty t
        )
     => t
     -> Eff effs (ContractInstanceState t)
@@ -170,20 +172,21 @@ invokeEndpoint ::
        forall t effs.
        ( Member (EventLogEffect (ChainEvent t)) effs
        , Member (ContractEffect t) effs
-       , Member Log effs
+       , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
-       , Show t
+       , Member (LogMsg (Instance.ContractInstanceMsg t)) effs
+       , Member (LogObserve (LogMessage Text)) effs
+       , Pretty t
        )
     => EndpointDescription
     -> JSON.Value
     -> ContractInstanceId
     -> Eff effs (ContractInstanceState t)
 invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
-    logInfo $
-        "Invoking: " <> tshow endpointDescription <> " / " <> tshow payload
+    logInfo $ InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $ "Invocation response: " <> tshow newState
+    logInfo $ EndpointInvocationResponse $ fmap pretty newState
     getContractInstanceState contractId
 
 parseContractId ::
@@ -193,32 +196,17 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
-parseStringifiedJSON ::
-    forall effs.
-    Member Log effs
-    => JSON.Value
-    -> Eff effs JSON.Value
-parseStringifiedJSON v = case v of
-    JSON.String s -> do
-        logDebug "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        let s' = JSON.decode @JSON.Value $ LBS.fromStrict $ Text.encodeUtf8 s
-        case s' of
-            Nothing -> do
-                logDebug "parseStringifiedJSON: Failed, returning original string"
-                pure v
-            Just s'' -> do
-                logDebug "parseStringifiedJSON: Succeeded"
-                pure s''
-    _ -> pure v
-
 handler ::
        forall effs.
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
        , Member (ContractEffect ContractExe) effs
        , Member ChainIndexEffect effs
        , Member UUIDEffect effs
-       , Member Log effs
+       , Member (LogMsg ContractExeLogMsg) effs
        , Member (Error SCBError) effs
+       , Member (LogMsg UnStringifyJSONLog) effs
+       , Member (LogMsg (Instance.ContractInstanceMsg ContractExe)) effs
+       , Member (LogObserve (LogMessage Text)) effs
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)

@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -74,12 +75,11 @@ module Wallet.API(
 import           Control.Lens              hiding (contains)
 import           Control.Monad             (void, when)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Log   (Log, logWarn)
+import           Control.Monad.Freer.Log   (LogMsg, logWarn)
 import           Data.Foldable             (fold)
 import qualified Data.Map                  as Map
 import           Data.Maybe                (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Set                  as Set
-import qualified Data.Text                 as Text
 import           Data.Text.Prettyprint.Doc hiding (width)
 import           Ledger                    hiding (inputs, out, value)
 import           Ledger.AddressMap         (AddressMap)
@@ -180,7 +180,7 @@ spendScriptOutputsFilter flt vls red = do
 --   to a public key owned by us.
 collectFromScript ::
     ( Members WalletEffects effs
-    , Member Log effs
+    , Member (LogMsg WalletLog) effs
     )
     => SlotRange -> Validator -> Redeemer -> Eff effs ()
 collectFromScript = collectFromScriptFilter (\_ _ -> True)
@@ -190,7 +190,7 @@ collectFromScript = collectFromScriptFilter (\_ _ -> True)
 --   'Redeemer'.
 collectFromScriptTxn ::
     ( Members WalletEffects effs
-    , Member Log effs
+    , Member (LogMsg WalletLog) effs
     )
     => SlotRange
     -> Validator
@@ -205,7 +205,8 @@ collectFromScriptTxn range vls red txid =
 --   all the outputs that match a predicate, using the 'Redeemer'.
 collectFromScriptFilter ::
     ( Members WalletEffects effs
-    , Member Log effs)
+    , Member (LogMsg WalletLog) effs
+    )
     => (TxOutRef -> TxOutTx -> Bool)
     -> SlotRange
     -> Validator
@@ -313,14 +314,18 @@ intervalFrom = Interval.from
 intervalTo :: a -> Interval a
 intervalTo = Interval.to
 
+data WalletLog = SubmittingEmptyTransaction Address
+
+instance Pretty WalletLog where
+    pretty =
+        \case SubmittingEmptyTransaction addr ->
+                vsep [ "Attempting to collect transaction outputs from"
+                    , "'" <> pretty addr <> "',"
+                    , "but there are no known outputs at that address."
+                    , "An empty transaction will be submitted."
+                    ]
+
 -- | Emit a warning if the value at an address is zero.
-warnEmptyTransaction :: (Member Log effs) => Value -> Address -> Eff effs ()
+warnEmptyTransaction :: (Member (LogMsg WalletLog) effs) => Value -> Address -> Eff effs ()
 warnEmptyTransaction value addr =
-    when (Value.isZero value)
-        $ logWarn
-        $ Text.unwords [
-              "Attempting to collect transaction outputs from"
-            , "'" <> Text.pack (show addr) <> "'" <> ","
-            , "but there are no known outputs at that address."
-            , "An empty transaction will be submitted."
-            ]
+    when (Value.isZero value) $ logWarn (SubmittingEmptyTransaction addr)

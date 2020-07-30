@@ -8,6 +8,7 @@ packages:
 - playground-common
 - marlowe
 - marlowe-playground-server
+- marlowe-actus
 - metatheory
 - plutus-ledger
 - plutus-playground-server
@@ -120,6 +121,8 @@ extra-deps:
   commit: b5c035ad4e226d634242ad5979fa677921181435
   subdirs:
     - contra-tracer
+    - iohk-monitoring
+    - tracer-transformers
 
 allow-newer: true
 
@@ -153,6 +156,8 @@ ghc-options:
   # Newer versions of persistent-template require some extra language extensions. Fortunately
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
+  # Disable all warnings, we're building with a newer version of GHC
+  iohk-monitoring: "-w"
 
 nix:
   packages: [zlib, gmp, openssl]

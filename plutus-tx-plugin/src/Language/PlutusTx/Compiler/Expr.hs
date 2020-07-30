@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
@@ -18,6 +19,10 @@ import           Language.PlutusTx.Compiler.Type
 import           Language.PlutusTx.Compiler.Types
 import           Language.PlutusTx.Compiler.Utils
 import           Language.PlutusTx.PIRTypes
+
+import qualified Language.PlutusTx.Builtins             as Builtins
+-- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
+import qualified Language.PlutusTx.String               as String
 
 import qualified Class                                  as GHC
 import qualified FV                                     as GHC
@@ -38,7 +43,9 @@ import           Control.Monad.Reader
 
 import           Data.List                              (elemIndex)
 import qualified Data.List.NonEmpty                     as NE
+import qualified Data.Map                               as Map
 import qualified Data.Set                               as Set
+import qualified Data.ByteString                        as BS
 import qualified Data.Text                              as T
 import qualified Data.Text.Encoding                     as TE
 import           Data.Traversable
@@ -108,6 +115,34 @@ compileLiteral = \case
     GHC.LitLabel {}    -> throwPlain $ UnsupportedError "Literal label"
     GHC.LitNullAddr    -> throwPlain $ UnsupportedError "Literal null"
     GHC.LitRubbish     -> throwPlain $ UnsupportedError "Literal rubbish"
+
+-- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
+-- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
+-- through it.
+-- | Get the bytestring content of a string expression, if possible. Follows (Haskell) variable references!
+stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
+stringExprContent = \case
+    GHC.Lit (GHC.LitString bs) -> Just bs
+    -- unpackCString# is just a wrapper around a literal
+    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+    -- See Note [unpackFoldrCString#]
+    GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+        | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
+    -- GHC helpfully generates an empty list for the empty string literal instead of a 'LitString'
+    GHC.Var nil `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc)
+        | nil == GHC.dataConWorkId GHC.nilDataCon, GHC.getName tc == GHC.charTyConName -> Just mempty
+    -- Chase variable references! GHC likes to lift string constants to variables, that is not good for us!
+    GHC.Var (GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> stringExprContent unfolding
+    _ -> Nothing
+
+-- | Strip off irrelevant things when we're trying to match a particular pattern in the code. Mostly ticks.
+-- We only need to do this as part of a complex pattern match: if we're just compiling the expression
+-- in question we will strip this off anyway.
+strip :: GHC.CoreExpr -> GHC.CoreExpr
+strip = \case
+    GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
+    GHC.Tick _ expr -> strip expr
+    expr -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
 compileDataConRef :: Compiling uni m => GHC.DataCon -> m (PIRTerm uni)
@@ -284,6 +319,39 @@ effect-free let-bindings, but I don't know of an easy way to tell if an expressi
 Conveniently, we can just use PIR's support for non-strict let bindings to implement this.
 -}
 
+{- Note [String literals]
+String literals are a huge pain. Ultimately, the reason for this is that GHC's 'String' type
+is transparently equal to '[Char]', it is *not* opaque.
+
+So we can't just replace GHC's 'String' with PLC's 'String' wholesale. Otherwise things will
+behave quite weirdly with things that expect 'String' to be a list. (We want to be type-preserving!)
+
+However, we can get from GHC's 'String' to our 'String' using 'IsString'. This is fine:
+we turn string literals into lists of characters, and then we fold over the list adding them
+into a big string. But it's bad for two reasons:
+- We have to actually do the fold.
+- The string literal is there in the generated code as a list of characters, which is pretty big.
+
+So we'd really like to recognize the pattern of applying 'fromString' to a string literal, and then
+just use the content of the Haskell string literal to make a PLC string literal.
+
+This is very fiddly:
+- Sometimes we get the typeclass method application.
+    - But we only want to change it when it's targeting the PLC string type, so we need to have
+      that type around so we can check.
+- Sometimes the selector has been inlined.
+    - We can't easily get access to the name of the method definition itself, so instead we mark
+      that as INLINE and look for a special function ('stringToBuiltinString') that is in its
+      body (which we put inside 'noinline', see Note [noinline hack]).
+- Sometimes our heuristics fail.
+    - The actual definition of 'stringToBuiltinString' works, so in the worst case we fall back
+      to using it and converting the list of characters into an expression.
+
+It's also annoying since this is the first time that we have to look for a marker function inside
+the plugin compilation mode, so we have a special function that's not a builtin (in that it doesn't
+just get turned into a function in PLC).
+-}
+
 hoistExpr
     :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni)
@@ -331,19 +399,43 @@ compileExpr
     => GHC.CoreExpr -> m (PIRTerm uni)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack} <- ask
+    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
+
+    -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
+    (stringTyName, sbsName) <- case (Map.lookup ''Builtins.String nameInfo, Map.lookup 'String.stringToBuiltinString nameInfo) of
+        (Just t1, Just t2) -> pure $ (GHC.getName t1, GHC.getName t2)
+        _ -> throwPlain $ CompilationError "No info for String builtin"
+
     let top = NE.head stack
     case e of
+        -- See Note [String literals]
+        -- 'fromString' invocation at the builtin String type
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc) `GHC.App` _ `GHC.App` (strip -> stringExprContent -> Just bs)
+            | GHC.getName cls == GHC.isStringClassName, GHC.getName tc == stringTyName -> do
+                let str = T.unpack $ TE.decodeUtf8 bs
+                pure $ PIR.Constant () $ PLC.someValue str
+        -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
+        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName -> do
+                let str = T.unpack $ TE.decodeUtf8 bs
+                pure $ PIR.Constant () $ PLC.someValue str
+
         -- See Note [Literals]
+        GHC.Lit lit -> compileLiteral lit
         -- unpackCString# is just a wrapper around a literal
-        GHC.Var n `GHC.App` arg | GHC.getName n == GHC.unpackCStringName -> compileExpr arg
+        GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
         -- See Note [unpackFoldrCString#]
-        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` str)
-            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr str
+        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
+
         -- void# - values of type void get represented as error, since they should be unreachable
         GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
+
+        -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
+        -- See Note [noinline hack]
+        GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
+
         -- See note [GHC runtime errors]
         -- <error func> <runtime rep> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
@@ -351,15 +443,19 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- <error func> <overall type> <message>
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
             PIR.TyInst () <$> errorFunc <*> compileTypeNorm t
+
         -- See Note [Uses of Eq]
         GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
         GHC.Var n | GHC.getName n == GHC.eqIntegerPrimName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
         GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+
         -- locally bound vars
         GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar () var
+
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.PrimOpId po) -> compilePrimitiveOp po
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
+
         -- See Note [Unfoldings]
         -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
         GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
@@ -385,7 +481,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     "Variable" GHC.<+> GHC.ppr n
                     GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
-        GHC.Lit lit -> compileLiteral lit
+
         -- arg can be a type here, in which case it's a type instantiation
         l `GHC.App` GHC.Type t -> PIR.TyInst () <$> compileExpr l <*> compileTypeNorm t
         -- otherwise it's a normal application
@@ -394,6 +490,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
         -- othewise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
+
         GHC.Let (GHC.NonRec b arg) body -> do
             -- the binding is in scope for the body, but not for the arg
             arg' <- compileExpr arg
@@ -414,6 +511,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     pure $ PIR.TermBind () (if nonStrict then PIR.NonStrict else PIR.Strict) v arg'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
+
         -- See Note [Default-only cases]
         GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
             -- See Note [At patterns]
@@ -463,6 +561,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 -- See Note [At patterns]
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
+
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->

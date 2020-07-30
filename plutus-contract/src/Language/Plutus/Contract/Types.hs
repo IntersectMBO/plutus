@@ -49,7 +49,7 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
 import           Control.Monad.Freer.Extras          (raiseEnd3, raiseUnderN)
-import           Control.Monad.Freer.Log             (Log, ignoreLog)
+import           Control.Monad.Freer.Log             (LogMsg, handleLogIgnore)
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
@@ -61,7 +61,8 @@ import qualified Data.Text                           as T
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
 import           Language.Plutus.Contract.Checkpoint (AsCheckpointError, Checkpoint (..), CheckpointError (..),
-                                                      CheckpointKey, CheckpointStore, handleCheckpoint, jsonCheckpoint)
+                                                      CheckpointKey, CheckpointLogMsg, CheckpointStore,
+                                                      handleCheckpoint, jsonCheckpoint)
 import qualified Language.Plutus.Contract.Checkpoint as C
 import           Language.Plutus.Contract.Resumable  hiding (select)
 import qualified Language.Plutus.Contract.Resumable  as Resumable
@@ -113,7 +114,7 @@ handleContractEffs ::
   , Member (Reader (Responses (Event s))) effs
   , Member (State (Requests (Handlers s))) effs
   , Member (State CheckpointStore) effs
-  , Member Log effs
+  , Member (LogMsg CheckpointLogMsg) effs
   )
   => Eff (ContractEffs s e) a
   -> Eff effs (Maybe a)
@@ -234,7 +235,7 @@ runWithRecord action store rc =
       $ run
       $ E.runError  @e @_
       $ runReader @(Responses (Event s)) @_ rc
-      $ ignoreLog
+      $ handleLogIgnore @CheckpointLogMsg
       $ runState @CheckpointStore store
       $ runState  @(Requests (Handlers s)) mempty
       $ handleContractEffs @s @e @_ @a action

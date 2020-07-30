@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -32,6 +33,7 @@ module Plutus.SCB.Core
     -- * Effects
     , ContractEffects
     , SCBEffects
+    , CoreMsg(..)
     -- * Contract messages
     , processAllContractInboxes
     , processContractInbox
@@ -49,7 +51,8 @@ import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
-import           Data.Text.Prettyprint.Doc        (Pretty, pretty)
+import           Data.Text                        (Text)
+import           Data.Text.Prettyprint.Doc        (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
 import qualified Ledger
@@ -58,7 +61,6 @@ import           Plutus.SCB.Events                (ChainEvent, ContractInstanceI
 import qualified Plutus.SCB.Query                 as Query
 import           Plutus.SCB.Types                 (ContractExe, DbConfig (DbConfig), SCBError, Source (..),
                                                    dbConfigFile, dbConfigPoolSize, toUUID)
-import           Plutus.SCB.Utils                 (render, tshow)
 
 import           Cardano.Node.Follower            (NodeFollowerEffect)
 import           Plutus.SCB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,
@@ -73,41 +75,52 @@ import           Wallet.Effects                   (ChainIndexEffect, NodeClientE
 
 type ContractEffects t =
         '[ EventLogEffect (ChainEvent t)
-         , Log
+         , LogMsg Text
          , UUIDEffect
          , ContractEffect FilePath
          , Error SCBError
          ]
 
+data CoreMsg t =
+    Installing t
+    | Installed
+    | FindingContract ContractInstanceId
+    | FoundContract (Maybe (ContractInstanceState t))
+
+instance Pretty t => Pretty (CoreMsg t) where
+    pretty = \case
+        Installing d -> "Installing" <+> pretty d
+        Installed -> "Installed"
+        FindingContract i -> "Finding contract" <+> pretty i
+        FoundContract c -> "Found contract" <+> pretty c
+
 installContract ::
     forall t effs.
-    ( Member Log effs
+    ( Member (LogMsg (CoreMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
-    , Show t
     )
     => t
     -> Eff effs ()
 installContract contractHandle = do
-    logInfo $ "Installing: " <> tshow contractHandle
+    logInfo $ Installing contractHandle
     void $
         runCommand
             installCommand
             UserEventSource
             contractHandle
-    logInfo "Installed."
+    logInfo @(CoreMsg t) Installed
 
 reportContractState ::
     forall t effs.
-    ( Member Log effs
+    ( Member (LogMsg (CoreMsg t)) effs
     , Member (EventLogEffect (ChainEvent t)) effs
-    , Pretty t
     )
     => ContractInstanceId
     -> Eff effs ()
 reportContractState cid = do
-    logInfo "Finding Contract"
+    logInfo @(CoreMsg t) $ FindingContract cid
     contractState <- runGlobalQuery (Query.contractState @t)
-    logInfo $ render $ pretty $ Map.lookup cid contractState
+    logInfo $ FoundContract (Map.lookup cid contractState)
 
 installedContracts :: forall t effs. (Ord t, Member (EventLogEffect (ChainEvent t)) effs) => Eff effs (Set t)
 installedContracts = runGlobalQuery Query.installedContractsProjection
@@ -147,5 +160,5 @@ type SCBEffects =
         , NodeClientEffect
         , SigningProcessEffect
         , EventLogEffect (ChainEvent ContractExe)
-        , Log
+        , LogMsg Text
         ]

@@ -56,7 +56,7 @@ contract = (lock `select` unlock) >> contract
 validate :: MultiSig -> () -> () -> ValidatorCtx -> Bool
 validate MultiSig{signatories, minNumSignatures} _ _ p =
     let present = length (filter (V.txSignedBy (valCtxTxInfo p)) signatories)
-    in traceIfFalseH "not enough signatures" (present >= minNumSignatures)
+    in traceIfFalse "not enough signatures" (present >= minNumSignatures)
 
 instance Scripts.ScriptType MultiSig where
     type instance RedeemerType MultiSig = ()

@@ -9,13 +9,14 @@ import           Data.Aeson                            (encode)
 import qualified Data.Aeson                            as JSON
 import           Data.Bifunctor                        (first)
 import           Data.ByteString.Lazy.UTF8             as BSU
+import           Data.Maybe                            (fromMaybe)
 import           Data.Proxy                            (Proxy (Proxy))
 import           Language.Marlowe                      (Contract (Close), Slot (Slot), State, TransactionInput,
                                                         TransactionWarning)
-import           Language.Marlowe.Analysis.FSSemantics (warningsTraceWithState)
+import           Language.Marlowe.Analysis.FSSemantics (warningsTraceCustom)
 import           Language.Marlowe.Pretty
 import           Marlowe.Symbolic.Types.API            (API)
-import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract, state))
+import           Marlowe.Symbolic.Types.Request        (Request (Request, callbackUrl, contract, onlyAssertions, state))
 import qualified Marlowe.Symbolic.Types.Request        as Req
 import           Marlowe.Symbolic.Types.Response       (Response (Response, result), Result (CounterExample, Error, Valid, initialSlot, transactionList, transactionWarning))
 import qualified Marlowe.Symbolic.Types.Response       as Res
@@ -62,20 +63,20 @@ makeResponse u (Right res) =
      }
 
 handler :: Request -> Context -> IO (Either Response Response)
-handler Request {Req.uuid = u, callbackUrl = cu, contract = c, state = st} context =
+handler Request {Req.uuid = u, callbackUrl = cu, onlyAssertions = oa, contract = c, state = st} context =
   do system "killallz3"
      semaphore <- newEmptyMVar
      let contract :: Maybe Contract
          contract = JSON.decode (BSU.fromString c)
+     let state :: Maybe State
+         state = JSON.decode (BSU.fromString st)
+     let onlyAssertions :: Bool
+         onlyAssertions = fromMaybe False (JSON.decode (BSU.fromString oa))
      case contract of
         Nothing -> return $ Left (makeResponse u (Left "Can't parse JSON as a contract"))
         Just contract -> do
-            let contract = maybe Close id (JSON.decode (BSU.fromString c))
-            let
-                state :: Maybe State
-                state = JSON.decode (BSU.fromString st)
             mainThread <-
-              forkOS (do evRes <- warningsTraceWithState contract state
+              forkOS (do evRes <- warningsTraceCustom onlyAssertions contract state
                          forkOS (do threadDelay 1000000 -- Timeout to send HTTP request (1 sec)
                                     putMVar semaphore
                                       (makeResponse u (Left "Response HTTP request timed out")))

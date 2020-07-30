@@ -3,7 +3,7 @@ pkgs.recurseIntoAttrs (rec {
   # Packages which are useful during development, but we don't depend upon directly to build our stuff
   packages = pkgs.recurseIntoAttrs {
     # See comment on the definition about it not working
-    #cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
+    cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
     stylish-haskell = haskell.extraPackages.stylish-haskell.components.exes.stylish-haskell;
     hlint = haskell.extraPackages.hlint.components.exes.hlint;
     haskell-language-server = haskell.extraPackages.haskell-language-server.components.exes.haskell-language-server;
