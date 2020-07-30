@@ -47,9 +47,9 @@ remove d = filter (\t -> calculationDay t /= calculationDay d)
 
 stubCorrection :: Stub -> Day -> ShiftedSchedule -> ShiftedSchedule
 stubCorrection stub endDay schedule =
-  if (paymentDay $ L.last schedule) == endDay && stub == ShortStub
-    then schedule
-    else L.init schedule
+  if null schedule then schedule
+  else if (paymentDay $ L.last schedule) == endDay && stub == ShortStub then schedule
+  else L.init schedule
 
 endDateCorrection :: Bool -> Day -> [Day] -> [Day]
 endDateCorrection includeEndDay endDay schedule

@@ -291,7 +291,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
           , Value { name: "initial_exchange_date", check: "date", align: Right }
           , Value { name: "termination_date", check: "date", align: Right }
           , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
-          , Value { name: "interest_cycle", check: "cycle", align: Right }
+          , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
           ]
         , colour: blockColour BaseContractType
         , previousStatement: Just (show BaseContractType)
