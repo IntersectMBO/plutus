@@ -22,12 +22,9 @@ import qualified Language.PlutusCore.StdLib.Data.Integer                    as P
 import qualified Language.PlutusCore.StdLib.Data.Unit                       as PLC
 
 import           Control.DeepSeq                                            (rnf)
-<<<<<<< HEAD
-=======
 import           Control.Monad
 import           Control.Monad.Trans.Except                                 (runExceptT)
 import           Data.Bifunctor                                             (second)
->>>>>>> master
 import qualified Data.ByteString.Lazy                                       as BSL
 import           Data.Foldable                                              (traverse_)
 import qualified Data.Text                                                  as T
@@ -35,16 +32,10 @@ import           Data.Text.Encoding                                         (enc
 import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
 import           Options.Applicative
-<<<<<<< HEAD
 import           System.CPUTime
 import           System.Exit
 import           Text.Printf
 
-=======
-import           System.CPUTime                                             (getCPUTime)
-import           System.Exit
-import           Text.Printf                                                (printf)
->>>>>>> master
 
 {- Note [Annotation types] This program now reads and writes
    CBOR-serialised PLC ASTs.  In all cases we require the annotation
