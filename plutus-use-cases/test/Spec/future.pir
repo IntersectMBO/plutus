@@ -312,12 +312,7 @@
                 multiplyInteger
                 (fun (con integer) (fun (con integer) (con integer)))
               )
-              (lam
-                arg
-                (con integer)
-                (lam arg (con integer) [ [ (builtin multiplyInteger) arg ] arg ]
-                )
-              )
+              (builtin multiplyInteger)
             )
             (termbind
               (strict)
@@ -532,11 +527,7 @@
               (vardecl
                 addInteger (fun (con integer) (fun (con integer) (con integer)))
               )
-              (lam
-                arg
-                (con integer)
-                (lam arg (con integer) [ [ (builtin addInteger) arg ] arg ])
-              )
+              (builtin addInteger)
             )
             (termbind
               (strict)

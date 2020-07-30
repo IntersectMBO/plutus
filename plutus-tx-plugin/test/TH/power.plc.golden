@@ -6,11 +6,7 @@
       (vardecl
         multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam
-        arg
-        (con integer)
-        (lam arg (con integer) [ [ (builtin multiplyInteger) arg ] arg ])
-      )
+      (builtin multiplyInteger)
     )
     (lam
       ds

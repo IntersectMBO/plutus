@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module TransformSpec where
 
@@ -8,6 +9,8 @@ import           TestLib
 import           Language.PlutusCore.Quote
 
 import qualified Language.PlutusCore                         as PLC
+import qualified Language.PlutusCore.Constant.Dynamic        as PLC
+
 import           Language.PlutusIR.Parser
 import qualified Language.PlutusIR.Transform.LetFloat        as LetFloat
 import qualified Language.PlutusIR.Transform.NonStrict       as NonStrict
@@ -37,8 +40,10 @@ nonStrict = testNested "nonStrict"
 
 letFloat :: TestNested
 
-letFloat = testNested "letFloat"
-    $ map (goldenPir (LetFloat.floatTerm . runQuote . PLC.rename) term)
+letFloat =
+    let means = PLC.getStringBuiltinMeanings @(PLC.Term PLC.TyName PLC.Name PLC.DefaultUni ())
+    in testNested "letFloat"
+    $ map (goldenPir (LetFloat.floatTerm means . runQuote . PLC.rename) term)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
