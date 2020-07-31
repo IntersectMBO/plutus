@@ -337,8 +337,8 @@ in rec {
         fromImage = (import sources.docker-nixpkgs).devcontainer;
         contents = [
           shell.ghc
-          dev.packages.ghcide-use-cases
-          dev.packages.cabal
+          dev.packages.ghcide
+          dev.packages.cabal-install
           pkgs.binutils-unwrapped
         ];
         extraCommands = "mkdir -m 0777 tmp";

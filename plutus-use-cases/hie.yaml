@@ -1,7 +1,0 @@
-cradle:
-  cabal:
-  - path: ./src
-    component: "lib:plutus-use-cases"
-  - path: ./test
-    component: "plutus-use-cases:plutus-use-cases-test"
-

@@ -1,9 +1,10 @@
 { sourcesOverride ? {}
 , checkMaterialization ? false
 , useCabalProject ? false
+, compiler-nix-name ? "ghc883"
 }@args:
 let
-  packageSet = import ./default.nix ({ rev = "in-nix-shell"; } // args);
+  packageSet = import ./default.nix ({ rev = "in-nix-shell"; inherit useCabalProject compiler-nix-name; } // args);
   pyEnv = packageSet.pkgs.python3.withPackages (ps: [ packageSet.sphinxcontrib-haddock.sphinxcontrib-domaintools ps.sphinx ps.sphinx_rtd_theme ]);
 in
 with packageSet; haskell.packages.shellFor {
@@ -34,6 +35,7 @@ with packageSet; haskell.packages.shellFor {
     dev.packages.hlint
     dev.packages.stylish-haskell
     dev.packages.haskell-language-server
+    dev.packages.ghcide
     dev.packages.hie-bios
     dev.packages.purty
     dev.packages.purs
