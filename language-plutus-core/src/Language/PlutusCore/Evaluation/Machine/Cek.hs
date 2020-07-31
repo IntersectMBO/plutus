@@ -26,13 +26,18 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     ( CekVal(..)
     , CekEvaluationException
     , EvaluationResult(..)
+    , ErrorWithCause(..)
+    , EvaluationError(..)
     , ExBudgetState(..)
     , ExTally(..)
     , ExBudget(..)
     , ExRestrictingBudget(..)
     , ExBudgetMode(..)
     , WithMemory
-    , cekEnvMeans -- only to avoid a "Defined but not used" warning.
+    , exBudgetCPU
+    , exBudgetMemory
+    , exBudgetStateBudget
+    , exBudgetStateTally
     , extractEvaluationResult
     , runCek
     , runCekCounting
@@ -129,7 +134,7 @@ type CekValEnv uni = UniqueMap TermUnique (CekVal uni)
 
 -- See Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
-dischargeCekValEnv :: CekValEnv uni -> WithMemory Term uni -> WithMemory Term uni
+dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
     -- this to terms which have no free variables remaining, at which point we won't call this
@@ -147,7 +152,7 @@ mkBuiltinApp ex bn tys args = mkIterApp ex (mkIterInst ex (Builtin ex bn) tys) a
 
 -- Convert a CekVal into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekVal :: CekVal uni -> WithMemory Term uni
+dischargeCekVal :: CekVal uni -> TermWithMem uni
 dischargeCekVal = \case
     VCon t                        -> t
     VTyAbs   ex tn k body env     -> TyAbs ex tn k (dischargeCekValEnv env body)
@@ -177,7 +182,7 @@ instance Pretty CekUserError where
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { _cekEnvMeans             :: DynamicBuiltinNameMeanings (CekVal uni)
+    { cekEnvMeans              :: DynamicBuiltinNameMeanings (CekVal uni)
     , _cekEnvVarEnv            :: CekValEnv uni
     , _cekEnvBudgetMode        :: ExBudgetMode
     , _cekEnvBuiltinCostParams :: CostModel
@@ -205,11 +210,11 @@ instance SpendBudget (CekM uni) (CekVal uni) where
                         Nothing  -- No value available for error
 
 data Frame uni
-    = FrameApplyFun (CekVal uni)                                                 -- ^ @[V _]@
-    | FrameApplyArg (CekValEnv uni) (WithMemory Term uni)                        -- ^ @[_ N]@
-    | FrameTyInstArg (Type TyName uni ExMemory)                                  -- ^ @{_ A}@
-    | FrameUnwrap                                                                -- ^ @(unwrap _)@
-    | FrameIWrap ExMemory (Type TyName uni ExMemory) (Type TyName uni ExMemory)  -- ^ @(iwrap A B _)@
+    = FrameApplyFun (CekVal uni)                               -- ^ @[V _]@
+    | FrameApplyArg (CekValEnv uni) (TermWithMem uni)          -- ^ @[_ N]@
+    | FrameTyInstArg (TypeWithMem uni)                         -- ^ @{_ A}@
+    | FrameUnwrap                                              -- ^ @(unwrap _)@
+    | FrameIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni)  -- ^ @(iwrap A B _)@
  deriving (Show)
 
 type Context uni = [Frame uni]
@@ -249,7 +254,7 @@ lookupVarName varName = do
 lookupDynamicBuiltinName
     :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning (CekVal uni))
 lookupDynamicBuiltinName dynName = do
-    DynamicBuiltinNameMeanings means <- asks _cekEnvMeans
+    DynamicBuiltinNameMeanings means <- asks cekEnvMeans
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err Nothing where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
@@ -304,7 +309,7 @@ getArgsCount (DynBuiltinName _ name) = do
 
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> WithMemory Term uni -> CekM uni (Plain Term uni)
+    => Context uni -> TermWithMem uni -> CekM uni (Plain Term uni)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek ctx (TyInst _ body ty) = do
     spendBudget BTyInst (ExBudget 1 1) -- TODO

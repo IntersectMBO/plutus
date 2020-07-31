@@ -37,7 +37,7 @@ stringBuiltins
     :: ( GShow uni, GEq uni, uni `IncludesAll` '[String, Char, ()]
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (WithMemory Term uni)
+    => DynamicBuiltinNameMeanings (CekVal uni)
 stringBuiltins =
     insertDynamicBuiltinNameDefinition dynamicCharToStringDefinition
         $ insertDynamicBuiltinNameDefinition dynamicAppendDefinition mempty
