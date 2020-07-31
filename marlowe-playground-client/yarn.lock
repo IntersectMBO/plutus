@@ -3024,9 +3024,10 @@ nanomatch@^1.2.9:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-"nearley-webpack-loader@https://github.com/shmish111/nearley-webpack-loader/archive/master.tar.gz":
+nearley-webpack-loader@^0.0.2:
   version "0.0.2"
-  resolved "https://github.com/shmish111/nearley-webpack-loader/archive/master.tar.gz#f7e80853852229971ae0ded75cdae2a078908529"
+  resolved "https://registry.yarnpkg.com/nearley-webpack-loader/-/nearley-webpack-loader-0.0.2.tgz#7d7f2f758e6f3d510a5c3f7a0980514263770c83"
+  integrity sha512-N0dE+lUS88hJJrTi7kobtKgwudagdGFhlM5cK431UvQouBQaT32OJztPhYEH90dZQAQtrIO/BFh+paetwMMsCQ==
   dependencies:
     loader-utils "^1.1.0"
     nearley "^2.11.0"
