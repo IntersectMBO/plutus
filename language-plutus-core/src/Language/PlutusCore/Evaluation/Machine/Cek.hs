@@ -32,6 +32,7 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , ExRestrictingBudget(..)
     , ExBudgetMode(..)
     , WithMemory
+    , cekEnvMeans -- only to avoid a "Defined but not used" warning.
     , extractEvaluationResult
     , runCek
     , runCekCounting
@@ -379,7 +380,7 @@ returnCek (FrameUnwrap : ctx) val =
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
+-- iterated application of a 'BuiltinName' to a list of 'Value's and if it is,
 -- apply the term to the type via 'TyInst'.
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
@@ -395,17 +396,12 @@ instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just val
 
 
--- We're applying a builtin to a list of Vals.  As before, if we've
--- got a const, feed it directly to the builtin. Otherwise, extend the
--- environment with a new variable bound to the CekVal and feed that to
--- the builtin instead and continue.
-
 -- | Apply a function to an argument and proceed.
 -- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
--- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
--- as an iterated application of a 'BuiltinName' to a list of 'Value's.
--- If succesful, proceed with either this same term or with the result of the computation
--- depending on whether 'BuiltinName' is saturated or not.
+-- If the function is a 'Builtin', then check whether we've got the right number of arguments.
+-- If we do, then ask the constant application machinery to apply it, and proceed with
+-- the result (or throw an error if something goes wrong); if we don't, then add the new
+-- argument to the VBuiltin and call returnCek to look for more arguments.
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni
@@ -499,51 +495,3 @@ readKnownCek
     -> Either (CekEvaluationException uni) a
 -- Calling 'withMemory' just to unify the monads that 'readKnown' and the CEK machine run in.
 readKnownCek means params = evaluateCek means params >=> first (fmap $ VCon . withMemory) . readKnown
-
-{- Note [Saved mapping example]
-Consider a polymorphic built-in function @id@, whose type signature on the Plutus side is
-
-    id : all a. a -> a
-
-Notation:
-
-- the variable environment is denoted as @{ <var> :-> (<env>, <value>), ... }@
-- the context is denoted as a Haskell list of 'Frame's
-- 'computeCek' is denoted as @(▻)@
-- 'returnCek' is denoted as @(◅)@
-
-When evaluating
-
-    id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
-
-We encounter the following state:
-
-    { i :-> ({}, 1) }
-    [ FrameApplyFun {} (id {integer -> integer})
-    , FrameApplyArg {} 0
-    ] ▻ \(j : integer) -> i
-
-and transition it into
-
-    { arg :-> ({ i :-> ({}, 1) }, \(j : integer) -> i) }
-    [ FrameApplyArg {} 0
-    ] ◅ id {integer -> integer} arg
-
-i.e. if the argument is not a constant, then we create a new variable, save the old environment in
-the closure of that variable and apply the function to the variable. This allows to restore the old
-environment @{ i :-> ({}, 1) }@ latter when we start evaluating @arg 0@, which expands to
-
-    (\(j : integer) -> i)) 0
-
-which evaluates to @1@ in the old environment.
--}
-
--- See Note [Saved mapping example].
--- See https://github.com/input-output-hk/plutus/issues/1882 for discussion
--- | If an argument to a built-in function is a constant, then feed it directly to the continuation
--- that handles the argument and invoke the continuation in the caller's environment.
--- Otherwise create a fresh variable, save the environment of the argument in a closure, feed
--- the created variable to the continuation and invoke the continuation in the caller's environment
--- extended with a mapping from the created variable to the closure (i.e. original argument +
--- its environment). The "otherwise" is only supposed to happen when handling an argument to a
--- polymorphic built-in function.
