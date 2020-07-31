@@ -175,7 +175,8 @@ applyEvaluate stack fun                    arg =
                     (Just term)
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
                 if length spine == builtinNameArities ! name  -- Quick fix for unsaturated builtins.
-                                                              -- FIXME: improve this, probably by modifying the frames.
+                -- FIXME: this is quite inefficient: we can probably improve it by modifying
+                -- the frames so as to avoid repeated calls to termAsPrimIterApp
                 then do
                   res <- applyBuiltinName name spine
                   case res of
