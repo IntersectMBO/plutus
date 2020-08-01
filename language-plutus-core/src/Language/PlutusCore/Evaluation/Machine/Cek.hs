@@ -422,7 +422,7 @@ applyEvaluate ctx val@(VBuiltin ex argEnv bn count tyargs args) arg = withEnv ar
         else do
             res <- applyStagedBuiltinName bn (reverse args')
             case res of
-                EvaluationSuccess t -> returnCek ctx t  -- NOTE that this is 'returnCek' now.
+                EvaluationSuccess t -> returnCek ctx t
                 EvaluationFailure ->
                     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
 applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just val
