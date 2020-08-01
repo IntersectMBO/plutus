@@ -33,14 +33,6 @@ import           Data.Array
 
 infix 4 |>, <|
 
-builtinNameArities :: Array BuiltinName Int
-builtinNameArities =
-    listArray (minBound, maxBound) $
-        [minBound..maxBound] <&> \name ->
-            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
-                \(TypedBuiltinName _ sch) -> countArgs sch
-{-# NOINLINE builtinNameArities #-}  -- Just in case.
-
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
 data NoDynamicBuiltinNamesMachineError
     = NoDynamicBuiltinNamesMachineError

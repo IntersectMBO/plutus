@@ -75,14 +75,6 @@ import           Data.Text.Prettyprint.Doc
 
 import           Data.Array
 
-builtinNameArities :: Array BuiltinName Int
-builtinNameArities =
-    listArray (minBound, maxBound) $
-        [minBound..maxBound] <&> \name ->
-            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
-                \(TypedBuiltinName _ sch) -> countArgs sch
-{-# NOINLINE builtinNameArities #-}  -- Just in case.
-
 {- Note [Scoping]
 The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
 prerequisite. The CEK machine correctly handles name shadowing.
@@ -132,8 +124,22 @@ instance ToExMemory (CekVal uni) where
 
 type CekValEnv uni = UniqueMap TermUnique (CekVal uni)
 
+-- This function is useful in dischargeCekVal.  StagedBuiltinNames will diappear
+-- soon, and we won't need this then.
+unstageBuiltinName :: ann -> StagedBuiltinName -> Builtin ann
+unstageBuiltinName ann (StaticStagedBuiltinName name)  = BuiltinName ann name
+unstageBuiltinName ann (DynamicStagedBuiltinName name) = DynBuiltinName ann name
+
+-- Instantiate a builtin and then apply it to some arguments.  This assumes that
+-- all type arguments come before term arguments, with no interleaving (and that
+-- same assumption applies elsehwere, in VBuiltin, for example).  This is OK at the
+-- moment, nut may change if we eventually support higher-rank builtins.
+mkBuiltinApp :: ExMemory -> Builtin ExMemory -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
+mkBuiltinApp ex bn tys args = mkIterApp ex (mkIterInst ex (Builtin ex bn) tys) args
+
 -- See Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
+-- Mutually recursive with dischargeCekVal.
 dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
 dischargeCekValEnv valEnv =
     -- We recursively discharge the environments of Cek values, but we will gradually end up doing
@@ -142,13 +148,6 @@ dischargeCekValEnv valEnv =
     termSubstFreeNames $ \name -> do
         val <- lookupName name valEnv
         Just $ dischargeCekVal val
-
-unstageBuiltinName :: ann -> StagedBuiltinName -> Builtin ann
-unstageBuiltinName ann (StaticStagedBuiltinName name)  = BuiltinName ann name
-unstageBuiltinName ann (DynamicStagedBuiltinName name) = DynBuiltinName ann name
-
-mkBuiltinApp :: ExMemory -> Builtin ExMemory -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
-mkBuiltinApp ex bn tys args = mkIterApp ex (mkIterInst ex (Builtin ex bn) tys) args
 
 -- Convert a CekVal into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
@@ -159,8 +158,8 @@ dischargeCekVal = \case
     VLamAbs  ex name ty body env  -> LamAbs ex name ty (dischargeCekValEnv env body)
     VIWrap   ex ty1 ty2 val       -> IWrap ex ty1 ty2 $ dischargeCekVal val
     VBuiltin ex _ bn _ types args -> mkBuiltinApp ex (unstageBuiltinName ex bn) (reverse types) (fmap dischargeCekVal $ reverse args)
-    {- We only discharge a value when (a) it's being returned by the machine, or (b)
-       it's needed for an error message.  VBuiltin should only be discharged
+    {- We only discharge a value when (a) it's being returned by the machine, or
+       (b) it's needed for an error message.  VBuiltin should only be discharged
        when the builtin is partially applied, and in that case we need to get
        the type and term arguments into the right order (they're accumulated in
        reverse).  In the fully-applied case, type arguments are ignored and term
@@ -299,13 +298,13 @@ substitution, anything).
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
-
 getArgsCount :: Builtin ann -> CekM uni Int
 getArgsCount (BuiltinName _ name) =
     pure $ builtinNameArities ! name
 getArgsCount (DynBuiltinName _ name) = do
     DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
     pure $ countArgs sch
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)

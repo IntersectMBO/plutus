@@ -16,21 +16,26 @@ module Language.PlutusCore.Constant.Apply
     , integerToInt64
     , applyTypeSchemed
     , applyBuiltinName
+    , builtinNameArities
     ) where
 
+import           PlutusPrelude
+
+import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Name                           (Name, TyName)
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Crypto
+import           Data.Array
 import qualified Data.ByteString.Lazy                               as BSL
 import qualified Data.ByteString.Lazy.Hash                          as Hash
-import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
 
@@ -250,3 +255,12 @@ applyBuiltinName name args = do
                 (\b x y -> if b then x else y)
                 (runCostingFunThreeArguments $ paramIfThenElse params)
                 args
+
+builtinNameArities :: Array BuiltinName Int
+builtinNameArities =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedBuiltinName _ sch) -> countArgs sch
+{-# NOINLINE builtinNameArities #-}  -- Just in case.
+
