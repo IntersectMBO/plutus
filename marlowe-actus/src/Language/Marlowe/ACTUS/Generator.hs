@@ -9,11 +9,11 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                               as L (scanl, tail, zip, zip5)
+import qualified Data.List                                               as L (scanl, tail, zip, zip6)
 import           Data.Maybe                                              (fromMaybe, isNothing)
 import           Data.String                                             (IsString (fromString))
 import           Data.Sort                                               (sortOn)                               
-import           Data.Time                                               (fromGregorian)
+import           Data.Time                                               (Day, fromGregorian)
 import           Language.Marlowe                                        (AccountId (AccountId),
                                                                           Action (Choice, Deposit), Bound (Bound),
                                                                           Case (Case), ChoiceId (ChoiceId),
@@ -22,7 +22,7 @@ import           Language.Marlowe                                        (Accoun
                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
                                                                           ValueId (ValueId), ada)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
                                                                           calculationDay, paymentDay)
 import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt)
@@ -155,14 +155,15 @@ genFsContract terms =
         schedCfs = genProjectedCashflows terms
         schedEvents = cashEvent <$> schedCfs
         schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
+        previousDates = ([ct_SD terms] ++ (cashCalculationDay <$> schedCfs))
         cfsDirections = amount <$> schedCfs
-        gen :: (CashFlow, EventType, Slot, Double, Integer) -> Contract -> Contract
-        gen (cf, ev, date, r, t) cont = inquiryFs ev terms ("_" ++ show t) date "oracle"
-            $ stateTransitionFs ev terms t (cashCalculationDay cf)
+        gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
+        gen (cf, prevDate, ev, date, r, t) cont = inquiryFs ev terms ("_" ++ show t) date "oracle"
+            $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
             $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
             $ if (isNothing pof) then cont
               else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
               else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
             where pof = (payoffFs ev terms t (t - 1) (cashCalculationDay cf))
-        scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]
+        scheduleAcc = foldr gen Close $ L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
     in inititializeStateFs terms scheduleAcc

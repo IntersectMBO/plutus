@@ -21,12 +21,12 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, su
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
 import           Language.Marlowe                                       (Contract)
-import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweDate, backFromMarloweDate,
-                                                                         stateTransitionMarlowe, useval)
+import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweDate,
+                                                                         stateTransitionMarlowe, useval, letval)
 
 
-stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Contract -> Contract
-stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
+stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Day -> Contract -> Contract
+stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
     let
         -- value wrappers:
         __IPANX = marloweDate <$> ct_IPANX
@@ -57,12 +57,19 @@ stateTransitionFs ev terms@ContractTerms{..} t curDate continue =
         y_tfpminus_t       = constnt $ _y ct_DCC tfp_minus curDate ct_MD
         y_tfpminus_tfpplus = constnt $ _y ct_DCC tfp_minus tfp_plus ct_MD
         y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate ct_MD
+        y_sd_t             = constnt $ _y ct_DCC prevDate curDate ct_MD
 
+        addComment cont    = case ev of 
+            IED -> letval "IED" t (constnt 0) cont
+            MD -> letval "MD" t (constnt 0) cont
+            IP -> letval ("IP:" ++ (show curDate)) t (constnt 0) cont 
+            RR -> letval ("RR:" ++ (show curDate)) t (constnt 0) cont 
+            FP -> letval ("FP:" ++ (show curDate)) t (constnt 0) cont
+            _ -> cont
     in case contractType of
         PAM ->
-            stateTransitionMarlowe ev t continue $ \event st -> 
-                let  y_sd_t = constnt $ _y ct_DCC (backFromMarloweDate $ sd st) curDate ct_MD
-                in case event of
+            addComment $ stateTransitionMarlowe ev t continue $ \event st -> 
+                case event of
                     AD   -> _STF_AD_PAM st time y_sd_t
                     IED  -> _STF_IED_PAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT
                     MD   -> _STF_MD_PAM st time
