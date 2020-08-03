@@ -83,7 +83,7 @@ data Message
 
 type Settings m
   = { languageExtensionPoint :: LanguageExtensionPoint
-    , theme :: Theme
+    , theme :: Maybe Theme
     , monarchTokensProvider :: Maybe MonarchLanguage
     , tokensProvider :: Maybe TokensProvider
     , hoverProvider :: Maybe HoverProvider
@@ -136,7 +136,7 @@ handleAction settings Init = do
         languageId = view Monaco._id settings.languageExtensionPoint
       liftEffect do
         Monaco.registerLanguage monaco settings.languageExtensionPoint
-        Monaco.defineTheme monaco settings.theme
+        for_ settings.theme $ Monaco.defineTheme monaco
         for_ settings.monarchTokensProvider $ Monaco.setMonarchTokensProvider monaco languageId
         for_ settings.tokensProvider $ Monaco.setTokensProvider monaco languageId
         for_ settings.hoverProvider $ Monaco.registerHoverProvider monaco languageId

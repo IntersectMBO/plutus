@@ -68,6 +68,18 @@
   background-size: 50px;
 }
 
+.js-tab .tab-icon {
+  background: url(../images/icons8-javascript.svg) center center no-repeat;
+  background-size: 50px;
+  opacity: 0.3;
+}
+
+.js-tab.active .tab-icon {
+  background: url(../images/icons8-javascript.svg) center center no-repeat;
+  background-size: 50px;
+  opacity: 1;
+}
+
 .blockly-tab .tab-icon {
   background: url(../images/blockly-icon-grey.svg) center center no-repeat;
   background-size: 50px;

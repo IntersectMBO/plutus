@@ -1,4 +1,11 @@
-module StaticData (bufferLocalStorageKey, demoFiles, marloweBufferLocalStorageKey, marloweContract, marloweContracts) where
+module StaticData
+  ( bufferLocalStorageKey
+  , jsBufferLocalStorageKey
+  , demoFiles
+  , marloweBufferLocalStorageKey
+  , marloweContract
+  , marloweContracts
+  ) where
 
 import Data.Map (Map)
 import Data.Map as Map
@@ -40,6 +47,10 @@ marloweContract = "(Some Marlowe Code)"
 bufferLocalStorageKey ::
   LocalStorage.Key
 bufferLocalStorageKey = LocalStorage.Key "PlutusPlaygroundBuffer"
+
+jsBufferLocalStorageKey ::
+  LocalStorage.Key
+jsBufferLocalStorageKey = LocalStorage.Key "JavascriptBuffer"
 
 marloweBufferLocalStorageKey ::
   LocalStorage.Key

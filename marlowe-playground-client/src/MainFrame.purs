@@ -32,6 +32,7 @@ import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, li
 import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
 import HaskellEditor.Types (_compilationResult)
+import JSEditor as JSEditor
 import HaskellEditor.Types as HE
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
@@ -55,19 +56,24 @@ import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
+import StaticData (bufferLocalStorageKey, jsBufferLocalStorageKey)
 import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _activeJSDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
 initialState =
   FrontendState
     { view: Simulation
+    , jsCompilationResult: Nothing
     , blocklyState: Nothing
     , actusBlocklyState: Nothing
     , showBottomPanel: true
     , haskellState: HE.initialState
     , simulationState: ST.mkState
+    , jsEditorKeybindings: DefaultBindings
+    , activeJSDemo: mempty
     }
 
 ------------------------------------------------------------
@@ -184,6 +190,25 @@ handleAction s (HaskellAction action) = do
               <<< _result
               <<< _RunResult
           )
+handleAction _ (JSHandleEditorMessage (Monaco.TextChanged text)) = do
+  liftEffect $ LocalStorage.setItem jsBufferLocalStorageKey text
+  assign _activeJSDemo ""
+
+handleAction _ (JSSelectEditorKeyBindings bindings) = do
+  assign _jsEditorKeybindings bindings
+  void $ query _jsEditorSlot unit (Monaco.SetKeyBindings bindings unit)
+
+handleAction _ (ChangeView JSEditor) = selectJSView
+
+handleAction _ CompileJSProgram = pure unit
+
+handleAction _ (LoadJSScript key) = do
+  case Map.lookup key StaticData.demoFiles of
+    Nothing -> pure unit
+    Just contents -> do
+      void $ query _jsEditorSlot unit (Monaco.SetText contents unit)
+      assign _activeJSDemo key
+
       let
         contract = case mContract of
           Just unformatted -> case parseContract unformatted of
@@ -252,6 +277,13 @@ showErrorDescription :: ErrorDescription -> String
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = "BadResponse"
 
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
+  forall m.
+  HalogenM FrontendState HAction ChildSlots Message m Unit
+selectJSView = do
+  assign _view (JSEditor)
+  void $ query _jsEditorSlot unit (Monaco.Resize unit)
+  void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
+
 
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 
@@ -333,6 +365,13 @@ render settings state =
                 , div [] [ text "Simulation" ]
                 ]
             , div
+                [ classes ([ tabLink, aCenter, flexCol, ClassName "js-tab" ] <> isActiveTab state JSEditor)
+                , onClick $ const $ Just $ ChangeView JSEditor
+                ]
+                [ div [ class_ tabIcon ] []
+                , div [] [ text "JS Editor" ]
+                ]
+            , div
                 [ classes ([ tabLink, aCenter, flexCol, ClassName "haskell-tab" ] <> isActiveTab state HaskellEditor)
                 , onClick $ const $ Just $ ChangeView HaskellEditor
                 ]
@@ -376,6 +415,9 @@ render settings state =
             -- haskell panel
             , div [ classes ([ hide ] <> isActiveTab state HaskellEditor) ]
                 [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
+            -- javascript panel
+            , div [ classes ([ hide ] <> isActiveTab state JSEditor) ]
+                (JSEditor.render state)
             -- blockly panel
             , div [ classes ([ hide ] <> isActiveTab state BlocklyEditor) ]
                 [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
