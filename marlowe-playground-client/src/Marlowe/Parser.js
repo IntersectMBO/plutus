@@ -3,11 +3,12 @@
 
 const nearley = require("nearley");
 const grammar = require("grammar");
-exports.parse_ = function (emptyInputError, parserError, success, fs, input) {
+
+exports.parse_ = function (emptyInputError, parserError, success, input) {
     if (!input) {
         return emptyInputError;
     }
-    const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar(fs)));
+    const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
     try {
         parser.feed(input);
         return success(parser.results[0]);

@@ -18,6 +18,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Num (class Num)
+import Data.Ord (abs, signum)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
@@ -888,27 +889,15 @@ evalValue env state value =
       AddValue lhs rhs -> eval lhs + eval rhs
       SubValue lhs rhs -> eval lhs - eval rhs
       MulValue lhs rhs -> eval lhs * eval rhs
-      Scale (Rational num denom) rhs ->
+      Scale (Rational n d) rhs ->
         let
-          -- quotient and reminder
-          multiplied = num * eval rhs
+          nn = eval rhs * n
 
-          q = multiplied `quot` denom
+          q = nn `quot` d
 
-          r = multiplied `rem` denom
-
-          -- abs (rem (num/denom)) - 1/2
-          abs a = if a >= zero then a else negate a
-
-          signum x = if x > zero then 1 else if x == zero then 0 else -1
-
-          sign = signum (fromInt 2 * abs r - abs denom)
-
-          m = if r < zero then q - one else q + one
-
-          isEven = (q `rem` fromInt 2) == zero
+          r = nn `rem` d
         in
-          if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
+          if abs r * fromInt 2 < abs d then q else q + signum nn * signum d
       ChoiceValue choiceId -> fromMaybe zero $ Map.lookup choiceId (unwrap state).choices
       SlotIntervalStart -> view (_slotInterval <<< to ivFrom <<< to unwrap) env
       SlotIntervalEnd -> view (_slotInterval <<< to ivTo <<< to unwrap) env

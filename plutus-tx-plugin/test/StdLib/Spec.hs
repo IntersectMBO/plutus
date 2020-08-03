@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS -fplugin Language.PlutusTx.Plugin -fplugin-opt Language.PlutusTx.Plugin:defer-errors -fplugin-opt Language.PlutusTx.Plugin:no-context #-}
+
 module StdLib.Spec where
 
 import           Common
@@ -117,4 +118,4 @@ genData =
             ]
 
 errorTrace :: CompiledCode PLC.DefaultUni (Integer)
-errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceErrorH "")
+errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

@@ -9,6 +9,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 {- Note [Budgeting]
@@ -77,6 +78,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ExTally(..)
     , ExBudgetCategory(..)
     , ExRestrictingBudget(..)
+    , ToExMemory(..)
     , SpendBudget(..)
     , CostModel
     , CostModelBase(..)
@@ -102,7 +104,8 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
 where
 
 
-import           Language.PlutusCore.Core.Type
+import           Language.PlutusCore.Core
+import           Language.PlutusCore.Name
 import           PlutusPrelude
 
 import           Barbies
@@ -116,7 +119,7 @@ import           Data.List                                       (intersperse)
 import           Data.Semigroup.Generic
 import           Data.Text.Prettyprint.Doc
 import           Deriving.Aeson
-import           Language.Haskell.TH.Syntax
+import           Language.Haskell.TH.Syntax                      hiding (Name)
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 
 newtype ExRestrictingBudget = ExRestrictingBudget ExBudget deriving (Show, Eq)
@@ -126,10 +129,29 @@ data ExBudgetMode =
       Counting -- ^ For precalculation
     | Restricting ExRestrictingBudget -- ^ For execution, to avoid overruns
 
--- This works nicely because @m@ contains @uni@ as parameter.
-class SpendBudget m uni | m -> uni where
+class ToExMemory term where
+    -- | Get the 'ExMemory' of a @term@. If the @term@ is not annotated with 'ExMemory', then
+    -- return something arbitrary just to fit such a term into the builtin application machinery.
+    toExMemory :: term -> ExMemory
+
+instance ToExMemory (Term TyName Name uni ()) where
+    toExMemory _ = 0
+
+instance ToExMemory (Term TyName Name uni ExMemory) where
+    toExMemory = termAnn
+
+-- This works nicely because @m@ contains @term@.
+class ToExMemory term => SpendBudget m term | m -> term where
     builtinCostParams :: m CostModel
-    spendBudget :: ExBudgetCategory -> WithMemory Term uni -> ExBudget -> m ()
+
+    -- | Spend the budget, which may mean different things depending on the monad:
+    --
+    -- 1. do nothing for an evaluator that does not care about costing
+    -- 2. count upwards to get the cost of a computation
+    -- 3. subtract from the current budget and fail if the budget goes below zero
+    --
+    -- The @term@ argument is only used for reporting an error.
+    spendBudget :: ExBudgetCategory -> term -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst

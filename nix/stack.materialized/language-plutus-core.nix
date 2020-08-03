@@ -78,6 +78,7 @@
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+          (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -88,6 +89,7 @@
           (hsPkgs."data-default" or (errorHandler.buildDepError "data-default"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           ];
         build-tools = [
           (hsPkgs.buildPackages.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex")))
@@ -111,7 +113,6 @@
           "Language/PlutusCore/Constant/Dynamic/BuiltinName"
           "Language/PlutusCore/Constant/Dynamic/Call"
           "Language/PlutusCore/Constant/Dynamic/Emit"
-          "Language/PlutusCore/Constant/Dynamic/OnChain"
           "Language/PlutusCore/Constant/Dynamic/OffChain"
           "Language/PlutusCore/Constant/Function"
           "Language/PlutusCore/Constant/Name"
@@ -210,7 +211,7 @@
           "Language/PlutusIR/Generators/AST"
           "Language/PlutusIR/Parser"
           "Language/PlutusIR/MkPir"
-          "Language/PlutusIR/Value"
+          "Language/PlutusIR/Purity"
           "Language/PlutusIR/Optimizer/DeadCode"
           "Language/PlutusIR/Transform/Substitute"
           "Language/PlutusIR/Transform/ThunkRecursions"
@@ -251,6 +252,7 @@
         "plc" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -274,11 +276,14 @@
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
+            (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
@@ -292,7 +297,6 @@
             "Evaluation/ApplyBuiltinName"
             "Evaluation/DynamicBuiltins/Common"
             "Evaluation/DynamicBuiltins/Definition"
-            "Evaluation/DynamicBuiltins/Logging"
             "Evaluation/DynamicBuiltins/MakeRead"
             "Evaluation/DynamicBuiltins"
             "Evaluation/Golden"
@@ -303,6 +307,9 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
+            "Language/PlutusCore/Gen/Common"
+            "Language/PlutusCore/Gen/Type"
+            "Language/PlutusCore/PropTest"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

@@ -47,11 +47,10 @@ import           Control.Newtype.Generics   (Newtype)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
-import           Data.ByteString.Lazy       (fromStrict, toStrict, unpack)
+import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
-import           GHC.Show                   (showSpace)
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
 import qualified Language.PlutusTx          as PlutusTx
@@ -66,7 +65,6 @@ import           Ledger.Scripts             (Datum (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
-import           Numeric                    (showHex)
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
@@ -152,11 +150,7 @@ data Token = Token CurrencySymbol TokenName
 
 instance Show Token where
   showsPrec p (Token cs tn) =
-     showParen (p P.>= 11)
-     $ showString "Token "
-     . showsPrec 11 (concat . map (flip showHex "") . unpack $ unCurrencySymbol cs)
-     . showSpace
-     . showsPrec 11 (unTokenName tn)
+    showParen (p P.>= 11) (showString $ "Token \"" P.++ show cs P.++ "\" \"" P.++ show tn P.++ "\"")
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.
@@ -480,23 +474,10 @@ evalValue env state value = let
         AddValue lhs rhs     -> eval lhs + eval rhs
         SubValue lhs rhs     -> eval lhs - eval rhs
         MulValue lhs rhs     -> eval lhs * eval rhs
-        Scale s rhs          -> let
-            num = numerator s
-            denom = denominator s
-            -- quotient and reminder
-            multiplied = num * eval rhs
-            (q, r) = multiplied `quotRem` denom
-            -- abs (rem (num/denom)) - 1/2
-            abs a = if a >= 0 then a else negate a
-            signum x
-              | x > 0 = 1
-              | x == 0 = 0
-              | otherwise = -1
-            sign :: Integer
-            sign = signum (2 * abs r - abs denom)
-            m = if r < 0 then q - 1 else q + 1
-            isEven = (q `remainder` 2) == 0
-            in if r == zero || sign == (-1) || (sign == 0 && isEven) then q else m
+        Scale s rhs          -> let (n, d) = (numerator s, denominator s)
+                                    nn = eval rhs * n
+                                    (q, r) = nn `quotRem` d in
+                                if abs r * 2 < abs d then q else q + signum nn * signum d
         ChoiceValue choiceId ->
             case Map.lookup choiceId (choices state) of
                 Just x  -> x
@@ -508,6 +489,15 @@ evalValue env state value = let
                 Just x  -> x
                 Nothing -> 0
         Cond cond thn els    -> if evalObservation env state cond then eval thn else eval els
+  where
+    abs :: Integer -> Integer
+    abs a = if a >= 0 then a else negate a
+
+    signum :: Integer -> Integer
+    signum x
+      | x > 0 = 1
+      | x == 0 = 0
+      | otherwise = -1
 
 
 -- | Evaluate 'Observation' to 'Bool'.
@@ -856,7 +846,7 @@ validateTxOutputs params ctx expectedTxOutputs = case expectedTxOutputs of
             Close -> validatePayments params ctx txOutPayments
             -- otherwise check the continuation
             _     -> validateContinuation txOutPayments txOutState txOutContract
-    Error _ -> traceErrorH "Error"
+    Error _ -> traceError "Error"
   where
     validateContinuation txOutPayments txOutState txOutContract =
         case getContinuingOutputs ctx of
@@ -888,10 +878,10 @@ marloweValidator marloweParams MarloweData{..} inputs ctx@ValidatorCtx{..} = let
     -}
     (minSlot, maxSlot) = case txInfoValidRange valCtxTxInfo of
         Interval (LowerBound (Finite l) True) (UpperBound (Finite h) True) -> (l, h)
-        _ -> traceErrorH "Tx valid slot must have lower bound and upper bounds"
+        _ -> traceError "Tx valid slot must have lower bound and upper bounds"
 
     positiveBalances = validateBalances marloweState ||
-        traceErrorH "Invalid contract state. There exists an account with non positive balance"
+        traceError "Invalid contract state. There exists an account with non positive balance"
 
     {-  We do not check that a transaction contains exact input payments.
         We only require an evidence from a party, e.g. a signature for PubKey party,

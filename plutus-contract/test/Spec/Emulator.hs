@@ -13,6 +13,7 @@ import           Control.Monad              (void)
 import qualified Control.Monad.Freer        as Eff
 import qualified Control.Monad.Freer.Error  as E
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Log    (logMessageContent)
 import           Control.Monad.Trans.Except (runExcept)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
@@ -25,7 +26,6 @@ import           Data.List                  (sort)
 import qualified Data.Map                   as Map
 import           Data.Monoid                (Sum (..))
 import qualified Data.Set                   as Set
-import           Data.String                (IsString (fromString))
 import           Data.String                (IsString (fromString))
 import           Hedgehog                   (Property, forAll, property)
 import qualified Hedgehog
@@ -174,7 +174,7 @@ txnUpdateUtxo = property $ do
 
         -- Validate a pool that contains `txn` twice. It should succeed the
         -- first and fail the second time
-        (Chain.ValidatedBlock [t1] [e2, e1, _] [], _) = Chain.validateBlock slot idx [txn, txn]
+        Chain.ValidatedBlock [t1] [e2, e1, _] [] = Chain.validateBlock slot idx [txn, txn]
         tid = txId txn
     Hedgehog.assert (t1 == txn)
     Hedgehog.annotateShow (e1, e2)
@@ -198,7 +198,7 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert (case reverse $ _emulatorLog st of
+    Hedgehog.assert (case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
         _                                                                           -> False)
 
@@ -234,7 +234,7 @@ invalidScript = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert $ case reverse $ _emulatorLog st of
+    Hedgehog.assert $ case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd{}) : ChainEvent (Chain.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
             -> True
         _
@@ -244,7 +244,7 @@ invalidScript = property $ do
         failValidator :: Validator
         failValidator = mkValidatorScript $$(PlutusTx.compile [|| wrapValidator validator ||])
         validator :: () -> () -> ValidatorCtx -> Bool
-        validator _ _ _ = PlutusTx.traceErrorH "I always fail everything"
+        validator _ _ _ = PlutusTx.traceError "I always fail everything"
 
 
 txnFlowsTest :: Property

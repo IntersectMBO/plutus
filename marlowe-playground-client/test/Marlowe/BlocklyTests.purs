@@ -10,7 +10,7 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.ST (ST)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
-import Data.Bifunctor (lmap)
+import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either, note)
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
@@ -50,17 +50,19 @@ mkTestState = do
     generator = buildGenerator blocklyState
   pure { blocklyState: blocklyState, generator: generator }
 
+-- Here we keep using `show` because the Term range is intentionally incorrect when converting from blockly
+-- It uses zero to create a dummy range. By using `show` we can reasonably compare contracts
 c2b2c :: GenWithHoles Result
 c2b2c = do
   contract <- genTerm "contract" genContract
   let
-    positionedContract = lmap show $ Parser.parseContract (stripParens $ show contract)
+    positionedContract = rmap show $ lmap show $ Parser.parseContract (stripParens $ show contract)
 
     -- Unfortunately quickcheck runs the concrete Gen monad and it would need to be re-written to use MonadGen
     -- https://github.com/purescript/purescript-quickcheck/blob/v5.0.0/src/Test/QuickCheck.purs#L97
     -- I made the executive decision that it's not worth my time to do it in this specific case hence unsafePerformEffect
     -- I have created https://github.com/purescript/purescript-quickcheck/issues/102
-    result = unsafePerformEffect $ runContract contract
+    result = rmap show $ unsafePerformEffect $ runContract contract
   pure (result === positionedContract)
 
 runContract :: Term Contract -> Effect (Either String (Term Contract))

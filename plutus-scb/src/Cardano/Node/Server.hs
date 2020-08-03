@@ -50,8 +50,8 @@ main MockServerConfig { mscBaseUrl
                       , mscInitialTxWallets
                       } availability =
     runStdoutLoggingT $ do
-        blockQueue <- liftIO $ newTQueueIO
-        txQueue    <- liftIO $ newTQueueIO
+        blockQueue <- liftIO newTQueueIO
+        txQueue    <- liftIO newTQueueIO
         -- Local chain state (node client)
         clientStateVar <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
         -- Global chain state (node server)

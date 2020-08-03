@@ -2,6 +2,7 @@
 -- PLC values of a built-in types (including dynamic built-in types).
 
 {-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Language.PlutusCore.Constant.Dynamic.Call
@@ -21,16 +22,16 @@ import           Data.Proxy
 import           System.IO.Unsafe
 
 dynamicCallTypeScheme
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
-    => TypeScheme uni '[a] ()
+    :: (HasConstantIn uni term, KnownType term a, GShow uni, GEq uni, uni `Includes` ())
+    => TypeScheme term '[a] ()
 dynamicCallTypeScheme = Proxy `TypeSchemeArrow` TypeSchemeResult Proxy
 
 dynamicCallAssign
-    :: (KnownType uni a, GShow uni, GEq uni, uni `Includes` ())
+    :: (HasConstantIn uni term, KnownType term a, GShow uni, GEq uni, uni `Includes` ())
     => DynamicBuiltinName
     -> (a -> IO ())
     -> (ExMemory -> ExBudget)
-    -> DynamicBuiltinNameDefinition uni
+    -> DynamicBuiltinNameDefinition term
 dynamicCallAssign name f exF =
     DynamicBuiltinNameDefinition name $
         DynamicBuiltinNameMeaning dynamicCallTypeScheme (unsafePerformIO . f) exF

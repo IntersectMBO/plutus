@@ -126,7 +126,7 @@ tests = testGroup "crowdfunding"
             collectionDeadline = 15
             owner = w1
             cmp = mkCampaign deadline target collectionDeadline owner
-        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 35000)
+        in HUnit.testCase "script size is reasonable" (Lib.reasonable (contributionScript cmp) 30000)
 
     , goldenVsString
         "renders the context of a trace sensibly"

@@ -1,7 +1,6 @@
 module Evaluation.DynamicBuiltins (test_dynamicBuiltins) where
 
 import           Evaluation.DynamicBuiltins.Definition (test_definition)
-import           Evaluation.DynamicBuiltins.Logging    (test_logging)
 import           Evaluation.DynamicBuiltins.MakeRead   (test_dynamicMakeRead)
 
 import           Test.Tasty
@@ -11,5 +10,4 @@ test_dynamicBuiltins =
     testGroup "dynamicBuiltins"
         [ test_definition
         , test_dynamicMakeRead
-        , test_logging
         ]

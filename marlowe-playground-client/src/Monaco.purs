@@ -1,7 +1,7 @@
 module Monaco where
 
 import Prelude
-import Data.Function.Uncurried (Fn1, runFn1)
+import Data.Function.Uncurried (Fn1, Fn2, Fn5, runFn1, runFn2, runFn5)
 import Data.Generic.Rep (class Generic)
 import Data.Lens (Lens')
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -107,6 +107,16 @@ foreign import data ITextModel :: Type
 
 foreign import data CompletionItemKind :: Type
 
+foreign import completionItemKindEq_ :: Fn2 CompletionItemKind CompletionItemKind Boolean
+
+instance eqCompletionItemKind :: Eq CompletionItemKind where
+  eq = runFn2 completionItemKindEq_
+
+foreign import completionItemKindOrd_ :: Fn5 Ordering Ordering Ordering CompletionItemKind CompletionItemKind Ordering
+
+instance ordCompletionItemKind :: Ord CompletionItemKind where
+  compare = runFn5 completionItemKindOrd_ LT EQ GT
+
 foreign import data MarkerSeverity :: Type
 
 foreign import data TokensProvider :: Type
@@ -148,6 +158,9 @@ type Marker r
 
 type IMarkerData
   = Record (Marker ())
+
+getRange :: IMarkerData -> IRange
+getRange { startLineNumber, startColumn, endLineNumber, endColumn } = { startLineNumber, startColumn, endLineNumber, endColumn }
 
 type IMarker
   = Record (Marker ( owner :: String, resource :: Uri ))

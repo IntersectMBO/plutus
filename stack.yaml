@@ -8,6 +8,7 @@ packages:
 - playground-common
 - marlowe
 - marlowe-playground-server
+- marlowe-actus
 - metatheory
 - plutus-ledger
 - plutus-playground-server
@@ -21,6 +22,12 @@ packages:
 - doc
 
 extra-deps:
+# FEAT/NEAT and deps
+- lazy-search-0.1.2.0
+- size-based-0.1.2.0
+- testing-feat-1.1.0.0
+- Stream-0.4.7.2@sha256:ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53,1009
+- lazysmallcheck-0.6@sha256:dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc,1696
 # Other missing packages
 - aws-lambda-haskell-runtime-2.0.4
 - binary-instances-1.0.0.1
@@ -114,6 +121,8 @@ extra-deps:
   commit: b5c035ad4e226d634242ad5979fa677921181435
   subdirs:
     - contra-tracer
+    - iohk-monitoring
+    - tracer-transformers
 
 allow-newer: true
 
@@ -147,6 +156,8 @@ ghc-options:
   # Newer versions of persistent-template require some extra language extensions. Fortunately
   # we can hack around this here rather than having to fork eventful & co (for now)
   eventful-sql-common: "-XDerivingStrategies -XStandaloneDeriving -XUndecidableInstances"
+  # Disable all warnings, we're building with a newer version of GHC
+  iohk-monitoring: "-w"
 
 nix:
   packages: [zlib, gmp, openssl]

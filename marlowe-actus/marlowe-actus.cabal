@@ -1,0 +1,120 @@
+cabal-version: 2.2
+name: marlowe-actus
+version: 0.1.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+build-type: Simple
+maintainer: dmytro.kondratiuk@iohk.io
+stability: experimental
+author: Dmytro Kondratiuk
+synopsis:
+  Marlowe ACTUS: standardised financial contracts on Cardano Computation Layer
+description:
+  implementation of ACTUS contracts on Marlowe
+category: Language
+extra-doc-files: README.md
+
+source-repository head
+  type: git
+  location: https://github.com/input-output-hk/plutus
+
+flag defer-plugin-errors
+    description:
+        Defer errors from the plugin, useful for things like Haddock that can't handle it.
+    default: False
+    manual: True
+
+library
+  hs-source-dirs: src
+  build-depends:
+    aeson -any,
+    base -any,
+    bytestring,
+    containers -any,
+    deriving-aeson -any,
+    mtl,
+    newtype-generics,
+    template-haskell -any,
+    plutus-tx -any,
+    plutus-contract -any,
+    plutus-ledger,
+    text,
+    vector,
+    sbv >= 8.4,
+    wl-pprint -any,
+    freer-simple -any,
+    marlowe -any,
+    time -any
+  default-language: Haskell2010
+  default-extensions: ExplicitForAll ScopedTypeVariables
+                      DeriveGeneric StandaloneDeriving DeriveLift
+                      DeriveFunctor DeriveFoldable
+                      DeriveTraversable
+  exposed-modules:
+    Language.Marlowe.ACTUS.MarloweCompat
+    Language.Marlowe.ACTUS.Generator
+    Language.Marlowe.ACTUS.Definitions.BusinessEvents
+    Language.Marlowe.ACTUS.Definitions.ContractTerms
+    Language.Marlowe.ACTUS.Definitions.ContractState
+    Language.Marlowe.ACTUS.Definitions.Schedule
+    Language.Marlowe.ACTUS.Model.POF.PayoffModel
+    Language.Marlowe.ACTUS.Model.POF.Payoff
+    Language.Marlowe.ACTUS.Model.POF.PayoffFs
+    Language.Marlowe.ACTUS.Model.STF.StateTransitionModel
+    Language.Marlowe.ACTUS.Model.STF.StateTransition
+    Language.Marlowe.ACTUS.Model.STF.StateTransitionFs
+    Language.Marlowe.ACTUS.Model.SCHED.ContractScheduleModel
+    Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule
+    Language.Marlowe.ACTUS.Model.INIT.StateInitializationModel
+    Language.Marlowe.ACTUS.Model.INIT.StateInitialization
+    Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs
+    Language.Marlowe.ACTUS.Model.Utility.DateShift
+    Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator
+    Language.Marlowe.ACTUS.Model.Utility.YearFraction
+    Language.Marlowe.ACTUS.Model.Utility.ContractRoleSign
+  other-modules:
+    Language.Marlowe.ACTUS.Ops
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+    -Wredundant-constraints -Widentities
+    -pgmL unlit -optL--ghc -optL--language=haskell -optL--from=asciidoc
+
+  build-tool-depends: unlit:unlit -any
+
+test-suite marlowe-actus-test
+    default-language: Haskell2010
+    hs-source-dirs: test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    other-modules:
+        Spec.Marlowe.Actus
+    build-depends:
+        aeson -any,
+        base >=4.9 && <5,
+        containers -any,
+        hedgehog -any,
+        lens -any,
+        memory -any,
+        bytestring -any,
+        freer-simple -any,
+        tasty -any,
+        tasty-hunit -any,
+        text -any,
+        serialise,
+        cborg,
+        plutus-ledger -any,
+        plutus-contract -any,
+        marlowe,
+        marlowe-actus,
+        plutus-tx -any,
+        QuickCheck,
+        template-haskell -any,
+        marlowe -any,
+        time -any
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances
+    -Wincomplete-uni-patterns -Wincomplete-record-updates
+    -Wredundant-constraints -Widentities

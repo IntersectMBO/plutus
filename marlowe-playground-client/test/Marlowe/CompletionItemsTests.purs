@@ -14,7 +14,7 @@ import Marlowe.Parser as Parser
 import Test.Unit (TestSuite, failure, success, suite, test)
 
 mkHole :: MarloweType -> MarloweHole
-mkHole marloweType = MarloweHole { name: mempty, row: zero, column: zero, marloweType }
+mkHole marloweType = MarloweHole { name: mempty, range: zero, marloweType }
 
 holeSuggestions :: Boolean -> MarloweHole -> Array String
 holeSuggestions stripParens marloweHole@(MarloweHole { name, marloweType }) =

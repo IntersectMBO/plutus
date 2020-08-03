@@ -23,13 +23,14 @@ import           Control.Monad                   ((>=>))
 import qualified Control.Monad.Except            as MonadError
 import           Control.Monad.Freer             (Eff, runM)
 import           Control.Monad.Freer.Error       (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log   (Log, runStderrLog)
+import           Control.Monad.Freer.Extra.Log   (LogMsg, runStderrLog)
 import           Control.Monad.Freer.State       (State, runState)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
 import qualified Data.ByteString.Lazy.Char8      as Char8
 import           Data.Function                   ((&))
 import           Data.Proxy                      (Proxy (Proxy))
+import           Data.Text                       (Text)
 import           Network.HTTP.Client             (defaultManagerSettings, newManager)
 import qualified Network.Wai.Handler.Warp        as Warp
 import           Plutus.SCB.Arbitrary            ()
@@ -45,7 +46,7 @@ import           Wallet.Emulator.Error           (WalletAPIError)
 import           Wallet.Emulator.Wallet          (WalletState)
 import qualified Wallet.Emulator.Wallet          as Wallet
 
-type AppEffects m = '[WalletEffect, NodeClientEffect, ChainIndexEffect, State WalletState, Log, Error WalletAPIError, Error ClientError, Error ServerError, m]
+type AppEffects m = '[WalletEffect, NodeClientEffect, ChainIndexEffect, State WalletState, LogMsg Text, Error WalletAPIError, Error ClientError, Error ServerError, m]
 
 runAppEffects ::
     ( MonadIO m

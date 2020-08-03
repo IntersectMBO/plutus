@@ -104,6 +104,7 @@
           "Wallet/Emulator/ChainIndex"
           "Wallet/Emulator/ChainIndex/Index"
           "Wallet/Emulator/Error"
+          "Wallet/Emulator/LogMessages"
           "Wallet/Emulator/NodeClient"
           "Wallet/Emulator/MultiAgent"
           "Wallet/Emulator/SigningProcess"

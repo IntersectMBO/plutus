@@ -1,8 +1,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Cardano.Protocol.FollowerEffect where
@@ -27,7 +25,7 @@ handleNodeFollower
   :: ( Member (State ChainState) effs
      , Member (State NT.NodeFollowerState) effs
      , Member (Reader (TQueue Block)) effs
-     , Member Log effs
+     , Member (LogMsg NF.NodeFollowerLogMsg) effs
      , LastMember m effs
      , MonadIO m
      )

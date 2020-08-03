@@ -21,6 +21,7 @@ module Language.Plutus.Contract.Checkpoint(
     , AsCheckpointError(..)
     , CheckpointStore(..)
     , CheckpointKey
+    , CheckpointLogMsg(..)
     , jsonCheckpoint
     , handleCheckpoint
     ) where
@@ -28,7 +29,7 @@ module Language.Plutus.Contract.Checkpoint(
 import           Control.Lens
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error (Error, throwError)
-import           Control.Monad.Freer.Log   (Log, logDebug)
+import           Control.Monad.Freer.Log   (LogMsg, logDebug, logError)
 import           Control.Monad.Freer.State (State, get, gets, modify, put)
 import           Data.Aeson                (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value)
 import qualified Data.Aeson.Types          as JSON
@@ -84,6 +85,29 @@ data CheckpointStoreItem a =
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
+data CheckpointLogMsg =
+    LogFoundValueRestoringKey CheckpointKey
+    | LogDecodingErrorAtKey CheckpointKey
+    | LogNoValueForKey CheckpointKey
+    | LogDoCheckpoint
+    | LogAllocateKey
+    | LogRetrieve CheckpointKey
+    | LogStore CheckpointKey CheckpointKey
+    | LogKeyUpdate CheckpointKey CheckpointKey
+    deriving (Eq, Ord, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
+
+instance Pretty CheckpointLogMsg where
+    pretty = \case
+        LogFoundValueRestoringKey k -> "Found a value, restoring previous key" <+> pretty k
+        LogDecodingErrorAtKey k -> "Decoding error at key" <+> pretty k
+        LogNoValueForKey k -> "No value for key" <+> pretty k <> ". The action will be once."
+        LogDoCheckpoint -> "doCheckpoint"
+        LogAllocateKey -> "allocateKey"
+        LogRetrieve k -> "retrieve" <+> pretty k
+        LogStore k1 k2 -> "Store; key1:" <+> pretty k1 <> "; key2:" <+> pretty k2
+        LogKeyUpdate k1 k2 -> "Key update; key then:" <+> pretty k1 <> "; key now:" <+> pretty k2
+
 {-| Insert a new value into the checkpoint store. The first 'CheckpointKey' is
     the checkpoint key *before* running the checkpointed action, the second
     'Checkpoint' key is the value *after* running it. When we restore the
@@ -116,7 +140,7 @@ restore ::
     ( FromJSON a
     , Member (State CheckpointStore) effs
     , Member (State CheckpointKey) effs
-    , Member Log effs
+    , Member (LogMsg CheckpointLogMsg) effs
     )
     => CheckpointKey
     -> Eff effs (Either CheckpointError (Maybe a))
@@ -125,13 +149,13 @@ restore k = do
     let (result :: Maybe (Either String (CheckpointStoreItem a))) = fmap (JSON.parseEither JSON.parseJSON) value
     case result of
         Nothing -> do
-            logDebug $ "No value for " <> Text.pack (show k)
+            logDebug (LogNoValueForKey k)
             pure $ Right Nothing
         Just (Left err) -> do
-            logDebug $ "Decoding error at key " <> Text.pack (show k)
+            logError (LogDecodingErrorAtKey k)
             pure $ Left (JSONDecodeError $ Text.pack err)
         Just (Right CheckpointStoreItem{csValue,csNewKey}) -> do
-            logDebug "Found a value, restoring previous key"
+            logDebug $ LogFoundValueRestoringKey csNewKey
             put csNewKey
             pure (Right (Just csValue))
 
@@ -159,28 +183,25 @@ handleCheckpoint ::
     forall effs.
     ( Member (State CheckpointStore) effs
     , Member (State CheckpointKey) effs
-    , Member Log effs
+    , Member (LogMsg CheckpointLogMsg) effs
     )
     => Eff (Checkpoint ': effs)
     ~> Eff effs
 handleCheckpoint = interpret $ \case
     DoCheckpoint -> do
-        logDebug "handleCheckpoint: doCheckpoint"
+        logDebug LogDoCheckpoint
         modify @CheckpointKey succ
     AllocateKey -> do
-        logDebug "handleCheckpoint: allocateKey"
+        logDebug LogAllocateKey
         get @CheckpointKey
     Store k k' a -> do
-        logDebug "handleCheckpoint: store"
-        logDebug $ "key1: " <> Text.pack (show k)
-        logDebug $ "key2: " <> Text.pack (show k')
+        logDebug $ LogStore k k'
         insert k k' a
     Retrieve k -> do
-        logDebug "handleCheckpoint: retrieve"
-        logDebug $ "key then: " <> Text.pack (show k)
+        logDebug $ LogRetrieve k
         result <- restore @_ @effs k
         k' <- get @CheckpointKey
-        logDebug $ "key now: " <> Text.pack (show k')
+        logDebug $ LogKeyUpdate k k'
         pure result
 
 {-| Create a checkpoint for an action.

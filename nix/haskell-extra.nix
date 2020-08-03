@@ -6,15 +6,12 @@
 ############################################################################
 { pkgs, index-state, checkMaterialization }:
 {
-  # FIXME: this cabal can't be used for development purposes until
-  # https://github.com/input-output-hk/haskell.nix/issues/422 is fixed
-  # Also need to pick a version that builds properly
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
-    version = "3.0.0.0";
+    version = "3.2.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "08zkccwygm4g83chyiwbskkjfclm22vmhbx2s2rh0lvjkclqy6qc";
+    plan-sha256 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";

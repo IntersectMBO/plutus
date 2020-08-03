@@ -111,7 +111,7 @@ withTypedBuiltinGen k = Gen.choice
 withCheckedTermGen
     :: (Generatable uni, Monad m, Closed uni, uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage])
     => TypedBuiltinGenT uni m
-    -> (forall a. AsKnownType uni a -> TermOf uni (EvaluationResultDef uni) -> GenT m c)
+    -> (forall a. AsKnownType uni a -> TermOf uni (EvaluationResult (Term TyName Name uni ())) -> GenT m c)
     -> GenT m c
 withCheckedTermGen genTb k =
     withTypedBuiltinGen $ \akt@AsKnownType -> do
@@ -133,7 +133,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme uni args res
+        :: TypeScheme (Plain Term uni) args res
         -> Term TyName Name uni ()
         -> ([Term TyName Name uni ()] -> [Term TyName Name uni ()])
         -> FoldArgs args res
@@ -211,5 +211,5 @@ genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
      :: (Generatable uni, Monad m)
-     => (forall a. KnownType uni a => TermOf uni a -> GenT m c) -> GenT m c
+     => (forall a. KnownType (Plain Term uni) a => TermOf uni a -> GenT m c) -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k
