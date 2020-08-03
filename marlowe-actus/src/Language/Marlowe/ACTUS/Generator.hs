@@ -164,6 +164,6 @@ genFsContract terms =
             $ if (isNothing pof) then cont
               else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
               else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
-            where pof = (payoffFs ev terms t (t - 1) (cashCalculationDay cf))
+            where pof = (payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf))
         scheduleAcc = foldr gen Close $ L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
     in inititializeStateFs terms scheduleAcc

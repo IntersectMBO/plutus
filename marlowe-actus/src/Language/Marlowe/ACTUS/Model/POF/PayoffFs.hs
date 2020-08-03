@@ -12,8 +12,8 @@ import           Language.Marlowe.ACTUS.Model.POF.PayoffModel      (_POF_FP_PAM,
 import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y), ActusNum(..), marloweFixedPoint)
 import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
 
-payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Maybe (Value Observation)
-payoffFs ev ContractTerms{..} t t_minus curDate =
+payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Day -> Maybe (Value Observation)
+payoffFs ev ContractTerms{..} t t_minus prevDate curDate =
     let __NT              = constnt ct_NT
         __PDIED           = constnt ct_PDIED
         __PYTP            = enum ct_PYTP
@@ -34,7 +34,7 @@ payoffFs ev ContractTerms{..} t t_minus curDate =
         __fac             = useval "fac" t_minus
         __ipnr            = useval "ipnr" t_minus
 
-        y_sd_t = constnt $ _y ct_DCC ct_SD curDate undefined
+        y_sd_t            = constnt $ _y ct_DCC prevDate curDate ct_MD
 
         pof = case contractType of
             PAM -> case ev of

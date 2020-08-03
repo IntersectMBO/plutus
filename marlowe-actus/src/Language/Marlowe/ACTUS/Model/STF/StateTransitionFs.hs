@@ -62,7 +62,7 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         addComment cont    = case ev of 
             IED -> letval "IED" t (constnt 0) cont
             MD -> letval "MD" t (constnt 0) cont
-            IP -> letval ("IP:" ++ (show curDate)) t (constnt 0) cont 
+            IP -> letval ("IP:" ++ (show curDate) ++ (show prevDate)) t (constnt 0) cont 
             RR -> letval ("RR:" ++ (show curDate)) t (constnt 0) cont 
             FP -> letval ("FP:" ++ (show curDate)) t (constnt 0) cont
             _ -> cont
