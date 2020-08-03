@@ -10,7 +10,7 @@ import           Language.Marlowe                                  (Contract (Le
 
 import           Data.String                                       (IsString (fromString))
 import           Data.Time                                         (Day, UTCTime (UTCTime))
-import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime)
+import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime, systemToUTCTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Ops                        (marloweFixedPoint)
@@ -92,7 +92,19 @@ cardanoEpochStart = 100
 dayToSlotNumber :: Day -> Integer
 dayToSlotNumber d =
     let (MkSystemTime secs _) = utcToSystemTime (UTCTime d 0)
-    in  fromIntegral secs - cardanoEpochStart `mod` 20
+    in  (fromIntegral secs - cardanoEpochStart) `mod` 20
+
+slotNumberToDay :: Integer -> Day
+slotNumberToDay slot =
+    let 
+        secs = cardanoEpochStart + slot * 20
+        (UTCTime d _) = systemToUTCTime (MkSystemTime (fromIntegral secs) 0)
+    in d
+
 
 marloweDate :: Day -> Value Observation
 marloweDate = Constant . fromInteger . dayToSlotNumber
+
+backFromMarloweDate :: Value Observation -> Day
+backFromMarloweDate (Constant x) = slotNumberToDay x
+backFromMarloweDate _ = slotNumberToDay 0
