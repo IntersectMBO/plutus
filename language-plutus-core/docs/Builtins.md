@@ -244,30 +244,6 @@ The `TypeScheme` of a built-in function also allows to get the Plutus Core type 
 
 So having a single `TypeScheme` is enough to adapt the type checker and the evaluator to extensible built-in functions.
 
-## Saturated vs unsaturated built-in functions
-
-There are two ways to have built-in function in the AST of `Term`:
-
-1. either it's saturated application `AppBuiltinFunction BuiltinFunction [Term]` (i.e. the one that we've been using so far) where a built-in function is always applied to the exact number of arguments that it expects, e.g. `AddInteger` has to always be applied to two arguments
-
-2. or it's unsaturated application:
-
-```haskell
-data Term
-    = <...>
-    | BuiltinFunction BuiltinFunction
-    | Apply Term Term
-```
-
-where a built-in function can be partially applied, e.g. it's allowed to apply `AddInteger` to just one argument and pass the partially applied function as an argument to some higher-order function like `map`
-
-Those two representations are very similar. Differences:
-
-- with unsaturated built-in functions we can write `map (addInteger 1) xs` while with saturated once we have to write `map (\x -> addInteger 1 x) xs`. But the Plutus Tx compiler can probably do this transformation automatically
-- it seems that it's easier to implement an efficient evaluator with saturated built-in fuctions
-
-In general, differences are minor, so either of the approaches is fine. Currently we have (2), but we're going to change it to (1) at some point.
-
 ## Failing built-in functions
 
 Built-in functions are allowed to fail, e.g. `1/0` results in evaluation failure. This requires some straightforward support in `TypeScheme`. The ability of a function to fail is not reflected in its type signature, e.g. `DivideInteger` is of type `Integer -> Integer -> Integer`.
@@ -347,3 +323,7 @@ liftBool b = if b then truePlc else falsePlc
 where `truePlc` and `falsePlc` are the ASTs for `\x y -> x` and `\x y -> y` respectively.
 
 Writing such a conversion function is not a big deal and we can easily generalize it, after all Haskell types/values are convertible to Plutus Core types/terms by design. Problems arise when you need to go in the other direction: unlift a Plutus Core term into a Haskell value. Such unlifting is a much more complicated beast. We did it previously ([docs available here](https://github.com/effectfully/plutus-prototype/blob/7a071a5ed2276ae3119f48fa0ca307422ed86ec2/language-plutus-core/src/Language/PlutusCore/Constant/Typed.hs#L201-L252)), but eventually we decided that every built-in function must reference only those types that are in the universe. This way lifting always amounts to wrapping a constant with a constructor like `ConstantInteger` and unlifting always amounts to directly unwrapping from such a constructor.
+
+## Saturated vs unsaturated built-in functions
+
+We have a [separate doc](/Saturatedness.md) on that.
