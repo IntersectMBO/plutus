@@ -114,6 +114,7 @@ library
         Language.PlutusIR.Transform.Rename
         Language.PlutusIR.Transform.NonStrict
         Language.PlutusIR.Transform.LetFloat
+        Language.PlutusIR.Transform.Inline
         Language.PlutusIR.TypeCheck
 
         Language.UntypedPlutusCore
@@ -252,6 +253,7 @@ library
         data-default -any,
         data-default-class -any,
         transformers -any,
+        witherable -any,
         Stream -any
 
 executable plutus-core-generate-evaluation-test
