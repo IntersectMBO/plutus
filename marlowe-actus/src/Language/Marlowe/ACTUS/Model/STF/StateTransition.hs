@@ -15,7 +15,7 @@ import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  (_STF_AD
                                                                          _STF_IED_PAM, _STF_IPCI_PAM, _STF_IP_PAM,
                                                                          _STF_MD_PAM, _STF_PP_PAM, _STF_PRD_PAM,
                                                                          _STF_PY_PAM, _STF_RRF_PAM, _STF_RR_PAM,
-                                                                         _STF_SC_PAM)
+                                                                         _STF_SC_PAM, _STF_TD_PAM)
 import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, sup)
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
@@ -45,8 +45,8 @@ stateTransition ev RiskFactors{..} terms@ContractTerms{..} st@ContractStatePoly{
                 PY   -> _STF_PY_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
                 FP   -> _STF_FP_PAM st t y_sd_t
                 PRD  -> _STF_PRD_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
-                TD   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
-                IP   -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
+                TD   -> _STF_TD_PAM st t
+                IP   -> _STF_IP_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
                 IPCI -> _STF_IPCI_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL
                 RR   -> _STF_RR_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_RRLF ct_RRLC ct_RRPC ct_RRPF ct_RRMLT ct_RRSP o_rf_RRMO
                 RRF  -> _STF_RRF_PAM st t y_sd_t y_tfpminus_t y_tfpminus_tfpplus ct_FEB ct_FER ct_CNTRL ct_RRNXT
