@@ -10,7 +10,7 @@ module Language.Marlowe.ACTUS.Generator
 where
 
 import qualified Data.List                                               as L (scanl, tail, zip, zip5)
-import           Data.Maybe                                              (fromMaybe)
+import           Data.Maybe                                              (fromMaybe, isNothing)
 import           Data.String                                             (IsString (fromString))
 import           Data.Sort                                               (sortOn)                               
 import           Data.Time                                               (fromGregorian)
@@ -42,13 +42,14 @@ invoice from to amount timeout continue =
         counterparty = Role $ TokenName $ fromString to
     in  When
             [ Case
-                  (Deposit (AccountId 0 party) party ada amount)
-                  (Pay (AccountId 0 party)
-                       (Party counterparty)
-                       ada
-                       amount
-                       continue
-                  )
+                    (Deposit (AccountId 0 party) party ada amount)
+                    (Pay (AccountId 0 party)
+                        (Party counterparty)
+                        ada
+                        amount
+                        continue
+                    )
+
             ]
             timeout
             Close
@@ -158,9 +159,10 @@ genFsContract terms =
         gen :: (CashFlow, EventType, Slot, Double, Integer) -> Contract -> Contract
         gen (cf, ev, date, r, t) cont = inquiryFs ev terms ("_" ++ show t) date "oracle"
             $ stateTransitionFs ev terms t (cashCalculationDay cf)
-            $ Let (payoffAt t) (payoffFs ev terms t (t - 1) (cashCalculationDay cf))
-            $ if r > 0.0      then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
-              else if r < 0.0 then invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
-              else            cont
+            $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
+            $ if (isNothing pof) then cont
+              else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
+              else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
+            where pof = (payoffFs ev terms t (t - 1) (cashCalculationDay cf))
         scheduleAcc = foldr gen Close $ L.zip5 schedCfs schedEvents schedDates cfsDirections [1..]
     in inititializeStateFs terms scheduleAcc
