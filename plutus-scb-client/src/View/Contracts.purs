@@ -3,6 +3,7 @@ module View.Contracts where
 import Prelude hiding (div)
 import Bootstrap (btn, btnBlock, btnPrimary, btnSmall, cardBody_, cardFooter_, cardHeader_, card_, col10_, col2_, col4_, nbsp, row_, tableBordered)
 import Bootstrap as Bootstrap
+import Clipboard (showShortCopyLong)
 import Data.Array (mapWithIndex, null)
 import Data.Array as Array
 import Data.Foldable.Extra (interleave)
@@ -111,18 +112,23 @@ contractStatusPane contractState =
         )
         contractState
 
-contractRequestView :: forall p i. ContractInstanceState ContractExe -> HTML p i
+contractRequestView :: forall p. ContractInstanceState ContractExe -> HTML p HAction
 contractRequestView contractInstance =
   table [ classes [ Bootstrap.table, tableBordered ] ]
     [ thead_
         [ tr_
             [ th [ colSpan 3 ]
                 [ h3_
-                    [ pretty $ view (_csContractDefinition) contractInstance
-                    , nbsp
-                    , text "-"
-                    , nbsp
-                    , text $ view (_csContract <<< _contractInstanceIdString) contractInstance
+                    [ ClipboardAction
+                        <$> showShortCopyLong contractInstanceIdString
+                            ( Just
+                                [ pretty $ view (_csContractDefinition) contractInstance
+                                , nbsp
+                                , text "-"
+                                , nbsp
+                                , text contractInstanceIdString
+                                ]
+                            )
                     ]
                 ]
             ]
@@ -135,6 +141,8 @@ contractRequestView contractInstance =
     , tbody_ (requestRow <$> requests)
     ]
   where
+  contractInstanceIdString = view (_csContract <<< _contractInstanceIdString) contractInstance
+
   requests = view (_csCurrentState <<< _hooks) contractInstance
 
   requestRow (Request { itID: IterationID itID, rqID: RequestID rqID, rqRequest }) =
