@@ -54,6 +54,10 @@ newtype AssertionError = GenericAssertion T.Text
     deriving (Show, Eq)
 makeClassyPrisms ''AssertionError
 
+instance Pretty AssertionError where
+    pretty = \case
+        GenericAssertion t -> "Generic assertion:" <+> pretty t
+
 -- | This lets people use 'T.Text' as their error type.
 instance AsAssertionError T.Text where
     _AssertionError = prism' (T.pack . show) (const Nothing)

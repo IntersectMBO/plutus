@@ -62,6 +62,10 @@ data CheckpointError = JSONDecodeError Text
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
+instance Pretty CheckpointError where
+    pretty = \case
+        JSONDecodeError t -> "JSON decoding error:" <+> pretty t
+
 makeClassyPrisms ''CheckpointError
 
 newtype CheckpointStore = CheckpointStore { unCheckpointStore :: Map CheckpointKey Value }

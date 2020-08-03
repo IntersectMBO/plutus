@@ -4,6 +4,7 @@ dbConfig:
 
 scbWebserverConfig:
   baseUrl: http://localhost:8080
+  staticDir: plutus-scb-client/dist
 
 walletServerConfig:
   baseUrl: http://localhost:8081
@@ -24,6 +25,9 @@ nodeServerConfig:
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083
+
+requestProcessingConfig:
+  requestProcessingInterval: 1
 
 signingProcessConfig:
   spBaseUrl: http://localhost:8084
