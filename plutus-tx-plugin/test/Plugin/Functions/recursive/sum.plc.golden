@@ -18,7 +18,10 @@
           ds
           [List (con integer)]
           [
-            [ { [ { Nil_match (con integer) } ds ] (con integer) } (con integer 0) ]
+            [
+              { [ { Nil_match (con integer) } ds ] (con integer) }
+              (con integer 0)
+            ]
             (lam
               x
               (con integer)

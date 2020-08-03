@@ -33,7 +33,10 @@
       (strict)
       (vardecl wild Bool)
       [
-        [ equalsInteger [ [ (builtin divideInteger) (con 1) ] (con 0) ] ]
+        [
+          equalsInteger
+          [ [ (builtin divideInteger) (con integer 1) ] (con integer 0) ]
+        ]
         (con integer 0)
       ]
     )

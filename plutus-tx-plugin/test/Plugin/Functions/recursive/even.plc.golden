@@ -71,7 +71,10 @@
                       (lam
                         thunk
                         Unit
-                        [ even [ [ (builtin subtractInteger) n ] (con integer 1) ] ]
+                        [
+                          even
+                          [ [ (builtin subtractInteger) n ] (con integer 1) ]
+                        ]
                       )
                     ]
                     Unit

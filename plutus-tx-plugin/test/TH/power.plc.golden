@@ -7,7 +7,7 @@
       (termbind
         (nonstrict)
         (vardecl y (con integer))
-        [ [ (builtin multiplyInteger) ds ] (con 1) ]
+        [ [ (builtin multiplyInteger) ds ] (con integer 1) ]
       )
       (termbind
         (nonstrict)

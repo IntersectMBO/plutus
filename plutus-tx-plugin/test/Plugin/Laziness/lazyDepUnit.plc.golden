@@ -7,7 +7,9 @@
       (lam x (con bytestring) x)
     )
     (termbind
-      (nonstrict) (vardecl aByteString (con bytestring)) [ monoId (con bytestring #) ]
+      (nonstrict)
+      (vardecl aByteString (con bytestring))
+      [ monoId (con bytestring #) ]
     )
     aByteString
   )

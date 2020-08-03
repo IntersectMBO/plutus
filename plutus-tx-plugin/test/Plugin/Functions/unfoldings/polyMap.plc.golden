@@ -83,7 +83,7 @@
         [
           [
             { { mapDirect (con integer) } (con integer) }
-            [ (builtin addInteger) (con 1) ]
+            [ (builtin addInteger) (con integer 1) ]
           ]
           [
             { build (con integer) }
