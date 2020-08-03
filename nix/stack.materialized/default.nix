@@ -29,6 +29,8 @@
         "servant-options" = (((hackage.servant-options)."0.1.0.0").revisions).default;
         "sbv" = (((hackage.sbv)."8.6").revisions).default;
         "inline-r" = (((hackage.inline-r)."0.10.3").revisions).default;
+        "witherable" = (((hackage.witherable)."0.3.5").revisions).default;
+        "witherable-class" = (((hackage.witherable-class)."0").revisions).default;
         "Stream" = (((hackage.Stream)."0.4.7.2").revisions)."ed78165aa34c4e23dc53c9072f8715d414a585037f2145ea0eb2b38300354c53";
         "lazysmallcheck" = (((hackage.lazysmallcheck)."0.6").revisions)."dac7a1e4877681f1260309e863e896674dd6efc1159897b7945893e693f2a6bc";
         "time-out" = (((hackage.time-out)."0.2").revisions)."b9a6b4dee64f030ecb2a25dca0faff39b3cb3b5fefbb8af3cdec4142bfd291f2";

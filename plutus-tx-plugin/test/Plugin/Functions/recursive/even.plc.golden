@@ -1,13 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
-    )
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -63,7 +56,7 @@
                   (termbind
                     (nonstrict)
                     (vardecl n (con integer))
-                    [ [ subtractInteger n ] (con 1) ]
+                    [ [ (builtin subtractInteger) n ] (con 1) ]
                   )
                   [
                     [
@@ -74,7 +67,10 @@
                         }
                         (lam thunk Unit False)
                       ]
-                      (lam thunk Unit [ even [ [ subtractInteger n ] (con 1) ] ]
+                      (lam
+                        thunk
+                        Unit
+                        [ even [ [ (builtin subtractInteger) n ] (con 1) ] ]
                       )
                     ]
                     Unit

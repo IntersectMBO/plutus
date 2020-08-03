@@ -32,13 +32,6 @@
         )
       )
     )
-    (termbind
-      (strict)
-      (vardecl
-        subtractInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin subtractInteger)
-    )
     (let
       (rec)
       (termbind
@@ -55,7 +48,11 @@
                 }
                 (lam thunk Unit True)
               ]
-              (lam thunk Unit [ oddDirect [ [ subtractInteger n ] (con 1) ] ])
+              (lam
+                thunk
+                Unit
+                [ oddDirect [ [ (builtin subtractInteger) n ] (con 1) ] ]
+              )
             ]
             Unit
           ]
@@ -75,7 +72,11 @@
                 }
                 (lam thunk Unit False)
               ]
-              (lam thunk Unit [ evenDirect [ [ subtractInteger n ] (con 1) ] ])
+              (lam
+                thunk
+                Unit
+                [ evenDirect [ [ (builtin subtractInteger) n ] (con 1) ] ]
+              )
             ]
             Unit
           ]

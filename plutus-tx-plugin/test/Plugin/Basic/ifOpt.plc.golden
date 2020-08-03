@@ -1,13 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        divideInteger (fun (con integer) (fun (con integer) (con integer)))
-      )
-      (builtin divideInteger)
-    )
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -39,7 +32,10 @@
     (termbind
       (strict)
       (vardecl wild Bool)
-      [ [ equalsInteger [ [ divideInteger (con 1) ] (con 0) ] ] (con 0) ]
+      [
+        [ equalsInteger [ [ (builtin divideInteger) (con 1) ] (con 0) ] ]
+        (con 0)
+      ]
     )
     (con 1)
   )
