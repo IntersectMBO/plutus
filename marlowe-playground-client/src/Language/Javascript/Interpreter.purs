@@ -1,7 +1,6 @@
 module Language.Javascript.Interpreter where
 
 import Prelude
-
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
 import Data.Function.Uncurried (Fn3, runFn3)
