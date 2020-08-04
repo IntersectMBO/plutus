@@ -32,7 +32,7 @@ import           Data.Text.Encoding                                         (enc
 import qualified Data.Text.IO                                               as T
 import           Data.Text.Prettyprint.Doc
 import           Options.Applicative
-import           System.CPUTime
+import           System.CPUTime                                             (getCPUTime)
 import           System.Exit
 import           Text.Printf
 
