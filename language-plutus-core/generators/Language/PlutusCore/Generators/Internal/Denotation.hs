@@ -56,8 +56,7 @@ data DenotationContextMember uni res =
 --   2. a bound variable of functional type with the result being @integer@
 --   3. the 'AddInteger' 'BuiltinName' or any other 'BuiltinName' which returns an @integer@.
 newtype DenotationContext uni = DenotationContext
-    { unDenotationContext ::
-        DMap (AsKnownType (Term TyName Name uni ())) (Compose [] (DenotationContextMember uni))
+    { unDenotationContext :: DMap (AsKnownType uni) (Compose [] (DenotationContextMember uni))
     }
 
 -- Here the only search that we need to perform is the search for things that return an appropriate
@@ -66,9 +65,7 @@ newtype DenotationContext uni = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult
-    :: TypeScheme (Term TyName Name uni ()) args res
-    -> AsKnownType (Term TyName Name uni ()) res
+typeSchemeResult :: TypeScheme (Term TyName Name uni ()) args res -> AsKnownType uni res
 typeSchemeResult (TypeSchemeResult _)       = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB)   = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAllType _ schK) = typeSchemeResult $ schK Proxy

@@ -31,7 +31,6 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.TypeCheck
@@ -39,7 +38,6 @@ import           Language.PlutusCore.Universe
 
 import           Control.Lens.TH
 import           Control.Monad.Except
-import           Data.Proxy
 import           Data.String
 import           Data.Text.Prettyprint.Doc
 
@@ -52,9 +50,6 @@ the actual one. Thus "type-eval checking".
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError uni
     = TypeEvalCheckErrorIllFormed (Error uni ())
-    | TypeEvalCheckErrorIllTyped
-          (Normalized (Type TyName uni ()))
-          (Normalized (Type TyName uni ()))
     | TypeEvalCheckErrorException String
     | TypeEvalCheckErrorIllEvaled
           (EvaluationResult (Term TyName Name uni ()))
@@ -76,15 +71,10 @@ data TypeEvalCheckResult uni = TypeEvalCheckResult
       -- ^ The result of evaluation of the term.
     }
 
-instance ( PrettyBy config (Type TyName uni ())
-         , PrettyBy config (Plain Term uni)
-         , PrettyBy config (Error uni ())
-         ) => PrettyBy config (TypeEvalCheckError uni) where
+instance (PrettyBy config (Error uni ()), PrettyBy config (Plain Term uni)) =>
+        PrettyBy config (TypeEvalCheckError uni) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err
-    prettyBy config (TypeEvalCheckErrorIllTyped expected actual) =
-        "The expected type:" <+> prettyBy config expected <> hardline <>
-        "doesn't match with the actual type:" <+> prettyBy config actual
     prettyBy _      (TypeEvalCheckErrorException err)             =
         "An exception occurred:" <+> fromString err
     prettyBy config (TypeEvalCheckErrorIllEvaled expected actual) =
@@ -102,24 +92,17 @@ typeEvalCheckBy
        )
     => (Plain Term uni -> Either (EvaluationException internal user termErr) (Plain Term uni))
        -- ^ An evaluator.
-    -> TermOf (Term TyName Name uni ()) a
-    -> TypeEvalCheckM uni (TermOf (Term TyName Name uni ()) (TypeEvalCheckResult uni))
-typeEvalCheckBy eval (TermOf mayTerm (x :: a)) = TermOf mayTerm <$> do
-    let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
-        valExpected = makeKnown x
-    fmap (TypeEvalCheckResult tyExpected) $ do
-        valActual <- case mayTerm of
-            EvaluationFailure      -> return EvaluationFailure
-            EvaluationSuccess term -> do
-                tyActual <- runQuoteT $ inferType defConfig term
-                if tyExpected == tyActual
-                    then case extractEvaluationResult $ eval term of
-                            Right valActual -> return valActual
-                            Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc
-                    else throwError $ TypeEvalCheckErrorIllTyped tyExpected tyActual
-        if valExpected == valActual
-            then return valActual
-            else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+    -> TermOf uni a
+    -> TypeEvalCheckM uni (TermOf uni (TypeEvalCheckResult uni))
+typeEvalCheckBy eval (TermOf term x) = TermOf term <$> do
+    termTy <- runQuoteT $ inferType defConfig term
+    let valExpected = makeKnown x
+    fmap (TypeEvalCheckResult termTy) $ case extractEvaluationResult (eval term) of
+        Right valActual
+            | valExpected == valActual -> return valActual
+            | otherwise                ->
+                throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+        Left exc -> throwError $ TypeEvalCheckErrorException $ show exc
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
@@ -127,8 +110,7 @@ unsafeTypeEvalCheck
     :: ( KnownType (Term TyName Name uni ()) a, GShow uni, GEq uni, DefaultUni <: uni, Closed uni
        , uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
        )
-    => TermOf (Term TyName Name uni ()) a
-    -> TermOf (Term TyName Name uni ()) (EvaluationResult (Term TyName Name uni ()))
+    => TermOf uni a -> TermOf uni (EvaluationResult (Term TyName Name uni ()))
 unsafeTypeEvalCheck termOfTbv = do
     let errOrRes = typeEvalCheckBy (evaluateCek mempty defaultCostModel) termOfTbv
     case errOrRes of
