@@ -19,6 +19,7 @@ import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
 import Language.Javascript.Interpreter (CompilationError(..), InterpreterResult(..))
 import Language.Javascript.Monaco as HM
+import Language.Javascript.Monaco as JSM
 import LocalStorage as LocalStorage
 import Monaco as Monaco
 import Network.RemoteData (isLoading)
@@ -74,13 +75,13 @@ jsEditor state = slot _jsEditorSlot unit component unit (Just <<< JSHandleEditor
   where
   setup editor =
     liftEffect do
-      mContents <- LocalStorage.getItem StaticData.bufferLocalStorageKey
+      mContents <- LocalStorage.getItem StaticData.jsBufferLocalStorageKey
       let
         contents = fromMaybe JSE.escrow mContents
       model <- Monaco.getModel editor
       Monaco.setValue model contents
 
-  component = monacoComponent $ HM.settings setup
+  component = monacoComponent $ JSM.settings setup
 
 bottomPanel :: forall p. FrontendState -> HTML p HAction
 bottomPanel state =
@@ -97,7 +98,7 @@ bottomPanel state =
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "js-buttons" ])
                     ]
                     [ button [ onClick $ const $ Just CompileJSProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
-                    , sendResultButton state "Send To Simulator" SendResultToSimulator
+                    , sendResultButton state "Send To Simulator" SendResultJSToSimulator
                     , sendResultButton state "Send To Blockly" SendResultToBlockly
                     ]
                 ]

@@ -12,6 +12,7 @@ import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gists (GistAction(..))
@@ -36,6 +37,8 @@ import JSEditor as JSEditor
 import HaskellEditor.Types as HE
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
+import Language.Javascript.Interpreter as JSI
+import Language.Javascript.Interpreter as JSInterpreter
 import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
@@ -43,6 +46,7 @@ import Marlowe.Blockly as MB
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
+import Marlowe.Semantics (Contract)
 import Network.RemoteData as RemoteData
 import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>))
 import Router (Route, SubRoute)
@@ -59,7 +63,7 @@ import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey, jsBufferLocalStorageKey)
 import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _activeJSDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _activeJSDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
 import Wallet as Wallet
 
 initialState :: FrontendState
@@ -200,7 +204,14 @@ handleAction _ (JSSelectEditorKeyBindings bindings) = do
 
 handleAction _ (ChangeView JSEditor) = selectJSView
 
-handleAction _ CompileJSProgram = pure unit
+handleAction _ CompileJSProgram = do
+  mContents <- query _jsEditorSlot unit (Monaco.GetText identity)
+  case mContents of
+    Nothing -> pure unit
+    Just contents -> do
+      let
+        res = JSInterpreter.eval contents
+      assign _jsCompilationResult (Just res)
 
 handleAction _ (LoadJSScript key) = do
   case Map.lookup key StaticData.demoFiles of
@@ -231,6 +242,25 @@ handleAction s (SimulationAction action) = do
       mSource <- query _marloweEditorSlot unit (Monaco.GetText identity)
       for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
       selectView BlocklyEditor
+handleAction _ SendResultJSToSimulator = do
+  mContract <- use _jsCompilationResult
+  case mContract of
+    Nothing -> pure unit
+    Just (Left err) -> pure unit
+    Just (Right (JSI.InterpreterResult { result })) -> do
+      let
+        (resultDecoded :: Either _ Contract) =
+          unwrap <<< runExceptT
+            $ do
+                f <- parseJSON result
+                decode f
+      case trace resultDecoded \_ -> resultDecoded of
+        Left err -> pure unit
+        Right contract -> do
+          void $ query _simulationSlot unit (ST.SetEditorText (show $ pretty contract) unit)
+          void $ query _simulationSlot unit (ST.ResetContract unit)
+          selectSimulationView
+
     _ -> pure unit
 
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
@@ -305,6 +335,7 @@ selectView view = do
     subroute = case view of
       Simulation -> Router.Simulation
       HaskellEditor -> Router.HaskellEditor
+      JSEditor -> Router.JSEditor
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
@@ -317,6 +348,9 @@ selectView view = do
     HaskellEditor -> do
       void $ query _haskellEditorSlot unit (Monaco.Resize unit)
       void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
+    JSEditor -> do
+      void $ query _jsEditorSlot unit (Monaco.Resize unit)
+      void $ query _jsEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
     ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
@@ -441,6 +475,7 @@ render settings state =
   where
   bottomPanel = case state ^. _view of
     HaskellEditor -> HaskellEditor.bottomPanel (state ^. _haskellState)
+    JSEditor -> JSEditor.bottomPanel state
     _ -> text mempty
 
   isActiveTab state' activeView = if state' ^. _view <<< to (eq activeView) then [ active ] else []

@@ -42,6 +42,7 @@ data HAction
   -- haskell actions
   | CompileJSProgram
   | ChangeView View
+  | SendResultJSToSimulator
   | LoadJSScript String
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
@@ -64,6 +65,7 @@ instance actionIsEvent :: IsEvent HAction where
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (HandleActusBlocklyMessage _) = Just $ (defaultEvent "HandleActusBlocklyMessage") { category = Just "ActusBlockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
+  toEvent SendResultJSToSimulator = Just $ defaultEvent "SendResultJSToSimulator"
 
 ------------------------------------------------------------
 type ChildSlots

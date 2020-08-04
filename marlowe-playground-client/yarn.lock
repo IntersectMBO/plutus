@@ -1423,6 +1423,11 @@ esprima@^4.0.1:
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-4.0.1.tgz#13b04cdb3e6c5d19df91ab6987a8695619b0aa71"
   integrity sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==
 
+esprima@~1.0:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/esprima/-/esprima-1.0.4.tgz#9f557e08fc3b4d26ece9dd34f8fbf476b62585ad"
+  integrity sha1-n1V+CPw7TSbs6d00+Pv0drYlha0=
+
 esrecurse@^4.1.0:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/esrecurse/-/esrecurse-4.2.1.tgz#007a3b9fdbc2b3bb87e4879ea19c92fdbd3942cf"
@@ -2007,6 +2012,11 @@ hmac-drbg@^1.0.0:
     hash.js "^1.0.3"
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
+
+hoister@~0.0:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/hoister/-/hoister-0.0.2.tgz#0d0d8b1ce0f191553e61afec654f6b180eb96e5d"
+  integrity sha1-DQ2LHODxkVU+Ya/sZU9rGA65bl0=
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"
@@ -3196,6 +3206,14 @@ normalize-path@^2.1.1:
 normalize-path@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
+
+notevil@^1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/notevil/-/notevil-1.3.3.tgz#56b8a935d8978e0c000749621aca3928b823cb01"
+  integrity sha512-y4gR18Z2lIHeBREaZu788iii4/KLLe2jNPoZA8aEg4NWK1JwjmtjVyI3eypQKPEkOIPc++8C+byUUDc+SJDJgg==
+  dependencies:
+    esprima "~1.0"
+    hoister "~0.0"
 
 npm-bundled@^1.0.1:
   version "1.0.6"
