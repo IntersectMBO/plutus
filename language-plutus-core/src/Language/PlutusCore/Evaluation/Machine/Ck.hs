@@ -61,6 +61,16 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
         "The CK machine doesn't support dynamic extensions to the set of built-in names."
 
+{-
+getArgsCount :: Builtin ann -> CkM uni Int
+getArgsCount (BuiltinName _ name) =
+    pure $ builtinNameArities ! name
+getArgsCount (DynBuiltinName _ name) =  -- I don't think we'll see this case anyway.
+    throwingWithCause _MachineError
+                          (OtherMachineError NoDynamicBuiltinNamesMachineError)
+                          Nothing
+-}
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
@@ -125,6 +135,7 @@ FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
 FrameIWrap pat arg : stack <| value   = stack <| IWrap () pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
+--                     stack <| Builtin bn = FrameApplyBuiltin (getArgsCount bn) []
     IWrap _ _ _ term -> stack <| term
     term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
 
@@ -139,10 +150,10 @@ instantiateEvaluate
     -> Plain Term uni
     -> CkM uni (Plain Term uni)
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
-instantiateEvaluate stack ty fun
-    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
+instantiateEvaluate stack _ fun
+    | isJust $ termAsPrimIterApp fun = stack <| fun -- Discard type
     | otherwise                      =
-          throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
+          throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -160,15 +171,13 @@ applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing ->
-                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
+                throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just term
             Just (IterApp DynamicStagedBuiltinName{} _) ->
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
             Just (IterApp (StaticStagedBuiltinName name) spine) ->
-                if length spine == builtinNameArities ! name  -- Quick fix for unsaturated builtins.
-                -- FIXME: this is quite inefficient: we can probably improve it by modifying
-                -- the frames so as to avoid repeated calls to termAsPrimIterApp
+                if length spine == builtinNameAritiesIgnoringTypes ! name  -- Quick fix for unsaturated builtins.
                 then do
                   res <- applyBuiltinName name spine
                   case res of

@@ -96,7 +96,7 @@ data CekVal uni =
       ExMemory
       (CekValEnv uni)   -- Initial environment, used for evaluating every argument
       StagedBuiltinName
-      Int               -- Number of arguments to be provided
+      Int               -- Number of arguments to be provided (both types and terms)
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.
                         -- We need these to construct a term if the machine is returning a stuck partial application.
       [CekVal uni]      -- Arguments we've computed so far.
@@ -300,10 +300,10 @@ substitution, anything).
 
 getArgsCount :: Builtin ann -> CekM uni Int
 getArgsCount (BuiltinName _ name) =
-    pure $ builtinNameArities ! name
+    pure $ builtinNameAritiesIncludingTypes ! name
 getArgsCount (DynBuiltinName _ name) = do
     DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
-    pure $ countArgs sch
+    pure $ countTypeAndTermArgs sch
 -- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 
 computeCek
@@ -383,21 +383,18 @@ returnCek (FrameUnwrap : ctx) val =
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just val
 
 -- | Instantiate a term with a type and proceed.
--- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
--- iterated application of a 'BuiltinName' to a list of 'Value's and if it is,
--- apply the term to the type via 'TyInst'.
+-- In case of 'VTyAbs' just ignore the type; for 'VBuiltin', extend
+-- the type arguments with the type, decrement the argument count,
+-- and proceed; otherwise, it's an error.
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> CekVal uni -> CekM uni (Plain Term uni)
 instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
 instantiateEvaluate ctx ty (VBuiltin ex argEnv bn count tyargs args) =
-    case args of
-      [] -> returnCek ctx $ VBuiltin ex argEnv bn count (ty:tyargs) args
-      _  -> error "Builtin instantiation after term argument"
-      -- Strictly, we should check that we have the correct number of type arguments.
-      -- That should be caught by the typechecker though.
+    returnCek ctx $ VBuiltin ex argEnv bn (count-1) (ty:tyargs) args
+    -- We should really check that the signature expects a type here, not a term.
 instantiateEvaluate _ _ val =
-        throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just val
+        throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
 
 -- | Apply a function to an argument and proceed.
@@ -417,6 +414,8 @@ applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
 applyEvaluate ctx val@(VBuiltin ex argEnv bn count tyargs args) arg = withEnv argEnv $ do
     let args' = arg:args
         count' = count - 1
+        -- We're counting both type and term arguments here, so stricly
+        -- we should check that we're expecting a term, not a type.
     if count' /= 0
         then returnCek ctx $ VBuiltin ex argEnv bn count' tyargs args'
         else do
@@ -425,7 +424,7 @@ applyEvaluate ctx val@(VBuiltin ex argEnv bn count tyargs args) arg = withEnv ar
                 EvaluationSuccess t -> returnCek ctx t
                 EvaluationFailure ->
                     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
-applyEvaluate _ val _ = throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just val
+applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
 -- | Apply a 'StagedBuiltinName' to a list of 'Value's.
 applyStagedBuiltinName
@@ -437,7 +436,7 @@ applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
 applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
+  applyBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

@@ -32,13 +32,15 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Common ()
+import           Language.PlutusCore.Core.Type                   (StagedBuiltinName)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
 import           Control.Monad.Except
-import           Data.String                           (IsString)
-import           Data.Text                             (Text)
+import           Data.String                                     (IsString)
+import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -50,7 +52,8 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError term
-    = WrongNumberOfArgumentsConstAppError [term]
+    =  TooFewArgumentsConstAppError StagedBuiltinName
+    | TooManyArgumentsConstAppError StagedBuiltinName [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
@@ -60,11 +63,11 @@ data ConstAppError term
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError err term
-    = NonPrimitiveInstantiationMachineError
+    = NonPolymorphicInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
       -- ^ An attempt to unwrap a not wrapped term.
-    | NonPrimitiveApplicationMachineError
+    | NonFunctionalApplicationMachineError
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
@@ -133,20 +136,22 @@ instance Pretty UnliftingError where
 
 instance (PrettyBy config term, HasPrettyDefaults config ~ 'True) =>
         PrettyBy config (ConstAppError term) where
-    prettyBy config (WrongNumberOfArgumentsConstAppError args) = fold
-        [ "A constant applied to the wrong number of arguments:", "\n"
+    prettyBy _ (TooFewArgumentsConstAppError name) =
+        "The constant" <+> pretty name <+> "was applied to too few arguments."
+    prettyBy config (TooManyArgumentsConstAppError name args) = fold
+        [ "The constant" <+> pretty name <+> "was applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
 instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
             PrettyBy config (MachineError err term) where
-    prettyBy _      NonPrimitiveInstantiationMachineError =
-        "Cannot reduce a not immediately reducible type instantiation."
+    prettyBy _      NonPolymorphicInstantiationMachineError =
+        "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
         "Cannot unwrap a not wrapped term."
-    prettyBy _      NonPrimitiveApplicationMachineError   =
-        "Cannot reduce a not immediately reducible application."
+    prettyBy _      NonFunctionalApplicationMachineError   =
+        "Attempted to apply a non-function."
     prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
     prettyBy config (ConstAppMachineError constAppError)  =

@@ -16,7 +16,8 @@ module Language.PlutusCore.Constant.Apply
     , integerToInt64
     , applyTypeSchemed
     , applyBuiltinName
-    , builtinNameArities
+    , builtinNameAritiesIncludingTypes
+    , builtinNameAritiesIgnoringTypes
     ) where
 
 import           PlutusPrelude
@@ -75,14 +76,14 @@ applyTypeSchemed name = go where
         case args of
             [] -> pure $ makeKnown y                     -- Computed the result.
             _  -> throwingWithCause _ConstAppError       -- Too many arguments.
-                    (WrongNumberOfArgumentsConstAppError args)
+                    (TooManyArgumentsConstAppError name args)
                     Nothing
     go (TypeSchemeAllType _ schK)  f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)    f exF args = case args of
         []          ->
             throwingWithCause _ConstAppError              -- Too few arguments.
-                (WrongNumberOfArgumentsConstAppError [])  -- TODO: @[]@ is incorrect.
+                (TooFewArgumentsConstAppError name)
                 Nothing
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
@@ -256,11 +257,19 @@ applyBuiltinName name args = do
                 (runCostingFunThreeArguments $ paramIfThenElse params)
                 args
 
-builtinNameArities :: Array BuiltinName Int
-builtinNameArities =
+builtinNameAritiesIncludingTypes :: Array BuiltinName Int
+builtinNameAritiesIncludingTypes =
     listArray (minBound, maxBound) $
         [minBound..maxBound] <&> \name ->
             withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
-                \(TypedBuiltinName _ sch) -> countArgs sch
-{-# NOINLINE builtinNameArities #-}  -- Just in case.
+                \(TypedBuiltinName _ sch) -> countTypeAndTermArgs sch
+{-# NOINLINE builtinNameAritiesIncludingTypes #-}  -- Just in case.
+
+builtinNameAritiesIgnoringTypes :: Array BuiltinName Int
+builtinNameAritiesIgnoringTypes =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedBuiltinName _ sch) -> countTermArgs sch
+{-# NOINLINE builtinNameAritiesIgnoringTypes #-}  -- Just in case.
 
