@@ -104,22 +104,18 @@ typeEvalCheckBy
        -- ^ An evaluator.
     -> TermOf (Term TyName Name uni ()) a
     -> TypeEvalCheckM uni (TermOf (Term TyName Name uni ()) (TypeEvalCheckResult uni))
-typeEvalCheckBy eval (TermOf mayTerm (x :: a)) = TermOf mayTerm <$> do
+typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
     let tyExpected = runQuote . normalizeType $ toTypeAst (Proxy @a)
         valExpected = makeKnown x
-    fmap (TypeEvalCheckResult tyExpected) $ do
-        valActual <- case mayTerm of
-            EvaluationFailure      -> return EvaluationFailure
-            EvaluationSuccess term -> do
-                tyActual <- runQuoteT $ inferType defConfig term
-                if tyExpected == tyActual
-                    then case extractEvaluationResult $ eval term of
-                            Right valActual -> return valActual
-                            Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc
-                    else throwError $ TypeEvalCheckErrorIllTyped tyExpected tyActual
-        if valExpected == valActual
-            then return valActual
-            else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+    tyActual <- runQuoteT $ inferType defConfig term
+    if tyExpected == tyActual
+        then case extractEvaluationResult $ eval term of
+                Right valActual ->
+                    if valExpected == valActual
+                        then return $ TypeEvalCheckResult tyExpected valActual
+                        else throwError $ TypeEvalCheckErrorIllEvaled valExpected valActual
+                Left exc        -> throwError $ TypeEvalCheckErrorException $ show exc
+        else throwError $ TypeEvalCheckErrorIllTyped tyExpected tyActual
 
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.

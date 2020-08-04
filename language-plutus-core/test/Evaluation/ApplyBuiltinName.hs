@@ -44,7 +44,7 @@ prop_applyBuiltinName
     -> FoldArgs as r
        -- ^ The semantics of the builtin name. E.g. the semantics of
        -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
-    -> TypedBuiltinGenT uni IO
+    -> TypedBuiltinGenT (Plain Term uni) IO
        -- ^ How to generate values of builtin types.
     -> Property
 prop_applyBuiltinName tbn op allTbs = property $ do

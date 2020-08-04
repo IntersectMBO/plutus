@@ -68,9 +68,9 @@ type PlcGenT uni m = GenT (ReaderT (BuiltinGensT uni m) m)
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue uni head arg r = IterAppValue
-    { _iterTerm :: EvaluationResult (Plain Term uni)    -- ^ As a PLC 'Term'.
-    , _iterApp  :: IterApp head (EvaluationResult arg)  -- ^ As an 'IterApp'.
-    , _iterTbv  :: r                                    -- ^ As a Haskell value.
+    { _iterTerm :: Plain Term uni  -- ^ As a PLC 'Term'.
+    , _iterApp  :: IterApp head arg         -- ^ As an 'IterApp'.
+    , _iterTbv  :: r                        -- ^ As a Haskell value.
     }
 
 instance ( PrettyBy config (Plain Term uni)
@@ -97,10 +97,11 @@ revealUnique :: Name -> Name
 revealUnique (Name name uniq) =
     Name (name <> display (unUnique uniq)) uniq
 
--- TODO: we can generate more types here: @uni@, @maybe@, @list@, etc -- basically any 'KnownType'.
+-- TODO: we can generate more types here.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: (Generatable uni, Monad m) => (forall a. AsKnownType uni a -> GenT m c) -> GenT m c
+    :: (Generatable uni, HasConstantIn uni term, Monad m)
+    => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer        AsKnownType
     , k @BSL.ByteString AsKnownType
@@ -110,7 +111,7 @@ withTypedBuiltinGen k = Gen.choice
 -- | Generate a 'Term' along with the value it computes to,
 -- having a generator of terms of built-in types.
 withCheckedTermGen
-    :: ( Generatable (Plain Term uni), Monad m
+    :: ( Generatable uni, Monad m
        , Closed uni, uni `EverywhereAll` [Eq, PrettyConst, ExMemoryUsage]
        )
     => TypedBuiltinGenT (Plain Term uni) m
@@ -135,12 +136,12 @@ genIterAppValue
     => Denotation uni head res
     -> PlcGenT uni m (IterAppValue uni head (Plain Term uni) res)
 genIterAppValue (Denotation object embed meta scheme) = result where
-    result = go scheme (EvaluationSuccess $ embed object) id meta
+    result = go scheme (embed object) id meta
 
     go
         :: TypeScheme (Plain Term uni) args res
-        -> EvaluationResult (Plain Term uni)
-        -> ([EvaluationResult (Plain Term uni)] -> [EvaluationResult (Plain Term uni)])
+        -> Plain Term uni
+        -> ([Plain Term uni] -> [Plain Term uni])
         -> FoldArgs args res
         -> PlcGenT uni m (IterAppValue uni head (Plain Term uni) res)
     go (TypeSchemeResult _)       term args y = do  -- Computed the result.
@@ -149,7 +150,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
     go (TypeSchemeArrow _ schB)   term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
         TermOf v x <- liftT $ genTb AsKnownType  -- Get a Haskell and the correspoding PLC values.
-        let term' = Apply () <$> term <*> v      -- Apply the term to the PLC value.
+        let term' = Apply () term v              -- Apply the term to the PLC value.
             args' = args . (v :)                 -- Append the PLC value to the spine.
             y     = f x                          -- Apply the Haskell function to the generated argument.
         go schB term' args' y
@@ -161,7 +162,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 -- Arguments to functions and 'BuiltinName's are generated recursively.
 genTerm
     :: forall uni m.
-       (Generatable (Plain Term uni), Monad m)
+       (Generatable uni, Monad m)
     => TypedBuiltinGenT (Plain Term uni) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext uni
@@ -205,24 +206,24 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 let argTy = toTypeAst argKt
                 -- Generate the argument.
-                TermOf getArg  x <- go context (depth - 1) argKt
+                TermOf arg  x <- go context (depth - 1) argKt
                 -- Generate the body of the lambda abstraction adding the new variable to the context.
-                TermOf getBody y <- go (insertVariable name x context) (depth - 1) akt
+                TermOf body y <- go (insertVariable name x context) (depth - 1) akt
                 -- Assemble the term.
-                let term = Apply () . LamAbs () name argTy <$> getBody <*> getArg
+                let term = Apply () (LamAbs () name argTy body) arg
                 return $ TermOf term y
 
 -- | Generates a 'Term' with rather small values to make out-of-bounds failures less likely.
 -- There are still like a half of terms that fail with out-of-bounds errors being evaluated.
 genTermLoose
-     :: (Generatable (Plain Term uni), Monad m)
+     :: (Generatable uni, Monad m)
      => TypedBuiltinGenT (Plain Term uni) m
 genTermLoose = genTerm genTypedBuiltinDef typedBuiltinNames 4
 
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: (Generatable (Plain Term uni), Monad m)
+     :: (Generatable uni, Monad m)
      => (forall a. KnownType (Plain Term uni) a => TermOf (Plain Term uni) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen $ \akt@AsKnownType -> genTermLoose akt >>= k

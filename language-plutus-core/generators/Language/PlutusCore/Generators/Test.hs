@@ -40,7 +40,8 @@ import           System.FilePath                                       ((</>))
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue
     :: (uni ~ DefaultUni, KnownType (Term TyName Name uni ()) a)
-    => TermGen uni a -> IO (TermOf uni (EvaluationResult (Term TyName Name uni ())))
+    => TermGen uni a
+    -> IO (TermOf (Term TyName Name uni ()) (EvaluationResult (Term TyName Name uni ())))
 getSampleTermValue genTerm = Gen.sample $ unsafeTypeEvalCheck <$> genTerm
 
 -- | Generate a program using a given generator and check that it's well-typed and evaluates correctly.
@@ -92,9 +93,12 @@ propEvaluate eval genTermOfTbv = withTests 200 . property $ do
     termOfTbv <- forAllNoShow genTermOfTbv
     case typeEvalCheckBy eval termOfTbv of
         Left (TypeEvalCheckErrorIllFormed err)             -> fail $ prettyPlcErrorString err
-        Left (TypeEvalCheckErrorException err)             -> fail err
-        Left (TypeEvalCheckErrorIllEvaled expected actual) ->
+        Left (TypeEvalCheckErrorIllTyped expected actual) ->
             -- We know that these two are distinct, but there is no nice way we
             -- can report this via 'hedgehog' except by comparing them here again.
+            ShowPretty expected === ShowPretty actual
+        Left (TypeEvalCheckErrorException err)             -> fail err
+        Left (TypeEvalCheckErrorIllEvaled expected actual) ->
+            -- Ditto.
             ShowPretty expected === ShowPretty actual
         Right _                                            -> return ()
