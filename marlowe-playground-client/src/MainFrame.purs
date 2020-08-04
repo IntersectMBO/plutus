@@ -12,7 +12,6 @@ import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Debug.Trace (trace)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
 import Gists (GistAction(..))
@@ -46,7 +45,6 @@ import Marlowe.Blockly as MB
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Marlowe.Semantics (Contract)
 import Network.RemoteData as RemoteData
 import Prelude (class Functor, Unit, Void, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>), (>))
 import Router (Route, SubRoute)
@@ -247,19 +245,10 @@ handleAction _ SendResultJSToSimulator = do
   case mContract of
     Nothing -> pure unit
     Just (Left err) -> pure unit
-    Just (Right (JSI.InterpreterResult { result })) -> do
-      let
-        (resultDecoded :: Either _ Contract) =
-          unwrap <<< runExceptT
-            $ do
-                f <- parseJSON result
-                decode f
-      case trace resultDecoded \_ -> resultDecoded of
-        Left err -> pure unit
-        Right contract -> do
-          void $ query _simulationSlot unit (ST.SetEditorText (show $ pretty contract) unit)
-          void $ query _simulationSlot unit (ST.ResetContract unit)
-          selectSimulationView
+    Just (Right (JSI.InterpreterResult { result: contract })) -> do
+      void $ query _simulationSlot unit (ST.SetEditorText (show $ pretty contract) unit)
+      void $ query _simulationSlot unit (ST.ResetContract unit)
+      selectSimulationView
 
     _ -> pure unit
 

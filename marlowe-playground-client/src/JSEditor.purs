@@ -25,6 +25,7 @@ import Monaco as Monaco
 import Network.RemoteData (isLoading)
 import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==))
 import StaticData as StaticData
+import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState, HAction(..), _activeJSDemo, _compilationResult, _jsCompilationResult, _jsEditorKeybindings, _jsEditorSlot, _showBottomPanel, bottomPanelHeight)
 
 render ::
@@ -99,7 +100,7 @@ bottomPanel state =
                     ]
                     [ button [ onClick $ const $ Just CompileJSProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
                     , sendResultButton state "Send To Simulator" SendResultJSToSimulator
-                    , sendResultButton state "Send To Blockly" SendResultToBlockly
+                    -- , sendResultButton state "Send To Blockly" SendResultToBlockly
                     ]
                 ]
             ]
@@ -131,7 +132,7 @@ resultPane state =
           numberedText
       ]
       where
-      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") result.result
+      numberedText = (code_ <<< Array.singleton <<< text) <$> split (Pattern "\n") ((show <<< pretty <<< _.result) result)
     (Just (Left err)) -> [ compilationErrorPane err ]
     _ -> [ text "" ]
   else

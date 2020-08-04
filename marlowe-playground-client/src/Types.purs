@@ -20,6 +20,7 @@ import Halogen.HTML (IProp, attr)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import Language.Javascript.Interpreter as JS
+import Marlowe.Semantics (Contract)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Router (Route)
@@ -118,7 +119,7 @@ instance showView :: Show View where
 newtype FrontendState
   = FrontendState
   { view :: View
-  , jsCompilationResult :: Maybe (Either JS.CompilationError (JS.InterpreterResult String))
+  , jsCompilationResult :: Maybe (Either JS.CompilationError (JS.InterpreterResult Contract))
   , blocklyState :: Maybe BlocklyState
   , actusBlocklyState :: Maybe BlocklyState
   , jsEditorKeybindings :: KeyBindings
@@ -139,7 +140,7 @@ data MarloweError
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_jsCompilationResult :: Lens' FrontendState (Maybe (Either JS.CompilationError (JS.InterpreterResult String)))
+_jsCompilationResult :: Lens' FrontendState (Maybe (Either JS.CompilationError (JS.InterpreterResult Contract)))
 _jsCompilationResult = _Newtype <<< prop (SProxy :: SProxy "jsCompilationResult")
 
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
