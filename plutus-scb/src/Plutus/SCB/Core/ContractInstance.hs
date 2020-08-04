@@ -51,8 +51,8 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint
                                                                   EndpointValue (..))
 import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
 import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
-import           Language.Plutus.Contract.Trace                  (MaxIterations (..), defaultMaxIterations)
-import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
+import           Language.Plutus.Contract.Trace.RequestHandler   (MaxIterations (..), RequestHandler (..),
+                                                                  RequestHandlerLogMsg, defaultMaxIterations, extract,
                                                                   maybeToHandler, tryHandler, wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
