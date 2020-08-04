@@ -19,6 +19,8 @@ module Plutus.SCB.Core.ContractInstance(
     , lookupContract
     , activateContract
     -- * Contract outboxes
+    , MaxIterations(..)
+    , defaultMaxIterations
     , processAllContractOutboxes
     , processOwnPubkeyRequests
     , processAwaitSlotRequests
@@ -49,7 +51,8 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint
                                                                   EndpointValue (..))
 import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
 import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
+import           Language.Plutus.Contract.Trace.RequestHandler   (MaxIterations (..), RequestHandler (..),
+                                                                  RequestHandlerLogMsg, defaultMaxIterations, extract,
                                                                   maybeToHandler, tryHandler, wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
@@ -96,7 +99,9 @@ data ContractInstanceMsg t =
     | CallingEndpoint String ContractInstanceId JSON.Value
     | ProcessContractInbox ContractInstanceId
     | HandlingRequest RequestHandlerLogMsg
+    | HandlingRequests ContractInstanceId [Request ContractSCBRequest]
     | BalancingTx TxBalanceMsg
+    | MaxIterationsExceeded ContractInstanceId MaxIterations
 
 -- TODO:
 -- 1. per-instanceID messages
@@ -128,7 +133,9 @@ instance Pretty t => Pretty (ContractInstanceMsg t) where
             "Calling endpoint" <+> pretty endpoint <+> "on instance" <+> pretty instanceID <+> "with" <+> viaShow value
         ProcessContractInbox i -> "Processing contract inbox for" <+> pretty i
         HandlingRequest msg -> pretty msg
+        HandlingRequests i rqs -> "Handling" <+> pretty (length rqs) <+> "requests for" <+> pretty i
         BalancingTx msg -> pretty msg
+        MaxIterationsExceeded i (MaxIterations is) -> "Max iterations" <+> parens (pretty is) <+> "exceeded for" <+> pretty i
 
 sendContractStateMessages ::
     forall t effs.
@@ -298,12 +305,21 @@ respondtoRequests ::
     , Member (Error SCBError) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     )
-    => RequestHandler effs ContractSCBRequest ContractResponse
+    => MaxIterations
+    -> RequestHandler effs ContractSCBRequest ContractResponse
     -> Eff effs ()
-respondtoRequests handler = do
+respondtoRequests (MaxIterations mi) handler = do
     contractStates <- runGlobalQuery (Query.contractState @t)
     let state = fmap (hooks . csCurrentState) contractStates
-    itraverse_ (runRequestHandler @t handler) state
+    ifor_ state $ \instanceId requests ->
+        let go j
+             | j >= mi = do
+                 logWarn @(ContractInstanceMsg t) $ MaxIterationsExceeded instanceId (MaxIterations mi)
+             | otherwise = do
+                 logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
+                 events <- runRequestHandler @t handler instanceId requests
+                 when (not $ null events) (go $ succ j)
+        in go 0
 
 -- | Run a 'RequestHandler' on the 'ContractSCBRequest' list of a contract
 --   instance and send the responses to the contract instance.
@@ -459,12 +475,13 @@ processAllContractOutboxes ::
     , Member (Error SCBError) effs
     , Member (ContractEffect t) effs
     )
-    => Eff effs ()
-processAllContractOutboxes =
+    => MaxIterations -- ^ Maximum number of times the requests for each contract instance are processed
+    -> Eff effs ()
+processAllContractOutboxes mi =
     mapLog @_ @(ContractInstanceMsg t) HandlingRequest
     $ mapLog @_ @(ContractInstanceMsg t) BalancingTx
     $ surroundInfo @Text.Text "processAllContractOutboxes"
-    $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
+    $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs) mi
     $ contractRequestHandler @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
 
 contractRequestHandler ::

@@ -18,7 +18,8 @@ import           Data.Aeson                     (FromJSON, ToJSON)
 import           Data.Map.Strict                (Map)
 import qualified Data.Map.Strict                as Map
 import           Data.Text                      (Text)
-import           Data.Text.Prettyprint.Doc      (Pretty, pretty, (<+>))
+import           Data.Text.Prettyprint.Doc      (Pretty, pretty, viaShow, (<+>))
+import           Data.Time.Units                (Second)
 import           Data.UUID                      (UUID)
 import qualified Data.UUID                      as UUID
 import           GHC.Generics                   (Generic)
@@ -54,6 +55,21 @@ data SCBError
     | OtherError Text
     deriving (Show, Eq)
 
+instance Pretty SCBError where
+    pretty = \case
+        FileNotFound fp -> "File not found:" <+> pretty fp
+        ContractNotFound fp -> "Contract not found:" <+> pretty fp
+        ContractInstanceNotFound i -> "Contract instance not found:" <+> pretty i
+        SCBContractError e -> "Contract error:" <+> pretty e
+        WalletClientError e -> "Wallet client error:" <+> viaShow e
+        NodeClientError e -> "Node client error:" <+> viaShow e
+        SigningProcessError e -> "Signing process error:" <+> viaShow e
+        ChainIndexError e -> "Chain index error:" <+> viaShow e
+        WalletError e -> "Wallet error:" <+> pretty e
+        ContractCommandError i t -> "Contract command error:" <+> pretty i <+> pretty t
+        InvalidUUIDError t -> "Invalid UUID:" <+> pretty t
+        OtherError t -> "Other error:" <+> pretty t
+
 data DbConfig =
     DbConfig
         { dbConfigFile     :: Text
@@ -66,15 +82,23 @@ data DbConfig =
 
 data Config =
     Config
-        { dbConfig             :: DbConfig
-        , walletServerConfig   :: WalletServer.Config
-        , nodeServerConfig     :: NodeServer.MockServerConfig
-        , scbWebserverConfig   :: WebserverConfig
-        , chainIndexConfig     :: ChainIndex.ChainIndexConfig
-        , signingProcessConfig :: SigningProcess.SigningProcessConfig
-        , monitoringConfig     :: Maybe MonitoringConfig
+        { dbConfig                :: DbConfig
+        , walletServerConfig      :: WalletServer.Config
+        , nodeServerConfig        :: NodeServer.MockServerConfig
+        , scbWebserverConfig      :: WebserverConfig
+        , chainIndexConfig        :: ChainIndex.ChainIndexConfig
+        , signingProcessConfig    :: SigningProcess.SigningProcessConfig
+        , monitoringConfig        :: Maybe MonitoringConfig
+        , requestProcessingConfig :: RequestProcessingConfig
         }
     deriving (Show, Eq, Generic, FromJSON)
+
+newtype RequestProcessingConfig =
+    RequestProcessingConfig
+        { requestProcessingInterval :: Second -- ^ How many seconds to wait between calls to 'Plutus.SCB.Core.ContractInstance.processAllContractOutboxes'
+        }
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON)
 
 newtype MonitoringConfig =
     MonitoringConfig

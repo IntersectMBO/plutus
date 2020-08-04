@@ -210,7 +210,9 @@ executable plutus-scb
         uuid -any,
         yaml -any,
         containers -any,
-        iohk-monitoring -any
+        iohk-monitoring -any,
+        time-units -any,
+        servant-client -any
 
 executable plutus-game
     main-is: Main.hs
