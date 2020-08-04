@@ -10,12 +10,6 @@ module Language.PlutusTx.Evaluation
     , EvaluationError(..)
     , CekEvaluationException
     , Plain
-    , ExBudget(..)
-    , ExTally(..)
-    , exBudgetStateBudget
-    , exBudgetStateTally
-    , exBudgetCPU
-    , exBudgetMemory
     )
 where
 

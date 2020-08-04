@@ -28,15 +28,8 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
-    , ExBudgetState(..)
     , ExTally(..)
     , ExBudget(..)
-    , ExRestrictingBudget(..)
-    , ExBudgetMode(..)
-    , WithMemory
-    , exBudgetCPU
-    , exBudgetMemory
-    , exBudgetStateBudget
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
