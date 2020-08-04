@@ -320,7 +320,7 @@ toDefinition (ActusValueType ActusCycleType) =
   BlockDefinition
     $ merge
         { type: show ActusCycleType
-        , message0: "Cycle with anchor %1 and period %2 of %3 with long stub"
+        , message0: "Cycle with anchor %1 and period %2 of %3 with short stub"
         , args0:
           [ Value { name: "anchor", check: "date", align: Right }
           , Input { name: "value", text: "1", spellcheck: false }
@@ -620,7 +620,7 @@ blocklyCycleToCycle (CycleValue _ value period) = Either.Right $ Just $ Cycle {
      PeriodDayType -> P_D
      PeriodMonthType -> P_M
      PeriodQuarterType -> P_Q
-  , stub: LongStub
+  , stub: ShortStub
 }
 blocklyCycleToCycle (ActusError msg) = Either.Left msg
 blocklyCycleToCycle NoActusValue = Either.Right Nothing
@@ -668,7 +668,7 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_PRF : CS_PF
       , scfg : ScheduleConfig {
             calendar : []
-            , includeEndDay : false
+            , includeEndDay : true
             , eomc : EOMC_EOM
             , bdc : BDC_NULL
         }

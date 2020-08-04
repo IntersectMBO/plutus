@@ -8,8 +8,7 @@ import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventTy
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM),
-                                                                        )
-import           Language.Marlowe.ACTUS.Definitions.ContractState       (ContractStatePoly(sd))                                                                        
+                                                                        )                                                                      
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  (_STF_AD_PAM, _STF_CE_PAM, _STF_FP_PAM,

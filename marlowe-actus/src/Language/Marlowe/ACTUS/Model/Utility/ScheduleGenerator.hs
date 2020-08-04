@@ -12,7 +12,7 @@ where
 
 import           Control.Arrow                                    ((>>>))
 import           Data.Function                                    ((&))
-import qualified Data.List                                        as L (elem, init, last, notElem)
+import qualified Data.List                                        as L (init, last, notElem)
 import           Data.Time.Calendar                               (Day, addDays, addGregorianMonthsClip,
                                                                    addGregorianYearsClip, fromGregorian,
                                                                    gregorianMonthLength, toGregorian)
@@ -48,13 +48,14 @@ remove d = filter (\t -> calculationDay t /= calculationDay d)
 stubCorrection :: Stub -> Day -> ShiftedSchedule -> ShiftedSchedule
 stubCorrection stub endDay schedule =
   if null schedule then schedule
-  else if (paymentDay $ L.last schedule) == endDay && stub == ShortStub then schedule
+  else if (paymentDay $ L.last schedule) == endDay || stub == ShortStub then schedule
   else L.init schedule
 
 endDateCorrection :: Bool -> Day -> [Day] -> [Day]
 endDateCorrection includeEndDay endDay schedule
   | includeEndDay && L.notElem endDay schedule = schedule ++ [endDay]
-  | not includeEndDay && L.elem endDay schedule = L.init schedule
+-- we don't remove end date if it's already in the schedule:
+--  | not includeEndDay && L.elem endDay schedule = L.init schedule
   | otherwise = schedule
 
 generateRecurrentSchedule :: Cycle -> Day -> Day -> [Day]
@@ -66,7 +67,7 @@ generateRecurrentSchedule Cycle {..} anchorDate endDate =
           (let current' = shiftDate anchorDate (k * n) p
            in  go current' (k + 1) (acc ++ [current])
           )
-  in  go anchorDate 0 []
+  in  go anchorDate 1 []
 
 
 generateRecurrentScheduleWithCorrections
