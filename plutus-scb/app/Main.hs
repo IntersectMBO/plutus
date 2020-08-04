@@ -43,6 +43,7 @@ import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (..))
+import qualified Language.Plutus.Contract.Trace                  as Trace
 import           Options.Applicative                             (CommandFields, Mod, Parser, argument, auto, command,
                                                                   customExecParser, disambiguate, eitherReader, flag,
                                                                   fullDesc, help, helper, idm, info, infoOption, long,
@@ -381,7 +382,7 @@ runCliCommand _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = d
     logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
     forever $ do
         _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
-        handleError @SCBError (Core.processAllContractOutboxes @ContractExe) (logError . ContractExeSCBError)
+        handleError @SCBError (Core.processAllContractOutboxes @ContractExe Trace.defaultMaxIterations) (logError . ContractExeSCBError)
 runCliCommand _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 
