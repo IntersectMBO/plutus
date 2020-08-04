@@ -686,7 +686,7 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_RRANX : rateResetAnchor >>= identity
       , ct_RRNXT : Nothing
       , ct_RRSP : 0.0
-      , ct_RRMLT : 0.0
+      , ct_RRMLT : 1.0
       , ct_RRPF : 0.0
       , ct_RRPC : 0.0
       , ct_RRLC : 0.0
