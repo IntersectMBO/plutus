@@ -687,9 +687,9 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_RRNXT : Nothing
       , ct_RRSP : 0.0
       , ct_RRMLT : 1.0
-      , ct_RRPF : 0.0
-      , ct_RRPC : 0.0
-      , ct_RRLC : 0.0
+      , ct_RRPF : -1.0
+      , ct_RRPC : 1.0
+      , ct_RRLC : 1.0
       , ct_RRLF : 0.0
       , ct_IPCED : Nothing
       , ct_IPCL : interestRateCycle
