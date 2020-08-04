@@ -19,6 +19,8 @@ module Plutus.SCB.Core.ContractInstance(
     , lookupContract
     , activateContract
     -- * Contract outboxes
+    , MaxIterations(..)
+    , defaultMaxIterations
     , processAllContractOutboxes
     , processOwnPubkeyRequests
     , processAwaitSlotRequests
@@ -49,7 +51,7 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint
                                                                   EndpointValue (..))
 import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
 import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
-import           Language.Plutus.Contract.Trace                  (MaxIterations (..))
+import           Language.Plutus.Contract.Trace                  (MaxIterations (..), defaultMaxIterations)
 import           Language.Plutus.Contract.Trace.RequestHandler   (RequestHandler (..), RequestHandlerLogMsg, extract,
                                                                   maybeToHandler, tryHandler, wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
@@ -309,8 +311,9 @@ respondtoRequests ::
 respondtoRequests (MaxIterations mi) handler = do
     contractStates <- runGlobalQuery (Query.contractState @t)
     let state = fmap (hooks . csCurrentState) contractStates
-    flip itraverse_ state $ \instanceId requests ->
-        let go j | j >= mi = do
+    ifor_ state $ \instanceId requests ->
+        let go j
+             | j >= mi = do
                  logWarn @(ContractInstanceMsg t) $ MaxIterationsExceeded instanceId (MaxIterations mi)
              | otherwise = do
                  logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
@@ -472,7 +475,7 @@ processAllContractOutboxes ::
     , Member (Error SCBError) effs
     , Member (ContractEffect t) effs
     )
-    => MaxIterations
+    => MaxIterations -- ^ Maximum number of times the requests for each contract instance are processed
     -> Eff effs ()
 processAllContractOutboxes mi =
     mapLog @_ @(ContractInstanceMsg t) HandlingRequest

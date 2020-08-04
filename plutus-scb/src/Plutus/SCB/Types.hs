@@ -95,7 +95,7 @@ data Config =
 
 newtype RequestProcessingConfig =
     RequestProcessingConfig
-        { requestProcessingInterval :: Second
+        { requestProcessingInterval :: Second -- ^ How many seconds to wait between calls to 'Plutus.SCB.Core.ContractInstance.processAllContractOutboxes'
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON)
