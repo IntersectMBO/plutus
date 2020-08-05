@@ -28,8 +28,10 @@ module Language.PlutusCore.Evaluation.Machine.Cek
     , EvaluationResult(..)
     , ErrorWithCause(..)
     , EvaluationError(..)
-    , ExTally(..)
     , ExBudget(..)
+    , ExBudgetMode(..)
+    , ExRestrictingBudget(..)
+    , ExTally(..)
     , exBudgetStateTally
     , extractEvaluationResult
     , runCek
@@ -69,7 +71,7 @@ import           Data.Text.Prettyprint.Doc
 import           Data.Array
 
 {- Note [Scoping]
-The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
+   The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
 prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
