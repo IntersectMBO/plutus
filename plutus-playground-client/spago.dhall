@@ -9,6 +9,7 @@ You can edit this file as you like.
   , "ace"
   , "aff"
   , "bigints"
+  , "concurrent-queues"
   , "console"
   , "coroutines"
   , "aff-coroutines"

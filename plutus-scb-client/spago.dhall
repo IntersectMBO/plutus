@@ -6,9 +6,9 @@ You can edit this file as you like.
 , dependencies =
   [ "prelude"
   , "aff"
+  , "avar"
   , "console"
-  , "coroutines"
-  , "aff-coroutines"
+  , "concurrent-queues"
   , "debug"
   , "effect"
   , "halogen"

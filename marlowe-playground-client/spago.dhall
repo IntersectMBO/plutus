@@ -5,7 +5,9 @@ You can edit this file as you like.
 { name =
     "marlowe-playground-client"
 , dependencies =
-    [ "bigints"
+    [ "avar"
+    , "bigints"
+    , "concurrent-queues"
     , "console"
     , "debug"
     , "effect"
