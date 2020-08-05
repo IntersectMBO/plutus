@@ -8,6 +8,7 @@ module Language.PlutusTx.Evaluation
     , evaluateCekTrace
     , ErrorWithCause(..)
     , EvaluationError(..)
+    , ExTally
     , CekEvaluationException
     , Plain
     )
