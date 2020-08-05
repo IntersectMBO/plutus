@@ -267,7 +267,16 @@ collectBalanceTableHeadings balances = foldr collectCurrencies Map.empty $ Map.v
   collectTokenNames currency currencyBalances = Map.insertWith Set.union currency $ AssocMap.keys currencyBalances
 
 sequenceIdView :: forall p i. SequenceId -> HTML p i
-sequenceIdView sequenceId = span_ [ text $ formatSequenceId sequenceId ]
+sequenceIdView (SequenceId { slotIndex, txIndex }) =
+  span_
+    [ span_ [ text "Slot" ]
+    , nbsp
+    , span_ [ text $ "#" <> show slotIndex ]
+    , span_ [ text ", " ]
+    , span_ [ text "Tx" ]
+    , nbsp
+    , span_ [ text $ "#" <> show txIndex ]
+    ]
 
 txIdView :: forall p. TxId -> HTML p Action
 txIdView (TxId { getTxId: str }) =
@@ -280,9 +289,6 @@ txIdView (TxId { getTxId: str }) =
             , text str
             ]
         )
-
-formatSequenceId :: SequenceId -> String
-formatSequenceId (SequenceId { slotIndex, txIndex }) = "Slot #" <> show slotIndex <> ", Tx #" <> show txIndex
 
 dereferencedInputView :: forall p. Map PubKeyHash Wallet -> AnnotatedBlockchain -> DereferencedInput -> HTML p Action
 dereferencedInputView walletKeys annotatedBlockchain (DereferencedInput { originalInput, refersTo }) =
