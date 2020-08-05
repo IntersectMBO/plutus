@@ -1,11 +1,9 @@
-A paper on EUTXO and mulitcurrency aimed at [ISoLA 2020](http://isola-conference.org/isola2020/).
+# Multicurrency EUTXO
 
-Dates:
-   * Paper Submission: 4th May 2020   
-   * Reports and Notification: 16th June 2020  
-   * Final Versions: 27th July 2020
+This paper adds multicurrency support to the [Extended UTXO](../eutxo)
+blockchain ledger model and shows how user-defined tokens can be used
+to extend the capabilities of state-machine-based smart contracts.
+See also our paper on [multicurrency support in the standard UTXO model](../utxoma).
 
-   * Conference: Rhodes, October 26th - October 30th 2020
 
-"The expected length is around 15 pages with some flexibility in case of need."
-
+To appear at [ISoLA 2020](http://isola-conference.org/isola2020/).

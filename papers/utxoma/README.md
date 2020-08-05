@@ -1,3 +1,5 @@
 # Plain Multicurrency
 
-This paper introduces native multicurrency without extending the UTxO model.
+This paper adds native multicurrency features to the basic UTxO ledger model.
+
+To appear at [ISoLA 2020](http://isola-conference.org/isola2020/).
