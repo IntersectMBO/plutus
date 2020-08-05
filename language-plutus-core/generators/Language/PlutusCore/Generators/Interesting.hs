@@ -235,9 +235,7 @@ genDivideByZero = do
     return $ TermOf term EvaluationFailure
 
 -- | Check that division by zero results in 'Error' even if a function doesn't use that argument.
-genDivideByZeroDrop
-    :: Generatable uni
-    => TermGen uni (EvaluationResult Integer)
+genDivideByZeroDrop :: Generatable uni => TermGen uni (EvaluationResult Integer)
 genDivideByZeroDrop = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
     let typedInt = AsKnownType

@@ -19,7 +19,6 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     , genLowerBytes
     , genTypedBuiltinFail
     , genTypedBuiltinDef
-    , genTypedBuiltinDivide
     ) where
 
 import           PlutusPrelude
@@ -70,6 +69,8 @@ attachCoercedTerm
 attachCoercedTerm a = do
     x <- a
     case makeKnown x of
+        -- I've attempted to implement support for generating 'EvaluationFailure',
+        -- but it turned out to be too much of a pain for something that we do not really need.
         EvaluationFailure -> fail $ concat
             [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
             , show $ prettyConst x
@@ -102,13 +103,3 @@ genTypedBuiltinDef
     $ updateTypedBuiltinGen (genLowerBytes (Range.linear 0 10))
     $ updateTypedBuiltinGen Gen.bool
     $ genTypedBuiltinFail
-
--- | A built-ins generator that doesn't produce @0 :: Integer@,
--- so that one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDivide
-    :: (Generatable uni, HasConstantIn uni term, Monad m)
-    => TypedBuiltinGenT term m
-genTypedBuiltinDivide
-    = updateTypedBuiltinGen @Integer
-          (fromGenT (Gen.filterT (/= 0) . Gen.integral $ Range.linear 0 10))
-    $ genTypedBuiltinDef

@@ -68,9 +68,9 @@ type PlcGenT uni m = GenT (ReaderT (BuiltinGensT uni m) m)
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue uni head arg r = IterAppValue
-    { _iterTerm :: Plain Term uni  -- ^ As a PLC 'Term'.
-    , _iterApp  :: IterApp head arg         -- ^ As an 'IterApp'.
-    , _iterTbv  :: r                        -- ^ As a Haskell value.
+    { _iterTerm :: Plain Term uni    -- ^ As a PLC 'Term'.
+    , _iterApp  :: IterApp head arg  -- ^ As an 'IterApp'.
+    , _iterTbv  :: r                 -- ^ As a Haskell value.
     }
 
 instance ( PrettyBy config (Plain Term uni)
@@ -133,7 +133,7 @@ withCheckedTermGen genTb k =
 --   3. feed arguments to the Haskell function
 genIterAppValue
     :: forall head uni res m. Monad m
-    => Denotation uni head res
+    => Denotation (Plain Term uni) head res
     -> PlcGenT uni m (IterAppValue uni head (Plain Term uni) res)
 genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
@@ -165,7 +165,7 @@ genTerm
        (Generatable uni, Monad m)
     => TypedBuiltinGenT (Plain Term uni) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
-    -> DenotationContext uni
+    -> DenotationContext (Plain Term uni)
        -- ^ A context to generate terms in. See for example 'typedBuiltinNames'.
        -- Gets extended by a variable when an applied lambda is generated.
     -> Int
@@ -173,7 +173,7 @@ genTerm
     -> TypedBuiltinGenT (Plain Term uni) m
 genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 where
     go
-        :: DenotationContext uni
+        :: DenotationContext (Plain Term uni)
         -> Int
         -> AsKnownType (Plain Term uni) r
         -> GenT (QuoteT m) (TermOf (Plain Term uni) r)
