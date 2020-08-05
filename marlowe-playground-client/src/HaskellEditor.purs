@@ -24,9 +24,9 @@ import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, s
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
-import Halogen.Monaco (Message(..), Query(..)) as Monaco
 import Halogen.Monaco (monacoComponent)
-import HaskellEditor.Types (Action(..))
+import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
 import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), SourceCode(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
@@ -43,14 +43,14 @@ import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState, Message, View(..), _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, bottomPanelHeight)
+import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, _simulationSlot, bottomPanelHeight)
 
 handleAction ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   Action ->
-  HalogenM FrontendState Action ChildSlots Message m Unit
+  HalogenM State Action ChildSlots Message m Unit
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
   assign _activeHaskellDemo ""
@@ -100,8 +100,6 @@ handleAction _ SendResultToSimulator = do
       _ -> ""
   void $ query _simulationSlot unit (ST.SetEditorText contract unit)
   void $ query _simulationSlot unit (ST.ResetContract unit)
-  assign _view Simulation
-  void $ query _simulationSlot unit (ST.ResizeEditor unit)
 
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult
@@ -110,8 +108,6 @@ handleAction _ SendResultToBlockly = do
       let
         source = view (_InterpreterResult <<< _result <<< _RunResult) result
       void $ query _blocklySlot unit (Blockly.SetCode source unit)
-      assign _view BlocklyEditor
-      void $ query _blocklySlot unit (Blockly.Resize unit)
     _ -> pure unit
 
 toMarkers :: InterpreterError -> Array IMarkerData
@@ -137,7 +133,7 @@ toMarker (CompilationError { row, column, text }) =
 render ::
   forall m.
   MonadAff m =>
-  FrontendState ->
+  State ->
   ComponentHTML Action ChildSlots m
 render state =
   div_
@@ -177,7 +173,7 @@ render state =
 haskellEditor ::
   forall m.
   MonadAff m =>
-  FrontendState ->
+  State ->
   ComponentHTML Action ChildSlots m
 haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
@@ -191,7 +187,7 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hand
 
   component = monacoComponent $ HM.settings setup
 
-bottomPanel :: forall p. FrontendState -> HTML p Action
+bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
   div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
     [ div
@@ -218,7 +214,7 @@ bottomPanel state =
         ]
     ]
 
-sendResultButton :: forall p. FrontendState -> String -> Action -> HTML p Action
+sendResultButton :: forall p. State -> String -> Action -> HTML p Action
 sendResultButton state msg action =
   let
     compilationResult = view _compilationResult state
@@ -232,7 +228,7 @@ sendResultButton state msg action =
           [ text msg ]
       _ -> text ""
 
-resultPane :: forall p. FrontendState -> Array (HTML p Action)
+resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _compilationResult state of
     Success (JsonEither (Right (InterpreterResult result))) ->

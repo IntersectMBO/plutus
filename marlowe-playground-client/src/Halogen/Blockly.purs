@@ -54,8 +54,7 @@ data BlocklyAction
   | GetCode
 
 data BlocklyMessage
-  = Initialized
-  | CurrentCode String
+  = CurrentCode String
 
 type Slots
   = ()

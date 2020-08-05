@@ -1,11 +1,9 @@
 module Types where
 
-import API (RunResult)
 import Analytics (class IsEvent, defaultEvent, toEvent)
 import Blockly.Types (BlocklyState)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Json.JsonEither (JsonEither)
 import Data.Lens (Lens', (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -17,10 +15,8 @@ import Halogen as H
 import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
-import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Servant.PureScript.Ajax (AjaxError)
@@ -94,11 +90,9 @@ instance showView :: Show View where
 newtype FrontendState
   = FrontendState
   { view :: View
-  , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult RunResult))
   , blocklyState :: Maybe BlocklyState
-  , haskellEditorKeybindings :: KeyBindings
-  , activeHaskellDemo :: String
   , showBottomPanel :: Boolean
+  , haskellState :: HE.State
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -112,20 +106,14 @@ data MarloweError
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_compilationResult :: Lens' FrontendState (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
-_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
-
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
-_haskellEditorKeybindings :: Lens' FrontendState KeyBindings
-_haskellEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "haskellEditorKeybindings")
-
-_activeHaskellDemo :: Lens' FrontendState String
-_activeHaskellDemo = _Newtype <<< prop (SProxy :: SProxy "activeHaskellDemo")
-
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+
+_haskellState :: Lens' FrontendState HE.State
+_haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
 
 -- editable
 _timestamp ::
