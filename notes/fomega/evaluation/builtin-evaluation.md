@@ -1,4 +1,4 @@
-## Efficiently evaluating builtin functions in the CK and CEK machines
+# Efficiently evaluating builtin functions in the CK and CEK machines
 
 It's important that builtin evaluation should be efficient in our Plutus
 Core evaluators.  There's some machinery known as the constant application
@@ -56,7 +56,7 @@ types.
 This process is quite inefficient: it usually requires repeated
 applications of `termAsPrimIterApp` and repeated calls to the CAM.
 
-##### Saturated builtins
+### Saturated builtins
 
 One way to solve this problem is to insist on saturated builtins: the
 typechecker can check that all builtin applications have the correct
@@ -72,7 +72,7 @@ One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar
 performance to unsaturated builtins.
 
-##### The alternative CEK machine
+### The alternative CEK machine
 Part of the reason for abandoning saturated builtins was that
 James proposed an alternative version of the CEK machine which
 looked as if it might be more efficient than the original machine
@@ -141,7 +141,7 @@ unsaturated builtins to become competitive with the one with saturated
 builtins.
 
 
-##### The CK machine
+### The CK machine
 
 Unfortunately we can't use the above technique with the CK machine:
 that works directly with values as described in the Plutus Core
@@ -199,7 +199,7 @@ to count the arities: that'll be slightly less efficient, but we'll
 only need it for the typed evaluator, where efficiency isn't paramount.
 
 
-### Higher-rank builtins
+## Higher-rank builtins
 
 In the specification, builtins are currently allowed to be
 polymorphic, but all the type arguments have to precede the term
