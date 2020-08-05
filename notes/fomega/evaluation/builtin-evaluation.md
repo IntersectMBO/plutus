@@ -5,7 +5,8 @@ Core evaluators.  There's some machinery known as the constant application
 machinery (CAM for short) which takes the name of a builtin and a list
 of arguments of some unspecified type `term` which is required to provide
 some `Constant`-like constructor which contains value of built-in functions.
-This mechanism is described in more detail [here] and [here].
+This mechanism is described in more detail [here](../../language-plutus-core/docs/Builtins.md)
+and [here](../../language-plutus-core/docs/Constant-application.md).
 
 The question considered here is how the evaluators should interact
 with the CAM.  The basic problem is how to tell if an application has
@@ -65,7 +66,8 @@ isn't required and only a single call to the CAM is required.  On
 simple benchmarks involving a lot of builtin applications, this was
 substantially faster than the original CEK machine.  However,
 saturated builtins complicated matters considerably and we decided not
-to pursue them: see [here] for a consideration of the issues involved.
+to pursue them: see [this document](../../language-plutus-core/docs/Saturatedness.md)
+for a consideration of the issues involved.
 One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar
 performance to unsaturated builtins.
