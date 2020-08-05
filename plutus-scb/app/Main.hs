@@ -331,7 +331,7 @@ runCliCommand _ config serviceAvailability SCBWebserver = raise $ SCBServer.main
 runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
-        putStrLn $ "Started all commands."
+        putStrLn "Started all commands."
         waitAny threads
   where
 
