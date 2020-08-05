@@ -175,7 +175,13 @@ I've considered a number of ways to fix this.
    off to the CAM.  This is a bit more efficient than the earlier method
    because we only call the CAM once, but it still requires repeated calls
    to the inefficient `termAsPrimIterApp`, which we otherwise don't need.
-   
+
+ * We could modify the `builtin` constructor in the AST to contain a
+   list of arguments that it's received so far.  That's probably a
+   really bad idea though, since it'd only be there for the benefit of the
+   CK machine and it's taking us back towards the problems we had with
+   saturated builtins.  Let's not do that.
+ 
 
 I'm not sure what we want to do here.  How much do we care about the
 CK machine these days?  I think we originally had it because it was
