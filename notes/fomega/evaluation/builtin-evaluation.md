@@ -1,12 +1,17 @@
 # Efficiently evaluating builtin functions in the CK and CEK machines
 
-It's important that builtin evaluation should be efficient in our Plutus
-Core evaluators.  There's some machinery known as the constant application
-machinery (CAM for short) which takes the name of a builtin and a list
-of arguments of some unspecified type `term` which is required to provide
-some `Constant`-like constructor which contains value of built-in functions.
-This mechanism is described in more detail [here](../../../language-plutus-core/docs/Builtins.md)
-and [here](../../../language-plutus-core/docs/Constant-application.md).
+It's important that builtin evaluation should be efficient in our
+Plutus Core evaluators.  There's some machinery known as the constant
+application machinery (CAM for short) which takes the name of a
+builtin and a list of arguments of some unspecified type `term` which
+is required to provide some `Constant`-like constructor which contains
+values of built-in types.  `Constant` terms can be converted back into
+Haskell values which can be used by the Haskell implementation of a
+builtin. Non-`Constant` terms are opaque to builtins and can be fed to
+them as arguments, but pass through undigested, as it were.  This
+mechanism is described in more detail
+[here](../../../language-plutus-core/docs/Builtins.md) and
+[here](../../../language-plutus-core/docs/Constant-application.md).
 
 The question considered here is how the evaluators should interact
 with the CAM.  The basic problem is how to tell if an application has
