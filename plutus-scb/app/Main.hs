@@ -18,13 +18,15 @@ import qualified Cardano.ChainIndex.Server                       as ChainIndex
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
+import           Control.Concurrent                              (threadDelay)
 import           Control.Concurrent.Async                        (Async, async, waitAny)
 import           Control.Concurrent.Availability                 (Availability, newToken, starting)
 import           Control.Lens.Indexed                            (itraverse_)
-import           Control.Monad                                   (void)
+import           Control.Monad                                   (forever, void)
 import           Control.Monad.Freer                             (Eff, raise)
+import           Control.Monad.Freer.Error                       (handleError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (renderLogMessages)
+import           Control.Monad.Freer.Log                         (logError, renderLogMessages)
 import           Control.Monad.IO.Class                          (liftIO)
 import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), LoggingT,
                                                                   filterLogger, runStdoutLoggingT)
@@ -36,6 +38,7 @@ import           Data.Set                                        (Set)
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc                       (Doc, Pretty (..), indent, parens, pretty, vsep, (<+>))
+import           Data.Time.Units                                 (Second, toMicroseconds)
 import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
@@ -46,13 +49,15 @@ import           Options.Applicative                             (CommandFields,
                                                                   metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
-import           Plutus.SCB.App                                  (App, AppBackend, runApp)
+import           Plutus.SCB.App                                  (App, AppBackend, ContractExeLogMsg (..), runApp)
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
-import           Plutus.SCB.Types                                (Config (Config), ContractExe (..), chainIndexConfig,
-                                                                  monitoringConfig, monitoringPort, nodeServerConfig,
+import           Plutus.SCB.Types                                (Config (Config), ContractExe (..),
+                                                                  RequestProcessingConfig (..), SCBError,
+                                                                  chainIndexConfig, monitoringConfig, monitoringPort,
+                                                                  nodeServerConfig, requestProcessingConfig,
                                                                   signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
@@ -188,6 +193,7 @@ allServersParser =
                   , MockWallet
                   , SCBWebserver
                   , SigningProcess
+                  , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
@@ -297,7 +303,7 @@ data AppMsg =
     | TransactionHistoryMsg
     | ContractHistoryMsg
     | ProcessInboxMsg
-    | ProcessAllOutboxesMsg
+    | ProcessAllOutboxesMsg Second
 
 instance Pretty AppMsg where
     pretty = \case
@@ -306,7 +312,7 @@ instance Pretty AppMsg where
         TransactionHistoryMsg -> "Transaction history"
         ContractHistoryMsg -> "Contract history"
         ProcessInboxMsg -> "Process contract inbox"
-        ProcessAllOutboxesMsg -> "Process all contract outboxes"
+        ProcessAllOutboxesMsg s -> "Processing contract outboxes every" <+> pretty (fromIntegral @_ @Double s) <+> "seconds"
 
 ------------------------------------------------------------
 -- | Translate the command line configuation into the actual code to be run.
@@ -370,9 +376,12 @@ runCliCommand _ _ _ (ReportContractHistory uuid) = do
 runCliCommand _ _ _ (ProcessContractInbox uuid) = do
     logInfo ProcessInboxMsg
     Core.processContractInbox @ContractExe (ContractInstanceId uuid)
-runCliCommand _ _ _ ProcessAllContractOutboxes = do
-    logInfo ProcessAllOutboxesMsg
-    Core.processAllContractOutboxes @ContractExe
+runCliCommand _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
+    let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
+    logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
+    forever $ do
+        _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
+        handleError @SCBError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExeSCBError)
 runCliCommand _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 

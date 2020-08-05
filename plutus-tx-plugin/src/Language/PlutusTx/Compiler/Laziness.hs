@@ -12,7 +12,6 @@ import           Language.PlutusTx.PIRTypes
 import qualified Language.PlutusIR                as PIR
 
 import           Language.PlutusCore.Quote
-import qualified Language.PlutusCore.Universe     as PLC
 
 import qualified GhcPlugins                       as GHC
 
@@ -40,7 +39,7 @@ delayVar (PIR.VarDecl () n ty) = do
     pure $ PIR.VarDecl () n ty'
 
 force
-    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    :: Compiling uni m
     => PIRTerm uni -> m (PIRTerm uni)
 force thunk = PIR.Apply () thunk <$> compileExpr (GHC.Var GHC.unitDataConId)
 
@@ -54,6 +53,6 @@ maybeDelayType :: Compiling uni m => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
 maybeForce
-    :: (Compiling uni m, PLC.GShow uni, PLC.GEq uni, PLC.DefaultUni PLC.<: uni)
+    :: Compiling uni m
     => Bool -> PIRTerm uni -> m (PIRTerm uni)
 maybeForce yes t = if yes then force t else pure t

@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
@@ -36,6 +37,8 @@ import           PlutusPrelude
 import           Language.PlutusCore              (Kind, Name, TyName, Type (..), typeSubtypes)
 import qualified Language.PlutusCore              as PLC
 import           Language.PlutusCore.CBOR         ()
+import           Language.PlutusCore.Constant     (AsConstant (..), FromConstant (..))
+import           Language.PlutusCore.Core         (UniOf)
 import           Language.PlutusCore.MkPlc        (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import qualified Language.PlutusCore.Name         as PLC
 import qualified Language.PlutusCore.Pretty       as PLC
@@ -200,6 +203,15 @@ data Term tyname name uni a =
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni a)
                         | Unwrap a (Term tyname name uni a)
                         deriving (Functor, Show, Generic)
+
+type instance UniOf (Term tyname name uni ann) = uni
+
+instance AsConstant (Term tyname name uni ann) where
+    asConstant (Constant _ val) = Just val
+    asConstant _                = Nothing
+
+instance FromConstant (Term tyname name uni ()) where
+    fromConstant value = Constant () value
 
 instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Serialise

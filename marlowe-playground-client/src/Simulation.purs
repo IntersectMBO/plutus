@@ -56,6 +56,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Linter as Linter
+import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
@@ -150,8 +151,14 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   updateContractInState text
   assign _activeDemo ""
   state <- use (_currentMarloweState <<< _state)
-  markers <- query _editorSlot unit (Monaco.SetModelMarkers (Linter.markers state text) identity)
+  let
+    (Tuple markerData additionalContext) = Linter.markers state text
+  markers <- query _editorSlot unit (Monaco.SetModelMarkers markerData identity)
   void $ traverse editorSetMarkers markers
+  objects <- query _editorSlot unit (Monaco.GetObjects identity)
+  case objects of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
 
 handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
 

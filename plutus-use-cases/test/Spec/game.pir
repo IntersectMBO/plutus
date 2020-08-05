@@ -192,7 +192,7 @@
           (termbind
             (strict)
             (vardecl sha2_ (fun (con bytestring) (con bytestring)))
-            (lam arg (con bytestring) [ (builtin sha2_256) arg ])
+            (builtin sha2_256)
           )
           (termbind
             (strict)
