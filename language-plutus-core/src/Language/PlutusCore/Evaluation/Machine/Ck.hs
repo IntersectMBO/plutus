@@ -61,16 +61,6 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty NoDynamicBuiltinNamesMachineError =
         "The CK machine doesn't support dynamic extensions to the set of built-in names."
 
-{-
-getArgsCount :: Builtin ann -> CkM uni Int
-getArgsCount (BuiltinName _ name) =
-    pure $ builtinNameArities ! name
-getArgsCount (DynBuiltinName _ name) =  -- I don't think we'll see this case anyway.
-    throwingWithCause _MachineError
-                          (OtherMachineError NoDynamicBuiltinNamesMachineError)
-                          Nothing
--}
--- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
@@ -90,6 +80,8 @@ substituteDb varFor new = go where
 
     goUnder var term = if var == varFor then term else go term
 
+
+-- FIXME: update this for the current strategy
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
@@ -135,7 +127,6 @@ FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
 FrameIWrap pat arg : stack <| value   = stack <| IWrap () pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
---                     stack <| Builtin bn = FrameApplyBuiltin (getArgsCount bn) []
     IWrap _ _ _ term -> stack <| term
     term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
 
