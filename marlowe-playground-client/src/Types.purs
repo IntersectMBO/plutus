@@ -28,7 +28,7 @@ import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebSocketMessage (WS.Output WebSocketResponseMessage) a
+  = ReceiveWebSocketMessage (WS.FromSocket WebSocketResponseMessage) a
   | ChangeRoute Route a
 
 data Message

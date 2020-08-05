@@ -6,14 +6,15 @@ import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML.Properties (class_, classes)
+import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
 import Network.StreamData as Stream
 import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport)
-import Prelude (($), (<$>), (<<<))
-import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebStreamData, _csrDefinition, _utxoIndex)
+import Prelude (($), (<$>), (<<<), (<>))
+import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
 import View.Events (eventsPane, utxoIndexPane)
@@ -23,12 +24,13 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketMessage }) =
+render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
         , mainTabBar ChangeView tabs currentView
+        , webSocketStatusIcon webSocketStatus
         , div_
             $ case webSocketMessage of
                 Stream.Failure error -> [ streamErrorPane error ]
@@ -64,6 +66,27 @@ tabs =
     , help: "View the history of system events."
     }
   ]
+
+webSocketStatusIcon :: forall p i. WebSocketStatus -> HTML p i
+webSocketStatusIcon webSocketStatus =
+  div
+    [ classes
+        [ webSocketStatusClass
+        , webSocketStatusClass
+            <> ClassName
+                ( case webSocketStatus of
+                    WebSocketOpen -> "-open"
+                    (WebSocketClosed _) -> "-closed"
+                )
+        ]
+    ]
+    [ icon
+        $ case webSocketStatus of
+            WebSocketOpen -> CheckCircle
+            (WebSocketClosed _) -> ExclamationCircle
+    ]
+  where
+  webSocketStatusClass = ClassName "web-socket-status"
 
 mainPane ::
   forall p t.

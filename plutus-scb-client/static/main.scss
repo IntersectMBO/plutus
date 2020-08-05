@@ -35,3 +35,26 @@
         }
     }
 }
+
+.web-socket-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 15px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom-right-radius: 3px;
+    transition: opacity 500ms;
+
+    &.web-socket-status-closed {
+        background-color: $red;
+        opacity: 1.0;
+    }
+    &.web-socket-status-open {
+        background-color: $green;
+        opacity: 0.0;
+    }
+}

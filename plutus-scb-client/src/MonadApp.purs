@@ -80,7 +80,7 @@ instance monadAppHalogenApp :: (MonadAff m, MonadAsk (SPSettings_ SPParams_) m) 
           (view _contractInstanceIdString contractInstanceId)
           (view _getEndpointDescription endpointDescription)
   activateContract contract = void $ runAjax $ postApiContractActivate contract
-  sendWebSocketMessage msg = HalogenApp $ raise $ SendWebSocketMessage $ WS.SendMessage msg
+  sendWebSocketMessage msg = HalogenApp $ raise $ SendWebSocketMessage msg
   log str = liftEffect $ Console.log str
 
 runAjax :: forall m a. Functor m => ExceptT AjaxError m a -> m (WebData a)

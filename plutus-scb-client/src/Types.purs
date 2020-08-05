@@ -12,6 +12,7 @@ import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
@@ -36,13 +37,14 @@ import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck (class Arbitrary)
 import Wallet.Rollup.Types (AnnotatedTx)
-import WebSocket.Support as WS
+import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
+import WebSocket.Support (FromSocket) as WS
 
 data Query a
-  = ReceiveWebSocketMessage (WS.Output StreamToClient) a
+  = ReceiveWebSocketMessage (WS.FromSocket StreamToClient) a
 
 data Output
-  = SendWebSocketMessage (WS.Input StreamToServer)
+  = SendWebSocketMessage StreamToServer
 
 data StreamError
   = DecodingError MultipleErrors
@@ -72,6 +74,17 @@ type ContractStates
 type ContractSignatures
   = Array (ContractSignatureResponse ContractExe)
 
+data WebSocketStatus
+  = WebSocketOpen
+  | WebSocketClosed (Maybe WS.CloseEvent)
+
+derive instance genericWebSocketStatus :: Generic WebSocketStatus _
+
+instance showWebSocketStatus :: Show WebSocketStatus where
+  show WebSocketOpen = "WebSocketOpen"
+  show (WebSocketClosed Nothing) = "WebSocketClosed"
+  show (WebSocketClosed (Just closeEvent)) = "WebSocketClosed " <> WS.reason closeEvent
+
 newtype State
   = State
   { currentView :: View
@@ -81,6 +94,7 @@ newtype State
   , chainState :: Chain.State
   , contractStates :: ContractStates
   , webSocketMessage :: WebStreamData StreamToClient
+  , webSocketStatus :: WebSocketStatus
   }
 
 type EndpointForm
@@ -118,6 +132,9 @@ _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
 
 _webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
 _webSocketMessage = _Newtype <<< prop (SProxy :: SProxy "webSocketMessage")
+
+_webSocketStatus :: forall s a r. Newtype s { webSocketStatus :: a | r } => Lens' s a
+_webSocketStatus = _Newtype <<< prop (SProxy :: SProxy "webSocketStatus")
 
 _contractReport :: forall s a r. Newtype s { contractReport :: a | r } => Lens' s a
 _contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")

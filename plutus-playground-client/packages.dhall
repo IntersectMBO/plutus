@@ -181,6 +181,16 @@ let additions =
           , version =
               "v7.0.0"
           }
+      , concurrent-queues =
+          { dependencies =
+              [ "aff"
+              , "avar"
+              ]
+          , repo =
+              "https://github.com/purescript-contrib/purescript-concurrent-queues.git"
+          , version =
+              "v1.1.0"
+          }
       , matryoshka =
           { dependencies =
               [ "prelude"

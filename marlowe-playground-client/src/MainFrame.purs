@@ -128,10 +128,11 @@ handleQuery ::
 handleQuery (ReceiveWebSocketMessage msg next) = do
   void <<< toSimulation
     $ case msg of
-        WS.ReceiveMessage (Left err) -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show msg)) unit)
+        WS.WebSocketOpen -> pure $ Just unit
+        WS.ReceiveMessage (Left err) -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show err)) unit)
         WS.ReceiveMessage (Right (OtherError err)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
         WS.ReceiveMessage (Right (CheckForWarningsResult result)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
-        WS.WebSocketClosed -> pure $ Just unit
+        (WS.WebSocketClosed _) -> pure $ Just unit
   pure $ Just next
 
 handleQuery (ChangeRoute route next) = do

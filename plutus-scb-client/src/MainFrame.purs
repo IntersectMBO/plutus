@@ -37,7 +37,7 @@ import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
-import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, log, runHalogenApp)
+import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, runHalogenApp)
 import Network.RemoteData (RemoteData(..))
 import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
@@ -52,7 +52,7 @@ import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage, fromWebData)
+import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage, _webSocketStatus, fromWebData)
 import Validation (_argument)
 import View as View
 import WebSocket.Support as WS
@@ -70,6 +70,7 @@ initialState =
     , chainState: Chain.initialState
     , contractStates: Map.empty
     , webSocketMessage: Stream.NotAsked
+    , webSocketStatus: WebSocketClosed Nothing
     }
 
 ------------------------------------------------------------
@@ -98,8 +99,6 @@ initialMainFrame =
 
 handleQuery ::
   forall m a.
-  Warn (Text "Handle WebSocket errors.") =>
-  Warn (Text "Handle WebSocket disconnections.") =>
   MonadState State m =>
   MonadApp m =>
   Query a -> m (Maybe a)
@@ -116,8 +115,12 @@ handleQuery (ReceiveWebSocketMessage (WS.ReceiveMessage msg) next) = do
   assign _webSocketMessage $ lmap DecodingError $ Stream.fromEither msg
   pure $ Just next
 
-handleQuery (ReceiveWebSocketMessage WS.WebSocketClosed next) = do
-  log "Closed"
+handleQuery (ReceiveWebSocketMessage WS.WebSocketOpen next) = do
+  assign _webSocketStatus WebSocketOpen
+  pure $ Just next
+
+handleQuery (ReceiveWebSocketMessage (WS.WebSocketClosed closeEvent) next) = do
+  assign _webSocketStatus (WebSocketClosed (Just closeEvent))
   pure $ Just next
 
 handleAction ::

@@ -137,6 +137,18 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "concurrent-queues" = pkgs.stdenv.mkDerivation {
+        name = "concurrent-queues";
+        version = "v1.1.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript-contrib/purescript-concurrent-queues.git";
+          rev = "e461aa5bbcfb99dd59c993a7c5c4f0e0751e4a8b";
+          sha256 = "1a0vlxbl0vnk68v4wszgy6sz51klvnxfw8v8l4fpwkbb886mvxaj";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "console" = pkgs.stdenv.mkDerivation {
         name = "console";
         version = "v4.4.0";
