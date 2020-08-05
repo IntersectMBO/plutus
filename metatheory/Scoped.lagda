@@ -15,7 +15,7 @@ open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
-open import Utils
+open import Utils hiding (_>>=_)
 open import Relation.Nullary
 open import Category.Monad
 import Level
@@ -225,6 +225,8 @@ Tel w n = Vec (ScopedTm w) n
 deBruijnifyK : RawKind → Kind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
+
+{-# COMPILE GHC deBruijnifyK as deBruijnifyK #-}
 
 deBruijnifyC : RawTermCon → TermCon
 deBruijnifyC (integer i)    = integer i

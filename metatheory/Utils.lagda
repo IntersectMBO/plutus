@@ -4,7 +4,7 @@ module Utils where
 open import Relation.Binary.PropositionalEquality
 open import Data.Nat
 open import Data.Nat.Properties
-open import Data.Vec hiding (map)
+open import Data.Vec hiding (map;_>>=_)
 open import Data.List hiding (map)
 open import Relation.Nullary
 open import Data.Empty
@@ -15,9 +15,13 @@ data Maybe (A : Set) : Set where
 
 {-# COMPILE GHC Maybe = data Maybe (Just | Nothing) #-}
 
-maybe : {A B : Set} → (A → B) → B → Maybe A → B
+maybe : {A B : Set} → (A → B) → B → Maybe A → B 
 maybe f b (just a) = f a
 maybe f b nothing  = b
+
+_>>=_ : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
+just a  >>= f  = f a
+nothing >>= f = nothing
 
 map : {A B : Set} → (A → B) → Maybe A → Maybe B
 map f (just a) = just (f a)

@@ -6,7 +6,7 @@ module Check where
 open import Scoped
 open import Type
 open import Type.BetaNormal
-open import Utils
+open import Utils hiding (_>>=_)
 open import Builtin
 open import Type.Equality
 open import Type.BetaNBE

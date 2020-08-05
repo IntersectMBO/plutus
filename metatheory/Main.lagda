@@ -34,14 +34,13 @@ import Scoped as S
 import Scoped.Reduction as S
 open import Raw
 open import Scoped
-open import Utils
+open import Utils renaming (_>>=_ to _U>>=_)
 open import Untyped
 open import Scoped.CK
 open import Algorithmic.CK
 open import Algorithmic.CEKC
 open import Algorithmic.CEKV
 open import Scoped.Erasure
-
 
 postulate
   putStrLn : String → IO ⊤
@@ -309,4 +308,18 @@ main' (TypeCheck (TCOpts i))    =
 
 main : IO ⊤
 main = execP >>= main'
+\end{code}
+
+-- a Haskell interface to the kindchecker:
+\begin{code}
+-- TODO: tidy up this monstrosity
+checkKind : Type → Kind → Maybe ⊤
+checkKind ty k = scopeCheckTy (shifterTy 0 Z (convTy ty)) U>>= λ ty →
+  Data.Sum.[
+    (λ{ (k' ,, ty') → Data.Sum.[ (λ _ → just tt) , (λ _ → nothing) ] (meqKind k k') } )
+    ,
+    (λ _ → nothing) ]
+  (inferKind ∅ ty)
+
+{-# COMPILE GHC checkKind as checkKindAgda #-}
 \end{code}

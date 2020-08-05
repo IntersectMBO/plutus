@@ -34,6 +34,7 @@ import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
+import           Language.PlutusCore.DeBruijn
 
 -- * Enumerating builtin types
 
@@ -87,6 +88,7 @@ data GenError
 data ErrorP ann
  = TypeErrorP (TypeError DefaultUni ann)
  | GenErrorP GenError
+ | FVErrorP FreeVariableError
 
 
 -- |Convert well-kinded generated types to Plutus types.
