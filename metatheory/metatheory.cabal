@@ -13,6 +13,7 @@ category:            Development
 extra-source-files:  README.md
 
 executable plc-agda
+  default-language:  Haskell2010
   main-is:           Main.hs
   other-modules:
     Raw
@@ -333,10 +334,10 @@ executable plc-agda
     optparse-applicative -any,
     language-plutus-core -any,
     transformers -any
-  default-language:    Haskell2010
   ghc-options:         -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
 test-suite test-plc-agda
+  default-language: Haskell2010
   type:    exitcode-stdio-1.0
   main-is: TestSimple.hs
   other-modules:
@@ -663,6 +664,7 @@ test-suite test-plc-agda
 
 
 test-suite test2-plc-agda
+  default-language: Haskell2010
   type: detailed-0.9
   test-module: TestDetailed
   build-depends: base -any,
@@ -989,3 +991,43 @@ test-suite test2-plc-agda
   build-tool-depends: language-plutus-core:plc
   ghc-options:         -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
+-- copied from language-plutus-core.cabal
+
+-- common lang
+--     default-language: Haskell2010
+--     default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
+--                         DeriveGeneric StandaloneDeriving DeriveLift
+--                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+--                         DeriveTraversable DerivingStrategies DerivingVia
+--     other-extensions: DeriveAnyClass FlexibleInstances
+--                       MultiParamTypeClasses TypeFamilies OverloadedStrings
+--                       MonadComprehensions ConstrainedClassMethods TupleSections GADTs
+--                       RankNTypes TemplateHaskell QuasiQuotes TypeApplications
+--                       ExistentialQuantification
+--     ghc-options: -Wall -Wnoncanonical-monad-instances
+--                  -Wincomplete-uni-patterns -Wincomplete-record-updates
+--                  -Wredundant-constraints -Widentities
+--                  -Wnoncanonical-monoid-instances
+-- 
+-- 
+-- test-suite test3-plc-agda
+--   import: lang
+--   default-language: Haskell2010
+--   type:    exitcode-stdio-1.0
+--   main-is: TestNEAT.hs
+--   build-depends:
+--     base -any,
+--     tasty -any,
+--     tasty-hunit -any,
+--     size-based -any,
+--     Stream -any,
+--     text -any,
+--     language-plutus-core -any,
+--     mtl -any,
+--     lazy-search -any,
+--   hs-source-dirs: ../language-plutus-core/test, .
+--   other-modules:
+--     Language.PlutusCore.Gen.Common
+--     Language.PlutusCore.Gen.Type
+--     Language.PlutusCore.PropTest
+-- 

@@ -559,27 +559,6 @@
             "MAlonzo/RTE"
             ];
           };
-        "test3-plc-agda" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
-            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
-            (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
-            ];
-          buildable = true;
-          modules = [
-            "Language/PlutusCore/Gen/Common"
-            "Language/PlutusCore/Gen/Type"
-            "Language/PlutusCore/PropTest"
-            ];
-          hsSourceDirs = [ "../language-plutus-core/test" "." ];
-          mainPath = [ "TestNEAT.hs" ];
-          };
         };
       };
     } // rec {
