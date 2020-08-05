@@ -87,6 +87,7 @@
         contra-tracer = ./.stack-to-nix.cache.24;
         iohk-monitoring = ./.stack-to-nix.cache.25;
         tracer-transformers = ./.stack-to-nix.cache.26;
+        lobemo-backend-ekg = ./.stack-to-nix.cache.27;
         };
       };
   resolver = "lts-15.6";

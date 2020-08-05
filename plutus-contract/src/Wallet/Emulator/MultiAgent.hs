@@ -51,8 +51,9 @@ data Assertion
   | OwnFundsEqual Wallet.Wallet Value -- ^ Assert that the funds belonging to a wallet's public-key address are equal to a value.
 
 -- | An error emitted when an 'Assertion' fails.
-newtype AssertionError = GenericAssertion T.Text
-    deriving (Show, Eq)
+newtype AssertionError = GenericAssertion { unAssertionError :: T.Text }
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 makeClassyPrisms ''AssertionError
 
 instance Pretty AssertionError where

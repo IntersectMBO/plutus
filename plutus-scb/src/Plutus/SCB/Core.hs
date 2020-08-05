@@ -1,5 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -39,6 +42,9 @@ module Plutus.SCB.Core
     , callContractEndpoint
     ) where
 
+import           Cardano.BM.Data.Tracer           (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras    (StructuredLog)
+import           Cardano.BM.Data.Tracer.Extras    (mkObjectStr)
 import           Control.Monad                    (void)
 import           Control.Monad.Freer              (Eff, Member)
 import           Control.Monad.Freer.Error        (Error)
@@ -46,11 +52,13 @@ import           Control.Monad.Freer.Extra.Log    (LogMsg, logInfo)
 import           Control.Monad.IO.Unlift          (MonadUnliftIO)
 import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
+import           Data.Aeson                       (FromJSON, ToJSON (..))
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
 import           Data.Text.Prettyprint.Doc        (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
+import           GHC.Generics                     (Generic)
 import qualified Ledger
 import           Plutus.SCB.Command               (installCommand)
 import           Plutus.SCB.Core.ContractInstance (activateContract, callContractEndpoint, processAllContractInboxes,
@@ -77,6 +85,8 @@ data CoreMsg t =
     | Installed
     | FindingContract ContractInstanceId
     | FoundContract (Maybe (ContractInstanceState t))
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty t => Pretty (CoreMsg t) where
     pretty = \case
@@ -84,6 +94,20 @@ instance Pretty t => Pretty (CoreMsg t) where
         Installed -> "Installed"
         FindingContract i -> "Finding contract" <+> pretty i
         FoundContract c -> "Found contract" <+> pretty c
+
+instance (StructuredLog t, ToJSON t) => ToObject (CoreMsg t) where
+    toObject v = \case
+        Installing t ->
+            mkObjectStr "installing contract" t
+        Installed ->
+            mkObjectStr "contract installed" ()
+        FindingContract instanceID ->
+            mkObjectStr "finding contract instance" instanceID
+        FoundContract state ->
+            mkObjectStr "found contract" $
+                case v of
+                    MaximalVerbosity -> Left state
+                    _                -> Right ()
 
 installContract ::
     forall t effs.

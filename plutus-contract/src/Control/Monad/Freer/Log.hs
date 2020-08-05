@@ -35,6 +35,7 @@ module Control.Monad.Freer.Log(
     -- * Tracing
     , LogObserve(..)
     , ObservationHandle
+    , Observation(..)
     , observeBefore
     , observeAfter
     , surround
@@ -259,8 +260,7 @@ data ExitMode =
 data Observation v s =
     Observation
         { obsLabelStart :: v -- ^ Call-site information about the start of the observation
-        , obsStart      :: s -- ^ Measurement before running the action
-        , obsEnd        :: s -- ^ Measurement after running the action
+        , obsStart      :: s -- ^ Measurement taken before running the action
         , obsLabelEnd   :: Maybe v -- ^ Call-site information about the end of the observation
         , obsExit       :: ExitMode -- ^ 'ExitMode' of the action.
         }
@@ -289,7 +289,7 @@ initialState = ObsState 0 []
 --   them into 'LogMessage (Observation s)' values.
 handleObserve ::
     forall v s effs.
-    Eff effs s -- ^ How to get the current 's'
+    (v -> Eff effs s) -- ^ How to get the current 's'
     -> (Observation v s -> Eff effs ()) -- what to do with the observation
     -> Eff (LogObserve v ': effs)
     ~> Eff effs
@@ -310,7 +310,6 @@ handleObserve getCurrent handleObs =
         -- measurement and clear the stack of partial observations.
         handleObserveAfter :: Maybe v -> ObsState v s -> Integer -> Eff effs (ObsState v s)
         handleObserveAfter v' ObsState{obsPartials} i = do
-                current <- getCurrent
                 let (finishedPartials, remainingPartials) = span ((<=) i . obsDepth) obsPartials
                 for_ finishedPartials $ \PartialObservation{obsMsg, obsValue,obsDepth} -> do
                     -- we assume that a 'PartialObservation' was completed
@@ -323,7 +322,6 @@ handleObserve getCurrent handleObs =
                             Observation
                                 { obsLabelStart = obsMsg
                                 , obsStart = obsValue
-                                , obsEnd=current
                                 , obsExit=exitMode
                                 , obsLabelEnd = case exitMode of { Regular -> v'; Irregular -> Nothing }
                                 }
@@ -332,7 +330,7 @@ handleObserve getCurrent handleObs =
 
         handleObserveBefore :: v -> ObsState v s -> Eff effs (ObsState v s, ObservationHandle)
         handleObserveBefore v ObsState{obsPartials,obsMaxDepth} = do
-            current <- getCurrent
+            current <- getCurrent v
             let newMaxDepth = obsMaxDepth + 1
                 msg = PartialObservation
                         { obsMsg = v
@@ -364,7 +362,7 @@ handleObserveLog ::
     => Eff (LogObserve (LogMessage Text) ': effs)
     ~> Eff effs
 handleObserveLog =
-    handleObserve (pure ()) handleAfter
+    handleObserve (\_ -> pure ()) handleAfter
     . interpose handleBefore
         where
             handleBefore :: LogObserve (LogMessage Text) ~> Eff (LogObserve (LogMessage Text) ': effs)

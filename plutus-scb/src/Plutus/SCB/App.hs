@@ -16,6 +16,8 @@
 
 module Plutus.SCB.App where
 
+import qualified Cardano.BM.Configuration.Model   as CM
+import           Cardano.BM.Trace                 (Trace)
 import           Cardano.ChainIndex.Client        (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types         as ChainIndex
 import           Cardano.Metadata.Client          (handleMetadataClient)
@@ -29,30 +31,27 @@ import qualified Cardano.SigningProcess.Client    as SigningProcessClient
 import qualified Cardano.SigningProcess.Server    as SigningProcess
 import qualified Cardano.Wallet.Client            as WalletClient
 import qualified Cardano.Wallet.Server            as WalletServer
+import           Control.Monad.Catch              (MonadCatch)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error        (Error, handleError, runError, throwError)
-import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo, runStderrLog)
-import           Control.Monad.Freer.Log          (LogMessage, LogObserve, handleObserveLog, renderLogMessages)
+import           Control.Monad.Freer.Extra.Log    (LogMsg, handleWriterLog, logDebug, logInfo)
+import           Control.Monad.Freer.Log          (LogMessage, LogObserve)
 import qualified Control.Monad.Freer.Log          as Log
 import           Control.Monad.Freer.Reader       (Reader, asks, runReader)
 import           Control.Monad.Freer.WebSocket    (WebSocketEffect, handleWebSocket)
 import           Control.Monad.Freer.Writer       (Writer)
 import           Control.Monad.IO.Class           (MonadIO, liftIO)
 import           Control.Monad.IO.Unlift          (MonadUnliftIO)
-import           Control.Monad.Logger             (LogLevel, LoggingT (..), MonadLogger, filterLogger,
-                                                   runStdoutLoggingT)
+import           Control.Monad.Logger             (MonadLogger)
+import           Control.Tracer                   (natTracer)
 import           Data.Aeson                       (FromJSON, eitherDecode)
-import qualified Data.Aeson                       as JSON
 import qualified Data.Aeson.Encode.Pretty         as JSON
+import           Data.Bifunctor                   (Bifunctor (..))
 import qualified Data.ByteString.Lazy.Char8       as BSL8
-import           Data.String                      (IsString (fromString))
+import           Data.Functor.Contravariant       (Contravariant (..))
 import qualified Data.Text                        as Text
-import qualified Data.Text.Encoding               as Text
-import           Data.Text.Prettyprint.Doc        (Doc, Pretty (..), hang, viaShow, vsep, (<+>))
-import           Data.Void                        (Void, absurd)
 import           Database.Persist.Sqlite          (runSqlPool)
 import           Eventful.Store.Sqlite            (initializeSqliteEventStore)
-import           Language.Plutus.Contract.State   (ContractRequest)
 import           Network.HTTP.Client              (defaultManagerSettings, newManager)
 import           Plutus.SCB.Core                  (Connection (Connection),
                                                    ContractCommand (InitContract, UpdateContract), CoreMsg, dbConnect)
@@ -61,6 +60,10 @@ import           Plutus.SCB.Effects.Contract      (ContractEffect (..))
 import           Plutus.SCB.Effects.EventLog      (EventLogEffect (..), handleEventLogSql)
 import           Plutus.SCB.Effects.UUID          (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                (ChainEvent)
+import           Plutus.SCB.MonadLoggerBridge     (TraceLoggerT (..))
+import           Plutus.SCB.Monitoring            (handleLogMsgTraceMap, handleObserveTrace)
+import           Plutus.SCB.ParseStringifiedJSON  (UnStringifyJSONLog)
+import           Plutus.SCB.SCBLogMsg             (ContractExeLogMsg (..), SCBLogMsg (..))
 import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
                                                    dbConfig, metadataServerConfig, nodeServerConfig,
                                                    signingProcessConfig, walletServerConfig)
@@ -113,7 +116,6 @@ type AppBackend m =
          , LogMsg UnStringifyJSONLog
          , LogMsg (CoreMsg ContractExe)
          , LogObserve (LogMessage Text.Text)
-         , LogMsg Text.Text
          , Reader Connection
          , Reader Config
          , Reader Env
@@ -121,11 +123,18 @@ type AppBackend m =
          ]
 
 runAppBackend ::
-       forall m a. (MonadIO m, MonadLogger m, MonadUnliftIO m)
-    => Config
-    -> Eff (AppBackend m) a
+    forall m a.
+    ( MonadIO m
+    , MonadUnliftIO m
+    , MonadLogger m
+    , MonadCatch m
+    )
+    => Trace m SCBLogMsg -- ^ Top-level tracer
+    -> CM.Configuration -- ^ Logging / monitoring configuration
+    -> Config -- ^ Client configuration
+    -> Eff (AppBackend m) a -- ^ Action
     -> m (Either SCBError a)
-runAppBackend config eff = do
+runAppBackend trace loggingConfig config action = do
     env@Env { dbConnection
             , nodeClientEnv
             , metadataClientEnv
@@ -165,33 +174,33 @@ runAppBackend config eff = do
             flip handleError (throwError . WalletClientError) .
             flip handleError (throwError . WalletError) .
             WalletClient.handleWalletClient walletClientEnv
-    runM
-     . runReader env
-     . runReader config
-     . runReader dbConnection
-     . runStderrLog
-     . handleObserveLog
-     . renderLogMessages
-     . renderLogMessages
-     . renderLogMessages
-     . renderLogMessages
-     . renderLogMessages
-     . renderLogMessages
-     . handleWriterLog (const Log.Info)
-     . runError
-     . handleWebSocket
-     . handleEventLogSql
-     . handleChainIndex
-     . handleContractEffectApp
-     . handleUUIDEffect
-     . handleSigningProcess
-     . handleMetadata
-     . handleNodeClient
-     . handleWallet
-     . handleNodeFollower
-     . handleRandomTxClient nodeClientEnv $ eff
 
-type App a = Eff (AppBackend (LoggingT IO)) a
+    runM
+        . runReader env
+        . runReader config
+        . runReader dbConnection
+        . handleObserveTrace loggingConfig trace
+        . handleLogMsgTraceMap SCoreMsg trace
+        . handleLogMsgTraceMap SUnstringifyJSON trace
+        . handleLogMsgTraceMap SWebsocketMsg trace
+        . handleLogMsgTraceMap SContractInstanceMsg trace
+        . handleLogMsgTraceMap SContractExeLogMsg trace
+        . handleLogMsgTraceMap SWalletEvent trace
+        . handleWriterLog (\_ -> Log.Info)
+        . runError
+        . handleWebSocket
+        . handleEventLogSql
+        . handleChainIndex
+        . handleContractEffectApp
+        . handleUUIDEffect
+        . handleSigningProcess
+        . handleMetadata
+        . handleNodeClient
+        . handleWallet
+        . handleNodeFollower
+        $ handleRandomTxClient nodeClientEnv action
+
+type App a = Eff (AppBackend (TraceLoggerT IO)) a
 
 mkEnv :: (MonadUnliftIO m, MonadLogger m) => Config -> m Env
 mkEnv Config { dbConfig
@@ -214,43 +223,13 @@ mkEnv Config { dbConfig
         mkClientEnv <$> liftIO (newManager defaultManagerSettings) <*>
         pure baseUrl
 
-runApp :: LogLevel -> Config -> App a -> IO (Either SCBError a)
-runApp minLogLevel config action =
-    runStdoutLoggingT $
-    filterLogger (\_ logLevel -> logLevel >= minLogLevel) $
-    runAppBackend @(LoggingT IO) config action
+runApp :: Trace IO SCBLogMsg -> CM.Configuration -> Config -> App a -> IO (Either SCBError a)
+runApp theTrace logConfig config action =
+    runTraceLoggerT
 
-data ContractExeLogMsg =
-    InvokeContractMsg
-    | InitContractMsg FilePath
-    | UpdateContractMsg FilePath (ContractRequest JSON.Value)
-    | ExportSignatureMsg FilePath
-    | ProcessExitFailure String
-    | ContractResponse String
-    | Migrating
-    | InvokingEndpoint String JSON.Value
-    | EndpointInvocationResponse [Doc Void]
-    | ContractExeSCBError SCBError
-
-instance Pretty ContractExeLogMsg where
-    pretty = \case
-        InvokeContractMsg -> "InvokeContract"
-        InitContractMsg fp -> fromString fp <+> "init"
-        UpdateContractMsg fp vl ->
-            let pl = BSL8.unpack (JSON.encodePretty vl) in
-            fromString fp
-            <+> "update"
-            <+> fromString pl
-        ExportSignatureMsg fp -> fromString fp <+> "export-signature"
-        ProcessExitFailure err -> "ExitFailure" <+> pretty err
-        ContractResponse str -> pretty str
-        Migrating -> "Migrating"
-        InvokingEndpoint s v ->
-            "Invoking:" <+> pretty s <+> "/" <+> viaShow v
-        EndpointInvocationResponse v ->
-            hang 2 $ vsep ("Invocation response:" : fmap (fmap absurd) v)
-        ContractExeSCBError e ->
-            "SCB error:" <+> pretty e
+    -- see note [Use of iohk-monitoring in PAB]
+    (runAppBackend @(TraceLoggerT IO) (monadLoggerTracer theTrace) logConfig config action)
+    (contramap (second (fmap SLoggerBridge)) theTrace)
 
 handleContractEffectApp ::
        (Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)
@@ -297,31 +276,5 @@ migrate = do
         $ flip runSqlPool connectionPool
         $ initializeSqliteEventStore sqlConfig connectionPool
 
-data UnStringifyJSONLog =
-    ParseStringifiedJSONAttempt
-    | ParseStringifiedJSONFailed
-    | ParseStringifiedJSONSuccess
-
-instance Pretty UnStringifyJSONLog where
-    pretty = \case
-        ParseStringifiedJSONAttempt -> "parseStringifiedJSON: Attempting to remove 1 layer StringifyJSON"
-        ParseStringifiedJSONFailed -> "parseStringifiedJSON: Failed, returning original string"
-        ParseStringifiedJSONSuccess -> "parseStringifiedJSON: Succeeded"
-
-parseStringifiedJSON ::
-    forall effs.
-    Member (LogMsg UnStringifyJSONLog) effs
-    => JSON.Value
-    -> Eff effs JSON.Value
-parseStringifiedJSON v = case v of
-    JSON.String s -> do
-        logDebug ParseStringifiedJSONAttempt
-        let s' = JSON.decode @JSON.Value $ BSL8.fromStrict $ Text.encodeUtf8 s
-        case s' of
-            Nothing -> do
-                logDebug ParseStringifiedJSONFailed
-                pure v
-            Just s'' -> do
-                logDebug ParseStringifiedJSONSuccess
-                pure s''
-    _ -> pure v
+monadLoggerTracer :: Trace IO a -> Trace (TraceLoggerT IO) a
+monadLoggerTracer = natTracer (\x -> TraceLoggerT $ \_ -> x)

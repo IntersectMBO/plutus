@@ -15,8 +15,8 @@ import           Cardano.Metadata.Types          (AnnotatedSignature (AnnotatedS
                                                   _propertySubject)
 import           Control.Concurrent.Availability (Availability, available)
 import           Control.Monad.Except            (ExceptT, throwError)
-import           Control.Monad.IO.Class          (MonadIO, liftIO)
-import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
+import           Control.Monad.Freer.Extra.Log   (logInfo)
+import           Control.Monad.IO.Class          (liftIO)
 import           Crypto.Hash                     (Digest, SHA256, hashlazy)
 import           Data.Aeson                      ((.=))
 import qualified Data.Aeson                      as JSON
@@ -31,6 +31,8 @@ import           Ledger.Crypto                   (PrivateKey, PubKey, getPubKey,
 import           LedgerBytes                     (LedgerBytes)
 import qualified LedgerBytes
 import qualified Network.Wai.Handler.Warp        as Warp
+import           Plutus.SCB.App                  (App)
+import           Plutus.SCB.SCBLogMsg            (ContractExeLogMsg (StartingMetadataServer))
 import           Plutus.SCB.Utils                (tshow)
 import           Servant                         (Application, Handler (Handler), ServerError, err404, errBody,
                                                   hoistServer, serve)
@@ -63,16 +65,15 @@ app = serve api apiServer
     api = Proxy @API
     apiServer = hoistServer api asHandler handler
 
-main :: MonadIO m => MetadataConfig -> Availability -> m ()
-main MetadataConfig {mdBaseUrl} availability =
-    runStdoutLoggingT $ do
-        let port = baseUrlPort mdBaseUrl
-            warpSettings :: Warp.Settings
-            warpSettings =
-                Warp.defaultSettings & Warp.setPort port &
-                Warp.setBeforeMainLoop (available availability)
-        logInfoN $ "Starting Metadata server on port: " <> tshow mdBaseUrl
-        liftIO $ Warp.runSettings warpSettings app
+main :: MetadataConfig -> Availability -> App ()
+main MetadataConfig {mdBaseUrl} availability = do
+    let port = baseUrlPort mdBaseUrl
+        warpSettings :: Warp.Settings
+        warpSettings =
+            Warp.defaultSettings & Warp.setPort port &
+            Warp.setBeforeMainLoop (available availability)
+    logInfo $ StartingMetadataServer port
+    liftIO $ Warp.runSettings warpSettings app
 
 ------------------------------------------------------------
 pubKey1, pubKey2 :: PubKey

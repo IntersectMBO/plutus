@@ -37,6 +37,7 @@ let
       "https://github.com/input-output-hk/cardano-base"."5035c9ed95e9d47f050314a7d96b1b2043288f61" = "103z0009sz586f2mvnmwl2hp9n94qy0n72ik521xhq7zmfwyv3m7";
       "https://github.com/raduom/cardano-ledger-specs"."2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3" = "0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447";
       "https://github.com/raduom/iohk-monitoring-framework"."b5c035ad4e226d634242ad5979fa677921181435" = "19v32drfb7wy1yqpbxlqvgii0i7s2j89s05lqskx6855yn0calq4";
+      "https://github.com/j-mueller/iohk-monitoring-framework"."636eb9f52f504e8009162b5cf7147e8acb727c1b" = "101ga1cp877b8qnksfanzyw6s4yglwf24mzwgh0pn1xs0l64h6j3";
       };
     modules = [
         {
