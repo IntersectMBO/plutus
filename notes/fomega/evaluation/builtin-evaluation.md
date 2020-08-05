@@ -8,7 +8,7 @@ some `Constant`-like constructor which contains value of built-in functions.
 This mechanism is described in more detail [here] and [here].
 
 The question considered here is how the evaluators should interact
-with the CAM.  The basic problem is how to tell if an appplication has
+with the CAM.  The basic problem is how to tell if an application has
 the required number of arguments.  In the original version of the CEK
 machine, this was handled entirely by the CAM.  
 
@@ -28,7 +28,7 @@ There are three possibilities:
  proceeding to evaluate `body`. (In the CK machine, `V` is substituted
  for every occurrence of `x` in `body`, which is then evaluated).
 
- 2. `F` is an application of a bultin function to a (possibly empty) list of values.
+ 2. `F` is an application of a builtin function to a (possibly empty) list of values.
 
  3. `F` is something else (a constant for example): in this case an error occurs.
 
@@ -65,7 +65,7 @@ isn't required and only a single call to the CAM is required.  On
 simple benchmarks involving a lot of builtin applications, this was
 substantially faster than the original CEK machine.  However,
 saturated builtins complicated matters considerably and we decided not
-to pursue them: see [here] for a consideration of the issues invloved.
+to pursue them: see [here] for a consideration of the issues involved.
 One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar
 performance to unsaturated builtins.
@@ -84,7 +84,7 @@ an environment containing values for the free variables in `V` (and probably
 other variables as well: the new machine appeared attractive because it would
 reduce the number of irrelevant variables stored in environments).
 
-In James' origianl proposal, closures were to be replaced with a new kind
+In James' original proposal, closures were to be replaced with a new kind
 of "value":
 
 ```
@@ -131,7 +131,7 @@ evaluator where this is less important, and (c) if we really wanted to
 be more robust we could keep separate lists of type and term arities,
 or (better, but at a slight cost) provide a list of `TypeArg |
 TermArg` values, removing the first element every time we encounter an
-instantation or application, and checking that it is of the correct kind.)
+instantiation or application, and checking that it is of the correct kind.)
 
 This process is clearly much more efficient than that in the original
 CEK machine, and in fact enabled the alternative CEK machine with
@@ -148,14 +148,14 @@ I've considered a number of ways to fix this.
 
  * I initially thought we could store the required information
    in a frame.  This is how the CK machine worked with saturated
-   builtins, but we can't use the same techinque with unsaturated
+   builtins, but we can't use the same technique with unsaturated
    builtins.  In the unsaturated case a partially applied builtin
-   is a prefectly legitimate value and could be returned by a function
+   is a perfectly legitimate value and could be returned by a function
    or supplied as an argument to another function.  This just doesn't
    fit in with the way that stack frames are used.
 
  * We could modify the notion of value used in the CK machine. This
-   might be sensible.  The CK machine and the CEK machine both hae two
+   might be sensible.  The CK machine and the CEK machine both have two
    main phases: "compute" and "return", the former acting on terms and
    the latter acting on values.  In the CK machine, we've been using
    values of the type described in the Plutus Core specification,
@@ -214,10 +214,10 @@ arguments there's the question of how we erase them.  If we allow such
 things, then we can have a polymorphic partially-applied builtin, and
 such a thing could be passed to a function which could also accept
 type-abstracted lambdas, and such a function would have to deal
-uniformly with both possibilites.  The difficulty is that we no longer
+uniformly with both possibilities.  The difficulty is that we no longer
 have the value restriction, so we have to erase abstractions to
 `delay` and apply `force` when type instantiation occurs.  Since
-there's no possiblity of computation occurring when a
+there's no possibility of computation occurring when a
 partially-applied builtin is instantiated, it seems strange to
 unnecessarily wrap them in a `delay`. [But what happens if the final
 argument is a type argument, ie, if a builtin returns a polymorphic
@@ -229,7 +229,7 @@ erases to `delay error`) to the identity function?]
 
 Anyway, perhaps we could modify `force` so that it'll act on _any_
 value, doing nothing when it's not wrapped in `delay`; we would then
-be able to completely erase type arguments to builtins exacept perhaps
+be able to completely erase type arguments to builtins except perhaps
 ones at the very end.  (I'm now wondering what would happen if you
 force a _term_: could that ever happen?)
 
