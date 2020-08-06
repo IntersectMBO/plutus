@@ -76,14 +76,14 @@ We use Codec.Serialise for encoding.  This uses an itermediate type
 subobjects to be encoded and then efficiently concatenated when a
 larger object is being encoded to CBOR.  The monoid structure makes it
 tempting to use catamoprhisms to encode things, but this is
-*dangerous*. When a list is encoded to CBOR, the start and end of the
-list is marked by a special token; this is then followed by the
-encodings of the individual list elements, then another token to mark
-the end of the list.  If we use a catamorphism to encode a list `l` it
-just encodes the elements and concatenates the encoded versions
-together without the markers, which is wrong: instead we should call
-`encode l` directly.  At present we aren't encoding any lists, but we 
-should take care to avoid this trap just in case.
+*dangerous*. When a list is encoded to CBOR, the start of the list is
+marked by a special token; this is then followed by the encodings of
+the individual list elements, then another token to mark the end of
+the list.  If we use a catamorphism to encode a list `l` it just
+encodes the elements and concatenates the encoded versions together
+without the markers, which is wrong: instead we should call `encode l`
+directly.  At present we aren't encoding any lists, but we should take
+care to avoid this trap just in case.
 -}
 
 encodeConstructorTag :: Word -> Encoding
