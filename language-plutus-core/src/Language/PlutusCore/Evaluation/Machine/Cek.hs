@@ -388,6 +388,7 @@ instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx
 instantiateEvaluate ctx ty (VBuiltin ex argEnv bn count tyargs args) =
     returnCek ctx $ VBuiltin ex argEnv bn (count-1) (ty:tyargs) args
     -- We should really check that the signature expects a type here, not a term.
+    -- FIXME: what happens if count=0, ie if the final argument is a type?
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
