@@ -172,15 +172,31 @@ I've considered a number of ways to fix this.
    phase have to bear any relation to the term type consumed by the
    compute phase, so this might be the way to go.
 
- * What I've done for the time being is to modify the CK machine to
-   use a variant of the method used in the original CEK machine.
-   Whenever we see an application `[M N]` where `M` isn't a lambda,
-   we call `termAsPrimIterApp` to check if it's of the correct form,
-   and if it is we look up the the arity of the function and compare it
-   with the number of arguments; if they match, we hand the application
-   off to the CAM.  This is a bit more efficient than the earlier method
-   because we only call the CAM once, but it still requires repeated calls
-   to the inefficient `termAsPrimIterApp`, which we otherwise don't need.
+   UPDATE: I've now done this and it seems to perform OK: it may be 1%
+   or so slower than the intiial solution described below.  I added a
+   `CkValue` type that was more or less isomorphic to the usual values
+   except for builtins, where the value includes a count of arguments
+   and lists of the type and term arguments it's received so far.
+   Introducing the new type also required quite a lot of typeclass
+   stuff to make it acceptable to the CAM.  See
+   https://github.com/input-output-hk/plutus/pull/2215 .
+
+   I think that what's going on here is that for partially-applied
+   buitins we're forced to have lists _somewhere_: this trick allows
+   us to move them out of the AST (where the typechecker has to deal
+   with them) and into the machines.
+
+ * What I've done for the time being [this is my original attempt, in
+   `kwxm/alternative-cek`] is to modify the CK machine to use a
+   variant of the method used in the original CEK machine.  Whenever
+   we see an application `[M N]` where `M` isn't a lambda, we call
+   `termAsPrimIterApp` to check if it's of the correct form, and if it
+   is we look up the the arity of the function and compare it with the
+   number of arguments; if they match, we hand the application off to
+   the CAM.  This is a bit more efficient than the earlier method
+   because we only call the CAM once, but it still requires repeated
+   calls to the inefficient `termAsPrimIterApp`, which we otherwise
+   don't need.
 
  * We could modify the `builtin` constructor in the AST to contain a
    list of arguments that it's received so far.  That's probably a
