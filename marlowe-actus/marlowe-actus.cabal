@@ -57,6 +57,7 @@ library
   exposed-modules:
     Language.Marlowe.ACTUS.MarloweCompat
     Language.Marlowe.ACTUS.Generator
+    Language.Marlowe.ACTUS.Analysis
     Language.Marlowe.ACTUS.Definitions.BusinessEvents
     Language.Marlowe.ACTUS.Definitions.ContractTerms
     Language.Marlowe.ACTUS.Definitions.ContractState

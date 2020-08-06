@@ -5,14 +5,12 @@ module Language.Marlowe.ACTUS.Generator
     (
     genStaticContract
     , genFsContract
-    , genProjectedCashflows
     )
 where
 
 import qualified Data.List                                               as L (scanl, tail, zip, zip6)
 import           Data.Maybe                                              (fromMaybe, isNothing)
-import           Data.String                                             (IsString (fromString))
-import           Data.Sort                                               (sortOn)                               
+import           Data.String                                             (IsString (fromString))                            
 import           Data.Time                                               (Day, fromGregorian)
 import           Language.Marlowe                                        (AccountId (AccountId),
                                                                           Action (Choice, Deposit), Bound (Bound),
@@ -23,16 +21,12 @@ import           Language.Marlowe                                        (Accoun
                                                                           ValueId (ValueId), ada)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD, constraints), Assertions(..), AssertionContext(..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
-                                                                          calculationDay, paymentDay)
+import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt, toMarloweFixedPoint)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization   (inititializeState)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
-import           Language.Marlowe.ACTUS.Model.POF.Payoff                 (payoff)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffFs               (payoffFs)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule     (schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransition        (stateTransition)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs      (stateTransitionFs)
+import           Language.Marlowe.ACTUS.Analysis                         (genProjectedCashflows, genZeroRiskAssertions)
 import           Ledger.Value                                            (TokenName (TokenName))
 
 
@@ -103,44 +97,8 @@ inquiryFs ev ct timePosfix date oracle context continue =
     in
         riskFactorsInquiryEv ev continue
 
-genProjectedCashflows :: ContractTerms -> [CashFlow]
-genProjectedCashflows terms =
-    let
-        eventTypes   = [IED, MD, RR, IP]
-        analysisDate = fromGregorian 2008 10 22
-        riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate
 
-        preserveDate e d = (e, d)
-        getSchedule e = fromMaybe [] $ schedule e terms
-        scheduleEvent e = preserveDate e <$> getSchedule e
-        events = concatMap scheduleEvent eventTypes
-
-        applyStateTransition (st, ev, date) (ev', date') =
-            (stateTransition ev riskFactors terms st (calculationDay date), ev', date')
-        calculatePayoff (st, ev, date) =
-            payoff ev riskFactors terms st (calculationDay date)
-
-        initialState =
-            ( inititializeState terms
-            , AD
-            , ShiftedDay analysisDate analysisDate
-            )
-        states  = L.tail $ L.scanl applyStateTransition initialState events
-        payoffs = calculatePayoff <$> states
-
-        genCashflow ((_, ev, d), pff) = CashFlow
-            { tick               = 0
-            , cashContractId     = "0"
-            , cashParty          = "party"
-            , cashCounterParty   = "counterparty"
-            , cashPaymentDay     = paymentDay d
-            , cashCalculationDay = calculationDay d
-            , cashEvent          = ev
-            , amount             = pff
-            , currency           = "ada"
-            }
-    in
-        sortOn cashPaymentDay $ genCashflow <$> L.zip states payoffs
+    
 
 genStaticContract :: ContractTerms -> Contract
 genStaticContract terms =
