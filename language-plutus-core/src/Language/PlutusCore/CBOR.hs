@@ -70,7 +70,7 @@ tags with predefined meanings which we shouldn't interfere with.
 See http://hackage.haskell.org/package/serialise.
 -}
 
-{- [Note: Don't use catamorphims!]  
+{- [Note: Don't use catamorphims!]
 We use Codec.Serialise for encoding.  This uses an itermediate type
 `Encoding` to encode things. `Encoding` is a monoid, which allows
 subobjects to be encoded and then efficiently concatenated when a
@@ -108,7 +108,7 @@ instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf un
         go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
 instance Serialise BuiltinName where
-    encode = encodeConstructorTag . \case 
+    encode = encodeConstructorTag . \case
               AddInteger           -> 0
               SubtractInteger      -> 1
               MultiplyInteger      -> 2
