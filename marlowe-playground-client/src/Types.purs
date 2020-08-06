@@ -19,6 +19,7 @@ import Halogen.Monaco as Monaco
 import HaskellEditor.Types as HE
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as ST
 import Simulation.Types as Simulation
@@ -27,13 +28,15 @@ import Wallet as Wallet
 ------------------------------------------------------------
 data HQuery a
   = ReceiveWebsocketMessage String a
+  | ChangeRoute Route a
 
 data Message
   = WebsocketMessage String
 
 data HAction
+  = Init
   -- Haskell Editor
-  = HaskellAction HE.Action
+  | HaskellAction HE.Action
   | SimulationAction ST.Action
   | ShowBottomPanel Boolean
   -- haskell actions
@@ -46,6 +49,7 @@ data HAction
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent HAction where
+  toEvent Init = Just $ defaultEvent "Init"
   toEvent (HaskellAction action) = toEvent action
   toEvent (SimulationAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"

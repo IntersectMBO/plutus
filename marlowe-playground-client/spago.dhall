@@ -2,37 +2,37 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name =
-    "marlowe-playground-client"
+{ name = "marlowe-playground-client"
 , dependencies =
-    [ "bigints"
-    , "console"
-    , "debug"
-    , "effect"
-    , "functions"
-    , "halogen"
-    , "matryoshka"
-    , "node-fs"
-    , "numerics"
-    , "string-parsers"
-    , "prelude"
-    , "psci-support"
-    , "remotedata"
-    , "servant-support"
-    , "simple-json"
-    , "web-socket"
-    , "coroutines"
-    , "aff-coroutines"
-    , "test-unit"
-    , "undefinable"
-    , "uuid"
-    ]
-, packages =
-    ./packages.dhall
+  [ "aff-coroutines"
+  , "bigints"
+  , "console"
+  , "coroutines"
+  , "debug"
+  , "effect"
+  , "functions"
+  , "halogen"
+  , "matryoshka"
+  , "node-fs"
+  , "numerics"
+  , "prelude"
+  , "psci-support"
+  , "routing"
+  , "routing-duplex"
+  , "remotedata"
+  , "servant-support"
+  , "simple-json"
+  , "string-parsers"
+  , "test-unit"
+  , "undefinable"
+  , "uuid"
+  , "web-socket"
+  ]
+, packages = ./packages.dhall
 , sources =
-    [ "src/**/*.purs"
-    , "test/**/*.purs"
-    , "generated/**/*.purs"
-    , "../web-common/**/*.purs"
-    ]
+  [ "src/**/*.purs"
+  , "test/**/*.purs"
+  , "generated/**/*.purs"
+  , "../web-common/**/*.purs"
+  ]
 }
