@@ -1,15 +1,20 @@
 module MainFrame (mkMainFrame) where
 
+import API (_RunResult)
 import Control.Monad.Except (runExceptT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
-import Data.Lens (assign, set, to, view, (^.))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Foldable (for_)
+import Data.Foldable as NEL
+import Data.Json.JsonEither (_JsonEither)
+import Data.Lens (_Right, assign, set, to, use, view, (^.))
+import Data.Lens.Extra (peruse)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Halogen (Component, ComponentHTML, get, query, request)
+import Halogen (Component, ComponentHTML, get, query)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
@@ -24,16 +29,23 @@ import Halogen.Query.HalogenM (imapState, mapAction)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
+import HaskellEditor.Types (_compilationResult)
 import HaskellEditor.Types as HE
+import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Marlowe (SPParams_)
 import Marlowe.Blockly as MB
-import Network.RemoteData (RemoteData(..))
-import Prelude (Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>))
+import Marlowe.Monaco as MM
+import Marlowe.Parser (parseContract)
+import Network.RemoteData (RemoteData(..), _Success)
+import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>))
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
+import Simulation.State (_result)
+import Simulation.Types (_marloweState)
 import Simulation.Types as ST
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), _blocklySlot, _haskellEditorSlot, _haskellState, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Text.Pretty (pretty)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), _blocklySlot, _haskellEditorSlot, _haskellState, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
 
@@ -44,6 +56,7 @@ initialState =
     , blocklyState: Nothing
     , showBottomPanel: true
     , haskellState: HE.initialState
+    , simulationState: ST.mkState
     }
 
 ------------------------------------------------------------
@@ -65,8 +78,33 @@ mkMainFrame settings =
         }
     }
 
+toSimulation ::
+  forall m a.
+  Functor m =>
+  HalogenM ST.State ST.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+toSimulation halogen = do
+  currentState <- get
+  let
+    setState = flip (set _simulationState) currentState
+  let
+    getState = view _simulationState
+  (imapState setState getState <<< mapAction SimulationAction) halogen
+
+toHaskellEditor ::
+  forall m a.
+  Functor m =>
+  HalogenM HE.State HE.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+toHaskellEditor halogen = do
+  currentState <- get
+  let
+    setState = flip (set _haskellState) currentState
+  let
+    getState = view _haskellState
+  (imapState setState getState <<< mapAction HaskellAction) halogen
+
 handleQuery ::
   forall m a.
+  Functor m =>
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
 handleQuery (ReceiveWebsocketMessage msg next) = do
@@ -76,11 +114,11 @@ handleQuery (ReceiveWebsocketMessage msg next) = do
         $ do
             f <- parseJSON msg
             decode f
-  void
+  void <<< toSimulation
     $ case msgDecoded of
-        Left err -> query _simulationSlot unit (ST.WebsocketResponse (Failure (show msg)) unit)
-        Right (OtherError err) -> query _simulationSlot unit ((ST.WebsocketResponse $ Failure err) unit)
-        Right (CheckForWarningsResult result) -> query _simulationSlot unit ((ST.WebsocketResponse $ Success result) unit)
+        Left err -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show msg)) unit)
+        Right (OtherError err) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
+        Right (CheckForWarningsResult result) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
   pure $ Just next
 
 handleAction ::
@@ -91,28 +129,50 @@ handleAction ::
   HalogenM FrontendState HAction ChildSlots Message m Unit
 handleAction s (HaskellAction action) = do
   currentState <- get
-  imapState (flip (set _haskellState) currentState) (view _haskellState) (mapAction HaskellAction (HaskellEditor.handleAction s action))
+  toHaskellEditor (HaskellEditor.handleAction s action)
   case action of
     HE.SendResultToSimulator -> do
-      assign _view Simulation
-      void $ query _simulationSlot unit (ST.ResizeEditor unit)
+      mContract <-
+        peruse
+          ( _haskellState
+              <<< _compilationResult
+              <<< _Success
+              <<< _JsonEither
+              <<< _Right
+              <<< _InterpreterResult
+              <<< _result
+              <<< _RunResult
+          )
+      let
+        contract = case mContract of
+          Just unformatted -> case parseContract unformatted of
+            Right pcon -> show $ pretty pcon
+            Left _ -> unformatted
+          _ -> ""
+      selectSimulationView
+      void $ toSimulation
+        $ do
+            Simulation.handleAction s (ST.SetEditorText contract)
+            Simulation.handleAction s ST.ResetContract
     HE.SendResultToBlockly -> do
       assign _view BlocklyEditor
       void $ query _blocklySlot unit (Blockly.Resize unit)
     _ -> pure unit
 
-handleAction _ (HandleSimulationMessage (ST.BlocklyCodeSet source)) = do
-  void $ query _blocklySlot unit (Blockly.SetCode source unit)
-  assign _view BlocklyEditor
-  void $ query _blocklySlot unit (Blockly.Resize unit)
-
-handleAction _ (HandleSimulationMessage (ST.WebsocketMessage msg)) = H.raise (WebsocketMessage msg)
+handleAction s (SimulationAction action) = do
+  currentState <- get
+  toSimulation (Simulation.handleAction s action)
+  case action of
+    ST.SetBlocklyCode -> do
+      mSource <- query _marloweEditorSlot unit (Monaco.GetText identity)
+      for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
+      assign _view BlocklyEditor
+      void $ query _blocklySlot unit (Blockly.Resize unit)
+    _ -> pure unit
 
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
-  mContract <- query _simulationSlot unit (request ST.GetCurrentContract)
-  case mContract of
-    Nothing -> pure unit
-    Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
+  contract <- toSimulation $ Simulation.getCurrentContract
+  void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
 handleAction _ (ChangeView HaskellEditor) = selectHaskellView
 
@@ -128,23 +188,22 @@ handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
   pure unit
 
-handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
-  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
-  let
-    hasStarted = fromMaybe false mHasStarted
+handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
+  hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
   if hasStarted then
     void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
-    void $ query _simulationSlot unit (ST.SetEditorText code unit)
     selectSimulationView
+    void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText code)
 
 ------------------------------------------------------------
 selectSimulationView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
+  forall m action message.
+  HalogenM FrontendState action ChildSlots message m Unit
 selectSimulationView = do
   assign _view (Simulation)
-  void $ query _simulationSlot unit (ST.ResizeEditor unit)
+  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+  void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
 selectHaskellView ::
   forall m.
@@ -235,7 +294,7 @@ render settings state =
         , section [ id_ "main-panel" ]
             -- simulation panel
             [ div [ classes ([ hide ] <> isActiveTab state Simulation) ]
-                [ slot _simulationSlot unit (Simulation.mkComponent settings) unit (Just <<< HandleSimulationMessage) ]
+                [ bimap (map SimulationAction) SimulationAction (Simulation.render (state ^. _simulationState)) ]
             -- haskell panel
             , div [ classes ([ hide ] <> isActiveTab state HaskellEditor) ]
                 [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
