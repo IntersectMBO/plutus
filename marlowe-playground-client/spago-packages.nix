@@ -977,6 +977,42 @@ let
         installPhase = "ln -s $src $out";
       };
 
+    "routing" = pkgs.stdenv.mkDerivation {
+        name = "routing";
+        version = "v9.0.1";
+        src = pkgs.fetchgit {
+          url = "https://github.com/slamdata/purescript-routing.git";
+          rev = "12ff339eab48b491d73164f24cd43403ce08ce69";
+          sha256 = "1d8zxb3q91gv11bbg2wpvi5qnrlwfac0np2lqqylyqzlzwnz7gs1";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "routing-duplex" = pkgs.stdenv.mkDerivation {
+        name = "routing-duplex";
+        version = "v0.4.1";
+        src = pkgs.fetchgit {
+          url = "https://github.com/natefaubion/purescript-routing-duplex.git";
+          rev = "eceaba4ee9921250cc6640d5ead98bbfc44310f5";
+          sha256 = "0cpihagrbldymd108x9isxwrckac1h1mb3rrj224m1p5bgv83ixi";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "semirings" = pkgs.stdenv.mkDerivation {
+        name = "semirings";
+        version = "v5.0.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript/purescript-semirings.git";
+          rev = "36aedc601d296607439eec1e71f8483adc373ffc";
+          sha256 = "0bhrhn2yvcgil7g63spb2xw966mdhlk9mpspnqfijdpb9n3b79ds";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
     "servant-support" = pkgs.stdenv.mkDerivation {
         name = "servant-support";
         version = "v10.0.0";
@@ -1188,6 +1224,18 @@ let
           url = "https://github.com/spicydonuts/purescript-uuid.git";
           rev = "e5d74beef8b33aad9f9b0824950152c46ac2c7f1";
           sha256 = "1ldrhjavv9vngdnh9i7pbg93iwaslrs6rfcv8jh5cjywpin8n6zx";
+        };
+        phases = "installPhase";
+        installPhase = "ln -s $src $out";
+      };
+
+    "validation" = pkgs.stdenv.mkDerivation {
+        name = "validation";
+        version = "v4.2.0";
+        src = pkgs.fetchgit {
+          url = "https://github.com/purescript/purescript-validation.git";
+          rev = "bef3f9da737516e69f00d35310334004c29355cb";
+          sha256 = "03irk6n7jgsimhp9ckrg2ns7qbc8d383ls3sslxgir5mr8xdc44g";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
