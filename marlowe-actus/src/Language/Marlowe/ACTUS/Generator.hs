@@ -22,10 +22,10 @@ import           Language.Marlowe                                        (Accoun
                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
                                                                           ValueId (ValueId), ada)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD, constraints), Assertions(..), AssertionContext(..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
                                                                           calculationDay, paymentDay)
-import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt)
+import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt, toMarloweFixedPoint)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization   (inititializeState)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
 import           Language.Marlowe.ACTUS.Model.POF.Payoff                 (payoff)
@@ -63,9 +63,10 @@ inquiryFs
     -> String
     -> Slot
     -> String
+    -> Maybe AssertionContext
     -> Contract
     -> Contract
-inquiryFs ev ct timePosfix date oracle continue =
+inquiryFs ev ct timePosfix date oracle context continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
         letTemplate inputChoiceId inputOwner cont = 
@@ -82,10 +83,14 @@ inquiryFs ev ct timePosfix date oracle continue =
                 date
                 Close
 
+        inferBounds name ctx = case (name, ctx) of
+            ("o_rf_RRMO", Just AssertionContext{..}) -> 
+                [Bound (toMarloweFixedPoint rrmoMin) (toMarloweFixedPoint rrmoMax)]
+            _ -> [Bound 0 maxPseudoDecimalValue]
         riskFactorInquiry name = inputTemplate
             (fromString (name ++ timePosfix))
             oracleRole
-            [Bound 0 maxPseudoDecimalValue]
+            (inferBounds name context)
         riskFactorsInquiryEv AD = id
         riskFactorsInquiryEv SC = riskFactorInquiry "o_rf_SCMO"
         riskFactorsInquiryEv RR = riskFactorInquiry "o_rf_RRMO"
@@ -157,8 +162,10 @@ genFsContract terms =
         schedDates = Slot . dayToSlotNumber . cashPaymentDay <$> schedCfs
         previousDates = ([ct_SD terms] ++ (cashCalculationDay <$> schedCfs))
         cfsDirections = amount <$> schedCfs
+        ctx = context <$> constraints terms
         gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
-        gen (cf, prevDate, ev, date, r, t) cont = inquiryFs ev terms ("_" ++ show t) date "oracle"
+        gen (cf, prevDate, ev, date, r, t) cont = 
+            inquiryFs ev terms ("_" ++ show t) date "oracle" ctx
             $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
             $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
             $ if (isNothing pof) then cont

@@ -30,9 +30,7 @@ import           Data.Proxy                                       (Proxy (Proxy)
 import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
-import           Data.Time                                        as DT
 import qualified Escrow
-import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
@@ -128,6 +126,9 @@ myTypes =
     , mkSumType (Proxy @CT.FEB)
     , mkSumType (Proxy @CT.ContractRole)
     , mkSumType (Proxy @CT.ContractType)
+    , mkSumType (Proxy @CT.Assertion)
+    , mkSumType (Proxy @CT.Assertions)
+    , mkSumType (Proxy @CT.AssertionContext)
     , mkSumType (Proxy @WebSocketRequestMessage)
     , mkSumType (Proxy @WebSocketResponseMessage)
     ]

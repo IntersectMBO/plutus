@@ -10,7 +10,7 @@ import           Language.Marlowe                                  (Contract (Le
 
 import           Data.String                                       (IsString (fromString))
 import           Data.Time                                         (Day, UTCTime (UTCTime))
-import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime, systemToUTCTime)
+import           Data.Time.Clock.System                            (SystemTime (MkSystemTime), utcToSystemTime)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents (EventType)
 import           Language.Marlowe.ACTUS.Definitions.ContractState  (ContractState, ContractStatePoly (..))
 import           Language.Marlowe.ACTUS.Ops                        (marloweFixedPoint)
@@ -26,8 +26,11 @@ useval name t = UseValue $ ValueId $ fromString $ name ++ "_" ++ show t
 letval :: String -> Integer -> Value Observation -> Contract -> Contract
 letval name t = Let $ ValueId $ fromString $ name ++ "_" ++ show t
 
+toMarloweFixedPoint :: Double -> Integer
+toMarloweFixedPoint = round <$> (fromIntegral marloweFixedPoint *)
+
 constnt :: Double -> Value Observation
-constnt = Constant . round <$> (fromIntegral marloweFixedPoint *)
+constnt = Constant . toMarloweFixedPoint
 
 enum :: a -> a
 enum = id

@@ -112,19 +112,22 @@ data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass
 data Assertions = Assertion 
   {
     context :: AssertionContext
-    , assertions :: Assertion
-  }
+    , assertions :: [Assertion]
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 data AssertionContext = AssertionContext 
   {
     rrmoMin :: Double
     , rrmoMax :: Double
-  }
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 data Assertion = NpvAssertionAgainstZeroRiskBond 
   {
     zeroRiskInterest :: Double
-  }
+  } deriving stock (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON)
 
 
 
@@ -182,6 +185,7 @@ data ContractTerms = ContractTerms {
   , ct_FER       :: Double -- fee rate
   -- enable settlement currency
   , ct_CURS      :: Bool
+  , constraints  :: Maybe Assertions
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)

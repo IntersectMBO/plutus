@@ -165,19 +165,6 @@ instance decodeJsonActusPeriod  :: Decode ActusPeriodType  where
 actusPeriodTypes :: Array ActusPeriodType
 actusPeriodTypes = upFromIncluding bottom
 
---todo
-data ActusPenaltyType =
-  NoPenalty
-
---todo
-data ActusContractRole = 
-  Buyer
-
---todo
-data ActusFeeBasis = Default
-
-
-
 data BlockType
   = BaseContractType
   | ActusContractType ActusContractType
@@ -214,11 +201,8 @@ instance showBlockType :: Show BlockType where
 contractColour :: String
 contractColour = "#a380bc"
 
-boundsColour :: String
-boundsColour = "#1a7b84"
-
-actionColour :: String
-actionColour = "#e6aa00"
+actusColour :: String
+actusColour = "#1a7b84"
 
 observationColour :: String
 observationColour = "#1fc1c3"
@@ -226,23 +210,14 @@ observationColour = "#1fc1c3"
 valueColour :: String
 valueColour = "#eb2256"
 
-payeeColour :: String
-payeeColour = "#709cf0"
-
-partyColour :: String
-partyColour = "#f69ab2"
-
-tokenColour :: String
-tokenColour = "#eb4a22"
-
 blockColour :: BlockType -> String
 blockColour BaseContractType = contractColour
 
-blockColour (ActusContractType _) = boundsColour
+blockColour (ActusContractType _) = actusColour
 
-blockColour (ActusValueType _) = actionColour
+blockColour (ActusValueType _) = valueColour
 
-blockColour (ActusPeriodType _) = actionColour
+blockColour (ActusPeriodType _) = valueColour
 
 blockDefinitions :: Array BlockDefinition
 blockDefinitions = map toDefinition (upFromIncluding bottom)
@@ -293,7 +268,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
           , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
           , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
         , inputsInline: Just false
         }
@@ -310,7 +285,7 @@ toDefinition (ActusValueType ActusDate) =
             , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
             , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusValueType ActusDate)
         , output: Just "date"
         , inputsInline: Just true
         }
@@ -326,7 +301,7 @@ toDefinition (ActusValueType ActusCycleType) =
           , Input { name: "value", text: "1", spellcheck: false }
           , Value { name: "period", check: "period", align: Right }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusValueType ActusCycleType)
         , output: Just "cycle"
         , inputsInline: Just true
         }
@@ -340,7 +315,7 @@ toDefinition (ActusValueType ActusDecimalType) =
         , args0:
           [ Input { name: "value", text: "1000", spellcheck: false }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusValueType ActusDecimalType)
         , inputsInline: Just false
         , output: Just "decimal"
         }
@@ -356,7 +331,7 @@ toDefinition (ActusValueType ActusAssertionContextType) =
           Input { name: "min_rrmo", text: "0", spellcheck: false }
           , Input { name: "max_rrmo", text: "1000", spellcheck: false }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusValueType ActusAssertionContextType)
         , inputsInline: Just false
         , output: Just "assertionCtx"
         }
@@ -372,7 +347,7 @@ toDefinition (ActusValueType ActusAssertionType) =
           Input { name: "npv", text: "0", spellcheck: false }
           , Input { name: "rate", text: "0", spellcheck: false }
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusValueType ActusAssertionType)
         , inputsInline: Just false
         , output: Just "assertion"
         }
@@ -386,7 +361,7 @@ toDefinition (ActusPeriodType PeriodDayType) =
         , args0:
           [ 
           ]
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusPeriodType PeriodDayType)
         , inputsInline: Just true
         , output: Just "period"
         }
@@ -398,7 +373,7 @@ toDefinition (ActusPeriodType PeriodMonthType) =
         { type: show PeriodMonthType
         , message0: "Months"
         , args0: []
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusPeriodType PeriodMonthType)
         , inputsInline: Just true
         , output: Just "period"
         }
@@ -410,7 +385,7 @@ toDefinition (ActusPeriodType PeriodQuarterType) =
         { type: show PeriodQuarterType
         , message0: "Quarters"
         , args0: []
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusPeriodType PeriodQuarterType)
         , inputsInline: Just true
         , output: Just "period"
         }
@@ -422,7 +397,7 @@ toDefinition (ActusPeriodType PeriodYearType) =
         { type: show PeriodYearType
         , message0: "Years"
         , args0: []
-        , colour: blockColour BaseContractType
+        , colour: blockColour (ActusPeriodType PeriodYearType)
         , output: Just "period"
         , inputsInline: Just true
         }
@@ -433,7 +408,7 @@ toolbox =
   xml [ id_ "actusBlocklyToolbox", style "display:none" ]
     [ category [ name "Contracts", colour contractColour ] (map mkBlock actusContractTypes)
     , category [ name "Values", colour observationColour ] (map mkBlock actusValueTypes)
-    , category [ name "Periods", colour actionColour ] (map mkBlock actusPeriodTypes)
+    , category [ name "Periods", colour valueColour ] (map mkBlock actusPeriodTypes)
     ]
   where
   mkBlock :: forall t. Show t => t -> _
@@ -702,6 +677,7 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_FEB : FEB_N
       , ct_FER : 0.0
       , ct_CURS : false
+      , constraints : Nothing
       }
 
 
