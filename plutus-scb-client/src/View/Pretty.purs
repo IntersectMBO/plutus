@@ -43,7 +43,6 @@ eventWithPrefix prefix content =
 
 instance prettyUserEvent :: Pretty t => Pretty (UserEvent t) where
   pretty (InstallContract contract) = span_ [ text $ "Install", nbsp, pretty contract ]
-  pretty (ContractStateTransition instanceState) = pretty instanceState
 
 instance prettyContractExe :: Pretty ContractExe where
   pretty ((ContractExe { contractPath })) = text contractPath

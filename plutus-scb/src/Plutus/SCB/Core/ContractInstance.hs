@@ -61,7 +61,7 @@ import           Wallet.Effects                                  (ChainIndexEffe
 import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
 
 import           Plutus.SCB.Command                              (saveBalancedTx, saveBalancedTxResult,
-                                                                  saveContractState, sendContractEvent)
+                                                                  sendContractEvent)
 import           Plutus.SCB.Effects.Contract                     (ContractCommand (..), ContractEffect)
 import qualified Plutus.SCB.Effects.Contract                     as Contract
 import           Plutus.SCB.Effects.EventLog                     (EventLogEffect, runCommand, runGlobalQuery)
@@ -74,7 +74,7 @@ import           Plutus.SCB.Events.Contract                      (ContractEvent 
                                                                   unContractHandlersResponse)
 import qualified Plutus.SCB.Events.Contract                      as Events.Contract
 import qualified Plutus.SCB.Query                                as Query
-import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, UserEventSource, WalletEventSource))
+import           Plutus.SCB.Types                                (SCBError (..), Source (ContractEventSource, NodeEventSource, WalletEventSource))
 import           Plutus.SCB.Utils                                (tshow)
 
 import qualified Plutus.SCB.Core.Projections                     as Projections
@@ -149,7 +149,6 @@ sendContractStateMessages is = do
     void
         $ runCommand (sendContractEvent @t) ContractEventSource
         $ ContractInstanceStateUpdateEvent is
-    void $ runCommand (saveContractState @t) UserEventSource is
 
 sendContractMessage ::
     forall t effs.
