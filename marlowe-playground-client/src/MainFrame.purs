@@ -12,9 +12,10 @@ import Data.Lens.Extra (peruse)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (class MonadEffect)
 import Foreign.Class (decode)
 import Foreign.JSON (parseJSON)
-import Halogen (Component, ComponentHTML, get, query)
+import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
@@ -39,6 +40,11 @@ import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>))
+import Router (Route)
+import Router as Router
+import Routing.Duplex as RD
+import Routing.Duplex as RT
+import Routing.Hash as Routing
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
@@ -73,7 +79,7 @@ mkMainFrame settings =
         { handleQuery
         , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
         , receive: const Nothing
-        , initialize: Nothing
+        , initialize: Just Init
         , finalize: Nothing
         }
     }
@@ -102,9 +108,24 @@ toHaskellEditor halogen = do
     getState = view _haskellState
   (imapState setState getState <<< mapAction HaskellAction) halogen
 
+handleRoute ::
+  forall m action message.
+  MonadEffect m =>
+  Route -> HalogenM FrontendState action ChildSlots message m Unit
+handleRoute Router.Home = selectView Simulation
+
+handleRoute Router.Simulation = selectView Simulation
+
+handleRoute Router.HaskellEditor = selectView HaskellEditor
+
+handleRoute Router.Blockly = selectView BlocklyEditor
+
+handleRoute Router.Wallets = selectView WalletEmulator
+
 handleQuery ::
   forall m a.
   Functor m =>
+  MonadEffect m =>
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
 handleQuery (ReceiveWebsocketMessage msg next) = do
@@ -121,12 +142,22 @@ handleQuery (ReceiveWebsocketMessage msg next) = do
         Right (CheckForWarningsResult result) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
   pure $ Just next
 
+handleQuery (ChangeRoute route next) = do
+  handleRoute route
+  pure $ Just next
+
 handleAction ::
   forall m.
   MonadAff m =>
   SPSettings_ SPParams_ ->
   HAction ->
   HalogenM FrontendState HAction ChildSlots Message m Unit
+handleAction _ Init = do
+  hash <- liftEffect Routing.getHash
+  case (RD.parse Router.route) hash of
+    Right route -> handleRoute route
+    Left _ -> handleRoute Router.Home
+
 handleAction s (HaskellAction action) = do
   currentState <- get
   toHaskellEditor (HaskellEditor.handleAction s action)
@@ -149,14 +180,12 @@ handleAction s (HaskellAction action) = do
             Right pcon -> show $ pretty pcon
             Left _ -> unformatted
           _ -> ""
-      selectSimulationView
+      selectView Simulation
       void $ toSimulation
         $ do
             Simulation.handleAction s (ST.SetEditorText contract)
             Simulation.handleAction s ST.ResetContract
-    HE.SendResultToBlockly -> do
-      assign _view BlocklyEditor
-      void $ query _blocklySlot unit (Blockly.Resize unit)
+    HE.SendResultToBlockly -> selectView BlocklyEditor
     _ -> pure unit
 
 handleAction s (SimulationAction action) = do
@@ -166,23 +195,14 @@ handleAction s (SimulationAction action) = do
     ST.SetBlocklyCode -> do
       mSource <- query _marloweEditorSlot unit (Monaco.GetText identity)
       for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
-      assign _view BlocklyEditor
-      void $ query _blocklySlot unit (Blockly.Resize unit)
+      selectView BlocklyEditor
     _ -> pure unit
 
 handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
   contract <- toSimulation $ Simulation.getCurrentContract
   void $ query _walletSlot unit (Wallet.LoadContract contract unit)
 
-handleAction _ (ChangeView HaskellEditor) = selectHaskellView
-
-handleAction _ (ChangeView Simulation) = selectSimulationView
-
-handleAction _ (ChangeView BlocklyEditor) = do
-  assign _view BlocklyEditor
-  void $ query _blocklySlot unit (Blockly.Resize unit)
-
-handleAction _ (ChangeView WalletEmulator) = selectWalletView
+handleAction _ (ChangeView view) = selectView view
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
@@ -193,30 +213,32 @@ handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
   if hasStarted then
     void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
-    selectSimulationView
+    selectView Simulation
     void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText code)
 
 ------------------------------------------------------------
-selectSimulationView ::
+selectView ::
   forall m action message.
-  HalogenM FrontendState action ChildSlots message m Unit
-selectSimulationView = do
-  assign _view (Simulation)
-  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
-  void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-
-selectHaskellView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectHaskellView = do
-  assign _view (HaskellEditor)
-  void $ query _haskellEditorSlot unit (Monaco.Resize unit)
-  void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-
-selectWalletView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectWalletView = assign _view WalletEmulator
+  MonadEffect m =>
+  View -> HalogenM FrontendState action ChildSlots message m Unit
+selectView view = do
+  let
+    route = case view of
+      Simulation -> Router.Simulation
+      HaskellEditor -> Router.HaskellEditor
+      BlocklyEditor -> Router.Blockly
+      WalletEmulator -> Router.Wallets
+  liftEffect $ Routing.setHash (RT.print Router.route route)
+  assign _view view
+  case view of
+    Simulation -> do
+      void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+      void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+    HaskellEditor -> do
+      void $ query _haskellEditorSlot unit (Monaco.Resize unit)
+      void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
+    BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
+    WalletEmulator -> pure unit
 
 render ::
   forall m.
