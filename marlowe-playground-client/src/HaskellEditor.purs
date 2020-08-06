@@ -32,18 +32,15 @@ import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Parser (parseContract)
 import Monaco (IMarkerData, markerSeverity)
 import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
 import Network.RemoteData as RemoteData
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.State (_result)
-import Simulation.Types as ST
 import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Text.Pretty (pretty)
-import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, _simulationSlot, bottomPanelHeight)
+import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, bottomPanelHeight)
 
 handleAction ::
   forall m.
@@ -86,20 +83,7 @@ handleAction _ (ShowBottomPanel val) = do
   void $ query _haskellEditorSlot unit (Monaco.Resize unit)
   pure unit
 
-handleAction _ SendResultToSimulator = do
-  mContract <- use _compilationResult
-  let
-    contract = case mContract of
-      Success (JsonEither (Right result)) ->
-        let
-          unformatted = view (_InterpreterResult <<< _result <<< _RunResult) result
-        in
-          case parseContract unformatted of
-            Right pcon -> show $ pretty pcon
-            Left _ -> unformatted
-      _ -> ""
-  void $ query _simulationSlot unit (ST.SetEditorText contract unit)
-  void $ query _simulationSlot unit (ST.ResetContract unit)
+handleAction _ SendResultToSimulator = pure unit
 
 handleAction _ SendResultToBlockly = do
   mContract <- use _compilationResult

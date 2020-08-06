@@ -20,6 +20,7 @@ import HaskellEditor.Types as HE
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
 import Servant.PureScript.Ajax (AjaxError)
+import Simulation.Types as ST
 import Simulation.Types as Simulation
 import Wallet as Wallet
 
@@ -33,11 +34,10 @@ data Message
 data HAction
   -- Haskell Editor
   = HaskellAction HE.Action
+  | SimulationAction ST.Action
   | ShowBottomPanel Boolean
   -- haskell actions
   | ChangeView View
-  -- Simulation Actions
-  | HandleSimulationMessage Simulation.Message
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   -- Wallet Actions
@@ -47,7 +47,7 @@ data HAction
 -- how to classify them.
 instance actionIsEvent :: IsEvent HAction where
   toEvent (HaskellAction action) = toEvent action
-  toEvent (HandleSimulationMessage action) = Just $ defaultEvent "HandleSimulationMessage"
+  toEvent (SimulationAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
@@ -57,7 +57,7 @@ instance actionIsEvent :: IsEvent HAction where
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
-    , simulationSlot :: H.Slot Simulation.Query Simulation.Message Unit
+    , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
 
@@ -67,8 +67,8 @@ _haskellEditorSlot = SProxy
 _blocklySlot :: SProxy "blocklySlot"
 _blocklySlot = SProxy
 
-_simulationSlot :: SProxy "simulationSlot"
-_simulationSlot = SProxy
+_marloweEditorSlot :: SProxy "marloweEditorSlot"
+_marloweEditorSlot = SProxy
 
 _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
@@ -93,6 +93,7 @@ newtype FrontendState
   , blocklyState :: Maybe BlocklyState
   , showBottomPanel :: Boolean
   , haskellState :: HE.State
+  , simulationState :: Simulation.State
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -114,6 +115,9 @@ _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
 
 _haskellState :: Lens' FrontendState HE.State
 _haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
+
+_simulationState :: Lens' FrontendState Simulation.State
+_simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
 
 -- editable
 _timestamp ::
