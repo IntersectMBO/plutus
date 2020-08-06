@@ -8,7 +8,7 @@ import           Data.Sort                                               (sortOn
 
 import           Language.Marlowe                                        (Contract(Assert), Value(..), Observation(..))
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(..), AssertionContext(..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
                                                                           calculationDay, paymentDay)
 import           Language.Marlowe.ACTUS.MarloweCompat                    (constnt, useval)
@@ -66,11 +66,12 @@ genZeroRiskAssertions zeroRiskInterest threshold terms@ContractTerms{..} continu
         dateToYearFraction :: Day -> Double
         dateToYearFraction dt = _y ct_DCC ct_SD dt ct_MD
 
-        dateToDiscountFactor dt = (dateToYearFraction dt) * (1 - zeroRiskInterest)
-        
+        dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** (dateToYearFraction dt)
+
         accumulateAndDiscount :: (Value Observation) -> (CashFlow, Integer) ->  (Value Observation)
         accumulateAndDiscount acc (cf, t) = 
             let discountFactor = dateToDiscountFactor $ cashCalculationDay cf
-            in (constnt discountFactor) * (useval "payoff" t) + acc
+                sign x = if (amount cf < 0.0) then (NegValue x) else x
+            in (constnt discountFactor) * (sign $ useval "payoff" t) + acc --todo plus vs minus
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
     in Assert (ValueLT (constnt threshold) npv) continue
