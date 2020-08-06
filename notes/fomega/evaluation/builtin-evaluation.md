@@ -14,9 +14,10 @@ mechanism is described in more detail
 [here](../../../language-plutus-core/docs/Constant-application.md).
 
 The question considered here is how the evaluators should interact
-with the CAM.  The basic problem is how to tell if an application has
-the required number of arguments.  In the original version of the CEK
-machine, this was handled entirely by the CAM.  
+with the CAM, especially when we're dealing with unsaturated builtins.
+The basic problem is how to tell if an application has the required
+number of arguments.  In the original version of the CEK machine, this
+was handled entirely by the CAM.
 
 ### CEK strategy
 
@@ -81,7 +82,7 @@ performance to unsaturated builtins.
 Part of the reason for abandoning saturated builtins was that
 James proposed an alternative version of the CEK machine which
 looked as if it might be more efficient than the original machine
-with respect to environments handling. This involved a new notion of "value"
+with respect to environment handling. This involved a new notion of "value"
 which Roman observed would allow us to simplify builtin application
 by giving us somewhere to store the arguments to which a builtin had
 so far been applied.
