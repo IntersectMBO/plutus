@@ -51,7 +51,7 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc                          hiding (error)
+import           Language.PlutusCore.MkPlc                          (mkIterApp, mkIterInst)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Subst
@@ -388,6 +388,7 @@ instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx
 instantiateEvaluate ctx ty (VBuiltin ex argEnv bn count tyargs args) =
     returnCek ctx $ VBuiltin ex argEnv bn (count-1) (ty:tyargs) args
     -- We should really check that the signature expects a type here, not a term.
+    -- FIXME: What if count = 0, ie the final argument is a type?
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
