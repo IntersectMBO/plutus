@@ -109,7 +109,7 @@ data ScheduleConfig = ScheduleConfig
 data ContractType = PAM | LAM   deriving stock (Show, Generic) deriving anyclass (FromJSON, ToJSON)
 
 
-data Assertions = Assertion 
+data Assertions = Assertions 
   {
     context :: AssertionContext
     , assertions :: [Assertion]

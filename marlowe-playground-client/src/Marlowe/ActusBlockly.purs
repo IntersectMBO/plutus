@@ -466,7 +466,9 @@ newtype ActusContract = ActusContract {
   , notional :: ActusValue
   , premiumDiscount :: ActusValue
   , interestRate :: ActusValue
-  , interestRateCycle :: ActusValue --todo validate that both are present
+  , interestRateCycle :: ActusValue
+  , assertionCtx :: ActusValue
+  , assertion :: ActusValue
 }
 
 derive instance actusContract :: Generic ActusContract _
@@ -545,6 +547,8 @@ instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType
     , premiumDiscount : parseFieldActusValueJson g block "premium_discount"
     , interestRate : parseFieldActusValueJson g block "interest_rate"
     , interestRateCycle : parseFieldActusValueJson g block "interest_rate_cycle"
+    , assertionCtx : parseFieldActusValueJson g block "interest_rate_ctr"
+    , assertion : parseFieldActusValueJson g block "payoff_ctr"  
   }
   
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
@@ -660,7 +664,15 @@ actusContractToTerms raw = do --todo use monad transformers?
   interestRate <- actusDecimalToNumber c.interestRate
   interestRateCycle <- blocklyCycleToCycle c.interestRateCycle
   interestRateAnchorValue <- blocklyCycleToAnchor c.interestRateCycle
-  interestRateAnchor <- sequence $ actusDateToDay <$> interestRateAnchorValue 
+  interestRateAnchor <- sequence $ actusDateToDay <$> interestRateAnchorValue
+  assertionCtx <- blocklyAssertionCtxToAssertionCtx c.assertionCtx
+  assertion <- blocklyAssertionToAssertion c.assertion
+  let constraint ctx = Assertions {
+    context: ctx
+    , assertions : (case assertion of
+        Just x -> [x]
+        Nothing -> [])
+  }
 
   pure $ ContractTerms
       { contractId : "0"
@@ -714,7 +726,7 @@ actusContractToTerms raw = do --todo use monad transformers?
       , ct_FEB : FEB_N
       , ct_FER : 0.0
       , ct_CURS : false
-      , constraints : Nothing
+      , constraints : constraint <$> assertionCtx
       }
 
 
