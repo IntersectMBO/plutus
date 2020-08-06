@@ -1,0 +1,132 @@
+\section{A stateless forging policy language}
+\label{sec:fps-language}
+
+The domain-specific language for forging policies strikes a balance between expressiveness and simplicity. It particular, it is stateless and of bounded computational complexity. Nevertheless, it is sufficient to support the applications described in Section~\ref{sec:applications}.
+
+\paragraph{Semantically meaningful token names.}
+
+The policy ID is associated with a policy script (it is the hash of it),
+so it has a semantic meaning that is identified with that of the script.
+In the clauses of our language, we give semantic meaning
+to the names of the tokens as well. This allows us to make some
+judgements about them in a programmatic way, beyond confirming that the
+preservation of value holds, or
+which ones are fungible with each other.
+For example, the $\texttt{FreshTokens}$ constructor gives us a way to programmatically generate
+token names which, by construction, mean that these tokens are unique, without
+ever checking the global ledger state.
+
+\paragraph{Forging policy scripts as output-locking scripts.}
+
+As with
+currency in the non-digital world, it is a harder problem to control the transfer of assets once
+they have come into circulation (see also Section~\ref{sec:discussion}). We can, however,
+specify directly in the forging policy that the assets being forged must
+be locked by an output script of our choosing.
+Moreover, since both output addresses and policies are hashes of scripts,
+we can use the asset policy ID and the address interchangeably.
+The $\texttt{AssetToAddress}$ clause is used for this purpose.
+
+\begin{figure}[t]
+    \begin{lstlisting}
+    $\llbracket$JustMSig(msig)$\rrbracket$(h, tx, utxo) = checkMultiSig(msig, tx)
+
+    $\llbracket$SpendsOutput(o)$\rrbracket$(h, tx, utxo) = o $\in $ { i.outputRef : i $\in $ tx.inputs }
+
+    $\llbracket$TickAfter(tick1)$\rrbracket$(h, tx, utxo) = tick1 $\leq$ min(tx.validityInterval)
+
+    $\llbracket$Forges(tkns)$\rrbracket$(h, tx, utxo) = (h $\mapsto$ tkns $\in$ tx.forge) && (h $\mapsto$ tkns $\geq$ 0)
+
+    $\llbracket$Burns(tkns)$\rrbracket$(h, tx, utxo) = (h $\mapsto$ tkns $\in$ tx.forge) && (h $\mapsto$ tkns $\leq$ 0)
+
+    $\llbracket$FreshTokens$\rrbracket$(h, tx, utxo) =
+       $\forall$ pid $\mapsto$ tkns $\in$ tx.forge, pid == h $\Rightarrow$
+         $\forall$ t $\mapsto$ q $\in$ tkns,
+           t == hash(indexof(t, tkns), tx.inputs) && q == 1
+
+    $\llbracket$AssetToAddress(addr)$\rrbracket$(h, tx, utxo) =
+       $\forall$ pid $\mapsto$ tkns $\in$ utxo.balance, pid == h $\Rightarrow$
+          addr == _ $\Rightarrow$ (h, pid $\mapsto$ tkns) $\in$ utxo
+        $\wedge$ addr $\neq$ _ $\Rightarrow$ (addr, pid $\mapsto$ tkns) $\in$ utxo
+
+    $\llbracket$DoForge$\rrbracket$(h, tx, utxo) = h $\in$ supp(tx.forge)
+
+    $\llbracket$SignedByPIDToken$\rrbracket$(h, tx, utxo) =
+       $\forall$ pid $\mapsto$ tkns $\in$ utxo.balance, pid == h $\Rightarrow$
+         $\forall$ s $\in$ tx.sigs, $\exists$ t $\in$ supp(tkns),
+           isSignedBy(tx, s, t)
+
+    $\llbracket$SpendsCur(pid)$\rrbracket$(h, tx, utxo) =
+         pid == _ $\Rightarrow$ h $\in$ supp(utxo.balance)
+       $\wedge$ pid $\neq$ _ $\Rightarrow$ pid $\in$ supp(utxo.balance)
+    \end{lstlisting}
+    \caption{Forging Policy Language}
+    \label{figure:fps-language}
+\end{figure}
+%
+\paragraph{Language clauses.}
+%
+The various clauses of the validator and forging policy language are as described below, with their formal semantics as in Figure~\ref{figure:fps-language}. In this figure, we use the notation
+$\texttt{x}\mapsto \texttt{y}$ to represent a single key-value pair of a finite map.
+Recall form Rule~\ref{rule:all-mps-validate} that the arguments passed to the validation
+function $\llbracket \texttt{s} \rrbracket$ $\texttt{h}$ are: the hash of the forging (or output
+locking) script being validated, the transaction $\texttt{tx}$ being validated,
+and the ledger outputs which the transaction $\texttt{tx}$ is spending (we denote
+these $\texttt{utxo}$ here).
+%
+\begin{itemize}
+  \item \texttt{JustMSig(msig)}
+  verifies that the $m$-out-of-$n$ signatures required by $s$ are in the
+  set of signatures provided by the transaction. We do not give the
+  multi-signature script evaluator details as this is a common concept, and
+  assume a procedure \texttt{checkMultiSig} exists.
+
+  \item \texttt{SpendsOutput(o)} checks that the transaction spends
+  the output referenced by $\texttt{o}$ in the \UTXO.
+
+  \item \texttt{TickAfter(tick1)} checks that the validity interval
+  of the current transaction starts after time $\texttt{tick1}$.
+
+  \item \texttt{Forges(tkns)} checks that the transaction forges exactly
+  $\texttt{tkns}$ of the asset with the policy ID that is being validated.
+
+  \item \texttt{Burns(tkns)} checks that the transaction burns exactly
+  $\texttt{tkns}$ of the asset with the policy ID that is being validated.
+
+  \item \texttt{FreshTokens}
+  checks that all tokens of the asset being forged are non-fungible.
+
+  This script must check that the names of the tokens in this token bundle
+  are generated by hashing some unique data. This data must be unique to both
+  the transaction itself and the token within the asset being forged.
+  In particular, we can hash a pair of
+  %
+  \begin{enumerate}
+    \item some \emph{output} in the \UTXO\ that the
+    transaction consumes, and
+    \item the \emph{index} of the token name in (the
+    list representation of) the map of tokens being
+    forged (under the specific policy, by this transaction). We denote the
+    function that gets the index of a key in a key-value map by $\texttt{indexof}$.
+  \end{enumerate}
+
+  \item \texttt{AssetToAddress(addr)}
+  checks that all the tokens associated with the policy ID that
+  is equal to the hash of the script being run are output
+  to an \UTXO\ with the address $\texttt{addr}$. In the case that no $\texttt{addr}$ value is
+  provided (represented by $\_$), we use the $\texttt{addr}$ value passed to the evaluator as
+  the hash of the policy of the asset being forged.
+
+  \item \texttt{DoForge}
+  checks that this transaction forges tokens in the bundle controlled by the policy ID that is passed
+  to the FPS script evaluator (here, again, we make use of the separate passing of
+  the FPS script and the policy ID).
+
+  \item \texttt{SignedByPIDToken(pid)} verifies the hash of every key that has signed the transaction.
+
+  \item \texttt{SpendsCur(pid)}
+  verifies that the transaction is spending assets in the token bundle with policy
+  ID $\texttt{pid}$ (which is specified as part of the \emph{constructor}, and may be different
+  than the policy ID passed to the evaluator).
+
+\end{itemize}

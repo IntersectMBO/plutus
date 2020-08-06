@@ -1,0 +1,68 @@
+\section{Multi-Asset Support}
+\label{sec:multicurrency}
+
+In Bitcoin's ledger model~\cite{Nakamoto,formal-model-of-bitcoin-transactions,Zahnentferner18-UTxO}, transactions spend as yet \emph{unspent transaction outputs \textup{(}\!\UTXO{}s\textup{)}}, while supplying new unspent outputs to be consumed by subsequent transactions.
+Each individual \UTXO\ locks a specific \emph{quantity} of cryptocurrency by imposing specific conditions that need to be met to spend that quantity, such as for example signing the spending transaction with a specific secret cryptographic key, or passing some more sophisticated conditions enforced by a \emph{validator script}.
+Quantities of cryptocurrency in a transaction output are represented as an integral number of the smallest unit of that particular cryptocurrency --- in Bitcoin, these are Satoshis.
+To natively support multiple currencies in transaction outputs, we generalise those integral quantities to natively support the dynamic creation of new user-defined \emph{assets} or \emph{tokens}. Moreover, we require a means to forge tokens in a manner controlled by an asset's \emph{forging policy}.
+
+We achieve all this by the following three extensions to the basic \UTXO\ ledger model that are further detailed in
+the remainder of this section.
+%
+\begin{enumerate}
+\item Transaction outputs lock a \emph{heterogeneous token bundle} instead of only an integral value of one cryptocurrency.
+\item We extend transactions with a \emph{forge} field. This is a token bundle of tokens that are created (minted) or destroyed (burned) by that transaction.
+\item We introduce \emph{forging policy scripts \textup{(}FPS\textup{)}} that govern the creation and destruction of assets in forge fields. These scripts are not unlike the validators locking outputs in \UTXO.
+\end{enumerate}
+
+\subsection{Token bundles}
+
+We can regard transaction outputs in an \UTXO\ ledger as pairs \((\val, \nu)\) consisting of a locked value $\val$ and a validator script $\nu$ that encodes the spending condition. The latter may be proof of ownership by way of signing the spending transaction with a specific secret cryptography key or a temporal condition that allows an output to be spent only when the blockchain has reached a certain height (i.e. a certain number of blocks have been produced).
+
+To conveniently use multiple currencies in transaction outputs, we want each output to be able to lock varying quantities of multiple different currencies at once in its $\val$ field.
+This suggests using finite maps from some kind of \emph{asset identifier} to an integral quantity as a concrete representation, e.g. $\texttt{Coin} \mapsto 21$.
+Looking at the standard \UTXO\ ledger rules~\cite{Zahnentferner18-UTxO}, it becomes apparent that cryptocurrency quantities need to be monoids.
+It is a little tricky to make finite maps into a monoid, but the solution is to think of them as \emph{finitely supported functions} (see Section~\ref{sec:fsfs} for details).
+
+If want to use \emph{finitely supported functions} to achieve a uniform
+representation that can handle groups of related, but \emph{non-fungible} tokens, we need to go a step further.
+In order to not lose the grouping of related non-fungible tokens (all house tokens issued by a specific entity, for example) though, we need to move to a two-level structure --- i.e., finitely-supported functions of finitely-supported functions. Let's consider an example. Trading of rare in-game items is popular in modern, multi-player computer games. How about representing ownership of such items and trading of that ownership on our multi-asset \UTXO\ ledger? We might need tokens for ``hats'' and ``swords'', which form two non-fungible assets with possibly multiple tokens of each asset --- a hat is interchangeable with any other hat, but not with a sword, and also not with the currency used to purchase these
+items. Here our two-level structure pays off in its full generality, and we can represent currency to purchase items together with sets of items, where some can be multiples, e.g.,
+%
+\begin{align*}
+  & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 2\}, \mathsf{Game} \mapsto \{\mathsf{Hat} \mapsto 1, \mathsf{Sword} \mapsto 4\}\} \\
+  + \ & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 1\}, \mathsf{Game} \mapsto \{\mathsf{Sword} \mapsto 1, \mathsf{Owl} \mapsto 1\}\} \\
+  = \ & \{\mathsf{Coin} \mapsto \{\mathsf{Coin} \mapsto 3\}, \mathsf{Game} \mapsto \{\mathsf{Hat} \mapsto 1, \mathsf{Sword} \mapsto 5, \mathsf{Owl} \mapsto 1\}\} \ .
+\end{align*}
+
+\subsection{Forge fields}
+
+If new tokens are frequently generated (such as issuing new hats whenever an in-game achievement has been reached) and destroyed (a player may lose a hat forever if the wind picks up), these operations need to be lightweight and cheap. We achieve this by adding a forge field to every transaction. It is a token bundle (just like the $\val$ in an output), but admits positive quantities (for minting new tokens) and negative quantities (for burning existing tokens). Of course, minting and burning needs to be strictly controlled.
+
+\subsection{Forging policy scripts}
+
+The script validation mechanism for locking \UTXO\ outputs is as follows :
+in order to for a transaction to spend an output \((\val, \nu)\), the validator
+script $\nu$ needs to be executed and approve of the spending transaction.
+Similarly, the forging
+policy scripts associated with the tokens being minted or burned by a transaction
+are run in order to validate those actions.
+In the spirit of the Bitcoin Miniscript approach, we chose to include a simple
+scripting language supporting forging policies for several common usecases, such as
+single issuer, non-fungible, or one-time issue tokens, etc.
+(see Section~\ref{sec:fps-language} for all the usecases).
+
+In order to establish a permanent association between the forging policy and the
+assets controlled by it, we propose a hashing approach, as opposed to a global registry
+lookup. Such a registry requires a specialized access control scheme, as well
+as a scheme for cleaning up unused entries.
+In the representation of custom assets we propose, each token is associated with the
+hash of the forging policy script required to validate at the time of forging
+the token, eg.
+in order to forge the value
+\(\{\mathsf{HASHVALUE} \mapsto \{\mathsf{Owl} \mapsto 1\}\}\), a script whose
+hash is $\mathsf{HASHVALUE}$ will be run.
+
+Relying on permanent hash associations to identify asset forging policies and their assets also has its disadvantages.
+For example, policy hashes are long strings that, in our model, will have multiple copies stored on the ledger.
+Such strings are not human-readable, take up valuable ledger real estate, and increase transaction-size-based fees.
