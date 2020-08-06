@@ -1,10 +1,15 @@
 module HaskellEditor where
 
+import Prelude hiding (div)
+import API (_RunResult)
+import Control.Monad.Except (runExceptT)
+import Control.Monad.Reader (runReaderT)
+import Data.Array (catMaybes)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Enum (toEnum, upFromIncluding)
 import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (to, view, (^.))
+import Data.Lens (assign, to, use, view, (^.))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -12,52 +17,150 @@ import Data.String (Pattern(..), split)
 import Data.String as String
 import Effect.Aff.Class (class MonadAff)
 import Examples.Haskell.Contracts as HE
-import Halogen (ClassName(..), ComponentHTML, liftEffect)
-import Halogen.Classes (aHorizontal, accentBorderBottom, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
-import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre, pre_, section, select, slot, small_, text, ul)
+import Halogen (ClassName(..), ComponentHTML, HalogenM, liftEffect, query)
+import Halogen.Blockly as Blockly
+import Halogen.Classes (aHorizontal, activeClasses, analysisPanel, closeDrawerArrowIcon, codeEditor, footerPanelBg, jFlexStart, minimizeIcon, panelSubHeader, panelSubHeaderMain, spaceLeft)
+import Halogen.HTML (HTML, a, button, code_, div, div_, img, li, option, pre_, section, select, slot, small_, text, ul)
 import Halogen.HTML.Events (onClick, onSelectedIndexChange)
 import Halogen.HTML.Properties (alt, class_, classes, disabled, src)
 import Halogen.HTML.Properties as HTML
 import Halogen.Monaco (monacoComponent)
-import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..))
+import Halogen.Monaco (Message(..), Query(..)) as Monaco
+import HaskellEditor.Types (Action(..), State, _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _showBottomPanel)
+import Language.Haskell.Interpreter (CompilationError(..), InterpreterError(..), InterpreterResult(..), SourceCode(..), _InterpreterResult)
 import Language.Haskell.Monaco as HM
 import LocalStorage as LocalStorage
-import Monaco as Monaco
+import Marlowe (SPParams_)
+import Marlowe as Server
+import Marlowe.Parser (parseContract)
+import Monaco (IMarkerData, markerSeverity)
+import Monaco (getModel, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), isLoading, isSuccess)
-import Prelude (bind, bottom, const, eq, map, not, show, unit, ($), (<$>), (<<<), (<>), (==), (||))
+import Network.RemoteData as RemoteData
+import Servant.PureScript.Settings (SPSettings_)
+import Simulation.State (_result)
+import Simulation.Types as ST
+import StaticData (bufferLocalStorageKey)
 import StaticData as StaticData
-import Types (ChildSlots, FrontendState, HAction(..), _activeHaskellDemo, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, bottomPanelHeight)
+import Text.Pretty (pretty)
+import Types (ChildSlots, Message, _blocklySlot, _haskellEditorSlot, _simulationSlot, bottomPanelHeight)
+
+handleAction ::
+  forall m.
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Action ->
+  HalogenM State Action ChildSlots Message m Unit
+handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
+  liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
+  assign _activeHaskellDemo ""
+
+handleAction _ (ChangeKeyBindings bindings) = do
+  assign _haskellEditorKeybindings bindings
+  void $ query _haskellEditorSlot unit (Monaco.SetKeyBindings bindings unit)
+
+handleAction settings Compile = do
+  mContents <- query _haskellEditorSlot unit (Monaco.GetText identity)
+  case mContents of
+    Nothing -> pure unit
+    Just contents -> do
+      assign _compilationResult Loading
+      result <- RemoteData.fromEither <$> (runExceptT $ flip runReaderT settings $ (Server.postContractHaskell $ SourceCode contents))
+      assign _compilationResult result
+      -- Update the error display.
+      let
+        markers = case result of
+          Success (JsonEither (Left errors)) -> toMarkers errors
+          _ -> []
+      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
+
+handleAction _ (LoadScript key) = do
+  case Map.lookup key StaticData.demoFiles of
+    Nothing -> pure unit
+    Just contents -> do
+      void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
+      assign _activeHaskellDemo key
+
+handleAction _ (ShowBottomPanel val) = do
+  assign _showBottomPanel val
+  void $ query _haskellEditorSlot unit (Monaco.Resize unit)
+  pure unit
+
+handleAction _ SendResultToSimulator = do
+  mContract <- use _compilationResult
+  let
+    contract = case mContract of
+      Success (JsonEither (Right result)) ->
+        let
+          unformatted = view (_InterpreterResult <<< _result <<< _RunResult) result
+        in
+          case parseContract unformatted of
+            Right pcon -> show $ pretty pcon
+            Left _ -> unformatted
+      _ -> ""
+  void $ query _simulationSlot unit (ST.SetEditorText contract unit)
+  void $ query _simulationSlot unit (ST.ResetContract unit)
+
+handleAction _ SendResultToBlockly = do
+  mContract <- use _compilationResult
+  case mContract of
+    Success (JsonEither (Right result)) -> do
+      let
+        source = view (_InterpreterResult <<< _result <<< _RunResult) result
+      void $ query _blocklySlot unit (Blockly.SetCode source unit)
+    _ -> pure unit
+
+toMarkers :: InterpreterError -> Array IMarkerData
+toMarkers (TimeoutError _) = []
+
+toMarkers (CompilationErrors errors) = catMaybes (toMarker <$> errors)
+
+toMarker :: CompilationError -> Maybe IMarkerData
+toMarker (RawError _) = Nothing
+
+toMarker (CompilationError { row, column, text }) =
+  Just
+    { severity: markerSeverity "Error"
+    , message: String.joinWith "\\n" text
+    , startLineNumber: row
+    , startColumn: column
+    , endLineNumber: row
+    , endColumn: column
+    , code: mempty
+    , source: mempty
+    }
 
 render ::
   forall m.
   MonadAff m =>
-  FrontendState ->
-  Array (ComponentHTML HAction ChildSlots m)
+  State ->
+  ComponentHTML Action ChildSlots m
 render state =
-  [ section [ classes [ panelSubHeader, aHorizontal ] ]
-      [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
-          [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
-              [ div [ classes [ ClassName "demos", spaceLeft ] ]
-                  [ small_ [ text "Demos:" ]
-                  ]
-              ]
-          , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
-              (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
-          ]
-      , div [ class_ (ClassName "editor-options") ]
-          [ select
-              [ HTML.id_ "editor-options"
-              , class_ (ClassName "dropdown-header")
-              , onSelectedIndexChange (\idx -> HaskellSelectEditorKeyBindings <$> toEnum idx)
-              ]
-              (map keybindingItem (upFromIncluding bottom))
-          ]
-      ]
-  , section [ class_ (ClassName "code-panel") ]
-      [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
-          [ haskellEditor state ]
-      ]
-  ]
+  div_
+    [ section [ classes [ panelSubHeader, aHorizontal ] ]
+        [ div [ classes [ panelSubHeaderMain, aHorizontal ] ]
+            [ div [ classes [ ClassName "demo-title", aHorizontal, jFlexStart ] ]
+                [ div [ classes [ ClassName "demos", spaceLeft ] ]
+                    [ small_ [ text "Demos:" ]
+                    ]
+                ]
+            , ul [ classes [ ClassName "demo-list", aHorizontal ] ]
+                (demoScriptLink <$> Array.fromFoldable (Map.keys StaticData.demoFiles))
+            ]
+        , div [ class_ (ClassName "editor-options") ]
+            [ select
+                [ HTML.id_ "editor-options"
+                , class_ (ClassName "dropdown-header")
+                , onSelectedIndexChange (\idx -> ChangeKeyBindings <$> toEnum idx)
+                ]
+                (map keybindingItem (upFromIncluding bottom))
+            ]
+        ]
+    , section [ class_ (ClassName "code-panel") ]
+        [ div [ classes (codeEditor $ state ^. _showBottomPanel) ]
+            [ haskellEditor state ]
+        ]
+    ]
   where
   keybindingItem item =
     if state ^. _haskellEditorKeybindings == item then
@@ -65,14 +168,14 @@ render state =
     else
       option [ HTML.value (show item) ] [ text $ show item ]
 
-  demoScriptLink key = li [ state ^. _activeHaskellDemo <<< activeClasses (eq key) ] [ a [ onClick $ const $ Just $ LoadHaskellScript key ] [ text key ] ]
+  demoScriptLink key = li [ state ^. _activeHaskellDemo <<< activeClasses (eq key) ] [ a [ onClick $ const $ Just $ LoadScript key ] [ text key ] ]
 
 haskellEditor ::
   forall m.
   MonadAff m =>
-  FrontendState ->
-  ComponentHTML HAction ChildSlots m
-haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< HaskellHandleEditorMessage)
+  State ->
+  ComponentHTML Action ChildSlots m
+haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
   setup editor =
     liftEffect do
@@ -84,7 +187,7 @@ haskellEditor state = slot _haskellEditorSlot unit component unit (Just <<< Hask
 
   component = monacoComponent $ HM.settings setup
 
-bottomPanel :: forall p. FrontendState -> HTML p HAction
+bottomPanel :: forall p. State -> HTML p Action
 bottomPanel state =
   div ([ classes [ analysisPanel ], bottomPanelHeight (state ^. _showBottomPanel) ])
     [ div
@@ -98,7 +201,7 @@ bottomPanel state =
                 , div
                     [ classes ([ ClassName "panel-tab", aHorizontal, ClassName "haskell-buttons" ])
                     ]
-                    [ button [ onClick $ const $ Just CompileHaskellProgram ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
+                    [ button [ onClick $ const $ Just Compile ] [ text (if state ^. _compilationResult <<< to isLoading then "Compiling..." else "Compile") ]
                     , sendResultButton state "Send To Simulator" SendResultToSimulator
                     , sendResultButton state "Send To Blockly" SendResultToBlockly
                     ]
@@ -111,7 +214,7 @@ bottomPanel state =
         ]
     ]
 
-sendResultButton :: forall p. FrontendState -> String -> HAction -> HTML p HAction
+sendResultButton :: forall p. State -> String -> Action -> HTML p Action
 sendResultButton state msg action =
   let
     compilationResult = view _compilationResult state
@@ -125,7 +228,7 @@ sendResultButton state msg action =
           [ text msg ]
       _ -> text ""
 
-resultPane :: forall p. FrontendState -> Array (HTML p HAction)
+resultPane :: forall p. State -> Array (HTML p Action)
 resultPane state =
   if state ^. _showBottomPanel then case view _compilationResult state of
     Success (JsonEither (Right (InterpreterResult result))) ->
@@ -144,7 +247,7 @@ resultPane state =
   else
     [ text "" ]
 
-compilationErrorPane :: forall p. CompilationError -> HTML p HAction
+compilationErrorPane :: forall p. CompilationError -> HTML p Action
 compilationErrorPane (RawError error) = div_ [ text error ]
 
 compilationErrorPane (CompilationError error) =
