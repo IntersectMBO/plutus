@@ -35,6 +35,7 @@ import Data.Lens (to, view, (^.))
 import Data.List (reverse, take)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Newtype (class Newtype, unwrap)
+import Data.Ord (min)
 import Data.Traversable (sequence, traverse, traverse_)
 import Data.Tuple (Tuple(..))
 import Foreign (F, readString, Foreign)
@@ -254,7 +255,9 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             "initial exchange date %8" <>
             "termination date %9" <>
             "rate reset cycle %10" <>
-            "interest payment cycle %11"
+            "interest payment cycle %11" <>
+            "observation constraints %12" <>
+            "payoff analysis constraints % 13"
         , args0:
           [ DummyCentre
           , Value { name: "start_date", check: "date", align: Right }
@@ -267,6 +270,8 @@ toDefinition (ActusContractType PaymentAtMaturity) =
           , Value { name: "termination_date", check: "date", align: Right }
           , Value { name: "rate_reset_cycle", check: "cycle", align: Right }
           , Value { name: "interest_rate_cycle", check: "cycle", align: Right }
+          , Value { name: "interest_rate_ctr", check: "assertionCtx", align: Right }
+          , Value { name: "payoff_ctr", check: "assertion", align: Right }
           ]
         , colour: blockColour (ActusContractType PaymentAtMaturity)
         , previousStatement: Just (show BaseContractType)
@@ -480,6 +485,8 @@ instance decodeJsonActusContract :: Decode ActusContract where
 data ActusValue = DateValue String String String 
   | CycleValue ActusValue Int ActusPeriodType 
   | DecimalValue Number
+  | ActusAssertionCtx Number Number
+  | ActusAssertionNpv Number Number
   | NoActusValue
   | ActusError String
 
@@ -568,6 +575,18 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat valueString
     pure $ DecimalValue value
+  blockDefinition ActusAssertionContextType g block = do
+    minValueString <- getFieldValue block "min_rrmo"
+    minValue <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat minValueString
+    maxValueString <- getFieldValue block "max_rrmo"
+    maxValue <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat maxValueString
+    pure $ ActusAssertionCtx minValue maxValue
+  blockDefinition ActusAssertionType g block = do
+    npvString <- getFieldValue block "npv"
+    npv <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat npvString
+    zeroInterestString <- getFieldValue block "rate"
+    zeroInterest <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat zeroInterestString
+    pure $ ActusAssertionNpv npv zeroInterest
   blockDefinition _ g block = Either.Right NoActusValue
 
 instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPeriodType where
@@ -600,6 +619,24 @@ blocklyCycleToCycle (CycleValue _ value period) = Either.Right $ Just $ Cycle {
 blocklyCycleToCycle (ActusError msg) = Either.Left msg
 blocklyCycleToCycle NoActusValue = Either.Right Nothing
 blocklyCycleToCycle x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
+
+blocklyAssertionCtxToAssertionCtx :: ActusValue -> Either String (Maybe AssertionContext)
+blocklyAssertionCtxToAssertionCtx (ActusAssertionCtx min max) = Either.Right $ Just $ AssertionContext {
+  rrmoMin: min
+  , rrmoMax: max
+}
+blocklyAssertionCtxToAssertionCtx (ActusError msg) = Either.Left msg
+blocklyAssertionCtxToAssertionCtx NoActusValue = Either.Right Nothing
+blocklyAssertionCtxToAssertionCtx x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
+
+blocklyAssertionToAssertion :: ActusValue -> Either String (Maybe Assertion)
+blocklyAssertionToAssertion (ActusAssertionNpv npv rate) = Either.Right $ Just $ NpvAssertionAgainstZeroRiskBond {
+  zeroRiskInterest : rate
+  , expectedNpv : npv
+}
+blocklyAssertionToAssertion (ActusError msg) = Either.Left msg
+blocklyAssertionToAssertion NoActusValue = Either.Right Nothing
+blocklyAssertionToAssertion x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 blocklyCycleToAnchor :: ActusValue -> Either String (Maybe ActusValue)
 blocklyCycleToAnchor (CycleValue anchor _ _) = Either.Right $ Just anchor 
