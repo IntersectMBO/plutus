@@ -257,7 +257,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
             "rate reset cycle %10" <>
             "interest payment cycle %11" <>
             "observation constraints %12" <>
-            "payoff analysis constraints % 13"
+            "payoff analysis constraints %13"
         , args0:
           [ DummyCentre
           , Value { name: "start_date", check: "date", align: Right }
