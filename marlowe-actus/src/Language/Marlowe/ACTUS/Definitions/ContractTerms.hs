@@ -126,6 +126,7 @@ data AssertionContext = AssertionContext
 data Assertion = NpvAssertionAgainstZeroRiskBond 
   {
     zeroRiskInterest :: Double
+    , expectedNpv :: Double
   } deriving stock (Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 

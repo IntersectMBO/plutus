@@ -8,7 +8,7 @@ import           Data.Sort                                               (sortOn
 
 import           Language.Marlowe                                        (Contract(Assert), Value(..), Observation(..))
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(..), Assertion(..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
                                                                           calculationDay, paymentDay)
 import           Language.Marlowe.ACTUS.MarloweCompat                    (constnt, useval)
@@ -58,8 +58,8 @@ genProjectedCashflows terms =
     in
         sortOn cashPaymentDay $ genCashflow <$> L.zip states payoffs
 
-genZeroRiskAssertions :: Double -> Double -> ContractTerms -> Contract -> Contract
-genZeroRiskAssertions zeroRiskInterest threshold terms@ContractTerms{..} continue = 
+genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
+genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue = 
     let
         cfs = genProjectedCashflows terms
 
@@ -74,4 +74,4 @@ genZeroRiskAssertions zeroRiskInterest threshold terms@ContractTerms{..} continu
                 sign x = if (amount cf < 0.0) then (NegValue x) else x
             in (constnt discountFactor) * (sign $ useval "payoff" t) + acc --todo plus vs minus
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
-    in Assert (ValueLT (constnt threshold) npv) continue
+    in Assert (ValueLT (constnt expectedNpv) npv) continue
