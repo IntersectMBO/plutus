@@ -33,7 +33,7 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
 import Data.Lens (to, view, (^.))
 import Data.List (reverse, take)
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (min)
 import Data.Traversable (sequence, traverse, traverse_)
@@ -661,10 +661,13 @@ actusContractToTerms raw = do --todo use monad transformers?
   rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue 
   notional <- Either.note "notional is a mandatory field!" <$> actusDecimalToNumber c.notional >>= identity
   premium <- fromMaybe 0.0 <$> actusDecimalToNumber c.premiumDiscount
-  interestRate <- actusDecimalToNumber c.interestRate
   interestRateCycle <- blocklyCycleToCycle c.interestRateCycle
   interestRateAnchorValue <- blocklyCycleToAnchor c.interestRateCycle
   interestRateAnchor <- sequence $ actusDateToDay <$> interestRateAnchorValue
+  interestRateUnchecked <- actusDecimalToNumber c.interestRate
+  interestRate <- if isJust interestRateCycle && isNothing interestRateUnchecked 
+          then Either.Left "Please specify interest rate"
+          else Either.Right interestRateUnchecked 
   assertionCtx <- blocklyAssertionCtxToAssertionCtx c.assertionCtx
   assertion <- blocklyAssertionToAssertion c.assertion
   let constraint ctx = Assertions {
