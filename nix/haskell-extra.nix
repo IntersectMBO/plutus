@@ -6,26 +6,58 @@
 ############################################################################
 { pkgs, index-state, checkMaterialization }:
 {
+  Agda = pkgs.haskell-nix.hackage-package {
+    name = "Agda";
+    version = "2.6.1";
+    plan-sha256 = "1l8fviiy9baqys6gq1s1lrpczv355yl0w4p30ma2n9y71xv356pq";
+    inherit index-state checkMaterialization;
+    modules = [{
+      # Agda is a huge pain. They have a special custom setup that compiles the interface files for
+      # the Agda that ships with the compiler. These go in the data files for the *library*, but they
+      # require the *executable* to compile them, which depends on the library!
+      # They get away with it by using the old-style builds and building everything together, we can't
+      # do that.
+      # So we work around it:
+      # - turn off the custom setup
+      # - manually compile the executable (fortunately it has no extra dependencies!) and do the
+      # compilation at the end of the library derivation.
+      packages.Agda.package.buildType = pkgs.lib.mkForce "Simple";
+      packages.Agda.components.library.postInstall = ''
+        # Compile the executable using the package DB we've just made, which contains
+        # the main Agda library
+        ghc src/main/Main.hs -package-db=$out/package.conf.d -o agda
+
+        # Find all the files in $out (would be $data if we had a separate data output)
+        shopt -s globstar
+        files=($out/**/*.agda)
+        for f in "''${files[@]}" ; do
+          echo "Compiling $f"
+          # This is what the custom setup calls in the end
+          ./agda --no-libraries --local-interfaces $f
+        done
+      '';
+    }];
+  };
   cabal-install = pkgs.haskell-nix.hackage-package {
     name = "cabal-install";
     version = "3.2.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "1pah0hdljyppj51dwa0s8yjmi9dv75xqsk6fghlsz7a3r0dchcss";
+    plan-sha256 = "0cal7blv3cc354r8carx3h8ghjqdlkcw30vrqqw59dhzi8nsrpsw";
   };
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0vdv4jjabblfn41nxpjgsyvy3yrgd4k2p0s39hhbifllga2ngzds";
+    plan-sha256 = "1lcz59vax5f3xc9m4kiafi40q4z24rjd15dk8nnxcpqk0d2ahjhf";
   };
   hlint = pkgs.haskell-nix.hackage-package {
     name = "hlint";
     version = "2.2.11";
     inherit index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
-    plan-sha256 = "0vmf2wzc2b9h4cxxj0mwpza9dy23n7dxadj6x7xaf8p9pmcmmmd5";
+    plan-sha256 = "05abw66612hb9sg3fy2sxnin0dvp4m8x3i6n3xrydvh54g5pp5zn";
   };
   inherit (
     let hspkgs = pkgs.haskell-nix.cabalProject {
@@ -42,7 +74,7 @@
           }."${location}"."${tag}";
         inherit index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = "16b8ccn52fs8vn03iysmrna265rkcybhy6py356qr127wrv7ka56";
+        plan-sha256 = "0a6c4lhnlm2lkic91ips0gb3hqlp3fk2aa01nsa8dhz9l8zg63da";
         compiler-nix-name = "ghc883";
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
