@@ -24,6 +24,8 @@ allTests = testGroup "all tests"
       testTyProp depth kind prop_checkKindSound
   , testCaseCount "normalization" $
       testTyProp depth kind prop_normalizePreservesKind
+  , testCaseCount "normalizationSound" $
+      testTyProp depth kind prop_normalizeTypeSound
   ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -62,4 +64,16 @@ prop_normalizePreservesKind k _ tyQ = isSafe $ do
     Just _ -> return ()
     Nothing -> throwError undefined -- TODO
 
-
+-- the agda implementation throws names away, so I guess we need to compare deBruijn terms
+prop_normalizeTypeSound :: TyProp
+prop_normalizeTypeSound k tyG tyQ = isSafe $ do
+  ty <- withExceptT GenErrorP tyQ
+  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+    Just tyN -> return tyN
+    Nothing -> throwError undefined -- TODO
+  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
+  
+  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
+  --ty2DB <- withExceptT FVErrorP $ deBruijnTy ty2
+  return (ty1 == (AlexPn 0 0 0 <$ ty2))
