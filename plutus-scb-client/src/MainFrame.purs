@@ -38,7 +38,7 @@ import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
 import MonadApp (class MonadApp, activateContract, getFullReport, invokeEndpoint, runHalogenApp)
-import Network.RemoteData (RemoteData(..))
+import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Network.StreamData as Stream
 import Playground.Lenses (_endpointDescription, _schema)
@@ -140,11 +140,8 @@ handleAction LoadFullReport = do
   assignFullReportData Loading
   fullReportResult <- getFullReport
   assignFullReportData fullReportResult
-  for_ fullReportResult
-    ( \report ->
-        traverse_ updateFormsForContractInstance
-          (view (_contractReport <<< _crActiveContractStates) report)
-    )
+  traverse_ updateFormsForContractInstance
+    (view (_Success <<< _contractReport <<< _crActiveContractStates) fullReportResult)
   where
   assignFullReportData value = do
     assign _contractSignatures
