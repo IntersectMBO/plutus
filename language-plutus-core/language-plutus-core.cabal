@@ -214,7 +214,7 @@ library
         parser-combinators >= 0.4.0,
         prettyprinter >=1.1.0.1,
         prettyprinter-configurable -any,
-        recursion-schemes -any,
+        recursion-schemes <5.2,
         safe-exceptions -any,
         semigroups -any,
         semigroupoids -any,

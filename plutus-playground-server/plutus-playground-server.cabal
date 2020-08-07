@@ -80,7 +80,7 @@ library
         plutus-tx -any,
         process -any,
         regex-compat -any,
-        recursion-schemes -any,
+        recursion-schemes <5.2,
         plutus-contract -any,
         row-types -any,
         serialise -any,

@@ -99,7 +99,7 @@ library
         template-haskell -any,
         text -any,
         transformers -any,
-        recursion-schemes -any,
+        recursion-schemes <5.2,
         lens -any,
         deriving-compat -any,
         newtype-generics -any,
