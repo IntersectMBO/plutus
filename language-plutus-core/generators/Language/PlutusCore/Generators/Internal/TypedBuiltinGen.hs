@@ -36,7 +36,6 @@ import           Data.Functor.Identity
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
 import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Internal.Gen                             as Gen
 import qualified Hedgehog.Range                                    as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
