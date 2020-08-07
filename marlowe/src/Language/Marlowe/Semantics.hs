@@ -22,7 +22,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -O0 #-}
 
 {-| = Marlowe: financial contracts domain specific language for blockchain
 

@@ -6,17 +6,18 @@
 ############################################################################
 { pkgs, compiler-nix-name, index-state, checkMaterialization, sources }:
 {
-  cabal-install = pkgs.haskell-nix.hackage-package {
+  cabal-install = (pkgs.haskell-nix.cabalProject {
     name = "cabal-install";
-    version = "3.2.0.0";
+    src = sources.cabal;
+    modules = [{ reinstallableLibGhc = true; }];
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
-      ghc883 = "13rwlkbhb1jszxamfy85j5wfs0pflsgb1jda2h3d6i0bzi1m0kgw";
-      ghc884 = "0a3gfm5qbi7cqgjs7ia8c2rkwi89x4bb2r0zr9xl5gz8x73sv588";
-      ghc8101 = "1clgs6vafmzas4iyck13z7gnymphw3fw4lwrbbh2j8227v0b6rgf";
+      ghc883 = "1bqck4gmacikzns7xmb0hmbc0dxw0qmzaaxw03mzgpkxqfcrl32z";
+      ghc884 = "14fh7yiw3qflg2yp7lxc1yphl4zq9gqjy3whpgvlsfli0dshl6gk";
+      ghc8101 = "1g5fbmj242h7nsc1558j3p38x6ji1m2bw0h8gy018rshdq64hqvn";
     }.${compiler-nix-name};
-  };
+  }).cabal-install;
   stylish-haskell = pkgs.haskell-nix.hackage-package {
     name = "stylish-haskell";
     version = "0.10.0.0";
@@ -39,13 +40,13 @@
       ghc8101 = "182ghddbj9fg6jd6w54s1byrfzhnhf3vwmfwzm5a9rg6yik0vm82";
     }.${compiler-nix-name};
   };
-  inherit (
-    let hspkgs = pkgs.haskell-nix.cabalProject {
+  inherit (pkgs.haskell-nix.cabalProject {
         src = pkgs.fetchFromGitHub {
+          name = "haskell-language-server";
           owner = "haskell";
           repo = "haskell-language-server";
-          rev = "2186df00a9414c640fba1ae2acc3d9aa21ab6e4c";
-          sha256 = "0qh41jbf1a697l8wf48zmfs6vf08gijb0w42h26nvimcgc5dkh9a";
+          rev = "6c7b43a3ebc8bf9e3d22318055121d90b051ed8e";
+          sha256 = "0y5zqp5f890579dxx2dcx860zf4qvhjamzik72w89zavsn5xb3w5";
           fetchSubmodules = true;
         };
         sha256map = {
@@ -55,44 +56,15 @@
         inherit compiler-nix-name index-state checkMaterialization;
         # Invalidate and update if you change the version
         plan-sha256 = {
-          ghc883 = "0xr20i83wv7m4hg2vmqxfz2427whgzvh4kq0f67n7ay6kyzfaafm";
-          ghc884 = "0fylfdsbbsc2q2ckgcjxxzhnizpz2i6j6a6l4a26w72a13pd9lva";
-          ghc8101 = "0x1dv1pvkvasqkhgnk6qlq0xng37dr21agcbm13bxdich3gisbhm";
+          ghc883 = "0c2mj41wmbygnxx9bb5r287z32x5yrkkj61kb524dhdrwmhlqkdf";
         }.${compiler-nix-name};
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
           packages.hie-bios.src = sources.hie-bios;
         }];
-      };
-    in { haskell-language-server = hspkgs.haskell-language-server; hie-bios = hspkgs.hie-bios; })
-  hie-bios haskell-language-server;
-  ghcide = (pkgs.haskell-nix.cabalProject {
-    name = "ghcide";
-    src = sources.ghcide;
-    inherit compiler-nix-name index-state checkMaterialization;
-    cabalProjectLocal = ''
-      allow-newer: diagrams-svg:base, monoid-extras:base, *:base
-    '';
-    # Invalidate and update if you change the version or index-state
-    plan-sha256 = {
-      ghc883 = "14i14k0v2mmqiaz1dfd6x3bw011hns3a0ylj5w940pf7h8yjccaj";
-      ghc884 = "0115vb8hqcgjkdq3x8qdh7wz3wabvs2v29ybc3iw0bkpcwv0g7q2";
-      ghc8101 = "0mabhag58g9zikgfcs2xrydfza7nhfi04ndvmpir08x470m1z4rv";
-    }.${compiler-nix-name};
-    modules = [({config, ...}: {
-      packages.ghcide.configureFlags = pkgs.lib.optional (!pkgs.stdenv.targetPlatform.isMusl)
-        "--enable-executable-dynamic";
-      nonReinstallablePkgs = [ "Cabal" "array" "base" "binary" "bytestring" "containers" "deepseq"
-                               "directory" "filepath" "ghc" "ghc-boot" "ghc-boot-th" "ghc-compact"
-                               "ghc-heap" "ghc-prim" "ghci" "haskeline" "hpc" "integer-gmp"
-                               "libiserv" "mtl" "parsec" "pretty" "process" "rts" "stm"
-                               "template-haskell" "terminfo" "text" "time" "transformers" "unix"
-                               "xhtml"
-                             ];
-      packages.hie-bios.src = sources.hie-bios;
-    })];
-  }).ghcide;
+      })
+  hie-bios haskell-language-server ghcide;
   purty =
     let hspkgs = pkgs.haskell-nix.stackProject {
         src = pkgs.fetchFromGitLab {
@@ -107,6 +79,7 @@
         # Invalidate and update if you change the version
         stack-sha256 = "1r1fyzbl69jir30m0vqkyyf82q2548kdql4m05lss7fdsbdv4bw1";
         inherit checkMaterialization;
+        modules = [{ compiler.nix-name = pkgs.lib.mkForce "ghc865"; }];
         pkg-def-extras = [
           # Workaround for https://github.com/input-output-hk/haskell.nix/issues/214
           (hackage: {

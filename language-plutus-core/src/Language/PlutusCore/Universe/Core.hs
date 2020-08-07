@@ -37,13 +37,14 @@ module Language.PlutusCore.Universe.Core
 
 import           Control.DeepSeq
 import           Control.Monad
-import           Data.GADT.Compare
+import           Data.GADT.Compare          (GEq, geq, defaultEq)
 import           Data.GADT.Compare.TH
 import           Data.GADT.Show
 import           Data.Hashable
 import qualified Data.Kind                  as GHC (Type)
 import           Data.Proxy
 import           Data.Text.Prettyprint.Doc  (Pretty (..))
+import           Data.Type.Equality         ((:~:)(Refl))
 import           GHC.Exts
 import           Language.Haskell.TH.Lift
 import           Language.Haskell.TH.Syntax

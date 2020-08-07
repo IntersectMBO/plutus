@@ -12,6 +12,18 @@
         "url": "https://github.com/agda/agda-stdlib/archive/v1.2.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "cabal": {
+        "branch": "master",
+        "description": "Official upstream development repository for Cabal and cabal-install",
+        "homepage": "https://haskell.org/cabal",
+        "owner": "haskell",
+        "repo": "cabal",
+        "rev": "0d0f9e9f5e5ea677a102c6622f412ce314991e3e",
+        "sha256": "1rnn6ypvl69l4ffwi97mf05a1dsdvgskqjx2kjliaz2yf3ya539h",
+        "type": "tarball",
+        "url": "https://github.com/haskell/cabal/archive/0d0f9e9f5e5ea677a102c6622f412ce314991e3e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "docker-nixpkgs": {
         "branch": "master",
         "description": "docker images from nixpkgs [maintainer=@zimbatm]",
@@ -36,52 +48,40 @@
         "type": "tarball",
         "url": "https://github.com/justinwoo/easy-purescript-nix/archive/d4879bfd2b595d7fbd37da1a7bea5d0361975eb3.tar.gz"
     },
-    "ghcide": {
-        "branch": "master",
-        "description": "A library for building Haskell IDE tooling",
-        "homepage": "",
-        "owner": "digital-asset",
-        "repo": "ghcide",
-        "rev": "9272bfe03021d50dc8a486031217257c8ca5c7a4",
-        "sha256": "0g5dpj3m8z846hbzwnrzbrly4iki3lmhbxi0j8yqlbsivm4jnydq",
-        "type": "tarball",
-        "url": "https://github.com/digital-asset/ghcide/archive/9272bfe03021d50dc8a486031217257c8ca5c7a4.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "hackage.nix": {
         "branch": "master",
         "description": "Automatically generated Nix expressions for Hackage",
         "homepage": "",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "ee39e38efd3c44b4a03a48d9586e14f3478b526f",
-        "sha256": "0hh04r8rxbi6l8vy1wrrjbnmkbapjjq85n5ib9a6xxsgivbb8p7j",
+        "rev": "6be2e8a47504a4753dc8786bdc401ace902869cd",
+        "sha256": "1dj3ks79jnh2w2npy8q0yaxngcz0d5r8l8ihqgy7afjy7wpmn1gm",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/hackage.nix/archive/ee39e38efd3c44b4a03a48d9586e14f3478b526f.tar.gz",
+        "url": "https://github.com/input-output-hk/hackage.nix/archive/6be2e8a47504a4753dc8786bdc401ace902869cd.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
-        "branch": "master",
+        "branch": "hkm/cabal-package-comments",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "47924fa88e33d34ca59f95aa3a9270006ef37b01",
-        "sha256": "1rwr94ammwapm64cp854b65lxxjqjya8chpnxl5yvviimsj587xa",
+        "rev": "e3ee7663a2c85e032db40f3cb25f491e29b57989",
+        "sha256": "01ay561p9lapqvwns8n7sp60pzzzwihix7kdgp1j9ddd4niwhgvw",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/47924fa88e33d34ca59f95aa3a9270006ef37b01.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/e3ee7663a2c85e032db40f3cb25f491e29b57989.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hie-bios": {
-        "branch": "hkm/hie-project-file",
+        "branch": "hkm/hie-project-file-6.1",
         "description": null,
         "homepage": null,
         "owner": "hamishmack",
         "repo": "hie-bios",
-        "rev": "a78ee61986b39786f55e2ba412d5f7406d3c2317",
-        "sha256": "1gqlmpry2xgwjwhjmrrvzzdx421x05fisyv2xca6rmlk1mnkjwhy",
+        "rev": "295eeacaa5c64e00607adbee09cc3646f83bdafa",
+        "sha256": "132mx753rpmpc0kx75by8y5x5xqldpgrsrq8r7i6wgslq2iyjmdq",
         "type": "tarball",
-        "url": "https://github.com/hamishmack/hie-bios/archive/a78ee61986b39786f55e2ba412d5f7406d3c2317.tar.gz",
+        "url": "https://github.com/hamishmack/hie-bios/archive/295eeacaa5c64e00607adbee09cc3646f83bdafa.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "iohk-nix": {

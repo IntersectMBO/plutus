@@ -92,7 +92,7 @@ extra-deps:
     - network-mux
     - Win32-network
 - git: https://github.com/input-output-hk/cardano-prelude
-  commit: bd7eb69d27bfaee46d435bc1d2720520b1446426
+  commit: 71ea865408f2e03e6d6832359423546699730849
   subdirs:
     - .
     - test

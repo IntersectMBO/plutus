@@ -82,9 +82,9 @@ cradle:
   - path: ./marlowe/test
     config: { cradle: { cabal: { component: "marlowe:marlowe-test" } } }
 
-#  - path: ./marlowe-actus/src
-#    config: { cradle: { cabal: { component: "lib:marlowe-actus" } } }
-#  - path: ./marlowe-actus/test
-#    config: { cradle: { cabal: { component: "marlowe:marlowe-actus-test" } } }
+  - path: ./marlowe-actus/src
+    config: { cradle: { cabal: { component: "lib:marlowe-actus" } } }
+  - path: ./marlowe-actus/test
+    config: { cradle: { cabal: { component: "marlowe:marlowe-actus-test" } } }
 
 # Add more as needed, I'm too lazy
