@@ -48,14 +48,14 @@ createTwoTermBuiltinBench name as bs =
     bgroup (show name) $
         as <&> (\(x, xMem) ->
             bgroup (show xMem) $ bs <&> (\(y, yMem) ->
-                runTermBench (show yMem) $ mkIterApp () (builtin () $ StaticBuiltinName () name) [(mkConstant () x), (mkConstant () y)]
+                runTermBench (show yMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x), (mkConstant () y)]
             ))
 
 benchHashOperations :: StaticBuiltinName -> Benchmark
 benchHashOperations name =
     bgroup (show name) $
         byteStringsToBench seedA <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (builtin () $ StaticBuiltinName () name) [(mkConstant () x)]
+            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () x)]
         )
 
 -- for VerifySignature, for speed purposes, it shouldn't matter if the sig / pubkey are correct
@@ -67,7 +67,7 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     bgroup (show name) $
         bs <&> (\(x, xMem) ->
-            runTermBench (show xMem) $ mkIterApp () (builtin () $ StaticBuiltinName () name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
+            runTermBench (show xMem) $ mkIterApp () (staticBuiltinNameAsTerm name) [(mkConstant () pubKey), (mkConstant () x), (mkConstant () sig)]
         )
     where
         name = VerifySignature
