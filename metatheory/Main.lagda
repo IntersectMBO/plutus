@@ -71,6 +71,7 @@ postulate
   Program : Set
   convTm : Term → RawTm
   convTy : Type → RawTy
+  unconvTy : RawTy → Type
   convP : Program → RawTm
   readFile : String → IO ByteString
   parse : ByteString → Maybe ProgramN
@@ -98,6 +99,7 @@ postulate
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
+{-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT (-1) ty) #-}
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
 {-# COMPILE GHC getContents = BSL.getContents #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
@@ -316,10 +318,24 @@ main = execP >>= main'
 checkKind : Type → Kind → Maybe ⊤
 checkKind ty k = scopeCheckTy (shifterTy 0 Z (convTy ty)) U>>= λ ty →
   Data.Sum.[
-    (λ{ (k' ,, ty') → Data.Sum.[ (λ _ → just tt) , (λ _ → nothing) ] (meqKind k k') } )
+    (λ{ (k' ,, _) → Data.Sum.[ (λ _ → just tt) , (λ _ → nothing) ] (meqKind k k') } )
     ,
     (λ _ → nothing) ]
   (inferKind ∅ ty)
 
 {-# COMPILE GHC checkKind as checkKindAgda #-}
+\end{code}
+
+-- a Haskell interface to the type normalizer:
+\begin{code}
+-- TODO: ditto
+open import Type.BetaNormal
+normalizeType : Type → Maybe Type
+normalizeType ty = scopeCheckTy (shifterTy 0 Z (convTy ty)) U>>= λ ty →
+  Data.Sum.[ (λ{ (_ ,, n) →
+                 just (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n)))) })
+           , (λ _ → nothing) ]
+    (inferKind ∅ ty)
+
+{-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
 \end{code}
