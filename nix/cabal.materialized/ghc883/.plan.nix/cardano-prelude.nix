@@ -48,7 +48,6 @@
           (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
           (hsPkgs."fingertree" or (errorHandler.buildDepError "fingertree"))
           (hsPkgs."formatting" or (errorHandler.buildDepError "formatting"))
-          (hsPkgs."generic-deriving" or (errorHandler.buildDepError "generic-deriving"))
           (hsPkgs."ghc-heap" or (errorHandler.buildDepError "ghc-heap"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
@@ -77,7 +76,6 @@
           "Cardano/Prelude/Json/Canonical"
           "Cardano/Prelude/Json/Parse"
           "Cardano/Prelude/Orphans"
-          "Cardano/Prelude/Show"
           "Cardano/Prelude/Strict"
           "Cardano/Prelude"
           "Data/FingerTree/Strict"
@@ -131,7 +129,6 @@
             "Test/Cardano/Prelude/Orphans"
             "Test/Cardano/Prelude/QuickCheck/Arbitrary"
             "Test/Cardano/Prelude/QuickCheck/Property"
-            "Test/Cardano/Prelude/Show"
             "Test/Cardano/Prelude/Tripping"
             ];
           hsSourceDirs = [ "test" ];
