@@ -35,7 +35,9 @@ The invariant is preserved. In future we will enforce the invariant.
 type TypeVarEnv tyname uni ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname uni ann)))
 
 -- | The environments that type normalization runs in.
-newtype NormalizeTypeEnv tyname uni ann = NormalizeTypeEnv { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann}
+newtype NormalizeTypeEnv tyname uni ann = NormalizeTypeEnv
+    { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann
+    }
 
 makeLenses ''NormalizeTypeEnv
 
@@ -141,9 +143,11 @@ normalizeTypeM (TyApp ann fun arg)           = do
 normalizeTypeM var@(TyVar _ name)            = do
     mayTy <- lookupTyNameM name
     case mayTy of
+        -- A variable is always normalized.
         Nothing -> pure $ Normalized var
         Just ty -> liftDupable ty
 normalizeTypeM builtin@TyBuiltin{}           =
+    -- A built-in type is always normalized.
     pure $ Normalized builtin
 
 {- Note [Normalizing substitution]
