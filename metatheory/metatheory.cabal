@@ -1035,4 +1035,3 @@ test-suite test3-plc-agda
   other-modules:
     Language.PlutusCore.Gen.Common
     Language.PlutusCore.Gen.Type
-    Language.PlutusCore.PropTest

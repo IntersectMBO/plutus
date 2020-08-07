@@ -6,6 +6,7 @@ import Data.Coolean
 import Control.Monad.Except
 import Language.PlutusCore.PropTest
 import Language.PlutusCore
+import Language.PlutusCore.Normalize
 import Data.Either
 
 import MAlonzo.Code.Main (checkKindAgda, normalizeTypeAgda)
@@ -26,6 +27,8 @@ allTests = testGroup "all tests"
       testTyProp depth kind prop_normalizePreservesKind
   , testCaseCount "normalizationSound" $
       testTyProp depth kind prop_normalizeTypeSound
+  , testCaseCount "normalizationAgree" $
+      testTyProp depth kind prop_normalizeTypeSame
   ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -75,5 +78,16 @@ prop_normalizeTypeSound k tyG tyQ = isSafe $ do
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
   
   ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
-  --ty2DB <- withExceptT FVErrorP $ deBruijnTy ty2
+  return (ty1 == (AlexPn 0 0 0 <$ ty2))
+
+prop_normalizeTypeSame :: TyProp
+prop_normalizeTypeSame k tyG tyQ = isSafe $ do
+  ty <- withExceptT GenErrorP tyQ
+  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+    Just tyN -> return tyN
+    Nothing -> throwError undefined -- TODO
+  ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
+  
+  ty2 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
   return (ty1 == (AlexPn 0 0 0 <$ ty2))
