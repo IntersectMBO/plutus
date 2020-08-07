@@ -18,7 +18,7 @@ import qualified Data.Map as Map
 data Arg tyname name uni a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni a)
 
 -- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
-data BuiltinApp tyname name uni a = BuiltinApp (PLC.Builtin a) [Arg tyname name uni a]
+data BuiltinApp tyname name uni a = BuiltinApp (PLC.BuiltinName a) [Arg tyname name uni a]
 
 saturatesScheme ::  [Arg tyname name uni a] -> TypeScheme term args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
@@ -41,7 +41,7 @@ isSaturated
     -> BuiltinApp tyname name uni a
     -> Maybe Bool
 isSaturated (DynamicBuiltinNameMeanings means) (BuiltinApp b args) = case b of
-    PLC.BuiltinName _ bn -> withTypedBuiltinName @uni @term bn $ \(TypedBuiltinName _ sch) -> saturatesScheme args sch
+    PLC.StaticBuiltinName _ bn -> withTypedStaticBuiltinName @uni @term bn $ \(TypedStaticBuiltinName _ sch) -> saturatesScheme args sch
     PLC.DynBuiltinName _ bn -> case Map.lookup bn means of
         Just (DynamicBuiltinNameMeaning sch _ _) -> saturatesScheme args sch
         Nothing -> Nothing

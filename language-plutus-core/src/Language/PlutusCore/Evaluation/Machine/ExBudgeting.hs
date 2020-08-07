@@ -202,7 +202,7 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExTally where
 
 -- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
 estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
+    :: StaticBuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
 estimateStaticStagedCost _ _ = (1, 1)
 
 type CostModel = CostModelBase CostingFun

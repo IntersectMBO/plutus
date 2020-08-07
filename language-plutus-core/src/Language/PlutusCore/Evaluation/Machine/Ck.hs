@@ -163,7 +163,7 @@ applyEvaluate stack fun                    arg =
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
             Just (IterApp (StaticStagedBuiltinName name) spine) -> do
-                constAppResult <- applyBuiltinName name spine
+                constAppResult <- applyStaticBuiltinName name spine
                 case constAppResult of
                     ConstAppFailure     ->
                         throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term

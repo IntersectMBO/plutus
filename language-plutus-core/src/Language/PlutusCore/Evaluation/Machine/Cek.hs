@@ -410,7 +410,7 @@ applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
 applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
+    applyStaticBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

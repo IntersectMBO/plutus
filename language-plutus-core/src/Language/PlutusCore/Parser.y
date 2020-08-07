@@ -164,8 +164,8 @@ fixStr :: Token ann -> Token ann
 fixStr (TkString ann s) = TkString ann (read s)   
 fixStr t = t
   
-getBuiltinName :: T.Text -> Maybe BuiltinName
-getBuiltinName = \case
+getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
+getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
     "subtractInteger"          -> Just SubtractInteger
     "multiplyInteger"          -> Just MultiplyInteger
@@ -192,8 +192,8 @@ getBuiltinName = \case
 
 mkBuiltin :: a -> a -> T.Text -> Term TyName Name uni a
 mkBuiltin loc loc' ident = 
-   case getBuiltinName ident of 
-      Just b  -> Builtin loc $ BuiltinName loc' b
+   case getStaticBuiltinName ident of 
+      Just b  -> Builtin loc $ StaticBuiltinName loc' b
       Nothing -> Builtin loc (DynBuiltinName loc' (DynamicBuiltinName ident))
 
 -- FIXME: at this point it would be good to have access to the current

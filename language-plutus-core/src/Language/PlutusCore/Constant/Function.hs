@@ -7,7 +7,7 @@ module Language.PlutusCore.Constant.Function
     ( typeSchemeToType
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
-    , typeOfTypedBuiltinName
+    , typeOfTypedStaticBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -47,6 +47,6 @@ insertDynamicBuiltinNameDefinition
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName
-    :: UniOf term ~ uni => TypedBuiltinName term as r -> Type TyName uni ()
-typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
+typeOfTypedStaticBuiltinName
+    :: UniOf term ~ uni => TypedStaticBuiltinName term as r -> Type TyName uni ()
+typeOfTypedStaticBuiltinName (TypedStaticBuiltinName _ scheme) = typeSchemeToType scheme

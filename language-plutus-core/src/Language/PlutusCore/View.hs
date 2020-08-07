@@ -38,13 +38,13 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | View a 'Constant' as a 'StagedBuiltinName'.
-constantAsStagedBuiltinName :: Builtin a -> StagedBuiltinName
-constantAsStagedBuiltinName (BuiltinName    _ name) = StaticStagedBuiltinName  name
-constantAsStagedBuiltinName (DynBuiltinName _ name) = DynamicStagedBuiltinName name
+constantAsStagedBuiltinName :: BuiltinName a -> StagedBuiltinName
+constantAsStagedBuiltinName (StaticBuiltinName    _ name) = StaticStagedBuiltinName  name
+constantAsStagedBuiltinName (DynBuiltinName _ name)       = DynamicStagedBuiltinName name
 
 -- | View a 'Term' as a 'Constant'.
-termAsBuiltin :: Term tyname name uni a -> Maybe (Builtin a)
-termAsBuiltin (Builtin _ bi) = Just bi
+termAsBuiltin :: Term tyname name uni a -> Maybe (BuiltinName a)
+termAsBuiltin (Builtin _ bn) = Just bn
 termAsBuiltin _              = Nothing
 
 -- | An iterated application of a 'Term' to a list of 'Term's.
