@@ -12,6 +12,7 @@
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( EvaluationResult (..)
     , CkEvaluationException
+    , CkValue (..)
     , CkM
     , evaluateCk
     , unsafeEvaluateCk
