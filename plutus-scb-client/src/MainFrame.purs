@@ -179,12 +179,12 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
     endpointDescription :: EndpointDescription
     endpointDescription = view (_schema <<< _FunctionSchema <<< _endpointDescription) endpointForm
 
-    encodedForm :: Maybe RawJson
-    encodedForm = RawJson <<< encodeJSON <$> formArgumentToJson (view _argument endpointForm)
-  for_ encodedForm
-    $ \argument -> do
+    mEncodedForm :: Maybe RawJson
+    mEncodedForm = RawJson <<< encodeJSON <$> formArgumentToJson (view _argument endpointForm)
+  for_ mEncodedForm
+    $ \encodedForm -> do
         assign (_contractStates <<< at contractInstanceId) (Just Stream.Loading)
-        invokeEndpoint argument contractInstanceId endpointDescription
+        invokeEndpoint encodedForm contractInstanceId endpointDescription
 
 updateFormsForContractInstance ::
   forall m.
