@@ -24,7 +24,6 @@ import Plutus.SCB.Webserver (SPParams_, getApiContractByContractinstanceidSchema
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse, FullReport, StreamToServer)
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_)
-import WebSocket.Support as WS
 
 class
   Monad m <= MonadApp m where

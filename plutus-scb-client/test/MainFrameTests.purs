@@ -3,7 +3,7 @@ module MainFrameTests
   ) where
 
 import Prelude
-import Types (HAction(..), Query(..), State, _currentView)
+import Types (HAction(..), Query, State, _currentView)
 import Animation (class MonadAnimate)
 import Clipboard (class MonadClipboard)
 import Control.Monad.Except.Trans (class MonadThrow)
@@ -26,10 +26,8 @@ import Network.RemoteData (RemoteData(..))
 import Plutus.SCB.Webserver (SPParams_(..))
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Test.QuickCheck ((<?>))
-import Test.Unit (TestSuite, failure, suite, test)
-import Test.Unit.Assert (equal)
+import Test.Unit (TestSuite, suite, test)
 import Test.Unit.QuickCheck (quickCheck)
-import WebSocket.Support as WS
 
 type World
   = { console :: Array String }

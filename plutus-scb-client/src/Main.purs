@@ -2,7 +2,7 @@ module Main where
 
 import Prelude
 import Effect (Effect)
-import Effect.Aff (Aff, forkAff)
+import Effect.Aff (forkAff)
 import Effect.Unsafe (unsafePerformEffect)
 import Halogen.Aff (awaitBody, runHalogenAff)
 import Halogen.VDom.Driver (runUI)
