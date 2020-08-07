@@ -1,6 +1,6 @@
 { sourcesOverride ? {}
 , checkMaterialization ? false
-, useCabalProject ? false
+, useCabalProject ? true
 , compiler-nix-name ? "ghc883"
 }@args:
 let
