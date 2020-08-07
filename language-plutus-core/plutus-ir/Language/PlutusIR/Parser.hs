@@ -179,8 +179,8 @@ var = name
 tyVar :: Parser TyName
 tyVar = TyName <$> name
 
-builtinVar :: Parser (PLC.BuiltinName SourcePos)
-builtinVar = PLC.StaticBuiltinName <$> getSourcePos <*> staticBuiltinName
+builtinVar :: Parser PLC.BuiltinName
+builtinVar = PLC.StaticBuiltinName <$> staticBuiltinName
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer

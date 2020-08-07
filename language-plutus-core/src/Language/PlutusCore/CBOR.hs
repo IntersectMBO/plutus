@@ -208,13 +208,13 @@ instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
     decode = DynamicBuiltinName <$> decode
 
-instance Serialise ann => Serialise (BuiltinName ann) where
-    encode (StaticBuiltinName ann bn) = encodeConstructorTag 0 <> encode ann <> encode bn
-    encode (DynBuiltinName ann dbn)   = encodeConstructorTag 1 <> encode ann <> encode dbn
+instance Serialise BuiltinName where
+    encode (StaticBuiltinName bn) = encodeConstructorTag 0 <> encode bn
+    encode (DynBuiltinName   dbn) = encodeConstructorTag 1 <> encode dbn
 
     decode = go =<< decodeConstructorTag
-        where go 0 = StaticBuiltinName <$> decode <*> decode
-              go 1 = DynBuiltinName    <$> decode <*> decode
+        where go 0 = StaticBuiltinName <$> decode
+              go 1 = DynBuiltinName    <$> decode
               go _ = fail "Failed to decode Builtin ()"
 
 instance ( Closed uni

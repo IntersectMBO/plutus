@@ -30,9 +30,9 @@ instance Eq (Kind ann) where
     Type{}      == _ = False
     KindArrow{} == _ = False
 
-instance Eq (BuiltinName ann) where
-    StaticBuiltinName _ name1 == StaticBuiltinName _ name2 = name1 == name2
-    DynBuiltinName    _ name1 == DynBuiltinName    _ name2 = name1 == name2
+instance Eq BuiltinName where
+    StaticBuiltinName name1 == StaticBuiltinName name2 = name1 == name2
+    DynBuiltinName    name1 == DynBuiltinName    name2 = name1 == name2
     StaticBuiltinName{}       == _ = False
     DynBuiltinName{}          == _ = False
 

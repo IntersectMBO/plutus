@@ -35,13 +35,9 @@ instance Pretty StaticBuiltinName where
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
 
-instance Pretty StagedBuiltinName where
-    pretty (StaticStagedBuiltinName  n) = pretty n
-    pretty (DynamicStagedBuiltinName n) = pretty n
-
-instance Pretty (BuiltinName ann) where
-    pretty (StaticBuiltinName    _ n) = pretty n
-    pretty (DynBuiltinName _ n)       = pretty n
+instance Pretty BuiltinName where
+    pretty (StaticBuiltinName n) = pretty n
+    pretty (DynBuiltinName n)    = pretty n
 
 instance Pretty (Version ann) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

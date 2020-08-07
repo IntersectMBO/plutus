@@ -69,7 +69,7 @@ applyTypeSchemed
        ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term
        )
-    => StagedBuiltinName
+    => BuiltinName
     -> TypeScheme term args res
     -> FoldArgs args res
     -> FoldArgsEx args
@@ -123,7 +123,7 @@ applyTypedStaticBuiltinName
     -> [term]
     -> m (ConstAppResult term)
 applyTypedStaticBuiltinName (TypedStaticBuiltinName name schema) =
-    applyTypeSchemed (StaticStagedBuiltinName name) schema
+    applyTypeSchemed (StaticBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.

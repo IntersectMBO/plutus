@@ -303,18 +303,18 @@ unfoldFixOf pat arg k = do
             , vArg
             ]
 
--- | Infer the type of a 'Builtin'.
+-- | Infer the type of a 'Builtin'.  The annotation is required for the error message if the name isn't found.
 inferTypeOfBuiltinNameM
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName ann -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
+    => ann -> BuiltinName -> TypeCheckM uni ann (Normalized (Type TyName uni ()))
 -- We have a weird corner case here: the type of a 'BuiltinName' can contain 'TypedBuiltinDyn', i.e.
 -- a static built-in name is allowed to depend on a dynamic built-in type which are not required
 -- to be normalized. For dynamic built-in names we store a map from them to their *normalized types*,
 -- with the normalization happening in this module, but what should we do for static built-in names?
 -- Right now we just renormalize the type of a static built-in name each time we encounter that name.
-inferTypeOfBuiltinNameM (StaticBuiltinName _   name) = normalizeType $ typeOfStaticBuiltinName name
+inferTypeOfBuiltinNameM _ (StaticBuiltinName name) = normalizeType $ typeOfStaticBuiltinName name
 -- TODO: inline this definition once we have only dynamic built-in names.
-inferTypeOfBuiltinNameM (DynBuiltinName ann name)    = lookupDynamicBuiltinNameM ann name
+inferTypeOfBuiltinNameM ann (DynBuiltinName name)  = lookupDynamicBuiltinNameM ann name
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
@@ -332,8 +332,8 @@ inferTypeM (Constant _ (Some (ValueOf uni _))) =
 -- [infer| G !- bi : vTy]
 -- ------------------------------
 -- [infer| G !- builtin bi : vTy]
-inferTypeM (Builtin _ bn)           =
-    inferTypeOfBuiltinNameM bn
+inferTypeM (Builtin ann bn)         =
+    inferTypeOfBuiltinNameM ann bn
 
 -- [infer| G !- v : ty]    ty ~>? vTy
 -- ----------------------------------

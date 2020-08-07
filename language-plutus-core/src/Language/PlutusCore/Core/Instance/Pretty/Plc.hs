@@ -30,4 +30,4 @@ deriving via PrettyAny (Program tyname name uni ann)
         PrettyBy PrettyConfigPlc (Program tyname name uni ann)
 
 instance PrettyBy PrettyConfigPlc StaticBuiltinName
-instance PrettyBy PrettyConfigPlc (BuiltinName ann)
+instance PrettyBy PrettyConfigPlc BuiltinName

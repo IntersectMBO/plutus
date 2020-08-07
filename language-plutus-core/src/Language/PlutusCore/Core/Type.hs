@@ -13,7 +13,6 @@ module Language.PlutusCore.Core.Type
     , BuiltinName(..)
     , StaticBuiltinName(..)
     , DynamicBuiltinName(..)
-    , StagedBuiltinName(..)
     , Term(..)
     , Value
     , Version(..)
@@ -98,16 +97,10 @@ newtype DynamicBuiltinName = DynamicBuiltinName
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift, Hashable)
 
--- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
-data StagedBuiltinName
-    = StaticStagedBuiltinName  StaticBuiltinName
-    | DynamicStagedBuiltinName DynamicBuiltinName
-    deriving (Show, Eq, Generic, NFData, Lift, Hashable)
-
-data BuiltinName ann
-    = StaticBuiltinName ann StaticBuiltinName
-    | DynBuiltinName ann DynamicBuiltinName
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+data BuiltinName
+    = StaticBuiltinName StaticBuiltinName
+    | DynBuiltinName DynamicBuiltinName
+    deriving (Show, Generic, NFData, Lift, Hashable)
 
 data Term tyname name uni ann
     = Var ann name -- ^ a named variable
@@ -115,7 +108,7 @@ data Term tyname name uni ann
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni ann)
     | Apply ann (Term tyname name uni ann) (Term tyname name uni ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
-    | Builtin ann (BuiltinName ann)
+    | Builtin ann BuiltinName
     | TyInst ann (Term tyname name uni ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)

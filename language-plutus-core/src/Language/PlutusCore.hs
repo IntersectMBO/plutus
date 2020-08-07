@@ -50,7 +50,6 @@ module Language.PlutusCore
     , Value
     , StaticBuiltinName (..)
     , DynamicBuiltinName (..)
-    , StagedBuiltinName (..)
     , Normalized (..)
     , defaultVersion
     , allStaticBuiltinNames

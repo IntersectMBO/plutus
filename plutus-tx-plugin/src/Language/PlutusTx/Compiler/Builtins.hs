@@ -157,10 +157,10 @@ which handles these cases too.
 -}
 
 mkStaticBuiltin :: PLC.StaticBuiltinName -> PIR.Term tyname name uni ()
-mkStaticBuiltin n = PIR.Builtin () $ PLC.StaticBuiltinName () n
+mkStaticBuiltin n = PIR.Builtin () $ PLC.StaticBuiltinName n
 
 mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name uni ()
-mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
+mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName n
 
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]

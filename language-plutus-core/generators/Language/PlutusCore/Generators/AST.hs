@@ -82,8 +82,8 @@ genKind = simpleRecursive nonRecursive recursive where
 genStaticBuiltinName :: AstGen StaticBuiltinName
 genStaticBuiltinName = Gen.element allStaticBuiltinNames
 
-genBuiltinName :: AstGen (BuiltinName ())
-genBuiltinName = StaticBuiltinName () <$> genStaticBuiltinName
+genBuiltinName :: AstGen BuiltinName
+genBuiltinName = StaticBuiltinName <$> genStaticBuiltinName
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
