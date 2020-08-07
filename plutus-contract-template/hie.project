@@ -1,0 +1,4 @@
+packages: .
+
+package plutus-contract-template
+  ghc-options: -fplugin-opt Language.PlutusTx.Plugin:skip
