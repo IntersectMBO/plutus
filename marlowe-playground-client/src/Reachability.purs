@@ -12,7 +12,8 @@ import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
 import Prelude (Unit, bind, discard, map, pure, unit, ($), (<<<), (+), (/=))
-import Simulation.Types (Action, ChildSlots, ContractPathStep(..), ContractPath, Message(..), ReachabilityAnalysisData(..), State)
+import Simulation.Types (Action, ContractPathStep(..), ContractPath, ReachabilityAnalysisData(..), State)
+import Types (ChildSlots, Message(..))
 import WebSocket (WebSocketRequestMessage(..))
 
 data ContractZipper

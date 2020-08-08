@@ -14,6 +14,8 @@ import           Language.PlutusIR.Compiler.Definitions
 
 import           Language.PlutusCore.Quote
 import qualified Language.PlutusCore.Universe           as PLC
+import qualified Language.PlutusCore                    as PLC
+import qualified Language.PlutusCore.Constant           as PLC
 
 import qualified FamInstEnv                             as GHC
 import qualified GhcPlugins                             as GHC
@@ -39,7 +41,8 @@ data CompileContext uni = CompileContext {
     ccFamInstEnvs     :: GHC.FamInstEnvs,
     ccBuiltinNameInfo :: BuiltinNameInfo,
     ccScopes          :: ScopeStack uni,
-    ccBlackholed      :: Set.Set GHC.Name
+    ccBlackholed      :: Set.Set GHC.Name,
+    ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PLC.Term PLC.TyName PLC.Name uni ())
     }
 
 data CompileState = CompileState {}
@@ -116,8 +119,9 @@ type Compiling uni m =
     , MonadQuote m
     , MonadReader (CompileContext uni) m
     , MonadState CompileState m
-    , MonadDefs LexName uni () m,
-    uni `PLC.IncludesAll` [Bool, ()] )
+    , MonadDefs LexName uni () m
+    , PLC.DefaultUni PLC.<: uni
+    , PLC.GShow uni, PLC.GEq uni)
 
 blackhole :: MonadReader (CompileContext uni) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})

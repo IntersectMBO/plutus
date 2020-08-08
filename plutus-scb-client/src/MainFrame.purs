@@ -4,14 +4,14 @@ module MainFrame
   , initialState
   ) where
 
+import Control.Monad.Except (ExceptT, runExceptT)
 import Prelude
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
 import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
-import Control.Monad.Except.Trans (ExceptT, runExceptT)
-import Control.Monad.Reader (class MonadAsk, runReaderT)
+import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter)
@@ -27,7 +27,6 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Traversable (for_, sequence)
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect)
 import Foreign.Generic (encodeJSON)
 import Halogen (Component, hoist)
 import Halogen as H
@@ -36,20 +35,22 @@ import Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription)
 import Ledger.Ada (Ada(..))
 import Ledger.Extra (adaToValue)
 import Ledger.Value (Value)
+import MonadApp (class MonadApp, activateContract, getContractSignature, getFullReport, invokeEndpoint, runHalogenApp)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Playground.Lenses (_endpointDescription, _getEndpointDescription, _schema)
+import Playground.Lenses (_endpointDescription, _schema)
 import Playground.Types (FunctionSchema(..), _FunctionSchema)
 import Plutus.SCB.Events.Contract (ContractInstanceState(..))
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver (SPParams_(..), getApiContractByContractinstanceidSchema, getApiFullreport, postApiContractActivate, postApiContractByContractinstanceidEndpointByEndpointname)
+import Plutus.SCB.Webserver (SPParams_(..))
 import Plutus.SCB.Webserver.Types (ContractSignatureResponse(..), FullReport)
+import Prim.TypeError (class Warn, Text)
 import Schema (FormSchema)
 import Schema.Types (formArgumentToJson, toArgument)
 import Schema.Types as Schema
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Settings (SPSettings_, defaultSettings)
-import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractInstanceIdString, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport)
+import Types (EndpointForm, HAction(..), Query, State(..), View(..), WebData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crAvailableContracts, _csCurrentState, _currentView, _fullReport)
 import Validation (_argument)
 import View as View
 
@@ -81,7 +82,7 @@ initialMainFrame =
         , render: View.render
         , eval:
           H.mkEval
-            { handleAction: handleAction
+            { handleAction: runHalogenApp <<< handleAction
             , handleQuery: const $ pure Nothing
             , initialize: Just Init
             , receive: const Nothing
@@ -91,32 +92,26 @@ initialMainFrame =
 
 handleAction ::
   forall m.
-  MonadState State m =>
-  MonadAff m =>
+  MonadApp m =>
   MonadAnimate m State =>
   MonadClipboard m =>
-  MonadAsk (SPSettings_ SPParams_) m =>
-  MonadEffect m =>
+  MonadState State m =>
   HAction -> m Unit
 handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = assign _currentView view
 
-handleAction (ActivateContract contract) = do
-  result <- runAjax $ postApiContractActivate contract
-  handleAction LoadFullReport
+handleAction (ActivateContract contract) = activateContract contract
 
 handleAction LoadFullReport = do
   assign _fullReport Loading
-  fullReportResult <- runAjax getApiFullreport
+  fullReportResult <- getFullReport
   assign _fullReport fullReportResult
   for_ fullReportResult
     ( \fullReport ->
         traverse_
           ( \contractInstance@(ContractInstanceState { csContract, csCurrentState }) -> do
-              let
-                uuid = view _contractInstanceIdString csContract
-              contractSchema <- runAjax $ getApiContractByContractinstanceidSchema uuid
+              contractSchema <- getContractSignature csContract
               assign (_contractSignatures <<< at csContract)
                 (Just $ createEndpointForms contractInstance <$> contractSchema)
           )
@@ -127,6 +122,9 @@ handleAction (ChainAction subaction) = do
   mAnnotatedBlockchain <-
     peruse (_fullReport <<< _Success <<< _chainReport <<< _annotatedBlockchain <<< to AnnotatedBlockchain)
   let
+    wrapper ::
+      Warn (Text "The question, 'Should we animate this?' feels like it belongs in the Chain module. Not here.") =>
+      m Unit -> m Unit
     wrapper = case subaction of
       (FocusTx _) -> animate (_chainState <<< _chainFocusAppearing)
       _ -> identity
@@ -154,13 +152,7 @@ handleAction (InvokeContractEndpoint contractInstanceId endpointForm) = do
   for_ encodedForm
     $ \argument -> do
         instanceStateResult <-
-          runAjax
-            $ let
-                instanceId = view _contractInstanceIdString contractInstanceId
-
-                endpoint = view _getEndpointDescription endpointDescription
-              in
-                postApiContractByContractinstanceidEndpointByEndpointname argument instanceId endpoint
+          invokeEndpoint argument contractInstanceId endpointDescription
         fullReportResult <- use _fullReport
         let
           newForms :: WebData (Maybe (Array EndpointForm))

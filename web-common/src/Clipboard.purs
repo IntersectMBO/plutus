@@ -7,7 +7,7 @@ module Clipboard
   , showShortCopyLong
   ) where
 
-import Bootstrap (btn, btnLink, displayFlex, textTruncate)
+import Bootstrap (btn, btnLink, displayFlex, textTruncate, alignItemsCenter)
 import Control.Monad (class Monad)
 import Control.Monad.Reader.Trans (ReaderT)
 import Control.Monad.State.Trans (StateT)
@@ -71,7 +71,7 @@ clipboardButton str =
 
 showShortCopyLong :: forall p. String -> Maybe (Array (HTML p Action)) -> HTML p Action
 showShortCopyLong str content =
-  div [ class_ displayFlex ]
+  div [ classes [ displayFlex, alignItemsCenter ] ]
     [ div [ classes [ textTruncate ] ]
         (fromMaybe [ text str ] content)
     , clipboardButton str

@@ -20,7 +20,6 @@ import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Gists (GistAction)
-import Halogen as H
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
@@ -176,6 +175,7 @@ data Action
   | MoveToPosition Pos Pos
   | SelectEditorKeyBindings KeyBindings
   | LoadScript String
+  | SetEditorText String
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
@@ -185,6 +185,7 @@ data Action
   | AddInput (Maybe PubKey) Input (Array Bound)
   | RemoveInput (Maybe PubKey) Input
   | SetChoice ChoiceId ChosenNum
+  | ResetContract
   | ResetSimulator
   | Undo
   | SelectHole (Maybe String)
@@ -212,12 +213,14 @@ instance isEventAction :: IsEvent Action where
   toEvent (SelectEditorKeyBindings _) = Just $ defaultEvent "SelectEditorKeyBindings"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
+  toEvent (SetEditorText _) = Just $ (defaultEvent "SetEditorText")
   toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
   toEvent NextSlot = Just $ defaultEvent "NextBlock"
   toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
   toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
+  toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
@@ -231,23 +234,7 @@ instance isEventAction :: IsEvent Action where
   toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
 
 data Query a
-  = SetEditorText String a
-  | ResizeEditor a
-  | ResetContract a
-  | WebsocketResponse (RemoteData String Result) a
-  | HasStarted (Boolean -> a)
-  | GetCurrentContract (String -> a)
-
-data Message
-  = BlocklyCodeSet String
-  | WebsocketMessage String
-
-type ChildSlots
-  = ( editorSlot :: H.Slot Monaco.Query Monaco.Message Unit
-    )
-
-_editorSlot :: SProxy "editorSlot"
-_editorSlot = SProxy
+  = WebsocketResponse (RemoteData String Result) a
 
 data BottomPanelView
   = CurrentStateView

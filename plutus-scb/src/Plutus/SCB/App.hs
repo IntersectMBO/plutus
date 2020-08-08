@@ -197,6 +197,7 @@ data ContractExeLogMsg =
     | Migrating
     | InvokingEndpoint String JSON.Value
     | EndpointInvocationResponse [Doc Void]
+    | ContractExeSCBError SCBError
 
 instance Pretty ContractExeLogMsg where
     pretty = \case
@@ -215,6 +216,8 @@ instance Pretty ContractExeLogMsg where
             "Invoking:" <+> pretty s <+> "/" <+> viaShow v
         EndpointInvocationResponse v ->
             hang 2 $ vsep ("Invocation response:" : fmap (fmap absurd) v)
+        ContractExeSCBError e ->
+            "SCB error:" <+> pretty e
 
 handleContractEffectApp ::
        (Member (LogMsg ContractExeLogMsg) effs, Member (Error SCBError) effs, LastMember m effs, MonadIO m)

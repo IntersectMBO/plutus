@@ -10,6 +10,7 @@
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -57,6 +58,7 @@ import qualified Data.Aeson                          as Aeson
 import           Data.String                         (IsString (..))
 import           Data.Text                           (Text)
 import qualified Data.Text                           as T
+import           Data.Text.Prettyprint.Doc           (Pretty, pretty, (<+>))
 
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
@@ -78,6 +80,10 @@ import           Wallet.Emulator.Types               (AsAssertionError (..), Ass
 newtype MatchingError = WrongVariantError Text
     deriving (Eq, Ord, Show)
 
+instance Pretty MatchingError where
+  pretty = \case
+    WrongVariantError t -> "Wrong variant:" <+> pretty t
+
 data ContractError =
     WalletError WalletAPIError
     | EmulatorAssertionError AssertionError -- TODO: Why do we need this constructor
@@ -87,6 +93,15 @@ data ContractError =
     | CCheckpointError CheckpointError
     deriving (Show, Eq)
 makeClassyPrisms ''ContractError
+
+instance Pretty ContractError where
+  pretty = \case
+    WalletError e -> "Wallet error:" <+> pretty e
+    EmulatorAssertionError a -> "Emulator assertion error:" <+> pretty a
+    OtherError t -> "Other error:" <+> pretty t
+    ConstraintResolutionError e -> "Constraint resolution error:" <+> pretty e
+    ResumableError e -> "Resumable error:" <+> pretty e
+    CCheckpointError e -> "Checkpoint error:" <+> pretty e
 
 -- | This lets people use 'T.Text' as their error type.
 instance AsContractError T.Text where

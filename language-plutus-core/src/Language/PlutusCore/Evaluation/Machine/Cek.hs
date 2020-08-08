@@ -56,7 +56,6 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 import           Control.Lens.Operators
 import           Control.Lens.Setter
@@ -90,7 +89,7 @@ data CekVal uni =
   | VBuiltin
       ExMemory
       (CekValEnv uni)   -- Initial environment, used for evaluating every argument
-      StagedBuiltinName
+      BuiltinName
       Int               -- Number of arguments to be provided (both types and terms)
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.
                         -- We need these to construct a term if the machine is returning a stuck partial application.
@@ -119,17 +118,11 @@ instance ToExMemory (CekVal uni) where
 
 type CekValEnv uni = UniqueMap TermUnique (CekVal uni)
 
--- This function is useful in dischargeCekVal.  StagedBuiltinNames will diappear
--- soon, and we won't need this then.
-unstageBuiltinName :: ann -> StagedBuiltinName -> Builtin ann
-unstageBuiltinName ann (StaticStagedBuiltinName name)  = BuiltinName ann name
-unstageBuiltinName ann (DynamicStagedBuiltinName name) = DynBuiltinName ann name
-
 -- Instantiate a builtin and then apply it to some arguments.  This assumes that
 -- all type arguments come before term arguments, with no interleaving (and that
 -- same assumption applies elsehwere, in VBuiltin, for example).  This is OK at the
 -- moment, nut may change if we eventually support higher-rank builtins.
-mkBuiltinApp :: ExMemory -> Builtin ExMemory -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
+mkBuiltinApp :: ExMemory -> BuiltinName -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
 mkBuiltinApp ex bn tys args = mkIterApp ex (mkIterInst ex (Builtin ex bn) tys) args
 
 -- See Note [Scoping].
@@ -152,7 +145,7 @@ dischargeCekVal = \case
     VTyAbs   ex tn k body env     -> TyAbs ex tn k (dischargeCekValEnv env body)
     VLamAbs  ex name ty body env  -> LamAbs ex name ty (dischargeCekValEnv env body)
     VIWrap   ex ty1 ty2 val       -> IWrap ex ty1 ty2 $ dischargeCekVal val
-    VBuiltin ex _ bn _ types args -> mkBuiltinApp ex (unstageBuiltinName ex bn) (reverse types) (fmap dischargeCekVal $ reverse args)
+    VBuiltin ex _ bn _ types args -> mkBuiltinApp ex bn (reverse types) (fmap dischargeCekVal $ reverse args)
     {- We only discharge a value when (a) it's being returned by the machine, or
        (b) it's needed for an error message.  VBuiltin should only be discharged
        when the builtin is partially applied, and in that case we need to get
@@ -252,7 +245,6 @@ lookupDynamicBuiltinName dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err Nothing where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-                   -- No value available for error, but that's probably OK here.
         Just mean -> pure mean
 
 {- Note [Dropping environments of arguments]
@@ -293,10 +285,10 @@ substitution, anything).
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
-getArgsCount :: Builtin ann -> CekM uni Int
-getArgsCount (BuiltinName _ name) =
+getArgsCount :: BuiltinName -> CekM uni Int
+getArgsCount (StaticBuiltinName name) =
     pure $ builtinNameAritiesIncludingTypes ! name
-getArgsCount (DynBuiltinName _ name) = do
+getArgsCount (DynBuiltinName name) = do
     DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
     pure $ countTypeAndTermArgs sch
 -- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
@@ -334,7 +326,7 @@ computeCek ctx c@Constant{} = returnCek ctx (VCon c)
 computeCek ctx (Builtin ex bn)        = do
   env <- getEnv
   count <- getArgsCount bn
-  returnCek ctx (VBuiltin ex env (constantAsStagedBuiltinName bn) count [] [])
+  returnCek ctx (VBuiltin ex env bn count [] [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _  Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- No value available for error
@@ -415,24 +407,24 @@ applyEvaluate ctx val@(VBuiltin ex argEnv bn count tyargs args) arg = withEnv ar
     if count' /= 0
         then returnCek ctx $ VBuiltin ex argEnv bn count' tyargs args'
         else do
-            res <- applyStagedBuiltinName bn (reverse args')
+            res <- applyBuiltinName bn (reverse args')
             case res of
                 EvaluationSuccess t -> returnCek ctx t
                 EvaluationFailure ->
                     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
--- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName
+-- | Apply a 'BuiltinName' to a list of 'Value's.
+applyBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => StagedBuiltinName
+    => BuiltinName
     -> [CekVal uni]
     -> CekM uni (EvaluationResult (CekVal uni))
-applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
+applyBuiltinName n@(DynBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-  applyBuiltinName name args
+applyBuiltinName (StaticBuiltinName name) args =
+    applyStaticBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek

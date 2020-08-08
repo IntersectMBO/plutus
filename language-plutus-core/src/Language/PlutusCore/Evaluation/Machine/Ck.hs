@@ -163,14 +163,14 @@ applyEvaluate stack fun                    arg =
         case termAsPrimIterApp term of
             Nothing ->
                 throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just term
-            Just (IterApp DynamicStagedBuiltinName{} _) ->
+            Just (IterApp DynBuiltinName{} _) ->
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
-            Just (IterApp (StaticStagedBuiltinName name) spine) ->
+            Just (IterApp (StaticBuiltinName name) spine) ->
                 if length spine == builtinNameAritiesIgnoringTypes ! name  -- Quick fix for unsaturated builtins.
                 then do
-                  res <- applyBuiltinName name spine
+                  res <- applyStaticBuiltinName name spine
                   case res of
                     EvaluationSuccess t -> stack |> t
                     EvaluationFailure   ->

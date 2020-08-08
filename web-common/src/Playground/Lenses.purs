@@ -46,3 +46,9 @@ _txId = _Newtype <<< prop (SProxy :: SProxy "getTxId")
 
 _utxoIndexEntries :: Lens' UtxoIndex (Map TxOutRef TxOut)
 _utxoIndexEntries = _UtxoIndex <<< prop (SProxy :: SProxy "getIndex") <<< _JsonMap
+
+_aeDescription :: forall s r a. Newtype s { aeDescription :: a | r } => Lens' s a
+_aeDescription = _Newtype <<< prop (SProxy :: SProxy "aeDescription")
+
+_aeMetadata :: forall s r a. Newtype s { aeMetadata :: a | r } => Lens' s a
+_aeMetadata = _Newtype <<< prop (SProxy :: SProxy "aeMetadata")

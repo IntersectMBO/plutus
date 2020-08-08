@@ -24,5 +24,5 @@ data Builtin : Set where
   ifThenElse               : Builtin
 
 {-# FOREIGN GHC import Language.PlutusCore #-}
-{-# COMPILE GHC Builtin = data BuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString | IfThenElse) #-}
+{-# COMPILE GHC Builtin = data StaticBuiltinName (AddInteger | SubtractInteger | MultiplyInteger | DivideInteger | QuotientInteger | RemainderInteger | ModInteger | LessThanInteger | LessThanEqInteger | GreaterThanInteger | GreaterThanEqInteger | EqInteger | Concatenate | TakeByteString | DropByteString | SHA2 | SHA3 | VerifySignature | EqByteString | IfThenElse) #-}
 \end{code}

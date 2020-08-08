@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -42,6 +43,7 @@ import qualified Language.PlutusIR.Compiler as PIR
 import           Data.Aeson                 (FromJSON (..), ToJSON (..), Value (Object), object, (.:), (.=))
 import           Data.Aeson.Types           (typeMismatch)
 import           Data.Proxy
+import           Data.Text.Prettyprint.Doc  (Pretty (pretty), viaShow, (<+>))
 import           GHC.Generics               (Generic)
 
 import           Control.Monad.Except
@@ -156,6 +158,17 @@ data ConnectionError =
     | NoDatum TxId DatumHash
     | UnknownRef
     deriving (Show, Eq, Ord)
+
+instance Pretty ConnectionError where
+    pretty = \case
+        WrongValidatorAddress a1 a2 -> "Wrong validator address. Expected:" <+> pretty a1 <+> "Actual:" <+> pretty a2
+        WrongOutType t -> "Wrong out type:" <+> viaShow t
+        WrongInType t -> "Wrong in type:" <+> viaShow t
+        WrongValidatorType t -> "Wrong validator type:" <+> pretty t
+        WrongRedeemerType -> "Wrong redeemer type"
+        WrongDatumType -> "Wrong datum type"
+        NoDatum t d -> "No datum with hash " <+> pretty d <+> "for tx" <+> pretty t
+        UnknownRef -> "Unknown reference"
 
 -- | Checks that the given validator hash is consistent with the actual validator.
 checkValidatorAddress :: forall a m . (MonadError ConnectionError m) => ScriptInstance a -> Address -> m ()

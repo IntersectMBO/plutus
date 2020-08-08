@@ -3,26 +3,30 @@ module Marlowe.Monaco
   , daylightTheme
   , completionItemProvider
   , codeActionProvider
+  , updateAdditionalContext
   , documentFormattingEditProvider
   , refLabel
   , settings
   ) where
 
 import Prelude
-import Data.Function.Uncurried (Fn1, runFn1)
+import Data.Function.Uncurried (Fn1, Fn2, Fn3, runFn1, runFn2, runFn3)
 import Data.Maybe (Maybe(..))
 import Data.Unfoldable as Unfoldable
 import Halogen (RefLabel(..))
 import Halogen.Monaco (Settings)
 import Help as Help
+import Marlowe.Linter (AdditionalContext)
 import Marlowe.Linter as Linter
 import Monaco (CodeAction, CodeActionProvider, CompletionItem, CompletionItemProvider, DocumentFormattingEditProvider, Editor, HoverProvider, IMarkdownString, IMarkerData, IRange, IStandaloneThemeData, LanguageExtensionPoint(..), Theme, TokensProvider, Uri)
 
 foreign import hoverProvider_ :: Fn1 (String -> { contents :: Array IMarkdownString }) HoverProvider
 
-foreign import completionItemProvider_ :: Fn1 (String -> Boolean -> String -> IRange -> Array CompletionItem) CompletionItemProvider
+foreign import completionItemProvider_ :: Fn1 (String -> Boolean -> String -> IRange -> AdditionalContext -> Array CompletionItem) CompletionItemProvider
 
-foreign import codeActionProvider_ :: Fn1 (Uri -> Array IMarkerData -> Array CodeAction) CodeActionProvider
+foreign import codeActionProvider_ :: Fn2 (Uri -> Array IMarkerData -> AdditionalContext -> Array CodeAction) AdditionalContext CodeActionProvider
+
+foreign import updateAdditionalContext_ :: Fn3 CodeActionProvider CompletionItemProvider AdditionalContext Unit
 
 foreign import documentFormattingEditProvider_ :: Fn1 (String -> String) DocumentFormattingEditProvider
 
@@ -49,8 +53,11 @@ hoverProvider =
 completionItemProvider :: CompletionItemProvider
 completionItemProvider = runFn1 completionItemProvider_ Linter.suggestions
 
-codeActionProvider :: CodeActionProvider
-codeActionProvider = runFn1 codeActionProvider_ Linter.provideCodeActions
+codeActionProvider :: AdditionalContext -> CodeActionProvider
+codeActionProvider = runFn2 codeActionProvider_ Linter.provideCodeActions
+
+updateAdditionalContext :: CodeActionProvider -> CompletionItemProvider -> AdditionalContext -> Unit
+updateAdditionalContext = runFn3 updateAdditionalContext_
 
 documentFormattingEditProvider :: DocumentFormattingEditProvider
 documentFormattingEditProvider = runFn1 documentFormattingEditProvider_ Linter.format
@@ -66,7 +73,7 @@ settings setup =
   , tokensProvider: Just tokensProvider
   , hoverProvider: Just hoverProvider
   , completionItemProvider: Just completionItemProvider
-  , codeActionProvider: Just codeActionProvider
+  , codeActionProvider: Just $ codeActionProvider { warnings: mempty, contract: Nothing }
   , documentFormattingEditProvider: Just documentFormattingEditProvider
   , refLabel
   , owner: "marloweEditor"

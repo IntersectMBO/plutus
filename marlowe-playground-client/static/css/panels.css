@@ -476,7 +476,7 @@ button.minus-btn:hover {
   transform: rotateX(180deg);
 }
 
-.wallet-contents .code {
+.code {
   height: auto;
   min-height: 100px;
   white-space: pre;
@@ -484,19 +484,19 @@ button.minus-btn:hover {
   padding-bottom: 3rem;
 }
 
-.wallet-contents .code code {
+.code code {
   display: block;
 }
 
-.wallet-contents .code:before {
+.code:before {
   counter-reset: listing;
 }
 
-.wallet-contents .code code {
+.code code {
   counter-increment: listing;
 }
 
-.wallet-contents .code code::before {
+.code code::before {
   content: counter(listing);
   display: inline-block;
   margin-right: 1rem;
