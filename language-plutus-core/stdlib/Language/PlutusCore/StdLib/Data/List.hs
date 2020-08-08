@@ -8,6 +8,7 @@
 
 module Language.PlutusCore.StdLib.Data.List
     ( listData
+    , listTy
     , nil
     , cons
     , foldrList
@@ -47,6 +48,9 @@ listData = runQuote $ do
         . TyFun () (TyVar () r)
         . TyFun () (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ TyVar () r
+
+listTy :: Type TyName uni ()
+listTy = _recursiveType listData
 
 -- |  '[]' as a PLC term.
 --

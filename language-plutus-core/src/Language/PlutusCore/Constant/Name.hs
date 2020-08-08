@@ -214,8 +214,10 @@ typedGtByteString = makeTypedStaticBuiltinName GtByteString
 
 -- | Typed 'IfThenElse'.
 typedIfThenElse
-    :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedStaticBuiltinName term '[Bool, Opaque term "a" 0, Opaque term "a" 0] (Opaque term "a" 0)
+    :: ( HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool]
+       , a ~ Opaque term (TyVarRep "a" 0)
+       )
+    => TypedBuiltinName term '[Bool, a, a] a
 typedIfThenElse =
-    TypedStaticBuiltinName IfThenElse $
-        TypeSchemeAllType @"a" @0 Proxy $ \_ -> knownTypeScheme
+    TypedBuiltinName IfThenElse $
+        TypeSchemeAll @"a" @0 Proxy (Type ()) $ \_ -> knownTypeScheme
