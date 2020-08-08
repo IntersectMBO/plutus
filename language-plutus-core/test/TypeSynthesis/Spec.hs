@@ -77,20 +77,20 @@ test_typecheckIllTyped =
             [ selfApply
             ]
 
-test_typecheckBuiltinName :: BuiltinName -> TestTree
-test_typecheckBuiltinName name = goldenVsDoc testName path doc where
+test_typecheckStaticBuiltinName :: StaticBuiltinName -> TestTree
+test_typecheckStaticBuiltinName name = goldenVsDoc testName path doc where
     testName = show name
     path     = "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfBuiltinName @DefaultUni name
+    doc      = prettyPlcDef $ typeOfStaticBuiltinName @DefaultUni name
 
-test_typecheckBuiltinNames :: TestTree
-test_typecheckBuiltinNames =
-    testGroup "built-in name" $ map test_typecheckBuiltinName allBuiltinNames
+test_typecheckStaticBuiltinNames :: TestTree
+test_typecheckStaticBuiltinNames =
+    testGroup "built-in name" $ map test_typecheckStaticBuiltinName allStaticBuiltinNames
 
 test_typecheck :: TestTree
 test_typecheck =
     testGroup "typecheck"
-        [ test_typecheckBuiltinNames
+        [ test_typecheckStaticBuiltinNames
         , test_typecheckAvailable
         , test_typecheckIllTyped
         ]

@@ -158,12 +158,12 @@ applyEvaluate stack fun                    arg =
         case termAsPrimIterApp term of
             Nothing ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
-            Just (IterApp DynamicStagedBuiltinName{} _) ->
+            Just (IterApp (DynBuiltinName{}) _) ->
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
-            Just (IterApp (StaticStagedBuiltinName name) spine) -> do
-                constAppResult <- applyBuiltinName name spine
+            Just (IterApp (StaticBuiltinName name) spine) -> do
+                constAppResult <- applyStaticBuiltinName name spine
                 case constAppResult of
                     ConstAppFailure     ->
                         throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term

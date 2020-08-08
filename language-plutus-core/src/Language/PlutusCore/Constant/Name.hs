@@ -10,8 +10,8 @@
 {-# LANGUAGE UndecidableInstances   #-}
 
 module Language.PlutusCore.Constant.Name
-    ( makeTypedBuiltinName
-    , withTypedBuiltinName
+    ( makeTypedStaticBuiltinName
+    , withTypedStaticBuiltinName
     , typedAddInteger
     , typedSubtractInteger
     , typedMultiplyInteger
@@ -56,168 +56,168 @@ instance (KnownType term arg, KnownTypeScheme term args res) =>
     knownTypeScheme = Proxy `TypeSchemeArrow` knownTypeScheme
 
 -- | Automatically typify a 'BuiltinName'.
-makeTypedBuiltinName :: KnownTypeScheme term args res => BuiltinName -> TypedBuiltinName term args res
-makeTypedBuiltinName name = TypedBuiltinName name knownTypeScheme
+makeTypedStaticBuiltinName :: KnownTypeScheme term args res => StaticBuiltinName -> TypedStaticBuiltinName term args res
+makeTypedStaticBuiltinName name = TypedStaticBuiltinName name knownTypeScheme
 
 -- | Apply a continuation to the typed version of a 'BuiltinName'.
-withTypedBuiltinName
+withTypedStaticBuiltinName
     :: (HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni)
-    => BuiltinName -> (forall args res. TypedBuiltinName term args res -> c) -> c
-withTypedBuiltinName AddInteger           k = k typedAddInteger
-withTypedBuiltinName SubtractInteger      k = k typedSubtractInteger
-withTypedBuiltinName MultiplyInteger      k = k typedMultiplyInteger
-withTypedBuiltinName DivideInteger        k = k typedDivideInteger
-withTypedBuiltinName QuotientInteger      k = k typedQuotientInteger
-withTypedBuiltinName RemainderInteger     k = k typedRemainderInteger
-withTypedBuiltinName ModInteger           k = k typedModInteger
-withTypedBuiltinName LessThanInteger      k = k typedLessThanInteger
-withTypedBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
-withTypedBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
-withTypedBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
-withTypedBuiltinName EqInteger            k = k typedEqInteger
-withTypedBuiltinName Concatenate          k = k typedConcatenate
-withTypedBuiltinName TakeByteString       k = k typedTakeByteString
-withTypedBuiltinName DropByteString       k = k typedDropByteString
-withTypedBuiltinName SHA2                 k = k typedSHA2
-withTypedBuiltinName SHA3                 k = k typedSHA3
-withTypedBuiltinName VerifySignature      k = k typedVerifySignature
-withTypedBuiltinName EqByteString         k = k typedEqByteString
-withTypedBuiltinName LtByteString         k = k typedLtByteString
-withTypedBuiltinName GtByteString         k = k typedGtByteString
-withTypedBuiltinName IfThenElse           k = k typedIfThenElse
+    => StaticBuiltinName -> (forall args res. TypedStaticBuiltinName term args res -> c) -> c
+withTypedStaticBuiltinName AddInteger           k = k typedAddInteger
+withTypedStaticBuiltinName SubtractInteger      k = k typedSubtractInteger
+withTypedStaticBuiltinName MultiplyInteger      k = k typedMultiplyInteger
+withTypedStaticBuiltinName DivideInteger        k = k typedDivideInteger
+withTypedStaticBuiltinName QuotientInteger      k = k typedQuotientInteger
+withTypedStaticBuiltinName RemainderInteger     k = k typedRemainderInteger
+withTypedStaticBuiltinName ModInteger           k = k typedModInteger
+withTypedStaticBuiltinName LessThanInteger      k = k typedLessThanInteger
+withTypedStaticBuiltinName LessThanEqInteger    k = k typedLessThanEqInteger
+withTypedStaticBuiltinName GreaterThanInteger   k = k typedGreaterThanInteger
+withTypedStaticBuiltinName GreaterThanEqInteger k = k typedGreaterThanEqInteger
+withTypedStaticBuiltinName EqInteger            k = k typedEqInteger
+withTypedStaticBuiltinName Concatenate          k = k typedConcatenate
+withTypedStaticBuiltinName TakeByteString       k = k typedTakeByteString
+withTypedStaticBuiltinName DropByteString       k = k typedDropByteString
+withTypedStaticBuiltinName SHA2                 k = k typedSHA2
+withTypedStaticBuiltinName SHA3                 k = k typedSHA3
+withTypedStaticBuiltinName VerifySignature      k = k typedVerifySignature
+withTypedStaticBuiltinName EqByteString         k = k typedEqByteString
+withTypedStaticBuiltinName LtByteString         k = k typedLtByteString
+withTypedStaticBuiltinName GtByteString         k = k typedGtByteString
+withTypedStaticBuiltinName IfThenElse           k = k typedIfThenElse
 
 -- | Typed 'AddInteger'.
 typedAddInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] Integer
-typedAddInteger = makeTypedBuiltinName AddInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Integer
+typedAddInteger = makeTypedStaticBuiltinName AddInteger
 
 -- | Typed 'SubtractInteger'.
 typedSubtractInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] Integer
-typedSubtractInteger = makeTypedBuiltinName SubtractInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Integer
+typedSubtractInteger = makeTypedStaticBuiltinName SubtractInteger
 
 -- | Typed 'MultiplyInteger'.
 typedMultiplyInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] Integer
-typedMultiplyInteger = makeTypedBuiltinName MultiplyInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Integer
+typedMultiplyInteger = makeTypedStaticBuiltinName MultiplyInteger
 
 -- | Typed 'DivideInteger'.
 typedDivideInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
-typedDivideInteger = makeTypedBuiltinName DivideInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
+typedDivideInteger = makeTypedStaticBuiltinName DivideInteger
 
 -- | Typed 'QuotientInteger'
 typedQuotientInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
-typedQuotientInteger = makeTypedBuiltinName QuotientInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
+typedQuotientInteger = makeTypedStaticBuiltinName QuotientInteger
 
 -- | Typed 'RemainderInteger'.
 typedRemainderInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
-typedRemainderInteger = makeTypedBuiltinName RemainderInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
+typedRemainderInteger = makeTypedStaticBuiltinName RemainderInteger
 
 -- | Typed 'ModInteger'
 typedModInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` Integer)
-    => TypedBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
-typedModInteger = makeTypedBuiltinName ModInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] (EvaluationResult Integer)
+typedModInteger = makeTypedStaticBuiltinName ModInteger
 
 -- | Typed 'LessThanInteger'.
 typedLessThanInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
-    => TypedBuiltinName term '[Integer, Integer] Bool
-typedLessThanInteger = makeTypedBuiltinName LessThanInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Bool
+typedLessThanInteger = makeTypedStaticBuiltinName LessThanInteger
 
 -- | Typed 'LessThanEqInteger'.
 typedLessThanEqInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
-    => TypedBuiltinName term '[Integer, Integer] Bool
-typedLessThanEqInteger = makeTypedBuiltinName LessThanEqInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Bool
+typedLessThanEqInteger = makeTypedStaticBuiltinName LessThanEqInteger
 
 -- | Typed 'GreaterThanInteger'.
 typedGreaterThanInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
-    => TypedBuiltinName term '[Integer, Integer] Bool
-typedGreaterThanInteger = makeTypedBuiltinName GreaterThanInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Bool
+typedGreaterThanInteger = makeTypedStaticBuiltinName GreaterThanInteger
 
 -- | Typed 'GreaterThanEqInteger'.
 typedGreaterThanEqInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
-    => TypedBuiltinName term '[Integer, Integer] Bool
-typedGreaterThanEqInteger = makeTypedBuiltinName GreaterThanEqInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Bool
+typedGreaterThanEqInteger = makeTypedStaticBuiltinName GreaterThanEqInteger
 
 -- | Typed 'EqInteger'.
 typedEqInteger
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, Bool])
-    => TypedBuiltinName term '[Integer, Integer] Bool
-typedEqInteger = makeTypedBuiltinName EqInteger
+    => TypedStaticBuiltinName term '[Integer, Integer] Bool
+typedEqInteger = makeTypedStaticBuiltinName EqInteger
 
 -- | Typed 'Concatenate'.
 typedConcatenate
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedBuiltinName term '[BSL.ByteString, BSL.ByteString] BSL.ByteString
-typedConcatenate = makeTypedBuiltinName Concatenate
+    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] BSL.ByteString
+typedConcatenate = makeTypedStaticBuiltinName Concatenate
 
 -- | Typed 'TakeByteString'.
 typedTakeByteString
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
-    => TypedBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
-typedTakeByteString = makeTypedBuiltinName TakeByteString
+    => TypedStaticBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
+typedTakeByteString = makeTypedStaticBuiltinName TakeByteString
 
 -- | Typed 'DropByteString'.
 typedDropByteString
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[Integer, BSL.ByteString])
-    => TypedBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
-typedDropByteString = makeTypedBuiltinName DropByteString
+    => TypedStaticBuiltinName term '[Integer, BSL.ByteString] BSL.ByteString
+typedDropByteString = makeTypedStaticBuiltinName DropByteString
 
 -- | Typed 'SHA2'.
 typedSHA2
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedBuiltinName term '[BSL.ByteString] BSL.ByteString
-typedSHA2 = makeTypedBuiltinName SHA2
+    => TypedStaticBuiltinName term '[BSL.ByteString] BSL.ByteString
+typedSHA2 = makeTypedStaticBuiltinName SHA2
 
 -- | Typed 'SHA3'.
 typedSHA3
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `Includes` BSL.ByteString)
-    => TypedBuiltinName term '[BSL.ByteString] BSL.ByteString
-typedSHA3 = makeTypedBuiltinName SHA3
+    => TypedStaticBuiltinName term '[BSL.ByteString] BSL.ByteString
+typedSHA3 = makeTypedStaticBuiltinName SHA3
 
 -- | Typed 'VerifySignature'.
 typedVerifySignature
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedBuiltinName term '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
-typedVerifySignature = makeTypedBuiltinName VerifySignature
+    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString, BSL.ByteString] (EvaluationResult Bool)
+typedVerifySignature = makeTypedStaticBuiltinName VerifySignature
 
 -- | Typed 'EqByteString'.
 typedEqByteString
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
-typedEqByteString = makeTypedBuiltinName EqByteString
+    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+typedEqByteString = makeTypedStaticBuiltinName EqByteString
 
 -- | Typed 'LtByteString'.
 typedLtByteString
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
-typedLtByteString = makeTypedBuiltinName LtByteString
+    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+typedLtByteString = makeTypedStaticBuiltinName LtByteString
 
 -- | Typed 'GtByteString'.
 typedGtByteString
     :: (HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool])
-    => TypedBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
-typedGtByteString = makeTypedBuiltinName GtByteString
+    => TypedStaticBuiltinName term '[BSL.ByteString, BSL.ByteString] Bool
+typedGtByteString = makeTypedStaticBuiltinName GtByteString
 
 -- | Typed 'IfThenElse'.
 typedIfThenElse
     :: ( HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool]
        , a ~ Opaque term (TyVarRep "a" 0)
        )
-    => TypedBuiltinName term '[Bool, a, a] a
+    => TypedStaticBuiltinName term '[Bool, a, a] a
 typedIfThenElse =
-    TypedBuiltinName IfThenElse $
+    TypedStaticBuiltinName IfThenElse $
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \_ -> knownTypeScheme

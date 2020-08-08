@@ -14,7 +14,7 @@ module Language.PlutusCore.TypeCheck
     -- * Kind/type inference/checking.
     , inferKind
     , checkKind
-    , typeOfBuiltinName
+    , typeOfStaticBuiltinName
     , inferType
     , checkType
     , inferTypeOfProgram

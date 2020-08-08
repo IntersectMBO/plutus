@@ -107,7 +107,7 @@ instance (Closed uni, uni `Everywhere` Serialise) => Serialise (Some (ValueOf un
     decode = go =<< decode where
         go (Some (TypeIn uni)) = Some . ValueOf uni <$> bring (Proxy @Serialise) uni decode
 
-instance Serialise BuiltinName where
+instance Serialise StaticBuiltinName where
     encode = encodeConstructorTag . \case
               AddInteger           -> 0
               SubtractInteger      -> 1
@@ -208,13 +208,13 @@ instance Serialise DynamicBuiltinName where
     encode (DynamicBuiltinName name) = encode name
     decode = DynamicBuiltinName <$> decode
 
-instance Serialise ann => Serialise (Builtin ann) where
-    encode (BuiltinName ann bn)     = encodeConstructorTag 0 <> encode ann <> encode bn
-    encode (DynBuiltinName ann dbn) = encodeConstructorTag 1 <> encode ann <> encode dbn
+instance Serialise BuiltinName where
+    encode (StaticBuiltinName bn) = encodeConstructorTag 0 <> encode bn
+    encode (DynBuiltinName   dbn) = encodeConstructorTag 1 <> encode dbn
 
     decode = go =<< decodeConstructorTag
-        where go 0 = BuiltinName    <$> decode <*> decode
-              go 1 = DynBuiltinName <$> decode <*> decode
+        where go 0 = StaticBuiltinName <$> decode
+              go 1 = DynBuiltinName    <$> decode
               go _ = fail "Failed to decode Builtin ()"
 
 instance ( Closed uni

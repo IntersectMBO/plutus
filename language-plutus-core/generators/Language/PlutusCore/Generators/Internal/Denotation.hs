@@ -10,9 +10,9 @@ module Language.PlutusCore.Generators.Internal.Denotation
     , DenotationContextMember(..)
     , DenotationContext(..)
     , denoteVariable
-    , denoteTypedBuiltinName
+    , denoteTypedStaticBuiltinName
     , insertVariable
-    , insertTypedBuiltinName
+    , insertTypedStaticBuiltinName
     , typedBuiltinNames
     ) where
 
@@ -20,6 +20,7 @@ import           Language.PlutusCore.Generators.Internal.Dependent
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.MkPlc                         (staticBuiltinNameAsTerm)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Universe
 
@@ -74,13 +75,13 @@ typeSchemeResult (TypeSchemeAll _ _ schK) = typeSchemeResult $ schK Proxy
 denoteVariable :: KnownType (Term TyName Name uni ()) res => Name -> res -> Denotation uni Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
--- | Get the 'Denotation' of a 'TypedBuiltinName'.
-denoteTypedBuiltinName
-    :: TypedBuiltinName (Term TyName Name uni ()) args res
+-- | Get the 'Denotation' of a 'TypedStaticBuiltinName'.
+denoteTypedStaticBuiltinName
+    :: TypedStaticBuiltinName (Term TyName Name uni ()) args res
     -> FoldArgs args res
-    -> Denotation uni BuiltinName res
-denoteTypedBuiltinName (TypedBuiltinName name scheme) meta =
-    Denotation name (Builtin () . BuiltinName ()) meta scheme
+    -> Denotation uni StaticBuiltinName res
+denoteTypedStaticBuiltinName (TypedStaticBuiltinName name scheme) meta =
+    Denotation name staticBuiltinNameAsTerm meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
@@ -100,40 +101,40 @@ insertVariable
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
-insertTypedBuiltinName
+insertTypedStaticBuiltinName
     :: GShow uni
-    => TypedBuiltinName (Term TyName Name uni ()) args res
+    => TypedStaticBuiltinName (Term TyName Name uni ()) args res
     -> FoldArgs args res
     -> DenotationContext uni
     -> DenotationContext uni
-insertTypedBuiltinName tbn@(TypedBuiltinName _ scheme) meta =
+insertTypedStaticBuiltinName tbn@(TypedStaticBuiltinName _ scheme) meta =
     case typeSchemeResult scheme of
-        AsKnownType -> insertDenotation (denoteTypedBuiltinName tbn meta)
+        AsKnownType -> insertDenotation (denoteTypedStaticBuiltinName tbn meta)
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
 -- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
--- | A 'DenotationContext' that consists of 'TypedBuiltinName's.
+-- | A 'DenotationContext' that consists of 'TypedStaticBuiltinName's.
 typedBuiltinNames
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => DenotationContext uni
 typedBuiltinNames
-    = insertTypedBuiltinName typedAddInteger           (+)
-    . insertTypedBuiltinName typedSubtractInteger      (-)
-    . insertTypedBuiltinName typedMultiplyInteger      (*)
---     . insertTypedBuiltinName typedDivideInteger        (nonZeroArg div)
---     . insertTypedBuiltinName typedRemainderInteger     (nonZeroArg rem)
---     . insertTypedBuiltinName typedQuotientInteger      (nonZeroArg quot)
---     . insertTypedBuiltinName typedModInteger           (nonZeroArg mod)
-    . insertTypedBuiltinName typedLessThanInteger      (<)
-    . insertTypedBuiltinName typedLessThanEqInteger    (<=)
-    . insertTypedBuiltinName typedGreaterThanInteger   (>)
-    . insertTypedBuiltinName typedGreaterThanEqInteger (>=)
-    . insertTypedBuiltinName typedEqInteger            (==)
-    . insertTypedBuiltinName typedConcatenate          (coerce BSL.append)
-    . insertTypedBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64)
-    . insertTypedBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64)
-    . insertTypedBuiltinName typedSHA2                 (coerce Hash.sha2)
-    . insertTypedBuiltinName typedSHA3                 (coerce Hash.sha3)
---     . insertTypedBuiltinName typedVerifySignature      verifySignature
-    . insertTypedBuiltinName typedEqByteString         (==)
+    = insertTypedStaticBuiltinName typedAddInteger           (+)
+    . insertTypedStaticBuiltinName typedSubtractInteger      (-)
+    . insertTypedStaticBuiltinName typedMultiplyInteger      (*)
+--     . insertTypedStaticBuiltinName typedDivideInteger        (nonZeroArg div)
+--     . insertTypedStaticBuiltinName typedRemainderInteger     (nonZeroArg rem)
+--     . insertTypedStaticBuiltinName typedQuotientInteger      (nonZeroArg quot)
+--     . insertTypedStaticBuiltinName typedModInteger           (nonZeroArg mod)
+    . insertTypedStaticBuiltinName typedLessThanInteger      (<)
+    . insertTypedStaticBuiltinName typedLessThanEqInteger    (<=)
+    . insertTypedStaticBuiltinName typedGreaterThanInteger   (>)
+    . insertTypedStaticBuiltinName typedGreaterThanEqInteger (>=)
+    . insertTypedStaticBuiltinName typedEqInteger            (==)
+    . insertTypedStaticBuiltinName typedConcatenate          (coerce BSL.append)
+    . insertTypedStaticBuiltinName typedTakeByteString       (coerce BSL.take . integerToInt64)
+    . insertTypedStaticBuiltinName typedDropByteString       (coerce BSL.drop . integerToInt64)
+    . insertTypedStaticBuiltinName typedSHA2                 (coerce Hash.sha2)
+    . insertTypedStaticBuiltinName typedSHA3                 (coerce Hash.sha3)
+--     . insertTypedStaticBuiltinName typedVerifySignature      verifySignature
+    . insertTypedStaticBuiltinName typedEqByteString         (==)
     $ DenotationContext mempty

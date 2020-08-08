@@ -19,7 +19,7 @@
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
-    , TypedBuiltinName (..)
+    , TypedStaticBuiltinName (..)
     , FoldArgs
     , FoldArgsEx
     , DynamicBuiltinNameMeaning (..)
@@ -93,8 +93,8 @@ data TypeScheme term (args :: [GHC.Type]) res where
         -> (forall ot. ot ~ Opaque term (TyVarRep text uniq) => Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
--- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName term args res = TypedBuiltinName BuiltinName (TypeScheme term args res)
+-- | A 'StaticBuiltinName' with an associated 'TypeScheme'.
+data TypedStaticBuiltinName term args res = TypedStaticBuiltinName StaticBuiltinName (TypeScheme term args res)
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --
