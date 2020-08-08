@@ -13,7 +13,6 @@ module Language.PlutusCore.Evaluation.Machine.Ck
     ( EvaluationResult (..)
     , CkEvaluationException
     , CkValue (..)
-    , CkM
     , evaluateCk
     , unsafeEvaluateCk
     ) where
@@ -36,16 +35,6 @@ import           Language.PlutusCore.Universe
 import           Data.Array
 
 infix 4 |>, <|
-
--- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
-data NoDynamicBuiltinNamesMachineError
-    = NoDynamicBuiltinNamesMachineError DynamicBuiltinName
-    deriving (Show, Eq)
-
--- | The CK machine-specific 'EvaluationException'.
-type CkEvaluationException uni =
-    EvaluationException NoDynamicBuiltinNamesMachineError () (CkValue uni)
-
 
 data CkValue uni =
     VCon (Term TyName Name uni ())  -- TODO: Really want a constant here.
@@ -72,12 +61,25 @@ instance AsConstant (CkValue uni) where
     asConstant (VCon term) = asConstant term
     asConstant _           = Nothing
 
+instance ToExMemory (CkValue uni) where
+    toExMemory _ = 0
+
+
+-- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
+data NoDynamicBuiltinNamesMachineError
+    = NoDynamicBuiltinNamesMachineError DynamicBuiltinName
+    deriving (Show, Eq)
+
+-- | The CK machine-specific 'EvaluationException'.
+type CkEvaluationException uni =
+    EvaluationException NoDynamicBuiltinNamesMachineError () (CkValue uni)
+
+type CkM uni = Either (CkEvaluationException uni)
+
 instance SpendBudget (CkM uni) (CkValue uni) where
     builtinCostParams = pure defaultCostModel
     spendBudget _key _budget = pure ()
 
-instance ToExMemory (CkValue uni) where
-    toExMemory _ = 0
 
 mkBuiltinApp :: BuiltinName -> [Type TyName uni ()] -> [Plain Term uni] -> Plain Term uni
 mkBuiltinApp bn tys args = mkIterApp () (mkIterInst () (Builtin () bn) tys) args
@@ -89,8 +91,6 @@ ckValueToTerm = \case
     VLamAbs name ty body   -> LamAbs () name ty body
     VIWrap t1 t2 body      -> IWrap () t1 t2 (ckValueToTerm body)
     VBuiltin bn _ tys args -> mkBuiltinApp bn tys (fmap ckValueToTerm args)
-
-type CkM uni = Either (CkEvaluationException uni)
 
 getArgsCount :: BuiltinName -> CkM uni Int
 getArgsCount (StaticBuiltinName name) =
