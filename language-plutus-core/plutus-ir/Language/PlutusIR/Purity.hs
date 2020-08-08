@@ -25,13 +25,13 @@ saturatesScheme ::  [Arg tyname name uni a] -> TypeScheme term args res -> Maybe
 saturatesScheme _ TypeSchemeResult{} = Just True
 -- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow _ sch) = saturatesScheme args sch
-saturatesScheme (TypeArg _ : args) (TypeSchemeAllType _ k) = saturatesScheme args (k Proxy)
+saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ _ k)   = saturatesScheme args (k Proxy)
 -- Under-applied, not saturated
 saturatesScheme [] TypeSchemeArrow{} = Just False
-saturatesScheme [] TypeSchemeAllType{} = Just False
+saturatesScheme [] TypeSchemeAll{}   = Just False
 -- These cases are only possible in case we have an ill-typed builtin application, so we can't give an answer.
 saturatesScheme (TypeArg _ : _) TypeSchemeArrow{} = Nothing
-saturatesScheme (TermArg _ : _) TypeSchemeAllType{} = Nothing
+saturatesScheme (TermArg _ : _) TypeSchemeAll{}   = Nothing
 
 -- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated

@@ -217,7 +217,7 @@ typedIfThenElse
     :: ( HasConstantIn uni term, GShow uni, GEq uni, uni `IncludesAll` '[BSL.ByteString, Bool]
        , a ~ Opaque term (TyVarRep "a" 0)
        )
-    => TypedBuiltinName term '[Bool, a, a] a
+    => TypedStaticBuiltinName term '[Bool, a, a] a
 typedIfThenElse =
-    TypedBuiltinName IfThenElse $
+    TypedStaticBuiltinName IfThenElse $
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \_ -> knownTypeScheme
