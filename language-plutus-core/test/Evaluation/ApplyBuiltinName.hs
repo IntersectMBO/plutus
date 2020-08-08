@@ -30,7 +30,7 @@ import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
 -- A monad to keep `applyStaticBuiltinName` happy.
--- We can't use CekM or CkM because their exception type doesn't match Term.
+-- We can't use CekM or CkM because their exception types don't match Term.
 
 type TestEvaluationException uni =
     EvaluationException () () (Term TyName Name uni ())
