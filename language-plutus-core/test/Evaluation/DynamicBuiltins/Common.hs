@@ -23,8 +23,8 @@ import           Control.Monad.Except
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
     :: (MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni)
-    => (DynamicBuiltinNameMeanings (CekVal uni) -> CostModel -> Plain Term uni -> a)
-    -> DynamicBuiltinNameMeanings (CekVal uni) -> Plain Term uni -> m a
+    => (DynamicBuiltinNameMeanings (CekVal uni) -> CostModel -> Term TyName Name uni () -> a)
+    -> DynamicBuiltinNameMeanings (CekVal uni) -> Term TyName Name uni () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
     types <- dynamicBuiltinNameMeaningsToTypes () meanings
     _ <- inferType (TypeCheckConfig types) term
@@ -39,8 +39,8 @@ typecheckEvaluateCek
        , uni `Everywhere` PrettyConst, Typeable uni
        )
     => DynamicBuiltinNameMeanings (CekVal uni)
-    -> Plain Term uni
-    -> m (EvaluationResult (Plain Term uni))
+    -> Term TyName Name uni ()
+    -> m (EvaluationResult (Term TyName Name uni ()))
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
@@ -49,6 +49,6 @@ typecheckReadKnownCek
        , GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => DynamicBuiltinNameMeanings (CekVal uni)
-    -> Plain Term uni
+    -> Term TyName Name uni ()
     -> m (Either (CekEvaluationException uni) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek
