@@ -34,7 +34,7 @@ import qualified Language.PlutusIR                      as PIR
 import qualified Language.PlutusIR.Compiler.Definitions as PIR
 import           Language.PlutusIR.Compiler.Names
 import qualified Language.PlutusIR.MkPir                as PIR
-import qualified Language.PlutusIR.Value                as PIR
+import qualified Language.PlutusIR.Purity               as PIR
 
 import qualified Language.PlutusCore                    as PLC
 import qualified Language.PlutusCore.Constant           as PLC
@@ -54,7 +54,6 @@ import qualified Data.ByteString.Lazy                   as BSL
 import qualified Data.Map                               as Map
 import           Data.Proxy
 import qualified Data.Set                               as Set
-import           Data.Traversable                       (for)
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.
@@ -146,27 +145,22 @@ builtin types, and the others we compile normally.
 
 {- Note [Builtin terms and values]
 When generating let-bindings, we would like to generate strict bindings only for things that are obviously
-values, and non-strict bindings otherwise. This ensures that we won't evaluate the RHS of the binding prematurely,
+pure, and non-strict bindings otherwise. This ensures that we won't evaluate the RHS of the binding prematurely,
 which matters if it could trigger an error, or some other effect.
 
 Additionally, strict bindings are a bit more efficient than non-strict ones (non-strict ones get turned into
 lambdas from unit and forcing in the body). So we would like to use strict bindings where possible.
 
-Now, we generate bindings for all our builtin functions... but they are not obviously values! Without the
-typechecker we don't know whether they are unsaturated, and so whether they will reduce as they are.
-
-This forces us to either:
-1. Generate all these bindings as non-strict.
-2. Eta-expand all the builtin functions so they're obviously values (since they'd be lambdas).
-
-We do the latter.
+Now, we generate bindings for all our builtin functions... but they are not *obviously* pure!
+Fortunately, we have a more sophisticated purity check that also detects unsaturated builtin applications,
+which handles these cases too.
 -}
 
-mkBuiltin :: PLC.BuiltinName -> PIR.Term tyname name uni ()
-mkBuiltin n = PIR.Builtin () $ PLC.BuiltinName () n
+mkStaticBuiltin :: PLC.StaticBuiltinName -> PIR.Term tyname name uni ()
+mkStaticBuiltin n = PIR.Builtin () $ PLC.StaticBuiltinName n
 
 mkDynBuiltin :: PLC.DynamicBuiltinName -> PIR.Term tyname name uni ()
-mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName () n
+mkDynBuiltin n = PIR.Builtin () $ PLC.DynBuiltinName n
 
 -- | The 'TH.Name's for which 'BuiltinNameInfo' needs to be provided.
 builtinNames :: [TH.Name]
@@ -224,8 +218,9 @@ defineBuiltinTerm :: Compiling uni m => TH.Name -> PIRTerm uni -> [GHC.Name] -> 
 defineBuiltinTerm name term deps = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
+    CompileContext {ccBuiltinMeanings=means} <- ask
     -- See Note [Builtin terms and values]
-    let strictness = if PIR.isTermValue term then PIR.Strict else PIR.NonStrict
+    let strictness = if PIR.isPure means (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)
     PIR.defineTerm (LexName $ GHC.getName ghcId) def (Set.fromList $ LexName <$> deps)
 
@@ -239,7 +234,7 @@ defineBuiltinType name ty deps = do
     PIR.recordAlias @LexName @uni @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: (Compiling uni m, PLC.DefaultUni PLC.<: uni) => m ()
+defineBuiltinTerms :: Compiling uni m => m ()
 defineBuiltinTerms = do
     bs <- GHC.getName <$> getThing ''Builtins.ByteString
     int <- GHC.getName <$> getThing ''Integer
@@ -251,34 +246,33 @@ defineBuiltinTerms = do
     intTy <- lookupBuiltinType ''Integer
     bsTy <- lookupBuiltinType ''Builtins.ByteString
     strTy <- lookupBuiltinType ''Builtins.String
-    charTy <- lookupBuiltinType ''Char
 
     -- See Note [Builtin terms and values] for the eta expansion below
 
     -- Bytestring builtins
     do
-        term <- etaExpand [bsTy, bsTy] $ mkBuiltin PLC.Concatenate
+        let term = mkStaticBuiltin PLC.Concatenate
         defineBuiltinTerm 'Builtins.concatenate term [bs]
     do
-        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.TakeByteString
+        let term = mkStaticBuiltin PLC.TakeByteString
         defineBuiltinTerm 'Builtins.takeByteString term [int, bs]
     do
-        term <- etaExpand [intTy, bsTy] $ mkBuiltin PLC.DropByteString
+        let term = mkStaticBuiltin PLC.DropByteString
         defineBuiltinTerm 'Builtins.dropByteString term [int, bs]
     do
-        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA2
+        let term = mkStaticBuiltin PLC.SHA2
         defineBuiltinTerm 'Builtins.sha2_256 term [bs]
     do
-        term <- etaExpand [bsTy] $ mkBuiltin PLC.SHA3
+        let term = mkStaticBuiltin PLC.SHA3
         defineBuiltinTerm 'Builtins.sha3_256 term [bs]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.EqByteString
+        term <- wrapRel bsTy 2 $ mkStaticBuiltin PLC.EqByteString
         defineBuiltinTerm 'Builtins.equalsByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.LtByteString
+        term <- wrapRel bsTy 2 $ mkStaticBuiltin PLC.LtByteString
         defineBuiltinTerm 'Builtins.lessThanByteString term [bs, bool]
     do
-        term <- wrapRel bsTy 2 $ mkBuiltin PLC.GtByteString
+        term <- wrapRel bsTy 2 $ mkStaticBuiltin PLC.GtByteString
         defineBuiltinTerm 'Builtins.greaterThanByteString term [bs, bool]
 
     do
@@ -287,39 +281,39 @@ defineBuiltinTerms = do
 
     -- Integer builtins
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.AddInteger
+        let term = mkStaticBuiltin PLC.AddInteger
         defineBuiltinTerm 'Builtins.addInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.SubtractInteger
+        let term = mkStaticBuiltin PLC.SubtractInteger
         defineBuiltinTerm 'Builtins.subtractInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.MultiplyInteger
+        let term = mkStaticBuiltin PLC.MultiplyInteger
         defineBuiltinTerm 'Builtins.multiplyInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.DivideInteger
+        let term = mkStaticBuiltin PLC.DivideInteger
         defineBuiltinTerm 'Builtins.divideInteger term [int]
     do
-        term <- etaExpand [intTy, intTy] $ mkBuiltin PLC.RemainderInteger
+        let term = mkStaticBuiltin PLC.RemainderInteger
         defineBuiltinTerm 'Builtins.remainderInteger term [int]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanInteger
+        term <- wrapRel intTy 2 $ mkStaticBuiltin PLC.GreaterThanInteger
         defineBuiltinTerm 'Builtins.greaterThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.GreaterThanEqInteger
+        term <- wrapRel intTy 2 $ mkStaticBuiltin PLC.GreaterThanEqInteger
         defineBuiltinTerm 'Builtins.greaterThanEqInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanInteger
+        term <- wrapRel intTy 2 $ mkStaticBuiltin PLC.LessThanInteger
         defineBuiltinTerm 'Builtins.lessThanInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.LessThanEqInteger
+        term <- wrapRel intTy 2 $ mkStaticBuiltin PLC.LessThanEqInteger
         defineBuiltinTerm 'Builtins.lessThanEqInteger term [int, bool]
     do
-        term <- wrapRel intTy 2 $ mkBuiltin PLC.EqInteger
+        term <- wrapRel intTy 2 $ mkStaticBuiltin PLC.EqInteger
         defineBuiltinTerm 'Builtins.equalsInteger term [int, bool]
 
     -- Blockchain builtins
     do
-        term <- wrapRel bsTy 3 $ mkBuiltin PLC.VerifySignature
+        term <- wrapRel bsTy 3 $ mkStaticBuiltin PLC.VerifySignature
         defineBuiltinTerm 'Builtins.verifySignature term [bs, bool]
 
     -- Error
@@ -330,20 +324,20 @@ defineBuiltinTerms = do
 
     -- Strings and chars
     do
-        term <- etaExpand [strTy, strTy] $ mkDynBuiltin PLC.dynamicAppendName
+        let term = mkDynBuiltin PLC.dynamicAppendName
         defineBuiltinTerm 'Builtins.appendString term [str]
     do
         let term = PIR.mkConstant () ("" :: String)
         defineBuiltinTerm 'Builtins.emptyString term [str]
     do
-        term <- etaExpand [charTy] $ mkDynBuiltin PLC.dynamicCharToStringName
+        let term = mkDynBuiltin PLC.dynamicCharToStringName
         defineBuiltinTerm 'Builtins.charToString term [char, str]
     do
         term <- wrapUnitFun strTy $ mkDynBuiltin PLC.dynamicTraceName
         defineBuiltinTerm 'Builtins.trace term [str, unit]
 
 defineBuiltinTypes
-    :: (Compiling uni m, PLC.DefaultUni PLC.<: uni)
+    :: Compiling uni m
     => m ()
 defineBuiltinTypes = do
     do
@@ -408,22 +402,13 @@ scottBoolToHaskellBool = do
     haskellBoolTy <- compileType GHC.boolTy
 
     arg <- liftQuote $ freshName "b"
-    let instantiatedMatch = PIR.TyInst () (PIR.builtinNameAsTerm PLC.IfThenElse) haskellBoolTy
+    let instantiatedMatch = PIR.TyInst () (PIR.staticBuiltinNameAsTerm PLC.IfThenElse) haskellBoolTy
 
     haskellTrue <- compileDataConRef GHC.trueDataCon
     haskellFalse <- compileDataConRef GHC.falseDataCon
     pure $
         PIR.LamAbs () arg scottBoolTy $
         PIR.mkIterApp () instantiatedMatch [ (PIR.Var () arg), haskellTrue, haskellFalse ]
-
--- | Eta-expand a function with the given argument types.
-etaExpand :: Compiling uni m => [PIRType uni] -> PIRTerm uni -> m (PIRTerm uni)
-etaExpand argTys term = do
-    args <- for argTys $ \argTy -> do
-        name <- safeFreshName "arg"
-        pure $ PIR.VarDecl () name argTy
-
-    pure $ PIR.mkIterLamAbs args $ (PIR.mkIterApp () term (fmap (PIR.mkVar ()) args))
 
 -- | Wrap an relation of arity @n@ that produces a Scott boolean.
 wrapRel :: Compiling uni m => PIRType uni -> Int -> PIRTerm uni -> m (PIRTerm uni)

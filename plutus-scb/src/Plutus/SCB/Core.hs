@@ -51,7 +51,6 @@ import           Control.Monad.Logger             (MonadLogger)
 import qualified Control.Monad.Logger             as MonadLogger
 import qualified Data.Map.Strict                  as Map
 import           Data.Set                         (Set)
-import           Data.Text                        (Text)
 import           Data.Text.Prettyprint.Doc        (Pretty, pretty, (<+>))
 import           Database.Persist.Sqlite          (createSqlitePoolFromInfo, mkSqliteConnectionInfo)
 import           Eventful.Store.Sql               (defaultSqlEventStoreConfig)
@@ -75,7 +74,6 @@ import           Wallet.Effects                   (ChainIndexEffect, NodeClientE
 
 type ContractEffects t =
         '[ EventLogEffect (ChainEvent t)
-         , LogMsg Text
          , UUIDEffect
          , ContractEffect FilePath
          , Error SCBError
@@ -160,5 +158,4 @@ type SCBEffects =
         , NodeClientEffect
         , SigningProcessEffect
         , EventLogEffect (ChainEvent ContractExe)
-        , LogMsg Text
         ]

@@ -27,6 +27,8 @@ data Icon
   | Hourglass
   | HourglassStart
   | HourglassEnd
+  | CheckCircle
+  | ExclamationCircle
 
 icon :: forall p i. Icon -> HTML p i
 icon iconType = i [ class_ (iconClass iconType) ] []
@@ -77,3 +79,7 @@ iconClass Hourglass = ClassName "fa fa-hourglass"
 iconClass HourglassStart = ClassName "fa fa-hourglass-start"
 
 iconClass HourglassEnd = ClassName "fa fa-hourglass-end"
+
+iconClass CheckCircle = ClassName "fa fa-check-circle"
+
+iconClass ExclamationCircle = ClassName "fa fa-exclamation-circle"

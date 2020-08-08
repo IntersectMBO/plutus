@@ -1,7 +1,7 @@
 # Experiments with variations on the CEK machine, July 2020.
 
 This document describes some experiments with variations on the CEK
-machine, including the one proposed in [this note](./CEK.md), where
+machine, including the one proposed in [this note](./alternative-CEK.md), where
 instead of closures of the form `(V,ρ)`, an alternative form of
 closure is used where environments only appear under binders, and are
 not stored with every value.

@@ -4,7 +4,7 @@ import Prelude
 import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Aff (forkAff, Aff)
+import Effect.Aff (Aff, forkAff, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
@@ -15,7 +15,11 @@ import LocalStorage (RawStorageEvent)
 import LocalStorage as LocalStorage
 import MainFrame (mkMainFrame)
 import Marlowe (SPParams_(SPParams_))
+import Router as Router
+import Routing.Duplex as Routing
+import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
+import Types (HQuery(..))
 import Web.HTML as W
 import Web.HTML.Location as WL
 import Web.HTML.Window as WW
@@ -55,6 +59,9 @@ main = do
     driver <- runUI mainFrame unit body
     driver.subscribe $ wsSender socket driver.query
     void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer driver.query)
+    void $ liftEffect
+      $ matchesWith (Routing.parse Router.route) \old new -> do
+          when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)
     forkAff $ runProcess watchLocalStorageProcess
 
 watchLocalStorageProcess :: Process Aff Unit

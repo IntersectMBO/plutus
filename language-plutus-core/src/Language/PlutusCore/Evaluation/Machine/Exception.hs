@@ -33,7 +33,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Instance.Pretty.Common ()
-import           Language.PlutusCore.Core.Type                   (StagedBuiltinName)
+import           Language.PlutusCore.Core.Type                   (BuiltinName)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
@@ -52,8 +52,8 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError term
-    =  TooFewArgumentsConstAppError StagedBuiltinName
-    | TooManyArgumentsConstAppError StagedBuiltinName [term]
+    =  TooFewArgumentsConstAppError BuiltinName
+    | TooManyArgumentsConstAppError BuiltinName [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.

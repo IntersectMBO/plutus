@@ -261,6 +261,7 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
             ccFlags=flags,
             ccFamInstEnvs=famEnvs,
             ccBuiltinNameInfo=nameInfo,
+            ccBuiltinMeanings=PLC.getStringBuiltinMeanings,
             ccScopes=initialScopeStack,
             ccBlackholed=mempty
             }
@@ -294,12 +295,14 @@ compileCoreExpr (opts, famEnvs) locStr codeTy origE = do
                 `GHC.App` bsLitPir
 
 runCompiler
-    :: (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
+    :: forall uni m . (uni ~ PLC.DefaultUni, MonadReader (CompileContext uni) m, MonadState CompileState m, MonadQuote m, MonadError (CompileError uni) m, MonadIO m)
     => PluginOptions
     -> GHC.CoreExpr
     -> m (PIRProgram uni, PLCProgram uni)
 runCompiler opts expr = do
-    let (ctx :: PIR.CompilationCtx ()) = PIR.defaultCompilationCtx & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+    let (ctx :: PIR.CompilationCtx uni ()) = PIR.defaultCompilationCtx
+                    & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+                    & set (PIR.ccBuiltinMeanings) PLC.getStringBuiltinMeanings
 
     (pirT::PIRTerm PLC.DefaultUni) <- PIR.runDefT () $ compileExprWithDefs expr
 

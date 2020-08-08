@@ -3428,15 +3428,7 @@
                               subtractInteger
                               (fun (con integer) (fun (con integer) (con integer)))
                             )
-                            (lam
-                              arg
-                              (con integer)
-                              (lam
-                                arg
-                                (con integer)
-                                [ [ (builtin subtractInteger) arg ] arg ]
-                              )
-                            )
+                            (builtin subtractInteger)
                           )
                           (let
                             (rec)
@@ -9656,15 +9648,7 @@
                                         addInteger
                                         (fun (con integer) (fun (con integer) (con integer)))
                                       )
-                                      (lam
-                                        arg
-                                        (con integer)
-                                        (lam
-                                          arg
-                                          (con integer)
-                                          [ [ (builtin addInteger) arg ] arg ]
-                                        )
-                                      )
+                                      (builtin addInteger)
                                     )
                                     (termbind
                                       (strict)
@@ -13387,20 +13371,7 @@
                                             multiplyInteger
                                             (fun (con integer) (fun (con integer) (con integer)))
                                           )
-                                          (lam
-                                            arg
-                                            (con integer)
-                                            (lam
-                                              arg
-                                              (con integer)
-                                              [
-                                                [
-                                                  (builtin multiplyInteger) arg
-                                                ]
-                                                arg
-                                              ]
-                                            )
-                                          )
+                                          (builtin multiplyInteger)
                                         )
                                         (termbind
                                           (strict)

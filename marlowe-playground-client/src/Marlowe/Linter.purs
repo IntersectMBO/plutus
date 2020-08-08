@@ -4,6 +4,7 @@ module Marlowe.Linter
   , MaxTimeout
   , Warning(..)
   , WarningDetail(..)
+  , AdditionalContext
   , _holes
   , _warnings
   , suggestions
@@ -15,7 +16,7 @@ module Marlowe.Linter
 
 import Prelude
 import Control.Monad.State as CMS
-import Data.Array (fold, foldMap, take)
+import Data.Array (catMaybes, fold, foldMap, take)
 import Data.Array as Array
 import Data.Array.NonEmpty (index)
 import Data.BigInteger (BigInteger)
@@ -41,15 +42,16 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Help (holeText)
 import Marlowe.Holes (Action(..), Argument, Bound(..), Case(..), Contract(..), Holes(..), MarloweHole(..), MarloweType, Observation(..), Term(..), TermWrapper(..), Value(..), Range, constructMarloweType, fromTerm, getHoles, getMarloweConstructors, getRange, holeSuggestions, insertHole, readMarloweType)
 import Marlowe.Parser (ContractParseError(..), parseContract)
 import Marlowe.Semantics (Rational(..), Slot(..), _accounts, _boundValues, _choices, emptyState, evalValue, makeEnvironment)
 import Marlowe.Semantics as Semantics
-import Monaco (CodeAction, CompletionItem, IMarkerData, Uri, IRange, markerSeverity)
+import Monaco (CodeAction, CompletionItem, IMarkerData, IRange, TextEdit, Uri, markerSeverity)
 import Monaco as Monaco
-import Text.Pretty (pretty)
+import Text.Pretty (hasArgs, pretty)
 
 newtype MaxTimeout
   = MaxTimeout (TermWrapper Slot)
@@ -70,6 +72,7 @@ newtype Warning
   = Warning
   { warning :: WarningDetail
   , range :: IRange
+  , refactoring :: Maybe TextEdit
   }
 
 data WarningDetail
@@ -111,6 +114,37 @@ instance showWarningDetail :: Show WarningDetail where
       <> show accountId
       <> " but the account only has "
       <> show availableAmount
+
+shortWarning :: WarningDetail -> String
+shortWarning NegativePayment = ""
+
+shortWarning NegativeDeposit = ""
+
+shortWarning TimeoutNotIncreasing = ""
+
+shortWarning UnreachableCaseEmptyChoice = ""
+
+shortWarning InvalidBound = ""
+
+shortWarning UnreachableCaseFalseNotify = ""
+
+shortWarning UnreachableContract = ""
+
+shortWarning UndefinedChoice = ""
+
+shortWarning UndefinedUse = ""
+
+shortWarning ShadowedLet = ""
+
+shortWarning DivisionByZero = ""
+
+shortWarning (SimplifiableValue _ _) = "Simplify Value"
+
+shortWarning (SimplifiableObservation _ _) = ""
+
+shortWarning (PayBeforeDeposit _) = ""
+
+shortWarning (PartialPayment _ _ _ _) = ""
 
 warningType :: Warning -> String
 warningType (Warning { warning }) = case warning of
@@ -235,13 +269,30 @@ simplifyTo (ConstantSimp _ _ c) pos = (ConstantSimp pos true c)
 
 simplifyTo (ValueSimp _ _ c) pos = (ValueSimp pos true c)
 
+simplifyRefactoring :: Term Value -> Term Value -> Maybe TextEdit
+simplifyRefactoring (Term _ range) to =
+  let
+    pv = show $ pretty to
+
+    text = if hasArgs to then "(" <> pv <> ")" else pv
+  in
+    Just { range, text }
+
+simplifyRefactoring _ _ = Nothing
+
 addWarning :: forall a. Show a => WarningDetail -> a -> Range -> CMS.State State Unit
 addWarning warnDetail term range =
-  modifying _warnings $ Set.insert
-    $ Warning
-        { warning: warnDetail
-        , range
-        }
+  let
+    refactoring = case warnDetail of
+      (SimplifiableValue from to) -> simplifyRefactoring from to
+      _ -> Nothing
+  in
+    modifying _warnings $ Set.insert
+      $ Warning
+          { warning: warnDetail
+          , range
+          , refactoring
+          }
 
 markSimplification :: forall a b. Show b => (a -> Term b) -> (Term b -> Term b -> WarningDetail) -> Term b -> TemporarySimplification a b -> CMS.State State Unit
 markSimplification f c oriVal x
@@ -668,10 +719,20 @@ lintAction env hole@(Hole _ _ _) = do
   modifying _holes (insertHole hole)
   pure NoEffect
 
-suggestions :: String -> Boolean -> String -> IRange -> Array CompletionItem
-suggestions original stripParens contract range =
+type AdditionalContext
+  = { warnings :: Set Warning
+    , contract :: Maybe (Term Contract)
+    }
+
+suggestions :: String -> Boolean -> String -> IRange -> AdditionalContext -> Array CompletionItem
+suggestions original stripParens contractString range { contract } =
   fromMaybe [] do
-    parsedContract <- hush $ parseContract contract
+    -- there will be no contract if it had errors, this is no good because we want to try to fix this
+    -- with contractString, which is a contract that comes from the MarloweCompletionItemProvider with
+    -- holes where possible errors are, so it might be able to be parsed.
+    parsedContract <- case contract of
+      Nothing -> hush $ parseContract contractString
+      c -> c
     let
       (Holes holes) = view _holes ((lint (emptyState zero)) parsedContract)
     v <- Map.lookup "monaco_suggestions" holes
@@ -680,32 +741,41 @@ suggestions original stripParens contract range =
 
 -- FIXME: We have multiple model markers, 1 per quick fix. This is wrong though, we need only 1 but in MarloweCodeActionProvider we want to run the code
 -- to generate the quick fixes from this single model marker
-markers :: Semantics.State -> String -> Array IMarkerData
-markers contractState contract = case (lint contractState) <$> parseContract contract of
-  Left EmptyInput -> []
-  Left e@(ContractParseError { message, row, column, token }) ->
-    let
-      whiteSpaceChar c = Set.member c $ Set.fromFoldable $ map codePointFromChar [ '\n', '\r', ' ', '\t' ]
+markers :: Semantics.State -> String -> Tuple (Array IMarkerData) AdditionalContext
+markers contractState contract = do
+  let
+    parsedContract = parseContract contract
+  case (lint contractState <$> parsedContract) of
+    Left EmptyInput -> (Tuple [] { warnings: mempty, contract: Nothing })
+    Left e@(ContractParseError { message, row, column, token }) ->
+      let
+        whiteSpaceChar c = Set.member c $ Set.fromFoldable $ map codePointFromChar [ '\n', '\r', ' ', '\t' ]
 
-      word = takeWhile (not <<< whiteSpaceChar) token
-    in
-      [ { startColumn: column
-        , startLineNumber: row
-        , endColumn: column + (length word)
-        , endLineNumber: row
-        , message: message
-        , severity: markerSeverity "Error"
-        , code: ""
-        , source: ""
-        }
-      ]
-  Right state ->
-    let
-      holesMarkers = state ^. (_holes <<< to holesToMarkers)
+        word = takeWhile (not <<< whiteSpaceChar) token
 
-      warningsMarkers = state ^. (_warnings <<< to Set.toUnfoldable <<< to (map warningToMarker))
-    in
-      holesMarkers <> warningsMarkers
+        markerData =
+          [ { startColumn: column
+            , startLineNumber: row
+            , endColumn: column + (length word)
+            , endLineNumber: row
+            , message: message
+            , severity: markerSeverity "Error"
+            , code: ""
+            , source: ""
+            }
+          ]
+      in
+        (Tuple markerData { warnings: mempty, contract: Nothing })
+    Right state ->
+      let
+        holesMarkers = state ^. (_holes <<< to holesToMarkers)
+
+        warningsMarkers = state ^. (_warnings <<< to Set.toUnfoldable <<< to (map warningToMarker))
+
+        -- we store the current warnings and the parsed contract in the halogen state so that they can be reused
+        additionalContext = { warnings: state ^. _warnings, contract: hush parsedContract }
+      in
+        (Tuple (holesMarkers <> warningsMarkers) additionalContext)
 
 -- other types of warning could do with being refactored to a Warning ADT first so we don't need to repeat ourselves
 holesToMarkers :: Holes -> Array IMarkerData
@@ -762,12 +832,22 @@ format contractString = case parseContract contractString of
   Left _ -> contractString
   Right contract -> show $ pretty contract
 
-provideLintCodeActions :: Uri -> Array IMarkerData -> Array CodeAction
-provideLintCodeActions _ _ = []
+provideLintCodeActions :: Uri -> AdditionalContext -> Array CodeAction
+provideLintCodeActions uri { warnings } = catMaybes <<< map codeAction <<< Set.toUnfoldable $ warnings
+  where
+  codeAction :: Warning -> Maybe CodeAction
+  codeAction (Warning { warning, range, refactoring: Just refactoring }) =
+    Just
+      { title: shortWarning warning
+      , edit: { edits: [ { resource: uri, edit: refactoring } ] }
+      , kind: "quickfix"
+      }
 
-provideCodeActions :: Uri -> Array IMarkerData -> Array CodeAction
-provideCodeActions uri markers' =
-  provideLintCodeActions uri markers'
+  codeAction _ = Nothing
+
+provideCodeActions :: Uri -> Array IMarkerData -> AdditionalContext -> Array CodeAction
+provideCodeActions uri markers' additionalContext =
+  provideLintCodeActions uri additionalContext
     <> (flip foldMap) markers' \(marker@{ source, startLineNumber, startColumn, endLineNumber, endColumn }) -> case regex "Hole: (\\w+)" noFlags of
         Left _ -> []
         Right r -> case readMarloweType =<< (join <<< (flip index 1)) =<< match r (source <> "Type") of

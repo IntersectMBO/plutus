@@ -32,7 +32,6 @@ import           Language.PlutusCore.MkPlc                                  (mkI
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty                                 (PrettyConfigPlc, PrettyConst)
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 import           Data.Array
 
@@ -40,7 +39,7 @@ infix 4 |>, <|
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
 data NoDynamicBuiltinNamesMachineError
-    = NoDynamicBuiltinNamesMachineError
+    = NoDynamicBuiltinNamesMachineError DynamicBuiltinName
     deriving (Show, Eq)
 
 -- | The CK machine-specific 'EvaluationException'.
@@ -54,7 +53,7 @@ data CkValue uni =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni)
   | VBuiltin
-      StagedBuiltinName
+      BuiltinName
       Int                   -- Number of arguments to be provided (both types and terms)
       [Type TyName uni ()]  -- The types the builtin is to be instantiated at.
                             -- We need these to construct a term if the machine is returning a stuck partial application.
@@ -80,14 +79,8 @@ instance SpendBudget (CkM uni) (CkValue uni) where
 instance ToExMemory (CkValue uni) where
     toExMemory _ = 0
 
-mkBuiltinApp :: Builtin () -> [Type TyName uni ()] -> [Plain Term uni] -> Plain Term uni
+mkBuiltinApp :: BuiltinName -> [Type TyName uni ()] -> [Plain Term uni] -> Plain Term uni
 mkBuiltinApp bn tys args = mkIterApp () (mkIterInst () (Builtin () bn) tys) args
-
--- This function is useful in ckValueToTerm.  StagedBuiltinNames will disappear
--- soon, and we won't need this then.
-unstageBuiltinName :: ann -> StagedBuiltinName -> Builtin ann
-unstageBuiltinName ann (StaticStagedBuiltinName name)  = BuiltinName ann name
-unstageBuiltinName ann (DynamicStagedBuiltinName name) = DynBuiltinName ann name
 
 ckValueToTerm :: CkValue uni -> Plain Term uni
 ckValueToTerm = \case
@@ -95,15 +88,15 @@ ckValueToTerm = \case
     VTyAbs tn k body       -> TyAbs () tn k body
     VLamAbs name ty body   -> LamAbs () name ty body
     VIWrap t1 t2 body      -> IWrap () t1 t2 (ckValueToTerm body)
-    VBuiltin bn _ tys args -> mkBuiltinApp (unstageBuiltinName () bn) tys (fmap ckValueToTerm args)
+    VBuiltin bn _ tys args -> mkBuiltinApp bn tys (fmap ckValueToTerm args)
 
 type CkM uni = Either (CkEvaluationException uni)
 
-getArgsCount :: Builtin ann -> CkM uni Int
-getArgsCount (BuiltinName _ name) =
+getArgsCount :: BuiltinName -> CkM uni Int
+getArgsCount (StaticBuiltinName name) =
     pure $ builtinNameAritiesIncludingTypes ! name
-getArgsCount (DynBuiltinName _ _name) =
-    throwingWithCause _MachineError (OtherMachineError NoDynamicBuiltinNamesMachineError) Nothing
+getArgsCount (DynBuiltinName name) =
+    throwingWithCause _MachineError (OtherMachineError $ NoDynamicBuiltinNamesMachineError name) Nothing
 
 data Frame uni
     = FrameApplyFun (CkValue uni)                           -- ^ @[V _]@
@@ -115,8 +108,8 @@ data Frame uni
 type Context uni = [Frame uni]
 
 instance Pretty NoDynamicBuiltinNamesMachineError where
-    pretty NoDynamicBuiltinNamesMachineError =
-        "The CK machine doesn't support dynamic extensions to the set of built-in names."
+    pretty (NoDynamicBuiltinNamesMachineError name) =
+        "The CK machine doesn't support dynamic extensions to the set of built-in names (found \"" <> pretty name <>  "\")."
 
 -- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
@@ -162,7 +155,7 @@ stack |> TyAbs   _ tn k body     = stack <| VTyAbs tn k body
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
                                     count <- getArgsCount bn
-                                    stack <| VBuiltin (constantAsStagedBuiltinName bn) count [] []
+                                    stack <| VBuiltin bn count [] []
 stack |> c@Constant{}  = stack <| VCon c
 _     |> _err@Error{}          =
            throwingWithCause _EvaluationError (UserEvaluationError ()) $ Nothing   -- Just err
@@ -208,7 +201,7 @@ instantiateEvaluate
 instantiateEvaluate stack _ (VTyAbs _ _ body) = stack |> body
 instantiateEvaluate stack ty (VBuiltin bn count tys args) =
     stack <| VBuiltin bn (count-1) (ty:tys) args
-    -- FIXME: What if count = 0, ie the final argument is a type?
+    -- FIXME: What if count = 0, ie the final argument is a type?  Also, what if count < 0?
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
@@ -232,26 +225,25 @@ applyEvaluate stack (VLamAbs name _ body) arg  = stack |> substituteDb name (ckV
 applyEvaluate stack val@(VBuiltin bn count tyargs args) arg = do
     let args' = arg:args
         count' = count - 1
-    if count' /= 0
+    if count' /= 0 -- What if count < 0 ?
         then stack <| VBuiltin bn count' tyargs args'
         else do
-            res <- applyStagedBuiltinName bn (reverse args')
+            res <- applyBuiltinName bn (reverse args')
             case res of
                 EvaluationSuccess v -> stack <| v
                 EvaluationFailure ->
                     throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just val
 applyEvaluate _ val _ =throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
-applyStagedBuiltinName
+applyBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => StagedBuiltinName
+    => BuiltinName
     -> [CkValue uni]
     -> CkM uni (EvaluationResult (CkValue uni))
-applyStagedBuiltinName (DynamicStagedBuiltinName _name) _args =
-    throwingWithCause _MachineError (OtherMachineError NoDynamicBuiltinNamesMachineError) Nothing
-applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
-
+applyBuiltinName (DynBuiltinName name) _args =
+    throwingWithCause _MachineError (OtherMachineError $ NoDynamicBuiltinNamesMachineError name) Nothing
+applyBuiltinName (StaticBuiltinName name) args =
+    applyStaticBuiltinName name args
 
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.

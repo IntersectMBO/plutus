@@ -119,3 +119,17 @@ exports.enableEmacsBindings_ = function (editor) {
   emacsMode.start();
   return (() => emacsMode.dispose());
 }
+
+exports.completionItemKindEq_ = function (a, b) {
+  a == b
+}
+
+exports.completionItemKindOrd_ = function (lt, eq, gt, a, b) {
+  if (a < b) {
+    return lt;
+  } else if (a == b) {
+    return eq;
+  } else {
+    return gt;
+  }
+}

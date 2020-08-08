@@ -228,7 +228,7 @@ sync wllt = do
     SCB.MultiAgent.agentControlAction wllt ChainIndex.syncState
     SCB.MultiAgent.agentAction wllt $ do
         processAllContractInboxes @TestContracts
-        processAllContractOutboxes @TestContracts
+        processAllContractOutboxes @TestContracts Trace.defaultMaxIterations
 
 -- | Run 'sync' for all agents
 syncAll :: Member MultiAgentSCBEffect effs => Eff effs ()

@@ -26,6 +26,9 @@ nodeServerConfig:
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083
 
+requestProcessingConfig:
+  requestProcessingInterval: 1
+
 signingProcessConfig:
   spBaseUrl: http://localhost:8084
   spWallet:
