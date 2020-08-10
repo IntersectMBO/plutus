@@ -79,12 +79,12 @@
 }
 
 .actus-blockly-tab .tab-icon {
-  background: url(../images/blockly-icon-grey.svg) center center no-repeat;
+  background: url(../images/actus-blockly-icon-grey.svg) center center no-repeat;
   background-size: 50px;
 }
 
 .actus-blockly-tab.active .tab-icon {
-  background: url(../images/blockly-icon.svg) center center no-repeat;
+  background: url(../images/actus-blockly-icon.svg) center center no-repeat;
   background-size: 50px;
 }
 
