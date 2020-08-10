@@ -1,17 +1,4 @@
 {
-    "agda-stdlib": {
-        "branch": "master",
-        "builtin": false,
-        "description": "The Agda standard library",
-        "homepage": "http://wiki.portal.chalmers.se/agda/pmwiki.php",
-        "owner": "agda",
-        "repo": "agda-stdlib",
-        "rev": "v1.3",
-        "sha256": "18kl20z3bjfgx5m3nvrdj5776qmpi7jl2p12pqybsls2lf86m0d5",
-        "type": "tarball",
-        "url": "https://github.com/agda/agda-stdlib/archive/v1.3.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "easy-purescript-nix": {
         "branch": "master",
         "builtin": false,
