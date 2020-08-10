@@ -1,5 +1,7 @@
 # Efficiently evaluating builtin functions in the CK and CEK machines
 
+(This is a bit impressionistic: it's describing ongoing work and discussions.)
+
 It's important that builtin evaluation should be efficient in our
 Plutus Core evaluators.  There's some machinery known as the constant
 application machinery (CAM for short) which takes the name of a
@@ -78,34 +80,23 @@ One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar
 performance to unsaturated builtins.
 
-### The alternative CEK machine
-Part of the reason for abandoning saturated builtins was that
-James proposed an alternative version of the CEK machine which
-looked as if it might be more efficient than the original machine
-with respect to environment handling. This involved a new notion of "value"
-which Roman observed would allow us to simplify builtin application
-by giving us somewhere to store the arguments to which a builtin had
-so far been applied.
+### The alternative CEK machine Part of the reason for abandoning
+saturated builtins was that James proposed an alternative version of
+the CEK machine which looked as if it might be more efficient than the
+original machine with respect to environment handling. This involved a
+new notion of "value" which also allowed us to simplify builtin
+application by giving us somewhere to store the arguments to which a
+builtin had so far been applied (this is an issue orthogonal to
+handling environments: we could have retained the original method
+of builtin evaluation and used a simpler version of the `builtin`
+value below while still improving the handling of environments).
 
 The original machine dealt with closures: pairs `(V,ρ)` with `V` a value and `ρ`
 an environment containing values for the free variables in `V` (and probably
 other variables as well: the new machine appeared attractive because it would
 reduce the number of irrelevant variables stored in environments).
 
-In James' original proposal, closures were to be replaced with a new kind
-of "value":
-
-```
-V := con cn
-   | abs ɑ (M , ⍴)
-   | lam x (M , ρ)
-   | iwrap A B V
-```
-
-These are similar to, but distinct from, the "values" in the Plutus Core
-specification, which are terms that can't be reduced any further.
-
-Roman's proposal was to change this to
+In the new proposal, closures are replaced with a new kind of "value":
 
 ```
 V := con cn
@@ -115,6 +106,9 @@ V := con cn
    | builtin ρ bn count [types] [V]
 ```
 (we'll call these things "CEK-values")
+
+These are similar to, but distinct from, the "values" in the Plutus Core
+specification, which are terms that can't be reduced any further.
 
 The `builtin` constructor contains
 
@@ -154,49 +148,93 @@ that works directly with values as described in the Plutus Core
 specification, and there's nowhere to store the argument information.
 I've considered a number of ways to fix this.
 
- * I initially thought we could store the required information
+ 1. I initially thought we could store the required information
    in a frame.  This is how the CK machine worked with saturated
    builtins, but we can't use the same technique with unsaturated
    builtins.  In the unsaturated case a partially applied builtin
    is a perfectly legitimate value and could be returned by a function
-   or supplied as an argument to another function.  This just doesn't
+   or supplied as an argument to another function.  This doesn't
    fit in with the way that stack frames are used.
 
- * We could modify the notion of value used in the CK machine. This
-   might be sensible.  The CK machine and the CEK machine both have two
-   main phases: "compute" and "return", the former acting on terms and
-   the latter acting on values.  In the CK machine, we've been using
-   values of the type described in the Plutus Core specification,
-   which are terms with a particular syntactic form.  However, I think
-   there's no reason why type of the arguments consumed by the return
-   phase have to bear any relation to the term type consumed by the
-   compute phase, so this might be the way to go.
+   In more detail, suppose we were to add add a frame `(builtin bn
+   count args)` which accumulates arguments and decrements the
+   counter every time a new argument is supplied.  If the application
+   is saturated then when we get the final argument we can apply the builtin,
+   using a rule along the lines of 
+   
+   `(builtin b 1 args), s ◅ V   ↦   s ◅ W`
+
+   where `b` evaluates to `W` on `reverse (V::args)`.
+
+   But what happens if the application is unsaturated? We might have
+   something like
+
+   `s ▻ [(λf:int->int . f (con 22)) [(builtin addInteger) (con 11)]]`
+
+   You would want this to bind the partially applied builtin to f and then
+   apply it to `(con 22)`, returning 33.  However, it would in fact evaluate
+   as follows:
+   
+   ```
+   s ▻ [(λf:int->int . f (con 1)) [(builtin addInteger) (con 11)]]
+   s, [_, [(builtin addInteger) (con 11)]]  ▻ (λf:int->int . f (con 1))
+   s, [_, [(builtin addInteger) (con 11)]]  ◅ (λf:int->int . f (con 1))
+   s, [(λf:int->int . f (con 1)), _] ▻ [(builtin addInteger) (con 11)]
+   s, [(λf:int->int . f (con 1)), _], (builtin addInteger 2 []) ▻ (con 11)
+   s, [(λf:int->int . f (con 1)), _], (builtin addInteger 2 []) ◅ (con 11)
+   s, [(λf:int->int . f (con 1)), _], (builtin addInteger 1 [(con 11]) ▻ ???
+   ```   
+
+   At this point we're stuck: the `builtin` frame expects a new
+   argument, but nothing is available.  In the version involving
+   saturated builtins, the `builtin` frame contains a list of as-yet
+   unevaluated arguments, and in a situation like this the next one
+   would be extracted and computed at `???`.  We could try to mimic
+   this with unsaturated builtins, but when we run out of immediately
+   available arguments (ie, ones which were supplied to the builtin at
+   invocation time) we would have to convert the frame into some kind
+   of value `W` and compute `s, [(λf:int->int . f (con 1)), _] ▻ W`.
+   This would work, but is pointless: once we've introduced a new type
+   of value for builtins, we no longer need the special `builtin` frame:
+   we can just store the values in the existing frames.  This leads
+   us on to proposal 2.
+      
+
+ 2. We could modify the notion of value used in the CK machine. The CK
+   machine and the CEK machine both have two main phases: "compute"
+   and "return", the former acting on terms and the latter acting on
+   values.  In the CK machine, we've been using values of the type
+   described in the Plutus Core specification, which are terms with a
+   particular syntactic form.  However, there's no particular reason why
+   the type of the arguments consumed by the return phase has to bear any
+   relation to the term type consumed by the compute phase, so this
+   might be the way to go.
 
    UPDATE: I've now done this and it seems to perform OK: it may be 1%
-   or so slower than the intiial solution described below.  I added a
-   `CkValue` type that was more or less isomorphic to the usual values
-   except for builtins, where the value includes a count of arguments
-   and lists of the type and term arguments it's received so far.
-   Introducing the new type also required quite a lot of typeclass
-   stuff to make it acceptable to the CAM.  See
-   https://github.com/input-output-hk/plutus/pull/2215 .
+   or so slower than the initial solution described in proposal 3
+   below.  I added a `CkValue` type that was more or less isomorphic
+   to the usual values except for builtins, where the value includes a
+   count of arguments and lists of the type and term arguments it's
+   received so far.
 
    I think that what's going on here is that for partially-applied
    buitins we're forced to have lists _somewhere_: this trick allows
    us to move them out of the AST (where the typechecker has to deal
    with them) and into the machines.
 
- * What I've done for the time being [this is my original attempt, in
-   `kwxm/alternative-cek`] is to modify the CK machine to use a
-   variant of the method used in the original CEK machine.  Whenever
-   we see an application `[M N]` where `M` isn't a lambda, we call
-   `termAsPrimIterApp` to check if it's of the correct form, and if it
-   is we look up the the arity of the function and compare it with the
-   number of arguments; if they match, we hand the application off to
-   the CAM.  This is a bit more efficient than the earlier method
-   because we only call the CAM once, but it still requires repeated
-   calls to the inefficient `termAsPrimIterApp`, which we otherwise
-   don't need.
+ * My original solution [in `kwxm/alternative-cek`] was to modify the
+   CK machine to use a variant of the method used in the original CEK
+   machine.  Whenever we see an application `[M N]` where `M` isn't a
+   lambda, we call `termAsPrimIterApp` to check if it's of the correct
+   form, and if it is we look up the the arity of the function and
+   compare it with the number of arguments; if they match, we hand the
+   application off to the CAM.  This is a bit more efficient than the
+   earlier method because we only call the CAM once, but it still
+   requires repeated calls to the inefficient `termAsPrimIterApp`,
+   which we otherwise don't need.  This is a fairly simple
+   modification of the existing machine, but doesn't look very
+   much like the new CEK machine: the version in proposal 2 is
+   more like the new CEK machibe.
 
  * We could modify the `builtin` constructor in the AST to contain a
    list of arguments that it's received so far.  That's probably a
@@ -227,17 +265,40 @@ to count the arities: that'll be slightly less efficient, but we'll
 only need it for the typed evaluator, where efficiency isn't paramount.
 
 
-## Higher-rank builtins
+## Non-prenex signatures for builtins
 
 In the specification, builtins are currently allowed to be
 polymorphic, but all the type arguments have to precede the term
-arguments (ie, all the quantifiers appear at the front).  
+arguments (ie, all the quantifiers appear at the front).  A typical signature
+looks like
+```
+  [α₁::K₁,...,αₘ::Kₘ](t₁,...tₙ)r
+```
+where the `α`s are type variables, the `K`s are kinds, the `t`s are
+the types of the arguments and `r` is the return type.  This maps
+onto the type
 
-We've recently had a discussion about whether we want to allow
-type and term arguments to be interleaved, allowing us to
-have builtins with higher-rank types (and also non-canonical
-rank-one types).  The internal machinery doesn't really care
-about this, but it does present some problems.
+```
+   ∀α₁::K. ... .∀αₘ::Kₘ. t₁ → ... → tₙ → r
+```
+
+However, some care is required.  Suppose we have two builtins: `b₁`
+with the signature `[](int, int)int` and `b₂` with the signature
+`[](int)(int → int)`. Both signatures map onto the type `int → int →
+int`, but `b₁` and `b₂` behave differently: `b₁` takes two integers,
+performs a computation, and returns an integer; `b₂` takes one
+integer, performs some computation, and returns a function which can
+be applied to another integer.  The partial applications `[(builtin
+b₁) (con 1)` and `[(builtin b₂) (con 1)` appear identical, but the
+first does not perform any computation whereas the second does
+(and may fail).
+
+
+We've recently had a discussion about whether we want to allow type
+and term arguments to be interleaved, allowing us to have builtins
+with non-canonical types (and possbily rank-n types, although I'm
+still confused about this).  The internal machinery doesn't really
+care about this, but it does present some problems.
 
 One possible issue is that if we allow type arguments between term
 arguments there's the question of how we erase them.  If we allow such
@@ -266,7 +327,7 @@ force a _term_: could that ever happen?)
 Roman has a number of other proposals, including erasing type arguments
 of builtins to `()` and prohibiting final quantifiers altogether.
 
-### Do we want higher-rank builtins?
+### Do we want non-prenex signatures?
 
 It's maybe worth asking whether we need such things.  Is there a real
 use case where they'd be useful?  Do they allow us to compile even
@@ -274,9 +335,10 @@ more Haskell into Plutus Core?  It appears that there's not a huge
 amount of extra implementation effort involved though, so they
 wouldn't be too difficult to support.
 
-One thing that worries me a little is how higher-rank types would
-affect the specification.  It might be quite tricky just to write down
-a generic instance of such a type, for example.
+One thing that worries me a little is how signatures for builtins with
+interleaved type and term arguments  affect the specification.  It
+might be quite tricky just to write down a generic instance of such a
+type, for example.
 
 What about formalisation? Would this complicate things in the Agda
 formalisation, or is it simple to do?
