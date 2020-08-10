@@ -11,7 +11,6 @@ module Cardano.Node.Mock where
 
 import           Control.Concurrent              (threadDelay)
 import           Control.Concurrent.MVar         (MVar, modifyMVar_, putMVar, takeMVar)
-import           Control.Concurrent.STM          (TQueue)
 import           Control.Lens                    (over, set, view)
 import           Control.Monad                   (forever, unless, void)
 import           Control.Monad.Freer             (Eff, Member, interpret, runM)
@@ -43,6 +42,8 @@ import           Cardano.Node.RandomTx
 import           Cardano.Node.Types              as T
 import           Cardano.Protocol.ChainEffect    as CE
 import           Cardano.Protocol.FollowerEffect as FE
+import qualified Cardano.Protocol.Socket.Client  as Client
+import qualified Cardano.Protocol.Socket.Server  as Server
 import           Control.Monad.Freer.Extra.Log
 
 import           Plutus.SCB.Arbitrary            ()
@@ -122,8 +123,8 @@ type NodeServerEffects m
         , State NodeFollowerState
         , State ChainState
         , Writer [ChainEvent]
-        , Reader (TQueue Block)
-        , Reader (TQueue Tx)
+        , Reader Client.ClientHandler
+        , Reader Server.ServerHandler
         , State AppState
         , LogMsg MockNodeLogMsg
         , LogMsg NodeServerMsg
@@ -132,8 +133,12 @@ type NodeServerEffects m
 
 ------------------------------------------------------------
 runChainEffects ::
-       TQueue Tx -> TQueue Block -> MVar AppState -> Eff (NodeServerEffects IO) a -> IO ([ChainEvent], a)
-runChainEffects txQueue blockQueue stateVar eff = do
+    Server.ServerHandler
+ -> Client.ClientHandler
+ -> MVar AppState
+ -> Eff (NodeServerEffects IO) a
+ -> IO ([ChainEvent], a)
+runChainEffects serverHandler clientHandler stateVar eff = do
     oldAppState <- liftIO $ takeMVar stateVar
     ((a, events), newState) <- liftIO
         $ runM
@@ -141,8 +146,8 @@ runChainEffects txQueue blockQueue stateVar eff = do
         $ renderLogMessages
         $ mapLog NodeMockNodeMsg
         $ Eff.runState oldAppState
-        $ Eff.runReader txQueue
-        $ Eff.runReader blockQueue
+        $ Eff.runReader serverHandler
+        $ Eff.runReader clientHandler
         $ Eff.runWriter
         $ interpret (handleZoomedState T.chainState)
         $ interpret (handleZoomedState T.followerState)
@@ -160,13 +165,13 @@ runChainEffects txQueue blockQueue stateVar eff = do
 
 processChainEffects ::
        (MonadIO m, MonadLogger m)
-    => TQueue Tx
-    -> TQueue Block
+    => Server.ServerHandler
+    -> Client.ClientHandler
     -> MVar AppState
     -> Eff (NodeServerEffects IO) a
     -> m a
-processChainEffects txQueue blockQueue stateVar eff = do
-    (events, result) <- liftIO $ runChainEffects txQueue blockQueue stateVar eff
+processChainEffects serverHandler clientHandler stateVar eff = do
+    (events, result) <- liftIO $ runChainEffects serverHandler clientHandler stateVar eff
     traverse_ (\event -> logDebugN $ "Event: " <> tshow (pretty event)) events
     liftIO $
         modifyMVar_
@@ -176,33 +181,49 @@ processChainEffects txQueue blockQueue stateVar eff = do
 
 -- | Calls 'addBlock' at the start of every slot, causing pending transactions
 --   to be validated and added to the chain.
-slotCoordinator :: (MonadIO m, MonadLogger m) => Second -> TQueue Tx -> TQueue Block -> MVar AppState -> m ()
-slotCoordinator slotLength txQueue blockQueue stateVar =
+slotCoordinator ::
+    (MonadIO m, MonadLogger m)
+ => Second
+ -> Server.ServerHandler
+ -> Client.ClientHandler
+ -> MVar AppState
+ -> m ()
+slotCoordinator slotLength serverHandler clientHandler stateVar =
     forever $ do
-        void $ processChainEffects txQueue blockQueue stateVar addBlock
+        void $ processChainEffects serverHandler clientHandler stateVar addBlock
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds slotLength
 
 -- | Generates a random transaction once in each 'mscRandomTxInterval' of the
 --   config
 transactionGenerator ::
-       (MonadIO m, MonadLogger m) => Second -> TQueue Tx -> TQueue Block -> MVar AppState -> m ()
-transactionGenerator itvl txQueue blockQueue stateVar =
+    (MonadIO m, MonadLogger m)
+ => Second
+ -> Server.ServerHandler
+ -> Client.ClientHandler
+ -> MVar AppState
+ -> m ()
+transactionGenerator itvl serverHandler clientHandler stateVar =
     forever $ do
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds itvl
-        processChainEffects txQueue blockQueue stateVar $ do
+        processChainEffects serverHandler clientHandler stateVar $ do
             tx' <- genRandomTx
             unless (null $ view outputs tx') (void $ addTx tx')
 
 -- | Discards old blocks according to the 'BlockReaperConfig'. (avoids memory
 --   leak)
 blockReaper ::
-       (MonadIO m, MonadLogger m) => BlockReaperConfig -> TQueue Tx -> TQueue Block -> MVar AppState -> m ()
-blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} txQueue blockQueue stateVar =
+    (MonadIO m, MonadLogger m)
+ => BlockReaperConfig
+ -> Server.ServerHandler
+ -> Client.ClientHandler
+ -> MVar AppState
+ -> m ()
+blockReaper BlockReaperConfig {brcInterval, brcBlocksToKeep} serverHandler clientHandler stateVar =
     forever $ do
         void $
             processChainEffects
-                txQueue
-                blockQueue
+                serverHandler
+                clientHandler
                 stateVar
                 (Eff.modify (over EM.chainNewestFirst (take brcBlocksToKeep)))
         liftIO $ threadDelay $ fromIntegral $ toMicroseconds brcInterval

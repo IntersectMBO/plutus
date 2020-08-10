@@ -3,14 +3,19 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
+
 module Cardano.Protocol.Socket.Server where
 
 import qualified Data.ByteString.Lazy                                as LBS
 import           Data.List                                           (intersect)
 import           Data.Maybe                                          (listToMaybe)
+import           Data.Text                                           (Text)
+import           Data.Text.Extras                                    (tshow)
 import           Data.Void                                           (Void)
 
 import           Control.Concurrent
@@ -48,14 +53,14 @@ import           Wallet.Emulator.Chain                               (ChainEvent
 import qualified Wallet.Emulator.Chain                               as Chain
 
 type CommandQueue = TQueue (Either ServerCommand ServerResponse)
-type Error a = Either String a
+type Error a = Either Text a
 
-{- We clone the original channel for each connected client. We use
-   this wrapper to make sure that we do not consume any data from the
-   original channel. -}
+{- | Clone the original channel for each connected client, then use
+     this wrapper to make sure that no data is consumed from the
+     original channel. -}
 newtype LocalChannel = LocalChannel (TChan Block)
 
-{- | A handler used to path around the path to the server
+{- | A handler used to pass around the path to the server
      and channels used for controlling the server. -}
 data ServerHandler = ServerHandler {
     shSocketPath   :: FilePath,
@@ -85,34 +90,34 @@ data ServerResponse =
 {- | Tell the server to process a new block, by validating the transactions
      in the memory pool. This function will block waiting for a response. -}
 processBlock :: ServerHandler -> IO (Error Block)
-processBlock (ServerHandler _ commandQueue) = atomically $ do
-    writeTQueue commandQueue (Left ProcessBlock)
-    readTQueue  commandQueue >>= \case
+processBlock (ServerHandler {shCommandQueue}) = atomically $ do
+    writeTQueue shCommandQueue (Left ProcessBlock)
+    readTQueue  shCommandQueue >>= \case
       Right (BlockAdded block) ->
           pure $ Right block
       Right (IgnoredResponse response) ->
-          pure $ Left ("Ignored response: " <> show response)
+          pure $ Left ("Ignored response: " <> tshow response)
       response ->
-          pure $ Left ("Unexpected response: " <> show response)
+          pure $ Left ("Unexpected response: " <> tshow response)
 
 handleCommand ::
     CommandQueue
  -> InternalState
  -> IO ()
-handleCommand commandQueue (InternalState blocks chainState) =
+handleCommand commandQueue (InternalState {isBlocks, isState}) =
     atomically (readTQueue commandQueue) >>= \case
         -- Use the same code to add a block as the pure client.
         Left ProcessBlock -> do
-            state <- takeMVar chainState
+            state <- takeMVar isState
             let ((block, _events), newState) = Free.run
                     $ Free.runState state
                     $ Free.runWriter @[ChainEvent]
                     $ Chain.handleControlChain Chain.processBlock
-            putMVar chainState newState
+            putMVar isState newState
             atomically $ do
                 -- It is important for the blocks channel and chain
                 -- state to remain synchronised.
-                writeTChan blocks block
+                writeTChan isBlocks block
                 writeTQueue commandQueue (Right (BlockAdded block))
         -- A client sent a response instead of a request.
         Right response ->
@@ -124,15 +129,12 @@ runServerNode ::
     FilePath
  -> ChainState
  -> IO ServerHandler
-runServerNode socketPath initialState = do
-    serverState  <- initialiseInternalState initialState
-    commandQueue <- newTQueueIO
-    _ <- forkIO . void    $ protocolLoop  socketPath   serverState
-    _ <- forkIO . forever $ handleCommand commandQueue serverState
-    pure ServerHandler {
-        shSocketPath   = socketPath,
-        shCommandQueue = commandQueue
-    }
+runServerNode shSocketPath initialState = do
+    serverState    <- initialiseInternalState initialState
+    shCommandQueue <- newTQueueIO
+    _ <- forkIO . void    $ protocolLoop  shSocketPath   serverState
+    _ <- forkIO . forever $ handleCommand shCommandQueue serverState
+    pure $ ServerHandler { shSocketPath, shCommandQueue }
 
 -- * Internal state
 
@@ -147,14 +149,11 @@ initialiseInternalState ::
     ChainState
  -> IO InternalState
 initialiseInternalState chainState = do
-    blocks  <- newTChanIO
-    state   <- newMVar chainState
-    _ <- traverse (atomically . writeTChan blocks)
+    isBlocks <- newTChanIO
+    isState  <- newMVar chainState
+    _ <- traverse (atomically . writeTChan isBlocks)
              (view Chain.chainNewestFirst chainState)
-    pure InternalState {
-        isBlocks = blocks,
-        isState  = state
-    }
+    pure InternalState { isBlocks, isState }
 
 -- * ChainSync protocol
 
@@ -254,8 +253,8 @@ chainSyncServer ::
 chainSyncServer =
     ChainSyncServer (cloneChainFrom 0 >>= idleState)
 
-{- We use a `TChan` to model a broadcast channel of which we offer
-   clones with potentially varying offsets to clients. -}
+{- Use a `TChan` to model a broadcast channel of which we
+   clone (with potentially varying offsets) for clients. -}
 cloneChainFrom :: forall m.
     ( MonadReader InternalState m
     , MonadIO m )
@@ -367,7 +366,7 @@ application ::
  -> OuroborosApplication 'ResponderApp
                          LBS.ByteString
                          IO Void ()
-application internalState@(InternalState _ chainState) =
+application internalState@(InternalState {isState}) =
     nodeApplication chainSync txSubmission
     where
         chainSync :: RunMiniProtocol 'ResponderApp LBS.ByteString IO Void ()
@@ -386,7 +385,7 @@ application internalState@(InternalState _ chainState) =
             MuxPeer
               (contramap show stdoutTracer)
               codecTxSubmission
-              (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer chainState))
+              (TxSubmission.localTxSubmissionServerPeer (pure $ txSubmissionServer isState))
 
 -- * Computing intersections
 
