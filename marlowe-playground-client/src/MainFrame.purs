@@ -367,7 +367,7 @@ render settings state =
                 , onClick $ const $ Just $ ChangeView ActusBlocklyEditor
                 ]
                 [ div [ class_ tabIcon ] []
-                , div [] [ text "ACTUS" ]
+                , div [] [ text "Labs" ]
                 ]
             , div
                 [ classes ([ tabLink, aCenter, flexCol, ClassName "wallet-tab" ] <> isActiveTab state WalletEmulator)
