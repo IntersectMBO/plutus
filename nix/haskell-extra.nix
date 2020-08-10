@@ -61,11 +61,15 @@
         };
         inherit compiler-nix-name index-state checkMaterialization;
         # Invalidate and update if you change the version
-        plan-sha256 = {
-          ghc883 = "1iqwp30pxdxd811idmqjpvlzpp50mc23w238sv9glb1an2bn8hxf";
-          ghc884 = "17kwki0apll74rqprzh5silbrbs9f6bq5g7c6jszxfcl5vv49cqb";
-          ghc8101 = "181551n2f0syvxwjclj3jxg219rrswgy2519q04fk8ll509d98pb";
-        }.${compiler-nix-name};
+        plan-sha256 = (if pkgs.hostPlatform.isLinux
+          then {
+            ghc883 = "1id5cyv7924j97fb20y3pwwph91f6kxgsv9j969rb1764zq717vf";
+          }
+          else {
+            ghc883 = "1iqwp30pxdxd811idmqjpvlzpp50mc23w238sv9glb1an2bn8hxf";
+            ghc884 = "17kwki0apll74rqprzh5silbrbs9f6bq5g7c6jszxfcl5vv49cqb";
+            ghc8101 = "181551n2f0syvxwjclj3jxg219rrswgy2519q04fk8ll509d98pb";
+          }).${compiler-nix-name};
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
