@@ -338,7 +338,7 @@ wouldn't be too difficult to support.
 One thing that worries me a little is how signatures for builtins with
 interleaved type and term arguments  affect the specification.  It
 might be quite tricky just to write down a generic instance of such a
-type, for example.
+signature, for example.
 
 What about formalisation? Would this complicate things in the Agda
 formalisation, or is it simple to do?
