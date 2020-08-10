@@ -279,7 +279,7 @@ the types of the arguments and `r` is the return type.  This maps
 onto the type
 
 ```
-   ∀α₁::K. ... .∀αₘ::Kₘ. t₁ → ... → tₙ → r
+   ∀α₁::K₁. ... .∀αₘ::Kₘ. t₁ → ... → tₙ → r
 ```
 
 However, some care is required.  Suppose we have two builtins: `b₁`
