@@ -48,6 +48,7 @@ data Output
 
 data StreamError
   = DecodingError MultipleErrors
+  | ServerError String
   | TransportError AjaxError
 
 type WebStreamData

@@ -68,6 +68,16 @@ webStreamDataPane _ (Stream.NotAsked) = [ icon Spinner ]
 streamErrorPane :: forall p i. StreamError -> HTML p i
 streamErrorPane (TransportError error) = ajaxErrorPane error
 
+streamErrorPane (ServerError error) =
+  div
+    [ class_ $ ClassName "ajax-error" ]
+    [ alertDanger_
+        [ div_ [ text error ]
+        , br_
+        , text "Please try again or contact support for assistance."
+        ]
+    ]
+
 streamErrorPane (DecodingError errors) =
   div
     [ class_ $ ClassName "ajax-error" ]

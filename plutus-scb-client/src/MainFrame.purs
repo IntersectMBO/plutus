@@ -15,7 +15,6 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
 import Data.Array (filter, find)
-import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.Lens (_1, _2, assign, modifying, to, use, view)
 import Data.Lens.At (at)
@@ -55,6 +54,7 @@ import Servant.PureScript.Settings (SPSettings_, defaultSettings)
 import Types (ContractSignatures, EndpointForm, HAction(..), Output, Query(..), State(..), StreamError(..), View(..), WebSocketStatus(..), WebStreamData, _annotatedBlockchain, _chainReport, _chainState, _contractActiveEndpoints, _contractReport, _contractSignatures, _contractStates, _crActiveContractStates, _crAvailableContracts, _csContract, _csCurrentState, _currentView, _events, _webSocketMessage, _webSocketStatus, fromWebData)
 import Validation (_argument)
 import View as View
+import WebSocket.Support (FromSocket)
 import WebSocket.Support as WS
 
 initialValue :: Value
@@ -102,26 +102,32 @@ handleQuery ::
   MonadState State m =>
   MonadApp m =>
   Query a -> m (Maybe a)
-handleQuery (ReceiveWebSocketMessage (WS.ReceiveMessage msg) next) = do
-  case msg of
-    Right (NewChainReport report) -> assign (_chainReport <<< RemoteData._Success) report
-    Right (NewContractReport report) -> do
-      assign (_contractSignatures <<< Stream._Success) (view _crAvailableContracts report)
-      traverse_ updateFormsForContractInstance
-        (view _crActiveContractStates report)
-    Right (NewChainEvents events) -> assign (_events <<< RemoteData._Success) events
-    Right (ErrorResponse err) -> pure unit
-    Left err -> assign _webSocketMessage $ Stream.Failure $ DecodingError err
-  assign _webSocketMessage $ lmap DecodingError $ Stream.fromEither msg
+handleQuery (ReceiveWebSocketMessage msg next) = do
+  handleMessageFromSocket msg
   pure $ Just next
 
-handleQuery (ReceiveWebSocketMessage WS.WebSocketOpen next) = do
+handleMessageFromSocket ::
+  forall m.
+  MonadState State m =>
+  FromSocket StreamToClient -> m Unit
+handleMessageFromSocket WS.WebSocketOpen = do
   assign _webSocketStatus WebSocketOpen
-  pure $ Just next
 
-handleQuery (ReceiveWebSocketMessage (WS.WebSocketClosed closeEvent) next) = do
+handleMessageFromSocket (WS.ReceiveMessage (Right (NewChainReport report))) = assign _chainReport (Success report)
+
+handleMessageFromSocket (WS.ReceiveMessage (Right (NewContractReport report))) = do
+  assign _contractSignatures (Stream.Success (view _crAvailableContracts report))
+  traverse_ updateFormsForContractInstance
+    (view _crActiveContractStates report)
+
+handleMessageFromSocket (WS.ReceiveMessage (Right (NewChainEvents events))) = assign _events (Success events)
+
+handleMessageFromSocket (WS.ReceiveMessage (Right (ErrorResponse err))) = assign _webSocketMessage $ Stream.Failure $ ServerError err
+
+handleMessageFromSocket (WS.ReceiveMessage (Left err)) = assign _webSocketMessage $ Stream.Failure $ DecodingError err
+
+handleMessageFromSocket (WS.WebSocketClosed closeEvent) = do
   assign _webSocketStatus (WebSocketClosed (Just closeEvent))
-  pure $ Just next
 
 handleAction ::
   forall m.
