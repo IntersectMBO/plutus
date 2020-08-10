@@ -206,14 +206,13 @@ updateFormsForContractInstance newContractInstance = do
           <<< Stream._Success
           <<< _1
       )
-  when (oldContractInstance /= Just newContractInstance)
-    $ do
-        contractSignatures :: WebStreamData ContractSignatures <- use _contractSignatures
-        let
-          newForms :: Maybe (WebStreamData (Array EndpointForm))
-          newForms = sequence $ createNewEndpointForms <$> contractSignatures <*> pure newContractInstance
-        assign (_contractStates <<< at csContractId)
-          (map (Tuple newContractInstance) <$> newForms)
+  when (oldContractInstance /= Just newContractInstance) do
+    contractSignatures :: WebStreamData ContractSignatures <- use _contractSignatures
+    let
+      newForms :: Maybe (WebStreamData (Array EndpointForm))
+      newForms = sequence $ createNewEndpointForms <$> contractSignatures <*> pure newContractInstance
+    assign (_contractStates <<< at csContractId)
+      (map (Tuple newContractInstance) <$> newForms)
 
 createNewEndpointForms ::
   ContractSignatures ->

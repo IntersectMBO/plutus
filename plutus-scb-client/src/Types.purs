@@ -122,7 +122,7 @@ _events = _Newtype <<< prop (SProxy :: SProxy "events")
 _chainState :: Lens' State Chain.State
 _chainState = _Newtype <<< prop (SProxy :: SProxy "chainState")
 
-_contractStates :: Lens' State (Map ContractInstanceId (WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm)))
+_contractStates :: Lens' State ContractStates
 _contractStates = _Newtype <<< prop (SProxy :: SProxy "contractStates")
 
 _annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
