@@ -186,10 +186,6 @@ handleAction _ Init = do
     Right route -> handleRoute route
     Left _ -> handleRoute Router.Home
 
-handleAction _ (ChangeView ActusBlocklyEditor) = do
-  assign _view ActusBlocklyEditor
-  void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
-
 handleAction s (HaskellAction action) = do
   currentState <- get
   toHaskellEditor (HaskellEditor.handleAction s action)
@@ -268,7 +264,6 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
           Success contractAST -> do
             selectView Simulation
             void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
-
           Failure e        -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
           _                -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
