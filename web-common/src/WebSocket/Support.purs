@@ -21,6 +21,7 @@ import Effect.AVar as AVar
 import Effect.Aff (Aff, launchAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Console (log)
+import Effect.Exception (Error)
 import Foreign (MultipleErrors)
 import Foreign.Class (class Decode, class Encode, decode)
 import Foreign.Generic (decodeJSON, encodeJSON)
@@ -103,19 +104,25 @@ mkSocket (URI uri) = do
 
 ------------------------------------------------------------
 -- | Take a resource that's wrapped in an AVar, then lock it, use it and unlock it.
-bracket :: forall m a. MonadEffect m => (a -> Effect Unit) -> AVar a -> m Unit
-bracket f resourceVar =
+bracket ::
+  forall m a.
+  MonadEffect m =>
+  (Error -> Effect Unit) ->
+  (a -> Effect Unit) ->
+  AVar a ->
+  m Unit
+bracket errorHandler successHandler resourceVar =
   void $ liftEffect
     $ AVar.take resourceVar
-    $ withHandler
+    $ withError
     $ \resource -> do
-        f resource
-        void $ AVar.put resource resourceVar (withHandler pure)
+        successHandler resource
+        void $ AVar.put resource resourceVar $ withError pure
+  where
+  withError :: forall b. (b -> Effect Unit) -> Either Error b -> Effect Unit
+  withError _ (Left err) = errorHandler err
 
-withHandler :: forall a. (a -> Effect Unit) -> AVarCallback a
-withHandler _ (Left err) = log $ "Fatal websocket error: " <> show err
-
-withHandler handler (Right value) = handler value
+  withError f (Right value) = f value
 
 ------------------------------------------------------------
 -- | Wire a websocket into a Halogen app. Example usage:
@@ -158,6 +165,7 @@ runWebSocketManagerSender manager = do
   case contents of
     SendMessage msg -> do
       bracket
+        (\err -> log $ "Fatal websocket error: " <> show err)
         (\socket -> WS.sendString socket $ encodeJSON msg)
         (_.socket $ unwrap manager)
 
@@ -201,3 +209,8 @@ runWebSocketManagerListeners uri manager = do
           ( \oldSocket ->
               runWebSocketManagerListeners uri manager
           )
+
+withHandler :: forall a. (a -> Effect Unit) -> AVarCallback a
+withHandler _ (Left err) = log $ "Fatal websocket error: " <> show err
+
+withHandler handler (Right value) = handler value
