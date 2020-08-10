@@ -234,7 +234,7 @@ I've considered a number of ways to fix this.
    which we otherwise don't need.  This is a fairly simple
    modification of the existing machine, but doesn't look very
    much like the new CEK machine: the version in proposal 2 is
-   more like the new CEK machibe.
+   more like the new CEK machine.
 
  * We could modify the `builtin` constructor in the AST to contain a
    list of arguments that it's received so far.  That's probably a
@@ -289,14 +289,14 @@ int`, but `b₁` and `b₂` behave differently: `b₁` takes two integers,
 performs a computation, and returns an integer; `b₂` takes one
 integer, performs some computation, and returns a function which can
 be applied to another integer.  The partial applications `[(builtin
-b₁) (con 1)` and `[(builtin b₂) (con 1)` appear identical, but the
+b₁) (con 1)]` and `[(builtin b₂) (con 1)]` appear identical, but the
 first does not perform any computation whereas the second does
-(and may fail).
+(and may fail when it does so).
 
 
 We've recently had a discussion about whether we want to allow type
 and term arguments to be interleaved, allowing us to have builtins
-with non-canonical types (and possbily rank-n types, although I'm
+with non-canonical types (and possibly higher-rank types, although I'm
 still confused about this).  The internal machinery doesn't really
 care about this, but it does present some problems.
 
