@@ -37,7 +37,6 @@ import Gists as Gists
 import Global.Unsafe (unsafeStringify)
 import Halogen (HalogenM, query)
 import Halogen as H
-import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h2, h6, h6_, img, input, label, li, li_, option, p, p_, section, select, slot, small, span, strong_, text, ul, ul_)
@@ -56,6 +55,7 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.Gists (mkNewGist, playgroundGistFile)
 import Marlowe.Linter as Linter
+import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Bound(..), ChoiceId(..), Input(..), Party(..), PubKey, Token, TransactionError, inBounds, showPrettyToken)
@@ -63,15 +63,17 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (>), (-), (<))
+import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (-), (<))
+import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyTransactions, emptyMarloweState, hasHistory, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), ChildSlots, Message(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _editorSlot, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid, mkState)
+import Simulation.Types (Action(..), AnalysisState(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
+import Types (ChildSlots, Message(..), _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -81,50 +83,18 @@ import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
 import WebSocket (WebSocketRequestMessage(..))
 
-mkComponent :: forall m. MonadEffect m => MonadAff m => SPSettings_ SPParams_ -> H.Component HTML Query Unit Message m
-mkComponent settings =
-  H.mkComponent
-    { initialState: const mkState
-    , render
-    , eval:
-      H.mkEval
-        { handleAction: handleActionWithAnalyticsTracking (handleAction settings)
-        , handleQuery
-        , initialize: Just Init
-        , receive: const Nothing
-        , finalize: Nothing
-        }
-    }
-
 handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Message m (Maybe a)
-handleQuery (SetEditorText contents next) = do
-  editorSetValue contents
-  updateContractInState contents
-  pure (Just next)
-
-handleQuery (ResizeEditor next) = do
-  void $ query _editorSlot unit (Monaco.Resize unit)
-  void $ query _editorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
-  pure (Just next)
-
-handleQuery (ResetContract next) = do
-  resetContract
-  pure (Just next)
-
 handleQuery (WebsocketResponse response next) = do
-  assign _analysisState response
-  pure (Just next)
-
-handleQuery (HasStarted f) = do
-  state <- use _marloweState
-  pure $ Just $ f (NEL.length state > 1)
-
-handleQuery (GetCurrentContract next) = do
-  oldContract <- use _oldContract
-  currContract <- editorGetValue
-  let
-    newContract = fromMaybe mempty $ oldContract <|> currContract
-  pure $ Just $ next newContract
+  analysisState <- use _analysisState
+  case analysisState of
+    NoneAsked -> pure (Just next) -- Unrequested response
+    WarningAnalysis _ -> do
+      assign _analysisState (WarningAnalysis response)
+      pure (Just next)
+    ReachabilityAnalysis reachabilityState -> do
+      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+      pure (Just next)
 
 handleAction ::
   forall m.
@@ -133,7 +103,7 @@ handleAction ::
   SPSettings_ SPParams_ -> Action -> HalogenM State Action ChildSlots Message m Unit
 handleAction settings Init = do
   checkAuthStatus settings
-  void $ query _editorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+  void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
@@ -141,8 +111,14 @@ handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   updateContractInState text
   assign _activeDemo ""
   state <- use (_currentMarloweState <<< _state)
-  markers <- query _editorSlot unit (Monaco.SetModelMarkers (Linter.markers state text) identity)
+  let
+    (Tuple markerData additionalContext) = Linter.markers state text
+  markers <- query _marloweEditorSlot unit (Monaco.SetModelMarkers markerData identity)
   void $ traverse editorSetMarkers markers
+  objects <- query _marloweEditorSlot unit (Monaco.GetObjects identity)
+  case objects of
+    Just { codeActionProvider: Just caProvider, completionItemProvider: Just ciProvider } -> pure $ updateAdditionalContext caProvider ciProvider additionalContext
+    _ -> pure unit
 
 handleAction _ (HandleDragEvent event) = liftEffect $ FileEvents.preventDefault event
 
@@ -153,11 +129,11 @@ handleAction _ (HandleDropEvent event) = do
   updateContractInState contents
 
 handleAction _ (MoveToPosition lineNumber column) = do
-  void $ query _editorSlot unit (Monaco.SetPosition { column, lineNumber } unit)
+  void $ query _marloweEditorSlot unit (Monaco.SetPosition { column, lineNumber } unit)
 
 handleAction _ (SelectEditorKeyBindings bindings) = do
   assign _editorKeybindings bindings
-  void $ query _editorSlot unit (Monaco.SetKeyBindings bindings unit)
+  void $ query _marloweEditorSlot unit (Monaco.SetKeyBindings bindings unit)
 
 handleAction _ (LoadScript key) = do
   case preview (ix key) (Map.fromFoldable StaticData.marloweContracts) of
@@ -172,6 +148,10 @@ handleAction _ (LoadScript key) = do
       updateContractInState prettyContents
       resetContract
       assign _activeDemo key
+
+handleAction _ (SetEditorText contents) = do
+  editorSetValue contents
+  updateContractInState contents
 
 handleAction _ ApplyTransaction = do
   saveInitialState
@@ -220,6 +200,8 @@ handleAction _ ResetSimulator = do
   editorSetValue newContract
   resetContract
 
+handleAction _ ResetContract = resetContract
+
 handleAction _ Undo = do
   modifying _marloweState tailIfNotEmpty
   mCurrContract <- use _currentContract
@@ -232,7 +214,7 @@ handleAction _ (SelectHole hole) = assign _selectedHole hole
 handleAction _ (ChangeSimulationView view) = do
   assign _bottomPanelView view
   assign _showBottomPanel true
-  void $ query _editorSlot unit (Monaco.Resize unit)
+  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
 
 handleAction _ (ChangeHelpContext help) = do
   assign _helpContext help
@@ -247,15 +229,11 @@ handleAction _ (ShowRightPanel val) = assign _showRightPanel val
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
-  void $ query _editorSlot unit (Monaco.Resize unit)
+  void $ query _marloweEditorSlot unit (Monaco.Resize unit)
 
 handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
-handleAction _ SetBlocklyCode = do
-  source <- editorGetValue
-  case source of
-    Just source' -> H.raise (BlocklyCodeSet source')
-    Nothing -> pure unit
+handleAction _ SetBlocklyCode = pure unit
 
 handleAction _ AnalyseContract = do
   currContract <- use _currentContract
@@ -264,12 +242,27 @@ handleAction _ AnalyseContract = do
     Nothing -> pure unit
     Just contract -> do
       checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
-      assign _analysisState Loading
+      assign _analysisState (WarningAnalysis Loading)
   where
   checkContractForWarnings contract state = do
     let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings contract state
+      msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON false) contract state
     H.raise (WebsocketMessage msgString)
+
+handleAction _ AnalyseReachabilityContract = do
+  currContract <- use _currentContract
+  currState <- use (_currentMarloweState <<< _state)
+  case currContract of
+    Nothing -> pure unit
+    Just contract -> do
+      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
+
+getCurrentContract :: forall m. HalogenM State Action ChildSlots Message m String
+getCurrentContract = do
+  oldContract <- use _oldContract
+  currContract <- editorGetValue
+  pure $ fromMaybe mempty $ oldContract <|> currContract
 
 checkAuthStatus :: forall m. MonadAff m => SPSettings_ SPParams_ -> HalogenM State Action ChildSlots Message m Unit
 checkAuthStatus settings = do
@@ -360,10 +353,10 @@ scrollHelpPanel =
       _, _ -> pure unit
 
 editorSetValue :: forall m. String -> HalogenM State Action ChildSlots Message m Unit
-editorSetValue contents = void $ query _editorSlot unit (Monaco.SetText contents unit)
+editorSetValue contents = void $ query _marloweEditorSlot unit (Monaco.SetText contents unit)
 
 editorGetValue :: forall m. HalogenM State Action ChildSlots Message m (Maybe String)
-editorGetValue = query _editorSlot unit (Monaco.GetText identity)
+editorGetValue = query _marloweEditorSlot unit (Monaco.GetText identity)
 
 saveInitialState :: forall m. MonadEffect m => HalogenM State Action ChildSlots Message m Unit
 saveInitialState = do
@@ -475,7 +468,7 @@ marloweEditor ::
   MonadAff m =>
   State ->
   ComponentHTML Action ChildSlots m
-marloweEditor state = slot _editorSlot unit component unit (Just <<< HandleEditorMessage)
+marloweEditor state = slot _marloweEditorSlot unit component unit (Just <<< HandleEditorMessage)
   where
   setup editor = do
     mContents <- liftEffect $ LocalStorage.getItem StaticData.marloweBufferLocalStorageKey

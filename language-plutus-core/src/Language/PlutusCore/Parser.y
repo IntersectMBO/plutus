@@ -137,7 +137,7 @@ Term : Var                                        { $1 }
      | openBracket Term some(Term) closeBracket   { app $1 $2 (NE.reverse $3) }
      | openParen con Constant closeParen          { Constant $2 $3 }
      | openParen iwrap Type Type Term closeParen  { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinid closeParen     { mkBuiltin $2 (tkLoc $3) (tkBuiltinId $3) }
+     | openParen builtin builtinid closeParen     { mkBuiltin $2 (tkBuiltinId $3) }
      | openParen unwrap Term closeParen           { Unwrap $2 $3 }
      | openParen errorTerm Type closeParen        { Error $2 $3 }
 
@@ -164,8 +164,8 @@ fixStr :: Token ann -> Token ann
 fixStr (TkString ann s) = TkString ann (read s)   
 fixStr t = t
   
-getBuiltinName :: T.Text -> Maybe BuiltinName
-getBuiltinName = \case
+getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
+getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
     "subtractInteger"          -> Just SubtractInteger
     "multiplyInteger"          -> Just MultiplyInteger
@@ -190,11 +190,11 @@ getBuiltinName = \case
     "ifThenElse"               -> Just IfThenElse
     _                          -> Nothing
 
-mkBuiltin :: a -> a -> T.Text -> Term TyName Name uni a
-mkBuiltin loc loc' ident = 
-   case getBuiltinName ident of 
-      Just b  -> Builtin loc $ BuiltinName loc' b
-      Nothing -> Builtin loc (DynBuiltinName loc' (DynamicBuiltinName ident))
+mkBuiltin :: a -> T.Text -> Term TyName Name uni a
+mkBuiltin loc ident = 
+   case getStaticBuiltinName ident of 
+      Just b  -> Builtin loc $ StaticBuiltinName b
+      Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
 
 -- FIXME: at this point it would be good to have access to the current
 -- dynamic builtin names to check if a builtin with that name exists

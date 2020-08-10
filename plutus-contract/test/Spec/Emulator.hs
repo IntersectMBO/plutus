@@ -13,6 +13,7 @@ import           Control.Monad              (void)
 import qualified Control.Monad.Freer        as Eff
 import qualified Control.Monad.Freer.Error  as E
 import           Control.Monad.Freer.Extras
+import           Control.Monad.Freer.Log    (logMessageContent)
 import           Control.Monad.Trans.Except (runExcept)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
@@ -197,7 +198,7 @@ invalidTrace = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert (case reverse $ _emulatorLog st of
+    Hedgehog.assert (case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd _) : ChainEvent (Chain.TxnValidationFail _ _) : _ -> True
         _                                                                           -> False)
 
@@ -233,7 +234,7 @@ invalidScript = property $ do
     Hedgehog.assert ([] == st ^. chainState . txPool)
     Hedgehog.assert (not (PlutusTx.null $ _emulatorLog st))
     Hedgehog.annotateShow (_emulatorLog st)
-    Hedgehog.assert $ case reverse $ _emulatorLog st of
+    Hedgehog.assert $ case fmap (view logMessageContent) $ reverse $ _emulatorLog st of
         ChainEvent (Chain.SlotAdd{}) : ChainEvent (Chain.TxnValidationFail _ (ScriptFailure (EvaluationError ["I always fail everything"]))) : _
             -> True
         _

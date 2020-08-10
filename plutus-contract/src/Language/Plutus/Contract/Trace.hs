@@ -92,7 +92,6 @@ import           Data.Sequence                                     (Seq, (|>))
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Data.Text.Extras                                  (tshow)
-import           Numeric.Natural                                   (Natural)
 
 import           Language.Plutus.Contract                          (Contract (..), HasAwaitSlot, HasTxConfirmation,
                                                                     HasUtxoAt, HasWatchAddress, HasWriteTx, mapError)
@@ -113,7 +112,8 @@ import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
 import qualified Language.Plutus.Contract.Effects.WatchAddress     as WatchAddress
 import qualified Language.Plutus.Contract.Effects.WriteTx          as WriteTx
 import           Language.Plutus.Contract.Resumable                (Request (..), Requests (..), Response (..))
-import           Language.Plutus.Contract.Trace.RequestHandler     (RequestHandler (..), maybeToHandler, tryHandler,
+import           Language.Plutus.Contract.Trace.RequestHandler     (MaxIterations (..), RequestHandler (..),
+                                                                    defaultMaxIterations, maybeToHandler, tryHandler,
                                                                     wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler     as RequestHandler
 import           Language.Plutus.Contract.Types                    (ResumableResult (..))
@@ -131,14 +131,6 @@ import           Wallet.Emulator.MultiAgent                        (EmulatedWall
 import qualified Wallet.Emulator.MultiAgent                        as EM
 import           Wallet.Emulator.SigningProcess                    (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess                    as EM
-
--- | Maximum number of iterations of `handleBlockchainEvents`.
-newtype MaxIterations = MaxIterations Natural
-    deriving (Eq, Ord, Show)
-
--- | The default for 'MaxIterations' is twenty.
-defaultMaxIterations :: MaxIterations
-defaultMaxIterations = MaxIterations 20
 
 -- | Error produced while running a trace. Either a contract-specific
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.

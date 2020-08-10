@@ -60,6 +60,7 @@ limitedProperty a b = localOption (HedgehogTestLimit $ Just 3) $ Hedgehog.testPr
 tests :: TestTree
 tests = testGroup "Marlowe"
     [ testCase "Contracts with different creators have different hashes" uniqueContractHash
+    , testCase "Token Show instance respects HEX and Unicode" tokenShowTest
     , testCase "Pangram Contract serializes into valid JSON" pangramContractSerialization
     , testCase "State serializes into valid JSON" stateSerialization
     , testCase "Validator size is reasonable" validatorSize
@@ -354,6 +355,16 @@ pangramContractSerialization = do
     case decoded of
         Just cont -> Just cont @=? (decode $ encode cont)
         _         -> assertFailure "Nope"
+
+
+tokenShowTest :: IO ()
+tokenShowTest = do
+    -- SCP-834, CurrencySymbol is HEX encoded ByteString,
+    -- and TokenSymbol as UTF8 encoded Unicode string
+    let actual :: Value Observation
+        actual = AvailableMoney (AccountId 1 (Role "alice")) (Token "00010afF" "ÚSD©")
+
+    show actual @=? "AvailableMoney (AccountId 1 \"alice\") (Token \"00010aff\" \"ÚSD©\")"
 
 
 stateSerialization :: IO ()

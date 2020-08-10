@@ -1,8 +1,8 @@
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# OPTIONS_GHC -Wno-unused-imports #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
+
 module Language.PlutusTx.Prelude (
     -- $prelude
     -- * Classes
@@ -21,6 +21,7 @@ module Language.PlutusTx.Prelude (
     traceIfTrue,
     traceIfFalse,
     traceError,
+    module String,
     -- * Error
     error,
     check,
@@ -74,6 +75,7 @@ import           Language.PlutusTx.Numeric     as Numeric
 import           Language.PlutusTx.Ord         as Ord
 import           Language.PlutusTx.Ratio       as Ratio
 import           Language.PlutusTx.Semigroup   as Semigroup
+import           Language.PlutusTx.String      as String
 import           Prelude                       as Prelude hiding (Applicative (..), Eq (..), Functor (..), Monoid (..),
                                                            Num (..), Ord (..), Rational, Semigroup (..), all, any,
                                                            const, elem, error, filter, foldMap, foldl, foldr, fst, id,
@@ -106,13 +108,6 @@ error = Builtins.error
 -- | Checks a 'Bool' and aborts if it is false.
 check :: Bool -> ()
 check b = if b then () else error ()
-
--- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
--- the unfoldings from going in. So we just stick it here. Fiddly.
--- It does have the nice feature that we can just define it with 'foldMap', though.
-instance IsString Builtins.String where
-    {-# INLINABLE fromString #-}
-    fromString = foldMap Builtins.charToString
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.

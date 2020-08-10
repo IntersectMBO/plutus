@@ -10,6 +10,7 @@
 {-# LANGUAGE MonoLocalBinds         #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE NamedFieldPuns         #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -49,7 +50,7 @@ import           Control.Monad.Freer.Coroutine
 import           Control.Monad.Freer.Error           (Error)
 import qualified Control.Monad.Freer.Error           as E
 import           Control.Monad.Freer.Extras          (raiseEnd3, raiseUnderN)
-import           Control.Monad.Freer.Log             (Log, ignoreLog)
+import           Control.Monad.Freer.Log             (LogMsg, handleLogIgnore)
 import           Control.Monad.Freer.NonDet
 import           Control.Monad.Freer.Reader
 import           Control.Monad.Freer.State
@@ -57,11 +58,13 @@ import qualified Data.Aeson                          as Aeson
 import           Data.String                         (IsString (..))
 import           Data.Text                           (Text)
 import qualified Data.Text                           as T
+import           Data.Text.Prettyprint.Doc           (Pretty, pretty, (<+>))
 
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
 import           Language.Plutus.Contract.Checkpoint (AsCheckpointError, Checkpoint (..), CheckpointError (..),
-                                                      CheckpointKey, CheckpointStore, handleCheckpoint, jsonCheckpoint)
+                                                      CheckpointKey, CheckpointLogMsg, CheckpointStore,
+                                                      handleCheckpoint, jsonCheckpoint)
 import qualified Language.Plutus.Contract.Checkpoint as C
 import           Language.Plutus.Contract.Resumable  hiding (select)
 import qualified Language.Plutus.Contract.Resumable  as Resumable
@@ -77,6 +80,10 @@ import           Wallet.Emulator.Types               (AsAssertionError (..), Ass
 newtype MatchingError = WrongVariantError Text
     deriving (Eq, Ord, Show)
 
+instance Pretty MatchingError where
+  pretty = \case
+    WrongVariantError t -> "Wrong variant:" <+> pretty t
+
 data ContractError =
     WalletError WalletAPIError
     | EmulatorAssertionError AssertionError -- TODO: Why do we need this constructor
@@ -86,6 +93,15 @@ data ContractError =
     | CCheckpointError CheckpointError
     deriving (Show, Eq)
 makeClassyPrisms ''ContractError
+
+instance Pretty ContractError where
+  pretty = \case
+    WalletError e -> "Wallet error:" <+> pretty e
+    EmulatorAssertionError a -> "Emulator assertion error:" <+> pretty a
+    OtherError t -> "Other error:" <+> pretty t
+    ConstraintResolutionError e -> "Constraint resolution error:" <+> pretty e
+    ResumableError e -> "Resumable error:" <+> pretty e
+    CCheckpointError e -> "Checkpoint error:" <+> pretty e
 
 -- | This lets people use 'T.Text' as their error type.
 instance AsContractError T.Text where
@@ -113,7 +129,7 @@ handleContractEffs ::
   , Member (Reader (Responses (Event s))) effs
   , Member (State (Requests (Handlers s))) effs
   , Member (State CheckpointStore) effs
-  , Member Log effs
+  , Member (LogMsg CheckpointLogMsg) effs
   )
   => Eff (ContractEffs s e) a
   -> Eff effs (Maybe a)
@@ -234,7 +250,7 @@ runWithRecord action store rc =
       $ run
       $ E.runError  @e @_
       $ runReader @(Responses (Event s)) @_ rc
-      $ ignoreLog
+      $ handleLogIgnore @CheckpointLogMsg
       $ runState @CheckpointStore store
       $ runState  @(Requests (Handlers s)) mempty
       $ handleContractEffs @s @e @_ @a action

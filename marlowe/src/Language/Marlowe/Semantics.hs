@@ -47,11 +47,10 @@ import           Control.Newtype.Generics   (Newtype)
 import qualified Data.Aeson                 as JSON
 import qualified Data.Aeson.Extras          as JSON
 import           Data.Aeson.Types           hiding (Error, Value)
-import           Data.ByteString.Lazy       (fromStrict, toStrict, unpack)
+import           Data.ByteString.Lazy       (fromStrict, toStrict)
 import           Data.Text.Encoding         (decodeUtf8, encodeUtf8)
 import           Data.Vector                (fromList, (!))
 import           Deriving.Aeson
-import           GHC.Show                   (showSpace)
 import           Language.Marlowe.Pretty    (Pretty (..))
 import           Language.PlutusTx          (makeIsData)
 import qualified Language.PlutusTx          as PlutusTx
@@ -66,7 +65,6 @@ import           Ledger.Scripts             (Datum (..))
 import           Ledger.Validation
 import           Ledger.Value               (CurrencySymbol (..), TokenName (..))
 import qualified Ledger.Value               as Val
-import           Numeric                    (showHex)
 import qualified Prelude                    as P
 import           Text.PrettyPrint.Leijen    (comma, hang, lbrace, line, rbrace, space, text, (<>))
 
@@ -152,11 +150,7 @@ data Token = Token CurrencySymbol TokenName
 
 instance Show Token where
   showsPrec p (Token cs tn) =
-     showParen (p P.>= 11)
-     $ showString "Token "
-     . showsPrec 11 (concat . map (flip showHex "") . unpack $ unCurrencySymbol cs)
-     . showSpace
-     . showsPrec 11 (unTokenName tn)
+    showParen (p P.>= 11) (showString $ "Token \"" P.++ show cs P.++ "\" \"" P.++ show tn P.++ "\"")
 
 {-| Values, as defined using Let ar e identified by name,
     and can be used by 'UseValue' construct.

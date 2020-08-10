@@ -22,6 +22,7 @@ import Plutus.SCB.Webserver.Types (ContractReport(..))
 import Schema.Types (FormEvent)
 import Types (EndpointForm, HAction(..), WebData, _contractInstanceIdString, _contractPath, _csContract, _csCurrentState, _hooks)
 import Validation (_argument)
+import View.Pretty (pretty)
 import View.Utils (webDataPane)
 
 installedContractsPane ::
@@ -126,7 +127,7 @@ contractRequestView contractInstance =
     tr_
       [ td_ [ text $ show itID ]
       , td_ [ text $ show rqID ]
-      , td_ [ text $ show rqRequest ]
+      , td_ [ pretty rqRequest ]
       ]
 
 actionCard :: forall p. ContractInstanceId -> (FormEvent -> HAction) -> EndpointForm -> HTML p HAction

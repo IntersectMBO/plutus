@@ -53,9 +53,15 @@ instance boundedEnumKeyBindings :: BoundedEnum KeyBindings where
   toEnum = genericToEnum
   fromEnum = genericFromEnum
 
+type Objects
+  = { codeActionProvider :: Maybe CodeActionProvider
+    , completionItemProvider :: Maybe CompletionItemProvider
+    }
+
 type State
   = { editor :: Maybe Editor
     , deactivateBindings :: Effect Unit
+    , objects :: Objects
     }
 
 data Query a
@@ -66,6 +72,7 @@ data Query a
   | SetTheme String a
   | SetModelMarkers (Array IMarkerData) (Array IMarker -> a)
   | SetKeyBindings KeyBindings a
+  | GetObjects (Objects -> a)
 
 data Action
   = Init
@@ -95,6 +102,10 @@ monacoComponent settings =
       const
         { editor: Nothing
         , deactivateBindings: pure unit
+        , objects:
+          { codeActionProvider: settings.codeActionProvider
+          , completionItemProvider: settings.completionItemProvider
+          }
         }
     , render: render settings
     , eval:
@@ -223,3 +234,7 @@ handleQuery (SetKeyBindings Vim next) =
     disableVimMode <- liftEffect $ Monaco.enableVimBindings editor
     modify_ (_ { deactivateBindings = disableVimMode })
     pure next
+
+handleQuery (GetObjects f) = do
+  { objects } <- get
+  pure $ Just $ f objects

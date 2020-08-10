@@ -19,13 +19,15 @@
 
 module Language.PlutusCore.Constant.Typed
     ( TypeScheme (..)
-    , TypedBuiltinName (..)
+    , TypedStaticBuiltinName (..)
     , FoldArgs
     , FoldArgsEx
     , DynamicBuiltinNameMeaning (..)
     , DynamicBuiltinNameDefinition (..)
     , DynamicBuiltinNameMeanings (..)
     , unliftConstant
+    , TyVarRep
+    , TyAppRep
     , Opaque (..)
     , AsConstant (..)
     , FromConstant (..)
@@ -67,22 +69,20 @@ data TypeScheme term (args :: [GHC.Type]) res where
     TypeSchemeArrow
         :: KnownType term arg
         => Proxy arg -> TypeScheme term args res -> TypeScheme term (arg ': args) res
-    TypeSchemeAllType
+    TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq)
            -- Here we require the user to manually provide the unique of a type variable.
            -- That's nothing but silly, but I do not see what else we can do with the current design.
-           -- Once the 'BuiltinPipe' thing gets implemented, we'll be able to bind 'uniq' inside
-           -- the continuation and also put there the @KnownNat uniq@ constraint
-           -- (i.e. use universal quantification for uniques) and that should work alright.
         => Proxy '(text, uniq)
+        -> Kind ()
            -- We use a funny trick here: instead of binding
            --
-           -- > TypedBuiltin (OpaqueTerm uni text uniq)
+           -- > TypedBuiltin (Opaque term (TyVarRep text uniq))
            --
            -- directly we introduce an additional and "redundant" type variable. The reason why we
            -- do that is because this way we can also bind such a variable later when constructing
            -- the 'TypeScheme' of a polymorphic builtin, so that for the user this looks exactly
-           -- like a single bound type variable instead of this weird @OpaqueTerm text uniq@ thing.
+           -- like a single bound type variable instead of this weird @Opaque@ thing.
            --
            -- And note that in most cases we do not need to bind anything at the type level and can
            -- use the variable bound at the term level directly, because it's of the type that
@@ -90,11 +90,11 @@ data TypeScheme term (args :: [GHC.Type]) res where
            -- a type constructor to the variable, like in
            --
            -- > reverse : all a. list a -> list a
-        -> (forall ot. ot ~ Opaque term text uniq => Proxy ot -> TypeScheme term args res)
+        -> (forall ot. ot ~ Opaque term (TyVarRep text uniq) => Proxy ot -> TypeScheme term args res)
         -> TypeScheme term args res
 
--- | A 'BuiltinName' with an associated 'TypeScheme'.
-data TypedBuiltinName term args res = TypedBuiltinName BuiltinName (TypeScheme term args res)
+-- | A 'StaticBuiltinName' with an associated 'TypeScheme'.
+data TypedStaticBuiltinName term args res = TypedStaticBuiltinName StaticBuiltinName (TypeScheme term args res)
 
 -- | Turn a list of Haskell types @as@ into a functional type ending in @r@.
 --
@@ -171,7 +171,8 @@ convert such an argument from PLC to Haskell just to convert it back later witho
 the value. Instead we can keep the argument intact and apply the Haskell function directly to
 the PLC AST representing some value.
 
-E.g. Having a built-in function with the following signature:
+E.g. Having a built-in function with the following signature (assuming we somehow have a PLC @list@
+mapping to Haskell @[]@ -- that was possible before, but not now, but the example is still instructive):
 
     reverse : all a. list a -> list a
 
@@ -187,26 +188,52 @@ proceeds as follows:
 
       PLC.reverse {bool} (cons true (cons false nil))
     ~ makeKnown (Haskell.reverse (readKnown (cons true (cons false nil))))
-    ~ makeKnown (Haskell.reverse [OpaqueTerm true, OpaqueTerm false])
-    ~ makeKnown [OpaqueTerm false, OpaqueTerm true]
-    ~ cons false (cons true nil)
+    ~ makeKnown (Haskell.reverse [Opaque true, Opaque false])
+    ~ makeKnown [Opaque false, Opaque true]
+    ~ EvaluationSuccess (cons false (cons true nil))
 
-Note how we use the 'OpaqueTerm' wrapper in order to unlift a PLC term as an opaque Haskell value
+Note how we use the 'Opaque' wrapper in order to unlift a PLC term as an opaque Haskell value
 using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
+
+@Opaque term rep@ can be used for passing any @term@ through the builtin application machinery,
+not just one whose type is a bound variable. For example, you can define a new data type
+
+    data NatRep
+
+provide a 'KnownTypeAst' instance for it (mapping a @Proxy NatRep@ to the actual type of natural
+numbers in PLC) and define a (rather pointless) builtin like @idNat : nat -> nat@.
+
+It's also possible to bind a type variable of a higher-kind, say, @f :: * -> *@ and make a builtin
+with the following signature:
+
+    idFInteger : all (f :: * -> *). f integer -> f integer
+
+where the type application is handled with 'TyAppRep'
+
+It would be much better if we didn't need to define that @*Rep@ stuff at the type level just to
+demote it to the term level via a type class, but this hasn't been investigated yet. A plausible
+way would be to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually.
+But that doesn't seem to give rise to a terribly nice API.
 
 The implementation is rather straightforward, but there is one catch, namely that it takes some care
 to adapt the CEK machine to handle polymorphic built-in functions,
 see https://github.com/input-output-hk/plutus/issues/1882
 -}
 
+-- | Representation of a type variable: its name and unique.
+data TyVarRep (text :: Symbol) (unique :: Nat)
+
+-- | Representation of a type application: a function and an argument.
+data TyAppRep (fun :: GHC.Type) (arg :: GHC.Type)
+
 -- See Note [Motivation for polymorphic built-in functions]
 -- See Note [Implemetation of polymorphic built-in functions]
--- | The denotation of a term whose type is a bound variable.
--- I.e. the denotation of such a term is the term itself.
+-- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
+-- an application of a type variable). I.e. the denotation of such a term is the term itself.
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
--- type is a bound variable, so we never need to convert such a term from Plutus Core to Haskell
--- and back and instead can keep it intact.
-newtype Opaque term (text :: Symbol) (unique :: Nat) = Opaque
+-- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
+-- Haskell and back and instead can keep it intact.
+newtype Opaque term rep = Opaque
     { unOpaque :: term
     } deriving newtype (Pretty)
 
@@ -324,15 +351,19 @@ instance (KnownTypeAst (UniOf term) a, KnownType term a) =>
     -- We forbid this, because it complicates code and is not supported by evaluation engines anyway.
     readKnown = throwingWithCause _UnliftingError "Error catching is not supported" . Just
 
-instance (KnownSymbol text, KnownNat uniq, UniOf term ~ uni) =>
-            KnownTypeAst uni (Opaque term text uniq) where
+instance (KnownSymbol text, KnownNat uniq) => KnownTypeAst uni (TyVarRep text uniq) where
     toTypeAst _ =
         TyVar () . TyName $
             Name (Text.pack $ symbolVal @text Proxy)
                  (Unique . fromIntegral $ natVal @uniq Proxy)
 
-instance (term ~ term', KnownSymbol text, KnownNat uniq) =>
-            KnownType term (Opaque term' text uniq) where
+instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
+    toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
+
+instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque term rep) where
+    toTypeAst _ = toTypeAst $ Proxy @rep
+
+instance (term ~ term', KnownTypeAst (UniOf term) rep) => KnownType term (Opaque term' rep) where
     makeKnown = EvaluationSuccess . unOpaque
     readKnown = pure . Opaque
 

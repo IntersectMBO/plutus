@@ -11,9 +11,8 @@ module Language.PlutusCore.Core.Type
     ( Kind(..)
     , Type(..)
     , BuiltinName(..)
+    , StaticBuiltinName(..)
     , DynamicBuiltinName(..)
-    , StagedBuiltinName(..)
-    , Builtin(..)
     , Term(..)
     , Value
     , Version(..)
@@ -22,7 +21,7 @@ module Language.PlutusCore.Core.Type
     , Normalized(..)
     , HasUniques
     , defaultVersion
-    , allBuiltinNames
+    , allStaticBuiltinNames
     -- * Helper functions
     , toTerm
     , termAnn
@@ -65,7 +64,7 @@ data Type tyname uni ann
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | Builtin functions
-data BuiltinName
+data StaticBuiltinName
     = AddInteger
     | SubtractInteger
     | MultiplyInteger
@@ -98,16 +97,10 @@ newtype DynamicBuiltinName = DynamicBuiltinName
     } deriving (Show, Eq, Ord, Generic)
       deriving newtype (NFData, Lift, Hashable)
 
--- | Either a 'BuiltinName' (known statically) or a 'DynamicBuiltinName' (known dynamically).
-data StagedBuiltinName
-    = StaticStagedBuiltinName  BuiltinName
-    | DynamicStagedBuiltinName DynamicBuiltinName
-    deriving (Show, Eq, Generic, NFData, Lift, Hashable)
-
-data Builtin ann
-    = BuiltinName ann BuiltinName
-    | DynBuiltinName ann DynamicBuiltinName
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+data BuiltinName
+    = StaticBuiltinName StaticBuiltinName
+    | DynBuiltinName DynamicBuiltinName
+    deriving (Show, Generic, NFData, Lift, Hashable)
 
 data Term tyname name uni ann
     = Var ann name -- ^ a named variable
@@ -115,7 +108,7 @@ data Term tyname name uni ann
     | LamAbs ann name (Type tyname uni ann) (Term tyname name uni ann)
     | Apply ann (Term tyname name uni ann) (Term tyname name uni ann)
     | Constant ann (Some (ValueOf uni)) -- ^ a constant term
-    | Builtin ann (Builtin ann)
+    | Builtin ann BuiltinName
     | TyInst ann (Term tyname name uni ann) (Type tyname uni ann)
     | Unwrap ann (Term tyname name uni ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)
@@ -158,8 +151,8 @@ defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
 
 -- | The list of all 'BuiltinName's.
-allBuiltinNames :: [BuiltinName]
-allBuiltinNames = [minBound .. maxBound]
+allStaticBuiltinNames :: [StaticBuiltinName]
+allStaticBuiltinNames = [minBound .. maxBound]
 -- The way it's defined ensures that it's enough to add a new built-in to 'BuiltinName' and it'll be
 -- automatically handled by tests and other stuff that deals with all built-in names at once.
 

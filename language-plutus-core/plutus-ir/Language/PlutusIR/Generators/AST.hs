@@ -15,8 +15,9 @@ module Language.PlutusIR.Generators.AST
 
 import           Language.PlutusIR
 
-import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltin, genBuiltinName, genConstant, genKind,
-                                                               genVersion, runAstGen, simpleRecursive)
+import           Language.PlutusCore.Generators.AST as Export (AstGen, genBuiltinName, genConstant, genKind,
+                                                               genStaticBuiltinName, genVersion, runAstGen,
+                                                               simpleRecursive)
 import qualified Language.PlutusCore.Generators.AST as PLC
 import qualified Language.PlutusCore.Universe       as PLC
 
@@ -82,7 +83,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     errorGen = Error () <$> genType
     letGen = Let () <$> genRecursivity <*> Gen.nonEmpty (Range.linear 1 10) genBinding <*> genTerm
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltinName, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni ())
 genProgram = Program () <$> genTerm

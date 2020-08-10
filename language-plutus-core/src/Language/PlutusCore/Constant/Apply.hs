@@ -17,7 +17,7 @@ module Language.PlutusCore.Constant.Apply
     , nonZeroArg
     , integerToInt64
     , applyTypeSchemed
-    , applyBuiltinName
+    , applyStaticBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Name
@@ -69,7 +69,7 @@ applyTypeSchemed
        ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term
        )
-    => StagedBuiltinName
+    => BuiltinName
     -> TypeScheme term args res
     -> FoldArgs args res
     -> FoldArgsEx args
@@ -90,7 +90,7 @@ applyTypeSchemed name = go where
             _  -> throwingWithCause _ConstAppError               -- Too many arguments.
                     (ExcessArgumentsConstAppError args)
                     Nothing
-    go (TypeSchemeAllType _ schK)  f exF args =
+    go (TypeSchemeAll _ _ schK)  f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)    f exF args = case args of
         []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
@@ -111,159 +111,159 @@ applyTypeSchemed name = go where
                     go schB (f x) exF' args'
                 _ -> go schB (f x) exF' args'
 
--- | Apply a 'TypedBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
+-- | Apply a 'TypedStaticBuiltinName' to a list of 'Constant's (unwrapped from 'Value's)
 -- Checks that the constants are of expected types.
-applyTypedBuiltinName
+applyTypedStaticBuiltinName
     :: ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term
        )
-    => TypedBuiltinName term args res
+    => TypedStaticBuiltinName term args res
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [term]
     -> m (ConstAppResult term)
-applyTypedBuiltinName (TypedBuiltinName name schema) =
-    applyTypeSchemed (StaticStagedBuiltinName name) schema
+applyTypedStaticBuiltinName (TypedStaticBuiltinName name schema) =
+    applyTypeSchemed (StaticBuiltinName name) schema
 
 -- | Apply a 'TypedBuiltinName' to a list of 'Value's.
 -- Checks that the values are of expected types.
-applyBuiltinName
+applyStaticBuiltinName
     :: forall m err uni term
     .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
        )
-    => BuiltinName -> [term] -> m (ConstAppResult term)
-applyBuiltinName name args = do
+    => StaticBuiltinName -> [term] -> m (ConstAppResult term)
+applyStaticBuiltinName name args = do
     params <- builtinCostParams
     case name of
         AddInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedAddInteger
                 (+)
                 (runCostingFunTwoArguments $ paramAddInteger params)
                 args
         SubtractInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedSubtractInteger
                 (-)
                 (runCostingFunTwoArguments $ paramSubtractInteger params)
                 args
         MultiplyInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedMultiplyInteger
                 (*)
                 (runCostingFunTwoArguments $ paramMultiplyInteger params)
                 args
         DivideInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedDivideInteger
                 (nonZeroArg div)
                 (runCostingFunTwoArguments $ paramDivideInteger params)
                 args
         QuotientInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedQuotientInteger
                 (nonZeroArg quot)
                 (runCostingFunTwoArguments $ paramQuotientInteger params)
                 args
         RemainderInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedRemainderInteger
                 (nonZeroArg rem)
                 (runCostingFunTwoArguments $ paramRemainderInteger params)
                 args
         ModInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedModInteger
                 (nonZeroArg mod)
                 (runCostingFunTwoArguments $ paramModInteger params)
                 args
         LessThanInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedLessThanInteger
                 (<)
                 (runCostingFunTwoArguments $ paramLessThanInteger params)
                 args
         LessThanEqInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedLessThanEqInteger
                 (<=)
                 (runCostingFunTwoArguments $ paramLessThanEqInteger params)
                 args
         GreaterThanInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedGreaterThanInteger
                 (>)
                 (runCostingFunTwoArguments $ paramGreaterThanInteger params)
                 args
         GreaterThanEqInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedGreaterThanInteger
                 (>=)
                 (runCostingFunTwoArguments $ paramGreaterThanEqInteger params)
                 args
         EqInteger ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedEqInteger
                 (==)
                 (runCostingFunTwoArguments $ paramEqInteger params)
                 args
         Concatenate ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedConcatenate
                 (<>)
                 (runCostingFunTwoArguments $ paramConcatenate params)
                 args
         TakeByteString ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedTakeByteString
                 (coerce BSL.take . integerToInt64)
                 (runCostingFunTwoArguments $ paramTakeByteString params)
                 args
         DropByteString ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedDropByteString
                 (coerce BSL.drop . integerToInt64)
                 (runCostingFunTwoArguments $ paramDropByteString params)
                 args
         SHA2 ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedSHA2
                 (coerce Hash.sha2)
                 (runCostingFunOneArgument $ paramSHA2 params)
                 args
         SHA3 ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedSHA3
                 (coerce Hash.sha3)
                 (runCostingFunOneArgument $ paramSHA3 params)
                 args
         VerifySignature ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedVerifySignature
                 (coerce $ verifySignature @EvaluationResult)
                 (runCostingFunThreeArguments $ paramVerifySignature params)
                 args
         EqByteString ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedEqByteString
                 (==)
                 (runCostingFunTwoArguments $ paramEqByteString params)
                 args
         LtByteString ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedLtByteString
                 (<)
                 (runCostingFunTwoArguments $ paramLtByteString params)
                 args
         GtByteString ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedGtByteString
                 (>)
                 (runCostingFunTwoArguments $ paramGtByteString params)
                 args
         IfThenElse ->
-            applyTypedBuiltinName
+            applyTypedStaticBuiltinName
                 typedIfThenElse
                 (\b x y -> if b then x else y)
                 (runCostingFunThreeArguments $ paramIfThenElse params)

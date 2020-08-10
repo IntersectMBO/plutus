@@ -1,10 +1,12 @@
 -- | A dynamic built-in name test.
 
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Evaluation.DynamicBuiltins.Definition
     ( test_definition
@@ -16,13 +18,14 @@ import           Language.PlutusCore.Generators.Interesting
 import           Language.PlutusCore.MkPlc
 
 import           Language.PlutusCore.StdLib.Data.Bool
+import qualified Language.PlutusCore.StdLib.Data.List               as Plc
 import qualified Language.PlutusCore.StdLib.Data.Function           as Plc
 
 import           Evaluation.DynamicBuiltins.Common
 
 import           Data.Either                                        (isRight)
 import           Data.Proxy
-import           Hedgehog                                           hiding (Size, Var)
+import           Hedgehog                                           hiding (Opaque, Size, Var)
 import qualified Hedgehog.Gen                                       as Gen
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Test.Tasty
@@ -66,8 +69,8 @@ dynamicConstName = DynamicBuiltinName "const"
 dynamicConstMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicConstMeaning = DynamicBuiltinNameMeaning sch Prelude.const (\_ _ -> ExBudget 1 1) where
     sch =
-        TypeSchemeAllType @"a" @0 Proxy $ \a ->
-        TypeSchemeAllType @"b" @1 Proxy $ \b ->
+        TypeSchemeAll @"a" @0 Proxy (Type ()) $ \a ->
+        TypeSchemeAll @"b" @1 Proxy (Type ()) $ \b ->
             a `TypeSchemeArrow` b `TypeSchemeArrow` TypeSchemeResult a
 
 dynamicConstDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
@@ -100,7 +103,7 @@ dynamicIdName = DynamicBuiltinName "id"
 dynamicIdMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
 dynamicIdMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
-        TypeSchemeAllType @"a" @0 Proxy $ \a ->
+        TypeSchemeAll @"a" @0 Proxy (Type ()) $ \a ->
             a `TypeSchemeArrow` TypeSchemeResult a
 
 dynamicIdDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
@@ -134,10 +137,92 @@ test_dynamicId =
                                   $ Var () i
         typecheckEvaluateCek env term @?= Right (EvaluationSuccess one)
 
+dynamicIdFIntegerName :: DynamicBuiltinName
+dynamicIdFIntegerName = DynamicBuiltinName "idFInteger"
+
+-- >>> :set -XTypeApplications
+-- >>> import Language.PlutusCore.Pretty
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdFIntegerMeaning @DefaultUni
+-- (all (f :: * -> *). f integer -> f integer)
+dynamicIdFIntegerMeaning
+    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (Term TyName Name uni ann)
+dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+    sch =
+        TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
+            let ty = Proxy @(Opaque _ (TyAppRep f Integer))
+            in ty `TypeSchemeArrow` TypeSchemeResult ty
+
+dynamicIdFIntegerDefinition
+    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (Term TyName Name uni ann)
+dynamicIdFIntegerDefinition =
+    DynamicBuiltinNameDefinition dynamicIdFIntegerName dynamicIdFIntegerMeaning
+
+dynamicIdFInteger :: Term tyname name uni ()
+dynamicIdFInteger = dynamicBuiltinNameAsTerm dynamicIdFIntegerName
+
+-- | Test that a polymorphic built-in function can have a higher-kinded type variable in its
+-- signature.
+test_dynamicIdFInteger :: TestTree
+test_dynamicIdFInteger =
+    testCase "dynamicIdFInteger" $ do
+        let env = insertDynamicBuiltinNameDefinition dynamicIdFIntegerDefinition mempty
+            one = mkConstant @Integer @DefaultUni () 1
+            ten = mkConstant @Integer @DefaultUni () 10
+            res = mkConstant @Integer @DefaultUni () 55
+            -- sum (idFInteger {list} (enumFromTo 1 10))
+            term
+                = Apply () Plc.sum
+                . Apply () (TyInst () dynamicIdFInteger Plc.listTy)
+                $ mkIterApp () Plc.enumFromTo [one, ten]
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess res)
+
+data ListRep a
+instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
+    toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
+
+dynamicIdListName :: DynamicBuiltinName
+dynamicIdListName = DynamicBuiltinName "idList"
+
+-- >>> :set -XTypeApplications
+-- >>> import Language.PlutusCore.Pretty
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdListMeaning @DefaultUni
+-- (all (a :: *). (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a -> (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a)
+dynamicIdListMeaning :: DynamicBuiltinNameMeaning (Term TyName Name uni ann)
+dynamicIdListMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
+    sch =
+        TypeSchemeAll @"a" @0 Proxy (Type ()) $ \(_ :: Proxy a) ->
+            let ty = Proxy @(Opaque _ (ListRep a))
+            in ty `TypeSchemeArrow` TypeSchemeResult ty
+
+dynamicIdListDefinition :: DynamicBuiltinNameDefinition (Term TyName Name uni ann)
+dynamicIdListDefinition =
+    DynamicBuiltinNameDefinition dynamicIdListName dynamicIdListMeaning
+
+dynamicIdList :: Term tyname name uni ()
+dynamicIdList = dynamicBuiltinNameAsTerm dynamicIdListName
+
+-- | Test that opaque terms with custom types are allowed.
+test_dynamicIdList :: TestTree
+test_dynamicIdList =
+    testCase "dynamicIdList" $ do
+        let env = insertDynamicBuiltinNameDefinition dynamicIdListDefinition mempty
+            one = mkConstant @Integer @DefaultUni () 1
+            ten = mkConstant @Integer @DefaultUni () 10
+            res = mkConstant @Integer @DefaultUni () 55
+            integer = mkTyBuiltin @Integer ()
+            -- sum (idList {integer} (enumFromTo 1 10))
+            term
+                = Apply () Plc.sum
+                . Apply () (TyInst () dynamicIdList integer)
+                $ mkIterApp () Plc.enumFromTo [one, ten]
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess res)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_dynamicFactorial
         , test_dynamicConst
         , test_dynamicId
+        , test_dynamicIdFInteger
+        , test_dynamicIdList
         ]

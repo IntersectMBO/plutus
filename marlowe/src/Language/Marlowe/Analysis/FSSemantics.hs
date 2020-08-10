@@ -279,7 +279,17 @@ addTransaction newLowSlot newHighSlot newSymInput slotTim
                                   , whenPos = pos })
      return (conditions, uSymInput)
 
+
+-- It only "or"s the first symbolic boolean to the second one if the
+-- concrete boolean is False, otherwise it just passes the second
+-- symbolic parameter through
+onlyAssertionsPatch :: Bool -> SBool -> SBool -> SBool
+onlyAssertionsPatch b p1 p2
+  | b = p2
+  | otherwise = p1 .|| p2
+
 -- This is the main static analysis loop for contracts.
+-- - oa -- indicates whether we want to report only failing assertions (not any warning)
 -- - hasErr -- indicates whether the current symbolic execution has already
 -- raised a warning (this is a necessary condition for it to be a counter-example)
 -- - contract -- remaining contract
@@ -288,13 +298,13 @@ addTransaction newLowSlot newHighSlot newSymInput slotTim
 -- The result of this function is a boolean that indicates whether:
 -- 1. The transaction is valid (according to the semantics)
 -- 2. It has issued a warning (as indicated by hasErr)
-isValidAndFailsAux :: SBool -> Contract -> SymState
+isValidAndFailsAux :: Bool -> SBool -> Contract -> SymState
                    -> Symbolic SBool
-isValidAndFailsAux hasErr Close sState =
+isValidAndFailsAux oa hasErr Close sState =
   return (hasErr .&& convertToSymbolicTrace ((lowSlot sState, highSlot sState,
                                               symInput sState, whenPos sState)
                                               :traces sState) (paramTrace sState))
-isValidAndFailsAux hasErr (Pay accId payee token val cont) sState =
+isValidAndFailsAux oa hasErr (Pay accId payee token val cont) sState =
   do let concVal = symEvalVal val sState
      let originalMoney = M.findWithDefault 0 (accId, token) (symAccounts sState)
      let remainingMoneyInAccount = originalMoney - smax (literal 0) concVal
@@ -308,24 +318,28 @@ isValidAndFailsAux hasErr (Pay accId payee token val cont) sState =
                             + M.findWithDefault 0 (destAccId, token) newAccs)
                          newAccs
              _ -> newAccs }
-     isValidAndFailsAux ((remainingMoneyInAccount .< 0) -- Partial payment
-                         .|| (concVal .<= 0) -- Non-positive payment
-                         .|| hasErr) cont finalSState
-isValidAndFailsAux hasErr (If obs cont1 cont2) sState =
+     isValidAndFailsAux oa (onlyAssertionsPatch
+                              oa
+                              ((remainingMoneyInAccount .< 0) -- Partial payment
+                               .|| (concVal .<= 0)) -- Non-positive payment
+                              hasErr) cont finalSState
+isValidAndFailsAux oa hasErr (If obs cont1 cont2) sState =
   do let obsVal = symEvalObs obs sState
-     contVal1 <- isValidAndFailsAux hasErr cont1 sState
-     contVal2 <- isValidAndFailsAux hasErr cont2 sState
+     contVal1 <- isValidAndFailsAux oa hasErr cont1 sState
+     contVal2 <- isValidAndFailsAux oa hasErr cont2 sState
      return (ite obsVal contVal1 contVal2)
-isValidAndFailsAux hasErr (When list timeout cont) sState =
-  isValidAndFailsWhen hasErr list timeout cont (const $ const sFalse) sState 1
-isValidAndFailsAux hasErr (Let valId val cont) sState =
+isValidAndFailsAux oa hasErr (When list timeout cont) sState =
+  isValidAndFailsWhen oa hasErr list timeout cont (const $ const sFalse) sState 1
+isValidAndFailsAux oa hasErr (Let valId val cont) sState =
   do let concVal = symEvalVal val sState
      let newBVMap = M.insert valId concVal (symBoundValues sState)
      let newSState = sState { symBoundValues = newBVMap }
-     isValidAndFailsAux (literal (M.member valId (symBoundValues sState)) -- Shadowed definition
-                         .|| hasErr) cont newSState
-isValidAndFailsAux hasErr (Assert obs cont) sState =
-  isValidAndFailsAux (hasErr .|| sNot obsVal) cont sState
+     isValidAndFailsAux oa (onlyAssertionsPatch
+                              oa
+                              (literal (M.member valId (symBoundValues sState))) -- Shadowed definition
+                              hasErr) cont newSState
+isValidAndFailsAux oa hasErr (Assert obs cont) sState =
+  isValidAndFailsAux oa (hasErr .|| sNot obsVal) cont sState
   where obsVal = symEvalObs obs sState
 
 -- Returns sTrue iif the given sinteger is in the list of bounds
@@ -335,12 +349,12 @@ ensureBounds cho (Bound lowBnd hiBnd:t) =
     ((cho .>= literal lowBnd) .&& (cho .<= literal hiBnd)) .|| ensureBounds cho t
 
 -- Just combines addTransaction and isValidAndFailsAux
-applyInputConditions :: SInteger -> SInteger -> SBool -> Maybe SymInput -> Timeout
+applyInputConditions :: Bool -> SInteger -> SInteger -> SBool -> Maybe SymInput -> Timeout
                      -> SymState -> Integer -> Contract
                      -> Symbolic (SBool, SBool)
-applyInputConditions ls hs hasErr maybeSymInput timeout sState pos cont =
+applyInputConditions oa ls hs hasErr maybeSymInput timeout sState pos cont =
   do (newCond, newSState) <- addTransaction ls hs maybeSymInput timeout sState pos
-     newTrace <- isValidAndFailsAux hasErr cont newSState
+     newTrace <- isValidAndFailsAux oa hasErr cont newSState
      return (newCond, newTrace)
 
 -- Generates two new slot numbers and puts them in the symbolic state
@@ -357,16 +371,16 @@ addFreshSlotsToState sState =
 -- that happened then the current case would never be reached, we keep adding conditions
 -- to the function and pass it to the next iteration of isValidAndFailsWhen.
 -- - pos - Is the position of the current Case clause [1..], 0 means timeout branch.
-isValidAndFailsWhen :: SBool -> [Case Contract] -> Timeout -> Contract -> (SymInput -> SymState -> SBool)
+isValidAndFailsWhen :: Bool -> SBool -> [Case Contract] -> Timeout -> Contract -> (SymInput -> SymState -> SBool)
                     -> SymState -> Integer -> Symbolic SBool
-isValidAndFailsWhen hasErr [] timeout cont previousMatch sState pos =
+isValidAndFailsWhen oa hasErr [] timeout cont previousMatch sState pos =
   do newLowSlot <- sInteger_
      newHighSlot <- sInteger_
      (cond, newTrace)
-               <- applyInputConditions newLowSlot newHighSlot
+               <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr Nothing timeout sState 0 cont
      return (ite cond newTrace sFalse)
-isValidAndFailsWhen hasErr (Case (Deposit accId party token val) cont:rest)
+isValidAndFailsWhen oa hasErr (Case (Deposit accId party token val) cont:rest)
                     timeout timCont previousMatch sState pos =
   do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
      let concVal = symEvalVal val sStateWithInput
@@ -382,13 +396,15 @@ isValidAndFailsWhen hasErr (Case (Deposit accId party token val) cont:rest)
                else previousMatch otherSymInput pmSymState
              _ -> previousMatch otherSymInput pmSymState
      (newCond, newTrace)
-               <- applyInputConditions newLowSlot newHighSlot
-                      (hasErr .|| (concVal .<= 0)) -- Non-positive deposit warning
+               <- applyInputConditions oa newLowSlot newHighSlot
+                      (onlyAssertionsPatch oa
+                                           (concVal .<= 0) -- Non-positive deposit warning
+                                           hasErr)
                       (Just symInput) timeout sState pos cont
-     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
                                       newPreviousMatch sState (pos + 1)
      return (ite (newCond .&& sNot clashResult) newTrace contTrace)
-isValidAndFailsWhen hasErr (Case (Choice choId bnds) cont:rest)
+isValidAndFailsWhen oa hasErr (Case (Choice choId bnds) cont:rest)
                     timeout timCont previousMatch sState pos =
   do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
      concVal <- sInteger_
@@ -401,15 +417,15 @@ isValidAndFailsWhen hasErr (Case (Choice choId bnds) cont:rest)
                then ensureBounds otherConcVal bnds .|| previousMatch otherSymInput pmSymState
                else previousMatch otherSymInput pmSymState
              _ -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
                                       newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
-               <- applyInputConditions newLowSlot newHighSlot
+               <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
      return (ite (newCond .&& sNot clashResult)
                  (ensureBounds concVal bnds .&& newTrace)
                  contTrace)
-isValidAndFailsWhen hasErr (Case (Notify obs) cont:rest)
+isValidAndFailsWhen oa hasErr (Case (Notify obs) cont:rest)
                     timeout timCont previousMatch sState pos =
   do (newLowSlot, newHighSlot, sStateWithInput) <- addFreshSlotsToState sState
      let obsRes = symEvalObs obs sStateWithInput
@@ -420,10 +436,10 @@ isValidAndFailsWhen hasErr (Case (Notify obs) cont:rest)
            case otherSymInput of
              SymNotify -> pmObsRes .|| previousMatch otherSymInput pmSymState
              _         -> previousMatch otherSymInput pmSymState
-     contTrace <- isValidAndFailsWhen hasErr rest timeout timCont
+     contTrace <- isValidAndFailsWhen oa hasErr rest timeout timCont
                                       newPreviousMatch sState (pos + 1)
      (newCond, newTrace)
-               <- applyInputConditions newLowSlot newHighSlot
+               <- applyInputConditions oa newLowSlot newHighSlot
                                        hasErr (Just symInput) timeout sState pos cont
      return (ite (newCond .&& obsRes .&& sNot clashResult) newTrace contTrace)
 
@@ -447,15 +463,16 @@ countWhensCaseList :: [Case Contract] -> Integer
 countWhensCaseList (Case uu c : tail) = max (countWhens c) (countWhensCaseList tail)
 countWhensCaseList []                 = 0
 
--- Main wrapper of the static analysis takes a Contract, a paramTrace, and an optional
+-- Main wrapper of the static analysis takes a Bool that indicates whether only
+-- assertions should be checked, a Contract, a paramTrace, and an optional
 -- State. paramTrace is actually an output parameter. We do not put it in the result of
 -- this function because then we would have to return a symbolic list that would make
 -- the whole process slower. It is meant to be used just with SBV, with a symbolic
 -- paramTrace, and we use the symbolic paramTrace to know which is the counterexample.
-wrapper :: Contract -> [(SInteger, SInteger, SInteger, SInteger)] -> Maybe State
+wrapper :: Bool -> Contract -> [(SInteger, SInteger, SInteger, SInteger)] -> Maybe State
         -> Symbolic SBool
-wrapper c st maybeState = do ess <- mkInitialSymState st maybeState
-                             isValidAndFailsAux sFalse c ess
+wrapper oa c st maybeState = do ess <- mkInitialSymState st maybeState
+                                isValidAndFailsAux oa sFalse c ess
 
 -- It generates a list of variable names for the variables that conform paramTrace.
 -- The list will account for the given number of transactions (four vars per transaction).
@@ -574,11 +591,12 @@ extractCounterExample smtModel cont maybeState maps = interpretedResult
 
 -- Wrapper function that carries the static analysis and interprets the result.
 -- It generates variables, runs SBV, and it interprets the result in Marlow terms.
-warningsTraceWithState :: Contract
+warningsTraceCustom :: Bool
+              -> Contract
               -> Maybe State
               -> IO (Either ThmResult
                             (Maybe (Slot, [TransactionInput], [TransactionWarning])))
-warningsTraceWithState con maybeState =
+warningsTraceCustom onlyAssertions con maybeState =
     do thmRes@(ThmResult result) <- satCommand
        return (case result of
                  Unsatisfiable _ _ -> Right Nothing
@@ -588,9 +606,23 @@ warningsTraceWithState con maybeState =
   where maxActs = 1 + countWhens con
         params = generateLabels maxActs
         property = do v <- generateParameters params
-                      r <- wrapper con v maybeState
+                      r <- wrapper onlyAssertions con v maybeState
                       return (sNot r)
         satCommand = proveWith z3 property
+
+-- Like warningsTraceCustom but checks all warnings (including assertions)
+warningsTraceWithState :: Contract
+              -> Maybe State
+              -> IO (Either ThmResult
+                            (Maybe (Slot, [TransactionInput], [TransactionWarning])))
+warningsTraceWithState = warningsTraceCustom False
+
+-- Like warningsTraceCustom but only checks assertions.
+onlyAssertionsWithState :: Contract
+              -> Maybe State
+              -> IO (Either ThmResult
+                            (Maybe (Slot, [TransactionInput], [TransactionWarning])))
+onlyAssertionsWithState = warningsTraceCustom True
 
 -- Like warningsTraceWithState but without initialState.
 warningsTrace :: Contract

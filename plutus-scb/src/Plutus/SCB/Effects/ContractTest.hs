@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeOperators       #-}
 module Plutus.SCB.Effects.ContractTest(
     TestContracts(..)
+    , ContractTestMsg(..)
     , handleContractTest
     ) where
 
@@ -26,6 +27,7 @@ import           Data.Row
 import           Data.Text                                         (Text)
 import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
+import           Data.Void                                         (Void, absurd)
 import           GHC.Generics                                      (Generic)
 
 import           Plutus.SCB.Effects.Contract                       (ContractCommand (..), ContractEffect (..))
@@ -33,9 +35,9 @@ import           Plutus.SCB.Events.Contract                        (ContractHand
                                                                     PartiallyDecodedResponse)
 import qualified Plutus.SCB.Events.Contract                        as C
 import           Plutus.SCB.Types                                  (SCBError (..))
-import           Plutus.SCB.Utils                                  (render, tshow)
+import           Plutus.SCB.Utils                                  (tshow)
 
-import           Control.Monad.Freer.Extra.Log                     (Log, logDebug)
+import           Control.Monad.Freer.Extra.Log                     (LogMsg, logDebug)
 
 import           Language.Plutus.Contract                          (BlockchainActions, Contract, ContractError)
 import           Language.Plutus.Contract.Schema                   (Event, Handlers, Input, Output)
@@ -47,18 +49,27 @@ import           Playground.Schema                                 (endpointsToS
 import qualified Plutus.SCB.Effects.ContractTest.AtomicSwap        as Contracts.AtomicSwap
 import qualified Plutus.SCB.Effects.ContractTest.PayToWallet       as Contracts.PayToWallet
 
-import qualified Debug.Trace                                       as Trace
-
 data TestContracts = Game | Currency | AtomicSwap | PayToWallet
     deriving (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+data ContractTestMsg =
+    DoContractUpdate (ContractRequest Value)
+    | Request (Doc Void) -- Pretty-printed 'ContractRequest schema' for some schema.
+    | Response (PartiallyDecodedResponse ContractSCBRequest)
+
+instance Pretty ContractTestMsg where
+    pretty = \case
+        DoContractUpdate vl -> "doContractUpdate:" <+> pretty vl
+        Request rq -> "Request:" <+> fmap absurd rq
+        Response rsp -> "Response:" <+> pretty rsp
 
 instance Pretty TestContracts where
     pretty = viaShow
 
 -- | A mock/test handler for 'ContractEffect'
 handleContractTest ::
-    (Member (Error SCBError) effs, Member Log effs)
+    (Member (Error SCBError) effs, Member (LogMsg ContractTestMsg) effs)
     => Eff (ContractEffect TestContracts ': effs)
     ~> Eff effs
 handleContractTest = interpret $ \case
@@ -103,23 +114,22 @@ doContractUpdate ::
     , Forall (Input schema) ToJSON
     , Forall (Output schema) ToJSON
     , Forall (Input schema) Show
-    , Member Log effs
+    , Member (LogMsg ContractTestMsg) effs
     )
     => Contract schema Text ()
     -> ContractRequest Value
     -> Eff effs (PartiallyDecodedResponse ContractSCBRequest)
 doContractUpdate contract payload = do
-    logDebug "doContractUpdate"
-    logDebug $ Text.pack  $ show $ Trace.traceShowId $ fmap JSON.encode payload
+    logDebug $ DoContractUpdate payload
     request :: (ContractRequest (Event schema)) <-
         either throwError pure
         $ fromString
         $ traverse (JSON.parseEither JSON.parseJSON) payload
-    logDebug . render $ "Request:" <+> pretty request
+    logDebug $ Request $ pretty request
     response <-
         either (throwError . OtherError) (pure . mkResponse)
         $ ContractState.insertAndUpdateContract contract request
-    logDebug . render $ "Response:" <+> pretty response
+    logDebug $ Response response
     pure response
 
 mkResponse ::

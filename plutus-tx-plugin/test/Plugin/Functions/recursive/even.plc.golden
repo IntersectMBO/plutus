@@ -6,11 +6,7 @@
       (vardecl
         subtractInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam
-        arg
-        (con integer)
-        (lam arg (con integer) [ [ (builtin subtractInteger) arg ] arg ])
-      )
+      (builtin subtractInteger)
     )
     (datatypebind
       (datatype

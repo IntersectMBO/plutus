@@ -1,11 +1,14 @@
 {-# LANGUAGE ApplicativeDo         #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Main
     ( main
@@ -15,14 +18,18 @@ import qualified Cardano.ChainIndex.Server                       as ChainIndex
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
+import           Control.Concurrent                              (threadDelay)
 import           Control.Concurrent.Async                        (Async, async, waitAny)
 import           Control.Concurrent.Availability                 (Availability, newToken, starting)
 import           Control.Lens.Indexed                            (itraverse_)
-import           Control.Monad                                   (void)
-import           Control.Monad.Freer.Extra.Log                   (logInfo)
+import           Control.Monad                                   (forever, void)
+import           Control.Monad.Freer                             (Eff, raise)
+import           Control.Monad.Freer.Error                       (handleError)
+import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
+import           Control.Monad.Freer.Log                         (logError, renderLogMessages)
 import           Control.Monad.IO.Class                          (liftIO)
-import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), filterLogger,
-                                                                  runStdoutLoggingT)
+import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), LoggingT,
+                                                                  filterLogger, runStdoutLoggingT)
 import qualified Data.Aeson                                      as JSON
 import qualified Data.ByteString.Lazy.Char8                      as BS8
 import           Data.Foldable                                   (traverse_)
@@ -30,7 +37,8 @@ import qualified Data.Map                                        as Map
 import           Data.Set                                        (Set)
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Doc, indent, parens, pretty, vsep, (<+>))
+import           Data.Text.Prettyprint.Doc                       (Doc, Pretty (..), indent, parens, pretty, vsep, (<+>))
+import           Data.Time.Units                                 (Second, toMicroseconds)
 import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
@@ -41,13 +49,15 @@ import           Options.Applicative                             (CommandFields,
                                                                   metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
-import           Plutus.SCB.App                                  (App, runApp)
+import           Plutus.SCB.App                                  (App, AppBackend, ContractExeLogMsg (..), runApp)
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
-import           Plutus.SCB.Types                                (Config (Config), ContractExe (..), chainIndexConfig,
-                                                                  monitoringConfig, monitoringPort, nodeServerConfig,
+import           Plutus.SCB.Types                                (Config (Config), ContractExe (..),
+                                                                  RequestProcessingConfig (..), SCBError,
+                                                                  chainIndexConfig, monitoringConfig, monitoringPort,
+                                                                  nodeServerConfig, requestProcessingConfig,
                                                                   signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
@@ -183,6 +193,7 @@ allServersParser =
                   , MockWallet
                   , SCBWebserver
                   , SigningProcess
+                  , ProcessAllContractOutboxes
                   ]))
         (fullDesc <> progDesc "Run all the mock servers needed.")
 
@@ -286,11 +297,28 @@ reportContractHistoryParser =
         (ReportContractHistory <$> contractIdParser)
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
+data AppMsg =
+    InstalledContractsMsg
+    | ActiveContractsMsg
+    | TransactionHistoryMsg
+    | ContractHistoryMsg
+    | ProcessInboxMsg
+    | ProcessAllOutboxesMsg Second
+
+instance Pretty AppMsg where
+    pretty = \case
+        InstalledContractsMsg -> "Installed contracts"
+        ActiveContractsMsg -> "Active contracts"
+        TransactionHistoryMsg -> "Transaction history"
+        ContractHistoryMsg -> "Contract history"
+        ProcessInboxMsg -> "Process contract inbox"
+        ProcessAllOutboxesMsg s -> "Processing contract outboxes every" <+> pretty (fromIntegral @_ @Double s) <+> "seconds"
+
 ------------------------------------------------------------
 -- | Translate the command line configuation into the actual code to be run.
 --
-runCliCommand :: LogLevel -> Config ->  Availability -> Command -> App ()
-runCliCommand _ _ _ Migrate = App.migrate
+runCliCommand :: LogLevel -> Config ->  Availability -> Command -> Eff (LogMsg AppMsg ': AppBackend (LoggingT IO)) ()
+runCliCommand _ _ _ Migrate = raise App.migrate
 runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
     WalletServer.main
         walletServerConfig
@@ -299,18 +327,18 @@ runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} 
         serviceAvailability
 runCliCommand _ Config {nodeServerConfig} serviceAvailability MockNode =
     NodeServer.main nodeServerConfig serviceAvailability
-runCliCommand _ config serviceAvailability SCBWebserver = SCBServer.main config serviceAvailability
+runCliCommand _ config serviceAvailability SCBWebserver = raise $ SCBServer.main config serviceAvailability
 runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
-        putStrLn $ "Started all commands."
+        putStrLn "Started all commands."
         waitAny threads
   where
 
     forkCommand ::  Command -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
-      asyncId <- async . void . runApp minLogLevel config . runCliCommand minLogLevel config serviceAvailability $ subcommand
+      asyncId <- async . void . runApp minLogLevel config . renderLogMessages . runCliCommand minLogLevel config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
       pure asyncId
@@ -322,10 +350,10 @@ runCliCommand _ _ _ (InstallContract path) = Core.installContract (ContractExe p
 runCliCommand _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
 runCliCommand _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
 runCliCommand _ _ _ ReportInstalledContracts = do
-    logInfo "Installed Contracts"
+    logInfo InstalledContractsMsg
     traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
 runCliCommand _ _ _ ReportActiveContracts = do
-    logInfo "Active Contracts"
+    logInfo ActiveContractsMsg
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
     let format :: (ContractExe, Set ContractInstanceId) -> Doc a
         format (contractExe, contractInstanceIds) =
@@ -334,23 +362,26 @@ runCliCommand _ _ _ ReportActiveContracts = do
                ]
     traverse_ (logInfo . render . format) instances
 runCliCommand _ _ _ ReportTxHistory = do
-    logInfo "Transaction History"
+    logInfo TransactionHistoryMsg
     traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
 runCliCommand _ _ _ (UpdateContract uuid endpoint payload) =
     void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
 runCliCommand _ _ _ (ReportContractHistory uuid) = do
-    logInfo "Contract History"
+    logInfo ContractHistoryMsg
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
-    itraverse_ logContract contracts
+    itraverse_ (\i -> raise . logContract i) contracts
     where
       logContract :: Int -> ContractInstanceState ContractExe -> App ()
       logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
 runCliCommand _ _ _ (ProcessContractInbox uuid) = do
-    logInfo "Process contract inbox"
+    logInfo ProcessInboxMsg
     Core.processContractInbox @ContractExe (ContractInstanceId uuid)
-runCliCommand _ _ _ ProcessAllContractOutboxes = do
-    logInfo "Process all contract outboxes"
-    Core.processAllContractOutboxes @ContractExe
+runCliCommand _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
+    let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
+    logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
+    forever $ do
+        _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
+        handleError @SCBError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExeSCBError)
 runCliCommand _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
 
@@ -366,7 +397,7 @@ main = do
     result <-
         runApp minLogLevel config $ do
             logInfo $ "Running: " <> Text.pack (show cmd)
-            runCliCommand minLogLevel config serviceAvailability cmd
+            renderLogMessages $ runCliCommand minLogLevel config serviceAvailability cmd
     case result of
         Left err -> do
             runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ logErrorS err

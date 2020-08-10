@@ -14,15 +14,17 @@ import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
+import Data.List (List)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Symbol (SProxy(..))
+import Data.Tuple.Nested (type (/\))
 import Gist (Gist)
 import Gists (GistAction)
-import Halogen as H
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
 import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, PubKey)
+import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData(..))
 import Servant.PureScript.Ajax (AjaxError)
@@ -32,6 +34,44 @@ import Web.HTML.Event.DragEvent (DragEvent)
 
 type WebData
   = RemoteData AjaxError
+
+data ContractPathStep
+  = PayContPath
+  | IfTruePath
+  | IfFalsePath
+  | WhenCasePath Int
+  | WhenTimeoutPath
+  | LetPath
+  | AssertPath
+
+derive instance eqContractPathStep :: Eq ContractPathStep
+
+derive instance genericContractPathStep :: Generic ContractPathStep _
+
+instance showContractPathStep :: Show ContractPathStep where
+  show = genericShow
+
+type ContractPath
+  = List ContractPathStep
+
+data ReachabilityAnalysisData
+  = NotStarted
+  | InProgress
+    { currPath :: ContractPath
+    , currContract :: Contract
+    , originalState :: S.State
+    , subproblems :: List (Unit -> ContractPath /\ Contract)
+    , numSubproblems :: Int
+    , numSolvedSubproblems :: Int
+    }
+  | ReachabilityFailure String
+  | UnreachableSubcontract ContractPath
+  | AllReachable
+
+data AnalysisState
+  = NoneAsked
+  | WarningAnalysis (RemoteData String Result)
+  | ReachabilityAnalysis ReachabilityAnalysisData
 
 type State
   = { showRightPanel :: Boolean
@@ -46,7 +86,7 @@ type State
     , showBottomPanel :: Boolean
     , showErrorDetail :: Boolean
     , bottomPanelView :: BottomPanelView
-    , analysisState :: RemoteData String Result
+    , analysisState :: AnalysisState
     , selectedHole :: Maybe String
     , oldContract :: Maybe String
     }
@@ -93,7 +133,7 @@ _showErrorDetail = prop (SProxy :: SProxy "showErrorDetail")
 _bottomPanelView :: Lens' State BottomPanelView
 _bottomPanelView = prop (SProxy :: SProxy "bottomPanelView")
 
-_analysisState :: Lens' State (RemoteData String Result)
+_analysisState :: Lens' State AnalysisState
 _analysisState = prop (SProxy :: SProxy "analysisState")
 
 _selectedHole :: Lens' State (Maybe String)
@@ -116,7 +156,7 @@ mkState =
   , showBottomPanel: true
   , showErrorDetail: false
   , bottomPanelView: CurrentStateView
-  , analysisState: NotAsked
+  , analysisState: NoneAsked
   , selectedHole: Nothing
   , oldContract: Nothing
   }
@@ -135,6 +175,7 @@ data Action
   | MoveToPosition Pos Pos
   | SelectEditorKeyBindings KeyBindings
   | LoadScript String
+  | SetEditorText String
   -- Gist support.
   | CheckAuthStatus
   | GistAction GistAction
@@ -144,6 +185,7 @@ data Action
   | AddInput (Maybe PubKey) Input (Array Bound)
   | RemoveInput (Maybe PubKey) Input
   | SetChoice ChoiceId ChosenNum
+  | ResetContract
   | ResetSimulator
   | Undo
   | SelectHole (Maybe String)
@@ -157,6 +199,7 @@ data Action
   | SetBlocklyCode
   -- websocket
   | AnalyseContract
+  | AnalyseReachabilityContract
 
 defaultEvent :: String -> Event
 defaultEvent s = A.defaultEvent $ "Simulation." <> s
@@ -170,12 +213,14 @@ instance isEventAction :: IsEvent Action where
   toEvent (SelectEditorKeyBindings _) = Just $ defaultEvent "SelectEditorKeyBindings"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
+  toEvent (SetEditorText _) = Just $ (defaultEvent "SetEditorText")
   toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
   toEvent NextSlot = Just $ defaultEvent "NextBlock"
   toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
   toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
+  toEvent ResetContract = Just $ defaultEvent "ResetContract"
   toEvent Undo = Just $ defaultEvent "Undo"
   toEvent (SelectHole _) = Just $ defaultEvent "SelectHole"
   toEvent (ChangeSimulationView view) = Just $ (defaultEvent "ChangeSimulationView") { label = Just $ show view }
@@ -186,25 +231,10 @@ instance isEventAction :: IsEvent Action where
   toEvent (ShowErrorDetail _) = Just $ defaultEvent "ShowErrorDetail"
   toEvent SetBlocklyCode = Just $ defaultEvent "SetBlocklyCode"
   toEvent AnalyseContract = Just $ defaultEvent "AnalyseContract"
+  toEvent AnalyseReachabilityContract = Just $ defaultEvent "AnalyseReachabilityContract"
 
 data Query a
-  = SetEditorText String a
-  | ResizeEditor a
-  | ResetContract a
-  | WebsocketResponse (RemoteData String Result) a
-  | HasStarted (Boolean -> a)
-  | GetCurrentContract (String -> a)
-
-data Message
-  = BlocklyCodeSet String
-  | WebsocketMessage String
-
-type ChildSlots
-  = ( editorSlot :: H.Slot Monaco.Query Monaco.Message Unit
-    )
-
-_editorSlot :: SProxy "editorSlot"
-_editorSlot = SProxy
+  = WebsocketResponse (RemoteData String Result) a
 
 data BottomPanelView
   = CurrentStateView
