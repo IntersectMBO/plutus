@@ -65,7 +65,7 @@ type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
     , actusBlocklySlot :: H.Slot AB.BlocklyQuery AB.BlocklyMessage Unit
-    , simulationSlot :: H.Slot Simulation.Query Simulation.Message Unit
+    , simulationSlot :: H.Slot Simulation.Query BlocklyMessage Unit
     , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
