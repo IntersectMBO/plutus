@@ -121,10 +121,8 @@ contractSchema ::
     => ContractInstanceId
     -> Eff effs (ContractSignatureResponse t)
 contractSchema contractId = do
-    ContractInstanceState {csContractDefinition} <-
-        getContractInstanceState @t contractId
-    ContractSignatureResponse csContractDefinition <$>
-        exportSchema csContractDefinition
+    ContractInstanceState {csContractDefinition} <- getContractInstanceState @t contractId
+    ContractSignatureResponse csContractDefinition <$> exportSchema csContractDefinition
 
 activateContract ::
        forall t effs.
@@ -181,7 +179,6 @@ parseContractId t =
         Just uuid -> pure $ ContractInstanceId uuid
         Nothing   -> throwError $ InvalidUUIDError t
 
-
 handler ::
        forall effs.
        ( Member (EventLogEffect (ChainEvent ContractExe)) effs
@@ -196,17 +193,21 @@ handler ::
        )
     => Eff effs ()
        :<|> (Eff effs (FullReport ContractExe)
-             :<|> ((ContractExe -> Eff effs (ContractInstanceState ContractExe))
+             :<|> (ContractExe -> Eff effs (ContractInstanceState ContractExe))
                    :<|> (Text -> Eff effs (ContractSignatureResponse ContractExe)
-                                 :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe)))))
+                                 :<|> (String -> JSON.Value -> Eff effs (ContractInstanceState ContractExe))))
 handler =
     healthcheck :<|> getFullReport :<|>
-    (activateContract :<|>
-     (\rawInstanceId ->
-          (parseContractId rawInstanceId >>= contractSchema) :<|>
-          (\rawEndpointDescription payload ->
-               parseStringifiedJSON payload >>= \payload' ->
-                   parseContractId rawInstanceId >>=
-                   invokeEndpoint
-                       (EndpointDescription rawEndpointDescription)
-                       payload')))
+    (activateContract :<|> byContractInstanceId)
+  where
+    byContractInstanceId rawInstanceId =
+        (do instanceId <- parseContractId rawInstanceId
+            contractSchema instanceId) :<|>
+        handleInvokeEndpoint rawInstanceId
+    handleInvokeEndpoint rawInstanceId rawEndpointDescription rawPayload = do
+        instanceId <- parseContractId rawInstanceId
+        payload <- parseStringifiedJSON rawPayload
+        invokeEndpoint
+            (EndpointDescription rawEndpointDescription)
+            payload
+            instanceId
