@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TypeFamilies      #-}
 
 module Cardano.Protocol.Socket.Client where
@@ -25,26 +26,54 @@ import           Ouroboros.Network.Protocol.Handshake.Unversioned
 import           Ouroboros.Network.Snocket
 import           Ouroboros.Network.Socket
 
-import           Cardano.Node.Types                                  (AppState)
 import           Cardano.Protocol.Socket.Type
 import           Ledger                                              (Block, Tx (..))
 
--- | Client configuration acts like a client handle.
+-- | Client handler, used to communicate with the client thread.
+data ClientHandler = ClientHandler {
+        chOutputQueue :: TQueue Block,
+        chInputQueue  :: TQueue Tx,
+        chSocketPath  :: FilePath,
+        chThreadId    :: ThreadId
+    }
 
-data ClientConfig m =
-    ClientConfig { ccSocketPath   :: FilePath      -- ^ Path of the socket used to communicate with the server.
-                 , ccAppState     :: MVar AppState -- ^ Client application state.
-                 , ccBlockHandler :: Block -> m () -- ^ Handler used to store the incoming blocks.
-                 , ccTxQueue      :: TQueue Tx     -- ^ A queue used to send new transactions to the server.
-                 }
+-- | Flush all the blocks that have accumulated on the queue.
+--   It does not block.
+flushBlocks ::
+    ClientHandler
+ -> IO [Block]
+flushBlocks (ClientHandler outputQueue _ _ _) = go []
+    where
+      go :: [Block] -> IO [Block]
+      go acc = atomically (tryReadTQueue outputQueue) >>= \case
+          Nothing    -> pure (reverse acc)
+          Just block -> go   (block : acc)
+
+-- | Read the next block. It will block if no new block is
+--   available.
+getBlock ::
+    ClientHandler
+ -> IO Block
+getBlock (ClientHandler outputQueue _ _ _) =
+    atomically (readTQueue outputQueue)
+
+-- | Queue a transaction to be sent to the server.
+queueTx ::
+    ClientHandler
+ -> Tx
+ -> IO ()
+queueTx (ClientHandler _ inputQueue _ _) tx =
+    atomically (writeTQueue inputQueue tx)
 
 -- | Forks and starts a new client node, returning the newly allocated thread id.
-startClientNode :: ClientConfig IO
-                -> IO ThreadId
-startClientNode cfg =
-    forkIO $ withIOManager $ \iocp ->
+runClientNode :: FilePath
+              -> IO ClientHandler
+runClientNode socketPath = do
+    outputQueue <- newTQueueIO
+    inputQueue  <- newTQueueIO
+    threadId    <- forkIO $ withIOManager $ \iocp ->
         connectToNode
-          (localSnocket iocp (ccSocketPath cfg))
+          (localSnocket iocp socketPath)
           unversionedHandshakeCodec
           cborTermVersionDataCodec
           nullNetworkConnectTracers
@@ -52,40 +81,50 @@ startClientNode cfg =
             UnversionedProtocol
             (NodeToNodeVersionData $ NetworkMagic 0)
             (DictVersion nodeToNodeCodecCBORTerm)
-            (const app))
+            (const (app outputQueue inputQueue)))
           Nothing
-          (localAddressFromPath (ccSocketPath cfg))
+          (localAddressFromPath socketPath)
+    pure ClientHandler {
+        chOutputQueue = outputQueue,
+        chInputQueue  = inputQueue,
+        chSocketPath  = socketPath,
+        chThreadId    = threadId
+    }
 
     where
       {- Application that communicates using 2 multiplexed protocols
-         (ChainSync and TxSubmission, with BlockFetch coming soon). -}
-      app :: OuroborosApplication 'InitiatorApp
+         (ChainSync and TxSubmission). -}
+      app :: TQueue Block
+          -> TQueue Tx
+          -> OuroborosApplication 'InitiatorApp
                                   LBS.ByteString IO () Void
-      app =
-        nodeApplication chainSync txSubmission
+      app outputQueue inputQueue =
+        nodeApplication (chainSync outputQueue) (txSubmission inputQueue)
 
-      chainSync :: RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
-      chainSync =
+      chainSync :: TQueue Block
+                -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+      chainSync outputQueue =
           InitiatorProtocolOnly $
           MuxPeer
             (contramap show stdoutTracer)
             codecChainSync
             (ChainSync.chainSyncClientPeer
-               (chainSyncClient (ccBlockHandler cfg)))
+               (chainSyncClient outputQueue))
 
-      txSubmission :: RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
-      txSubmission =
+      txSubmission :: TQueue Tx
+                   -> RunMiniProtocol 'InitiatorApp LBS.ByteString IO () Void
+      txSubmission inputQueue =
           InitiatorProtocolOnly $
           MuxPeer
             (contramap show stdoutTracer)
             codecTxSubmission
             (TxSubmission.localTxSubmissionClientPeer
-               (txSubmissionClient (ccTxQueue cfg)))
+               (txSubmissionClient inputQueue))
 
 -- | The client updates the application state when the protocol state changes.
-chainSyncClient :: (Block -> IO ())
+chainSyncClient :: TQueue Block
                 -> ChainSync.ChainSyncClient Block Tip IO ()
-chainSyncClient blockHandler =
+chainSyncClient outputQueue =
     ChainSync.ChainSyncClient $ pure requestNext
     where
       requestNext :: ChainSync.ClientStIdle Block Tip IO ()
@@ -100,7 +139,7 @@ chainSyncClient blockHandler =
         {
           ChainSync.recvMsgRollForward  = \block _ ->
             ChainSync.ChainSyncClient $ do
-              _ <- blockHandler block
+              atomically $ writeTQueue outputQueue block
               return requestNext
         , ChainSync.recvMsgRollBackward = error "Not supported."
         }
