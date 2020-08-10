@@ -211,7 +211,7 @@
           "Language/PlutusIR/Generators/AST"
           "Language/PlutusIR/Parser"
           "Language/PlutusIR/MkPir"
-          "Language/PlutusIR/Value"
+          "Language/PlutusIR/Purity"
           "Language/PlutusIR/Optimizer/DeadCode"
           "Language/PlutusIR/Transform/Substitute"
           "Language/PlutusIR/Transform/ThunkRecursions"

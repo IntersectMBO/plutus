@@ -4,7 +4,7 @@
       packages = {
         "criterion-measurement".revision = (((hackage."criterion-measurement")."0.1.2.0").revisions).default;
         "criterion-measurement".flags.fast = false;
-        "optics-core".revision = (((hackage."optics-core")."0.3").revisions).default;
+        "optics-core".revision = (((hackage."optics-core")."0.3.0.1").revisions).default;
         "newtype".revision = (((hackage."newtype")."0.2.2.0").revisions).default;
         "warp".revision = (((hackage."warp")."3.3.13").revisions).default;
         "warp".flags.allow-sendfilefd = true;
@@ -54,9 +54,9 @@
         "attoparsec-iso8601".flags.fast = false;
         "attoparsec-iso8601".flags.developer = false;
         "formatting".revision = (((hackage."formatting")."6.3.7").revisions).default;
-        "pipes".revision = (((hackage."pipes")."4.3.13").revisions).default;
+        "pipes".revision = (((hackage."pipes")."4.3.14").revisions).default;
         "deriving-aeson".revision = (((hackage."deriving-aeson")."0.2.6").revisions).default;
-        "aws-lambda-haskell-runtime".revision = (((hackage."aws-lambda-haskell-runtime")."3.0.2").revisions).default;
+        "aws-lambda-haskell-runtime".revision = (((hackage."aws-lambda-haskell-runtime")."3.0.3").revisions).default;
         "ghc-prim".revision = (((hackage."ghc-prim")."0.5.3").revisions).default;
         "eventful-memory".revision = (((hackage."eventful-memory")."0.2.0").revisions).default;
         "utf8-string".revision = (((hackage."utf8-string")."1.0.1.1").revisions).default;
@@ -115,8 +115,9 @@
         "asn1-parse".revision = (((hackage."asn1-parse")."0.9.5").revisions).default;
         "regex-base".revision = (((hackage."regex-base")."0.94.0.0").revisions).default;
         "moo".revision = (((hackage."moo")."1.2").revisions).default;
-        "zlib".revision = (((hackage."zlib")."0.6.2.1").revisions).default;
+        "zlib".revision = (((hackage."zlib")."0.6.2.2").revisions).default;
         "zlib".flags.non-blocking-ffi = false;
+        "zlib".flags.bundled-c-zlib = false;
         "zlib".flags.pkg-config = false;
         "rts".revision = (((hackage."rts")."1.0").revisions).default;
         "lazy-search".revision = (((hackage."lazy-search")."0.1.2.1").revisions).default;
@@ -207,7 +208,8 @@
         "string-conversions".revision = (((hackage."string-conversions")."0.4.0.1").revisions).default;
         "optparse-applicative".revision = (((hackage."optparse-applicative")."0.15.1.0").revisions).default;
         "statistics-linreg".revision = (((hackage."statistics-linreg")."0.3").revisions).default;
-        "network".revision = (((hackage."network")."3.1.1.1").revisions).default;
+        "network".revision = (((hackage."network")."3.1.2.0").revisions).default;
+        "network".flags.devel = false;
         "word8".revision = (((hackage."word8")."0.1.3").revisions).default;
         "connection".revision = (((hackage."connection")."0.3.1").revisions).default;
         "splitmix".revision = (((hackage."splitmix")."0.0.5").revisions).default;
@@ -426,7 +428,7 @@
         "snap-core".flags.portable = false;
         "snap-core".flags.debug = false;
         "snap-core".flags.network-uri = true;
-        "prometheus".revision = (((hackage."prometheus")."2.2.1").revisions).default;
+        "prometheus".revision = (((hackage."prometheus")."2.2.2").revisions).default;
         "iso8601-time".revision = (((hackage."iso8601-time")."0.1.5").revisions).default;
         "iso8601-time".flags.new-time = true;
         "type-equality".revision = (((hackage."type-equality")."1").revisions).default;
@@ -461,7 +463,7 @@
         "Cabal".revision = (((hackage."Cabal")."3.0.1.0").revisions).default;
         "assoc".revision = (((hackage."assoc")."1.0.1").revisions).default;
         "Diff".revision = (((hackage."Diff")."0.4.0").revisions).default;
-        "unordered-containers".revision = (((hackage."unordered-containers")."0.2.11.0").revisions).default;
+        "unordered-containers".revision = (((hackage."unordered-containers")."0.2.12.0").revisions).default;
         "unordered-containers".flags.debug = false;
         "base64-bytestring".revision = (((hackage."base64-bytestring")."1.0.0.3").revisions).default;
         "aeson-pretty".revision = (((hackage."aeson-pretty")."0.8.8").revisions).default;

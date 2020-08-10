@@ -13,9 +13,9 @@
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
-      ghc883 = "1bqck4gmacikzns7xmb0hmbc0dxw0qmzaaxw03mzgpkxqfcrl32z";
-      ghc884 = "14fh7yiw3qflg2yp7lxc1yphl4zq9gqjy3whpgvlsfli0dshl6gk";
-      ghc8101 = "1g5fbmj242h7nsc1558j3p38x6ji1m2bw0h8gy018rshdq64hqvn";
+      ghc883 = "0z65sq5jp9hlxsxr5adkf34frbjzc8m8szx6gl781avwidn856c8";
+      ghc884 = "0900jwc351i0dw1fdfxiyz4gmfzdc0g7fsf1lh3lssrih5p5ykfs";
+      ghc8101 = "1izj3vam33klrhfzrxxvf1xlqnf29dp4gn8xncsqdxnwrlq9gy8x";
     }.${compiler-nix-name};
   }).cabal-install;
   stylish-haskell = pkgs.haskell-nix.hackage-package {
@@ -24,9 +24,9 @@
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
-      ghc883 = "1siknyba41fasb7avwpf9mcwv9pz4j5m85ckd6jwq9bml6dfv2dz";
-      ghc884 = "1zfkn8jy2yxxg1h4531pkxsjfip3l2bm0lyai2n1vp04l3i2yk3y";
-      ghc8101 = "1igjqfxhsp1qfqy0ma442b5bi1pkaa6f03sg00haxx95848smyys";
+      ghc883 = "0zaypywwcq8kh1q0flc6azqilvabbzbchi2i155agjsq3b7xs3k0";
+      ghc884 = "019n7imqcr7xx2la6inxq1i6s37c02l3yg4hpd8a9pz2jl1dp57g";
+      ghc8101 = "0xpxi3rx9widv4dqrfw7sgzz1mx29mqnbwfgq2s21qryq3pqjw4v";
     }.${compiler-nix-name};
   };
   hlint = pkgs.haskell-nix.hackage-package {
@@ -35,9 +35,9 @@
     inherit compiler-nix-name index-state checkMaterialization;
     # Invalidate and update if you change the version or index-state
     plan-sha256 = {
-      ghc883 = "13slad643d1parhwliw69fpcqyx663amc1pri0avn1jclvdspqbk";
-      ghc884 = "0xpc3vdd0mh0bx6p6jpmdvzqlj2dqkb3fz2kvg711qdk40z6d8sc";
-      ghc8101 = "182ghddbj9fg6jd6w54s1byrfzhnhf3vwmfwzm5a9rg6yik0vm82";
+      ghc883 = "0mw6w1b79hww4m5r8wncgbyw03p34mmmm66rl8wglq3ynjxfxh77";
+      ghc884 = "1n4415cjk74c762s8gv25651ar296000i19ajkwpyw392gl3rn4x";
+      ghc8101 = "1zsrmxmbigyg4jdmcwy4x3g60qlz7z5qkafmkapf7624d1w4dc6z";
     }.${compiler-nix-name};
   };
   inherit (pkgs.haskell-nix.cabalProject {
@@ -45,18 +45,26 @@
           name = "haskell-language-server";
           owner = "haskell";
           repo = "haskell-language-server";
-          rev = "6c7b43a3ebc8bf9e3d22318055121d90b051ed8e";
-          sha256 = "0y5zqp5f890579dxx2dcx860zf4qvhjamzik72w89zavsn5xb3w5";
+          rev = "c966e6f8b7be1ec7ca8dc5084fe7f2e6432c50f0";
+          sha256 = "1msjprk4g5v7aqpaa8zg34q999yxz0hg7zavc8a89p7yczss9h28";
           fetchSubmodules = true;
         };
+        # Needed for GHC 8.10
+        cabalProjectLocal = ''
+          allow-newer: diagrams-svg:base, monoid-extras:base, svg-builder:base,
+            diagrams-lib:base, dual-tree:base, active:base, diagrams-core:base,
+            diagrams-contrib:base, force-layout:base, diagrams-postscript:base,
+            statestack:base
+        '';
         sha256map = {
-          "https://github.com/wz1000/shake"."fb3859dca2e54d1bbb2c873e68ed225fa179fbef" = "0sa0jiwgyvjsmjwpfcpvzg2p7277aa0dgra1mm6afh2rfnjphz8z";
-          "https://github.com/peti/cabal-plan"."894b76c0b6bf8f7d2f881431df1f13959a8fce87" = "06iklj51d9kh9bhc42lrayypcpgkjrjvna59w920ln41rskhjr4y";
+          "https://github.com/bubba/brittany.git"."c59655f10d5ad295c2481537fc8abf0a297d9d1c" = "1rkk09f8750qykrmkqfqbh44dbx1p8aq1caznxxlw8zqfvx39cxl";
         };
         inherit compiler-nix-name index-state checkMaterialization;
         # Invalidate and update if you change the version
         plan-sha256 = {
-          ghc883 = "0c2mj41wmbygnxx9bb5r287z32x5yrkkj61kb524dhdrwmhlqkdf";
+          ghc883 = "1iqwp30pxdxd811idmqjpvlzpp50mc23w238sv9glb1an2bn8hxf";
+          ghc884 = "17kwki0apll74rqprzh5silbrbs9f6bq5g7c6jszxfcl5vv49cqb";
+          ghc8101 = "181551n2f0syvxwjclj3jxg219rrswgy2519q04fk8ll509d98pb";
         }.${compiler-nix-name};
         modules = [{
           # Tests don't pass for some reason, but this is a somewhat random revision.

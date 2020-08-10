@@ -191,6 +191,8 @@
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+            (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
+            (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
             ];
           buildable = true;
           modules = [ "PSGenerator" ];
