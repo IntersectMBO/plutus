@@ -8,10 +8,10 @@ module Language.Marlowe.ACTUS.Generator
     )
 where
 
-import qualified Data.List                                               as L (scanl, tail, zip, zip6)
+import qualified Data.List                                               as L (zip6)
 import           Data.Maybe                                              (fromMaybe, isNothing, maybeToList)
 import           Data.String                                             (IsString (fromString))                            
-import           Data.Time                                               (Day, fromGregorian)
+import           Data.Time                                               (Day)
 import Data.Monoid
 import           Language.Marlowe                                        (AccountId (AccountId),
                                                                           Action (Choice, Deposit), Bound (Bound),
@@ -20,7 +20,7 @@ import           Language.Marlowe                                        (Accoun
                                                                           Party (Role), Payee (Party), Slot (..),
                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
                                                                           ValueId (ValueId), ada)
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..))
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD, constraints), Assertions(..), AssertionContext(..))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..))
 import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt, toMarloweFixedPoint)
@@ -121,7 +121,7 @@ genFsContract terms =
                 toAssert = genZeroRiskAssertions terms <$> (assertions =<< maybeToList ctr)
                 compose = appEndo . mconcat . map Endo
             in compose toAssert cont
-            
+
         payoffAt t = ValueId $ fromString $ "payoff_" ++ show t
         schedCfs = genProjectedCashflows terms
         schedEvents = cashEvent <$> schedCfs

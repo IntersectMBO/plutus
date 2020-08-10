@@ -58,7 +58,7 @@ import Marlowe.Monaco as MM
 import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>))
+import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>), (<$>))
 import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..))
@@ -145,6 +145,8 @@ handleRoute Router.Simulation = selectView Simulation
 handleRoute Router.HaskellEditor = selectView HaskellEditor
 
 handleRoute Router.Blockly = selectView BlocklyEditor
+
+handleRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
 handleRoute Router.Wallets = selectView WalletEmulator
 
@@ -248,10 +250,9 @@ handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
 
 handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
 
-handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
-  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
+handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
+  hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
   let
-    hasStarted = fromMaybe false mHasStarted
     parsedTermsEither = AMB.parseActusJsonCode terms
   if hasStarted then
     void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
@@ -261,17 +262,18 @@ handleAction settings (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flav
         void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
       Right parsedTerms -> do
         result <- case flavour of 
-          ActusBlockly.FS -> runAjax $ flip runReaderT settings $ (Server.postActusGenerate parsedTerms)
-          ActusBlockly.F -> runAjax $ flip runReaderT settings $ (Server.postActusGeneratestatic parsedTerms)
+          ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postActusGenerate parsedTerms)
+          ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
         case result of
           Success contractAST -> do
-            void $ query _simulationSlot unit (ST.SetEditorText contractAST unit)
-            selectSimulationView
+            void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
+            selectView Simulation
           Failure e        -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
           _                -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
 
 ----------
+
 showErrorDescription :: ErrorDescription -> String
 showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
   "BadResponse"
@@ -279,8 +281,11 @@ showErrorDescription (DecodingError err) = "DecodingError: " <> err
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
 showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
 
-
-
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Message m) a ->
+  HalogenM FrontendState HAction ChildSlots Message m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
 
 ------------------------------------------------------------
 selectView ::
@@ -294,6 +299,7 @@ selectView view = do
       HaskellEditor -> Router.HaskellEditor
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
+      ActusBlocklyEditor -> Router.ActusBlocklyEditor
   liftEffect $ Routing.setHash (RT.print Router.route route)
   assign _view view
   case view of
@@ -305,6 +311,7 @@ selectView view = do
       void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
+    ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
 
 render ::
   forall m.
