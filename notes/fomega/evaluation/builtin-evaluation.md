@@ -222,7 +222,7 @@ I've considered a number of ways to fix this.
    us to move them out of the AST (where the typechecker has to deal
    with them) and into the machines.
 
- * My original solution [in `kwxm/alternative-cek`] was to modify the
+ 3. My original solution [in `kwxm/alternative-cek`] was to modify the
    CK machine to use a variant of the method used in the original CEK
    machine.  Whenever we see an application `[M N]` where `M` isn't a
    lambda, we call `termAsPrimIterApp` to check if it's of the correct
@@ -236,7 +236,7 @@ I've considered a number of ways to fix this.
    much like the new CEK machine: the version in proposal 2 is
    more like the new CEK machine.
 
- * We could modify the `builtin` constructor in the AST to contain a
+ 4. We could modify the `builtin` constructor in the AST to contain a
    list of arguments that it's received so far.  That's probably a
    really bad idea though, since it'd only be there for the benefit of the
    CK machine and it's taking us back towards the problems we had with
