@@ -272,7 +272,7 @@ polymorphic, but all the type arguments have to precede the term
 arguments (ie, all the quantifiers appear at the front).  A typical signature
 looks like
 ```
-  [α₁::K₁,...,αₘ::Kₘ](t₁,...tₙ)r
+  [α₁::K₁,...,αₘ::Kₘ](t₁,...,tₙ)r
 ```
 where the `α`s are type variables, the `K`s are kinds, the `t`s are
 the types of the arguments and `r` is the return type.  This maps
