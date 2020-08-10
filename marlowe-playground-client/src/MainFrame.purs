@@ -266,8 +266,9 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
           ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
         case result of
           Success contractAST -> do
-            void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
             selectView Simulation
+            void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
+
           Failure e        -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
           _                -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
