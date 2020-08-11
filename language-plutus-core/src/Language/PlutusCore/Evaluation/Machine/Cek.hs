@@ -163,10 +163,11 @@ makeLenses ''CekEnv
    constructed so far and returns the result.  If there are no
    arguments of either kind left it just returns what it has at that
    point.  The only circumstances where this is currently called is if
-   (a) the machine is returning a partially applied builtin, (b) a
+   (a) the machine is returning a partially applied builtin, or (b) a
    wrongly interleaved builtin application is being reported in an
-   error, and (c) a builtin application fails. In case (c) we're
-   not reporting the entire term: see `applyBuiltinName` below.
+   error.  Note that we don't call this function if a builtin fails
+   for some reason like division by zero; the term is discarded in that
+   case anyway.
 -}
 
 mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
@@ -427,14 +428,14 @@ instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx
 instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                     -- This should be impossbile if we never have zero-arity builtins.
+                     -- This should be impossible if we never have zero-arity builtins.
                      -- We should have found this case in an earlier call to instantiateEvaluate
                      -- or applyEvaluate and called doApplication
       TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
                         where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
       TypeArg:arity' ->
           case arity' of
-            [] -> applyBuiltinName ctx bn args val  -- Final argument is a type argument
+            [] -> applyBuiltinName ctx bn args  -- Final argument is a type argument
             _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
@@ -463,7 +464,7 @@ applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg = wit
       TermArg:arity' -> do
           let args' = args ++ [arg]
           case arity' of
-            [] -> applyBuiltinName ctx bn args' val  -- 'arg' was the final argument
+            [] -> applyBuiltinName ctx bn args' -- 'arg' was the final argument
             _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs args' argEnv  -- More arguments expected
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
@@ -473,7 +474,6 @@ applyBuiltinName
     => Context uni
     -> BuiltinName
     -> [CekValue uni]
-    -> CekValue uni  -- entire application term for error message
     -> CekM uni (Plain Term uni)
 applyBuiltinName ctx bn args val = do
   result <- case bn of
@@ -485,15 +485,12 @@ applyBuiltinName ctx bn args val = do
   case result of
     EvaluationSuccess t -> returnCek ctx t
     EvaluationFailure ->
-        throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
-        {- FIXME: if something goes wrong we won't report the whole term causing the problem
-           because we've only got the frame up to the penultimate argument (unless the
-           final argument is a type).  It seems wasteful to construct the whole term
-           just in case something goes wrong, when that usually won't happen.  If we didn't
-           have to account for the possibility of an instantiation triggering evaluation then
-           we could pass the final argument to this function and use it to construct the full
-           problematic term, but only when something actually goes wrong. The extra argument
-           might also cost us something. -}
+        throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
+        {- NB: we're not reporting any context here.  When UserEvaluationError
+           is invloved, Exception.extractEvaluationResult just throws the cause
+           away, so it doesn't matter if we don't have any context. We could provide
+           applyBuiltinName with sufficient information to reconstruct the application,
+           but that would add a cost for no purpose. -}
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
