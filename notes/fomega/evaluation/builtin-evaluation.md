@@ -46,7 +46,7 @@ Step 2 is the one that has to be efficient.  In the original CEK machine, a func
 type instantiations and applications with the name of a builtin function at the head, for example
 
 ```
-  [{([builtin b) V₁ V₂] T₁} V₃]
+  [{[(builtin b) V₁ V₂] T₁} V₃]
 ```
 
 If the term is of this form then `termAsPrimIterApp` discards the
@@ -80,16 +80,18 @@ One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar
 performance to unsaturated builtins.
 
-### The alternative CEK machine Part of the reason for abandoning
-saturated builtins was that James proposed an alternative version of
-the CEK machine which looked as if it might be more efficient than the
-original machine with respect to environment handling. This involved a
-new notion of "value" which also allowed us to simplify builtin
-application by giving us somewhere to store the arguments to which a
-builtin had so far been applied (this is an issue orthogonal to
-handling environments: we could have retained the original method
-of builtin evaluation and used a simpler version of the `builtin`
-value below while still improving the handling of environments).
+### The alternative CEK machine
+
+Part of the reason for abandoning saturated builtins was that James
+proposed an alternative version of the CEK machine which looked as if
+it might be more efficient than the original machine with respect to
+environment handling. This involved a new notion of "value" which also
+allowed us to simplify builtin application by giving us somewhere to
+store the arguments to which a builtin had so far been applied (this
+is an issue orthogonal to handling environments: we could have
+retained the original method of builtin evaluation and used a simpler
+version of the `builtin` value below while still improving the
+handling of environments).
 
 The original machine dealt with closures: pairs `(V,ρ)` with `V` a value and `ρ`
 an environment containing values for the free variables in `V` (and probably
@@ -105,10 +107,12 @@ V := con cn
    | iwrap A B V
    | builtin ρ bn count [types] [V]
 ```
-(we'll call these things "CEK-values")
+where closures `(M,ρ)` appear under binders. We'll call these things "CEK-values".
 
-These are similar to, but distinct from, the "values" in the Plutus Core
-specification, which are terms that can't be reduced any further.
+These are similar to, but distinct from, the "values" in the Plutus
+Core specification, which are terms that can't be reduced any further
+(assuming that we don't reduce under binders). Ordinary values just
+have terms under binders, here we have closures under binders.
 
 The `builtin` constructor contains
 
