@@ -56,11 +56,8 @@ data BlocklyAction
 data BlocklyMessage
   = CurrentCode String
 
-type Slots
-  = ()
-
 type DSL m a
-  = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
+  = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
 
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
@@ -84,10 +81,9 @@ handleQuery (Resize next) = do
     Just state ->
       pure
         $ ST.run
-            ( do
+            do
                 workspaceRef <- STRef.new state.workspace
                 Blockly.resize state.blockly workspaceRef
-            )
     Nothing -> pure unit
   pure $ Just next
 

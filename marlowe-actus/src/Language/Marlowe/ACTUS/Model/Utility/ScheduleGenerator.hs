@@ -24,15 +24,13 @@ import           Language.Marlowe.ACTUS.Model.Utility.DateShift   (applyBDC)
 
 
 
-maximumMaybe :: (Ord a, Foldable f) => f a -> Maybe a
-maximumMaybe xs
-  | null xs   = Nothing
-  | otherwise = Just $ maximum xs
+maximumMaybe :: Ord a => [a] -> Maybe a
+maximumMaybe [] = Nothing
+maximumMaybe xs = Just $ maximum xs
 
-minimumMaybe :: (Ord a, Foldable f) => f a -> Maybe a
-minimumMaybe xs
-  | null xs   = Nothing
-  | otherwise = Just $ minimum xs
+minimumMaybe :: Ord a => [a] -> Maybe a
+minimumMaybe [] = Nothing
+minimumMaybe xs = Just $ minimum xs
 
 inf :: [ShiftedDay] -> Day -> Maybe ShiftedDay
 inf set threshold =

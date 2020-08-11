@@ -19,7 +19,7 @@ import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
 import Data.BigInteger (BigInteger)
 import Data.Date (exactDate, month)
-import Data.Either (Either, note)
+import Data.Either (Either, note, hush)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding, toEnum)
 import Data.FloatParser (parseFloat)
@@ -518,7 +518,7 @@ parseFieldActusValueJson g block name =
 
 parseFieldActusPeriodJson :: Generator -> Block -> String -> Maybe ActusPeriodType
 parseFieldActusPeriodJson g block name = 
-  Either.either (const Nothing) Just result 
+  Either.hush result 
     where 
       result = do
         value <- statementToCode g block name

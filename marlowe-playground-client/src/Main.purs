@@ -32,7 +32,7 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
   where
   SPSettings_ settings = defaultSettings $ SPParams_ { baseURL: "/api/" }
 
-  jsonOptions = defaultOptions { unwrapSingleConstructors = true, sumEncoding = aesonSumEncoding }
+  jsonOptions = defaultOptions { unwrapSingleConstructors = true }
 
   decodeJson = SPSettingsDecodeJson_ jsonOptions
 

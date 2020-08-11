@@ -17,6 +17,7 @@ import Data.Lens (Lens', _1, assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Data.Monoid (mempty)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
@@ -61,11 +62,8 @@ data BlocklyMessage
   = Initialized
   | CurrentTerms ContractFlavour String
 
-type Slots
-  = ()
-
 type DSL m a
-  = HalogenM BlocklyState BlocklyAction Slots BlocklyMessage m a
+  = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
 
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
@@ -89,10 +87,9 @@ handleQuery (Resize next) = do
     Just state ->
       pure
         $ ST.run
-            ( do
+            do
                 workspaceRef <- STRef.new state.workspace
                 Blockly.resize state.blockly workspaceRef
-            )
     Nothing -> pure unit
   pure $ Just next
 

@@ -23,7 +23,7 @@ genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows terms =
     let
         eventTypes   = [IED, MD, RR, IP]
-        analysisDate = fromGregorian 2008 10 22
+        analysisDate = fromGregorian 1970 1 1
         riskFactors = RiskFactors 1.0 1.0 1.0 1.0 analysisDate
 
         preserveDate e d = (e, d)
@@ -72,6 +72,6 @@ genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..
         accumulateAndDiscount acc (cf, t) = 
             let discountFactor = dateToDiscountFactor $ cashCalculationDay cf
                 sign x = if (amount cf < 0.0) then (NegValue x) else x
-            in (constnt discountFactor) * (sign $ useval "payoff" t) + acc --todo plus vs minus
+            in (constnt discountFactor) * (sign $ useval "payoff" t) + acc
         npv = foldl accumulateAndDiscount (constnt 0) (zip cfs [1..])
     in Assert (ValueLT (constnt expectedNpv) npv) continue
