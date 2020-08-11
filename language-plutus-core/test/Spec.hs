@@ -338,7 +338,7 @@ prop_normalizePreservesKind k _ tyQ = isSafe $ do
 -- |Property: Normalisation for generated types is sound.
 prop_normalizeTypeSound :: TyProp
 prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
+  ty  <- withExceptT GenErrorP tyQ
   ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
   ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
   return (ty1 == ty2)

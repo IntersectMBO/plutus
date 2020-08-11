@@ -33,8 +33,8 @@ import           Data.Coolean
 import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
-import           Language.PlutusCore.Gen.Common
 import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Gen.Common
 
 -- * Enumerating builtin types
 

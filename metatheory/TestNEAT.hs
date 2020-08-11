@@ -1,19 +1,19 @@
 module Main where
 
-import Test.Tasty
-import Test.Tasty.HUnit
-import Data.Coolean
-import Control.Monad.Except
-import Language.PlutusCore.PropTest
-import Language.PlutusCore
-import Language.PlutusCore.Normalize
-import Data.Either
+import           Control.Monad.Except
+import           Data.Coolean
+import           Data.Either
+import           Language.PlutusCore
+import           Language.PlutusCore.Normalize
+import           Language.PlutusCore.PropTest
+import           Test.Tasty
+import           Test.Tasty.HUnit
 
-import MAlonzo.Code.Main (checkKindAgda, normalizeTypeAgda)
-import MAlonzo.Code.Scoped (deBruijnifyK)
+import           MAlonzo.Code.Main             (checkKindAgda, normalizeTypeAgda)
+import           MAlonzo.Code.Scoped           (deBruijnifyK)
 
-import Language.PlutusCore.DeBruijn
-import Raw
+import           Language.PlutusCore.DeBruijn
+import           Raw
 
 
 main :: IO ()
@@ -53,7 +53,7 @@ prop_checkKindSound k _ tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   withExceptT TypeErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyDB) (deBruijnifyK (convK k)) of
-    Just _ -> return ()
+    Just _  -> return ()
     Nothing -> throwError undefined -- TODO
 
 prop_normalizePreservesKind :: TyProp
@@ -62,9 +62,9 @@ prop_normalizePreservesKind k _ tyQ = isSafe $ do
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   tyN <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing -> throwError undefined -- TODO
+    Nothing  -> throwError undefined -- TODO
   withExceptT TypeErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyN) (deBruijnifyK (convK k)) of
-    Just _ -> return ()
+    Just _  -> return ()
     Nothing -> throwError undefined -- TODO
 
 -- the agda implementation throws names away, so I guess we need to compare deBruijn terms
@@ -74,9 +74,9 @@ prop_normalizeTypeSound k tyG tyQ = isSafe $ do
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing -> throwError undefined -- TODO
+    Nothing  -> throwError undefined -- TODO
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
-  
+
   ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
   return (ty1 == (AlexPn 0 0 0 <$ ty2))
 
@@ -86,8 +86,8 @@ prop_normalizeTypeSame k tyG tyQ = isSafe $ do
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing -> throwError undefined -- TODO
+    Nothing  -> throwError undefined -- TODO
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
-  
+
   ty2 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
   return (ty1 == (AlexPn 0 0 0 <$ ty2))
