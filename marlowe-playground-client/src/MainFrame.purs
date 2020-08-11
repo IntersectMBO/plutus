@@ -1,20 +1,16 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Control.Monad.Except (runExceptT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
-import Data.Foldable as NEL
 import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
+import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
-import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Foreign.Class (decode)
-import Foreign.JSON (parseJSON)
 import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
@@ -54,6 +50,7 @@ import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), _blocklySlot, _haskellEditorSlot, _haskellState, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
+import WebSocket.Support as WS
 
 initialState :: FrontendState
 initialState =
@@ -128,18 +125,14 @@ handleQuery ::
   MonadEffect m =>
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
-handleQuery (ReceiveWebsocketMessage msg next) = do
-  let
-    msgDecoded =
-      unwrap <<< runExceptT
-        $ do
-            f <- parseJSON msg
-            decode f
+handleQuery (ReceiveWebSocketMessage msg next) = do
   void <<< toSimulation
-    $ case msgDecoded of
-        Left err -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show msg)) unit)
-        Right (OtherError err) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
-        Right (CheckForWarningsResult result) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
+    $ case msg of
+        WS.WebSocketOpen -> pure $ Just unit
+        WS.ReceiveMessage (Left err) -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show err)) unit)
+        WS.ReceiveMessage (Right (OtherError err)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
+        WS.ReceiveMessage (Right (CheckForWarningsResult result)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
+        (WS.WebSocketClosed _) -> pure $ Just unit
   pure $ Just next
 
 handleQuery (ChangeRoute route next) = do

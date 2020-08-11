@@ -3,7 +3,7 @@ module MainFrameTests
   ) where
 
 import Prelude
-import Types (HAction(..), State, _currentView)
+import Types (HAction(..), Query, State, _currentView)
 import Animation (class MonadAnimate)
 import Clipboard (class MonadClipboard)
 import Control.Monad.Except.Trans (class MonadThrow)
@@ -19,7 +19,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse_)
 import Data.Tuple (Tuple(..))
 import Effect.Exception (Error)
-import MainFrame (handleAction)
+import MainFrame (handleQuery, handleAction)
 import MainFrame as MainFrame
 import MonadApp (class MonadApp)
 import Network.RemoteData (RemoteData(..))
@@ -32,13 +32,17 @@ import Test.Unit.QuickCheck (quickCheck)
 type World
   = { console :: Array String }
 
-execMockApp :: forall m. MonadThrow Error m => World -> Array HAction -> m (Tuple World State)
+execMockApp :: forall m a. MonadThrow Error m => World -> Array (Either (Query a) HAction) -> m (Tuple World State)
 execMockApp world queries = do
   let
     initialState = MainFrame.initialState
+
+    handle (Left query) = void $ handleQuery query
+
+    handle (Right action) = handleAction action
   RWSResult state result writer <-
     runRWST
-      (unwrap (traverse_ handleAction queries :: MockApp m Unit))
+      (unwrap (traverse_ handle queries :: MockApp m Unit))
       (defaultSettings (SPParams_ { baseURL: "/" }))
       (Tuple world initialState)
   pure state
@@ -72,8 +76,9 @@ instance monadStateMockApp :: Monad m => MonadState State (MockApp m) where
 instance monadAppMockApp :: Monad m => MonadApp (MockApp m) where
   activateContract _ = pure unit
   invokeEndpoint _ _ _ = pure Loading
-  getContractSignature _ = pure Loading
   getFullReport = pure Loading
+  getContractSignature _ = pure Loading
+  sendWebSocketMessage _ = pure unit
   log msg =
     wrap
       $ appendModifying
@@ -102,7 +107,7 @@ evalTests =
     test "ChangeView" do
       quickCheck \aView -> do
         let
-          result = execMockApp mockWorld [ ChangeView aView ]
+          result = execMockApp mockWorld [ Right $ ChangeView aView ]
         case result of
           Right (Tuple _ finalState) -> (aView == view _currentView finalState) <?> "Unexpected final view."
           Left err -> false <?> show err

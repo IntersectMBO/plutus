@@ -1,20 +1,25 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StrictData         #-}
 
 module Plutus.SCB.Webserver.Types where
 
-import           Data.Aeson             (FromJSON, ToJSON)
-import           Data.Map               (Map)
-import           GHC.Generics           (Generic)
-import           Ledger                 (PubKeyHash, Tx, TxId)
-import           Ledger.Index           (UtxoIndex)
-import           Playground.Types       (FunctionSchema)
-import           Plutus.SCB.Events      (ChainEvent, ContractInstanceState)
-import           Schema                 (FormSchema)
-import           Wallet.Emulator.Wallet (Wallet)
-import           Wallet.Rollup.Types    (AnnotatedTx)
+import           Data.Aeson                (FromJSON, ToJSON)
+import           Data.Map                  (Map)
+import           Data.Text                 (Text)
+import           Data.Text.Prettyprint.Doc (Pretty, pretty, viaShow, (<+>))
+import           Data.UUID                 (UUID)
+import           GHC.Generics              (Generic)
+import           Ledger                    (PubKeyHash, Tx, TxId)
+import           Ledger.Index              (UtxoIndex)
+import           Playground.Types          (FunctionSchema)
+import           Plutus.SCB.Events         (ChainEvent, ContractInstanceState)
+import           Plutus.SCB.Types          (ContractExe)
+import           Schema                    (FormSchema)
+import           Wallet.Emulator.Wallet    (Wallet)
+import           Wallet.Rollup.Types       (AnnotatedTx)
 
 data ContractReport t =
     ContractReport
@@ -50,3 +55,26 @@ data ContractSignatureResponse t =
         }
     deriving (Show, Eq, Generic)
     deriving anyclass (FromJSON, ToJSON)
+
+data StreamToServer =
+    Ping
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+data StreamToClient
+    = NewChainReport (ChainReport ContractExe)
+    | NewContractReport (ContractReport ContractExe)
+    | NewChainEvents [ChainEvent ContractExe]
+    | ErrorResponse Text
+    deriving (Show, Eq, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+data WebSocketLogMsg
+    = CreatedConnection UUID
+    | ClosedConnection UUID
+
+instance Pretty WebSocketLogMsg where
+    pretty (CreatedConnection uuid) =
+        "Created WebSocket conection:" <+> viaShow uuid
+    pretty (ClosedConnection uuid) =
+        "Closed WebSocket conection:" <+> viaShow uuid

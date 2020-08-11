@@ -30,11 +30,10 @@ import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import FileEvents (readFileFromDragEvent)
 import FileEvents as FileEvents
-import Foreign.Generic (encode, encodeJSON)
+import Foreign.Generic (encodeJSON)
 import Gist (Gist, _GistId, gistFileContent, gistId)
 import Gists (GistAction(..), idPublishGist)
 import Gists as Gists
-import Global.Unsafe (unsafeStringify)
 import Halogen (HalogenM, query)
 import Halogen as H
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, minusBtn, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
@@ -245,9 +244,7 @@ handleAction _ AnalyseContract = do
       assign _analysisState (WarningAnalysis Loading)
   where
   checkContractForWarnings contract state = do
-    let
-      msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON false) contract state
-    H.raise (WebsocketMessage msgString)
+    H.raise $ WebSocketMessage $ CheckForWarnings (encodeJSON false) contract state
 
 handleAction _ AnalyseReachabilityContract = do
   currContract <- use _currentContract

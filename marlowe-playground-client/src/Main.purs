@@ -1,7 +1,7 @@
 module Main where
 
 import Prelude
-import Control.Coroutine (Consumer, Process, connect, consumer, runProcess, ($$))
+import Control.Coroutine (Consumer, Process, connect, consumer, runProcess)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff, forkAff, launchAff_)
@@ -19,12 +19,10 @@ import Router as Router
 import Routing.Duplex as Routing
 import Routing.Hash (matchesWith)
 import Servant.PureScript.Settings (SPSettingsDecodeJson_(..), SPSettingsEncodeJson_(..), SPSettings_(..), defaultSettings)
+import WebSocket (WebSocketRequestMessage, WebSocketResponseMessage)
 import Types (HQuery(..))
-import Web.HTML as W
-import Web.HTML.Location as WL
-import Web.HTML.Window as WW
-import Web.Socket.WebSocket as WS
-import Websockets (wsConsumer, wsProducer, wsSender)
+import WebSocket.Support (WebSocketManager)
+import WebSocket.Support as WS
 
 ajaxSettings :: SPSettings_ SPParams_
 ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = encodeJson })
@@ -40,25 +38,18 @@ ajaxSettings = SPSettings_ $ (settings { decodeJson = decodeJson, encodeJson = e
 main ::
   Effect Unit
 main = do
-  window <- W.window
-  location <- WW.location window
-  protocol <- WL.protocol location
-  hostname <- WL.hostname location
-  port <- WL.port location
-  let
-    wsProtocol = case protocol of
-      "https:" -> "wss"
-      _ -> "ws"
-
-    wsPath = wsProtocol <> "://" <> hostname <> ":" <> port <> "/api/ws"
-  socket <- WS.create wsPath []
   let
     mainFrame = mkMainFrame ajaxSettings
   runHalogenAff do
     body <- awaitBody
     driver <- runUI mainFrame unit body
-    driver.subscribe $ wsSender socket driver.query
-    void $ forkAff $ runProcess (wsProducer socket $$ wsConsumer driver.query)
+    wsManager :: WebSocketManager WebSocketResponseMessage WebSocketRequestMessage <- WS.mkWebSocketManager
+    void
+      $ forkAff
+      $ WS.runWebSocketManager
+          (WS.URI "/api/ws")
+          (\msg -> void $ driver.query $ ReceiveWebSocketMessage msg unit)
+          wsManager
     void $ liftEffect
       $ matchesWith (Routing.parse Router.route) \old new -> do
           when (old /= Just new) $ launchAff_ $ driver.query (ChangeRoute new unit)
