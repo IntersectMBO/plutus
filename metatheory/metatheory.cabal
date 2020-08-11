@@ -1031,7 +1031,4 @@ test-suite test3-plc-agda
     memory -any,
     optparse-applicative -any,
     transformers -any,
-  hs-source-dirs: ../language-plutus-core/test, .
-  other-modules:
-    Language.PlutusCore.Gen.Common
-    Language.PlutusCore.Gen.Type
+--  hs-source-dirs: ../language-plutus-core/test, .

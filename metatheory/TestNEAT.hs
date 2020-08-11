@@ -4,13 +4,13 @@ import           Control.Monad.Except
 import           Data.Coolean
 import           Data.Either
 import           Language.PlutusCore
+import           Language.PlutusCore.Generators.NEAT.PropTest
 import           Language.PlutusCore.Normalize
-import           Language.PlutusCore.PropTest
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main             (checkKindAgda, normalizeTypeAgda)
-import           MAlonzo.Code.Scoped           (deBruijnifyK)
+import           MAlonzo.Code.Main                            (checkKindAgda, normalizeTypeAgda)
+import           MAlonzo.Code.Scoped                          (deBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
 import           Raw

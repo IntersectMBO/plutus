@@ -22,9 +22,9 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.Generators.NEAT.PropTest
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.PropTest
 
 import           Codec.Serialise
 import           Control.Monad.Except

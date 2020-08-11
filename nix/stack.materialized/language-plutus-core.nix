@@ -63,6 +63,7 @@
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+          (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
@@ -81,6 +82,7 @@
           (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
           (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
@@ -202,6 +204,9 @@
           "Language/PlutusCore/Generators/AST"
           "Language/PlutusCore/Generators/Interesting"
           "Language/PlutusCore/Generators/Test"
+          "Language/PlutusCore/Generators/NEAT/Common"
+          "Language/PlutusCore/Generators/NEAT/Type"
+          "Language/PlutusCore/Generators/NEAT/PropTest"
           "Language/PlutusCore/Lexer"
           "Language/PlutusCore/Parser"
           "Language/PlutusIR"
@@ -307,9 +312,6 @@
             "Pretty/Readable"
             "Check/Spec"
             "TypeSynthesis/Spec"
-            "Language/PlutusCore/Gen/Common"
-            "Language/PlutusCore/Gen/Type"
-            "Language/PlutusCore/PropTest"
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

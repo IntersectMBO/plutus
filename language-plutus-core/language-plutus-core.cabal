@@ -94,6 +94,9 @@ library
         Language.PlutusCore.Generators.AST
         Language.PlutusCore.Generators.Interesting
         Language.PlutusCore.Generators.Test
+        Language.PlutusCore.Generators.NEAT.Common
+        Language.PlutusCore.Generators.NEAT.Type
+        Language.PlutusCore.Generators.NEAT.PropTest
         Language.PlutusCore.Lexer
         Language.PlutusCore.Parser
 
@@ -204,6 +207,7 @@ library
         hedgehog >=1.0,
         integer-gmp -any,
         ghc-prim -any,
+        lazy-search -any,
         lens -any,
         megaparsec -any,
         memory -any,
@@ -222,6 +226,7 @@ library
         size-based -any,
         tasty -any,
         tasty-golden -any,
+        tasty-hunit -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
@@ -265,9 +270,9 @@ test-suite language-plutus-core-test
         Pretty.Readable
         Check.Spec
         TypeSynthesis.Spec
-        Language.PlutusCore.Gen.Common
-        Language.PlutusCore.Gen.Type
-        Language.PlutusCore.PropTest
+--        Language.PlutusCore.Gen.Common
+--        Language.PlutusCore.Gen.Type
+--        Language.PlutusCore.PropTest
     default-language: Haskell2010
     build-depends:
         base -any,

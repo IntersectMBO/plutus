@@ -578,11 +578,6 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
-          modules = [
-            "Language/PlutusCore/Gen/Common"
-            "Language/PlutusCore/Gen/Type"
-            ];
-          hsSourceDirs = [ "../language-plutus-core/test" "." ];
           mainPath = [ "TestNEAT.hs" ];
           };
         };
