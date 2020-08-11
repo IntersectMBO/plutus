@@ -23,8 +23,8 @@ import           Control.Monad.Except
 -- | Type check and evaluate a term that can contain dynamic built-ins.
 typecheckAnd
     :: (MonadError (Error uni ()) m, GShow uni, GEq uni, DefaultUni <: uni)
-    => (DynamicBuiltinNameMeanings (CekVal uni) -> CostModel -> Term TyName Name uni () -> a)
-    -> DynamicBuiltinNameMeanings (CekVal uni) -> Term TyName Name uni () -> m a
+    => (DynamicBuiltinNameMeanings (CekValue uni) -> CostModel -> Term TyName Name uni () -> a)
+    -> DynamicBuiltinNameMeanings (CekValue uni) -> Term TyName Name uni () -> m a
 typecheckAnd action meanings term = runQuoteT $ do
     types <- dynamicBuiltinNameMeaningsToTypes () meanings
     _ <- inferType (TypeCheckConfig types) term
@@ -38,7 +38,7 @@ typecheckEvaluateCek
        , Closed uni, uni `Everywhere` ExMemoryUsage
        , uni `Everywhere` PrettyConst, Typeable uni
        )
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> Term TyName Name uni ()
     -> m (EvaluationResult (Term TyName Name uni ()))
 typecheckEvaluateCek = typecheckAnd unsafeEvaluateCek
@@ -48,7 +48,7 @@ typecheckReadKnownCek
     :: ( MonadError (Error uni ()) m, KnownType (Term TyName Name uni ()) a
        , GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        )
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> Term TyName Name uni ()
     -> m (Either (CekEvaluationException uni) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

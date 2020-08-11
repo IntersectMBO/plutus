@@ -73,6 +73,14 @@ data MachineError err term
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError (ConstAppError term)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+    | UnexpectedBuiltinInstantiationMachineError
+      -- ^ A builtin was instantiated when a term argument was expected
+    | UnexpectedBuiltinTermArgumentMachineError
+      -- ^ A term argument to a builtin was encountered when an instantiation was expected
+    | EmptyBuiltinArityMachineError
+      -- ^ We've reached a state where a builtin instantiation or application is attempted
+      -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
+      -- See the machine implementations for details.
     | OtherMachineError err
     deriving (Show, Eq, Functor)
 
@@ -154,6 +162,12 @@ instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
         "Attempted to apply a non-function."
     prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
+    prettyBy _      UnexpectedBuiltinInstantiationMachineError =
+        "A builtin was instantiated when a term argument was expected "
+    prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
+        "A buitlin received a term argument when an instantiation was expected"
+    prettyBy _      EmptyBuiltinArityMachineError =
+        "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy config (ConstAppMachineError constAppError)  =
         prettyBy config constAppError
     prettyBy _      (OtherMachineError err)               =

@@ -20,7 +20,7 @@ import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.StdLib.Data.Bool
 import qualified Language.PlutusCore.StdLib.Data.List               as Plc
 import qualified Language.PlutusCore.StdLib.Data.Function           as Plc
-import           Language.PlutusCore.Evaluation.Machine.Cek         (CekVal)
+import           Language.PlutusCore.Evaluation.Machine.Cek         (CekValue)
 
 import           Evaluation.DynamicBuiltins.Common
 
@@ -146,7 +146,7 @@ dynamicIdFIntegerName = DynamicBuiltinName "idFInteger"
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdFIntegerMeaning @DefaultUni
 -- (all (f :: * -> *). f integer -> f integer)
 dynamicIdFIntegerMeaning
-    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (CekVal uni)
+    :: uni `Includes` Integer => DynamicBuiltinNameMeaning (CekValue uni)
 dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
@@ -154,7 +154,7 @@ dynamicIdFIntegerMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBud
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
 dynamicIdFIntegerDefinition
-    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (CekVal uni)
+    :: uni `Includes` Integer => DynamicBuiltinNameDefinition (CekValue uni)
 dynamicIdFIntegerDefinition =
     DynamicBuiltinNameDefinition dynamicIdFIntegerName dynamicIdFIntegerMeaning
 
@@ -188,14 +188,14 @@ dynamicIdListName = DynamicBuiltinName "idList"
 -- >>> import Language.PlutusCore.Pretty
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdListMeaning @DefaultUni
 -- (all (a :: *). (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a -> (\(a :: *) -> ifix (\(list :: * -> *) -> \(a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r) a) a)
-dynamicIdListMeaning :: DynamicBuiltinNameMeaning (CekVal uni)
+dynamicIdListMeaning :: DynamicBuiltinNameMeaning (CekValue uni)
 dynamicIdListMeaning = DynamicBuiltinNameMeaning sch Prelude.id (\_ -> ExBudget 1 1) where
     sch =
         TypeSchemeAll @"a" @0 Proxy (Type ()) $ \(_ :: Proxy a) ->
             let ty = Proxy @(Opaque _ (ListRep a))
             in ty `TypeSchemeArrow` TypeSchemeResult ty
 
-dynamicIdListDefinition :: DynamicBuiltinNameDefinition (CekVal uni)
+dynamicIdListDefinition :: DynamicBuiltinNameDefinition (CekValue uni)
 dynamicIdListDefinition =
     DynamicBuiltinNameDefinition dynamicIdListName dynamicIdListMeaning
 

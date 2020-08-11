@@ -23,7 +23,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.Cek
-    ( CekVal(..)
+    ( CekValue(..)
     , CekEvaluationException
     , EvaluationResult(..)
     , ErrorWithCause(..)
@@ -51,7 +51,6 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.MkPlc                          hiding (error)
 import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Subst
@@ -71,69 +70,116 @@ import           Data.Array
 
 {- Note [Scoping]
    The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
-prerequisite. The CEK machine correctly handles name shadowing.
+   prerequisite. The CEK machine correctly handles name shadowing.
 -}
 
 type TermWithMem uni = WithMemory Term uni
 type TypeWithMem uni = Type TyName uni ExMemory
 type KindWithMem = Kind ExMemory
 
+{- [Note: Arities in VBuiltin]
+   The VBuiltin value below contains two copies of the arity (list of
+   TypeArg/TermArg pairs) for the relevant builtin.  The second of these
+   is consumed as the builtin is instantiated and applied to arguments, to
+   check that type and term arguments are interleaved correctly.  The first
+   copy of the arity is left unaltered and only used by dischargeCekValue if
+   we have to convert the frame back into a term (see mkBuiltinApplication).
+   An alternative would be to look up the full arity in mkBuiltinApplication,
+   but that makes a lot of things monadic (including the PrettyBy instance for
+   CekValue, which is a problem.)
+-}
+
 -- 'Values' for the modified CEK machine.
-data CekVal uni =
+data CekValue uni =
     -- TODO: we probably want to store a @Some (ValueOf uni)@ here, but then we have trouble in
     -- 'readKnownCek'. I'll reconsider the way we deal with annotations once again.
     VCon (TermWithMem uni)
   | VTyAbs ExMemory TyName KindWithMem (TermWithMem uni) (CekValEnv uni)
   | VLamAbs ExMemory Name (TypeWithMem uni) (TermWithMem uni) (CekValEnv uni)
-  | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (CekVal uni)
-  | VBuiltin
+  | VIWrap ExMemory (TypeWithMem uni) (TypeWithMem uni) (CekValue uni)
+  | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
       ExMemory
-      (CekValEnv uni)   -- Initial environment, used for evaluating every argument
       BuiltinName
-      Arity             -- Sorts of arguments to be provided (both types and terms)
+      Arity             -- Sorts of arguments to be provided (both types and terms): *don't change this*.
+      Arity             -- A copy of the arity used for checking applications/instantiatons: see [Note: Arities in VBuiltin]
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.
                         -- We need these to construct a term if the machine is returning a stuck partial application.
-      [CekVal uni]      -- Arguments we've computed so far.
+      [CekValue uni]    -- Arguments we've computed so far.
+      (CekValEnv uni)   -- Initial environment, used for evaluating every argument
     deriving (Show, Eq) -- Eq is just for tests.
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CekVal uni) where
-    prettyBy cfg = prettyBy cfg . dischargeCekVal
+type CekValEnv uni = UniqueMap TermUnique (CekValue uni)
 
-type instance UniOf (CekVal uni) = uni
+-- | The environment the CEK machine runs in.
+data CekEnv uni = CekEnv
+    { cekEnvMeans              :: DynamicBuiltinNameMeanings (CekValue uni)
+    , _cekEnvVarEnv            :: CekValEnv uni
+    , _cekEnvBudgetMode        :: ExBudgetMode
+    , _cekEnvBuiltinCostParams :: CostModel
+    }
 
-instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekVal uni) where
-    fromConstant = VCon . fromConstant
+data CekUserError
+    = CekOutOfExError ExRestrictingBudget ExBudget
+    | CekEvaluationFailure -- ^ Error has been called.
+    deriving (Show, Eq)
 
-instance AsConstant (CekVal uni) where
-    asConstant (VCon term) = asConstant term
-    asConstant _           = Nothing
+-- | The CEK machine-specific 'EvaluationException'.
+type CekEvaluationException uni =
+    EvaluationException UnknownDynamicBuiltinNameError CekUserError (CekValue uni)
 
-instance ToExMemory (CekVal uni) where
-    toExMemory = \case
-        VCon t -> termAnn t
-        VTyAbs ex _ _ _ _ -> ex
-        VLamAbs ex _ _ _ _ -> ex
-        VIWrap ex _ _ _ -> ex
-        VBuiltin ex _ _ _ _ _ -> ex
+instance Pretty CekUserError where
+    pretty (CekOutOfExError (ExRestrictingBudget res) b) =
+        group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
+    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
 
-type CekValEnv uni = UniqueMap TermUnique (CekVal uni)
+-- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
+-- get it back in case of error.
+type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
 
-mkBuiltinApp :: ExMemory -> BuiltinName -> [TypeWithMem uni] -> [TermWithMem uni] -> CekM uni (TermWithMem uni)
-mkBuiltinApp ex bn tys0 args0 = do
-  arity0 <- arityOf bn
+{- | [Note: errors] Most errors take an optional argument that can be
+   used to report the term causing the error. Our builtin applications
+   take CekValues as arguments, and this constrains the `term` type in
+   the constant application machinery to be equal to `CekValue`.  This
+   (I think) means that our errors can only involve CekValues and not
+   Terms, so in some cases we can't provide any context when an
+   error occurs (eg, if we try to look up a free variable in an
+   environment: there's no CekValue for Var, so we can't report
+   which variable caused the error.
+-}
+
+
+makeLenses ''CekEnv
+
+{- | Given a possibly partially applied/instantiated builtin,
+   reconstruct the original application from the type and term
+   arguments we've got so far, using the supplied arity.  This also
+   attempts to handle the case of bad interleavings for use in error
+   messages.  The caller has to add the extra type or term argument
+   that caused the error, then mkBuiltinApp works its way along the
+   arity reconstructing the term.  When it can't find an argument of
+   the appropriate kind it looks for one of the other kind (which
+   should be the one supplied by the user): if it finds one it adds an
+   extra application or instantiation as appropriate to what it's
+   constructed so far and returns the result.  If there are no
+   arguments of either kind left it just returns what it has at that
+   point.  The only circumstances where this is currently called is if
+   (a) the machine is returning a partially applied builtin, (b) a
+   wrongly interleaved builtin application is being reported in an
+   error, and (c) a builtin application fails. In case (c) we're
+   not reporting the entire term: see `applyBuiltinName` below.
+-}
+
+mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
+mkBuiltinApplication ex bn arity0 tys0 args0 =
   go arity0 tys0 args0 (Builtin ex bn)
-    where
-          go arity tys args term =
-                  case arity of
-                    [] -> term
-                    TermArg : arity' ->
-                        case args of
-                          arg : args' -> go arity' tys args' (Apply ex term $ dischargeCekVal arg)
-                          []          -> error "?2"
-                    TypeArg : arity' ->
-                        case tys of
-                          ty : tys' -> go arity' tys' args (TyInst ex term ty)
-                          []        -> error "?1"
+    where go arity tys args term =
+              case (arity, args, tys) of
+                ([], [], [])                        -> term   -- We've got to the end and successfully constructed the entire application
+                (TermArg:arity', arg:args', _)      -> go arity' tys args' (Apply ex term arg)  -- got an expected term arg
+                (TermArg:_,      [],       ty:_)    -> TyInst ex term ty                        -- term arg expected, type arg found
+                (TypeArg:arity', _,        ty:tys') -> go arity' tys' args (TyInst ex term ty)  -- got an expected type arg
+                (TypeArg:_,      arg:_,    [])      -> Apply ex term arg                        -- type arg expected, term arg found
+                _                                   -> term                                     -- something else, including partial application
 
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
@@ -145,63 +191,42 @@ dischargeCekValEnv valEnv =
     -- substitution function any more and so we will terminate.
     termSubstFreeNames $ \name -> do
         val <- lookupName name valEnv
-        Just $ dischargeCekVal val
+        Just $ dischargeCekValue val
 
--- Convert a CekVal into a term by replacing all bound variables with the terms
+-- Convert a CekValue into a term by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekVal :: CekVal uni -> TermWithMem uni
-dischargeCekVal = \case
-    VCon t                        -> t
-    VTyAbs   ex tn k body env     -> TyAbs ex tn k (dischargeCekValEnv env body)
-    VLamAbs  ex name ty body env  -> LamAbs ex name ty (dischargeCekValEnv env body)
-    VIWrap   ex ty1 ty2 val       -> IWrap ex ty1 ty2 $ dischargeCekVal val
-    VBuiltin ex _ bn _ types args -> mkBuiltinApp ex bn (reverse types) (fmap dischargeCekVal $ reverse args)
-    {- We only discharge a value when (a) it's being returned by the machine, or
-       (b) it's needed for an error message.  VBuiltin should only be discharged
-       when the builtin is partially applied, and in that case we need to get
-       the type and term arguments into the right order (they're accumulated in
-       reverse).  In the fully-applied case, type arguments are ignored and term
-       arguments are reversed in applyEvaluate. -}
+dischargeCekValue :: CekValue uni -> TermWithMem uni
+dischargeCekValue = \case
+    VCon t                                 -> t
+    VTyAbs   ex tn k body env              -> TyAbs ex tn k (dischargeCekValEnv env body)
+    VLamAbs  ex name ty body env           -> LamAbs ex name ty (dischargeCekValEnv env body)
+    VIWrap   ex ty1 ty2 val                -> IWrap ex ty1 ty2 $ dischargeCekValue val
+    VBuiltin ex bn arity0 _ tyargs args  _ -> mkBuiltinApplication ex bn arity0 tyargs (fmap dischargeCekValue args)
+    {- We only discharge a value when (a) it's being returned by the machine,
+       or (b) it's needed for an error message.  When we're discharging VBuiltin
+       we use arity0 to get the type and term arguments into the right sequence. -}
 
-data CekUserError
-    = CekOutOfExError ExRestrictingBudget ExBudget
-    | CekEvaluationFailure -- ^ Error has been called.
-    deriving (Show, Eq)
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CekValue uni) where
+    prettyBy cfg = prettyBy cfg . dischargeCekValue
 
--- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni =
-    EvaluationException UnknownDynamicBuiltinNameError CekUserError (CekVal uni)
+type instance UniOf (CekValue uni) = uni
 
-instance Pretty CekUserError where
-    pretty (CekOutOfExError (ExRestrictingBudget res) b) =
-        group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
-    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => FromConstant (CekValue uni) where
+    fromConstant = VCon . fromConstant
 
--- | The environment the CEK machine runs in.
-data CekEnv uni = CekEnv
-    { cekEnvMeans              :: DynamicBuiltinNameMeanings (CekVal uni)
-    , _cekEnvVarEnv            :: CekValEnv uni
-    , _cekEnvBudgetMode        :: ExBudgetMode
-    , _cekEnvBuiltinCostParams :: CostModel
-    }
+instance AsConstant (CekValue uni) where
+    asConstant (VCon term) = asConstant term
+    asConstant _           = Nothing
 
+instance ToExMemory (CekValue uni) where
+    toExMemory = \case
+        VCon t -> termAnn t
+        VTyAbs ex _ _ _ _ -> ex
+        VLamAbs ex _ _ _ _ -> ex
+        VIWrap ex _ _ _ -> ex
+        VBuiltin ex _ _ _ _ _ _ -> ex
 
--- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
--- get it back in case of error.
-type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
-
-makeLenses ''CekEnv
-
-arityOf :: BuiltinName -> CekM uni Arity
-arityOf (StaticBuiltinName name) =
-    pure $ builtinNameArities ! name
-arityOf (DynBuiltinName name) = do
-    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
-    pure $ getArity sch
--- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
-
-
-instance SpendBudget (CekM uni) (CekVal uni) where
+instance SpendBudget (CekM uni) (CekValue uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -217,8 +242,17 @@ instance SpendBudget (CekM uni) (CekVal uni) where
                         Nothing  -- No value available for error
 
 
+arityOf :: BuiltinName -> CekM uni Arity
+arityOf (StaticBuiltinName name) =
+    pure $ builtinNameArities ! name
+arityOf (DynBuiltinName name) = do
+    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
+    pure $ getArity sch
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
+
+
 data Frame uni
-    = FrameApplyFun (CekVal uni)                               -- ^ @[V _]@
+    = FrameApplyFun (CekValue uni)                               -- ^ @[V _]@
     | FrameApplyArg (CekValEnv uni) (TermWithMem uni)          -- ^ @[_ N]@
     | FrameTyInstArg (TypeWithMem uni)                         -- ^ @{_ A}@
     | FrameUnwrap                                              -- ^ @(unwrap _)@
@@ -245,12 +279,12 @@ withEnv venv = local (set cekEnvVarEnv venv)
 
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
-extendEnv :: Name -> CekVal uni -> CekValEnv uni -> CekValEnv uni
+extendEnv :: Name -> CekValue uni -> CekValEnv uni -> CekValEnv uni
 extendEnv argName arg  =
     insertByName argName arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekM uni (CekVal uni)
+lookupVarName :: Name -> CekM uni (CekValue uni)
 lookupVarName varName = do
     varEnv <- getEnv
     case lookupName varName varEnv of
@@ -260,7 +294,7 @@ lookupVarName varName = do
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName
-    :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning (CekVal uni))
+    :: DynamicBuiltinName -> CekM uni (DynamicBuiltinNameMeaning (CekValue uni))
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks cekEnvMeans
     case Map.lookup dynName means of
@@ -339,7 +373,7 @@ computeCek ctx c@Constant{} = returnCek ctx (VCon c)
 computeCek ctx (Builtin ex bn)        = do
   env <- getEnv
   arity <- arityOf bn
-  returnCek ctx (VBuiltin ex env bn arity [] [])
+  returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _  Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- No value available for error
@@ -359,10 +393,10 @@ computeCek ctx (Var _ varName)   = do
 
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> CekVal uni -> CekM uni (Plain Term uni)
+    => Context uni -> CekValue uni -> CekM uni (Plain Term uni)
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
-returnCek [] val = pure $ void $ dischargeCekVal val
+returnCek [] val = pure $ void $ dischargeCekValue val
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
 returnCek (FrameTyInstArg ty : ctx) fun = instantiateEvaluate ctx ty fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
@@ -388,14 +422,20 @@ returnCek (FrameUnwrap : ctx) val =
 -- and proceed; otherwise, it's an error.
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> Type TyName uni ExMemory -> CekVal uni -> CekM uni (Plain Term uni)
+    => Context uni -> Type TyName uni ExMemory -> CekValue uni -> CekM uni (Plain Term uni)
 instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body
-instantiateEvaluate ctx ty (VBuiltin ex argEnv bn arity tyargs args) =
+instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
-      []             -> error "Impossible!"
-      TermArg:_      -> error "Unexpected instantiation"
-      TypeArg:arity' -> returnCek ctx $ VBuiltin ex argEnv bn arity' (ty:tyargs) args
-      -- FIXME: whatif the final argument is a type?
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                     -- This should be impossbile if we never have zero-arity builtins.
+                     -- We should have found this case in an earlier call to instantiateEvaluate
+                     -- or applyEvaluate and called doApplication
+      TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
+                        where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
+      TypeArg:arity' ->
+          case arity' of
+            [] -> applyBuiltinName ctx bn args val  -- Final argument is a type argument
+            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
@@ -409,43 +449,56 @@ instantiateEvaluate _ _ val =
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni
-    -> CekVal uni   -- lsh of application
-    -> CekVal uni   -- rhs of application
+    -> CekValue uni   -- lsh of application
+    -> CekValue uni   -- rhs of application
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx val@(VBuiltin ex argEnv bn arity tyargs args) arg = withEnv argEnv $ do
+applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg = withEnv argEnv $ do
     case arity of
-      []        -> error "Impossible!"
-      TypeArg:_ -> error "Unexpected term argument"
+      []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                -- Should be impossible: see instantiateEvaluate.
+      TypeArg:_ -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
+                   where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv -- reconstruct the bad application
       TermArg:arity' -> do
-          let args' = arg:args
+          let args' = args ++ [arg]
           case arity' of
-            [] -> do  -- We've got all the arguments
-                 res <- applyBuiltinName bn (reverse args')
-                 case res of
-                   EvaluationSuccess t -> returnCek ctx t
-                   EvaluationFailure ->
-                       throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
-            _ -> returnCek ctx $ VBuiltin ex argEnv bn arity' tyargs args'
+            [] -> applyBuiltinName ctx bn args' val  -- 'arg' was the final argument
+            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs args' argEnv  -- More arguments expected
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
--- | Apply a 'BuiltinName' to a list of 'Value's.
+-- | Apply a builtin to a list of CekValue arguments
 applyBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => BuiltinName
-    -> [CekVal uni]
-    -> CekM uni (EvaluationResult (CekVal uni))
-applyBuiltinName n@(DynBuiltinName name) args = do
-    DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-    applyTypeSchemed n sch x exX args
-applyBuiltinName (StaticBuiltinName name) args =
-    applyStaticBuiltinName name args
+    => Context uni
+    -> BuiltinName
+    -> [CekValue uni]
+    -> CekValue uni  -- entire application term for error message
+    -> CekM uni (Plain Term uni)
+applyBuiltinName ctx bn args val = do
+  result <- case bn of
+           n@(DynBuiltinName name) -> do
+               DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
+               applyTypeSchemed n sch x exX args
+           StaticBuiltinName name ->
+               applyStaticBuiltinName name args
+  case result of
+    EvaluationSuccess t -> returnCek ctx t
+    EvaluationFailure ->
+        throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
+        {- FIXME: if something goes wrong we won't report the whole term causing the problem
+           because we've only got the frame up to the penultimate argument (unless the
+           final argument is a type).  It seems wasteful to construct the whole term
+           just in case something goes wrong, when that usually won't happen.  If we didn't
+           have to account for the possibility of an instantiation triggering evaluation then
+           we could pass the final argument to this function and use it to construct the full
+           problematic term, but only when something actually goes wrong. The extra argument
+           might also cost us something. -}
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> ExBudgetMode
     -> CostModel
     -> Plain Term uni
@@ -462,7 +515,7 @@ runCek means mode params term =
 -- | Evaluate a term using the CEK machine in the 'Counting' mode.
 runCekCounting
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
@@ -471,7 +524,7 @@ runCekCounting means = runCek means Counting
 -- | Evaluate a term using the CEK machine.
 evaluateCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) (Plain Term uni)
@@ -485,7 +538,7 @@ unsafeEvaluateCek
        , uni `Everywhere` PrettyConst
        , Typeable uni
        )
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
     -> EvaluationResult (Plain Term uni)
@@ -496,7 +549,7 @@ readKnownCek
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage
        , KnownType (Plain Term uni) a
        )
-    => DynamicBuiltinNameMeanings (CekVal uni)
+    => DynamicBuiltinNameMeanings (CekValue uni)
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
