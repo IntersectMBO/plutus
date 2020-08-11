@@ -245,7 +245,7 @@ toDefinition (ActusContractType PaymentAtMaturity) =
   BlockDefinition
     $ merge
         { type: show PaymentAtMaturity
-        , message0: "Payment At Maturity %1" <> 
+        , message0: "Principal At Maturity %1" <> 
             "start date * %2" <> 
             "maturity date * %3" <>
             "notional * %4" <>

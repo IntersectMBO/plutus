@@ -145,6 +145,7 @@ render state =
         [ toCodeButton "Generate reactive contract"
         , text "  "
         , toStaticCodeButton "Generate static contract"
+        , text "  (Labs is an experimental feature)"
         , errorMessage state.errorMessage
         ]
     ]
