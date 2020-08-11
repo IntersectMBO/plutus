@@ -166,12 +166,7 @@
   padding: 0 0.1rem;
 }
 
-.transaction-composer .participants {
-  display: flex;
-  flex-flow: wrap;
-}
-
-.input-composer ul li ul {
+.transaction-composer ul li ul {
   display: flex;
 }
 

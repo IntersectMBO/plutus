@@ -2,9 +2,10 @@ module Marlowe.Semantics where
 
 import Prelude
 import Control.Monad.Except (mapExcept, runExcept)
+import Data.Array (catMaybes)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
 import Data.Either (Either(..))
-import Data.Foldable (class Foldable, any, foldl)
+import Data.Foldable (class Foldable, any, foldl, minimum)
 import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -1188,14 +1189,15 @@ computeTransaction tx state contract =
 extractRequiredActionsWithTxs :: TransactionInput -> State -> Contract -> Tuple State (Array Action)
 extractRequiredActionsWithTxs txInput state contract = case computeTransaction txInput state contract of
   TransactionOutput { txOutContract, txOutState } -> Tuple txOutState (extractRequiredActions txOutContract)
+  -- in error cases or where the contract is not reduced, the actions remain unchanged
   _ ->
     if not (emptyInput txInput) then
-      Tuple state []
+      Tuple state (extractRequiredActions contract)
     else case fixInterval (unwrap txInput).interval state of
       IntervalTrimmed env fixState -> case reduceContractUntilQuiescent env fixState contract of
         (ContractQuiescent _ _ _ reducedContract) -> Tuple fixState (extractRequiredActions reducedContract)
-        _ -> Tuple state []
-      _ -> Tuple state []
+        _ -> Tuple state (extractRequiredActions contract)
+      _ -> Tuple state (extractRequiredActions contract)
   where
   emptyInput (TransactionInput { inputs }) = null inputs
 
@@ -1210,25 +1212,40 @@ moneyInContract state =
     (\(Tuple _ (Token cur tok)) balance -> asset cur tok balance)
     (unwrap state).accounts
 
-class HasMaxTime a where
-  maxTime :: a -> Timeout
+class HasTimeout a where
+  timeouts :: a -> { maxTime :: Timeout, minTime :: Maybe Timeout }
 
-instance hasMaxTimeContract :: HasMaxTime Contract where
-  maxTime Close = zero
-  maxTime (Pay _ _ _ _ contract) = maxTime contract
-  maxTime (If _ contractTrue contractFalse) = maxOf [ maxTime contractTrue, maxTime contractFalse ]
-  maxTime (When cases timeout contract) = maxOf [ maxTime cases, timeout, maxTime contract ]
-  maxTime (Let _ _ contract) = maxTime contract
-  maxTime (Assert _ contract) = maxTime contract
+instance hasTimeoutContract :: HasTimeout Contract where
+  timeouts Close = { maxTime: zero, minTime: Nothing }
+  timeouts (Pay _ _ _ _ contract) = timeouts contract
+  timeouts (If _ contractTrue contractFalse) =
+    let
+      ts = [ timeouts contractTrue, timeouts contractFalse ]
+    in
+      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
+  timeouts (When cases timeout contract) =
+    let
+      ts = [ timeouts cases, { maxTime: timeout, minTime: Just timeout }, timeouts contract ]
+    in
+      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
+  timeouts (Let _ _ contract) = timeouts contract
+  timeouts (Assert _ contract) = timeouts contract
 
-instance hasMaxTimeCase :: HasMaxTime Case where
-  maxTime (Case _ contract) = maxTime contract
+instance hasTimeoutCase :: HasTimeout Case where
+  timeouts (Case _ contract) = timeouts contract
 
-instance hasMaxTimeArray :: HasMaxTime a => HasMaxTime (Array a) where
-  maxTime = maxOf <<< map maxTime
+instance hasTimeoutArray :: HasTimeout a => HasTimeout (Array a) where
+  timeouts vs =
+    let
+      ts = map timeouts vs
+    in
+      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
 
 maxOf :: Array Timeout -> Timeout
 maxOf = foldl max zero
+
+minOf :: Array (Maybe Timeout) -> Maybe Timeout
+minOf as = minimum $ catMaybes as
 
 aesonCompatibleOptions :: Options
 aesonCompatibleOptions =
