@@ -77,16 +77,17 @@ type TermWithMem uni = WithMemory Term uni
 type TypeWithMem uni = Type TyName uni ExMemory
 type KindWithMem = Kind ExMemory
 
-{- [Note: Arities in VBuiltin]
-   The VBuiltin value below contains two copies of the arity (list of
-   TypeArg/TermArg pairs) for the relevant builtin.  The second of these
-   is consumed as the builtin is instantiated and applied to arguments, to
-   check that type and term arguments are interleaved correctly.  The first
-   copy of the arity is left unaltered and only used by dischargeCekValue if
-   we have to convert the frame back into a term (see mkBuiltinApplication).
-   An alternative would be to look up the full arity in mkBuiltinApplication,
-   but that makes a lot of things monadic (including the PrettyBy instance for
-   CekValue, which is a problem.)
+{- [Note: Arities in VBuiltin] The VBuiltin value below contains two
+   copies of the arity (list of TypeArg/TermArg pairs) for the
+   relevant builtin.  The second of these is consumed as the builtin
+   is instantiated and applied to arguments, to check that type and
+   term arguments are interleaved correctly.  The first copy of the
+   arity is left unaltered and only used by dischargeCekValue if we
+   have to convert the frame back into a term (see
+   mkBuiltinApplication).  An alternative would be to look up the full
+   arity in mkBuiltinApplication, but that would require a lot of
+   things monadic (including the PrettyBy instance for CekValue, which
+   is a problem.)
 -}
 
 -- 'Values' for the modified CEK machine.
