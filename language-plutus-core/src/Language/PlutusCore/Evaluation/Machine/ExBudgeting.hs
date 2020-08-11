@@ -91,7 +91,6 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
-    , estimateStaticStagedCost
     , exBudgetCPU
     , exBudgetMemory
     , exBudgetStateBudget
@@ -159,7 +158,7 @@ data ExBudgetCategory
     | BIWrap
     | BUnwrap
     | BVar
-    | BBuiltin StagedBuiltinName
+    | BBuiltin BuiltinName
     | BAST
     deriving stock (Show, Eq, Generic)
     deriving anyclass NFData
@@ -199,11 +198,6 @@ instance PrettyDefaultBy config Integer => PrettyBy config ExTally where
     prettyBy config (ExTally m) =
         parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
           ifoldMap (\k v -> [(prettyBy config k <+> "causes" <+> prettyBy config v)]) m) <> ["}"])
-
--- TODO See language-plutus-core/docs/Constant application.md for how to properly implement this
-estimateStaticStagedCost
-    :: BuiltinName -> [WithMemory Value uni] -> (ExCPU, ExMemory)
-estimateStaticStagedCost _ _ = (1, 1)
 
 type CostModel = CostModelBase CostingFun
 

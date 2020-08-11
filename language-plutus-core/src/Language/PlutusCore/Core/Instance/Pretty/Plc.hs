@@ -29,5 +29,5 @@ deriving via PrettyAny (Program tyname name uni ann)
     instance DefaultPrettyPlcStrategy (Program tyname name uni ann) =>
         PrettyBy PrettyConfigPlc (Program tyname name uni ann)
 
+instance PrettyBy PrettyConfigPlc StaticBuiltinName
 instance PrettyBy PrettyConfigPlc BuiltinName
-instance PrettyBy PrettyConfigPlc (Builtin ann)

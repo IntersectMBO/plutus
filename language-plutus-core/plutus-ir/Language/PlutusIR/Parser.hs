@@ -120,7 +120,7 @@ inBraces = between lbrace rbrace
 
 reservedWords :: [T.Text]
 reservedWords =
-    map display PLC.allBuiltinNames ++
+    map display PLC.allStaticBuiltinNames ++
     [ "abs"
     , "lam"
     , "ifix"
@@ -159,9 +159,10 @@ reservedWord w = lexeme $ try $ do
     notFollowedBy (satisfy isIdentifierChar)
     return p
 
-builtinName :: Parser PLC.BuiltinName
-builtinName = lexeme $ choice $ map parseBuiltinName PLC.allBuiltinNames
-    where parseBuiltinName :: PLC.BuiltinName -> Parser PLC.BuiltinName
+-- FIXME: can't parse dynamic names
+staticBuiltinName :: Parser PLC.StaticBuiltinName
+staticBuiltinName = lexeme $ choice $ map parseBuiltinName PLC.allStaticBuiltinNames
+    where parseBuiltinName :: PLC.StaticBuiltinName -> Parser PLC.StaticBuiltinName
           parseBuiltinName builtin = try $ string (display builtin) >> pure builtin
 
 name :: Parser Name
@@ -178,8 +179,8 @@ var = name
 tyVar :: Parser TyName
 tyVar = TyName <$> name
 
-builtinVar :: Parser (PLC.Builtin SourcePos)
-builtinVar = PLC.BuiltinName <$> getSourcePos <*> builtinName
+builtinVar :: Parser PLC.BuiltinName
+builtinVar = PLC.StaticBuiltinName <$> staticBuiltinName
 
 -- This should not accept spaces after the sign, hence the `return ()`
 integer :: Parser Integer

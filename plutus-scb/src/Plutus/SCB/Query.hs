@@ -54,7 +54,7 @@ import           Ledger                                  (Address, Tx, TxId, TxO
                                                           txOutRefId, txOutTxOut, txOutTxTx)
 import           Ledger.Index                            (UtxoIndex (UtxoIndex))
 import           Plutus.SCB.Events                       (ChainEvent (..), NodeEvent (SubmittedTx),
-                                                          UserEvent (ContractStateTransition, InstallContract))
+                                                          UserEvent (InstallContract), hasActiveRequests)
 import           Plutus.SCB.Events.Contract              (ContractEvent (..), ContractInstanceId,
                                                           ContractInstanceState (..), ContractResponse (..),
                                                           IterationID)
@@ -184,16 +184,17 @@ contractStates IteratedContractState{icsContractIterations=ContractIterationStat
 
 -- | IDs of active contracts by contract type
 activeContractsProjection ::
-    forall t key position. Ord t =>
-       Projection (Map t (Set ContractInstanceId)) (StreamEvent key position (ChainEvent t))
+       forall t key position. Ord t
+    => Projection (Map t (Set ContractInstanceId)) (StreamEvent key position (ChainEvent t))
 activeContractsProjection =
-    let projectionEventHandler m (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
-            Map.insertWith (<>) (csContractDefinition state) (Set.singleton (csContract state)) m
-        projectionEventHandler m _ = m
-    in Projection
-        { projectionSeed = Map.empty
-        , projectionEventHandler
-        }
+    let projectionEventHandler m = \case
+            (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent state))) ->
+                let key = csContractDefinition state
+                 in if hasActiveRequests state
+                        then Map.insertWith (<>) key (Set.singleton (csContract state)) m
+                        else Map.delete key m
+            _ -> m
+     in Projection {projectionSeed = Map.empty, projectionEventHandler}
 
 -- | Transactions submitted to the node.
 txHistoryProjection ::
@@ -212,7 +213,7 @@ activeContractHistoryProjection ::
 activeContractHistoryProjection cid =
     projectionMapMaybe contractPaths monoidProjection
     where
-    contractPaths (StreamEvent _ _ (UserEvent (ContractStateTransition state))) =
+    contractPaths (StreamEvent _ _ (ContractEvent (ContractInstanceStateUpdateEvent state))) =
         if csContract state == cid
             then Just [state]
             else Nothing

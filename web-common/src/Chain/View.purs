@@ -27,6 +27,7 @@ import Data.Newtype (unwrap)
 import Data.Number.Extra (toLocaleString)
 import Data.Set (Set)
 import Data.Set as Set
+import Data.String.Extra (abbreviate)
 import Data.Tuple.Nested ((/\))
 import Halogen.HTML (ClassName(..), HTML, IProp, br_, div, div_, h2_, hr_, li_, small_, span_, strong_, table, tbody_, td, text, th, th_, thead_, tr, tr_, ul_)
 import Halogen.HTML.Events (onClick)
@@ -212,7 +213,14 @@ balancesTable sequenceId walletKeys balances =
                                 [ colSpan (Set.size s)
                                 , class_ textTruncate
                                 ]
-                                [ showCurrency currency ]
+                                [ let
+                                    formatted = showCurrency currency
+                                  in
+                                    ClipboardAction
+                                      <$> showShortCopyLong
+                                          formatted
+                                          (Just [ text $ abbreviate 15 formatted ])
+                                ]
                             ]
                         )
                         headings
@@ -415,7 +423,7 @@ valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_
   currencyView (JsonTuple (currency /\ (AssocMap.Map tokens))) =
     div_
       [ div [ class_ Bootstrap.textTruncate ]
-          [ strong_ [ showCurrency currency ] ]
+          [ strong_ [ text $ showCurrency currency ] ]
       , div_ (tokenView <$> tokens)
       ]
 
@@ -430,10 +438,10 @@ valueView (Value { getValue: (AssocMap.Map currencies) }) = div_ (interleave hr_
 formatAmount :: Int -> String
 formatAmount = toLocaleString <<< toNumber
 
-showCurrency :: forall p i. CurrencySymbol -> HTML p i
-showCurrency (CurrencySymbol { unCurrencySymbol: "" }) = text "Ada"
+showCurrency :: CurrencySymbol -> String
+showCurrency (CurrencySymbol { unCurrencySymbol: "" }) = "Ada"
 
-showCurrency (CurrencySymbol { unCurrencySymbol: symbol }) = text symbol
+showCurrency (CurrencySymbol { unCurrencySymbol: symbol }) = symbol
 
 showToken :: forall p i. TokenName -> HTML p i
 showToken (TokenName { unTokenName: "" }) = text "Lovelace"

@@ -30,11 +30,11 @@ instance Eq (Kind ann) where
     Type{}      == _ = False
     KindArrow{} == _ = False
 
-instance Eq (Builtin ann) where
-    BuiltinName    _ name1 == BuiltinName    _ name2 = name1 == name2
-    DynBuiltinName _ name1 == DynBuiltinName _ name2 = name1 == name2
-    BuiltinName{}    == _ = False
-    DynBuiltinName{} == _ = False
+instance Eq BuiltinName where
+    StaticBuiltinName name1 == StaticBuiltinName name2 = name1 == name2
+    DynBuiltinName    name1 == DynBuiltinName    name2 = name1 == name2
+    StaticBuiltinName{}       == _ = False
+    DynBuiltinName{}          == _ = False
 
 instance Eq (Version ann) where
     Version _ n1 m1 p1 == Version _ n2 m2 p2 = [n1, m1, p1] == [n2, m2, p2]

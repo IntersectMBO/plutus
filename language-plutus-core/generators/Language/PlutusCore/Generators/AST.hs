@@ -9,8 +9,8 @@ module Language.PlutusCore.Generators.AST
     , genName
     , genTyName
     , genKind
+    , genStaticBuiltinName
     , genBuiltinName
-    , genBuiltin
     , genConstant
     , genType
     , genTerm
@@ -61,7 +61,7 @@ genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
     let isKeyword n = n `elem` fmap display allKeywords
-        isBuiltin n = n `elem` fmap display allBuiltinNames
+        isBuiltin n = n `elem` fmap display allStaticBuiltinNames
         isReserved t = isKeyword t || isBuiltin t
         genText = Gen.filterT (not . isReserved) $ Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
@@ -79,11 +79,11 @@ genKind = simpleRecursive nonRecursive recursive where
     nonRecursive = pure <$> sequence [Type] ()
     recursive = [KindArrow () <$> genKind <*> genKind]
 
-genBuiltinName :: AstGen BuiltinName
-genBuiltinName = Gen.element allBuiltinNames
+genStaticBuiltinName :: AstGen StaticBuiltinName
+genStaticBuiltinName = Gen.element allStaticBuiltinNames
 
-genBuiltin :: AstGen (Builtin ())
-genBuiltin = BuiltinName () <$> genBuiltinName
+genBuiltinName :: AstGen BuiltinName
+genBuiltinName = StaticBuiltinName <$> genStaticBuiltinName
 
 genConstant :: AstGen (Some (ValueOf DefaultUni))
 genConstant = Gen.choice
@@ -112,7 +112,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
-    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
+    nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltinName, errorGen]
 
 genProgram :: AstGen (Program TyName Name DefaultUni ())
 genProgram = Program () <$> genVersion <*> genTerm

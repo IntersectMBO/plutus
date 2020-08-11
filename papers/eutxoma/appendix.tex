@@ -1,0 +1,237 @@
+\newpage
+\section{Complete formal definition of \EUTXOma}
+\label{app:model}
+
+\subsection{Finitely-supported functions.}
+\label{sec:fsfs}
+
+If $K$ is any type and $M$ is a monoid with identity element $0$, then a function $f: K \rightarrow M$ is \textit{finitely supported} if $f(k) \ne 0$ for only finitely many $k \in K$.
+More precisely, for $f: K \rightarrow M$ we define the \textit{support} of $f$ to be
+%%
+$\supp(f) = \{k \in K : f(k) \ne 0\}$
+%%
+and
+%%
+$\FinSup{K}{M} = \{f : K \rightarrow M : \left|\supp(f)\right| < \infty \}$.
+%%
+
+If $(M,+,0)$ is a monoid then $\FinSup{K}{M}$ also becomes a monoid if we define addition pointwise ($(f+g)(k) = f(k) + g(k)$), with the identity element being the zero map.
+Furthermore, if $M$ is an abelian group then $\FinSup{K}{M}$ is also an abelian group under this construction, with $(-f)(k) = -f(k)$.
+Similarly, if $M$ is partially ordered, then so is $\FinSup{K}{M}$ with comparison defined pointwise: $f \leq g$ if and only if $f(k) \leq g(k)$ for all $k \in K$.
+
+It follows that if $M$ is a (partially ordered) monoid or abelian group then so is $\FinSup{K}{\FinSup{L}{M}}$ for any two sets of keys $K$ and $L$.
+We will make use of this fact in the validation rules presented later (see Figure~\ref{fig:validity}).
+
+Finitely-supported functions are easily implemented as finite maps, with a failed map lookup corresponding to returning 0.
+
+\subsection{Ledger types}
+
+The formal definition of the \EUTXOma\ model integrates token bundles and forge fields from the plain \UTXOma\ model~\cite{plain-multicurrency} into the single currency \EUTXO\ model definition, while adapting forging policy scripts to enjoy the full expressiveness of validators in \EUTXO\ (rather than the limited domain-specific language of \UTXOma). Figures~\ref{fig:eutxo-types} and~\ref{fig:ctx-types} define the ledger types for \EUTXOma.
+%
+%
+\begin{ruledfigure}{t}
+  \begin{displaymath}
+    \begin{array}{rll}
+      \multicolumn{3}{l}{\textsc{Basic types}}\\
+     \B, \N, \Z && \mbox{the type of Booleans, natural numbers, and integers}\\
+      \H{} && \mbox{the type of bytestrings: } \bigcup_{n=0}^{\infty}\{0,1\}^{8n}\\g
+      (\phi_1 : T_1, \ldots, \phi_n : T_n) && \mbox{a record type with fields $\phi_1, \ldots, \phi_n$ of types $T_1, \ldots, T_n$}\\
+      t.\phi && \mbox{the value of $\phi$ for $t$, where $t$ has type $T$ and $\phi$ is a field of $T$}\\
+      \Set{T} && \mbox{the type of (finite) sets over $T$}\\
+      \List{T} && \mbox{the type of lists over $T$, with $\_[\_]$ as indexing and $|\_|$ as length}\\
+      h::t && \mbox{the list with head $h$ and tail $t$}\\
+%      x \mapsto f(x) && \mbox{an anonymous function}\\
+%      \hash{c} && \mbox{a cryptographic collision-resistant hash of $c$}\\
+      \Interval{A} && \mbox{the type of intervals over a totally-ordered set $A$}\\
+      \FinSup{K}{M} && \mbox{the type of finitely supported functions from a type $K$ to a monoid $M$}\\
+      \\
+      \multicolumn{3}{l}{\textsc{Ledger primitives}}\\
+      \Quantity && \mbox{an amount of an assets}\\
+      \Asset && \mbox{a type consisting of identifiers for individual asset classes}\\
+      \Tick && \mbox{a tick}\\
+      \Address && \mbox{an ``address'' in the blockchain}\\
+      \Data && \mbox{a type of structured data}\\
+      \DataHash && \mbox{the hash of a value of type \Data{}}\\
+      \hashData : \Data \rightarrow \DataHash && \mbox{computes the hash of an value of type\Data}\\
+      \TxId && \mbox{the identifier of a transaction}\\
+      \txId : \eutxotx \rightarrow \TxId && \mbox{computes the identifier of a transaction}\\
+      \lookupTx : \Ledger \times \TxId \rightarrow \eutxotx{} && \mbox{retrieves the unique transaction with a given identifier}\\
+      \Script && \mbox{the (opaque) type of scripts}\\
+      \applyScript{\_}: \Script \rightarrow \Data \times \cdots \times \Data \rightarrow \B && \mbox{applies a script to its arguments}\\
+      \scriptAddr : \Script \rightarrow \Address && \mbox{the address of a script}\\
+\\
+    \multicolumn{3}{l}{\textsc{Defined types}}\\
+    \Policy  &=& \Address\\
+    \Signature &=& \H\\
+    \\
+    \Quantities   &=& \FinSup{\Policy}{\FinSup{\Asset}{\Quantity}}\\
+    \\
+    \Output &=&(\addr: \Address, \val: \Quantities, \datumHash: \DataHash)\\
+    \\
+    \OutputRef &= &(\txrefid: \TxId, \idx: \s{Int})\\
+    \\
+    \Input &=&( \outputref: \sf{OutputRef},\\
+                & &\ \validator: \Script,\\
+                & &\ \datum: \Data,\\
+                & &\ \redeemer: \Data)\\
+    \\
+    \eutxotx &=&(\inputs: \Set{\Input},\\
+               & &\ \outputs: \List{\Output},\\
+               & &\ \i{validityInterval}: \Interval{\Tick},\\
+               & &\ \forge: \Quantities,\\
+               & &\ \forgeScripts: \Set{\Script},\\
+               & &\ \sigs: \Set{\Signature})\\
+    \\
+    \Ledger &=&\!\List{\eutxotx}\\
+    \end{array}
+  \end{displaymath}
+  \caption{Primitives and basic types for the \EUTXOma{} model}
+  \label{fig:eutxo-types}
+\end{ruledfigure}
+%
+\begin{ruledfigure}{t}
+  \begin{displaymath}
+  \begin{array}{rll}
+    \s{OutputInfo}\s{ } &=&(\val: \Quantities,\\
+                          & &\ \i{validatorHash}: \Address,\\
+                          & &\ \datumHash: \DataHash)\\
+    \\
+    \s{InputInfo}\s{ } &=& (\outputref: \s{OutputRef},\\
+                         & &\ \i{validatorHash}: \Address,\\
+                         & &\ \i{datumHash}: \DataHash,\\
+                         & &\ \i{redeemerHash}: \DataHash,\\
+                         & &\ \val: \Quantities)\\
+     \\
+     \s{TxInfo}\s{ } &=&(\i{inputInfo}: \List{\s{InputInfo}},\\
+                 & &\ \i{outputInfo}: \List{\s{OutputInfo}},\\
+                 & &\ \i{validityInterval}: \Interval{\Tick},\\
+                 & &\ \forge: \Quantities,\\
+                 & &\ \forgeScripts: \Set{\Script},\\
+                 & &\ \sigs: \FinSet{\Signature})\\
+    \\
+    \s{\vlctx}\s{ } &=& (\s{TxInfo}, \N) \\
+    \s{\mpsctx}\s{ } &=& (\s{TxInfo}, \Policy) \\
+    \\
+    \mkVlContext: \eutxotx \times \s{Input} \times \Ledger & \rightarrow &\vlctx\\
+                     & &   \mbox{\parbox[t]{55mm}{summarises a transaction for a validator script in the context of an input and a ledger state}}\\
+ \\
+    \mkMpsContext: \eutxotx \times \Policy \times \Ledger & \rightarrow & \mpsctx\\
+                     & &   \mbox{\parbox[t]{55mm}{summarises a transaction for a forging policy script in the context of an currency and a ledger state}}\\
+  \end{array}
+  \end{displaymath}
+  \caption{The \ctx{} types for the \EUTXOma{} model}
+  \label{fig:ctx-types}
+\end{ruledfigure}
+
+\subsection{Transaction validity}
+
+\begin{ruledfigure}{t}
+  \begin{displaymath}
+    \begin{array}{lll}
+      \multicolumn{3}{l}{\txunspent : \eutxotx \rightarrow \Set{\s{OutputRef}}} \\
+      \txunspent(t) &=& \{(\txId(t),1), \ldots, (\txId(id),\left|t.outputs\right|)\}\\
+      \\
+      \multicolumn{3}{l}{\unspent : \s{Ledger} \rightarrow \Set{\s{OutputRef}}} \\
+      \unspent([]) &=& \emptymap \\
+      \unspent(t::l) &=& (\unspent(l) \setminus t.\inputs) \cup \txunspent(t)\\
+      \\
+      \multicolumn{3}{l}{\getSpent : \s{Input} \times \s{Ledger} \rightarrow \s{Output}}\\
+      \getSpent(i,l) &=& \lookupTx(l, i.\outputref.\id).\outputs[i.\outputref.\idx]
+    \end{array}
+  \end{displaymath}
+  \caption{Auxiliary functions for \EUTXOma{} validation}
+  \label{fig:validation-functions}
+\end{ruledfigure}
+%
+\begin{ruledfigure}{t}
+\begin{enumerate}
+
+\item
+  \label{rule:slot-in-range}
+  \textbf{The current tick is within the validity interval}
+  \begin{displaymath}
+    \msf{currentTick} \in t.\i{validityInterval}
+  \end{displaymath}
+
+\item
+  \label{rule:all-outputs-are-non-negative}
+  \textbf{All outputs have non-negative values}
+  \begin{displaymath}
+    \textrm{For all } o \in t.\outputs,\ o.\val \geq 0
+  \end{displaymath}
+
+\item
+  \label{rule:all-inputs-refer-to-unspent-outputs}
+  \textbf{All inputs refer to unspent outputs}
+  \begin{displaymath}
+    \{i.\outputref | i \in t.\inputs \} \subseteq \unspent(l).
+  \end{displaymath}
+
+\item
+  \label{rule:value-is-preserved}
+  \textbf{Value is preserved}
+  \begin{displaymath}
+    t.\forge + \sum_{i \in t.\inputs} \getSpent(i, l) = \sum_{o \in t.\outputs} o.\val
+  \end{displaymath}
+
+\item
+  \label{rule:no-double-spending}
+  \textbf{No output is double spent}
+  \begin{displaymath}
+    \textrm{If } i_1, i \in t.\inputs \textrm{ and }  i_1.\outputref = i.\outputref
+    \textrm{ then } i_1 = i.
+  \end{displaymath}
+
+\item
+  \label{rule:all-inputs-validate}
+  \textbf{All inputs validate}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \applyScript{i.\validator}(i.\datum,\, i.\redeemer,\, \toData(\mkVlContext(t, i, l))) = \true
+  \end{displaymath}
+
+\item
+  \label{rule:validator-scripts-hash}
+  \textbf{Validator scripts match output addresses}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \scriptAddr(i.\validator) = \getSpent(i, l).\addr
+  \end{displaymath}
+
+\item
+  \label{rule:datum-objects-hash}
+  \textbf{Datum objects match output hashes}
+  \begin{displaymath}
+    \textrm{For all } i \in t.\inputs,\ \hashData(i.\datum) = \getSpent(i, l).\datumHash
+  \end{displaymath}
+
+\item
+  \label{rule:forging}
+  \textbf{Forging}\\
+  A transaction with a non-zero \forge{} field is only
+  valid if either:
+  \begin{enumerate}
+  \item the ledger $l$ is empty (that is, if the transaction is the initial transaction).
+  \item \label{rule:custom-forge}
+    for every key $h \in \supp(t.\forge)$, there
+    exists $s \in t.\forgeScripts$ with
+    $\scriptAddr(s) = h$.
+  \end{enumerate}
+\medskip % items jammed together without this
+\item
+  \label{rule:all-mpss-run}
+  \textbf{All forging policy scripts validate}
+  \begin{displaymath}
+    \textrm{For all } s \in t.\forgeScripts,\ \applyMPScript{s}(\toData(\mkMpsContext(t, \scriptAddr(s), l))) = \true
+  \end{displaymath}
+
+\end{enumerate}
+\caption{Validity of a transaction $t$ in the \EUTXOma{} model}
+\label{fig:validity}
+\end{ruledfigure}
+%
+Finally, we provide the transaction validity rules, which among other things state how forging policy scripts affect transaction validity. To this end, we replace the notion of an integral $\Quantity$ for values by the token bundles discussed in \S\ref{sec:informal-token-bundles} and represented by values of the type $\Quantities$.
+
+As indicated in \S\ref{sec:informal-eutxo}, validator scripts get a context argument, which includes the validated transaction as well as the outputs that it consumed, in \EUTXO. For \EUTXOma, we need two different such context types. We have $\vlctx$ for validators and $\mpsctx$ for forging policies. The difference is that in $\vlctx$ we indicate the input of the validated transaction that consumes the output locked by the executed validator, whereas for forging policies, we provide the policy script hash. The latter makes it easy for the policy script to look up the component of the transaction's forging field that it is controlling.
+
+The validity rules in Figure~\ref{fig:validity} define what it means for a transaction $t$ to be valid for a valid ledger $l$ during the tick \currentTick. (They make use of the auxiliary functions in Figure~\ref{fig:validation-functions}.) Of these rules, Rules~\ref{rule:slot-in-range},~\ref{rule:all-outputs-are-non-negative},~\ref{rule:all-inputs-refer-to-unspent-outputs},~\ref{rule:value-is-preserved}, and~\ref{rule:no-double-spending} are common to the two systems (\EUTXO\ and \UTXOma) that we are combing here; Rules~\ref{rule:all-inputs-validate} and~\ref{rule:validator-scripts-hash} are similar in both systems, but we go with the more expressive ones from \EUTXO. The crucial changes are to the construction and passing of the context types mentioned above, which appear in Rules~\ref{rule:all-inputs-validate} and~\ref{rule:all-mpss-run}. The later is the main point as it is responsible for execution of forging policy scripts.
+
+A ledger $l$ is \textit{valid} if either $l$ is empty or $l$ is of the form $t::l^{\prime}$ with $l^{\prime}$ valid and $t$ valid for $l^{\prime}$.
