@@ -107,12 +107,13 @@ V := con cn
    | iwrap A B V
    | builtin ρ bn count [types] [V]
 ```
-where closures `(M,ρ)` appear under binders. We'll call these things "CEK-values".
+where closures `(M,ρ)` appear under binders.
 
-These are similar to, but distinct from, the "values" in the Plutus
-Core specification, which are terms that can't be reduced any further
-(assuming that we don't reduce under binders). Ordinary values just
-have terms under binders, here we have closures under binders.
+We'll call these things "CEK-values".  These are similar to, but
+distinct from, the "values" in the Plutus Core specification, which
+are terms that can't be reduced any further (assuming that we don't
+reduce under binders). Ordinary values just have terms under binders,
+CEK-values have closures under binders.
 
 The `builtin` constructor contains
 
