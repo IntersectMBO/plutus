@@ -138,7 +138,11 @@ evaluator where this is less important, and (c) if we really wanted to
 be more robust we could keep separate lists of type and term arities,
 or (better, but at a slight cost) provide a list of `TypeArg |
 TermArg` values, removing the first element every time we encounter an
-instantiation or application, and checking that it is of the correct kind.)
+instantiation or application, and checking that it is of the correct
+kind.  [UPDATE: I'm implementing (c) in the CEK machine since we're
+not too worried about efficiency in the typed world.  We'll see how
+that translates to the untyped world and we can revert to simple
+argument-counting if things get too complicated.])
 
 This process is clearly much more efficient than that in the original
 CEK machine, and in fact enabled the alternative CEK machine with
