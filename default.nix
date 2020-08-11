@@ -337,9 +337,13 @@ in rec {
         fromImage = (import sources.docker-nixpkgs).devcontainer;
         contents = [
           shell.ghc
+          dev.packages.haskell-language-server
+          dev.packages.haskell-language-server-wrapper
           dev.packages.ghcide
+          dev.packages.hie-bios
           dev.packages.cabal-install
           pkgs.binutils-unwrapped
+          pkgs.which
         ];
         extraCommands = "mkdir -m 0777 tmp";
         config = {
