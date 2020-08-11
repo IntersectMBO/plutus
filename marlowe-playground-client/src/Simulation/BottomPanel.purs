@@ -24,7 +24,7 @@ import Halogen.HTML (ClassName(..), HTML, a, a_, b_, button, code_, div, h2, h3,
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, enabled, src)
 import Marlowe.Parser (transactionInputList, transactionWarningList)
-import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, maxTime, showPrettyToken)
+import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Party, Payee(..), Payment(..), Slot(..), SlotInterval(..), Token(..), TransactionInput(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, showPrettyToken, timeouts)
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
@@ -133,7 +133,7 @@ panelContents state CurrentStateView =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) = let t = (_.maxTime <<< timeouts) contract in if t == zero then "Closed" else show t
 
   warnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings)
 

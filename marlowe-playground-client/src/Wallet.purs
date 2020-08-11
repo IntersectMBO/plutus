@@ -49,7 +49,7 @@ import Halogen.HTML.Properties (value) as HTML
 import Help (HelpContext(..), toHTML)
 import Marlowe.Holes (fromTerm, gatherContractData)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, maxTime)
+import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
 import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
@@ -121,8 +121,8 @@ data Action
   | ApplyTransaction
   | ChangeRoleOwner Int Party String
   | SelectWallet Wallet
-  | AddInput (Maybe PubKey) Input (Array Bound)
-  | RemoveInput (Maybe PubKey) Input
+  | AddInput Input (Array Bound)
+  | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
   | ChangeCurrencyInput Token BigInteger
   | AddCurrency Token
@@ -145,8 +145,8 @@ instance actionIsEvent :: IsEvent Action where
   toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
   toEvent (ChangeRoleOwner _ _ _) = Just $ defaultEvent "ChangeRoleOwner"
   toEvent (SelectWallet _) = Just $ defaultEvent "SelectWallet"
-  toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
+  toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
+  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent (ChangeCurrencyInput _ _) = Just $ defaultEvent "ChangeCurrencyInput"
   toEvent (AddCurrency _) = Just $ defaultEvent "AddCurrency"
@@ -452,7 +452,7 @@ handleAction (SelectWallet wallet) = do
     _ -> pure unit
   assign _view $ WalletView $ wallet ^. _name
 
-handleAction (AddInput person input@(IDeposit _ _ token amount) bounds) = do
+handleAction (AddInput input@(IDeposit _ _ token amount) bounds) = do
   assign _addInputError Nothing
   mWalletAmount <- peruse (_openWallet <<< _Just <<< _assets <<< ix token)
   case mWalletAmount of
@@ -460,29 +460,29 @@ handleAction (AddInput person input@(IDeposit _ _ token amount) bounds) = do
     Just walletAmount ->
       if walletAmount >= amount then do
         assign (_openWallet <<< _Just <<< _assets <<< ix token) (walletAmount - amount)
-        updateMarloweState (over _pendingInputs ((flip snoc) (Tuple input person)))
+        updateMarloweState (over _pendingInputs ((flip snoc) input))
       else
         assign _addInputError $ Just "Insufficient funds to add this input"
 
-handleAction (AddInput person input bounds) = do
+handleAction (AddInput input bounds) = do
   assign _addInputError Nothing
   let
     validChoice = case input of
       (IChoice _ chosenNum) -> inBounds chosenNum bounds
       _ -> true
   if validChoice then
-    updateMarloweState (over _pendingInputs ((flip snoc) (Tuple input person)))
+    updateMarloweState (over _pendingInputs ((flip snoc) input))
   else
     assign _addInputError $ Just "Invalid Choice"
 
-handleAction (RemoveInput person input@(IDeposit _ _ token amount)) = do
+handleAction (RemoveInput input@(IDeposit _ _ token amount)) = do
   assign _addInputError Nothing
   modifying (_openWallet <<< _Just <<< _assets <<< ix token) (\v -> v + amount)
-  updateMarloweState (over _pendingInputs (delete (Tuple input person)))
+  updateMarloweState (over _pendingInputs (delete input))
 
-handleAction (RemoveInput person input) = do
+handleAction (RemoveInput input) = do
   assign _addInputError Nothing
-  updateMarloweState (over _pendingInputs (delete (Tuple input person)))
+  updateMarloweState (over _pendingInputs (delete input))
 
 handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
   where
@@ -826,7 +826,7 @@ renderCurrentState state =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) = let t = maxTime contract in if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) = let t = (_.maxTime <<< timeouts) contract in if t == zero then "Closed" else show t
 
   warnings = state ^. (_currentLoadedMarloweState <<< _transactionWarnings)
 
@@ -1107,7 +1107,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
         [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
-            $ AddInput (Just person) (IDeposit accountId party token value) []
+            $ AddInput (IDeposit accountId party token value) []
         ]
         [ text "+" ]
     ]
@@ -1134,7 +1134,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
       [ button
           [ classes [ plusBtn, smallBtn ]
           , onClick $ const $ Just
-              $ AddInput (Just person) (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
+              $ AddInput (IChoice (ChoiceId choiceName choiceOwner) chosenNum) bounds
           ]
           [ text "+" ]
       ]
@@ -1155,7 +1155,7 @@ inputItem isEnabled person NotifyInput =
         [ classes [ plusBtn, smallBtn, (Classes.disabled $ not isEnabled) ]
         , enabled isEnabled
         , onClick $ const $ Just
-            $ AddInput (Just person) INotify []
+            $ AddInput INotify []
         ]
         [ text "+" ]
     ]
@@ -1212,9 +1212,9 @@ transaction state =
 transactionRow ::
   forall p.
   State ->
-  Tuple Input (Maybe PubKey) ->
+  Input ->
   HTML p Action
-transactionRow state (Tuple input@(IDeposit (AccountId accountNumber accountOwner) party token money) person) =
+transactionRow state input@(IDeposit (AccountId accountNumber accountOwner) party token money) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Deposit "
@@ -1228,12 +1228,12 @@ transactionRow state (Tuple input@(IDeposit (AccountId accountNumber accountOwne
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person input
+        , onClick $ const $ Just $ RemoveInput input
         ]
         [ text "-" ]
     ]
 
-transactionRow state (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) person) =
+transactionRow state input@(IChoice (ChoiceId choiceName choiceOwner) chosenNum) =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Participant "
@@ -1245,19 +1245,19 @@ transactionRow state (Tuple input@(IChoice (ChoiceId choiceName choiceOwner) cho
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person input
+        , onClick $ const $ Just $ RemoveInput input
         ]
         [ text "-" ]
     ]
 
-transactionRow state (Tuple INotify person) =
+transactionRow state INotify =
   li [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_
         [ text "Notification"
         ]
     , button
         [ classes [ minusBtn, smallBtn, bold ]
-        , onClick $ const $ Just $ RemoveInput person INotify
+        , onClick $ const $ Just $ RemoveInput INotify
         ]
         [ text "-" ]
     ]

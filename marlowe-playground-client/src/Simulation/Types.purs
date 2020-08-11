@@ -180,10 +180,9 @@ data Action
   | CheckAuthStatus
   | GistAction GistAction
   -- marlowe actions
-  | ApplyTransaction
   | NextSlot
-  | AddInput (Maybe PubKey) Input (Array Bound)
-  | RemoveInput (Maybe PubKey) Input
+  | AddInput Input (Array Bound)
+  | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
   | ResetContract
   | ResetSimulator
@@ -214,10 +213,9 @@ instance isEventAction :: IsEvent Action where
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (SetEditorText _) = Just $ (defaultEvent "SetEditorText")
-  toEvent ApplyTransaction = Just $ defaultEvent "ApplyTransaction"
   toEvent NextSlot = Just $ defaultEvent "NextBlock"
-  toEvent (AddInput _ _ _) = Just $ defaultEvent "AddInput"
-  toEvent (RemoveInput _ _) = Just $ defaultEvent "RemoveInput"
+  toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
+  toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
   toEvent ResetSimulator = Just $ defaultEvent "ResetSimulator"
   toEvent ResetContract = Just $ defaultEvent "ResetContract"

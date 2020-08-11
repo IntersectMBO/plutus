@@ -38,10 +38,10 @@ all =
         (Tuple _ finalState) =
           (flip runState mkState) do
             updateContractInState Contracts.escrow
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple deposit (Just alice))))
+            updateMarloweState (over _pendingInputs ((flip snoc) deposit))
             applyTransactions
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice1 (Just alice))))
-            updateMarloweState (over _pendingInputs ((flip snoc) (Tuple choice2 (Just bob))))
+            updateMarloweState (over _pendingInputs ((flip snoc) choice1))
+            updateMarloweState (over _pendingInputs ((flip snoc) choice2))
             applyTransactions
 
         finalContract = finalState ^. _marloweState <<< _Head <<< _contract
