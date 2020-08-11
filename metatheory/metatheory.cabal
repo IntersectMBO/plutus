@@ -1,5 +1,5 @@
 cabal-version:       2.4
-name:                metatheory
+name:                plc-agda
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs
 homepage:            https://github.com/input-output-hk/plutus

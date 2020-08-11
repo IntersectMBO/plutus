@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "2.4";
-      identifier = { name = "metatheory"; version = "0.1.0.0"; };
+      identifier = { name = "plc-agda"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "james.chapman@iohk.io";
