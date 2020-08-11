@@ -10,6 +10,9 @@ module Language.PlutusCore.Constant.Function
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedStaticBuiltinName
+    , ArgumentClass (..)
+    , Arity
+    , getArity
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -42,6 +45,20 @@ countTypeAndTermArgs :: TypeScheme uni as r -> Int
 countTypeAndTermArgs (TypeSchemeResult _)     = 0
 countTypeAndTermArgs (TypeSchemeArrow _ schB) = 1 + countTypeAndTermArgs schB
 countTypeAndTermArgs (TypeSchemeAll _ _ schK) = 1 + countTypeAndTermArgs (schK Proxy)
+
+-- | This type is used when evaluating builtins to decide whether a term argument or a type instantiation is required
+data ArgumentClass
+    = TypeArg
+    | TermArg
+      deriving (Show, Eq)
+
+type Arity = [ArgumentClass]
+
+-- | Return a list containing the argument types of a TypeScheme
+getArity ::  TypeScheme uni as r -> Arity
+getArity (TypeSchemeResult _)     = []
+getArity (TypeSchemeArrow _ schB) = TermArg : getArity schB
+getArity (TypeSchemeAll _ _ schK) = TypeArg : getArity (schK Proxy)
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.

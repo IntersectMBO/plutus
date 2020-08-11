@@ -90,7 +90,7 @@ data CekVal uni =
       ExMemory
       (CekValEnv uni)   -- Initial environment, used for evaluating every argument
       BuiltinName
-      Int               -- Number of arguments to be provided (both types and terms)
+      Arity             -- Sorts of arguments to be provided (both types and terms)
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.
                         -- We need these to construct a term if the machine is returning a stuck partial application.
       [CekVal uni]      -- Arguments we've computed so far.
@@ -118,14 +118,24 @@ instance ToExMemory (CekVal uni) where
 
 type CekValEnv uni = UniqueMap TermUnique (CekVal uni)
 
--- Instantiate a builtin and then apply it to some arguments.  This assumes that
--- all type arguments come before term arguments, with no interleaving (and that
--- same assumption applies elsehwere, in VBuiltin, for example).  This is OK at the
--- moment, nut may change if we eventually support higher-rank builtins.
-mkBuiltinApp :: ExMemory -> BuiltinName -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
-mkBuiltinApp ex bn tys args = mkIterApp ex (mkIterInst ex (Builtin ex bn) tys) args
+mkBuiltinApp :: ExMemory -> BuiltinName -> [TypeWithMem uni] -> [TermWithMem uni] -> CekM uni (TermWithMem uni)
+mkBuiltinApp ex bn tys0 args0 = do
+  arity0 <- arityOf bn
+  go arity0 tys0 args0 (Builtin ex bn)
+    where
+          go arity tys args term =
+                  case arity of
+                    [] -> term
+                    TermArg : arity' ->
+                        case args of
+                          arg : args' -> go arity' tys args' (Apply ex term $ dischargeCekVal arg)
+                          []          -> error "?2"
+                    TypeArg : arity' ->
+                        case tys of
+                          ty : tys' -> go arity' tys' args (TyInst ex term ty)
+                          []        -> error "?1"
 
--- See Note [Scoping].
+-- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
 dischargeCekValEnv :: CekValEnv uni -> TermWithMem uni -> TermWithMem uni
@@ -175,11 +185,21 @@ data CekEnv uni = CekEnv
     , _cekEnvBuiltinCostParams :: CostModel
     }
 
-makeLenses ''CekEnv
 
 -- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
 -- get it back in case of error.
 type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
+
+makeLenses ''CekEnv
+
+arityOf :: BuiltinName -> CekM uni Arity
+arityOf (StaticBuiltinName name) =
+    pure $ builtinNameArities ! name
+arityOf (DynBuiltinName name) = do
+    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
+    pure $ getArity sch
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
+
 
 instance SpendBudget (CekM uni) (CekVal uni) where
     builtinCostParams = view cekEnvBuiltinCostParams
@@ -195,6 +215,7 @@ instance SpendBudget (CekM uni) (CekVal uni) where
                     throwingWithCause _EvaluationError
                         (UserEvaluationError $ CekOutOfExError resb newBudget)
                         Nothing  -- No value available for error
+
 
 data Frame uni
     = FrameApplyFun (CekVal uni)                               -- ^ @[V _]@
@@ -285,14 +306,6 @@ substitution, anything).
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
-getArgsCount :: BuiltinName -> CekM uni Int
-getArgsCount (StaticBuiltinName name) =
-    pure $ builtinNameAritiesIncludingTypes ! name
-getArgsCount (DynBuiltinName name) = do
-    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
-    pure $ countTypeAndTermArgs sch
--- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
-
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> TermWithMem uni -> CekM uni (Plain Term uni)
@@ -325,8 +338,8 @@ computeCek ctx (LamAbs ex name ty body)  = do
 computeCek ctx c@Constant{} = returnCek ctx (VCon c)
 computeCek ctx (Builtin ex bn)        = do
   env <- getEnv
-  count <- getArgsCount bn
-  returnCek ctx (VBuiltin ex env bn count [] [])
+  arity <- arityOf bn
+  returnCek ctx (VBuiltin ex env bn arity [] [])
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek _  Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- No value available for error
@@ -376,11 +389,13 @@ returnCek (FrameUnwrap : ctx) val =
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> CekVal uni -> CekM uni (Plain Term uni)
-instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body -- FIXME: env?
-instantiateEvaluate ctx ty (VBuiltin ex argEnv bn count tyargs args) =
-    returnCek ctx $ VBuiltin ex argEnv bn (count-1) (ty:tyargs) args
-    -- We should really check that the signature expects a type here, not a term.
-    -- FIXME: what happens if count=0, ie if the final argument is a type?
+instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body
+instantiateEvaluate ctx ty (VBuiltin ex argEnv bn arity tyargs args) =
+    case arity of
+      []             -> error "Impossible!"
+      TermArg:_      -> error "Unexpected instantiation"
+      TypeArg:arity' -> returnCek ctx $ VBuiltin ex argEnv bn arity' (ty:tyargs) args
+      -- FIXME: whatif the final argument is a type?
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
@@ -399,19 +414,20 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
     withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx val@(VBuiltin ex argEnv bn count tyargs args) arg = withEnv argEnv $ do
-    let args' = arg:args
-        count' = count - 1
-        -- We're counting both type and term arguments here, so stricly
-        -- we should check that we're expecting a term, not a type.
-    if count' /= 0
-        then returnCek ctx $ VBuiltin ex argEnv bn count' tyargs args'
-        else do
-            res <- applyBuiltinName bn (reverse args')
-            case res of
-                EvaluationSuccess t -> returnCek ctx t
-                EvaluationFailure ->
-                    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
+applyEvaluate ctx val@(VBuiltin ex argEnv bn arity tyargs args) arg = withEnv argEnv $ do
+    case arity of
+      []        -> error "Impossible!"
+      TypeArg:_ -> error "Unexpected term argument"
+      TermArg:arity' -> do
+          let args' = arg:args
+          case arity' of
+            [] -> do  -- We've got all the arguments
+                 res <- applyBuiltinName bn (reverse args')
+                 case res of
+                   EvaluationSuccess t -> returnCek ctx t
+                   EvaluationFailure ->
+                       throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just val
+            _ -> returnCek ctx $ VBuiltin ex argEnv bn arity' tyargs args'
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
 -- | Apply a 'BuiltinName' to a list of 'Value's.

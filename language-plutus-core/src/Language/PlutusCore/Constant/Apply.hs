@@ -18,6 +18,7 @@ module Language.PlutusCore.Constant.Apply
     , applyStaticBuiltinName
     , builtinNameAritiesIncludingTypes
     , builtinNameAritiesIgnoringTypes
+    , builtinNameArities
     ) where
 
 import           PlutusPrelude
@@ -273,3 +274,10 @@ builtinNameAritiesIgnoringTypes =
                 \(TypedStaticBuiltinName _ sch) -> countTermArgs sch
 {-# NOINLINE builtinNameAritiesIgnoringTypes #-}  -- Just in case.
 
+builtinNameArities :: Array StaticBuiltinName Arity
+builtinNameArities =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedStaticBuiltinName _ sch) -> getArity sch
+{-# NOINLINE builtinNameArities #-}  -- Just in case.
