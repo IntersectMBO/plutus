@@ -6,7 +6,6 @@
 module Language.PlutusCore.Constant.Function
     ( typeSchemeToType
     , countTermArgs
-    , countTypeAndTermArgs
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
     , typeOfTypedStaticBuiltinName
@@ -40,11 +39,6 @@ countTermArgs :: TypeScheme uni as r -> Int
 countTermArgs (TypeSchemeResult _)     = 0
 countTermArgs (TypeSchemeArrow _ schB) = 1 + countTermArgs schB
 countTermArgs (TypeSchemeAll _ _ schK) = countTermArgs (schK Proxy)
-
-countTypeAndTermArgs :: TypeScheme uni as r -> Int
-countTypeAndTermArgs (TypeSchemeResult _)     = 0
-countTypeAndTermArgs (TypeSchemeArrow _ schB) = 1 + countTypeAndTermArgs schB
-countTypeAndTermArgs (TypeSchemeAll _ _ schK) = 1 + countTypeAndTermArgs (schK Proxy)
 
 -- | This type is used when evaluating builtins to decide whether a term argument or a type instantiation is required
 data ArgumentClass
