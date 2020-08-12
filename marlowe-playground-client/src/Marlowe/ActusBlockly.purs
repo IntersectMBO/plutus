@@ -556,12 +556,12 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     yyyy <- getFieldValue block "yyyy"
     m <- getFieldValue block "mm"
     d <- getFieldValue block "dd"
-    year <- fromMaybe (Either.Left $ "can't parse integer: " <> yyyy) $ Either.Right <$> fromString yyyy
-    month <- fromMaybe (Either.Left $ "can't parse integer: " <> m) $ Either.Right <$> fromString m
-    day <- fromMaybe (Either.Left $ "can't parse integer: " <> d) $ Either.Right <$> fromString d
-    safeYear <- fromMaybe (Either.Left "wrong year") $ Either.Right <$> toEnum year
-    safeMonth <- fromMaybe (Either.Left "wrong month") $ Either.Right <$> toEnum month
-    safeDay <- fromMaybe (Either.Left "wrong day") $ Either.Right <$> toEnum day
+    year <- Either.note ("can't parse integer: " <> yyyy) $ fromString yyyy
+    month <- Either.note ("can't parse integer: " <> m) $ fromString m
+    day <- Either.note ("can't parse integer: " <> d) $ fromString d
+    safeYear <- Either.note  "wrong year" $ toEnum year
+    safeMonth <- Either.note "wrong month" $ toEnum month
+    safeDay <- Either.note  "wrong day" $ toEnum day
     -- we could use DateTime formatters instead
     let mm = if month < 10 then "0" <> m else m
     let dd = if day < 10 then "0" <> d else d
@@ -594,9 +594,7 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
   blockDefinition _ g block = Either.Right NoActusValue
 
 instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPeriodType where
-  blockDefinition x g block = do 
-    pure $ x 
-
+  blockDefinition x _ _ = pure x
 
 actusDateToDay :: ActusValue -> Either String (Maybe String)
 actusDateToDay (DateValue yyyy mm dd) = Either.Right $ Just $ yyyy <> "-" <> mm <> "-" <> dd --should be validated in a parser

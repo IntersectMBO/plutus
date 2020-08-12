@@ -118,7 +118,8 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  modify_ _ { blocklyState = Just blocklyState, generator = Just generator }
+  assign _blocklyState (Just blocklyState)
+  assign _generator (Just generator)
 
 handleAction (SetData _) = pure unit
 

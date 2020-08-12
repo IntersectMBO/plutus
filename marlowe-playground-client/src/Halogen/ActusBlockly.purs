@@ -111,7 +111,8 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  modify_ _ { actusBlocklyState = Just blocklyState, generator = Just generator }
+  assign _actusBlocklyState (Just blocklyState)
+  assign _generator (Just generator)
 
 handleAction (GetTerms flavour) = do
   res <-
