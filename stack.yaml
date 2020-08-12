@@ -160,4 +160,4 @@ ghc-options:
   iohk-monitoring: "-w"
 
 nix:
-  packages: [zlib, gmp, openssl]
+  shell-file: shell.nix

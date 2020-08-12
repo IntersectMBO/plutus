@@ -145,11 +145,12 @@ handleAction ::
   SPSettings_ SPParams_ ->
   HAction ->
   HalogenM FrontendState HAction ChildSlots Message m Unit
-handleAction _ Init = do
+handleAction settings Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
     Right route -> handleRoute route
     Left _ -> handleRoute Router.Home
+  toSimulation $ Simulation.handleAction settings ST.Init
 
 handleAction s (HaskellAction action) = do
   currentState <- get

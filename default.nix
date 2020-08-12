@@ -89,7 +89,7 @@ in rec {
             in pkgs.lib.lists.head (indexState ++ [ null ]);
       in parseIndexState (builtins.readFile ./cabal.project);
 
-    project = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
+    project = import ./nix/haskell.nix { inherit (pkgs) lib stdenv pkgs haskell-nix buildPackages; inherit agdaPackages checkMaterialization; };
     # All the packages defined by our project, including dependencies
     packages = project.hsPkgs;
     # Just the packages in the project
@@ -98,7 +98,7 @@ in rec {
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
       // { inherit (packages) plc-agda; };
 
-    muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit metatheory checkMaterialization; };
+    muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit agdaPackages checkMaterialization; };
     # All the packages defined by our project, built for musl
     muslPackages = muslProject.hsPkgs;
 
@@ -149,8 +149,8 @@ in rec {
   };
 
   papers = pkgs.recurseIntoAttrs {
-    unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) Agda; inherit latex; };
-    system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
+    unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) agda; inherit latex; };
+    system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) agda standard-library; inherit latex; };
     eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
     utxoma = pkgs.callPackage ./papers/utxoma/default.nix { inherit latex; };
     eutxoma = pkgs.callPackage ./papers/eutxoma/default.nix { inherit latex; };
@@ -319,36 +319,26 @@ in rec {
     };
   };
 
-  agdaPackages = rec {
-    Agda = haskell.extraPackages.Agda.components.exes.agda;
-    agda = pkgs.agda.override {
-      inherit Agda;
-      extension = self: super: {
-        # New Agda needs this to put interface files next to source files. Leaving it like this for now to avoid
-        # writing a new Agda builder - maybe nixpkgs will figure this out for us.
-        buildFlags = super.buildFlags ++ [ "--local-interfaces"];
-      };
-    };
-
-    # We also rely on a newer version of the stdlib
-    AgdaStdlib = (pkgs.AgdaStdlib.override { inherit agda; }).overrideAttrs (oldAttrs: rec {
-      # Need to override the source this way
-      name = "agda-stdlib-${version}";
-      version = "1.3";
-      src = sources.agda-stdlib;
-      # Marked as broken on darwin in our nixpkgs, but not actually broken,
-      # fixed in https://github.com/NixOS/nixpkgs/pull/76485 but we don't have that yet
-      meta = oldAttrs.meta // { broken = false; };
-    });
-  };
+  agdaPackages =
+    # The Agda builder needs a derivation with:
+    # - The 'agda' executable
+    # - The 'agda-mode' executable
+    # - A 'version' attribute
+    # So we stitch one together here. It doesn't *seem* to need the library interface files,
+    # but it seems like they should be there so I added them too.
+    let
+      haskellNixAgda = haskell.extraPackages.Agda;
+      frankenAgda = (pkgs.symlinkJoin {
+        name = "agda";
+        paths = [
+          haskellNixAgda.components.exes.agda
+          haskellNixAgda.components.exes.agda-mode
+          haskellNixAgda.components.library
+        ];
+      }) // { version = haskellNixAgda.identifier.version; };
+    in pkgs.callPackage ./nix/agda/default.nix { Agda = frankenAgda; };
 
   marlowe-symbolic-lambda = pkgsMusl.callPackage ./marlowe-symbolic/lambda.nix { haskellPackages = haskell.muslPackages; };
-
-  metatheory = import ./metatheory/default.nix {
-    inherit (agdaPackages) agda AgdaStdlib;
-    inherit (pkgs.haskell-nix) cleanSourceHaskell;
-    inherit (pkgs) lib;
-  };
 
   dev = import ./nix/dev.nix { inherit pkgs haskell easyPS; };
 }
