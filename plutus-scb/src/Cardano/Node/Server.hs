@@ -10,7 +10,6 @@ module Cardano.Node.Server
 
 import           Control.Concurrent              (MVar, forkIO, newMVar)
 import           Control.Concurrent.Availability (Availability, available)
-import           Control.Concurrent.STM
 import           Control.Monad                   (void)
 import           Control.Monad.IO.Class          (MonadIO, liftIO)
 import           Control.Monad.Logger            (logInfoN, runStdoutLoggingT)
@@ -25,17 +24,22 @@ import           Cardano.Node.Follower           (getBlocks, newFollower)
 import           Cardano.Node.Mock
 import           Cardano.Node.RandomTx           (genRandomTx)
 import           Cardano.Node.Types
-import           Ledger                          (Block, Tx (..))
+import qualified Cardano.Protocol.Socket.Client  as Client
+import qualified Cardano.Protocol.Socket.Server  as Server
 
 import           Plutus.SCB.Arbitrary            ()
 import           Plutus.SCB.Utils                (tshow)
 
-app :: TQueue Tx -> TQueue Block -> MVar AppState -> Application
-app txQueue blockQueue stateVar =
+app ::
+    Server.ServerHandler
+ -> Client.ClientHandler
+ -> MVar AppState
+ -> Application
+app serverHandler clientHandler stateVar =
     serve (Proxy @API) $
     hoistServer
         (Proxy @API)
-        (runStdoutLoggingT . processChainEffects txQueue blockQueue stateVar)
+        (runStdoutLoggingT . processChainEffects serverHandler clientHandler stateVar)
         (healthcheck :<|> addTx :<|> getCurrentSlot :<|>
          (genRandomTx :<|>
           consumeEventHistory stateVar) :<|>
@@ -48,10 +52,12 @@ main MockServerConfig { mscBaseUrl
                       , mscBlockReaper
                       , mscSlotLength
                       , mscInitialTxWallets
+                      , mscSocketPath
                       } availability =
     runStdoutLoggingT $ do
-        blockQueue <- liftIO newTQueueIO
-        txQueue    <- liftIO newTQueueIO
+        serverHandler <- liftIO $
+            Server.runServerNode mscSocketPath (_chainState $ initialAppState mscInitialTxWallets)
+        clientHandler <- liftIO $ Client.runClientNode mscSocketPath
         -- Local chain state (node client)
         clientStateVar <- liftIO $ newMVar (initialAppState mscInitialTxWallets)
         -- Global chain state (node server)
@@ -60,23 +66,23 @@ main MockServerConfig { mscBaseUrl
         logInfoN "Starting slot coordination thread."
         void $
             liftIO $
-            forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength txQueue blockQueue serverStateVar
+            forkIO $ runStdoutLoggingT $ slotCoordinator mscSlotLength serverHandler clientHandler serverStateVar
         case mscRandomTxInterval of
             Nothing -> logInfoN "No random transactions will be generated."
             Just i -> do
                 logInfoN "Starting transaction generator thread."
                 void $
                     liftIO $
-                    forkIO $ runStdoutLoggingT $ transactionGenerator i txQueue blockQueue serverStateVar
+                    forkIO $ runStdoutLoggingT $ transactionGenerator i serverHandler clientHandler serverStateVar
         case mscBlockReaper of
             Nothing -> logInfoN "Old blocks will be kept in memory forever"
             Just cfg -> do
                 logInfoN "Starting block reaper thread."
                 void $
                     liftIO $
-                    forkIO $ runStdoutLoggingT $ blockReaper cfg txQueue blockQueue serverStateVar
+                    forkIO $ runStdoutLoggingT $ blockReaper cfg serverHandler clientHandler serverStateVar
         let mscPort = baseUrlPort mscBaseUrl
         let warpSettings :: Warp.Settings
             warpSettings = Warp.defaultSettings & Warp.setPort mscPort & Warp.setBeforeMainLoop (available availability)
         logInfoN $ "Starting mock node server on port: " <> tshow mscPort
-        liftIO $ Warp.runSettings warpSettings $ app txQueue blockQueue clientStateVar
+        liftIO $ Warp.runSettings warpSettings $ app serverHandler clientHandler clientStateVar

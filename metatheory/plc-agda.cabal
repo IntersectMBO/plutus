@@ -31,7 +31,6 @@ executable plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -74,7 +73,6 @@ executable plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
@@ -166,7 +164,6 @@ executable plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -209,7 +206,6 @@ executable plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
@@ -319,7 +315,6 @@ test-suite test-plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -362,7 +357,6 @@ test-suite test-plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
@@ -453,7 +447,6 @@ test-suite test-plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -503,7 +496,6 @@ test-suite test-plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
@@ -620,7 +612,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -663,7 +654,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
@@ -754,7 +744,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Agda.Builtin.Unit
         MAlonzo.Code.Agda.Primitive
         MAlonzo.Code.Algebra
-        MAlonzo.Code.Algebra.FunctionProperties.Consequences
         MAlonzo.Code.Algebra.Morphism
         MAlonzo.Code.Algebra.Properties.BooleanAlgebra
         MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -804,7 +793,6 @@ test-suite test2-plc-agda
         MAlonzo.Code.Data.String.Base
         MAlonzo.Code.Data.String.Properties
         MAlonzo.Code.Data.Sum.Base
-        MAlonzo.Code.Data.These
         MAlonzo.Code.Data.Vec
         MAlonzo.Code.Function.Bijection
         MAlonzo.Code.Function.Equality
