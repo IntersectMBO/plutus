@@ -134,6 +134,7 @@
           "Language/PlutusCore/TypeCheck"
           "Language/PlutusCore/Analysis/Definitions"
           "Language/PlutusCore/Examples/Data/InterList"
+          "Language/PlutusCore/Examples/Data/Shad"
           "Language/PlutusCore/Examples/Data/TreeForest"
           "Language/PlutusCore/Examples/Data/Vec"
           "Language/PlutusCore/Generators/Internal/Denotation"

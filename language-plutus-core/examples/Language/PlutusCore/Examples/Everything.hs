@@ -16,6 +16,7 @@ import           Language.PlutusCore.Universe
 import           Language.PlutusCore.StdLib.Type
 
 import           Language.PlutusCore.Examples.Data.InterList
+import           Language.PlutusCore.Examples.Data.Shad
 import           Language.PlutusCore.Examples.Data.TreeForest
 import           Language.PlutusCore.Examples.Data.Vec
 
@@ -50,6 +51,14 @@ examples =
               , plcTermFile "scottCons"        scottCons
               , plcTermFile "scottHead"        scottHead
               , plcTermFile "scottSumHeadsOr0" scottSumHeadsOr0
+              ]
+          , treeFolderContents "Shad"
+              [ plcTypeFile "shad"   shad
+              , plcTermFile "mkShad" mkShad
+              ]
+          , treeFolderContents "RecUnit"
+              [ plcTypeFile "recUnit"    recUnit
+              , plcTermFile "runRecUnit" runRecUnit
               ]
           ]
       ]

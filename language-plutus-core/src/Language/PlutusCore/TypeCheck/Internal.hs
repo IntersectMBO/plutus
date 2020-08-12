@@ -299,6 +299,10 @@ unfoldIFixOf pat arg k = do
     -- uniqueness. Alternatively, we could use 'normalizeType' instead of 'normalizeTypeM' as the
     -- former performs renaming before doing normalization, but renaming the entire type implicitly
     -- would be less efficient than renaming a subpart of the type explicitly.
+    --
+    -- Note however that breaking global uniqueness here most likely would not result in buggy
+    -- behavior, see https://github.com/input-output-hk/plutus/pull/2219#issuecomment-672815272
+    -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
         mkIterTyApp () vPat'
