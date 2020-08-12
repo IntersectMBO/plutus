@@ -295,6 +295,7 @@ lookupDynamicBuiltinName dynName = do
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
         Just mean -> pure mean
 
+-- FIXME: update this for current version.
 {- Note [Dropping environments of arguments]
 The CEK machine sometimes keeps in the environment those variables that are no longer required.
 This is a fundamental limitation of the CEK machine as it lacks garbage collection.
