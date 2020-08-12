@@ -2,10 +2,12 @@
   pkgs ? (import ../lib.nix {}).pkgs,
   latex,
   texlive ? pkgs.texlive,
-  Agda ? pkgs.haskellPackages.Agda,
-  AgdaStdlib ? pkgs.AgdaStdlib
+  agda,
+  standard-library
 }:
-latex.buildLatex {
+let
+  agdaWithStdlib = agda.withPackages [ standard-library ];
+in latex.buildLatex {
   name = "system-f-in-agda";
   texFiles = ["paper.tex"];
   texInputs = {
@@ -22,13 +24,9 @@ latex.buildLatex {
     acmart
     bibtex biblatex;
   };
-  buildInputs = [ Agda ];
-  src = pkgs.lib.sourceFilesBySuffices ./. [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
+  buildInputs = [ agdaWithStdlib ];
+  src = pkgs.lib.sourceFilesBySuffices ./. [ ".tex" ".bib" ".agda" ".lagda" ".agda-lib" ".cls" ".bst" ".pdf" ];
   preBuild = ''
-    for file in *.lagda; do
-      # this is a bit painfully manual but fine for now
-      agda -i ${AgdaStdlib}/share/agda --latex $file --latex-dir .
-    done
+    agda --latex paper.lagda --latex-dir .
   '';
 }
-

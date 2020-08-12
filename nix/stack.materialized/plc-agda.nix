@@ -20,8 +20,14 @@
       url = "";
       synopsis = "Command line tool for running plutus core programs";
       description = "";
-      buildType = "Simple";
+      buildType = "Custom";
       isLocal = true;
+      setup-depends = [
+        (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (errorHandler.buildToolDepError "base")))
+        (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (errorHandler.buildToolDepError "Cabal")))
+        (hsPkgs.buildPackages.process or (pkgs.buildPackages.process or (errorHandler.buildToolDepError "process")))
+        (hsPkgs.buildPackages.turtle or (pkgs.buildPackages.turtle or (errorHandler.buildToolDepError "turtle")))
+        ];
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];
       dataDir = "";
@@ -62,6 +68,8 @@
             "MAlonzo/Code/Agda/Builtin/Unit"
             "MAlonzo/Code/Agda/Primitive"
             "MAlonzo/Code/Algebra"
+            "MAlonzo/Code/Algebra/Consequences/Base"
+            "MAlonzo/Code/Algebra/Consequences/Setoid"
             "MAlonzo/Code/Algebra/Morphism"
             "MAlonzo/Code/Algebra/Properties/BooleanAlgebra"
             "MAlonzo/Code/Algebra/Properties/DistributiveLattice"
@@ -181,6 +189,37 @@
             "MAlonzo/Code/Untyped"
             "MAlonzo/Code/Untyped/Reduction"
             "MAlonzo/Code/Untyped/RenamingSubstitution"
+            "MAlonzo/Code/Algebra/Construct/LiftedChoice"
+            "MAlonzo/Code/Algebra/Construct/NaturalChoice/Min"
+            "MAlonzo/Code/Algebra/Structures/Biased"
+            "MAlonzo/Code/Data/List/Categorical"
+            "MAlonzo/Code/Data/List/Extrema"
+            "MAlonzo/Code/Data/List/Extrema/Core"
+            "MAlonzo/Code/Data/List/Membership/DecSetoid"
+            "MAlonzo/Code/Data/List/Membership/Propositional"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties/Core"
+            "MAlonzo/Code/Data/List/Membership/Setoid"
+            "MAlonzo/Code/Data/List/Membership/Setoid/Properties"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Propositional"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Setoid"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/List/Relation/Unary/AllPairs/Core"
+            "MAlonzo/Code/Data/List/Relation/Unary/Any/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/Any"
+            "MAlonzo/Code/Data/Product/Function/Dependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Setoid"
+            "MAlonzo/Code/Data/Product/Properties"
+            "MAlonzo/Code/Data/Product/Relation/Binary/Pointwise/NonDependent"
+            "MAlonzo/Code/Data/Sum/Function/Propositional"
+            "MAlonzo/Code/Data/Sum/Function/Setoid"
+            "MAlonzo/Code/Data/Sum/Relation/Binary/Pointwise"
+            "MAlonzo/Code/Function/HalfAdjointEquivalence"
+            "MAlonzo/Code/Function/Related"
+            "MAlonzo/Code/Function/Related/TypeIsomorphisms"
+            "MAlonzo/Code/Relation/Binary/Construct/Converse"
             ];
           mainPath = [ "Main.hs" ];
           };
@@ -220,6 +259,8 @@
             "MAlonzo/Code/Agda/Builtin/Unit"
             "MAlonzo/Code/Agda/Primitive"
             "MAlonzo/Code/Algebra"
+            "MAlonzo/Code/Algebra/Consequences/Base"
+            "MAlonzo/Code/Algebra/Consequences/Setoid"
             "MAlonzo/Code/Algebra/Morphism"
             "MAlonzo/Code/Algebra/Properties/BooleanAlgebra"
             "MAlonzo/Code/Algebra/Properties/DistributiveLattice"
@@ -339,6 +380,37 @@
             "MAlonzo/Code/Untyped"
             "MAlonzo/Code/Untyped/Reduction"
             "MAlonzo/Code/Untyped/RenamingSubstitution"
+            "MAlonzo/Code/Algebra/Construct/LiftedChoice"
+            "MAlonzo/Code/Algebra/Construct/NaturalChoice/Min"
+            "MAlonzo/Code/Algebra/Structures/Biased"
+            "MAlonzo/Code/Data/List/Categorical"
+            "MAlonzo/Code/Data/List/Extrema"
+            "MAlonzo/Code/Data/List/Extrema/Core"
+            "MAlonzo/Code/Data/List/Membership/DecSetoid"
+            "MAlonzo/Code/Data/List/Membership/Propositional"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties/Core"
+            "MAlonzo/Code/Data/List/Membership/Setoid"
+            "MAlonzo/Code/Data/List/Membership/Setoid/Properties"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Propositional"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Setoid"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/List/Relation/Unary/AllPairs/Core"
+            "MAlonzo/Code/Data/List/Relation/Unary/Any/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/Any"
+            "MAlonzo/Code/Data/Product/Function/Dependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Setoid"
+            "MAlonzo/Code/Data/Product/Properties"
+            "MAlonzo/Code/Data/Product/Relation/Binary/Pointwise/NonDependent"
+            "MAlonzo/Code/Data/Sum/Function/Propositional"
+            "MAlonzo/Code/Data/Sum/Function/Setoid"
+            "MAlonzo/Code/Data/Sum/Relation/Binary/Pointwise"
+            "MAlonzo/Code/Function/HalfAdjointEquivalence"
+            "MAlonzo/Code/Function/Related"
+            "MAlonzo/Code/Function/Related/TypeIsomorphisms"
+            "MAlonzo/Code/Relation/Binary/Construct/Converse"
             ];
           mainPath = [ "TestSimple.hs" ];
           };
@@ -379,6 +451,8 @@
             "MAlonzo/Code/Agda/Primitive"
             "MAlonzo/Code/Algebra"
             "MAlonzo/Code/Algebra/Morphism"
+            "MAlonzo/Code/Algebra/Consequences/Base"
+            "MAlonzo/Code/Algebra/Consequences/Setoid"
             "MAlonzo/Code/Algebra/Properties/BooleanAlgebra"
             "MAlonzo/Code/Algebra/Properties/DistributiveLattice"
             "MAlonzo/Code/Algebra/Properties/Lattice"
@@ -497,6 +571,37 @@
             "MAlonzo/Code/Untyped"
             "MAlonzo/Code/Untyped/Reduction"
             "MAlonzo/Code/Untyped/RenamingSubstitution"
+            "MAlonzo/Code/Algebra/Construct/LiftedChoice"
+            "MAlonzo/Code/Algebra/Construct/NaturalChoice/Min"
+            "MAlonzo/Code/Algebra/Structures/Biased"
+            "MAlonzo/Code/Data/List/Categorical"
+            "MAlonzo/Code/Data/List/Extrema"
+            "MAlonzo/Code/Data/List/Extrema/Core"
+            "MAlonzo/Code/Data/List/Membership/DecSetoid"
+            "MAlonzo/Code/Data/List/Membership/Propositional"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties"
+            "MAlonzo/Code/Data/List/Membership/Propositional/Properties/Core"
+            "MAlonzo/Code/Data/List/Membership/Setoid"
+            "MAlonzo/Code/Data/List/Membership/Setoid/Properties"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Propositional"
+            "MAlonzo/Code/Data/List/Relation/Binary/Equality/Setoid"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/List/Relation/Unary/AllPairs/Core"
+            "MAlonzo/Code/Data/List/Relation/Unary/Any/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/Any"
+            "MAlonzo/Code/Data/Product/Function/Dependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Propositional"
+            "MAlonzo/Code/Data/Product/Function/NonDependent/Setoid"
+            "MAlonzo/Code/Data/Product/Properties"
+            "MAlonzo/Code/Data/Product/Relation/Binary/Pointwise/NonDependent"
+            "MAlonzo/Code/Data/Sum/Function/Propositional"
+            "MAlonzo/Code/Data/Sum/Function/Setoid"
+            "MAlonzo/Code/Data/Sum/Relation/Binary/Pointwise"
+            "MAlonzo/Code/Function/HalfAdjointEquivalence"
+            "MAlonzo/Code/Function/Related"
+            "MAlonzo/Code/Function/Related/TypeIsomorphisms"
+            "MAlonzo/Code/Relation/Binary/Construct/Converse"
             ];
           };
         };

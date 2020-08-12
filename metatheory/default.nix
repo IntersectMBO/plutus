@@ -1,46 +1,12 @@
-{ lib, cleanSourceHaskell, agda, AgdaStdlib }:
+{ lib, mkDerivation, standard-library }:
 let
-  # The agda builder doesn't work properly with library files, we need to use direct include flags
-  libFilter = name: type: let basename = baseNameOf (toString name); in !(lib.hasSuffix ".agda-lib" basename);
-  # Most of the filters for Haskell source are good for us too
-  cleanSourceAgda = src: lib.cleanSourceWith { filter = libFilter; src = (cleanSourceHaskell { inherit src; }); };
-in rec {
-  plutus-metatheory = agda.mkDerivation (self: rec {
-    name = "plutus-metatheory";
+in mkDerivation {
+  pname = "Plutus";
+  version = "0.1";
 
-    buildDepends = [ AgdaStdlib ];
+  src = lib.sourceFilesBySuffices ./. [ ".agda" ".lagda" ".lagda.md" ".agda-lib" ];
 
-    # We can't just add more flags, annoyingly, so we have to repeat some of the existing flags.
-    # Passing the html output flags gets us the literate output, and still checks the Agda, so this
-    # derivation can do double duty.
-    buildFlags = ["--html" "--html-highlight=auto" "--local-interfaces"]
-                 ++ (lib.concatMap (x: ["-i " x]) self.includeDirs);
-    src = cleanSourceAgda ./.;
+  buildInputs = [ standard-library ];
 
-    everythingFile = "Everything.lagda";
-    topSourceDirectories = [ "." ];
-
-    postInstall = ''
-      mkdir -p $out/share/doc
-      cp -aR html $out/share/doc
-    '';
-  });
-
-  # This derivation just makes the generated Haskell source for the plc-agda derivation later.
-  # We could just run Agda in an early phase of that derivation. However, it seems nice
-  # to be able to use the Agda builder for some of it, and this way there's a derivation
-  # with the input source too.
-  # We can't combine this with the other derivation since we have a different entry point.
-  plutus-metatheory-compiled = agda.mkDerivation (self: rec {
-    name = "plutus-metatheory-compiled";
-
-    buildDepends = [ AgdaStdlib ];
-    # We can't just add more flags, annoyingly, so we have to repeat some of the existing flags
-    buildFlags = ["--compile" "--ghc-dont-call-ghc" "--local-interfaces"]
-                 ++ (lib.concatMap (x: ["-i " x]) self.includeDirs);
-    src = cleanSourceAgda ./.;
-
-    everythingFile = "Main.lagda";
-    topSourceDirectories = [ "." ];
-  });
+  everythingFile = "Everything.lagda";
 }
