@@ -26,6 +26,7 @@
         (hsPkgs.buildPackages.base or (pkgs.buildPackages.base or (errorHandler.buildToolDepError "base")))
         (hsPkgs.buildPackages.Cabal or (pkgs.buildPackages.Cabal or (errorHandler.buildToolDepError "Cabal")))
         (hsPkgs.buildPackages.process or (pkgs.buildPackages.process or (errorHandler.buildToolDepError "process")))
+        (hsPkgs.buildPackages.turtle or (pkgs.buildPackages.turtle or (errorHandler.buildToolDepError "turtle")))
         ];
       detailLevel = "FullDetails";
       licenseFiles = [ "LICENSE" "NOTICE" ];

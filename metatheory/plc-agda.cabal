@@ -17,6 +17,7 @@ custom-setup
   setup-depends:  base -any
                 , Cabal -any
                 , process -any
+                , turtle -any
 
 executable plc-agda
   main-is:           Main.hs
