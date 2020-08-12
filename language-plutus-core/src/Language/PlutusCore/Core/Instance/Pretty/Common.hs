@@ -8,7 +8,7 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Core.Type
 
-instance Pretty BuiltinName where
+instance Pretty StaticBuiltinName where
     pretty AddInteger           = "addInteger"
     pretty SubtractInteger      = "subtractInteger"
     pretty MultiplyInteger      = "multiplyInteger"
@@ -35,13 +35,9 @@ instance Pretty BuiltinName where
 instance Pretty DynamicBuiltinName where
     pretty (DynamicBuiltinName n) = pretty n
 
-instance Pretty StagedBuiltinName where
-    pretty (StaticStagedBuiltinName  n) = pretty n
-    pretty (DynamicStagedBuiltinName n) = pretty n
-
-instance Pretty (Builtin ann) where
-    pretty (BuiltinName    _ n) = pretty n
-    pretty (DynBuiltinName _ n) = pretty n
+instance Pretty BuiltinName where
+    pretty (StaticBuiltinName n) = pretty n
+    pretty (DynBuiltinName n)    = pretty n
 
 instance Pretty (Version ann) where
     pretty (Version _ i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

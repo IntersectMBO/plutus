@@ -148,7 +148,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
             args' = args . (v :)                 -- Append the PLC value to the spine.
             y     = f x                          -- Apply the Haskell function to the generated argument.
         go schB term' args' y
-    go (TypeSchemeAllType _ schK) term args f =
+    go (TypeSchemeAll _ _ schK) term args f =
         go (schK Proxy) term args f
 
 -- | Generate a PLC 'Term' of the specified type and the corresponding Haskell value.

@@ -3,38 +3,62 @@ module Types where
 import Prelude
 import Chain.Types as Chain
 import Control.Monad.Gen as Gen
+import Data.Bifunctor (lmap)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Json.JsonMap (JsonMap)
 import Data.Json.JsonUUID (JsonUUID, _JsonUUID)
-import Data.Lens (Getter', Lens', Traversal', to, traversed)
+import Data.Lens (Getter', Traversal', Lens', to, traversed)
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
 import Data.Map (Map)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.NonEmpty ((:|))
 import Data.Symbol (SProxy(..))
+import Data.Tuple.Nested (type (/\))
 import Data.UUID as UUID
+import Foreign (MultipleErrors)
 import Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint, EndpointDescription)
 import Language.Plutus.Contract.Resumable (Request)
 import Ledger.Index (UtxoIndex)
 import Ledger.Tx (Tx)
 import Ledger.TxId (TxId)
 import Network.RemoteData (RemoteData)
+import Network.StreamData (StreamData)
+import Network.StreamData as Stream
 import Playground.Types (FunctionSchema)
+import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Events.Contract (ContractInstanceId, ContractInstanceState, ContractSCBRequest, PartiallyDecodedResponse, _ContractInstanceState, _UserEndpointRequest)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, FullReport, _ChainReport, _ContractReport, _ContractSignatureResponse)
+import Plutus.SCB.Webserver.Types (ChainReport, ContractReport, ContractSignatureResponse, StreamToClient, StreamToServer, _ChainReport, _ContractReport, _ContractSignatureResponse)
 import Schema (FormSchema)
 import Schema.Types (FormArgument, FormEvent)
 import Servant.PureScript.Ajax (AjaxError)
 import Test.QuickCheck (class Arbitrary)
 import Wallet.Rollup.Types (AnnotatedTx)
+import Web.Socket.Event.CloseEvent (CloseEvent, reason) as WS
+import WebSocket.Support (FromSocket) as WS
 
 data Query a
+  = ReceiveWebSocketMessage (WS.FromSocket StreamToClient) a
+
+data Output
+  = SendWebSocketMessage StreamToServer
+
+data StreamError
+  = DecodingError MultipleErrors
+  | ServerError String
+  | TransportError AjaxError
+
+type WebStreamData
+  = StreamData StreamError
 
 type WebData
   = RemoteData AjaxError
+
+fromWebData :: forall a. WebData a -> WebStreamData a
+fromWebData = Stream.fromRemoteData <<< lmap TransportError
 
 data HAction
   = Init
@@ -45,12 +69,33 @@ data HAction
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
   | InvokeContractEndpoint ContractInstanceId EndpointForm
 
+type ContractStates
+  = Map ContractInstanceId (WebStreamData (ContractInstanceState ContractExe /\ Array EndpointForm))
+
+type ContractSignatures
+  = Array (ContractSignatureResponse ContractExe)
+
+data WebSocketStatus
+  = WebSocketOpen
+  | WebSocketClosed (Maybe WS.CloseEvent)
+
+derive instance genericWebSocketStatus :: Generic WebSocketStatus _
+
+instance showWebSocketStatus :: Show WebSocketStatus where
+  show WebSocketOpen = "WebSocketOpen"
+  show (WebSocketClosed Nothing) = "WebSocketClosed"
+  show (WebSocketClosed (Just closeEvent)) = "WebSocketClosed " <> WS.reason closeEvent
+
 newtype State
   = State
   { currentView :: View
-  , fullReport :: WebData (FullReport ContractExe)
+  , contractSignatures :: WebStreamData ContractSignatures
+  , chainReport :: WebData (ChainReport ContractExe)
+  , events :: WebData (Array (ChainEvent ContractExe))
   , chainState :: Chain.State
-  , contractSignatures :: Map ContractInstanceId (WebData (Array EndpointForm))
+  , contractStates :: ContractStates
+  , webSocketMessage :: WebStreamData StreamToClient
+  , webSocketStatus :: WebSocketStatus
   }
 
 type EndpointForm
@@ -65,26 +110,35 @@ derive instance genericState :: Generic State _
 _currentView :: Lens' State View
 _currentView = _Newtype <<< prop (SProxy :: SProxy "currentView")
 
-_fullReport :: Lens' State (WebData (FullReport ContractExe))
-_fullReport = _Newtype <<< prop (SProxy :: SProxy "fullReport")
+_contractSignatures :: forall s r a. Newtype s { contractSignatures :: a | r } => Lens' s a
+_contractSignatures = _Newtype <<< prop (SProxy :: SProxy "contractSignatures")
 
-_contractReport :: forall t. Lens' (FullReport t) (ContractReport t)
-_contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
-
-_chainReport :: forall t. Lens' (FullReport t) (ChainReport t)
+_chainReport :: forall s r a. Newtype s { chainReport :: a | r } => Lens' s a
 _chainReport = _Newtype <<< prop (SProxy :: SProxy "chainReport")
+
+_events :: forall s r a. Newtype s { events :: a | r } => Lens' s a
+_events = _Newtype <<< prop (SProxy :: SProxy "events")
 
 _chainState :: Lens' State Chain.State
 _chainState = _Newtype <<< prop (SProxy :: SProxy "chainState")
 
-_contractSignatures :: Lens' State (Map ContractInstanceId (WebData (Array EndpointForm)))
-_contractSignatures = _Newtype <<< prop (SProxy :: SProxy "contractSignatures")
+_contractStates :: Lens' State ContractStates
+_contractStates = _Newtype <<< prop (SProxy :: SProxy "contractStates")
 
 _annotatedBlockchain :: forall t. Lens' (ChainReport t) (Array (Array AnnotatedTx))
 _annotatedBlockchain = _ChainReport <<< prop (SProxy :: SProxy "annotatedBlockchain")
 
 _transactionMap :: forall t. Lens' (ChainReport t) (JsonMap TxId Tx)
 _transactionMap = _ChainReport <<< prop (SProxy :: SProxy "transactionMap")
+
+_webSocketMessage :: forall s a r. Newtype s { webSocketMessage :: a | r } => Lens' s a
+_webSocketMessage = _Newtype <<< prop (SProxy :: SProxy "webSocketMessage")
+
+_webSocketStatus :: forall s a r. Newtype s { webSocketStatus :: a | r } => Lens' s a
+_webSocketStatus = _Newtype <<< prop (SProxy :: SProxy "webSocketStatus")
+
+_contractReport :: forall s a r. Newtype s { contractReport :: a | r } => Lens' s a
+_contractReport = _Newtype <<< prop (SProxy :: SProxy "contractReport")
 
 _utxoIndex :: forall t. Lens' (ChainReport t) UtxoIndex
 _utxoIndex = _ChainReport <<< prop (SProxy :: SProxy "utxoIndex")
@@ -97,9 +151,6 @@ _crActiveContractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveCo
 
 _csrDefinition :: forall t. Lens' (ContractSignatureResponse t) t
 _csrDefinition = _ContractSignatureResponse <<< prop (SProxy :: SProxy "csrDefinition")
-
-_contractStates :: forall t. Lens' (ContractReport t) (Array (ContractInstanceState t))
-_contractStates = _ContractReport <<< prop (SProxy :: SProxy "crActiveContractStates")
 
 _csContract :: forall t. Lens' (ContractInstanceState t) ContractInstanceId
 _csContract = _Newtype <<< prop (SProxy :: SProxy "csContract")

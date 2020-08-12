@@ -3,16 +3,16 @@ module Reachability (startReachabilityAnalysis, updateWithResponse) where
 import Data.Function (flip)
 import Data.List (List(..), concatMap, foldl, fromFoldable, length, reverse, snoc, toUnfoldable)
 import Data.Tuple.Nested (type (/\), (/\))
-import Foreign.Generic (encode, encodeJSON)
-import Global.Unsafe (unsafeStringify)
+import Foreign.Generic (encodeJSON)
 import Halogen (HalogenM)
 import Halogen as H
 import Marlowe.Semantics (AccountId, Case(..), Contract(..), Observation(..), Payee, Timeout, Token, Value, ValueId)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result(..))
 import Network.RemoteData (RemoteData(..))
-import Prelude (Unit, bind, discard, map, pure, unit, ($), (<<<), (+), (/=))
-import Simulation.Types (Action, ChildSlots, ContractPathStep(..), ContractPath, Message(..), ReachabilityAnalysisData(..), State)
+import Prelude (Unit, bind, discard, map, pure, unit, ($), (+), (/=))
+import Simulation.Types (Action, ContractPathStep(..), ContractPath, ReachabilityAnalysisData(..), State)
+import Types (ChildSlots, Message(..))
 import WebSocket (WebSocketRequestMessage(..))
 
 data ContractZipper
@@ -110,9 +110,7 @@ zipperToContractPath :: ContractZipper -> ContractPath
 zipperToContractPath zipper = zipperToContractPathAux zipper Nil
 
 checkContractForReachability :: forall m. String -> String -> HalogenM State Action ChildSlots Message m Unit
-checkContractForReachability contract state = H.raise (WebsocketMessage msgString)
-  where
-  msgString = unsafeStringify <<< encode $ CheckForWarnings (encodeJSON true) contract state
+checkContractForReachability contract state = H.raise $ WebSocketMessage $ CheckForWarnings (encodeJSON true) contract state
 
 expandSubproblem :: ContractZipper -> (ContractPath /\ Contract)
 expandSubproblem z = zipperToContractPath z /\ closeZipperContract z (Assert FalseObs Close)

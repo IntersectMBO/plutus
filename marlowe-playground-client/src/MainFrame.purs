@@ -1,20 +1,17 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Reader (runReaderT)
-import Data.Array (catMaybes)
+import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
-import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (assign, to, use, view, (^.))
-import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
-import Data.String as String
+import Data.Foldable (for_)
+import Data.Json.JsonEither (_JsonEither)
+import Data.Lens (_Right, assign, set, to, use, view, (^.))
+import Data.Lens.Extra (peruse)
+import Data.List.NonEmpty as NEL
+import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
-import Foreign.Class (decode)
-import Foreign.JSON (parseJSON)
-import Halogen (Component, ComponentHTML, liftEffect, query, request)
+import Effect.Class (class MonadEffect)
+import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
@@ -23,44 +20,46 @@ import Halogen.Classes (aCenter, aHorizontal, active, btnSecondary, flexCol, hid
 import Halogen.HTML (ClassName(ClassName), HTML, a, div, h1, header, img, main, nav, p, p_, section, slot, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (alt, class_, classes, href, id_, src, target)
-import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Halogen.Query (HalogenM)
+import Halogen.Query.HalogenM (imapState, mapAction)
 import Halogen.SVG (GradientUnits(..), Translate(..), d, defs, gradientUnits, linearGradient, offset, path, stop, stopColour, svg, transform, x1, x2, y2)
 import Halogen.SVG as SVG
 import HaskellEditor as HaskellEditor
-import Language.Haskell.Interpreter (CompilationError(CompilationError, RawError), InterpreterError(CompilationErrors, TimeoutError), SourceCode(SourceCode), _InterpreterResult)
+import HaskellEditor.Types (_compilationResult)
+import HaskellEditor.Types as HE
+import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
-import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
-import Marlowe as Server
 import Marlowe.Blockly as MB
+import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
-import Monaco (IMarkerData, markerSeverity)
-import Network.RemoteData (RemoteData(..))
-import Network.RemoteData as RemoteData
-import Prelude (Unit, bind, const, discard, eq, flip, identity, mempty, negate, pure, show, unit, void, ($), (<$>), (<<<), (<>))
-import Servant.PureScript.Ajax (AjaxError)
+import Network.RemoteData (RemoteData(..), _Success)
+import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>))
+import Router (Route)
+import Router as Router
+import Routing.Duplex as RD
+import Routing.Duplex as RT
+import Routing.Hash as Routing
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
+import Simulation.Types (_marloweState)
 import Simulation.Types as ST
-import StaticData (bufferLocalStorageKey)
-import StaticData as StaticData
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message(..), View(..), WebData, _activeHaskellDemo, _blocklySlot, _compilationResult, _haskellEditorKeybindings, _haskellEditorSlot, _showBottomPanel, _simulationSlot, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), _blocklySlot, _haskellEditorSlot, _haskellState, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
+import WebSocket.Support as WS
 
 initialState :: FrontendState
 initialState =
   FrontendState
     { view: Simulation
-    , compilationResult: NotAsked
     , blocklyState: Nothing
     , showBottomPanel: true
-    , haskellEditorKeybindings: DefaultBindings
-    , activeHaskellDemo: mempty
+    , haskellState: HE.initialState
+    , simulationState: ST.mkState
     }
 
 ------------------------------------------------------------
@@ -77,27 +76,67 @@ mkMainFrame settings =
         { handleQuery
         , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
         , receive: const Nothing
-        , initialize: Nothing
+        , initialize: Just Init
         , finalize: Nothing
         }
     }
 
+toSimulation ::
+  forall m a.
+  Functor m =>
+  HalogenM ST.State ST.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+toSimulation halogen = do
+  currentState <- get
+  let
+    setState = flip (set _simulationState) currentState
+  let
+    getState = view _simulationState
+  (imapState setState getState <<< mapAction SimulationAction) halogen
+
+toHaskellEditor ::
+  forall m a.
+  Functor m =>
+  HalogenM HE.State HE.Action ChildSlots Message m a -> HalogenM FrontendState HAction ChildSlots Message m a
+toHaskellEditor halogen = do
+  currentState <- get
+  let
+    setState = flip (set _haskellState) currentState
+  let
+    getState = view _haskellState
+  (imapState setState getState <<< mapAction HaskellAction) halogen
+
+handleRoute ::
+  forall m action message.
+  MonadEffect m =>
+  Route -> HalogenM FrontendState action ChildSlots message m Unit
+handleRoute Router.Home = selectView Simulation
+
+handleRoute Router.Simulation = selectView Simulation
+
+handleRoute Router.HaskellEditor = selectView HaskellEditor
+
+handleRoute Router.Blockly = selectView BlocklyEditor
+
+handleRoute Router.Wallets = selectView WalletEmulator
+
 handleQuery ::
   forall m a.
+  Functor m =>
+  MonadEffect m =>
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
-handleQuery (ReceiveWebsocketMessage msg next) = do
-  let
-    msgDecoded =
-      unwrap <<< runExceptT
-        $ do
-            f <- parseJSON msg
-            decode f
-  void
-    $ case msgDecoded of
-        Left err -> query _simulationSlot unit (ST.WebsocketResponse (Failure (show msg)) unit)
-        Right (OtherError err) -> query _simulationSlot unit ((ST.WebsocketResponse $ Failure err) unit)
-        Right (CheckForWarningsResult result) -> query _simulationSlot unit ((ST.WebsocketResponse $ Success result) unit)
+handleQuery (ReceiveWebSocketMessage msg next) = do
+  void <<< toSimulation
+    $ case msg of
+        WS.WebSocketOpen -> pure $ Just unit
+        WS.ReceiveMessage (Left err) -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show err)) unit)
+        WS.ReceiveMessage (Right (OtherError err)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
+        WS.ReceiveMessage (Right (CheckForWarningsResult result)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
+        (WS.WebSocketClosed _) -> pure $ Just unit
+  pure $ Just next
+
+handleQuery (ChangeRoute route next) = do
+  handleRoute route
   pure $ Just next
 
 handleAction ::
@@ -106,149 +145,93 @@ handleAction ::
   SPSettings_ SPParams_ ->
   HAction ->
   HalogenM FrontendState HAction ChildSlots Message m Unit
-handleAction _ (HandleSimulationMessage (ST.BlocklyCodeSet source)) = do
-  void $ query _blocklySlot unit (Blockly.SetCode source unit)
-  assign _view BlocklyEditor
-  void $ query _blocklySlot unit (Blockly.Resize unit)
+handleAction _ Init = do
+  hash <- liftEffect Routing.getHash
+  case (RD.parse Router.route) hash of
+    Right route -> handleRoute route
+    Left _ -> handleRoute Router.Home
 
-handleAction _ (HandleSimulationMessage (ST.WebsocketMessage msg)) = H.raise (WebsocketMessage msg)
-
-handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
-  mContract <- query _simulationSlot unit (request ST.GetCurrentContract)
-  case mContract of
-    Nothing -> pure unit
-    Just contract -> void $ query _walletSlot unit (Wallet.LoadContract contract unit)
-
-handleAction _ (HaskellHandleEditorMessage (Monaco.TextChanged text)) = do
-  liftEffect $ LocalStorage.setItem bufferLocalStorageKey text
-  assign _activeHaskellDemo ""
-
-handleAction _ (HaskellSelectEditorKeyBindings bindings) = do
-  assign _haskellEditorKeybindings bindings
-  void $ query _haskellEditorSlot unit (Monaco.SetKeyBindings bindings unit)
-
-handleAction _ (ChangeView HaskellEditor) = selectHaskellView
-
-handleAction _ (ChangeView Simulation) = selectSimulationView
-
-handleAction _ (ChangeView BlocklyEditor) = do
-  assign _view BlocklyEditor
-  void $ query _blocklySlot unit (Blockly.Resize unit)
-
-handleAction _ (ChangeView WalletEmulator) = selectWalletView
-
-handleAction settings CompileHaskellProgram = do
-  mContents <- query _haskellEditorSlot unit (Monaco.GetText identity)
-  case mContents of
-    Nothing -> pure unit
-    Just contents -> do
-      assign _compilationResult Loading
-      result <- runAjax $ flip runReaderT settings $ (Server.postContractHaskell $ SourceCode contents)
-      assign _compilationResult result
-      -- Update the error display.
+handleAction s (HaskellAction action) = do
+  currentState <- get
+  toHaskellEditor (HaskellEditor.handleAction s action)
+  case action of
+    HE.SendResultToSimulator -> do
+      mContract <-
+        peruse
+          ( _haskellState
+              <<< _compilationResult
+              <<< _Success
+              <<< _JsonEither
+              <<< _Right
+              <<< _InterpreterResult
+              <<< _result
+              <<< _RunResult
+          )
       let
-        markers = case result of
-          Success (JsonEither (Left errors)) -> toMarkers errors
-          _ -> []
-      void $ query _haskellEditorSlot unit (Monaco.SetModelMarkers markers identity)
-
-handleAction _ (LoadHaskellScript key) = do
-  case Map.lookup key StaticData.demoFiles of
-    Nothing -> pure unit
-    Just contents -> do
-      void $ query _haskellEditorSlot unit (Monaco.SetText contents unit)
-      assign _activeHaskellDemo key
-
-handleAction _ SendResultToSimulator = do
-  mContract <- use _compilationResult
-  let
-    contract = case mContract of
-      Success (JsonEither (Right result)) ->
-        let
-          unformatted = view (_InterpreterResult <<< _result <<< _RunResult) result
-        in
-          case parseContract unformatted of
+        contract = case mContract of
+          Just unformatted -> case parseContract unformatted of
             Right pcon -> show $ pretty pcon
             Left _ -> unformatted
-      _ -> ""
-  void $ query _simulationSlot unit (ST.SetEditorText contract unit)
-  void $ query _simulationSlot unit (ST.ResetContract unit)
-  selectSimulationView
-
-handleAction _ SendResultToBlockly = do
-  mContract <- use _compilationResult
-  case mContract of
-    Success (JsonEither (Right result)) -> do
-      let
-        source = view (_InterpreterResult <<< _result <<< _RunResult) result
-      void $ query _blocklySlot unit (Blockly.SetCode source unit)
-      assign _view BlocklyEditor
-      void $ query _blocklySlot unit (Blockly.Resize unit)
+          _ -> ""
+      selectView Simulation
+      void $ toSimulation
+        $ do
+            Simulation.handleAction s (ST.SetEditorText contract)
+            Simulation.handleAction s ST.ResetContract
+    HE.SendResultToBlockly -> selectView BlocklyEditor
     _ -> pure unit
+
+handleAction s (SimulationAction action) = do
+  currentState <- get
+  toSimulation (Simulation.handleAction s action)
+  case action of
+    ST.SetBlocklyCode -> do
+      mSource <- query _marloweEditorSlot unit (Monaco.GetText identity)
+      for_ mSource \source -> void $ query _blocklySlot unit (Blockly.SetCode source unit)
+      selectView BlocklyEditor
+    _ -> pure unit
+
+handleAction _ (HandleWalletMessage Wallet.SendContractToWallet) = do
+  contract <- toSimulation $ Simulation.getCurrentContract
+  void $ query _walletSlot unit (Wallet.LoadContract contract unit)
+
+handleAction _ (ChangeView view) = selectView view
 
 handleAction _ (ShowBottomPanel val) = do
   assign _showBottomPanel val
-  void $ query _haskellEditorSlot unit (Monaco.Resize unit)
   pure unit
 
-handleAction _ (HandleBlocklyMessage Initialized) = pure unit
-
-handleAction _ (HandleBlocklyMessage (CurrentCode code)) = do
-  mHasStarted <- query _simulationSlot unit (ST.HasStarted identity)
-  let
-    hasStarted = fromMaybe false mHasStarted
+handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
+  hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
   if hasStarted then
     void $ query _blocklySlot unit (Blockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
   else do
-    void $ query _simulationSlot unit (ST.SetEditorText code unit)
-    selectSimulationView
+    selectView Simulation
+    void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText code)
 
 ------------------------------------------------------------
-runAjax ::
-  forall m a.
-  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Message m) a ->
-  HalogenM FrontendState HAction ChildSlots Message m (WebData a)
-runAjax action = RemoteData.fromEither <$> runExceptT action
-
-selectSimulationView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectSimulationView = do
-  assign _view (Simulation)
-  void $ query _simulationSlot unit (ST.ResizeEditor unit)
-
-selectHaskellView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectHaskellView = do
-  assign _view (HaskellEditor)
-  void $ query _haskellEditorSlot unit (Monaco.Resize unit)
-  void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
-
-selectWalletView ::
-  forall m.
-  HalogenM FrontendState HAction ChildSlots Message m Unit
-selectWalletView = assign _view WalletEmulator
-
-toMarkers :: InterpreterError -> Array IMarkerData
-toMarkers (TimeoutError _) = []
-
-toMarkers (CompilationErrors errors) = catMaybes (toMarker <$> errors)
-
-toMarker :: CompilationError -> Maybe IMarkerData
-toMarker (RawError _) = Nothing
-
-toMarker (CompilationError { row, column, text }) =
-  Just
-    { severity: markerSeverity "Error"
-    , message: String.joinWith "\\n" text
-    , startLineNumber: row
-    , startColumn: column
-    , endLineNumber: row
-    , endColumn: column
-    , code: mempty
-    , source: mempty
-    }
+selectView ::
+  forall m action message.
+  MonadEffect m =>
+  View -> HalogenM FrontendState action ChildSlots message m Unit
+selectView view = do
+  let
+    route = case view of
+      Simulation -> Router.Simulation
+      HaskellEditor -> Router.HaskellEditor
+      BlocklyEditor -> Router.Blockly
+      WalletEmulator -> Router.Wallets
+  liftEffect $ Routing.setHash (RT.print Router.route route)
+  assign _view view
+  case view of
+    Simulation -> do
+      void $ query _marloweEditorSlot unit (Monaco.Resize unit)
+      void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+    HaskellEditor -> do
+      void $ query _haskellEditorSlot unit (Monaco.Resize unit)
+      void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
+    BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
+    WalletEmulator -> pure unit
 
 render ::
   forall m.
@@ -326,10 +309,10 @@ render settings state =
         , section [ id_ "main-panel" ]
             -- simulation panel
             [ div [ classes ([ hide ] <> isActiveTab state Simulation) ]
-                [ slot _simulationSlot unit (Simulation.mkComponent settings) unit (Just <<< HandleSimulationMessage) ]
+                [ bimap (map SimulationAction) SimulationAction (Simulation.render (state ^. _simulationState)) ]
             -- haskell panel
             , div [ classes ([ hide ] <> isActiveTab state HaskellEditor) ]
-                (HaskellEditor.render state)
+                [ bimap (map HaskellAction) HaskellAction (HaskellEditor.render (state ^. _haskellState)) ]
             -- blockly panel
             , div [ classes ([ hide ] <> isActiveTab state BlocklyEditor) ]
                 [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
@@ -339,13 +322,14 @@ render settings state =
             -- wallet panel
             , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]
                 [ slot _walletSlot unit Wallet.mkComponent unit (Just <<< HandleWalletMessage) ]
-            , bottomPanel
+            -- Haskell Editor bottom panel
+            , bimap (map HaskellAction) HaskellAction bottomPanel
             ]
         ]
     ]
   where
   bottomPanel = case state ^. _view of
-    HaskellEditor -> HaskellEditor.bottomPanel state
+    HaskellEditor -> HaskellEditor.bottomPanel (state ^. _haskellState)
     _ -> text mempty
 
   isActiveTab state' activeView = if state' ^. _view <<< to (eq activeView) then [ active ] else []

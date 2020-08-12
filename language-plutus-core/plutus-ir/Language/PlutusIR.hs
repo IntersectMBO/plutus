@@ -197,7 +197,7 @@ data Term tyname name uni a =
                         | LamAbs a name (Type tyname uni a) (Term tyname name uni a)
                         | Apply a (Term tyname name uni a) (Term tyname name uni a)
                         | Constant a (PLC.Some (PLC.ValueOf uni))
-                        | Builtin a (PLC.Builtin a)
+                        | Builtin a PLC.BuiltinName
                         | TyInst a (Term tyname name uni a) (Type tyname uni a)
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni a)

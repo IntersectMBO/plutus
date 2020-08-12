@@ -9,7 +9,6 @@ import Chain.Types (State, _value)
 import Chain.View (chainView)
 import Chartist (ChartistData, ChartistItem, ChartistOptions, ChartistPoint, toChartistData)
 import Chartist as Chartist
-import Control.Monad.Freer.Log (LogMessage(..))
 import Data.Array as Array
 import Data.Array.Extra (collapse)
 import Data.Int as Int

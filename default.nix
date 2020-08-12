@@ -56,7 +56,7 @@ let
   easyPS = pkgs.callPackage sources.easy-purescript-nix {};
 
 in rec {
-  inherit pkgs localLib iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
+  inherit pkgs sources localLib iohkNix sphinxcontrib-haddock sphinx-markdown-tables;
 
   python = {
     inherit sphinx-markdown-tables sphinxemoji;
@@ -152,6 +152,8 @@ in rec {
     unraveling-recursion = pkgs.callPackage ./papers/unraveling-recursion/default.nix { inherit (agdaPackages) Agda; inherit latex; };
     system-f-in-agda = pkgs.callPackage ./papers/system-f-in-agda/default.nix { inherit (agdaPackages) Agda AgdaStdlib; inherit latex; };
     eutxo = pkgs.callPackage ./papers/eutxo/default.nix { inherit latex; };
+    utxoma = pkgs.callPackage ./papers/utxoma/default.nix { inherit latex; };
+    eutxoma = pkgs.callPackage ./papers/eutxoma/default.nix { inherit latex; };
   };
 
   plutus-playground = pkgs.recurseIntoAttrs (rec {
@@ -318,16 +320,21 @@ in rec {
   };
 
   agdaPackages = rec {
-    # We can use Agda from nixpkgs for the moment, we may need to change this again
-    # if we want to move to a more recent version.
-    Agda = pkgs.haskellPackages.Agda;
-    agda = pkgs.agda;
+    Agda = haskell.extraPackages.Agda.components.exes.agda;
+    agda = pkgs.agda.override {
+      inherit Agda;
+      extension = self: super: {
+        # New Agda needs this to put interface files next to source files. Leaving it like this for now to avoid
+        # writing a new Agda builder - maybe nixpkgs will figure this out for us.
+        buildFlags = super.buildFlags ++ [ "--local-interfaces"];
+      };
+    };
 
     # We also rely on a newer version of the stdlib
-    AgdaStdlib = pkgs.AgdaStdlib.overrideAttrs (oldAttrs: rec {
+    AgdaStdlib = (pkgs.AgdaStdlib.override { inherit agda; }).overrideAttrs (oldAttrs: rec {
       # Need to override the source this way
       name = "agda-stdlib-${version}";
-      version = "1.2";
+      version = "1.3";
       src = sources.agda-stdlib;
       # Marked as broken on darwin in our nixpkgs, but not actually broken,
       # fixed in https://github.com/NixOS/nixpkgs/pull/76485 but we don't have that yet

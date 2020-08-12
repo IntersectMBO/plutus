@@ -319,6 +319,9 @@ floatRight = ClassName "float-right"
 displayFlex :: ClassName
 displayFlex = ClassName "d-flex"
 
+alignItemsCenter :: ClassName
+alignItemsCenter = ClassName "align-items-center"
+
 clearfix :: ClassName
 clearfix = ClassName "clearfix"
 

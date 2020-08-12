@@ -49,7 +49,7 @@
         marlowe = ./marlowe.nix;
         marlowe-playground-server = ./marlowe-playground-server.nix;
         marlowe-actus = ./marlowe-actus.nix;
-        metatheory = ./metatheory.nix;
+        plc-agda = ./plc-agda.nix;
         plutus-ledger = ./plutus-ledger.nix;
         plutus-playground-server = ./plutus-playground-server.nix;
         plutus-book = ./plutus-book.nix;

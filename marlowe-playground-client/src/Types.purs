@@ -1,11 +1,9 @@
 module Types where
 
-import API (RunResult)
-import Analytics (class IsEvent, defaultEvent)
+import Analytics (class IsEvent, defaultEvent, toEvent)
 import Blockly.Types (BlocklyState)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.Json.JsonEither (JsonEither)
 import Data.Lens (Lens', (^.))
 import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.Record (prop)
@@ -17,35 +15,33 @@ import Halogen as H
 import Halogen.Blockly (BlocklyMessage, BlocklyQuery)
 import Halogen.Classes (activeClass)
 import Halogen.HTML (IProp, attr)
-import Halogen.Monaco (KeyBindings)
 import Halogen.Monaco as Monaco
-import Language.Haskell.Interpreter (InterpreterError, InterpreterResult)
+import HaskellEditor.Types as HE
 import Network.RemoteData (RemoteData)
 import Prelude (class Eq, class Show, Unit, eq, show, (<<<), ($))
+import Router (Route)
 import Servant.PureScript.Ajax (AjaxError)
 import Simulation.Types as Simulation
 import Wallet as Wallet
+import WebSocket.Support as WS
+import WebSocket (WebSocketResponseMessage, WebSocketRequestMessage)
 
 ------------------------------------------------------------
 data HQuery a
-  = ReceiveWebsocketMessage String a
+  = ReceiveWebSocketMessage (WS.FromSocket WebSocketResponseMessage) a
+  | ChangeRoute Route a
 
 data Message
-  = WebsocketMessage String
+  = WebSocketMessage WebSocketRequestMessage
 
 data HAction
+  = Init
   -- Haskell Editor
-  = HaskellHandleEditorMessage Monaco.Message
-  | HaskellSelectEditorKeyBindings KeyBindings
+  | HaskellAction HE.Action
+  | SimulationAction Simulation.Action
   | ShowBottomPanel Boolean
   -- haskell actions
-  | CompileHaskellProgram
   | ChangeView View
-  | SendResultToSimulator
-  | SendResultToBlockly
-  | LoadHaskellScript String
-  -- Simulation Actions
-  | HandleSimulationMessage Simulation.Message
   -- blockly
   | HandleBlocklyMessage BlocklyMessage
   -- Wallet Actions
@@ -54,23 +50,19 @@ data HAction
 -- | Here we decide which top-level queries to track as GA events, and
 -- how to classify them.
 instance actionIsEvent :: IsEvent HAction where
-  toEvent (HaskellHandleEditorMessage _) = Just $ defaultEvent "HaskellHandleEditorMessage"
-  toEvent (HaskellSelectEditorKeyBindings _) = Just $ defaultEvent "HaskellSelectEditorKeyBindings"
-  toEvent (HandleSimulationMessage action) = Just $ defaultEvent "HandleSimulationMessage"
+  toEvent Init = Just $ defaultEvent "Init"
+  toEvent (HaskellAction action) = toEvent action
+  toEvent (SimulationAction action) = toEvent action
   toEvent (HandleWalletMessage action) = Just $ defaultEvent "HandleWalletMessage"
-  toEvent CompileHaskellProgram = Just $ defaultEvent "CompileHaskellProgram"
   toEvent (ChangeView view) = Just $ (defaultEvent "View") { label = Just (show view) }
-  toEvent (LoadHaskellScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (HandleBlocklyMessage _) = Just $ (defaultEvent "HandleBlocklyMessage") { category = Just "Blockly" }
   toEvent (ShowBottomPanel _) = Just $ defaultEvent "ShowBottomPanel"
-  toEvent SendResultToSimulator = Just $ defaultEvent "SendResultToSimulator"
-  toEvent SendResultToBlockly = Just $ defaultEvent "SendResultToBlockly"
 
 ------------------------------------------------------------
 type ChildSlots
   = ( haskellEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , blocklySlot :: H.Slot BlocklyQuery BlocklyMessage Unit
-    , simulationSlot :: H.Slot Simulation.Query Simulation.Message Unit
+    , marloweEditorSlot :: H.Slot Monaco.Query Monaco.Message Unit
     , walletSlot :: H.Slot Wallet.Query Wallet.Message Unit
     )
 
@@ -80,8 +72,8 @@ _haskellEditorSlot = SProxy
 _blocklySlot :: SProxy "blocklySlot"
 _blocklySlot = SProxy
 
-_simulationSlot :: SProxy "simulationSlot"
-_simulationSlot = SProxy
+_marloweEditorSlot :: SProxy "marloweEditorSlot"
+_marloweEditorSlot = SProxy
 
 _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
@@ -103,11 +95,10 @@ instance showView :: Show View where
 newtype FrontendState
   = FrontendState
   { view :: View
-  , compilationResult :: WebData (JsonEither InterpreterError (InterpreterResult RunResult))
   , blocklyState :: Maybe BlocklyState
-  , haskellEditorKeybindings :: KeyBindings
-  , activeHaskellDemo :: String
   , showBottomPanel :: Boolean
+  , haskellState :: HE.State
+  , simulationState :: Simulation.State
   }
 
 derive instance newtypeFrontendState :: Newtype FrontendState _
@@ -121,20 +112,17 @@ data MarloweError
 _view :: Lens' FrontendState View
 _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
-_compilationResult :: Lens' FrontendState (WebData (JsonEither InterpreterError (InterpreterResult RunResult)))
-_compilationResult = _Newtype <<< prop (SProxy :: SProxy "compilationResult")
-
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
 
-_haskellEditorKeybindings :: Lens' FrontendState KeyBindings
-_haskellEditorKeybindings = _Newtype <<< prop (SProxy :: SProxy "haskellEditorKeybindings")
-
-_activeHaskellDemo :: Lens' FrontendState String
-_activeHaskellDemo = _Newtype <<< prop (SProxy :: SProxy "activeHaskellDemo")
-
 _showBottomPanel :: Lens' FrontendState Boolean
 _showBottomPanel = _Newtype <<< prop (SProxy :: SProxy "showBottomPanel")
+
+_haskellState :: Lens' FrontendState HE.State
+_haskellState = _Newtype <<< prop (SProxy :: SProxy "haskellState")
+
+_simulationState :: Lens' FrontendState Simulation.State
+_simulationState = _Newtype <<< prop (SProxy :: SProxy "simulationState")
 
 -- editable
 _timestamp ::

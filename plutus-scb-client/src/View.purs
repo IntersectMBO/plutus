@@ -4,32 +4,42 @@ import Bootstrap (col12_, col5_, col7_, container_, row_)
 import Chain.Types as Chain
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
-import Data.Map (Map)
 import Effect.Aff.Class (class MonadAff)
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
-import Halogen.HTML.Properties (class_)
+import Halogen.HTML.Properties (class_, classes)
+import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
-import Plutus.SCB.Events.Contract (ContractInstanceId)
+import Network.StreamData as Stream
+import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Types (ContractExe)
-import Plutus.SCB.Webserver.Types (FullReport(..))
-import Prelude (($), (<$>), (<<<))
-import Types (EndpointForm, HAction(..), State(State), View(..), WebData, _crAvailableContracts, _csrDefinition, _utxoIndex)
+import Plutus.SCB.Webserver.Types (ChainReport)
+import Prelude (($), (<$>), (<<<), (<>))
+import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
 import View.Events (eventsPane, utxoIndexPane)
-import View.Utils (webDataPane)
+import View.Utils (streamErrorPane, webDataPane2, webStreamDataPane)
 
 render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, fullReport, contractSignatures }) =
+render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
         [ mainHeader
         , mainTabBar ChangeView tabs currentView
-        , div_ (webDataPane (fullReportPane currentView chainState contractSignatures) fullReport)
+        , webSocketStatusIcon webSocketStatus
+        , div_
+            $ case webSocketMessage of
+                Stream.Failure error -> [ streamErrorPane error ]
+                _ -> []
+        , div_
+            $ webDataPane2
+                (mainPane currentView contractStates chainState contractSignatures)
+                chainReport
+                events
         ]
     ]
 
@@ -57,39 +67,87 @@ tabs =
     }
   ]
 
-fullReportPane ::
+webSocketStatusIcon :: forall p i. WebSocketStatus -> HTML p i
+webSocketStatusIcon webSocketStatus =
+  div
+    [ classes
+        [ webSocketStatusClass
+        , webSocketStatusClass
+            <> ClassName
+                ( case webSocketStatus of
+                    WebSocketOpen -> "-open"
+                    (WebSocketClosed _) -> "-closed"
+                )
+        ]
+    ]
+    [ icon
+        $ case webSocketStatus of
+            WebSocketOpen -> CheckCircle
+            (WebSocketClosed _) -> ExclamationCircle
+    ]
+  where
+  webSocketStatusClass = ClassName "web-socket-status"
+
+mainPane ::
+  forall p t.
+  View ->
+  ContractStates ->
+  Chain.State ->
+  WebStreamData ContractSignatures ->
+  ChainReport t ->
+  Array (ChainEvent ContractExe) ->
+  HTML p HAction
+mainPane currentView contractStates chainState contractSignatures chainReport events =
+  row_
+    [ activeContractPane currentView contractSignatures contractStates
+    , blockchainPane currentView chainState chainReport
+    , eventLogPane currentView events chainReport
+    ]
+
+activeContractPane ::
   forall p.
   View ->
-  Chain.State ->
-  Map ContractInstanceId (WebData (Array EndpointForm)) ->
-  FullReport ContractExe ->
+  WebStreamData ContractSignatures ->
+  ContractStates ->
   HTML p HAction
-fullReportPane currentView chainState contractSignatures fullReport@(FullReport { events, contractReport, chainReport }) =
-  row_
-    [ viewContainer currentView ActiveContracts
-        [ row_
-            [ col12_ [ contractStatusesPane contractSignatures contractReport ]
-            , col12_
-                [ installedContractsPane
-                    ( toArrayOf
-                        ( _crAvailableContracts
-                            <<< traversed
-                            <<< _csrDefinition
+activeContractPane currentView contractSignatures contractStates =
+  let
+    buttonsDisabled = Stream.isExpected contractSignatures
+  in
+    viewContainer currentView ActiveContracts
+      [ row_
+          [ col12_ [ contractStatusesPane contractStates ]
+          , col12_
+              ( webStreamDataPane
+                  ( installedContractsPane buttonsDisabled
+                      <<< ( toArrayOf
+                            ( traversed
+                                <<< _csrDefinition
+                            )
                         )
-                        contractReport
-                    )
-                ]
-            ]
+                  )
+                  contractSignatures
+              )
+          ]
+      ]
+
+blockchainPane ::
+  forall p t.
+  View ->
+  Chain.State ->
+  ChainReport t -> HTML p HAction
+blockchainPane currentView chainState chainReport =
+  viewContainer currentView Blockchain
+    [ row_
+        [ col12_ [ ChainAction <$> annotatedBlockchainPane chainState chainReport ]
         ]
-    , viewContainer currentView Blockchain
-        [ row_
-            [ col12_ [ ChainAction <$> annotatedBlockchainPane chainState chainReport ]
-            ]
-        ]
-    , viewContainer currentView EventLog
-        [ row_
-            [ col7_ [ eventsPane events ]
-            , col5_ [ utxoIndexPane (view _utxoIndex chainReport) ]
-            ]
+    ]
+
+eventLogPane :: forall p t. View -> Array (ChainEvent ContractExe) -> ChainReport t -> HTML p HAction
+eventLogPane currentView events chainReport =
+  viewContainer currentView EventLog
+    [ row_
+        [ col7_ [ eventsPane events ]
+        , col5_ [ utxoIndexPane (view _utxoIndex chainReport) ]
         ]
     ]
