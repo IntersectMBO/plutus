@@ -13,7 +13,7 @@ open import Agda.Builtin.Nat
 open import Data.Nat
 open import Agda.Builtin.Int
 open import Data.Integer
-import Data.Maybe as M
+--import Data.Maybe as M
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
 open import Data.Fin
@@ -168,27 +168,27 @@ evalPLC CK plc | just nt | just t | just t' | nothing = inj₂ "out of fuel"
 evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
-... | M.just (□ {t = t'''} V)  =
+... | just (□ {t = t'''} V)  =
   inj₁ (prettyPrintTm (extricateScope (extricate t''')))
-... | M.just (◆ _)  = inj₂ "the machine errored"
-... | M.just _  = inj₂ "this shouldn't happen"
-... | M.nothing = inj₂ "out of fuel"
+... | just (◆ _)  = inj₂ "the machine errored"
+... | just _  = inj₂ "this shouldn't happen"
+... | nothing = inj₂ "out of fuel"
 evalPLC TCEKC plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CEKC.stepper 1000000000 (ε ; [] ▻ t'')
-... | M.just (□ (_ ,, _ ,, V ,, ρ))  =
+... | just (□ (_ ,, _ ,, V ,, ρ))  =
   inj₁ (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
-... | M.just (◆ _)  = inj₂ "the machine errored"
-... | M.just _  = inj₂ "did not terminate in allowed steps"
-... | M.nothing = inj₂ "out of fuel"
+... | just (◆ _)  = inj₂ "the machine errored"
+... | just _  = inj₂ "did not terminate in allowed steps"
+... | nothing = inj₂ "out of fuel"
 evalPLC TCEKV plc | just nt | just t | just t' with inferType _ t'
 ... | inj₂ e = inj₂ "typechecking error"
 ... | inj₁ (A ,, t'') with Algorithmic.CEKV.stepper 1000000000 (ε ; [] ▻ t'')
-... | M.just (□ V)  =
+... | just (□ V)  =
   inj₁ (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
-... | M.just (◆ _)  = inj₂ "the machine errored"
-... | M.just _  = inj₂ "did not terminate in allowed steps"
-... | M.nothing = inj₂ "out of fuel"
+... | just (◆ _)  = inj₂ "the machine errored"
+... | just _  = inj₂ "did not terminate in allowed steps"
+... | nothing = inj₂ "out of fuel"
 evalPLC U plc | just nt | just t | just t' with U.run (eraseTm t') 10000000
 evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
   inj₁ (U.ugly t'')

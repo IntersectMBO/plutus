@@ -14,7 +14,7 @@ open import Relation.Binary.PropositionalEquality using (inspect;sym;trans;_≡_
 open import Data.Unit using (tt)
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Empty
-
+open import Utils
 open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
@@ -177,7 +177,6 @@ step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
 open import Data.Nat
-open import Data.Maybe
 
 stepper : ℕ → ∀{T}
   → State T

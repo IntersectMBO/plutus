@@ -11,7 +11,7 @@ import Data.List as L
 open import Data.List.Properties
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Unit using (⊤;tt)
-
+open import Utils
 
 open import Type
 open import Type.BetaNormal
@@ -237,7 +237,6 @@ step (□ C)       = □ C
 step (◆ A)       = ◆ A
 
 open import Data.Nat
-open import Data.Maybe
 
 stepper : ℕ → ∀{T}
   → State T

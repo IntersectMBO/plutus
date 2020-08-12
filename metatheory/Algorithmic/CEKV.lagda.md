@@ -13,7 +13,7 @@ open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Sum
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
-open import Data.Maybe
+open import Utils
 
 open import Type
 open import Type.BetaNormal

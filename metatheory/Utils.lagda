@@ -9,6 +9,10 @@ open import Data.List hiding (map)
 open import Relation.Nullary
 open import Data.Empty
 
+-- we cannot use the standard library's Maybe as it is not set up to
+-- compile the Haskell's Maybe and compile pragmas have to go in the
+-- same module as defintions
+
 data Maybe (A : Set) : Set where
   just : A → Maybe A
   nothing : Maybe A
