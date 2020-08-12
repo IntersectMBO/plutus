@@ -77,17 +77,15 @@ type TermWithMem uni = WithMemory Term uni
 type TypeWithMem uni = Type TyName uni ExMemory
 type KindWithMem = Kind ExMemory
 
-{- [Note: Arities in VBuiltin] The VBuiltin value below contains two
-   copies of the arity (list of TypeArg/TermArg pairs) for the
-   relevant builtin.  The second of these is consumed as the builtin
-   is instantiated and applied to arguments, to check that type and
-   term arguments are interleaved correctly.  The first copy of the
-   arity is left unaltered and only used by dischargeCekValue if we
-   have to convert the frame back into a term (see
-   mkBuiltinApplication).  An alternative would be to look up the full
-   arity in mkBuiltinApplication, but that would require a lot of
-   things monadic (including the PrettyBy instance for CekValue, which
-   is a problem.)
+{- [Note: Arities in VBuiltin] The VBuiltin value below contains two copies of the
+   arity (list of TypeArg/TermArg pairs) for the relevant builtin.  The second
+   of these is consumed as the builtin is instantiated and applied to arguments,
+   to check that type and term arguments are interleaved correctly.  The first
+   copy of the arity is left unaltered and only used by dischargeCekValue if we
+   have to convert the frame back into a term (see mkBuiltinApplication).  An
+   alternative would be to look up the full arity in mkBuiltinApplication, but
+   that would require a lot of things to be monadic (including the PrettyBy
+   instance for CekValue, which is a problem.)
 -}
 
 -- 'Values' for the modified CEK machine.
@@ -137,50 +135,53 @@ instance Pretty CekUserError where
 -- get it back in case of error.
 type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
 
-{- | [Note: errors] Most errors take an optional argument that can be
-   used to report the term causing the error. Our builtin applications
-   take CekValues as arguments, and this constrains the `term` type in
-   the constant application machinery to be equal to `CekValue`.  This
-   (I think) means that our errors can only involve CekValues and not
-   Terms, so in some cases we can't provide any context when an
-   error occurs (eg, if we try to look up a free variable in an
-   environment: there's no CekValue for Var, so we can't report
-   which variable caused the error.
+{- | [Note: errors and CekValues] Most errors take an optional argument that can
+   be used to report the term causing the error. Our builtin applications take
+   CekValues as arguments, and this constrains the `term` type in the constant
+   application machinery to be equal to `CekValue`.  This (I think) means that
+   our errors can only involve CekValues and not Terms, so in some cases we
+   can't provide any context when an error occurs (eg, if we try to look up a
+   free variable in an environment: there's no CekValue for Var, so we can't
+   report which variable caused the error.
 -}
-
 
 makeLenses ''CekEnv
 
-{- | Given a possibly partially applied/instantiated builtin,
-   reconstruct the original application from the type and term
-   arguments we've got so far, using the supplied arity.  This also
-   attempts to handle the case of bad interleavings for use in error
-   messages.  The caller has to add the extra type or term argument
-   that caused the error, then mkBuiltinApp works its way along the
-   arity reconstructing the term.  When it can't find an argument of
-   the appropriate kind it looks for one of the other kind (which
-   should be the one supplied by the user): if it finds one it adds an
-   extra application or instantiation as appropriate to what it's
-   constructed so far and returns the result.  If there are no
-   arguments of either kind left it just returns what it has at that
-   point.  The only circumstances where this is currently called is if
-   (a) the machine is returning a partially applied builtin, or (b) a
-   wrongly interleaved builtin application is being reported in an
-   error.  Note that we don't call this function if a builtin fails
-   for some reason like division by zero; the term is discarded in that
-   case anyway.
--}
+arityOf :: BuiltinName -> CekM uni Arity
+arityOf (StaticBuiltinName name) =
+    pure $ builtinNameArities ! name
+arityOf (DynBuiltinName name) = do
+    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
+    pure $ getArity sch
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 
+{- | Given a possibly partially applied/instantiated builtin, reconstruct the
+   original application from the type and term arguments we've got so far, using
+   the supplied arity.  This also attempts to handle the case of bad
+   interleavings for use in error messages.  The caller has to add the extra
+   type or term argument that caused the error, then mkBuiltinApp works its way
+   along the arity reconstructing the term.  When it can't find an argument of
+   the appropriate kind it looks for one of the other kind (which should be the
+   one supplied by the user): if it finds one it adds an extra application or
+   instantiation as appropriate to what it's constructed so far and returns the
+   result.  If there are no arguments of either kind left it just returns what
+   it has at that point.  The only circumstances where this is currently called
+   is if (a) the machine is returning a partially applied builtin, or (b) a
+   wrongly interleaved builtin application is being reported in an error.  Note
+   that we don't call this function if a builtin fails for some reason like
+   division by zero; the term is discarded in that case anyway (see [Note:
+   Ignoring context in UserEvaluationError] in Exception.hs)
+-}
 mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
 mkBuiltinApplication ex bn arity0 tys0 args0 =
   go arity0 tys0 args0 (Builtin ex bn)
     where go arity tys args term =
               case (arity, args, tys) of
                 ([], [], [])                        -> term   -- We've got to the end and successfully constructed the entire application
-                (TermArg:arity', arg:args', _)      -> go arity' tys args' (Apply ex term arg)  -- got an expected term arg
-                (TermArg:_,      [],       ty:_)    -> TyInst ex term ty                        -- term arg expected, type arg found
-                (TypeArg:arity', _,        ty:tys') -> go arity' tys' args (TyInst ex term ty)  -- got an expected type arg
-                (TypeArg:_,      arg:_,    [])      -> Apply ex term arg                        -- type arg expected, term arg found
+                (TermArg:arity', arg:args', _)      -> go arity' tys args' (Apply ex term arg)  -- got an expected term argument
+                (TermArg:_,      [],       ty:_)    -> TyInst ex term ty                        -- term expected, type found
+                (TypeArg:arity', _,        ty:tys') -> go arity' tys' args (TyInst ex term ty)  -- got an expected type argument
+                (TypeArg:_,      arg:_,    [])      -> Apply ex term arg                        -- type expected, term found
                 _                                   -> term                                     -- something else, including partial application
 
 -- see Note [Scoping].
@@ -242,16 +243,6 @@ instance SpendBudget (CekM uni) (CekValue uni) where
                     throwingWithCause _EvaluationError
                         (UserEvaluationError $ CekOutOfExError resb newBudget)
                         Nothing  -- No value available for error
-
-
-arityOf :: BuiltinName -> CekM uni Arity
-arityOf (StaticBuiltinName name) =
-    pure $ builtinNameArities ! name
-arityOf (DynBuiltinName name) = do
-    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
-    pure $ getArity sch
--- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
-
 
 data Frame uni
     = FrameApplyFun (CekValue uni)                               -- ^ @[V _]@
@@ -372,6 +363,7 @@ computeCek ctx (LamAbs ex name ty body)  = do
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 computeCek ctx c@Constant{} = returnCek ctx (VCon c)
+-- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
 computeCek ctx (Builtin ex bn)        = do
   env <- getEnv
   arity <- arityOf bn
@@ -403,9 +395,9 @@ returnCek [] val = pure $ void $ dischargeCekValue val
 returnCek (FrameTyInstArg ty : ctx) fun = instantiateEvaluate ctx ty fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
-    -- funVarEnv <- getEnv
     withEnv argVarEnv $ computeCek (FrameApplyFun fun : ctx) arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
+-- FIXME: add rule for VBuiltin once it's in the specification.
 returnCek (FrameApplyFun fun : ctx) arg = do
     applyEvaluate ctx fun arg
 -- s , wrap A B _ ◅ V  ↦  s ◅ wrap A B V
@@ -418,6 +410,19 @@ returnCek (FrameUnwrap : ctx) val =
       _              ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just val
 
+{- [Note: accumulating arguments].  The VBuiltin value contains lists of type and
+   term arguments which grow as new arguments are encountered.  In the code
+   below We just add new entries by appending to the end of the list: l ->
+   l++[x].  This doesn't look terrbily good, but we don't expect the lists to
+   ever contain more than three elements, so the cost is unlikely to be high.
+   We could accumulate lists in the normal way and reverse them when required,
+   but this is error-prone and reversal adds an extra cost anyway.  We could
+   also use something like Data.Sequence, but again we incur an extra cost
+   because we have to convert to a normal list when passing the arguments to the
+   constant application machinery.  If we really care we might want to convert
+   the CAM to use sequences instead of lists.
+-}
+
 -- | Instantiate a term with a type and proceed.
 -- In case of 'VTyAbs' just ignore the type; for 'VBuiltin', extend
 -- the type arguments with the type, decrement the argument count,
@@ -429,9 +434,9 @@ instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx
 instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                     -- This should be impossible if we never have zero-arity builtins.
-                     -- We should have found this case in an earlier call to instantiateEvaluate
-                     -- or applyEvaluate and called doApplication
+                     {- This should be impossible if we don't have zero-arity builtins:
+                        we will have found this case in an earlier call to instantiateEvaluate
+                        or applyEvaluate and called applyBuiltinName. -}
       TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
                         where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
       TypeArg:arity' ->
@@ -476,7 +481,7 @@ applyBuiltinName
     -> BuiltinName
     -> [CekValue uni]
     -> CekM uni (Plain Term uni)
-applyBuiltinName ctx bn args val = do
+applyBuiltinName ctx bn args = do
   result <- case bn of
            n@(DynBuiltinName name) -> do
                DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
@@ -487,11 +492,12 @@ applyBuiltinName ctx bn args val = do
     EvaluationSuccess t -> returnCek ctx t
     EvaluationFailure ->
         throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
-        {- NB: we're not reporting any context here.  When UserEvaluationError
-           is invloved, Exception.extractEvaluationResult just throws the cause
-           away, so it doesn't matter if we don't have any context. We could provide
-           applyBuiltinName with sufficient information to reconstruct the application,
-           but that would add a cost for no purpose. -}
+        {- NB: we're not reporting any context here.  When UserEvaluationError is
+           invloved, Exception.extractEvaluationResult just throws the cause
+           away (see [Note: Ignoring context in UserEvaluationError]), so it
+           doesn't matter if we don't have any context. We could provide
+           applyBuiltinName with sufficient information to reconstruct the
+           application, but that would add a cost without adding any benefit. -}
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
