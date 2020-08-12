@@ -13,7 +13,8 @@ in rec {
     # We can't just add more flags, annoyingly, so we have to repeat some of the existing flags.
     # Passing the html output flags gets us the literate output, and still checks the Agda, so this
     # derivation can do double duty.
-    buildFlags = lib.concatStringsSep " " (["--html" "--html-highlight=auto" ] ++ (map (x: "-i " + x) self.includeDirs));
+    buildFlags = ["--html" "--html-highlight=auto" "--local-interfaces"]
+                 ++ (lib.concatMap (x: ["-i " x]) self.includeDirs);
     src = cleanSourceAgda ./.;
 
     everythingFile = "Everything.lagda";
@@ -35,7 +36,8 @@ in rec {
 
     buildDepends = [ AgdaStdlib ];
     # We can't just add more flags, annoyingly, so we have to repeat some of the existing flags
-    buildFlags = lib.concatStringsSep " " (["--compile" "--ghc-dont-call-ghc" ] ++ (map (x: "-i " + x) self.includeDirs));
+    buildFlags = ["--compile" "--ghc-dont-call-ghc" "--local-interfaces"]
+                 ++ (lib.concatMap (x: ["-i " x]) self.includeDirs);
     src = cleanSourceAgda ./.;
 
     everythingFile = "Main.lagda";

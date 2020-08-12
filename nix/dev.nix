@@ -13,8 +13,6 @@ pkgs.recurseIntoAttrs (rec {
     spago = easyPS.spago;
   };
 
-  haskellNixRoots = pkgs.haskell-nix.haskellNixRoots;
-
   scripts = pkgs.recurseIntoAttrs {
     updateMaterialized = haskell.project.stack-nix.passthru.updateMaterialized;
 

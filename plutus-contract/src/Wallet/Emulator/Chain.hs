@@ -162,7 +162,7 @@ validateEm h txn = do
             _ <- S.put idx'
             pure Nothing
 
--- | Adds a block to ChainState
+-- | Adds a block to ChainState, without validation.
 addBlock :: Block -> ChainState -> ChainState
 addBlock blk st =
   st & chainNewestFirst %~ (blk :)

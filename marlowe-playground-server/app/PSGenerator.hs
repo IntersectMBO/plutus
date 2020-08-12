@@ -36,8 +36,8 @@ import           Language.Haskell.Interpreter                     (CompilationEr
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
 import           Language.Marlowe.Pretty                          (pretty)
 import           Language.PureScript.Bridge                       (BridgePart, Language (Haskell), PSType, SumType,
-                                                                   TypeInfo (TypeInfo), buildBridge, mkSumType,
-                                                                   psTypeParameters, typeModule, typeName,
+                                                                   TypeInfo (TypeInfo), buildBridge, genericShow,
+                                                                   mkSumType, psTypeParameters, typeModule, typeName,
                                                                    writePSTypesWith, (^==))
 import           Language.PureScript.Bridge.Builder               (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
@@ -109,7 +109,7 @@ myTypes =
     , mkSumType (Proxy @Warning)
     , mkSumType (Proxy @(InterpreterResult A))
     , mkSumType (Proxy @MSRes.Response)
-    , mkSumType (Proxy @MSRes.Result)
+    , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
     , mkSumType (Proxy @CT.ContractTerms)
     , mkSumType (Proxy @CT.PYTP)
@@ -129,8 +129,8 @@ myTypes =
     , mkSumType (Proxy @CT.Assertion)
     , mkSumType (Proxy @CT.Assertions)
     , mkSumType (Proxy @CT.AssertionContext)
-    , mkSumType (Proxy @WebSocketRequestMessage)
-    , mkSumType (Proxy @WebSocketResponseMessage)
+    , (genericShow <*> mkSumType) (Proxy @WebSocketRequestMessage)
+    , (genericShow <*> mkSumType) (Proxy @WebSocketResponseMessage)
     ]
 
 mySettings :: Settings

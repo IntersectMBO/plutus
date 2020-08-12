@@ -85,6 +85,7 @@
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
           (hsPkgs."typed-protocols" or (errorHandler.buildDepError "typed-protocols"))
           (hsPkgs."typed-protocols-examples" or (errorHandler.buildDepError "typed-protocols-examples"))
+          (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
@@ -95,6 +96,7 @@
           (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
           (hsPkgs."Win32-network" or (errorHandler.buildDepError "Win32-network"))
+          (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
           (hsPkgs."mwc-random" or (errorHandler.buildDepError "mwc-random"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
@@ -127,8 +129,10 @@
           "Cardano/Wallet/Mock"
           "Cardano/Wallet/Server"
           "Cardano/Wallet/Types"
+          "Control/Monad/Freer/Delay"
           "Control/Monad/Freer/Extra/Log"
           "Control/Monad/Freer/Extra/State"
+          "Control/Monad/Freer/WebSocket"
           "Control/Concurrent/Availability"
           "Data/Time/Units/Extra"
           "Plutus/SCB/App"
@@ -146,9 +150,11 @@
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
-          "Plutus/SCB/Webserver/Types"
           "Plutus/SCB/Webserver/API"
+          "Plutus/SCB/Webserver/Handler"
           "Plutus/SCB/Webserver/Server"
+          "Plutus/SCB/Webserver/Types"
+          "Plutus/SCB/Webserver/WebSocket"
           "Plutus/SCB/Events"
           "Plutus/SCB/Events/Contract"
           "Plutus/SCB/Events/Node"
