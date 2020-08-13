@@ -49,12 +49,7 @@ testTyProp :: Int     -- ^ Search depth
            -> TyProp  -- ^ Property to test
            -> IO Integer
 testTyProp depth k typrop = do
-  -- NOTE: Any strategy which attempts fairness will crash the search!
-  --       These strategies evaluate !=> in *parallel*, and hence attempt
-  --       to convert ill-kinded types, but `toType` is partial!
-  -- TODO: This *may* be a bug in the lazy-search library.
-  -- UPDATE: toType is nolonger partial
-  result <- ctrex' O depth (toTyPropG typrop k)
+  result <- ctrex depth (toTyPropG typrop k)
   case result of
     Left  i   -> return i
     Right tyG -> assertFailure (errorMsgTyProp k tyG)
