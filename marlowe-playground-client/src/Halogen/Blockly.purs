@@ -136,7 +136,7 @@ handleAction GetCode = do
 
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap (const "This workspace cannot be converted to code") $ blockToCode block generator
+      code <- except <<< lmap unexpected $ blockToCode block generator
       except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
   case res of
     Left e -> assign _errorMessage $ Just e
@@ -144,7 +144,7 @@ handleAction GetCode = do
       assign _errorMessage Nothing
       raise <<< CurrentCode <<< show <<< pretty $ contract
   where
-  unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
+  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
