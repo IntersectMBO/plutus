@@ -51,6 +51,7 @@ abstractily specifiable. It's an implementation detail.
 
 type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
+-- | NOT the amount of memory it cost to calculate this value.
 type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)

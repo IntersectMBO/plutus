@@ -86,6 +86,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelAddedSizes(..)
     , ModelMultiSizes(..)
     , ModelMinSize(..)
+    , ModelMaxSize(..)
     , ModelSplitConst(..)
     , ModelExpSizes(..)
     , ModelOneArgument(..)
@@ -291,6 +292,13 @@ data ModelMinSize = ModelMinSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
+data ModelMaxSize = ModelMaxSize
+    { modelMaxSizeIntercept :: Double
+    , modelMaxSizeSlope     :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelMaxSize", CamelToSnake)] ModelMaxSize
+
 -- | sX * x^2 + sY * y^2 + I
 data ModelExpSizes = ModelExpSizes
     { modelExpSizesIntercept :: Double
@@ -313,6 +321,7 @@ data ModelTwoArguments =
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
     | ModelTwoArgumentsMultiSizes ModelMultiSizes
     | ModelTwoArgumentsMinSize ModelMinSize
+    | ModelTwoArgumentsMaxSize ModelMaxSize
     | ModelTwoArgumentsExpMultiSizes ModelExpSizes
     | ModelTwoArgumentsSplitConstMulti ModelSplitConst
     deriving (Show, Eq, Generic, Lift, NFData)
@@ -338,6 +347,9 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (min size1 size2)) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (fromInteger (max size1 size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsExpMultiSizes (ModelExpSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (((fromInteger size1) ** 2) * slopeX) + (((fromInteger size2) ** 2) * slopeY) + intercept

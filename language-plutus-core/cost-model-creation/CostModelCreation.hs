@@ -173,22 +173,26 @@ readModelSplitConst model = (pure . uncurry ModelSplitConst) =<< unsafeReadModel
 addInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 addInteger cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) def
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 1
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
 
 subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 subtractInteger cpuModelR = do
   cpuModel <- readModelAddedSizes cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) def
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 1
+  pure $ CostingFun (ModelTwoArgumentsAddedSizes cpuModel) memModel
 
 multiplyInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 multiplyInteger cpuModelR = do
   cpuModel <- readModelMultiSizes cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMultiSizes cpuModel) def
+  let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun (ModelTwoArgumentsMultiSizes cpuModel) memModel
 
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 divideInteger cpuModelR = do
   cpuModel <- readModelSplitConst cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) def
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 0
+  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
 
 quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 quotientInteger = divideInteger
@@ -200,21 +204,24 @@ modInteger = divideInteger
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
+  let memModel = ModelTwoArgumentsConstantCost 1
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanInteger = lessThanInteger
 
 lessThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanEqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
+  let memModel = ModelTwoArgumentsConstantCost 1
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
 greaterThanEqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 greaterThanEqInteger = lessThanEqInteger
 
 eqInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 eqInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) def
+  let memModel = ModelTwoArgumentsConstantCost 1
+  pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
 
 concatenate :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 concatenate _ = pure def
