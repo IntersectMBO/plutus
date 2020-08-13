@@ -13,6 +13,7 @@ walletServerConfig:
 
 nodeServerConfig:
   mscBaseUrl: http://localhost:8082
+  mscSocketPath: ./node-server.sock
   mscSlotLength: 5
   mscRandomTxInterval: 20
   mscBlockReaper:
@@ -25,6 +26,9 @@ nodeServerConfig:
 
 chainIndexConfig:
   ciBaseUrl: http://localhost:8083
+
+requestProcessingConfig:
+  requestProcessingInterval: 1
 
 signingProcessConfig:
   spBaseUrl: http://localhost:8084

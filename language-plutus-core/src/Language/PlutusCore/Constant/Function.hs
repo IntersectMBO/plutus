@@ -7,7 +7,7 @@ module Language.PlutusCore.Constant.Function
     ( typeSchemeToType
     , dynamicBuiltinNameMeaningToType
     , insertDynamicBuiltinNameDefinition
-    , typeOfTypedBuiltinName
+    , typeOfTypedStaticBuiltinName
     ) where
 
 import           Language.PlutusCore.Constant.Typed
@@ -22,14 +22,14 @@ import           GHC.TypeLits
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: UniOf term ~ uni => TypeScheme term as r -> Type TyName uni ()
-typeSchemeToType (TypeSchemeResult pR)          = toTypeAst pR
-typeSchemeToType (TypeSchemeArrow pA schB)      = TyFun () (toTypeAst pA) $ typeSchemeToType schB
-typeSchemeToType (TypeSchemeAllType proxy schK) = case proxy of
+typeSchemeToType (TypeSchemeResult pR)           = toTypeAst pR
+typeSchemeToType (TypeSchemeArrow pA schB)       = TyFun () (toTypeAst pA) $ typeSchemeToType schB
+typeSchemeToType (TypeSchemeAll proxy kind schK) = case proxy of
     (_ :: Proxy '(text, uniq)) ->
         let text = Text.pack $ symbolVal @text Proxy
             uniq = fromIntegral $ natVal @uniq Proxy
             a    = TyName $ Name text $ Unique uniq
-        in TyForall () a (Type ()) $ typeSchemeToType (schK Proxy)
+        in TyForall () a kind $ typeSchemeToType (schK Proxy)
 
 -- | Extract the 'TypeScheme' from a 'DynamicBuiltinNameMeaning' and
 -- convert it to the corresponding 'Type'.
@@ -47,6 +47,6 @@ insertDynamicBuiltinNameDefinition
         DynamicBuiltinNameMeanings $ Map.insert name mean nameMeans
 
 -- | Return the 'Type' of a 'TypedBuiltinName'.
-typeOfTypedBuiltinName
-    :: UniOf term ~ uni => TypedBuiltinName term as r -> Type TyName uni ()
-typeOfTypedBuiltinName (TypedBuiltinName _ scheme) = typeSchemeToType scheme
+typeOfTypedStaticBuiltinName
+    :: UniOf term ~ uni => TypedStaticBuiltinName term as r -> Type TyName uni ()
+typeOfTypedStaticBuiltinName (TypedStaticBuiltinName _ scheme) = typeSchemeToType scheme

@@ -2,7 +2,7 @@
   pkgs ? (import ../lib.nix {}).pkgs,
   latex,
   texlive ? pkgs.texlive,
-  Agda ? pkgs.haskellPackages.Agda
+  agda,
 }:
 
 let
@@ -25,7 +25,7 @@ latex.buildLatex {
     acmart
     bibtex biblatex;
   };
-  buildInputs = [ Agda pkgs.zip ];
+  buildInputs = [ agda pkgs.zip ];
   src = pkgs.lib.sourceFilesBySuffices ./. [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
   preBuild = ''
     for file in *.lagda; do
@@ -39,4 +39,3 @@ latex.buildLatex {
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';
 }
-

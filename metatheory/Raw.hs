@@ -43,7 +43,7 @@ data RTerm = RVar Integer
            | RApp RTerm RTerm
            | RCon RConstant
            | RError RType
-           | RBuiltin BuiltinName
+           | RBuiltin StaticBuiltinName
            | RWrap RType RType RTerm
            | RUnWrap RTerm
   deriving Show
@@ -76,18 +76,17 @@ convC (Some (ValueOf DefaultUniUnit       u)) = RConUnit
 convC (Some (ValueOf DefaultUniBool       b)) = RConBool b
 
 conv :: Term TyDeBruijn DeBruijn DefaultUni a -> RTerm
-conv (Var _ x)                        =
-  RVar (unIndex (dbnIndex x))
-conv (TyAbs _ _ _K t)                 = RTLambda (convK _K) (conv t)
-conv (TyInst _ t _A)                  = RTApp (conv t) (convT _A)
-conv (LamAbs _ _ _A t)                = RLambda (convT _A) (conv t)
-conv (Apply _ t u)                    = RApp (conv t) (conv u)
-conv (Builtin _ (BuiltinName _ b))    = RBuiltin b
-conv (Builtin _ (DynBuiltinName _ b)) = undefined
-conv (Constant _ c)                   = RCon (convC c)
-conv (Unwrap _ t)                     = RUnWrap (conv t)
-conv (IWrap _ ty1 ty2 t)              = RWrap (convT ty1) (convT ty2) (conv t)
-conv (Error _ _A)                     = RError (convT _A)
+conv (Var _ x)                         = RVar (unIndex (dbnIndex x))
+conv (TyAbs _ _ _K t)                  = RTLambda (convK _K) (conv t)
+conv (TyInst _ t _A)                   = RTApp (conv t) (convT _A)
+conv (LamAbs _ _ _A t)                 = RLambda (convT _A) (conv t)
+conv (Apply _ t u)                     = RApp (conv t) (conv u)
+conv (Builtin _ (StaticBuiltinName b)) = RBuiltin b
+conv (Builtin _ (DynBuiltinName b))    = undefined
+conv (Constant _ c)                    = RCon (convC c)
+conv (Unwrap _ t)                      = RUnWrap (conv t)
+conv (IWrap _ ty1 ty2 t)               = RWrap (convT ty1) (convT ty2) (conv t)
+conv (Error _ _A)                      = RError (convT _A)
 
 unconvK :: RKind -> Kind ()
 unconvK RKiStar        = Type ()
@@ -134,6 +133,6 @@ unconv tyi tmi (RLambda ty tm)   = LamAbs () (varTm (tmi+1)) (unconvT tyi ty) (u
 unconv tyi tmi (RApp t u)        = Apply () (unconv tyi tmi t) (unconv tyi tmi u)
 unconv tyi tmi (RCon c)          = Constant () (unconvC c)
 unconv tyi tmi (RError ty)       = Error () (unconvT tyi ty)
-unconv tyi tmi (RBuiltin b)      = Builtin () (BuiltinName () b)
+unconv tyi tmi (RBuiltin b)      = Builtin () (StaticBuiltinName b)
 unconv tyi tmi (RWrap tyA tyB t) = IWrap () (unconvT tyi tyA) (unconvT tyi tyB) (unconv tyi tmi t)
 unconv tyi tmi (RUnWrap t)       = Unwrap () (unconv tyi tmi t)

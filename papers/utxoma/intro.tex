@@ -1,0 +1,48 @@
+\section{Introduction}
+\label{sec:intro}
+
+%We observe that the \UTXO\ ledger rules do not fundamentally depend on the fact that an output locks only a single integral value. Instead, all they require is that locked values follow the algebraic structure of a monoid. We exploit that insight by generalising the notion of locked values to cryptocurrency \emph{bundles.} Furthermore, we extend transactions by a \emph{forge} field, where user-defined tokens can be forged (or minted) and destroyed. That process is controlled by smart contract scripts called \emph{monetary policies.}
+
+
+Distributed ledgers began by tracking just a single asset --- money.
+The goal was to compete with existing currencies, and so they naturally started by focusing on their own currencies --- Bitcoin and its eponymous currency, Ethereum and Ether, and so on.
+This focus was so clear that the systems tended to be identified with their primary currency.
+
+More recently, it has become clear that it is possible and very useful to track other kinds of asset on distributed ledger systems.
+Ethereum has led the innovation in this space, with ERC-20~\cite{erc20} implementing new currencies and ERC-721~\cite{erc721} implementing unique non-fungible tokens.
+
+These have been wildly popular --- variants of ERC-20 are the most used smart contracts on Ethereum by some margin.
+However, they have major shortcomings.
+Notably, custom tokens on Ethereum are not native. This means that tokens do not live in a user's account, and in order to send another user ERC-20 tokens, the sender must interact with the governing smart contract for the currency.
+That is, despite the fact that Ethereum's main purpose is to track ownership of assets and perform transactions, users have been forced to build their own \emph{internal ledger} inside a smart contract.
+
+Other systems have learned from this and have made custom tokens native, such as Stellar, Waves,
+Zilliqa, and more.
+However, these typically rely on some kind of global state, such as a global currency registry, or special global accounts that must be created.
+This is slow, and restricts creative use of custom tokens because of the high overhead in terms of time and money.
+There have also been efforts to introduce native multi-assets into UTXO ledgers~\cite{mcledgers}, a precursor to our work.
+
+We can do better than this through a combination of two ideas.
+Firstly, we generalise the value type that the ledger works with to include \emph{token bundles} that freely and uniformly mix tokens from different custom assets, both fungible and non-fungible.
+Secondly, we avoid any global state by ``eternally'' linking a currency to a governing forging policy via a hash.
+Between them this creates a multi-asset ledger system (which we call \UTXOma) with native, lightweight custom tokens.
+
+Specifically, this paper makes the following contributions:
+%
+\begin{itemize}
+\item We introduce token bundles, represented as finitely-supported functions, as a uniform mechanism to generalise the existing \UTXO\ accounting rules to custom assets including fungible, non-fungible, and mixed tokens.
+\item We avoid the need for global state in the form of a currency registry by linking custom forging policy scripts by way of their script hash to the name of asset groups.
+\item We support a wide range of standard applications for custom assets without the need for general-purpose smart contracts by defining a simple domain-specific language for forging policy scripts.
+\item We provide a formal definition of the \UTXOma\ ledger rules as a basis to formally reason about the resulting system, along with a mechanised version in Agda.\footnote{\url{\agdaRepo}}
+
+\end{itemize}
+%
+Creating and transferring new assets in the resulting system is lightweight and cheap. It is lightweight as we avoid special setup transactions or registration procedures, and it is cheap as only standard transaction fees are required --- this is unlike the Ethereum gas model, where a script must
+be run each time a custom asset is transferred, which incurs gas costs.
+
+The proposed multi-asset system is not merely a pen and paper exercise. It forms the basis of the multi-asset support for the Cardano blockchain.
+In a related work~\cite{eutxo-ma}, we further modify the native multi-asset ledger
+presented in this paper to an extended UTxO ledger model, which additionally supports
+the use of Plutus (Turing complete smart contract language) to define forging policies.
+This ledger model extension allows the use of stateful smart contracts to define
+state machines for output locking.

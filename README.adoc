@@ -27,16 +27,23 @@ The Haskell libraries in the Plutus Platform can be built in a number of ways. T
 on how you want to build the libraries. The other artifacts (docs etc.) are most easily built with Nix,
 so we recommend installing it regardless.
 
-* https://nixos.org/nix/[Nix] (recommended).
-** Install Nix following the instructions on the https://nixos.org/nix/[Nix website].
-+
+==== Nix
+
+Install https://nixos.org/nix/[Nix] (recommended). following the instructions on the https://nixos.org/nix/[Nix website].
+
 [IMPORTANT]
 ====
 Even if you already have Nix installed, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
 ====
-** See <<nix>> for further advice on using Nix.
-* https://www.haskell.org/cabal/[`cabal`] (if building Haskell packages with `cabal`).
-* https://haskellstack.org/[`stack`] (if building Haskell packages with `stack`).
+See <<nix>> for further advice on using Nix.
+
+==== Non-Nix
+
+If you use Nix, these tools are provided for you via `shell.nix`, and you do *not* need to install them yourself.
+
+* If you want to build our Haskell packages with https://www.haskell.org/cabal/[`cabal`], then install it.
+* If you want to build our Haskell packages with https://haskellstack.org/[`stack`], then install it.
+* If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
 
 === How to get started using the libraries
 
@@ -92,6 +99,8 @@ print out the image name at the end, e.g. `Loaded image: plutus-playgrounds:yn7h
 - https://hydra.iohk.io/job/Cardano/plutus/linux.papers.unraveling-recursion/latest/download-by-type/doc-pdf/unraveling-recursion[Unraveling Recursion] (https://doi.org/10.1007/978-3-030-33636-3_15[published version])
 - https://hydra.iohk.io/job/Cardano/plutus/linux.papers.system-f-in-agda/latest/download-by-type/doc-pdf/paper[System F in Agda] (https://doi.org/10.1007/978-3-030-33636-3_10[published version])
 - https://hydra.iohk.io/job/Cardano/plutus/linux.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model] (in press)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support] (in press)
+- https://hydra.iohk.io/job/Cardano/plutus/linux.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model] (in press)
 
 == Where to go next
 

@@ -40,6 +40,8 @@ data MockServerConfig =
         -- ^ When to discard old blocks
         , mscInitialTxWallets :: [Wallet]
         -- ^ The wallets that receive money from the initial transaction.
+        , mscSocketPath       :: FilePath
+        -- ^ Path to the socket used to communicate with the server.
         }
     deriving (Show, Eq, Generic, FromJSON)
 

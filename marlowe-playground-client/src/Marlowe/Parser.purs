@@ -8,7 +8,7 @@ import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger)
 import Data.BigInteger as BigInteger
 import Data.Either (Either(..))
-import Data.Function.Uncurried (Fn4, runFn4)
+import Data.Function.Uncurried (Fn5, runFn5)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
@@ -16,7 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Unit (Unit, unit)
-import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm)
+import Marlowe.Holes (class FromTerm, AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Range, Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), fromTerm, getRange, mkHole)
 import Marlowe.Semantics (CurrencySymbol, Rational(..), PubKey, Slot(..), SlotInterval(..), TransactionInput(..), TransactionWarning(..), TokenName)
 import Marlowe.Semantics as S
 import Prelude (class Show, bind, const, discard, pure, show, void, zero, ($), (*>), (-), (<$), (<$>), (<*), (<*>), (<<<))
@@ -25,6 +25,111 @@ import Text.Parsing.StringParser.Basic (integral, parens, someWhiteSpace, whiteS
 import Text.Parsing.StringParser.CodeUnits (alphaNum, char, skipSpaces, string)
 import Text.Parsing.StringParser.Combinators (between, choice, sepBy)
 import Type.Proxy (Proxy(..))
+
+type HelperFunctions a
+  = { mkHole :: String -> Range -> Term a
+    , mkTerm :: a -> Range -> Term a
+    , mkTermWrapper :: a -> Range -> TermWrapper a
+    , getRange :: Term a -> Range
+    , mkBigInteger :: Int -> BigInteger
+    , mkTimeout :: Int -> Range -> TermWrapper Slot
+    , mkClose :: Contract
+    , mkPay :: AccountId -> Term Payee -> Term Token -> Term Value -> Term Contract -> Contract
+    , mkWhen :: Array (Term Case) -> (TermWrapper Slot) -> Term Contract -> Contract
+    , mkIf :: Term Observation -> Term Contract -> Term Contract -> Contract
+    , mkLet :: TermWrapper ValueId -> Term Value -> Term Contract -> Contract
+    , mkAssert :: Term Observation -> Term Contract -> Contract
+    , mkCase :: Term Action -> Term Contract -> Case
+    , mkBound :: BigInteger -> BigInteger -> Bound
+    , mkDeposit :: AccountId -> Term Party -> Term Token -> Term Value -> Action
+    , mkChoice :: ChoiceId -> Array (Term Bound) -> Action
+    , mkNotify :: Term Observation -> Action
+    , mkChoiceId :: String -> Term Party -> ChoiceId
+    , mkValueId :: String -> ValueId
+    , mkAccountId :: BigInteger -> Term Party -> AccountId
+    , mkToken :: String -> String -> Token
+    , mkPK :: String -> Party
+    , mkRole :: String -> Party
+    , mkAccount :: AccountId -> Payee
+    , mkParty :: Term Party -> Payee
+    , mkAndObs :: Term Observation -> Term Observation -> Observation
+    , mkOrObs :: Term Observation -> Term Observation -> Observation
+    , mkNotObs :: Term Observation -> Observation
+    , mkChoseSomething :: ChoiceId -> Observation
+    , mkValueGE :: Term Value -> Term Value -> Observation
+    , mkValueGT :: Term Value -> Term Value -> Observation
+    , mkValueLT :: Term Value -> Term Value -> Observation
+    , mkValueLE :: Term Value -> Term Value -> Observation
+    , mkValueEQ :: Term Value -> Term Value -> Observation
+    , mkTrueObs :: Observation
+    , mkFalseObs :: Observation
+    , mkAvailableMoney :: AccountId -> Term Token -> Value
+    , mkConstant :: BigInteger -> Value
+    , mkNegValue :: Term Value -> Value
+    , mkAddValue :: Term Value -> Term Value -> Value
+    , mkSubValue :: Term Value -> Term Value -> Value
+    , mkMulValue :: Term Value -> Term Value -> Value
+    , mkRational :: BigInteger -> BigInteger -> Rational
+    , mkScale :: TermWrapper Rational -> Term Value -> Value
+    , mkChoiceValue :: ChoiceId -> Value
+    , mkSlotIntervalStart :: Value
+    , mkSlotIntervalEnd :: Value
+    , mkUseValue :: TermWrapper ValueId -> Value
+    , mkCond :: Term Observation -> Term Value -> Term Value -> Value
+    }
+
+helperFunctions :: forall a. HelperFunctions a
+helperFunctions =
+  { mkHole: mkHole
+  , mkTerm: Term
+  , mkTermWrapper: TermWrapper
+  , getRange: getRange
+  , mkBigInteger: BigInteger.fromInt
+  , mkTimeout: \v pos -> TermWrapper (Slot (BigInteger.fromInt v)) pos
+  , mkClose: Close
+  , mkPay: Pay
+  , mkWhen: When
+  , mkIf: If
+  , mkAssert: Assert
+  , mkLet: Let
+  , mkCase: Case
+  , mkBound: Bound
+  , mkDeposit: Deposit
+  , mkChoice: Choice
+  , mkNotify: Notify
+  , mkChoiceId: ChoiceId
+  , mkValueId: ValueId
+  , mkAccountId: AccountId
+  , mkToken: Token
+  , mkPK: PK
+  , mkRole: Role
+  , mkAccount: Account
+  , mkParty: Party
+  , mkAndObs: AndObs
+  , mkOrObs: OrObs
+  , mkNotObs: NotObs
+  , mkChoseSomething: ChoseSomething
+  , mkValueGE: ValueGE
+  , mkValueGT: ValueGT
+  , mkValueLT: ValueLT
+  , mkValueLE: ValueLE
+  , mkValueEQ: ValueEQ
+  , mkTrueObs: TrueObs
+  , mkFalseObs: FalseObs
+  , mkAvailableMoney: AvailableMoney
+  , mkConstant: Constant
+  , mkNegValue: NegValue
+  , mkAddValue: AddValue
+  , mkSubValue: SubValue
+  , mkMulValue: MulValue
+  , mkRational: Rational
+  , mkScale: Scale
+  , mkChoiceValue: ChoiceValue
+  , mkSlotIntervalStart: SlotIntervalStart
+  , mkSlotIntervalEnd: SlotIntervalEnd
+  , mkUseValue: UseValue
+  , mkCond: Cond
+  }
 
 data ContractParseError
   = EmptyInput
@@ -36,15 +141,17 @@ instance showContractParseError :: Show ContractParseError where
   show e = genericShow e
 
 foreign import parse_ ::
-  Fn4
+  forall a.
+  Fn5
     (Either ContractParseError (Term Contract))
     ({ message :: String, row :: Int, column :: Int, token :: String } -> Either ContractParseError (Term Contract))
     (Term Contract -> Either ContractParseError (Term Contract))
+    (HelperFunctions a)
     String
     (Either ContractParseError (Term Contract))
 
 parseContract :: String -> Either ContractParseError (Term Contract)
-parseContract = runFn4 parse_ (Left EmptyInput) (Left <<< ContractParseError) Right
+parseContract = runFn5 parse_ (Left EmptyInput) (Left <<< ContractParseError) Right helperFunctions
 
 parse :: forall a. Parser a -> String -> Either String a
 parse p = lmap show <<< runParser (parens p <|> p)

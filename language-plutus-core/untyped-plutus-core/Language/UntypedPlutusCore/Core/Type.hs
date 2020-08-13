@@ -26,7 +26,7 @@ import           Language.PlutusCore.Universe
 -- serve exactly this purpose.
 data Term name uni ann
     = Constant ann (Some (ValueOf uni))
-    | Builtin ann (TPLC.Builtin ann)
+    | Builtin ann TPLC.BuiltinName
     | Var ann name
     | LamAbs ann name (Term name uni ann)
     | Apply ann (Term name uni ann) (Term name uni ann)

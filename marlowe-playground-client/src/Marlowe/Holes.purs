@@ -4,7 +4,6 @@ import Prelude
 import Data.Array (foldMap)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
-import Data.BigInteger as BigInteger
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding)
 import Data.Foldable (intercalate)
 import Data.Function (on)
@@ -25,7 +24,7 @@ import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Marlowe.Semantics (PubKey, Rational(..), Slot(..), TokenName)
+import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
 import Text.Extra as Text
@@ -374,9 +373,6 @@ instance termWrapperHasContractData :: HasContractData a => HasContractData (Ter
 
 mkDefaultTermWrapper :: forall a. a -> TermWrapper a
 mkDefaultTermWrapper a = TermWrapper a zero
-
-mkTimeout :: Int -> Range -> TermWrapper Slot
-mkTimeout v pos = TermWrapper (Slot (BigInteger.fromInt v)) pos
 
 -- special case
 instance fromTermRational :: FromTerm Rational Rational where

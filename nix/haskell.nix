@@ -5,13 +5,14 @@
 , stdenv
 , pkgs
 , haskell-nix
+, agdaPackages
 , buildPackages
-, metatheory
 , checkMaterialization
 }:
 
 let
   r-packages = with pkgs.rPackages; [pkgs.R tidyverse dplyr stringr MASS];
+  agdaWithStdlib = agdaPackages.agda.withPackages [ agdaPackages.standard-library ];
   project = haskell-nix.stackProject' {
     # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../.; in haskell-nix.haskellLib.cleanSourceWith {
@@ -78,8 +79,11 @@ let
             # FIXME: Somehow this is broken even with setting the path up as above
             plc-agda.components.tests.test2-plc-agda.doCheck = false;
 
-            # plc-agda is compiled from the Haskell source files generated from the Agda
-            plc-agda.src = "${metatheory.plutus-metatheory-compiled}/share/agda";
+            # plc-agda needs agda with the stdlib around for the custom setup
+            # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
+            plc-agda.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
+            plc-agda.components.tests.test-plc-agda.build-tools = [ agdaWithStdlib ];
+            plc-agda.components.tests.test2-plc-agda.build-tools = [ agdaWithStdlib ];
 
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;

@@ -3858,11 +3858,11 @@
       };
     }
     {
-      name = "nearley_webpack_loader___nearley_webpack_loader_0.0.2.tgz";
+      name = "https___github.com_shmish111_nearley_webpack_loader_archive_master.tar.gz";
       path = fetchurl {
-        name = "nearley_webpack_loader___nearley_webpack_loader_0.0.2.tgz";
-        url  = "https://registry.yarnpkg.com/nearley-webpack-loader/-/nearley-webpack-loader-0.0.2.tgz";
-        sha1 = "7d7f2f758e6f3d510a5c3f7a0980514263770c83";
+        name = "https___github.com_shmish111_nearley_webpack_loader_archive_master.tar.gz";
+        url  = "https://github.com/shmish111/nearley-webpack-loader/archive/master.tar.gz";
+        sha1 = "f7e80853852229971ae0ded75cdae2a078908529";
       };
     }
     {

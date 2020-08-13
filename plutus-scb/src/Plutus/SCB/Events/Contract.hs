@@ -15,6 +15,7 @@ module Plutus.SCB.Events.Contract(
   , ContractHandlersResponse(..)
   , ContractResponse(..)
   , PartiallyDecodedResponse(..)
+  , hasActiveRequests
   , ContractInstanceState(..)
   -- * Prisms
   -- ** ContractRequest
@@ -221,3 +222,6 @@ instance Pretty t => Pretty (ContractEvent t) where
 makePrisms ''ContractSCBRequest
 makePrisms ''ContractResponse
 makePrisms ''ContractEvent
+
+hasActiveRequests :: ContractInstanceState t -> Bool
+hasActiveRequests = not . null . hooks . csCurrentState

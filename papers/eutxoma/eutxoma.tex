@@ -1,0 +1,347 @@
+%
+% ISoLA 2020
+%
+% http://isola-conference.org/isola2020/
+%
+% 31 May 2020     Paper Submission
+% 29 June 2020    Reports and Notification
+% 02 August 2020  Final Versions
+%
+% Conference: Rhodes, October 26th - October 30th 2020
+%
+% "The expected length is around 15 pages with some flexibility in case of need."
+%
+
+% There doesn't appear to be any anonymity requirement
+
+\documentclass[runningheads]{llncs}
+\usepackage{lineno}
+%\linenumbers
+
+% correct bad hyphenation here
+\hyphenation{}
+
+%\usepackage{natbib}
+\usepackage{url}
+
+% *** MATHS PACKAGES ***
+%
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+%% \usepackage{amsthm}
+\usepackage{proof}
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+\usepackage{array}
+\usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
+\usepackage{subcaption}
+\usepackage{caption}
+
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{verbatim}
+\usepackage{alltt}
+\usepackage{paralist}
+
+\usepackage{todonotes}
+%\usepackage[disable]{todonotes}
+
+% This has to go at the end of the packages.
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum]{hyperref}
+
+\newcommand\ifootnote[1]{(#1)}
+%% ^ inline footnote
+
+\newcommand\site[1]{\footnote{\url{#1}}}
+%% ^ footnote URL
+
+% Tikz
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,matrix,fit,decorations.text}
+
+% Stuff for splitting figures over page breaks
+%\DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
+%\captionsetup[ContinuedFloat]{labelformat=continued}
+
+% *** MACROS ***
+
+\newcommand{\todochak}[1]{\todo[inline,color=purple!40,author=chak]{#1}}
+\newcommand{\todompj}[1]{\todo[inline,color=yellow!40,author=Michael]{#1}}
+\newcommand{\todokwxm}[1]{\todo[inline,color=blue!20,author=kwxm]{#1}}
+\newcommand{\todojm}[1]{\todo[inline,color=purple!40,author=Jann]{#1}}
+\newcommand{\todor}[1]{\todo[inline,color=red!40,author=Orestis]{#1}}
+\newcommand{\todojmc}[1]{\todo[inline,color=green!40,author=James]{#1}}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
+
+%% A version of ^{\prime} for use in text mode
+\makeatletter
+\DeclareTextCommand{\textprime}{\encodingdefault}{%
+  \mbox{$\m@th'\kern-\scriptspace$}%
+}
+\makeatother
+
+\renewcommand{\i}{\textit}  % Just to speed up typing: replace these in the final version
+\renewcommand{\t}{\texttt}  % Just to speed up typing: replace these in the final version
+\newcommand{\s}{\textsf}  % Just to speed up typing: replace these in the final version
+\newcommand{\msf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\mi}[1]{\ensuremath{\mathit{#1}}}
+
+%% A figure with rules above and below.
+\newcommand\rfskip{7pt}
+%\newenvironment{ruledfigure}[1]{\begin{figure}[#1]\hrule\vspace{\rfskip}}{\vspace{\rfskip}\hrule\end{figure}}
+\newenvironment{ruledfigure}[1]{\begin{figure}[#1]}{\end{figure}}
+
+%% Various text macros
+\newcommand{\true}{\ensuremath{\mathsf{true}}} % \textsf becomes slanted in math mode
+\newcommand{\false}{\ensuremath{\textsf{false}}}
+
+\newcommand{\hash}[1]{\ensuremath{#1^{\#}}}
+
+\newcommand{\List}[1]{\ensuremath{\s{List}[#1]}}
+\newcommand{\Set}[1]{\ensuremath{\s{Set}[#1]}}
+\newcommand{\FinSet}[1]{\ensuremath{\s{FinSet}[#1]}}
+\newcommand{\Interval}[1]{\ensuremath{\s{Interval}[#1]}}
+\newcommand{\FinSup}[2]{\ensuremath{\s{FinSup}[#1,\linebreak[0]#2]}}
+% ^ \linebreak is to avoid a bad line break when we talk about finite
+% maps.  We may be able to remove it in the final version.
+
+\newcommand{\supp}{\msf{supp}}
+
+\newcommand{\Script}{\ensuremath{\s{Script}}}
+\newcommand{\scriptAddr}{\msf{scriptAddr}}
+\newcommand{\ctx}{\ensuremath{\s{Context}}}
+\newcommand{\vlctx}{\ensuremath{\s{ValidatorContext}}}
+\newcommand{\mpsctx}{\ensuremath{\s{PolicyContext}}}
+\newcommand{\toData}{\ensuremath{\s{toData}}}
+\newcommand{\toTxData}{\ensuremath{\s{toTxData}}}
+\newcommand{\fromData}{\msf{fromData}}
+
+\newcommand{\mkContext}{\ensuremath{\s{mkContext}}}
+\newcommand{\mkVlContext}{\ensuremath{\s{mkValidatorContext}}}
+\newcommand{\mkMpsContext}{\ensuremath{\s{mkPolicyContext}}}
+
+\newcommand{\applyScript}[1]{\ensuremath{\llbracket#1\rrbracket}}
+\newcommand{\applyMPScript}[1]{\ensuremath{\llbracket#1\rrbracket}}
+
+% Macros for eutxo things.
+\newcommand{\tx}{\mi{tx}}
+\newcommand{\TxId}{\ensuremath{\s{TxId}}}
+\newcommand{\txId}{\msf{txId}}
+\newcommand{\txrefid}{\mi{id}}
+\newcommand{\Address}{\ensuremath{\s{Address}}}
+\newcommand{\DataHash}{\ensuremath{\s{DataHash}}}
+\newcommand{\hashData}{\msf{dataHash}}
+\newcommand{\idx}{\mi{index}}
+\newcommand{\inputs}{\mi{inputs}}
+\newcommand{\outputs}{\mi{outputs}}
+\newcommand{\forge}{\mi{forge}}
+\newcommand{\forgeScripts}{\mi{forgeScripts}}
+\newcommand{\sigs}{\mi{sigs}}
+\newcommand{\fee}{\mi{fee}}
+\newcommand{\addr}{\mi{addr}}
+\newcommand{\val}{\mi{value}}  %% \value is already defined
+
+\newcommand{\validator}{\mi{validator}}
+\newcommand{\redeemer}{\mi{redeemer}}
+\newcommand{\datum}{\mi{datum}}
+\newcommand{\datumHash}{\mi{datumHash}}
+\newcommand{\datumWits}{\mi{datumWitnesses}}
+\newcommand{\Data}{\ensuremath{\s{Data}}}
+\newcommand{\Input}{\ensuremath{\s{Input}}}
+\newcommand{\Output}{\ensuremath{\s{Output}}}
+\newcommand{\OutputRef}{\ensuremath{\s{OutputRef}}}
+\newcommand{\Signature}{\ensuremath{\s{Signature}}}
+\newcommand{\Ledger}{\ensuremath{\s{Ledger}}}
+
+\newcommand{\outputref}{\mi{outputRef}}
+\newcommand{\outputrefs}{\mi{outputRefs}}
+\newcommand{\txin}{\mi{in}}
+\newcommand{\id}{\mi{id}}
+\newcommand{\lookupTx}{\msf{lookupTx}}
+\newcommand{\getSpent}{\msf{getSpentOutput}}
+
+\newcommand{\Tick}{\ensuremath{\s{Tick}}}
+\newcommand{\currentTick}{\msf{currentTick}}
+\newcommand{\spent}{\msf{spentOutputs}}
+\newcommand{\unspent}{\msf{unspentOutputs}}
+\newcommand{\txunspent}{\msf{unspentTxOutputs}}
+\newcommand{\eutxotx}{\msf{Tx}}
+
+\newcommand{\Quantity}{\ensuremath{\s{Quantity}}}
+\newcommand{\Asset}{\ensuremath{\s{Asset}}}
+\newcommand{\Policy}{\ensuremath{\s{Policy}}}
+\newcommand{\Quantities}{\ensuremath{\s{Quantities}}}
+\newcommand{\nativeCur}{\ensuremath{\mathrm{nativeC}}}
+\newcommand{\nativeTok}{\ensuremath{\mathrm{nativeT}}}
+
+\newcommand\B{\ensuremath{\mathbb{B}}}
+\newcommand\N{\ensuremath{\mathbb{N}}}
+\newcommand\Z{\ensuremath{\mathbb{Z}}}
+\renewcommand\H{\ensuremath{\mathbb{H}}}
+%% \H is usually the Hungarian double acute accent
+\newcommand{\emptyBs}{\ensuremath{\emptyset}}
+
+\newcommand{\emptymap}{\ensuremath{\{\}}}
+
+\newcommand{\outRef}{\mi{out}_{\mi{ref}}}
+\newcommand{\fps}{\mi{fps}}
+\newcommand{\fpss}{\mi{fpss}}
+
+\usepackage{etoolbox}
+
+\newcommand{\Cardano}{Cardano}
+\newcommand{\PlutusCore}{Plutus Core}
+\newcommand{\GitUser}{omelkonian}
+
+% Macros for formalisation
+\newcommand\agdaRepo{https://github.com/omelkonian/formal-utxo/tree/2d32}
+\newcommand\ra{\rightarrow}
+\newcommand\nft{\blacklozenge}
+\newcommand\NF{\s{NonFungible}}
+\newcommand\Trace{\s{Trace}}
+\newcommand\Provenance{\s{Provenance}}
+\newcommand\provenance{\s{provenance}}
+\newcommand\isFinal{\msf{isFinal}}
+\newcommand\step{\msf{step}}
+\newcommand\satisfies{\msf{satisfies}}
+\newcommand\checkOutputs{\msf{checkOutputs}}
+\newcommand\initial{\msf{initial}}
+\newcommand\extract{\msf{extract}}
+
+\newcommand\All{\msf{All}}
+\newcommand\AllS{\msf{All}^\s{S}}
+
+\newcommand\mkValidator[1]{\msf{validator}_#1}
+\newcommand\mkPolicy[1]{\msf{policy}_#1}
+\newcommand\valC{\mkValidator{\mathcal{C}}}
+\newcommand\polC{\mkPolicy{\mathcal{C}}}
+
+\newcommand\CStepArrow[3]{\ensuremath{
+#1 \xrightarrow{\hspace{5pt} #2 \hspace{5pt}} (#1' , #3)
+}}
+
+\newcommand\txeq{tx^\equiv}
+\newcommand\Sim[2]{\ensuremath{
+#1 \sim #2
+}}
+\newcommand\CStep[1]{\ensuremath{
+ #1 \xrightarrow{\hspace{5pt} i \hspace{5pt}} (#1' , \txeq)
+%%\textsf{step}\, #1\, i \equiv \textsf{just}\, #1'
+}}
+\newcommand\LStep[2]{\ensuremath{
+#1 \xrightarrow{\hspace{5pt} #2 \hspace{5pt}} #1'
+}}
+\newcommand\transTo{\ensuremath{
+    \rightsquigarrow^*
+}}
+\newcommand\transToN{\ensuremath{
+    \rightsquigarrow^{+}
+}}
+
+% multisig
+\newcommand{\msc}{\mathrm{msc}}
+\newcommand{\sig}{\mathit{sig}}
+%\newcommand{\sigs}{\mathit{sigs}}
+\newcommand{\auth}{\mathrm{auth}}
+\newcommand{\Holding}{\msf{Holding}}
+\newcommand{\Collecting}[4]{\msf{Collecting}(#1, #2, #3, #4)}
+\newcommand{\Propose}[3]{\msf{Propose}(#1, #2, #3)}
+\newcommand{\Add}[1]{\msf{Add}(#1)}
+\newcommand{\Cancel}{\msf{Cancel}}
+\newcommand{\Pay}{\msf{Pay}}
+
+% Names, for consistency
+\newcommand{\UTXO}{UTXO}
+\newcommand{\EUTXO}{E\UTXO{}}
+\newcommand{\ExUTXO}{Extended \UTXO{}}
+\newcommand{\CEM}{CEM}
+\newcommand{\UTXOma}{\UTXO$_{\textrm{ma}}$}
+\newcommand{\EUTXOma}{\EUTXO$_{\textrm{ma}}$}
+
+\newcommand{\diffBox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
+
+% relaxed float placement
+\renewcommand{\topfraction}{.95}
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.15}
+\renewcommand{\floatpagefraction}{.66}
+\renewcommand{\dbltopfraction}{.66}
+\renewcommand{\dblfloatpagefraction}{.66}
+\setcounter{topnumber}{9}
+\setcounter{bottomnumber}{9}
+\setcounter{totalnumber}{20}
+\setcounter{dbltopnumber}{9}
+
+%% ------------- Start of document ------------- %%
+
+\begin{document}
+
+\title{Native Custom Tokens in the Extended \UTXO{} Model}
+
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+\author{
+  Manuel M.T. Chakravarty\inst{1}
+  \and
+  James Chapman\inst{1}
+  \and
+  Kenneth MacKenzie\inst{1}
+  \and
+  Orestis Melkonian\inst{1,2}
+  \and
+  Jann M\"uller\inst{1}
+  \and
+  Michael Peyton Jones\inst{1}
+  \and
+  Polina Vinogradova\inst{1}
+  \and
+  Philip Wadler\inst{1,2}
+}
+
+\authorrunning{Chakravarty et al.}
+
+\institute{
+  IOHK,
+  \email{firstname.lastname@iohk.io}
+  \and
+  University of Edinburgh,
+  \email{orestis.melkonian@ed.ac.uk, wadler@inf.ed.ac.uk}
+}
+
+\maketitle
+
+\begin{abstract}
+  \emph{User-defined tokens} ---both fungible ERC-20 and non-fungible ERC-721 tokens--- are central to the majority of contracts deployed on Ethereum. User-defined tokens are \emph{non-native} on Ethereum; i.e., they are not directly supported by the ledger, but require custom code. This makes them unnecessarily inefficient, expensive, and complex.
+
+  The \emph{Extended UTXO Model} (\kern-0.5pt\emph{\EUTXO})~\cite{eutxo-1-paper} has been introduced as a generalisation of Bitcoin-style \UTXO\ ledgers, allowing support of more expressive smart contracts, approaching the functionality available to contracts on Ethereum. Specifically, a bisimulation argument established a formal relationship between the \EUTXO\ ledger and a general form of state machines. Nevertheless, \emph{transaction outputs} in the \EUTXO\ model lock integral quantities of a single native cryptocurrency only, just like Bitcoin.
+
+  In this paper, we study a generalisation of the \EUTXO\ ledger model with \emph{native} user-defined tokens. Following the approach proposed in a companion paper~\cite{plain-multicurrency} for the simpler case of plain Bitcoin-style \UTXO\ ledgers, we generalise transaction outputs to lock not merely coins of a single cryptocurrency, but entire \emph{token bundles,} including custom tokens whose forging is controlled by \emph{forging policy scripts.} We show that this leads to a rich ledger model that supports a broad range of interesting use cases.
+
+  Our main technical contribution is a formalisation of the multi-asset \EUTXO\ ledger in Agda, which we use to establish that the ledger with custom tokens is strictly more expressive than the original \EUTXO\ ledger. In particular, we state and prove a transfer result for inductive and temporal properties from state machines to the multi-asset \EUTXO\ ledger, which was out of scope for the single-currency \EUTXO\ ledger. In practical terms, the resulting system is the basis for the smart contract system of the Cardano blockchain.
+\end{abstract}
+
+\keywords{blockchain \and \UTXO{} \and tokens \and functional
+  programming \and state machines \and bisimulation}
+
+\input{intro.tex}
+\input{informal.tex}
+\input{applications.tex}
+\input{formalisation.tex}
+\input{related-work.tex}
+
+\bibliographystyle{splncs04}
+\bibliography{eutxoma}
+
+\appendix
+\input{appendix.tex}
+
+\end{document}

@@ -9,7 +9,10 @@ You can edit this file as you like.
   , "ace"
   , "aff"
   , "bigints"
+  , "concurrent-queues"
   , "console"
+  , "coroutines"
+  , "aff-coroutines"
   , "debug"
   , "effect"
   , "halogen"
@@ -25,6 +28,7 @@ You can edit this file as you like.
   , "test-unit"
   , "undefinable"
   , "uuid"
+  , "web-socket"
   ]
 , packages = ./packages.dhall
 , sources =

@@ -191,7 +191,7 @@ lookupDynamicBuiltinName dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just term where
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-            term = Builtin (memoryUsage ()) $ DynBuiltinName (memoryUsage ()) dynName
+            term = Builtin (memoryUsage ()) $ DynBuiltinName dynName
         Just mean -> pure mean
 
 -- See Note [Scoping].
@@ -390,7 +390,7 @@ applyEvaluate funVarEnv argVarEnv con fun arg = do
             Nothing                       ->
                 throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
             Just (IterApp headName spine) -> do
-                constAppResult <- applyStagedBuiltinName headName spine
+                constAppResult <- applyBuiltinName headName spine
                 case constAppResult of
                     ConstAppFailure     ->
                         throwingWithCause
@@ -400,17 +400,17 @@ applyEvaluate funVarEnv argVarEnv con fun arg = do
                     ConstAppSuccess res -> computeCek con res
                     ConstAppStuck       -> returnCek con term
 
--- | Apply a 'StagedBuiltinName' to a list of 'Value's.
-applyStagedBuiltinName
+-- | Apply a 'BuiltinName' to a list of 'Value's.
+applyBuiltinName
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => StagedBuiltinName
+    => BuiltinName
     -> [WithMemory Value uni]
     -> CekM uni (ConstAppResult (WithMemory Term uni))
-applyStagedBuiltinName n@(DynamicStagedBuiltinName name) args = do
+applyBuiltinName n@(DynBuiltinName name) args = do
     DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
     applyTypeSchemed n sch x exX args
-applyStagedBuiltinName (StaticStagedBuiltinName name) args =
-    applyBuiltinName name args
+applyBuiltinName (StaticBuiltinName name) args =
+    applyStaticBuiltinName name args
 
 -- | Evaluate a term using the CEK machine and keep track of costing.
 runCek
