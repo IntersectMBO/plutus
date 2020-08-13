@@ -42,6 +42,11 @@ open import Algorithmic.CEKC
 open import Algorithmic.CEKV
 open import Scoped.Erasure
 
+-- There's a long prelude here that could go in a different file but
+-- currently it's only used here
+
+-- Text Stuff
+
 postulate
   putStrLn : String → IO ⊤
 
@@ -49,12 +54,12 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
+-- IO Stuff
+
 postulate
   returnIO : ∀ {a} {A : Set a} → A → IO A
   _>>=IO_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
-
-{-# COMPILE GHC returnIO = \_ _ -> return    #-}
-{-# COMPILE GHC _>>=IO_  = \_ _ _ _ -> (>>=) #-}
+  imap : ∀{A B : Set} → (A → B) → IO A → IO B
 
 instance
   IOMonad : Monad IO
@@ -63,9 +68,44 @@ instance
 _>>_  : {A : Set} {B : Set} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
+{-# COMPILE GHC returnIO = \_ _ -> return    #-}
+{-# COMPILE GHC _>>=IO_  = \_ _ _ _ -> (>>=) #-}
+{-# COMPILE GHC imap = \_ _ -> fmap #-}
+
+-- Bytestring stuff
+
 postulate
-  imap : ∀{A B : Set} → (A → B) → IO A → IO B
-  mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
+  getContents : IO ByteString
+  readFile : String → IO ByteString
+
+{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
+{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
+{-# COMPILE GHC getContents = BSL.getContents #-}
+
+-- System.Exit stuff
+
+postulate
+  exitFailure : IO ⊤
+  exitSuccess : IO ⊤
+
+{-# FOREIGN GHC import System.Exit #-}
+{-# COMPILE GHC exitSuccess = exitSuccess #-}
+{-# COMPILE GHC exitFailure = exitFailure #-}
+
+-- System.Environment stuff
+
+postulate
+  getArgs : IO (List String)
+
+{-# FOREIGN GHC import System.Environment #-}
+{-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
+
+-- Misc stuff
+
+{-# FOREIGN GHC import Data.Either #-}
+{-# FOREIGN GHC import Control.Monad.Trans.Except #-}
+
+postulate
   TermN : Set
   Term : Set
   TypeN : Set
@@ -76,14 +116,10 @@ postulate
   convTy : Type → RawTy
   unconvTy : RawTy → Type
   convP : Program → RawTm
-  readFile : String → IO ByteString
   parse : ByteString → Maybe ProgramN
   parseTm : ByteString → Maybe TermN
   parseTy : ByteString → Maybe TypeN
   showTerm : RawTm → String
-  getContents : IO ByteString
-  exitFailure : IO ⊤
-  exitSuccess : IO ⊤
   deBruijnify : ProgramN → Maybe Program
   deBruijnifyTm : TermN → Maybe Term
   deBruijnifyTy : TypeN → Maybe Type
@@ -93,21 +129,11 @@ postulate
 {-# FOREIGN GHC import Language.PlutusCore.Parser #-}
 {-# FOREIGN GHC import Language.PlutusCore.Pretty #-}
 {-# FOREIGN GHC import Language.PlutusCore.DeBruijn #-}
-{-# FOREIGN GHC import Data.Either #-}
-{-# FOREIGN GHC import System.Exit #-}
-{-# COMPILE GHC exitSuccess = exitSuccess #-}
-{-# COMPILE GHC exitFailure = exitFailure #-}
-{-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 {-# FOREIGN GHC import Raw #-}
 {-# COMPILE GHC convP = convP #-}
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT (-1) ty) #-}
-{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
-{-# COMPILE GHC getContents = BSL.getContents #-}
-{-# COMPILE GHC imap = \_ _ -> fmap #-}
-{-# COMPILE GHC mmap = \_ _ -> fmap #-}
-{-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
 {-# COMPILE GHC parseTy = either (\_ -> Nothing) Just . parseTy  #-}
@@ -121,18 +147,12 @@ postulate
 {-# COMPILE GHC Term = type Language.PlutusCore.Term TyDeBruijn DeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC TypeN = type Language.PlutusCore.Type TyName DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
-{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
 
 mapper : {A B : Set} → (A → B) → Maybe A → Maybe B
 mapper f nothing = nothing
 mapper f (just a) = just (f a)
-
-{-
-utestPLC : ByteString → Maybe String
-utestPLC plc = mmap (U.ugly ∘ (λ (t : 0 ⊢) → proj₁ (U.run t 100)) ∘ eraseTm) (mbind {! deBruijnifyTm!} {! mmap convP (parse plc)!})
--}
 
 postulate
   prettyPrintTm : RawTm → String
@@ -238,6 +258,7 @@ alphaTm plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
 alphaTm plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTm as alphaTm #-}
+
 printTy : ByteString → String
 printTy b with parseTy b
 ... | nothing = "parseTy error"
@@ -255,12 +276,6 @@ alphaTy plc1 plc2 | just plc1' | just plc2' | _ | _ = Bool.false
 alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
-
-{-# FOREIGN GHC import System.Environment #-}
-
-postulate getArgs : IO (List String)
-
-{-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
 
 {-# FOREIGN GHC import Opts #-}
 
