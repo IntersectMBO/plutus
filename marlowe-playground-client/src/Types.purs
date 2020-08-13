@@ -86,7 +86,6 @@ _simulationSlot = SProxy
 _marloweEditorSlot :: SProxy "marloweEditorSlot"
 _marloweEditorSlot = SProxy
 
-
 _walletSlot :: SProxy "walletSlot"
 _walletSlot = SProxy
 
@@ -128,7 +127,6 @@ _view = _Newtype <<< prop (SProxy :: SProxy "view")
 
 _blocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _blocklyState = _Newtype <<< prop (SProxy :: SProxy "blocklyState")
-
 
 _actusBlocklyState :: Lens' FrontendState (Maybe BlocklyState)
 _actusBlocklyState = _Newtype <<< prop (SProxy :: SProxy "actusBlocklyState")

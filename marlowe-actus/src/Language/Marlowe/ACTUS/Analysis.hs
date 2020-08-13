@@ -1,23 +1,23 @@
 {-# LANGUAGE RecordWildCards #-}
 module Language.Marlowe.ACTUS.Analysis(genProjectedCashflows, genZeroRiskAssertions) where
 
-import           Data.Time                                               (Day, fromGregorian)
-import qualified Data.List                                               as L (scanl, tail, zip)
-import           Data.Maybe                                              (fromMaybe)
-import           Data.Sort                                               (sortOn)   
+import qualified Data.List                                             as L (scanl, tail, zip)
+import           Data.Maybe                                            (fromMaybe)
+import           Data.Sort                                             (sortOn)
+import           Data.Time                                             (Day, fromGregorian)
 
-import           Language.Marlowe                                        (Contract(Assert), Value(..), Observation(..))
-import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..), RiskFactors (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(..), Assertion(..))
-import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..), ShiftedDay (..),
-                                                                          calculationDay, paymentDay)
-import           Language.Marlowe.ACTUS.MarloweCompat                    (constnt, useval)
-import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization   (inititializeState)
-import           Language.Marlowe.ACTUS.Model.POF.Payoff                 (payoff)
-import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule     (schedule)
-import           Language.Marlowe.ACTUS.Model.STF.StateTransition        (stateTransition)
-import           Language.Marlowe.ACTUS.Ops                       (ActusNum (..), YearFractionOps (_y))
-import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
+import           Language.Marlowe                                      (Contract (Assert), Observation (..), Value (..))
+import           Language.Marlowe.ACTUS.Definitions.BusinessEvents     (EventType (..), RiskFactors (..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms      (Assertion (..), ContractTerms (..))
+import           Language.Marlowe.ACTUS.Definitions.Schedule           (CashFlow (..), ShiftedDay (..), calculationDay,
+                                                                        paymentDay)
+import           Language.Marlowe.ACTUS.MarloweCompat                  (constnt, useval)
+import           Language.Marlowe.ACTUS.Model.INIT.StateInitialization (inititializeState)
+import           Language.Marlowe.ACTUS.Model.POF.Payoff               (payoff)
+import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule   (schedule)
+import           Language.Marlowe.ACTUS.Model.STF.StateTransition      (stateTransition)
+import           Language.Marlowe.ACTUS.Ops                            (ActusNum (..), YearFractionOps (_y))
+import           Prelude                                               hiding (Fractional, Num, (*), (+), (-), (/))
 
 genProjectedCashflows :: ContractTerms -> [CashFlow]
 genProjectedCashflows terms =
@@ -59,7 +59,7 @@ genProjectedCashflows terms =
         sortOn cashPaymentDay $ genCashflow <$> L.zip states payoffs
 
 genZeroRiskAssertions :: ContractTerms -> Assertion -> Contract -> Contract
-genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue = 
+genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..} continue =
     let
         cfs = genProjectedCashflows terms
 
@@ -69,7 +69,7 @@ genZeroRiskAssertions terms@ContractTerms{..} NpvAssertionAgainstZeroRiskBond{..
         dateToDiscountFactor dt =  (1 - zeroRiskInterest) ** (dateToYearFraction dt)
 
         accumulateAndDiscount :: (Value Observation) -> (CashFlow, Integer) ->  (Value Observation)
-        accumulateAndDiscount acc (cf, t) = 
+        accumulateAndDiscount acc (cf, t) =
             let discountFactor = dateToDiscountFactor $ cashCalculationDay cf
                 sign x = if (amount cf < 0.0) then (NegValue x) else x
             in (constnt discountFactor) * (sign $ useval "payoff" t) + acc

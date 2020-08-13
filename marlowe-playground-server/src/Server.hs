@@ -37,6 +37,7 @@ import           Language.Haskell.Interpreter                     (InterpreterEr
 import           Language.Marlowe                                 (Contract)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
+import           Language.Marlowe.Pretty
 import           Marlowe.Contracts                                (escrow)
 import qualified Marlowe.Symbolic.Types.API                       as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
@@ -55,7 +56,6 @@ import           WebSocket                                        (Registry, Web
                                                                    initializeConnection, insertIntoRegistry, isWaiting,
                                                                    lookupInRegistry, newRegistry, runWithConnection,
                                                                    startWaiting)
-import           Language.Marlowe.Pretty                       
 
 acceptSourceCode :: SourceCode -> Handler (Either InterpreterError (InterpreterResult RunResult))
 acceptSourceCode sourceCode = do

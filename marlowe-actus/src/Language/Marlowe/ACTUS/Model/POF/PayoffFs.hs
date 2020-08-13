@@ -9,8 +9,9 @@ import           Language.Marlowe.ACTUS.Definitions.ContractTerms  (ContractTerm
 import           Language.Marlowe.ACTUS.MarloweCompat              (constnt, enum, useval)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffModel      (_POF_FP_PAM, _POF_IED_PAM, _POF_IP_PAM, _POF_MD_PAM,
                                                                     _POF_PP_PAM, _POF_PRD_PAM, _POF_PY_PAM, _POF_TD_PAM)
-import           Language.Marlowe.ACTUS.Ops                        (YearFractionOps (_y), ActusNum(..), marloweFixedPoint)
-import           Prelude                                          hiding (Fractional, Num, (*), (+), (-), (/))
+import           Language.Marlowe.ACTUS.Ops                        (ActusNum (..), YearFractionOps (_y),
+                                                                    marloweFixedPoint)
+import           Prelude                                           hiding (Fractional, Num, (*), (+), (-), (/))
 
 payoffFs :: EventType -> ContractTerms -> Integer -> Integer -> Day -> Day -> Maybe (Value Observation)
 payoffFs ev ContractTerms{..} t t_minus prevDate curDate =

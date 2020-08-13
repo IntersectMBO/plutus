@@ -1,7 +1,6 @@
 module Halogen.ActusBlockly where
 
 import Data.Json.JsonEither
-
 import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
@@ -52,7 +51,9 @@ data BlocklyQuery a
   = Resize a
   | SetError String a
 
-data ContractFlavour = FS | F
+data ContractFlavour
+  = FS
+  | F
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)
@@ -86,10 +87,9 @@ handleQuery (Resize next) = do
   case mState of
     Just state ->
       pure
-        $ ST.run
-            do
-                workspaceRef <- STRef.new state.workspace
-                Blockly.resize state.blockly workspaceRef
+        $ ST.run do
+            workspaceRef <- STRef.new state.workspace
+            Blockly.resize state.blockly workspaceRef
     Nothing -> pure unit
   pure $ Just next
 
@@ -121,6 +121,7 @@ handleAction (GetTerms flavour) = do
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       let
         workspace = blocklyState.workspace
+
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
       except <<< lmap (\x -> "This workspace cannot be converted to code: " <> (show x)) $ blockToCode block generator

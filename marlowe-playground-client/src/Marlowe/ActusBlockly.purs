@@ -2,7 +2,6 @@ module Marlowe.ActusBlockly where
 
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
 import Prelude
-
 import Affjax.RequestBody (RequestBody(..))
 import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
 import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
@@ -57,7 +56,6 @@ import Type.Proxy (Proxy(..))
 rootBlockName :: String
 rootBlockName = "root_contract"
 
-
 data ActusContractType
   = PaymentAtMaturity
 
@@ -88,14 +86,12 @@ instance boundedEnumActusContractType :: BoundedEnum ActusContractType where
 actusContractTypes :: Array ActusContractType
 actusContractTypes = upFromIncluding bottom
 
-
-data ActusValueType =
-  ActusDate
+data ActusValueType
+  = ActusDate
   | ActusCycleType
   | ActusDecimalType
   | ActusAssertionContextType
   | ActusAssertionType
-
 
 derive instance actusActusValueType :: Generic ActusValueType _
 
@@ -124,12 +120,11 @@ instance boundedEnumActusValueType :: BoundedEnum ActusValueType where
 actusValueTypes :: Array ActusValueType
 actusValueTypes = upFromIncluding bottom
 
-data ActusPeriodType =
-  PeriodDayType
+data ActusPeriodType
+  = PeriodDayType
   | PeriodMonthType
   | PeriodQuarterType
   | PeriodYearType
-
 
 derive instance actusActusPeriodType :: Generic ActusPeriodType _
 
@@ -143,7 +138,6 @@ instance enumActusPeriodType :: Enum ActusPeriodType where
   succ = genericSucc
   pred = genericPred
 
-
 instance boundedActusPeriodType :: Bounded ActusPeriodType where
   bottom = genericBottom
   top = genericTop
@@ -153,13 +147,13 @@ instance boundedEnumActusPeriodType :: BoundedEnum ActusPeriodType where
   toEnum = genericToEnum
   fromEnum = genericFromEnum
 
-instance showActusPeriod :: Show ActusPeriodType  where
+instance showActusPeriod :: Show ActusPeriodType where
   show = encodeJSON
 
-instance encodeJsonActusPeriod  :: Encode ActusPeriodType  where
+instance encodeJsonActusPeriod :: Encode ActusPeriodType where
   encode a = genericEncode aesonCompatibleOptions a
 
-instance decodeJsonActusPeriod  :: Decode ActusPeriodType  where
+instance decodeJsonActusPeriod :: Decode ActusPeriodType where
   decode a = genericDecode aesonCompatibleOptions a
 
 actusPeriodTypes :: Array ActusPeriodType
@@ -240,23 +234,24 @@ toDefinition BaseContractType =
         }
         defaultBlockDefinition
 
-toDefinition (ActusContractType PaymentAtMaturity) = 
+toDefinition (ActusContractType PaymentAtMaturity) =
   BlockDefinition
     $ merge
         { type: show PaymentAtMaturity
-        , message0: "Principal At Maturity %1" <> 
-            "start date * %2" <> 
-            "maturity date * %3" <>
-            "notional * %4" <>
-            "premium/discount %5" <>
-            "interest rate %6" <>
-            "purchase date %7" <>
-            "initial exchange date %8" <>
-            "termination date %9" <>
-            "rate reset cycle %10" <>
-            "interest payment cycle %11" <>
-            "observation constraints %12" <>
-            "payoff analysis constraints %13"
+        , message0:
+          "Principal At Maturity %1"
+            <> "start date * %2"
+            <> "maturity date * %3"
+            <> "notional * %4"
+            <> "premium/discount %5"
+            <> "interest rate %6"
+            <> "purchase date %7"
+            <> "initial exchange date %8"
+            <> "termination date %9"
+            <> "rate reset cycle %10"
+            <> "interest payment cycle %11"
+            <> "observation constraints %12"
+            <> "payoff analysis constraints %13"
         , args0:
           [ DummyCentre
           , Value { name: "start_date", check: "date", align: Right }
@@ -278,16 +273,15 @@ toDefinition (ActusContractType PaymentAtMaturity) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusValueType ActusDate) = 
+toDefinition (ActusValueType ActusDate) =
   BlockDefinition
     $ merge
         { type: show ActusDate
         , message0: "year %1 month %2 day %3"
         , args0:
-          [             
-            Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Just 0.0 }
-            , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
-            , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
+          [ Number { name: "yyyy", value: 2020.0, min: Just 1900.0, max: Just 9999.0, precision: Just 0.0 }
+          , Number { name: "mm", value: 10.0, min: Just 1.0, max: Just 12.0, precision: Just 0.0 }
+          , Number { name: "dd", value: 1.0, min: Just 1.0, max: Just 31.0, precision: Just 0.0 }
           ]
         , colour: blockColour (ActusValueType ActusDate)
         , output: Just "date"
@@ -295,7 +289,7 @@ toDefinition (ActusValueType ActusDate) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusValueType ActusCycleType) = 
+toDefinition (ActusValueType ActusCycleType) =
   BlockDefinition
     $ merge
         { type: show ActusCycleType
@@ -311,7 +305,7 @@ toDefinition (ActusValueType ActusCycleType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusValueType ActusDecimalType) = 
+toDefinition (ActusValueType ActusDecimalType) =
   BlockDefinition
     $ merge
         { type: show ActusDecimalType
@@ -325,14 +319,13 @@ toDefinition (ActusValueType ActusDecimalType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusValueType ActusAssertionContextType) = 
+toDefinition (ActusValueType ActusAssertionContextType) =
   BlockDefinition
     $ merge
         { type: show ActusAssertionContextType
         , message0: "min interest rate %1, max interest rate %2"
         , args0:
-          [ 
-          Input { name: "min_rrmo", text: "0", spellcheck: false }
+          [ Input { name: "min_rrmo", text: "0", spellcheck: false }
           , Input { name: "max_rrmo", text: "1000", spellcheck: false }
           ]
         , colour: blockColour (ActusValueType ActusAssertionContextType)
@@ -341,14 +334,13 @@ toDefinition (ActusValueType ActusAssertionContextType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusValueType ActusAssertionType) = 
+toDefinition (ActusValueType ActusAssertionType) =
   BlockDefinition
     $ merge
         { type: show ActusAssertionType
         , message0: "net present value is more than %1 against zero-risk bond with rate %2"
         , args0:
-          [ 
-          Input { name: "npv", text: "0", spellcheck: false }
+          [ Input { name: "npv", text: "0", spellcheck: false }
           , Input { name: "rate", text: "0", spellcheck: false }
           ]
         , colour: blockColour (ActusValueType ActusAssertionType)
@@ -357,21 +349,20 @@ toDefinition (ActusValueType ActusAssertionType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusPeriodType PeriodDayType) = 
+toDefinition (ActusPeriodType PeriodDayType) =
   BlockDefinition
     $ merge
         { type: show PeriodDayType
         , message0: "Days"
         , args0:
-          [ 
-          ]
+          []
         , colour: blockColour (ActusPeriodType PeriodDayType)
         , inputsInline: Just true
         , output: Just "period"
         }
         defaultBlockDefinition
 
-toDefinition (ActusPeriodType PeriodMonthType) = 
+toDefinition (ActusPeriodType PeriodMonthType) =
   BlockDefinition
     $ merge
         { type: show PeriodMonthType
@@ -383,7 +374,7 @@ toDefinition (ActusPeriodType PeriodMonthType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusPeriodType PeriodQuarterType) = 
+toDefinition (ActusPeriodType PeriodQuarterType) =
   BlockDefinition
     $ merge
         { type: show PeriodQuarterType
@@ -395,7 +386,7 @@ toDefinition (ActusPeriodType PeriodQuarterType) =
         }
         defaultBlockDefinition
 
-toDefinition (ActusPeriodType PeriodYearType) = 
+toDefinition (ActusPeriodType PeriodYearType) =
   BlockDefinition
     $ merge
         { type: show PeriodYearType
@@ -447,14 +438,14 @@ class HasBlockDefinition a b | a -> b where
   blockDefinition :: a -> Generator -> Block -> Either String b
 
 baseContractDefinition :: Generator -> Block -> Either String ActusContract
-baseContractDefinition g block = 
-  do 
-    code <- statementToCode g block (show BaseContractType)
-    json <- catch $ runExcept $ parseJSON code
-    catch $ runExcept (decode json :: F ActusContract)
+baseContractDefinition g block = do
+  code <- statementToCode g block (show BaseContractType)
+  json <- catch $ runExcept $ parseJSON code
+  catch $ runExcept (decode json :: F ActusContract)
 
-newtype ActusContract = ActusContract {
-  startDate :: ActusValue
+newtype ActusContract
+  = ActusContract
+  { startDate :: ActusValue
   , initialExchangeDate :: ActusValue
   , maturityDate :: ActusValue
   , terminationDate :: ActusValue
@@ -468,7 +459,7 @@ newtype ActusContract = ActusContract {
   , interestRateCycle :: ActusValue
   , assertionCtx :: ActusValue
   , assertion :: ActusValue
-}
+  }
 
 derive instance actusContract :: Generic ActusContract _
 
@@ -483,8 +474,9 @@ instance encodeJsonActusContract :: Encode ActusContract where
 instance decodeJsonActusContract :: Decode ActusContract where
   decode a = genericDecode aesonCompatibleOptions a
 
-data ActusValue = DateValue String String String 
-  | CycleValue ActusValue Int ActusPeriodType 
+data ActusValue
+  = DateValue String String String
+  | CycleValue ActusValue Int ActusPeriodType
   | DecimalValue Number
   | ActusAssertionCtx Number Number
   | ActusAssertionNpv Number Number
@@ -506,72 +498,82 @@ catch :: forall a b. Show a => Either a b -> Either String b
 catch = lmap show
 
 parseFieldActusValueJson :: Generator -> Block -> String -> ActusValue
-parseFieldActusValueJson g block name = 
-  Either.either (const NoActusValue) identity result 
-    where 
-      result = do
-        value <- statementToCode g block name
-        parsed <- catch $ runExcept $ parseJSON value
-        let decoded = decode parsed :: F ActusValue
-        catch $ runExcept $ decoded
+parseFieldActusValueJson g block name = Either.either (const NoActusValue) identity result
+  where
+  result = do
+    value <- statementToCode g block name
+    parsed <- catch $ runExcept $ parseJSON value
+    let
+      decoded = decode parsed :: F ActusValue
+    catch $ runExcept $ decoded
 
 parseFieldActusPeriodJson :: Generator -> Block -> String -> Maybe ActusPeriodType
-parseFieldActusPeriodJson g block name = 
-  Either.hush result 
-    where 
-      result = do
-        value <- statementToCode g block name
-        parsed <- catch $ runExcept $ parseJSON value
-        let decoded = decode parsed :: F ActusPeriodType
-        catch $ runExcept $ decoded
+parseFieldActusPeriodJson g block name = Either.hush result
+  where
+  result = do
+    value <- statementToCode g block name
+    parsed <- catch $ runExcept $ parseJSON value
+    let
+      decoded = decode parsed :: F ActusPeriodType
+    catch $ runExcept $ decoded
 
 parseActusJsonCode :: String -> Either String ContractTerms
 parseActusJsonCode str = do
   parsed <- catch $ runExcept $ parseJSON str
-  let decoded = decode parsed :: F ActusContract
-  result <- catch $ runExcept $ decoded 
+  let
+    decoded = decode parsed :: F ActusContract
+  result <- catch $ runExcept $ decoded
   actusContractToTerms result
 
 instance hasBlockDefinitionActusContract :: HasBlockDefinition ActusContractType ActusContract where
-  blockDefinition _ g block = Either.Right $ ActusContract {
-    startDate : parseFieldActusValueJson g block "start_date"
-    , initialExchangeDate : parseFieldActusValueJson g block "initial_exchange_date"
-    , maturityDate : parseFieldActusValueJson g block "maturity_date"
-    , terminationDate : parseFieldActusValueJson g block "termination_date"
-    , purchaseDate : parseFieldActusValueJson g block "purchase_date"
-    , dayCountConvention : parseFieldActusValueJson g block "day_count_convention"
-    , endOfMonthConvention : parseFieldActusValueJson g block "end_of_month_convention"
-    , rateReset : parseFieldActusValueJson g block "rate_reset_cycle"
-    , notional : parseFieldActusValueJson g block "notional"
-    , premiumDiscount : parseFieldActusValueJson g block "premium_discount"
-    , interestRate : parseFieldActusValueJson g block "interest_rate"
-    , interestRateCycle : parseFieldActusValueJson g block "interest_rate_cycle"
-    , assertionCtx : parseFieldActusValueJson g block "interest_rate_ctr"
-    , assertion : parseFieldActusValueJson g block "payoff_ctr"  
-  }
-  
+  blockDefinition _ g block =
+    Either.Right
+      $ ActusContract
+          { startDate: parseFieldActusValueJson g block "start_date"
+          , initialExchangeDate: parseFieldActusValueJson g block "initial_exchange_date"
+          , maturityDate: parseFieldActusValueJson g block "maturity_date"
+          , terminationDate: parseFieldActusValueJson g block "termination_date"
+          , purchaseDate: parseFieldActusValueJson g block "purchase_date"
+          , dayCountConvention: parseFieldActusValueJson g block "day_count_convention"
+          , endOfMonthConvention: parseFieldActusValueJson g block "end_of_month_convention"
+          , rateReset: parseFieldActusValueJson g block "rate_reset_cycle"
+          , notional: parseFieldActusValueJson g block "notional"
+          , premiumDiscount: parseFieldActusValueJson g block "premium_discount"
+          , interestRate: parseFieldActusValueJson g block "interest_rate"
+          , interestRateCycle: parseFieldActusValueJson g block "interest_rate_cycle"
+          , assertionCtx: parseFieldActusValueJson g block "interest_rate_ctr"
+          , assertion: parseFieldActusValueJson g block "payoff_ctr"
+          }
+
 instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue where
-  blockDefinition ActusDate g block = do 
+  blockDefinition ActusDate g block = do
     yyyy <- getFieldValue block "yyyy"
     m <- getFieldValue block "mm"
     d <- getFieldValue block "dd"
     year <- Either.note ("can't parse integer: " <> yyyy) $ fromString yyyy
     month <- Either.note ("can't parse integer: " <> m) $ fromString m
     day <- Either.note ("can't parse integer: " <> d) $ fromString d
-    safeYear <- Either.note  "wrong year" $ toEnum year
+    safeYear <- Either.note "wrong year" $ toEnum year
     safeMonth <- Either.note "wrong month" $ toEnum month
-    safeDay <- Either.note  "wrong day" $ toEnum day
-    let mm = if month < 10 then "0" <> m else m
-    let dd = if day < 10 then "0" <> d else d
-    let date = exactDate safeYear safeMonth safeDay
-    pure $ if isJust date 
-      then DateValue yyyy mm dd 
-      else ActusError $ "Incorrect date: " <> yyyy <> "-" <> mm <> "-" <> dd
-  blockDefinition ActusCycleType g block = do 
+    safeDay <- Either.note "wrong day" $ toEnum day
+    let
+      mm = if month < 10 then "0" <> m else m
+    let
+      dd = if day < 10 then "0" <> d else d
+    let
+      date = exactDate safeYear safeMonth safeDay
+    pure
+      $ if isJust date then
+          DateValue yyyy mm dd
+        else
+          ActusError $ "Incorrect date: " <> yyyy <> "-" <> mm <> "-" <> dd
+  blockDefinition ActusCycleType g block = do
     valueString <- getFieldValue block "value"
     value <- fromMaybe (Either.Left "can't parse int") $ Either.Right <$> fromString valueString
-    let anchor = parseFieldActusValueJson g block "anchor"
-    let period = parseFieldActusPeriodJson g block "period"
+    let
+      anchor = parseFieldActusValueJson g block "anchor"
+    let
+      period = parseFieldActusPeriodJson g block "period"
     pure $ fromMaybe NoActusValue $ CycleValue anchor value <$> period --todo validation: return value if date is invalid
   blockDefinition ActusDecimalType g block = do
     valueString <- getFieldValue block "value"
@@ -596,57 +598,83 @@ instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPer
 
 actusDateToDay :: ActusValue -> Either String (Maybe String)
 actusDateToDay (DateValue yyyy mm dd) = Either.Right $ Just $ yyyy <> "-" <> mm <> "-" <> dd --should be validated in a parser
+
 actusDateToDay (ActusError msg) = Either.Left msg
+
 actusDateToDay NoActusValue = Either.Right Nothing
+
 actusDateToDay x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 actusDecimalToNumber :: ActusValue -> Either String (Maybe Number)
 actusDecimalToNumber (DecimalValue n) = Either.Right $ Just $ n
+
 actusDecimalToNumber (ActusError msg) = Either.Left msg
+
 actusDecimalToNumber NoActusValue = Either.Right Nothing
-actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x 
+
+actusDecimalToNumber x = Either.Left $ "Unexpected: " <> show x
 
 blocklyCycleToCycle :: ActusValue -> Either String (Maybe Cycle)
-blocklyCycleToCycle (CycleValue _ value period) = Either.Right $ Just $ Cycle {
-  n: value 
-  , p: case period of
-     PeriodYearType -> P_Y
-     PeriodDayType -> P_D
-     PeriodMonthType -> P_M
-     PeriodQuarterType -> P_Q
-  , stub: ShortStub
-}
+blocklyCycleToCycle (CycleValue _ value period) =
+  Either.Right $ Just
+    $ Cycle
+        { n: value
+        , p:
+          case period of
+            PeriodYearType -> P_Y
+            PeriodDayType -> P_D
+            PeriodMonthType -> P_M
+            PeriodQuarterType -> P_Q
+        , stub: ShortStub
+        }
+
 blocklyCycleToCycle (ActusError msg) = Either.Left msg
+
 blocklyCycleToCycle NoActusValue = Either.Right Nothing
+
 blocklyCycleToCycle x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 blocklyAssertionCtxToAssertionCtx :: ActusValue -> Either String (Maybe AssertionContext)
-blocklyAssertionCtxToAssertionCtx (ActusAssertionCtx min max) = Either.Right $ Just $ AssertionContext {
-  rrmoMin: min
-  , rrmoMax: max
-}
+blocklyAssertionCtxToAssertionCtx (ActusAssertionCtx min max) =
+  Either.Right $ Just
+    $ AssertionContext
+        { rrmoMin: min
+        , rrmoMax: max
+        }
+
 blocklyAssertionCtxToAssertionCtx (ActusError msg) = Either.Left msg
+
 blocklyAssertionCtxToAssertionCtx NoActusValue = Either.Right Nothing
+
 blocklyAssertionCtxToAssertionCtx x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 blocklyAssertionToAssertion :: ActusValue -> Either String (Maybe Assertion)
-blocklyAssertionToAssertion (ActusAssertionNpv npv rate) = Either.Right $ Just $ NpvAssertionAgainstZeroRiskBond {
-  zeroRiskInterest : rate
-  , expectedNpv : npv
-}
+blocklyAssertionToAssertion (ActusAssertionNpv npv rate) =
+  Either.Right $ Just
+    $ NpvAssertionAgainstZeroRiskBond
+        { zeroRiskInterest: rate
+        , expectedNpv: npv
+        }
+
 blocklyAssertionToAssertion (ActusError msg) = Either.Left msg
+
 blocklyAssertionToAssertion NoActusValue = Either.Right Nothing
+
 blocklyAssertionToAssertion x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 blocklyCycleToAnchor :: ActusValue -> Either String (Maybe ActusValue)
-blocklyCycleToAnchor (CycleValue anchor _ _) = Either.Right $ Just anchor 
+blocklyCycleToAnchor (CycleValue anchor _ _) = Either.Right $ Just anchor
+
 blocklyCycleToAnchor (ActusError msg) = Either.Left msg
+
 blocklyCycleToAnchor NoActusValue = Either.Right Nothing
+
 blocklyCycleToAnchor x = Either.Left $ "Unexpected: " <> show x -- should be unreachable
 
 actusContractToTerms :: ActusContract -> Either String ContractTerms
 actusContractToTerms raw = do --todo use monad transformers?
-  let c = (unwrap raw)
+  let
+    c = (unwrap raw)
   startDate <- Either.note "start date is a mandatory field!" <$> actusDateToDay c.startDate >>= identity
   maturityDate <- Either.note "maturity date is a mandatory field!" <$> actusDateToDay c.maturityDate >>= identity
   initialExchangeDate <- fromMaybe startDate <$> actusDateToDay c.initialExchangeDate
@@ -654,81 +682,86 @@ actusContractToTerms raw = do --todo use monad transformers?
   purchaseDate <- fromMaybe maturityDate <$> actusDateToDay c.purchaseDate
   rateResetCycle <- blocklyCycleToCycle c.rateReset
   rateResetAnchorValue <- blocklyCycleToAnchor c.rateReset
-  rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue 
+  rateResetAnchor <- sequence $ actusDateToDay <$> rateResetAnchorValue
   notional <- Either.note "notional is a mandatory field!" <$> actusDecimalToNumber c.notional >>= identity
   premium <- fromMaybe 0.0 <$> actusDecimalToNumber c.premiumDiscount
   interestRateCycle <- blocklyCycleToCycle c.interestRateCycle
   interestRateAnchorValue <- blocklyCycleToAnchor c.interestRateCycle
   interestRateAnchor <- sequence $ actusDateToDay <$> interestRateAnchorValue
   interestRateUnchecked <- actusDecimalToNumber c.interestRate
-  interestRate <- if isJust interestRateCycle && isNothing interestRateUnchecked 
-          then Either.Left "Please specify interest rate"
-          else Either.Right interestRateUnchecked 
+  interestRate <-
+    if isJust interestRateCycle && isNothing interestRateUnchecked then
+      Either.Left "Please specify interest rate"
+    else
+      Either.Right interestRateUnchecked
   assertionCtx <- blocklyAssertionCtxToAssertionCtx c.assertionCtx
   assertion <- blocklyAssertionToAssertion c.assertion
-  let constraint ctx = Assertions {
-    context: ctx
-    , assertions : (case assertion of
-        Just x -> [x]
-        Nothing -> [])
-  }
-
-  pure $ ContractTerms
-      { contractId : "0"
-      , contractType : PAM
-      , ct_IED : initialExchangeDate
-      , ct_SD : startDate
-      , ct_MD : maturityDate
-      , ct_TD : terminationDate
-      , ct_PRD : purchaseDate
-      , ct_CNTRL : CR_ST
-      , ct_PDIED : premium
-      , ct_NT : notional
-      , ct_PPRD : 0.0
-      , ct_PTD : 0.0
-      , ct_DCC : DCC_A_360
-      , ct_PREF : PREF_N
-      , ct_PRF : CS_PF
-      , scfg : ScheduleConfig {
-            calendar : []
-            , includeEndDay : true
-            , eomc : EOMC_EOM
-            , bdc : BDC_NULL
+  let
+    constraint ctx =
+      Assertions
+        { context: ctx
+        , assertions:
+          ( case assertion of
+              Just x -> [ x ]
+              Nothing -> []
+          )
         }
-      , ct_PYRT : 0.0
-      , ct_PYTP : PYTP_A
-      , ct_cPYRT : 0.0
-      , ct_OPCL : Nothing
-      , ct_OPANX : Nothing
-      , ct_SCIED : 0.0
-      , ct_SCEF : SE_000
-      , ct_SCCL : Nothing
-      , ct_SCANX : Nothing
-      , ct_SCIXSD : 0.0
-      , ct_RRCL : rateResetCycle
-      , ct_RRANX : rateResetAnchor >>= identity
-      , ct_RRNXT : Nothing
-      , ct_RRSP : 0.0
-      , ct_RRMLT : 1.0
-      , ct_RRPF : -1.0
-      , ct_RRPC : 1.0
-      , ct_RRLC : 1.0
-      , ct_RRLF : 0.0
-      , ct_IPCED : Nothing
-      , ct_IPCL : interestRateCycle
-      , ct_IPANX : interestRateAnchor >>= identity
-      , ct_IPNR : interestRate
-      , ct_IPAC : Nothing
-      , ct_FECL : Nothing
-      , ct_FEANX : Nothing
-      , ct_FEAC : Nothing
-      , ct_FEB : FEB_N
-      , ct_FER : 0.0
-      , ct_CURS : false
-      , constraints : constraint <$> assertionCtx
-      }
-
-
+  pure
+    $ ContractTerms
+        { contractId: "0"
+        , contractType: PAM
+        , ct_IED: initialExchangeDate
+        , ct_SD: startDate
+        , ct_MD: maturityDate
+        , ct_TD: terminationDate
+        , ct_PRD: purchaseDate
+        , ct_CNTRL: CR_ST
+        , ct_PDIED: premium
+        , ct_NT: notional
+        , ct_PPRD: 0.0
+        , ct_PTD: 0.0
+        , ct_DCC: DCC_A_360
+        , ct_PREF: PREF_N
+        , ct_PRF: CS_PF
+        , scfg:
+          ScheduleConfig
+            { calendar: []
+            , includeEndDay: true
+            , eomc: EOMC_EOM
+            , bdc: BDC_NULL
+            }
+        , ct_PYRT: 0.0
+        , ct_PYTP: PYTP_A
+        , ct_cPYRT: 0.0
+        , ct_OPCL: Nothing
+        , ct_OPANX: Nothing
+        , ct_SCIED: 0.0
+        , ct_SCEF: SE_000
+        , ct_SCCL: Nothing
+        , ct_SCANX: Nothing
+        , ct_SCIXSD: 0.0
+        , ct_RRCL: rateResetCycle
+        , ct_RRANX: rateResetAnchor >>= identity
+        , ct_RRNXT: Nothing
+        , ct_RRSP: 0.0
+        , ct_RRMLT: 1.0
+        , ct_RRPF: -1.0
+        , ct_RRPC: 1.0
+        , ct_RRLC: 1.0
+        , ct_RRLF: 0.0
+        , ct_IPCED: Nothing
+        , ct_IPCL: interestRateCycle
+        , ct_IPANX: interestRateAnchor >>= identity
+        , ct_IPNR: interestRate
+        , ct_IPAC: Nothing
+        , ct_FECL: Nothing
+        , ct_FEANX: Nothing
+        , ct_FEAC: Nothing
+        , ct_FEB: FEB_N
+        , ct_FER: 0.0
+        , ct_CURS: false
+        , constraints: constraint <$> assertionCtx
+        }
 
 aesonCompatibleOptions :: Options
 aesonCompatibleOptions =

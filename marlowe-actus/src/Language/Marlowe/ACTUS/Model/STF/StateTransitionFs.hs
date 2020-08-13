@@ -7,8 +7,7 @@ import           Data.Time                                              (Day)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents      (EventType (..))
 
 import           Data.Maybe                                             (fromJust, fromMaybe)
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM),
-                                                                        )                                                                      
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms       (ContractTerms (..), ContractType (LAM, PAM))
 import           Language.Marlowe.ACTUS.Definitions.Schedule            (ShiftedDay (calculationDay))
 import           Language.Marlowe.ACTUS.Model.SCHED.ContractSchedule    (schedule)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionModel  (_STF_AD_PAM, _STF_CE_PAM, _STF_FP_PAM,
@@ -20,8 +19,8 @@ import           Language.Marlowe.ACTUS.Model.Utility.ScheduleGenerator (inf, su
 import           Language.Marlowe.ACTUS.Ops                             (YearFractionOps (_y))
 
 import           Language.Marlowe                                       (Contract)
-import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, marloweDate,
-                                                                         stateTransitionMarlowe, useval, letval)
+import           Language.Marlowe.ACTUS.MarloweCompat                   (constnt, enum, letval, marloweDate,
+                                                                         stateTransitionMarlowe, useval)
 
 
 stateTransitionFs :: EventType -> ContractTerms -> Integer -> Day -> Day -> Contract -> Contract
@@ -58,16 +57,16 @@ stateTransitionFs ev terms@ContractTerms{..} t prevDate curDate continue =
         y_ipanx_t          = constnt $ _y ct_DCC (fromJust ct_IPANX) curDate ct_MD
         y_sd_t             = constnt $ _y ct_DCC prevDate curDate ct_MD
 
-        addComment cont    = case ev of 
+        addComment cont    = case ev of
             IED -> letval "IED" t (constnt 0) cont
-            MD -> letval "MD" t (constnt 0) cont
-            IP -> letval ("IP:" ++ (show curDate) ++ (show prevDate)) t (constnt 0) cont 
-            RR -> letval ("RR:" ++ (show curDate)) t (constnt 0) cont 
-            FP -> letval ("FP:" ++ (show curDate)) t (constnt 0) cont
-            _ -> cont
+            MD  -> letval "MD" t (constnt 0) cont
+            IP  -> letval ("IP:" ++ (show curDate) ++ (show prevDate)) t (constnt 0) cont
+            RR  -> letval ("RR:" ++ (show curDate)) t (constnt 0) cont
+            FP  -> letval ("FP:" ++ (show curDate)) t (constnt 0) cont
+            _   -> cont
     in case contractType of
         PAM ->
-            addComment $ stateTransitionMarlowe ev t continue $ \event st -> 
+            addComment $ stateTransitionMarlowe ev t continue $ \event st ->
                 case event of
                     AD   -> _STF_AD_PAM st time y_sd_t
                     IED  -> _STF_IED_PAM st time y_ipanx_t __IPNR __IPANX ct_CNTRL __IPAC __NT

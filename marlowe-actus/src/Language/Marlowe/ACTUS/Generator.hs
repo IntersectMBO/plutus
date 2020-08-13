@@ -10,9 +10,9 @@ where
 
 import qualified Data.List                                               as L (zip6)
 import           Data.Maybe                                              (fromMaybe, isNothing, maybeToList)
-import           Data.String                                             (IsString (fromString))                            
+import           Data.Monoid
+import           Data.String                                             (IsString (fromString))
 import           Data.Time                                               (Day)
-import Data.Monoid
 import           Language.Marlowe                                        (AccountId (AccountId),
                                                                           Action (Choice, Deposit), Bound (Bound),
                                                                           Case (Case), ChoiceId (ChoiceId),
@@ -20,14 +20,15 @@ import           Language.Marlowe                                        (Accoun
                                                                           Party (Role), Payee (Party), Slot (..),
                                                                           Value (ChoiceValue, Constant, NegValue, UseValue),
                                                                           ValueId (ValueId), ada)
+import           Language.Marlowe.ACTUS.Analysis                         (genProjectedCashflows, genZeroRiskAssertions)
 import           Language.Marlowe.ACTUS.Definitions.BusinessEvents       (EventType (..))
-import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (ContractTerms(ct_CURS, ct_SD, constraints), Assertions(..), AssertionContext(..))
+import           Language.Marlowe.ACTUS.Definitions.ContractTerms        (AssertionContext (..), Assertions (..),
+                                                                          ContractTerms (constraints, ct_CURS, ct_SD))
 import           Language.Marlowe.ACTUS.Definitions.Schedule             (CashFlow (..))
-import           Language.Marlowe.ACTUS.MarloweCompat                    (dayToSlotNumber, constnt, toMarloweFixedPoint)
+import           Language.Marlowe.ACTUS.MarloweCompat                    (constnt, dayToSlotNumber, toMarloweFixedPoint)
 import           Language.Marlowe.ACTUS.Model.INIT.StateInitializationFs (inititializeStateFs)
 import           Language.Marlowe.ACTUS.Model.POF.PayoffFs               (payoffFs)
 import           Language.Marlowe.ACTUS.Model.STF.StateTransitionFs      (stateTransitionFs)
-import           Language.Marlowe.ACTUS.Analysis                         (genProjectedCashflows, genZeroRiskAssertions)
 import           Ledger.Value                                            (TokenName (TokenName))
 
 
@@ -65,12 +66,12 @@ inquiryFs
 inquiryFs ev ct timePosfix date oracle context continue =
     let
         oracleRole = Role $ TokenName $ fromString oracle
-        letTemplate inputChoiceId inputOwner cont = 
+        letTemplate inputChoiceId inputOwner cont =
             Let
                 (ValueId inputChoiceId)
                 (ChoiceValue (ChoiceId inputChoiceId inputOwner))
                 cont
-                      
+
         inputTemplate inputChoiceId inputOwner inputBound cont =
             When
                 [ Case (Choice (ChoiceId inputChoiceId inputOwner) inputBound) $
@@ -80,7 +81,7 @@ inquiryFs ev ct timePosfix date oracle context continue =
                 Close
 
         inferBounds name ctx = case (name, ctx) of
-            ("o_rf_RRMO", Just AssertionContext{..}) -> 
+            ("o_rf_RRMO", Just AssertionContext{..}) ->
                 [Bound (toMarloweFixedPoint rrmoMin) (toMarloweFixedPoint rrmoMax)]
             _ -> [Bound 0 maxPseudoDecimalValue]
         riskFactorInquiry name = inputTemplate
@@ -93,21 +94,21 @@ inquiryFs ev ct timePosfix date oracle context continue =
         riskFactorsInquiryEv PP =
             riskFactorInquiry "o_rf_CURS" .
                 riskFactorInquiry "pp_payoff"
-        riskFactorsInquiryEv _ = 
-            if ct_CURS ct then riskFactorInquiry "o_rf_CURS" 
+        riskFactorsInquiryEv _ =
+            if ct_CURS ct then riskFactorInquiry "o_rf_CURS"
             else Let (ValueId (fromString ("o_rf_CURS" ++ timePosfix))) (constnt 1.0)
     in
         riskFactorsInquiryEv ev continue
 
 
-    
+
 
 genStaticContract :: ContractTerms -> Contract
 genStaticContract terms =
     let
         cfs = genProjectedCashflows terms
-        gen CashFlow{..} = 
-            if amount > 0.0 
+        gen CashFlow{..} =
+            if amount > 0.0
                 then invoice "party" "counterparty" (Constant $ round amount) (Slot $ dayToSlotNumber cashPaymentDay)
                 else invoice "counterparty" "party" (Constant $ round $ -amount) (Slot $ dayToSlotNumber cashPaymentDay)
     in foldl (flip gen) Close cfs
@@ -116,7 +117,7 @@ genStaticContract terms =
 genFsContract :: ContractTerms -> Contract
 genFsContract terms =
     let
-        postProcess cont = 
+        postProcess cont =
             let ctr = constraints terms
                 toAssert = genZeroRiskAssertions terms <$> (assertions =<< maybeToList ctr)
                 compose = appEndo . mconcat . map Endo
@@ -129,9 +130,9 @@ genFsContract terms =
         previousDates = ([ct_SD terms] ++ (cashCalculationDay <$> schedCfs))
         cfsDirections = amount <$> schedCfs
         ctx = context <$> constraints terms
-        
+
         gen :: (CashFlow, Day, EventType, Slot, Double, Integer) -> Contract -> Contract
-        gen (cf, prevDate, ev, date, r, t) cont = 
+        gen (cf, prevDate, ev, date, r, t) cont =
             inquiryFs ev terms ("_" ++ show t) date "oracle" ctx
             $ stateTransitionFs ev terms t prevDate (cashCalculationDay cf)
             $ Let (payoffAt t) (fromMaybe (constnt 0.0) pof)
@@ -139,6 +140,6 @@ genFsContract terms =
               else if  r > 0.0   then invoice "party" "counterparty" (UseValue $ payoffAt t) date cont
               else                    invoice "counterparty" "party" (NegValue $ UseValue $ payoffAt t) date cont
             where pof = (payoffFs ev terms t (t - 1) prevDate (cashCalculationDay cf))
-        scheduleAcc = foldr gen (postProcess Close) $ 
+        scheduleAcc = foldr gen (postProcess Close) $
             L.zip6 schedCfs previousDates schedEvents schedDates cfsDirections [1..]
     in inititializeStateFs terms scheduleAcc

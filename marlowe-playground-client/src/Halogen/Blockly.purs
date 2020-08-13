@@ -80,10 +80,9 @@ handleQuery (Resize next) = do
   case mState of
     Just state ->
       pure
-        $ ST.run
-            do
-                workspaceRef <- STRef.new state.workspace
-                Blockly.resize state.blockly workspaceRef
+        $ ST.run do
+            workspaceRef <- STRef.new state.workspace
+            Blockly.resize state.blockly workspaceRef
     Nothing -> pure unit
   pure $ Just next
 

@@ -80,7 +80,6 @@ import Foreign (F)
 import Control.Monad.Except (mapExcept, runExcept)
 import WebSocket.Support as WS
 
-
 initialState :: FrontendState
 initialState =
   FrontendState
@@ -249,29 +248,27 @@ handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour ter
     parsedTermsEither = AMB.parseActusJsonCode terms
   if hasStarted then
     void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
-  else 
-    case parsedTermsEither of 
-      Left e -> 
-        void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
-      Right parsedTerms -> do
-        result <- case flavour of 
-          ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postActusGenerate parsedTerms)
-          ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
-        case result of
-          Success contractAST -> do
-            selectView Simulation
-            void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
-          Failure e        -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
-          _                -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
-
+  else case parsedTermsEither of
+    Left e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
+    Right parsedTerms -> do
+      result <- case flavour of
+        ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postActusGenerate parsedTerms)
+        ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
+      case result of
+        Success contractAST -> do
+          selectView Simulation
+          void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
+        Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
+        _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
 
 ----------
-
 showErrorDescription :: ErrorDescription -> String
-showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") =
-  "BadResponse"
+showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = "BadResponse"
+
 showErrorDescription (DecodingError err) = "DecodingError: " <> err
+
 showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
+
 showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
 
 runAjax ::
