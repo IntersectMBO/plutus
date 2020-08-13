@@ -70,7 +70,7 @@ errorMsgTyProp kG tyG =
       case run (inferKind defConfig ty) of
         Left err ->
           printf "Counterexample found: %s, generated for kind %s\n%s"
-            (show (pretty ty)) (show (pretty kG)) (show (prettyPlcClassicDef (err :: TypeError DefaultUni ())))
+            (show (pretty ty)) (show (pretty kG)) (show (prettyPlcClassicDef (err :: TypeError (Term TyName Name DefaultUni ()) DefaultUni ())))
         Right k2 ->
           printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
             (show (pretty ty)) (show (pretty kG)) (show (pretty k2))

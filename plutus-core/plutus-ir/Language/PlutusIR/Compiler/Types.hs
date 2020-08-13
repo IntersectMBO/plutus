@@ -6,7 +6,7 @@
 module Language.PlutusIR.Compiler.Types where
 
 import qualified Language.PlutusIR                     as PIR
-import           Language.PlutusIR.Compiler.Error
+import           Language.PlutusIR.Error
 import           Language.PlutusIR.Compiler.Provenance
 
 import           Control.Monad.Except
@@ -35,12 +35,13 @@ data CompilationCtx uni a = CompilationCtx {
     _ccOpts        :: CompilationOpts
     , _ccBuiltinMeanings :: PLC.DynamicBuiltinNameMeanings (PIR.Term PLC.TyName PLC.Name uni ())
     , _ccEnclosing :: Provenance a
+    , _ccTypeCheckConfig :: PLC.TypeCheckConfig uni
     }
 
 makeLenses ''CompilationCtx
 
 defaultCompilationCtx :: CompilationCtx uni a
-defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance
+defaultCompilationCtx = CompilationCtx defaultCompilationOpts mempty noProvenance PLC.defConfig
 
 getEnclosing :: MonadReader (CompilationCtx uni a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -85,6 +86,8 @@ type PIRType uni a = PIR.Type PIR.TyName uni (Provenance a)
 type Compiling m e uni a =
     ( Monad m
     , MonadReader (CompilationCtx uni a) m
+    , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni ()) uni (Provenance a)
+    , AsTypeErrorExt e uni (Provenance a)
     , AsError e uni (Provenance a)
     , MonadError e m
     , MonadQuote m

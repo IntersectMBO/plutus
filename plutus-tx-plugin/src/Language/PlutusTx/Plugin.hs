@@ -12,6 +12,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 module Language.PlutusTx.Plugin (plugin, plc) where
 
+import           Data.Bifunctor
 import           Language.PlutusTx.Code
 import           Language.PlutusTx.Compiler.Builtins
 import           Language.PlutusTx.Compiler.Error
@@ -300,14 +301,24 @@ runCompiler
     -> GHC.CoreExpr
     -> m (PIRProgram uni, PLCProgram uni)
 runCompiler opts expr = do
-    let (ctx :: PIR.CompilationCtx uni ()) = PIR.defaultCompilationCtx
-                    & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-                    & set (PIR.ccBuiltinMeanings) PLC.getStringBuiltinMeanings
+    -- trick here to take out the concrete plc.error
+    tcConfigConcrete <-
+        runExceptT (PLC.TypeCheckConfig <$> PLC.getStringBuiltinTypes PIR.noProvenance)
 
-    (pirT::PIRTerm PLC.DefaultUni) <- PIR.runDefT () $ compileExprWithDefs expr
+    -- turn the concrete plc.error into our compileerror monad
+    stringBuiltinTCConfig <- liftEither $ first (view (re PIR._PLCError)) tcConfigConcrete
+
+    let ctx = PIR.defaultCompilationCtx
+              & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
+              & set (PIR.ccBuiltinMeanings) PLC.getStringBuiltinMeanings
+              & set PIR.ccTypeCheckConfig stringBuiltinTCConfig
+
+    pirT <- PIR.runDefT () $ compileExprWithDefs expr
+
 
     -- We manually run a simplifier+floating pass here before dumping/storing the PIR
-    pirT' <- flip runReaderT ctx $ PIR.compileToReadable pirT
+    -- FIXME: pir compilationcontext needs a podoTypecheck knob as well
+    pirT' <- flip runReaderT ctx $ PIR.compileToReadable True pirT
     let pirP = PIR.Program () . void $ pirT'
 
     when (poDumpPir opts) . liftIO . print . PP.pretty $ pirP
@@ -316,7 +327,10 @@ runCompiler opts expr = do
     when (poDumpPlc opts) . liftIO . print $ PP.pretty plcP
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump
+    -- again trick to take out the concrete plc.error and lift it into our compileeerror
     when (poDoTypecheck opts) . void $ do
-        stringBuiltinTypes <- PLC.getStringBuiltinTypes ()
-        PLC.typecheckPipeline (PLC.TypeCheckConfig stringBuiltinTypes) plcP
+        tcConcrete <- runExceptT $ PLC.typecheckPipeline stringBuiltinTCConfig plcP
+        -- also wrap the PLC Error annotations into Original provenances, to match our expected compileerror
+        liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) tcConcrete
+
     pure (pirP, plcP)
