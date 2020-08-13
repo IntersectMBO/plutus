@@ -79,6 +79,8 @@ contractTerms = ContractTerms {
         , ct_FEAC  = Nothing
         , ct_FEB = FEB_N
         , ct_FER = 0.03 -- fee rate
+        , ct_CURS = False
+        , constraints = Nothing
     }
 
 pamProjected :: IO ()
