@@ -8,7 +8,7 @@ latex.buildLatex {
     collection-latexextra
     collection-mathscience;
   };
-  texFiles = [ "cost-modl-notes.tex" ];
+  texFiles = [ "cost-model-notes.tex" ];
   src = latex.filterLatex ./.;
 
   meta = with lib; {
