@@ -1,6 +1,5 @@
 module Marlowe.ActusBlockly where
 
-import Data.Time.Calendar.Days
 import Language.Marlowe.ACTUS.Definitions.ContractTerms
 import Prelude
 
@@ -562,7 +561,6 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     safeYear <- Either.note  "wrong year" $ toEnum year
     safeMonth <- Either.note "wrong month" $ toEnum month
     safeDay <- Either.note  "wrong day" $ toEnum day
-    -- we could use DateTime formatters instead
     let mm = if month < 10 then "0" <> m else m
     let dd = if day < 10 then "0" <> d else d
     let date = exactDate safeYear safeMonth safeDay
