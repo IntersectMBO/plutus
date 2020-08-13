@@ -9,8 +9,8 @@ import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                            (checkKindAgda, normalizeTypeAgda)
-import           MAlonzo.Code.Scoped                          (deBruijnifyK)
+import           MAlonzo.Code.Main                            (checkKindAgda, normalizeTypeAgda,inferKindAgda)
+import           MAlonzo.Code.Scoped                          (deBruijnifyK,unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
 import           Raw
@@ -29,6 +29,8 @@ allTests = testGroup "all tests"
       testTyProp depth kind prop_normalizeTypeSound
   , testCaseCount "normalizationAgree" $
       testTyProp depth kind prop_normalizeTypeSame
+  , testCaseCount "kindInferAgree" $
+      testTyProp depth kind prop_kindInferSame
   ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -91,3 +93,13 @@ prop_normalizeTypeSame k tyG tyQ = isSafe $ do
 
   ty2 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
   return (ty1 == (AlexPn 0 0 0 <$ ty2))
+
+prop_kindInferSame :: TyProp
+prop_kindInferSame k tyG tyQ = isSafe $ do
+  ty <- withExceptT GenErrorP tyQ
+  tyDB <- withExceptT FVErrorP $ deBruijnTy ty
+  k' <- withExceptT TypeErrorP $ case inferKindAgda (AlexPn 0 0 0 <$ tyDB) of
+    Just k'  -> return k'
+    Nothing -> throwError undefined -- TODO
+  k'' <- withExceptT TypeErrorP $ inferKind defConfig (True <$ ty)
+  return (unconvK (unDeBruijnifyK k') == k'')

@@ -372,6 +372,9 @@ unsaturate (unwrap t)   = unwrap (unsaturate t)
 unDeBruijnifyK : Kind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
+
+{-# COMPILE GHC unDeBruijnifyK as unDeBruijnifyK #-}
+
 \end{code}
 
 \begin{code}

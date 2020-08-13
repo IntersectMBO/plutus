@@ -330,6 +330,17 @@ checkKind ty k = do
   return tt
 
 {-# COMPILE GHC checkKind as checkKindAgda #-}
+
+
+-- a Haskell interface to kind inference:
+inferKind∅ : Type → Maybe Kind
+inferKind∅ ty = do
+  ty       ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  (k ,, _) ← liftSum (inferKind ∅ ty)
+  return k
+
+{-# COMPILE GHC inferKind∅ as inferKindAgda #-}
+
 \end{code}
 
 
