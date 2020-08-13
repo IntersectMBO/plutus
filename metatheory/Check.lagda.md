@@ -6,7 +6,7 @@ module Check where
 open import Scoped
 open import Type
 open import Type.BetaNormal
-open import Utils hiding (_>>=_)
+open import Utils
 open import Builtin
 open import Type.Equality
 open import Type.BetaNBE
@@ -43,12 +43,10 @@ data Error : Set where
   tyConError : Error
   builtinError : Error
   unwrapError : Error  
-_>>=_ : {A B C : Set} → A ⊎ C → (A → B ⊎ C) → B ⊎ C
-inj₁ a >>= f = f a
-inj₂ c >>= f = inj₂ c
 
-return : {A C : Set} → A → A ⊎ C
-return = inj₁
+⊎bind : {A B C : Set} → A ⊎ C → (A → B ⊎ C) → B ⊎ C
+⊎bind (inj₁ a) f = f a
+⊎bind (inj₂ c) f = inj₂ c
 
 open import Data.Bool using (Bool;true;false;_∧_)
 
@@ -81,6 +79,10 @@ meqKind (K ⇒ J) (K' ⇒ J') with meqKind K K'
 ... | inj₁ p with meqKind J J'
 ... | inj₂ e = inj₂ e
 ... | inj₁ q = inj₁ (cong₂ _⇒_ p q)
+
+instance
+  SumErrorMonad : Monad (_⊎ Error)
+  SumErrorMonad = SumMonad Error
 
 inferKind : (Φ : Ctx⋆)(A : ScopedTy (len⋆ Φ)) → (Σ Kind (Φ ⊢Nf⋆_)) ⊎ Error
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))

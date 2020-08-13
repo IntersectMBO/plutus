@@ -15,17 +15,14 @@ open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
-open import Utils hiding (_>>=_)
 open import Relation.Nullary
 open import Category.Monad
 import Level
-open RawMonad {f = Level.zero} (record { return = just ; _>>=_ = λ { (just x) f → f x ; nothing x → nothing} })
-
 
 open import Builtin.Constant.Type
 open import Builtin
 open import Raw
-
+open import Utils
 \end{code}
 
 \begin{code}

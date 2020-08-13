@@ -25,7 +25,7 @@ open import Builtin
 open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
 open import Builtin.Signature
-open import Check hiding (_>>=_; return)
+open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
 open import Untyped as U
@@ -34,7 +34,7 @@ import Scoped as S
 import Scoped.Reduction as S
 open import Raw
 open import Scoped
-open import Utils renaming (_>>=_ to _U>>=_)
+open import Utils
 open import Untyped
 open import Scoped.CK
 open import Algorithmic.CK
@@ -50,19 +50,22 @@ postulate
 {-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
 postulate
-  return : ∀ {a} {A : Set a} → A → IO A
-  _>>=_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
+  returnIO : ∀ {a} {A : Set a} → A → IO A
+  _>>=IO_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
 
-{-# COMPILE GHC return = \_ _ -> return    #-}
-{-# COMPILE GHC _>>=_  = \_ _ _ _ -> (>>=) #-}
+{-# COMPILE GHC returnIO = \_ _ -> return    #-}
+{-# COMPILE GHC _>>=IO_  = \_ _ _ _ -> (>>=) #-}
 
-_>>_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → IO B → IO B
+instance
+  IOMonad : Monad IO
+  IOMonad = record { return = returnIO ; _>>=_ = _>>=IO_ }
+
+_>>_  : {A : Set} {B : Set} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
 postulate
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
   mmap : ∀{A B : Set} → (A → B) → Maybe A → Maybe B
-  mbind : ∀{A B : Set} → (A → Maybe B) → Maybe A → Maybe B
   TermN : Set
   Term : Set
   TypeN : Set
@@ -104,7 +107,6 @@ postulate
 {-# COMPILE GHC getContents = BSL.getContents #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
 {-# COMPILE GHC mmap = \_ _ -> fmap #-}
-{-# COMPILE GHC mbind = \_ _ f a -> f =<< a #-}
 {-# FOREIGN GHC import Data.Either #-}
 {-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
@@ -294,48 +296,52 @@ tcInput : Input → IO (String ⊎ String)
 tcInput (FileInput fn) = imap tcPLC (readFile fn)
 tcInput StdInput       = imap tcPLC getContents
 
+
 main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) =
   evalInput m i
   >>=
-  Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
-           , (λ e → putStrLn e >> exitFailure)
-           ]
+  Data.Sum.[_,_]
+    (λ s → putStrLn s >> exitSuccess)
+    (λ e → putStrLn e >> exitFailure)
 main' (TypeCheck (TCOpts i))    =
   (tcInput i)
   >>=
-  Data.Sum.[ (λ s → putStrLn s >> exitSuccess)
-           , (λ e → putStrLn e >> exitFailure)
-           ]
+  Data.Sum.[_,_]
+    (λ s → putStrLn s >> exitSuccess)
+    (λ e → putStrLn e >> exitFailure)
 
 main : IO ⊤
 main = execP >>= main'
 \end{code}
 
--- a Haskell interface to the kindchecker:
+
 \begin{code}
--- TODO: tidy up this monstrosity
+liftSum : {A : Set} → A ⊎ Error → Maybe A
+liftSum (inj₁ a) = just a
+liftSum (inj₂ e) = nothing
+
+-- a Haskell interface to the kindchecker:
 checkKind : Type → Kind → Maybe ⊤
-checkKind ty k = scopeCheckTy (shifterTy 0 Z (convTy ty)) U>>= λ ty →
-  Data.Sum.[
-    (λ{ (k' ,, _) → Data.Sum.[ (λ _ → just tt) , (λ _ → nothing) ] (meqKind k k') } )
-    ,
-    (λ _ → nothing) ]
-  (inferKind ∅ ty)
+checkKind ty k = do
+  ty        ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  (k' ,, _) ← liftSum (inferKind ∅ ty)
+  _         ← liftSum (meqKind k k')
+  return tt
 
 {-# COMPILE GHC checkKind as checkKindAgda #-}
 \end{code}
 
--- a Haskell interface to the type normalizer:
+
 \begin{code}
--- TODO: ditto
 open import Type.BetaNormal
+
+-- a Haskell interface to the type normalizer:
 normalizeType : Type → Maybe Type
-normalizeType ty = scopeCheckTy (shifterTy 0 Z (convTy ty)) U>>= λ ty →
-  Data.Sum.[ (λ{ (_ ,, n) →
-                 just (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n)))) })
-           , (λ _ → nothing) ]
-    (inferKind ∅ ty)
+normalizeType ty = do
+  ty       ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  (_ ,, n) ← liftSum (inferKind ∅ ty)
+  return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
 \end{code}

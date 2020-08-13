@@ -23,9 +23,11 @@ maybe : {A B : Set} → (A → B) → B → Maybe A → B
 maybe f b (just a) = f a
 maybe f b nothing  = b
 
-_>>=_ : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
-just a  >>= f  = f a
-nothing >>= f = nothing
+mbind : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
+mbind (just a) f = f a
+mbind nothing  f = nothing
+
+{-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
 
 map : {A B : Set} → (A → B) → Maybe A → Maybe B
 map f (just a) = just (f a)
@@ -64,4 +66,27 @@ _:<_ : ∀{A : Set}{n} → Vec A n → A → Vec A (suc n)
 _:<L_ : ∀{A : Set} → List A → A → List A
 []        :<L a = a ∷ []
 (a' ∷ as) :<L a = a' ∷ (as :<L a)
+
+-- Monads
+
+record Monad (F : Set → Set) : Set₁ where
+  field
+    return : ∀{A} → A → F A
+    _>>=_   : ∀{A B} → F A → (A → F B) → F B
+
+open Monad {{...}} public
+
+instance
+  MaybeMonad : Monad Maybe
+  MaybeMonad = record { return = just ; _>>=_ = mbind }
+
+open import Data.Sum
+
+sumBind : {A B C : Set} → A ⊎ C → (A → B ⊎ C) → B ⊎ C
+sumBind (inj₁ a) f = f a
+sumBind (inj₂ c) f = inj₂ c
+
+SumMonad : (C : Set) → Monad (_⊎ C)
+SumMonad A = record { return = inj₁ ; _>>=_ = sumBind }
+
 \end{code}
