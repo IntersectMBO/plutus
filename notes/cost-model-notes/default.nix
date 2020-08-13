@@ -6,6 +6,7 @@ latex.buildLatex {
     inherit (texlive)
     scheme-small
     collection-latexextra
+    collection-latexrecommended
     collection-mathscience;
   };
   texFiles = [ "cost-model-notes.tex" ];
