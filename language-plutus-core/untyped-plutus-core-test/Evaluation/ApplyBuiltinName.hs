@@ -3,7 +3,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
 
-module Evaluation.ApplyBuiltinName where
+module Evaluation.ApplyBuiltinName
+    ( test_applyStaticBuiltinName
+    ) where
 
 import           PlutusPrelude
 
@@ -30,11 +32,11 @@ import           Test.Tasty.Hedgehog
 genArgsRes
     :: Generatable uni
     => TypeScheme (Term Name uni ()) as res -> FoldArgs as res -> Gen ([Term Name uni ()], res)
-genArgsRes (TypeSchemeResult _)       y = return ([], y)
-genArgsRes (TypeSchemeArrow _ schB)   f = do
+genArgsRes (TypeSchemeResult _)     y = return ([], y)
+genArgsRes (TypeSchemeArrow _ schB) f = do
     TermOf v x <- genTypedBuiltinDef AsKnownType
     first (v :) <$> genArgsRes schB (f x)
-genArgsRes (TypeSchemeAllType _ schK) f = genArgsRes (schK Proxy) f
+genArgsRes (TypeSchemeAll _ _ schK) f = genArgsRes (schK Proxy) f
 
 type AppErr = EvaluationException () () (Term Name DefaultUni ())
 
@@ -48,114 +50,114 @@ instance SpendBudget AppM (Term Name DefaultUni ()) where
     builtinCostParams = pure defaultCostModel
 
 -- | This shows that the builtin application machinery accepts untyped terms.
-prop_applyBuiltinName
+prop_applyStaticBuiltinName
     :: (uni ~ DefaultUni, KnownType (Term Name uni ()) res)
-    => TypedBuiltinName (Term Name uni ()) args res
+    => TypedStaticBuiltinName (Term Name uni ()) args res
        -- ^ A (typed) builtin name to apply.
     -> FoldArgs args res
        -- ^ The semantics of the builtin name. E.g. the semantics of
        -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> Property
-prop_applyBuiltinName (TypedBuiltinName name sch) op = property $ do
+prop_applyStaticBuiltinName (TypedStaticBuiltinName name sch) op = property $ do
     (args, res) <- forAllNoShow $ genArgsRes sch op
     let rhs = evaluationConstAppResult $ makeKnown res
-    case unAppM $ applyBuiltinName name args of
+    case unAppM $ applyStaticBuiltinName name args of
         Left _    -> fail $ "Failure while checking an application of " ++ show name
         Right lhs -> lhs === rhs
 
 test_typedAddInteger :: TestTree
 test_typedAddInteger
     = testProperty "typedAddInteger"
-    $ prop_applyBuiltinName typedAddInteger (+)
+    $ prop_applyStaticBuiltinName typedAddInteger (+)
 
 test_typedSubtractInteger :: TestTree
 test_typedSubtractInteger
     = testProperty "typedSubtractInteger"
-    $ prop_applyBuiltinName typedSubtractInteger (-)
+    $ prop_applyStaticBuiltinName typedSubtractInteger (-)
 
 test_typedMultiplyInteger :: TestTree
 test_typedMultiplyInteger
     = testProperty "typedMultiplyInteger"
-    $ prop_applyBuiltinName typedMultiplyInteger (*)
+    $ prop_applyStaticBuiltinName typedMultiplyInteger (*)
 
 test_typedDivideInteger :: TestTree
 test_typedDivideInteger
     = testProperty "typedDivideInteger"
-    $ prop_applyBuiltinName typedDivideInteger (nonZeroArg div)
+    $ prop_applyStaticBuiltinName typedDivideInteger (nonZeroArg div)
 
 test_typedQuotientInteger :: TestTree
 test_typedQuotientInteger
     = testProperty "typedQuotientInteger"
-    $ prop_applyBuiltinName typedQuotientInteger (nonZeroArg quot)
+    $ prop_applyStaticBuiltinName typedQuotientInteger (nonZeroArg quot)
 
 test_typedModInteger :: TestTree
 test_typedModInteger
     = testProperty "typedModInteger"
-    $ prop_applyBuiltinName typedModInteger (nonZeroArg mod)
+    $ prop_applyStaticBuiltinName typedModInteger (nonZeroArg mod)
 
 test_typedRemainderInteger :: TestTree
 test_typedRemainderInteger
     = testProperty "typedRemainderInteger"
-    $ prop_applyBuiltinName typedRemainderInteger (nonZeroArg rem)
+    $ prop_applyStaticBuiltinName typedRemainderInteger (nonZeroArg rem)
 
 test_typedLessThanInteger :: TestTree
 test_typedLessThanInteger
     = testProperty "typedLessThanInteger"
-    $ prop_applyBuiltinName typedLessThanInteger (<)
+    $ prop_applyStaticBuiltinName typedLessThanInteger (<)
 
 test_typedLessThanEqInteger :: TestTree
 test_typedLessThanEqInteger
     = testProperty "typedLessThanEqInteger"
-    $ prop_applyBuiltinName typedLessThanEqInteger (<=)
+    $ prop_applyStaticBuiltinName typedLessThanEqInteger (<=)
 
 test_typedGreaterThanInteger :: TestTree
 test_typedGreaterThanInteger
     = testProperty "typedGreaterThanInteger"
-    $ prop_applyBuiltinName typedGreaterThanInteger (>)
+    $ prop_applyStaticBuiltinName typedGreaterThanInteger (>)
 
 test_typedGreaterThanEqInteger :: TestTree
 test_typedGreaterThanEqInteger
     = testProperty "typedGreaterThanEqInteger"
-    $ prop_applyBuiltinName typedGreaterThanEqInteger (>=)
+    $ prop_applyStaticBuiltinName typedGreaterThanEqInteger (>=)
 
 test_typedEqInteger :: TestTree
 test_typedEqInteger
     = testProperty "typedEqInteger"
-    $ prop_applyBuiltinName typedEqInteger (==)
+    $ prop_applyStaticBuiltinName typedEqInteger (==)
 
 test_typedConcatenate :: TestTree
 test_typedConcatenate
     = testProperty "typedConcatenate"
-    $ prop_applyBuiltinName typedConcatenate (<>)
+    $ prop_applyStaticBuiltinName typedConcatenate (<>)
 
 test_typedTakeByteString :: TestTree
 test_typedTakeByteString
     = testProperty "typedTakeByteString"
-    $ prop_applyBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
+    $ prop_applyStaticBuiltinName typedTakeByteString (coerce BSL.take . integerToInt64)
 
 test_typedSHA2 :: TestTree
 test_typedSHA2
     = testProperty "typedSHA2"
-    $ prop_applyBuiltinName typedSHA2 (coerce Hash.sha2)
+    $ prop_applyStaticBuiltinName typedSHA2 (coerce Hash.sha2)
 
 test_typedSHA3 :: TestTree
 test_typedSHA3
     = testProperty "typedSHA3"
-    $ prop_applyBuiltinName typedSHA3 (coerce Hash.sha3)
+    $ prop_applyStaticBuiltinName typedSHA3 (coerce Hash.sha3)
 
 test_typedDropByteString :: TestTree
 test_typedDropByteString
     = testProperty "typedDropByteString"
-    $ prop_applyBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
+    $ prop_applyStaticBuiltinName typedDropByteString (coerce BSL.drop . integerToInt64)
 
 test_typedEqByteString :: TestTree
 test_typedEqByteString
     = testProperty "typedEqByteString"
-    $ prop_applyBuiltinName typedEqByteString (==)
+    $ prop_applyStaticBuiltinName typedEqByteString (==)
 
-test_applyBuiltinName :: TestTree
-test_applyBuiltinName =
-    testGroup "applyBuiltinName"
+test_applyStaticBuiltinName :: TestTree
+test_applyStaticBuiltinName =
+    testGroup "applyStaticBuiltinName"
         [ test_typedAddInteger
         , test_typedSubtractInteger
         , test_typedMultiplyInteger
