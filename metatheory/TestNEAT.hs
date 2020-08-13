@@ -9,8 +9,8 @@ import           Language.PlutusCore.Normalize
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import           MAlonzo.Code.Main                            (checkKindAgda, normalizeTypeAgda,inferKindAgda)
-import           MAlonzo.Code.Scoped                          (deBruijnifyK,unDeBruijnifyK)
+import           MAlonzo.Code.Main                            (checkKindAgda, inferKindAgda, normalizeTypeAgda)
+import           MAlonzo.Code.Scoped                          (deBruijnifyK, unDeBruijnifyK)
 
 import           Language.PlutusCore.DeBruijn
 import           Raw
@@ -99,7 +99,7 @@ prop_kindInferSame k tyG tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
   k' <- withExceptT TypeErrorP $ case inferKindAgda (AlexPn 0 0 0 <$ tyDB) of
-    Just k'  -> return k'
+    Just k' -> return k'
     Nothing -> throwError undefined -- TODO
   k'' <- withExceptT TypeErrorP $ inferKind defConfig (True <$ ty)
   return (unconvK (unDeBruijnifyK k') == k'')
