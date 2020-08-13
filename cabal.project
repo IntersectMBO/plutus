@@ -1,5 +1,5 @@
 -- Bump this if you need newer packages
-index-state: 2020-08-26T00:00:00Z
+index-state: 2020-09-10T00:00:00Z
 
 packages: plutus-core
           marlowe
@@ -76,10 +76,9 @@ allow-newer: Win32-network:base
            , eventful-sql-common:persistent
            , eventful-sql-common:persistent-template
 
--- Protolude gets updated to 0.3 when using a newer
--- version of GHC, not sure why.
 constraints:
-  protolude == 0.2.4
+  -- cardano-prelude currently redefines some instances that appear in 0.3.4
+  nonempty-containers < 0.3.4
 
 package ouroboros-network
   tests: False
@@ -170,15 +169,15 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/cardano-prelude
-  tag: bd7eb69d27bfaee46d435bc1d2720520b1446426
+  tag: 71ea865408f2e03e6d6832359423546699730849
   -- Because they includes `.` subdirs need to be on the same line
   -- See https://github.com/haskell/cabal/issues/7006
   subdir: . test
 
 source-repository-package
   type: git
-  location: https://github.com/raduom/ouroboros-network
-  tag: af744374a05d6a5eb76713b399595131e2a24c38
+  location: https://github.com/input-output-hk/ouroboros-network
+  tag: 75153affa23a0e68e035d7bb19880fe1ae35b1d4
   subdir:
     typed-protocols
     typed-protocols-examples
@@ -191,8 +190,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/j-mueller/iohk-monitoring-framework
-  tag: 636eb9f52f504e8009162b5cf7147e8acb727c1b
+  location: https://github.com/input-output-hk/iohk-monitoring-framework
+  tag: 5c9627b6aee487f9b7ec44981aba57a6afc659b1
   subdir:
     iohk-monitoring
     tracer-transformers

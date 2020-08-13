@@ -59,7 +59,7 @@ library
         bytestring -any,
         containers -any,
         extra -any,
-        ghc >=8.8 && <8.9,
+        ghc >=8.10 && <9,
         ghc-prim -any,
         plutus-core -any,
         lens -any,
