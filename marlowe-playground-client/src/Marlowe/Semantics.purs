@@ -1,6 +1,7 @@
 module Marlowe.Semantics where
 
 import Prelude
+import Prelude
 import Control.Monad.Except (mapExcept, runExcept)
 import Data.Array (catMaybes)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
@@ -1187,19 +1188,13 @@ computeTransaction tx state contract =
       IntervalError error -> Error (TEIntervalError error)
 
 extractRequiredActionsWithTxs :: TransactionInput -> State -> Contract -> Tuple State (Array Action)
-extractRequiredActionsWithTxs txInput state contract = case computeTransaction txInput state contract of
-  TransactionOutput { txOutContract, txOutState } -> Tuple txOutState (extractRequiredActions txOutContract)
-  -- in error cases or where the contract is not reduced, the actions remain unchanged
-  _ ->
-    if not (emptyInput txInput) then
-      Tuple state (extractRequiredActions contract)
-    else case fixInterval (unwrap txInput).interval state of
-      IntervalTrimmed env fixState -> case reduceContractUntilQuiescent env fixState contract of
-        (ContractQuiescent _ _ _ reducedContract) -> Tuple fixState (extractRequiredActions reducedContract)
-        _ -> Tuple state (extractRequiredActions contract)
-      _ -> Tuple state (extractRequiredActions contract)
-  where
-  emptyInput (TransactionInput { inputs }) = null inputs
+extractRequiredActionsWithTxs txInput state contract
+  | TransactionOutput { txOutContract, txOutState } <- computeTransaction txInput state contract = Tuple txOutState (extractRequiredActions txOutContract)
+  | TransactionInput { inputs: Nil } <- txInput
+  , IntervalTrimmed env fixState <- fixInterval (unwrap txInput).interval state
+  , (ContractQuiescent _ _ _ reducedContract) <- reduceContractUntilQuiescent env fixState contract = Tuple fixState (extractRequiredActions reducedContract)
+  -- the actions remain unchanged in error cases, cases where the contract is not reduced or cases where inputs remain
+  | otherwise = Tuple state (extractRequiredActions contract)
 
 extractRequiredActions :: Contract -> Array Action
 extractRequiredActions contract = case contract of
@@ -1212,34 +1207,38 @@ moneyInContract state =
     (\(Tuple _ (Token cur tok)) balance -> asset cur tok balance)
     (unwrap state).accounts
 
+newtype Timeouts
+  = Timeouts { maxTime :: Timeout, minTime :: Maybe Timeout }
+
+derive instance newtypeTimeouts :: Newtype Timeouts _
+
 class HasTimeout a where
-  timeouts :: a -> { maxTime :: Timeout, minTime :: Maybe Timeout }
+  timeouts :: a -> Timeouts
 
 instance hasTimeoutContract :: HasTimeout Contract where
-  timeouts Close = { maxTime: zero, minTime: Nothing }
+  timeouts Close = Timeouts { maxTime: zero, minTime: Nothing }
   timeouts (Pay _ _ _ _ contract) = timeouts contract
-  timeouts (If _ contractTrue contractFalse) =
-    let
-      ts = [ timeouts contractTrue, timeouts contractFalse ]
-    in
-      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
+  timeouts (If _ contractTrue contractFalse) = timeouts [ contractTrue, contractFalse ]
   timeouts (When cases timeout contract) =
-    let
-      ts = [ timeouts cases, { maxTime: timeout, minTime: Just timeout }, timeouts contract ]
-    in
-      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
+    timeouts
+      [ timeouts cases
+      , Timeouts { maxTime: timeout, minTime: Just timeout }
+      , timeouts contract
+      ]
   timeouts (Let _ _ contract) = timeouts contract
   timeouts (Assert _ contract) = timeouts contract
 
 instance hasTimeoutCase :: HasTimeout Case where
   timeouts (Case _ contract) = timeouts contract
 
-instance hasTimeoutArray :: HasTimeout a => HasTimeout (Array a) where
-  timeouts vs =
-    let
-      ts = map timeouts vs
-    in
-      { maxTime: maxOf (map _.maxTime ts), minTime: minOf (map _.minTime ts) }
+instance hasTimeoutArrayOfTimeouts :: HasTimeout (Array Timeouts) where
+  timeouts ts =
+    Timeouts
+      { maxTime: maxOf (map (_.maxTime <<< unwrap) ts)
+      , minTime: minOf (map (_.minTime <<< unwrap) ts)
+      }
+else instance hasTimeoutArray :: HasTimeout a => HasTimeout (Array a) where
+  timeouts vs = timeouts $ map timeouts vs
 
 maxOf :: Array Timeout -> Timeout
 maxOf = foldl max zero

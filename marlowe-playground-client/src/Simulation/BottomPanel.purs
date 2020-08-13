@@ -14,6 +14,7 @@ import Data.List (List, toUnfoldable)
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Newtype (unwrap)
 import Data.String (take)
 import Data.String.Extra (unlines)
 import Data.Tuple (Tuple(..))
@@ -133,7 +134,11 @@ panelContents state CurrentStateView =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) = let t = (_.maxTime <<< timeouts) contract in if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) =
+    let
+      t = (_.maxTime <<< unwrap <<< timeouts) contract
+    in
+      if t == zero then "Closed" else show t
 
   warnings = state ^. (_marloweState <<< _Head <<< _transactionWarnings)
 

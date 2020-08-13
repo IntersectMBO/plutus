@@ -519,33 +519,33 @@ transactionComposer state =
         [ ul [ classes [ ClassName "demo-list", aHorizontal ] ]
             [ li [ classes [ bold, pointer ] ]
                 [ a
-                    [ onClick
+                    [ onClick $ const
                         $ if hasHistory state then
-                            Just <<< const Undo
+                            Just Undo
                           else
-                            const Nothing
+                            Nothing
                     , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text "Undo" ]
                 ]
             , li [ classes [ bold, pointer ] ]
                 [ a
-                    [ onClick
+                    [ onClick $ const
                         $ if hasHistory state then
-                            Just <<< const ResetSimulator
+                            Just ResetSimulator
                           else
-                            const Nothing
+                            Nothing
                     , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text "Reset" ]
                 ]
             , li [ classes [ bold, pointer ] ]
                 [ a
-                    [ onClick
+                    [ onClick $ const
                         $ if isEnabled then
-                            Just <<< const NextSlot
+                            Just NextSlot
                           else
-                            const Nothing
+                            Nothing
                     , class_ (Classes.disabled $ not isEnabled)
                     ]
                     [ text $ "Next Slot (" <> show currentBlock <> ")" ]
