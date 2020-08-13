@@ -8,6 +8,7 @@ import           Data.ByteString.Lazy.Char8                       (unpack)
 import           Data.Time
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms
 import           Language.Marlowe.ACTUS.Generator
+import           Language.Marlowe.ACTUS.Analysis
 import           Language.Marlowe.Pretty
 import           Language.Marlowe.Semantics
 import           Test.Tasty
