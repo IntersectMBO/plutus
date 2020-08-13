@@ -1,0 +1,19 @@
+{ lib, latex, texlive }:
+
+latex.buildLatex {
+  name = "cost-model-notes";
+  texInputs = {
+    inherit (texlive)
+    scheme-small
+    collection-latexextra
+    collection-mathscience;
+  };
+  texFiles = [ "cost-modl-notes.tex" ];
+  src = latex.filterLatex ./.;
+
+  meta = with lib; {
+    description = "Notes on cost models";
+    license = licenses.asl20;
+    platforms = platforms.linux;
+  };
+}
