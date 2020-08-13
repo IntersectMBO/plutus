@@ -37,6 +37,8 @@ genArgsRes (TypeSchemeArrow _ schB)   f = do
 genArgsRes (TypeSchemeAllType _ schK) f = genArgsRes (schK Proxy) f
 
 type AppErr = EvaluationException () () (Term Name DefaultUni ())
+
+-- | A simple monad for evaluating constant applications in.
 newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)

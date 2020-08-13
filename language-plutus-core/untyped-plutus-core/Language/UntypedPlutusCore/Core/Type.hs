@@ -11,6 +11,19 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Universe
 
+-- | The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
+--
+-- 1. all types are removed
+-- 2. 'IWrap' and 'Unwrap' are removed
+-- 3. type abstractions are replaced with 'Delay'
+-- 4. type instantiations are replaced with 'Force'
+--
+-- The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
+-- and hence a computation can be stuck expecting only a single type argument for the computation
+-- to become unstuck. Therefore we can't just silently remove type abstractions and instantions and
+-- need to replace them with something else that also blocks evaluation (in order for the semantics
+-- of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
+-- serve exactly this purpose.
 data Term name uni ann
     = Constant ann (Some (ValueOf uni))
     | Builtin ann (TPLC.Builtin ann)
@@ -21,6 +34,8 @@ data Term name uni ann
     | Force ann (Term name uni ann)
     | Error ann
     deriving (Show, Functor, Generic)
+
+-- Instances needed by the constant application machinery.
 
 type instance TPLC.UniOf (Term name uni ann) = uni
 
@@ -37,6 +52,7 @@ instance ToExMemory (Term name uni ()) where
 instance ToExMemory (Term name uni ExMemory) where
     toExMemory = termAnn
 
+-- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni ann -> ann
 termAnn (Constant ann _) = ann
 termAnn (Builtin ann _)  = ann
@@ -47,6 +63,7 @@ termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 
+-- | Erase a Typed Plutus Core term to its untyped counterpart.
 erase :: TPLC.Term tyname name uni ann -> Term name uni ann
 erase (TPLC.Var ann name)           = Var ann name
 erase (TPLC.TyAbs ann _ _ body)     = Delay ann (erase body)
