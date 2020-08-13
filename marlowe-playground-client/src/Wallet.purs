@@ -826,7 +826,11 @@ renderCurrentState state =
   where
   contractMaxTime Nothing = "Closed"
 
-  contractMaxTime (Just contract) = let t = (_.maxTime <<< timeouts) contract in if t == zero then "Closed" else show t
+  contractMaxTime (Just contract) =
+    let
+      t = (_.maxTime <<< unwrap <<< timeouts) contract
+    in
+      if t == zero then "Closed" else show t
 
   warnings = state ^. (_currentLoadedMarloweState <<< _transactionWarnings)
 

@@ -1,11 +1,12 @@
 module Simulation.State where
 
 import Control.Monad.State (class MonadState)
-import Data.Array (foldl, fromFoldable, mapMaybe, uncons)
+import Data.Array (foldMap, foldl, fromFoldable, mapMaybe, uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Lens (Getter', Lens', modifying, over, set, to, view, (^.))
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
@@ -184,7 +185,7 @@ updatePossibleActions oldState =
 
     usefulActions = mapMaybe removeUseless actions
 
-    actionInputs = foldl (\acc act -> insertTuple (actionToActionInput nextState act) acc) mempty usefulActions
+    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
   in
     over _possibleActions (updateActions actionInputs) oldState
   where
@@ -192,9 +193,6 @@ updatePossibleActions oldState =
   removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
 
   removeUseless action = Just action
-
-  insertTuple :: forall k v. Ord k => Tuple k v -> Map k v -> Map k v
-  insertTuple (Tuple k v) m = Map.insert k v m
 
   updateActions :: Map ActionInputId ActionInput -> Map Party (Map ActionInputId ActionInput) -> Map Party (Map ActionInputId ActionInput)
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
@@ -308,9 +306,10 @@ evalObservation state observation =
 
 nextSignificantSlot :: MarloweState -> Maybe Slot
 nextSignificantSlot state =
-  let
-    contract = state ^. (_contract <<< to (fromMaybe Close))
-
-    ts = timeouts contract
-  in
-    ts.minTime
+  state
+    ^. ( _contract
+          <<< to (fromMaybe Close)
+          <<< to timeouts
+          <<< to unwrap
+          <<< to _.minTime
+      )
