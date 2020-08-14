@@ -149,11 +149,6 @@ postulate
 {-# COMPILE GHC Type = type Language.PlutusCore.Type TyDeBruijn DefaultUni Language.PlutusCore.Lexer.AlexPosn #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
-
-mapper : {A B : Set} → (A → B) → Maybe A → Maybe B
-mapper f nothing = nothing
-mapper f (just a) = just (f a)
-
 postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
