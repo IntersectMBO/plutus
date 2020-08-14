@@ -7,19 +7,21 @@ This file contains
 3. Reduction semantics for types
 -}
 
+{-# OPTIONS_GHC -fno-warn-orphans      #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
 module Language.PlutusCore.Gen.Type
   ( TypeBuiltinG (..)
   , TypeG (..)
   , ClosedTypeG
+  , TermG (..)
+  , ClosedTermG
   , toClosedType
   , checkClosedTypeG
   , normalizeTypeG
@@ -29,13 +31,16 @@ module Language.PlutusCore.Gen.Type
 
 import           Control.Enumerable
 import           Control.Monad.Except
+import           Data.Bifunctor
 import           Data.Coolean
 import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
 
--- * Enumerating builtin types
+-- * Enumeration
+
+-- ** Enumerating types
 
 data TypeBuiltinG
   = TyByteStringG
@@ -45,37 +50,61 @@ data TypeBuiltinG
 
 deriveEnumerable ''TypeBuiltinG
 
--- |Convert generated builtin types to Plutus builtin types.
-toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
-toTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
-toTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
-toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
-
-
--- * Enumerating types
-
 -- NOTE: Unusually, the application case is annotated with a kind.
 --       The reason is eagerness and efficiency. If we have the kind
 --       information at the application site, we can check the two
 --       subterms in parallel, while evaluating as little as possible.
 
-data TypeG n
-  = TyVarG n
-  | TyFunG (TypeG n) (TypeG n)
-  | TyIFixG (TypeG n) (Kind ()) (TypeG n)
-  | TyForallG (Kind ()) (TypeG (S n))
+data TypeG tyname
+  = TyVarG tyname
+  | TyFunG (TypeG tyname) (TypeG tyname)
+  | TyIFixG (TypeG tyname) (Kind ()) (TypeG tyname)
+  | TyForallG (Kind ()) (TypeG (S tyname))
   | TyBuiltinG TypeBuiltinG
-  | TyLamG (TypeG (S n))
-  | TyAppG (TypeG n) (TypeG n) (Kind ())
-  deriving (Typeable, Eq, Show)
+  | TyLamG (TypeG (S tyname))
+  | TyAppG (TypeG tyname) (TypeG tyname) (Kind ())
+  deriving (Typeable, Eq, Show, Functor)
 
 deriveEnumerable ''Kind
 
 deriveEnumerable ''TypeG
 
+type ClosedTypeG = TypeG Z
 
 
+-- ** Enumerating terms
 
+-- NOTE: We're not generating constants, dynamic builtins, or errors.
+
+data TermG tyname name
+    = VarG name
+    | TyAbsG (TermG (S tyname) name)
+    | LamAbsG (TermG tyname (S name))
+    | ApplyG (TermG tyname name) (TermG tyname name) (TypeG tyname)
+    | BuiltinG StaticBuiltinName
+    | TyInstG (TermG tyname name) (TypeG tyname) (Kind ())
+    | UnwrapG (TermG tyname name)
+    | IWrapG (TypeG tyname) (TypeG tyname) (TermG tyname name)
+    deriving (Typeable, Eq, Show)
+
+instance Bifunctor TermG where
+  bimap _ g (VarG i)            = VarG (g i)
+  bimap f g (TyAbsG tm)         = TyAbsG (bimap (fmap f) g tm)
+  bimap f g (LamAbsG tm)        = LamAbsG (bimap f (fmap g) tm)
+  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap f ty)
+  bimap _ _ (BuiltinG builtin)  = BuiltinG builtin
+  bimap f g (TyInstG tm ty k)   = TyInstG (bimap f g tm) (fmap f ty) k
+  bimap f g (UnwrapG tm)        = UnwrapG (bimap f g tm)
+  bimap f g (IWrapG ty1 ty2 tm) = IWrapG (fmap f ty1) (fmap f ty2) (bimap f g tm)
+
+deriveEnumerable ''StaticBuiltinName
+
+deriveEnumerable ''TermG
+
+type ClosedTermG = TermG Z Z
+
+
+-- * Conversion to PlutusCore
 
 -- NOTE: The errors we need to handle in property based testing are
 --       when the generator generates garbage or we encounter an
@@ -87,6 +116,15 @@ data GenError
 data ErrorP ann
  = TypeErrorP (TypeError DefaultUni ann)
  | GenErrorP GenError
+
+
+-- * Converting types
+
+-- |Convert generated builtin types to Plutus builtin types.
+toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
+toTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
+toTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
+toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 
 
 -- |Convert well-kinded generated types to Plutus types.
@@ -123,11 +161,6 @@ toType ns k2 (TyAppG ty1 ty2 k1) =
 toType _ k ty = throwError $ Gen ty k
 
 
--- * Enumerating closed types
-
-type ClosedTypeG = TypeG Z
-
-
 -- |Convert generated closed types to Plutus types.
 toClosedType
   :: (MonadQuote m, MonadError GenError m)
@@ -137,7 +170,12 @@ toClosedType
   -> m (Type TyName DefaultUni ())
 toClosedType strs = toType (emptyTyNameState strs)
 
--- * Kind checking
+-- ** Converting terms
+
+
+-- * Checking
+
+-- ** Kind checking
 
 -- |Kind check builtin types.
 --
@@ -203,8 +241,7 @@ checkClosedTypeG :: Kind () -> ClosedTypeG -> Cool
 checkClosedTypeG = checkTypeG emptyKCS
 
 
-
--- * Kind checking state
+-- ** Kind checking state
 
 newtype KCS n = KCS{ kindOf :: n -> Kind () }
 
@@ -219,52 +256,40 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
     kindOf' (FS i) = kindOf i
 
 
--- * Normalising
+-- * Normalisation
 
--- |Extend renamings.
-extendRen :: (n -> m) -> S n -> S m
-extendRen _ FZ     = FZ
-extendRen r (FS i) = FS (r i)
+-- ** Type reduction
 
--- |Simultaneous renaming of variables in generated types.
-renameTypeG :: (n -> m) -> TypeG n -> TypeG m
-renameTypeG r (TyVarG i)             = TyVarG (r i)
-renameTypeG r (TyFunG ty1 ty2)       = TyFunG (renameTypeG r ty1) (renameTypeG r ty2)
-renameTypeG r (TyIFixG ty1 k ty2)    = TyIFixG (renameTypeG r ty1) k (renameTypeG r ty2)
-renameTypeG r (TyForallG k ty)       = TyForallG k (renameTypeG (extendRen r) ty)
-renameTypeG _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
-renameTypeG r (TyLamG ty)            = TyLamG (renameTypeG (extendRen r) ty)
-renameTypeG r (TyAppG ty1 ty2 k)     = TyAppG (renameTypeG r ty1) (renameTypeG r ty2) k
+type TySub n m = n -> TypeG m
 
 -- |Extend substitutions.
-extendSub :: (n -> TypeG m) -> S n -> TypeG (S m)
-extendSub _ FZ     = TyVarG FZ
-extendSub s (FS i) = renameTypeG FS (s i)
+extTySub :: TySub n m -> TySub (S n) (S m)
+extTySub _ FZ     = TyVarG FZ
+extTySub s (FS i) = FS <$> s i
 
 -- |Simultaneous substitution of variables in generated types.
-substTypeG :: (n -> TypeG m) -> TypeG n -> TypeG m
-substTypeG s (TyVarG i)             = s i
-substTypeG s (TyFunG ty1 ty2)       = TyFunG (substTypeG s ty1) (substTypeG s ty2)
-substTypeG s (TyIFixG ty1 k ty2)    = TyIFixG (substTypeG s ty1) k (substTypeG s ty2)
-substTypeG s (TyForallG k ty)       = TyForallG k (substTypeG (extendSub s) ty)
-substTypeG _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
-substTypeG s (TyLamG ty)            = TyLamG (substTypeG (extendSub s) ty)
-substTypeG s (TyAppG ty1 ty2 k)     = TyAppG (substTypeG s ty1) (substTypeG s ty2) k
+applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m
+applyTySub s (TyVarG i)             = s i
+applyTySub s (TyFunG ty1 ty2)       = TyFunG (applyTySub s ty1) (applyTySub s ty2)
+applyTySub s (TyIFixG ty1 k ty2)    = TyIFixG (applyTySub s ty1) k (applyTySub s ty2)
+applyTySub s (TyForallG k ty)       = TyForallG k (applyTySub (extTySub s) ty)
+applyTySub _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
+applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
+applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
 
 -- |Reduce a generated type by a single step, or fail.
-stepTypeG :: TypeG n -> Maybe (TypeG n)
-stepTypeG (TyVarG _)                  = empty
-stepTypeG (TyFunG ty1 ty2)            = (TyFunG <$> stepTypeG ty1 <*> pure ty2)
-                                    <|> (TyFunG <$> pure ty1 <*> stepTypeG ty2)
-stepTypeG (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTypeG ty1 <*> pure k <*> pure ty2)
-                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTypeG ty2)
-stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
-stepTypeG (TyBuiltinG _)              = empty
-stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
-stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (substTypeG (\case FZ -> ty2; FS i -> TyVarG i) ty1)
-stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
-                                    <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
+stepTy :: TypeG n -> Maybe (TypeG n)
+stepTy (TyVarG _)                  = empty
+stepTy (TyFunG ty1 ty2)            = (TyFunG <$> stepTy ty1 <*> pure ty2)
+                                    <|> (TyFunG <$> pure ty1 <*> stepTy ty2)
+stepTy (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTy ty1 <*> pure k <*> pure ty2)
+                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTy ty2)
+stepTy (TyForallG k ty)            = TyForallG <$> pure k <*> stepTy ty
+stepTy (TyBuiltinG _)              = empty
+stepTy (TyLamG ty)                 = TyLamG <$> stepTy ty
+stepTy (TyAppG (TyLamG ty1) ty2 _) = pure (applyTySub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
+stepTy (TyAppG ty1 ty2 k)          = TyAppG <$> stepTy ty1 <*> pure ty2 <*> pure k
 
 -- |Normalise a generated type.
 normalizeTypeG :: TypeG n -> TypeG n
-normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
+normalizeTypeG ty = maybe ty normalizeTypeG (stepTy ty)

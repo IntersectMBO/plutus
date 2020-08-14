@@ -42,7 +42,7 @@ data Z
 data S n
   = FZ
   | FS n
-  deriving (Typeable, Eq, Show)
+  deriving (Typeable, Eq, Show, Functor)
 
 instance Enumerable Z where
   enumerate = datatype []

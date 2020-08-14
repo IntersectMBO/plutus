@@ -37,6 +37,7 @@ type TyProp =  Kind ()                           -- ^ kind for generated type
             -> ClosedTypeG                       -- ^ generated type
             -> ExceptT GenError Quote (Type TyName DefaultUni ()) -- ^ external rep. of gen. type
             -> Cool                              -- ^ whether the property holds
+
 -- |Internal version of type properties.
 type TyPropG =  Kind ()      -- ^ kind of the generated type
              -> ClosedTypeG  -- ^ generated type
