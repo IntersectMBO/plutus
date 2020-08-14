@@ -134,7 +134,7 @@ type instance UniOf (Term tyname name uni ann) = uni
 newtype Normalized a = Normalized
     { unNormalized :: a
     } deriving (Show, Eq, Functor, Foldable, Traversable, Lift, Generic)
-      deriving newtype (NFData, PrettyBy config)
+      deriving newtype (NFData, Pretty, PrettyBy config)
       deriving Applicative via Identity
 
 -- | All kinds of uniques an entity contains.

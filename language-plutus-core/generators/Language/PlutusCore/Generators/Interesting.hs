@@ -45,7 +45,7 @@ import qualified Hedgehog.Gen                             as Gen
 import qualified Hedgehog.Range                           as Range
 
 -- | The type of terms-and-their-values generators.
-type TermGen uni a = Gen (TermOf uni a)
+type TermGen uni a = Gen (TermOf (Term TyName Name uni ()) a)
 
 -- | Generates application of a builtin that returns a function, immediately saturated afterwards.
 --
@@ -144,7 +144,7 @@ genNaiveFib = do
 genNatRoundtrip
     :: forall uni. Generatable uni => TermGen uni Integer
 genNatRoundtrip = do
-    let typedInt = AsKnownType @uni
+    let typedInt = AsKnownType @(Term TyName Name uni ())
     TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
     let term = mkIterApp () natToInteger [metaIntegerToNat iv]
     return $ TermOf term iv

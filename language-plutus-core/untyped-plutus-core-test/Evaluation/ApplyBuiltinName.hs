@@ -1,59 +1,69 @@
--- | Constant application tests.
-
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module Evaluation.ApplyBuiltinName
     ( test_applyStaticBuiltinName
     ) where
 
-import           Language.PlutusCore
-import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Ck
-import           Language.PlutusCore.Evaluation.Machine.ExMemory
-import           Language.PlutusCore.Generators
-import           Language.PlutusCore.MkPlc
-import           Language.PlutusCore.Pretty
+import           PlutusPrelude
 
-import qualified Data.ByteString.Lazy                            as BSL
-import qualified Data.ByteString.Lazy.Hash                       as Hash
-import           Data.Coerce
-import           Data.Foldable
-import           Data.List
-import           Hedgehog                                        hiding (Var)
+import           Language.UntypedPlutusCore
+
+import           Language.PlutusCore.Constant
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.Exception
+import           Language.PlutusCore.Generators
+import           Language.PlutusCore.Name
+import           Language.PlutusCore.Universe
+
+import           Control.Monad.Except
+import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.ByteString.Lazy.Hash                                  as Hash
+import           Data.Proxy
+import           Hedgehog
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
 
--- | This a generic property-based testing procedure for 'applyBuiltinName'.
--- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
--- An argument is generated as a Haskell value, then coerced to the corresponding PLC value which
--- gets appended to the spine of arguments 'applyBuiltinName' expects.
--- The generated Haskell value is passed to the semantics of the 'TypedBuiltinName'
--- (the first argument), i.e. to the second argument. Thus we collect arguments on the PLC side
--- and supply them to a function on the Haskell side. When all appropriate arguments are generated,
--- we check that the results of the two computations match. We also check that each
--- underapplication on the PLC side is a stuck application.
+-- | A simplified (because we don't need the full generality here) version of
+-- 'Language.PlutusCore.Generators.Internal.Entity.genIterAppValue'.
+genArgsRes
+    :: Generatable uni
+    => TypeScheme (Term Name uni ()) as res -> FoldArgs as res -> Gen ([Term Name uni ()], res)
+genArgsRes (TypeSchemeResult _)     y = return ([], y)
+genArgsRes (TypeSchemeArrow _ schB) f = do
+    TermOf v x <- genTypedBuiltinDef AsKnownType
+    first (v :) <$> genArgsRes schB (f x)
+genArgsRes (TypeSchemeAll _ _ schK) f = genArgsRes (schK Proxy) f
+
+type AppErr = EvaluationException () () (Term Name DefaultUni ())
+
+-- | A simple monad for evaluating constant applications in.
+newtype AppM a = AppM
+    { unAppM :: Either AppErr a
+    } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
+
+instance SpendBudget AppM (Term Name DefaultUni ()) where
+    spendBudget _ _ _ = pure ()
+    builtinCostParams = pure defaultCostModel
+
+-- | This shows that the builtin application machinery accepts untyped terms.
 prop_applyStaticBuiltinName
-    :: (uni ~ DefaultUni, KnownType (Plain Term uni) r, PrettyConst r)
-    => TypedStaticBuiltinName (Plain Term uni) as r
+    :: (uni ~ DefaultUni, KnownType (Term Name uni ()) res)
+    => TypedStaticBuiltinName (Term Name uni ()) args res
        -- ^ A (typed) builtin name to apply.
-    -> FoldArgs as r
+    -> FoldArgs args res
        -- ^ The semantics of the builtin name. E.g. the semantics of
        -- 'AddInteger' (and hence 'typedAddInteger') is '(+)'.
     -> Property
-prop_applyStaticBuiltinName tbn op = property $ do
-    let denot = denoteTypedStaticBuiltinName tbn staticBuiltinNameAsTerm op
-        getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot
-    IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
-    let IterApp name spine = iterApp
-        app = applyStaticBuiltinName @(CkM DefaultUni) name
-    traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
-    app spine === Right (evaluationConstAppResult $ makeKnown y)
+prop_applyStaticBuiltinName (TypedStaticBuiltinName name sch) op = property $ do
+    (args, res) <- forAllNoShow $ genArgsRes sch op
+    let rhs = evaluationConstAppResult $ makeKnown res
+    case unAppM $ applyStaticBuiltinName name args of
+        Left _    -> fail $ "Failure while checking an application of " ++ show name
+        Right lhs -> lhs === rhs
 
 test_typedAddInteger :: TestTree
 test_typedAddInteger

@@ -254,7 +254,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) =>
     fromConstant value = Constant (memoryUsage value) value
 
 instance FromConstant (Term tyname name uni ()) where
-    fromConstant value = Constant () value
+    fromConstant = Constant ()
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
 --

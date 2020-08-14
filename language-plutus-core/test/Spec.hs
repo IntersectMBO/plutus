@@ -127,7 +127,7 @@ propMangle = property $ do
             Just (term, termMang)
     Hedgehog.assert $ term /= termMangled && termMangled /= term
 
-propDeBruijn :: Gen (TermOf DefaultUni a) -> Property
+propDeBruijn :: Gen (TermOf (Term TyName Name DefaultUni ()) a) -> Property
 propDeBruijn gen = property . generalizeT $ do
     (TermOf body _) <- forAllNoShowT gen
     let

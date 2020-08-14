@@ -19,7 +19,6 @@ module Language.PlutusCore.Generators.Internal.TypedBuiltinGen
     , genLowerBytes
     , genTypedBuiltinFail
     , genTypedBuiltinDef
-    , genTypedBuiltinDivide
     ) where
 
 import           PlutusPrelude
@@ -29,16 +28,14 @@ import           Language.PlutusCore.Generators.Internal.Dependent
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Result
-import           Language.PlutusCore.Name
+import           Language.PlutusCore.Pretty.PrettyConst
 import           Language.PlutusCore.Universe
 
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Functor.Identity
-import           Data.Proxy
 import           Data.Text.Prettyprint.Doc
 import           Hedgehog                                          hiding (Size, Var)
 import qualified Hedgehog.Gen                                      as Gen
-import qualified Hedgehog.Internal.Gen                             as Gen
 import qualified Hedgehog.Range                                    as Range
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
@@ -46,66 +43,62 @@ genLowerBytes :: Monad m => Range Int -> GenT m BSL.ByteString
 genLowerBytes range = BSL.fromStrict <$> Gen.utf8 range Gen.lower
 
 -- TODO: rename me to @TermWith@.
--- | A PLC 'Term' along with the correspoding Haskell value.
-data TermOf uni a = TermOf
-    { _termOfTerm  :: Term TyName Name uni ()  -- ^ The PLC term
-    , _termOfValue :: a                        -- ^ The Haskell value.
+-- | A @term@ along with the correspoding Haskell value.
+data TermOf term a = TermOf
+    { _termOfTerm  :: term  -- ^ The term
+    , _termOfValue :: a     -- ^ The Haskell value.
     } deriving (Functor, Foldable, Traversable)
--- This has an interesting @Apply@ instance (no pun intended).
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
-type TypedBuiltinGenT uni m = forall a. AsKnownType uni a -> GenT m (TermOf uni a)
+type TypedBuiltinGenT term m = forall a. AsKnownType term a -> GenT m (TermOf term a)
 
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
-type TypedBuiltinGen uni = TypedBuiltinGenT uni Identity
+type TypedBuiltinGen term = TypedBuiltinGenT term Identity
 
 type Generatable uni = (GShow uni, GEq uni, DefaultUni <: uni)
 
-instance (PrettyBy config a, PrettyBy config (Term TyName Name uni ())) =>
-        PrettyBy config (TermOf uni a) where
+instance (PrettyBy config a, PrettyBy config term) =>
+        PrettyBy config (TermOf term a) where
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
-makeKnownEmbed :: forall uni a. KnownType (Term TyName Name uni ()) a => a -> Term TyName Name uni ()
-makeKnownEmbed x = case makeKnown x of
-    EvaluationFailure      -> Error () $ toTypeAst (Proxy @a)
-    EvaluationSuccess term -> term
-
 attachCoercedTerm
-    :: (Monad m, KnownType (Term TyName Name uni ()) a) => GenT m a -> GenT m (TermOf uni a)
-attachCoercedTerm = fmap $ \x -> TermOf (makeKnownEmbed x) x
+    :: (Monad m, KnownType term a, PrettyConst a)
+    => GenT m a -> GenT m (TermOf term a)
+attachCoercedTerm a = do
+    x <- a
+    case makeKnown x of
+        -- I've attempted to implement support for generating 'EvaluationFailure',
+        -- but it turned out to be too much of a pain for something that we do not really need.
+        EvaluationFailure -> fail $ concat
+            [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
+            , show $ prettyConst x
+            ]
+        EvaluationSuccess v -> pure $ TermOf v x
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: forall a uni m. (GShow uni, KnownType (Term TyName Name uni ()) a, Monad m)
-    => GenT m a                 -- ^ A new generator.
-    -> TypedBuiltinGenT uni m   -- ^ An old typed built-ins generator.
-    -> TypedBuiltinGenT uni m   -- ^ The updated typed built-ins generator.
+    :: forall a term m. (GShow (UniOf term), KnownType term a, PrettyConst a, Monad m)
+    => GenT m a                  -- ^ A new generator.
+    -> TypedBuiltinGenT term m   -- ^ An old typed built-ins generator.
+    -> TypedBuiltinGenT term m   -- ^ The updated typed built-ins generator.
 updateTypedBuiltinGen genX genTb akt@AsKnownType
     | Just Refl <- proxyAsKnownType genX `geq` akt = attachCoercedTerm genX
     | otherwise                                    = genTb akt
 
 -- | A built-ins generator that always fails.
-genTypedBuiltinFail :: (GShow uni, Monad m) => TypedBuiltinGenT uni m
+genTypedBuiltinFail :: (GShow (UniOf term), Monad m) => TypedBuiltinGenT term m
 genTypedBuiltinFail tb = fail $ fold
     [ "A generator for the following built-in is not implemented: "
     , display tb
     ]
 
 -- | A default built-ins generator.
-genTypedBuiltinDef :: (Generatable uni, Monad m) => TypedBuiltinGenT uni m
 genTypedBuiltinDef
-    = updateTypedBuiltinGen @Integer
-         (Gen.integral $ Range.linearFrom 0 0 10)
-    $ updateTypedBuiltinGen
-          (genLowerBytes (Range.linear 0 10))
+    :: (Generatable uni, HasConstantIn uni term, Monad m)
+    => TypedBuiltinGenT term m
+genTypedBuiltinDef
+    = updateTypedBuiltinGen @Integer (Gen.integral $ Range.linearFrom 0 0 10)
+    $ updateTypedBuiltinGen (genLowerBytes (Range.linear 0 10))
     $ updateTypedBuiltinGen Gen.bool
     $ genTypedBuiltinFail
-
--- | A built-ins generator that doesn't produce @0 :: Integer@,
--- so that one case use 'div' or 'mod' over such integers without the risk of dividing by zero.
-genTypedBuiltinDivide :: (Generatable uni, Monad m) => TypedBuiltinGenT uni m
-genTypedBuiltinDivide
-    = updateTypedBuiltinGen @Integer
-          (fromGenT (Gen.filterT (/= 0) . Gen.integral $ Range.linear 0 10))
-    $ genTypedBuiltinDef

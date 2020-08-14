@@ -33,22 +33,22 @@ import           Data.Functor.Compose
 import           Data.Proxy
 
 -- | Haskell denotation of a PLC object. An object can be a 'BuiltinName' or a variable for example.
-data Denotation uni object res = forall args. Denotation
+data Denotation term object res = forall args. Denotation
     { _denotationObject :: object
       -- ^ A PLC object.
-    , _denotationToTerm :: object -> Term TyName Name uni ()
+    , _denotationToTerm :: object -> term
       -- ^ How to embed the object into a term.
     , _denotationItself :: FoldArgs args res
       -- ^ The denotation of the object. E.g. the denotation of 'AddInteger' is '(+)'.
-    , _denotationScheme :: TypeScheme (Term TyName Name uni ()) args res
+    , _denotationScheme :: TypeScheme term args res
       -- ^ The 'TypeScheme' of the object. See 'intIntInt' for example.
     }
 
 -- | A member of a 'DenotationContext'.
 -- @object@ is existentially quantified, so the only thing that can be done with it,
 -- is turning it into a 'Term' using '_denotationToTerm'.
-data DenotationContextMember uni res =
-    forall object. DenotationContextMember (Denotation uni object res)
+data DenotationContextMember term res =
+    forall object. DenotationContextMember (Denotation term object res)
 
 -- | A context of 'DenotationContextMember's.
 -- Each row is a mapping from a type to a list of things that can return that type.
@@ -56,8 +56,8 @@ data DenotationContextMember uni res =
 --   1. a bound variable of type @integer@
 --   2. a bound variable of functional type with the result being @integer@
 --   3. the 'AddInteger' 'BuiltinName' or any other 'BuiltinName' which returns an @integer@.
-newtype DenotationContext uni = DenotationContext
-    { unDenotationContext :: DMap (AsKnownType uni) (Compose [] (DenotationContextMember uni))
+newtype DenotationContext term = DenotationContext
+    { unDenotationContext :: DMap (AsKnownType term) (Compose [] (DenotationContextMember term))
     }
 
 -- Here the only search that we need to perform is the search for things that return an appropriate
@@ -66,27 +66,30 @@ newtype DenotationContext uni = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme (Term TyName Name uni ()) args res -> AsKnownType uni res
+typeSchemeResult :: TypeScheme term args res -> AsKnownType term res
 typeSchemeResult (TypeSchemeResult _)     = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAll _ _ schK) = typeSchemeResult $ schK Proxy
 
 -- | Get the 'Denotation' of a variable.
-denoteVariable :: KnownType (Term TyName Name uni ()) res => Name -> res -> Denotation uni Name res
+denoteVariable
+    :: KnownType (Term TyName Name uni ()) res
+    => Name -> res -> Denotation (Term TyName Name uni ()) Name res
 denoteVariable name meta = Denotation name (Var ()) meta (TypeSchemeResult Proxy)
 
 -- | Get the 'Denotation' of a 'TypedStaticBuiltinName'.
 denoteTypedStaticBuiltinName
-    :: TypedStaticBuiltinName (Term TyName Name uni ()) args res
+    :: TypedStaticBuiltinName term args res
+    -> (StaticBuiltinName -> term)
     -> FoldArgs args res
-    -> Denotation uni StaticBuiltinName res
-denoteTypedStaticBuiltinName (TypedStaticBuiltinName name scheme) meta =
-    Denotation name staticBuiltinNameAsTerm meta scheme
+    -> Denotation term StaticBuiltinName res
+denoteTypedStaticBuiltinName (TypedStaticBuiltinName name scheme) embed meta =
+    Denotation name embed meta scheme
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
-    :: (GShow uni, KnownType (Term TyName Name uni ()) res)
-    => Denotation uni object res -> DenotationContext uni -> DenotationContext uni
+    :: (GShow (UniOf term), KnownType term res)
+    => Denotation term object res -> DenotationContext term -> DenotationContext term
 insertDenotation denotation (DenotationContext vs) = DenotationContext $
     DMap.insertWith'
         (\(Compose xs) (Compose ys) -> Compose $ xs ++ ys)
@@ -97,7 +100,10 @@ insertDenotation denotation (DenotationContext vs) = DenotationContext $
 -- | Insert a variable into a 'DenotationContext'.
 insertVariable
     :: (GShow uni, KnownType (Term TyName Name uni ()) a)
-    => Name -> a -> DenotationContext uni -> DenotationContext uni
+    => Name
+    -> a
+    -> DenotationContext (Term TyName Name uni ())
+    -> DenotationContext (Term TyName Name uni ())
 insertVariable name = insertDenotation . denoteVariable name
 
 -- | Insert a 'TypedBuiltinName' into a 'DenotationContext'.
@@ -105,18 +111,19 @@ insertTypedStaticBuiltinName
     :: GShow uni
     => TypedStaticBuiltinName (Term TyName Name uni ()) args res
     -> FoldArgs args res
-    -> DenotationContext uni
-    -> DenotationContext uni
+    -> DenotationContext (Term TyName Name uni ())
+    -> DenotationContext (Term TyName Name uni ())
 insertTypedStaticBuiltinName tbn@(TypedStaticBuiltinName _ scheme) meta =
     case typeSchemeResult scheme of
-        AsKnownType -> insertDenotation (denoteTypedStaticBuiltinName tbn meta)
+        AsKnownType ->
+            insertDenotation $ denoteTypedStaticBuiltinName tbn staticBuiltinNameAsTerm meta
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
 -- Look for "UNDEFINED BEHAVIOR" in "Language.PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'TypedStaticBuiltinName's.
 typedBuiltinNames
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => DenotationContext uni
+    => DenotationContext (Term TyName Name uni ())
 typedBuiltinNames
     = insertTypedStaticBuiltinName typedAddInteger           (+)
     . insertTypedStaticBuiltinName typedSubtractInteger      (-)
