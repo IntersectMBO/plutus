@@ -276,6 +276,15 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
+-- | s * (x - y) + I
+data ModelSubtractedSizes = ModelSubtractedSizes
+    { modelSubtractedSizesIntercept :: Double
+    , modelSubtractedSizesSlope     :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelSubtractedSizes", CamelToSnake)] ModelSubtractedSizes
+
+
 -- | s * (x * y) + I
 data ModelMultiSizes = ModelMultiSizes
     { modelMultiSizesIntercept :: Double
@@ -319,6 +328,7 @@ data ModelSplitConst = ModelSplitConst
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
+    | ModelTwoArgumentsSubtractedSizes ModelSubtractedSizes
     | ModelTwoArgumentsMultiSizes ModelMultiSizes
     | ModelTwoArgumentsMinSize ModelMinSize
     | ModelTwoArgumentsMaxSize ModelMaxSize
@@ -341,6 +351,9 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
+runTwoArgumentModel
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (fromInteger (size1 - size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMultiSizes (ModelMultiSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 * size2)) * slope + intercept
