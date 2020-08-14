@@ -1,6 +1,7 @@
 module Marlowe.Holes where
 
 import Prelude
+import Control.Monad.Except.Extra (noteT)
 import Data.Array (foldMap)
 import Data.Array as Array
 import Data.BigInteger (BigInteger)
@@ -13,6 +14,7 @@ import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, 
 import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', over)
 import Data.Lens.Record (prop)
+import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -24,6 +26,8 @@ import Data.String.CodeUnits (dropRight)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Foreign (readString)
+import Foreign.Generic (class Decode, class Encode, ForeignError(..), decode, encode)
 import Marlowe.Semantics (PubKey, Rational(..), Slot, TokenName)
 import Marlowe.Semantics as S
 import Monaco (CompletionItem, IRange, completionItemKind)
@@ -68,6 +72,14 @@ instance boundedEnumMarloweType :: BoundedEnum MarloweType where
   cardinality = genericCardinality
   toEnum = genericToEnum
   fromEnum = genericFromEnum
+
+instance encodeMarloweType :: Encode MarloweType where
+  encode = encode <<< show
+
+instance decodeMarloweType :: Decode MarloweType where
+  decode t = do
+    s <- readString t
+    noteT (NEL.singleton (ForeignError (s <> " is not a valid MarloweType"))) $ readMarloweType s
 
 allMarloweTypes :: Array MarloweType
 allMarloweTypes = upFromIncluding bottom
@@ -379,12 +391,12 @@ instance fromTermRational :: FromTerm Rational Rational where
   fromTerm = pure
 
 -- a concrete type for holes only
-data MarloweHole
+newtype MarloweHole
   = MarloweHole
-    { name :: String
-    , marloweType :: MarloweType
-    , range :: Range
-    }
+  { name :: String
+  , marloweType :: MarloweType
+  , range :: Range
+  }
 
 derive instance genericMarloweHole :: Generic MarloweHole _
 
@@ -395,6 +407,10 @@ instance ordMarloweHole :: Ord MarloweHole where
 
 instance showMarloweHole :: Show MarloweHole where
   show = genericShow
+
+derive newtype instance encodeMarloweHole :: Encode MarloweHole
+
+derive newtype instance decodeMarloweHole :: Decode MarloweHole
 
 class IsMarloweType a where
   marloweType :: Proxy a -> MarloweType
@@ -461,6 +477,12 @@ instance semigroupHoles :: Semigroup Holes where
   append (Holes a) (Holes b) = Holes (Map.unionWith append a b)
 
 derive newtype instance monoidHoles :: Monoid Holes
+
+instance encodeHoles :: Encode Holes where
+  encode (Holes ps) = encode ps
+
+instance decodeHoles :: Decode Holes where
+  decode f = Holes <$> decode f
 
 insertHole :: forall a. IsMarloweType a => Term a -> Holes -> Holes
 insertHole (Term _ _) m = m

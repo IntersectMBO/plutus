@@ -23,7 +23,7 @@ import Gists (GistAction)
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
-import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, PubKey)
+import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData(..))
