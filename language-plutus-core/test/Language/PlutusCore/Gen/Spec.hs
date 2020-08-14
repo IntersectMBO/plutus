@@ -7,30 +7,80 @@ generated types. Generation of terms is not implemented yet.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
 
-module Language.PlutusCore.PropTest
-  ( TyProp
-  , testTyProp
-  , toClosedType
-  , normalizeTypeG
-  , GenError (..)
-  , ErrorP (..)
+module Language.PlutusCore.Gen.Spec
+  ( tests
+  , GenOptions (..)
+  , defaultGenOptions
+  , NEAT.Options (..)
   ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
 import           Language.PlutusCore.Gen.Type   hiding (toClosedType)
 import qualified Language.PlutusCore.Gen.Type   as Gen
+import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search
+import           Control.Search                 as NEAT
 import qualified Data.Coolean                   as Cool
+import qualified Data.Either                    as Either
 import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
+import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Text.Printf
 
+
+-- * Property-based tests
+
+data GenOptions = GenOptions
+  { genDepth :: Int          -- ^ Search depth, measured in program size
+  , genKind  :: Kind ()      -- ^ Kind of types to generate
+  , genMode  :: NEAT.Options -- ^ Search strategy
+  }
+
+defaultGenOptions :: GenOptions
+defaultGenOptions = GenOptions
+  { genDepth = 10
+  , genKind  = Type ()
+  , genMode  = NEAT.OF
+  }
+
+tests :: GenOptions -> TestTree
+tests GenOptions{..} = testGroup "NEAT"
+    [ testCaseCount "kind checker for generated types is sound" $
+        testTyProp genDepth genKind genMode prop_checkKindSound
+    , testCaseCount "normalization preserves kinds" $
+        testTyProp genDepth genKind genMode prop_normalizePreservesKind
+    , testCaseCount "normalization for generated types is sound" $
+        testTyProp genDepth genKind genMode prop_normalizeTypeSound
+    ]
+
+-- |Property: Kind checker for generated types is sound.
+prop_checkKindSound :: TyProp
+prop_checkKindSound k _ tyQ = isSafe $ do
+  ty <- withExceptT GenErrorP tyQ
+  withExceptT TypeErrorP $ checkKind defConfig () ty k
+
+-- |Property: Normalisation preserves kind.
+prop_normalizePreservesKind :: TyProp
+prop_normalizePreservesKind k _ tyQ = isSafe $ do
+  ty  <- withExceptT GenErrorP tyQ
+  ty' <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
+  withExceptT TypeErrorP $ checkKind defConfig () ty' k
+
+-- |Property: Normalisation for generated types is sound.
+prop_normalizeTypeSound :: TyProp
+prop_normalizeTypeSound k tyG tyQ = isSafe $ do
+  ty <- withExceptT GenErrorP tyQ
+  ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
+  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
+  return (ty1 == ty2)
+
+-- * Helper functions
 
 -- |The type for properties with access to both representations.
 type TyProp =  Kind ()                           -- ^ kind for generated type
@@ -45,16 +95,25 @@ type TyPropG =  Kind ()      -- ^ kind of the generated type
 
 
 -- |Test property on well-kinded types.
-testTyProp :: Int     -- ^ Search depth
-           -> Kind () -- ^ Kind for generated types
-           -> TyProp  -- ^ Property to test
+testTyProp :: Int          -- ^ Search depth
+           -> Kind ()      -- ^ Kind for generated types
+           -> NEAT.Options -- ^ Search mode
+           -> TyProp       -- ^ Property to test
            -> IO Integer
-testTyProp depth k typrop = do
-  result <- ctrex depth (toTyPropG typrop k)
+testTyProp depth k mode typrop = do
+  result <- ctrex' mode depth (toTyPropG typrop k)
   case result of
     Left  i   -> return i
     Right tyG -> assertFailure (errorMsgTyProp k tyG)
 
+-- |Print the number of generated test cases.
+testCaseCount :: String -> IO Integer -> TestTree
+testCaseCount name act = testCaseInfo name $
+  fmap (\i -> show i ++ " types generated") act
+
+-- |Check if the type/kind checker or generation threw any errors.
+isSafe :: ExceptT (ErrorP a) Quote a -> Cool
+isSafe = Cool.toCool . Either.isRight . runQuote . runExceptT
 
 -- |Generate the error message for a failed `TyProp`.
 errorMsgTyProp :: Kind () -> ClosedTypeG -> String
@@ -81,14 +140,13 @@ toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
     tyG_ok    = checkClosedTypeG kG tyG
     typrop_ok = typrop kG tyG (toClosedType kG tyG)
 
--- |Stream of type names t0, t1, t2, ..
-tynames :: Stream.Stream Text.Text
-tynames = mkTextNameStream "t"
-
-
 -- |Convert type.
 toClosedType :: (MonadQuote m, MonadError GenError m)
              => Kind ()
              -> ClosedTypeG
              -> m (Type TyName DefaultUni ())
 toClosedType = Gen.toClosedType tynames
+
+-- |Stream of type names t0, t1, t2, ..
+tynames :: Stream.Stream Text.Text
+tynames = mkTextNameStream "t"
