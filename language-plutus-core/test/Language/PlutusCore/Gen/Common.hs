@@ -19,11 +19,11 @@ module Language.PlutusCore.Gen.Common
   , fromZ
   , NameState (nameOf)
   , emptyNameState
-  , extendNameState
+  , extNameState
   , TyNameState
   , tynameOf
   , emptyTyNameState
-  , extendTyNameState
+  , extTyNameState
   , mkTextNameStream
   ) where
 
@@ -73,12 +73,12 @@ tynameOf (TyNameState NameState{..}) i = TyName (nameOf i)
 emptyNameState :: Stream.Stream Text.Text -> NameState Z
 emptyNameState strs = NameState { nameOf = fromZ, freshNameStrings = strs }
 
--- |Extend name state with a fresh name.
-extendNameState
+-- |Ext name state with a fresh name.
+extNameState
   :: (MonadQuote m)
   => NameState n
   -> m (NameState (S n))
-extendNameState NameState{..} = liftQuote $ do
+extNameState NameState{..} = liftQuote $ do
   let str = Stream.head freshNameStrings
       freshNameStrings' = Stream.tail freshNameStrings
   name <- freshName str
@@ -90,13 +90,13 @@ extendNameState NameState{..} = liftQuote $ do
 emptyTyNameState :: Stream.Stream Text.Text -> TyNameState Z
 emptyTyNameState strs = TyNameState (emptyNameState strs)
 
--- |Extend type name state with a fresh type name.
-extendTyNameState
+-- |Ext type name state with a fresh type name.
+extTyNameState
   :: (MonadQuote m)
   => TyNameState n
   -> m (TyNameState (S n))
-extendTyNameState (TyNameState nameState) =
-  TyNameState <$> extendNameState nameState
+extTyNameState (TyNameState nameState) =
+  TyNameState <$> extNameState nameState
 
 -- |Create a stream of names |x0, x1, x2, ...| from a prefix |"x"|
 mkTextNameStream :: Text.Text -> Stream.Stream Text.Text

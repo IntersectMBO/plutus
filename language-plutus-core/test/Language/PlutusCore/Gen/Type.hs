@@ -151,12 +151,12 @@ convertType tms (Type _) (TyIFixG ty1 k ty2) =
   where
     k' = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 convertType tms (Type _) (TyForallG k ty) = do
-  tms' <- extendTyNameState tms
+  tms' <- extTyNameState tms
   TyForall () (tynameOf tms' FZ) k <$> convertType tms' (Type ()) ty
 convertType _ _ (TyBuiltinG tyBuiltin) =
   return (TyBuiltin () (convertTypeBuiltin tyBuiltin))
 convertType tms (KindArrow _ k1 k2) (TyLamG ty) = do
-  tms' <- extendTyNameState tms
+  tms' <- extTyNameState tms
   TyLam () (tynameOf tms' FZ) k1 <$> convertType tms' k2 ty
 convertType tms k2 (TyAppG ty1 ty2 k1) =
   TyApp () <$> convertType tms k' ty1 <*> convertType tms k1 ty2
@@ -194,7 +194,7 @@ convertClosedType strs = convertType (emptyTyNameState strs)
 -- toTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
 --   let k = undefined :: Kind ()
 --   ty1' <- convertType tns k ty1
---   ns' <- extendNameState ns
+--   ns' <- extNameState ns
 --   LamAbs () ty1' <$> toTerm tns ns' ty2 tm
 
 
@@ -243,7 +243,7 @@ checkKindG kcs (Type _) (TyIFixG ty1 k ty2)
 checkKindG kcs (Type _) (TyForallG k body)
   = tyKindOk
   where
-    tyKindOk = checkKindG (extendKCS k kcs) (Type ()) body
+    tyKindOk = checkKindG (extKCS k kcs) (Type ()) body
 
 checkKindG _ k (TyBuiltinG tyBuiltin)
   = tyBuiltinKindOk
@@ -253,7 +253,7 @@ checkKindG _ k (TyBuiltinG tyBuiltin)
 checkKindG kcs (KindArrow () k1 k2) (TyLamG body)
   = bodyKindOk
   where
-    bodyKindOk = checkKindG (extendKCS k1 kcs) k2 body
+    bodyKindOk = checkKindG (extKCS k1 kcs) k2 body
 
 checkKindG kcs k' (TyAppG ty1 ty2 k)
   = ty1KindOk &&& ty2KindOk
@@ -275,15 +275,15 @@ instance Check (Kind ()) (Normalized ClosedTypeG) where
 
 -- *** Kind checking state
 
-newtype KCS n = KCS{ kindOf :: n -> Kind () }
+newtype KCS tyname = KCS{ kindOf :: tyname -> Kind () }
 
 emptyKCS :: KCS Z
 emptyKCS = KCS{ kindOf = fromZ }
 
-extendKCS :: forall n. Kind () -> KCS n -> KCS (S n)
-extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
+extKCS :: forall tyname. Kind () -> KCS tyname -> KCS (S tyname)
+extKCS k KCS{..} = KCS{ kindOf = kindOf' }
   where
-    kindOf' :: S n -> Kind ()
+    kindOf' :: S tyname -> Kind ()
     kindOf' FZ     = k
     kindOf' (FS i) = kindOf i
 
@@ -292,6 +292,17 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 -- *** Type checking state
 
+newtype TCS tyname name = TCS{ typeOf :: name -> TypeG tyname }
+
+emptyTCS :: TCS tyname Z
+emptyTCS = TCS{ typeOf = fromZ }
+
+extTCS :: forall tyname name. TypeG tyname -> TCS tyname name -> TCS tyname (S name)
+extTCS ty TCS{..} = TCS{ typeOf = typeOf' }
+  where
+    typeOf' :: S name -> TypeG tyname
+    typeOf' FZ     = ty
+    typeOf' (FS i) = typeOf i
 
 
 -- * Normalisation
@@ -300,7 +311,7 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 type TySub n m = n -> TypeG m
 
--- |Extend substitutions.
+-- |Ext substitutions.
 extTySub :: TySub n m -> TySub (S n) (S m)
 extTySub _ FZ     = TyVarG FZ
 extTySub s (FS i) = FS <$> s i
