@@ -5,28 +5,31 @@ This file contains the machinery for property based testing of
 generated types. Generation of terms is not implemented yet.
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Language.PlutusCore.Gen.Spec
   ( tests
   , GenOptions (..)
   , defaultGenOptions
-  , NEAT.Options (..)
+  , Options (..)
   ) where
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
-import           Language.PlutusCore.Gen.Type   hiding (toClosedType)
-import qualified Language.PlutusCore.Gen.Type   as Gen
+import           Language.PlutusCore.Gen.Type
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
-import           Control.Search                 as NEAT
-import qualified Data.Coolean                   as Cool
-import qualified Data.Either                    as Either
+import           Control.Search (Enumerable(..),Options(..),ctrex')
+import           Data.Coolean (Cool,toCool,(!=>))
+import           Data.Either
+import           Data.Maybe
 import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Test.Tasty
@@ -37,115 +40,131 @@ import           Text.Printf
 -- * Property-based tests
 
 data GenOptions = GenOptions
-  { genDepth :: Int          -- ^ Search depth, measured in program size
-  , genKind  :: Kind ()      -- ^ Kind of types to generate
-  , genMode  :: NEAT.Options -- ^ Search strategy
+  { genDepth :: Int     -- ^ Search depth, measured in program size
+  , genMode  :: Options -- ^ Search strategy
   }
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
   { genDepth = 10
-  , genKind  = Type ()
-  , genMode  = NEAT.OF
+  , genMode  = OF
   }
 
 tests :: GenOptions -> TestTree
-tests GenOptions{..} = testGroup "NEAT"
-    [ testCaseCount "kind checker for generated types is sound" $
-        testTyProp genDepth genKind genMode prop_checkKindSound
-    , testCaseCount "normalization preserves kinds" $
-        testTyProp genDepth genKind genMode prop_normalizePreservesKind
-    , testCaseCount "normalization for generated types is sound" $
-        testTyProp genDepth genKind genMode prop_normalizeTypeSound
-    ]
+tests genOpts@GenOptions{..} =
+  testGroup "NEAT"
+  [ testCaseGen "normalization commutes with conversion from generated types"
+      genOpts
+      (Type ())
+      prop_normalizeConvertCommute
+  , testCaseGen "normal types cannot reduce"
+      genOpts
+      (Type ())
+      prop_normalTypesCannotReduce
+  ]
 
--- |Property: Kind checker for generated types is sound.
-prop_checkKindSound :: TyProp
-prop_checkKindSound k _ tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  withExceptT TypeErrorP $ checkKind defConfig () ty k
+-- |Property: the following diagram commutes for well-kinded types...
+--
+-- @
+--                  convertClosedType
+--    ClosedTypeG ---------------------> Type TyName ()
+--         |                                   |
+--         |                                   |
+--         | normalizeTypeG                    | normalizeType
+--         |                                   |
+--         v                                   v
+--    ClosedTypeG ---------------------> Type TyName ()
+--                  convertClosedType
+-- @
+--
+prop_normalizeConvertCommute :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
+prop_normalizeConvertCommute k tyG = do
 
--- |Property: Normalisation preserves kind.
-prop_normalizePreservesKind :: TyProp
-prop_normalizePreservesKind k _ tyQ = isSafe $ do
-  ty  <- withExceptT GenErrorP tyQ
-  ty' <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
-  withExceptT TypeErrorP $ checkKind defConfig () ty' k
+  -- Check if the kind checker for generated types is sound:
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  withExceptT TypeError $ checkKind defConfig () ty k
 
--- |Property: Normalisation for generated types is sound.
-prop_normalizeTypeSound :: TyProp
-prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
-  ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
-  ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
-  return (ty1 == ty2)
+  -- Check if the converted type, when reduced, still has the same kind:
+  ty1 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
+  withExceptT TypeError $ checkKind defConfig () ty k
 
--- * Helper functions
-
--- |The type for properties with access to both representations.
-type TyProp =  Kind ()                           -- ^ kind for generated type
-            -> ClosedTypeG                       -- ^ generated type
-            -> ExceptT GenError Quote (Type TyName DefaultUni ()) -- ^ external rep. of gen. type
-            -> Cool                              -- ^ whether the property holds
-
--- |Internal version of type properties.
-type TyPropG =  Kind ()      -- ^ kind of the generated type
-             -> ClosedTypeG  -- ^ generated type
-             -> Cool         -- ^ whether the property holds
+  -- Check if normalization for generated types is sound:
+  ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
+  unless (ty1 == ty2) $ throwCtrex (CtrexClosedTypeG k tyG)
 
 
--- |Test property on well-kinded types.
-testTyProp :: Int          -- ^ Search depth
-           -> Kind ()      -- ^ Kind for generated types
-           -> NEAT.Options -- ^ Search mode
-           -> TyProp       -- ^ Property to test
-           -> IO Integer
-testTyProp depth k mode typrop = do
-  result <- ctrex' mode depth (toTyPropG typrop k)
-  case result of
-    Left  i   -> return i
-    Right tyG -> assertFailure (errorMsgTyProp k tyG)
+-- |Property: normal types cannot reduce
+prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT TestFail Quote ()
+prop_normalTypesCannotReduce k (Normalized tyG) =
+  unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexClosedTypeG k tyG)
 
--- |Print the number of generated test cases.
-testCaseCount :: String -> IO Integer -> TestTree
-testCaseCount name act = testCaseInfo name $
-  fmap (\i -> show i ++ " types generated") act
 
--- |Check if the type/kind checker or generation threw any errors.
-isSafe :: ExceptT (ErrorP a) Quote a -> Cool
-isSafe = Cool.toCool . Either.isRight . runQuote . runExceptT
+-- |Create a generator test, searching for a counter-example to the given predicate.
+testCaseGen :: (Check t a, Enumerable a)
+        => TestName
+        -> GenOptions
+        -> t
+        -> (t -> a -> ExceptT TestFail Quote ())
+        -> TestTree
+testCaseGen name GenOptions{..} t prop =
+  testCaseInfo name $ do
+    -- NOTE: in the `Right` case, `prop t ctrex` is guarded by `not (isOk (prop t ctrex))`
+    result <- ctrex' genMode genDepth (\x -> check t x !=> isOk (prop t x))
+    case result of
+      Left  count -> return $ printf "%d examples generated" count
+      Right ctrex -> assertFailure . either show undefined . run $ prop t ctrex
 
--- |Generate the error message for a failed `TyProp`.
-errorMsgTyProp :: Kind () -> ClosedTypeG -> String
-errorMsgTyProp kG tyG =
-  case run (toClosedType kG tyG) of
-    Left (Gen ty k) ->
-      printf "Test generation error: convert type %s at kind %s" (show ty) (show k)
-    Right ty ->
-      case run (inferKind defConfig ty) of
-        Left err ->
-          printf "Counterexample found: %s, generated for kind %s\n%s"
-            (show (pretty ty)) (show (pretty kG)) (show (prettyPlcClassicDef (err :: TypeError DefaultUni ())))
-        Right k2 ->
-          printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
-            (show (pretty ty)) (show (pretty kG)) (show (pretty k2))
-  where
-    run :: ExceptT e Quote a -> Either e a
-    run = runQuote . runExceptT
 
--- |Convert a `TyProp` to the internal representation of types.
-toTyPropG :: TyProp -> TyPropG
-toTyPropG typrop kG tyG = tyG_ok Cool.!=> typrop_ok
-  where
-    tyG_ok    = checkClosedTypeG kG tyG
-    typrop_ok = typrop kG tyG (toClosedType kG tyG)
+class Check t a where
+  check :: t -> a -> Cool
 
--- |Convert type.
-toClosedType :: (MonadQuote m, MonadError GenError m)
-             => Kind ()
-             -> ClosedTypeG
-             -> m (Type TyName DefaultUni ())
-toClosedType = Gen.toClosedType tynames
+instance Check (Kind ()) ClosedTypeG where
+  check = checkClosedTypeG
+
+instance Check (Kind ()) (Normalized ClosedTypeG) where
+  check k ty = checkClosedTypeG k (unNormalized ty)
+
+
+-- |Check if running |Quote| and |Except| throws any errors.
+isOk :: ExceptT TestFail Quote a -> Cool
+isOk = toCool . isRight . run
+
+data TestFail
+  = TypeError (TypeError DefaultUni ())
+  | GenError GenError
+  | Ctrex Ctrex
+
+data Ctrex
+  = CtrexClosedTypeG (Kind ()) ClosedTypeG
+
+instance Show TestFail where
+  show (TypeError e) = show e
+  show (GenError e) = show e
+  show (Ctrex e) = show e
+
+instance Show Ctrex where
+  show (CtrexClosedTypeG kG tyG) = either show go (run $ convertClosedType tynames kG tyG)
+    where
+      go ty =
+        case run (inferKind defConfig ty) of
+          Left err ->
+            printf "Counterexample found: %s, generated for kind %s\n%s"
+            (show (pretty ty))
+            (show (pretty kG))
+            (show (prettyPlcClassicDef (err :: TypeError DefaultUni ())))
+          Right k ->
+            printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
+            (show (pretty ty))
+            (show (pretty kG))
+            (show (pretty k))
+
+-- |Throw a counter-example.
+throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
+throwCtrex ctrex = throwError (Ctrex ctrex)
+
+-- |Run |Quote| and |Except| effects.
+run :: ExceptT e Quote a -> Either e a
+run = runQuote . runExceptT
 
 -- |Stream of type names t0, t1, t2, ..
 tynames :: Stream.Stream Text.Text

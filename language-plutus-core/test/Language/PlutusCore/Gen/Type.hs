@@ -8,35 +8,38 @@ This file contains
 -}
 
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
+{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
+{-# LANGUAGE DerivingVia               #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
-{-# LANGUAGE ExistentialQuantification #-}
 
-module Language.PlutusCore.Gen.Type
-  ( TypeBuiltinG (..)
-  , TypeG (..)
-  , ClosedTypeG
-  , TermG (..)
-  , ClosedTermG
-  , toClosedType
-  , checkClosedTypeG
-  , normalizeTypeG
-  , GenError (..)
-  , ErrorP (..)
-  ) where
+
+module Language.PlutusCore.Gen.Type where
 
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Bifunctor
-import           Data.Coolean
+import           Data.Coolean (Cool,toCool,true,false,(&&&))
 import qualified Data.Stream                    as Stream
 import qualified Data.Text                      as Text
 import           Language.PlutusCore
 import           Language.PlutusCore.Gen.Common
+import           Text.Printf
+
+
+-- * Helper definitions
+
+newtype Neutral a = Neutral
+  { unNeutral :: a
+  }
+
 
 -- * Enumeration
 
@@ -71,6 +74,22 @@ deriveEnumerable ''TypeG
 
 type ClosedTypeG = TypeG Z
 
+instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
+  enumerate = share $ aconcat
+    [       c1 $ \ty -> Normalized (unNeutral ty)
+    , pay . c1 $ \ty -> Normalized (TyLamG (unNormalized ty))
+    ]
+
+instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
+  enumerate = share $ aconcat
+    [ pay . c1 $ \i         -> Neutral (TyVarG i)
+    , pay . c2 $ \ty1 ty2   -> Neutral (TyFunG (unNeutral ty1) (unNeutral ty2))
+    , pay . c3 $ \ty1 k ty2 -> Neutral (TyIFixG (unNeutral ty1) k (unNeutral ty2))
+    , pay . c2 $ \k ty      -> Neutral (TyForallG k (unNeutral ty))
+    , pay . c1 $ \tyBuiltin -> Neutral (TyBuiltinG tyBuiltin)
+    , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
+    ]
+
 
 -- ** Enumerating terms
 
@@ -104,73 +123,78 @@ deriveEnumerable ''TermG
 type ClosedTermG = TermG Z Z
 
 
--- * Conversion to PlutusCore
-
--- NOTE: The errors we need to handle in property based testing are
---       when the generator generates garbage or we encounter an
---       actual type error in testing.
-
-data GenError
- =  forall n. Show n => Gen (TypeG n) (Kind ())
-
-data ErrorP ann
- = TypeErrorP (TypeError DefaultUni ann)
- | GenErrorP GenError
-
-
 -- * Converting types
 
 -- |Convert generated builtin types to Plutus builtin types.
-toTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
-toTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
-toTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
-toTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
-
+convertTypeBuiltin :: TypeBuiltinG -> Some (TypeIn DefaultUni)
+convertTypeBuiltin TyByteStringG = Some (TypeIn DefaultUniByteString)
+convertTypeBuiltin TyIntegerG    = Some (TypeIn DefaultUniInteger)
+convertTypeBuiltin TyStringG     = Some (TypeIn DefaultUniString)
 
 -- |Convert well-kinded generated types to Plutus types.
 --
 -- NOTE: Passes an explicit `TyNameState`, instead of using a State monad,
 --       as the type of the `TyNameState` changes throughout the computation.
 --       Alternatively, this could be written using an indexed State monad.
-toType
-  :: (Show n, MonadQuote m, MonadError GenError m)
-  => TyNameState n      -- ^ Type name environment with fresh name stream
+convertType
+  :: (Show tyname, MonadQuote m, MonadError GenError m)
+  => TyNameState tyname -- ^ Type name environment with fresh name stream
   -> Kind ()            -- ^ Kind of type below
-  -> TypeG n            -- ^ Type to convert
+  -> TypeG tyname       -- ^ Type to convert
   -> m (Type TyName DefaultUni ())
-toType ns _ (TyVarG i) =
-  return (TyVar () (tynameOf ns i))
-toType ns (Type _) (TyFunG ty1 ty2) =
-  TyFun () <$> toType ns (Type ()) ty1 <*> toType ns (Type ()) ty2
-toType ns (Type _) (TyIFixG ty1 k ty2) =
-  TyIFix () <$> toType ns k' ty1 <*> toType ns k ty2
+convertType tms _ (TyVarG i) =
+  return (TyVar () (tynameOf tms i))
+convertType tms (Type _) (TyFunG ty1 ty2) =
+  TyFun () <$> convertType tms (Type ()) ty1 <*> convertType tms (Type ()) ty2
+convertType tms (Type _) (TyIFixG ty1 k ty2) =
+  TyIFix () <$> convertType tms k' ty1 <*> convertType tms k ty2
   where
     k' = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
-toType ns (Type _) (TyForallG k ty) = do
-  ns' <- extendTyNameState ns
-  TyForall () (tynameOf ns' FZ) k <$> toType ns' (Type ()) ty
-toType _ _ (TyBuiltinG tyBuiltin) =
-  return (TyBuiltin () (toTypeBuiltin tyBuiltin))
-toType ns (KindArrow _ k1 k2) (TyLamG ty) = do
-  ns' <- extendTyNameState ns
-  TyLam () (tynameOf ns' FZ) k1 <$> toType ns' k2 ty
-toType ns k2 (TyAppG ty1 ty2 k1) =
-  TyApp () <$> toType ns k' ty1 <*> toType ns k1 ty2
+convertType tms (Type _) (TyForallG k ty) = do
+  tms' <- extendTyNameState tms
+  TyForall () (tynameOf tms' FZ) k <$> convertType tms' (Type ()) ty
+convertType _ _ (TyBuiltinG tyBuiltin) =
+  return (TyBuiltin () (convertTypeBuiltin tyBuiltin))
+convertType tms (KindArrow _ k1 k2) (TyLamG ty) = do
+  tms' <- extendTyNameState tms
+  TyLam () (tynameOf tms' FZ) k1 <$> convertType tms' k2 ty
+convertType tms k2 (TyAppG ty1 ty2 k1) =
+  TyApp () <$> convertType tms k' ty1 <*> convertType tms k1 ty2
   where
     k' = KindArrow () k1 k2
-toType _ k ty = throwError $ Gen ty k
+convertType _ k ty = throwError $ BadTypeG k ty
 
 
 -- |Convert generated closed types to Plutus types.
-toClosedType
+convertClosedType
   :: (MonadQuote m, MonadError GenError m)
   => Stream.Stream Text.Text
   -> Kind ()
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
-toClosedType strs = toType (emptyTyNameState strs)
+convertClosedType strs = convertType (emptyTyNameState strs)
 
 -- ** Converting terms
+
+-- |Convert well-typed generated terms to Plutus terms.
+--
+-- NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
+--       State monad, as the type of the `TyNameState` changes throughout the
+--       computation. This could be written using an indexed State monad.
+-- toTerm
+--   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
+--   => TyNameState tyname -- ^ Type name environment with fresh name stream
+--   -> NameState name     -- ^ Name environment with fresh name stream
+--   -> TypeG tyname       -- ^ Type of term below
+--   -> TermG tyname name  -- ^ Term to convert
+--   -> m (Term TyName Name DefaultUni ())
+-- toTerm tns ns ty (VarG i) =
+--   return (Var () (nameOf ns i))
+-- toTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
+--   let k = undefined :: Kind ()
+--   ty1' <- convertType tns k ty1
+--   ns' <- extendNameState ns
+--   LamAbs () ty1' <$> toTerm tns ns' ty2 tm
 
 
 -- * Checking
@@ -278,18 +302,32 @@ applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
 applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
 
 -- |Reduce a generated type by a single step, or fail.
-stepTy :: TypeG n -> Maybe (TypeG n)
-stepTy (TyVarG _)                  = empty
-stepTy (TyFunG ty1 ty2)            = (TyFunG <$> stepTy ty1 <*> pure ty2)
-                                    <|> (TyFunG <$> pure ty1 <*> stepTy ty2)
-stepTy (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTy ty1 <*> pure k <*> pure ty2)
-                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTy ty2)
-stepTy (TyForallG k ty)            = TyForallG <$> pure k <*> stepTy ty
-stepTy (TyBuiltinG _)              = empty
-stepTy (TyLamG ty)                 = TyLamG <$> stepTy ty
-stepTy (TyAppG (TyLamG ty1) ty2 _) = pure (applyTySub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
-stepTy (TyAppG ty1 ty2 k)          = TyAppG <$> stepTy ty1 <*> pure ty2 <*> pure k
+stepTypeG :: TypeG n -> Maybe (TypeG n)
+stepTypeG (TyVarG _)                  = empty
+stepTypeG (TyFunG ty1 ty2)            = (TyFunG <$> stepTypeG ty1 <*> pure ty2)
+                                    <|> (TyFunG <$> pure ty1 <*> stepTypeG ty2)
+stepTypeG (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTypeG ty1 <*> pure k <*> pure ty2)
+                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTypeG ty2)
+stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
+stepTypeG (TyBuiltinG _)              = empty
+stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
+stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (applyTySub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
+stepTypeG (TyAppG ty1 ty2 k)          = TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k
 
 -- |Normalise a generated type.
 normalizeTypeG :: TypeG n -> TypeG n
-normalizeTypeG ty = maybe ty normalizeTypeG (stepTy ty)
+normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
+
+
+-- * Errors
+
+-- NOTE: The errors we need to handle in property based testing are
+--       when the generator generates garbage or we encounter an
+--       actual type error in testing.
+
+data GenError
+  = forall tyname. Show tyname => BadTypeG (Kind ()) (TypeG tyname)
+
+instance Show GenError where
+  show (BadTypeG kG tyG) =
+    printf "Test generation error: convert type %s at kind %s" (show tyG) (show kG)
