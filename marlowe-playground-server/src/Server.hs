@@ -37,6 +37,7 @@ import           Language.Haskell.Interpreter                     (InterpreterEr
 import           Language.Marlowe                                 (Contract)
 import           Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms)
 import           Language.Marlowe.ACTUS.Generator                 (genFsContract, genStaticContract)
+import           Language.Marlowe.Pretty
 import           Marlowe.Contracts                                (escrow)
 import qualified Marlowe.Symbolic.Types.API                       as MS
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
@@ -154,11 +155,11 @@ handleNotification registryVar response = liftIO $ do
     pure NoContent
 
 
-genActusContract :: ContractTerms -> Handler (Either String Contract)
-genActusContract terms = pure $ Right $ genFsContract terms
+genActusContract :: ContractTerms -> Handler String
+genActusContract terms = pure $ show $ pretty $ genFsContract terms
 
-genActusContractStatic :: ContractTerms -> Handler (Either String Contract)
-genActusContractStatic terms = pure $ Right $ genStaticContract terms
+genActusContractStatic :: ContractTerms -> Handler String
+genActusContractStatic terms = pure $ show $ pretty $ genStaticContract terms
 
 {-# ANN mkHandlers
           ("HLint: ignore Avoid restricted function" :: String)

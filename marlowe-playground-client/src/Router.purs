@@ -10,6 +10,7 @@ data Route
   = Home
   | Simulation
   | HaskellEditor
+  | ActusBlocklyEditor
   | Blockly
   | Wallets
 
@@ -25,5 +26,6 @@ route =
         , "Simulation": "simulation" / noArgs
         , "HaskellEditor": "haskell" / noArgs
         , "Blockly": "blockly" / noArgs
+        , "ActusBlocklyEditor": "actus" / noArgs
         , "Wallets": "wallets" / noArgs
         }

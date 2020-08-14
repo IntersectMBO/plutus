@@ -30,9 +30,7 @@ import           Data.Proxy                                       (Proxy (Proxy)
 import qualified Data.Set                                         as Set ()
 import qualified Data.Text.Encoding                               as T ()
 import qualified Data.Text.IO                                     as T ()
-import           Data.Time                                        as DT
 import qualified Escrow
-import           GHC.Generics                                     (Generic)
 import           Language.Haskell.Interpreter                     (CompilationError, InterpreterError,
                                                                    InterpreterResult, SourceCode, Warning)
 import qualified Language.Marlowe.ACTUS.Definitions.ContractTerms as CT
@@ -44,7 +42,7 @@ import           Language.PureScript.Bridge                       (BridgePart, L
 import           Language.PureScript.Bridge.Builder               (BridgeData)
 import           Language.PureScript.Bridge.CodeGenSwitches       (ForeignOptions (ForeignOptions), defaultSwitch,
                                                                    genForeign)
-import           Language.PureScript.Bridge.PSTypes               (psNumber)
+import           Language.PureScript.Bridge.PSTypes               (psNumber, psString)
 import           Language.PureScript.Bridge.TypeParameters        (A)
 import           Marlowe.Contracts                                (couponBondGuaranteed, escrow, swap, zeroCouponBond)
 import qualified Marlowe.Symbolic.Types.Request                   as MSReq
@@ -76,6 +74,9 @@ contractBridge = do
 doubleBridge :: BridgePart
 doubleBridge = typeName ^== "Double" >> return psNumber
 
+dayBridge :: BridgePart
+dayBridge = typeName ^== "Day" >> return psString
+
 myBridge :: BridgePart
 myBridge =
     PSGenerator.Common.aesonBridge <|> PSGenerator.Common.containersBridge <|>
@@ -84,6 +85,7 @@ myBridge =
     PSGenerator.Common.servantBridge <|>
     PSGenerator.Common.miscBridge <|>
     doubleBridge <|>
+    dayBridge <|>
     contractBridge <|>
     defaultBridge
 
@@ -94,8 +96,6 @@ myBridgeProxy = Proxy
 
 instance HasBridge MyBridge where
     languageBridge _ = buildBridge myBridge
-
-deriving instance Generic DT.Day
 
 myTypes :: [SumType 'Haskell]
 myTypes =
@@ -111,7 +111,6 @@ myTypes =
     , mkSumType (Proxy @MSRes.Response)
     , (genericShow <*> mkSumType) (Proxy @MSRes.Result)
     , mkSumType (Proxy @MSReq.Request)
-    , mkSumType (Proxy @DT.Day)
     , mkSumType (Proxy @CT.ContractTerms)
     , mkSumType (Proxy @CT.PYTP)
     , mkSumType (Proxy @CT.PREF)
@@ -127,6 +126,9 @@ myTypes =
     , mkSumType (Proxy @CT.FEB)
     , mkSumType (Proxy @CT.ContractRole)
     , mkSumType (Proxy @CT.ContractType)
+    , mkSumType (Proxy @CT.Assertion)
+    , mkSumType (Proxy @CT.Assertions)
+    , mkSumType (Proxy @CT.AssertionContext)
     , (genericShow <*> mkSumType) (Proxy @WebSocketRequestMessage)
     , (genericShow <*> mkSumType) (Proxy @WebSocketResponseMessage)
     ]

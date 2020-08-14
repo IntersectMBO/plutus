@@ -65,11 +65,17 @@ instance DateOps (Value Observation) (Value Observation) where
     _lt a b = Cond (ValueLT a b) _one _zero
 
 instance RoleSignOps (Value Observation) where
-    _r x = Constant $ round $ contractRoleSign x
+    _r x = Constant $ (round $ contractRoleSign x) Prelude.* marloweFixedPoint
+
+
+infixl 7  *, /
+infixl 6  +, -
 
 instance ActusNum (Value Observation) where
-    (+)         = AddValue
-    (-)         = SubValue
-    a * b       = Scale (1 % marloweFixedPoint) $ MulValue a b
-    (Constant x) / (Constant y) = Constant $ div x y
+    (+)                         = AddValue
+    (-)                         = SubValue
+    a * b                       = Scale (1 % marloweFixedPoint) $ MulValue a b
+    (Constant 0) / (Constant 0) = (Constant 0) -- by convention in finance
+    (Constant x) / (Constant y) = Scale (marloweFixedPoint % 1) $ Constant $ div x y
+    x / (Constant y)            = Scale (marloweFixedPoint % y) $ x
     _ / _                       = undefined --division not supported in Marlowe yet

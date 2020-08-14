@@ -1,5 +1,6 @@
-module Halogen.Blockly where
+module Halogen.ActusBlockly where
 
+import Data.Json.JsonEither
 import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
 import Blockly.Generator (Generator, newBlock, blockToCode)
@@ -10,32 +11,35 @@ import Control.Monad.ST.Ref as STRef
 import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Lens (Lens', assign, use)
+import Data.Json.JsonEither (JsonEither(..))
+import Data.Lens (Lens', _1, assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Data.Monoid (mempty)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
 import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
-import Marlowe.Blockly (buildBlocks, buildGenerator)
+import Marlowe.ActusBlockly (buildGenerator)
 import Marlowe.Holes (Term(..))
 import Marlowe.Parser as Parser
+import Marlowe.Semantics (Contract(..))
 import Prelude (Unit, bind, const, discard, map, pure, show, unit, zero, ($), (<<<), (<>))
 import Text.Extra as Text
 import Text.Pretty (pretty)
 import Type.Proxy (Proxy(..))
 
 type BlocklyState
-  = { blocklyState :: Maybe BT.BlocklyState
+  = { actusBlocklyState :: Maybe BT.BlocklyState
     , generator :: Maybe Generator
     , errorMessage :: Maybe String
     }
 
-_blocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
-_blocklyState = prop (SProxy :: SProxy "blocklyState")
+_actusBlocklyState :: Lens' BlocklyState (Maybe BT.BlocklyState)
+_actusBlocklyState = prop (SProxy :: SProxy "actusBlocklyState")
 
 _generator :: Lens' BlocklyState (Maybe Generator)
 _generator = prop (SProxy :: SProxy "generator")
@@ -45,16 +49,19 @@ _errorMessage = prop (SProxy :: SProxy "errorMessage")
 
 data BlocklyQuery a
   = Resize a
-  | SetCode String a
   | SetError String a
+
+data ContractFlavour
+  = FS
+  | F
 
 data BlocklyAction
   = Inject String (Array BlockDefinition)
-  | SetData Unit
-  | GetCode
+  | GetTerms ContractFlavour
 
 data BlocklyMessage
-  = CurrentCode String
+  = Initialized
+  | CurrentTerms ContractFlavour String
 
 type DSL m a
   = HalogenM BlocklyState BlocklyAction () BlocklyMessage m a
@@ -62,7 +69,7 @@ type DSL m a
 blockly :: forall m. MonadEffect m => String -> Array BlockDefinition -> Component HTML BlocklyQuery Unit BlocklyMessage m
 blockly rootBlockName blockDefinitions =
   mkComponent
-    { initialState: const { blocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
+    { initialState: const { actusBlocklyState: Nothing, generator: Nothing, errorMessage: Nothing }
     , render
     , eval:
       H.mkEval
@@ -70,13 +77,13 @@ blockly rootBlockName blockDefinitions =
         , handleAction
         , initialize: Just $ Inject rootBlockName blockDefinitions
         , finalize: Nothing
-        , receive: Just <<< SetData
+        , receive: const Nothing
         }
     }
 
 handleQuery :: forall m a. MonadEffect m => BlocklyQuery a -> DSL m (Maybe a)
 handleQuery (Resize next) = do
-  mState <- use _blocklyState
+  mState <- use _actusBlocklyState
   case mState of
     Just state ->
       pure
@@ -86,26 +93,13 @@ handleQuery (Resize next) = do
     Nothing -> pure unit
   pure $ Just next
 
-handleQuery (SetCode code next) = do
-  mState <- use _blocklyState
-  case mState of
-    Nothing -> pure unit
-    Just bs -> do
-      let
-        contract = case Parser.parseContract code of
-          Right c -> c
-          Left _ -> Hole bs.rootBlockName Proxy zero
-      pure $ ST.run (buildBlocks newBlock bs contract)
-  assign _errorMessage Nothing
-  pure $ Just next
-
 handleQuery (SetError err next) = do
   assign _errorMessage $ Just err
   pure $ Just next
 
 handleAction :: forall m. MonadEffect m => BlocklyAction -> DSL m Unit
 handleAction (Inject rootBlockName blockDefinitions) = do
-  blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "blocklyWorkspace") (ElementId "blocklyToolbox")
+  blocklyState <- liftEffect $ Blockly.createBlocklyInstance rootBlockName (ElementId "actusBlocklyWorkspace") (ElementId "actusBlocklyToolbox")
   let
     _ =
       ST.run
@@ -117,30 +111,27 @@ handleAction (Inject rootBlockName blockDefinitions) = do
         )
 
     generator = buildGenerator blocklyState
-  assign _blocklyState (Just blocklyState)
+  assign _actusBlocklyState (Just blocklyState)
   assign _generator (Just generator)
 
-handleAction (SetData _) = pure unit
-
-handleAction GetCode = do
+handleAction (GetTerms flavour) = do
   res <-
     runExceptT do
-      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _blocklyState
+      blocklyState <- ExceptT <<< map (note $ unexpected "BlocklyState not set") $ use _actusBlocklyState
       generator <- ExceptT <<< map (note $ unexpected "Generator not set") $ use _generator
       let
         workspace = blocklyState.workspace
 
         rootBlockName = blocklyState.rootBlockName
       block <- except <<< (note $ unexpected ("Can't find root block" <> rootBlockName)) $ getBlockById workspace rootBlockName
-      code <- except <<< lmap unexpected $ blockToCode block generator
-      except <<< lmap (unexpected <<< show) $ Parser.parseContract (Text.stripParens code)
+      except <<< lmap (\x -> "This workspace cannot be converted to code: " <> (show x)) $ blockToCode block generator
   case res of
     Left e -> assign _errorMessage $ Just e
     Right contract -> do
       assign _errorMessage Nothing
-      raise <<< CurrentCode <<< show <<< pretty $ contract
+      raise $ CurrentTerms flavour $ contract
   where
-  unexpected s = "An unexpected error has occurred, please raise a support issue at https://github.com/input-output-hk/plutus/issues/new: " <> s
+  unexpected s = "An unexpected error has occurred, please raise a support issue: " <> s
 
 blocklyRef :: RefLabel
 blocklyRef = RefLabel "blockly"
@@ -150,10 +141,13 @@ render state =
   div []
     [ div
         [ ref blocklyRef
-        , id_ "blocklyWorkspace"
-        , classes [ ClassName "blockly-workspace", ClassName "container-fluid" ]
+        , id_ "actusBlocklyWorkspace"
+        , classes [ ClassName "actus-blockly-workspace", ClassName "container-fluid" ]
         ]
-        [ toCodeButton "Send To Simulator"
+        [ toCodeButton "Generate reactive contract"
+        , text "  "
+        , toStaticCodeButton "Generate static contract"
+        , text "  (Labs is an experimental feature)"
         , errorMessage state.errorMessage
         ]
     ]
@@ -161,7 +155,14 @@ render state =
 toCodeButton :: forall p. String -> HTML p BlocklyAction
 toCodeButton key =
   button
-    [ onClick $ const $ Just GetCode
+    [ onClick $ const $ Just $ GetTerms FS
+    ]
+    [ text key ]
+
+toStaticCodeButton :: forall p. String -> HTML p BlocklyAction
+toStaticCodeButton key =
+  button
+    [ onClick $ const $ Just $ GetTerms F
     ]
     [ text key ]
 
