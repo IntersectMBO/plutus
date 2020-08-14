@@ -1,12 +1,12 @@
 module Simulation.State where
 
 import Control.Monad.State (class MonadState)
-import Data.Array (foldMap, foldl, fromFoldable, mapMaybe, uncons)
+import Data.Array (fromFoldable, mapMaybe, uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
+import Data.Generic.Rep (class Generic)
 import Data.Lens (Getter', Lens', modifying, over, set, to, view, (^.))
-import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
@@ -15,19 +15,20 @@ import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (unwrap)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
+import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Marlowe.Holes (Holes, fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Ord, Unit, append, map, mempty, min, zero, ($), (<), (<<<))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, append, map, mempty, min, zero, ($), (<), (<<<))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -37,6 +38,14 @@ data ActionInputId
 derive instance eqActionInputId :: Eq ActionInputId
 
 derive instance ordActionInputId :: Ord ActionInputId
+
+derive instance genericActionInputId :: Generic ActionInputId _
+
+instance encodeActionInputId :: Encode ActionInputId where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeActionInputId :: Decode ActionInputId where
+  decode = genericDecode aesonCompatibleOptions
 
 -- | On the front end we need Actions however we also need to keep track of the current
 -- | choice that has been set for Choices
@@ -48,6 +57,14 @@ data ActionInput
 derive instance eqActionInput :: Eq ActionInput
 
 derive instance ordActionInput :: Ord ActionInput
+
+derive instance genericActionInput :: Generic ActionInput _
+
+instance encodeActionInput :: Encode ActionInput where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeActionInput :: Decode ActionInput where
+  decode = genericDecode aesonCompatibleOptions
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -73,8 +90,32 @@ data MarloweEvent
   = InputEvent TransactionInput
   | OutputEvent SlotInterval Payment
 
+derive instance genericMarloweEvent :: Generic MarloweEvent _
+
+instance encodeMarloweEvent :: Encode MarloweEvent where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeMarloweEvent :: Decode MarloweEvent where
+  decode = genericDecode aesonCompatibleOptions
+
+newtype Parties
+  = Parties (Map Party (Map ActionInputId ActionInput))
+
+derive instance newtypeParties :: Newtype Parties _
+
+derive newtype instance semigroupParties :: Semigroup Parties
+
+derive newtype instance monoidParties :: Monoid Parties
+
+mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
+mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
+
+derive newtype instance encodeParties :: Encode Parties
+
+derive newtype instance decodeParties :: Decode Parties
+
 type MarloweState
-  = { possibleActions :: Map Party (Map ActionInputId ActionInput)
+  = { possibleActions :: Parties
     , pendingInputs :: Array Input
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
@@ -194,15 +235,15 @@ updatePossibleActions oldState =
 
   removeUseless action = Just action
 
-  updateActions :: Map ActionInputId ActionInput -> Map Party (Map ActionInputId ActionInput) -> Map Party (Map ActionInputId ActionInput)
+  updateActions :: Map ActionInputId ActionInput -> Parties -> Parties
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
 
-  addButPreserveActionInputs :: Map Party (Map ActionInputId ActionInput) -> ActionInputId -> Map Party (Map ActionInputId ActionInput) -> ActionInput -> Map Party (Map ActionInputId ActionInput)
+  addButPreserveActionInputs :: Parties -> ActionInputId -> Parties -> ActionInput -> Parties
   addButPreserveActionInputs oldInputs actionInputIdx m actionInput =
     let
       party = actionPerson actionInput
     in
-      appendValue m oldInputs party actionInputIdx actionInput
+      wrap $ appendValue (unwrap m) (unwrap oldInputs) party actionInputIdx actionInput
 
   actionPerson :: ActionInput -> Party
   actionPerson (DepositInput _ party _ _) = party

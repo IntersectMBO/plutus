@@ -16,6 +16,7 @@ import Data.Enum (toEnum, upFromIncluding)
 import Data.HeytingAlgebra (not, (&&))
 import Data.Lens (_Just, assign, modifying, over, preview, to, use, view, (^.))
 import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.List.NonEmpty as NEL
 import Data.Map (Map)
@@ -52,7 +53,7 @@ import Language.Haskell.Interpreter (SourceCode(..))
 import LocalStorage as LocalStorage
 import Marlowe (SPParams_)
 import Marlowe as Server
-import Marlowe.Gists (mkNewGist, playgroundGistFile)
+import Marlowe.Gists (currentSimulationMarloweGistFile, mkNewGist, oldSimulationMarloweGistFile, simulationState)
 import Marlowe.Linter as Linter
 import Marlowe.Monaco (updateAdditionalContext)
 import Marlowe.Monaco as MM
@@ -67,7 +68,7 @@ import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), AnalysisState(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
@@ -186,7 +187,7 @@ handleAction _ (RemoveInput input) = do
     Nothing -> pure unit
     Just contract -> updateContractInState contract
 
-handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
+handleAction _ (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -275,11 +276,13 @@ handleGistAction ::
   MonadAff m =>
   MonadEffect m =>
   SPSettings_ SPParams_ -> GistAction -> HalogenM State Action ChildSlots Message m Unit
-handleGistAction settings PublishGist =
+handleGistAction settings PublishGist = do
+  marloweState <- use _marloweState
   void
     $ runMaybeT do
-        mContents <- lift editorGetValue
-        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> mContents)
+        currentContract <- lift editorGetValue
+        oldContract <- use _oldContract
+        newGist <- hoistMaybe $ mkNewGist (SourceCode <$> currentContract) (SourceCode <$> oldContract) marloweState
         mGist <- use _createGistResult
         assign _createGistResult Loading
         newResult <-
@@ -310,9 +313,13 @@ handleGistAction settings LoadGist = do
           gist <- ExceptT $ pure $ toEither (Left "Gist not loaded.") $ lmap errorToString aGist
           --
           -- Load the source, if available.
-          content <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (playgroundGistFile gist)
-          lift $ editorSetValue content
-          liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey content
+          currentContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (currentSimulationMarloweGistFile gist)
+          oldContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
+          state <- noteT "State not found in gist." (simulationState gist)
+          lift $ editorSetValue currentContract
+          liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
+          assign _oldContract $ Just oldContract
+          assign _marloweState state
           pure aGist
   assign _loadGistResult res
   where
@@ -496,8 +503,8 @@ sidebar state =
     aside [ classes [ sidebarComposer, expanded showRightPanel ] ]
       [ div [ classes [ aHorizontal, ClassName "transaction-composer" ] ]
           [ h6 [ classes [ ClassName "input-composer-heading", noMargins ] ]
-              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Transaction Composer" ] ]
-          , a [ onClick $ const $ Just $ ChangeHelpContext TransactionComposerHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
+              [ small [ classes [ textSecondaryColor, bold, uppercase ] ] [ text "Available Actions" ] ]
+          , a [ onClick $ const $ Just $ ChangeHelpContext AvailableActionsHelp ] [ img [ src infoIcon, alt "info book icon" ] ]
           ]
       , transactionComposer state
       , article [ class_ (ClassName "documentation-panel") ]
@@ -558,7 +565,7 @@ transactionComposer state =
 
   isEnabled = isContractValid state
 
-  possibleActions = view (_marloweState <<< _Head <<< _possibleActions) state
+  possibleActions = view (_marloweState <<< _Head <<< _possibleActions <<< _Newtype) state
 
   kvs :: forall k v. Map k v -> Array (Tuple k v)
   kvs = Map.toUnfoldable

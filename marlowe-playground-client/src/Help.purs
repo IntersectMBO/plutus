@@ -18,6 +18,7 @@ data HelpContext
   = MarloweHelp
   | InputComposerHelp
   | TransactionComposerHelp
+  | AvailableActionsHelp
   | WalletsSimulatorHelp
   | EditorHelp
 
@@ -42,6 +43,8 @@ toHTML helpType =
 
   headerText TransactionComposerHelp = text "Transaction Composer"
 
+  headerText AvailableActionsHelp = text "Available Actions"
+
   headerText WalletsSimulatorHelp = text "Wallets Simulator"
 
   headerText EditorHelp = text "Marlowe Code Editor"
@@ -51,6 +54,8 @@ toHTML helpType =
   bodyText InputComposerHelp = text "The Input Composer allows you to choose any of the possible inputs to add to a transaction"
 
   bodyText TransactionComposerHelp = text "The transaction composer shows you the contents of a transaction which is ready to apply. The inputs within a transaction are applied in order."
+
+  bodyText AvailableActionsHelp = text "The available actions are actions which will progress the contract when applied. After an available action is applied, a new set of actions will be shown."
 
   bodyText WalletsSimulatorHelp = text "The Wallets Simulator allows you to see how your contract will look from the point of view of users. You can create multiple wallets then transfer roles, add assets and apply transactions in individual wallets. To get started create a wallet by clicking on the '+' button at the top of the main panel."
 

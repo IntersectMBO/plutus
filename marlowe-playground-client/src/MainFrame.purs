@@ -1,30 +1,18 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
-import AjaxUtils (renderForeignErrors, defaultJsonOptions)
-import Control.Monad.Except (ExceptT(..), runExceptT)
+import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (catMaybes)
 import Data.Either (Either(..))
-import Data.Either as Either
-import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (assign, to, use, view, (^.))
-import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Bifunctor (bimap)
-import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
-import Data.Maybe (Maybe(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
-import Foreign.Class (decode)
-import Foreign.Generic (decodeJSON, encodeJSON)
-import Foreign.Generic.Class (aesonSumEncoding, defaultOptions)
-import Foreign.JSON (parseJSON)
 import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
@@ -49,19 +37,13 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
-import Marlowe.Holes (Contract)
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (Contract(..))
-import Marlowe.Semantics as MS
 import Marlowe.Monaco as MM
-import Monaco (IMarkerData, markerSeverity)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>), (<$>))
-import Servant.PureScript.Ajax (AjaxError)
 import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
-import Servant.PureScript.Settings (SPSettingsDecodeJson_(..))
-import Servant.PureScript.Settings (SPSettings_(..))
+import Servant.PureScript.Settings (SPSettings_)
 import Router (Route)
 import Router as Router
 import Routing.Duplex as RD
@@ -74,10 +56,7 @@ import Simulation.Types as ST
 import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
-import Web.HTML.Event.EventTypes (offline)
 import WebSocket (WebSocketResponseMessage(..))
-import Foreign (F)
-import Control.Monad.Except (mapExcept, runExcept)
 import WebSocket.Support as WS
 
 initialState :: FrontendState

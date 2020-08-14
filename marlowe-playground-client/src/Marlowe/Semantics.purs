@@ -4,6 +4,7 @@ import Prelude
 import Prelude
 import Control.Monad.Except (mapExcept, runExcept)
 import Data.Array (catMaybes)
+import Data.Bifunctor (bimap, lmap, rmap)
 import Data.BigInteger (BigInteger, fromInt, quot, rem)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, any, foldl, minimum)
@@ -23,11 +24,14 @@ import Data.Num (class Num)
 import Data.Ord (abs, signum)
 import Data.Real (class Real)
 import Data.Symbol (SProxy(..))
+import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
 import Foreign (F, readString, Foreign)
 import Foreign.Class (class Encode, class Decode, encode, decode)
 import Foreign.Generic (genericEncode, genericDecode)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
+import Foreign.Index (readProp)
+import Foreign.Object (Object)
 import Text.Pretty (class Args, class Pretty, genericHasArgs, genericHasNestedArgs, genericPretty, text)
 
 type PubKey
@@ -136,6 +140,10 @@ derive instance eqAssets :: Eq Assets
 derive instance ordAssets :: Ord Assets
 
 derive newtype instance showAssets :: Show Assets
+
+derive newtype instance encodeAssets :: Encode Assets
+
+derive newtype instance decodeAssets :: Decode Assets
 
 instance semigroupAssets :: Semigroup Assets where
   append (Assets a) (Assets b) = Assets (Map.unionWith f a b)
@@ -407,12 +415,20 @@ anyWithin v = any (\(SlotInterval from to) -> v >= from && v <= to)
 data SlotInterval
   = SlotInterval Slot Slot
 
+derive instance genericSlotInterval :: Generic SlotInterval _
+
 derive instance eqSlotInterval :: Eq SlotInterval
 
 derive instance ordSlotInterval :: Ord SlotInterval
 
 instance showSlotInterval :: Show SlotInterval where
   show (SlotInterval from to) = "(Slot " <> show from <> " " <> show to <> ")"
+
+instance genericEncodeSlotInterval :: Encode SlotInterval where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance genericDecodeSlotInterval :: Decode SlotInterval where
+  decode a = genericDecode aesonCompatibleOptions a
 
 ivFrom :: SlotInterval -> Slot
 ivFrom (SlotInterval from _) = from
@@ -564,23 +580,6 @@ newtype State
 
 derive instance genericState :: Generic State _
 
-instance encodeJsonState :: Encode State where
-  encode (State a) = encode { accounts: accs, choices: chs, boundValues: bv1, minSlot: encode (a.minSlot) }
-    where
-    accs = encode (enc <$> (Map.toUnfoldable a.accounts :: Array (Tuple (Tuple AccountId Token) BigInteger)))
-
-    chs = encodeMap a.choices
-
-    bv1 = encodeMap a.boundValues
-
-    enc (Tuple x bal) = encodeTuple (Tuple (encodeTuple x) bal)
-
-    encodeMap :: forall a b. Encode a => Encode b => Map a b -> Foreign
-    encodeMap m = encode (encodeTuple <$> (Map.toUnfoldable m :: Array _))
-
-    encodeTuple :: forall a b. Encode a => Encode b => Tuple a b -> Foreign
-    encodeTuple (Tuple x y) = encode [ encode x, encode y ]
-
 derive instance newtypeState :: Newtype State _
 
 derive instance eqState :: Eq State
@@ -589,6 +588,12 @@ derive instance ordState :: Ord State
 
 instance showState :: Show State where
   show v = genericShow v
+
+instance encodeState :: Encode State where
+  encode (State a) = encode a
+
+instance decodeState :: Decode State where
+  decode f = State <$> decode f
 
 _accounts :: Lens' State (Accounts)
 _accounts = _Newtype <<< prop (SProxy :: SProxy "accounts")
@@ -636,6 +641,12 @@ derive instance ordInput :: Ord Input
 instance showInput :: Show Input where
   show v = genericShow v
 
+instance encodeInput :: Encode Input where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeInput :: Decode Input where
+  decode = genericDecode aesonCompatibleOptions
+
 -- Processing of slot interval
 data IntervalError
   = InvalidInterval SlotInterval
@@ -650,6 +661,12 @@ derive instance ordIntervalError :: Ord IntervalError
 instance showIntervalError :: Show IntervalError where
   show (InvalidInterval interval) = "Invalid interval: " <> show interval
   show (IntervalInPastError slot interval) = "Interval is in the past, the current slot is " <> show slot <> " but the interval is " <> show interval
+
+instance genericEncodeIntervalError :: Encode IntervalError where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance genericDecodeIntervalError :: Decode IntervalError where
+  decode a = genericDecode aesonCompatibleOptions a
 
 data IntervalResult
   = IntervalTrimmed Environment State
@@ -675,6 +692,12 @@ derive instance ordPayment :: Ord Payment
 
 instance showPayment :: Show Payment where
   show = genericShow
+
+instance encodePayment :: Encode Payment where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodePayment :: Decode Payment where
+  decode a = genericDecode aesonCompatibleOptions a
 
 data ReduceEffect
   = ReduceWithPayment Payment
@@ -784,6 +807,12 @@ derive instance ordTransactionWarning :: Ord TransactionWarning
 instance showTransactionWarning :: Show TransactionWarning where
   show = genericShow
 
+instance genericEncodeTransactionWarning :: Encode TransactionWarning where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance genericDecodeTransactionWarning :: Decode TransactionWarning where
+  decode a = genericDecode aesonCompatibleOptions a
+
 -- | Transaction error
 data TransactionError
   = TEAmbiguousSlotIntervalError
@@ -803,6 +832,12 @@ instance showTransactionError :: Show TransactionError where
   show (TEIntervalError err) = show err
   show TEUselessTransaction = "Useless Transaction"
 
+instance genericEncodeTransactionError :: Encode TransactionError where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance genericDecodeTransactionError :: Decode TransactionError where
+  decode a = genericDecode aesonCompatibleOptions a
+
 newtype TransactionInput
   = TransactionInput
   { interval :: SlotInterval
@@ -819,6 +854,12 @@ derive instance ordTransactionInput :: Ord TransactionInput
 
 instance showTransactionInput :: Show TransactionInput where
   show = genericShow
+
+instance encodeTransactionInput :: Encode TransactionInput where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeTransactionInput :: Decode TransactionInput where
+  decode a = genericDecode aesonCompatibleOptions a
 
 data TransactionOutput
   = TransactionOutput

@@ -52,7 +52,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId(..), Assets(..), Bound(..), ChoiceId(..), ChosenNum, Input(..), Party, Payee(..), Payment(..), PubKey, Slot, Token(..), TransactionWarning(..), ValueId(..), _accounts, _boundValues, _choices, inBounds, timeouts)
 import Marlowe.Semantics as S
 import Prelude (class Eq, class Ord, class Show, Unit, add, bind, const, discard, eq, flip, map, mempty, not, one, otherwise, pure, show, unit, when, zero, ($), (&&), (+), (-), (<$>), (<<<), (<>), (=<<), (==), (>=), (||), (>))
-import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, updateContractInStateP, updatePossibleActions, updateStateP)
+import Simulation.State (ActionInput(..), ActionInputId, MarloweState, _contract, _currentMarloweState, _marloweState, _payments, _pendingInputs, _possibleActions, _slot, _state, _transactionError, _transactionWarnings, emptyMarloweState, mapPartiesActionInput, updateContractInStateP, updatePossibleActions, updateStateP)
 import Text.Extra (stripParens)
 import Text.Pretty (pretty)
 import Web.DOM.Document as D
@@ -484,7 +484,7 @@ handleAction (RemoveInput input) = do
   assign _addInputError Nothing
   updateMarloweState (over _pendingInputs (delete input))
 
-handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions ((map <<< map) (updateChoice choiceId)))
+handleAction (SetChoice choiceId chosenNum) = updateMarloweState (over _possibleActions (mapPartiesActionInput (updateChoice choiceId)))
   where
   updateChoice :: ChoiceId -> ActionInput -> ActionInput
   updateChoice wantedChoiceId input@(ChoiceInput currentChoiceId bounds _)
@@ -694,6 +694,7 @@ renderActions state =
       $ state
       ^? ( _currentLoadedMarloweState
             <<< _possibleActions
+            <<< to unwrap
             <<< to (Map.filterKeys walletKeys)
             <<< to Map.values
             <<< to (map Map.toUnfoldable)
