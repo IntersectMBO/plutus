@@ -126,13 +126,16 @@ instance Check (Kind ()) (Normalized ClosedTypeG) where
   check k ty = checkClosedTypeG k (unNormalized ty)
 
 
--- |Check if running |Quote| and |Except| throws any errors.
-isOk :: ExceptT TestFail Quote a -> Cool
-isOk = toCool . isRight . run
+-- * Test failures
+
+-- NOTE: a test may fail for several reasons:
+--       - we encounter an error in the generator;
+--       - we encounter a type error while checking Plutus terms;
+--       - we found a counter-example.
 
 data TestFail
-  = TypeError (TypeError DefaultUni ())
-  | GenError GenError
+  = GenError GenError
+  | TypeError (TypeError DefaultUni ())
   | Ctrex Ctrex
 
 data Ctrex
@@ -162,6 +165,10 @@ instance Show Ctrex where
 -- |Throw a counter-example.
 throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
 throwCtrex ctrex = throwError (Ctrex ctrex)
+
+-- |Check if running |Quote| and |Except| throws any errors.
+isOk :: ExceptT TestFail Quote a -> Cool
+isOk = toCool . isRight . run
 
 -- |Run |Quote| and |Except| effects.
 run :: ExceptT e Quote a -> Either e a

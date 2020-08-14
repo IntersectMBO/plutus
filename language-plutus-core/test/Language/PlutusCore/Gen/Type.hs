@@ -321,9 +321,8 @@ normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
 
 -- * Errors
 
--- NOTE: The errors we need to handle in property based testing are
---       when the generator generates garbage or we encounter an
---       actual type error in testing.
+-- NOTE: The errors we need to handle in property-based testing are
+--       when the generator generates garbage (which shouldn't happen).
 
 data GenError
   = forall tyname. Show tyname => BadTypeG (Kind ()) (TypeG tyname)
