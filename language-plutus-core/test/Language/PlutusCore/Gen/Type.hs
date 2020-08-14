@@ -174,6 +174,7 @@ convertClosedType
   -> m (Type TyName DefaultUni ())
 convertClosedType strs = convertType (emptyTyNameState strs)
 
+
 -- ** Converting terms
 
 -- |Convert well-typed generated terms to Plutus terms.
@@ -199,6 +200,10 @@ convertClosedType strs = convertType (emptyTyNameState strs)
 
 -- * Checking
 
+class Check t a where
+  check :: t -> a -> Cool
+
+
 -- ** Kind checking
 
 -- |Kind check builtin types.
@@ -207,65 +212,68 @@ convertClosedType strs = convertType (emptyTyNameState strs)
 --       lazy-search will only ever return one of the various builtin types.
 --       Perhaps this is preferable?
 --
-checkTypeBuiltinG :: Kind () -> TypeBuiltinG -> Cool
-checkTypeBuiltinG (Type _) TyByteStringG = true
-checkTypeBuiltinG (Type _) TyIntegerG    = true
-checkTypeBuiltinG (Type _) TyStringG     = true
-checkTypeBuiltinG _        _             = false
+instance Check (Kind ()) TypeBuiltinG where
+  check (Type _) TyByteStringG = true
+  check (Type _) TyIntegerG    = true
+  check (Type _) TyStringG     = true
+  check _        _             = false
 
 
 -- |Kind check types.
-checkTypeG :: KCS n -> Kind () -> TypeG n -> Cool
-checkTypeG kcs k (TyVarG i)
+checkKindG :: KCS n -> Kind () -> TypeG n -> Cool
+checkKindG kcs k (TyVarG i)
   = varKindOk
   where
     varKindOk = toCool $ k == kindOf kcs i
 
-checkTypeG kcs (Type _) (TyFunG ty1 ty2)
+checkKindG kcs (Type _) (TyFunG ty1 ty2)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1KindOk = checkTypeG kcs (Type ()) ty1
-    ty2KindOk = checkTypeG kcs (Type ()) ty2
+    ty1KindOk = checkKindG kcs (Type ()) ty1
+    ty2KindOk = checkKindG kcs (Type ()) ty2
 
-checkTypeG kcs (Type _) (TyIFixG ty1 k ty2)
+checkKindG kcs (Type _) (TyIFixG ty1 k ty2)
   = ty1KindOk &&& ty2KindOk
   where
     ty1Kind   =
       KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
-    ty1KindOk = checkTypeG kcs ty1Kind ty1
-    ty2KindOk = checkTypeG kcs k ty2
+    ty1KindOk = checkKindG kcs ty1Kind ty1
+    ty2KindOk = checkKindG kcs k ty2
 
-checkTypeG kcs (Type _) (TyForallG k body)
+checkKindG kcs (Type _) (TyForallG k body)
   = tyKindOk
   where
-    tyKindOk = checkTypeG (extendKCS k kcs) (Type ()) body
+    tyKindOk = checkKindG (extendKCS k kcs) (Type ()) body
 
-checkTypeG _ k (TyBuiltinG tyBuiltin)
+checkKindG _ k (TyBuiltinG tyBuiltin)
   = tyBuiltinKindOk
   where
-    tyBuiltinKindOk = checkTypeBuiltinG k tyBuiltin
+    tyBuiltinKindOk = check k tyBuiltin
 
-checkTypeG kcs (KindArrow () k1 k2) (TyLamG body)
+checkKindG kcs (KindArrow () k1 k2) (TyLamG body)
   = bodyKindOk
   where
-    bodyKindOk = checkTypeG (extendKCS k1 kcs) k2 body
+    bodyKindOk = checkKindG (extendKCS k1 kcs) k2 body
 
-checkTypeG kcs k' (TyAppG ty1 ty2 k)
+checkKindG kcs k' (TyAppG ty1 ty2 k)
   = ty1KindOk &&& ty2KindOk
   where
     ty1Kind   = KindArrow () k k'
-    ty1KindOk = checkTypeG kcs ty1Kind ty1
-    ty2KindOk = checkTypeG kcs k ty2
+    ty1KindOk = checkKindG kcs ty1Kind ty1
+    ty2KindOk = checkKindG kcs k ty2
 
-checkTypeG _ _ _ = false
-
-
--- |Kind check closed types.
-checkClosedTypeG :: Kind () -> ClosedTypeG -> Cool
-checkClosedTypeG = checkTypeG emptyKCS
+checkKindG _ _ _ = false
 
 
--- ** Kind checking state
+instance Check (Kind ()) ClosedTypeG where
+  check = checkKindG emptyKCS
+
+
+instance Check (Kind ()) (Normalized ClosedTypeG) where
+  check k ty = check k (unNormalized ty)
+
+
+-- *** Kind checking state
 
 newtype KCS n = KCS{ kindOf :: n -> Kind () }
 
@@ -278,6 +286,12 @@ extendKCS k KCS{..} = KCS{ kindOf = kindOf' }
     kindOf' :: S n -> Kind ()
     kindOf' FZ     = k
     kindOf' (FS i) = kindOf i
+
+
+-- ** Type checking
+
+-- *** Type checking state
+
 
 
 -- * Normalisation

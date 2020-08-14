@@ -115,17 +115,6 @@ testCaseGen name GenOptions{..} t prop =
       Right ctrex -> assertFailure . either show undefined . run $ prop t ctrex
 
 
--- |Generalise over kind and type checking functions.
-class Check t a where
-  check :: t -> a -> Cool
-
-instance Check (Kind ()) ClosedTypeG where
-  check = checkClosedTypeG
-
-instance Check (Kind ()) (Normalized ClosedTypeG) where
-  check k ty = checkClosedTypeG k (unNormalized ty)
-
-
 -- * Test failures
 
 -- NOTE: a test may fail for several reasons:
