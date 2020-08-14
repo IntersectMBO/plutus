@@ -115,6 +115,7 @@ testCaseGen name GenOptions{..} t prop =
       Right ctrex -> assertFailure . either show undefined . run $ prop t ctrex
 
 
+-- |Generalise over kind and type checking functions.
 class Check t a where
   check :: t -> a -> Cool
 
