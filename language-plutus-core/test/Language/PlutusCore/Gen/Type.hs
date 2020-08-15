@@ -93,28 +93,31 @@ instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
 
 -- ** Enumerating terms
 
--- NOTE: We're not generating constants, dynamic builtins, or errors.
-
 data TermG tyname name
-    = VarG name
-    | TyAbsG (TermG (S tyname) name)
-    | LamAbsG (TermG tyname (S name))
-    | ApplyG (TermG tyname name) (TermG tyname name) (TypeG tyname)
-    | BuiltinG StaticBuiltinName
-    | TyInstG (TermG tyname name) (TypeG tyname) (Kind ())
-    | UnwrapG (TermG tyname name)
-    | IWrapG (TypeG tyname) (TypeG tyname) (TermG tyname name)
+    = VarG
+      name
+    | LamAbsG
+      (TermG tyname (S name))
+    | ApplyG
+      (TermG tyname name)
+      (TermG tyname name)
+      (Normalized (TypeG tyname))
+    | TyAbsG
+      (TermG (S tyname) name)
+    | TyInstG
+      (TermG tyname name)
+      (Normalized (TypeG (S tyname)))
+      (Normalized (TypeG tyname))
+      (Kind ())
     deriving (Typeable, Eq, Show)
 
 instance Bifunctor TermG where
-  bimap _ g (VarG i)            = VarG (g i)
-  bimap f g (TyAbsG tm)         = TyAbsG (bimap (fmap f) g tm)
-  bimap f g (LamAbsG tm)        = LamAbsG (bimap f (fmap g) tm)
-  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap f ty)
-  bimap _ _ (BuiltinG builtin)  = BuiltinG builtin
-  bimap f g (TyInstG tm ty k)   = TyInstG (bimap f g tm) (fmap f ty) k
-  bimap f g (UnwrapG tm)        = UnwrapG (bimap f g tm)
-  bimap f g (IWrapG ty1 ty2 tm) = IWrapG (fmap f ty1) (fmap f ty2) (bimap f g tm)
+  bimap _ g (VarG i) = VarG (g i)
+  bimap f g (TyAbsG tm) = TyAbsG (bimap (fmap f) g tm)
+  bimap f g (LamAbsG tm) = LamAbsG (bimap f (fmap g) tm)
+  bimap f g (ApplyG tm1 tm2 ty) = ApplyG (bimap f g tm1) (bimap f g tm2) (fmap (fmap f) ty)
+  bimap f g (TyInstG tm vCod ty k) =
+    TyInstG (bimap f g tm) (fmap (fmap (fmap f)) vCod) (fmap (fmap f) ty) k
 
 deriveEnumerable ''StaticBuiltinName
 
@@ -142,28 +145,25 @@ convertType
   -> Kind ()            -- ^ Kind of type below
   -> TypeG tyname       -- ^ Type to convert
   -> m (Type TyName DefaultUni ())
-convertType tms _ (TyVarG i) =
-  return (TyVar () (tynameOf tms i))
-convertType tms (Type _) (TyFunG ty1 ty2) =
-  TyFun () <$> convertType tms (Type ()) ty1 <*> convertType tms (Type ()) ty2
-convertType tms (Type _) (TyIFixG ty1 k ty2) =
-  TyIFix () <$> convertType tms k' ty1 <*> convertType tms k ty2
+convertType tns _ (TyVarG i) =
+  return (TyVar () (tynameOf tns i))
+convertType tns (Type _) (TyFunG ty1 ty2) =
+  TyFun () <$> convertType tns (Type ()) ty1 <*> convertType tns (Type ()) ty2
+convertType tns (Type _) (TyIFixG ty1 k ty2) =
+  TyIFix () <$> convertType tns k' ty1 <*> convertType tns k ty2
   where
     k' = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
-convertType tms (Type _) (TyForallG k ty) = do
-  tms' <- extTyNameState tms
-  TyForall () (tynameOf tms' FZ) k <$> convertType tms' (Type ()) ty
+convertType tns (Type _) (TyForallG k ty) = do
+  tns' <- extTyNameState tns
+  TyForall () (tynameOf tns' FZ) k <$> convertType tns' (Type ()) ty
 convertType _ _ (TyBuiltinG tyBuiltin) =
   return (TyBuiltin () (convertTypeBuiltin tyBuiltin))
-convertType tms (KindArrow _ k1 k2) (TyLamG ty) = do
-  tms' <- extTyNameState tms
-  TyLam () (tynameOf tms' FZ) k1 <$> convertType tms' k2 ty
-convertType tms k2 (TyAppG ty1 ty2 k1) =
-  TyApp () <$> convertType tms k' ty1 <*> convertType tms k1 ty2
-  where
-    k' = KindArrow () k1 k2
+convertType tns (KindArrow _ k1 k2) (TyLamG ty) = do
+  tns' <- extTyNameState tns
+  TyLam () (tynameOf tns' FZ) k1 <$> convertType tns' k2 ty
+convertType tns k2 (TyAppG ty1 ty2 k1) =
+  TyApp () <$> convertType tns (KindArrow () k1 k2) ty1 <*> convertType tns k1 ty2
 convertType _ k ty = throwError $ BadTypeG k ty
-
 
 -- |Convert generated closed types to Plutus types.
 convertClosedType
@@ -172,30 +172,47 @@ convertClosedType
   -> Kind ()
   -> ClosedTypeG
   -> m (Type TyName DefaultUni ())
-convertClosedType strs = convertType (emptyTyNameState strs)
+convertClosedType tynames = convertType (emptyTyNameState tynames)
 
 
 -- ** Converting terms
 
--- |Convert well-typed generated terms to Plutus terms.
+-- |Convert well-kinded generated types to Plutus types.
 --
 -- NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
 --       State monad, as the type of the `TyNameState` changes throughout the
 --       computation. This could be written using an indexed State monad.
--- toTerm
---   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
---   => TyNameState tyname -- ^ Type name environment with fresh name stream
---   -> NameState name     -- ^ Name environment with fresh name stream
---   -> TypeG tyname       -- ^ Type of term below
---   -> TermG tyname name  -- ^ Term to convert
---   -> m (Term TyName Name DefaultUni ())
--- toTerm tns ns ty (VarG i) =
---   return (Var () (nameOf ns i))
--- toTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
---   let k = undefined :: Kind ()
---   ty1' <- convertType tns k ty1
---   ns' <- extNameState ns
---   LamAbs () ty1' <$> toTerm tns ns' ty2 tm
+convertTerm
+  :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
+  => TyNameState tyname -- ^ Type name environment with fresh name stream
+  -> NameState name     -- ^ Name environment with fresh name stream
+  -> TypeG tyname       -- ^ Type of term below
+  -> TermG tyname name  -- ^ Term to convert
+  -> m (Term TyName Name DefaultUni ())
+convertTerm _tns ns _ty (VarG i) =
+  return (Var () (nameOf ns i))
+convertTerm tns ns (TyFunG ty1 ty2) (LamAbsG tm) = do
+  ns' <- extNameState ns
+  ty1' <- convertType tns (Type ()) ty1
+  LamAbs () (nameOf ns' FZ) ty1' <$> convertTerm tns ns' ty2 tm
+convertTerm tns ns ty2 (ApplyG tm1 tm2 (Normalized ty1)) =
+  Apply () <$> convertTerm tns ns (TyFunG ty1 ty2) tm1 <*> convertTerm tns ns ty1 tm2
+convertTerm tns ns (TyForallG k ty) (TyAbsG tm) = do
+  tns' <- extTyNameState tns
+  TyAbs () (tynameOf tns' FZ) k <$> convertTerm tns' ns ty tm
+convertTerm tns ns _ (TyInstG tm (Normalized cod) (Normalized ty) k) =
+  TyInst () <$> convertTerm tns ns (TyForallG k cod) tm <*> convertType tns k ty
+convertTerm _ _ ty tm = throwError $ BadTermG ty tm
+
+-- |Convert generated closed terms to Plutus terms.
+convertClosedTerm
+  :: (MonadQuote m, MonadError GenError m)
+  => Stream.Stream Text.Text
+  -> Stream.Stream Text.Text
+  -> ClosedTypeG
+  -> ClosedTermG
+  -> m (Term TyName Name DefaultUni ())
+convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
 
 -- * Checking
@@ -273,7 +290,7 @@ instance Check (Kind ()) (Normalized ClosedTypeG) where
   check k ty = check k (unNormalized ty)
 
 
--- *** Kind checking state
+-- ** Kind checking state
 
 newtype KCS tyname = KCS{ kindOf :: tyname -> Kind () }
 
@@ -290,7 +307,57 @@ extKCS k KCS{..} = KCS{ kindOf = kindOf' }
 
 -- ** Type checking
 
--- *** Type checking state
+checkTypeG
+  :: Eq tyname
+  => KCS tyname
+  -> TCS tyname name
+  -> TypeG tyname
+  -> TermG tyname name
+  -> Cool
+checkTypeG _ tcs ty (VarG i)
+  = varTypeOk
+  where
+    varTypeOk = toCool $ ty == typeOf tcs i
+
+checkTypeG kcs tcs (TyForallG k ty) (TyAbsG tm)
+  = tmTypeOk
+  where
+    tmTypeOk = checkTypeG (extKCS k kcs) (firstTCS FS tcs) ty tm
+
+-- NOTE: In the PlutusCore type checker, the type of the body is
+--       not necessarily in normal form. I've opted to force all
+--       types to be in normal form, so there's no normalization.
+--
+checkTypeG kcs tcs (TyFunG ty1 ty2) (LamAbsG tm)
+  = tyKindOk &&& tmTypeOk
+  where
+    tyKindOk = checkKindG kcs (Type ()) ty1
+    tmTypeOk = checkTypeG kcs (extTCS ty1 tcs) ty2 tm
+
+checkTypeG kcs tcs ty2 (ApplyG tm1 tm2 (Normalized ty1))
+  = tm1TypeOk &&& tm2TypeOk
+  where
+    tm1TypeOk = checkTypeG kcs tcs (TyFunG ty1 ty2) tm1
+    tm2TypeOk = checkTypeG kcs tcs ty1 tm2
+
+checkTypeG kcs tcs vTy (TyInstG tm (Normalized vCod) (Normalized ty) k)
+  = tmTypeOk &&& tyKindOk &&& tyOk
+  where
+    tmTypeOk = checkTypeG kcs tcs (TyForallG k vCod) tm
+    tyKindOk = checkKindG kcs k ty
+    tyOk = vTy == normalizeTypeG (TyAppG (TyLamG vCod) ty k)
+
+checkTypeG _ _ _ _ = false
+
+
+instance Check ClosedTypeG ClosedTermG where
+  check = checkTypeG emptyKCS emptyTCS
+
+instance Check (Kind (), ClosedTypeG) ClosedTermG where
+  check (_k, tyG) = check tyG
+
+
+-- ** Type checking state
 
 newtype TCS tyname name = TCS{ typeOf :: name -> TypeG tyname }
 
@@ -304,19 +371,24 @@ extTCS ty TCS{..} = TCS{ typeOf = typeOf' }
     typeOf' FZ     = ty
     typeOf' (FS i) = typeOf i
 
+firstTCS :: (tyname -> tyname') -> TCS tyname name -> TCS tyname' name
+firstTCS f tcs = TCS{ typeOf = fmap f . typeOf tcs }
+
 
 -- * Normalisation
 
 -- ** Type reduction
 
 type TySub n m = n -> TypeG m
+type Sub o n m = n -> TermG o m
 
--- |Ext substitutions.
+-- |Extend type substitutions.
 extTySub :: TySub n m -> TySub (S n) (S m)
 extTySub _ FZ     = TyVarG FZ
 extTySub s (FS i) = FS <$> s i
 
--- |Simultaneous substitution of variables in generated types.
+
+-- |Simultaneous substitution of type variables.
 applyTySub :: (n -> TypeG m) -> TypeG n -> TypeG m
 applyTySub s (TyVarG i)             = s i
 applyTySub s (TyFunG ty1 ty2)       = TyFunG (applyTySub s ty1) (applyTySub s ty2)
@@ -325,6 +397,7 @@ applyTySub s (TyForallG k ty)       = TyForallG k (applyTySub (extTySub s) ty)
 applyTySub _ (TyBuiltinG tyBuiltin) = TyBuiltinG tyBuiltin
 applyTySub s (TyLamG ty)            = TyLamG (applyTySub (extTySub s) ty)
 applyTySub s (TyAppG ty1 ty2 k)     = TyAppG (applyTySub s ty1) (applyTySub s ty2) k
+
 
 -- |Reduce a generated type by a single step, or fail.
 stepTypeG :: TypeG n -> Maybe (TypeG n)
@@ -337,7 +410,8 @@ stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
 stepTypeG (TyBuiltinG _)              = empty
 stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
 stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (applyTySub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
-stepTypeG (TyAppG ty1 ty2 k)          = TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k
+stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
+                                    <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
 
 -- |Normalise a generated type.
 normalizeTypeG :: TypeG n -> TypeG n
@@ -351,7 +425,10 @@ normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
 
 data GenError
   = forall tyname. Show tyname => BadTypeG (Kind ()) (TypeG tyname)
+  | forall tyname name. (Show tyname, Show name) => BadTermG (TypeG tyname) (TermG tyname name)
 
 instance Show GenError where
-  show (BadTypeG kG tyG) =
-    printf "Test generation error: convert type %s at kind %s" (show tyG) (show kG)
+  show (BadTypeG k ty) =
+    printf "Test generation error: convert type %s at kind %s" (show ty) (show k)
+  show (BadTermG ty tm) =
+    printf "Test generation error: convert term %s at type %s" (show tm) (show ty)

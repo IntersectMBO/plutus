@@ -46,7 +46,7 @@ data GenOptions = GenOptions
 
 defaultGenOptions :: GenOptions
 defaultGenOptions = GenOptions
-  { genDepth = 10
+  { genDepth = 15
   , genMode  = OF
   }
 
@@ -56,29 +56,63 @@ tests genOpts@GenOptions{..} =
   [ testCaseGen "normalization commutes with conversion from generated types"
       genOpts
       (Type ())
-      prop_normalizeConvertCommute
+      prop_normalizeConvertCommuteTypes
   , testCaseGen "normal types cannot reduce"
       genOpts
       (Type ())
       prop_normalTypesCannotReduce
+  , testCaseGen "normalization commutes with conversion from generated terms"
+      genOpts
+      (Type (), TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      prop_normalizeConvertCommuteTerms
   ]
+
+
+-- |Property: the following diagram commutes for well-typed terms...
+--
+-- @
+--                  convertClosedTerm
+--    ClosedTermG ---------------------> Term TyName Name DefaultUni ()
+--         |                                        |
+--         |                                        |
+--         | normalizeTermG [?]                     | normalizeTerm [?]
+--         |                                        |
+--         v                                        v
+--    ClosedTermG ---------------------> Term TyName Name DefaultUni ()
+--                  convertClosedTerm
+-- @
+--
+prop_normalizeConvertCommuteTerms :: (Kind (), ClosedTypeG) -> ClosedTermG -> ExceptT TestFail Quote ()
+prop_normalizeConvertCommuteTerms (k, tyG) tmG = do
+
+  -- Check if the type checker for generated terms is sound:
+  ty <- withExceptT GenError $ convertClosedType tynames k tyG
+  withExceptT TypeError $ checkKind defConfig () ty k
+  tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
+  withExceptT TypeError $ checkType defConfig () tm (Normalized ty)
+
+  -- Check if the converted term, when normalized, still has the same type:
+
+  -- Check if normalization for generated terms is sound:
+
+  return ()
 
 -- |Property: the following diagram commutes for well-kinded types...
 --
 -- @
 --                  convertClosedType
---    ClosedTypeG ---------------------> Type TyName ()
---         |                                   |
---         |                                   |
---         | normalizeTypeG                    | normalizeType
---         |                                   |
---         v                                   v
---    ClosedTypeG ---------------------> Type TyName ()
+--    ClosedTypeG ---------------------> Type TyName DefaultUni ()
+--         |                                        |
+--         |                                        |
+--         | normalizeTypeG                         | normalizeType
+--         |                                        |
+--         v                                        v
+--    ClosedTypeG ---------------------> Type TyName DefaultUni ()
 --                  convertClosedType
 -- @
 --
-prop_normalizeConvertCommute :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
-prop_normalizeConvertCommute k tyG = do
+prop_normalizeConvertCommuteTypes :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
+prop_normalizeConvertCommuteTypes k tyG = do
 
   -- Check if the kind checker for generated types is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
@@ -90,13 +124,13 @@ prop_normalizeConvertCommute k tyG = do
 
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
-  unless (ty1 == ty2) $ throwCtrex (CtrexClosedTypeG k tyG)
+  unless (ty1 == ty2) $ throwCtrex (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2)
 
 
 -- |Property: normal types cannot reduce
 prop_normalTypesCannotReduce :: Kind () -> Normalized ClosedTypeG -> ExceptT TestFail Quote ()
 prop_normalTypesCannotReduce k (Normalized tyG) =
-  unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexClosedTypeG k tyG)
+  unless (isNothing $ stepTypeG tyG) $ throwCtrex (CtrexNormalTypesCannotReduce k tyG)
 
 
 -- |Create a generator test, searching for a counter-example to the given predicate.
@@ -128,7 +162,14 @@ data TestFail
   | Ctrex Ctrex
 
 data Ctrex
-  = CtrexClosedTypeG (Kind ()) ClosedTypeG
+  = CtrexNormalizeConvertCommuteTypes
+    (Kind ())
+    (Type TyName DefaultUni ())
+    (Type TyName DefaultUni ())
+    (Type TyName DefaultUni ())
+  | CtrexNormalTypesCannotReduce
+    (Kind ())
+    ClosedTypeG
 
 instance Show TestFail where
   show (TypeError e) = show e
@@ -136,20 +177,20 @@ instance Show TestFail where
   show (Ctrex e) = show e
 
 instance Show Ctrex where
-  show (CtrexClosedTypeG kG tyG) = either show go (run $ convertClosedType tynames kG tyG)
+  show (CtrexNormalizeConvertCommuteTypes k ty ty1 ty2) =
+    printf tpl (show (pretty ty)) (show (pretty k)) (show (pretty ty1)) (show (pretty ty2))
     where
-      go ty =
-        case run (inferKind defConfig ty) of
-          Left err ->
-            printf "Counterexample found: %s, generated for kind %s\n%s"
-            (show (pretty ty))
-            (show (pretty kG))
-            (show (prettyPlcClassicDef (err :: TypeError DefaultUni ())))
-          Right k ->
-            printf "Counterexample found: %s, generated for kind %s, has inferred kind %s"
-            (show (pretty ty))
-            (show (pretty kG))
-            (show (pretty k))
+      tpl = unlines
+            [ "Counterexample found: %s :: %s"
+            , "- convert then normalize gives %s"
+            , "- normalize then convert gives %s"
+            ]
+
+  show (CtrexNormalTypesCannotReduce k tyG) =
+    printf tpl (show tyG) (show (pretty k))
+    where
+      tpl = "Counterexample found: normal type %s of kind %s can reduce."
+
 
 -- |Throw a counter-example.
 throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
@@ -166,3 +207,7 @@ run = runQuote . runExceptT
 -- |Stream of type names t0, t1, t2, ..
 tynames :: Stream.Stream Text.Text
 tynames = mkTextNameStream "t"
+
+-- |Stream of names x0, x1, x2, ..
+names :: Stream.Stream Text.Text
+names = mkTextNameStream "x"
