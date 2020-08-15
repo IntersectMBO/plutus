@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -28,6 +29,8 @@ import           Language.PlutusCore.Pretty                                 (Pre
 import           Language.PlutusCore.Universe
 import           Language.PlutusCore.View
 
+import           Data.Array
+
 infix 4 |>, <|
 
 -- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
@@ -42,7 +45,7 @@ type CkEvaluationException uni =
 type CkM uni = Either (CkEvaluationException uni)
 
 instance SpendBudget (CkM uni) (Term TyName Name uni ()) where
-    spendBudget _ _ _ = pure ()
+    spendBudget _ _   = pure ()
     builtinCostParams = pure defaultCostModel
 
 data Frame uni
@@ -77,6 +80,8 @@ substituteDb varFor new = go where
 
     goUnder var term = if var == varFor then term else go term
 
+
+-- FIXME: update this for the current strategy
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
@@ -136,10 +141,10 @@ instantiateEvaluate
     -> Plain Term uni
     -> CkM uni (Plain Term uni)
 instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
-instantiateEvaluate stack ty fun
-    | isJust $ termAsPrimIterApp fun = stack <| TyInst () fun ty
+instantiateEvaluate stack _ fun
+    | isJust $ termAsPrimIterApp fun = stack <| fun -- Discard type
     | otherwise                      =
-          throwingWithCause _MachineError NonPrimitiveInstantiationMachineError $ Just fun
+          throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just fun
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -157,19 +162,20 @@ applyEvaluate stack fun                    arg =
     let term = Apply () fun arg in
         case termAsPrimIterApp term of
             Nothing ->
-                throwingWithCause _MachineError NonPrimitiveApplicationMachineError $ Just term
-            Just (IterApp (DynBuiltinName{}) _) ->
+                throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just term
+            Just (IterApp DynBuiltinName{} _) ->
                 throwingWithCause _MachineError
                     (OtherMachineError NoDynamicBuiltinNamesMachineError)
                     (Just term)
-            Just (IterApp (StaticBuiltinName name) spine) -> do
-                constAppResult <- applyStaticBuiltinName name spine
-                case constAppResult of
-                    ConstAppFailure     ->
+            Just (IterApp (StaticBuiltinName name) spine) ->
+                if length spine == builtinNameAritiesIgnoringTypes ! name  -- Quick fix for unsaturated builtins.
+                then do
+                  res <- applyStaticBuiltinName name spine
+                  case res of
+                    EvaluationSuccess t -> stack |> t
+                    EvaluationFailure   ->
                         throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term
-                    ConstAppSuccess res -> stack |> res
-                    ConstAppStuck       -> stack <| term
-
+                else stack <| term
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 -- This differs from the spec version: we do not have the following rule:

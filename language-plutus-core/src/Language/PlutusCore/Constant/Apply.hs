@@ -12,45 +12,33 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Constant.Apply
-    ( ConstAppResult (..)
-    , evaluationConstAppResult
-    , nonZeroArg
+    ( nonZeroArg
     , integerToInt64
     , applyTypeSchemed
     , applyStaticBuiltinName
+    , builtinNameAritiesIgnoringTypes
+    , builtinNameArities
     ) where
 
+import           PlutusPrelude
+
+import           Language.PlutusCore.Constant.Function
 import           Language.PlutusCore.Constant.Name
 import           Language.PlutusCore.Constant.Typed
 import           Language.PlutusCore.Core
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
 import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Result
+import           Language.PlutusCore.Name                           (Name, TyName)
 import           Language.PlutusCore.Universe
 
 import           Control.Monad.Except
 import           Crypto
+import           Data.Array
 import qualified Data.ByteString.Lazy                               as BSL
 import qualified Data.ByteString.Lazy.Hash                          as Hash
-import           Data.Coerce
 import           Data.Int
 import           Data.Proxy
-
--- This type is only needed because of how the CEK machine is currently structured.
--- Once we fix the machine, the 'ConstAppStuck' constructor will become obsolete,
--- making the type isomorphic to 'EvaluationResult'.
--- | The result of evaluation of a builtin applied to some arguments.
-data ConstAppResult term
-    = ConstAppFailure
-    | ConstAppSuccess term
-      -- ^ Successfully computed a value.
-    | ConstAppStuck
-      -- ^ Not enough arguments.
-    deriving (Show, Eq, Functor)
-
-evaluationConstAppResult :: EvaluationResult term -> ConstAppResult term
-evaluationConstAppResult EvaluationFailure        = ConstAppFailure
-evaluationConstAppResult (EvaluationSuccess term) = ConstAppSuccess term
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -74,7 +62,7 @@ applyTypeSchemed
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [term]
-    -> m (ConstAppResult term)
+    -> m (EvaluationResult term)
 applyTypeSchemed name = go where
     go
         :: forall args'.
@@ -82,18 +70,21 @@ applyTypeSchemed name = go where
         -> FoldArgs args' res
         -> FoldArgsEx args'
         -> [term]
-        -> m (ConstAppResult term)
+        -> m (EvaluationResult term)
     go (TypeSchemeResult _)        y _ args =
         -- TODO: The costing function is NOT run here. Might cause problems if there's never a TypeSchemeArrow.
         case args of
-            [] -> pure . evaluationConstAppResult $ makeKnown y  -- Computed the result.
-            _  -> throwingWithCause _ConstAppError               -- Too many arguments.
-                    (ExcessArgumentsConstAppError args)
+            [] -> pure $ makeKnown y                     -- Computed the result.
+            _  -> throwingWithCause _ConstAppError       -- Too many arguments.
+                    (TooManyArgumentsConstAppError name args)
                     Nothing
     go (TypeSchemeAll _ _ schK)  f exF args =
         go (schK Proxy) f exF args
     go (TypeSchemeArrow _ schB)    f exF args = case args of
-        []          -> pure ConstAppStuck                 -- Not enough arguments to compute.
+        []          ->
+            throwingWithCause _ConstAppError              -- Too few arguments.
+                (TooFewArgumentsConstAppError name)
+                Nothing
         arg : args' -> do                                 -- Peel off one argument.
             -- Coerce the argument to a Haskell value.
             x <- readKnown arg
@@ -104,10 +95,7 @@ applyTypeSchemed name = go where
             -- Apply the function to the coerced argument and proceed recursively.
             case schB of
                 (TypeSchemeResult _) -> do
-                    -- Note that that if this fails, then the cause is reported to be @arg@, i.e.
-                    -- the last argument in the builtin application being processed, not the whole
-                    -- application. It would probably make sense to recreate the application here.
-                    spendBudget (BBuiltin name) arg exF'
+                    spendBudget (BBuiltin name) exF'
                     go schB (f x) exF' args'
                 _ -> go schB (f x) exF' args'
 
@@ -121,7 +109,7 @@ applyTypedStaticBuiltinName
     -> FoldArgs args res
     -> FoldArgsEx args
     -> [term]
-    -> m (ConstAppResult term)
+    -> m (EvaluationResult term)
 applyTypedStaticBuiltinName (TypedStaticBuiltinName name schema) =
     applyTypeSchemed (StaticBuiltinName name) schema
 
@@ -132,7 +120,7 @@ applyStaticBuiltinName
     .  ( MonadError (ErrorWithCause err term) m, AsUnliftingError err, AsConstAppError err term
        , SpendBudget m term, HasConstantIn uni term, GShow uni, GEq uni, DefaultUni <: uni
        )
-    => StaticBuiltinName -> [term] -> m (ConstAppResult term)
+    => StaticBuiltinName -> [term] -> m (EvaluationResult term)
 applyStaticBuiltinName name args = do
     params <- builtinCostParams
     case name of
@@ -268,3 +256,19 @@ applyStaticBuiltinName name args = do
                 (\b x y -> if b then x else y)
                 (runCostingFunThreeArguments $ paramIfThenElse params)
                 args
+
+builtinNameAritiesIgnoringTypes :: Array StaticBuiltinName Int
+builtinNameAritiesIgnoringTypes =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedStaticBuiltinName _ sch) -> countTermArgs sch
+{-# NOINLINE builtinNameAritiesIgnoringTypes #-}  -- Just in case.
+
+builtinNameArities :: Array StaticBuiltinName Arity
+builtinNameArities =
+    listArray (minBound, maxBound) $
+        [minBound..maxBound] <&> \name ->
+            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
+                \(TypedStaticBuiltinName _ sch) -> getArity sch
+{-# NOINLINE builtinNameArities #-}  -- Just in case.

@@ -32,13 +32,15 @@ module Language.PlutusCore.Evaluation.Machine.Exception
 
 import           PlutusPrelude
 
+import           Language.PlutusCore.Core.Instance.Pretty.Common ()
+import           Language.PlutusCore.Core.Type                   (BuiltinName)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Pretty
 
 import           Control.Lens
 import           Control.Monad.Except
-import           Data.String                           (IsString)
-import           Data.Text                             (Text)
+import           Data.String                                     (IsString)
+import           Data.Text                                       (Text)
 import           Data.Text.Prettyprint.Doc
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -50,7 +52,8 @@ newtype UnliftingError
 -- | The type of constant applications errors (i.e. errors that may occur during evaluation of
 -- a builtin function applied to some arguments).
 data ConstAppError term
-    = ExcessArgumentsConstAppError [term]
+    =  TooFewArgumentsConstAppError BuiltinName
+    | TooManyArgumentsConstAppError BuiltinName [term]
       -- ^ A constant is applied to more arguments than needed in order to reduce.
       -- Note that this error occurs even if an expression is well-typed, because
       -- constant application is supposed to be computed as soon as there are enough arguments.
@@ -60,16 +63,24 @@ data ConstAppError term
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError err term
-    = NonPrimitiveInstantiationMachineError
+    = NonPolymorphicInstantiationMachineError
       -- ^ An attempt to reduce a not immediately reducible type instantiation.
     | NonWrapUnwrappedMachineError
       -- ^ An attempt to unwrap a not wrapped term.
-    | NonPrimitiveApplicationMachineError
+    | NonFunctionalApplicationMachineError
       -- ^ An attempt to reduce a not immediately reducible application.
     | OpenTermEvaluatedMachineError
       -- ^ An attempt to evaluate an open term.
     | ConstAppMachineError (ConstAppError term)
       -- ^ An attempt to compute a constant application resulted in 'ConstAppError'.
+    | UnexpectedBuiltinInstantiationMachineError
+      -- ^ A builtin was instantiated when a term argument was expected
+    | UnexpectedBuiltinTermArgumentMachineError
+      -- ^ A term argument to a builtin was encountered when an instantiation was expected
+    | EmptyBuiltinArityMachineError
+      -- ^ We've reached a state where a builtin instantiation or application is attempted
+      -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
+      -- See the machine implementations for details.
     | OtherMachineError err
     deriving (Show, Eq, Functor)
 
@@ -116,6 +127,22 @@ throwingWithCause
     => AReview e t -> t -> Maybe term -> m x
 throwingWithCause l t cause = reviews l (\e -> throwError $ ErrorWithCause e cause) t
 
+
+
+{- [Note: Ignoring context in UserEvaluationError] The UserEvaluationError error
+   has a term argument, but extractEvaluationResult just discards this and
+   returns EvaluationFailure.  This means that, for example, if we use the `plc`
+   command to execute a program containing a division by zero, plc exits
+   silently without reporting that anything has gone wrong (but returning a
+   non-zero exit code to the shell via `exitFailure`).  This is because
+   UserEvaluationError is used in cases when a PLC program itself goes wrong
+   (for example, a failure due to `(error)`, a failure during builtin
+   evavluation, or exceeding the gas limit).  This is used to signal
+   unsuccessful in validation and so is not regarded as a real error; in
+   contrast, internal machine errors, typechecking failures, and so on are
+   genuine errors and we report their context if available.
+ -}
+
 -- | Turn any 'UserEvaluationError' into an 'EvaluationFailure'.
 extractEvaluationResult
     :: Either (EvaluationException internal user term) a
@@ -133,22 +160,30 @@ instance Pretty UnliftingError where
 
 instance (PrettyBy config term, HasPrettyDefaults config ~ 'True) =>
         PrettyBy config (ConstAppError term) where
-    prettyBy config (ExcessArgumentsConstAppError args) = fold
-        [ "A constant applied to too many arguments:", "\n"
+    prettyBy _ (TooFewArgumentsConstAppError name) =
+        "The constant" <+> pretty name <+> "was applied to too few arguments."
+    prettyBy config (TooManyArgumentsConstAppError name args) = fold
+        [ "The constant" <+> pretty name <+> "was applied to too many arguments:", "\n"
         , "Excess ones are: ", prettyBy config args
         ]
     prettyBy _      (UnliftingConstAppError err) = pretty err
 
 instance (PrettyBy config term, HasPrettyDefaults config ~ 'True, Pretty err) =>
             PrettyBy config (MachineError err term) where
-    prettyBy _      NonPrimitiveInstantiationMachineError =
-        "Cannot reduce a not immediately reducible type instantiation."
+    prettyBy _      NonPolymorphicInstantiationMachineError =
+        "Attempted to instantiate a non-polymorphic term."
     prettyBy _      NonWrapUnwrappedMachineError          =
         "Cannot unwrap a not wrapped term."
-    prettyBy _      NonPrimitiveApplicationMachineError   =
-        "Cannot reduce a not immediately reducible application."
+    prettyBy _      NonFunctionalApplicationMachineError   =
+        "Attempted to apply a non-function."
     prettyBy _      OpenTermEvaluatedMachineError         =
         "Cannot evaluate an open term."
+    prettyBy _      UnexpectedBuiltinInstantiationMachineError =
+        "A builtin was instantiated when a term argument was expected "
+    prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
+        "A buitlin received a term argument when an instantiation was expected"
+    prettyBy _      EmptyBuiltinArityMachineError =
+        "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy config (ConstAppMachineError constAppError)  =
         prettyBy config constAppError
     prettyBy _      (OtherMachineError err)               =

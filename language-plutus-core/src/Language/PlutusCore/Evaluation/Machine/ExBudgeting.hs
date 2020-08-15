@@ -148,9 +148,7 @@ class ToExMemory term => SpendBudget m term | m -> term where
     -- 1. do nothing for an evaluator that does not care about costing
     -- 2. count upwards to get the cost of a computation
     -- 3. subtract from the current budget and fail if the budget goes below zero
-    --
-    -- The @term@ argument is only used for reporting an error.
-    spendBudget :: ExBudgetCategory -> term -> ExBudget -> m ()
+    spendBudget :: ExBudgetCategory -> ExBudget -> m ()
 
 data ExBudgetCategory
     = BTyInst

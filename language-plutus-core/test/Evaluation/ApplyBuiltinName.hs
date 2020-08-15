@@ -23,8 +23,6 @@ import           Language.PlutusCore.Pretty
 import qualified Data.ByteString.Lazy                            as BSL
 import qualified Data.ByteString.Lazy.Hash                       as Hash
 import           Data.Coerce
-import           Data.Foldable
-import           Data.List
 import           Hedgehog                                        hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
@@ -52,8 +50,9 @@ prop_applyStaticBuiltinName tbn op = property $ do
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
         app = applyStaticBuiltinName @(CkM DefaultUni) name
-    traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
-    app spine === Right (evaluationConstAppResult $ makeKnown y)
+--    traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
+--    app spine === Right (evaluationConstAppResult $ makeKnown y)
+    app spine === Right (makeKnown y)
 
 test_typedAddInteger :: TestTree
 test_typedAddInteger

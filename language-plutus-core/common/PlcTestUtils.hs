@@ -58,7 +58,8 @@ trivialProgram = Program () (defaultVersion ())
 
 runPlc
     :: ( GetProgram a uni, GShow uni, GEq uni, DefaultUni <: uni
-       , Closed uni, uni `Everywhere` ExMemoryUsage, uni `Everywhere` PrettyConst, Typeable uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage,
+         uni `Everywhere` PrettyConst, Typeable uni
        )
     => [a] -> ExceptT SomeException IO (EvaluationResult (Plain Term uni))
 runPlc values = do

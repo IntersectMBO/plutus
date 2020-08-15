@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -33,7 +34,8 @@ import           Data.Text.Prettyprint.Doc
 import           Options.Applicative
 import           System.CPUTime                                             (getCPUTime)
 import           System.Exit
-import           Text.Printf                                                (printf)
+import           Text.Printf
+
 
 {- Note [Annotation types] This program now reads and writes
    CBOR-serialised PLC ASTs.  In all cases we require the annotation
