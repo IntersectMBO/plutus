@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies          #-}
 -- | The CEK machine.
 -- Rules are the same as for the CK machine except we do not use substitution and use
 -- environments instead.
@@ -19,6 +18,7 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -295,42 +295,10 @@ lookupDynamicBuiltinName dynName = do
             err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
         Just mean -> pure mean
 
--- FIXME: update this for current version.
-{- Note [Dropping environments of arguments]
-The CEK machine sometimes keeps in the environment those variables that are no longer required.
-This is a fundamental limitation of the CEK machine as it lacks garbage collection.
-There are alternative machines that implement some form of environment cleaning (CESK, for example).
-But if we're going to expore this space, it's better to jump straight to something close to actual
-hardware than to deal with inherently inefficient abstract machines.
-
-But if we could optimize the current evaluator at small development/maintenance cost, that would be
-useful. One such opportunity is to drop the environment of a constant as a constant can't reference
-any variables. So we do that in this line:
-
-    computeCek con constant@Constant{} = withVarEnv mempty $ returnCek con constant
-
-We can't drop the environment of a built-in function, because it can be polymorphic and thus can
-receive arbitrary terms as arguments.
-
-A 'TyAbs'- or 'LamAbs'-headed term may also reference free variables.
-
-In the 'Var' case we drop the current environment, look up the variable and use the environment
-stored in the looked up closure as per the normal control flow of the CEK machine.
-
-Note that if we had polymorphic built-in types, we couldn't drop the environment of a constant as,
-say, a `list nat` can contain arbitrary terms of type `nat` and thus can reference variables from
-the environment. Polymorphic built-in types complicate evaluation in general as unlifting, say,
-a `list integer` constant may require evaluating terms *inside* the constant (particularly, if that
-constant was constructed by a built-in function). Similar complications associated with looking into
-constants of polymorphic built-in types arise for other procedures (pretty-printing, type checking,
-substitution, anything).
--}
-
--- See Note [Dropping environments of arguments].
 -- | The computing part of the CEK machine.
 -- Either
 -- 1. adds a frame to the context and calls 'computeCek' ('TyInst', 'Apply', 'IWrap', 'Unwrap')
--- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant')
+-- 2. calls 'returnCek' on values ('TyAbs', 'LamAbs', 'Constant', 'Builtin')
 -- 3. returns 'EvaluationFailure' ('Error')
 -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
 
@@ -378,14 +346,28 @@ computeCek ctx (Var _ varName)   = do
     val <- lookupVarName varName
     returnCek ctx val
 
--- | The returning part of the CEK machine.
+-- | The returning phase of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
--- from the context and either
--- 1. performs reduction and calls 'computeCek' ('FrameTyInstArg', 'FrameApplyFun', 'FrameUnwrap')
--- 2. performs a constant application and calls 'returnCek' ('FrameTyInstArg', 'FrameApplyFun')
--- 3. puts 'FrameApplyFun' on top of the context and proceeds with the argument from 'FrameApplyArg'
--- 4. grows the resulting term ('FrameWrap')
-
+-- from the context and uses it to decide how to proceed with the current value v.
+--  'FrameTyInstArg': call instantiateEvaluate.  If v is a lambda then discard the type
+--     and compute the body of v; if v is a builtin application then check that
+--     it's expecting a type argument, either apply the builtin to its arguments or
+--     and return the result, or extend the value with the type and call returnCek;
+--     if v is anything else, fail.
+--  'FrameApplyArg': call applyEvaluate. If v is a lambda then discard the type
+--     and compute the body of v; if v is a builtin application then check that
+--     it's expecting a type argument, either apply the builtin to its arguments
+--     and return the result, or extend the value with the type and call returnCek;
+--     if v is anything else, fail.
+--  'FrameApplyFun': call applyEvaluate to attempt to apply the function
+--     stored in the frame to an argument.  If the function is a lambda 'lam x ty body'
+--     then extend the environment with a binding of v to x and call computeCek on the body.
+--     If the is a builtin application then check that it's expecting a term argument,
+--     and if it's the final argument then apply the builtin to its arguments
+--     return the result, or extend the value with the new argument and call
+--     returnCek.  If v is anything else, fail.
+--  'FrameIWrap':  wrap v and call returnCek on the wrapped value.
+--  'FrameUnwrap': if v is a wrapped value w then returnCek w, else fail.
 returnCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> CekValue uni -> CekM uni (Plain Term uni)
