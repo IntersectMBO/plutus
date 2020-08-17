@@ -1,7 +1,7 @@
 -- Bump this if you need newer packages
 index-state: 2020-08-05T00:00:00Z
 
-packages: language-plutus-core
+packages: plutus-core
           marlowe
           plutus-ledger
           plutus-tx
