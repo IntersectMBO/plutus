@@ -112,7 +112,6 @@ type CekValEnv uni = UniqueMap TermUnique (CekValue uni)
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
     { cekEnvMeans              :: DynamicBuiltinNameMeanings (CekValue uni)
-    , _cekEnvVarEnv            :: CekValEnv uni
     , _cekEnvBudgetMode        :: ExBudgetMode
     , _cekEnvBuiltinCostParams :: CostModel
     }
@@ -262,14 +261,6 @@ runCekM
     -> (Either (CekEvaluationException uni) a, ExBudgetState)
 runCekM env s a = runState (runExceptT $ runReaderT a env) s
 
--- | Get the current 'CekValEnv'.
-getEnv :: CekM uni (CekValEnv uni)
-getEnv = asks _cekEnvVarEnv
-
--- | Set a new 'VarEnv' and proceed.
-withEnv :: CekValEnv uni -> CekM uni a -> CekM uni a
-withEnv venv = local (set cekEnvVarEnv venv)
-
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
 extendEnv :: Name -> CekValue uni -> CekValEnv uni -> CekValEnv uni
@@ -277,9 +268,8 @@ extendEnv argName arg  =
     insertByName argName arg
 
 -- | Look up a variable name in the environment.
-lookupVarName :: Name -> CekM uni (CekValue uni)
-lookupVarName varName = do
-    varEnv <- getEnv
+lookupVarName :: Name -> CekValEnv uni -> CekM uni (CekValue uni)
+lookupVarName varName varEnv = do
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Nothing
                     -- No value available for error
@@ -304,46 +294,47 @@ lookupDynamicBuiltinName dynName = do
 
 computeCek
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
-    => Context uni -> TermWithMem uni -> CekM uni (Plain Term uni)
+    => Context uni -> CekValEnv uni -> TermWithMem uni -> CekM uni (Plain Term uni)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-computeCek ctx (TyInst _ body ty) = do
+computeCek ctx env (TyInst _ body ty) = do
     spendBudget BTyInst (ExBudget 1 1) -- TODO
-    computeCek (FrameTyInstArg ty : ctx) body
+    computeCek (FrameTyInstArg ty : ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-computeCek ctx (Apply _ fun arg) = do
+computeCek ctx env (Apply _ fun arg) = do
     spendBudget BApply (ExBudget 1 1) -- TODO
-    env <- getEnv
-    computeCek (FrameApplyArg env arg : ctx) fun
+    computeCek (FrameApplyArg env arg : ctx) env fun
 -- s ; ρ ▻ wrap A B L  ↦  s , wrap A B _ ; ρ ▻ L
-computeCek ctx (IWrap ann pat arg term) = do
+computeCek ctx env (IWrap ann pat arg term) = do
     spendBudget BIWrap (ExBudget 1 1) -- TODO
-    computeCek (FrameIWrap ann pat arg : ctx) term
+    computeCek (FrameIWrap ann pat arg : ctx) env term
 -- s ; ρ ▻ unwrap L  ↦  s , unwrap _ ; ρ ▻ L
-computeCek ctx (Unwrap _ term) = do
+computeCek ctx env (Unwrap _ term) = do
     spendBudget BUnwrap (ExBudget 1 1) -- TODO
-    computeCek (FrameUnwrap : ctx) term
+    computeCek (FrameUnwrap : ctx) env term
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
-computeCek ctx (TyAbs ex tn k body)  = do
-    env <- getEnv
+computeCek ctx env (TyAbs ex tn k body) =
+    -- TODO: budget?
     returnCek ctx (VTyAbs ex tn k body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-computeCek ctx (LamAbs ex name ty body)  = do
-    env <- getEnv
+computeCek ctx env (LamAbs ex name ty body) =
+    -- TODO: budget?
     returnCek ctx (VLamAbs ex name ty body env)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
-computeCek ctx c@Constant{} = returnCek ctx (VCon c)
+computeCek ctx _ c@Constant{} =
+    -- TODO: budget?
+    returnCek ctx (VCon c)
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-computeCek ctx (Builtin ex bn)        = do
-  env <- getEnv
+computeCek ctx env (Builtin ex bn) = do
+    -- TODO: budget?
   arity <- arityOf bn
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _  Error{} =
+computeCek _ _  Error{} =
     throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- No value available for error
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
-computeCek ctx (Var _ varName)   = do
+computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
-    val <- lookupVarName varName
+    val <- lookupVarName varName env
     returnCek ctx val
 
 -- | The returning phase of the CEK machine.
@@ -378,7 +369,7 @@ returnCek [] val = pure $ void $ dischargeCekValue val
 returnCek (FrameTyInstArg ty : ctx) fun = instantiateEvaluate ctx ty fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
 returnCek (FrameApplyArg argVarEnv arg : ctx) fun = do
-    withEnv argVarEnv $ computeCek (FrameApplyFun fun : ctx) arg
+    computeCek (FrameApplyFun fun : ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
 returnCek (FrameApplyFun fun : ctx) arg = do
@@ -412,7 +403,7 @@ returnCek (FrameUnwrap : ctx) val =
 instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni -> Type TyName uni ExMemory -> CekValue uni -> CekM uni (Plain Term uni)
-instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = withEnv env $ computeCek ctx body
+instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = computeCek ctx env body
 instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
@@ -442,8 +433,8 @@ applyEvaluate
     -> CekValue uni   -- rhs of application
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
-    withEnv (extendEnv name arg env) $ computeCek ctx body
-applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg = withEnv argEnv $ do
+    computeCek ctx (extendEnv name arg env) body
+applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg =do
     case arity of
       []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
                 -- Should be impossible: see instantiateEvaluate.
@@ -490,11 +481,11 @@ runCek
     -> Plain Term uni
     -> (Either (CekEvaluationException uni) (Plain Term uni), ExBudgetState)
 runCek means mode params term =
-    runCekM (CekEnv means mempty mode params)
+    runCekM (CekEnv means mode params)
             (ExBudgetState mempty mempty)
         $ do
             spendBudget BAST (ExBudget 0 (termAnn memTerm))
-            computeCek [] memTerm
+            computeCek [] mempty memTerm
     where
         memTerm = withMemory term
 
