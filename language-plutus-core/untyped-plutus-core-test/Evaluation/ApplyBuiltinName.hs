@@ -46,7 +46,7 @@ newtype AppM a = AppM
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
 
 instance SpendBudget AppM (Term Name DefaultUni ()) where
-    spendBudget _ _ _ = pure ()
+    spendBudget _ _ = pure ()
     builtinCostParams = pure defaultCostModel
 
 -- | This shows that the builtin application machinery accepts untyped terms.
@@ -60,7 +60,7 @@ prop_applyStaticBuiltinName
     -> Property
 prop_applyStaticBuiltinName (TypedStaticBuiltinName name sch) op = property $ do
     (args, res) <- forAllNoShow $ genArgsRes sch op
-    let rhs = evaluationConstAppResult $ makeKnown res
+    let rhs = makeKnown res
     case unAppM $ applyStaticBuiltinName name args of
         Left _    -> fail $ "Failure while checking an application of " ++ show name
         Right lhs -> lhs === rhs
