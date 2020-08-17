@@ -407,15 +407,13 @@ instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = computeCek ctx env body
 instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                     {- This should be impossible if we don't have zero-arity builtins:
-                        we will have found this case in an earlier call to instantiateEvaluate
-                        or applyEvaluate and called applyBuiltinName. -}
+                        {- This should be impossible if we don't have zero-arity builtins:
+                           we will have found this case in an earlier call to instantiateEvaluate
+                           or applyEvaluate and called applyBuiltinName. -}
       TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
-                        where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
-      TypeArg:arity' ->
-          case arity' of
-            [] -> applyBuiltinName ctx bn args  -- Final argument is a type argument
-            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
+                        where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv     -- Reconstruct the bad application
+      TypeArg:[]     -> applyBuiltinName ctx bn args                                            -- Final argument is a type argument
+      TypeArg:arity' -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
 instantiateEvaluate _ _ val =
         throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
@@ -429,22 +427,18 @@ instantiateEvaluate _ _ val =
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni, Closed uni, uni `Everywhere` ExMemoryUsage)
     => Context uni
-    -> CekValue uni   -- lsh of application
+    -> CekValue uni   -- lhs of application
     -> CekValue uni   -- rhs of application
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
     computeCek ctx (extendEnv name arg env) body
 applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg =do
     case arity of
-      []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                -- Should be impossible: see instantiateEvaluate.
-      TypeArg:_ -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
-                   where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv -- reconstruct the bad application
-      TermArg:arity' -> do
-          let args' = args ++ [arg]
-          case arity' of
-            [] -> applyBuiltinName ctx bn args' -- 'arg' was the final argument
-            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs args' argEnv  -- More arguments expected
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val    -- Should be impossible: see instantiateEvaluate.
+      TypeArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
+                        where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv        -- Reconstruct the bad application
+      TermArg:[]     -> applyBuiltinName ctx bn (args ++ [arg])                                     -- 'arg' was the final argument
+      TermArg:arity' -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs (args ++ [arg]) argEnv  -- More arguments expected
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
 -- | Apply a builtin to a list of CekValue arguments

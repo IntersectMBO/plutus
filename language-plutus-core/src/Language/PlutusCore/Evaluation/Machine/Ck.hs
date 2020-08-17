@@ -262,14 +262,12 @@ instantiateEvaluate
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- FIXME: kind check
 instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
-      []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                -- Should be impossible: see instantiateEvaluate.
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                                                                                 -- Should be impossible: see instantiateEvaluate.
       TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
-                        where val' = VBuiltin bn arity0 arity (tys++[ty]) args -- reconstruct the bad application
-      TypeArg:arity' ->
-          case arity' of
-            [] -> applyBuiltinName stack bn args  -- Final argument is a type argument
-            _  -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args -- More arguments expected
+                        where val' = VBuiltin bn arity0 arity (tys++[ty]) args   -- Reconstruct the bad application
+      TypeArg:[]     -> applyBuiltinName stack bn args                           -- Final argument is a type argument
+      TypeArg:arity' -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args      -- More arguments expected
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
@@ -287,15 +285,12 @@ applyEvaluate
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm () arg) body
 applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
     case arity of
-      []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                -- Should be impossible: see instantiateEvaluate.
-      TypeArg:_ -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
-                   where val' = VBuiltin bn arity0 arity tyargs (args++[arg]) -- reconstruct the bad application
-      TermArg:arity' -> do
-          let args' = args ++ [arg]
-          case arity' of
-            [] -> applyBuiltinName stack bn args' -- 'arg' was the final argument
-            _  -> stack <| VBuiltin bn arity0 arity' tyargs args' -- More arguments expected
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                                                                                    -- Should be impossible: see instantiateEvaluate.
+      TypeArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
+                        where val' = VBuiltin bn arity0 arity tyargs (args++[arg])  -- Reconstruct the bad application
+      TermArg:[]     -> applyBuiltinName stack bn (args ++ [arg])                   -- 'arg' was the final argument
+      TermArg:arity' -> stack <| VBuiltin bn arity0 arity' tyargs (args++[arg])     -- More arguments expected
 applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
 
 -- | Apply a (static or dynamic) built-in function to some arguments
