@@ -57,15 +57,15 @@ postulate
 -- IO Stuff
 
 postulate
-  returnIO : ∀ {a} {A : Set a} → A → IO A
-  _>>=IO_  : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
+  returnIO : {A : Set} → A → IO A
+  _>>=IO_  : {A : Set}{B : Set} → IO A → (A → IO B) → IO B
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
 
 instance
   IOMonad : Monad IO
   IOMonad = record { return = returnIO ; _>>=_ = _>>=IO_ }
 
-_>>_  : {A : Set} {B : Set} → IO A → IO B → IO B
+_>>_  : {A : Set}{B : Set} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
 {-# COMPILE GHC returnIO = \_ _ -> return    #-}

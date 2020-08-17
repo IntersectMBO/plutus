@@ -161,11 +161,11 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     , Check.tests
     -- NEAT tests
     , testCaseCount "kind checker for generated types is sound" $
-        testTyProp depth kind prop_checkKindSound
+        testTyProp size star prop_checkKindSound
     , testCaseCount "normalization preserves kinds" $
-        testTyProp depth kind prop_normalizePreservesKind
+        testTyProp size star prop_normalizePreservesKind
     , testCaseCount "normalization for generated types is sound" $
-        testTyProp depth kind prop_normalizeTypeSound
+        testTyProp size star prop_normalizeTypeSound
     ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -312,11 +312,11 @@ tests = testCase "example programs" $ fold
 
 -- NEAT stuff
 
-depth :: Int
-depth = 10
+size :: Int
+size = 10
 
-kind :: Kind ()
-kind = Type ()
+star :: Kind ()
+star = Type ()
 
 -- |Check if the type/kind checker or generation threw any errors.
 isSafe :: ExceptT (ErrorP a) Quote a -> Cool

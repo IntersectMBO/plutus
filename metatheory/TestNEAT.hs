@@ -22,15 +22,15 @@ main = defaultMain allTests
 allTests :: TestTree
 allTests = testGroup "all tests"
   [ testCaseCount "soundness" $
-      testTyProp depth kind prop_checkKindSound
+      testTyProp size star prop_checkKindSound
   , testCaseCount "normalization" $
-      testTyProp depth kind prop_normalizePreservesKind
+      testTyProp size star prop_normalizePreservesKind
   , testCaseCount "normalizationSound" $
-      testTyProp depth kind prop_normalizeTypeSound
+      testTyProp size star prop_normalizeTypeSound
   , testCaseCount "normalizationAgree" $
-      testTyProp depth kind prop_normalizeTypeSame
+      testTyProp size star prop_normalizeTypeSame
   , testCaseCount "kindInferAgree" $
-      testTyProp depth kind prop_kindInferSame
+      testTyProp size star prop_kindInferSame
   ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -40,11 +40,11 @@ testCaseCount name act = testCaseInfo name $
 
 -- NEAT settings
 
-depth :: Int
-depth = 10
+size :: Int
+size = 10
 
-kind :: Kind ()
-kind = Type ()
+star :: Kind ()
+star = Type ()
 
 -- |Check if the type/kind checker or generation threw any errors.
 isSafe :: ExceptT (ErrorP a) Quote a -> Cool
