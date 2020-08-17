@@ -16,7 +16,6 @@ module Language.PlutusCore.Constant.Apply
     , integerToInt64
     , applyTypeSchemed
     , applyStaticBuiltinName
-    , builtinNameAritiesIgnoringTypes
     , builtinNameArities
     ) where
 
@@ -256,14 +255,6 @@ applyStaticBuiltinName name args = do
                 (\b x y -> if b then x else y)
                 (runCostingFunThreeArguments $ paramIfThenElse params)
                 args
-
-builtinNameAritiesIgnoringTypes :: Array StaticBuiltinName Int
-builtinNameAritiesIgnoringTypes =
-    listArray (minBound, maxBound) $
-        [minBound..maxBound] <&> \name ->
-            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
-                \(TypedStaticBuiltinName _ sch) -> countTermArgs sch
-{-# NOINLINE builtinNameAritiesIgnoringTypes #-}  -- Just in case.
 
 builtinNameArities :: Array StaticBuiltinName Arity
 builtinNameArities =
