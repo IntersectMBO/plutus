@@ -44,7 +44,7 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines = testGroup
     "machines"
-    [ testMachine "CK" evaluateCk
+    [ testMachine "CK"  $ evaluateCk  mempty
     , testMachine "CEK" $ evaluateCek mempty defaultCostModel
     ]
 

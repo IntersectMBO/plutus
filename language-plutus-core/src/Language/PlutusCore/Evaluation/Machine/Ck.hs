@@ -132,13 +132,50 @@ substituteDb varFor new = go where
       LamAbs   () var ty body  -> LamAbs   () var ty (goUnder var body)
       Apply    () fun arg      -> Apply    () (go fun) (go arg)
       Constant () constant     -> Constant () constant
-      Builtin  () bi           -> Builtin  () bi
+      Builtin  () bn           -> Builtin  () bn
       TyInst   () fun arg      -> TyInst   () (go fun) arg
       Unwrap   () term         -> Unwrap   () (go term)
       IWrap    () pat arg term -> IWrap    () pat arg (go term)
       Error    () ty           -> Error    () ty
 
     goUnder var term = if var == varFor then term else go term
+
+-- | Substitute a 'Type' for a type variable in a 'Term' that can contain duplicate binders.
+-- Do not descend under binders that bind the same type variable as the one we're substituting for.
+substTyInTerm
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Term tyname name uni () -> Term tyname name uni ()
+substTyInTerm tn newTy = go where
+    go = \case
+      Var      () var          -> Var () var
+      TyAbs    () tyn ty body  -> TyAbs    () tyn ty (goUnder tyn body)
+      LamAbs   () var ty body  -> LamAbs   () var (substTyInTy tn newTy ty) (go body)
+      Apply    () fun arg      -> Apply    () (go fun) (go arg)
+      Constant () constant     -> Constant () constant
+      Builtin  () bn           -> Builtin  () bn
+      TyInst   () fun ty       -> TyInst   () (go fun) (substTyInTy tn newTy ty)
+      Unwrap   () term         -> Unwrap   () (go term)
+      IWrap    () pat arg term -> IWrap    () (substTyInTy tn newTy pat) (substTyInTy tn newTy arg) (go term)
+      Error    () ty           -> Error    () (substTyInTy tn newTy ty)
+
+    goUnder tn2 term = if tn2 == tn then term else go term
+
+-- | Substitute a 'Type' for a type variable in a 'Type' that can contain duplicate binders.
+-- Do not descend under binders that bind the same type variable as the one we're substituting for.
+substTyInTy
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
+substTyInTy tn newTy = go where
+    go = \case
+     TyVar     () tyname      -> if tyname == tn then newTy else TyVar () tyname
+     TyFun     () ty1 ty2     -> TyFun     () (go ty1) (go ty2)
+     TyIFix    () ty1 ty2     -> TyIFix    () (go ty1) (go ty2)
+     TyForall  () tyname k ty -> TyForall  () tyname k (goUnder tyname ty)
+     TyBuiltin () bity        -> TyBuiltin () bity
+     TyLam     () tyname k ty -> TyLam     () tyname k (goUnder tyname ty)
+     TyApp     () ty1 ty2     -> TyApp     () (go ty1) (go ty2)
+
+    goUnder tyname ty = if tyname == tn then ty else go ty
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
 lookupDynamicBuiltinName
@@ -158,7 +195,7 @@ arityOf (DynBuiltinName name) = do
     pure $ getArity sch
 -- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
 
--- FIXME: update this for the current strategy
+-- FIXME: make sure that the specification is up to date and that this matches.
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
@@ -167,6 +204,7 @@ arityOf (DynBuiltinName name) = do
 -- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
 -- > s ▷ abs α K M  ↦ s ◁ abs α K M
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
+-- > s ▷ builtin bn ↦ s ◁ builtin bn (arity bn) (arity bn) [] []
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
@@ -186,13 +224,16 @@ _     |> _err@Error{}          =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
 _     |> _var@Var{}            =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Nothing
+
+
+-- FIXME: make sure that the specification is up to date and that this matches.
 -- | The returning part of the CK machine. Rules are as follows:
 --
--- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ M
+-- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- > s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
--- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant.
--- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant.
+-- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant. ???
+-- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant. ???
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
@@ -218,7 +259,7 @@ instantiateEvaluate
     -> Type TyName uni ()
     -> CkValue uni
     -> CkM uni (Term TyName Name uni ())
-instantiateEvaluate stack _  (VTyAbs _ _ body) = stack |> body
+instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- FIXME: kind check
 instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
       []        -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
