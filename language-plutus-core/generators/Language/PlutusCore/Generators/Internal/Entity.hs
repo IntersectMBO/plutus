@@ -13,6 +13,7 @@
 
 module Language.PlutusCore.Generators.Internal.Entity
     ( PlcGenT
+    , IterApp(..)
     , IterAppValue(..)
     , runPlcT
     , withTypedBuiltinGen
@@ -39,7 +40,6 @@ import           Language.PlutusCore.Name
 import           Language.PlutusCore.Pretty                              (PrettyConst (..))
 import           Language.PlutusCore.Quote
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 import qualified Control.Monad.Morph                                     as Morph
 import           Control.Monad.Reader
@@ -65,6 +65,16 @@ newtype BuiltinGensT uni m = BuiltinGensT
 -- divide-by-zero-induced @error@. Supplied generators are of arbitrary complexity
 -- and can call the currently running generator recursively, for example.
 type PlcGenT uni m = GenT (ReaderT (BuiltinGensT uni m) m)
+
+-- | A function (called "head") applied to a list of arguments (called "spine").
+data IterApp head arg = IterApp
+    { _iterAppHead  :: head
+    , _iterAppSpine :: [arg]
+    }
+
+instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp head arg) where
+    prettyBy config (IterApp appHead appSpine) =
+        parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
 data IterAppValue uni head arg r = IterAppValue

@@ -47,7 +47,6 @@ module Language.PlutusCore
     , TyName (..)
     , Unique (..)
     , UniqueMap (..)
-    , Value
     , StaticBuiltinName (..)
     , DynamicBuiltinName (..)
     , Normalized (..)
@@ -59,10 +58,6 @@ module Language.PlutusCore
     , typeAnn
     -- * Lexer
     , AlexPosn (..)
-    -- * Views
-    , IterApp (..)
-    , TermIterApp
-    , PrimIterApp
     -- * Formatting
     , format
     , formatDoc
@@ -132,7 +127,6 @@ import           Language.PlutusCore.Rename
 import           Language.PlutusCore.Size
 import           Language.PlutusCore.TypeCheck             as TypeCheck
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
 import           Control.Monad.Except
 import qualified Data.ByteString.Lazy                      as BSL

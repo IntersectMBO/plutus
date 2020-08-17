@@ -115,7 +115,7 @@ instance Pretty NoDynamicBuiltinNamesMachineError where
     pretty (NoDynamicBuiltinNamesMachineError name) =
         "The CK machine doesn't support dynamic extensions to the set of built-in names (found \"" <> pretty name <>  "\")."
 
--- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
+-- | Substitute a 'Term' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq name

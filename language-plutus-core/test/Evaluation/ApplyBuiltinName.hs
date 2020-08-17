@@ -14,18 +14,33 @@ module Evaluation.ApplyBuiltinName
 
 import           Language.PlutusCore
 import           Language.PlutusCore.Constant
-import           Language.PlutusCore.Evaluation.Machine.Ck
+import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
+import           Language.PlutusCore.Evaluation.Machine.Exception
 import           Language.PlutusCore.Evaluation.Machine.ExMemory
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.MkPlc
 import           Language.PlutusCore.Pretty
 
-import qualified Data.ByteString.Lazy                            as BSL
-import qualified Data.ByteString.Lazy.Hash                       as Hash
+import qualified Data.ByteString.Lazy                                       as BSL
+import qualified Data.ByteString.Lazy.Hash                                  as Hash
 import           Data.Coerce
-import           Hedgehog                                        hiding (Var)
+import           Hedgehog                                                   hiding (Var)
 import           Test.Tasty
 import           Test.Tasty.Hedgehog
+
+
+-- A monad to keep `applyStaticBuiltinName` happy.
+-- We can't use CekM or CkM because their exception types don't match Term.
+
+type TestEvaluationException uni =
+    EvaluationException () () (Term TyName Name uni ())
+
+type TestM uni = Either (TestEvaluationException uni)
+
+instance SpendBudget (TestM uni) (Term TyName Name uni ()) where
+    builtinCostParams = pure defaultCostModel
+    spendBudget _key _budget = pure ()
 
 -- | This a generic property-based testing procedure for 'applyBuiltinName'.
 -- It generates Haskell values of builtin types (see 'TypedBuiltin' for the list of such types)
@@ -49,7 +64,7 @@ prop_applyStaticBuiltinName tbn op = property $ do
         getIterAppValue = runPlcT genTypedBuiltinDef $ genIterAppValue denot
     IterAppValue _ iterApp y <- forAllPrettyPlcT getIterAppValue
     let IterApp name spine = iterApp
-        app = applyStaticBuiltinName @(CkM DefaultUni) name
+        app = applyStaticBuiltinName @(TestM DefaultUni) name
 --    traverse_ (\prefix -> app prefix === Right ConstAppStuck) . init $ inits spine
 --    app spine === Right (evaluationConstAppResult $ makeKnown y)
     app spine === Right (makeKnown y)
