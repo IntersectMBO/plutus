@@ -118,7 +118,7 @@ data CekEnv uni = CekEnv
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget ExBudget
-    | CekEvaluationFailure -- ^ Error has been called.
+    | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
 -- | The CEK machine-specific 'EvaluationException'.
