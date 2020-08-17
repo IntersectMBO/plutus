@@ -85,6 +85,8 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , CostingFun(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
+    , ModelOrientation(..)
+    , ModelLinearSize(..)
     , ModelMultiSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
@@ -281,10 +283,25 @@ data ModelAddedSizes = ModelAddedSizes
 data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Double
     , modelSubtractedSizesSlope     :: Double
+    , modelSubtractedSizesMinimum   :: Double
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelSubtractedSizes", CamelToSnake)] ModelSubtractedSizes
 
+data ModelOrientation =
+    ModelOrientationX
+    | ModelOrientationY
+    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOrientation", CamelToSnake)] ModelOrientation
+
+data ModelLinearSize = ModelLinearSize
+    { modelLinearSizeIntercept   :: Double
+    , modelLinearSizeSlope       :: Double
+    , modelLinearSizeOrientation :: ModelOrientation -- ^ x or y?
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelLinearSize", CamelToSnake)] ModelLinearSize
 
 -- | s * (x * y) + I
 data ModelMultiSizes = ModelMultiSizes
@@ -335,6 +352,7 @@ data ModelTwoArguments =
     | ModelTwoArgumentsMaxSize ModelMaxSize
     | ModelTwoArgumentsExpMultiSizes ModelExpSizes
     | ModelTwoArgumentsSplitConstMulti ModelSplitConst
+    | ModelTwoArgumentsLinearSize ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
@@ -353,8 +371,8 @@ runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
-    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (fromInteger (abs (size1 - size2))) * slope + intercept
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (max minSize (fromInteger (size1 - size2))) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMultiSizes (ModelMultiSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 * size2)) * slope + intercept
@@ -370,6 +388,12 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationX)) (ExMemory size1) (ExMemory _) =
+        ceiling $ (fromInteger size1) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationY)) (ExMemory _) (ExMemory size2) =
+        ceiling $ (fromInteger size2) * slope + intercept
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost Integer

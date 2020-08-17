@@ -199,15 +199,20 @@ divideInteger cpuModelR = do
   cpuModel <- readModelSplitConst cpuModelR
   -- GMP requires division (mpn_divrem) to have x - y space.
   -- x - y
-  let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1
+  let memModel = ModelTwoArgumentsSubtractedSizes $ ModelSubtractedSizes 0 1 1
   pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
-
-quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-quotientInteger = divideInteger
-remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-remainderInteger = divideInteger
 modInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 modInteger = divideInteger
+
+quotientInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+quotientInteger cpuModelR = do
+  cpuModel <- readModelSplitConst cpuModelR
+  -- Maximum size is the divisor size.
+  -- y
+  let memModel = ModelTwoArgumentsLinearSize $ ModelLinearSize 0 1 ModelOrientationY
+  pure $ CostingFun (ModelTwoArgumentsSplitConstMulti cpuModel) memModel
+remainderInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+remainderInteger = quotientInteger
 
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
