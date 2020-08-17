@@ -84,6 +84,7 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , CostModelBase(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
+    , ModelSubtractedSizes(..)
     , ModelMultiSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
@@ -353,7 +354,7 @@ runTwoArgumentModel
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
     (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (fromInteger (size1 - size2)) * slope + intercept
+        ceiling $ (fromInteger (abs (size1 - size2))) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMultiSizes (ModelMultiSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 * size2)) * slope + intercept
