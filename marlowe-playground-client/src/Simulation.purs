@@ -314,11 +314,12 @@ handleGistAction settings LoadGist = do
           --
           -- Load the source, if available.
           currentContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (currentSimulationMarloweGistFile gist)
-          oldContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
+          let
+            oldContract = preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
           state <- noteT "State not found in gist." (simulationState gist)
           lift $ editorSetValue currentContract
           liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
-          assign _oldContract $ Just oldContract
+          assign _oldContract oldContract
           assign _marloweState state
           pure aGist
   assign _loadGistResult res
@@ -848,7 +849,7 @@ gistSection state =
 
   publishTooltip _ = text "Publish To Github Gist"
 
-  loadTooltip (Left _) = text "Failed to load gist"
+  loadTooltip (Left e) = text "Failed to load gist"
 
   loadTooltip (Right (Failure _)) = text "Failed to load gist"
 
