@@ -1,9 +1,9 @@
 \begin{code}
 module Main where
 open import Agda.Builtin.IO
+open import IO.Primitive using () renaming (return to returnIO;_>>=_ to _>>=IO_)
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
-open Agda.Builtin.IO
 open import Function
 open import Data.Sum
 open import Data.String
@@ -57,9 +57,9 @@ postulate
 -- IO Stuff
 
 postulate
-  returnIO : {A : Set} → A → IO A
-  _>>=IO_  : {A : Set}{B : Set} → IO A → (A → IO B) → IO B
   imap : ∀{A B : Set} → (A → B) → IO A → IO B
+
+{-# COMPILE GHC imap = \_ _ -> fmap #-}
 
 instance
   IOMonad : Monad IO
@@ -67,10 +67,6 @@ instance
 
 _>>_  : {A : Set}{B : Set} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
-
-{-# COMPILE GHC returnIO = \_ -> return #-}
-{-# COMPILE GHC _>>=IO_  = \_ _ -> (>>=) #-}
-{-# COMPILE GHC imap = \_ _ -> fmap #-}
 
 -- Bytestring stuff
 

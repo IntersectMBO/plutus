@@ -220,6 +220,21 @@
             "MAlonzo/Code/Function/Related"
             "MAlonzo/Code/Function/Related/TypeIsomorphisms"
             "MAlonzo/Code/Relation/Binary/Construct/Converse"
+            "MAlonzo/Code/Agda/Builtin/Coinduction"
+            "MAlonzo/Code/Agda/Builtin/Size"
+            "MAlonzo/Code/Codata/Colist"
+            "MAlonzo/Code/Codata/Conat"
+            "MAlonzo/Code/Codata/Cowriter"
+            "MAlonzo/Code/Codata/Delay"
+            "MAlonzo/Code/Codata/Musical/Colist"
+            "MAlonzo/Code/Codata/Musical/Conat"
+            "MAlonzo/Code/Codata/Stream"
+            "MAlonzo/Code/Codata/Thunk"
+            "MAlonzo/Code/Data/BoundedVec"
+            "MAlonzo/Code/Data/BoundedVec/Inefficient"
+            "MAlonzo/Code/IO/Primitive"
+            "MAlonzo/Code/Relation/Binary/Construct/FromRel"
+            "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
             ];
           mainPath = [ "Main.hs" ];
           };
@@ -411,6 +426,21 @@
             "MAlonzo/Code/Function/Related"
             "MAlonzo/Code/Function/Related/TypeIsomorphisms"
             "MAlonzo/Code/Relation/Binary/Construct/Converse"
+            "MAlonzo/Code/Agda/Builtin/Coinduction"
+            "MAlonzo/Code/Agda/Builtin/Size"
+            "MAlonzo/Code/Codata/Colist"
+            "MAlonzo/Code/Codata/Conat"
+            "MAlonzo/Code/Codata/Cowriter"
+            "MAlonzo/Code/Codata/Delay"
+            "MAlonzo/Code/Codata/Musical/Colist"
+            "MAlonzo/Code/Codata/Musical/Conat"
+            "MAlonzo/Code/Codata/Stream"
+            "MAlonzo/Code/Codata/Thunk"
+            "MAlonzo/Code/Data/BoundedVec"
+            "MAlonzo/Code/Data/BoundedVec/Inefficient"
+            "MAlonzo/Code/IO/Primitive"
+            "MAlonzo/Code/Relation/Binary/Construct/FromRel"
+            "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
             ];
           mainPath = [ "TestSimple.hs" ];
           };
@@ -602,6 +632,21 @@
             "MAlonzo/Code/Function/Related"
             "MAlonzo/Code/Function/Related/TypeIsomorphisms"
             "MAlonzo/Code/Relation/Binary/Construct/Converse"
+            "MAlonzo/Code/Agda/Builtin/Coinduction"
+            "MAlonzo/Code/Agda/Builtin/Size"
+            "MAlonzo/Code/Codata/Colist"
+            "MAlonzo/Code/Codata/Conat"
+            "MAlonzo/Code/Codata/Cowriter"
+            "MAlonzo/Code/Codata/Delay"
+            "MAlonzo/Code/Codata/Musical/Colist"
+            "MAlonzo/Code/Codata/Musical/Conat"
+            "MAlonzo/Code/Codata/Stream"
+            "MAlonzo/Code/Codata/Thunk"
+            "MAlonzo/Code/Data/BoundedVec"
+            "MAlonzo/Code/Data/BoundedVec/Inefficient"
+            "MAlonzo/Code/IO/Primitive"
+            "MAlonzo/Code/Relation/Binary/Construct/FromRel"
+            "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
             ];
           };
         "test3-plc-agda" = {
@@ -627,6 +672,9 @@
             ];
           buildable = true;
           modules = [
+            "Opts"
+            "Raw"
+            "Scoped"
             "MAlonzo/Code/Agda/Builtin/Bool"
             "MAlonzo/Code/Agda/Builtin/Char"
             "MAlonzo/Code/Agda/Builtin/Equality"
@@ -779,9 +827,21 @@
             "MAlonzo/Code/Untyped/RenamingSubstitution"
             "MAlonzo/Code/Utils"
             "MAlonzo/RTE"
-            "Opts"
-            "Raw"
-            "Scoped"
+            "MAlonzo/Code/Agda/Builtin/Coinduction"
+            "MAlonzo/Code/Agda/Builtin/Size"
+            "MAlonzo/Code/Codata/Colist"
+            "MAlonzo/Code/Codata/Conat"
+            "MAlonzo/Code/Codata/Cowriter"
+            "MAlonzo/Code/Codata/Delay"
+            "MAlonzo/Code/Codata/Musical/Colist"
+            "MAlonzo/Code/Codata/Musical/Conat"
+            "MAlonzo/Code/Codata/Stream"
+            "MAlonzo/Code/Codata/Thunk"
+            "MAlonzo/Code/Data/BoundedVec"
+            "MAlonzo/Code/Data/BoundedVec/Inefficient"
+            "MAlonzo/Code/IO/Primitive"
+            "MAlonzo/Code/Relation/Binary/Construct/FromRel"
+            "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
             ];
           mainPath = [ "TestNEAT.hs" ];
           };
