@@ -1,27 +1,21 @@
 module Marlowe.ActusBlockly where
 
-import Language.Marlowe.ACTUS.Definitions.ContractTerms
+import Language.Marlowe.ACTUS.Definitions.ContractTerms (Assertion(..), AssertionContext(..), Assertions(..), BDC(..), ContractRole(..), ContractStatus(..), ContractTerms(..), ContractType(..), Cycle(..), DCC(..), EOMC(..), FEB(..), PREF(..), PYTP(..), Period(..), SCEF(..), ScheduleConfig(..), Stub(..))
 import Prelude
-import Affjax.RequestBody (RequestBody(..))
-import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, getBlockById, initializeWorkspace, name, render, style, x, xml, y)
-import Blockly.Generator (Connection, Generator, Input, NewBlockFunction, clearWorkspace, connect, connectToOutput, connectToPrevious, fieldName, fieldRow, getBlockInputConnectedTo, getFieldValue, getInputWithName, getType, inputList, inputName, inputType, insertGeneratorFunction, mkGenerator, nextBlock, nextConnection, previousConnection, setFieldText, statementToCode)
-import Blockly.Types (Block, BlocklyState, Workspace)
+import Blockly (AlignDirection(..), Arg(..), BlockDefinition(..), block, blockType, category, colour, defaultBlockDefinition, name, style, x, xml, y)
+import Blockly.Generator (Generator, getFieldValue, insertGeneratorFunction, mkGenerator, statementToCode)
+import Blockly.Types (Block, BlocklyState)
 import Control.Alternative ((<|>))
-import Control.Category (identity)
-import Control.Monad.Except (mapExcept, runExcept)
+import Control.Monad.Except (runExcept)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Internal (ST, STRef)
 import Control.Monad.ST.Ref as STRef
-import Data.Array (filter, head, uncons, (:))
-import Data.Array as Array
 import Data.Bifunctor (lmap, rmap)
-import Data.BigInteger (BigInteger)
-import Data.Date (exactDate, month)
-import Data.Either (Either, note, hush)
+import Data.Date (exactDate)
+import Data.Either (Either)
 import Data.Either as Either
 import Data.Enum (class BoundedEnum, class Enum, upFromIncluding, toEnum)
 import Data.FloatParser (parseFloat)
-import Data.Function (const)
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Bounded (genericBottom, genericTop)
 import Data.Generic.Rep.Enum (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
@@ -29,29 +23,19 @@ import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Int (fromString)
-import Data.Lens (to, view, (^.))
-import Data.List (reverse, take)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (class Newtype, unwrap)
-import Data.Ord (min)
-import Data.Traversable (sequence, traverse, traverse_)
-import Data.Tuple (Tuple(..))
-import Foreign (F, readString, Foreign)
-import Foreign.Class (class Encode, class Decode, encode, decode)
+import Data.Traversable (sequence, traverse_)
+import Foreign (F)
+import Foreign.Class (class Decode, class Encode, decode)
 import Foreign.Generic (genericEncode, genericDecode, encodeJSON)
 import Foreign.Generic.Class (Options, defaultOptions, aesonSumEncoding)
 import Foreign.JSON (parseJSON)
-import Foreign.NullOrUndefined (undefined)
 import Halogen.HTML (HTML)
 import Halogen.HTML.Properties (id_)
-import Language.Marlowe.ACTUS.Definitions.ContractTerms (ContractTerms(..), Cycle(..), EOMC, ScheduleConfig(..))
-import Marlowe.Holes (AccountId(..), Action(..), Bound(..), Case(..), ChoiceId(..), Contract(..), Observation(..), Party(..), Payee(..), Term(..), TermWrapper(..), Token(..), Value(..), ValueId(..), mkDefaultTerm, mkDefaultTermWrapper)
-import Marlowe.Parser as Parser
-import Marlowe.Semantics (Rational(..))
 import Record (merge)
 import Text.Parsing.StringParser (Parser)
 import Text.Parsing.StringParser.Basic (parens, runParser')
-import Type.Proxy (Proxy(..))
 
 rootBlockName :: String
 rootBlockName = "root_contract"
