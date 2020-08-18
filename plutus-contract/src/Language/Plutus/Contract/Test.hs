@@ -94,6 +94,8 @@ import           Ledger.Value                                    (Value)
 import           Wallet.Emulator                                 (EmulatorEvent)
 import qualified Wallet.Emulator                                 as EM
 import qualified Wallet.Emulator.Chain                           as EM
+import           Wallet.Emulator.MultiAgent                      (EmulatorTimeEvent (..))
+import qualified Wallet.Emulator.MultiAgent                      as EM
 import qualified Wallet.Emulator.NodeClient                      as EM
 
 import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
@@ -615,5 +617,5 @@ assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState 
 failedTransactions :: [LogMessage EmulatorEvent] -> [(TxId, ValidationError)]
 failedTransactions = mapMaybe $
     \case
-        LogMessage{_logMessageContent=EM.ChainEvent (EM.TxnValidationFail txid err)} -> Just (txid, err)
+        LogMessage{_logMessageContent=EmulatorTimeEvent{_eteEvent=EM.ChainEvent (EM.TxnValidationFail txid err)}} -> Just (txid, err)
         _ -> Nothing
