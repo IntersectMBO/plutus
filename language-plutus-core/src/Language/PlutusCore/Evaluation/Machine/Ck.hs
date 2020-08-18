@@ -45,7 +45,7 @@ data CkValue uni =
   | VBuiltin
       BuiltinName
       Arity                -- Sorts of arguments to be provided (both types and terms): *don't change this*.
-      Arity                -- A copy of the arity used for checking applications/instantiatons: see [Note: Arities in VBuiltin]
+      Arity                -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
       [Type TyName uni ()] -- The types the builtin is to be instantiated at.
                            -- We need these to construct a term if the machine is returning a stuck partial application.
       [CkValue uni]        -- Arguments we've computed so far.

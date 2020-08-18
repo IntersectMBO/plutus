@@ -60,7 +60,7 @@ for testing.
 -}
 
 
-{- [Note: Encoding/decoding constructor tags]
+{- Note [Encoding/decoding constructor tags]
 Use `encodeConstructorTag` and `decodeConstructorTag` to encode/decode
 tags representing constructors.  These are just aliases for
 `encodeWord` and `decodeWord`. Note that `encodeWord` is careful about
@@ -70,7 +70,7 @@ tags with predefined meanings which we shouldn't interfere with.
 See http://hackage.haskell.org/package/serialise.
 -}
 
-{- [Note: Don't use catamorphims!]
+{- Note [Don't use catamorphims!]
 We use Codec.Serialise for encoding.  This uses an itermediate type
 `Encoding` to encode things. `Encoding` is a monoid, which allows
 subobjects to be encoded and then efficiently concatenated when a

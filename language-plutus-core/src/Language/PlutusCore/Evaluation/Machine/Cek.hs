@@ -76,15 +76,17 @@ type TermWithMem uni = WithMemory Term uni
 type TypeWithMem uni = Type TyName uni ExMemory
 type KindWithMem = Kind ExMemory
 
-{- [Note: Arities in VBuiltin] The VBuiltin value below contains two copies of the
-   arity (list of TypeArg/TermArg pairs) for the relevant builtin.  The second
-   of these is consumed as the builtin is instantiated and applied to arguments,
-   to check that type and term arguments are interleaved correctly.  The first
-   copy of the arity is left unaltered and only used by dischargeCekValue if we
-   have to convert the frame back into a term (see mkBuiltinApplication).  An
-   alternative would be to look up the full arity in mkBuiltinApplication, but
-   that would require a lot of things to be monadic (including the PrettyBy
-   instance for CekValue, which is a problem.)
+{- Note [Arities in VBuiltin]
+The VBuiltin value below contains two copies of the arity (list of
+TypeArg/TermArg pairs) for the relevant builtin.  The second of these
+is consumed as the builtin is instantiated and applied to arguments,
+to check that type and term arguments are interleaved correctly.  The
+first copy of the arity is left unaltered and only used by
+dischargeCekValue if we have to convert the frame back into a term
+(see mkBuiltinApplication).  An alternative would be to look up the
+full arity in mkBuiltinApplication, but that would require a lot of
+things to be monadic (including the PrettyBy instance for CekValue,
+which is a problem.)
 -}
 
 -- 'Values' for the modified CEK machine.
@@ -99,7 +101,7 @@ data CekValue uni =
       ExMemory
       BuiltinName
       Arity             -- Sorts of arguments to be provided (both types and terms): *don't change this*.
-      Arity             -- A copy of the arity used for checking applications/instantiatons: see [Note: Arities in VBuiltin]
+      Arity             -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
       [TypeWithMem uni] -- The types the builtin is to be instantiated at.
                         -- We need these to construct a term if the machine is returning a stuck partial application.
       [CekValue uni]    -- Arguments we've computed so far.
@@ -133,14 +135,15 @@ instance Pretty CekUserError where
 -- get it back in case of error.
 type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
 
-{- | [Note: errors and CekValues] Most errors take an optional argument that can
-   be used to report the term causing the error. Our builtin applications take
-   CekValues as arguments, and this constrains the `term` type in the constant
-   application machinery to be equal to `CekValue`.  This (I think) means that
-   our errors can only involve CekValues and not Terms, so in some cases we
-   can't provide any context when an error occurs (eg, if we try to look up a
-   free variable in an environment: there's no CekValue for Var, so we can't
-   report which variable caused the error.
+{- | Note [Errors and CekValues]
+Most errors take an optional argument that can be used to report the
+term causing the error. Our builtin applications take CekValues as
+arguments, and this constrains the `term` type in the constant
+application machinery to be equal to `CekValue`.  This (I think) means
+that our errors can only involve CekValues and not Terms, so in some
+cases we can't provide any context when an error occurs (eg, if we try
+to look up a free variable in an environment: there's no CekValue for
+Var, so we can't report which variable caused the error.
 -}
 
 arityOf :: BuiltinName -> CekM uni Arity
@@ -165,8 +168,8 @@ arityOf (DynBuiltinName name) = do
    is if (a) the machine is returning a partially applied builtin, or (b) a
    wrongly interleaved builtin application is being reported in an error.  Note
    that we don't call this function if a builtin fails for some reason like
-   division by zero; the term is discarded in that case anyway (see [Note:
-   Ignoring context in UserEvaluationError] in Exception.hs)
+   division by zero; the term is discarded in that case anyway (see
+   Note [Ignoring context in UserEvaluationError] in Exception.hs)
 -}
 mkBuiltinApplication :: ExMemory -> BuiltinName -> Arity -> [TypeWithMem uni] -> [TermWithMem uni] -> TermWithMem uni
 mkBuiltinApplication ex bn arity0 tys0 args0 =
@@ -381,16 +384,19 @@ returnCek (FrameUnwrap : ctx) val =
       _              ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just val
 
-{- [Note: accumulating arguments].  The VBuiltin value contains lists of type and term
- arguments which grow as new arguments are encountered.  In the code below We just add
- new entries by appending to the end of the list: l -> l++[x].  This doesn't look
- terrbily good, but we don't expect the lists to ever contain more than three or four
- elements, so the cost is unlikely to be high.  We could accumulate lists in the normal
- way and reverse them when required, but this is error-prone and reversal adds an extra
- cost anyway.  We could also use something like Data.Sequence, but again we incur an
- extra cost because we have to convert to a normal list when passing the arguments to
- the constant application machinery.  If we really care we might want to convert the CAM
- to use sequences instead of lists.
+{- Note [Accumulating arguments].
+The VBuiltin value contains lists of type and term arguments which
+grow as new arguments are encountered.  In the code below We just add
+new entries by appending to the end of the list: l -> l++[x].  This
+doesn't look terrbily good, but we don't expect the lists to ever
+contain more than three or four elements, so the cost is unlikely to
+be high.  We could accumulate lists in the normal way and reverse them
+when required, but this is error-prone and reversal adds an extra cost
+anyway.  We could also use something like Data.Sequence, but again we
+incur an extra cost because we have to convert to a normal list when
+passing the arguments to the constant application machinery.  If we
+really care we might want to convert the CAM to use sequences instead
+of lists.
 -}
 
 -- | Instantiate a term with a type and proceed.
@@ -458,7 +464,7 @@ applyBuiltinName ctx bn args = do
         throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Nothing
         {- NB: we're not reporting any context here.  When UserEvaluationError is
            invloved, Exception.extractEvaluationResult just throws the cause
-           away (see [Note: Ignoring context in UserEvaluationError]), so it
+           away (see Note [Ignoring context in UserEvaluationError]), so it
            doesn't matter if we don't have any context. We could provide
            applyBuiltinName with sufficient information to reconstruct the
            application, but that would add a cost without adding any benefit. -}
