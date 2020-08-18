@@ -87,6 +87,7 @@ data GenError
 
 data ErrorP ann
  = TypeErrorP (TypeError DefaultUni ann)
+ | AgdaErrorP ()
  | GenErrorP GenError
  | FVErrorP FreeVariableError
 

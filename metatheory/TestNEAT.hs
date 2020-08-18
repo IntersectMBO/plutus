@@ -54,29 +54,29 @@ prop_checkKindSound :: TyProp
 prop_checkKindSound k _ tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  withExceptT TypeErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyDB) (deBruijnifyK (convK k)) of
+  withExceptT AgdaErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyDB) (deBruijnifyK (convK k)) of
     Just _  -> return ()
-    Nothing -> throwError undefined -- TODO
+    Nothing -> throwError ()
 
 prop_normalizePreservesKind :: TyProp
 prop_normalizePreservesKind k _ tyQ = isSafe $ do
   ty  <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+  tyN <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing  -> throwError undefined -- TODO
-  withExceptT TypeErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyN) (deBruijnifyK (convK k)) of
+    Nothing  -> throwError ()
+  withExceptT AgdaErrorP $ case checkKindAgda (AlexPn 0 0 0 <$ tyN) (deBruijnifyK (convK k)) of
     Just _  -> return ()
-    Nothing -> throwError undefined -- TODO
+    Nothing -> throwError ()
 
 -- the agda implementation throws names away, so I guess we need to compare deBruijn terms
 prop_normalizeTypeSound :: TyProp
 prop_normalizeTypeSound k tyG tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+  tyN1 <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing  -> throwError undefined -- TODO
+    Nothing  -> throwError ()
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
 
   ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
@@ -86,9 +86,9 @@ prop_normalizeTypeSame :: TyProp
 prop_normalizeTypeSame k tyG tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  tyN1 <- withExceptT TypeErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
+  tyN1 <- withExceptT AgdaErrorP $ case normalizeTypeAgda (AlexPn 0 0 0 <$ tyDB) of
     Just tyN -> return tyN
-    Nothing  -> throwError undefined -- TODO
+    Nothing  -> throwError ()
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy tyN1
 
   ty2 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
@@ -98,8 +98,8 @@ prop_kindInferSame :: TyProp
 prop_kindInferSame k tyG tyQ = isSafe $ do
   ty <- withExceptT GenErrorP tyQ
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
-  k' <- withExceptT TypeErrorP $ case inferKindAgda (AlexPn 0 0 0 <$ tyDB) of
+  k' <- withExceptT AgdaErrorP $ case inferKindAgda (AlexPn 0 0 0 <$ tyDB) of
     Just k' -> return k'
-    Nothing -> throwError undefined -- TODO
+    Nothing -> throwError ()
   k'' <- withExceptT TypeErrorP $ inferKind defConfig (True <$ ty)
   return (unconvK (unDeBruijnifyK k') == k'')

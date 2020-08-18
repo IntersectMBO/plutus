@@ -68,8 +68,8 @@ instance
 _>>_  : {A : Set}{B : Set} → IO A → IO B → IO B
 x >> y = x >>= λ _ → y
 
-{-# COMPILE GHC returnIO = \_ _ -> return    #-}
-{-# COMPILE GHC _>>=IO_  = \_ _ _ _ -> (>>=) #-}
+{-# COMPILE GHC returnIO = \_ -> return #-}
+{-# COMPILE GHC _>>=IO_  = \_ _ -> (>>=) #-}
 {-# COMPILE GHC imap = \_ _ -> fmap #-}
 
 -- Bytestring stuff
