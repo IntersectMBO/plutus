@@ -295,7 +295,7 @@ handleMultiAgent = interpret $ \case
             timed :: forall e. Prism' (EmulatorTimeEvent e) e
             timed = emulatorTimeEvent emulatorTime
             p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
-            p1 = below (logMessage Info . timed. walletEvent wallet)
+            p1 = below (logMessage Info . timed . walletEvent wallet)
             p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . timed . walletClientEvent wallet)
             p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]

@@ -115,6 +115,7 @@ myTypes =
     , (genericShow <*> mkSumType) (Proxy @Evaluation)
     , (genericShow <*> mkSumType) (Proxy @EvaluationResult)
     , (genericShow <*> mkSumType) (Proxy @EM.EmulatorEvent)
+    , (genericShow <*> mkSumType) (Proxy @EM.EmulatorTimeEvent)
     , (genericShow <*> mkSumType) (Proxy @EM.ChainEvent)
     , (genericShow <*> mkSumType) (Proxy @Log.LogLevel)
     , (genericShow <*> mkSumType) (Proxy @(Log.LogMessage A))
