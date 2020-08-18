@@ -83,7 +83,7 @@ emulatorTimeEvent :: Slot -> Prism' (EmulatorTimeEvent e) e
 emulatorTimeEvent t = prism' (EmulatorTimeEvent t) (\case { EmulatorTimeEvent s e | s == t -> Just e; _ -> Nothing})
 
 -- | Events produced by the blockchain emulator.
-data EmulatorEvent =
+data EmulatorEvent' =
     ChainEvent Chain.ChainEvent
     | ClientEvent Wallet.Wallet NC.NodeClientEvent
     | WalletEvent Wallet.Wallet Wallet.WalletEvent
@@ -91,23 +91,25 @@ data EmulatorEvent =
     deriving stock (Eq, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
 
-instance Pretty EmulatorEvent where
+instance Pretty EmulatorEvent' where
     pretty = \case
         ClientEvent w e -> pretty w <> colon <+> pretty e
         ChainEvent e -> pretty e
         WalletEvent w e -> pretty w <> colon <+> pretty e
         ChainIndexEvent w e -> pretty w <> colon <+> pretty e
 
-chainEvent :: Prism' EmulatorEvent Chain.ChainEvent
+type EmulatorEvent = EmulatorTimeEvent EmulatorEvent'
+
+chainEvent :: Prism' EmulatorEvent' Chain.ChainEvent
 chainEvent = prism' ChainEvent (\case { ChainEvent c -> Just c; _ -> Nothing })
 
-walletClientEvent :: Wallet.Wallet -> Prism' EmulatorEvent NC.NodeClientEvent
+walletClientEvent :: Wallet.Wallet -> Prism' EmulatorEvent' NC.NodeClientEvent
 walletClientEvent w = prism' (ClientEvent w) (\case { ClientEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent Wallet.WalletEvent
+walletEvent :: Wallet.Wallet -> Prism' EmulatorEvent' Wallet.WalletEvent
 walletEvent w = prism' (WalletEvent w) (\case { WalletEvent w' c | w == w' -> Just c; _ -> Nothing })
 
-chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent ChainIndex.ChainIndexEvent
+chainIndexEvent :: Wallet.Wallet -> Prism' EmulatorEvent' ChainIndex.ChainIndexEvent
 chainIndexEvent w = prism' (ChainIndexEvent w) (\case { ChainIndexEvent w' c | w == w' -> Just c; _ -> Nothing })
 
 type EmulatedWalletEffects =
@@ -206,7 +208,7 @@ data EmulatorState = EmulatorState {
     _walletClientStates         :: Map Wallet.Wallet NC.NodeClientState, -- ^ The state of each wallet's node client.
     _walletChainIndexStates     :: Map Wallet.Wallet ChainIndex.ChainIndexState, -- ^ The state of each wallet's chain index
     _walletSigningProcessStates :: Map Wallet.Wallet SP.SigningProcess, -- ^ The wallet's signing process
-    _emulatorLog                :: [LogMessage (EmulatorTimeEvent EmulatorEvent)] -- ^ The emulator log messages, with the newest last.
+    _emulatorLog                :: [LogMessage EmulatorEvent] -- ^ The emulator log messages, with the newest last.
     } deriving (Show)
 
 makeLenses ''EmulatorState
@@ -241,7 +243,7 @@ fundsDistribution st =
     in Map.fromList walletFunds
 
 -- | Get the emulator log.
-emLog :: EmulatorState -> [LogMessage (EmulatorTimeEvent EmulatorEvent)]
+emLog :: EmulatorState -> [LogMessage EmulatorEvent]
 emLog = view emulatorLog
 
 emptyEmulatorState :: EmulatorState
@@ -292,17 +294,17 @@ handleMultiAgent = interpret $ \case
         let
             timed :: forall e. Prism' (EmulatorTimeEvent e) e
             timed = emulatorTimeEvent emulatorTime
-            p1 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [Wallet.WalletEvent]
+            p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
             p1 = below (logMessage Info . timed. walletEvent wallet)
-            p2 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [NC.NodeClientEvent]
+            p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [ChainIndex.ChainIndexEvent]
+            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (logMessage Info . timed. chainIndexEvent wallet)
-            p4 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] (LogMessage T.Text)
+            p4 :: AReview [LogMessage EmulatorEvent] (LogMessage T.Text)
             p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
-            p5 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] (LogMessage RequestHandlerLogMsg)
+            p5 :: AReview [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
             p5 = _singleton . below (timed . walletEvent wallet . Wallet._RequestHandlerLog)
-            p6 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] (LogMessage TxBalanceMsg)
+            p6 :: AReview [LogMessage EmulatorEvent] (LogMessage TxBalanceMsg)
             p6 = _singleton . below (timed . walletEvent wallet . Wallet._TxBalanceLog)
         act
             & raiseEnd9
@@ -329,13 +331,13 @@ handleMultiAgent = interpret $ \case
         let
             timed :: forall e. Prism' (EmulatorTimeEvent e) e
             timed = emulatorTimeEvent emulatorTime
-            p1 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [Wallet.WalletEvent]
+            p1 :: AReview [LogMessage EmulatorEvent] [Wallet.WalletEvent]
             p1 = below (logMessage Info . timed . walletEvent wallet)
-            p2 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [NC.NodeClientEvent]
+            p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] [ChainIndex.ChainIndexEvent]
+            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
             p3 = below (logMessage Info . timed . chainIndexEvent wallet)
-            p4 :: AReview [LogMessage (EmulatorTimeEvent EmulatorEvent)] (Log.LogMessage T.Text)
+            p4 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
             p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
         act
             & raiseEnd5

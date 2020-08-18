@@ -25,7 +25,9 @@ module Wallet.Emulator.Types(
     AssertionError(..),
     AsAssertionError(..),
     ChainClientNotification(..),
-    EmulatorEvent(..),
+    EmulatorEvent,
+    EmulatorEvent',
+    EmulatorTimeEvent(..),
     EmulatorAction(..),
     -- ** Wallet state
     WalletState(..),
@@ -135,7 +137,7 @@ processEmulated :: forall m e a . (MonadEmulator e m) => Eff.Eff EmulatorEffs a 
 processEmulated act = do
     emulatorTime <- use (chainState . currentSlot)
     let
-        p1 :: Prism' [LogMessage (EmulatorTimeEvent EmulatorEvent)] [ChainEvent]
+        p1 :: Prism' [LogMessage EmulatorEvent] [ChainEvent]
         p1 =  below (logMessage Info . emulatorTimeEvent emulatorTime . chainEvent)
         p2 :: Prism' e AssertionError
         p2 = _AssertionError
