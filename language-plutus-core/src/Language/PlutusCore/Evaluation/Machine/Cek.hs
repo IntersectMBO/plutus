@@ -58,7 +58,6 @@ import           Language.PlutusCore.Universe
 
 import           Control.Lens.Operators
 import           Control.Lens.Setter
-import           Control.Lens.TH                                    (makeLenses)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
@@ -111,9 +110,9 @@ type CekValEnv uni = UniqueMap TermUnique (CekValue uni)
 
 -- | The environment the CEK machine runs in.
 data CekEnv uni = CekEnv
-    { cekEnvMeans              :: DynamicBuiltinNameMeanings (CekValue uni)
-    , _cekEnvBudgetMode        :: ExBudgetMode
-    , _cekEnvBuiltinCostParams :: CostModel
+    { cekEnvMeans             :: DynamicBuiltinNameMeanings (CekValue uni)
+    , cekEnvBudgetMode        :: ExBudgetMode
+    , cekEnvBuiltinCostParams :: CostModel
     }
 
 data CekUserError
@@ -143,8 +142,6 @@ type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (Stat
    free variable in an environment: there's no CekValue for Var, so we can't
    report which variable caused the error.
 -}
-
-makeLenses ''CekEnv
 
 arityOf :: BuiltinName -> CekM uni Arity
 arityOf (StaticBuiltinName name) =
@@ -229,12 +226,12 @@ instance ToExMemory (CekValue uni) where
         VBuiltin ex _ _ _ _ _ _ -> ex
 
 instance SpendBudget (CekM uni) (CekValue uni) where
-    builtinCostParams = view cekEnvBuiltinCostParams
+    builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
                 (<> (ExTally (singleton key budget)))
         newBudget <- exBudgetStateBudget <%= (<> budget)
-        mode <- view cekEnvBudgetMode
+        mode <- asks cekEnvBudgetMode
         case mode of
             Counting -> pure ()
             Restricting resb ->
