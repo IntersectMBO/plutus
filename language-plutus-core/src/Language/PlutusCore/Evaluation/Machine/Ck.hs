@@ -81,7 +81,7 @@ data CkUserError =
     CkEvaluationFailure -- Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
--- | The CEK machine-specific 'EvaluationException'.
+-- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni =
     EvaluationException UnknownDynamicBuiltinNameError CkUserError (CkValue uni)
 
