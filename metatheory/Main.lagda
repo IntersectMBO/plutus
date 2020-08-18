@@ -65,9 +65,6 @@ instance
   IOMonad : Monad IO
   IOMonad = record { return = returnIO ; _>>=_ = _>>=IO_ }
 
-_>>_  : {A : Set}{B : Set} → IO A → IO B → IO B
-x >> y = x >>= λ _ → y
-
 -- Bytestring stuff
 
 postulate

@@ -73,6 +73,9 @@ record Monad (F : Set → Set) : Set₁ where
   field
     return : ∀{A} → A → F A
     _>>=_   : ∀{A B} → F A → (A → F B) → F B
+    
+  _>>_ : ∀{A B} → F A → F B → F B
+  fa >> fb = fa >>= λ _ → fb
 
 open Monad {{...}} public
 

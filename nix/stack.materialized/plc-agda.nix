@@ -235,6 +235,9 @@
             "MAlonzo/Code/IO/Primitive"
             "MAlonzo/Code/Relation/Binary/Construct/FromRel"
             "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Vec/Bounded/Base"
             ];
           mainPath = [ "Main.hs" ];
           };
@@ -441,6 +444,9 @@
             "MAlonzo/Code/IO/Primitive"
             "MAlonzo/Code/Relation/Binary/Construct/FromRel"
             "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Vec/Bounded/Base"
             ];
           mainPath = [ "TestSimple.hs" ];
           };
@@ -647,6 +653,9 @@
             "MAlonzo/Code/IO/Primitive"
             "MAlonzo/Code/Relation/Binary/Construct/FromRel"
             "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Vec/Bounded/Base"
             ];
           };
         "test3-plc-agda" = {
@@ -842,6 +851,9 @@
             "MAlonzo/Code/IO/Primitive"
             "MAlonzo/Code/Relation/Binary/Construct/FromRel"
             "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
+            "MAlonzo/Code/Data/List/Relation/Unary/All/Properties"
+            "MAlonzo/Code/Data/Maybe/Relation/Unary/All"
+            "MAlonzo/Code/Data/Vec/Bounded/Base"
             ];
           mainPath = [ "TestNEAT.hs" ];
           };
