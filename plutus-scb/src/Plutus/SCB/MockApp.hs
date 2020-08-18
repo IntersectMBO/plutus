@@ -71,8 +71,7 @@ import           Wallet.Emulator.Chain                 (ChainControlEffect, Chai
                                                         handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex            (ChainIndexEvent)
-import           Wallet.Emulator.MultiAgent            (emulatorTimeEvent, _singleton)
-import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent)
+import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, emulatorTimeEvent, _singleton)
 import           Wallet.Emulator.Wallet                (Wallet (..))
 
 data TestState =
