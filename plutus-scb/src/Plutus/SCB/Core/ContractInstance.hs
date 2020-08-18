@@ -415,6 +415,7 @@ processNextTxAtRequests ::
     ( Member (LogObserve (LogMessage Text.Text)) effs
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
+    , Member (LogMsg RequestHandlerLogMsg) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 processNextTxAtRequests =
