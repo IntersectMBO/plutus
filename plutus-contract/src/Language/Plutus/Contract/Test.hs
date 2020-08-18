@@ -95,6 +95,7 @@ import           Wallet.Emulator                                 (EmulatorEvent)
 import qualified Wallet.Emulator                                 as EM
 import qualified Wallet.Emulator.Chain                           as EM
 import           Wallet.Emulator.MultiAgent                      (EmulatorTimeEvent (..))
+import qualified Wallet.Emulator.MultiAgent                      as EM
 import qualified Wallet.Emulator.NodeClient                      as EM
 
 import           Language.Plutus.Contract.Schema                 (Event (..), Handlers (..), Input, Output)
@@ -391,7 +392,7 @@ waitingForSlot w sl = PredF $ \(_, r) ->
 emulatorLog
     :: forall s e a.
        ()
-    => ([LogMessage (EmulatorTimeEvent EmulatorEvent)] -> Bool)
+    => ([LogMessage EmulatorEvent] -> Bool)
     -> String
     -> TracePredicate s e a
 emulatorLog f nm = PredF $ \(_, r) ->
@@ -613,7 +614,7 @@ assertNoFailedTransactions = PredF $ \(_, ContractTraceResult{_ctrEmulatorState 
             tell $ vsep ("Transactions failed to validate:" : fmap pretty xs)
             pure False
 
-failedTransactions :: [LogMessage (EmulatorTimeEvent EmulatorEvent)] -> [(TxId, ValidationError)]
+failedTransactions :: [LogMessage EmulatorEvent] -> [(TxId, ValidationError)]
 failedTransactions = mapMaybe $
     \case
         LogMessage{_logMessageContent=EmulatorTimeEvent{_eteEvent=EM.ChainEvent (EM.TxnValidationFail txid err)}} -> Just (txid, err)
