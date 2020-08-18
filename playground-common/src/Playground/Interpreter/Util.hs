@@ -53,7 +53,6 @@ import           Playground.Types                                (ContractCall (
 import           Wallet.Emulator                                 (MonadEmulator)
 import           Wallet.Emulator.Chain                           (ChainState (ChainState), _chainNewestFirst, _index,
                                                                   _txPool)
-import           Wallet.Emulator.MultiAgent                      (eteEvent)
 import           Wallet.Emulator.NodeClient                      (NodeClientState, clientIndex)
 import           Wallet.Emulator.Types                           (EmulatorEvent, EmulatorState (EmulatorState, _chainState, _emulatorLog, _walletClientStates),
                                                                   Wallet)
@@ -92,7 +91,7 @@ analyzeEmulatorState traceState EmulatorState { _chainState = ChainState { _chai
     traceResult :: TraceResult
     traceResult =
         ( _chainNewestFirst
-        , fmap (view (logMessageContent . eteEvent)) _emulatorLog
+        , fmap (view logMessageContent) _emulatorLog
         , _emulatorTrace
         , fundsDistribution
         , Map.foldMapWithKey toKeyWalletPair _walletClientStates)
