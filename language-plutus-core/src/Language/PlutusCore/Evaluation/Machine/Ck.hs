@@ -66,9 +66,9 @@ mkBuiltinApplication () bn arity0 tys0 args0 =
 ckValueToTerm :: () -> CkValue uni -> Term TyName Name uni ()
 ckValueToTerm () = \case
     VCon t                           -> t
-    VTyAbs   tn k body               -> TyAbs ()  tn k body
-    VLamAbs  name ty body            -> LamAbs () name ty body
-    VIWrap   ty1 ty2 val             -> IWrap ()  ty1 ty2 $ ckValueToTerm () val
+    VTyAbs  tn k body                -> TyAbs  () tn k body
+    VLamAbs name ty body             -> LamAbs () name ty body
+    VIWrap  ty1 ty2 val              -> IWrap  () ty1 ty2 $ ckValueToTerm () val
     VBuiltin bn arity0 _ tyargs args -> mkBuiltinApplication () bn arity0 tyargs (fmap (ckValueToTerm ()) args)
     {- We only discharge a value when (a) it's being returned by the machine,
        or (b) it's needed for an error message.  When we're discharging VBuiltin
@@ -230,8 +230,8 @@ _     |> _var@Var{}            =
 -- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- > s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
--- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant. ???
--- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant. ???
+-- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially instantiated built-in application.
+-- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated built-in application.
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
