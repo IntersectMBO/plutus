@@ -575,7 +575,6 @@ instance hasBlockDefinitionValue :: HasBlockDefinition ActusValueType ActusValue
     zeroInterestString <- getFieldValue block "rate"
     zeroInterest <- fromMaybe (Either.Left "can't parse numeric") $ Either.Right <$> parseFloat zeroInterestString
     pure $ ActusAssertionNpv npv zeroInterest
-  blockDefinition _ g block = Either.Right NoActusValue
 
 instance hasBlockDefinitionPeriod :: HasBlockDefinition ActusPeriodType ActusPeriodType where
   blockDefinition x _ _ = pure x
