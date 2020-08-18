@@ -2,8 +2,10 @@ module WebSocket.Support
   ( WebSocketManager
   , mkWebSocketManager
   , runWebSocketManager
+  , managerWriteOutbound
   , URI(..)
   , FromSocket(..)
+  , ToSocket(..)
   ) where
 
 import Prelude
@@ -137,12 +139,19 @@ bracket errorHandler successHandler resourceVar =
 -- |     halogenDriver <- runUI initialMainFrame Init body
 -- |     wsManager :: WebSocketManager MessageFromServer MessageToServer <-
 -- |       mkWebSocketManager
--- |     forkAff
+-- |     void
+-- |       $ forkAff
 -- |       $ WS.runWebSocketManager
 -- |           (WS.URI "/ws")
 -- |           (\msg -> void $ halogenDriver.query
 -- |                         $ ReceiveWebSocketMessage msg unit)
 -- |           wsManager
+-- |     driver.subscribe
+-- |       $ consumer
+-- |       $ case _ of
+-- |           (WebSocketMessage msg) -> do
+-- |             WS.managerWriteOutbound wsManager $ WS.SendMessage msg
+-- |             pure Nothing
 -- | ```
 runWebSocketManager ::
   forall o i.
