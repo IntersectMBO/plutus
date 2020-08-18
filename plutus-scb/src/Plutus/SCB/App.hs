@@ -18,6 +18,8 @@ module Plutus.SCB.App where
 
 import           Cardano.ChainIndex.Client        (handleChainIndexClient)
 import qualified Cardano.ChainIndex.Types         as ChainIndex
+import           Cardano.Metadata.Client          (handleMetadataClient)
+import           Cardano.Metadata.Types           as Metadata
 import           Cardano.Node.Client              (handleNodeClientClient, handleNodeFollowerClient,
                                                    handleRandomTxClient)
 import           Cardano.Node.Follower            (NodeFollowerEffect)
@@ -60,7 +62,8 @@ import           Plutus.SCB.Effects.EventLog      (EventLogEffect (..), handleEv
 import           Plutus.SCB.Effects.UUID          (UUIDEffect, handleUUIDEffect)
 import           Plutus.SCB.Events                (ChainEvent)
 import           Plutus.SCB.Types                 (Config (Config), ContractExe (..), SCBError (..), chainIndexConfig,
-                                                   dbConfig, nodeServerConfig, signingProcessConfig, walletServerConfig)
+                                                   dbConfig, metadataServerConfig, nodeServerConfig,
+                                                   signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Webserver.Types       (WebSocketLogMsg)
 import           Servant.Client                   (ClientEnv, ClientError, mkClientEnv)
 import           System.Exit                      (ExitCode (ExitFailure, ExitSuccess))
@@ -77,6 +80,7 @@ data Env =
         { dbConnection      :: Connection
         , walletClientEnv   :: ClientEnv
         , nodeClientEnv     :: ClientEnv
+        , metadataClientEnv :: ClientEnv
         , signingProcessEnv :: ClientEnv
         , chainIndexEnv     :: ClientEnv
         }
@@ -89,6 +93,8 @@ type AppBackend m =
          , Error WalletAPIError
          , Error ClientError
          , NodeClientEffect
+         , Error ClientError
+         , MetadataEffect
          , Error ClientError
          , SigningProcessEffect
          , Error ClientError
@@ -122,6 +128,7 @@ runAppBackend ::
 runAppBackend config eff = do
     env@Env { dbConnection
             , nodeClientEnv
+            , metadataClientEnv
             , walletClientEnv
             , signingProcessEnv
             , chainIndexEnv
@@ -146,6 +153,11 @@ runAppBackend config eff = do
         handleNodeFollower =
             flip handleError (throwError . NodeClientError) .
             handleNodeFollowerClient nodeClientEnv
+        handleMetadata ::
+               Eff (MetadataEffect ': Error ClientError ': _) a -> Eff _ a
+        handleMetadata =
+            flip handleError (throwError . MetadataClientError) .
+            handleMetadataClient metadataClientEnv
         handleWallet ::
                Eff (WalletEffect ': Error WalletAPIError ': Error ClientError ': _) a
             -> Eff _ a
@@ -173,6 +185,7 @@ runAppBackend config eff = do
      . handleContractEffectApp
      . handleUUIDEffect
      . handleSigningProcess
+     . handleMetadata
      . handleNodeClient
      . handleWallet
      . handleNodeFollower
@@ -183,12 +196,14 @@ type App a = Eff (AppBackend (LoggingT IO)) a
 mkEnv :: (MonadUnliftIO m, MonadLogger m) => Config -> m Env
 mkEnv Config { dbConfig
              , nodeServerConfig
+             , metadataServerConfig
              , walletServerConfig
              , signingProcessConfig
              , chainIndexConfig
              } = do
     walletClientEnv <- clientEnv (WalletServer.baseUrl walletServerConfig)
     nodeClientEnv <- clientEnv (NodeServer.mscBaseUrl nodeServerConfig)
+    metadataClientEnv <- clientEnv (Metadata.mdBaseUrl metadataServerConfig)
     signingProcessEnv <-
         clientEnv (SigningProcess.spBaseUrl signingProcessConfig)
     chainIndexEnv <- clientEnv (ChainIndex.ciBaseUrl chainIndexConfig)

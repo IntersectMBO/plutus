@@ -15,6 +15,7 @@ module Main
     ) where
 
 import qualified Cardano.ChainIndex.Server                       as ChainIndex
+import qualified Cardano.Metadata.Server                         as Metadata
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
@@ -56,9 +57,10 @@ import qualified Plutus.SCB.Core.ContractInstance                as Instance
 import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
 import           Plutus.SCB.Types                                (Config (Config), ContractExe (..),
                                                                   RequestProcessingConfig (..), SCBError,
-                                                                  chainIndexConfig, monitoringConfig, monitoringPort,
-                                                                  nodeServerConfig, requestProcessingConfig,
-                                                                  signingProcessConfig, walletServerConfig)
+                                                                  chainIndexConfig, metadataServerConfig,
+                                                                  monitoringConfig, monitoringPort, nodeServerConfig,
+                                                                  requestProcessingConfig, signingProcessConfig,
+                                                                  walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
 import qualified PSGenerator
@@ -70,6 +72,7 @@ data Command
     | MockNode
     | MockWallet
     | ChainIndex
+    | Metadata
     | ForkCommands [Command]
     | SigningProcess
     | InstallContract FilePath
@@ -123,6 +126,7 @@ commandParser =
         , psGeneratorCommandParser
         , mockNodeParser
         , chainIndexParser
+        , metadataParser
         , signingProcessParser
         , reportTxHistoryParser
         , command
@@ -182,6 +186,11 @@ chainIndexParser =
     command "chain-index" $
     info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
 
+metadataParser :: Mod CommandFields Command
+metadataParser =
+    command "metadata-server" $
+    info (pure Metadata) (fullDesc <> progDesc "Run the Cardano metadata API server.")
+
 allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
@@ -190,6 +199,7 @@ allServersParser =
              (ForkCommands
                   [ MockNode
                   , ChainIndex
+                  , Metadata
                   , MockWallet
                   , SCBWebserver
                   , SigningProcess
@@ -327,6 +337,7 @@ runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} 
         serviceAvailability
 runCliCommand _ Config {nodeServerConfig} serviceAvailability MockNode =
     NodeServer.main nodeServerConfig serviceAvailability
+runCliCommand _ Config {metadataServerConfig} serviceAvailability Metadata = Metadata.main metadataServerConfig serviceAvailability
 runCliCommand _ config serviceAvailability SCBWebserver = raise $ SCBServer.main config serviceAvailability
 runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
