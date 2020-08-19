@@ -177,7 +177,7 @@ runAppBackend config eff = do
      . renderLogMessages
      . renderLogMessages
      . renderLogMessages
-     . handleWriterLog (\_ -> Log.Info)
+     . handleWriterLog (const Log.Info)
      . runError
      . handleWebSocket
      . handleEventLogSql
