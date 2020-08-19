@@ -1,11 +1,12 @@
 -- | A dynamic built-in name test.
 
-{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Evaluation.DynamicBuiltins.Definition
@@ -184,6 +185,7 @@ instance KnownTypeAst uni a => KnownTypeAst uni (ListRep a) where
 dynamicIdListName :: DynamicBuiltinName
 dynamicIdListName = DynamicBuiltinName "idList"
 
+-- > idList : all (a :: *). list a -> list a
 -- >>> :set -XTypeApplications
 -- >>> import Language.PlutusCore.Pretty
 -- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdListMeaning @DefaultUni
@@ -218,6 +220,73 @@ test_dynamicIdList =
                 $ mkIterApp () Plc.enumFromTo [one, ten]
         typecheckEvaluateCek env term @?= Right (EvaluationSuccess res)
 
+data TyForallStarRep text unique a
+instance (KnownTypeAst uni (TyVarRep text unique), KnownTypeAst uni a) =>
+            KnownTypeAst uni (TyForallStarRep text unique a) where
+    toTypeAst _ = case toTypeAst @uni $ Proxy @(TyVarRep text unique) of
+        TyVar () name -> TyForall () name (Type ()) . toTypeAst $ Proxy @a
+        _             -> Prelude.error "Impossible"
+
+dynamicIdRank2Name :: DynamicBuiltinName
+dynamicIdRank2Name = DynamicBuiltinName "idNil"
+
+{- Note [Higher-rank built-in functions]
+We can't unlift a monomorphic function passed to a built-in function, let alone unlift a polymorphic
+one, however we can define a built-in function that accepts an 'Opaque' term of a polymorphic type.
+However, as is always the case with an 'Opaque' term, we can't inspect it or use it in any
+non-opaque way, so a function of type
+
+    all (f :: * -> *). (all (a :: *). f a) -> all (a :: *). f a
+
+can be assigned the following meaning on the Haskell side:
+
+    \x -> x
+
+but we have no way of providing a meaning for a built-in function with the following signature:
+
+    all (f :: * -> *). all (a :: *). (all (a :: *). f a) -> f a
+
+That's because the meaning function would have to instantiate the @all (a :: *). f a@ argument
+somehow to get an @f a@, but that is exactly "using a term in a non-opaque way".
+
+Basically, since we are either generic over @term@ or, like in the example below, use 'CekValue',
+there's is no sensible way of instantiating a passed polymorphic argument (or applying a passed
+argument when it's a function, for another example).
+-}
+
+-- See Note [Higher-rank built-in functions].
+-- >>> :set -XTypeApplications
+-- >>> import Language.PlutusCore.Pretty
+-- >>> putStrLn . render . prettyPlcReadableDef . dynamicBuiltinNameMeaningToType $ dynamicIdRank2Meaning @DefaultUni
+-- (all (f :: * -> *). (all (a :: *). f a) -> (all (a :: *). f a))
+dynamicIdRank2Meaning :: DynamicBuiltinNameMeaning (CekValue uni)
+dynamicIdRank2Meaning = DynamicBuiltinNameMeaning sch id (\_ -> ExBudget 1 1) where
+    sch =
+        TypeSchemeAll @"f" @0 Proxy (KindArrow () (Type ()) $ Type ()) $ \(_ :: Proxy f) ->
+            let ty = Proxy @(Opaque _ (TyForallStarRep "a" 1 (TyAppRep f (Opaque _ (TyVarRep "a" 1)))))
+            in ty `TypeSchemeArrow` TypeSchemeResult ty
+
+dynamicIdRank2Definition :: DynamicBuiltinNameDefinition (CekValue uni)
+dynamicIdRank2Definition =
+    DynamicBuiltinNameDefinition dynamicIdRank2Name dynamicIdRank2Meaning
+
+dynamicIdRank2 :: Term tyname name uni ()
+dynamicIdRank2 = dynamicBuiltinNameAsTerm dynamicIdRank2Name
+
+-- | Test that opaque terms with higher-rank types are allowed.
+test_dynamicIdRank2 :: TestTree
+test_dynamicIdRank2 =
+    testCase "dynamicIdRank2" $ do
+        let env = insertDynamicBuiltinNameDefinition dynamicIdRank2Definition mempty
+            res = mkConstant @Integer @DefaultUni () 0
+            integer = mkTyBuiltin @Integer ()
+            -- sum (idRank2 {list} nil {integer})
+            term
+                = Apply () Plc.sum
+                . TyInst () (Apply () (TyInst () dynamicIdRank2 Plc.listTy) Plc.nil)
+                $ integer
+        typecheckEvaluateCek env term @?= Right (EvaluationSuccess res)
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -226,4 +295,5 @@ test_definition =
         , test_dynamicId
         , test_dynamicIdFInteger
         , test_dynamicIdList
+        , test_dynamicIdRank2
         ]
