@@ -296,7 +296,7 @@ instantiateEvaluate
     -> Type TyName uni ()
     -> CkValue uni
     -> CkM uni (Term TyName Name uni ())
-instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- FIXME: kind check
+instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- No kind check - too expensive at run time.
 instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
