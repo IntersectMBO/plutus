@@ -10,7 +10,7 @@ open import Data.Integer
 open import Data.Nat
 open import Data.Empty
 
--- plutus/language-plutus-core/test/data/integerOverflow.plc
+-- plutus/plutus-core/test/data/integerOverflow.plc
 
 -- This term is impossible as terms are intrinsically sized
 

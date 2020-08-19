@@ -363,7 +363,7 @@ executable plc-agda
                        cryptonite -any,
                        memory -any,
                        optparse-applicative -any,
-                       language-plutus-core -any,
+                       plutus-core -any,
                        transformers -any
   default-language:    Haskell2010
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
@@ -714,9 +714,9 @@ test-suite test-plc-agda
                  cryptonite -any,
                  memory -any,
                  optparse-applicative -any,
-                 language-plutus-core -any,
+                 plutus-core -any,
                  transformers -any
-  build-tool-depends: language-plutus-core:plc
+  build-tool-depends: plutus-core:plc
 
 
 test-suite test2-plc-agda
@@ -731,7 +731,7 @@ test-suite test2-plc-agda
                  cryptonite -any,
                  memory -any,
                  optparse-applicative -any,
-                 language-plutus-core -any,
+                 plutus-core -any,
                  directory -any,
                  transformers -any
   other-modules:
@@ -1069,4 +1069,4 @@ test-suite test2-plc-agda
         MAlonzo.Code.Function.Related
         MAlonzo.Code.Function.Related.TypeIsomorphisms
         MAlonzo.Code.Relation.Binary.Construct.Converse
-  build-tool-depends: language-plutus-core:plc
+  build-tool-depends: plutus-core:plc

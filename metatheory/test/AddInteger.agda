@@ -7,7 +7,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * # _⊢⋆_ con size⋆
 open import Agda.Builtin.Sigma
 
--- plutus/language-plutus-core/test/data/addInteger.plc
+-- plutus/plutus-core/test/data/addInteger.plc
 
 addI : ∀{Γ} →
   Γ ⊢ con integer (size⋆ 8) ⇒ con integer (size⋆ 8) ⇒ con integer (size⋆ 8)

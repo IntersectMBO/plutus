@@ -1,62 +1,62 @@
 cradle:
   multi:
-  - path: ./language-plutus-core/generators
+  - path: ./plutus-core/generators
     config:
       cradle:
         stack:
-          component: "language-plutus-core:lib"
-  - path: ./language-plutus-core/prelude
+          component: "plutus-core:lib"
+  - path: ./plutus-core/prelude
     config:
       cradle:
         stack:
-          component: "language-plutus-core:lib"
-  - path: ./language-plutus-core/src
+          component: "plutus-core:lib"
+  - path: ./plutus-core/src
     config:
       cradle:
         stack:
-          component: "language-plutus-core:lib"
-  - path: ./language-plutus-core/plutus-ir
-    component: "language-plutus-core:lib"
+          component: "plutus-core:lib"
+  - path: ./plutus-core/plutus-ir
+    component: "plutus-core:lib"
     config:
       cradle:
         stack:
-          component: "language-plutus-core:lib"
-  - path: ./language-plutus-core/common
+          component: "plutus-core:lib"
+  - path: ./plutus-core/common
     config:
       cradle:
         stack:
-          component: "language-plutus-core:lib"
-  - path: ./language-plutus-core/exe
+          component: "plutus-core:lib"
+  - path: ./plutus-core/exe
     config:
       cradle:
         stack:
-          component: "language-plutus-core:exe:plc"
-  - path: ./language-plutus-core/test
+          component: "plutus-core:exe:plc"
+  - path: ./plutus-core/test
     config:
       cradle:
         stack:
-          component: "language-plutus-core:language-plutus-core-test"
-  - path: ./language-plutus-core/plutus-ir-test
-    component: "language-plutus-core:plutus-ir-test"
+          component: "plutus-core:plutus-core-test"
+  - path: ./plutus-core/plutus-ir-test
+    component: "plutus-core:plutus-ir-test"
     config:
       cradle:
         stack:
-          component: "language-plutus-core:language-plutus-core-test"
-  - path: ./language-plutus-core/bench
+          component: "plutus-core:plutus-core-test"
+  - path: ./plutus-core/bench
     config:
       cradle:
         stack:
-          component: "language-plutus-core:language-plutus-core-bench"
-  - path: ./language-plutus-core/weigh
+          component: "plutus-core:plutus-core-bench"
+  - path: ./plutus-core/weigh
     config:
       cradle:
         stack:
-          component: "language-plutus-core:language-plutus-core-weigh"
-  - path: ./language-plutus-core/budgeting-bench
+          component: "plutus-core:plutus-core-weigh"
+  - path: ./plutus-core/budgeting-bench
     config:
       cradle:
         stack:
-          component: "language-plutus-core:language-plutus-core-budgeting-bench"
+          component: "plutus-core:plutus-core-budgeting-bench"
   - path: ./plutus-emulator/src
     config:
       cradle:
@@ -172,23 +172,23 @@ cradle:
       cradle:
         stack:
           component: "metatheory:metatheory-test"
-  - path: ./language-plutus-core/create-cost-model
+  - path: ./plutus-core/create-cost-model
     config:
       cradle:
         none:
         # stack:
-        #   component: "language-plutus-core:bench:language-plutus-core-create-cost-model"
-  - path: ./language-plutus-core/cost-model-creation
+        #   component: "plutus-core:bench:plutus-core-create-cost-model"
+  - path: ./plutus-core/cost-model-creation
     config:
       cradle:
         none:
         # stack:
-        #   component: "language-plutus-core:bench:language-plutus-core-create-cost-model"
-  - path: ./language-plutus-core/test-cost-model
+        #   component: "plutus-core:bench:plutus-core-create-cost-model"
+  - path: ./plutus-core/test-cost-model
     config:
       cradle:
         stack:
-          component: "language-plutus-core:test:language-plutus-core-test-cost-model"
+          component: "plutus-core:test:plutus-core-test-cost-model"
 
   # These use the plutus plugin - HIE doesn't support plugins yet
 

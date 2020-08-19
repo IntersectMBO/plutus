@@ -58,7 +58,7 @@ library
         containers -any,
         iots-export -any,
         mtl -any,
-        language-plutus-core -any,
+        plutus-core -any,
         plutus-tx -any,
         plutus-contract -any,
         playground-common -any,
@@ -101,7 +101,7 @@ test-suite plutus-use-cases-test
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     build-depends:
-        language-plutus-core -any,
+        plutus-core -any,
         plutus-tx -any,
         plutus-contract -any,
         plutus-ledger -any,
@@ -141,7 +141,7 @@ benchmark plutus-use-cases-bench
         base -any,
         criterion -any,
         cryptonite -any,
-        language-plutus-core -any,
+        plutus-core -any,
         lens -any,
         memory -any,
         plutus-tx -any,

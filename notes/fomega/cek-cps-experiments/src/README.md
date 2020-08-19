@@ -6,7 +6,7 @@ documented the source files carefully because they're just here for
 the experiment.
 
 `Make.hs` is a copy of
-`language-plutus-core/src/Language/PlutusCore/Constant/Make.hs` with
+`plutus-core/src/Language/PlutusCore/Constant/Make.hs` with
 the bounds check for sized integers updated to use bit operations
 instead of computing 2^n arithmetically.  This was slowing things down
 substantially and has now been fixed in the master branch, but hadn't
