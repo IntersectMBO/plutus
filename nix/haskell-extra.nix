@@ -45,8 +45,8 @@
           name = "haskell-language-server";
           owner = "haskell";
           repo = "haskell-language-server";
-          rev = "c966e6f8b7be1ec7ca8dc5084fe7f2e6432c50f0";
-          sha256 = "1msjprk4g5v7aqpaa8zg34q999yxz0hg7zavc8a89p7yczss9h28";
+          rev = "15f870f89a18ca3e7991193f8c996ac6b4e17b26";
+          sha256 = "14r6s1yw4h8b6jc4v04zk7hinpw23vn8jfk6sbbq7798nw891k7g";
           fetchSubmodules = true;
         };
         # Needed for GHC 8.10
@@ -74,6 +74,7 @@
           # Tests don't pass for some reason, but this is a somewhat random revision.
           packages.haskell-language-server.doCheck = false;
           packages.hie-bios.src = sources.hie-bios;
+          packages.ghcide.src = sources.ghcide;
         }];
       })
   hie-bios haskell-language-server ghcide;

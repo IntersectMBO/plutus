@@ -61,15 +61,15 @@
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "haskell.nix": {
-        "branch": "master",
+        "branch": "hkm/unboxed-tuple",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "04ea1bc3fe098176837b89e1a07e493c7621316b",
-        "sha256": "1p0sami3xx4y2g0b3zbznf9dwqx2p4dw40rz7ppd755z8754k4wd",
+        "rev": "164e5c8f5ec60f1492b14137ef7e77f332080770",
+        "sha256": "0vv3jpma5q17qzsj13q4rxwzad7kzsmg8yhbg7ilwialrdb0q26a",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/04ea1bc3fe098176837b89e1a07e493c7621316b.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/164e5c8f5ec60f1492b14137ef7e77f332080770.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "hie-bios": {
