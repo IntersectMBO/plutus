@@ -181,8 +181,8 @@ handleMultiAgent = interpret $ \case
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
             p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
             p2 = below (logMessage Info . _EmulatorMsg . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . _EmulatorMsg . timed . chainIndexEvent wallet)
+            p3 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (_EmulatorMsg . timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage T.Text)
             p4 = _singleton . below (_EmulatorMsg . timed . walletEvent wallet . Wallet._GenericLog)
             p5 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage (ContractInstanceMsg TestContracts))
@@ -210,7 +210,7 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (agentState wallet . nodeClientState))
             & interpret (handleZoomedWriter p2)
             & interpret (handleZoomedState (agentState wallet . chainIndexState . CI.indexState))
-            & interpret (handleZoomedWriter p3)
+            & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))
             & interpret (handleZoomedState (agentState wallet . agentEventState))
     AgentControlAction wallet action ->do
@@ -222,8 +222,8 @@ handleMultiAgent = interpret $ \case
             p1 = below (logMessage Info . _EmulatorMsg . timed . walletEvent wallet)
             p2 :: AReview [LogMessage SCBMultiAgentMsg] [NC.NodeClientEvent]
             p2 = below (logMessage Info . _EmulatorMsg . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage SCBMultiAgentMsg] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . _EmulatorMsg . timed . chainIndexEvent wallet)
+            p3 :: AReview [LogMessage SCBMultiAgentMsg] (LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (_EmulatorMsg . timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage T.Text)
             p4 = _singleton . below (_EmulatorMsg . timed . walletEvent wallet . Wallet._GenericLog)
             p5 :: AReview [LogMessage SCBMultiAgentMsg] (Log.LogMessage ChainIndexServerMsg)
@@ -242,5 +242,5 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (agentState wallet . nodeClientState))
             & interpret (handleZoomedWriter p2)
             & interpret (handleZoomedState (agentState wallet . chainIndexState . CI.indexState))
-            & interpret (handleZoomedWriter p3)
+            & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (agentState wallet . signingProcessState))

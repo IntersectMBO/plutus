@@ -91,6 +91,10 @@ emulatorEventPane (ChainIndexEvent _ (AddressStartWatching address)) =
   div_
     [ text $ "Submitting transaction: " <> show address ]
 
+emulatorEventPane (ChainIndexEvent _ (HandlingAddressChangeRequest rq _)) =
+  div_
+    [ text $ "Handling address change request: " <> show rq ]
+
 emulatorEventPane (ClientEvent _ (TxSubmit (TxId txId))) =
   div_
     [ text $ "Submitting transaction: " <> txId.getTxId ]
