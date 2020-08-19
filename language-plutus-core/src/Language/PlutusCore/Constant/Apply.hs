@@ -16,7 +16,6 @@ module Language.PlutusCore.Constant.Apply
     , integerToInt64
     , applyTypeSchemed
     , applyStaticBuiltinName
-    , builtinNameAritiesIgnoringTypes
     , builtinNameArities
     ) where
 
@@ -257,14 +256,13 @@ applyStaticBuiltinName name args = do
                 (runCostingFunThreeArguments $ paramIfThenElse params)
                 args
 
-builtinNameAritiesIgnoringTypes :: Array StaticBuiltinName Int
-builtinNameAritiesIgnoringTypes =
-    listArray (minBound, maxBound) $
-        [minBound..maxBound] <&> \name ->
-            withTypedStaticBuiltinName @_ @(Term TyName Name DefaultUni ()) name $
-                \(TypedStaticBuiltinName _ sch) -> countTermArgs sch
-{-# NOINLINE builtinNameAritiesIgnoringTypes #-}  -- Just in case.
 
+-- | An array mapping names of built-in functions to the arities of the functions,
+-- represented as a list of (possibly interleaved) 'TermArg | TypeArg' values.
+-- This is used in the evaluators (a) to detect when we have all of the arguments
+-- for a builtin, so that it can be handed to the constant application machinery
+-- for evaluation, and (b) to check that term arguments and type instantiations
+-- occur in the expected order.
 builtinNameArities :: Array StaticBuiltinName Arity
 builtinNameArities =
     listArray (minBound, maxBound) $

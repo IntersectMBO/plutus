@@ -1,16 +1,19 @@
 -- | The CK machine.
 
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Language.PlutusCore.Evaluation.Machine.Ck
     ( EvaluationResult (..)
     , CkEvaluationException
     , CkM
+    , CkValue
     , evaluateCk
     , unsafeEvaluateCk
     ) where
@@ -19,69 +22,178 @@ import           PlutusPrelude
 
 import           Language.PlutusCore.Constant
 import           Language.PlutusCore.Core
+import           Language.PlutusCore.Error
 import           Language.PlutusCore.Evaluation.Machine.ExBudgeting
-import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModel)
 import           Language.PlutusCore.Evaluation.Machine.Exception
-import           Language.PlutusCore.Evaluation.Machine.ExMemory            (Plain)
 import           Language.PlutusCore.Evaluation.Result
 import           Language.PlutusCore.Name
-import           Language.PlutusCore.Pretty                                 (PrettyConst)
+import           Language.PlutusCore.Pretty                                 (PrettyConfigPlc, PrettyConst)
 import           Language.PlutusCore.Universe
-import           Language.PlutusCore.View
 
+import           Control.Monad.Reader
 import           Data.Array
+import qualified Data.Map                                                   as Map
 
 infix 4 |>, <|
 
--- | The CK machine throws this error when it encounters a 'DynBuiltinName'.
-data NoDynamicBuiltinNamesMachineError
-    = NoDynamicBuiltinNamesMachineError
+data CkValue uni =
+    VCon (Term TyName Name uni ())  -- TODO: Really want a constant here.
+  | VTyAbs TyName (Kind ()) (Term TyName Name uni ())
+  | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni ())
+  | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni)
+  | VBuiltin
+      BuiltinName
+      Arity                -- Sorts of arguments to be provided (both types and terms): *don't change this*.
+      Arity                -- A copy of the arity used for checking applications/instantiatons: see Note [Arities in VBuiltin]
+      [Type TyName uni ()] -- The types the builtin is to be instantiated at.
+                           -- We need these to construct a term if the machine is returning a stuck partial application.
+      [CkValue uni]        -- Arguments we've computed so far.
+    deriving (Show, Eq)   -- Eq is just for tests.
+
+mkBuiltinApplication :: () -> BuiltinName -> Arity -> [Type TyName uni ()] -> [Term TyName Name uni ()] -> Term TyName Name uni ()
+mkBuiltinApplication () bn arity0 tys0 args0 =
+  go arity0 tys0 args0 (Builtin () bn)
+    where go arity tys args term =
+              case (arity, args, tys) of
+                ([], [], [])                        -> term   -- We've got to the end and successfully constructed the entire application
+                (TermArg:arity', arg:args', _)      -> go arity' tys args' (Apply () term arg)  -- got an expected term argument
+                (TermArg:_,      [],       ty:_)    -> TyInst () term ty                        -- term expected, type found
+                (TypeArg:arity', _,        ty:tys') -> go arity' tys' args (TyInst () term ty)  -- got an expected type argument
+                (TypeArg:_,      arg:_,    [])      -> Apply () term arg                        -- type expected, term found
+                _                                   -> term                                     -- something else, including partial application
+
+ckValueToTerm :: () -> CkValue uni -> Term TyName Name uni ()
+ckValueToTerm () = \case
+    VCon t                           -> t
+    VTyAbs  tn k body                -> TyAbs  () tn k body
+    VLamAbs name ty body             -> LamAbs () name ty body
+    VIWrap  ty1 ty2 val              -> IWrap  () ty1 ty2 $ ckValueToTerm () val
+    VBuiltin bn arity0 _ tyargs args -> mkBuiltinApplication () bn arity0 tyargs (fmap (ckValueToTerm ()) args)
+    {- We only discharge a value when (a) it's being returned by the machine,
+       or (b) it's needed for an error message.  When we're discharging VBuiltin
+       we use arity0 to get the type and term arguments into the right sequence. -}
+
+instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CkValue uni) where
+    prettyBy cfg = prettyBy cfg . ckValueToTerm ()
+
+data CkUserError =
+    CkEvaluationFailure -- Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni =
-    EvaluationException NoDynamicBuiltinNamesMachineError () (Plain Term uni)
+    EvaluationException UnknownDynamicBuiltinNameError CkUserError (CkValue uni)
 
-type CkM uni = Either (CkEvaluationException uni)
+instance Pretty CkUserError where
+    pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-instance SpendBudget (CkM uni) (Term TyName Name uni ()) where
-    spendBudget _ _   = pure ()
+data CkEnv uni = CkEnv
+    { ckEnvMeans              :: DynamicBuiltinNameMeanings (CkValue uni)
+    }
+
+type CkM uni = ReaderT (CkEnv uni) (Either (CkEvaluationException uni))
+
+instance SpendBudget (CkM uni) (CkValue uni) where
     builtinCostParams = pure defaultCostModel
+    spendBudget _key _budget = pure ()
+
+type instance UniOf (CkValue uni) = uni
+
+instance FromConstant (CkValue uni) where
+    fromConstant = VCon . fromConstant
+
+instance AsConstant (CkValue uni) where
+    asConstant (VCon term) = asConstant term
+    asConstant _           = Nothing
+
+instance ToExMemory (CkValue uni) where
+    toExMemory _ = 0
+
 
 data Frame uni
-    = FrameApplyFun (Plain Value uni)                       -- ^ @[V _]@
-    | FrameApplyArg (Plain Term uni)                        -- ^ @[_ N]@
+    = FrameApplyFun (CkValue uni)                           -- ^ @[V _]@
+    | FrameApplyArg (Term TyName Name uni ())               -- ^ @[_ N]@
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni = [Frame uni]
 
-instance Pretty NoDynamicBuiltinNamesMachineError where
-    pretty NoDynamicBuiltinNamesMachineError =
-        "The CK machine doesn't support dynamic extensions to the set of built-in names."
-
--- | Substitute a 'Value' for a variable in a 'Term' that can contain duplicate binders.
+-- | Substitute a 'Term' for a variable in a 'Term' that can contain duplicate binders.
 -- Do not descend under binders that bind the same variable as the one we're substituting for.
 substituteDb
     :: Eq name
-    => name -> Value tyname name uni a -> Term tyname name uni a -> Term tyname name uni a
+    => name -> Term tyname name uni () -> Term tyname name uni () -> Term tyname name uni ()
 substituteDb varFor new = go where
-    go (Var ann var)            = if var == varFor then new else Var ann var
-    go (TyAbs ann tyn ty body)  = TyAbs ann tyn ty (go body)
-    go (LamAbs ann var ty body) = LamAbs ann var ty (goUnder var body)
-    go (Apply ann fun arg)      = Apply ann (go fun) (go arg)
-    go (Constant ann constant)  = Constant ann constant
-    go (Builtin ann bi)         = Builtin ann bi
-    go (TyInst ann fun arg)     = TyInst ann (go fun) arg
-    go (Unwrap ann term)        = Unwrap ann (go term)
-    go (IWrap ann pat arg term) = IWrap ann pat arg (go term)
-    go (Error ann ty)           = Error ann ty
-
+    go = \case
+         Var      () var          -> if var == varFor then new else Var () var
+         TyAbs    () tyn ty body  -> TyAbs    () tyn ty (go body)
+         LamAbs   () var ty body  -> LamAbs   () var ty (goUnder var body)
+         Apply    () fun arg      -> Apply    () (go fun) (go arg)
+         Constant () constant     -> Constant () constant
+         TyInst   () fun arg      -> TyInst   () (go fun) arg
+         Unwrap   () term         -> Unwrap   () (go term)
+         IWrap    () pat arg term -> IWrap    () pat arg (go term)
+         b@Builtin{}              -> b
+         e@Error  {}              -> e
     goUnder var term = if var == varFor then term else go term
 
+-- | Substitute a 'Type' for a type variable in a 'Term' that can contain duplicate binders.
+-- Do not descend under binders that bind the same type variable as the one we're substituting for.
+substTyInTerm
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Term tyname name uni () -> Term tyname name uni ()
+substTyInTerm tn0 ty0 = go where
+    go = \case
+         v@Var{}                 -> v
+         c@Constant{}            -> c
+         b@Builtin{}             -> b
+         TyAbs   () tn ty body   -> TyAbs   () tn ty (goUnder tn body)
+         LamAbs  () var ty body  -> LamAbs  () var (goTy ty) (go body)
+         Apply   () fun arg      -> Apply   () (go fun) (go arg)
+         TyInst  () fun ty       -> TyInst  () (go fun) (goTy ty)
+         Unwrap  () term         -> Unwrap  () (go term)
+         IWrap   () pat arg term -> IWrap   () (goTy pat) (goTy arg) (go term)
+         Error   () ty           -> Error   () (goTy ty)
+    goUnder tn term = if tn == tn0 then term else go term
+    goTy = substTyInTy tn0 ty0
 
--- FIXME: update this for the current strategy
+-- | Substitute a 'Type' for a type variable in a 'Type' that can contain duplicate binders.
+-- Do not descend under binders that bind the same type variable as the one we're substituting for.
+substTyInTy
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
+substTyInTy tn0 ty0 = go where
+    go = \case
+         TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
+         TyFun    () ty1 ty2 -> TyFun    () (go ty1) (go ty2)
+         TyIFix   () ty1 ty2 -> TyIFix   () (go ty1) (go ty2)
+         TyApp    () ty1 ty2 -> TyApp    () (go ty1) (go ty2)
+         TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
+         TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
+         bt@TyBuiltin{}      -> bt
+    goUnder tn ty = if tn == tn0 then ty else go ty
+
+-- | Look up a 'DynamicBuiltinName' in the environment.
+lookupDynamicBuiltinName
+    :: DynamicBuiltinName -> CkM uni (DynamicBuiltinNameMeaning (CkValue uni))
+lookupDynamicBuiltinName dynName = do
+    DynamicBuiltinNameMeanings means <- asks ckEnvMeans
+    case Map.lookup dynName means of
+        Nothing   -> throwingWithCause _MachineError err Nothing where
+            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+        Just mean -> pure mean
+
+arityOf :: BuiltinName -> CkM uni Arity
+arityOf (StaticBuiltinName name) =
+    pure $ builtinNameArities ! name
+arityOf (DynBuiltinName name) = do
+    DynamicBuiltinNameMeaning sch _ _ <- lookupDynamicBuiltinName name
+    pure $ getArity sch
+-- TODO: have a table of dynamic arities so that we don't have to do this computation every time.
+
+-- FIXME: make sure that the specification is up to date and that this matches.
 -- | The computing part of the CK machine. Rules are as follows:
 --
 -- > s ▷ {M A}      ↦ s , {_ A}        ▷ M
@@ -90,45 +202,50 @@ substituteDb varFor new = go where
 -- > s ▷ unwrap M   ↦ s , (unwrap _)   ▷ M
 -- > s ▷ abs α K M  ↦ s ◁ abs α K M
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
+-- > s ▷ builtin bn ↦ s ◁ builtin bn (arity bn) (arity bn) [] []
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Context uni -> Plain Term uni -> CkM uni (Plain Term uni)
-stack |> TyInst _ fun ty      = FrameTyInstArg ty  : stack |> fun
-stack |> Apply _ fun arg      = FrameApplyArg arg  : stack |> fun
-stack |> IWrap _ pat arg term = FrameIWrap pat arg : stack |> term
-stack |> Unwrap _ term        = FrameUnwrap        : stack |> term
-stack |> tyAbs@TyAbs{}        = stack <| tyAbs
-stack |> lamAbs@LamAbs{}      = stack <| lamAbs
-stack |> bi@Builtin{}         = stack <| bi
-stack |> constant@Constant{}  = stack <| constant
-_     |> err@Error{}          =
-    throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just err
-_     |> var@Var{}            =
-    throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
+    => Context uni -> Term TyName Name uni () -> CkM uni (Term TyName Name uni ())
+stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
+stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
+stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
+stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
+stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
+stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
+stack |> Builtin _ bn            = do
+                                    arity <- arityOf bn
+                                    stack <| VBuiltin bn arity arity [] []
+stack |> c@Constant{}          = stack <| VCon c
+_     |> _err@Error{}          =
+    throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
+_     |> _var@Var{}            =
+    throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Nothing
 
+
+-- FIXME: make sure that the specification is up to date and that this matches.
 -- | The returning part of the CK machine. Rules are as follows:
 --
--- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ M
+-- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
 -- > s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
--- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially saturated constant.
--- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated constant.
+-- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially instantiated built-in application.
+-- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated built-in application.
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated constant, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Context uni -> Plain Value uni -> CkM uni (Plain Term uni)
-[]                         <| term    = pure term
+    => Context uni -> CkValue uni -> CkM uni (Term TyName Name uni ())
+[]                         <| val     = pure $ ckValueToTerm () val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
-FrameIWrap pat arg : stack <| value   = stack <| IWrap () pat arg value
+FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
-    IWrap _ _ _ term -> stack <| term
-    term             -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just term
+    VIWrap _ _ term -> stack <| term
+    _term           -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Nothing
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
@@ -138,13 +255,19 @@ instantiateEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni
     -> Type TyName uni ()
-    -> Plain Term uni
-    -> CkM uni (Plain Term uni)
-instantiateEvaluate stack _  (TyAbs _ _ _ body) = stack |> body
-instantiateEvaluate stack _ fun
-    | isJust $ termAsPrimIterApp fun = stack <| fun -- Discard type
-    | otherwise                      =
-          throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just fun
+    -> CkValue uni
+    -> CkM uni (Term TyName Name uni ())
+instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- FIXME: kind check
+instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
+    case arity of
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                                                                                 -- Should be impossible: see instantiateEvaluate.
+      TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
+                        where val' = VBuiltin bn arity0 arity (tys++[ty]) args   -- Reconstruct the bad application
+      TypeArg:[]     -> applyBuiltinName stack bn args                           -- Final argument is a type argument
+      TypeArg:arity' -> stack <| VBuiltin bn arity0 arity' (tys++[ty]) args      -- More arguments expected
+instantiateEvaluate _ _ val =
+    throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
 
 -- | Apply a function to an argument and proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
@@ -154,46 +277,53 @@ instantiateEvaluate stack _ fun
 applyEvaluate
     :: (GShow uni, GEq uni, DefaultUni <: uni)
     => Context uni
-    -> Plain Value uni
-    -> Plain Value uni
-    -> CkM uni (Plain Term uni)
-applyEvaluate stack (LamAbs _ name _ body) arg = stack |> substituteDb name arg body
-applyEvaluate stack fun                    arg =
-    let term = Apply () fun arg in
-        case termAsPrimIterApp term of
-            Nothing ->
-                throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just term
-            Just (IterApp DynBuiltinName{} _) ->
-                throwingWithCause _MachineError
-                    (OtherMachineError NoDynamicBuiltinNamesMachineError)
-                    (Just term)
-            Just (IterApp (StaticBuiltinName name) spine) ->
-                if length spine == builtinNameAritiesIgnoringTypes ! name  -- Quick fix for unsaturated builtins.
-                then do
-                  res <- applyStaticBuiltinName name spine
-                  case res of
-                    EvaluationSuccess t -> stack |> t
-                    EvaluationFailure   ->
-                        throwingWithCause _EvaluationError (UserEvaluationError ()) $ Just term
-                else stack <| term
+    -> CkValue uni
+    -> CkValue uni
+    -> CkM uni (Term TyName Name uni ())
+applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm () arg) body
+applyEvaluate stack val@(VBuiltin bn arity0 arity tyargs args) arg = do
+    case arity of
+      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
+                                                                                    -- Should be impossible: see instantiateEvaluate.
+      TypeArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
+                        where val' = VBuiltin bn arity0 arity tyargs (args++[arg])  -- Reconstruct the bad application
+      TermArg:[]     -> applyBuiltinName stack bn (args ++ [arg])                   -- 'arg' was the final argument
+      TermArg:arity' -> stack <| VBuiltin bn arity0 arity' tyargs (args++[arg])     -- More arguments expected
+applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
+
+-- | Apply a (static or dynamic) built-in function to some arguments
+applyBuiltinName
+    :: (GShow uni, GEq uni, DefaultUni <: uni)
+    => Context uni
+    -> BuiltinName
+    -> [CkValue uni]
+    -> CkM uni (Term TyName Name uni ())
+applyBuiltinName stack bn args = do
+  result <- case bn of
+           n@(DynBuiltinName name) -> do
+               DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
+               applyTypeSchemed n sch x exX args
+           StaticBuiltinName name ->
+               applyStaticBuiltinName name args
+  case result of
+    EvaluationSuccess t -> stack <| t
+    EvaluationFailure ->
+        throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) $ Nothing
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
--- This differs from the spec version: we do not have the following rule:
---
--- > s , {_ A} ◁ F ↦ s ◁ W  -- Fully saturated constant, {F A} ~> W.
---
--- The reason for that is that the operational semantics of constant applications is
--- unaffected by types as it supports full type erasure, hence @{F A}@ can never compute
--- if @F@ does not compute, so we simply do not introduce a rule that can't possibly fire.
 evaluateCk
     :: (GShow uni, GEq uni, DefaultUni <: uni)
-    => Plain Term uni -> Either (CkEvaluationException uni) (Plain Term uni)
-evaluateCk term = [] |> term
+    =>  DynamicBuiltinNameMeanings (CkValue uni)
+    -> Term TyName Name uni ()
+    -> Either (CkEvaluationException uni) (Term TyName Name uni ())
+evaluateCk meanings term = runReaderT ([] |> term) (CkEnv meanings)
 
 -- | Evaluate a term using the CK machine. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
     :: ( GShow uni, GEq uni, DefaultUni <: uni, Closed uni
        , Typeable uni, uni `Everywhere` PrettyConst
        )
-    => Plain Term uni -> EvaluationResult (Plain Term uni)
-unsafeEvaluateCk = either throw id . extractEvaluationResult . evaluateCk
+    => DynamicBuiltinNameMeanings (CkValue uni)
+    -> Term TyName Name uni ()
+    -> EvaluationResult (Term TyName Name uni ())
+unsafeEvaluateCk meanings = either throw id . extractEvaluationResult . evaluateCk meanings

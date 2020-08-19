@@ -181,7 +181,6 @@
           "Language/PlutusCore/Normalize"
           "Language/PlutusCore/Normalize/Internal"
           "Language/PlutusCore/Pretty"
-          "Language/PlutusCore/View"
           "Language/PlutusCore/Subst"
           "Language/PlutusCore/Name"
           "Language/PlutusCore/Core"

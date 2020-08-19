@@ -103,8 +103,8 @@ main =
                     in
 
                     bgroup "unsafeEvaluateCk"
-                      [ bench "valid" $ nf (fmap $ unsafeEvaluateCk . toTerm) f'
-                      , bench "invalid" $ nf (fmap $ unsafeEvaluateCk . toTerm) g'
+                      [ bench "valid" $ nf (fmap $ unsafeEvaluateCk mempty . toTerm) f'
+                      , bench "invalid" $ nf (fmap $ unsafeEvaluateCk mempty . toTerm) g'
                       ]
                 , env evalFiles $ \ ~(f, g) ->
                    let processor :: BSL.ByteString -> Either (Error DefaultUni AlexPosn) (Program TyName Name DefaultUni ())

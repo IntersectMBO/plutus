@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module Main (main) where
 
@@ -288,10 +289,9 @@ runTypecheck (TypecheckOptions inp fmt) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp mode fmt printtime) = do
   prog <- getProg inp fmt
-  let meanings = PLC.getStringBuiltinMeanings
-      evalFn = case mode of
-                 CK  -> PLC.unsafeEvaluateCk
-                 CEK -> PLC.unsafeEvaluateCek meanings PLC.defaultCostModel
+  let evalFn = case mode of
+                 CK  -> PLC.unsafeEvaluateCk  (PLC.getStringBuiltinMeanings @ (PLC.CkValue  PLC.DefaultUni))
+                 CEK -> PLC.unsafeEvaluateCek (PLC.getStringBuiltinMeanings @ (PLC.CekValue PLC.DefaultUni)) PLC.defaultCostModel
       body = void . PLC.toTerm $ prog
       _ = rnf body   -- Force evaluation of body to ensure that we're not timing parsing/deserialisation
   start <- getCPUTime

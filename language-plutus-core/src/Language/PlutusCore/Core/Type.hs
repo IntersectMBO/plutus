@@ -14,7 +14,6 @@ module Language.PlutusCore.Core.Type
     , StaticBuiltinName(..)
     , DynamicBuiltinName(..)
     , Term(..)
-    , Value
     , Version(..)
     , Program(..)
     , UniOf
@@ -115,8 +114,6 @@ data Term tyname name uni ann
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni ann)
     | Error ann (Type tyname uni ann)
     deriving (Show, Functor, Generic, NFData, Lift, Hashable)
-
-type Value = Term
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
