@@ -12,9 +12,9 @@ import Data.Generic.Rep.Show (genericShow)
 import Data.Lens (Lens', to, view)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
+import Data.List (List)
 import Data.List.NonEmpty as NEL
 import Data.List.Types (NonEmptyList)
-import Data.List (List)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Symbol (SProxy(..))
 import Data.Tuple.Nested (type (/\))
@@ -23,7 +23,7 @@ import Gists (GistAction)
 import Halogen.Monaco (KeyBindings(..))
 import Halogen.Monaco as Monaco
 import Help (HelpContext(..))
-import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input)
+import Marlowe.Semantics (Bound, ChoiceId, ChosenNum, Contract, Input, Slot)
 import Marlowe.Semantics as S
 import Marlowe.Symbolic.Types.Response (Result)
 import Network.RemoteData (RemoteData(..))
@@ -180,7 +180,8 @@ data Action
   | CheckAuthStatus
   | GistAction GistAction
   -- marlowe actions
-  | NextSlot
+  | MoveSlot Slot
+  | SetSlot Slot
   | AddInput Input (Array Bound)
   | RemoveInput Input
   | SetChoice ChoiceId ChosenNum
@@ -213,7 +214,8 @@ instance isEventAction :: IsEvent Action where
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
   toEvent (SetEditorText _) = Just $ (defaultEvent "SetEditorText")
-  toEvent NextSlot = Just $ defaultEvent "NextBlock"
+  toEvent (MoveSlot _) = Just $ (defaultEvent "MoveSlot")
+  toEvent (SetSlot _) = Just $ (defaultEvent "SetSlot")
   toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
   toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"
