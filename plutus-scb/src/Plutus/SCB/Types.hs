@@ -10,6 +10,7 @@
 module Plutus.SCB.Types where
 
 import qualified Cardano.ChainIndex.Types       as ChainIndex
+import qualified Cardano.Metadata.Types         as Metadata
 import qualified Cardano.Node.Server            as NodeServer
 import qualified Cardano.SigningProcess.Server  as SigningProcess
 import qualified Cardano.Wallet.Server          as WalletServer
@@ -47,6 +48,7 @@ data SCBError
     | SCBContractError ContractError
     | WalletClientError ClientError
     | NodeClientError ClientError
+    | MetadataClientError ClientError
     | SigningProcessError ClientError
     | ChainIndexError ClientError
     | WalletError WalletAPIError
@@ -63,6 +65,7 @@ instance Pretty SCBError where
         SCBContractError e -> "Contract error:" <+> pretty e
         WalletClientError e -> "Wallet client error:" <+> viaShow e
         NodeClientError e -> "Node client error:" <+> viaShow e
+        MetadataClientError e -> "Metadata client error:" <+> viaShow e
         SigningProcessError e -> "Signing process error:" <+> viaShow e
         ChainIndexError e -> "Chain index error:" <+> viaShow e
         WalletError e -> "Wallet error:" <+> pretty e
@@ -85,6 +88,7 @@ data Config =
         { dbConfig                :: DbConfig
         , walletServerConfig      :: WalletServer.Config
         , nodeServerConfig        :: NodeServer.MockServerConfig
+        , metadataServerConfig    :: Metadata.MetadataConfig
         , scbWebserverConfig      :: WebserverConfig
         , chainIndexConfig        :: ChainIndex.ChainIndexConfig
         , signingProcessConfig    :: SigningProcess.SigningProcessConfig
