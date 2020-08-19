@@ -6,7 +6,10 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
-import Data.Lens (Getter', Lens', modifying, over, set, to, view, (^.))
+import Data.Lens (Getter', Lens', Traversal', lens, modifying, over, preview, set, to, view, (^.))
+import Data.Lens.At (at)
+import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
@@ -28,12 +31,13 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, append, map, mempty, min, zero, ($), (<), (<<<))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, eq, map, mempty, min, one, zero, ($), (<), (<<<))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
   | ChoiceInputId ChoiceId (Array Bound)
   | NotifyInputId
+  | MoveToSlotId
 
 derive instance eqActionInputId :: Eq ActionInputId
 
@@ -53,6 +57,7 @@ data ActionInput
   = DepositInput AccountId Party Token BigInteger
   | ChoiceInput ChoiceId (Array Bound) ChosenNum
   | NotifyInput
+  | MoveToSlot Slot
 
 derive instance eqActionInput :: Eq ActionInput
 
@@ -113,6 +118,27 @@ mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
 derive newtype instance encodeParties :: Encode Parties
 
 derive newtype instance decodeParties :: Decode Parties
+
+_actionInput :: Party -> ActionInputId -> Traversal' Parties ActionInput
+_actionInput party id = _Newtype <<< ix party <<< ix id
+
+_otherActions :: Traversal' Parties (Map ActionInputId ActionInput)
+_otherActions = _Newtype <<< ix otherActionsParty
+
+_moveToAction :: Lens' Parties (Maybe ActionInput)
+_moveToAction = lens get' set'
+  where
+  get' = preview (_actionInput otherActionsParty MoveToSlotId)
+
+  set' p ma =
+    let
+      m = case preview _otherActions p, ma of
+        Nothing, Nothing -> Nothing
+        Just m', Nothing -> Just $ Map.delete MoveToSlotId m'
+        Nothing, Just a -> Just $ Map.singleton MoveToSlotId a
+        Just m', Just a -> Just $ Map.insert MoveToSlotId a m'
+    in
+      set (_Newtype <<< at otherActionsParty) m p
 
 type MarloweState
   = { possibleActions :: Parties
@@ -226,9 +252,18 @@ updatePossibleActions oldState =
 
     usefulActions = mapMaybe removeUseless actions
 
-    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
+    currentSlot = oldState ^. _slot
+
+    slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
+
+    actionInputs = Map.fromFoldable $ (map (actionToActionInput nextState) usefulActions)
+
+    moveTo = if oldState ^. (_contract <<< to (eq (Just Close))) then Nothing else Just $ MoveToSlot slot
   in
-    over _possibleActions (updateActions actionInputs) oldState
+    ( set (_possibleActions <<< _moveToAction) moveTo
+        <<< over _possibleActions (updateActions actionInputs)
+    )
+      oldState
   where
   removeUseless :: Action -> Maybe Action
   removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
@@ -251,7 +286,7 @@ updatePossibleActions oldState =
   actionPerson (ChoiceInput (ChoiceId _ party) _ _) = party
 
   -- We have a special person for notifications
-  actionPerson NotifyInput = otherActionsParty
+  actionPerson _ = otherActionsParty
 
   appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
   appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
@@ -330,6 +365,20 @@ applyInput ::
   (Array Input -> Array Input) ->
   m Unit
 applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over _pendingInputs inputs)))
+
+moveToSignificantSlot ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Slot ->
+  m Unit
+moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _slot slot)))
+
+moveToSlot ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Slot ->
+  m Unit
+moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set _slot slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
 hasHistory state = state ^. (_marloweState <<< to NEL.length <<< to ((<) 1))

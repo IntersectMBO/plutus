@@ -1165,6 +1165,8 @@ inputItem isEnabled person NotifyInput =
         [ text "+" ]
     ]
 
+inputItem _ _ _ = text mempty
+
 marloweActionInput :: forall p a action. Show a => Boolean -> (BigInteger -> action) -> a -> HTML p action
 marloweActionInput isEnabled f current =
   input
