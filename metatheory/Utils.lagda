@@ -2,10 +2,12 @@
 module Utils where
 
 open import Relation.Binary.PropositionalEquality
+open import Function
 open import Data.Nat
 open import Data.Nat.Properties
 open import Data.Vec hiding (map;_>>=_)
 open import Data.List hiding (map)
+open import Data.Sum
 open import Relation.Nullary
 open import Data.Empty
 
@@ -28,10 +30,6 @@ mbind (just a) f = f a
 mbind nothing  f = nothing
 
 {-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
-
-map : {A B : Set} → (A → B) → Maybe A → Maybe B
-map f (just a) = just (f a)
-map f nothing  = nothing
 
 decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
@@ -75,15 +73,16 @@ record Monad (F : Set → Set) : Set₁ where
     _>>=_   : ∀{A B} → F A → (A → F B) → F B
     
   _>>_ : ∀{A B} → F A → F B → F B
-  fa >> fb = fa >>= λ _ → fb
+  as >> bs = as >>= const bs
+
+  fmap : ∀{A B} → (A → B) → F A → F B
+  fmap f as = as >>= (return ∘ f)
 
 open Monad {{...}} public
 
 instance
   MaybeMonad : Monad Maybe
   MaybeMonad = record { return = just ; _>>=_ = mbind }
-
-open import Data.Sum
 
 sumBind : {A B C : Set} → A ⊎ C → (A → B ⊎ C) → B ⊎ C
 sumBind (inj₁ a) f = f a

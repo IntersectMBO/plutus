@@ -1,11 +1,11 @@
 \begin{code}
 module Main where
 open import Agda.Builtin.IO
-open import IO.Primitive using () renaming (return to returnIO;_>>=_ to _>>=IO_)
+import IO.Primitive as IO using (return;_>>=_) 
 open import Agda.Builtin.Unit
 open import Agda.Builtin.String
 open import Function
-open import Data.Sum
+open import Data.Sum renaming ([_,_] to case)
 open import Data.String
 open import Agda.Builtin.TrustMe
 open import Relation.Binary.PropositionalEquality
@@ -13,7 +13,6 @@ open import Agda.Builtin.Nat
 open import Data.Nat
 open import Agda.Builtin.Int
 open import Data.Integer
---import Data.Maybe as M
 open import Data.Product renaming (_,_ to _,,_)
 open import Data.Bool
 open import Data.Fin
@@ -50,20 +49,15 @@ open import Scoped.Erasure
 postulate
   putStrLn : String → IO ⊤
 
-{-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
 {-# FOREIGN GHC import qualified Data.Text as T #-}
-{-# COMPILE GHC putStrLn = Text.putStrLn #-}
+{-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
+{-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
 
 -- IO Stuff
 
-postulate
-  imap : ∀{A B : Set} → (A → B) → IO A → IO B
-
-{-# COMPILE GHC imap = \_ _ -> fmap #-}
-
 instance
   IOMonad : Monad IO
-  IOMonad = record { return = returnIO ; _>>=_ = _>>=IO_ }
+  IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
 
 -- Bytestring stuff
 
@@ -152,6 +146,8 @@ postulate
 
 data EvalMode : Set where
   U L TCK CK TCEKC TCEKV : EvalMode
+
+{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKC | TCEKV) #-}
 
 -- extrinsically typed evaluation
 evalPLC : EvalMode → ByteString → String ⊎ String
@@ -265,6 +261,8 @@ alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
 
+-- Opt stuff
+
 {-# FOREIGN GHC import Opts #-}
 
 data Input : Set where
@@ -276,41 +274,43 @@ data Input : Set where
 data EvalOptions : Set where
   EvalOpts : Input → EvalMode → EvalOptions
 
+{-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
+
 data TCOptions : Set where
   TCOpts : Input → TCOptions
+
+{-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
 
 data Command : Set where
   Evaluate  : EvalOptions → Command
   TypeCheck : TCOptions → Command
 
+{-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
+
 postulate execP : IO Command
 
-{-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
-{-# COMPILE GHC TCOptions = data TCOptions (TCOpts) #-}
-{-# COMPILE GHC Command = data Command (Evaluate | TypeCheck) #-}
-{-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKC | TCEKV) #-}
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (String ⊎ String)
-evalInput m (FileInput fn) = imap (evalPLC m) (readFile fn)
-evalInput m StdInput       = imap (evalPLC m) getContents
+evalInput m (FileInput fn) = fmap (evalPLC m) (readFile fn)
+evalInput m StdInput       = fmap (evalPLC m) getContents
 
 tcInput : Input → IO (String ⊎ String)
-tcInput (FileInput fn) = imap tcPLC (readFile fn)
-tcInput StdInput       = imap tcPLC getContents
+tcInput (FileInput fn) = fmap tcPLC (readFile fn)
+tcInput StdInput       = fmap tcPLC getContents
 
 
 main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) =
   evalInput m i
   >>=
-  Data.Sum.[_,_]
+  case
     (λ s → putStrLn s >> exitSuccess)
     (λ e → putStrLn e >> exitFailure)
 main' (TypeCheck (TCOpts i))    =
   (tcInput i)
   >>=
-  Data.Sum.[_,_]
+  case
     (λ s → putStrLn s >> exitSuccess)
     (λ e → putStrLn e >> exitFailure)
 

@@ -15,8 +15,9 @@ open import Type.BetaNBE.Soundness
 open import Data.String
 open import Data.Nat
 open import Data.Fin
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Vec hiding ([_];_>>=_)
+open import Data.Product renaming (_,_ to _,,_) hiding (map)
+open import Data.Vec hiding ([_];_>>=_) hiding (map)
+open import Data.Sum
 ```
 
 ```
@@ -27,8 +28,6 @@ len⋆ (Φ ,⋆ K) = suc (len⋆ Φ)
 inferTyVar : ∀ Φ (i : Fin (len⋆ Φ)) → Σ Kind (Φ ∋⋆_)
 inferTyVar (Φ ,⋆ K) zero    = K ,, Z
 inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
-
-open import Data.Sum
 
 data Error : Set where
   typeError : Error
@@ -48,6 +47,7 @@ data Error : Set where
 ⊎bind (inj₁ a) f = f a
 ⊎bind (inj₂ c) f = inj₂ c
 
+{-
 open import Data.Bool using (Bool;true;false;_∧_)
 
 eqKind : Kind → Kind → Bool
@@ -58,8 +58,9 @@ eqKind (K ⇒ J) (K' ⇒ J') = eqKind K K' ∧ eqKind J J'
 
 open import Relation.Nullary
 open import Relation.Binary using (Decidable)
+-}
 open import Relation.Binary.PropositionalEquality hiding ([_])
-
+{-
 eqKind' : Decidable {A = Kind} _≡_
 eqKind' * *       = yes refl
 eqKind' * (_ ⇒ _) = no λ()
@@ -69,7 +70,7 @@ eqKind' (K ⇒ J) (K' ⇒ J') with eqKind' K K'
 ... | yes p with eqKind' J J'
 ... | yes p' = yes (cong₂ _⇒_ p p')
 ... | no  q' = no (λ{refl → q' refl})
-
+-}
 meqKind : (K K' : Kind) → (K ≡ K') ⊎ Error
 meqKind * *       = inj₁ refl
 meqKind * (_ ⇒ _) = inj₂ kindEqError
@@ -114,7 +115,6 @@ inferKind Φ (μ pat arg) = do
   refl ← meqKind K' K''
   return (* ,, ne (μ1 · pat · arg))
 inferKind Φ missing = inj₂ typeError
-
 open import Algorithmic
 
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
@@ -127,17 +127,10 @@ open import Function hiding (_∋_)
 open import Type.BetaNormal.Equality
 inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) 
   → (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A) ⊎ Error
-inferVarType (Γ ,⋆ J) (WeirdFin.T x) = Data.Sum.map (λ {(A ,, x) → weakenNf A ,, _∋_.T x}) id (inferVarType Γ x)
+inferVarType (Γ ,⋆ J) (WeirdFin.T x) = map (λ {(A ,, x) → weakenNf A ,, _∋_.T x}) id (inferVarType Γ x)
 inferVarType (Γ , A)  Z              = inj₁ (A ,, Z)
 inferVarType (Γ , A)  (S x)          =
-  Data.Sum.map (λ {(A ,, x) → A ,, S x}) id (inferVarType Γ x)
-
-open import Data.String.Properties
-
-open import Relation.Binary hiding (_⇒_)
-dec2⊎Err : {a a' : String} → Dec (a ≡ a') → (a ≡ a') ⊎ Error
-dec2⊎Err (yes p) = inj₁ p
-dec2⊎Err {a}{a'}(no ¬p) = inj₂ (nameError a a')
+  map (λ {(A ,, x) → A ,, S x}) id (inferVarType Γ x)
 
 open import Type.BetaNormal
 
@@ -243,7 +236,7 @@ inferTypeBuiltin _ _ _ = inj₂ builtinError
 
 
 inferType Γ (` x)             =
-  Data.Sum.map (λ{(A ,, x) → A ,, ` x}) id (inferVarType Γ x)
+  map (λ{(A ,, x) → A ,, ` x}) id (inferVarType Γ x)
 inferType Γ (Λ K L)         = do
   A ,, L ← inferType (Γ ,⋆ K) L
   return (Π A ,, Λ L)

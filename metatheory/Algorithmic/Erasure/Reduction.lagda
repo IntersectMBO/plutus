@@ -21,7 +21,7 @@ open import Untyped
 open import Builtin.Signature Ctx⋆ Kind
   ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
 open import Type.BetaNBE.RenamingSubstitution
-open import Data.Sum as S
+open import Data.Sum
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.List using (List;[];_∷_)
 open import Data.Vec hiding (map; [_])
