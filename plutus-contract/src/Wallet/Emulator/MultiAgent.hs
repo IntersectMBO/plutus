@@ -298,8 +298,8 @@ handleMultiAgent = interpret $ \case
             p1 = below (logMessage Info . timed . walletEvent wallet)
             p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . timed. chainIndexEvent wallet)
+            p3 :: AReview [LogMessage EmulatorEvent] (LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage EmulatorEvent] (LogMessage T.Text)
             p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
             p5 :: AReview [LogMessage EmulatorEvent] (LogMessage RequestHandlerLogMsg)
@@ -322,7 +322,7 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (walletClientState wallet))
             & interpret (handleZoomedWriter p2)
             & interpret (handleZoomedState (walletChainIndexState wallet))
-            & interpret (handleZoomedWriter p3)
+            & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (signingProcessState wallet))
             & interpret (writeIntoState emulatorLog)
 
@@ -335,8 +335,8 @@ handleMultiAgent = interpret $ \case
             p1 = below (logMessage Info . timed . walletEvent wallet)
             p2 :: AReview [LogMessage EmulatorEvent] [NC.NodeClientEvent]
             p2 = below (logMessage Info . timed . walletClientEvent wallet)
-            p3 :: AReview [LogMessage EmulatorEvent] [ChainIndex.ChainIndexEvent]
-            p3 = below (logMessage Info . timed . chainIndexEvent wallet)
+            p3 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage ChainIndex.ChainIndexEvent)
+            p3 = _singleton . below (timed . chainIndexEvent wallet)
             p4 :: AReview [LogMessage EmulatorEvent] (Log.LogMessage T.Text)
             p4 = _singleton . below (timed . walletEvent wallet . Wallet._GenericLog)
         act
@@ -351,7 +351,7 @@ handleMultiAgent = interpret $ \case
             & interpret (handleZoomedState (walletClientState wallet))
             & interpret (handleZoomedWriter p2)
             & interpret (handleZoomedState (walletChainIndexState wallet))
-            & interpret (handleZoomedWriter p3)
+            & interpret (handleLogWriter p3)
             & interpret (handleZoomedState (signingProcessState wallet))
             & interpret (writeIntoState emulatorLog)
     Assertion a -> assert a
