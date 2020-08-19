@@ -173,7 +173,12 @@ handleNextTxAtQueries = RequestHandler $ \req ->
         current <- Wallet.Effects.walletSlot
         let target = acreqSlot req
         logDebug $ HandleNextTxAt current target
-        guard (current >= target)
+        -- If we ask the chain index for transactions that were confirmed in
+        -- the current slot, we always get an empty list, because the chain
+        -- index only learns about those transactions at the beginning of the
+        -- next slot. So we need to make sure that we are past the current
+        -- slot.
+        guard (current > target)
         Wallet.Effects.nextTx req
 
 -- | Maximum number of times request handlers are run before waiting for more
