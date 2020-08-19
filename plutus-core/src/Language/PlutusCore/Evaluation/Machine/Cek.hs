@@ -384,19 +384,17 @@ returnCek (FrameUnwrap : ctx) val =
       _              ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just val
 
-{- Note [Accumulating arguments].
-The VBuiltin value contains lists of type and term arguments which
-grow as new arguments are encountered.  In the code below We just add
-new entries by appending to the end of the list: l -> l++[x].  This
-doesn't look terrbily good, but we don't expect the lists to ever
-contain more than three or four elements, so the cost is unlikely to
-be high.  We could accumulate lists in the normal way and reverse them
-when required, but this is error-prone and reversal adds an extra cost
-anyway.  We could also use something like Data.Sequence, but again we
-incur an extra cost because we have to convert to a normal list when
-passing the arguments to the constant application machinery.  If we
-really care we might want to convert the CAM to use sequences instead
-of lists.
+{- Note [Accumulating arguments].  The VBuiltin value contains lists of type and
+term arguments which grow as new arguments are encountered.  In the code below
+We just add new entries by appending to the end of the list: l -> l++[x].  This
+doesn't look terrbily good, but we don't expect the lists to ever contain more
+than three or four elements, so the cost is unlikely to be high.  We could
+accumulate lists in the normal way and reverse them when required, but this is
+error-prone and reversal adds an extra cost anyway.  We could also use something
+like Data.Sequence, but again we incur an extra cost because we have to convert
+to a normal list when passing the arguments to the constant application
+machinery.  If we really care we might want to convert the CAM to use sequences
+instead of lists.
 -}
 
 -- | Instantiate a term with a type and proceed.
