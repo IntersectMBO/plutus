@@ -7,7 +7,7 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, foldr, intercalate, reverse, snoc, sortWith, (:))
+import Data.Array (delete, filter, intercalate, snoc, sortWith)
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger, fromString, fromInt)
@@ -24,7 +24,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
-import Data.Ord (greaterThan)
 import Data.String (codePointFromChar)
 import Data.String as String
 import Data.Traversable (traverse)
@@ -65,7 +64,7 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, otherwise, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
