@@ -6,7 +6,7 @@ import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
-import Data.Lens (Getter', Lens', Traversal', lens, modifying, over, preview, set, to, view, (^.))
+import Data.Lens (Getter', Lens', Traversal', has, lens, modifying, over, preview, set, to, view, (^.))
 import Data.Lens.At (at)
 import Data.Lens.Index (ix)
 import Data.Lens.Iso.Newtype (_Newtype)
@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
+import Data.NonEmptyList.Lens (_Tail)
 import Data.Symbol (SProxy(..))
 import Data.Tuple (Tuple(..))
 import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
@@ -380,7 +381,7 @@ moveToSlot ::
 moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set _slot slot)))
 
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
-hasHistory state = state ^. (_marloweState <<< to NEL.length <<< to ((<) 1))
+hasHistory state = has (_marloweState <<< _Tail) state
 
 evalObservation :: MarloweState -> Observation -> Boolean
 evalObservation state observation =
