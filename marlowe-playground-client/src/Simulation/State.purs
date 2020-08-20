@@ -31,7 +31,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, eq, map, mempty, min, one, zero, ($), (<), (<<<))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, ($), (<), (<<<), (==), (||))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -258,7 +258,7 @@ updatePossibleActions oldState =
 
     actionInputs = Map.fromFoldable $ (map (actionToActionInput nextState) usefulActions)
 
-    moveTo = if oldState ^. (_contract <<< to (eq (Just Close))) then Nothing else Just $ MoveToSlot slot
+    moveTo = if oldState ^. (_contract <<< to (\c -> c == Just Close || c == Nothing)) then Nothing else Just $ MoveToSlot slot
   in
     ( set (_possibleActions <<< _moveToAction) moveTo
         <<< over _possibleActions (updateActions actionInputs)
