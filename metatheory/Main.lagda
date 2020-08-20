@@ -162,40 +162,38 @@ parsePLC plc = do
   -- shifter is run and probably does something sensibe withe the
   -- program wrapper
 
--- TODO: switch typechecker over to using either
 typeCheckPLC : ScopedTm Z → Either Error (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
 typeCheckPLC t = inferType _ t
 
 maxsteps = 10000000000
 
 executePLC : EvalMode → ScopedTm Z → Either Error String
-executePLC U t = inj₁ gasError -- TODO
+executePLC U t = inj₁ gasError
 executePLC L t with S.run t maxsteps
 ... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (extricateScope t'))
 ... | t' ,, p ,, inj₁ nothing  = inj₁ gasError
 ... | t' ,, p ,, inj₂ e        = inj₂ "ERROR"
-                                 -- ^ TODO: the program computed to error
 executePLC CK t = do
   □ {t = t} v ← Scoped.CK.stepper maxsteps (ε ▻ t)
-    where ◆  → inj₂ "ERROR" -- TODO: the program computed to error
+    where ◆  → inj₂ "ERROR"
           _  → inj₁ gasError
   return (prettyPrintTm (extricateScope t))
 executePLC TCK t = do
   (A ,, t) ← typeCheckPLC t
   □ {t = t} v ← Algorithmic.CK.stepper maxsteps (ε ▻ t)
-    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+    where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
   return (prettyPrintTm (extricateScope (extricate t)))
 executePLC TCEKC t = do
   (A ,, t) ← typeCheckPLC t
   □ (_ ,, _ ,, V ,, ρ) ← Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ t)
-    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+    where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
   return (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
 executePLC TCEKV t = do
   (A ,, t) ← typeCheckPLC t
   □ V ← Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
-    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+    where ◆ _  → inj₂ "ERROR"
           _    → inj₁ gasError
   return (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
 
@@ -210,95 +208,10 @@ typeCheckByteString b = do
   (A ,, _) ← typeCheckPLC t
   return (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
 
-
-{-
-evalPLC : EvalMode → ByteString → String ⊎ String
-evalPLC m plc with parse plc
-evalPLC m plc | nothing = inj₂ "parse error"
-evalPLC m plc | just nt with deBruijnify nt
-evalPLC m plc | just nt | nothing = inj₂ "(Haskell) Scope Error"
-evalPLC m plc | just nt | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
-evalPLC m plc | just nt | just t | nothing = inj₂ $ "(Agda) Scope Error"
-  ++ "\n" ++ rawPrinter (shifter 0 Z (convP t))
-evalPLC L plc | just nt | just t | just t' with S.run t' 10000000000
-evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
-  inj₁ (prettyPrintTm (extricateScope t''))
-evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing  =
-  inj₂ "out of fuel"
-evalPLC L plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e        =
-  inj₂ "computed to error"
-evalPLC CK plc | just nt | just t | just t' with Scoped.CK.stepper 1000000000 (ε ▻ t')
-evalPLC CK plc | just nt | just t | just t' | just (□ {t = t''}  V) =
-   inj₁ (prettyPrintTm (extricateScope t''))
-evalPLC CK plc | just nt | just t | just t' | just _ =
-  inj₂ ("this shouldn't happen")
-evalPLC CK plc | just nt | just t | just t' | nothing = inj₂ "out of fuel"
-evalPLC TCK plc | just nt | just t | just t' with inferType _ t'
-... | inj₂ e = inj₂ "typechecking error"
-... | inj₁ (A ,, t'') with Algorithmic.CK.stepper 1000000000 (ε ▻ t'')
-... | just (□ {t = t'''} V)  =
-  inj₁ (prettyPrintTm (extricateScope (extricate t''')))
-... | just (◆ _)  = inj₂ "the machine errored"
-... | just _  = inj₂ "this shouldn't happen"
-... | nothing = inj₂ "out of fuel"
-evalPLC TCEKC plc | just nt | just t | just t' with inferType _ t'
-... | inj₂ e = inj₂ "typechecking error"
-... | inj₁ (A ,, t'') with Algorithmic.CEKC.stepper 1000000000 (ε ; [] ▻ t'')
-... | just (□ (_ ,, _ ,, V ,, ρ))  =
-  inj₁ (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
-... | just (◆ _)  = inj₂ "the machine errored"
-... | just _  = inj₂ "did not terminate in allowed steps"
-... | nothing = inj₂ "out of fuel"
-evalPLC TCEKV plc | just nt | just t | just t' with inferType _ t'
-... | inj₂ e = inj₂ "typechecking error"
-... | inj₁ (A ,, t'') with Algorithmic.CEKV.stepper 1000000000 (ε ; [] ▻ t'')
-... | just (□ V)  =
-  inj₁ (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
-... | just (◆ _)  = inj₂ "the machine errored"
-... | just _  = inj₂ "did not terminate in allowed steps"
-... | nothing = inj₂ "out of fuel"
-evalPLC U plc | just nt | just t | just t' with U.run (eraseTm t') 10000000
-evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ (just v) =
-  inj₁ (U.ugly t'')
-evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
-  inj₂ "out of fuel"
-evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e =
-  inj₂ "computed to error"
--}
-
 junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
-{-
-tcPLC : ByteString → String ⊎ String
-tcPLC plc with parse plc
-... | nothing = inj₂ "Parse Error"
-... | just nt with deBruijnify nt
-... | nothing = inj₂ "(Haskell) Scope Error"
-... | just t with scopeCheckTm {0}{Z} (shifter 0 Z (convP t))
-... | nothing = inj₂ "(Agda) scope error"
-... | just t' with inferType _ t'
-... | inj₁ (A ,, t'') =
-  inj₁ (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
-... | inj₂ typeError = inj₂ "typeError"
-... | inj₂ kindEqError = inj₂ "kindEqError"
-... | inj₂ notTypeError = inj₂ "notTypeError"
-... | inj₂ notFunction = inj₂ "notFunction"
-... | inj₂ notPiError = inj₂ "notPiError"
-... | inj₂ notPat = inj₂ "notPat"
-... | inj₂ (nameError x x') = inj₂ (x Data.String.++ " != " Data.String.++ x')
-... | inj₂ (typeEqError n n') = inj₂ (
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n))
-  Data.String.++
-  "\n != \n"
-  Data.String.++
-  prettyPrintTy (extricateScopeTy (extricateNf⋆ n')))
-... | inj₂ typeVarEqError = inj₂ "typeVarEqError"
-... | inj₂ tyConError     = inj₂ "tyConError"
-... | inj₂ builtinError   = inj₂ "builtinError"
-... | inj₂ unwrapError    = inj₂ "unwrapError"
--}
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
@@ -369,27 +282,14 @@ main' : Command → IO ⊤
 main' (Evaluate (EvalOpts i m)) = do
   inj₂ s ← evalInput m i
     where
-    inj₁ e → putStrLn "wibble" >> exitFailure -- TODO
+    inj₁ e → putStrLn "Evaluation failed" >> exitFailure
   putStrLn s >> exitSuccess
 main' (TypeCheck (TCOpts i))    = do
   inj₂ s ← tcInput i
     where
-    inj₁ e → putStrLn "wibble" >> exitFailure -- TODO
+    inj₁ e → putStrLn "Type checking failed" >> exitFailure
   putStrLn s >> exitSuccess
-{-
-main' (Evaluate (EvalOpts i m)) =
-  evalInput m i
-  >>=
-  case
-    (λ s → putStrLn s >> exitSuccess)
-    (λ e → putStrLn e >> exitFailure)
-main' (TypeCheck (TCOpts i))    =
-  (tcInput i)
-  >>=
-  case
-    (λ s → putStrLn s >> exitSuccess)
-    (λ e → putStrLn e >> exitFailure)
--}
+
 main : IO ⊤
 main = execP >>= main'
 

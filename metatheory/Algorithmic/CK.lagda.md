@@ -28,7 +28,6 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNBE
 open import Algorithmic.RenamingSubstitution
-open import Algorithmic using (Error;gasError)
 ```
 
 ```

@@ -22,7 +22,6 @@ open import Builtin
 open import Scoped.RenamingSubstitution
 open import Relation.Nullary
 open import Utils
-open import Algorithmic using (Error;gasError)
 ```
 
 ```

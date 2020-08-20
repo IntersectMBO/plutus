@@ -7,7 +7,7 @@ open import Function
 
 open import Type
 open import Type.BetaNormal
-import Algorithmic as A hiding (Error)
+open import Algorithmic as A
 import Algorithmic.Reduction as A
 import Algorithmic.RenamingSubstitution as A
 open import Algorithmic.Erasure
@@ -105,8 +105,6 @@ erase-VERIFYSIG : ∀{Φ}{Γ : A.Ctx Φ}(mb : Util.Maybe B.Bool)
 erase-VERIFYSIG (Util.just B.false) = refl
 erase-VERIFYSIG (Util.just B.true)  = refl
 erase-VERIFYSIG Util.nothing = refl
-
-open import Algorithmic using (_∷_;[]) -- TODO
 
 erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
   ∀{Φ}(Γ : A.Ctx Φ)

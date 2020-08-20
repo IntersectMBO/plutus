@@ -21,7 +21,7 @@ open import Data.Unit using (tt)
 
 
 open import Type
-open import Algorithmic hiding (Error)
+open import Algorithmic
 open import Algorithmic.RenamingSubstitution
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability
@@ -33,7 +33,7 @@ open import Builtin.Constant.Type
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
-open import Utils
+open import Utils hiding (Error)
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 \end{code}

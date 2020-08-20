@@ -23,7 +23,6 @@ open import Builtin.Constant.Type
 open import Builtin
 open import Raw
 open import Utils
-open import Algorithmic using (Error;scopeError) -- TODO: just for Error...
 \end{code}
 
 \begin{code}

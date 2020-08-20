@@ -159,7 +159,7 @@ meqNfTy (con c) (con c')  = do
 meqNfTy (ne n)  (ne n')   = do
   p ← meqNeTy n n'
   return (cong ne p)
-meqNfTy n      n'          = inj₁ typeEqError -- TODO (typeEqError n n')
+meqNfTy n      n'          = inj₁ typeEqError
 
 meqNeTy (` α) (` α')      = do
   refl ← meqTyVar α α'
@@ -170,7 +170,7 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
   q ← meqNfTy B B'
   return (cong₂ _·_ p q)
 meqNeTy μ1 μ1 = return refl
-meqNeTy n  n'  = inj₁ typeEqError -- TODO (typeEqError (ne n) (ne n'))
+meqNeTy n  n'  = inj₁ typeEqError
 
 open import Type.BetaNormal.Equality
 

@@ -7,7 +7,7 @@ module Algorithmic.Evaluation where
 \begin{code}
 open import Type
 open import Type.BetaNormal
-open import Algorithmic hiding (Error)
+open import Algorithmic
 open import Algorithmic.Reduction
 \end{code}
 
