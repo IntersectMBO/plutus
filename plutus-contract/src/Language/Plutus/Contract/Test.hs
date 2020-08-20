@@ -46,6 +46,7 @@ import           Control.Lens                                    (at, view, (^.)
 import           Control.Monad                                   (guard, unless)
 import           Control.Monad.Freer.Log                         (LogMessage (..))
 import           Control.Monad.Writer                            (MonadWriter (..), Writer, runWriter)
+import qualified Data.Aeson                                      as JSON
 import           Data.Bifunctor                                  (Bifunctor (..))
 import           Data.Foldable                                   (fold, toList)
 import           Data.Functor.Contravariant                      (Contravariant (..), Op (..))
@@ -56,6 +57,7 @@ import           Data.Proxy                                      (Proxy (..))
 import           Data.Row                                        (Forall, HasType)
 import           Data.Semigroup                                  (First (..))
 import           Data.Semigroup.Generic                          (GenericSemigroupMonoid (..))
+import           Data.Sequence                                   (Seq)
 import           Data.String                                     (IsString (..))
 import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc
@@ -125,17 +127,17 @@ hooks
 hooks w rs =
     let (evts, con) = contractEventsWallet rs w
         store       = contractCheckpointStore w rs
-    in either (const mempty) (fmap State.rqRequest . State.unRequests . Types.wcsRequests) (Types.runResumable evts store (unContract con))
+    in fmap State.rqRequest . State.unRequests . Types.wcsRequests $ Types.runResumable evts store (unContract con)
 
 record
     :: forall s e a.
     Wallet
     -> ContractTraceResult s e a
-    -> Either e (Responses (Event s))
+    -> Responses (Event s)
 record w rs =
     let (evts, con) = contractEventsWallet rs w
         store       = contractCheckpointStore w rs
-    in fmap Types.wcsResponses (Types.runResumable evts store (unContract con))
+    in Types.wcsResponses (Types.runResumable evts store (unContract con))
 
 not :: TracePredicate s e a -> TracePredicate s e a
 not = PredF . fmap (fmap Prelude.not) . unPredF
@@ -185,11 +187,22 @@ renderTraceContext testOutputs st =
         prettyResults = fmap (\(wallet, res) -> hang 2 $ vsep ["Wallet:" <+> pretty wallet, prettyResult res]) results
         prettyCheckpoints = fmap (\(wallet, cp) -> hang 2 $ vsep ["Wallet:" <+> pretty wallet, pretty cp]) nonEmptyCheckpoints
         prettyResult result = case result of
-            Left err ->
-                hang 2 $ vsep ["Error:", viaShow err]
-            Right (Types.ResumableResult{Types.wcsFinalState=Nothing, Types.wcsRequests}) ->
-                hang 2 $ vsep ["Running, waiting for input:", pretty wcsRequests]
-            Right _ -> "Done"
+            Types.ResumableResult{Types.wcsFinalState=Right Nothing, Types.wcsRequests, Types.wcsLogs} ->
+                vsep
+                    [ hang 2 $ vsep ["Running, waiting for input:", pretty wcsRequests]
+                    , prettyLogs wcsLogs
+                    ]
+            Types.ResumableResult{Types.wcsFinalState=Left err,Types.wcsLogs} ->
+                vsep
+                    [ hang 2 $ vsep ["Error:", viaShow err]
+                    , prettyLogs wcsLogs
+                    ]
+            Types.ResumableResult{Types.wcsFinalState=Right (Just _),Types.wcsLogs} ->
+                vsep
+                    [ "Done"
+                    , prettyLogs wcsLogs
+                    ]
+
     in renderStrict $ layoutPretty defaultLayoutOptions $ vsep
         [ hang 2 (vsep ["Test outputs:", testOutputs])
         , hang 2 (vsep ["Events by wallet:", prettyWalletEvents st])
@@ -439,7 +452,6 @@ assertHooks w p nm = PredF $ \(_, rs) ->
 assertResponses
     :: forall s e a.
        ( Forall (Input s) Pretty
-       , Show e
        )
     => Wallet
     -> (Responses (Event s) -> Bool)
@@ -447,7 +459,7 @@ assertResponses
     -> TracePredicate s e a
 assertResponses w p nm = PredF $ \(_, rs) ->
     case record w rs of
-        Right r
+        r
             | p r -> pure True
             | otherwise -> do
                 tell $ vsep
@@ -456,9 +468,6 @@ assertResponses w p nm = PredF $ \(_, rs) ->
                     , "Failed" <+> squotes (fromString nm)
                     ]
                 pure False
-        Left err -> do
-            tell $ pretty w <> colon <+> "Record failed with" <+> viaShow err <+> "in" <+> squotes (fromString nm)
-            pure False
 
 data Outcome e a =
     Done a
@@ -527,32 +536,36 @@ assertOutcome w p nm = PredF $ \(_, rs) ->
         result = Types.runResumable evts store (unContract con)
     in
         case result of
-            Left err
+            Types.ResumableResult{Types.wcsFinalState=Left err, Types.wcsRequests, Types.wcsLogs}
                 | p (Error err) -> pure True
                 | otherwise -> do
                     tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
-                        , "Resumable error" <+> viaShow err
+                        , "Failed with error" <+> viaShow err
+                        , pretty wcsRequests
+                        , prettyLogs wcsLogs
                         , "in" <+> squotes (fromString nm)
                         ]
                     pure False
-            Right (Types.ResumableResult{Types.wcsFinalState=Nothing,Types.wcsRequests})
+            Types.ResumableResult{Types.wcsFinalState=Right Nothing,Types.wcsRequests, Types.wcsLogs}
                 | p NotDone -> pure True
                 | otherwise -> do
                     tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Open record"
                         , pretty wcsRequests
+                        , prettyLogs wcsLogs
                         , "in" <+> squotes (fromString nm)
                         ]
                     pure False
-            Right (Types.ResumableResult{Types.wcsFinalState=Just a,Types.wcsResponses})
+            Types.ResumableResult{Types.wcsFinalState=Right (Just a),Types.wcsResponses, Types.wcsLogs}
                 | p (Done a) -> pure True
                 | otherwise -> do
                     tell $ vsep
                         [ "Outcome of" <+> pretty w <> colon
                         , "Closed record"
                         , pretty wcsResponses
+                        , prettyLogs wcsLogs
                         , "failed with" <+> squotes (fromString nm)
                         ]
                     pure False
@@ -619,3 +632,8 @@ failedTransactions = mapMaybe $
     \case
         LogMessage{_logMessageContent=EmulatorTimeEvent{_eteEvent=EM.ChainEvent (EM.TxnValidationFail txid err)}} -> Just (txid, err)
         _ -> Nothing
+
+prettyLogs :: Seq (LogMessage JSON.Value) -> Doc ann
+prettyLogs theLogs =
+    let theLines = vsep . fmap (pretty . fmap show) $ toList theLogs
+    in hang 2 $ vsep ["Logs:", theLines]

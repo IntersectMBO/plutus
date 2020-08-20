@@ -16,6 +16,7 @@ module PSGenerator
 import           Control.Applicative                               ((<|>))
 import           Control.Lens                                      (set, (&))
 import           Control.Monad                                     (void)
+import           Control.Monad.Freer.Log                           (LogLevel, LogMessage)
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy                              as BSL
 import           Data.Proxy                                        (Proxy (Proxy))
@@ -127,6 +128,10 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
+
+    -- Logging types
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @LogLevel)
     ]
 
 mySettings :: Settings

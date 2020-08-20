@@ -147,13 +147,13 @@ type ContractTrace s e m a = StateT (ContractTraceState s (TraceError e) a) m
 
 data WalletState s e a =
     WalletState
-        { walletContractState   :: Either e (ResumableResult (Event s) (Handlers s) a)
+        { walletContractState   :: ResumableResult e (Event s) (Handlers s) a
         , walletEvents          :: Seq (Response (Event s))
         , walletHandlersHistory :: Seq [State.Request (Handlers s)]
         }
 
 walletHandlers :: WalletState s (TraceError e) a -> [State.Request (Handlers s)]
-walletHandlers = either mempty (State.unRequests . wcsRequests) . walletContractState
+walletHandlers = State.unRequests . wcsRequests . walletContractState
 
 emptyWalletState :: Contract s e a -> WalletState s e a
 emptyWalletState (Contract c) =
@@ -169,13 +169,11 @@ addEventWalletState ::
     -> WalletState s e a
     -> WalletState s e a
 addEventWalletState (Contract c) event s@WalletState{walletContractState, walletEvents, walletHandlersHistory} =
-    case walletContractState of
-        Left _ -> s
-        Right ResumableResult{wcsResponses,wcsRequests=Requests{unRequests},wcsCheckpointStore} ->
-            let state' = Contract.Types.insertAndUpdate c wcsCheckpointStore wcsResponses event
-                events' = walletEvents |> event
-                history' = walletHandlersHistory |> unRequests
-            in s { walletContractState = state', walletEvents = events', walletHandlersHistory = history'}
+    let ResumableResult{wcsResponses,wcsRequests=Requests{unRequests},wcsCheckpointStore} = walletContractState
+        state' = Contract.Types.insertAndUpdate c wcsCheckpointStore wcsResponses event
+        events' = walletEvents |> event
+        history' = walletHandlersHistory |> unRequests
+    in s { walletContractState = state', walletEvents = events', walletHandlersHistory = history'}
 
 data ContractTraceState s e a =
     ContractTraceState
@@ -194,7 +192,7 @@ handlersByWallet :: ContractTraceState s e a -> Map Wallet [[State.Request (Hand
 handlersByWallet = fmap (toList . walletHandlersHistory) . _ctsWalletStates
 
 checkpointStoreByWallet :: ContractTraceState s e a -> Map Wallet CheckpointStore
-checkpointStoreByWallet = fmap (either (const mempty) wcsCheckpointStore . walletContractState) . _ctsWalletStates
+checkpointStoreByWallet = fmap (wcsCheckpointStore . walletContractState) . _ctsWalletStates
 
 makeLenses ''ContractTraceState
 
@@ -329,15 +327,19 @@ runTrace = runTraceWithDistribution defaultDist
 -- | Run a contract and return the result for the given wallet, if it exists
 evalTrace ::
     forall s e a.
-    Contract s e a
+    Show e
+    => Contract s e a
     -> ContractTrace s e (EmulatorAction (TraceError e)) a ()
     -> Wallet
     -> Either String a
 evalTrace contract trace wllt = do
     (_, state) <- first (const "contract trace failed") $ fst $ runTrace @s @e contract trace
     wlltState <- maybe (Left "wallet state not found") pure $ view (ctsWalletStates . at wllt) state
-    ResumableResult{wcsFinalState} <- first (const $ "contract failed for wallet " <> show wllt) (walletContractState wlltState)
-    maybe (Left "contract not finished") pure wcsFinalState
+    let ResumableResult{wcsFinalState} = walletContractState wlltState
+    case wcsFinalState of
+        Right (Just a) -> pure a
+        Right Nothing  -> Left "contract not finished"
+        Left err       -> Left $ "contract failed for wallet " <> show wllt <> " with " <> show err
 
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
