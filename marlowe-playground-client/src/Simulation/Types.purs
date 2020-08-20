@@ -213,9 +213,9 @@ instance isEventAction :: IsEvent Action where
   toEvent (SelectEditorKeyBindings _) = Just $ defaultEvent "SelectEditorKeyBindings"
   toEvent CheckAuthStatus = Just $ defaultEvent "CheckAuthStatus"
   toEvent (LoadScript script) = Just $ (defaultEvent "LoadScript") { label = Just script }
-  toEvent (SetEditorText _) = Just $ (defaultEvent "SetEditorText")
-  toEvent (MoveSlot _) = Just $ (defaultEvent "MoveSlot")
-  toEvent (SetSlot _) = Just $ (defaultEvent "SetSlot")
+  toEvent (SetEditorText _) = Just $ defaultEvent "SetEditorText"
+  toEvent (MoveSlot _) = Just $ defaultEvent "MoveSlot"
+  toEvent (SetSlot _) = Just $ defaultEvent "SetSlot"
   toEvent (AddInput _ _) = Just $ defaultEvent "AddInput"
   toEvent (RemoveInput _) = Just $ defaultEvent "RemoveInput"
   toEvent (SetChoice _ _) = Just $ defaultEvent "SetChoice"

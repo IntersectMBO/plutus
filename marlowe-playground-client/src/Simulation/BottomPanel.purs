@@ -109,8 +109,8 @@ panelContents state CurrentStateView =
   div [ class_ Classes.panelContents ]
     [ div [ classes [ rTable, rTable6cols, ClassName "panel-table" ] ]
         ( warningsRow <> errorRow
-            <> dataRow "Current Block" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
-            <> dataRow "Expiration Block" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
+            <> dataRow "Current Slot" (state ^. (_marloweState <<< _Head <<< _slot <<< to show))
+            <> dataRow "Expiration Slot" (state ^. (_marloweState <<< _Head <<< _contract <<< to contractMaxTime))
             <> tableRow
                 { title: "Accounts"
                 , emptyMessage: "No accounts have been used"
