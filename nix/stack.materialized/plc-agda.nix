@@ -47,7 +47,7 @@
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           buildable = true;
@@ -253,11 +253,11 @@
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.language-plutus-core or (pkgs.buildPackages.language-plutus-core or (errorHandler.buildToolDepError "language-plutus-core")))
+            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
             ];
           buildable = true;
           modules = [
@@ -461,12 +461,12 @@
             (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
             (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
             (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.language-plutus-core or (pkgs.buildPackages.language-plutus-core or (errorHandler.buildToolDepError "language-plutus-core")))
+            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
             ];
           buildable = true;
           modules = [
@@ -666,7 +666,7 @@
             (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
             (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."language-plutus-core" or (errorHandler.buildDepError "language-plutus-core"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
             (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
@@ -677,7 +677,7 @@
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             ];
           build-tools = [
-            (hsPkgs.buildPackages.language-plutus-core or (pkgs.buildPackages.language-plutus-core or (errorHandler.buildToolDepError "language-plutus-core")))
+            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
             ];
           buildable = true;
           modules = [

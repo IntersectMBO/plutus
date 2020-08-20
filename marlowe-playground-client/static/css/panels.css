@@ -166,12 +166,11 @@
   padding: 0 0.1rem;
 }
 
-.transaction-composer .participants {
-  display: flex;
-  flex-flow: wrap;
+.composer .slot-input input {
+  width: 150px;
 }
 
-.input-composer ul li ul {
+.transaction-composer ul li ul {
   display: flex;
 }
 
@@ -420,6 +419,11 @@ button.minus-btn:hover {
 }
 
 #blocklyWorkspace>button {
+  margin: 1rem 0;
+}
+
+
+#actusBlocklyWorkspace>button {
   margin: 1rem 0;
 }
 

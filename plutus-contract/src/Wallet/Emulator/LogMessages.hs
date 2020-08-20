@@ -19,6 +19,7 @@ import           Ledger.Value                (Value)
 data RequestHandlerLogMsg =
     SlotNoficationTargetVsCurrent Slot Slot
     | StartWatchingContractAddresses
+    | HandleNextTxAt Slot Slot
     | HandleTxFailed
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (ToJSON, FromJSON)
@@ -29,6 +30,11 @@ instance Pretty RequestHandlerLogMsg where
             "target slot:" <+> pretty target <> "; current slot:" <+> pretty current
         StartWatchingContractAddresses -> "Start watching contract addresses"
         HandleTxFailed -> "handleTx failed"
+        HandleNextTxAt current target ->
+            "handle next tx at. Target:"
+                <+> pretty target
+                <+> "Current:"
+                <+> pretty current
 
 data TxBalanceMsg =
     BalancingUnbalancedTx UnbalancedTx

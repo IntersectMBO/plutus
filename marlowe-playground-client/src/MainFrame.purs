@@ -1,6 +1,8 @@
 module MainFrame (mkMainFrame) where
 
 import API (_RunResult)
+import Control.Monad.Except (ExceptT, runExceptT)
+import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor (bimap)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -9,10 +11,13 @@ import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
+import Gists (GistAction(..))
 import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
+import Halogen.ActusBlockly as ActusBlockly
 import Halogen.Analytics (handleActionWithAnalyticsTracking)
 import Halogen.Blockly (BlocklyMessage(..), blockly)
 import Halogen.Blockly as Blockly
@@ -31,23 +36,27 @@ import HaskellEditor.Types as HE
 import Language.Haskell.Interpreter (_InterpreterResult)
 import Language.Haskell.Monaco as HM
 import Marlowe (SPParams_)
+import Marlowe as Server
+import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
 import Marlowe.Monaco as MM
 import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
-import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>))
-import Router (Route)
+import Network.RemoteData as RemoteData
+import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>), (<$>))
+import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
 import Routing.Duplex as RT
 import Routing.Hash as Routing
+import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
 import Simulation.Types as ST
 import Text.Pretty (pretty)
-import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), _blocklySlot, _haskellEditorSlot, _haskellState, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
+import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
 import WebSocket (WebSocketResponseMessage(..))
 import WebSocket.Support as WS
@@ -57,6 +66,7 @@ initialState =
   FrontendState
     { view: Simulation
     , blocklyState: Nothing
+    , actusBlocklyState: Nothing
     , showBottomPanel: true
     , haskellState: HE.initialState
     , simulationState: ST.mkState
@@ -73,7 +83,7 @@ mkMainFrame settings =
     , render: render settings
     , eval:
       H.mkEval
-        { handleQuery
+        { handleQuery: handleQuery settings
         , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
         , receive: const Nothing
         , initialize: Just Init
@@ -105,27 +115,45 @@ toHaskellEditor halogen = do
     getState = view _haskellState
   (imapState setState getState <<< mapAction HaskellAction) halogen
 
-handleRoute ::
+handleSubRoute ::
   forall m action message.
   MonadEffect m =>
-  Route -> HalogenM FrontendState action ChildSlots message m Unit
-handleRoute Router.Home = selectView Simulation
+  SubRoute -> HalogenM FrontendState action ChildSlots message m Unit
+handleSubRoute Router.Home = selectView Simulation
 
-handleRoute Router.Simulation = selectView Simulation
+handleSubRoute Router.Simulation = selectView Simulation
 
-handleRoute Router.HaskellEditor = selectView HaskellEditor
+handleSubRoute Router.HaskellEditor = selectView HaskellEditor
 
-handleRoute Router.Blockly = selectView BlocklyEditor
+handleSubRoute Router.Blockly = selectView BlocklyEditor
 
-handleRoute Router.Wallets = selectView WalletEmulator
+handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
+
+handleSubRoute Router.Wallets = selectView WalletEmulator
+
+handleRoute ::
+  forall m.
+  MonadEffect m =>
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Route -> HalogenM FrontendState HAction ChildSlots Message m Unit
+handleRoute settings { gistId: (Just gistId), subroute } = do
+  toSimulation do
+    Simulation.handleAction settings (ST.GistAction (SetGistUrl (unwrap gistId)))
+    Simulation.handleAction settings (ST.GistAction LoadGist)
+  handleSubRoute subroute
+
+handleRoute _ { subroute } = handleSubRoute subroute
 
 handleQuery ::
   forall m a.
   Functor m =>
   MonadEffect m =>
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
-handleQuery (ReceiveWebSocketMessage msg next) = do
+handleQuery _ (ReceiveWebSocketMessage msg next) = do
   void <<< toSimulation
     $ case msg of
         WS.WebSocketOpen -> pure $ Just unit
@@ -135,8 +163,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
         (WS.WebSocketClosed _) -> pure $ Just unit
   pure $ Just next
 
-handleQuery (ChangeRoute route next) = do
-  handleRoute route
+handleQuery settings (ChangeRoute route next) = do
+  handleRoute settings route
   pure $ Just next
 
 handleAction ::
@@ -148,8 +176,8 @@ handleAction ::
 handleAction settings Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
-    Right route -> handleRoute route
-    Left _ -> handleRoute Router.Home
+    Right route -> handleRoute settings route
+    Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init
 
 handleAction s (HaskellAction action) = do
@@ -210,6 +238,43 @@ handleAction s (HandleBlocklyMessage (CurrentCode code)) = do
     selectView Simulation
     void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText code)
 
+handleAction _ (HandleActusBlocklyMessage ActusBlockly.Initialized) = pure unit
+
+handleAction s (HandleActusBlocklyMessage (ActusBlockly.CurrentTerms flavour terms)) = do
+  hasStarted <- use (_simulationState <<< _marloweState <<< to (\states -> (NEL.length states) > 1))
+  let
+    parsedTermsEither = AMB.parseActusJsonCode terms
+  if hasStarted then
+    void $ query _actusBlocklySlot unit (ActusBlockly.SetError "You can't send new code to a running simulation. Please go to the Simulation tab and click \"reset\" first" unit)
+  else case parsedTermsEither of
+    Left e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Couldn't parse contract-terms - " <> (show e)) unit)
+    Right parsedTerms -> do
+      result <- case flavour of
+        ActusBlockly.FS -> runAjax $ flip runReaderT s $ (Server.postActusGenerate parsedTerms)
+        ActusBlockly.F -> runAjax $ flip runReaderT s $ (Server.postActusGeneratestatic parsedTerms)
+      case result of
+        Success contractAST -> do
+          selectView Simulation
+          void $ toSimulation $ Simulation.handleAction s (ST.SetEditorText contractAST)
+        Failure e -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError ("Server error! " <> (showErrorDescription (runAjaxError e).description)) unit)
+        _ -> void $ query _actusBlocklySlot unit (ActusBlockly.SetError "Unknown server error!" unit)
+
+----------
+showErrorDescription :: ErrorDescription -> String
+showErrorDescription (DecodingError err@"(\"Unexpected token E in JSON at position 0\" : Nil)") = "BadResponse"
+
+showErrorDescription (DecodingError err) = "DecodingError: " <> err
+
+showErrorDescription (ResponseFormatError err) = "ResponseFormatError: " <> err
+
+showErrorDescription (ConnectionError err) = "ConnectionError: " <> err
+
+runAjax ::
+  forall m a.
+  ExceptT AjaxError (HalogenM FrontendState HAction ChildSlots Message m) a ->
+  HalogenM FrontendState HAction ChildSlots Message m (WebData a)
+runAjax action = RemoteData.fromEither <$> runExceptT action
+
 ------------------------------------------------------------
 selectView ::
   forall m action message.
@@ -217,12 +282,13 @@ selectView ::
   View -> HalogenM FrontendState action ChildSlots message m Unit
 selectView view = do
   let
-    route = case view of
+    subroute = case view of
       Simulation -> Router.Simulation
       HaskellEditor -> Router.HaskellEditor
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
-  liftEffect $ Routing.setHash (RT.print Router.route route)
+      ActusBlocklyEditor -> Router.ActusBlocklyEditor
+  liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
   case view of
     Simulation -> do
@@ -233,6 +299,7 @@ selectView view = do
       void $ query _haskellEditorSlot unit (Monaco.SetTheme HM.daylightTheme.name unit)
     BlocklyEditor -> void $ query _blocklySlot unit (Blockly.Resize unit)
     WalletEmulator -> pure unit
+    ActusBlocklyEditor -> void $ query _actusBlocklySlot unit (ActusBlockly.Resize unit)
 
 render ::
   forall m.
@@ -292,6 +359,13 @@ render settings state =
                 , div [] [ text "Blockly" ]
                 ]
             , div
+                [ classes ([ tabLink, aCenter, flexCol, ClassName "actus-blockly-tab" ] <> isActiveTab state ActusBlocklyEditor)
+                , onClick $ const $ Just $ ChangeView ActusBlocklyEditor
+                ]
+                [ div [ class_ tabIcon ] []
+                , div [] [ text "Labs" ]
+                ]
+            , div
                 [ classes ([ tabLink, aCenter, flexCol, ClassName "wallet-tab" ] <> isActiveTab state WalletEmulator)
                 , onClick $ const $ Just $ ChangeView WalletEmulator
                 ]
@@ -319,6 +393,12 @@ render settings state =
                 [ slot _blocklySlot unit (blockly MB.rootBlockName MB.blockDefinitions) unit (Just <<< HandleBlocklyMessage)
                 , MB.toolbox
                 , MB.workspaceBlocks
+                ]
+            -- ACTUS blockly panel
+            , div [ classes ([ hide ] <> isActiveTab state ActusBlocklyEditor) ]
+                [ slot _actusBlocklySlot unit (ActusBlockly.blockly AMB.rootBlockName AMB.blockDefinitions) unit (Just <<< HandleActusBlocklyMessage)
+                , AMB.toolbox
+                , AMB.workspaceBlocks
                 ]
             -- wallet panel
             , div [ classes ([ hide, ClassName "full-height" ] <> isActiveTab state WalletEmulator) ]

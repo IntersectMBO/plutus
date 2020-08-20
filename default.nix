@@ -133,6 +133,7 @@ in rec {
     extended-utxo-spec = pkgs.callPackage ./extended-utxo-spec { inherit latex; };
     lazy-machine = pkgs.callPackage ./notes/fomega/lazy-machine { inherit latex; };
     plutus-report = pkgs.callPackage ./notes/plutus-report/default.nix { inherit latex; };
+    cost-model-notes = pkgs.callPackage ./notes/cost-model-notes { inherit latex; };
 
     combined-haddock = let
       haddock-combine = pkgs.callPackage ./nix/haddock-combine.nix { ghc = haskell.project.pkg-set.config.ghc.package; inherit (sphinxcontrib-haddock) sphinxcontrib-haddock; };
@@ -298,7 +299,7 @@ in rec {
       contents =
         let runtimeGhc =
               haskell.packages.ghcWithPackages (ps: [
-                ps.language-plutus-core
+                ps.plutus-core
                 ps.plutus-ledger
                 ps.plutus-tx
                 ps.plutus-tx-plugin

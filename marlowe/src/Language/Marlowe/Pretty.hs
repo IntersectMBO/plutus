@@ -109,9 +109,11 @@ instance (Pretty a) => Pretty [a] where
 instance  (Show a) => Show (P.Ratio a) where
     -- Adapted from Data.Ratio in the base library
     showsPrec p r = showParen (p > ratioPrec) $
+                    showString "(" .
                     showsPrec ratioPrec1 (P.numerator r) .
                     showString " % " .
-                    showsPrec ratioPrec1 (P.denominator r)
+                    showsPrec ratioPrec1 (P.denominator r) .
+                    showString ")"
        where ratioPrec = 7  -- This refers to the operator precedence level of %
              ratioPrec1 = ratioPrec + 1
 

@@ -17,18 +17,6 @@ let
         installPhase = "ln -s $src $out";
       };
 
-    "aff-coroutines" = pkgs.stdenv.mkDerivation {
-        name = "aff-coroutines";
-        version = "v7.0.0";
-        src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-aff-coroutines.git";
-          rev = "f2f410f3cc9030487ddadf9ffdaab75ba508bde9";
-          sha256 = "1cbly4m2na5kf3halj68rjy5khydb71gzz0ry323z5h1i0fna2g9";
-        };
-        phases = "installPhase";
-        installPhase = "ln -s $src $out";
-      };
-
     "affjax" = pkgs.stdenv.mkDerivation {
         name = "affjax";
         version = "v10.0.0";
@@ -355,11 +343,11 @@ let
 
     "foreign-generic" = pkgs.stdenv.mkDerivation {
         name = "foreign-generic";
-        version = "purs-0.13";
+        version = "fd7f49f47061f708021064e17bb11b193ab389a3";
         src = pkgs.fetchgit {
           url = "https://github.com/shmish111/purescript-foreign-generic";
-          rev = "4d0bd651c240e741890901af30ea4953847b2cfd";
-          sha256 = "06lsfzia7p0w7m9rcgaax6bzp0xvi7s9slnkvmrzcygfaaaz3x20";
+          rev = "fd7f49f47061f708021064e17bb11b193ab389a3";
+          sha256 = "066n4a590k1k2nfn3vrbnllpwc1hpbwn6aqnaafrnxnvwdas7hpv";
         };
         phases = "installPhase";
         installPhase = "ln -s $src $out";
@@ -1221,7 +1209,7 @@ let
         name = "unsafe-reference";
         version = "v3.0.1";
         src = pkgs.fetchgit {
-          url = "https://github.com/purescript-contrib/purescript-unsafe-reference.git";
+          url = "https://github.com/purescript-contrib/purescript-unsafe-reference";
           rev = "79d7de7b9351346a73e6c060d80532c95ba1c7c1";
           sha256 = "0q758dz59qz0li4s3w1qcg921xp5i5rh6i1l611iv7rr8cbj11al";
         };

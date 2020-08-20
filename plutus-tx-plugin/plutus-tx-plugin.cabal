@@ -61,7 +61,7 @@ library
         extra -any,
         ghc >=8.8 && <8.9,
         ghc-prim -any,
-        language-plutus-core -any,
+        plutus-core -any,
         lens -any,
         mtl -any,
         prettyprinter -any,
@@ -94,7 +94,7 @@ test-suite plutus-tx-tests
     build-depends:
         base >=4.9 && <5,
         integer-gmp -any,
-        language-plutus-core -any,
+        plutus-core -any,
         plutus-tx -any,
         plutus-tx-plugin -any,
         prettyprinter -any,

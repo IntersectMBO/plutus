@@ -55,7 +55,7 @@ for more details.
 [[building-with-nix]]
 ==== How to build Haskell packages and other artifacts with Nix
 
-Run `nix build -f default.nix haskell.projectPackages.language-plutus-core`
+Run `nix build -f default.nix haskell.projectPackages.plutus-core`
 from the root to build the Plutus Core library.
 
 See <<nix-build-attributes>> to find out
@@ -63,7 +63,7 @@ what other attributes you can build.
 
 ==== How to build Haskell packages with `cabal`
 
-Run `cabal v2-build language-plutus-core` from the root to build the
+Run `cabal v2-build plutus-core` from the root to build the
 Plutus Core library.
 
 See the link:./cabal.project[cabal project file] to see the other
@@ -71,7 +71,7 @@ projects that you can build with `cabal`.
 
 ==== How to build the Haskell packages with `stack`
 
-Run `stack build language-plutus-core` from the root to build the
+Run `stack build plutus-core` from the root to build the
 Plutus Core library.
 
 See the link:./stack.yaml[stack project file] to see the other
@@ -192,12 +192,12 @@ artifacts you can build from this repository. These can be built
 using `nix build`. For example:
 
 ----
-nix build -f default.nix haskell.projectPackages.language-plutus-core
+nix build -f default.nix haskell.projectPackages.plutus-core
 ----
 
 .Example attributes
 * Project packages: defined inside `haskell.projectPackages`
-** e.g. `haskell.projectPackages.language-plutus-core`
+** e.g. `haskell.projectPackages.plutus-core`
 * Documents: defined inside `docs`
 ** e.g. `docs.plutus-core-spec`
 * Development scripts: defined inside `dev`

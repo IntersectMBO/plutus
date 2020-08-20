@@ -1,5 +1,8 @@
 {-# LANGUAGE ApplicativeDo         #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -7,6 +10,7 @@
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -14,7 +18,15 @@ module Main
     ( main
     ) where
 
+import qualified Cardano.BM.Backend.EKGView
+import           Cardano.BM.Configuration                        (Configuration)
+import qualified Cardano.BM.Configuration.Model                  as CM
+import           Cardano.BM.Data.Severity                        (Severity (..))
+import           Cardano.BM.Data.Trace                           (Trace)
+import           Cardano.BM.Plugin                               (loadPlugin)
+import           Cardano.BM.Setup                                (setupTrace_)
 import qualified Cardano.ChainIndex.Server                       as ChainIndex
+import qualified Cardano.Metadata.Server                         as Metadata
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer
@@ -22,23 +34,27 @@ import           Control.Concurrent                              (threadDelay)
 import           Control.Concurrent.Async                        (Async, async, waitAny)
 import           Control.Concurrent.Availability                 (Availability, newToken, starting)
 import           Control.Lens.Indexed                            (itraverse_)
-import           Control.Monad                                   (forever, void)
+import           Control.Monad                                   (forever, void, when)
 import           Control.Monad.Freer                             (Eff, raise)
 import           Control.Monad.Freer.Error                       (handleError)
 import           Control.Monad.Freer.Extra.Log                   (LogMsg, logInfo)
-import           Control.Monad.Freer.Log                         (logError, renderLogMessages)
+import           Control.Monad.Freer.Log                         (logError)
 import           Control.Monad.IO.Class                          (liftIO)
-import           Control.Monad.Logger                            (LogLevel (LevelDebug, LevelInfo), LoggingT,
-                                                                  filterLogger, runStdoutLoggingT)
+import           Control.Monad.Logger                            (runStdoutLoggingT)
 import qualified Data.Aeson                                      as JSON
+import           Data.Bifunctor                                  (Bifunctor (..))
 import qualified Data.ByteString.Lazy.Char8                      as BS8
-import           Data.Foldable                                   (traverse_)
+import           Data.Foldable                                   (for_, traverse_)
+import           Data.Functor.Contravariant                      (Contravariant (..))
 import qualified Data.Map                                        as Map
-import           Data.Set                                        (Set)
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
-import           Data.Text.Prettyprint.Doc                       (Doc, Pretty (..), indent, parens, pretty, vsep, (<+>))
-import           Data.Time.Units                                 (Second, toMicroseconds)
+import           GHC.Generics                                    (Generic)
+import           Plutus.SCB.MonadLoggerBridge                    (TraceLoggerT (..))
+import           Plutus.SCB.Monitoring                           (defaultConfig, handleLogMsgTrace, loadConfig)
+
+import           Data.Text.Prettyprint.Doc                       (Pretty (..), pretty)
+import           Data.Time.Units                                 (toMicroseconds)
 import           Data.UUID                                       (UUID)
 import           Data.Yaml                                       (decodeFileThrow)
 import           Git                                             (gitRev)
@@ -49,27 +65,30 @@ import           Options.Applicative                             (CommandFields,
                                                                   metavar, option, prefs, progDesc, short,
                                                                   showHelpOnEmpty, showHelpOnError, str, strArgument,
                                                                   strOption, subparser, value)
-import           Plutus.SCB.App                                  (App, AppBackend, ContractExeLogMsg (..), runApp)
+import           Plutus.SCB.App                                  (AppBackend, monadLoggerTracer, runApp)
+import           Plutus.SCB.SCBLogMsg                            (ContractExeLogMsg (..), SCBLogMsg)
+
 import qualified Plutus.SCB.App                                  as App
 import qualified Plutus.SCB.Core                                 as Core
 import qualified Plutus.SCB.Core.ContractInstance                as Instance
-import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..), ContractInstanceState)
+import           Plutus.SCB.Events.Contract                      (ContractInstanceId (..))
+import           Plutus.SCB.SCBLogMsg                            (AppMsg (..))
 import           Plutus.SCB.Types                                (Config (Config), ContractExe (..),
                                                                   RequestProcessingConfig (..), SCBError,
-                                                                  chainIndexConfig, monitoringConfig, monitoringPort,
+                                                                  chainIndexConfig, metadataServerConfig,
                                                                   nodeServerConfig, requestProcessingConfig,
                                                                   signingProcessConfig, walletServerConfig)
 import           Plutus.SCB.Utils                                (logErrorS, render)
 import qualified Plutus.SCB.Webserver.Server                     as SCBServer
 import qualified PSGenerator
 import           System.Exit                                     (ExitCode (ExitFailure), exitSuccess, exitWith)
-import qualified System.Remote.Monitoring                        as EKG
 
 data Command
     = Migrate
     | MockNode
     | MockWallet
     | ChainIndex
+    | Metadata
     | ForkCommands [Command]
     | SigningProcess
     | InstallContract FilePath
@@ -86,7 +105,11 @@ data Command
     | PSGenerator
           { _outputDir :: !FilePath
           }
-    deriving (Show, Eq)
+    | WriteDefaultConfig
+          { _outputFile :: !FilePath
+          }
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass JSON.ToJSON
 
 versionOption :: Parser (a -> a)
 versionOption =
@@ -94,15 +117,30 @@ versionOption =
         (Text.unpack gitRev)
         (long "version" <> help "Show the version")
 
-logLevelFlag :: Parser LogLevel
+logLevelFlag :: Parser (Maybe Severity)
 logLevelFlag =
     flag
-        LevelInfo
-        LevelDebug
+        Nothing
+        (Just Debug)
         (short 'v' <> long "verbose" <> help "Enable debugging output.")
 
-commandLineParser :: Parser (LogLevel, FilePath, Command)
-commandLineParser = (,,) <$> logLevelFlag <*> configFileParser <*> commandParser
+data EKGServer = YesEKGServer | NoEKGServer
+    deriving (Eq, Ord, Show)
+
+ekgFlag :: Parser EKGServer
+ekgFlag =
+    flag
+        NoEKGServer
+        YesEKGServer
+        (short 'e' <> long "ekg" <> help "Enable the EKG server")
+
+commandLineParser :: Parser (Maybe Severity, FilePath, Maybe FilePath, EKGServer, Command)
+commandLineParser =
+        (,,,,) <$> logLevelFlag
+               <*> configFileParser
+               <*> logConfigFileParser
+               <*> ekgFlag
+               <*> commandParser
 
 configFileParser :: Parser FilePath
 configFileParser =
@@ -111,6 +149,14 @@ configFileParser =
         (long "config" <>
          metavar "CONFIG_FILE" <>
          help "Config file location." <> value "plutus-scb.yaml")
+
+logConfigFileParser :: Parser (Maybe FilePath)
+logConfigFileParser =
+    option
+        (Just <$> str)
+        (long "log-config" <>
+         metavar "LOG_CONFIG_FILE" <>
+         help "Logging config file location." <> value Nothing)
 
 commandParser :: Parser Command
 commandParser =
@@ -123,8 +169,10 @@ commandParser =
         , psGeneratorCommandParser
         , mockNodeParser
         , chainIndexParser
+        , metadataParser
         , signingProcessParser
         , reportTxHistoryParser
+        , defaultConfigParser
         , command
               "contracts"
               (info
@@ -142,6 +190,17 @@ commandParser =
                              ]))
                    (fullDesc <> progDesc "Manage your smart contracts."))
         ]
+
+defaultConfigParser :: Mod CommandFields Command
+defaultConfigParser =
+    command "default-logging-config" $
+    flip info (fullDesc <> progDesc "Write the default logging configuration YAML to a file") $ do
+        _outputFile <-
+            argument
+                str
+                (metavar "OUTPUT_FILE" <>
+                 help "Output file to write logging config YAML to.")
+        pure WriteDefaultConfig {_outputFile}
 
 psGeneratorCommandParser :: Mod CommandFields Command
 psGeneratorCommandParser =
@@ -182,6 +241,11 @@ chainIndexParser =
     command "chain-index" $
     info (pure ChainIndex) (fullDesc <> progDesc "Run the chain index.")
 
+metadataParser :: Mod CommandFields Command
+metadataParser =
+    command "metadata-server" $
+    info (pure Metadata) (fullDesc <> progDesc "Run the Cardano metadata API server.")
+
 allServersParser :: Mod CommandFields Command
 allServersParser =
     command "all-servers" $
@@ -190,6 +254,7 @@ allServersParser =
              (ForkCommands
                   [ MockNode
                   , ChainIndex
+                  , Metadata
                   , MockWallet
                   , SCBWebserver
                   , SigningProcess
@@ -297,38 +362,57 @@ reportContractHistoryParser =
         (ReportContractHistory <$> contractIdParser)
         (fullDesc <> progDesc "Show the state history of a smart contract.")
 
-data AppMsg =
-    InstalledContractsMsg
-    | ActiveContractsMsg
-    | TransactionHistoryMsg
-    | ContractHistoryMsg
-    | ProcessInboxMsg
-    | ProcessAllOutboxesMsg Second
+{- Note [Use of iohk-monitoring in PAB]
 
-instance Pretty AppMsg where
-    pretty = \case
-        InstalledContractsMsg -> "Installed contracts"
-        ActiveContractsMsg -> "Active contracts"
-        TransactionHistoryMsg -> "Transaction history"
-        ContractHistoryMsg -> "Contract history"
-        ProcessInboxMsg -> "Process contract inbox"
-        ProcessAllOutboxesMsg s -> "Processing contract outboxes every" <+> pretty (fromIntegral @_ @Double s) <+> "seconds"
+We use the 'iohk-monitoring' package to process the log messages that come
+out of the 'Control.Monad.Freer.Log' effects. We create a top-level 'Tracer'
+value that we pass to 'Plutus.SCB.Monitoring.handleLogMsgTrace', which
+ultimately runs the trace actions in IO.
+
+This works well for our own code that uses the 'freer-simple' effects, but in
+order to get our dependencies to work together we need to do a bit more work:
+The SQLite backend for eventful uses 'mtl' and requires a 'MonadLogger' instance
+for the monad that it runs in.
+
+My first thought was to define an instance
+
+@Member (LogMsg MonadLoggerMsg effs) => MonadLogger (Eff effs)@
+
+similar to the 'MonadIO' instance for 'Control.Monad.Freer.Eff' [1]. This
+works, but it doesn't solve the problem because the sqlite backend *also*
+requires an instance of 'MonadUnliftIO'. The only way I was able to provide
+this instance was by pulling both 'MonadLogger' and 'MonadUnliftIO' into the
+base monad of the 'AppBackend' effects stack.
+
+The 'MonadLogger' and 'MonadUnliftIO' constraints propagate up to the top level
+via 'Plutus.SCB.Effects.EventLog.handleEventLogSql'. Both instances are
+provided by 'Plutus.SCB.MonadLoggerBridge.TraceLoggerT', which translates
+'MonadLogger' calls to 'Tracer' calls. This is why the base monad of the
+effects stack in 'runCliCommand' is 'TraceLoggerT IO' instead of just 'IO'.
+
+We have to use 'natTracer' in some places to turn 'Trace IO a' into
+'Trace (TraceLoggerT IO) a'.
+
+[1] https://hackage.haskell.org/package/freer-simple-1.2.1.1/docs/Control-Monad-Freer.html#t:Eff
+
+-}
 
 ------------------------------------------------------------
 -- | Translate the command line configuation into the actual code to be run.
 --
-runCliCommand :: LogLevel -> Config ->  Availability -> Command -> Eff (LogMsg AppMsg ': AppBackend (LoggingT IO)) ()
-runCliCommand _ _ _ Migrate = raise App.migrate
-runCliCommand _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
+runCliCommand :: Trace IO AppMsg -> Configuration -> Config ->  Availability -> Command -> Eff (LogMsg AppMsg ': AppBackend (TraceLoggerT IO)) ()
+runCliCommand _ _ _ _ Migrate = raise App.migrate
+runCliCommand _ _ Config {walletServerConfig, nodeServerConfig, chainIndexConfig} serviceAvailability MockWallet =
     WalletServer.main
         walletServerConfig
         (NodeServer.mscBaseUrl nodeServerConfig)
         (ChainIndex.ciBaseUrl chainIndexConfig)
         serviceAvailability
-runCliCommand _ Config {nodeServerConfig} serviceAvailability MockNode =
+runCliCommand _ _ Config {nodeServerConfig} serviceAvailability MockNode =
     NodeServer.main nodeServerConfig serviceAvailability
-runCliCommand _ config serviceAvailability SCBWebserver = raise $ SCBServer.main config serviceAvailability
-runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
+runCliCommand _ _ Config {metadataServerConfig} serviceAvailability Metadata = raise $ Metadata.main metadataServerConfig serviceAvailability
+runCliCommand trace logConfig config serviceAvailability SCBWebserver = raise $ SCBServer.main (mapSCBMsg trace) logConfig config serviceAvailability
+runCliCommand trace logConfig config serviceAvailability (ForkCommands commands) =
     void . liftIO $ do
         threads <- traverse forkCommand commands
         putStrLn "Started all commands."
@@ -338,68 +422,84 @@ runCliCommand minLogLevel config serviceAvailability (ForkCommands commands) =
     forkCommand ::  Command -> IO (Async ())
     forkCommand subcommand = do
       putStrLn $ "Starting: " <> show subcommand
-      asyncId <- async . void . runApp minLogLevel config . renderLogMessages . runCliCommand minLogLevel config serviceAvailability $ subcommand
+      -- see note [Use of iohk-monitoring in PAB]
+      let trace' = monadLoggerTracer trace
+      asyncId <- async . void . runApp (mapSCBMsg trace) logConfig config . handleLogMsgTrace trace' . runCliCommand trace logConfig config serviceAvailability $ subcommand
       putStrLn $ "Started: " <> show subcommand
       starting serviceAvailability
       pure asyncId
-runCliCommand _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
+runCliCommand _ _ Config {nodeServerConfig, chainIndexConfig} serviceAvailability ChainIndex =
     ChainIndex.main chainIndexConfig (NodeServer.mscBaseUrl nodeServerConfig) serviceAvailability
-runCliCommand _ Config {signingProcessConfig} serviceAvailability SigningProcess =
+runCliCommand _ _ Config {signingProcessConfig} serviceAvailability SigningProcess =
     SigningProcess.main signingProcessConfig serviceAvailability
-runCliCommand _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
-runCliCommand _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
-runCliCommand _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
-runCliCommand _ _ _ ReportInstalledContracts = do
+runCliCommand _ _ _ _ (InstallContract path) = Core.installContract (ContractExe path)
+runCliCommand _ _ _ _ (ActivateContract path) = void $ Core.activateContract (ContractExe path)
+runCliCommand _ _ _ _ (ContractState uuid) = Core.reportContractState @ContractExe (ContractInstanceId uuid)
+runCliCommand _ _ _ _ ReportInstalledContracts = do
     logInfo InstalledContractsMsg
-    traverse_ (logInfo . render . pretty) =<< Core.installedContracts @ContractExe
-runCliCommand _ _ _ ReportActiveContracts = do
+    traverse_ (logInfo . InstalledContract . render . pretty) =<< Core.installedContracts @ContractExe
+runCliCommand _ _ _ _ ReportActiveContracts = do
     logInfo ActiveContractsMsg
     instances <- Map.toAscList <$> Core.activeContracts @ContractExe
-    let format :: (ContractExe, Set ContractInstanceId) -> Doc a
-        format (contractExe, contractInstanceIds) =
-          vsep [ pretty contractExe
-               , indent 2 (vsep (pretty <$> Set.toList contractInstanceIds))
-               ]
-    traverse_ (logInfo . render . format) instances
-runCliCommand _ _ _ ReportTxHistory = do
+    traverse_ (\(e, s) -> (logInfo $ ContractInstance e (Set.toList s))) instances
+runCliCommand _ _ _ _ ReportTxHistory = do
     logInfo TransactionHistoryMsg
-    traverse_ (logInfo . render . pretty) =<< Core.txHistory @ContractExe
-runCliCommand _ _ _ (UpdateContract uuid endpoint payload) =
+    traverse_ (logInfo . TxHistoryItem) =<< Core.txHistory @ContractExe
+runCliCommand _ _ _ _ (UpdateContract uuid endpoint payload) =
     void $ Instance.callContractEndpoint @ContractExe (ContractInstanceId uuid) (getEndpointDescription endpoint) payload
-runCliCommand _ _ _ (ReportContractHistory uuid) = do
+runCliCommand _ _ _ _ (ReportContractHistory uuid) = do
     logInfo ContractHistoryMsg
     contracts <- Core.activeContractHistory @ContractExe (ContractInstanceId uuid)
-    itraverse_ (\i -> raise . logContract i) contracts
+    itraverse_ (\i -> logContract i) contracts
     where
-      logContract :: Int -> ContractInstanceState ContractExe -> App ()
-      logContract index contract = logInfo $ render $ parens (pretty index) <+> pretty contract
-runCliCommand _ _ _ (ProcessContractInbox uuid) = do
+      logContract index contract = logInfo $ ContractHistoryItem index contract
+runCliCommand _ _ _ _ (ProcessContractInbox uuid) = do
     logInfo ProcessInboxMsg
     Core.processContractInbox @ContractExe (ContractInstanceId uuid)
-runCliCommand _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
+runCliCommand _ _ Config{requestProcessingConfig} _ ProcessAllContractOutboxes = do
     let RequestProcessingConfig{requestProcessingInterval} = requestProcessingConfig
     logInfo $ ProcessAllOutboxesMsg requestProcessingInterval
     forever $ do
         _ <- liftIO . threadDelay . fromIntegral $ toMicroseconds requestProcessingInterval
         handleError @SCBError (Core.processAllContractOutboxes @ContractExe Instance.defaultMaxIterations) (logError . ContractExeSCBError)
-runCliCommand _ _ _ PSGenerator {_outputDir} =
+runCliCommand _ _ _ _ PSGenerator {_outputDir} =
     liftIO $ PSGenerator.generate _outputDir
+runCliCommand _ _ _ _ WriteDefaultConfig{_outputFile} =
+    liftIO $ defaultConfig >>= flip CM.exportConfiguration _outputFile
 
 main :: IO ()
 main = do
-    (minLogLevel, configPath, cmd) <-
+    (minLogLevel, configPath, logConfigPath, ekg, cmd) <-
         customExecParser
             (prefs $ disambiguate <> showHelpOnEmpty <> showHelpOnError)
             (info (helper <*> versionOption <*> commandLineParser) idm)
     config <- liftIO $ decodeFileThrow configPath
-    traverse_ (EKG.forkServer "localhost") (monitoringPort <$> monitoringConfig config)
+
+    logConfig <- maybe defaultConfig loadConfig logConfigPath
+    for_ minLogLevel $ \ll -> CM.setMinSeverity logConfig ll
+    (trace :: Trace IO AppMsg, switchboard) <- setupTrace_ logConfig pabComponentName
+
+    -- 'TracerLoggerT IO' has instances for 'MonadLogger' and 'MonadUnliftIO'.
+    -- see note [Use of iohk-monitoring in PAB]
+    let trace' = monadLoggerTracer trace
+
+    -- enable EKG backend
+    when (ekg == YesEKGServer) $
+        Cardano.BM.Backend.EKGView.plugin logConfig trace switchboard >>= loadPlugin switchboard
+
     serviceAvailability <- newToken
     result <-
-        runApp minLogLevel config $ do
-            logInfo $ "Running: " <> Text.pack (show cmd)
-            renderLogMessages $ runCliCommand minLogLevel config serviceAvailability cmd
+        runApp (mapSCBMsg trace) logConfig config
+            $ handleLogMsgTrace trace'
+            $ runCliCommand trace logConfig config serviceAvailability cmd
     case result of
         Left err -> do
-            runStdoutLoggingT $ filterLogger (\_ logLevel -> logLevel >= minLogLevel) $ logErrorS err
+            runStdoutLoggingT $ logErrorS err
             exitWith (ExitFailure 1)
         Right _ -> exitSuccess
+
+mapSCBMsg :: Trace m AppMsg -> Trace m SCBLogMsg
+mapSCBMsg = contramap (second (fmap SCBMsg))
+
+pabComponentName :: Text.Text
+pabComponentName = "pab"

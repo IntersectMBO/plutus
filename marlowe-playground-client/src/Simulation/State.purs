@@ -1,11 +1,15 @@
 module Simulation.State where
 
 import Control.Monad.State (class MonadState)
-import Data.Array (foldl, fromFoldable, mapMaybe, uncons)
+import Data.Array (fromFoldable, mapMaybe, uncons)
 import Data.BigInteger (BigInteger)
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.Lens (Getter', Lens', modifying, over, set, to, view, (^.))
+import Data.Generic.Rep (class Generic)
+import Data.Lens (Getter', Lens', Traversal', has, lens, modifying, over, preview, set, to, view, (^.))
+import Data.Lens.At (at)
+import Data.Lens.Index (ix)
+import Data.Lens.Iso.Newtype (_Newtype)
 import Data.Lens.NonEmptyList (_Head)
 import Data.Lens.Record (prop)
 import Data.List as List
@@ -14,26 +18,39 @@ import Data.List.Types (NonEmptyList)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.NonEmpty (foldl1, (:|))
 import Data.NonEmptyList.Extra (extendWith)
+import Data.NonEmptyList.Lens (_Tail)
 import Data.Symbol (SProxy(..))
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..))
+import Foreign.Generic (class Decode, class Encode, genericDecode, genericEncode)
 import Marlowe.Holes (Holes, fromTerm)
 import Marlowe.Linter (lint)
 import Marlowe.Linter as L
 import Marlowe.Parser (parseContract)
-import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, Party, Payment, PubKey, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, moneyInContract)
+import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
+import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Ord, Unit, append, map, mempty, min, zero, ($), (<<<), (<))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, ($), (<), (<<<), (==), (||), (#))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
   | ChoiceInputId ChoiceId (Array Bound)
   | NotifyInputId
+  | MoveToSlotId
 
 derive instance eqActionInputId :: Eq ActionInputId
 
 derive instance ordActionInputId :: Ord ActionInputId
+
+derive instance genericActionInputId :: Generic ActionInputId _
+
+instance encodeActionInputId :: Encode ActionInputId where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeActionInputId :: Decode ActionInputId where
+  decode = genericDecode aesonCompatibleOptions
 
 -- | On the front end we need Actions however we also need to keep track of the current
 -- | choice that has been set for Choices
@@ -41,10 +58,19 @@ data ActionInput
   = DepositInput AccountId Party Token BigInteger
   | ChoiceInput ChoiceId (Array Bound) ChosenNum
   | NotifyInput
+  | MoveToSlot Slot
 
 derive instance eqActionInput :: Eq ActionInput
 
 derive instance ordActionInput :: Ord ActionInput
+
+derive instance genericActionInput :: Generic ActionInput _
+
+instance encodeActionInput :: Encode ActionInput where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeActionInput :: Decode ActionInput where
+  decode = genericDecode aesonCompatibleOptions
 
 minimumBound :: Array Bound -> ChosenNum
 minimumBound bnds = case uncons (map boundFrom bnds) of
@@ -70,9 +96,54 @@ data MarloweEvent
   = InputEvent TransactionInput
   | OutputEvent SlotInterval Payment
 
+derive instance genericMarloweEvent :: Generic MarloweEvent _
+
+instance encodeMarloweEvent :: Encode MarloweEvent where
+  encode a = genericEncode aesonCompatibleOptions a
+
+instance decodeMarloweEvent :: Decode MarloweEvent where
+  decode = genericDecode aesonCompatibleOptions
+
+newtype Parties
+  = Parties (Map Party (Map ActionInputId ActionInput))
+
+derive instance newtypeParties :: Newtype Parties _
+
+derive newtype instance semigroupParties :: Semigroup Parties
+
+derive newtype instance monoidParties :: Monoid Parties
+
+mapPartiesActionInput :: (ActionInput -> ActionInput) -> Parties -> Parties
+mapPartiesActionInput f (Parties m) = Parties $ (map <<< map) f m
+
+derive newtype instance encodeParties :: Encode Parties
+
+derive newtype instance decodeParties :: Decode Parties
+
+_actionInput :: Party -> ActionInputId -> Traversal' Parties ActionInput
+_actionInput party id = _Newtype <<< ix party <<< ix id
+
+_otherActions :: Traversal' Parties (Map ActionInputId ActionInput)
+_otherActions = _Newtype <<< ix otherActionsParty
+
+_moveToAction :: Lens' Parties (Maybe ActionInput)
+_moveToAction = lens get' set'
+  where
+  get' = preview (_actionInput otherActionsParty MoveToSlotId)
+
+  set' p ma =
+    let
+      m = case preview _otherActions p, ma of
+        Nothing, Nothing -> Nothing
+        Just m', Nothing -> Just $ Map.delete MoveToSlotId m'
+        Nothing, Just a -> Just $ Map.singleton MoveToSlotId a
+        Just m', Just a -> Just $ Map.insert MoveToSlotId a m'
+    in
+      set (_Newtype <<< at otherActionsParty) m p
+
 type MarloweState
-  = { possibleActions :: Map Party (Map ActionInputId ActionInput)
-    , pendingInputs :: Array (Tuple Input (Maybe PubKey))
+  = { possibleActions :: Parties
+    , pendingInputs :: Array Input
     , transactionError :: Maybe TransactionError
     , transactionWarnings :: Array TransactionWarning
     , state :: State
@@ -148,6 +219,10 @@ emptyMarloweState sn =
   , log: []
   }
 
+-- We have a special person for notifications
+otherActionsParty :: Party
+otherActionsParty = Role "marlowe_other_actions"
+
 updateContractInStateP :: String -> MarloweState -> MarloweState
 updateContractInStateP text state = case parseContract text of
   Right parsedContract ->
@@ -168,36 +243,50 @@ updateContractInStateP text state = case parseContract text of
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =
   let
-    contract = oldState ^. (_contract <<< to (fromMaybe Close))
+    contract = fromMaybe Close (oldState ^. _contract)
 
     state = oldState ^. _state
+
+    currentSlot = oldState ^. _slot
 
     txInput = stateToTxInput oldState
 
     (Tuple nextState actions) = extractRequiredActionsWithTxs txInput state contract
 
-    actionInputs = foldl (\acc act -> insertTuple (actionToActionInput nextState act) acc) mempty actions
-  in
-    over _possibleActions (updateActions actionInputs) oldState
-  where
-  insertTuple :: forall k v. Ord k => Tuple k v -> Map k v -> Map k v
-  insertTuple (Tuple k v) m = Map.insert k v m
+    usefulActions = mapMaybe removeUseless actions
 
-  updateActions :: Map ActionInputId ActionInput -> Map Party (Map ActionInputId ActionInput) -> Map Party (Map ActionInputId ActionInput)
+    slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
+
+    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
+
+    moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
+  in
+    oldState
+      # over _possibleActions (updateActions actionInputs)
+      # set (_possibleActions <<< _moveToAction) moveTo
+  where
+  removeUseless :: Action -> Maybe Action
+  removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
+
+  removeUseless action = Just action
+
+  updateActions :: Map ActionInputId ActionInput -> Parties -> Parties
   updateActions actionInputs oldInputs = foldlWithIndex (addButPreserveActionInputs oldInputs) mempty actionInputs
 
-  addButPreserveActionInputs :: Map Party (Map ActionInputId ActionInput) -> ActionInputId -> Map Party (Map ActionInputId ActionInput) -> ActionInput -> Map Party (Map ActionInputId ActionInput)
-  addButPreserveActionInputs oldInputs actionInputIdx m actionInput = case (actionPerson actionInput) of
-    Just party -> appendValue m oldInputs party actionInputIdx actionInput
-    _ -> m
+  addButPreserveActionInputs :: Parties -> ActionInputId -> Parties -> ActionInput -> Parties
+  addButPreserveActionInputs oldInputs actionInputIdx m actionInput =
+    let
+      party = actionPerson actionInput
+    in
+      wrap $ appendValue (unwrap m) (unwrap oldInputs) party actionInputIdx actionInput
 
-  actionPerson :: ActionInput -> (Maybe Party)
-  actionPerson (DepositInput _ party _ _) = Just party
+  actionPerson :: ActionInput -> Party
+  actionPerson (DepositInput _ party _ _) = party
 
-  actionPerson (ChoiceInput (ChoiceId _ party) _ _) = Just party
+  actionPerson (ChoiceInput (ChoiceId _ party) _ _) = party
 
   -- We have a special person for notifications
-  actionPerson NotifyInput = Nothing
+  actionPerson _ = otherActionsParty
 
   appendValue :: forall k k2 v2. Ord k => Ord k2 => Map k (Map k2 v2) -> Map k (Map k2 v2) -> k -> k2 -> v2 -> Map k (Map k2 v2)
   appendValue m oldMap k k2 v2 = Map.alter (alterMap k2 (findWithDefault2 v2 k k2 oldMap)) k m
@@ -231,7 +320,15 @@ updateStateP oldState = actState
           <<< over _log (append [ InputEvent txInput ])
       )
         oldState
-    (Error txError) -> set _transactionError (Just txError) oldState
+    (Error txError) ->
+      ( set _transactionError (Just txError)
+          -- apart from setting the error, we also removing the pending inputs
+          
+          -- otherwise there can be hidden pending inputs in the simulation
+          
+          <<< set _pendingInputs mempty
+      )
+        oldState
 
 stateToTxInput :: MarloweState -> TransactionInput
 stateToTxInput ms =
@@ -240,7 +337,7 @@ stateToTxInput ms =
 
     interval = SlotInterval slot slot
 
-    inputs = map fst (ms ^. _pendingInputs)
+    inputs = ms ^. _pendingInputs
   in
     TransactionInput { interval: interval, inputs: (List.fromFoldable inputs) }
 
@@ -262,5 +359,47 @@ updateContractInState contents = modifying _currentMarloweState (updatePossibleA
 applyTransactions :: forall s m. MonadState { marloweState :: NonEmptyList MarloweState | s } m => m Unit
 applyTransactions = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP))
 
+applyInput ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  (Array Input -> Array Input) ->
+  m Unit
+applyInput inputs = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (over _pendingInputs inputs)))
+
+moveToSignificantSlot ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Slot ->
+  m Unit
+moveToSignificantSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< updateStateP <<< (set _slot slot)))
+
+moveToSlot ::
+  forall s m.
+  MonadState { marloweState :: NonEmptyList MarloweState | s } m =>
+  Slot ->
+  m Unit
+moveToSlot slot = modifying _marloweState (extendWith (updatePossibleActions <<< (set _slot slot)))
+
 hasHistory :: forall s. { marloweState :: NonEmptyList MarloweState | s } -> Boolean
-hasHistory state = state ^. (_marloweState <<< to NEL.length <<< to ((<) 1))
+hasHistory state = has (_marloweState <<< _Tail) state
+
+evalObservation :: MarloweState -> Observation -> Boolean
+evalObservation state observation =
+  let
+    txInput = stateToTxInput state
+  in
+    case fixInterval (unwrap txInput).interval (state ^. _state) of
+      IntervalTrimmed env state' -> S.evalObservation env state' observation
+      -- if there is an error in the state we will say that the observation is false. 
+      -- Nothing should happen anyway because applying the input will fail later
+      IntervalError _ -> false
+
+nextSignificantSlot :: MarloweState -> Maybe Slot
+nextSignificantSlot state =
+  state
+    ^. ( _contract
+          <<< to (fromMaybe Close)
+          <<< to timeouts
+          <<< to unwrap
+          <<< to _.minTime
+      )

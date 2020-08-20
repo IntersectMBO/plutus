@@ -399,7 +399,7 @@ executable plc-agda
                        cryptonite -any,
                        memory -any,
                        optparse-applicative -any,
-                       language-plutus-core -any,
+                       plutus-core -any,
                        transformers -any
   default-language:    Haskell2010
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
@@ -786,10 +786,10 @@ test-suite test-plc-agda
                  cryptonite -any,
                  memory -any,
                  optparse-applicative -any,
-                 language-plutus-core -any,
+                 plutus-core -any,
                  transformers -any
-  build-tool-depends: language-plutus-core:plc
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+  build-tool-depends: plutus-core:plc
 
 test-suite test2-plc-agda
   type: detailed-0.9
@@ -803,7 +803,7 @@ test-suite test2-plc-agda
                  cryptonite -any,
                  memory -any,
                  optparse-applicative -any,
-                 language-plutus-core -any,
+                 plutus-core -any,
                  directory -any,
                  transformers -any
   other-modules:
@@ -1177,7 +1177,7 @@ test-suite test2-plc-agda
         MAlonzo.Code.Data.List.Relation.Unary.All.Properties
         MAlonzo.Code.Data.Maybe.Relation.Unary.All
         MAlonzo.Code.Data.Vec.Bounded.Base
-  build-tool-depends: language-plutus-core:plc
+  build-tool-depends: plutus-core:plc
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
 test-suite test3-plc-agda
@@ -1191,7 +1191,7 @@ test-suite test3-plc-agda
     size-based -any,
     Stream -any,
     text -any,
-    language-plutus-core -any,
+    plutus-core -any,
     mtl -any,
     lazy-search -any,
     ieee754 -any,
@@ -1545,6 +1545,5 @@ test-suite test3-plc-agda
         MAlonzo.Code.Data.List.Relation.Unary.All.Properties
         MAlonzo.Code.Data.Maybe.Relation.Unary.All
         MAlonzo.Code.Data.Vec.Bounded.Base
-  build-tool-depends: language-plutus-core:plc
   ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
-  
+  build-tool-depends: plutus-core:plc
