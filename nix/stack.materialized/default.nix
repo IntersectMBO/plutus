@@ -60,6 +60,7 @@
         marlowe-symbolic = ./marlowe-symbolic.nix;
         prettyprinter-configurable = ./prettyprinter-configurable.nix;
         plutus-doc = ./plutus-doc.nix;
+        web-ghc = ./web-ghc.nix;
         purescript-bridge = ./.stack-to-nix.cache.0;
         servant-purescript = ./.stack-to-nix.cache.1;
         cardano-crypto = ./.stack-to-nix.cache.2;

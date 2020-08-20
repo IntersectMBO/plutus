@@ -20,6 +20,7 @@ packages:
 - marlowe-symbolic
 - prettyprinter-configurable
 - doc
+- web-ghc
 
 extra-deps:
 # FEAT/NEAT and deps

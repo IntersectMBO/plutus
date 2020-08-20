@@ -72,4 +72,11 @@ cradle:
   - path: ./metatheory/test
     config: { cradle: { cabal: { component: "metatheory:metatheory-test" } } }
 
+  - path: ./web-ghc/src
+    config: { cradle: { cabal: { component: "lib:web-ghc" } } }
+  - path: ./web-ghc/src
+    config: { cradle: { cabal: { component: "exe:web-ghc-server" } } }
+  - path: ./web-ghc/test
+    config: { cradle: { cabal: { component: "web-ghc:web-ghc-test" } } }
+
 # Add more as needed, I'm too lazy
