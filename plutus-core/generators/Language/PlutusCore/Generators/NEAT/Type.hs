@@ -16,7 +16,7 @@ This file contains
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
-module Language.PlutusCore.Gen.Type
+module Language.PlutusCore.Generators.NEAT.Type
   ( TypeBuiltinG (..)
   , TypeG (..)
   , ClosedTypeG
@@ -30,10 +30,11 @@ module Language.PlutusCore.Gen.Type
 import           Control.Enumerable
 import           Control.Monad.Except
 import           Data.Coolean
-import qualified Data.Stream                    as Stream
-import qualified Data.Text                      as Text
+import qualified Data.Stream                                as Stream
+import qualified Data.Text                                  as Text
 import           Language.PlutusCore
-import           Language.PlutusCore.Gen.Common
+import           Language.PlutusCore.DeBruijn
+import           Language.PlutusCore.Generators.NEAT.Common
 
 -- * Enumerating builtin types
 
@@ -86,7 +87,9 @@ data GenError
 
 data ErrorP ann
  = TypeErrorP (TypeError DefaultUni ann)
+ | AgdaErrorP ()
  | GenErrorP GenError
+ | FVErrorP FreeVariableError
 
 
 -- |Convert well-kinded generated types to Plutus types.

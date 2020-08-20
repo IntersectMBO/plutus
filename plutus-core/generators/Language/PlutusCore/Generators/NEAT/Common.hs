@@ -13,7 +13,7 @@ generating Plutus Core types and terms.
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Language.PlutusCore.Gen.Common
+module Language.PlutusCore.Generators.NEAT.Common
   ( Z
   , S (..)
   , fromZ

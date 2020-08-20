@@ -22,9 +22,9 @@ import           Language.PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import           Language.PlutusCore.Generators
 import           Language.PlutusCore.Generators.AST                         as AST
 import           Language.PlutusCore.Generators.Interesting
+import           Language.PlutusCore.Generators.NEAT.PropTest
 import           Language.PlutusCore.Normalize
 import           Language.PlutusCore.Pretty
-import           Language.PlutusCore.PropTest
 
 import           Codec.Serialise
 import           Control.Monad.Except
@@ -161,11 +161,11 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles evalFiles = testGroup "all te
     , Check.tests
     -- NEAT tests
     , testCaseCount "kind checker for generated types is sound" $
-        testTyProp depth kind prop_checkKindSound
+        testTyProp size star prop_checkKindSound
     , testCaseCount "normalization preserves kinds" $
-        testTyProp depth kind prop_normalizePreservesKind
+        testTyProp size star prop_normalizePreservesKind
     , testCaseCount "normalization for generated types is sound" $
-        testTyProp depth kind prop_normalizeTypeSound
+        testTyProp size star prop_normalizeTypeSound
     ]
 
 testCaseCount :: String -> IO Integer -> TestTree
@@ -312,11 +312,11 @@ tests = testCase "example programs" $ fold
 
 -- NEAT stuff
 
-depth :: Int
-depth = 10
+size :: Int
+size = 10
 
-kind :: Kind ()
-kind = Type ()
+star :: Kind ()
+star = Type ()
 
 -- |Check if the type/kind checker or generation threw any errors.
 isSafe :: ExceptT (ErrorP a) Quote a -> Cool
@@ -338,7 +338,7 @@ prop_normalizePreservesKind k _ tyQ = isSafe $ do
 -- |Property: Normalisation for generated types is sound.
 prop_normalizeTypeSound :: TyProp
 prop_normalizeTypeSound k tyG tyQ = isSafe $ do
-  ty <- withExceptT GenErrorP tyQ
+  ty  <- withExceptT GenErrorP tyQ
   ty1 <- withExceptT TypeErrorP $ unNormalized <$> normalizeType ty
   ty2 <- withExceptT GenErrorP $ toClosedType k (normalizeTypeG tyG)
   return (ty1 == ty2)

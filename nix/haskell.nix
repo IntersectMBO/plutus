@@ -85,6 +85,7 @@ let
             plc-agda.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test-plc-agda.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test2-plc-agda.build-tools = [ agdaWithStdlib ];
+            plc-agda.components.tests.test3-plc-agda.build-tools = [ agdaWithStdlib ];
 
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;

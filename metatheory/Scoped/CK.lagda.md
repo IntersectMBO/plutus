@@ -17,7 +17,7 @@ open import Data.Nat.Properties
 open import Type
 open import Type.BetaNormal
 open import Scoped
-open import Scoped.Reduction hiding (step;trans)
+open import Scoped.Reduction hiding (step;trans;Error)
 open import Builtin
 open import Scoped.RenamingSubstitution
 open import Relation.Nullary
@@ -141,11 +141,11 @@ step ((s , (-·⋆ A)) ◅ V-builtin⋆ b q As) = s ▻ builtin b (inj₁ (q ,, 
 
 ```
 open import Utils
-stepper : ℕ → State → Maybe State
-stepper zero st = nothing 
+stepper : ℕ → State → Either Error State
+stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | s ▻ M = stepper n (s ▻ M)
 stepper (suc n) st | s ◅ V = stepper n (s ◅ V)
-stepper (suc n) st | □ V   = just (□ V)
-stepper (suc n) st | ◆     = just ◆
+stepper (suc n) st | □ V   = return (□ V)
+stepper (suc n) st | ◆     = return ◆
 ```

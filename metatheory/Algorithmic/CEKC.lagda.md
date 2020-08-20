@@ -11,7 +11,7 @@ import Data.List as L
 open import Data.List.Properties
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Unit using (⊤;tt)
-
+open import Utils
 
 open import Type
 open import Type.BetaNormal
@@ -237,14 +237,11 @@ step (□ C)       = □ C
 step (◆ A)       = ◆ A
 
 open import Data.Nat
-open import Data.Maybe
 
-stepper : ℕ → ∀{T}
-  → State T
-  → Maybe (State T)
-stepper zero st = nothing 
+stepper : ℕ → ∀{T} → State T → Either Error (State T)
+stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ; ρ ◅ V) = stepper n (s ; ρ ◅ V)
-stepper (suc n) st | (□ V)   = just (□ V)
-stepper (suc n) st | ◆ A     = just (◆ A)
+stepper (suc n) st | (□ V)   = return (□ V)
+stepper (suc n) st | ◆ A     = return (◆ A)

@@ -8,7 +8,7 @@ generated types. Generation of terms is not implemented yet.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 
-module Language.PlutusCore.PropTest
+module Language.PlutusCore.Generators.NEAT.PropTest
   ( TyProp
   , testTyProp
   , toClosedType
@@ -18,16 +18,16 @@ module Language.PlutusCore.PropTest
   ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.Gen.Common
-import           Language.PlutusCore.Gen.Type   hiding (toClosedType)
-import qualified Language.PlutusCore.Gen.Type   as Gen
+import           Language.PlutusCore.Generators.NEAT.Common
+import           Language.PlutusCore.Generators.NEAT.Type   hiding (toClosedType)
+import qualified Language.PlutusCore.Generators.NEAT.Type   as Gen
 import           Language.PlutusCore.Pretty
 
 import           Control.Monad.Except
 import           Control.Search
-import qualified Data.Coolean                   as Cool
-import qualified Data.Stream                    as Stream
-import qualified Data.Text                      as Text
+import qualified Data.Coolean                               as Cool
+import qualified Data.Stream                                as Stream
+import qualified Data.Text                                  as Text
 import           Test.Tasty.HUnit
 import           Text.Printf
 

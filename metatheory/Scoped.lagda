@@ -15,17 +15,14 @@ open import Data.Char using (Char)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
-open import Utils
 open import Relation.Nullary
 open import Category.Monad
 import Level
-open RawMonad {f = Level.zero} (record { return = just ; _>>=_ = λ { (just x) f → f x ; nothing x → nothing} })
-
 
 open import Builtin.Constant.Type
 open import Builtin
 open import Raw
-
+open import Utils
 \end{code}
 
 \begin{code}
@@ -69,8 +66,6 @@ data ScopedTy (n : ℕ) : Set where
 
 Tel⋆ : ℕ → ℕ → Set
 Tel⋆ n m = Vec (ScopedTy n) m
-
---{-# COMPILE GHC ScopedTy = data ScTy (ScTyVar | ScTyFun | ScTyPi | ScTyLambda | ScTyApp | ScTyCon) #-}
 
 open import Builtin.Signature ℕ ⊤ 0 (λ n _ → suc n) tt (λ n _ → Fin n) zero suc (λ n _ → ScopedTy n) ` con
 
@@ -122,7 +117,7 @@ lookupWTm zero Z = nothing
 lookupWTm zero (S w) = just 0
 lookupWTm zero (T w) = nothing
 lookupWTm (suc x) Z = nothing
-lookupWTm (suc x) (S w) = map suc (lookupWTm x w)
+lookupWTm (suc x) (S w) = fmap suc (lookupWTm x w)
 lookupWTm (suc x) (T w) = lookupWTm x w
 
 lookupWTy : ∀(x : ℕ){n}(w : Weirdℕ n) → Maybe ℕ
@@ -131,7 +126,7 @@ lookupWTy zero (S w) = nothing
 lookupWTy zero (T w) = just 0
 lookupWTy (suc x) Z = nothing
 lookupWTy (suc x) (S w) = lookupWTy x w
-lookupWTy (suc x) (T w) = map suc (lookupWTy x w)
+lookupWTy (suc x) (T w) = fmap suc (lookupWTy x w)
 
 lookupWTm' : ∀(x : ℕ){n} → Weirdℕ n → ℕ
 lookupWTm' x (S m) = lookupWTm' x m
@@ -226,6 +221,8 @@ deBruijnifyK : RawKind → Kind
 deBruijnifyK * = *
 deBruijnifyK (K ⇒ J) = deBruijnifyK K ⇒ deBruijnifyK J
 
+{-# COMPILE GHC deBruijnifyK as deBruijnifyK #-}
+
 deBruijnifyC : RawTermCon → TermCon
 deBruijnifyC (integer i)    = integer i
 deBruijnifyC (bytestring b) = bytestring b
@@ -234,42 +231,42 @@ deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit 
 
-ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
-ℕtoFin {zero}  _       = nothing
-ℕtoFin {suc m} zero    = just zero
-ℕtoFin {suc m} (suc n) = map suc (ℕtoFin n)
+ℕtoFin : ∀{n} → ℕ → Either Error (Fin n)
+ℕtoFin {zero}  _       = inj₁ scopeError
+ℕtoFin {suc m} zero    = return zero
+ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
-ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Maybe (WeirdFin w)
-ℕtoWeirdFin {w = Z}   n    = nothing
-ℕtoWeirdFin {w = S w} zero = just Z
-ℕtoWeirdFin {w = S w} (suc n) with ℕtoWeirdFin {w = w} n
-ℕtoWeirdFin {_} {S w} (suc n) | just i  = just (S i)
-ℕtoWeirdFin {_} {S w} (suc n) | nothing = nothing
-ℕtoWeirdFin {w = T w} n  with ℕtoWeirdFin {w = w} n
-ℕtoWeirdFin {_} {T w} n | just x  = just (T x)
-ℕtoWeirdFin {_} {T w} n | nothing = nothing
+ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either Error (WeirdFin w)
+ℕtoWeirdFin {w = Z}   n    = inj₁ scopeError
+ℕtoWeirdFin {w = S w} zero = return Z
+ℕtoWeirdFin {w = S w} (suc n) = do
+  i ← ℕtoWeirdFin {w = w} n
+  return (S i)
+ℕtoWeirdFin {w = T w} n  = do
+  i ← ℕtoWeirdFin {w = w} n
+  return (T i)
 
-scopeCheckTy : ∀{n} → RawTy → Maybe (ScopedTy n)
-scopeCheckTy (` x) = map ` (ℕtoFin x)
+scopeCheckTy : ∀{n} → RawTy → Either Error (ScopedTy n)
+scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A ⇒ B)
-scopeCheckTy (Π K A) = map (Π (deBruijnifyK K)) (scopeCheckTy A)
-scopeCheckTy (ƛ K A) = map (ƛ (deBruijnifyK K)) (scopeCheckTy A)
+scopeCheckTy (Π K A) = fmap (Π (deBruijnifyK K)) (scopeCheckTy A)
+scopeCheckTy (ƛ K A) = fmap (ƛ (deBruijnifyK K)) (scopeCheckTy A)
 scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = just (con c)
+scopeCheckTy (con c) = inj₂ (con c)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (μ A B)
 
-scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Maybe (ScopedTm w)
-scopeCheckTm (` x) = map ` (ℕtoWeirdFin x)
-scopeCheckTm {n}{w}(Λ K t) = map (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
+scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either Error (ScopedTm w)
+scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
+scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
   A ← scopeCheckTy A
   t ← scopeCheckTm t
@@ -282,97 +279,24 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = just (con (deBruijnifyC c))
-scopeCheckTm (error A) = map error (scopeCheckTy A)
-scopeCheckTm (builtin b) = just (builtin b (inj₁ (z≤‴n , refl)) [] [])
+scopeCheckTm (con c) = return (con (deBruijnifyC c))
+scopeCheckTm (error A) = fmap error (scopeCheckTy A)
+scopeCheckTm (builtin b) = return (builtin b (inj₁ (z≤‴n , refl)) [] [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   t ← scopeCheckTm t
   return (wrap A B t)
-scopeCheckTm (unwrap t) = map unwrap (scopeCheckTm t)
-\end{code}
-
--- SATURATION OF BUILTINS
-
-\begin{code}
-open import Data.Product
-open import Data.Sum
-{-
-builtinMatcher : ∀{n}{w : Weirdℕ n} → ScopedTm w
-  → (Builtin × List (ScopedTy n) × List (ScopedTm w)) ⊎ ScopedTm w
-builtinMatcher (builtin b As ts) = inj₁ (b , As , ts)
-builtinMatcher t              = inj₂ t
-
-open import Relation.Nullary
-
-builtinEater : ∀{n}{w : Weirdℕ n} → Builtin
- → List (ScopedTy n) → List (ScopedTm w) → ScopedTm w → ScopedTm w
-builtinEater b As ts u
-  with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity b
-builtinEater b As ts u | yes p = builtin b As (ts Data.List.++ [ u ])
-builtinEater b As ts u | no ¬p = builtin b As ts · u
-
-builtinEater⋆ : ∀{n}{w : Weirdℕ n} → Builtin
-  → List (ScopedTy n) → List (ScopedTm w) → ScopedTy n → ScopedTm w
-builtinEater⋆ b As ts A
-  with Data.List.length ts Data.Nat.+ 1 Data.Nat.≤? arity⋆ b
-builtinEater⋆ b As ts A | yes p = builtin b (As Data.List.++ [ A ]) ts
-builtinEater⋆ b As ts A | no ¬p = builtin b As ts ·⋆ A
-
-saturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
-saturate (` x)          = ` x
-saturate (Λ K t)        = Λ K (saturate t)
-saturate (t ·⋆ A)       with builtinMatcher (saturate t)
-saturate (t ·⋆ A) | inj₁ (b , As , ts) = builtinEater⋆ b As ts A
-saturate (t ·⋆ A) | inj₂ t'            = t' ·⋆ A
-saturate (ƛ A t)        = ƛ A (saturate t)
-saturate (t · u)        with builtinMatcher (saturate t)
-saturate (t · u) | inj₁ (b , As , ts) = builtinEater b As ts (saturate u)
-saturate (t · u) | inj₂ t'            = t' · saturate u
-saturate (con c)        = con c
-saturate (error A)      = error A
-saturate (builtin b As ts) = builtin b As ts
-saturate (wrap A B t) = wrap A B (saturate t)
-saturate (unwrap t)   = unwrap (saturate t)
-
--- I don't think As or ts can be unsaturated, could be enforced by
-  -- seperate representations for sat and unsat terms
--}
-\end{code}
-
-\begin{code}
-{-
-{-# TERMINATING #-}
-unsaturate : ∀{n}{w : Weirdℕ n} → ScopedTm w → ScopedTm w
-
-builtinBuilder : ∀{n}{w : Weirdℕ n} → Builtin → List (ScopedTy n) → List (ScopedTm w) → ScopedTm w
-builtinBuilder b [] [] = builtin b [] []
-builtinBuilder b (A ∷ As) [] = builtinBuilder b As [] ·⋆ A
-builtinBuilder b As (t ∷ ts) = builtinBuilder b As ts · unsaturate t
--}
-\end{code}
-
-\begin{code}
-{-
-unsaturate (` x) = ` x
-unsaturate (Λ K t) = Λ K (unsaturate t)
-unsaturate (t ·⋆ A) = unsaturate t ·⋆ A
-unsaturate (ƛ A t) = ƛ A (unsaturate t)
-unsaturate (t · u) = unsaturate t · unsaturate u
-unsaturate (con c) = con c
-unsaturate (error A) = error A
-unsaturate (builtin b As bs) =
-  builtinBuilder b (Data.List.reverse As) (Data.List.reverse bs)
-unsaturate (wrap A B t) = wrap A B (unsaturate t)
-unsaturate (unwrap t)   = unwrap (unsaturate t)
--}
+scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
 \end{code}
 
 \begin{code}
 unDeBruijnifyK : Kind → RawKind
 unDeBruijnifyK * = *
 unDeBruijnifyK (K ⇒ J) = unDeBruijnifyK K ⇒ unDeBruijnifyK J
+
+{-# COMPILE GHC unDeBruijnifyK as unDeBruijnifyK #-}
+
 \end{code}
 
 \begin{code}
