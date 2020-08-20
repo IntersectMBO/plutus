@@ -7,7 +7,7 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, foldr, intercalate, snoc, (:))
+import Data.Array (delete, filter, foldr, intercalate, reverse, snoc, sortWith, (:))
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger, fromString, fromInt)
@@ -65,7 +65,7 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
+import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, otherwise, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
@@ -575,13 +575,11 @@ transactionComposer state =
   lastKey :: Maybe Party
   lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-  parties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
-  parties = foldr f mempty
-    where
-    f (Tuple k v) acc = (Tuple k v) : acc
+  sortParties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
+  sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
   actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (parties (kvs m))
+  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (sortParties (kvs m))
 
 participant ::
   forall p.
@@ -590,28 +588,21 @@ participant ::
   Party ->
   Array ActionInput ->
   HTML p Action
-participant state isEnabled party actionInputs
-  | party == otherActionsParty =
-    li [ classes [ ClassName "participant-a", noMargins ] ]
-      ( [ h6_ [ em_ [ text "Other Actions" ] ] ]
-          <> (map (inputItem state isEnabled (partyName otherActionsParty)) actionInputs)
-      )
-    where
-    partyName (PK name) = name
-
-    partyName (Role name) = name
-
-participant state isEnabled (PK person) actionInputs =
+participant state isEnabled party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem state isEnabled person) actionInputs)
+    ( [ h6_ [ em_ title ] ]
+        <> (map (inputItem state isEnabled partyName) actionInputs)
     )
+  where
+  title =
+    if party == otherActionsParty then
+      [ text "Other Actions" ]
+    else
+      [ text "Participant ", strong_ [ text partyName ] ]
 
-participant state isEnabled (Role person) actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem state isEnabled person) actionInputs)
-    )
+  partyName = case party of
+    (PK name) -> name
+    (Role name) -> name
 
 inputItem ::
   forall p.
@@ -711,7 +702,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
     else
       []
 
-  inFuture = state ^. (_currentMarloweState <<< _slot <<< to (greaterThan slot))
+  inFuture = view (_currentMarloweState <<< _slot) state < slot
 
   error = if inFuture then [] else [ text boundsError ]
 

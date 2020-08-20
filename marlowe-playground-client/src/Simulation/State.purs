@@ -31,7 +31,7 @@ import Marlowe.Parser (parseContract)
 import Marlowe.Semantics (AccountId, Action(..), Assets, Bound, ChoiceId(..), ChosenNum, Contract(..), Environment(..), Input, IntervalResult(..), Observation, Party(..), Payment, Slot, SlotInterval(..), State, Token, TransactionError, TransactionInput(..), TransactionOutput(..), TransactionWarning, _minSlot, aesonCompatibleOptions, boundFrom, computeTransaction, emptyState, evalValue, extractRequiredActionsWithTxs, fixInterval, moneyInContract, timeouts)
 import Marlowe.Semantics as S
 import Monaco (IMarker)
-import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, ($), (<), (<<<), (==), (||))
+import Prelude (class Eq, class Monoid, class Ord, class Semigroup, Unit, add, append, map, mempty, min, one, zero, ($), (<), (<<<), (==), (||), (#))
 
 data ActionInputId
   = DepositInputId AccountId Party Token BigInteger
@@ -242,9 +242,11 @@ updateContractInStateP text state = case parseContract text of
 updatePossibleActions :: MarloweState -> MarloweState
 updatePossibleActions oldState =
   let
-    contract = oldState ^. (_contract <<< to (fromMaybe Close))
+    contract = fromMaybe Close (oldState ^. _contract)
 
     state = oldState ^. _state
+
+    currentSlot = oldState ^. _slot
 
     txInput = stateToTxInput oldState
 
@@ -252,18 +254,15 @@ updatePossibleActions oldState =
 
     usefulActions = mapMaybe removeUseless actions
 
-    currentSlot = oldState ^. _slot
-
     slot = fromMaybe (add one currentSlot) (nextSignificantSlot oldState)
 
-    actionInputs = Map.fromFoldable $ (map (actionToActionInput nextState) usefulActions)
+    actionInputs = Map.fromFoldable $ map (actionToActionInput nextState) usefulActions
 
-    moveTo = if oldState ^. (_contract <<< to (\c -> c == Just Close || c == Nothing)) then Nothing else Just $ MoveToSlot slot
+    moveTo = if contract == Close then Nothing else Just $ MoveToSlot slot
   in
-    ( set (_possibleActions <<< _moveToAction) moveTo
-        <<< over _possibleActions (updateActions actionInputs)
-    )
-      oldState
+    oldState
+      # over _possibleActions (updateActions actionInputs)
+      # set (_possibleActions <<< _moveToAction) moveTo
   where
   removeUseless :: Action -> Maybe Action
   removeUseless action@(Notify observation) = if evalObservation oldState observation then Just action else Nothing
