@@ -107,6 +107,11 @@ handleAction settings Init = do
   checkAuthStatus settings
   void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
 
+handleAction _ (HandleEditorMessage (Monaco.TextChanged "")) = do
+  assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+  assign _oldContract Nothing
+  updateContractInState ""
+
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
   liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey text
@@ -685,7 +690,7 @@ inputItem state isEnabled person (MoveToSlot slot) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
-          [ p [ class_ (ClassName "choice-input") ]
+          [ p [ class_ (ClassName "slot-input") ]
               [ spanText "Move to slot "
               , marloweActionInput isEnabled (SetSlot <<< wrap) slot
               ]
