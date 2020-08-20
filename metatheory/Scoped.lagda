@@ -23,6 +23,7 @@ open import Builtin.Constant.Type
 open import Builtin
 open import Raw
 open import Utils
+open import Algorithmic using (Error;scopeError) -- TODO: just for Error...
 \end{code}
 
 \begin{code}
@@ -231,22 +232,22 @@ deBruijnifyC (bool b)       = bool b
 deBruijnifyC (char c)       = char c
 deBruijnifyC unit           = unit 
 
-ℕtoFin : ∀{n} → ℕ → Maybe (Fin n)
-ℕtoFin {zero}  _       = nothing
-ℕtoFin {suc m} zero    = just zero
+ℕtoFin : ∀{n} → ℕ → Either Error (Fin n)
+ℕtoFin {zero}  _       = inj₁ scopeError
+ℕtoFin {suc m} zero    = return zero
 ℕtoFin {suc m} (suc n) = fmap suc (ℕtoFin n)
 
-ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Maybe (WeirdFin w)
-ℕtoWeirdFin {w = Z}   n    = nothing
-ℕtoWeirdFin {w = S w} zero = just Z
-ℕtoWeirdFin {w = S w} (suc n) with ℕtoWeirdFin {w = w} n
-ℕtoWeirdFin {_} {S w} (suc n) | just i  = just (S i)
-ℕtoWeirdFin {_} {S w} (suc n) | nothing = nothing
-ℕtoWeirdFin {w = T w} n  with ℕtoWeirdFin {w = w} n
-ℕtoWeirdFin {_} {T w} n | just x  = just (T x)
-ℕtoWeirdFin {_} {T w} n | nothing = nothing
+ℕtoWeirdFin : ∀{n}{w : Weirdℕ n} → ℕ → Either Error (WeirdFin w)
+ℕtoWeirdFin {w = Z}   n    = inj₁ scopeError
+ℕtoWeirdFin {w = S w} zero = return Z
+ℕtoWeirdFin {w = S w} (suc n) = do
+  i ← ℕtoWeirdFin {w = w} n
+  return (S i)
+ℕtoWeirdFin {w = T w} n  = do
+  i ← ℕtoWeirdFin {w = w} n
+  return (T i)
 
-scopeCheckTy : ∀{n} → RawTy → Maybe (ScopedTy n)
+scopeCheckTy : ∀{n} → RawTy → Either Error (ScopedTy n)
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
@@ -258,13 +259,13 @@ scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = just (con c)
+scopeCheckTy (con c) = inj₂ (con c)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (μ A B)
 
-scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Maybe (ScopedTm w)
+scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either Error (ScopedTm w)
 scopeCheckTm (` x) = fmap ` (ℕtoWeirdFin x)
 scopeCheckTm {n}{w}(Λ K t) = fmap (Λ (deBruijnifyK K)) (scopeCheckTm {suc n}{T w} t)
 scopeCheckTm (t ·⋆ A) = do
@@ -279,9 +280,9 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = just (con (deBruijnifyC c))
+scopeCheckTm (con c) = return (con (deBruijnifyC c))
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
-scopeCheckTm (builtin b) = just (builtin b (inj₁ (z≤‴n , refl)) [] [])
+scopeCheckTm (builtin b) = return (builtin b (inj₁ (z≤‴n , refl)) [] [])
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B

@@ -19,7 +19,7 @@ open import Type
 open import Type.BetaNormal
 open import Type.BetaNormal.Equality
 open import Algorithmic
-open import Algorithmic.Reduction hiding (step)
+open import Algorithmic.Reduction hiding (step;Error)
 open import Builtin
 open import Builtin.Signature
   Ctx⋆ Kind ∅ _,⋆_ * _∋⋆_ Z S _⊢Nf⋆_ (ne ∘ `) con
@@ -28,6 +28,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Type.BetaNBE.RenamingSubstitution
 open import Type.BetaNBE
 open import Algorithmic.RenamingSubstitution
+open import Algorithmic using (Error;gasError)
 ```
 
 ```
@@ -180,13 +181,13 @@ open import Data.Nat
 
 stepper : ℕ → ∀{T}
   → State T
-  → Maybe (State T)
-stepper zero st = nothing 
+  → Either Error (State T)
+stepper zero st = inj₁ gasError
 stepper (suc n) st with step st
 stepper (suc n) st | (s ▻ M) = stepper n (s ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
-stepper (suc n) st | (□ V)   = just (□ V)
-stepper (suc n) st | ◆ A     = just (◆ A)
+stepper (suc n) st | (□ V)   = return (□ V)
+stepper (suc n) st | ◆ A     = return (◆ A)
 ```
 
 This is the property I would like to have, but it cannot be proved directly like this:

@@ -7,7 +7,7 @@ open import Function
 
 open import Type
 open import Type.BetaNormal
-open import Algorithmic as A
+import Algorithmic as A hiding (Error)
 import Algorithmic.Reduction as A
 import Algorithmic.RenamingSubstitution as A
 open import Algorithmic.Erasure
@@ -36,18 +36,18 @@ import Data.Bool as B
 \end{code}
 
 \begin{code}
-eraseVal : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A}
+eraseVal : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : A.Ctx Φ}{t : Γ A.⊢ A}
   → A.Value t → U.Value (erase t)
 eraseVal (A.V-ƛ t)      = U.V-F (U.V-ƛ (erase t))
 eraseVal (A.V-Λ t)      = U.V-F (U.V-ƛ (U.weaken (erase t)))
 eraseVal (A.V-wrap v)         = eraseVal v
 eraseVal (A.V-con {Γ = Γ} cn) = U.V-con (eraseTC {Γ = Γ} cn)
 
-eraseFVal : ∀{Φ}{A B : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t : Γ ⊢ A ⇒ B}
+eraseFVal : ∀{Φ}{A B : Φ ⊢Nf⋆ *}{Γ : A.Ctx Φ}{t : Γ A.⊢ A ⇒ B}
   → A.Value t → U.FValue (erase t)
 eraseFVal (A.V-ƛ t) = U.V-ƛ (erase t)
 
-eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{e : Γ ⊢ A}
+eraseErr : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : A.Ctx Φ}{e : Γ A.⊢ A}
   → A.Error e → U.Error (erase e)
 eraseErr A.E-error = U.E-error
 
@@ -58,10 +58,10 @@ eraseVTel : ∀ {Φ} Γ Δ
   → (vtel : A.VTel Γ Δ σ As tel)
   → U.VTel (Data.List.length As) (len Γ) (eraseTel tel)
 eraseVTel Γ Δ σ []       tel       vtel        = _ 
-eraseVTel Γ Δ σ (A ∷ As) (t ∷ tel) (v ,, vtel) =
+eraseVTel Γ Δ σ (A ∷ As) (t A.∷ tel) (v ,, vtel) =
   eraseVal v ,, eraseVTel Γ Δ σ As tel vtel 
 
-eraseVTel⋆ : ∀ {Φ}(Γ : Ctx Φ) Δ
+eraseVTel⋆ : ∀ {Φ}(Γ : A.Ctx Φ) Δ
   → U.VTel (len⋆ Δ) (len Γ) (eraseTel⋆ Γ Δ)
 eraseVTel⋆ Γ ∅        = tt
 eraseVTel⋆ Γ (Δ ,⋆ K) =
@@ -77,8 +77,8 @@ eraseVTel' : ∀ {Φ} Γ Δ
 eraseVTel' Γ Δ σ As refl ts vs = U.vTel++ (eraseTel⋆ Γ Δ) (eraseVTel⋆ Γ Δ) (eraseTel ts) (eraseVTel Γ Δ σ As ts vs)
 
 eraseAnyErr : ∀{Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As}(ts : A.Tel Γ Δ σ As) → A.Any A.Error ts → U.Any U.Error (eraseTel ts)
-eraseAnyErr .(_ ∷ _) (A.here p)    = U.here (eraseErr p)
-eraseAnyErr .(_ ∷ _) (A.there v p) = U.there (eraseVal v) (eraseAnyErr _ p)
+eraseAnyErr .(_ A.∷ _) (A.here p)    = U.here (eraseErr p)
+eraseAnyErr .(_ A.∷ _) (A.there v p) = U.there (eraseVal v) (eraseAnyErr _ p)
 
 eraseAnyErr' : ∀{Φ}{Γ}{Δ}{σ : ∀ {K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K}{As}
   → ∀{n}(p : len⋆ Δ Data.Nat.+ Data.List.length As ≡ n)
@@ -90,7 +90,7 @@ eraseAnyErr' {Γ = Γ}{Δ = Δ} refl ts p =
 \end{code}
 
 \begin{code}
-erase-decIf : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}{X}(p : Dec X)(t f : Γ ⊢ A) →
+erase-decIf : ∀{Φ}{Γ : A.Ctx Φ}{A : Φ ⊢Nf⋆ *}{X}(p : Dec X)(t f : Γ A.⊢ A) →
   Util.decIf p (erase t) (erase f) ≡ erase (Util.decIf p t f)
 erase-decIf (yes p) t f = refl
 erase-decIf (no ¬p) t f = refl
@@ -100,14 +100,16 @@ erase-if : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *}(b : B.Bool)(t f : Γ ⊢ A) �
 erase-if B.false t f = refl
 erase-if B.true  t f = refl
 -}
-erase-VERIFYSIG : ∀{Φ}{Γ : Ctx Φ}(mb : Util.Maybe B.Bool)
+erase-VERIFYSIG : ∀{Φ}{Γ : A.Ctx Φ}(mb : Util.Maybe B.Bool)
   → U.VERIFYSIG mb ≡ erase {Φ}{Γ} (A.VERIFYSIG mb)
 erase-VERIFYSIG (Util.just B.false) = refl
 erase-VERIFYSIG (Util.just B.true)  = refl
 erase-VERIFYSIG Util.nothing = refl
 
+open import Algorithmic using (_∷_;[]) -- TODO
+
 erase-BUILTIN : ∀ bn → let Δ ,, As ,, X = SIG bn in
-  ∀{Φ}(Γ : Ctx Φ)
+  ∀{Φ}(Γ : A.Ctx Φ)
   → (σ : ∀{K} → Δ ∋⋆ K → Φ ⊢Nf⋆ K)
   → (tel : A.Tel Γ Δ σ As)
   → (vtel : A.VTel Γ Δ σ As tel)
@@ -172,10 +174,10 @@ subst—→T : ∀{m m' n}{ts ts' : Untyped.Tel m n}
   → subst (λ m → Untyped.Tel m n) p ts U.—→T subst (λ m → Untyped.Tel m n) p ts'
 subst—→T p refl = p
 
-erase—→ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : Ctx Φ}{t t' : Γ ⊢ A}
+erase—→ : ∀{Φ}{A : Φ ⊢Nf⋆ *}{Γ : A.Ctx Φ}{t t' : Γ A.⊢ A}
   → t A.—→ t' → erase t U.—→ erase t' ⊎ erase t ≡ erase t'
 
-erase—→T : ∀{Φ}{Γ : Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}{As : List (Δ ⊢Nf⋆ *)}{ts ts' : A.Tel Γ Δ σ As}
+erase—→T : ∀{Φ}{Γ : A.Ctx Φ}{Δ}{σ : ∀ {J} → Δ ∋⋆ J → Φ ⊢Nf⋆ J}{As : List (Δ ⊢Nf⋆ *)}{ts ts' : A.Tel Γ Δ σ As}
   → ts A.—→T ts'
   → eraseTel ts U.—→T eraseTel ts' ⊎ eraseTel ts ≡ eraseTel ts' 
 erase—→T (A.here p)    = map U.here (cong (_∷ _)) (erase—→ p)
@@ -231,16 +233,16 @@ erase—→ {Γ = Γ} (A.E-builtin b σ ts p) = inj₁ (subst (U._—→ error) 
 -- returning nothing means that the typed step vanishes
 
 \begin{code}
-eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)(p : A.Progress M)
+eraseProgress : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ A.⊢ A)(p : A.Progress M)
   → U.Progress (erase M)
-  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+  ⊎ Σ (Γ A.⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
 eraseProgress M (A.step {N = N} p) =
   map U.step (λ q → N ,, p ,, q) (erase—→ p)
 eraseProgress M (A.done V)    = inj₁ (U.done (eraseVal V))
 eraseProgress M (A.error e)   = inj₁ (U.error (eraseErr e))
 
-erase-progress : ∀{Φ}{Γ : Ctx Φ} → A.NoVar Γ → ∀{A}(M : Γ ⊢ A)
+erase-progress : ∀{Φ}{Γ : A.Ctx Φ} → A.NoVar Γ → ∀{A}(M : Γ A.⊢ A)
   → U.Progress (erase M)
-  ⊎ Σ (Γ ⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
+  ⊎ Σ (Γ A.⊢ A) λ N →  (M A.—→ N) × (erase M ≡ erase N)
 erase-progress p t = eraseProgress t (A.progress p t)
 \end{code}

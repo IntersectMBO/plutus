@@ -27,6 +27,7 @@ open import Builtin.Signature
 open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
+open import Type.BetaNormal
 open import Untyped as U
 import Untyped.Reduction as U
 import Scoped as S
@@ -36,10 +37,12 @@ open import Scoped
 open import Utils
 open import Untyped
 open import Scoped.CK
+open import Algorithmic
 open import Algorithmic.CK
 open import Algorithmic.CEKC
 open import Algorithmic.CEKV
 open import Scoped.Erasure
+
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -103,11 +106,11 @@ postulate
   convTy : Type → RawTy
   unconvTy : RawTy → Type
   convP : Program → RawTm
-  parse : ByteString → Maybe ProgramN
+  parse : ByteString → Either Error ProgramN
   parseTm : ByteString → Maybe TermN
   parseTy : ByteString → Maybe TypeN
   showTerm : RawTm → String
-  deBruijnify : ProgramN → Maybe Program
+  deBruijnify : ProgramN → Either Error Program
   deBruijnifyTm : TermN → Maybe Term
   deBruijnifyTy : TypeN → Maybe Type
 
@@ -121,10 +124,11 @@ postulate
 {-# COMPILE GHC convTm = conv #-}
 {-# COMPILE GHC convTy = convT #-}
 {-# COMPILE GHC unconvTy = \ ty -> AlexPn 0 0 0 <$ (unconvT (-1) ty) #-}
-{-# COMPILE GHC parse = either (\_ -> Nothing) Just . parse  #-}
+{-# FOREIGN GHC import Data.Bifunctor #-}
+{-# COMPILE GHC parse = first (const ParseError) . parse  #-}
 {-# COMPILE GHC parseTm = either (\_ -> Nothing) Just . parseTm  #-}
 {-# COMPILE GHC parseTy = either (\_ -> Nothing) Just . parseTy  #-}
-{-# COMPILE GHC deBruijnify = either (\_ -> Nothing) Just . runExcept . deBruijnProgram #-}
+{-# COMPILE GHC deBruijnify = first (const ScopeError) . runExcept . deBruijnProgram #-}
 {-# COMPILE GHC deBruijnifyTm = either (\_ -> Nothing) Just . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = either (\_ -> Nothing) Just . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import Language.PlutusCore #-}
@@ -149,7 +153,65 @@ data EvalMode : Set where
 
 {-# COMPILE GHC EvalMode = data EvalMode (U | L | TCK | CK | TCEKC | TCEKV) #-}
 
--- extrinsically typed evaluation
+parsePLC : ByteString → Either Error (ScopedTm Z)
+parsePLC plc = do
+  namedprog ← parse plc
+  prog ← deBruijnify namedprog
+  scopeCheckTm {0}{Z} (shifter 0 Z (convP prog))
+  -- ^ TODO: this should have an interface that guarantees that the
+  -- shifter is run and probably does something sensibe withe the
+  -- program wrapper
+
+-- TODO: switch typechecker over to using either
+typeCheckPLC : ScopedTm Z → Either Error (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
+typeCheckPLC t = inferType _ t
+
+maxsteps = 10000000000
+
+executePLC : EvalMode → ScopedTm Z → Either Error String
+executePLC U t = inj₁ gasError -- TODO
+executePLC L t with S.run t maxsteps
+... | t' ,, p ,, inj₁ (just v) = inj₂ (prettyPrintTm (extricateScope t'))
+... | t' ,, p ,, inj₁ nothing  = inj₁ gasError
+... | t' ,, p ,, inj₂ e        = inj₂ "ERROR"
+                                 -- ^ TODO: the program computed to error
+executePLC CK t = do
+  □ {t = t} v ← Scoped.CK.stepper maxsteps (ε ▻ t)
+    where ◆  → inj₂ "ERROR" -- TODO: the program computed to error
+          _  → inj₁ gasError
+  return (prettyPrintTm (extricateScope t))
+executePLC TCK t = do
+  (A ,, t) ← typeCheckPLC t
+  □ {t = t} v ← Algorithmic.CK.stepper maxsteps (ε ▻ t)
+    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+          _    → inj₁ gasError
+  return (prettyPrintTm (extricateScope (extricate t)))
+executePLC TCEKC t = do
+  (A ,, t) ← typeCheckPLC t
+  □ (_ ,, _ ,, V ,, ρ) ← Algorithmic.CEKC.stepper maxsteps (ε ; [] ▻ t)
+    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+          _    → inj₁ gasError
+  return (prettyPrintTm (extricateScope (extricate (proj₁ (Algorithmic.CEKC.discharge V ρ)))))
+executePLC TCEKV t = do
+  (A ,, t) ← typeCheckPLC t
+  □ V ← Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
+    where ◆ _  → inj₂ "ERROR" -- TODO: the program computed to error
+          _    → inj₁ gasError
+  return (prettyPrintTm (extricateScope (extricate (Algorithmic.CEKV.discharge V))))
+
+evalByteString : EvalMode → ByteString → Either Error String
+evalByteString m b = do
+  t ← parsePLC b
+  executePLC m t
+
+typeCheckByteString : ByteString → Either Error String
+typeCheckByteString b = do
+  t ← parsePLC b
+  (A ,, _) ← typeCheckPLC t
+  return (prettyPrintTy (extricateScopeTy (extricateNf⋆ A)))
+
+
+{-
 evalPLC : EvalMode → ByteString → String ⊎ String
 evalPLC m plc with parse plc
 evalPLC m plc | nothing = inj₂ "parse error"
@@ -202,10 +264,13 @@ evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₁ nothing =
   inj₂ "out of fuel"
 evalPLC U plc | just nt | just t | just t' | t'' ,, p ,, inj₂ e =
   inj₂ "computed to error"
+-}
+
 junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.show (pos n) ∷ junk
 
+{-
 tcPLC : ByteString → String ⊎ String
 tcPLC plc with parse plc
 ... | nothing = inj₂ "Parse Error"
@@ -233,7 +298,7 @@ tcPLC plc with parse plc
 ... | inj₂ tyConError     = inj₂ "tyConError"
 ... | inj₂ builtinError   = inj₂ "builtinError"
 ... | inj₂ unwrapError    = inj₂ "unwrapError"
-
+-}
 alphaTm : ByteString → ByteString → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | just plc1' | just plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
@@ -291,16 +356,27 @@ postulate execP : IO Command
 
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode → Input → IO (String ⊎ String)
-evalInput m (FileInput fn) = fmap (evalPLC m) (readFile fn)
-evalInput m StdInput       = fmap (evalPLC m) getContents
+evalInput : EvalMode → Input → IO (Either Error String)
+evalInput m (FileInput fn) = fmap (evalByteString m) (readFile fn)
+evalInput m StdInput       = fmap (evalByteString m) getContents
 
-tcInput : Input → IO (String ⊎ String)
-tcInput (FileInput fn) = fmap tcPLC (readFile fn)
-tcInput StdInput       = fmap tcPLC getContents
+tcInput : Input → IO (Either Error String)
+tcInput (FileInput fn) = fmap typeCheckByteString (readFile fn)
+tcInput StdInput       = fmap typeCheckByteString getContents
 
 
 main' : Command → IO ⊤
+main' (Evaluate (EvalOpts i m)) = do
+  inj₂ s ← evalInput m i
+    where
+    inj₁ e → putStrLn "wibble" >> exitFailure -- TODO
+  putStrLn s >> exitSuccess
+main' (TypeCheck (TCOpts i))    = do
+  inj₂ s ← tcInput i
+    where
+    inj₁ e → putStrLn "wibble" >> exitFailure -- TODO
+  putStrLn s >> exitSuccess
+{-
 main' (Evaluate (EvalOpts i m)) =
   evalInput m i
   >>=
@@ -313,21 +389,18 @@ main' (TypeCheck (TCOpts i))    =
   case
     (λ s → putStrLn s >> exitSuccess)
     (λ e → putStrLn e >> exitFailure)
-
+-}
 main : IO ⊤
 main = execP >>= main'
-\end{code}
 
-
-\begin{code}
-liftSum : {A : Set} → A ⊎ Error → Maybe A
-liftSum (inj₁ a) = just a
-liftSum (inj₂ e) = nothing
+liftSum : {A : Set} → Either Error A → Maybe A
+liftSum (inj₂ a) = just a
+liftSum (inj₁ e) = nothing
 
 -- a Haskell interface to the kindchecker:
 checkKind : Type → Kind → Maybe ⊤
 checkKind ty k = do
-  ty        ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  ty        ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
   (k' ,, _) ← liftSum (inferKind ∅ ty)
   _         ← liftSum (meqKind k k')
   return tt
@@ -338,24 +411,21 @@ checkKind ty k = do
 -- a Haskell interface to kind inference:
 inferKind∅ : Type → Maybe Kind
 inferKind∅ ty = do
-  ty       ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  ty       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
   (k ,, _) ← liftSum (inferKind ∅ ty)
   return k
 
 {-# COMPILE GHC inferKind∅ as inferKindAgda #-}
 
-\end{code}
-
-
-\begin{code}
 open import Type.BetaNormal
 
 -- a Haskell interface to the type normalizer:
 normalizeType : Type → Maybe Type
 normalizeType ty = do
-  ty       ← scopeCheckTy (shifterTy 0 Z (convTy ty))
+  ty       ← liftSum (scopeCheckTy (shifterTy 0 Z (convTy ty)))
   (_ ,, n) ← liftSum (inferKind ∅ ty)
   return (unconvTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ n))))
 
 {-# COMPILE GHC normalizeType as normalizeTypeAgda #-}
+
 \end{code}

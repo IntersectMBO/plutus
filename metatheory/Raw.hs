@@ -136,3 +136,22 @@ unconv tyi tmi (RError ty)       = Error () (unconvT tyi ty)
 unconv tyi tmi (RBuiltin b)      = Builtin () (StaticBuiltinName b)
 unconv tyi tmi (RWrap tyA tyB t) = IWrap () (unconvT tyi tyA) (unconvT tyi tyB) (unconv tyi tmi t)
 unconv tyi tmi (RUnWrap t)       = Unwrap () (unconv tyi tmi t)
+
+-- TODO this should probably go elsewhere
+  
+data Error = TypeError
+           | KindEqError
+           | NotTypeError
+           | NotFunction
+           | NotPiError
+           | NotPat
+           | NameError
+           | TypeEqError
+           | TypeVarEqError
+           | TyConError
+           | BuiltinError
+           | UnwrapError
+           | ParseError
+           | ScopeError
+           | GasError
+

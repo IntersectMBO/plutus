@@ -21,7 +21,7 @@ open import Data.Unit using (tt)
 
 
 open import Type
-open import Algorithmic
+open import Algorithmic hiding (Error)
 open import Algorithmic.RenamingSubstitution
 open import Type.BetaNBE
 open import Type.BetaNBE.Stability

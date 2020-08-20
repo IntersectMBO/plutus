@@ -208,3 +208,38 @@ convTel : ∀ {Φ Ψ}{Γ Γ' : Ctx Φ}
 convTel p σ []       []       = []
 convTel p σ (A ∷ As) (t ∷ ts) = conv⊢ p refl t ∷ convTel p σ As ts
 \end{code}
+
+\begin{code}
+-- TODO: these should probably go elsewhere
+
+data Error : Set where
+  typeError : Error
+  kindEqError : Error
+  notTypeError : Error
+  notFunction : Error
+  notPiError : Error
+  notPat : Error
+  nameError : Error -- TODO String → String → Error 
+  typeEqError : Error -- TODO: ∀{Φ K} → Φ ⊢Nf⋆ K → Φ ⊢Nf⋆ K → Error
+  typeVarEqError : Error
+  tyConError : Error
+  builtinError : Error
+  unwrapError : Error
+  parseError : Error
+  scopeError : Error
+  gasError : Error
+
+-- TODO: the haskell version of error is defined in Raw
+{-# FOREIGN GHC import Raw #-}
+
+{-# COMPILE GHC Error = data Error (TypeError | KindEqError | NotTypeError | NotFunction | NotPiError | NotPat | NameError | TypeEqError | TypeVarEqError | TyConError | BuiltinError | UnwrapError | ParseError | ScopeError | GasError) #-}
+
+-- remove this, translate to plutus error if possible
+eatError : Error → String
+eatError _ = "AgdaError"
+
+instance
+  EitherErrorMonad : Monad (Either Error)
+  EitherErrorMonad = EitherMonad Error
+
+\end{code}

@@ -31,6 +31,19 @@ mbind nothing  f = nothing
 
 {-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
 
+-- the same applies to sums...
+
+data Either (A B : Set) : Set where
+  inj₁ : A → Either A B
+  inj₂ : B → Either A B
+
+{-# COMPILE GHC Either = data Either (Left | Right) #-}
+
+
+eitherBind : ∀{A B E} → Either E A → (A → Either E B) → Either E B
+eitherBind (inj₁ e) f = inj₁ e
+eitherBind (inj₂ a) f = f a
+
 decIf : ∀{A B : Set} → Dec A → B → B → B
 decIf (yes p) t f = t
 decIf (no ¬p) t f = f
@@ -90,5 +103,8 @@ sumBind (inj₂ c) f = inj₂ c
 
 SumMonad : (C : Set) → Monad (_⊎ C)
 SumMonad A = record { return = inj₁ ; _>>=_ = sumBind }
+
+EitherMonad : (E : Set) → Monad (Either E)
+EitherMonad E = record { return = inj₂ ; _>>=_ = eitherBind }
 
 \end{code}
