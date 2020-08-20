@@ -45,6 +45,7 @@ common lang
 library
     import: lang
     exposed-modules:
+        Cardano.BM.Data.Tracer.Extras
         Cardano.ChainIndex.API
         Cardano.ChainIndex.Client
         Cardano.ChainIndex.Server
@@ -94,6 +95,9 @@ library
         Plutus.SCB.Effects.EventLog
         Plutus.SCB.Effects.MultiAgent
         Plutus.SCB.Effects.UUID
+        Plutus.SCB.Instances
+        Plutus.SCB.MonadLoggerBridge
+        Plutus.SCB.Monitoring
         Plutus.SCB.Webserver.API
         Plutus.SCB.Webserver.Handler
         Plutus.SCB.Webserver.Server
@@ -104,8 +108,10 @@ library
         Plutus.SCB.Events.Node
         Plutus.SCB.Events.User
         Plutus.SCB.Events.Wallet
+        Plutus.SCB.ParseStringifiedJSON
         Plutus.SCB.Query
         Plutus.SCB.Relation
+        Plutus.SCB.SCBLogMsg
         Plutus.SCB.Types
         Plutus.SCB.Utils
     other-modules:
@@ -182,7 +188,10 @@ library
         freer-simple -any,
         mwc-random -any,
         primitive -any,
-        hedgehog -any
+        hedgehog -any,
+        iohk-monitoring -any,
+        lobemo-backend-ekg -any,
+        exceptions -any,
 
 executable plutus-scb
     main-is: Main.hs
@@ -199,7 +208,6 @@ executable plutus-scb
         async -any,
         base >=4.9 && <5,
         bytestring -any,
-        ekg -any,
         filepath -any,
         freer-simple -any,
         lens -any,
@@ -222,7 +230,9 @@ executable plutus-scb
         containers -any,
         iohk-monitoring -any,
         time-units -any,
-        servant-client -any
+        servant-client -any,
+        contra-tracer -any,
+        lobemo-backend-ekg -any
 
 executable plutus-game
     main-is: Main.hs

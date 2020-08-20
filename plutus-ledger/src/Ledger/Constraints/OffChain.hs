@@ -262,7 +262,8 @@ data MkTxError =
     | OwnPubKeyMissing
     | ScriptInstanceMissing
     | DatumWrongHash DatumHash Datum
-    deriving (Eq, Show)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (ToJSON, FromJSON)
 
 instance Pretty MkTxError where
     pretty = \case

@@ -37,6 +37,7 @@ import           Control.Monad.Freer
 import qualified Control.Monad.Freer.Error                         as Eff
 import           Control.Monad.Freer.NonDet                        (NonDet)
 import qualified Control.Monad.Freer.NonDet                        as NonDet
+import           Data.Aeson                                        (FromJSON (..), ToJSON (..))
 import           Data.Foldable                                     (traverse_)
 import qualified Data.Map                                          as Map
 import           Data.Monoid                                       (Alt (..), Ap (..))
@@ -48,6 +49,7 @@ import           Language.Plutus.Contract.Resumable                (Request (..)
 
 import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, LogObserve, logDebug, logWarn,
                                                                     surroundDebug)
+import           GHC.Generics                                      (Generic)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress (..))
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
@@ -184,7 +186,8 @@ handleNextTxAtQueries = RequestHandler $ \req ->
 -- | Maximum number of times request handlers are run before waiting for more
 --   blockchain events
 newtype MaxIterations = MaxIterations Natural
-    deriving (Eq, Ord, Show)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving newtype (ToJSON, FromJSON)
 
 -- | The default for 'MaxIterations' is twenty.
 defaultMaxIterations :: MaxIterations

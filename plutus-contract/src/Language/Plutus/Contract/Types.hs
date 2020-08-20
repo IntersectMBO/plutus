@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -59,6 +60,7 @@ import           Data.String                         (IsString (..))
 import           Data.Text                           (Text)
 import qualified Data.Text                           as T
 import           Data.Text.Prettyprint.Doc           (Pretty, pretty, (<+>))
+import           GHC.Generics                        (Generic)
 
 import           Language.Plutus.Contract.Schema     (Event (..), Handlers (..))
 
@@ -77,8 +79,9 @@ import           Wallet.API                          (WalletAPIError)
 import           Wallet.Emulator.Types               (AsAssertionError (..), AssertionError)
 
 -- | An error
-newtype MatchingError = WrongVariantError Text
-    deriving (Eq, Ord, Show)
+newtype MatchingError = WrongVariantError { unWrongVariantError :: Text }
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
 
 instance Pretty MatchingError where
   pretty = \case
@@ -91,7 +94,8 @@ data ContractError =
     | ConstraintResolutionError MkTxError
     | ResumableError MatchingError
     | CCheckpointError CheckpointError
-    deriving (Show, Eq)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
 makeClassyPrisms ''ContractError
 
 instance Pretty ContractError where

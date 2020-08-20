@@ -1,5 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -30,6 +32,8 @@ module Plutus.SCB.Core.ContractInstance(
     , callContractEndpoint
     ) where
 
+import           Cardano.BM.Data.Tracer                          (ToObject (..), TracingVerbosity (..))
+import           Cardano.BM.Data.Tracer.Extras                   (Tagged (..), mkObjectStr)
 import           Control.Arrow                                   ((>>>), (>>^))
 import           Control.Lens
 import           Control.Monad                                   (void, when)
@@ -37,6 +41,7 @@ import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
 import           Control.Monad.Freer.Log                         (LogMessage, LogObserve, mapLog, surroundInfo)
+import           Data.Aeson                                      (ToJSON (..))
 import qualified Data.Aeson                                      as JSON
 import           Data.Foldable                                   (traverse_)
 import qualified Data.Map                                        as Map
@@ -45,6 +50,7 @@ import           Data.Semigroup                                  (Last (..))
 import qualified Data.Set                                        as Set
 import qualified Data.Text                                       as Text
 import           Data.Text.Prettyprint.Doc                       (Pretty, parens, pretty, viaShow, (<+>))
+import           GHC.Generics                                    (Generic)
 
 import           Language.Plutus.Contract.Effects.AwaitSlot      (WaitingForSlot (..))
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint (..), EndpointDescription (..),
@@ -102,6 +108,76 @@ data ContractInstanceMsg t =
     | HandlingRequests ContractInstanceId [Request ContractSCBRequest]
     | BalancingTx TxBalanceMsg
     | MaxIterationsExceeded ContractInstanceId MaxIterations
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
+
+instance ToJSON v => ToObject (ContractInstanceMsg v) where
+    toObject v = \case
+        ProcessFirstInboxMessage instanceID response ->
+            mkObjectStr "Processing first contract inbox message" $
+                case v of
+                    MaximalVerbosity -> Left (instanceID, Tagged @"response" response)
+                    _                -> Right instanceID
+        SendingContractStateMessages instanceID iterationID requests ->
+            mkObjectStr "Sending contact state messages" $
+                case v of
+                    MaximalVerbosity ->
+                        Left (instanceID, iterationID, Tagged @"requests" requests)
+                    _ -> Right instanceID
+        LookingUpStateOfContractInstance -> mkObjectStr "looking up state of contract instance" ()
+        CurrentIteration i -> mkObjectStr "current iteration" i
+        InboxMessageDoesntMatchIteration i1 i2 ->
+            mkObjectStr
+                "inbox message doesn't match iteration"
+                (i1, Tagged @"inbox_message_iteration" i2)
+        InboxMessageMatchesIteration -> mkObjectStr "inbox message matches iteration" ()
+        InvokingContractUpdate -> mkObjectStr "invoking contract update" ()
+        ObtainedNewState -> mkObjectStr "obtained new state" ()
+        UpdatedContract instanceID iterationID ->
+            mkObjectStr "updated contract" (instanceID, iterationID)
+        LookingUpContract t ->
+            mkObjectStr "looking up contract" (Tagged @"contract" t)
+        InitialisingContract t instanceID ->
+            mkObjectStr "initialising contract" (Tagged @"contract" t, instanceID)
+        InitialContractResponse rsp ->
+            mkObjectStr "initial contract response" $
+                case v of
+                    MaximalVerbosity -> Left (Tagged @"response" rsp)
+                    _                -> Right ()
+        ActivatedContractInstance instanceID ->
+            mkObjectStr "activated contract instance" instanceID
+        RunRequestHandler instanceID n ->
+            mkObjectStr "running request handler" (instanceID, Tagged @"num_requests" n)
+        RunRequestHandlerDidNotHandleAnyEvents ->
+            mkObjectStr "request handler did not handle any events" ()
+        StoringSignedTx t ->
+            mkObjectStr "storing signed tx" $
+                case v of
+                    MaximalVerbosity -> Left t
+                    _                -> Right ()
+        CallingEndpoint ep instanceID vl ->
+            mkObjectStr "calling endpoint" $
+                case v of
+                    MinimalVerbosity -> Left (instanceID, Tagged @"endpoint" ep)
+                    _                -> Right (instanceID, Tagged @"endpoint" ep, Tagged @"value" vl)
+        ProcessContractInbox instanceID ->
+            mkObjectStr "processing contract inbox" instanceID
+        HandlingRequest reqLog ->
+            mkObjectStr "handling request" (Tagged @"request" reqLog)
+        HandlingRequests instanceID requests ->
+            mkObjectStr "handling requests" $
+                let n = length requests in
+                case v of
+                    MaximalVerbosity -> Left (instanceID, Tagged @"requests" requests, Tagged @"num_requests" n)
+                    _                -> Right (instanceID, Tagged @"num_requests" n)
+        BalancingTx m ->
+            mkObjectStr "balancing tx" $
+                case v of
+                    MaximalVerbosity -> Left m
+                    _                -> Right ()
+        MaxIterationsExceeded instanceID maxIts ->
+            mkObjectStr "exceeded maximum number of iterations" $
+                (instanceID, Tagged @"max_iterations" maxIts)
 
 -- TODO:
 -- 1. per-instanceID messages
@@ -447,21 +523,21 @@ callContractEndpoint ::
     -> String
     -> a
     -> Eff effs [ChainEvent t]
-callContractEndpoint inst endpointName endpointValue = do
+callContractEndpoint instanceID endpointName endpointValue = do
     -- we can't use respondtoRequests here because we want to call the endpoint only on
     -- the contract instance 'inst'. And we want to error if the endpoint is not active.
-    logInfo @(ContractInstanceMsg t) $ CallingEndpoint endpointName inst (JSON.toJSON endpointValue)
+    logInfo @(ContractInstanceMsg t) $ CallingEndpoint endpointName instanceID (JSON.toJSON endpointValue)
     state <- fmap (hooks . csCurrentState) <$> runGlobalQuery (Query.contractState @t)
     let activeEndpoints =
             filter ((==) (EndpointDescription endpointName) . aeDescription . rqRequest)
             $ mapMaybe (traverse (preview Events.Contract._UserEndpointRequest))
-            $ Map.findWithDefault [] inst state
+            $ Map.findWithDefault [] instanceID state
 
     when (null activeEndpoints) $
-        throwError (OtherError $ "Contract " <> Text.pack (show inst) <> " has not requested endpoint " <> Text.pack endpointName)
+        throwError (OtherError $ "Contract " <> Text.pack (show instanceID) <> " has not requested endpoint " <> Text.pack endpointName)
 
     let handler _ = pure (UserEndpointResponse (EndpointDescription endpointName) (EndpointValue $ JSON.toJSON endpointValue))
-    runRequestHandler (RequestHandler handler) inst activeEndpoints
+    runRequestHandler (RequestHandler handler) instanceID activeEndpoints
 
 -- | Look at the outboxes of all contract instances and process them.
 processAllContractOutboxes ::

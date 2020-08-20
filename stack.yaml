@@ -117,12 +117,13 @@ extra-deps:
 # Making the repository compatible with GHC-8.8.X required a couple of
 # source code changes, so I forked the original repository until it will
 # be properly updated to GHC-8.8.X
-- git: https://github.com/raduom/iohk-monitoring-framework
-  commit: b5c035ad4e226d634242ad5979fa677921181435
+- git: https://github.com/j-mueller/iohk-monitoring-framework
+  commit: 636eb9f52f504e8009162b5cf7147e8acb727c1b
   subdirs:
     - contra-tracer
     - iohk-monitoring
     - tracer-transformers
+    - plugins/backend-ekg
 
 allow-newer: true
 
