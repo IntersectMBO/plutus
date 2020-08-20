@@ -169,14 +169,16 @@ runWebSocketManager uri handler manager =
     ]
 
 runWebSocketManagerSender :: forall i o. Encode o => WebSocketManager i o -> Aff Unit
-runWebSocketManagerSender manager = do
-  contents <- managerReadOutbound manager
-  case contents of
-    SendMessage msg -> do
-      bracket
-        (\err -> log $ "Fatal websocket error: " <> show err)
-        (\socket -> WS.sendString socket $ encodeJSON msg)
-        (_.socket $ unwrap manager)
+runWebSocketManagerSender manager =
+  forever
+    $ do
+        contents <- managerReadOutbound manager
+        case contents of
+          SendMessage msg -> do
+            bracket
+              (\err -> log $ "Fatal websocket error: " <> show err)
+              (\socket -> WS.sendString socket $ encodeJSON msg)
+              (_.socket $ unwrap manager)
 
 runWebSocketManagerListeners :: forall i o. Decode i => URI -> WebSocketManager i o -> Effect Unit
 runWebSocketManagerListeners uri manager = do
