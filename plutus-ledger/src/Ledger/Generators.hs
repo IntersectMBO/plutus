@@ -26,6 +26,7 @@ module Ledger.Generators(
     genValueNonNegative,
     genSizedByteString,
     genSizedByteStringExact,
+    genTokenName,
     splitVal,
     validateMockchain,
     signAll
@@ -201,6 +202,9 @@ genSizedByteStringExact s =
     let range = Range.singleton s in
     BSL.fromStrict <$> Gen.bytes range
 
+genTokenName :: MonadGen m => m TokenName
+genTokenName = (Value.TokenName . BSL.fromStrict) <$> Gen.utf8 (Range.linear 0 32) Gen.unicode
+
 genValue' :: MonadGen m => Range Integer -> m Value
 genValue' valueRange = do
     let
@@ -213,7 +217,7 @@ genValue' valueRange = do
 
         -- token is either an arbitrary bytestring or the ada token name
         token   = Gen.choice
-                    [ Value.tokenName <$> genSizedByteString 32
+                    [ genTokenName
                     , pure Ada.adaToken
                     ]
         sngl      = Value.singleton <$> currency <*> token <*> Gen.integral valueRange

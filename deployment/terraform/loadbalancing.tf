@@ -275,6 +275,48 @@ resource "aws_alb_target_group_attachment" "marlowe_b_b" {
   port             = "80"
 }
 
+## ALB rule for web-ghc
+resource "aws_alb_target_group" "webghc" {
+  # ALB is taking care of SSL termination so we listen to port 80 here
+  port     = "80"
+  protocol = "HTTP"
+  vpc_id   = "${aws_vpc.plutus.id}"
+  health_check = {
+    path = "/health"
+  }
+  stickiness = {
+    type = "lb_cookie"
+  }
+}
+
+resource "aws_alb_listener_rule" "webghc" {
+  depends_on   = ["aws_alb_target_group.webghc"]
+  listener_arn = "${aws_alb_listener.playground.arn}"
+  priority     = 113
+  action {
+    type             = "forward"
+    target_group_arn = "${aws_alb_target_group.webghc.id}"
+  }
+  condition {
+    field  = "path-pattern"
+    values = ["/runghc"]
+  }
+}
+
+resource "aws_alb_target_group_attachment" "webghc_a" {
+  target_group_arn = "${aws_alb_target_group.webghc.arn}"
+  target_id        = "${aws_instance.webghc_a.id}"
+  port             = "80"
+}
+
+resource "aws_alb_target_group_attachment" "webghc_b" {
+  target_group_arn = "${aws_alb_target_group.webghc.arn}"
+  target_id        = "${aws_instance.webghc_b.id}"
+  port             = "80"
+}
+
+
+## Route 53 for Marlowe
 resource "aws_route53_record" "marlowe_alb" {
   zone_id = "${var.marlowe_public_zone}"
   name    = "${local.marlowe_domain_name}"

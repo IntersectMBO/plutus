@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DerivingVia           #-}
@@ -8,6 +9,7 @@
 --   by slot and addresses
 module Wallet.Emulator.ChainIndex.Index where
 
+import           Data.Aeson        (FromJSON, ToJSON)
 import           Data.FingerTree   (FingerTree, Measured (..), (|>))
 import qualified Data.FingerTree   as FingerTree
 import           Data.Foldable     (foldl', toList)
@@ -38,7 +40,8 @@ data ChainIndexItem = ChainIndexItem
     { ciSlot :: !Slot -- ^ The slot in which the transaction was added to the chain
     , ciTx   :: !Tx -- ^ The transaction
     , ciTxId :: !TxId -- ^ Hash of the transaction
-    } deriving stock (Eq, Show)
+    } deriving stock (Eq, Show, Generic)
+      deriving anyclass (ToJSON, FromJSON)
 
 instance Measured TxSlot ChainIndexItem where
     measure ChainIndexItem{ciSlot} =
@@ -99,10 +102,9 @@ insert am item (ChainIndex ci) =
     in ChainIndex (foldl' (\ci' addr -> Map.alter alt addr ci') ci keys)
 
 -- | All transactions that modify the address, from a given slot onwards
-transactionsAt :: ChainIndex -> Slot -> Address -> [Tx]
+transactionsAt :: ChainIndex -> Slot -> Address -> [ChainIndexItem]
 transactionsAt (ChainIndex mp) sl addr =
-    fmap ciTx
-    $ toList
+    toList
     $ unAddressIndex
     $ fst
     $ split sl

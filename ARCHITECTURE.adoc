@@ -13,7 +13,7 @@ work through those in conceptual order.
 Plutus Core is the language that actually goes on the blockchain. Consequently
 this is the absolute core of the codebase, and everything depends on it.
 
-include::language-plutus-core/ARCHITECTURE.adoc[]
+include::plutus-core/ARCHITECTURE.adoc[]
 
 == Plutus Tx
 

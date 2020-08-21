@@ -41,7 +41,7 @@
         "cborg" = (((hackage.cborg)."0.2.2.0").revisions)."eaee50d09d766af95ba18348e4fc230243033b98633ed46ccb5ae85efef7dc6c";
         "statistics-linreg" = (((hackage.statistics-linreg)."0.3").revisions)."95c6efe6c7f6b26bc6e9ada90ab2d18216371cf59a6ef2b517b4a6fd35d9a76f";
         "eventful-sql-common" = (((hackage.eventful-sql-common)."0.2.0").revisions).r0;
-        language-plutus-core = ./language-plutus-core.nix;
+        plutus-core = ./plutus-core.nix;
         plutus-tx = ./plutus-tx.nix;
         plutus-tx-plugin = ./plutus-tx-plugin.nix;
         plutus-use-cases = ./plutus-use-cases.nix;
@@ -60,6 +60,7 @@
         marlowe-symbolic = ./marlowe-symbolic.nix;
         prettyprinter-configurable = ./prettyprinter-configurable.nix;
         plutus-doc = ./plutus-doc.nix;
+        web-ghc = ./web-ghc.nix;
         purescript-bridge = ./.stack-to-nix.cache.0;
         servant-purescript = ./.stack-to-nix.cache.1;
         cardano-crypto = ./.stack-to-nix.cache.2;
@@ -87,6 +88,7 @@
         contra-tracer = ./.stack-to-nix.cache.24;
         iohk-monitoring = ./.stack-to-nix.cache.25;
         tracer-transformers = ./.stack-to-nix.cache.26;
+        lobemo-backend-ekg = ./.stack-to-nix.cache.27;
         };
       };
   resolver = "lts-15.6";

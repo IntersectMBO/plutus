@@ -7,7 +7,7 @@ import Control.Monad.Except.Extra (noteT)
 import Control.Monad.Maybe.Extra (hoistMaybe)
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.Reader (runReaderT)
-import Data.Array (delete, filter, foldr, intercalate, snoc, (:))
+import Data.Array (delete, filter, intercalate, snoc, sortWith)
 import Data.Array as Array
 import Data.Bifunctor (lmap)
 import Data.BigInteger (BigInteger, fromString, fromInt)
@@ -22,6 +22,7 @@ import Data.List.NonEmpty as NEL
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (wrap)
 import Data.NonEmptyList.Extra (tailIfNotEmpty)
 import Data.String (codePointFromChar)
 import Data.String as String
@@ -63,12 +64,12 @@ import Monaco (IMarker, isError, isWarning)
 import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
-import Prelude (class Show, Unit, add, bind, bottom, const, discard, eq, flip, identity, mempty, one, pure, show, unit, zero, ($), (/=), (<$>), (<<<), (<>), (=<<), (==), (-), (<))
+import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
 import Reachability (startReachabilityAnalysis, updateWithResponse)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
-import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
+import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
 import Simulation.Types (Action(..), AnalysisState(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
@@ -104,6 +105,11 @@ handleAction ::
 handleAction settings Init = do
   checkAuthStatus settings
   void $ query _marloweEditorSlot unit (Monaco.SetTheme MM.daylightTheme.name unit)
+
+handleAction _ (HandleEditorMessage (Monaco.TextChanged "")) = do
+  assign _marloweState $ NEL.singleton (emptyMarloweState zero)
+  assign _oldContract Nothing
+  updateContractInState ""
 
 handleAction _ (HandleEditorMessage (Monaco.TextChanged text)) = do
   assign _selectedHole Nothing
@@ -153,19 +159,21 @@ handleAction _ (SetEditorText contents) = do
   editorSetValue contents
   updateContractInState contents
 
-handleAction _ NextSlot = do
-  modifying (_marloweState <<< _Head <<< _slot) (add one)
+handleAction _ (MoveSlot slot) = do
+  currentSlot <- use (_currentMarloweState <<< _slot)
   significantSlot <- use (_marloweState <<< _Head <<< to nextSignificantSlot)
-  currentSlot <- use (_marloweState <<< _Head <<< _slot)
-  saveInitialState
-  if significantSlot == Just currentSlot then
-    applyInput identity
-  else
-    updateMarloweState identity
-  mCurrContract <- use _currentContract
-  case mCurrContract of
-    Just currContract -> editorSetValue (show $ genericPretty currContract)
-    Nothing -> pure unit
+  when (slot > currentSlot) do
+    saveInitialState
+    if slot >= (fromMaybe zero significantSlot) then
+      moveToSignificantSlot slot
+    else
+      moveToSlot slot
+    mCurrContract <- use _currentContract
+    case mCurrContract of
+      Just currContract -> editorSetValue (show $ genericPretty currContract)
+      Nothing -> pure unit
+
+handleAction _ (SetSlot slot) = assign (_currentMarloweState <<< _possibleActions <<< _moveToAction) (Just $ MoveToSlot slot)
 
 handleAction _ (AddInput input bounds) = do
   when validInput do
@@ -314,11 +322,12 @@ handleGistAction settings LoadGist = do
           --
           -- Load the source, if available.
           currentContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (currentSimulationMarloweGistFile gist)
-          oldContract <- noteT "Source not found in gist." $ preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
+          let
+            oldContract = preview (_Just <<< gistFileContent <<< _Just) (oldSimulationMarloweGistFile gist)
           state <- noteT "State not found in gist." (simulationState gist)
           lift $ editorSetValue currentContract
           liftEffect $ LocalStorage.setItem marloweBufferLocalStorageKey currentContract
-          assign _oldContract $ Just oldContract
+          assign _oldContract oldContract
           assign _marloweState state
           pure aGist
   assign _loadGistResult res
@@ -546,17 +555,6 @@ transactionComposer state =
                     ]
                     [ text "Reset" ]
                 ]
-            , li [ classes [ bold, pointer ] ]
-                [ a
-                    [ onClick $ const
-                        $ if isEnabled then
-                            Just NextSlot
-                          else
-                            Nothing
-                    , class_ (Classes.disabled $ not isEnabled)
-                    ]
-                    [ text $ "Next Slot (" <> show currentBlock <> ")" ]
-                ]
             ]
         ]
     ]
@@ -576,50 +574,43 @@ transactionComposer state =
   lastKey :: Maybe Party
   lastKey = map (\x -> x.key) (Map.findMax possibleActions)
 
-  parties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
-  parties = foldr f mempty
-    where
-    f (Tuple k v) acc = (Tuple k v) : acc
+  sortParties :: forall v. Array (Tuple Party v) -> Array (Tuple Party v)
+  sortParties = sortWith (\(Tuple party _) -> party == otherActionsParty)
 
   actionsForParties :: Map Party (Map ActionInputId ActionInput) -> Array (HTML p Action)
-  actionsForParties m = map (\(Tuple k v) -> participant isEnabled k (vs v)) (parties (kvs m))
+  actionsForParties m = map (\(Tuple k v) -> participant state isEnabled k (vs v)) (sortParties (kvs m))
 
 participant ::
   forall p.
+  State ->
   Boolean ->
   Party ->
   Array ActionInput ->
   HTML p Action
-participant isEnabled party actionInputs
-  | party == otherActionsParty =
-    li [ classes [ ClassName "participant-a", noMargins ] ]
-      ( [ h6_ [ em_ [ text "Other Actions" ] ] ]
-          <> (map (inputItem isEnabled (partyName otherActionsParty)) actionInputs)
-      )
-    where
-    partyName (PK name) = name
-
-    partyName (Role name) = name
-
-participant isEnabled (PK person) actionInputs =
+participant state isEnabled party actionInputs =
   li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem isEnabled person) actionInputs)
+    ( [ h6_ [ em_ title ] ]
+        <> (map (inputItem state isEnabled partyName) actionInputs)
     )
+  where
+  title =
+    if party == otherActionsParty then
+      [ text "Other Actions" ]
+    else
+      [ text "Participant ", strong_ [ text partyName ] ]
 
-participant isEnabled (Role person) actionInputs =
-  li [ classes [ ClassName "participant-a", noMargins ] ]
-    ( [ h6_ [ em_ [ text "Participant ", strong_ [ text person ] ] ] ]
-        <> (map (inputItem isEnabled person) actionInputs)
-    )
+  partyName = case party of
+    (PK name) -> name
+    (Role name) -> name
 
 inputItem ::
   forall p.
+  State ->
   Boolean ->
   PubKey ->
   ActionInput ->
   HTML p Action
-inputItem isEnabled person (DepositInput accountId party token value) =
+inputItem _ isEnabled person (DepositInput accountId party token value) =
   div [ classes [ aHorizontal ] ]
     [ p_ (renderDeposit accountId party token value)
     , div [ class_ (ClassName "align-top") ]
@@ -633,7 +624,7 @@ inputItem isEnabled person (DepositInput accountId party token value) =
         ]
     ]
 
-inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
+inputItem _ isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwner) bounds chosenNum) =
   div
     [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
     ( [ div []
@@ -672,7 +663,7 @@ inputItem isEnabled person (ChoiceInput choiceId@(ChoiceId choiceName choiceOwne
 
   boundError (Bound from to) = show from <> " and " <> show to
 
-inputItem isEnabled person NotifyInput =
+inputItem _ isEnabled person NotifyInput =
   li
     [ classes [ ClassName "choice-a", aHorizontal ] ]
     [ p_ [ text "Notify Contract" ]
@@ -684,6 +675,37 @@ inputItem isEnabled person NotifyInput =
         ]
         [ text "+" ]
     ]
+
+inputItem state isEnabled person (MoveToSlot slot) =
+  div
+    [ classes [ aHorizontal, ClassName "flex-wrap" ] ]
+    ( [ div []
+          [ p [ class_ (ClassName "slot-input") ]
+              [ spanText "Move to slot "
+              , marloweActionInput isEnabled (SetSlot <<< wrap) slot
+              ]
+          , p [ class_ (ClassName "choice-error") ] error
+          ]
+      ]
+        <> addButton
+    )
+  where
+  addButton =
+    if isEnabled && inFuture then
+      [ button
+          [ classes [ plusBtn, smallBtn, ClassName "align-top" ]
+          , onClick $ const $ Just $ MoveSlot slot
+          ]
+          [ text "+" ]
+      ]
+    else
+      []
+
+  inFuture = view (_currentMarloweState <<< _slot) state < slot
+
+  error = if inFuture then [] else [ text boundsError ]
+
+  boundsError = "The slot must be more than the current slot " <> (state ^. (_currentMarloweState <<< _slot <<< to show))
 
 marloweActionInput :: forall p a. Show a => Boolean -> (BigInteger -> Action) -> a -> HTML p Action
 marloweActionInput isEnabled f current =
@@ -848,7 +870,7 @@ gistSection state =
 
   publishTooltip _ = text "Publish To Github Gist"
 
-  loadTooltip (Left _) = text "Failed to load gist"
+  loadTooltip (Left e) = text "Failed to load gist"
 
   loadTooltip (Right (Failure _)) = text "Failed to load gist"
 

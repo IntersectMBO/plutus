@@ -19,7 +19,7 @@ import qualified Language.PlutusTx.Prelude  as P
 import           Type.Reflection            (Typeable)
 
 
-{- [Note [Serialising Digests from Crypto.Hash]
+{- Note [Serialising Digests from Crypto.Hash]
 This is more complicated than you might expect.  If you say
 `encode = encode . BA.unpack` then the contents of the digest are
 unpacked into a `Word8` list with 32 entries.  However, when cborg

@@ -11,16 +11,16 @@
 \begin{document}
 \maketitle
 \noindent This document contains some comments on the Plutus Core cost models
-defined in \verb|language-plutus-core/budgeting-bench|.  The main purpose
+defined in \verb|plutus-core/budgeting-bench|.  The main purpose
 of this was to look at the model for \verb|DivideInteger|, whose results
 don't seem to fit the data very well; however I've got some more general
 comments here regarding the models for the other arithmetic functions.
 
-\subsection*{Current setup}  The directory \url{language-plutus-core/budgeting-bench}
+\subsection*{Current setup}  The directory \url{plutus-core/budgeting-bench}
 contains a number of benchmarks for the standard Plutus Core built-in
 functions; these are implemented in \verb|Bench.hs| (using the
 Criterion benchmarking library) and can be run via (for example)
-\verb|stack bench language-plutus-core:|\verb|language-|\verb|plutus-|\\ \verb|core-budgeting-bench|.  This runs the benchmarks
+\verb|stack bench plutus-core:|\verb|language-|\verb|plutus-|\\ \verb|core-budgeting-bench|.  This runs the benchmarks
 and saves the output in \verb|csvs/benching.csv|.  The file
 \verb|models.R| contains R code to read the CSV file and convert the
 contents into an R data frame.%%

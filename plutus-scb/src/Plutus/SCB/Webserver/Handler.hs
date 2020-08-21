@@ -27,14 +27,13 @@ import           Data.Map                                        (Map)
 import qualified Data.Map                                        as Map
 import qualified Data.Set                                        as Set
 import           Data.Text                                       (Text)
-import           Data.Text.Prettyprint.Doc                       (Pretty, pretty)
+import           Data.Text.Prettyprint.Doc                       (Pretty (..), defaultLayoutOptions, layoutPretty)
+import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
 import           Ledger                                          (PubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
-import           Plutus.SCB.App                                  (ContractExeLogMsg (..), UnStringifyJSONLog,
-                                                                  parseStringifiedJSON)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
 import qualified Plutus.SCB.Core                                 as Core
@@ -45,7 +44,9 @@ import           Plutus.SCB.Effects.UUID                         (UUIDEffect)
 import           Plutus.SCB.Events                               (ChainEvent, ContractInstanceId (ContractInstanceId),
                                                                   ContractInstanceState (ContractInstanceState),
                                                                   csContractDefinition)
+import           Plutus.SCB.ParseStringifiedJSON                 (UnStringifyJSONLog, parseStringifiedJSON)
 import qualified Plutus.SCB.Query                                as Query
+import           Plutus.SCB.SCBLogMsg                            (ContractExeLogMsg (..))
 import           Plutus.SCB.Types
 import           Plutus.SCB.Webserver.Types
 import           Servant                                         ((:<|>) ((:<|>)))
@@ -169,7 +170,7 @@ invokeEndpoint (EndpointDescription endpointDescription) payload contractId = do
     logInfo $ InvokingEndpoint endpointDescription payload
     newState :: [ChainEvent t] <-
         Instance.callContractEndpoint @t contractId endpointDescription payload
-    logInfo $ EndpointInvocationResponse $ fmap pretty newState
+    logInfo $ EndpointInvocationResponse $ fmap (renderStrict . layoutPretty defaultLayoutOptions .  pretty) newState
     getContractInstanceState contractId
 
 parseContractId ::

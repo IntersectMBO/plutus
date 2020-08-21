@@ -92,7 +92,7 @@ runCliCommand :: forall s m.
     => Contract s Text ()
     -> Command
     -> m (Either BS8.ByteString BS8.ByteString)
-runCliCommand schema Initialise = pure $ bimap JSON.encodePretty JSON.encodePretty $ ContractState.initialiseContract schema
+runCliCommand schema Initialise = pure $ Right $ JSON.encodePretty $ ContractState.initialiseContract schema
 runCliCommand schema Update = do
     arg <- liftIO BSL.getContents
     pure $ runUpdate schema arg
@@ -110,10 +110,10 @@ runUpdate :: forall s.
     -> BSL.ByteString
     -> Either BS8.ByteString BS8.ByteString
 runUpdate contract arg =
-    bimap JSON.encodePretty JSON.encodePretty $
-        case JSON.eitherDecode arg of
-            Left err      -> Left $ Text.pack err
-            Right request -> ContractState.insertAndUpdateContract contract request
+    bimap
+        (JSON.encodePretty . Text.pack)
+        (JSON.encodePretty . ContractState.insertAndUpdateContract contract)
+        (JSON.eitherDecode arg)
 
 commandLineApp ::
        ( AllUniqueLabels (Input s)

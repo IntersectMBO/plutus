@@ -84,6 +84,6 @@ library
         containers -any,
         cborg -any,
         serialise -any,
-        language-plutus-core -any,
+        plutus-core -any,
         lens -any,
         ghc-prim -any,

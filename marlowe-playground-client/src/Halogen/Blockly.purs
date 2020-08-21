@@ -7,7 +7,6 @@ import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
-import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
 import Data.Lens (Lens', assign, use)

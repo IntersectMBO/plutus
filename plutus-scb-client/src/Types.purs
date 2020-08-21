@@ -2,6 +2,7 @@ module Types where
 
 import Prelude
 import Chain.Types as Chain
+import Clipboard as Clipboard
 import Control.Monad.Gen as Gen
 import Data.Bifunctor (lmap)
 import Data.Generic.Rep (class Generic)
@@ -66,6 +67,7 @@ data HAction
   | LoadFullReport
   | ActivateContract ContractExe
   | ChainAction Chain.Action
+  | ClipboardAction Clipboard.Action
   | ChangeContractEndpointCall ContractInstanceId Int FormEvent
   | InvokeContractEndpoint ContractInstanceId EndpointForm
 

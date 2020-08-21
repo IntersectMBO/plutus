@@ -8,9 +8,10 @@ module MainFrame
 import Prelude hiding (div)
 import Animation (class MonadAnimate, animate)
 import Chain.Eval (handleAction) as Chain
-import Chain.Types (Action(..), AnnotatedBlockchain(..), _chainFocusAppearing)
+import Chain.Types (Action(FocusTx), AnnotatedBlockchain(..), _chainFocusAppearing)
 import Chain.Types (initialState) as Chain
 import Clipboard (class MonadClipboard)
+import Clipboard as Clipboard
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (class MonadState)
 import Control.Monad.State.Extra (zoomStateT)
@@ -140,7 +141,10 @@ handleAction Init = handleAction LoadFullReport
 
 handleAction (ChangeView view) = assign _currentView view
 
-handleAction (ActivateContract contract) = activateContract contract
+handleAction (ActivateContract contract) = do
+  modifying _contractSignatures Stream.refreshing
+  activateContract contract
+  modifying _contractSignatures Stream.refreshed
 
 handleAction LoadFullReport = do
   assignFullReportData Loading
@@ -168,6 +172,8 @@ handleAction (ChainAction subaction) = do
   wrapper
     $ zoomStateT _chainState
     $ Chain.handleAction subaction mAnnotatedBlockchain
+
+handleAction (ClipboardAction subaction) = Clipboard.handleAction subaction
 
 handleAction (ChangeContractEndpointCall contractInstanceId endpointIndex subaction) = do
   modifying

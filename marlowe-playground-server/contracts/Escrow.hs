@@ -30,13 +30,6 @@ inner =
                              agreement
                              arbitrate) ]
                     60
-                    arbitrate),
-        Case bobChoice
-              (When [ Case aliceChoice
-                          (If (aliceChosen `ValueEQ` bobChosen)
-                              agreement
-                              arbitrate) ]
-                    60
                     arbitrate)
         ]
         40
