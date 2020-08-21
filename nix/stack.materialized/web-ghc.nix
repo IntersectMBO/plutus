@@ -44,7 +44,7 @@
           (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
           (hsPkgs."playground-common" or (errorHandler.buildDepError "playground-common"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
-          ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+          ];
         buildable = true;
         modules = [ "Interpreter" ];
         hsSourceDirs = [ "src" ];
@@ -70,13 +70,11 @@
             (hsPkgs."warp" or (errorHandler.buildDepError "warp"))
             (hsPkgs."yaml" or (errorHandler.buildDepError "yaml"))
             (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+            ];
           buildable = true;
           modules = [ "Webserver" ];
           hsSourceDirs = [ "app" ];
-          mainPath = [
-            "Main.hs"
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) "";
+          mainPath = [ "Main.hs" ];
           };
         };
       tests = {
@@ -85,7 +83,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."web-ghc" or (errorHandler.buildDepError "web-ghc"))
-            ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
+            ];
           buildable = true;
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];

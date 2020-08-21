@@ -47,9 +47,6 @@ library
         playground-common,
         text
 
-    if !(impl(ghcjs) || os(ghcjs))
-        build-depends: plutus-tx-plugin -any
-
 executable web-ghc-server
     main-is: Main.hs
     hs-source-dirs: app
@@ -80,9 +77,6 @@ executable web-ghc-server
         warp,
         yaml,
         web-ghc
-
-    if !(impl(ghcjs) || os(ghcjs))
-        build-depends: plutus-tx-plugin -any
 
 test-suite web-ghc-test
     type: exitcode-stdio-1.0
