@@ -2,6 +2,7 @@ let
   plutus = import ../../. {};
   serverTemplate = import ./server.nix;
   prometheusTemplate = import ./prometheus.nix;
+  webghc = import ./webghc.nix;
   machines = (plutus.pkgs.lib.importJSON ./machines.json);
   overlays = import ./overlays.nix;
   secrets = (plutus.pkgs.lib.importJSON ./secrets.json);
@@ -54,10 +55,12 @@ let
   playgroundB = serverTemplate.mkInstance playgroundOptions machines.playgroundB;
   marlowePlaygroundA = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-a/api")) machines.marlowePlaygroundA;
   marlowePlaygroundB = serverTemplate.mkInstance (marlowePlaygroundOptions (marloweUrl + "/machine-b/api")) machines.marlowePlaygroundB;
+  webGhcA = webghc.mkInstance (options // {web-ghc = plutus.web-ghc; }) machines.webGhcA;
+  webGhcB = webghc.mkInstance (options // {web-ghc = plutus.web-ghc; }) machines.webGhcA;
   nixops = prometheusTemplate.mkInstance 
             (options // {configDir = deploymentConfigDir; inherit deploymentServer enableGithubHooks;}) 
             {dns = "nixops.internal.${machines.environment}.${machines.plutusTld}";
              ip = "127.0.0.1";
              name = "nixops"; };
 in
-  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops; }
+  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops webGhcA webGhcB; }
