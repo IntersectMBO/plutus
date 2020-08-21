@@ -84,10 +84,13 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , CostModelBase(..)
     , CostingFun(..)
     , ModelAddedSizes(..)
+    , ModelSubtractedSizes(..)
+    , ModelOrientation(..)
+    , ModelLinearSize(..)
     , ModelMultiSizes(..)
     , ModelMinSize(..)
+    , ModelMaxSize(..)
     , ModelSplitConst(..)
-    , ModelExpSizes(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -275,6 +278,30 @@ data ModelAddedSizes = ModelAddedSizes
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
+-- | s * (x - y) + I
+data ModelSubtractedSizes = ModelSubtractedSizes
+    { modelSubtractedSizesIntercept :: Double
+    , modelSubtractedSizesSlope     :: Double
+    , modelSubtractedSizesMinimum   :: Double
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelSubtractedSizes", CamelToSnake)] ModelSubtractedSizes
+
+data ModelOrientation =
+    ModelOrientationX
+    | ModelOrientationY
+    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelOrientation", CamelToSnake)] ModelOrientation
+
+data ModelLinearSize = ModelLinearSize
+    { modelLinearSizeIntercept   :: Double
+    , modelLinearSizeSlope       :: Double
+    , modelLinearSizeOrientation :: ModelOrientation -- ^ x or y?
+    } deriving (Show, Eq, Generic, Lift, NFData)
+    deriving (FromJSON, ToJSON) via CustomJSON
+        '[FieldLabelModifier (StripPrefix "modelLinearSize", CamelToSnake)] ModelLinearSize
+
 -- | s * (x * y) + I
 data ModelMultiSizes = ModelMultiSizes
     { modelMultiSizesIntercept :: Double
@@ -291,14 +318,12 @@ data ModelMinSize = ModelMinSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
--- | sX * x^2 + sY * y^2 + I
-data ModelExpSizes = ModelExpSizes
-    { modelExpSizesIntercept :: Double
-    , modelExpSizesSlopeX    :: Double
-    , modelExpSizesSlopeY    :: Double
+data ModelMaxSize = ModelMaxSize
+    { modelMaxSizeIntercept :: Double
+    , modelMaxSizeSlope     :: Double
     } deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelExpSizes", CamelToSnake)] ModelExpSizes
+        '[FieldLabelModifier (StripPrefix "modelMaxSize", CamelToSnake)] ModelMaxSize
 
 -- | (if (x > y) then s * (x + y) else 0) + I
 data ModelSplitConst = ModelSplitConst
@@ -311,10 +336,12 @@ data ModelSplitConst = ModelSplitConst
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost Integer
     | ModelTwoArgumentsAddedSizes ModelAddedSizes
+    | ModelTwoArgumentsSubtractedSizes ModelSubtractedSizes
     | ModelTwoArgumentsMultiSizes ModelMultiSizes
     | ModelTwoArgumentsMinSize ModelMinSize
-    | ModelTwoArgumentsExpMultiSizes ModelExpSizes
+    | ModelTwoArgumentsMaxSize ModelMaxSize
     | ModelTwoArgumentsSplitConstMulti ModelSplitConst
+    | ModelTwoArgumentsLinearSize ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[SumTaggedObject "type" "arguments", ConstructorTagModifier (StripPrefix "ModelTwoArguments", CamelToSnake)] ModelTwoArguments
@@ -333,17 +360,26 @@ runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 + size2)) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (max minSize (fromInteger (size1 - size2))) * slope + intercept
+runTwoArgumentModel
     (ModelTwoArgumentsMultiSizes (ModelMultiSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (size1 * size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (min size1 size2)) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsExpMultiSizes (ModelExpSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (((fromInteger size1) ** 2) * slopeX) + (((fromInteger size2) ** 2) * slopeY) + intercept
+    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
+        ceiling $ (fromInteger (max size1 size2)) * slope + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationX)) (ExMemory size1) (ExMemory _) =
+        ceiling $ (fromInteger size1) * slope + intercept
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearSize (ModelLinearSize intercept slope ModelOrientationY)) (ExMemory _) (ExMemory size2) =
+        ceiling $ (fromInteger size2) * slope + intercept
 
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost Integer

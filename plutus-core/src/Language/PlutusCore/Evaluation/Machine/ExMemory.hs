@@ -40,17 +40,18 @@ import           GHC.Prim
 
 {- Note [Memory Usage for Plutus]
 
-The base unit is 'ExMemory', which corresponds to machine words. For primities,
+The base unit is 'ExMemory', which corresponds to machine words. For primitives,
 we use static values for the size, see the corresponding instances. For
 composite data types, the Generic instance is used, + 1 for the constructor tag.
 For ADTs, the currently selected branch is counted, not the maximum value.
 Memory usage of the annotation is not counted, because this should be
-abstractily specifiable. It's an implementation detail.
+abstractly specifiable. It's an implementation detail.
 
 -}
 
 type Plain f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ()
 -- | Caches Memory usage for builtin costing
+-- | NOT the amount of memory it cost to calculate this value.
 type WithMemory f (uni :: GHC.Type -> GHC.Type) = f TyName Name uni ExMemory
 
 -- | Counts size in machine words (64bit for the near future)
