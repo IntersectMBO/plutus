@@ -231,7 +231,7 @@ executable plc-agda
   build-depends:
     plc-agda
     
-test-suite test
+test-suite test1
   import: stuff
   hs-source-dirs: test
   build-depends:

@@ -264,7 +264,7 @@
           };
         };
       tests = {
-        "test" = {
+        "test1" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."process" or (errorHandler.buildDepError "process"))
