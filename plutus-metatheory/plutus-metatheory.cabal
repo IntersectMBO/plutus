@@ -1,5 +1,5 @@
 cabal-version:       2.4
-name:                plc-agda
+name:                plutus-metatheory
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs
 homepage:            https://github.com/input-output-hk/plutus
@@ -408,7 +408,7 @@ executable plc-agda
   main-is: Main.hs
   build-depends:
     base -any,
-    plc-agda
+    plutus-metatheory
     
 test-suite test1
   import: stuff
@@ -416,7 +416,7 @@ test-suite test1
   hs-source-dirs: test
   build-depends:
     base -any,
-    plc-agda,
+    plutus-metatheory,
     process -any
   type:  exitcode-stdio-1.0
   main-is: TestSimple.hs
@@ -432,7 +432,7 @@ test-suite test2
     bytestring -any,
     Cabal -any,
     directory -any,
-    plc-agda,
+    plutus-metatheory,
     process -any,
     text -any
     
@@ -445,7 +445,7 @@ test-suite test3
     base -any,
     lazy-search -any,
     mtl -any,
-    plc-agda,
+    plutus-metatheory,
     plutus-core,
     size-based -any,
     Stream -any,
