@@ -20,6 +20,7 @@ packages: plutus-core
           metatheory
           prettyprinter-configurable
           doc
+          web-ghc
 
 -- We never, ever, want this.
 write-ghc-environment-files: never
