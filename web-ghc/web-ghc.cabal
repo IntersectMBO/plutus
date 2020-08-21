@@ -98,6 +98,3 @@ test-suite web-ghc-test
         base >=4.7 && <5,
         tasty,
         web-ghc
-
-    if !(impl(ghcjs) || os(ghcjs))
-        build-depends: plutus-tx-plugin -any

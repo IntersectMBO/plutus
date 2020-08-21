@@ -56,10 +56,9 @@ compile ::
   SourceCode ->
   m (InterpreterResult String)
 compile timeout source =
-  -- There are a couple of custom rules required for compilation
   do
     avoidUnsafe source
-    withSystemTempDirectory "playgroundcompile" $ \dir -> do
+    withSystemTempDirectory "web-ghc-work" $ \dir -> do
       let file = dir </> "Main.hs"
       withFile file ReadWriteMode $ \handle -> runscript handle file timeout . Newtype.unpack $ source
 
