@@ -57,8 +57,33 @@ data "template_file" "ssh_config_section_marlowe_b" {
     user_name        = "plutus"
   }
 }
+
+data "template_file" "ssh_config_section_webghc_a" {
+  template = "${file("${path.module}/templates/ssh-config")}"
+
+  vars {
+    full_hostname    = "webghc-a.${aws_route53_zone.plutus_private_zone.name}"
+    short_hostname   = "webghc-a.${var.project}"
+    ip               = "${aws_instance.webghc_a.private_ip}"
+    bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
+    user_name        = "monitoring"
+  }
+}
+
+data "template_file" "ssh_config_section_webghc_b" {
+  template = "${file("${path.module}/templates/ssh-config")}"
+
+  vars {
+    full_hostname    = "webghc-b.${aws_route53_zone.plutus_private_zone.name}"
+    short_hostname   = "webghc-b.${var.project}"
+    ip               = "${aws_instance.webghc_b.private_ip}"
+    bastion_hostname = "${aws_instance.bastion.*.public_ip[0]}"
+    user_name        = "monitoring"
+  }
+}
+
 data "template_file" "ssh_config" {
-  template = "\n$${nixops_node}\n$${playground_a}\n$${playground_b}\n$${marlowe_a}\n$${marlowe_b}"
+  template = "\n$${nixops_node}\n$${playground_a}\n$${playground_b}\n$${marlowe_a}\n$${marlowe_b}\n$${webghc_a}\n$${webghc_b}"
 
   vars {
     nixops_node      = "${data.template_file.ssh_config_section_nixops.rendered}"
@@ -66,6 +91,8 @@ data "template_file" "ssh_config" {
     playground_b     = "${data.template_file.ssh_config_section_playground_b.rendered}"
     marlowe_a         = "${data.template_file.ssh_config_section_marlowe_a.rendered}"
     marlowe_b         = "${data.template_file.ssh_config_section_marlowe_b.rendered}"
+    webghc_a         = "${data.template_file.ssh_config_section_webghc_a.rendered}"
+    webghc_b         = "${data.template_file.ssh_config_section_webghc_b.rendered}"
   }
 }
 

@@ -10,9 +10,11 @@ let
   playgroundB = mkInstance machines.playgroundB;
   marlowePlaygroundA = mkInstance machines.marlowePlaygroundA;
   marlowePlaygroundB = mkInstance machines.marlowePlaygroundB;
+  webGhcA = mkInstance machines.webghcA;
+  webGhcB = mkInstance machines.webghcB;
   nixops = { deployment.targetHost = "localhost"; };
 in
-  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB nixops;
+  { inherit playgroundA playgroundB marlowePlaygroundA marlowePlaygroundB webGhcA webGhcB nixops;
     network.description = "Plutus Playground";
     network.enableRollback = true;
   }
