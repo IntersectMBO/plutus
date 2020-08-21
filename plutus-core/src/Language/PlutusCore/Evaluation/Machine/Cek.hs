@@ -156,10 +156,10 @@ type CekCarryingM term uni =
     ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State ExBudgetState))
 
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni = CekEvaluationExceptionCarrying (WithMemory Term uni)
+type CekEvaluationException uni = CekEvaluationExceptionCarrying (Plain Term uni)
 
 -- | The monad the CEK machine runs in.
-type CekM uni = CekCarryingM (WithMemory Term uni) uni
+type CekM uni = CekCarryingM (Plain Term uni) uni
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
@@ -291,7 +291,7 @@ lookupVarName :: Name -> CekValEnv uni -> CekM uni (CekValue uni)
 lookupVarName varName varEnv = do
     case lookupName varName varEnv of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
-            var = Var (memoryUsage ()) varName
+            var = Var () varName
         Just val -> pure val
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -302,7 +302,7 @@ lookupDynamicBuiltinName dynName = do
     case Map.lookup dynName means of
         Nothing   -> throwingWithCause _MachineError err $ Just cause where
             err = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
-            cause = Builtin (memoryUsage ()) $ DynBuiltinName dynName
+            cause = Builtin () $ DynBuiltinName dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
@@ -349,8 +349,9 @@ computeCek ctx env (Builtin ex bn) = do
   arity <- arityOf bn
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _  err@Error{} =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just err
+computeCek _ _ (Error _ ty) =
+    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just err where
+        err = Error () $ void ty
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
@@ -360,9 +361,9 @@ computeCek ctx env (Var _ varName) = do
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: MonadError (ErrorWithCause e (WithMemory Term uni)) m
+    :: MonadError (ErrorWithCause e (Plain Term uni)) m
     => AReview e t -> t -> CekValue uni -> m x
-throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
+throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
 -- | The returning phase of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -488,7 +489,7 @@ applyBuiltinName
 applyBuiltinName ctx bn args = do
   -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
   -- See Note [Being generic over @term@ in 'CekM'].
-  let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF dischargeCekValue
+  let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
   result <- case bn of
            n@(DynBuiltinName name) -> do
                DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
@@ -564,7 +565,4 @@ readKnownCek
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
--- Calling 'withMemory' just to unify the monads that 'readKnown' and the CEK machine run in.
-readKnownCek means params =
-    evaluateCek means params >=>
-        first (mapErrorWithCauseF withMemory) . readKnown
+readKnownCek means params = evaluateCek means params >=> readKnown
