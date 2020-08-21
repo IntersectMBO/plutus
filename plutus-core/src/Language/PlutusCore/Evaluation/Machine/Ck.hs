@@ -37,6 +37,7 @@ import qualified Data.Map                                                   as M
 
 infix 4 |>, <|
 
+{- See Note [Arities in VBuiltin] in Cek.hs -}
 data CkValue uni =
     VCon (Term TyName Name uni ())  -- TODO: Really want a constant here.
   | VTyAbs TyName (Kind ()) (Term TyName Name uni ())
@@ -49,8 +50,23 @@ data CkValue uni =
       [Type TyName uni ()] -- The types the builtin is to be instantiated at.
                            -- We need these to construct a term if the machine is returning a stuck partial application.
       [CkValue uni]        -- Arguments we've computed so far.
-    deriving (Show, Eq)   -- Eq is just for tests.
+    deriving (Show, Eq)    -- Eq is just for tests.
 
+{- | Given a possibly partially applied/instantiated builtin, reconstruct the
+   original application from the type and term arguments we've got so far, using
+   the supplied arity.  This also attempts to handle the case of bad
+   interleavings for use in error messages.  The caller has to add the extra
+   type or term argument that caused the error, then mkBuiltinApp works its way
+   along the arity reconstructing the term.  When it can't find an argument of
+   the appropriate kind it looks for one of the other kind (which should be the
+   one supplied by the user): if it finds one it adds an extra application or
+   instantiation as appropriate to what it's constructed so far and returns the
+   result.  If there are no arguments of either kind left it just returns what
+   it has at that point.  Note that we don't call this function if a builtin
+   fails for some reason like division by zero; the term is discarded in that
+   case anyway (see Note [Ignoring context in UserEvaluationError] in
+   Exception.hs)
+-}
 mkBuiltinApplication :: () -> BuiltinName -> Arity -> [Type TyName uni ()] -> [Term TyName Name uni ()] -> Term TyName Name uni ()
 mkBuiltinApplication () bn arity0 tys0 args0 =
   go arity0 tys0 args0 (Builtin () bn)
@@ -70,9 +86,8 @@ ckValueToTerm () = \case
     VLamAbs name ty body             -> LamAbs () name ty body
     VIWrap  ty1 ty2 val              -> IWrap  () ty1 ty2 $ ckValueToTerm () val
     VBuiltin bn arity0 _ tyargs args -> mkBuiltinApplication () bn arity0 tyargs (fmap (ckValueToTerm ()) args)
-    {- We only discharge a value when (a) it's being returned by the machine,
-       or (b) it's needed for an error message.  When we're discharging VBuiltin
-       we use arity0 to get the type and term arguments into the right sequence. -}
+    {- When we're dealing with VBuiltin we use arity0 to get the type and
+       term arguments into the right sequence. -}
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CkValue uni) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm ()
@@ -93,6 +108,17 @@ data CkEnv uni = CkEnv
     }
 
 type CkM uni = ReaderT (CkEnv uni) (Either (CkEvaluationException uni))
+
+{- | Note [Errors and CekValues]
+Most errors take an optional argument that can be used to report the
+term causing the error. Our builtin applications take CkValues as
+arguments, and this constrains the `term` type in the constant
+application machinery to be equal to `CkValue`.  This (I think) means
+that our errors can only involve CkValues and not Terms, so in some
+cases we can't provide any context when an error occurs (eg, if we try
+to look up a free variable in an environment: there's no CkValue for
+Var, so we can't report which variable caused the error.
+-}
 
 instance SpendBudget (CkM uni) (CkValue uni) where
     builtinCostParams = pure defaultCostModel
@@ -247,6 +273,19 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _term           -> throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Nothing
 
+{- Note [Accumulating arguments].  The VBuiltin value contains lists of type and
+term arguments which grow as new arguments are encountered.  In the code below
+We just add new entries by appending to the end of the list: l -> l++[x].  This
+doesn't look terrbily good, but we don't expect the lists to ever contain more
+than three or four elements, so the cost is unlikely to be high.  We could
+accumulate lists in the normal way and reverse them when required, but this is
+error-prone and reversal adds an extra cost anyway.  We could also use something
+like Data.Sequence, but again we incur an extra cost because we have to convert
+to a normal list when passing the arguments to the constant application
+machinery.  If we really care we might want to convert the CAM to use sequences
+instead of lists.
+-}
+
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is an
 -- iterated application of a 'BuiltinName' to a list of 'Value's and, if succesful,
@@ -257,7 +296,7 @@ instantiateEvaluate
     -> Type TyName uni ()
     -> CkValue uni
     -> CkM uni (Term TyName Name uni ())
-instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- FIXME: kind check
+instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> (substTyInTerm tn ty body) -- No kind check - too expensive at run time.
 instantiateEvaluate stack ty val@(VBuiltin bn arity0 arity tys args) =
     case arity of
       []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
