@@ -87,7 +87,7 @@ ckValueToTerm () = \case
     VIWrap  ty1 ty2 val              -> IWrap  () ty1 ty2 $ ckValueToTerm () val
     VBuiltin bn arity0 _ tyargs args -> mkBuiltinApplication () bn arity0 tyargs (fmap (ckValueToTerm ()) args)
     {- When we're dealing with VBuiltin we use arity0 to get the type and
- term arguments into the right sequence. -}
+       term arguments into the right sequence. -}
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst) => PrettyBy PrettyConfigPlc (CkValue uni) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm ()
