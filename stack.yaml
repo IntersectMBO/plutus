@@ -9,7 +9,7 @@ packages:
 - marlowe
 - marlowe-playground-server
 - marlowe-actus
-- metatheory
+- plutus-metatheory
 - plutus-ledger
 - plutus-playground-server
 - plutus-book

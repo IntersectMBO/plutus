@@ -298,5 +298,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault ./metatheory;
+    src = (pkgs.lib).mkDefault ./plutus-metatheory;
     }
