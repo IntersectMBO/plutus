@@ -27,6 +27,8 @@ import           Cardano.BM.Plugin                               (loadPlugin)
 import           Cardano.BM.Setup                                (setupTrace_)
 import qualified Cardano.ChainIndex.Server                       as ChainIndex
 import qualified Cardano.Metadata.Server                         as Metadata
+import qualified Cardano.Metadata.Types                          as Metadata
+import qualified Cardano.Metadata.Types                          as MetadataEffect
 import qualified Cardano.Node.Server                             as NodeServer
 import qualified Cardano.SigningProcess.Server                   as SigningProcess
 import qualified Cardano.Wallet.Server                           as WalletServer

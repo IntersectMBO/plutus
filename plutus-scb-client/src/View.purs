@@ -1,11 +1,19 @@
 module View (render) where
 
-import Bootstrap (col12_, col5_, col7_, container_, row_)
+import Bootstrap (col11_, col12_, col1_, col5_, col7_, container_, row_)
+import Cardano.Metadata.Types (PropertyDescription, PropertyKey)
+import Cardano.Metadata.Types as Metadata
 import Chain.Types as Chain
+import Data.Array as Array
+import Data.Foldable (findMap, foldMap)
+import Data.FoldableWithIndex (foldMapWithIndex)
 import Data.Lens (traversed, view)
 import Data.Lens.Extra (toArrayOf)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe)
 import Effect.Aff.Class (class MonadAff)
-import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, text)
+import Halogen.HTML (ClassName(..), ComponentHTML, HTML, div, div_, h1, h3_, pre_, text)
 import Halogen.HTML.Properties (class_, classes)
 import Icons (Icon(..), icon)
 import NavTabs (mainTabBar, viewContainer)
@@ -13,7 +21,7 @@ import Network.StreamData as Stream
 import Plutus.SCB.Events (ChainEvent)
 import Plutus.SCB.Types (ContractExe)
 import Plutus.SCB.Webserver.Types (ChainReport)
-import Prelude (($), (<$>), (<<<), (<>))
+import Prelude (bind, show, ($), (<$>), (<<<), (<>))
 import Types (ContractSignatures, ContractStates, HAction(..), State(..), View(..), WebSocketStatus(..), WebStreamData, _csrDefinition, _utxoIndex)
 import View.Blockchain (annotatedBlockchainPane)
 import View.Contracts (contractStatusesPane, installedContractsPane)
@@ -24,7 +32,7 @@ render ::
   forall m slots.
   MonadAff m =>
   State -> ComponentHTML HAction slots m
-render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage }) =
+render (State { currentView, chainState, contractSignatures, chainReport, events, contractStates, webSocketStatus, webSocketMessage, metadata }) =
   div
     [ class_ $ ClassName "main-frame" ]
     [ container_
@@ -42,6 +50,20 @@ render (State { currentView, chainState, contractSignatures, chainReport, events
                 events
         ]
     ]
+
+nameIfAvailable ::
+  forall k.
+  Map Metadata.Subject (Map k PropertyDescription) -> String -> String
+nameIfAvailable metadata key =
+  fromMaybe key
+    $ do
+        properties <- Map.lookup (Metadata.Subject key) metadata
+        findMap
+          ( case _ of
+              Metadata.Name name _ -> Just name
+              _ -> Nothing
+          )
+          (Array.fromFoldable (Map.values properties))
 
 mainHeader :: forall p. HTML p HAction
 mainHeader =

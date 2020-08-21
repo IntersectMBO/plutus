@@ -1,10 +1,8 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 -- | SCB Log messages and instances
@@ -153,7 +151,7 @@ instance ToObject AppMsg where
             mkObjectStr "Processing inbox message" ()
         ProcessAllOutboxesMsg second ->
             mkObjectStr "Processing outbox messages"
-            $ (Tagged @"interval_seconds" $ fromIntegral @_ @Integer second)
+              (Tagged @"interval_seconds" $ fromIntegral @_ @Integer second)
         SCBMsg m -> toObject v m
         InstalledContract t ->
             mkObjectStr "Installed contract" t
