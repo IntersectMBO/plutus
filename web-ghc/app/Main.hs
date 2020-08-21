@@ -1,6 +1,6 @@
-{-# LANGUAGE ApplicativeDo #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ApplicativeDo       #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main
@@ -8,36 +8,14 @@ module Main
   )
 where
 
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Logger (MonadLogger, logInfoN, runStderrLoggingT)
-import qualified Data.Text as Text
-import Git (gitRev)
-import Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
-import Options.Applicative
-  ( CommandFields,
-    Mod,
-    Parser,
-    auto,
-    command,
-    customExecParser,
-    disambiguate,
-    fullDesc,
-    help,
-    helper,
-    idm,
-    info,
-    infoOption,
-    long,
-    option,
-    prefs,
-    short,
-    showDefault,
-    showHelpOnEmpty,
-    showHelpOnError,
-    strOption,
-    subparser,
-    value,
-  )
+import           Control.Monad.IO.Class   (MonadIO)
+import           Control.Monad.Logger     (MonadLogger, logInfoN, runStderrLoggingT)
+import qualified Data.Text                as Text
+import           Git                      (gitRev)
+import           Network.Wai.Handler.Warp (HostPreference, defaultSettings, setHost, setPort)
+import           Options.Applicative      (CommandFields, Mod, Parser, auto, command, customExecParser, disambiguate,
+                                           fullDesc, help, helper, idm, info, infoOption, long, option, prefs, short,
+                                           showDefault, showHelpOnEmpty, showHelpOnError, strOption, subparser, value)
 import qualified Webserver
 
 data Command = Webserver
