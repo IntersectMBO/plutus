@@ -40,18 +40,15 @@
       "library" = {
         depends = [
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."process" or (errorHandler.buildDepError "process"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-          (hsPkgs."text" or (errorHandler.buildDepError "text"))
-          (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
+          (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-          (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-          ];
-        build-tools = [
-          (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
+          (hsPkgs."process" or (errorHandler.buildDepError "process"))
+          (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+          (hsPkgs."text" or (errorHandler.buildDepError "text"))
+          (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           ];
         buildable = true;
         modules = [
@@ -244,19 +241,7 @@
         "plc-agda" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."process" or (errorHandler.buildDepError "process"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
             ];
           buildable = true;
           hsSourceDirs = [ "exe" ];
@@ -267,16 +252,8 @@
         "test1" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."process" or (errorHandler.buildDepError "process"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
+            (hsPkgs."process" or (errorHandler.buildDepError "process"))
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
@@ -288,18 +265,12 @@
         "test2" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."process" or (errorHandler.buildDepError "process"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
             (hsPkgs."Cabal" or (errorHandler.buildDepError "Cabal"))
             (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
+            (hsPkgs."process" or (errorHandler.buildDepError "process"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
@@ -310,25 +281,14 @@
         "test3" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."process" or (errorHandler.buildDepError "process"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."ieee754" or (errorHandler.buildDepError "ieee754"))
-            (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
-            (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
-            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plc-agda" or (errorHandler.buildDepError "plc-agda"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
             (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
-            ];
-          build-tools = [
-            (hsPkgs.buildPackages.plutus-core or (pkgs.buildPackages.plutus-core or (errorHandler.buildToolDepError "plutus-core")))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             ];
           buildable = true;
           hsSourceDirs = [ "test" ];

@@ -82,6 +82,7 @@ let
 
             # plc-agda needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
+	    plc-agda.components.library.build-tools = [ agdaWithStdlib ];
             plc-agda.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test1.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test2.build-tools = [ agdaWithStdlib ];
