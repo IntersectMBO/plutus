@@ -96,7 +96,7 @@ in rec {
     projectPackages =
       pkgs.haskell-nix.haskellLib.selectProjectPackages packages
       # Need to list this manually to work around https://github.com/input-output-hk/haskell.nix/issues/464
-      // { inherit (packages) plc-agda; };
+      // { inherit (packages) plutus-metatheory; };
 
     muslProject = import ./nix/haskell.nix { inherit (pkgsMusl) lib stdenv pkgs haskell-nix buildPackages; inherit agdaPackages checkMaterialization; };
     # All the packages defined by our project, built for musl
