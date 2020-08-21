@@ -182,23 +182,32 @@ Events by wallet:
 Contract result by wallet:
     Wallet: W1
       Done
+      Logs:
+        [INFO] String "Campaign started. Waiting for campaign deadline to collect funds."
+        [INFO] String "Collecting funds"
     Wallet: W2
       Running, waiting for input:
           Requests:
             Iteration 4 request ID 4
             Request: {slot:
                       WaitingForSlot: Slot: 30}
+      Logs:
+        [INFO] String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
     Wallet: W3
       Running, waiting for input:
           Requests:
             Iteration 4 request ID 4
             Request: {slot:
                       WaitingForSlot: Slot: 30}
+      Logs:
+        [INFO] String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,10)]})]}}"
     Wallet: W4
       Running, waiting for input:
           Requests:
             Iteration 4 request ID 4
             Request: {slot:
                       WaitingForSlot: Slot: 30}
+      Logs:
+        [INFO] String "Contributing Value {getValue = Map {unMap = [(,Map {unMap = [(,1)]})]}}"
 Checkpoint state by wallet
     

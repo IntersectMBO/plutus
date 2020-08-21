@@ -166,6 +166,10 @@
   padding: 0 0.1rem;
 }
 
+.composer .slot-input input {
+  width: 150px;
+}
+
 .transaction-composer ul li ul {
   display: flex;
 }

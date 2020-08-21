@@ -3,16 +3,18 @@ module MainFrame (mkMainFrame) where
 import API (_RunResult)
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Reader (runReaderT)
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
 import Data.Bifunctor (bimap)
+import Data.Either (Either(..))
 import Data.Foldable (for_)
 import Data.Json.JsonEither (_JsonEither)
 import Data.Lens (_Right, assign, set, to, use, view, (^.))
 import Data.Lens.Extra (peruse)
 import Data.List.NonEmpty as NEL
+import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)
+import Gists (GistAction(..))
 import Halogen (Component, ComponentHTML, get, liftEffect, query)
 import Halogen as H
 import Halogen.ActusBlockly as ActusBlockly
@@ -37,18 +39,18 @@ import Marlowe (SPParams_)
 import Marlowe as Server
 import Marlowe.ActusBlockly as AMB
 import Marlowe.Blockly as MB
-import Marlowe.Parser (parseContract)
 import Marlowe.Monaco as MM
+import Marlowe.Parser (parseContract)
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Prelude (class Functor, Unit, bind, const, discard, eq, flip, identity, map, mempty, negate, pure, show, unit, void, ($), (<<<), (<>), (>), (<$>))
-import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
-import Servant.PureScript.Settings (SPSettings_)
-import Router (Route)
+import Router (Route, SubRoute)
 import Router as Router
 import Routing.Duplex as RD
 import Routing.Duplex as RT
 import Routing.Hash as Routing
+import Servant.PureScript.Ajax (AjaxError, ErrorDescription(..), runAjaxError)
+import Servant.PureScript.Settings (SPSettings_)
 import Simulation as Simulation
 import Simulation.State (_result)
 import Simulation.Types (_marloweState)
@@ -81,7 +83,7 @@ mkMainFrame settings =
     , render: render settings
     , eval:
       H.mkEval
-        { handleQuery
+        { handleQuery: handleQuery settings
         , handleAction: handleActionWithAnalyticsTracking (handleAction settings)
         , receive: const Nothing
         , initialize: Just Init
@@ -113,29 +115,45 @@ toHaskellEditor halogen = do
     getState = view _haskellState
   (imapState setState getState <<< mapAction HaskellAction) halogen
 
-handleRoute ::
+handleSubRoute ::
   forall m action message.
   MonadEffect m =>
-  Route -> HalogenM FrontendState action ChildSlots message m Unit
-handleRoute Router.Home = selectView Simulation
+  SubRoute -> HalogenM FrontendState action ChildSlots message m Unit
+handleSubRoute Router.Home = selectView Simulation
 
-handleRoute Router.Simulation = selectView Simulation
+handleSubRoute Router.Simulation = selectView Simulation
 
-handleRoute Router.HaskellEditor = selectView HaskellEditor
+handleSubRoute Router.HaskellEditor = selectView HaskellEditor
 
-handleRoute Router.Blockly = selectView BlocklyEditor
+handleSubRoute Router.Blockly = selectView BlocklyEditor
 
-handleRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
+handleSubRoute Router.ActusBlocklyEditor = selectView ActusBlocklyEditor
 
-handleRoute Router.Wallets = selectView WalletEmulator
+handleSubRoute Router.Wallets = selectView WalletEmulator
+
+handleRoute ::
+  forall m.
+  MonadEffect m =>
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
+  Route -> HalogenM FrontendState HAction ChildSlots Message m Unit
+handleRoute settings { gistId: (Just gistId), subroute } = do
+  toSimulation do
+    Simulation.handleAction settings (ST.GistAction (SetGistUrl (unwrap gistId)))
+    Simulation.handleAction settings (ST.GistAction LoadGist)
+  handleSubRoute subroute
+
+handleRoute _ { subroute } = handleSubRoute subroute
 
 handleQuery ::
   forall m a.
   Functor m =>
   MonadEffect m =>
+  MonadAff m =>
+  SPSettings_ SPParams_ ->
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
-handleQuery (ReceiveWebSocketMessage msg next) = do
+handleQuery _ (ReceiveWebSocketMessage msg next) = do
   void <<< toSimulation
     $ case msg of
         WS.WebSocketOpen -> pure $ Just unit
@@ -145,8 +163,8 @@ handleQuery (ReceiveWebSocketMessage msg next) = do
         (WS.WebSocketClosed _) -> pure $ Just unit
   pure $ Just next
 
-handleQuery (ChangeRoute route next) = do
-  handleRoute route
+handleQuery settings (ChangeRoute route next) = do
+  handleRoute settings route
   pure $ Just next
 
 handleAction ::
@@ -158,8 +176,8 @@ handleAction ::
 handleAction settings Init = do
   hash <- liftEffect Routing.getHash
   case (RD.parse Router.route) hash of
-    Right route -> handleRoute route
-    Left _ -> handleRoute Router.Home
+    Right route -> handleRoute settings route
+    Left _ -> handleRoute settings { subroute: Router.Home, gistId: Nothing }
   toSimulation $ Simulation.handleAction settings ST.Init
 
 handleAction s (HaskellAction action) = do
@@ -264,13 +282,13 @@ selectView ::
   View -> HalogenM FrontendState action ChildSlots message m Unit
 selectView view = do
   let
-    route = case view of
+    subroute = case view of
       Simulation -> Router.Simulation
       HaskellEditor -> Router.HaskellEditor
       BlocklyEditor -> Router.Blockly
       WalletEmulator -> Router.Wallets
       ActusBlocklyEditor -> Router.ActusBlocklyEditor
-  liftEffect $ Routing.setHash (RT.print Router.route route)
+  liftEffect $ Routing.setHash (RT.print Router.route { subroute, gistId: Nothing })
   assign _view view
   case view of
     Simulation -> do

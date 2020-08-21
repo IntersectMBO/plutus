@@ -104,5 +104,5 @@
         };
       };
     } // rec {
-    src = (pkgs.lib).mkDefault /nix/store/lpwsd96z3zjl0kxdnvrwj7zzgjd6d131-iohk-monitoring-framework-b5c035a/iohk-monitoring;
+    src = (pkgs.lib).mkDefault /nix/store/kvnvydgk76miyvlk23gj9anbvzxlv245-iohk-monitoring-framework-636eb9f/iohk-monitoring;
     }

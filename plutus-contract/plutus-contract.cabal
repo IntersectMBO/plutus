@@ -141,7 +141,7 @@ test-suite contract-doctests
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
       bytestring -any,
-      language-plutus-core -any,
+      plutus-core -any,
       plutus-contract -any,
       plutus-ledger -any,
       prettyprinter -any,

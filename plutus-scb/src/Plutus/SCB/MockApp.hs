@@ -71,8 +71,7 @@ import           Wallet.Emulator.Chain                 (ChainControlEffect, Chai
                                                         handleControlChain)
 import qualified Wallet.Emulator.Chain
 import           Wallet.Emulator.ChainIndex            (ChainIndexEvent)
-import           Wallet.Emulator.MultiAgent            (_singleton)
-import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent)
+import           Wallet.Emulator.MultiAgent            (EmulatorEvent, chainEvent, emulatorTimeEvent, _singleton)
 import           Wallet.Emulator.Wallet                (Wallet (..))
 
 data TestState =
@@ -165,6 +164,7 @@ runScenario action = do
 runMockApp ::
        TestState -> Eff MockAppEffects a -> IO (Either SCBError a, TestState)
 runMockApp state action =
+    let emulatorTime = view (nodeState .  NodeServer.chainState . Wallet.Emulator.Chain.currentSlot) state in
     runM
     $ handleUUIDEffect
     $ runState state
@@ -180,7 +180,7 @@ runMockApp state action =
 
     -- writers
     $ interpret (writeIntoState emulatorEventLog)
-    $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[Wallet.Emulator.Chain.ChainEvent] (below (logMessage Info . _MockAppEmulatorLog . chainEvent)))
+    $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[Wallet.Emulator.Chain.ChainEvent] (below (logMessage Info . _MockAppEmulatorLog . emulatorTimeEvent emulatorTime . chainEvent)))
     $ interpret (handleZoomedWriter @[LogMessage MockAppLog] @_ @[LogMessage SCBMultiAgentMsg] (below (below _MockAppMultiAgent)))
 
     -- log messages

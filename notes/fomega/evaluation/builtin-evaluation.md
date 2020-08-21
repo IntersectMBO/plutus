@@ -12,8 +12,8 @@ Haskell values which can be used by the Haskell implementation of a
 builtin. Non-`Constant` terms are opaque to builtins and can be fed to
 them as arguments, but pass through undigested, as it were.  This
 mechanism is described in more detail
-[here](../../../language-plutus-core/docs/Builtins.md) and
-[here](../../../language-plutus-core/docs/Constant-application.md).
+[here](../../../plutus-core/docs/Builtins.md) and
+[here](../../../plutus-core/docs/Constant-application.md).
 
 The question considered here is how the evaluators should interact
 with the CAM, especially when we're dealing with unsaturated builtins.
@@ -74,7 +74,7 @@ isn't required and only a single call to the CAM is required.  On
 simple benchmarks involving a lot of builtin applications, this was
 substantially faster than the original CEK machine.  However,
 saturated builtins complicated matters considerably and we decided not
-to pursue them: see [this document](../../../language-plutus-core/docs/Saturatedness.md)
+to pursue them: see [this document](../../../plutus-core/docs/Saturatedness.md)
 for a consideration of the issues involved.
 One important factor was that an alternative version of the CEK
 machine allowed us to retain unsaturated builtins but achieve similar

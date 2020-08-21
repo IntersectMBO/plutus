@@ -1,22 +1,18 @@
 module Halogen.ActusBlockly where
 
-import Data.Json.JsonEither
 import Blockly (BlockDefinition, ElementId(..), getBlockById)
 import Blockly as Blockly
-import Blockly.Generator (Generator, newBlock, blockToCode)
+import Blockly.Generator (Generator, blockToCode)
 import Blockly.Types as BT
 import Control.Monad.Except (ExceptT(..), except, runExceptT)
 import Control.Monad.ST as ST
 import Control.Monad.ST.Ref as STRef
-import Control.Monad.State (modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), note)
-import Data.Json.JsonEither (JsonEither(..))
-import Data.Lens (Lens', _1, assign, use)
+import Data.Lens (Lens', assign, use)
 import Data.Lens.Record (prop)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
-import Data.Monoid (mempty)
 import Effect.Class (class MonadEffect)
 import Halogen (ClassName(..), Component, HalogenM, RefLabel(..), liftEffect, mkComponent, raise)
 import Halogen as H
@@ -24,13 +20,7 @@ import Halogen.HTML (HTML, button, div, text)
 import Halogen.HTML.Events (onClick)
 import Halogen.HTML.Properties (class_, classes, id_, ref)
 import Marlowe.ActusBlockly (buildGenerator)
-import Marlowe.Holes (Term(..))
-import Marlowe.Parser as Parser
-import Marlowe.Semantics (Contract(..))
-import Prelude (Unit, bind, const, discard, map, pure, show, unit, zero, ($), (<<<), (<>))
-import Text.Extra as Text
-import Text.Pretty (pretty)
-import Type.Proxy (Proxy(..))
+import Prelude (Unit, bind, const, discard, map, pure, show, unit, ($), (<<<), (<>))
 
 type BlocklyState
   = { actusBlocklyState :: Maybe BT.BlocklyState

@@ -101,14 +101,22 @@
           (hsPkgs."mwc-random" or (errorHandler.buildDepError "mwc-random"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
+          (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
+          (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
           ];
         buildable = true;
         modules = [
           "Servant/Extra"
+          "Cardano/BM/Data/Tracer/Extras"
           "Cardano/ChainIndex/API"
           "Cardano/ChainIndex/Client"
           "Cardano/ChainIndex/Server"
           "Cardano/ChainIndex/Types"
+          "Cardano/Metadata/API"
+          "Cardano/Metadata/Client"
+          "Cardano/Metadata/Server"
+          "Cardano/Metadata/Types"
           "Cardano/Node/API"
           "Cardano/Node/Client"
           "Cardano/Node/Follower"
@@ -150,6 +158,9 @@
           "Plutus/SCB/Effects/EventLog"
           "Plutus/SCB/Effects/MultiAgent"
           "Plutus/SCB/Effects/UUID"
+          "Plutus/SCB/Instances"
+          "Plutus/SCB/MonadLoggerBridge"
+          "Plutus/SCB/Monitoring"
           "Plutus/SCB/Webserver/API"
           "Plutus/SCB/Webserver/Handler"
           "Plutus/SCB/Webserver/Server"
@@ -160,8 +171,10 @@
           "Plutus/SCB/Events/Node"
           "Plutus/SCB/Events/User"
           "Plutus/SCB/Events/Wallet"
+          "Plutus/SCB/ParseStringifiedJSON"
           "Plutus/SCB/Query"
           "Plutus/SCB/Relation"
+          "Plutus/SCB/SCBLogMsg"
           "Plutus/SCB/Types"
           "Plutus/SCB/Utils"
           ];
@@ -175,7 +188,6 @@
             (hsPkgs."async" or (errorHandler.buildDepError "async"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."ekg" or (errorHandler.buildDepError "ekg"))
             (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
             (hsPkgs."freer-simple" or (errorHandler.buildDepError "freer-simple"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -199,6 +211,8 @@
             (hsPkgs."iohk-monitoring" or (errorHandler.buildDepError "iohk-monitoring"))
             (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
             (hsPkgs."servant-client" or (errorHandler.buildDepError "servant-client"))
+            (hsPkgs."contra-tracer" or (errorHandler.buildDepError "contra-tracer"))
+            (hsPkgs."lobemo-backend-ekg" or (errorHandler.buildDepError "lobemo-backend-ekg"))
             ];
           buildable = true;
           modules = [ "PSGenerator" ];

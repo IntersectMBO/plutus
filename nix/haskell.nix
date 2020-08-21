@@ -37,6 +37,7 @@ let
       "https://github.com/input-output-hk/cardano-base"."5035c9ed95e9d47f050314a7d96b1b2043288f61" = "103z0009sz586f2mvnmwl2hp9n94qy0n72ik521xhq7zmfwyv3m7";
       "https://github.com/raduom/cardano-ledger-specs"."2cac85306d8b3e07006e9081f36ce7ebf2d9d0a3" = "0w6z1va6a93f818m9byh49yxkkpd9q3xlxk5irpq3d42vmfpy447";
       "https://github.com/raduom/iohk-monitoring-framework"."b5c035ad4e226d634242ad5979fa677921181435" = "19v32drfb7wy1yqpbxlqvgii0i7s2j89s05lqskx6855yn0calq4";
+      "https://github.com/j-mueller/iohk-monitoring-framework"."636eb9f52f504e8009162b5cf7147e8acb727c1b" = "101ga1cp877b8qnksfanzyw6s4yglwf24mzwgh0pn1xs0l64h6j3";
       };
     modules = [
         {
@@ -84,17 +85,18 @@ let
             plc-agda.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test-plc-agda.build-tools = [ agdaWithStdlib ];
             plc-agda.components.tests.test2-plc-agda.build-tools = [ agdaWithStdlib ];
+            plc-agda.components.tests.test3-plc-agda.build-tools = [ agdaWithStdlib ];
 
             # Relies on cabal-doctest, just turn it off in the Nix build
             prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
-            language-plutus-core.components.tests.language-plutus-core-test-cost-model = {
+            plutus-core.components.tests.plutus-core-test-cost-model = {
               build-tools = r-packages;
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;
             };
 
-            language-plutus-core.components.benchmarks.language-plutus-core-create-cost-model = {
+            plutus-core.components.benchmarks.plutus-core-create-cost-model = {
               build-tools = r-packages;
               # Seems to be broken on darwin for some reason
               platforms = lib.platforms.linux;
@@ -106,7 +108,7 @@ let
             # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
             deployment-server.package.ghcOptions = "-Werror";
             iots-export.package.ghcOptions = "-Werror";
-            language-plutus-core.package.ghcOptions = "-Werror";
+            plutus-core.package.ghcOptions = "-Werror";
             marlowe.package.ghcOptions = "-Werror";
             marlowe-symbolic.package.ghcOptions = "-Werror";
             marlowe-actus.package.ghcOptions = "-Werror";

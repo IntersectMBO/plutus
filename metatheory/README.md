@@ -95,7 +95,7 @@ $ cabal v2-test metatheory
   shown to hold for the small-step operational semantics.
 
 * The Agda formalisation contains an executable `plc-agda` which makes
-  use of the parser and pretty printer from `language-plutus-core` in
+  use of the parser and pretty printer from `plutus-core` in
   conjunction with an interpreter written in Agda. It has the same
   interface as `plc`.
 

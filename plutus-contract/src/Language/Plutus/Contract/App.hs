@@ -49,7 +49,7 @@ type AppSchema s =
 -- | Run the contract as an HTTP server with servant/warp
 run
     :: forall s e.
-       ( AppSchema s, Show e )
+       ( AppSchema s, ToJSON e, Show e )
     => Contract s e () -> IO ()
 run st = runWithTraces @s st []
 
@@ -57,7 +57,7 @@ run st = runWithTraces @s st []
 --   print the 'Request' values for the given traces.
 runWithTraces
     :: forall s e.
-       ( AppSchema s, Show e )
+       ( AppSchema s, ToJSON e, Show e )
     => Contract s e ()
     -> [(String, (Wallet, ContractTrace s e (EmulatorAction (TraceError e)) () ()))]
     -> IO ()
@@ -87,7 +87,6 @@ printTracesAndExit mp = do
 printTrace
     :: forall s e.
        ( Forall (Input s) ToJSON
-       , Show e
        )
     => Contract s e ()
     -> Wallet
@@ -99,7 +98,7 @@ printTrace con wllt ctr = do
             let st = newState previous
                 newRequest = ContractRequest { oldState = st, event = evt }
             BSL.putStrLn (Aeson.encode newRequest)
-            either (error . show) pure (insertAndUpdateContract con newRequest)
+            pure (insertAndUpdateContract con newRequest)
 
-    initial <- either (error . show) pure (initialiseContract @s con)
+    initial <- pure (initialiseContract @s con)
     foldM_ go initial events

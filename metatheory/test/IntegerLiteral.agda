@@ -9,7 +9,7 @@ open import Agda.Builtin.Sigma
 open import Data.Integer
 open import Data.Nat
 
--- plutus/language-plutus-core/test/data/integerLiteral.plc
+-- plutus/plutus-core/test/data/integerLiteral.plc
 
 intLit : ∀{Γ} → Γ ⊢ con integer (size⋆ 100)
 intLit = con (integer 100 (ℤ.pos 102341) (-≤+ Σ., +≤+ (gen _ _ _)))

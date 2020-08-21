@@ -18,7 +18,9 @@ module Language.Plutus.Contract.State(
     , initialiseContract
     ) where
 
-import           Data.Aeson                          (FromJSON, ToJSON)
+import           Control.Monad.Freer.Log             (LogMessage)
+import           Data.Aeson                          (FromJSON, ToJSON, Value)
+import           Data.Foldable                       (toList)
 import           GHC.Generics                        (Generic)
 
 import           Data.Text.Prettyprint.Doc.Extras    (Pretty, PrettyShow (..))
@@ -66,10 +68,13 @@ data ContractRequest s = ContractRequest
     deriving Pretty via PrettyShow (ContractRequest s)
 
 -- | A response produced by a contract instance. It contains the new 'State',
---   and the list of endpoints that can be called.
-data ContractResponse s h = ContractResponse
+--   the list of endpoints that can be called, logs produced by the contract,
+--   and possibly an error
+data ContractResponse e s h = ContractResponse
     { newState :: State s
     , hooks    :: [Request h]
+    , logs     :: [LogMessage Value]
+    , err      :: Maybe e
     }
     deriving stock (Generic, Eq, Show)
     deriving anyclass (ToJSON, FromJSON)
@@ -80,17 +85,24 @@ insertAndUpdateContract ::
     forall s e a.
     Contract s e a -- ^ The 'Contract' with schema @s@ error type @e@.
     -> ContractRequest (Event s) -- ^  The 'ContractRequest' value with the previous state and the new event.
-    -> Either e (ContractResponse (Event s) (Handlers s))
+    -> ContractResponse e (Event s) (Handlers s)
 insertAndUpdateContract (Contract con) ContractRequest{oldState=State record checkpoints, event} =
-    mkResponse <$> insertAndUpdate con checkpoints record event
+    mkResponse $ insertAndUpdate con checkpoints record event
 
-mkResponse :: forall s e a. ResumableResult s e a -> ContractResponse s e
-mkResponse ResumableResult{wcsResponses, wcsRequests=Requests{unRequests},wcsCheckpointStore} =
-    ContractResponse{hooks = unRequests, newState = State { record = wcsResponses, checkpoints=wcsCheckpointStore } }
+mkResponse :: forall e s h a.
+    ResumableResult e s h a
+    -> ContractResponse e s h
+mkResponse ResumableResult{wcsResponses, wcsRequests=Requests{unRequests},wcsCheckpointStore, wcsLogs, wcsFinalState} =
+    ContractResponse
+        { hooks = unRequests
+        , newState = State { record = wcsResponses, checkpoints=wcsCheckpointStore }
+        , logs = toList wcsLogs
+        , err = either Just (const Nothing) wcsFinalState
+        }
 
 -- | The 'ContractResponse' with the initial state of the contract.
 initialiseContract
     :: forall s e a.
     Contract s e a
-    -> Either e (ContractResponse (Event s) (Handlers s))
-initialiseContract (Contract c) = mkResponse <$> runResumable [] mempty c
+    -> ContractResponse e (Event s) (Handlers s)
+initialiseContract (Contract c) = mkResponse $ runResumable [] mempty c
