@@ -58,8 +58,6 @@ import Simulation.Types as ST
 import Text.Pretty (pretty)
 import Types (ChildSlots, FrontendState(FrontendState), HAction(..), HQuery(..), Message, View(..), WebData, _blocklySlot, _haskellEditorSlot, _haskellState, _actusBlocklySlot, _marloweEditorSlot, _showBottomPanel, _simulationState, _view, _walletSlot)
 import Wallet as Wallet
-import WebSocket (WebSocketResponseMessage(..))
-import WebSocket.Support as WS
 
 initialState :: FrontendState
 initialState =
@@ -153,16 +151,6 @@ handleQuery ::
   SPSettings_ SPParams_ ->
   HQuery a ->
   HalogenM FrontendState HAction ChildSlots Message m (Maybe a)
-handleQuery _ (ReceiveWebSocketMessage msg next) = do
-  void <<< toSimulation
-    $ case msg of
-        WS.WebSocketOpen -> pure $ Just unit
-        WS.ReceiveMessage (Left err) -> Simulation.handleQuery (ST.WebsocketResponse (Failure (show err)) unit)
-        WS.ReceiveMessage (Right (OtherError err)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Failure err) unit)
-        WS.ReceiveMessage (Right (CheckForWarningsResult result)) -> Simulation.handleQuery ((ST.WebsocketResponse $ Success result) unit)
-        (WS.WebSocketClosed _) -> pure $ Just unit
-  pure $ Just next
-
 handleQuery settings (ChangeRoute route next) = do
   handleRoute settings route
   pure $ Just next

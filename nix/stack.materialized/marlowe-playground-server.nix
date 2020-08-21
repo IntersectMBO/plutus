@@ -62,7 +62,6 @@
           (hsPkgs."servant-client-core" or (errorHandler.buildDepError "servant-client-core"))
           (hsPkgs."servant-purescript" or (errorHandler.buildDepError "servant-purescript"))
           (hsPkgs."servant-server" or (errorHandler.buildDepError "servant-server"))
-          (hsPkgs."servant-websockets" or (errorHandler.buildDepError "servant-websockets"))
           (hsPkgs."stm" or (errorHandler.buildDepError "stm"))
           (hsPkgs."temporary" or (errorHandler.buildDepError "temporary"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
@@ -70,14 +69,12 @@
           (hsPkgs."time-units" or (errorHandler.buildDepError "time-units"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."uuid" or (errorHandler.buildDepError "uuid"))
-          (hsPkgs."websockets" or (errorHandler.buildDepError "websockets"))
           ];
         buildable = true;
         modules = [
           "Server"
           "API"
           "Interpreter"
-          "WebSocket"
           "Marlowe/Contracts"
           "Marlowe/Config"
           ];

@@ -1,5 +1,6 @@
 module Simulation where
 
+import API as API
 import Auth (AuthRole(..), authStatusAuthRole)
 import Control.Alternative (map, void, when, (<|>))
 import Control.Monad.Except (ExceptT(..), except, lift, runExceptT)
@@ -37,7 +38,6 @@ import Gist (Gist, _GistId, gistFileContent, gistId)
 import Gists (GistAction(..), idPublishGist)
 import Gists as Gists
 import Halogen (HalogenM, query)
-import Halogen as H
 import Halogen.Classes (aHorizontal, active, activeClasses, blocklyIcon, bold, closeDrawerIcon, codeEditor, expanded, infoIcon, jFlexStart, noMargins, panelSubHeader, panelSubHeaderMain, panelSubHeaderSide, plusBtn, pointer, sidebarComposer, smallBtn, spaceLeft, spanText, textSecondaryColor, uppercase)
 import Halogen.Classes as Classes
 import Halogen.HTML (ClassName(..), ComponentHTML, HTML, a, article, aside, b_, br_, button, div, em_, h6, h6_, img, input, label, li, option, p, p_, section, select, slot, small, span, strong_, text, ul)
@@ -65,16 +65,16 @@ import Monaco (getModel, getMonaco, setTheme, setValue) as Monaco
 import Network.RemoteData (RemoteData(..), _Success)
 import Network.RemoteData as RemoteData
 import Prelude (class Show, Unit, bind, bottom, const, discard, eq, flip, identity, mempty, pure, show, unit, zero, ($), (-), (/=), (<), (<$>), (<<<), (<>), (=<<), (==), (>), (>=))
-import Reachability (startReachabilityAnalysis, updateWithResponse)
+import Reachability (startReachabilityAnalysis)
 import Servant.PureScript.Ajax (AjaxError, errorToString)
 import Servant.PureScript.Settings (SPSettings_)
 import Simulation.BottomPanel (bottomPanel)
 import Simulation.State (ActionInput(..), ActionInputId, _editorErrors, _editorWarnings, _moveToAction, _pendingInputs, _possibleActions, _slot, _state, applyInput, emptyMarloweState, hasHistory, mapPartiesActionInput, moveToSignificantSlot, moveToSlot, nextSignificantSlot, otherActionsParty, updateContractInState, updateMarloweState)
-import Simulation.Types (Action(..), AnalysisState(..), Query(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
+import Simulation.Types (Action(..), AnalysisState(..), State, WebData, _activeDemo, _analysisState, _authStatus, _bottomPanelView, _createGistResult, _currentContract, _currentMarloweState, _editorKeybindings, _gistUrl, _helpContext, _loadGistResult, _marloweState, _oldContract, _selectedHole, _showBottomPanel, _showErrorDetail, _showRightPanel, isContractValid)
 import StaticData (marloweBufferLocalStorageKey)
 import StaticData as StaticData
 import Text.Pretty (genericPretty, pretty)
-import Types (ChildSlots, Message(..), _marloweEditorSlot)
+import Types (ChildSlots, Message, _marloweEditorSlot)
 import Web.DOM.Document as D
 import Web.DOM.Element (setScrollTop)
 import Web.DOM.Element as E
@@ -82,20 +82,6 @@ import Web.DOM.HTMLCollection as WC
 import Web.HTML as Web
 import Web.HTML.HTMLDocument (toDocument)
 import Web.HTML.Window as W
-import WebSocket (WebSocketRequestMessage(..))
-
-handleQuery :: forall a m. Query a -> HalogenM State Action ChildSlots Message m (Maybe a)
-handleQuery (WebsocketResponse response next) = do
-  analysisState <- use _analysisState
-  case analysisState of
-    NoneAsked -> pure (Just next) -- Unrequested response
-    WarningAnalysis _ -> do
-      assign _analysisState (WarningAnalysis response)
-      pure (Just next)
-    ReachabilityAnalysis reachabilityState -> do
-      newReachabilityAnalysisState <- updateWithResponse reachabilityState response
-      assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
-      pure (Just next)
 
 handleAction ::
   forall m.
@@ -246,25 +232,25 @@ handleAction _ (ShowErrorDetail val) = assign _showErrorDetail val
 
 handleAction _ SetBlocklyCode = pure unit
 
-handleAction _ AnalyseContract = do
+handleAction settings AnalyseContract = do
   currContract <- use _currentContract
   currState <- use (_currentMarloweState <<< _state)
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
       assign _analysisState (WarningAnalysis Loading)
+      response <- checkContractForWarnings (encodeJSON contract) (encodeJSON currState)
+      assign _analysisState (WarningAnalysis response)
   where
-  checkContractForWarnings contract state = do
-    H.raise $ WebSocketMessage $ CheckForWarnings (encodeJSON false) contract state
+  checkContractForWarnings contract state = runAjax $ (flip runReaderT) settings (Server.postAnalyse (API.CheckForWarnings (encodeJSON false) contract state))
 
-handleAction _ AnalyseReachabilityContract = do
+handleAction settings AnalyseReachabilityContract = do
   currContract <- use _currentContract
   currState <- use (_currentMarloweState <<< _state)
   case currContract of
     Nothing -> pure unit
     Just contract -> do
-      newReachabilityAnalysisState <- startReachabilityAnalysis contract currState
+      newReachabilityAnalysisState <- startReachabilityAnalysis settings contract currState
       assign _analysisState (ReachabilityAnalysis newReachabilityAnalysisState)
 
 getCurrentContract :: forall m. HalogenM State Action ChildSlots Message m String

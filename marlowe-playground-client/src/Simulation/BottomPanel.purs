@@ -29,6 +29,7 @@ import Marlowe.Semantics (AccountId(..), Assets(..), ChoiceId(..), Input(..), Pa
 import Marlowe.Symbolic.Types.Response as R
 import Network.RemoteData (RemoteData(..), isLoading)
 import Prelude (bind, const, mempty, pure, show, zero, ($), (&&), (<$>), (<<<), (<>))
+import Servant.PureScript.Ajax (AjaxError(..), ErrorDescription(..))
 import Simulation.State (MarloweEvent(..), _contract, _editorErrors, _editorWarnings, _log, _slot, _state, _transactionError, _transactionWarnings)
 import Simulation.Types (Action(..), AnalysisState(..), BottomPanelView(..), ReachabilityAnalysisData(..), State, _analysisState, _bottomPanelView, _marloweState, _showBottomPanel, _showErrorDetail, isContractValid)
 import Text.Parsing.StringParser (runParser)
@@ -451,16 +452,22 @@ analysisResultPane state =
                     ]
                 ]
             ]
-        Failure failure ->
-          explanation
-            [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
-            , text "Analysis failed for the following reason:"
-            , ul [ classes [ ClassName "indented-enum-initial" ] ]
-                [ li_
-                    [ b_ [ spanText failure ]
-                    ]
-                ]
-            ]
+        Failure (AjaxError { description }) ->
+          let
+            err = case description of
+              DecodingError e -> "Decoding error: " <> e
+              ConnectionError e -> "Connection error: " <> e
+              ResponseFormatError e -> "Response Format error: " <> e
+          in
+            explanation
+              [ h3 [ classes [ ClassName "analysis-result-title" ] ] [ text "Error during warning analysis" ]
+              , text "Analysis failed for the following reason:"
+              , ul [ classes [ ClassName "indented-enum-initial" ] ]
+                  [ li_
+                      [ b_ [ spanText err ]
+                      ]
+                  ]
+              ]
         Loading -> text ""
       ReachabilityAnalysis reachabilitySubResult -> case reachabilitySubResult of
         NotStarted ->
