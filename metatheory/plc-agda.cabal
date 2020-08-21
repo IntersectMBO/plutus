@@ -25,6 +25,7 @@ common stuff
 
 library
   import: stuff
+  hs-source-dirs: src
   build-depends: base -any,
                  bytestring -any,
                  cryptonite -any,

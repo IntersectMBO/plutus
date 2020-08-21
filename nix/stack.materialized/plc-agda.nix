@@ -236,6 +236,7 @@
           "MAlonzo/Code/Relation/Binary/Construct/FromRel"
           "MAlonzo/Code/Relation/Binary/Reasoning/Base/Double"
           ];
+        hsSourceDirs = [ "src" ];
         };
       exes = {
         "plc-agda" = {

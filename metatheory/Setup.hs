@@ -14,5 +14,5 @@ userhooks = simpleUserHooks { preBuild = preBuild' }
 -- Pre-build seems like the right place, post-configure could also be plausible, but I'm not really sure.
 preBuild' :: Args -> BuildFlags -> IO HookedBuildInfo
 preBuild' _ _ = do
-    proc "agda" ["--compile", "--ghc-dont-call-ghc", "--local-interfaces", "Main.lagda"] empty
+    proc "agda" ["--compile", "--ghc-dont-call-ghc", "--local-interfaces", "src/Main.lagda"] empty
     pure emptyHookedBuildInfo
