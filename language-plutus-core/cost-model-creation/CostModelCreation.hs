@@ -161,9 +161,6 @@ readModelMinSize model = (pure . uncurry ModelMinSize) =<< unsafeReadModelFromR 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f ~(a,b,c) = f a b c
 
-readModelExpSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelExpSizes
-readModelExpSizes model = (pure . uncurry3 ModelExpSizes) =<< unsafeReadModelFromR2 "x_mem" "y_mem" model
-
 readModelMultiSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultiSizes
 readModelMultiSizes model = (pure . uncurry ModelMultiSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
 
@@ -217,7 +214,7 @@ remainderInteger = quotientInteger
 lessThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 lessThanInteger cpuModelR = do
   cpuModel <- readModelMinSize cpuModelR
-  -- constant cost, the output Bool
+  -- constant cost, the size of the output Bool
   let memModel = ModelTwoArgumentsConstantCost 1
   pure $ CostingFun (ModelTwoArgumentsMinSize cpuModel) memModel
 greaterThanInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

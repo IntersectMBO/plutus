@@ -46,14 +46,20 @@ How to make a new model:
 
 ## Calibration
 
+## Ideas
+
+The cost should be the opportunity cost opposed to running an actual block transaction.
+
 ## CPU
 
-The CPU calibration is according to the time used by a builtin operation as determined by criterion. The cost per evaluation step isn't determined yet.
+The CPU calibration is according to the time used by a builtin operation as
+determined by criterion. The cost per evaluation step isn't determined yet.
 
 ## Memory
 
-The memory cost per builtin operation on integers is the expected worst-case cost of the generated value. This way the computation stays simple. If Plutus were to adjust the usage down to actual cost, the max and the current usage would have to be carried around separately.
-
-### Ideas
-
-The cost should be the opportunity cost opposed to running an actual block transaction.
+The memory cost per builtin operation on integers is the expected worst-case
+cost of the generated value. This way the computation stays simple. If Plutus
+were to adjust the usage down to actual cost, the max and the current usage
+would have to be carried around separately. Otherwise the counting mode would
+predict less than the possible top amount of memory than the budgeting mode
+actually requires.

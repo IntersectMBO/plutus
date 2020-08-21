@@ -91,7 +91,6 @@ module Language.PlutusCore.Evaluation.Machine.ExBudgeting
     , ModelMinSize(..)
     , ModelMaxSize(..)
     , ModelSplitConst(..)
-    , ModelExpSizes(..)
     , ModelOneArgument(..)
     , ModelTwoArguments(..)
     , ModelThreeArguments(..)
@@ -326,15 +325,6 @@ data ModelMaxSize = ModelMaxSize
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMaxSize", CamelToSnake)] ModelMaxSize
 
--- | sX * x^2 + sY * y^2 + I
-data ModelExpSizes = ModelExpSizes
-    { modelExpSizesIntercept :: Double
-    , modelExpSizesSlopeX    :: Double
-    , modelExpSizesSlopeY    :: Double
-    } deriving (Show, Eq, Generic, Lift, NFData)
-    deriving (FromJSON, ToJSON) via CustomJSON
-        '[FieldLabelModifier (StripPrefix "ModelExpSizes", CamelToSnake)] ModelExpSizes
-
 -- | (if (x > y) then s * (x + y) else 0) + I
 data ModelSplitConst = ModelSplitConst
     { modelSplitConstIntercept :: Double
@@ -350,7 +340,6 @@ data ModelTwoArguments =
     | ModelTwoArgumentsMultiSizes ModelMultiSizes
     | ModelTwoArgumentsMinSize ModelMinSize
     | ModelTwoArgumentsMaxSize ModelMaxSize
-    | ModelTwoArgumentsExpMultiSizes ModelExpSizes
     | ModelTwoArgumentsSplitConstMulti ModelSplitConst
     | ModelTwoArgumentsLinearSize ModelLinearSize
     deriving (Show, Eq, Generic, Lift, NFData)
@@ -382,9 +371,6 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (fromInteger (max size1 size2)) * slope + intercept
-runTwoArgumentModel
-    (ModelTwoArgumentsExpMultiSizes (ModelExpSizes intercept slopeX slopeY)) (ExMemory size1) (ExMemory size2) =
-        ceiling $ (((fromInteger size1) ** 2) * slopeX) + (((fromInteger size2) ** 2) * slopeY) + intercept
 runTwoArgumentModel
     (ModelTwoArgumentsSplitConstMulti (ModelSplitConst intercept slope)) (ExMemory size1) (ExMemory size2) =
         ceiling $ (if (size1 > size2) then (fromInteger size1) * (fromInteger size2) else 0) * slope + intercept
