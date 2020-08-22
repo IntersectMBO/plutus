@@ -133,9 +133,8 @@ tokens :-
     -- Others
       <twaddle> @charseq        { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
 
-    -- Integer/size literals
+    -- Natural literal, used in version numbers
     <0> @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
-    -- Also used in eg version numbers, so we don't want <conarg> here.
     
     -- Identifiers
     <0> @name                { tok (\p s -> handle_name p (textOf s)) }
