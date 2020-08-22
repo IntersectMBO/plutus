@@ -28,12 +28,13 @@ import Language.PlutusCore.Core
 import Language.PlutusCore.Name
 import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
-import Language.PlutusCore.MkPlc (mkTyBuiltin, mkConstant)
+import Language.PlutusCore.MkPlc          (mkTyBuiltin, mkConstant)
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map
 import qualified Data.Text as T
+import Text.Read                          (readMaybe)
 import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
@@ -66,12 +67,6 @@ import Control.Monad.State
     builtin       { TkKeyword $$ KwBuiltin }
     fun           { TkKeyword $$ KwFun }
     all           { TkKeyword $$ KwAll }
-    integer       { TkKeyword $$ KwInteger }
-    bool          { TkKeyword $$ KwBool }
-    bytestring    { TkKeyword $$ KwByteString }
-    char          { TkKeyword $$ KwChar }
-    string        { TkKeyword $$ KwString }
-    unit          { TkKeyword $$ KwUnit }
     type          { TkKeyword $$ KwType }
     program       { TkKeyword $$ KwProgram }
     iwrap         { TkKeyword $$ KwIWrap }
@@ -86,13 +81,9 @@ import Control.Monad.State
     openBrace     { TkSpecial $$ OpenBrace }
     closeBrace    { TkSpecial $$ CloseBrace }
 
-    unitLit       { $$@TkUnit{} }
-    boolLit       { $$@TkBool{} }
-    charLit       { $$@TkChar{}}
-    integerLit    { $$@TkInt{} }
     naturalLit    { $$@TkNat{} }
-    byteStringLit { $$@TkBS{} }
-    stringLit     { $$@TkString{} }
+    literal       { $$@TkLiteral{} }
+    builtintypeid { $$@TkBuiltinTypeId{} }
     name          { $$@TkName{} }
     builtinid     { $$@TkBuiltinId{} }
 
@@ -121,49 +112,29 @@ TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
 
 TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
 
-Constant : unitLit       { someValue (tkUnit $1) }
-         | boolLit       { someValue (tkBool $1) }
-         | charLit       { someValue (tkChar $1) }
-         | integerLit    { someValue (tkInt $1) }
-         | naturalLit    { someValue (toInteger (tkNat $1)) }
-         | byteStringLit { someValue (tkBytestring $1) }
-         | stringLit     { someValue (tkString (fixStr $1)) } 
+Term : Var                                            { $1 }
+     | openParen abs TyName Kind Term closeParen      { TyAbs $2 $3 $4 $5 }
+     | openBrace Term some(Type) closeBrace           { tyInst $1 $2 (NE.reverse $3) }
+     | openParen lam Name Type Term closeParen        { LamAbs $2 $3 $4 $5 }
+     | openBracket Term some(Term) closeBracket       { app $1 $2 (NE.reverse $3) }
+     | openParen con builtintypeid literal closeParen { mkConstant2 $2 (tkBuiltinTypeId $3) (tkLiteral $4)}
+     | openParen iwrap Type Type Term closeParen      { IWrap $2 $3 $4 $5 }
+     | openParen builtin builtinid closeParen         { mkBuiltin $2 (tkBuiltinId $3) }
+     | openParen unwrap Term closeParen               { Unwrap $2 $3 }
+     | openParen errorTerm Type closeParen            { Error $2 $3 }
 
-Term : Var                                        { $1 }
-     | openParen abs TyName Kind Term closeParen  { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace       { tyInst $1 $2 (NE.reverse $3) }
-     | openParen lam Name Type Term closeParen    { LamAbs $2 $3 $4 $5 }
-       -- TODO should we reverse here or somewhere else?
-     | openBracket Term some(Term) closeBracket   { app $1 $2 (NE.reverse $3) }
-     | openParen con Constant closeParen          { Constant $2 $3 }
-     | openParen iwrap Type Type Term closeParen  { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinid closeParen     { mkBuiltin $2 (tkBuiltinId $3) }
-     | openParen unwrap Term closeParen           { Unwrap $2 $3 }
-     | openParen errorTerm Type closeParen        { Error $2 $3 }
-
-BuiltinType : integer    { mkTyBuiltin @Integer }
-            | bool       { mkTyBuiltin @Bool }
-            | char       { mkTyBuiltin @Char }
-            | bytestring { mkTyBuiltin @BSL.ByteString }
-            | string     { mkTyBuiltin @String }
-            | unit       { mkTyBuiltin @() }
-		  
 Type : TyVar { $1 }
-     | openParen fun Type Type closeParen { TyFun $2 $3 $4 }
+     | openParen fun Type Type closeParen        { TyFun $2 $3 $4 }
      | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
      | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen ifix Type Type closeParen { TyIFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket { tyApps $1 $2 (NE.reverse $3) }
-     | openParen con BuiltinType closeParen { $3 $2 }
+     | openParen ifix Type Type closeParen       { TyIFix $2 $3 $4 }
+     | openBracket Type some(Type) closeBracket  { tyApps $1 $2 (NE.reverse $3) }
+     | openParen con builtintypeid closeParen    { mkBuiltinType $2 (tkBuiltinTypeId $3) }
 
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
 {
-fixStr :: Token ann -> Token ann
-fixStr (TkString ann s) = TkString ann (read s)   
-fixStr t = t
-  
 getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
 getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
@@ -189,6 +160,35 @@ getStaticBuiltinName = \case
     "verifySignature"          -> Just VerifySignature
     "ifThenElse"               -> Just IfThenElse
     _                          -> Nothing
+
+
+mkBuiltinType :: (DefaultUni <: uni) => a -> String -> Type TyName uni a
+mkBuiltinType loc tyname = case tyname of
+  "bool"       -> mkTyBuiltin @Bool           loc
+  "bytestring" -> mkTyBuiltin @BSL.ByteString loc
+  "char"       -> mkTyBuiltin @Char           loc
+  "integer"    -> mkTyBuiltin @Integer        loc
+  "string"     -> mkTyBuiltin @String         loc
+  "unit"       -> mkTyBuiltin @()             loc
+  _ -> error $ "Unknown type: " ++ tyname
+
+mkConstant2 :: (DefaultUni <: uni) => a -> String -> String -> Term TyName name uni a
+mkConstant2 loc tyname lit  =
+  case tyname of
+  "bool"       -> case lit of
+                      "true"  -> mkConstant loc True
+                      "false" -> mkConstant loc False
+                      _ -> error $ "Invalid literal " ++ show lit ++ " of type " ++ show tyname
+  "bytestring" -> undefined
+  "char"       -> undefined
+  "integer"    -> case readMaybe lit of 
+                     Just (n :: Integer) -> mkConstant loc n
+                     Nothing -> error $ "Invalid literal " ++ lit ++ " of type " ++ tyname
+  "string"     -> undefined
+  "unit"       -> case readMaybe lit of 
+                     Just (u :: ()) -> mkConstant loc u
+                     Nothing -> error $ "Invalid literal " ++ lit ++ " of type " ++ tyname
+  _ -> error $ "Unknown type: " ++ tyname
 
 mkBuiltin :: a -> T.Text -> Term TyName Name uni a
 mkBuiltin loc ident = 

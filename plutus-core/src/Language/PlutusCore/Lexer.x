@@ -59,9 +59,8 @@ $upper = [A-Z]
 @sign = "+" | "-" | ""
 
 @nat = $digit+
-@integer = @sign $digit+
-@exp = [eE] @sign $digit+
-@float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
+--@exp = [eE] @sign $digit+
+--@float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
 
 @name = [$lower $upper][$lower $upper $digit \_ \']*
 
@@ -72,6 +71,7 @@ $upper = [A-Z]
 $graphic = $printable # $white
 @quotedstring = \" ($graphic)* \"
 @quotedchar   = ' ($graphic)* ' -- Allow multiple characters so we can handle escape sequences
+@charseq      = [0-9A-Za-z]+
 
 tokens :-
 
@@ -88,7 +88,6 @@ tokens :-
     <kwd> all            { mkKeyword KwAll         `andBegin` 0 }
     <kwd> type           { mkKeyword KwType        `andBegin` 0 }
     <kwd> program        { mkKeyword KwProgram     `andBegin` 0 }
-    <kwd> con            { mkKeyword KwCon         `andBegin` conarg }
     <kwd> iwrap          { mkKeyword KwIWrap       `andBegin` 0 }
     <kwd> unwrap         { mkKeyword KwUnwrap      `andBegin` 0 }
     <kwd> error          { mkKeyword KwError       `andBegin` 0 }
@@ -96,19 +95,21 @@ tokens :-
     -- ^ Switch the lexer into a mode where it's looking for a builtin id.
     -- These are converted into Builtin names (possibly dynamic) in the parser
     -- Outside this mode, all ids are parsed as Names. 
+    <kwd> con            { mkKeyword KwCon         `andBegin` conargs }
+    -- (con type ...): ... can be "()" or or a single or double-quoted string containing spaces,
+    -- or any sequence of non-whitespace characters apart from `(` and `)`.  Comment characters
+    -- are also allowed, but not treated specially.
     
-    <conarg> bool        { mkKeyword KwBool        `andBegin` 0 }
-    <conarg> bytestring  { mkKeyword KwByteString  `andBegin` 0 }
-    <conarg> char        { mkKeyword KwChar        `andBegin` 0 }
-    <conarg> integer     { mkKeyword KwInteger     `andBegin` 0 }
-    <conarg> string      { mkKeyword KwString      `andBegin` 0 }
-    <conarg> unit        { mkKeyword KwUnit        `andBegin` 0 }
+    <conargs>  @name { tok (\p s -> alex $ TkBuiltinTypeId p (stringOf s)) `andBegin` twaddle }
+
+
     -- Maybe we should also do this in the parser, but there's some
     -- ambiguity because literal constants are also parsed here (they
     -- have no start code, so can appear in any context).  There's a
     -- danger that if we save an id here and later parse it into a
     -- builtin type name, it'd actually be a builtin constant.  That
     -- can't happen yet, but could if someone adds `nil` or something.
+
 
     -- Various special characters
     "("                  { mkSpecial OpenParen  `andBegin` kwd }
@@ -119,31 +120,28 @@ tokens :-
     "{"                  { mkSpecial OpenBrace }
     "}"                  { mkSpecial CloseBrace }
 
+
     -- Unit
-    <conarg> "()"        { tok (\p _ -> alex $ TkUnit p ()) }
-
-    -- Booleans
-    <conarg> False       { tok (\p _ -> alex $ TkBool p False) }
-    <conarg> True        { tok (\p _ -> alex $ TkBool p True) }
-
-    -- ByteStrings
-    <conarg> \# ($hex_digit{2})*      { tok (\p s -> alex $ TkBS p (asBSLiteral s)) }
+      <twaddle> "()"            { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
 
     -- Characters
-    <conarg> @quotedchar     { tok (\p s -> alex $ TkChar p (getCharLiteral s)) }  
+--    <twaddle> @quotedchar     { tok (\p s -> alex $ p s) `andBegin` 0 }
 
     -- Strings
-    <conarg> @quotedstring   { tok (\p s -> alex $ TkString p ((map (Data.Char.chr . fromEnum) $ BSL.unpack s))) }
+--    <twaddle> @quotedstring   { tok (\p s -> alex $ p s) `andBegin` 0 }
+
+    -- Others
+      <twaddle> @charseq        { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
 
     -- Integer/size literals
-    @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
-    @integer                 { tok (\p s -> alex $ TkInt p (readBSL $ stripPlus s)) }
+    <0> @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
     -- Also used in eg version numbers, so we don't want <conarg> here.
     
     -- Identifiers
-    <0> @name                { tok (\p s -> handle_name p (T.decodeUtf8 (BSL.toStrict s))) }
+    <0> @name                { tok (\p s -> handle_name p (textOf s)) }
 
-    <bin> @builtinid         { tok (\p s -> alex $ TkBuiltinId p (T.decodeUtf8 (BSL.toStrict s))) `andBegin` 0 }
+    <bin> @builtinid         { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
+
 {
 
 deriving instance Generic AlexPosn
@@ -171,6 +169,10 @@ handleChar x =
     else  if c >= 'A' && c <= 'F'  then x - ord8 'A' + 10
     else  undefined -- safe b/c macro only matches hex digits
 
+
+textOf = T.decodeUtf8 . BSL.toStrict
+
+stringOf = T.unpack . T.decodeUtf8 . BSL.toStrict
 
 -- turns a pair of bytes such as "a6" into a single Word8
 handlePair :: Word8 -> Word8 -> Word8
