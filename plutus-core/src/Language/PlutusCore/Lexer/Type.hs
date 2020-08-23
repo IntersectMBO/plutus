@@ -28,12 +28,6 @@ data Keyword
     | KwIFix
     | KwFun
     | KwAll
-    | KwBool
-    | KwByteString
-    | KwChar
-    | KwString
-    | KwInteger
-    | KwUnit
     | KwType
     | KwProgram
     | KwCon
@@ -80,24 +74,18 @@ instance Pretty Special where
     pretty CloseBrace   = "}"
 
 instance Pretty Keyword where
-    pretty KwAbs        = "abs"
-    pretty KwLam        = "lam"
-    pretty KwIFix       = "ifix"
-    pretty KwFun        = "fun"
-    pretty KwAll        = "all"
-    pretty KwBool       = "bool"
-    pretty KwByteString = "bytestring"
-    pretty KwChar       = "char"
-    pretty KwInteger    = "integer"
-    pretty KwString     = "string"
-    pretty KwUnit       = "unit"
-    pretty KwType       = "type"
-    pretty KwProgram    = "program"
-    pretty KwCon        = "con"
-    pretty KwIWrap      = "iwrap"
-    pretty KwBuiltin    = "builtin"
-    pretty KwUnwrap     = "unwrap"
-    pretty KwError      = "error"
+    pretty KwAbs     = "abs"
+    pretty KwLam     = "lam"
+    pretty KwIFix    = "ifix"
+    pretty KwFun     = "fun"
+    pretty KwAll     = "all"
+    pretty KwType    = "type"
+    pretty KwProgram = "program"
+    pretty KwCon     = "con"
+    pretty KwIWrap   = "iwrap"
+    pretty KwBuiltin = "builtin"
+    pretty KwUnwrap  = "unwrap"
+    pretty KwError   = "error"
 
 instance Pretty (Token ann) where
     pretty (TkName _ n _)            = pretty n

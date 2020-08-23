@@ -1,9 +1,12 @@
 {
-    {-# LANGUAGE OverloadedStrings  #-}
-    {-# LANGUAGE TypeApplications   #-}
-    {-# LANGUAGE TypeOperators      #-}
-    {-# LANGUAGE LambdaCase         #-}
-module Language.PlutusCore.Parser ( parse
+
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
+
+ module Language.PlutusCore.Parser ( parse
 				  , parseTm
 				  , parseTy
 				  , parseST
@@ -112,29 +115,30 @@ TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
 
 TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
 
-Term : Var                                            { $1 }
-     | openParen abs TyName Kind Term closeParen      { TyAbs $2 $3 $4 $5 }
-     | openBrace Term some(Type) closeBrace           { tyInst $1 $2 (NE.reverse $3) }
-     | openParen lam Name Type Term closeParen        { LamAbs $2 $3 $4 $5 }
-     | openBracket Term some(Term) closeBracket       { app $1 $2 (NE.reverse $3) }
-     | openParen con builtintypeid literal closeParen { mkBuiltinConstant $2 (tkBuiltinTypeId $3) (tkLiteral $4)}
-     | openParen iwrap Type Type Term closeParen      { IWrap $2 $3 $4 $5 }
-     | openParen builtin builtinid closeParen         { mkBuiltin $2 (tkBuiltinId $3) }
-     | openParen unwrap Term closeParen               { Unwrap $2 $3 }
-     | openParen errorTerm Type closeParen            { Error $2 $3 }
+-- { % ... } denotes a monadic action below
+Term : Var                                                 { $1 }
+     | openParen   abs TyName Kind Term      closeParen    { TyAbs $2 $3 $4 $5 }
+     | openBrace   Term some(Type)           closeBrace    { tyInst $1 $2 (NE.reverse $3) }
+     | openParen   lam Name Type Term        closeParen    { LamAbs $2 $3 $4 $5 }
+     | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
+     | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant $2 (tkBuiltinTypeId $3) (tkLiteral $4)}
+     | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
+     | openParen   builtin builtinid         closeParen    { mkBuiltin $2 (tkBuiltinId $3) }
+     | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
+     | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
 Type : TyVar { $1 }
-     | openParen fun Type Type closeParen        { TyFun $2 $3 $4 }
-     | openParen all TyName Kind Type closeParen { TyForall $2 $3 $4 $5 }
-     | openParen lam TyName Kind Type closeParen { TyLam $2 $3 $4 $5 }
-     | openParen ifix Type Type closeParen       { TyIFix $2 $3 $4 }
-     | openBracket Type some(Type) closeBracket  { tyApps $1 $2 (NE.reverse $3) }
-     | openParen con builtintypeid closeParen    { mkBuiltinType $2 (tkBuiltinTypeId $3) }
+     | openParen   fun Type Type        closeParen    { TyFun $2 $3 $4 }
+     | openParen   all TyName Kind Type closeParen    { TyForall $2 $3 $4 $5 }
+     | openParen   lam TyName Kind Type closeParen    { TyLam $2 $3 $4 $5 }
+     | openParen   ifix Type Type       closeParen    { TyIFix $2 $3 $4 }
+     | openBracket Type some(Type)      closeBracket  { tyApps $1 $2 (NE.reverse $3) }
+     | openParen   con builtintypeid    closeParen    { % mkBuiltinType $2 (tkBuiltinTypeId $3) }
 
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
-{
+{ --- Haskell helper functions ---
 getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
 getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
@@ -162,33 +166,95 @@ getStaticBuiltinName = \case
     _                          -> Nothing
 
 
-mkBuiltinType :: (DefaultUni <: uni) => a -> String -> Type TyName uni a
+-- TODO: somehow allow the type names to be provided from outside
+mkBuiltinType
+    :: DefaultUni <: uni
+    => AlexPosn -> String -> Parse (Type TyName uni AlexPosn)
 mkBuiltinType loc tyname = case tyname of
-  "bool"       -> mkTyBuiltin @Bool       loc
-  "bytestring" -> mkTyBuiltin @ByteString loc
-  "char"       -> mkTyBuiltin @Char       loc
-  "integer"    -> mkTyBuiltin @Integer    loc
-  "string"     -> mkTyBuiltin @String     loc
-  "unit"       -> mkTyBuiltin @()         loc
-  _ -> error $ "Unknown type: " ++ tyname
+  "bool"       -> pure $ mkTyBuiltin @Bool       loc
+  "bytestring" -> pure $ mkTyBuiltin @ByteString loc
+  "char"       -> pure $ mkTyBuiltin @Char       loc
+  "integer"    -> pure $ mkTyBuiltin @Integer    loc
+  "string"     -> pure $ mkTyBuiltin @String     loc
+  "unit"       -> pure $ mkTyBuiltin @()         loc
+  _ -> throwError $ UnknownBuiltinType loc tyname
 
-mkBuiltinConstant :: (DefaultUni <: uni) => a -> String -> String -> Term TyName name uni a
-mkBuiltinConstant loc tyname lit  =
-  case tyname of
-  "bool"       -> case lit of
-                      "true"  -> mkConstant loc True
-                      "false" -> mkConstant loc False
-                      _ -> error $ "Invalid literal " ++ show lit ++ " of type " ++ show tyname
-  "bytestring" -> undefined  -- eg #123abc, even number of characters.
-  "char"       -> undefined
-  "integer"    -> case readMaybe lit of 
-                     Just (n :: Integer) -> mkConstant loc n
-                     Nothing -> error $ "Invalid literal " ++ lit ++ " of type " ++ tyname
-  "string"     -> undefined
-  "unit"       -> case readMaybe lit of 
-                     Just (u :: ()) -> mkConstant loc u
-                     Nothing -> error $ "Invalid literal " ++ lit ++ " of type " ++ tyname
-  _ -> error $ "Unknown type: " ++ tyname
+-- TODO: add a `Parsable` class so that types can provide their own parsers; 
+mkBuiltinConstant
+  :: DefaultUni <: uni
+  => AlexPosn -> String -> String -> Parse (Term TyName Name uni AlexPosn)
+mkBuiltinConstant loc tyname lit  = do
+    val <-
+          case tyname of
+            "bool"       -> case lit of
+                              "true"  -> pure $ Just $ mkConstant loc True
+                              "false" -> pure $ Just $ mkConstant loc False
+                              _       -> pure Nothing
+            "bytestring" -> parseByteString loc tyname lit
+            "char"       -> readConstant @ Char    loc lit 
+            "integer"    -> readConstant @ Integer loc lit 
+            "string"     -> readConstant @ String  loc lit
+            "unit"       -> readConstant @ ()      loc lit 
+            _            -> throwError $ UnknownBuiltinType loc tyname
+    case val of
+         Nothing -> throwError $ InvalidBuiltinConstant loc lit tyname
+         Just v -> pure v
+
+readConstant
+    :: forall t a uni. (Read t, uni `Includes` t)
+    => AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
+readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t lit)
+  
+parseByteString
+    :: DefaultUni <: uni
+    => AlexPosn -> String -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
+parseByteString loc tyname lit = undefined
+  
+
+{-
+trimBytes :: BSL.ByteString -> BSL.ByteString
+trimBytes str = BSL.take (BSL.length str - 5) str
+
+ord8 :: Char -> Word8
+ord8 = fromIntegral . Data.Char.ord
+
+chr8 :: Word8 -> Char
+chr8 = Data.Char.chr . fromIntegral
+
+handleChar :: Word8 -> Word8
+handleChar x =
+    let c :: Char = Data.Char.chr (fromIntegral x)
+    in    if c >= '0' && c <= '9'  then x - ord8 '0'
+    else  if c >= 'a' && c <= 'f'  then x - ord8 'a' + 10
+    else  if c >= 'A' && c <= 'F'  then x - ord8 'A' + 10
+    else  undefined -- safe b/c macro only matches hex digits
+
+
+-- turns a pair of bytes such as "a6" into a single Word8
+handlePair :: Word8 -> Word8 -> Word8
+handlePair c c' = 16 * handleChar c + handleChar c'
+
+asBytes :: [Word8] -> [Word8]
+asBytes [] = mempty
+asBytes (c:c':cs) = handlePair c c' : asBytes cs
+asBytes _ = undefined -- safe b/c macro matches them in pairs
+
+asBSLiteral :: BSL.ByteString -> BSL.ByteString
+asBSLiteral = withBytes asBytes . BSL.tail
+    where withBytes f = BSL.pack . f . BSL.unpack
+
+-- Convert a single-quoted string to a character.  This should handle escape codes correctly.
+getCharLiteral :: BSL.ByteString -> Char
+getCharLiteral s =
+    let str = ASCII.unpack s
+    in case Text.Read.readMaybe str :: Maybe Char of
+       Just c -> c
+       Nothing -> error $ "Lexical error: invalid character constant " ++ str
+       -- Using error here isn't ideal, but it'll go away when types can supply their own parsers
+
+-}
+
+
 
 mkBuiltin :: a -> T.Text -> Term TyName Name uni a
 mkBuiltin loc ident = 

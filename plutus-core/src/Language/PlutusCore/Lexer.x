@@ -17,19 +17,20 @@ module Language.PlutusCore.Lexer ( alexMonadScan
 
 import PlutusPrelude
 
+import Language.PlutusCore.Error
 import Language.PlutusCore.Lexer.Type
 import Language.PlutusCore.Name
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.ByteString.Lazy.Char8 as ASCII
-import Language.PlutusCore.Error
-import Language.Haskell.TH.Syntax (Lift)
+import           Control.Monad.Except
+import           Control.Monad.State
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
-import Control.Monad.Except
-import Control.Monad.State
-import Text.Read (readMaybe)
+import           Data.Char (isSpace)
+import           Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import qualified Data.ByteString.Lazy       as BSL
+import qualified Data.ByteString.Lazy.Char8 as ASCII
+import           Language.Haskell.TH.Syntax (Lift)
+import           Text.Read (readMaybe)
 
 {- Note [Keywords]
    This version of the lexer relaxes the syntax so that keywords (con,
@@ -47,20 +48,56 @@ import Text.Read (readMaybe)
    where we can use keywords as variable names. A similar strategy is
    used for built in type names. -}
 
+{- Note [Literal Constants]
+   For literal constants, we accept certain types of character sequences that are
+   then passed to user-defined parsers which convert them to built-in constants.
+   Literal constants have to specify the type of the constant, so we have (con
+   integer 9), (con string "Hello"), and so on.  This allows us to use the same
+   literal syntax for different types (eg, integer, short, etc) and shift most
+   of the responsibility for parsing constants out of the lexer and into the
+   parser (and eventually out of the parser to parsers supplied by the types
+   themselves).
+
+   We allow:
+    * ()
+    * Single-quoted printable characters
+    * Double-quoted sequences of printable characters
+    * Unquoted sequences of printable characters not including '(' and ')'
+
+  "Printable" here uses Alex's definition: Unicode code points 32 to 0x10ffff.
+  This includes spaces but excludes tabs amongst other things.  One can
+  use the usual escape sequences though, as long as the type-specific parser
+  deals with them.
+
+  These allow us to parse all of the standard types.  We just return
+  all of the characters in a TkLiteral token, not attempting to do things
+  like stripping off quotes or interpreting escape sequences: it's the
+  responsibility of the parser for the relevant type to do these things.
+  Note that 'read' will often do the right thing.
+
+  The final item above even allows the possiblity of parsing complex types such
+  as tuples and lists as long as parentheses are not involved.  For example,
+  (con tuple <1, 2.3, "yes">) and (con intlist [1, 2, -7]) are accepted by the
+  lexer, as is (con intseq 12 4 55 -4).  The final example looks strange, but
+  the (imaginary) "intseq" parser would receive the string "12 4 55 -4" as a
+  single token.  We can't allow (con )) or (con tuple (1,2,3)) because it
+  would be difficult for the lexer to decide when it had reached the end
+  of the literal (consider a tuple containing a quoted string containing ')',
+  for example).
+
+-}
 }
 
 %wrapper "monadUserState-bytestring"
 
+-- $ = character set macro
+-- @ = regular expression macro
+
 $digit = 0-9
-$hex_digit = [$digit a-f A-F]
 $lower = [a-z]
 $upper = [A-Z]
 
-@sign = "+" | "-" | ""
-
 @nat = $digit+
---@exp = [eE] @sign $digit+
---@float = @sign $digit+ (\. $digit+ (@exp | "") | @exp)
 
 @name = [$lower $upper][$lower $upper $digit \_ \']*
 
@@ -68,10 +105,13 @@ $upper = [A-Z]
 
 @special = \\\\ | \\\"
 
-$graphic = $printable # $white
-@quotedstring = \" ($graphic)* \"
-@quotedchar   = ' ($graphic)* ' -- Allow multiple characters so we can handle escape sequences
-@charseq      = [0-9A-Za-z]+
+@quotedstring = \" ($printable)* \"
+@quotedchar   = ' ($printable)* ' -- Allow multiple characters so we can handle escape sequences
+@charseq      = ~['\"] ( $printable # [ \( \) ])+
+--   @charseq      = ( $printable # [ \( \)])+
+-- ^ Don't match single or double quotes or whitespace at the start.
+-- Without $white, preceding whitespace is included
+-- ... except that now we're trimming leading whitespace in stringOf
 
 tokens :-
 
@@ -100,7 +140,7 @@ tokens :-
     -- or any sequence of non-whitespace characters apart from `(` and `)`.  Comment characters
     -- are also allowed, but not treated specially.
     
-    <conargs>  @name { tok (\p s -> alex $ TkBuiltinTypeId p (stringOf s)) `andBegin` twaddle }
+    <conargs>  @name { tok (\p s -> alex $ TkBuiltinTypeId p (stringOf s)) `andBegin` literalconst }
 
 
     -- Maybe we should also do this in the parser, but there's some
@@ -121,25 +161,20 @@ tokens :-
     "}"                  { mkSpecial CloseBrace }
 
 
-    -- Unit
-      <twaddle> "()"            { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-
-    -- Characters
---    <twaddle> @quotedchar     { tok (\p s -> alex $ p s) `andBegin` 0 }
-
-    -- Strings
---    <twaddle> @quotedstring   { tok (\p s -> alex $ p s) `andBegin` 0 }
-
-    -- Others
-      <twaddle> @charseq        { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-
+    -- Literal built-in constants
+    <literalconst> "()"           { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }  -- Maybe trim leading spaces
+    <literalconst>  @quotedchar   { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  @quotedstring { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  ^$white* @charseq { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  $white* ")"   { mkSpecial CloseParen `andBegin` 0 }
+    
     -- Natural literal, used in version numbers
-    <0> @nat                     { tok (\p s -> alex $ TkNat p (readBSL s)) }
+    <0> @nat                      { tok (\p s -> alex $ TkNat p (readBSL s)) }
     
     -- Identifiers
-    <0> @name                { tok (\p s -> handle_name p (textOf s)) }
+    <0> @name                     { tok (\p s -> handle_name p (textOf s)) }
 
-    <bin> @builtinid         { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
+    <bin> @builtinid              { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
 
 {
 
@@ -149,51 +184,19 @@ deriving instance Lift AlexPosn
 deriving instance Ord AlexPosn
 
 instance Pretty (AlexPosn) where
-    pretty (AlexPn _ line col) = pretty line <> ":" <> pretty col
-
-trimBytes :: BSL.ByteString -> BSL.ByteString
-trimBytes str = BSL.take (BSL.length str - 5) str
-
-ord8 :: Char -> Word8
-ord8 = fromIntegral . Data.Char.ord
+    pretty (AlexPn _ line col) = "line " <> pretty line <> ", column " <> pretty col
 
 chr8 :: Word8 -> Char
 chr8 = Data.Char.chr . fromIntegral
 
-handleChar :: Word8 -> Word8
-handleChar x =
-    let c :: Char = Data.Char.chr (fromIntegral x)
-    in    if c >= '0' && c <= '9'  then x - ord8 '0'
-    else  if c >= 'a' && c <= 'f'  then x - ord8 'a' + 10
-    else  if c >= 'A' && c <= 'F'  then x - ord8 'A' + 10
-    else  undefined -- safe b/c macro only matches hex digits
-
-
+textOf :: BSL.ByteString -> T.Text
 textOf = T.decodeUtf8 . BSL.toStrict
 
+stringOf :: BSL.ByteString -> String
 stringOf = T.unpack . T.decodeUtf8 . BSL.toStrict
-
--- turns a pair of bytes such as "a6" into a single Word8
-handlePair :: Word8 -> Word8 -> Word8
-handlePair c c' = 16 * handleChar c + handleChar c'
-
-asBytes :: [Word8] -> [Word8]
-asBytes [] = mempty
-asBytes (c:c':cs) = handlePair c c' : asBytes cs
-asBytes _ = undefined -- safe b/c macro matches them in pairs
-
-asBSLiteral :: BSL.ByteString -> BSL.ByteString
-asBSLiteral = withBytes asBytes . BSL.tail
-    where withBytes f = BSL.pack . f . BSL.unpack
-
--- Convert a single-quoted string to a character.  This should handle escape codes correctly.
-getCharLiteral :: BSL.ByteString -> Char
-getCharLiteral s =
-    let str = ASCII.unpack s
-    in case Text.Read.readMaybe str :: Maybe Char of
-       Just c -> c
-       Nothing -> error $ "Lexical error: invalid character constant " ++ str
-       -- Using error here isn't ideal, but it'll go away when types can supply their own parsers
+-- stringOf = dropWhile isSpace . T.unpack . T.decodeUtf8 . BSL.toStrict
+-- FIXME: do this with the tokens
+   
 
 -- Taken from example by Simon Marlow.
 -- This handles Haskell-style comments
@@ -252,6 +255,16 @@ alex :: a -> Alex a
 alex = pure
 
 tok f (p,_,s,_) len = f p (BSL.take len s)
+
+{- Rule (stuff in {}):
+
+{ ... } :: user       -- predicate state
+        -> AlexInput  -- input stream before the token
+        -> Int        -- length of the token
+        -> AlexInput  -- input stream after the token
+        -> Bool       -- True <=> accept the token
+
+-}
 
 type AlexUserState = IdentifierState
 
