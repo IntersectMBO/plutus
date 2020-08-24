@@ -33,6 +33,7 @@ import           Ledger.Tx                             (Tx)
 import qualified Ledger.Value                          as V
 import           Plutus.SCB.Events.Contract            (ContractInstanceId, ContractInstanceState, IterationID)
 import           Wallet.Emulator.LogMessages           (RequestHandlerLogMsg, TxBalanceMsg)
+import           Wallet.Types                          (EndpointDescription)
 
 -- | Deriving 'ToObject' from 'Pretty'
 newtype PrettyToObject a = PrettyToObject { unPrettyToObject :: a }
@@ -82,6 +83,7 @@ deriving via (Tagged "contract" (ContractInstanceState t)) instance ToJSON t => 
 deriving via (Tagged "uuid" UUID) instance StructuredLog UUID
 deriving via (Tagged "request" (ContractRequest v)) instance ToJSON v => StructuredLog (ContractRequest v)
 deriving via (Tagged "value" V.Value) instance StructuredLog V.Value
+deriving via (Tagged "endpoint" EndpointDescription) instance StructuredLog EndpointDescription
 
 instance (KnownSymbol s, ToJSON a) => StructuredLog (Tagged s a) where
     toStructuredLog = toStructuredLog'

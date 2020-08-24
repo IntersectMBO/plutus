@@ -91,7 +91,8 @@ library
         unordered-containers -any,
         wai -any,
         wl-pprint-text -any,
-        freer-simple -any
+        freer-simple -any,
+        uuid -any
 
 test-suite playground-common-test
     type: exitcode-stdio-1.0

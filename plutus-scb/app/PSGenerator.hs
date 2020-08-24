@@ -26,6 +26,7 @@ import           Language.Plutus.Contract.Checkpoint               (CheckpointKe
 import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSlot)
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint, EndpointValue)
+import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 import           Language.Plutus.Contract.Effects.WriteTx          (WriteTxResponse)
@@ -44,9 +45,9 @@ import           Plutus.SCB.Core                                   (activateCont
 import           Plutus.SCB.Effects.ContractTest                   (TestContracts (Currency, Game))
 import           Plutus.SCB.Effects.MultiAgent                     (agentAction)
 import           Plutus.SCB.Events                                 (ChainEvent, ContractSCBRequest, csContract)
-import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceId,
-                                                                    ContractInstanceState, ContractResponse,
-                                                                    IterationID, PartiallyDecodedResponse)
+import           Plutus.SCB.Events.Contract                        (ContractEvent, ContractInstanceState,
+                                                                    ContractResponse, IterationID,
+                                                                    PartiallyDecodedResponse)
 import           Plutus.SCB.Events.Node                            (NodeEvent)
 import           Plutus.SCB.Events.User                            (UserEvent)
 import           Plutus.SCB.Events.Wallet                          (WalletEvent)
@@ -96,7 +97,6 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractReport A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ChainEvent A))
-    , (order <*> (genericShow <*> mkSumType)) (Proxy @ContractInstanceId)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToServer)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @StreamToClient)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(ContractInstanceState A))
@@ -130,6 +130,7 @@ myTypes =
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(Responses A))
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeRequest)
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @AddressChangeResponse)
+    , (equal <*> (genericShow <*> mkSumType)) (Proxy @OwnIdRequest)
 
     -- Logging types
     , (equal <*> (genericShow <*> mkSumType)) (Proxy @(LogMessage A))

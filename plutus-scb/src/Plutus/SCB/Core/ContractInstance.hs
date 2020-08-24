@@ -30,6 +30,7 @@ module Plutus.SCB.Core.ContractInstance(
     , processWriteTxRequests
     -- * Calling an endpoint
     , callContractEndpoint
+    , callContractEndpoint'
     ) where
 
 import           Cardano.BM.Data.Tracer                          (ToObject (..), TracingVerbosity (..))
@@ -40,7 +41,9 @@ import           Control.Monad                                   (void, when)
 import           Control.Monad.Freer
 import           Control.Monad.Freer.Error                       (Error, throwError)
 import           Control.Monad.Freer.Extra.Log
+import           Control.Monad.Freer.Extras                      (wrapError)
 import           Control.Monad.Freer.Log                         (LogMessage, LogObserve, mapLog, surroundInfo)
+import           Control.Monad.Freer.Reader                      (Reader, runReader)
 import           Data.Aeson                                      (ToJSON (..))
 import qualified Data.Aeson                                      as JSON
 import           Data.Foldable                                   (for_, traverse_)
@@ -57,13 +60,15 @@ import           Language.Plutus.Contract.Effects.ExposeEndpoint (ActiveEndpoint
                                                                   EndpointValue (..))
 import           Language.Plutus.Contract.Effects.WriteTx        (WriteTxResponse (..))
 import           Language.Plutus.Contract.Resumable              (IterationID, Request (..), Response (..))
+import           Language.Plutus.Contract.Trace                  (EndpointError (..))
 import           Language.Plutus.Contract.Trace.RequestHandler   (MaxIterations (..), RequestHandler (..),
                                                                   RequestHandlerLogMsg, defaultMaxIterations, extract,
                                                                   maybeToHandler, tryHandler, wrapHandler)
 import qualified Language.Plutus.Contract.Trace.RequestHandler   as RequestHandler
 
 import           Ledger.Tx                                       (Tx, txId)
-import           Wallet.Effects                                  (ChainIndexEffect, SigningProcessEffect, WalletEffect)
+import           Wallet.Effects                                  (ChainIndexEffect, ContractRuntimeEffect,
+                                                                  SigningProcessEffect, WalletEffect)
 import           Wallet.Emulator.LogMessages                     (TxBalanceMsg)
 
 import           Plutus.SCB.Command                              (saveBalancedTx, saveBalancedTxResult,
@@ -381,7 +386,7 @@ respondtoRequests ::
     , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => MaxIterations
-    -> RequestHandler effs ContractSCBRequest ContractResponse
+    -> RequestHandler (Reader ContractInstanceId ': effs) ContractSCBRequest ContractResponse
     -> Eff effs ()
 respondtoRequests (MaxIterations mi) handler = do
     contractStates <- runGlobalQuery (Query.contractState @t)
@@ -393,7 +398,8 @@ respondtoRequests (MaxIterations mi) handler = do
              | otherwise = do
                  requests <- hooks . csCurrentState <$> lookupContractState @t instanceId
                  logDebug @(ContractInstanceMsg t) $ HandlingRequests instanceId requests
-                 events <- runRequestHandler @t handler instanceId requests
+                 events <- runReader instanceId $ runRequestHandler @t handler instanceId requests
+                 processContractInbox @t instanceId
                  when (not $ null events) (go $ succ j)
         in go 0
 
@@ -403,9 +409,6 @@ runRequestHandler ::
     forall t effs req.
     ( Member (EventLogEffect (ChainEvent t)) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (ContractEffect t) effs
-    , Member (Error SCBError) effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
     )
     => RequestHandler effs req ContractResponse
     -> ContractInstanceId
@@ -421,7 +424,6 @@ runRequestHandler h contractInstance requests = do
     case response of
         Just rsp -> do
             events <- sendContractMessage @t contractInstance rsp
-            processContractInbox @t contractInstance
             pure events
         _ -> do
             logDebug @(ContractInstanceMsg t) RunRequestHandlerDidNotHandleAnyEvents
@@ -511,12 +513,35 @@ processTxConfirmedRequests =
     >>> RequestHandler.handleTxConfirmedQueries
     >>^ AwaitTxConfirmedResponse
 
+processInstanceRequests ::
+    forall effs.
+    ( Member (Reader ContractInstanceId) effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
+    )
+    => RequestHandler effs ContractSCBRequest ContractResponse
+processInstanceRequests =
+    maybeToHandler (extract Events.Contract._OwnInstanceIdRequest)
+    >>> RequestHandler.handleOwnInstanceIdQueries
+    >>^ OwnInstanceResponse
+
+processNotificationEffects ::
+    forall effs.
+    ( Member ContractRuntimeEffect effs
+    , Member (LogObserve (LogMessage Text.Text)) effs
+    )
+    => RequestHandler effs ContractSCBRequest ContractResponse
+processNotificationEffects =
+    maybeToHandler (extract Events.Contract._SendNotificationRequest)
+    >>> RequestHandler.handleContractNotifications
+    >>^ NotificationResponse
+
+
+-- | Call a named endpoint on a contract instance, throwing an 'SCBError'
+--   if the endpoint is not active.
 callContractEndpoint ::
     forall t a effs.
     ( Member (EventLogEffect (ChainEvent t)) effs
-    , Member (ContractEffect t) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
-    , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (Error SCBError) effs
     , JSON.ToJSON a
     )
@@ -524,7 +549,23 @@ callContractEndpoint ::
     -> String
     -> a
     -> Eff effs [ChainEvent t]
-callContractEndpoint instanceID endpointName endpointValue = do
+callContractEndpoint instanceID endpointName =
+    wrapError (EndpointCallError instanceID) . callContractEndpoint' @t @a @(Error EndpointError ': effs) instanceID endpointName
+
+-- | Call a named endpoint on a contract instance, throwing an 'EndpointError'
+--   if the endpoint is not active.
+callContractEndpoint' ::
+    forall t a effs.
+    ( Member (EventLogEffect (ChainEvent t)) effs
+    , Member (LogMsg (ContractInstanceMsg t)) effs
+    , Member (Error EndpointError) effs
+    , JSON.ToJSON a
+    )
+    => ContractInstanceId
+    -> String
+    -> a
+    -> Eff effs [ChainEvent t]
+callContractEndpoint' instanceID endpointName endpointValue = do
     -- we can't use respondtoRequests here because we want to call the endpoint only on
     -- the contract instance 'inst'. And we want to error if the endpoint is not active.
     logInfo @(ContractInstanceMsg t) $ CallingEndpoint endpointName instanceID (JSON.toJSON endpointValue)
@@ -535,7 +576,7 @@ callContractEndpoint instanceID endpointName endpointValue = do
             $ Map.findWithDefault [] instanceID state
 
     when (null activeEndpoints) $
-        throwError (OtherError $ "Contract " <> Text.pack (show instanceID) <> " has not requested endpoint " <> Text.pack endpointName)
+        throwError $ EndpointNotActive Nothing (EndpointDescription endpointName)
 
     let handler _ = pure (UserEndpointResponse (EndpointDescription endpointName) (EndpointValue $ JSON.toJSON endpointValue))
     runRequestHandler (RequestHandler handler) instanceID activeEndpoints
@@ -549,6 +590,7 @@ processAllContractOutboxes ::
     , Member WalletEffect effs
     , Member ChainIndexEffect effs
     , Member SigningProcessEffect effs
+    , Member ContractRuntimeEffect effs
     , Member (Error SCBError) effs
     , Member (ContractEffect t) effs
     )
@@ -559,7 +601,7 @@ processAllContractOutboxes mi =
     $ mapLog @_ @(ContractInstanceMsg t) BalancingTx
     $ surroundInfo @Text.Text "processAllContractOutboxes"
     $ respondtoRequests @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs) mi
-    $ contractRequestHandler @t @(LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
+    $ contractRequestHandler @t @(Reader ContractInstanceId ': LogMsg TxBalanceMsg ': LogMsg RequestHandlerLogMsg ': effs)
 
 contractRequestHandler ::
     forall t effs.
@@ -567,10 +609,12 @@ contractRequestHandler ::
     , Member ChainIndexEffect effs
     , Member WalletEffect effs
     , Member SigningProcessEffect effs
+    , Member ContractRuntimeEffect effs
     , Member (LogMsg RequestHandlerLogMsg) effs
     , Member (LogObserve (LogMessage Text.Text)) effs
     , Member (LogMsg (ContractInstanceMsg t)) effs
     , Member (LogMsg TxBalanceMsg) effs
+    , Member (Reader ContractInstanceId) effs
     )
     => RequestHandler effs ContractSCBRequest ContractResponse
 contractRequestHandler =
@@ -580,3 +624,5 @@ contractRequestHandler =
     <> processWriteTxRequests @t @effs
     <> processTxConfirmedRequests @effs
     <> processNextTxAtRequests @effs
+    <> processInstanceRequests @effs
+    <> processNotificationEffects @effs

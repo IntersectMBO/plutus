@@ -64,6 +64,7 @@
           "Language/PlutusTx/Coordination/Contracts/MultiSigStateMachine"
           "Language/PlutusTx/Coordination/Contracts/PingPong"
           "Language/PlutusTx/Coordination/Contracts/PubKey"
+          "Language/PlutusTx/Coordination/Contracts/RPC"
           "Language/PlutusTx/Coordination/Contracts/Vesting"
           "Language/PlutusTx/Coordination/Contracts/Swap"
           ];
@@ -90,6 +91,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."row-types" or (errorHandler.buildDepError "row-types"))
             ] ++ (pkgs.lib).optional (!(compiler.isGhcjs && true || system.isGhcjs)) (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"));
           buildable = true;
           modules = [
@@ -106,6 +108,7 @@
             "Spec/PingPong"
             "Spec/PubKey"
             "Spec/Rollup"
+            "Spec/RPC"
             "Spec/TokenAccount"
             "Spec/Vesting"
             ];

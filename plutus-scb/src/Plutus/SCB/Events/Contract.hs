@@ -26,6 +26,8 @@ module Plutus.SCB.Events.Contract(
   , _UtxoAtRequest
   , _NextTxAtRequest
   , _WriteTxRequest
+  , _OwnInstanceIdRequest
+  , _SendNotificationRequest
   -- ** ContractResponse
   , _AwaitSlotResponse
   , _AwaitTxConfirmedResponse
@@ -34,6 +36,8 @@ module Plutus.SCB.Events.Contract(
   , _UtxoAtResponse
   , _NextTxAtResponse
   , _WriteTxResponse
+  , _OwnInstanceResponse
+  , _NotificationResponse
   -- ** ContractEvent
   , _ContractInboxMessage
   , _ContractInstanceStateUpdateEvent
@@ -41,17 +45,13 @@ module Plutus.SCB.Events.Contract(
 
 import           Control.Lens.TH                                   (makePrisms)
 import           Control.Monad.Freer.Log                           (LogMessage)
-import           Data.Aeson                                        (FromJSON, FromJSONKey, ToJSON, ToJSONKey, Value,
-                                                                    (.:))
+import           Data.Aeson                                        (FromJSON, ToJSON, Value, (.:))
 import qualified Data.Aeson                                        as JSON
 import qualified Data.Aeson.Encode.Pretty                          as JSON
 import qualified Data.ByteString.Lazy.Char8                        as BS8
 import qualified Data.Text                                         as Text
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras                  (PrettyShow (..))
-import           Data.UUID                                         (UUID)
 import           GHC.Generics                                      (Generic)
-import           Servant                                           (FromHttpApiData)
 
 import qualified Language.Plutus.Contract.Effects.WriteTx          as W
 import           Language.Plutus.Contract.Resumable                (IterationID)
@@ -67,11 +67,14 @@ import           Language.Plutus.Contract.Effects.AwaitSlot        (WaitingForSl
 import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed (..))
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (ActiveEndpoint (..), EndpointDescription (..),
                                                                     EndpointValue)
+import           Language.Plutus.Contract.Effects.Instance         (OwnIdRequest)
 import           Language.Plutus.Contract.Effects.OwnPubKey        (OwnPubKeyRequest)
 import           Language.Plutus.Contract.Effects.UtxoAt           (UtxoAtAddress)
 
 import           Plutus.SCB.Utils                                  (abbreviate)
 import           Wallet.Effects                                    (AddressChangeRequest, AddressChangeResponse)
+import           Wallet.Types                                      (ContractInstanceId (..), Notification,
+                                                                    NotificationError)
 
 -- $contract-events
 -- The events that compiled Plutus contracts are concerned with. For each type
@@ -108,13 +111,6 @@ one of those requests being handled.
 
 -}
 
--- | Unique ID for contract instance
-newtype ContractInstanceId = ContractInstanceId { unContractInstanceId :: UUID }
-    deriving (Eq, Ord, Show, Generic)
-    deriving newtype (FromHttpApiData, FromJSONKey, ToJSONKey)
-    deriving anyclass (FromJSON, ToJSON)
-    deriving Pretty via (PrettyShow UUID)
-
 data ContractSCBRequest =
   AwaitSlotRequest WaitingForSlot -- ^ Wait until a slot number is reached
   | AwaitTxConfirmedRequest TxId -- ^ Wait for a transaction to be confirmed (deeper than k blocks) TODO: confirmation levels
@@ -123,6 +119,8 @@ data ContractSCBRequest =
   | UtxoAtRequest Address -- ^ Get the unspent transaction outputs at the address.
   | NextTxAtRequest AddressChangeRequest -- ^ Wait for the next transaction that modifies the UTXO at the address and return it.
   | WriteTxRequest UnbalancedTx -- ^ Submit an unbalanced transaction to the SCB.
+  | OwnInstanceIdRequest OwnIdRequest -- ^ Request the ID of the contract instance.
+  | SendNotificationRequest Notification -- ^ Send a notification to another contract instance
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -140,6 +138,8 @@ instance FromJSON ContractHandlersResponse where
             "utxo-at"         -> UtxoAtRequest <$> v.: "value"
             "address"         -> NextTxAtRequest <$> v .: "value"
             "tx"              -> WriteTxRequest <$> v .: "value"
+            "own-instance-id" -> OwnInstanceIdRequest <$> v .: "value"
+            "notify"          -> SendNotificationRequest <$> v .: "value"
             _                 -> UserEndpointRequest <$> v .: "value"
 
 instance Pretty ContractSCBRequest where
@@ -151,6 +151,8 @@ instance Pretty ContractSCBRequest where
         UtxoAtRequest a -> "UtxoAt:" <+> pretty a
         NextTxAtRequest a -> "NextTxAt:" <+> pretty a
         WriteTxRequest u -> "WriteTx:" <+> pretty u
+        OwnInstanceIdRequest r -> "OwnInstanceId:" <+> pretty r
+        SendNotificationRequest n -> "Notification:" <+> pretty n
 
 data ContractResponse =
   AwaitSlotResponse Slot
@@ -160,6 +162,8 @@ data ContractResponse =
   | UtxoAtResponse UtxoAtAddress
   | NextTxAtResponse AddressChangeResponse
   | WriteTxResponse W.WriteTxResponse
+  | OwnInstanceResponse ContractInstanceId
+  | NotificationResponse (Maybe NotificationError)
   deriving  (Eq, Show, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
@@ -172,6 +176,8 @@ instance Pretty ContractResponse where
         NextTxAtResponse rsp        -> "NextTxAt:" <+> pretty rsp
         WriteTxResponse w           -> "WriteTx:" <+> pretty w
         AwaitTxConfirmedResponse w  -> "AwaitTxConfirmed:" <+> pretty w
+        OwnInstanceResponse r       -> "OwnInstance:" <+> pretty r
+        NotificationResponse r      -> "Notification:" <+> pretty r
 
 data ContractInstanceState t =
     ContractInstanceState

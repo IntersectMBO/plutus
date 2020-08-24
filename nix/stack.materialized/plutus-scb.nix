@@ -155,6 +155,7 @@
           "Plutus/SCB/Core/Projections"
           "Plutus/SCB/Effects/Contract"
           "Plutus/SCB/Effects/ContractTest"
+          "Plutus/SCB/Effects/ContractRuntime"
           "Plutus/SCB/Effects/ContractTest/AtomicSwap"
           "Plutus/SCB/Effects/ContractTest/PayToWallet"
           "Plutus/SCB/Effects/EventLog"

@@ -4,12 +4,15 @@
 module Spec.Rollup where
 
 
+import           Data.Aeson                                            (FromJSON)
 import           Data.ByteString.Lazy                                  (ByteString)
 import qualified Data.ByteString.Lazy                                  as LBS
 import qualified Data.Map                                              as Map
+import qualified Data.Row.Internal                                     as V
 import           Data.Text.Encoding                                    (encodeUtf8)
 
 import           Language.Plutus.Contract
+import           Language.Plutus.Contract.Schema                       (Input, Output)
 import           Language.Plutus.Contract.Trace
 import           Ledger                                                (pubKeyHash)
 
@@ -43,7 +46,12 @@ tests = testGroup "showBlockchain"
      ]
 
 render
-    :: forall s e a. ( Show e )
+    :: forall s e a.
+     ( Show e
+     , V.AllUniqueLabels (Input s)
+     , V.Forall (Input s) FromJSON
+     , V.Forall (Output s) V.Unconstrained1
+     )
     => Contract s e a
     -> ContractTrace s e a ()
     -> IO ByteString

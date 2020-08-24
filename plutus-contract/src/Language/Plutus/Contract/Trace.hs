@@ -1,5 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveAnyClass         #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -12,6 +15,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 -- | A trace is a sequence of actions by simulated wallets that can be run
 --   on the mockchain. This module contains the functions needed to build
 --   traces.
@@ -20,7 +24,9 @@ module Language.Plutus.Contract.Trace
     , ContractTraceEffs
     , ContractTraceState
     , TraceError(..)
+    , EndpointError(..)
     , AsTraceError(..)
+    , toNotifyError
     , WalletState(..)
     , ctsWalletStates
     , ctsContract
@@ -30,8 +36,11 @@ module Language.Plutus.Contract.Trace
     , ContractTraceResult(..)
     , ctrEmulatorState
     , ctrTraceState
+    -- * Running 'ContractTrace' actions
     , runTrace
     , runTraceWithDistribution
+    , runTraceWithInitialStates
+    , runTraceTxPool
     , evalTrace
     , execTrace
     , setSigningProcess
@@ -60,9 +69,8 @@ module Language.Plutus.Contract.Trace
     , defaultHandleBlockchainEventsOptions
     , handleBlockchainEvents
     , handleBlockchainEventsOptions
-    -- * Running 'ContractTrace' actions
+    -- * Initial distributions of emulated chains
     , InitialDistribution
-    , withInitialDistribution
     , defaultDist
     , defaultDistFor
     -- * Wallets
@@ -73,31 +81,37 @@ module Language.Plutus.Contract.Trace
     ) where
 
 import           Control.Arrow                                     ((>>>), (>>^))
-import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, use, view,
-                                                                    (%=))
+import           Control.Lens                                      (at, from, makeClassyPrisms, makeLenses, review, use,
+                                                                    view, (%=))
 import           Control.Monad                                     (guard, replicateM_, unless, void)
 import           Control.Monad.Freer
-import           Control.Monad.Freer.Error                         (Error, throwError)
+import           Control.Monad.Freer.Error                         (Error, runError, throwError)
 import qualified Control.Monad.Freer.Extras                        as Eff
+import           Control.Monad.Freer.Log                           (LogMessage, LogMsg, handleLogWriter, logWarn,
+                                                                    mapMLog)
 import           Control.Monad.Freer.State                         (State, gets, runState)
+import           Control.Monad.Freer.Writer                        (Writer)
+import qualified Data.Aeson.Types                                  as JSON
 import           Data.Bifunctor                                    (Bifunctor (..))
 import           Data.Foldable                                     (toList, traverse_)
 import           Data.Map                                          (Map)
 import qualified Data.Map                                          as Map
 import           Data.Maybe                                        (fromMaybe, mapMaybe)
 import           Data.Row                                          (KnownSymbol, Label (..), trial')
+import qualified Data.Row                                          as Row
+import qualified Data.Row.Extras                                   as V
 import qualified Data.Row.Internal                                 as V
 import qualified Data.Row.Variants                                 as V
 import           Data.Sequence                                     (Seq, (|>))
-import           Data.Text                                         (Text)
-import qualified Data.Text                                         as Text
-import           Data.Text.Extras                                  (tshow)
+import           Data.Text.Prettyprint.Doc                         (Pretty, pretty, (<+>))
+import           Data.Void                                         (Void)
+import           GHC.Generics                                      (Generic)
 
 import           Language.Plutus.Contract                          (Contract (..), HasAwaitSlot, HasTxConfirmation,
                                                                     HasUtxoAt, HasWatchAddress, HasWriteTx, mapError)
 import           Language.Plutus.Contract.Checkpoint               (CheckpointStore)
 import qualified Language.Plutus.Contract.Resumable                as State
-import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Output)
+import           Language.Plutus.Contract.Schema                   (Event (..), Handlers (..), Input, Output)
 import qualified Language.Plutus.Contract.Types                    as Contract.Types
 import qualified Language.Plutus.Contract.Wallet                   as Wallet
 
@@ -106,6 +120,10 @@ import           Language.Plutus.Contract.Effects.AwaitTxConfirmed (TxConfirmed 
 import qualified Language.Plutus.Contract.Effects.AwaitTxConfirmed as AwaitTxConfirmed
 import           Language.Plutus.Contract.Effects.ExposeEndpoint   (HasEndpoint)
 import qualified Language.Plutus.Contract.Effects.ExposeEndpoint   as Endpoint
+import           Language.Plutus.Contract.Effects.Instance         (HasOwnId)
+import qualified Language.Plutus.Contract.Effects.Instance         as OwnInstance
+import           Language.Plutus.Contract.Effects.Notify           (HasContractNotify)
+import qualified Language.Plutus.Contract.Effects.Notify           as Notify
 import           Language.Plutus.Contract.Effects.OwnPubKey        (HasOwnPubKey)
 import qualified Language.Plutus.Contract.Effects.OwnPubKey        as OwnPubKey
 import qualified Language.Plutus.Contract.Effects.UtxoAt           as UtxoAt
@@ -124,12 +142,35 @@ import           Ledger.Slot                                       (Slot (..))
 import           Ledger.Value                                      (Value)
 
 import           Wallet.API                                        (defaultSlotRange, payToPublicKey_)
-import           Wallet.Emulator                                   (EmulatorState, Wallet)
+import           Wallet.Emulator                                   (EmulatorState, TxPool, Wallet)
 import qualified Wallet.Emulator                                   as EM
-import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects)
+import           Wallet.Emulator.MultiAgent                        (EmulatedWalletEffects, _singleton)
 import qualified Wallet.Emulator.MultiAgent                        as EM
+import           Wallet.Emulator.Notify                            (EmulatorContractNotifyEffect (..),
+                                                                    EmulatorNotifyLogMsg (..))
 import           Wallet.Emulator.SigningProcess                    (SigningProcess)
 import qualified Wallet.Emulator.SigningProcess                    as EM
+import           Wallet.Types                                      (ContractInstanceId, EndpointDescription (..),
+                                                                    EndpointValue (..), Notification (..),
+                                                                    NotificationError (..))
+
+data EndpointError =
+    EndpointNotActive (Maybe Wallet) EndpointDescription
+    | MoreThanOneEndpointActive EndpointDescription
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (JSON.ToJSON, JSON.FromJSON)
+
+instance Pretty EndpointError where
+    pretty = \case
+        EndpointNotActive w e ->
+            "Endpoint not active:" <+> pretty w <+> pretty e
+        MoreThanOneEndpointActive e ->
+            "More than one endpoint active:" <+> pretty e
+
+toNotifyError :: ContractInstanceId -> EndpointError -> NotificationError
+toNotifyError i = \case
+    EndpointNotActive _ e -> EndpointNotAvailable i e
+    MoreThanOneEndpointActive e -> MoreThanOneEndpointAvailable i e
 
 -- | Error produced while running a trace. Either a contract-specific
 --   error (of type 'e'), or an 'EM.AssertionError' from the emulator.
@@ -137,13 +178,14 @@ data TraceError e =
     TraceAssertionError EM.AssertionError
     | TContractError e
     | HandleBlockchainEventsMaxIterationsExceeded Wallet MaxIterations
-    | HookError Text
+    | HookError EndpointError
     deriving (Eq, Show)
 
 type InitialDistribution = Map Wallet Value
 
 type ContractTraceEffs s e a =
-    '[ State (ContractTraceState s (TraceError e) a)
+    '[ EmulatorContractNotifyEffect
+     , State (ContractTraceState s (TraceError e) a)
      , Error (TraceError e)
      , State EmulatorState
      ]
@@ -225,9 +267,17 @@ addEvent wallet event = do
             _ <- trial' v (Label @l)
             Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
     hks <- mapMaybe filterReq <$> getHooks @s @e @a wallet >>= \case
-            [] -> throwError @(TraceError e) $ HookError $ "No hooks found for " <> tshow (Label @l)
+            [] -> throwError @(TraceError e)
+                $ HookError
+                $ EndpointNotActive Nothing
+                $ EndpointDescription
+                $ show (Label @l)
             [x] -> pure x
-            _ -> throwError @(TraceError e) $ HookError $ "More than one hook found for " <> tshow (Label @l)
+            _ -> throwError @(TraceError e)
+                $ HookError
+                $ MoreThanOneEndpointActive
+                $ EndpointDescription
+                $ show (Label @l)
     addResponse @s @e @a wallet hks
 
 {-| A variant of 'addEvent' that takes the name of the endpoint as a value
@@ -241,13 +291,15 @@ addEvent wallet event = do
 
 -}
 addNamedEvent ::
-    forall s e a.
+    forall s e a effs.
     ( V.Forall (Output s) V.Unconstrained1 -- TODO: remove
+    , Member (Error EndpointError) effs
+    , Member (State (ContractTraceState s (TraceError e) a)) effs
     )
     => String -- endpoint name
     -> Wallet
     -> Event s
-    -> ContractTrace s e a ()
+    -> Eff effs ()
 addNamedEvent endpointName wallet event = do
     let filterReq Request{rqID, itID, rqRequest=Handlers v} = do
             guard $
@@ -255,18 +307,20 @@ addNamedEvent endpointName wallet event = do
                     == (endpointName, ())
             Just Response{rspRqID=rqID, rspItID=itID, rspResponse=event}
     hks <- mapMaybe filterReq <$> getHooks @s @e @a wallet >>= \case
-            [] -> throwError @(TraceError e) $ HookError $ "No hooks found for " <> Text.pack endpointName
+            [] -> throwError $ EndpointNotActive Nothing $ EndpointDescription endpointName
             [x] -> pure x
-            _ -> throwError @(TraceError e) $ HookError $ "More than one hook found for " <> Text.pack endpointName
+            _ -> throwError $ MoreThanOneEndpointActive $ EndpointDescription endpointName
     addResponse @s @e @a wallet hks
 
 
 -- | Add a 'Response' to the wallet's trace
 addResponse
-    :: forall s e a.
-    Wallet
+    :: forall s e a effs.
+    ( Member (State (ContractTraceState s (TraceError e) a)) effs
+    )
+    => Wallet
     -> Response (Event s)
-    -> ContractTrace s e a ()
+    -> Eff effs ()
 addResponse w e = Eff.monadStateToState @(ContractTraceState s (TraceError e) a) $ do
     con <- use ctsContract
     let go st =
@@ -276,9 +330,10 @@ addResponse w e = Eff.monadStateToState @(ContractTraceState s (TraceError e) a)
 
 -- | Get the hooks that a contract is currently waiting for
 getHooks
-    :: forall s e a.
-    Wallet
-    -> ContractTrace s e a [Request (Handlers s)]
+    :: forall s e a effs.
+    ( Member (State (ContractTraceState s (TraceError e) a)) effs )
+    => Wallet
+    -> Eff effs [Request (Handlers s)]
 getHooks w =
     foldMap walletHandlers . Map.lookup w <$> gets @(ContractTraceState s (TraceError e) a) (view ctsWalletStates)
 
@@ -305,7 +360,11 @@ setSigningProcess wallet signingProcess =
 --   final events for each wallet.
 execTrace
     :: forall s e a.
-    Contract s e a
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    )
+    => Contract s e a
     -> Eff (ContractTraceEffs s e a) ()
     -> Map Wallet [Response (Event s)]
 execTrace con action =
@@ -315,8 +374,12 @@ execTrace con action =
 
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
-runTrace ::
-    Contract s e a
+runTrace :: forall s e a.
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    )
+    => Contract s e a
     -> Eff (ContractTraceEffs s e a) ()
     -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
 runTrace = runTraceWithDistribution defaultDist
@@ -324,7 +387,11 @@ runTrace = runTraceWithDistribution defaultDist
 -- | Run a contract and return the result for the given wallet, if it exists
 evalTrace ::
     forall s e a.
-    Show e
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    , Show e
+    )
     => Contract s e a
     -> Eff (ContractTraceEffs s e a) ()
     -> Wallet
@@ -338,34 +405,99 @@ evalTrace contract trace wllt = do
         Right Nothing  -> Left "contract not finished"
         Left err       -> Left $ "contract failed for wallet " <> show wllt <> " with " <> show err
 
+handleEmulatorContractNotify :: forall s e a effs.
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    , Member (State (ContractTraceState s (TraceError e) a)) effs
+    , Member (LogMsg EmulatorNotifyLogMsg) effs
+    )
+    => EmulatorContractNotifyEffect
+    ~> Eff effs
+handleEmulatorContractNotify = \case
+    SendAgentNotification source target notification -> do
+        let Notification{notificationContractID,notificationContractEndpoint,notificationContractArg} = notification
+            EndpointDescription endpointName = notificationContractEndpoint
+            argument = JSON.toJSON $ EndpointValue notificationContractArg
+
+            theEvent :: Either String (V.Var (Input s))
+            theEvent = JSON.parseEither (V.namedBranchFromJSON @(Input s) endpointName) (JSON.toJSON argument)
+
+            -- Log the error and return it back to the caller
+            returnError :: NotificationError -> Eff effs (Maybe NotificationError)
+            returnError e = logWarn (NotifyFailed source e) >> (pure $ Just e)
+        case theEvent of
+            Left err ->
+                let err' = NotificationJSONDecodeError notificationContractEndpoint argument err
+                in returnError err'
+            Right event -> do
+                r <- runError @EndpointError $
+                        addNamedEvent @s @e @a endpointName target (Event event)
+                either (returnError . toNotifyError notificationContractID) (const $ pure Nothing) r
+
+runTraceWithInitialStates ::
+    forall s e a b.
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    )
+    => EmulatorState
+    -> ContractTraceState s (TraceError e) a
+    -> Eff (ContractTraceEffs s e a) b
+    -> (Either (TraceError e) (b, ContractTraceState s (TraceError e) a), EmulatorState)
+runTraceWithInitialStates initialEmulatorState initialContractState action =
+    EM.runEmulator initialEmulatorState
+        $ runState initialContractState
+        $ interpret (Eff.writeIntoState EM.emulatorLog)
+        $ reinterpret @_ @(Writer [LogMessage EM.EmulatorEvent]) (handleLogWriter _singleton)
+        $ reinterpret @_ @(LogMsg EM.EmulatorEvent) (mapMLog makeTimed)
+        $ reinterpret @_ @(LogMsg EmulatorNotifyLogMsg) (handleEmulatorContractNotify @s @e @a)
+        $ action
+
+makeTimed :: Member (State EmulatorState) effs => EmulatorNotifyLogMsg -> Eff effs EM.EmulatorEvent
+makeTimed e = do
+    emulatorTime <- gets (view (EM.chainState . EM.currentSlot))
+    pure $ review (EM.emulatorTimeEvent emulatorTime) (EM.NotificationEvent e)
+
 -- | Run a trace in the emulator and return the final state alongside the
 --   result
 runTraceWithDistribution ::
-    forall s e a.
-    InitialDistribution
-    -> Contract s e a
-    -> Eff (ContractTraceEffs s e a) ()
-    -> (Either (TraceError e) ((), ContractTraceState s (TraceError e) a), EmulatorState)
-runTraceWithDistribution dist con =
-    let con' = mapError TContractError con in
-    withInitialDistribution @(TraceError e) dist
-        . runState (initState (Map.keys dist) con')
---   let con' = mapError TContractError con in
---   withInitialDistribution dist (runState (initState (Map.keys dist) con') action)
-
--- | Run an 'EmulatorAction' on a blockchain with the given initial distribution
---   of funds to wallets.
-withInitialDistribution ::
-    forall e a.
-       EM.AsAssertionError e
+    forall s e a b.
+    ( V.AllUniqueLabels (Input s)
+    , V.Forall (Input s) JSON.FromJSON
+    , V.Forall (Output s) V.Unconstrained1
+    )
     => InitialDistribution
-    -> Eff [Error e, State EmulatorState] a
-    -> (Either e a, EmulatorState)
-withInitialDistribution dist action =
-    let s = EM.emulatorStateInitialDist (Map.mapKeys EM.walletPubKey dist)
-        -- make sure the wallets know about the initial transaction
+    -> Contract s e a
+    -> Eff (ContractTraceEffs s e a) b
+    -> (Either (TraceError e) (b, ContractTraceState s (TraceError e) a), EmulatorState)
+runTraceWithDistribution dist con action =
+    let -- make sure the wallets know about the initial transaction
         notifyInitial = void (EM.addBlocksAndNotify (Map.keys dist) 1)
-     in EM.runEmulator s (EM.processEmulated @e notifyInitial >> action)
+        action' = EM.processEmulated @(TraceError e) notifyInitial >> action
+        con' = mapError TContractError con
+        s = EM.emulatorStateInitialDist (Map.mapKeys EM.walletPubKey dist)
+        c = initState (Map.keys dist) con'
+    in runTraceWithInitialStates s c action'
+
+-- | Run a 'Trace' on an empty blockchain with a pool of pending transactions.
+--   Note: This exists for legacy reasons. 'EM.EmulatorEffs' does not actually
+--         let you run any 'Contract's! Only 'ContractTraceEffs' does.
+--         Therefore, 'runTraceWithDistribution' and 'runTrace' should be used
+--         instead of this.
+runTraceTxPool :: forall a.
+    TxPool
+    -> Eff EM.EmulatorEffs a
+    -> (Either (TraceError Void) a, EmulatorState)
+runTraceTxPool tp =
+    let initialEmulatorState = EM.emulatorStatePool tp
+        contract = pure () -- The do-nothing contract
+        initialContractState = initState [] contract
+    in first (second fst)
+        . runTraceWithInitialStates @Row.Empty
+            initialEmulatorState
+            initialContractState
+        . EM.processEmulated @(TraceError Void)
 
 -- | Run a wallet action in the context of the given wallet, notify the wallets,
 --   and return the list of new transactions
@@ -392,7 +524,11 @@ callEndpoint wallet ep = do
     -- check if the endpoint is active and throw an error if it isn't
     hks <- getHooks @s @e @a wallet
     unless (any (Endpoint.isActive @l) $ fmap rqRequest hks) $
-        throwError @(TraceError e) $ HookError $ "Endpoint " <> tshow (Label @l) <> " not active on " <> tshow wallet
+        throwError @(TraceError e)
+            $ HookError
+            $ EndpointNotActive (Just wallet)
+            $ EndpointDescription
+            $ show (Label @l)
 
     void $ respondToRequest @s @e @a wallet $ RequestHandler $ \req -> do
         guard (Endpoint.isActive @l req)
@@ -516,6 +652,8 @@ handleBlockchainEvents :: forall s e a.
     , HasOwnPubKey s
     , HasTxConfirmation s
     , HasAwaitSlot s
+    , HasContractNotify s
+    , HasOwnId s
     )
     => Wallet
     -> ContractTrace s e a ()
@@ -533,6 +671,8 @@ handleBlockchainEventsOptions ::
     , HasOwnPubKey s
     , HasTxConfirmation s
     , HasAwaitSlot s
+    , HasContractNotify s
+    , HasOwnId s
     )
     => HandleBlockchainEventsOptions
     -> Wallet
@@ -556,6 +696,8 @@ handleBlockchainQueries ::
     , HasTxConfirmation s
     , HasOwnPubKey s
     , HasWatchAddress s
+    , HasOwnId s
+    , HasContractNotify s
     )
     => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
 handleBlockchainQueries =
@@ -564,6 +706,8 @@ handleBlockchainQueries =
     <> handleTxConfirmedQueries
     <> handleOwnPubKeyQueries
     <> handleNextTxAtQueries
+    <> handleOwnInstanceIdQueries
+    <> handleContractNotifications
 
 -- | Submit the wallet's pending transactions to the blockchain
 --   and inform all wallets about new transactions and respond to
@@ -614,6 +758,22 @@ handleOwnPubKeyQueries =
     maybeToHandler OwnPubKey.request
     >>> RequestHandler.handleOwnPubKey
     >>^ OwnPubKey.event
+
+handleOwnInstanceIdQueries ::
+    ( HasOwnId s )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleOwnInstanceIdQueries =
+    maybeToHandler OwnInstance.request
+    >>> RequestHandler.handleOwnInstanceIdQueries
+    >>^ OwnInstance.event
+
+handleContractNotifications ::
+    ( HasContractNotify s )
+    => RequestHandler EmulatedWalletEffects (Handlers s) (Event s)
+handleContractNotifications =
+    maybeToHandler Notify.request
+    >>> RequestHandler.handleContractNotifications
+    >>^ Notify.event
 
 -- | Notify the wallet of all interesting addresses
 notifyInterestingAddresses :: forall s e a.
