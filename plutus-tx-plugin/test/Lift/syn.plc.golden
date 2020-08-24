@@ -23,7 +23,10 @@
                         (lam
                           match_Lift_Spec_SynExample_i0
                           (fun Lift_Spec_SynExample_i3 (all out_Lift_Spec_SynExample_i0 (type) (fun (fun Lift_Spec_Z_i7 out_Lift_Spec_SynExample_i1) out_Lift_Spec_SynExample_i1)))
-                          [ Lift_Spec_SynExample_i2 [ Lift_Spec_Z_i5 (con 1) ] ]
+                          [
+                            Lift_Spec_SynExample_i2
+                            [ Lift_Spec_Z_i5 (con integer 1) ]
+                          ]
                         )
                       )
                     )

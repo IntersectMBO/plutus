@@ -11,7 +11,7 @@
             (lam
               match_Lift_Spec_WrappedBS_i0
               (fun Lift_Spec_WrappedBS_i3 (all out_Lift_Spec_WrappedBS_i0 (type) (fun (fun (con bytestring) out_Lift_Spec_WrappedBS_i1) out_Lift_Spec_WrappedBS_i1)))
-              [ Lift_Spec_WrappedBS_i2 (con #68656c6c6f) ]
+              [ Lift_Spec_WrappedBS_i2 (con bytestring #68656c6c6f) ]
             )
           )
         )

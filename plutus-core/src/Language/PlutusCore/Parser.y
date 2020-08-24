@@ -181,7 +181,6 @@ mkBuiltinType tyloc tyname = case tyname of
   "unit"       -> pure $ mkTyBuiltin @()         tyloc
   _ -> throwError $ UnknownBuiltinType tyloc tyname
 
--- TODO: add a `Parsable` class so that types can provide their own parsers; 
 mkBuiltinConstant
   :: DefaultUni <: uni
   => AlexPosn -> String -> AlexPosn -> String -> Parse (Term TyName Name uni AlexPosn)
