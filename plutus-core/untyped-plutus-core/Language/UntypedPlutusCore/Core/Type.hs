@@ -1,7 +1,15 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Language.UntypedPlutusCore.Core.Type where
+module Language.UntypedPlutusCore.Core.Type
+    ( TPLC.UniOf
+    , TPLC.StaticBuiltinName (..)
+    , TPLC.DynamicBuiltinName (..)
+    , TPLC.BuiltinName (..)
+    , Term (..)
+    , termAnn
+    , erase
+    ) where
 
 import           PlutusPrelude
 
