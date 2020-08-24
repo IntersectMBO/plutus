@@ -2,8 +2,8 @@
 import           Data.Functor
 import           Distribution.Simple
 import           Distribution.Simple.Setup
-import           Distribution.Types.PackageDescription
 import           Distribution.Types.LocalBuildInfo
+import           Distribution.Types.PackageDescription
 import           Turtle
 
 main :: IO ()
