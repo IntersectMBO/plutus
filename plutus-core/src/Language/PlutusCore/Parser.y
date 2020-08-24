@@ -125,7 +125,7 @@ Term : Var                                                 { $1 }
      | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant (tkLoc $3) -- % = monadic action
 	                                                       (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteral $4)}
      | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
-     | openParen   builtin builtinid         closeParen    { mkBuiltin $2 (tkBuiltinId $3) }
+     | openParen   builtin builtinid         closeParen    { mkBuiltinFunction $2 (tkBuiltinId $3) }
      | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
      | openParen   errorTerm Type            closeParen    { Error $2 $3 }
 
@@ -140,7 +140,19 @@ Type : TyVar { $1 }
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
 
-{ --- Haskell helper functions ---
+
+-- Haskell helper code
+{    
+--- The Parse monad ---
+
+type Parse = ExceptT (ParseError AlexPosn) Alex
+
+parseError :: Token AlexPosn -> Parse b
+parseError = throwError . Unexpected
+
+
+--- Static built-in functions ---
+
 getStaticBuiltinName :: T.Text -> Maybe StaticBuiltinName
 getStaticBuiltinName = \case
     "addInteger"               -> Just AddInteger
@@ -168,7 +180,9 @@ getStaticBuiltinName = \case
     _                          -> Nothing
 
 
--- TODO: somehow allow the type names to be provided from outside
+--- Parsing built-in types and constants ---
+-- Most of this stuff will be moved into a Parsable class at some point
+  
 mkBuiltinType
     :: DefaultUni <: uni
     => AlexPosn -> String -> Parse (Type TyName uni AlexPosn)
@@ -208,6 +222,9 @@ readConstant
     => AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
 readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t lit)
   
+
+--- Parsing bytestrings ---
+
 parseByteString
     :: DefaultUni <: uni
     => String -> AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
@@ -217,53 +234,38 @@ parseByteString tyname litloc lit = do
         _        -> pure Nothing
 
 -- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
--- TODO: is there a more cunning way to do this?
 pairs :: [a] -> Maybe [(a,a)]
 pairs []         = Just []
-pairs (a:b:rest) = (a,b) ?: (pairs rest)
+pairs (a:b:rest) = fmap ((:) (a,b)) (pairs rest)
 pairs _          = Nothing
-
-infixr 5 ?:
-(?:) :: a -> Maybe [a] -> Maybe [a]
-(?:) a Nothing   = Nothing
-(?:) a (Just as) = Just (a:as)
 
 hexDigitToWord8 :: Char -> Maybe Word8
 hexDigitToWord8 c =
     let x = ord8 c
-    in    if c >= '0' && c <= '9'  then Just $ x - ord8 '0'
-    else  if c >= 'a' && c <= 'f'  then Just $ x - ord8 'a' + 10
-    else  if c >= 'A' && c <= 'F'  then Just $ x - ord8 'A' + 10
+    in    if '0' <= c && c <= '9'  then  Just $ x - ord8 '0'
+    else  if 'a' <= c && c <= 'f'  then  Just $ x - ord8 'a' + 10
+    else  if 'A' <= c && c <= 'F'  then  Just $ x - ord8 'A' + 10
     else  Nothing
 
     where ord8 :: Char -> Word8
 	  ord8 = fromIntegral . Data.Char.ord
 
--- | TODO: fix this!!!
-asBytes :: String -> Maybe [Word8]
-asBytes l = fmap (map handlePair) (mapM hexDigitToWord8 l >>= pairs)
-	    where handlePair :: (Word8, Word8) -> Word8
-	          handlePair (n, n') = 16 * n + n'
-
+-- | Convert a String into a ByteString, failing if the string has odd length
+-- or any of its characters are not hex digits
 asBSLiteral :: String -> Maybe ByteString
-asBSLiteral s = fmap BSL.pack (asBytes s)
-
+asBSLiteral s =
+    mapM hexDigitToWord8 s >>= pairs  -- convert s into a list of pairs of Word8 values in [0..15]
+    <&> map (\(a,b) -> 16*a + b)      -- convert pairs of values in [0..15] to values in [0..255]
+    <&> BSL.pack
+     
 			      
-mkBuiltin :: a -> T.Text -> Term TyName Name uni a
-mkBuiltin loc ident = 
+--- Constructing terms ---
+
+mkBuiltinFunction :: a -> T.Text -> Term TyName Name uni a
+mkBuiltinFunction loc ident = 
    case getStaticBuiltinName ident of 
       Just b  -> Builtin loc $ StaticBuiltinName b
       Nothing -> Builtin loc (DynBuiltinName (DynamicBuiltinName ident))
-
--- FIXME: at this point it would be good to have access to the current
--- dynamic builtin names to check if a builtin with that name exists
--- and issue an error if not.  Unfortunately that involves adding a
--- parameter of type DynamicBuiltinNameMeanings to almost every
--- function in PlutusPrelude.hs, and others elsewhere.  @effectfully
--- says that his future plans may help with this.  In the meantime,
--- you get a scope resolution error during typechecking/execution if
--- it encounters a nonexistent name.  [We could also have a hard-coded
--- list of known dynamic names here, but that might not be ideal.]
 
 tyInst :: a -> Term tyname name uni a -> NonEmpty (Type tyname uni a) -> Term tyname name uni a
 tyInst loc t (ty :| []) = TyInst loc t ty
@@ -277,6 +279,9 @@ app :: a -> Term tyname name uni a -> NonEmpty (Term tyname name uni a) -> Term 
 app loc t (t' :| []) = Apply loc t t'
 app loc t (t' :| ts) = Apply loc (app loc t (t':|init ts)) (last ts)
 
+
+--- Running the parser ---
+			      
 parseST :: ByteString -> StateT IdentifierState (Except (ParseError AlexPosn)) (Program TyName Name DefaultUni AlexPosn)
 parseST str =  runAlexST' str (runExceptT parsePlutusCoreProgram) >>= liftEither
 
@@ -321,10 +326,5 @@ parseTm str = fmap fst $ runExcept $ runStateT (parseTermST str) emptyIdentifier
 
 parseTy :: ByteString -> Either (ParseError AlexPosn) (Type TyName DefaultUni AlexPosn)
 parseTy str = fmap fst $ runExcept $ runStateT (parseTypeST str) emptyIdentifierState
-
-type Parse = ExceptT (ParseError AlexPosn) Alex
-
-parseError :: Token AlexPosn -> Parse b
-parseError = throwError . Unexpected
 
 }
