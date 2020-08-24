@@ -107,7 +107,7 @@ $upper = [A-Z]
 
 @quotedstring = \" ($printable)* \"
 @quotedchar   = ' ($printable)* ' -- Allow multiple characters so we can handle escape sequences
-@charseq      = ~['\"] ( $printable # [ \( \) ])+
+@charseq      = ~[ ' \" ] ( $printable # [ \( \) ] )+
 --   @charseq      = ( $printable # [ \( \)])+
 -- ^ Don't match single or double quotes or whitespace at the start.
 -- Without $white, preceding whitespace is included
@@ -161,20 +161,20 @@ tokens :-
     "}"                  { mkSpecial CloseBrace }
 
 
-    -- Literal built-in constants
-    <literalconst> "()"           { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }  -- Maybe trim leading spaces
-    <literalconst>  @quotedchar   { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  @quotedstring { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  ^$white* @charseq { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
-    <literalconst>  $white* ")"   { mkSpecial CloseParen `andBegin` 0 }
-    
     -- Natural literal, used in version numbers
     <0> @nat                      { tok (\p s -> alex $ TkNat p (readBSL s)) }
     
     -- Identifiers
     <0> @name                     { tok (\p s -> handle_name p (textOf s)) }
 
-    <bin> @builtinid              { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
+    -- Literal built-in constants
+    <literalconst> "()"               { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  @quotedchar       { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  @quotedstring     { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+    <literalconst>  @charseq          { tok (\p s -> alex $ TkLiteral p (stringOf s)) `andBegin` 0 }
+--    <0>  ")"               { mkSpecial CloseParen `andBegin` 0 }
+    
+    <bin> @builtinid                  { tok (\p s -> alex $ TkBuiltinId p (textOf s)) `andBegin` 0 }
 
 {
 
@@ -193,8 +193,8 @@ textOf :: BSL.ByteString -> T.Text
 textOf = T.decodeUtf8 . BSL.toStrict
 
 stringOf :: BSL.ByteString -> String
-stringOf = T.unpack . T.decodeUtf8 . BSL.toStrict
--- stringOf = dropWhile isSpace . T.unpack . T.decodeUtf8 . BSL.toStrict
+--stringOf = T.unpack . T.decodeUtf8 . BSL.toStrict
+stringOf = dropWhile isSpace . T.unpack . T.decodeUtf8 . BSL.toStrict
 -- FIXME: do this with the tokens
    
 

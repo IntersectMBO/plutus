@@ -33,7 +33,7 @@ import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
 import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 
-import           Data.Char                 (isHexDigit, chr, ord)
+import           Data.Char                 (isHexDigit, ord)
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as BSL (tail, pack, unpack)
 import qualified Data.List.NonEmpty        as NE
@@ -212,8 +212,8 @@ parseByteString
     => String -> AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
 parseByteString tyname litloc lit = do
       case lit of
-         '#':body -> undefined -- asBSLiteral body
-         _ -> pure Nothing
+	'#':body -> pure $ fmap (mkConstant litloc) $ asBSLiteral body
+        _        -> pure Nothing
 
 -- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
 -- TODO: is there a more cunning way to do this?
@@ -227,33 +227,27 @@ infixr 5 ?:
 (?:) a Nothing   = Nothing
 (?:) a (Just as) = Just (a:as)
 
-handleChar :: Word8 -> Maybe Word8
-handleChar x =
-    let c = chr8 x
+hexDigitToWord8 :: Char -> Maybe Word8
+hexDigitToWord8 c =
+    let x = ord8 c
     in    if c >= '0' && c <= '9'  then Just $ x - ord8 '0'
     else  if c >= 'a' && c <= 'f'  then Just $ x - ord8 'a' + 10
     else  if c >= 'A' && c <= 'F'  then Just $ x - ord8 'A' + 10
     else  Nothing
 
-    where chr8 :: Word8 -> Char
-          chr8 = Data.Char.chr . fromIntegral
-
-	  ord8 :: Char -> Word8
+    where ord8 :: Char -> Word8
 	  ord8 = fromIntegral . Data.Char.ord
 
-handlePair :: (Word8, Word8) -> Maybe Word8
-handlePair (c, c') = 
-   case (handleChar c, handleChar c') of
-      (Just n, Just n') -> Just $ 16 * n + n'
-      _ -> Nothing   
+-- | TODO: fix this!!!
+asBytes :: String -> Maybe [Word8]
+asBytes l = fmap (map handlePair) (mapM hexDigitToWord8 l >>= pairs)
+	    where handlePair :: (Word8, Word8) -> Word8
+	          handlePair (n, n') = 16 * n + n'
 
-asBytes :: [Word8] -> Maybe [Word8]
-asBytes l = join $ mapM sequence $ fmap (map handlePair) (mapM handleChar l >>= pairs)
+asBSLiteral :: String -> Maybe ByteString
+asBSLiteral s = fmap BSL.pack (asBytes s)
 
-asBSLiteral :: ByteString -> Maybe ByteString
-asBSLiteral s = fmap BSL.pack (asBytes $ BSL.unpack s)
-
-
+			      
 mkBuiltin :: a -> T.Text -> Term TyName Name uni a
 mkBuiltin loc ident = 
    case getStaticBuiltinName ident of 
