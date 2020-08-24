@@ -17,7 +17,7 @@ packages: plutus-core
           plutus-contract
           deployment-server
           iots-export
-          metatheory
+          plutus-metatheory
           prettyprinter-configurable
           doc
           web-ghc
