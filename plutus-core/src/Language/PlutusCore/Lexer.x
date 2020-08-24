@@ -107,8 +107,7 @@ $upper = [A-Z]
 
 @quotedstring = \" ($printable)* \"
 @quotedchar   = ' ($printable)* ' -- Allow multiple characters so we can handle escape sequences
-@charseq      = ~[ ' \" ] ( $printable # [ \( \) ] )+
---   @charseq      = ( $printable # [ \( \)])+
+@charseq      = ( $printable # [ \( \) ] )+
 -- ^ Don't match single or double quotes or whitespace at the start.
 -- Without $white, preceding whitespace is included
 -- ... except that now we're trimming leading whitespace in stringOf
