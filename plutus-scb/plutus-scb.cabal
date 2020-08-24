@@ -98,6 +98,7 @@ library
         Plutus.SCB.Instances
         Plutus.SCB.MonadLoggerBridge
         Plutus.SCB.Monitoring
+        Plutus.SCB.Swagger
         Plutus.SCB.Webserver.API
         Plutus.SCB.Webserver.Handler
         Plutus.SCB.Webserver.Server
@@ -170,6 +171,8 @@ library
         servant -any,
         servant-client -any,
         servant-server -any,
+        servant-swagger -any,
+        swagger2 -any,
         typed-protocols -any,
         typed-protocols-examples -any,
         servant-websockets -any,
