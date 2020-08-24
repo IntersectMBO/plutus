@@ -141,7 +141,7 @@ let additions =
           , repo =
               "https://github.com/shmish111/purescript-servant-support"
           , version =
-              "v10.0.0"
+              "c03a68d5dbc60e516b7c531250ccb40db5bb2658"
           }
       , concurrent-queues =
           { dependencies =
