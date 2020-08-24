@@ -10,7 +10,7 @@ license-files:
 author:              James Chapman
 maintainer:          james.chapman@iohk.io
 category:            Development
-extra-source-files:  README.md
+extra-source-files:  README.md, Plutus.agda-lib
 build-type:          Custom
 
 custom-setup
