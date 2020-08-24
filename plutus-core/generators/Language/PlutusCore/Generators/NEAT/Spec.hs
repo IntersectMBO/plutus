@@ -20,7 +20,6 @@ module Language.PlutusCore.Generators.NEAT.Spec
   ) where
 
 import           Language.PlutusCore
-import           Language.PlutusCore.DeBruijn
 import           Language.PlutusCore.Generators.NEAT.Common
 import           Language.PlutusCore.Generators.NEAT.Type
 import           Language.PlutusCore.Normalize
@@ -135,11 +134,11 @@ prop_normalTypesCannotReduce k (Normalized tyG) =
 
 
 -- |Create a generator test, searching for a counter-example to the given predicate.
-testCaseGen :: (Check t a, Enumerable a)
+testCaseGen :: (Check t a, Enumerable a, Show e)
         => TestName
         -> GenOptions
         -> t
-        -> (t -> a -> ExceptT TestFail Quote ())
+        -> (t -> a -> ExceptT e Quote ())
         -> TestTree
 testCaseGen name GenOptions{..} t prop =
   testCaseInfo name $ do
@@ -162,8 +161,6 @@ testCaseGen name GenOptions{..} t prop =
 data TestFail
   = GenError GenError
   | TypeError (TypeError DefaultUni ())
-  | FVError FreeVariableError
-  | AgdaError ()
   | Ctrex Ctrex
 
 data Ctrex
@@ -202,7 +199,7 @@ throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
 throwCtrex ctrex = throwError (Ctrex ctrex)
 
 -- |Check if running |Quote| and |Except| throws any errors.
-isOk :: ExceptT TestFail Quote a -> Cool
+isOk :: ExceptT e Quote a -> Cool
 isOk = toCool . isRight . run
 
 -- |Run |Quote| and |Except| effects.
