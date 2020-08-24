@@ -32,7 +32,7 @@ import           Data.Text.Prettyprint.Doc.Render.Text           (renderStrict)
 import qualified Data.UUID                                       as UUID
 import           Eventful                                        (streamEventEvent)
 import           Language.Plutus.Contract.Effects.ExposeEndpoint (EndpointDescription (EndpointDescription))
-import           Ledger                                          (PubKeyHash)
+import           Ledger                                          (PubKeyHash, pubKeyHash)
 import           Ledger.Blockchain                               (Blockchain)
 import           Plutus.SCB.Arbitrary                            ()
 import           Plutus.SCB.Core                                 (runGlobalQuery)
@@ -51,7 +51,7 @@ import           Plutus.SCB.Types
 import           Plutus.SCB.Webserver.Types
 import           Servant                                         ((:<|>) ((:<|>)))
 import           Wallet.Effects                                  (ChainIndexEffect, confirmedBlocks)
-import           Wallet.Emulator.Wallet                          (Wallet)
+import           Wallet.Emulator.Wallet                          (Wallet (Wallet), walletPubKey)
 import qualified Wallet.Rollup                                   as Rollup
 
 healthcheck :: Monad m => m ()
@@ -84,7 +84,13 @@ getChainReport = do
                       , chainOverviewUnspentTxsById
                       , chainOverviewUtxoIndex
                       } = mkChainOverview blocks
-    let walletMap :: Map PubKeyHash Wallet = Map.empty -- TODO Will the real walletMap please step forward?
+    let walletMap :: Map PubKeyHash Wallet
+        walletMap =
+            foldMap
+                (\index ->
+                     let wallet = Wallet index
+                      in Map.singleton (pubKeyHash $ walletPubKey wallet) wallet)
+                [1 .. 10]
     annotatedBlockchain <- Rollup.doAnnotateBlockchain chainOverviewBlockchain
     pure
         ChainReport
