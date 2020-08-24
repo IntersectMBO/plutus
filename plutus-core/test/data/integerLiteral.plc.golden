@@ -1,1 +1,3 @@
-Lexical error: lexical error at line 1, column 21
+(program 0.1.0
+  (con integer 102341)
+)

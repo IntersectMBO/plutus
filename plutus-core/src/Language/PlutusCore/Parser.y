@@ -189,7 +189,9 @@ mkBuiltinConstant tyloc tyname litloc lit  = do
           case tyname of
             "bool"       -> case lit of
                               "true"  -> pure $ Just $ mkConstant litloc True
+                              "True"  -> pure $ Just $ mkConstant litloc True
                               "false" -> pure $ Just $ mkConstant litloc False
+                              "False" -> pure $ Just $ mkConstant litloc False
                               _       -> pure Nothing
             "bytestring" -> parseByteString tyname litloc lit
             "char"       -> readConstant @ Char    litloc lit 
