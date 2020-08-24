@@ -26,6 +26,7 @@ module Language.PlutusCore.Evaluation.Machine.Exception
     , ErrorWithCause (..)
     , MachineException
     , EvaluationException
+    , mapErrorWithCauseF
     , throwingWithCause
     , extractEvaluationResult
     ) where
@@ -91,7 +92,7 @@ data EvaluationError internal user term
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
-    deriving (Show, Eq)
+    deriving (Show, Eq, Functor)
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
@@ -118,8 +119,21 @@ data ErrorWithCause err term
     = ErrorWithCause err (Maybe term)
     deriving (Eq, Functor)
 
-type MachineException internal term = ErrorWithCause (MachineError internal term) term
-type EvaluationException internal user term = ErrorWithCause (EvaluationError internal user term) term
+instance Bifunctor ErrorWithCause where
+    bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
+
+type MachineException internal term =
+    ErrorWithCause (MachineError internal term) term
+
+type EvaluationException internal user term =
+    ErrorWithCause (EvaluationError internal user term) term
+
+mapErrorWithCauseF
+    :: Functor f
+    => (term1 -> term2)
+    -> ErrorWithCause (f term1) term1
+    -> ErrorWithCause (f term2) term2
+mapErrorWithCauseF f = bimap (fmap f) f
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -150,7 +164,7 @@ extractEvaluationResult
     -> Either (MachineException internal term) (EvaluationResult a)
 extractEvaluationResult (Right term) = Right $ EvaluationSuccess term
 extractEvaluationResult (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    InternalEvaluationError err -> Left $ ErrorWithCause err cause
+    InternalEvaluationError err -> Left  $ ErrorWithCause err cause
     UserEvaluationError _       -> Right $ EvaluationFailure
 
 instance Pretty UnliftingError where

@@ -56,16 +56,17 @@ import           Language.PlutusCore.Pretty
 import           Language.PlutusCore.Subst
 import           Language.PlutusCore.Universe
 
+import           Control.Lens                                       (AReview)
 import           Control.Lens.Operators
 import           Control.Lens.Setter
 import           Control.Monad.Except
+import           Control.Monad.Morph
 import           Control.Monad.Reader
 import           Control.Monad.State.Strict
+import           Data.Array
 import           Data.HashMap.Monoidal
 import qualified Data.Map                                           as Map
 import           Data.Text.Prettyprint.Doc
-
-import           Data.Array
 
 {- Note [Scoping]
    The CEK machine does not rely on the global uniqueness condition, so the renamer pass is not a
@@ -122,29 +123,48 @@ data CekUserError
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving (Show, Eq)
 
+{- Note [Being generic over @term@ in 'CekM']
+We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
+@term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
+
+The point is that in many different cases we can annotate an evaluation failure with a 'Term' that
+caused it. Originally we were using 'CekValue' instead of 'Term', however that meant that we had to
+ignore some important cases where we just can't produce a 'CekValue', for example if we encounter
+a free variable, we can't turn it into a 'CekValue' and report the result as the cause of the
+failure, which is bad. 'Term' is strictly more general than 'CekValue' and so we can always
+
+1. report things like free variables
+2. report a 'CekValue' turned into a 'Term' via 'dischargeCekValue'
+
+We need the latter, because the constant application machinery, in the context of the CEK machine,
+expects a list of 'CekValue's and so in the event of failure it has to report one of those
+arguments, so we have no option but to call the constant application machinery with 'CekValue'
+being the cause of a potential failure. But as mentioned, turning a 'CekValue' into a 'Term' is
+no problem and we need that elsewhere anyway, so we don't need any extra machinery for calling the
+constant application machinery over a list of 'CekValue's and turning the cause of a possible
+failure into a 'Term', apart from the straightforward generalization of 'CekM'.
+-}
+
+-- | The CEK machine-specific 'EvaluationException', parameterized over @term@.
+type CekEvaluationExceptionCarrying term =
+    EvaluationException UnknownDynamicBuiltinNameError CekUserError term
+
+-- See Note [Being generic over @term@ in 'CekM'].
+-- | A generalized version of 'CekM' carrying a @term@.
+-- 'State' is inside the 'ExceptT', so we can get it back in case of error.
+type CekCarryingM term uni =
+    ReaderT (CekEnv uni) (ExceptT (CekEvaluationExceptionCarrying term) (State ExBudgetState))
+
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationException uni =
-    EvaluationException UnknownDynamicBuiltinNameError CekUserError (CekValue uni)
+type CekEvaluationException uni = CekEvaluationExceptionCarrying (Plain Term uni)
+
+-- | The monad the CEK machine runs in.
+type CekM uni = CekCarryingM (Plain Term uni) uni
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res) b) =
         group $ "The limit" <+> prettyClassicDef res <+> "was reached by the execution environment. Final state:" <+> prettyClassicDef b
     pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
-
--- | The monad the CEK machine runs in. State is inside the ExceptT, so we can
--- get it back in case of error.
-type CekM uni = ReaderT (CekEnv uni) (ExceptT (CekEvaluationException uni) (State ExBudgetState))
-
-{- | Note [Errors and CekValues]
-Most errors take an optional argument that can be used to report the
-term causing the error. Our builtin applications take CekValues as
-arguments, and this constrains the `term` type in the constant
-application machinery to be equal to `CekValue`.  This (I think) means
-that our errors can only involve CekValues and not Terms, so in some
-cases we can't provide any context when an error occurs (eg, if we try
-to look up a free variable in an environment: there's no CekValue for
-Var, so we can't report which variable caused the error.
--}
 
 arityOf :: BuiltinName -> CekM uni Arity
 arityOf (StaticBuiltinName name) =
@@ -228,7 +248,7 @@ instance ToExMemory (CekValue uni) where
         VIWrap ex _ _ _ -> ex
         VBuiltin ex _ _ _ _ _ _ -> ex
 
-instance SpendBudget (CekM uni) (CekValue uni) where
+instance ToExMemory term => SpendBudget (CekCarryingM term uni) term where
     builtinCostParams = asks cekEnvBuiltinCostParams
     spendBudget key budget = do
         modifying exBudgetStateTally
@@ -244,7 +264,7 @@ instance SpendBudget (CekM uni) (CekValue uni) where
                         Nothing  -- No value available for error
 
 data Frame uni
-    = FrameApplyFun (CekValue uni)                               -- ^ @[V _]@
+    = FrameApplyFun (CekValue uni)                             -- ^ @[V _]@
     | FrameApplyArg (CekValEnv uni) (TermWithMem uni)          -- ^ @[_ N]@
     | FrameTyInstArg (TypeWithMem uni)                         -- ^ @{_ A}@
     | FrameUnwrap                                              -- ^ @(unwrap _)@
@@ -264,15 +284,14 @@ runCekM env s a = runState (runExceptT $ runReaderT a env) s
 -- | Extend an environment with a variable name, the value the variable stands for
 -- and the environment the value is defined in.
 extendEnv :: Name -> CekValue uni -> CekValEnv uni -> CekValEnv uni
-extendEnv argName arg  =
-    insertByName argName arg
+extendEnv = insertByName
 
 -- | Look up a variable name in the environment.
 lookupVarName :: Name -> CekValEnv uni -> CekM uni (CekValue uni)
 lookupVarName varName varEnv = do
     case lookupName varName varEnv of
-        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Nothing
-                    -- No value available for error
+        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
+            var = Var () varName
         Just val -> pure val
 
 -- | Look up a 'DynamicBuiltinName' in the environment.
@@ -281,8 +300,9 @@ lookupDynamicBuiltinName
 lookupDynamicBuiltinName dynName = do
     DynamicBuiltinNameMeanings means <- asks cekEnvMeans
     case Map.lookup dynName means of
-        Nothing   -> throwingWithCause _MachineError err Nothing where
-            err  = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+        Nothing   -> throwingWithCause _MachineError err $ Just cause where
+            err = OtherMachineError $ UnknownDynamicBuiltinNameErrorE dynName
+            cause = Builtin () $ DynBuiltinName dynName
         Just mean -> pure mean
 
 -- | The computing part of the CEK machine.
@@ -329,13 +349,21 @@ computeCek ctx env (Builtin ex bn) = do
   arity <- arityOf bn
   returnCek ctx (VBuiltin ex bn arity arity [] [] env)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek _ _  Error{} =
-    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) Nothing -- No value available for error
+computeCek _ _ (Error _ ty) =
+    throwingWithCause _EvaluationError (UserEvaluationError CekEvaluationFailure) $ Just err where
+        err = Error () $ void ty
 -- s ; ρ ▻ x  ↦  s ◅ ρ[ x ]
 computeCek ctx env (Var _ varName) = do
     spendBudget BVar (ExBudget 1 1) -- TODO
     val <- lookupVarName varName env
     returnCek ctx val
+
+-- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
+-- 'throwingWithCause' as the cause of the failure.
+throwingDischarged
+    :: MonadError (ErrorWithCause e (Plain Term uni)) m
+    => AReview e t -> t -> CekValue uni -> m x
+throwingDischarged l t = throwingWithCause l t . Just . void . dischargeCekValue
 
 -- | The returning phase of the CEK machine.
 -- Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -381,8 +409,7 @@ returnCek (FrameIWrap ex pat arg : ctx) val =
 returnCek (FrameUnwrap : ctx) val =
     case val of
       VIWrap _ _ _ v -> returnCek ctx v
-      _              ->
-        throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just val
+      _              -> throwingDischarged _MachineError NonWrapUnwrappedMachineError val
 
 {- Note [Accumulating arguments].  The VBuiltin value contains lists of type and
 term arguments which grow as new arguments are encountered.  In the code below
@@ -407,16 +434,20 @@ instantiateEvaluate
 instantiateEvaluate ctx _ (VTyAbs _ _ _ body env) = computeCek ctx env body
 instantiateEvaluate ctx ty val@(VBuiltin ex bn arity0 arity tyargs args argEnv) =
     case arity of
-      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val
-                        {- This should be impossible if we don't have zero-arity builtins:
-                           we will have found this case in an earlier call to instantiateEvaluate
-                           or applyEvaluate and called applyBuiltinName. -}
-      TermArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinInstantiationMachineError $ Just val'
-                        where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv     -- Reconstruct the bad application
-      TypeArg:[]     -> applyBuiltinName ctx bn args                                            -- Final argument is a type argument
-      TypeArg:arity' -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
+      []             ->
+          throwingDischarged _MachineError EmptyBuiltinArityMachineError val
+      TermArg:_      ->
+      {- This should be impossible if we don't have zero-arity builtins:
+         we will have found this case in an earlier call to instantiateEvaluate
+         or applyEvaluate and called applyBuiltinName. -}
+          throwingDischarged _MachineError UnexpectedBuiltinInstantiationMachineError val'
+                        where val' = VBuiltin ex bn arity0 arity (tyargs++[ty]) args argEnv -- reconstruct the bad application
+      TypeArg:arity' ->
+          case arity' of
+            [] -> applyBuiltinName ctx bn args  -- Final argument is a type argument
+            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' (tyargs++[ty]) args argEnv -- More arguments expected
 instantiateEvaluate _ _ val =
-        throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just val
+        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
 
 -- | Apply a function to an argument and proceed.
@@ -433,14 +464,18 @@ applyEvaluate
     -> CekM uni (Plain Term uni)
 applyEvaluate ctx (VLamAbs _ name _ty body env) arg =
     computeCek ctx (extendEnv name arg env) body
-applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg =do
+applyEvaluate ctx val@(VBuiltin ex bn arity0 arity tyargs args argEnv) arg = do
     case arity of
-      []             -> throwingWithCause _MachineError EmptyBuiltinArityMachineError $ Just val    -- Should be impossible: see instantiateEvaluate.
-      TypeArg:_      -> throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError $ Just val'
-                        where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv        -- Reconstruct the bad application
-      TermArg:[]     -> applyBuiltinName ctx bn (args ++ [arg])                                     -- 'arg' was the final argument
-      TermArg:arity' -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs (args ++ [arg]) argEnv  -- More arguments expected
-applyEvaluate _ val _ = throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just val
+      []        -> throwingDischarged _MachineError EmptyBuiltinArityMachineError val
+                -- Should be impossible: see instantiateEvaluate.
+      TypeArg:_ -> throwingDischarged _MachineError UnexpectedBuiltinTermArgumentMachineError val'
+                   where val' = VBuiltin ex bn arity0 arity tyargs (args++[arg]) argEnv -- reconstruct the bad application
+      TermArg:arity' -> do
+          let args' = args ++ [arg]
+          case arity' of
+            [] -> applyBuiltinName ctx bn args' -- 'arg' was the final argument
+            _  -> returnCek ctx $ VBuiltin ex bn arity0 arity' tyargs args' argEnv  -- More arguments expected
+applyEvaluate _ val _ = throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
 -- | Apply a builtin to a list of CekValue arguments
 applyBuiltinName
@@ -450,12 +485,15 @@ applyBuiltinName
     -> [CekValue uni]
     -> CekM uni (Plain Term uni)
 applyBuiltinName ctx bn args = do
+  -- Turn the cause of a possible failure, being a 'CekValue', into a 'Term'.
+  -- See Note [Being generic over @term@ in 'CekM'].
+  let dischargeError = hoist $ withExceptT $ mapErrorWithCauseF $ void . dischargeCekValue
   result <- case bn of
            n@(DynBuiltinName name) -> do
                DynamicBuiltinNameMeaning sch x exX <- lookupDynamicBuiltinName name
-               applyTypeSchemed n sch x exX args
+               dischargeError $ applyTypeSchemed n sch x exX args
            StaticBuiltinName name ->
-               applyStaticBuiltinName name args
+               dischargeError $ applyStaticBuiltinName name args
   case result of
     EvaluationSuccess t -> returnCek ctx t
     EvaluationFailure ->
@@ -525,5 +563,4 @@ readKnownCek
     -> CostModel
     -> Plain Term uni
     -> Either (CekEvaluationException uni) a
--- Calling 'withMemory' just to unify the monads that 'readKnown' and the CEK machine run in.
-readKnownCek means params = evaluateCek means params >=> first (fmap $ VCon . withMemory) . readKnown
+readKnownCek means params = evaluateCek means params >=> readKnown
