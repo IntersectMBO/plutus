@@ -31,14 +31,16 @@ import Language.PlutusCore.Core
 import Language.PlutusCore.Name
 import Language.PlutusCore.Universe
 import Language.PlutusCore.Mark
-import Language.PlutusCore.MkPlc          (mkTyBuiltin, mkConstant)
+import Language.PlutusCore.MkPlc           (mkTyBuiltin, mkConstant)
 
-import           Data.ByteString.Lazy     (ByteString)
-import qualified Data.List.NonEmpty as NE
+import           Data.Char                 (isHexDigit, chr, ord)
+import           Data.ByteString.Lazy      (ByteString)
+import qualified Data.ByteString.Lazy      as BSL (tail, pack, unpack)
+import qualified Data.List.NonEmpty        as NE
 import qualified Data.Map
 import qualified Data.Text as T
-import Text.Read                          (readMaybe)
-import Data.Text.Prettyprint.Doc.Internal (Doc (Text))
+import Text.Read                           (readMaybe)
+import Data.Text.Prettyprint.Doc.Internal  (Doc (Text))
 import Control.Monad.Except
 import Control.Monad.State
 
@@ -115,13 +117,13 @@ TyName : name { TyName (Name (tkName $1) (tkIdentifier $1)) }
 
 TyVar  : name { TyVar (tkLoc $1) (TyName (Name (tkName $1) (tkIdentifier $1))) }
 
--- { % ... } denotes a monadic action below
 Term : Var                                                 { $1 }
      | openParen   abs TyName Kind Term      closeParen    { TyAbs $2 $3 $4 $5 }
      | openBrace   Term some(Type)           closeBrace    { tyInst $1 $2 (NE.reverse $3) }
      | openParen   lam Name Type Term        closeParen    { LamAbs $2 $3 $4 $5 }
      | openBracket Term some(Term)           closeBracket  { app $1 $2 (NE.reverse $3) }
-     | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant $2 (tkBuiltinTypeId $3) (tkLiteral $4)}
+     | openParen   con builtintypeid literal closeParen    { % mkBuiltinConstant (tkLoc $3) -- % = monadic action
+	                                                       (tkBuiltinTypeId $3) (tkLoc $4) (tkLiteral $4)}
      | openParen   iwrap Type Type Term      closeParen    { IWrap $2 $3 $4 $5 }
      | openParen   builtin builtinid         closeParen    { mkBuiltin $2 (tkBuiltinId $3) }
      | openParen   unwrap Term               closeParen    { Unwrap $2 $3 }
@@ -133,7 +135,7 @@ Type : TyVar { $1 }
      | openParen   lam TyName Kind Type closeParen    { TyLam $2 $3 $4 $5 }
      | openParen   ifix Type Type       closeParen    { TyIFix $2 $3 $4 }
      | openBracket Type some(Type)      closeBracket  { tyApps $1 $2 (NE.reverse $3) }
-     | openParen   con builtintypeid    closeParen    { % mkBuiltinType $2 (tkBuiltinTypeId $3) }
+     | openParen   con builtintypeid    closeParen    { % mkBuiltinType (tkLoc $3) (tkBuiltinTypeId $3) }
 
 Kind : parens(type) { Type $1 }
      | openParen fun Kind Kind closeParen { KindArrow $2 $3 $4 }
@@ -170,34 +172,34 @@ getStaticBuiltinName = \case
 mkBuiltinType
     :: DefaultUni <: uni
     => AlexPosn -> String -> Parse (Type TyName uni AlexPosn)
-mkBuiltinType loc tyname = case tyname of
-  "bool"       -> pure $ mkTyBuiltin @Bool       loc
-  "bytestring" -> pure $ mkTyBuiltin @ByteString loc
-  "char"       -> pure $ mkTyBuiltin @Char       loc
-  "integer"    -> pure $ mkTyBuiltin @Integer    loc
-  "string"     -> pure $ mkTyBuiltin @String     loc
-  "unit"       -> pure $ mkTyBuiltin @()         loc
-  _ -> throwError $ UnknownBuiltinType loc tyname
+mkBuiltinType tyloc tyname = case tyname of
+  "bool"       -> pure $ mkTyBuiltin @Bool       tyloc
+  "bytestring" -> pure $ mkTyBuiltin @ByteString tyloc
+  "char"       -> pure $ mkTyBuiltin @Char       tyloc
+  "integer"    -> pure $ mkTyBuiltin @Integer    tyloc
+  "string"     -> pure $ mkTyBuiltin @String     tyloc
+  "unit"       -> pure $ mkTyBuiltin @()         tyloc
+  _ -> throwError $ UnknownBuiltinType tyloc tyname
 
 -- TODO: add a `Parsable` class so that types can provide their own parsers; 
 mkBuiltinConstant
   :: DefaultUni <: uni
-  => AlexPosn -> String -> String -> Parse (Term TyName Name uni AlexPosn)
-mkBuiltinConstant loc tyname lit  = do
+  => AlexPosn -> String -> AlexPosn -> String -> Parse (Term TyName Name uni AlexPosn)
+mkBuiltinConstant tyloc tyname litloc lit  = do
     val <-
           case tyname of
             "bool"       -> case lit of
-                              "true"  -> pure $ Just $ mkConstant loc True
-                              "false" -> pure $ Just $ mkConstant loc False
+                              "true"  -> pure $ Just $ mkConstant litloc True
+                              "false" -> pure $ Just $ mkConstant litloc False
                               _       -> pure Nothing
-            "bytestring" -> parseByteString loc tyname lit
-            "char"       -> readConstant @ Char    loc lit 
-            "integer"    -> readConstant @ Integer loc lit 
-            "string"     -> readConstant @ String  loc lit
-            "unit"       -> readConstant @ ()      loc lit 
-            _            -> throwError $ UnknownBuiltinType loc tyname
+            "bytestring" -> parseByteString tyname litloc lit
+            "char"       -> readConstant @ Char    litloc lit 
+            "integer"    -> readConstant @ Integer litloc lit 
+            "string"     -> readConstant @ String  litloc lit
+            "unit"       -> readConstant @ ()      litloc lit 
+            _            -> throwError $ UnknownBuiltinType tyloc tyname
     case val of
-         Nothing -> throwError $ InvalidBuiltinConstant loc lit tyname
+         Nothing -> throwError $ InvalidBuiltinConstant litloc lit tyname
          Just v -> pure v
 
 readConstant
@@ -207,53 +209,49 @@ readConstant loc lit = pure $ fmap (mkConstant loc) $ (readMaybe @ t lit)
   
 parseByteString
     :: DefaultUni <: uni
-    => AlexPosn -> String -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
-parseByteString loc tyname lit = undefined
-  
+    => String -> AlexPosn -> String -> Parse (Maybe (Term TyName Name uni AlexPosn))
+parseByteString tyname litloc lit = do
+      case lit of
+         '#':body -> undefined -- asBSLiteral body
+         _ -> pure Nothing
 
-{-
-trimBytes :: BSL.ByteString -> BSL.ByteString
-trimBytes str = BSL.take (BSL.length str - 5) str
+-- | Convert a list to a list of pairs, failing if the input list has an odd number of elements
+-- TODO: is there a more cunning way to do this?
+pairs :: [a] -> Maybe [(a,a)]
+pairs []         = Just []
+pairs (a:b:rest) = (a,b) ?: (pairs rest)
+pairs _          = Nothing
 
-ord8 :: Char -> Word8
-ord8 = fromIntegral . Data.Char.ord
+infixr 5 ?:
+(?:) :: a -> Maybe [a] -> Maybe [a]
+(?:) a Nothing   = Nothing
+(?:) a (Just as) = Just (a:as)
 
-chr8 :: Word8 -> Char
-chr8 = Data.Char.chr . fromIntegral
-
-handleChar :: Word8 -> Word8
+handleChar :: Word8 -> Maybe Word8
 handleChar x =
-    let c :: Char = Data.Char.chr (fromIntegral x)
-    in    if c >= '0' && c <= '9'  then x - ord8 '0'
-    else  if c >= 'a' && c <= 'f'  then x - ord8 'a' + 10
-    else  if c >= 'A' && c <= 'F'  then x - ord8 'A' + 10
-    else  undefined -- safe b/c macro only matches hex digits
+    let c = chr8 x
+    in    if c >= '0' && c <= '9'  then Just $ x - ord8 '0'
+    else  if c >= 'a' && c <= 'f'  then Just $ x - ord8 'a' + 10
+    else  if c >= 'A' && c <= 'F'  then Just $ x - ord8 'A' + 10
+    else  Nothing
 
+    where chr8 :: Word8 -> Char
+          chr8 = Data.Char.chr . fromIntegral
 
--- turns a pair of bytes such as "a6" into a single Word8
-handlePair :: Word8 -> Word8 -> Word8
-handlePair c c' = 16 * handleChar c + handleChar c'
+	  ord8 :: Char -> Word8
+	  ord8 = fromIntegral . Data.Char.ord
 
-asBytes :: [Word8] -> [Word8]
-asBytes [] = mempty
-asBytes (c:c':cs) = handlePair c c' : asBytes cs
-asBytes _ = undefined -- safe b/c macro matches them in pairs
+handlePair :: (Word8, Word8) -> Maybe Word8
+handlePair (c, c') = 
+   case (handleChar c, handleChar c') of
+      (Just n, Just n') -> Just $ 16 * n + n'
+      _ -> Nothing   
 
-asBSLiteral :: BSL.ByteString -> BSL.ByteString
-asBSLiteral = withBytes asBytes . BSL.tail
-    where withBytes f = BSL.pack . f . BSL.unpack
+asBytes :: [Word8] -> Maybe [Word8]
+asBytes l = join $ mapM sequence $ fmap (map handlePair) (mapM handleChar l >>= pairs)
 
--- Convert a single-quoted string to a character.  This should handle escape codes correctly.
-getCharLiteral :: BSL.ByteString -> Char
-getCharLiteral s =
-    let str = ASCII.unpack s
-    in case Text.Read.readMaybe str :: Maybe Char of
-       Just c -> c
-       Nothing -> error $ "Lexical error: invalid character constant " ++ str
-       -- Using error here isn't ideal, but it'll go away when types can supply their own parsers
-
--}
-
+asBSLiteral :: ByteString -> Maybe ByteString
+asBSLiteral s = fmap BSL.pack (asBytes $ BSL.unpack s)
 
 
 mkBuiltin :: a -> T.Text -> Term TyName Name uni a
@@ -303,6 +301,7 @@ mapParseRun run = do
     pure p
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
+
 -- of handling any parse errors.
 parseProgram :: (AsParseError e AlexPosn, MonadError e m, MonadQuote m) => ByteString -> m (Program TyName Name DefaultUni AlexPosn)
 parseProgram str = mapParseRun (parseST str)
